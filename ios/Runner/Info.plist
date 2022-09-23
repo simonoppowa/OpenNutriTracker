@@ -25,6 +25,7 @@
 	<key>CFBundleLocalizations</key>
 	<array>
 	    <string>en</string>
+	    <string>de</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
