@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:opennutritracker/core/styles/color_schemes.dart';
+import 'package:opennutritracker/core/styles/fonts.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 void main() {
@@ -14,8 +15,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),
-      // darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
+      theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: lightColorScheme,
+          textTheme: appTextTheme),
+      // darkTheme: ThemeData(
+      //     useMaterial3: true,
+      //     colorScheme: darkColorScheme,
+      //     textTheme: appTextTheme),
       localizationsDelegates: const [
         S.delegate,
         GlobalMaterialLocalizations.delegate,
