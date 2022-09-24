@@ -59,6 +59,16 @@ class S {
       args: [],
     );
   }
+
+  /// `OpenNutriTracker`
+  String get appTitle {
+    return Intl.message(
+      'OpenNutriTracker',
+      name: 'appTitle',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

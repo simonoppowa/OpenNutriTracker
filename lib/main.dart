@@ -5,16 +5,17 @@ import 'package:opennutritracker/core/styles/fonts.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const OpenNutriTrackerApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class OpenNutriTrackerApp extends StatelessWidget {
+  const OpenNutriTrackerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      onGenerateTitle: (context) =>
+      S.of(context).appTitle,
       theme: ThemeData(
           useMaterial3: true,
           colorScheme: lightColorScheme,
