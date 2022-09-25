@@ -1,4 +1,5 @@
 {
   "helloWorld": "Hello World",
-  "appTitle": "OpenNutriTracker"
+  "appTitle": "OpenNutriTracker",
+  "addLabel": "Add"
 }

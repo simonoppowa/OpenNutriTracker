@@ -69,6 +69,16 @@ class S {
       args: [],
     );
   }
+
+  /// `Add`
+  String get addLabel {
+    return Intl.message(
+      'Add',
+      name: 'addLabel',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
