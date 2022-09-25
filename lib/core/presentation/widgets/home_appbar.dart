@@ -17,7 +17,11 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
-        IconButton(onPressed: () {}, icon: const Icon(Icons.settings_outlined))
+        IconButton(
+          icon: const Icon(Icons.settings_outlined),
+          tooltip: S.of(context).settingsLabel,
+          onPressed: () {},
+        )
       ],
     );
   }
