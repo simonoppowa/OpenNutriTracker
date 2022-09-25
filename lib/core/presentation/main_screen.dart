@@ -40,11 +40,13 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       appBar: _appbarPages[_selectedPageIndex],
       body: _bodyPages[_selectedPageIndex],
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        tooltip: S.of(context).addLabel,
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: _selectedPageIndex == 0
+          ? FloatingActionButton(
+              onPressed: () {},
+              tooltip: S.of(context).addLabel,
+              child: const Icon(Icons.add),
+            )
+          : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedPageIndex,
         onDestinationSelected: _setPage,
