@@ -24,6 +24,10 @@ class MessageLookup extends MessageLookupByLibrary {
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
         "appTitle": MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
-        "helloWorld": MessageLookupByLibrary.simpleMessage("Hello World")
+        "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),
+        "helloWorld": MessageLookupByLibrary.simpleMessage("Hello World"),
+        "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
+        "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
+        "settingsLabel": MessageLookupByLibrary.simpleMessage("Settings")
       };
 }

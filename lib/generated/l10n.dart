@@ -79,6 +79,46 @@ class S {
       args: [],
     );
   }
+
+  /// `Settings`
+  String get settingsLabel {
+    return Intl.message(
+      'Settings',
+      name: 'settingsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Home`
+  String get homeLabel {
+    return Intl.message(
+      'Home',
+      name: 'homeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Diary`
+  String get diaryLabel {
+    return Intl.message(
+      'Diary',
+      name: 'diaryLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Profile`
+  String get profileLabel {
+    return Intl.message(
+      'Profile',
+      name: 'profileLabel',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

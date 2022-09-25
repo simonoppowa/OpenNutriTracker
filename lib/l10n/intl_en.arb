@@ -1,5 +1,9 @@
 {
   "helloWorld": "Hello World",
   "appTitle": "OpenNutriTracker",
-  "addLabel": "Add"
+  "addLabel": "Add",
+  "settingsLabel": "Settings",
+  "homeLabel": "Home",
+  "diaryLabel": "Diary",
+  "profileLabel": "Profile"
 }
