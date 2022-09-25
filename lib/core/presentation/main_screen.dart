@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/widgets/diary_page.dart';
 import 'package:opennutritracker/core/presentation/widgets/home_appbar.dart';
 import 'package:opennutritracker/core/presentation/widgets/home_page.dart';
+import 'package:opennutritracker/core/presentation/widgets/main_appbar.dart';
 import 'package:opennutritracker/core/presentation/widgets/profile_page.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -14,17 +15,30 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedPageIndex = 0;
-  
-  final List<Widget> _bodyPages = [
-    const HomePage(),
-    const DiaryPage(),
-    const ProfilePage(),
-  ];
-  
+
+  late List<Widget> _bodyPages;
+  late List<PreferredSizeWidget> _appbarPages;
+
+  @override
+  void didChangeDependencies() {
+    _bodyPages = [
+      const HomePage(),
+      const DiaryPage(),
+      const ProfilePage(),
+    ];
+    _appbarPages = [
+      const HomeAppbar(),
+      MainAppbar(title: S.of(context).diaryLabel, iconData: Icons.book),
+      MainAppbar(
+          title: S.of(context).profileLabel, iconData: Icons.account_circle)
+    ];
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const HomeAppbar(),
+      appBar: _appbarPages[_selectedPageIndex],
       body: _bodyPages[_selectedPageIndex],
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
@@ -48,11 +62,10 @@ class _MainScreenState extends State<MainScreen> {
       ),
     );
   }
-  
+
   void _setPage(int selectedIndex) {
     setState(() {
       _selectedPageIndex = selectedIndex;
     });
   }
-
 }
