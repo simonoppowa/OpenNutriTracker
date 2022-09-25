@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:opennutritracker/core/presentation/home_screen.dart';
+import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/styles/color_schemes.dart';
 import 'package:opennutritracker/core/styles/fonts.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -35,7 +35,7 @@ class OpenNutriTrackerApp extends StatelessWidget {
       supportedLocales: S.delegate.supportedLocales,
       initialRoute: NavigationOptions.mainRoute,
       routes: {
-        NavigationOptions.mainRoute: (context) => const HomeScreen()
+        NavigationOptions.mainRoute: (context) => const MainScreen()
       },
     );
   }
