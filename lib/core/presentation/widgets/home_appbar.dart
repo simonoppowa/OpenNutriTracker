@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
@@ -20,7 +21,9 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: const Icon(Icons.settings_outlined),
           tooltip: S.of(context).settingsLabel,
-          onPressed: () {},
+          onPressed: () {
+            Navigator.of(context).pushNamed(NavigationOptions.settingsRoute);
+          },
         )
       ],
     );
