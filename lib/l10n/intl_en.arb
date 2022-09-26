@@ -5,5 +5,19 @@
   "settingsLabel": "Settings",
   "homeLabel": "Home",
   "diaryLabel": "Diary",
-  "profileLabel": "Profile"
+  "profileLabel": "Profile",
+
+  "dialogOKLabel": "OK",
+  "dialogCancelLabel": "Cancel",
+
+  "settingsUnitsLabel": "Units",
+  "settingsLicensesLabel": "Licenses",
+  "settingsDisclaimerLabel": "Disclaimer",
+  "settingsReportErrorLabel": "Report Error",
+  "settingsSourceCodeLabel": "Source Code",
+  "settingFeedbackLabel": "Feedback",
+  "settingAboutLabel": "About",
+  "settingsMassLabel": "Mass",
+  "settingsDistanceLabel": "Distance",
+  "settingsVolumeLabel": "Volume"
 }

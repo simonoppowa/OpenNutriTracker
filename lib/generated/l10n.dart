@@ -119,6 +119,126 @@ class S {
       args: [],
     );
   }
+
+  /// `OK`
+  String get dialogOKLabel {
+    return Intl.message(
+      'OK',
+      name: 'dialogOKLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel`
+  String get dialogCancelLabel {
+    return Intl.message(
+      'Cancel',
+      name: 'dialogCancelLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Units`
+  String get settingsUnitsLabel {
+    return Intl.message(
+      'Units',
+      name: 'settingsUnitsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Licenses`
+  String get settingsLicensesLabel {
+    return Intl.message(
+      'Licenses',
+      name: 'settingsLicensesLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Disclaimer`
+  String get settingsDisclaimerLabel {
+    return Intl.message(
+      'Disclaimer',
+      name: 'settingsDisclaimerLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Report Error`
+  String get settingsReportErrorLabel {
+    return Intl.message(
+      'Report Error',
+      name: 'settingsReportErrorLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Source Code`
+  String get settingsSourceCodeLabel {
+    return Intl.message(
+      'Source Code',
+      name: 'settingsSourceCodeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Feedback`
+  String get settingFeedbackLabel {
+    return Intl.message(
+      'Feedback',
+      name: 'settingFeedbackLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `About`
+  String get settingAboutLabel {
+    return Intl.message(
+      'About',
+      name: 'settingAboutLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mass`
+  String get settingsMassLabel {
+    return Intl.message(
+      'Mass',
+      name: 'settingsMassLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Distance`
+  String get settingsDistanceLabel {
+    return Intl.message(
+      'Distance',
+      name: 'settingsDistanceLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Volume`
+  String get settingsVolumeLabel {
+    return Intl.message(
+      'Volume',
+      name: 'settingsVolumeLabel',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

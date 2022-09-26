@@ -24,10 +24,28 @@ class MessageLookup extends MessageLookupByLibrary {
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
         "appTitle": MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
+        "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("Cancel"),
+        "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),
         "helloWorld": MessageLookupByLibrary.simpleMessage("Hello World"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
-        "settingsLabel": MessageLookupByLibrary.simpleMessage("Settings")
+        "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
+        "settingFeedbackLabel":
+            MessageLookupByLibrary.simpleMessage("Feedback"),
+        "settingsDisclaimerLabel":
+            MessageLookupByLibrary.simpleMessage("Disclaimer"),
+        "settingsDistanceLabel":
+            MessageLookupByLibrary.simpleMessage("Distance"),
+        "settingsLabel": MessageLookupByLibrary.simpleMessage("Settings"),
+        "settingsLicensesLabel":
+            MessageLookupByLibrary.simpleMessage("Licenses"),
+        "settingsMassLabel": MessageLookupByLibrary.simpleMessage("Mass"),
+        "settingsReportErrorLabel":
+            MessageLookupByLibrary.simpleMessage("Report Error"),
+        "settingsSourceCodeLabel":
+            MessageLookupByLibrary.simpleMessage("Source Code"),
+        "settingsUnitsLabel": MessageLookupByLibrary.simpleMessage("Units"),
+        "settingsVolumeLabel": MessageLookupByLibrary.simpleMessage("Volume")
       };
 }
