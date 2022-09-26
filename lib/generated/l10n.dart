@@ -260,11 +260,31 @@ class S {
     );
   }
 
+  /// `GPL-3.0 license`
+  String get appLicenseLabel {
+    return Intl.message(
+      'GPL-3.0 license',
+      name: 'appLicenseLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Error while opening email app`
   String get errorOpeningEmail {
     return Intl.message(
       'Error while opening email app',
       name: 'errorOpeningEmail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error while opening browser app`
+  String get errorOpeningBrowser {
+    return Intl.message(
+      'Error while opening browser app',
+      name: 'errorOpeningBrowser',
       desc: '',
       args: [],
     );

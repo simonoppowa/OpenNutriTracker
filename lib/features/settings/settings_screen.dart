@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -33,6 +34,7 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.error_outline_outlined),
             title: Text(S.of(context).settingAboutLabel),
+            onTap: () => _showAboutDialog(context),
           )
         ],
       ),
@@ -141,6 +143,41 @@ class SettingsScreen extends StatelessWidget {
       // Cannot open email app, show error snackbar
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(S.of(context).errorOpeningEmail)));
+    }
+  }
+
+  void _showAboutDialog(BuildContext context) async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    showAboutDialog(
+        context: context,
+        applicationName: S.of(context).appTitle,
+        applicationIcon: SizedBox(
+            width: 40, child: Image.asset('assets/icon/ont_logo_square.png')),
+        applicationVersion: packageInfo.version,
+        applicationLegalese: S.of(context).appLicenseLabel,
+        children: [
+          TextButton(
+              onPressed: () {
+                _launchSourceCodeUrl(context);
+              },
+              child: Row(
+                children: [
+                  const Icon(Icons.code_outlined),
+                  const SizedBox(width: 8.0),
+                  Text(S.of(context).settingsSourceCodeLabel),
+                ],
+              ))
+        ]);
+  }
+
+  void _launchSourceCodeUrl(BuildContext context) async {
+    final sourceCodeUri = Uri.parse(AppConst.sourceCodeUrl);
+    if (await canLaunchUrl(sourceCodeUri)) {
+      launchUrl(sourceCodeUri, mode: LaunchMode.externalApplication);
+    } else {
+      // Cannot open browser app, show error snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).errorOpeningBrowser)));
     }
   }
 }
