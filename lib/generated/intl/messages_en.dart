@@ -24,14 +24,18 @@ class MessageLookup extends MessageLookupByLibrary {
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
         "appTitle": MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
-        "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("Cancel"),
+        "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("CANCEL"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
             "OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems.\n\n\nThe application is still under construction. Errors within the app cannot be ruled out."),
+        "errorOpeningEmail": MessageLookupByLibrary.simpleMessage(
+            "Error while opening email app"),
         "helloWorld": MessageLookupByLibrary.simpleMessage("Hello World"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
+        "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
+            "Do you want to report an error to the developer?"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),

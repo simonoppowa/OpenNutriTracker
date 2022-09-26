@@ -130,10 +130,10 @@ class S {
     );
   }
 
-  /// `Cancel`
+  /// `CANCEL`
   String get dialogCancelLabel {
     return Intl.message(
-      'Cancel',
+      'CANCEL',
       name: 'dialogCancelLabel',
       desc: '',
       args: [],
@@ -245,6 +245,26 @@ class S {
     return Intl.message(
       'OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems.\n\n\nThe application is still under construction. Errors within the app cannot be ruled out.',
       name: 'disclaimerText',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Do you want to report an error to the developer?`
+  String get reportErrorDialogText {
+    return Intl.message(
+      'Do you want to report an error to the developer?',
+      name: 'reportErrorDialogText',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error while opening email app`
+  String get errorOpeningEmail {
+    return Intl.message(
+      'Error while opening email app',
+      name: 'errorOpeningEmail',
       desc: '',
       args: [],
     );

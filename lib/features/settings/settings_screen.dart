@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -26,6 +28,7 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.bug_report_outlined),
             title: Text(S.of(context).settingsReportErrorLabel),
+            onTap: () => _showReportErrorDialog(context),
           ),
           ListTile(
             leading: const Icon(Icons.error_outline_outlined),
@@ -102,5 +105,42 @@ class SettingsScreen extends StatelessWidget {
             ],
           );
         });
+  }
+
+  void _showReportErrorDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(S.of(context).settingsReportErrorLabel),
+            content: Text(S.of(context).reportErrorDialogText),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(S.of(context).dialogCancelLabel)),
+              TextButton(
+                  onPressed: () async {
+                    _reportError(context);
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(S.of(context).dialogOKLabel))
+            ],
+          );
+        });
+  }
+
+  Future<void> _reportError(BuildContext context) async {
+    final reportUri =
+        Uri.parse("mailto:${AppConst.reportErrorEmail}?subject=Report_Error");
+
+    if (await canLaunchUrl(reportUri)) {
+      launchUrl(reportUri);
+    } else {
+      // Cannot open email app, show error snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).errorOpeningEmail)));
+    }
   }
 }

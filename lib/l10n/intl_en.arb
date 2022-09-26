@@ -8,7 +8,7 @@
   "profileLabel": "Profile",
 
   "dialogOKLabel": "OK",
-  "dialogCancelLabel": "Cancel",
+  "dialogCancelLabel": "CANCEL",
 
   "settingsUnitsLabel": "Units",
   "settingsLicensesLabel": "Licenses",
@@ -20,5 +20,8 @@
   "settingsMassLabel": "Mass",
   "settingsDistanceLabel": "Distance",
   "settingsVolumeLabel": "Volume",
-  "disclaimerText": "OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems.\n\n\nThe application is still under construction. Errors within the app cannot be ruled out."
+  "disclaimerText": "OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems.\n\n\nThe application is still under construction. Errors within the app cannot be ruled out.",
+  "reportErrorDialogText": "Do you want to report an error to the developer?",
+
+  "errorOpeningEmail": "Error while opening email app"
 }
