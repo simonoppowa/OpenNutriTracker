@@ -21,6 +21,7 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.description_outlined),
             title: Text(S.of(context).settingsDisclaimerLabel),
+            onTap: () => _showDisclaimerDialog(context),
           ),
           ListTile(
             leading: const Icon(Icons.bug_report_outlined),
@@ -82,6 +83,24 @@ class SettingsScreen extends StatelessWidget {
                     },
                     child: Text(S.of(context).dialogOKLabel))
               ]);
+        });
+  }
+
+  void _showDisclaimerDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(S.of(context).settingsDisclaimerLabel),
+            content: Text(S.of(context).disclaimerText),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(S.of(context).dialogOKLabel))
+            ],
+          );
         });
   }
 }

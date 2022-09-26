@@ -27,6 +27,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("Cancel"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),
+        "disclaimerText": MessageLookupByLibrary.simpleMessage(
+            "OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems.\n\n\nThe application is still under construction. Errors within the app cannot be ruled out."),
         "helloWorld": MessageLookupByLibrary.simpleMessage("Hello World"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
