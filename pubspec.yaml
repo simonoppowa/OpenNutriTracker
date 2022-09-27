@@ -42,6 +42,10 @@ dependencies:
   package_info_plus: ^1.4.3+1
   url_launcher: ^6.1.5
 
+  flutter_bloc: ^8.1.1
+  equatable: ^2.0.5
+  provider: ^6.0.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
