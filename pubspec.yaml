@@ -35,6 +35,7 @@ dependencies:
 
   intl: ^0.17.0
   http: ^0.13.5
+  json_annotation: ^4.6.0
   flutter_launcher_icons: ^0.10.0
   path_provider: ^2.0.11
   flutter_secure_storage: ^6.0.0
@@ -50,6 +51,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  build_runner: ^2.2.1
+  json_serializable: ^6.4.0
   flutter_lints: ^2.0.0
 
 flutter:
