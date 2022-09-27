@@ -37,6 +37,29 @@ class OFFProductNutriments {
   final double? proteins_value;
   final String? proteins_unit;
 
+  final double? sugars;
+  final double? sugars_100g;
+  final double? sugars_serving;
+  final double? sugars_value;
+  final String? sugars_unit;
+
+  @JsonKey(name: 'saturated-fat')
+  final double? saturated_fat;
+  @JsonKey(name: 'saturated-fat_100g')
+  final double? saturated_fat_100g;
+  @JsonKey(name: 'saturated-fat_serving')
+  final double? saturated_fat_serving;
+  @JsonKey(name: 'saturated-fat_value')
+  final double? saturated_fat_value;
+  @JsonKey(name: 'saturated-fat_unit')
+  final String? saturated_fat_unit;
+
+  final double? fiber;
+  final double? fiber_100g;
+  final double? fiber_serving;
+  final double? fiber_value;
+  final String? fiber_unit;
+
   OFFProductNutriments({
     required this.energy_kcal,
     required this.energy_kcal_100g,
@@ -57,7 +80,23 @@ class OFFProductNutriments {
     required this.proteins_100g,
     required this.proteins_serving,
     required this.proteins_value,
-    required this.proteins_unit});
+    required this.proteins_unit,
+    required this.sugars,
+    required this.sugars_100g,
+    required this.sugars_serving,
+    required this.sugars_value,
+    required this.sugars_unit,
+    required this.saturated_fat,
+    required this.saturated_fat_100g,
+    required this.saturated_fat_serving,
+    required this.saturated_fat_value,
+    required this.saturated_fat_unit,
+    required this.fiber,
+    required this.fiber_100g,
+    required this.fiber_serving,
+    required this.fiber_value,
+    required this.fiber_unit,
+  });
 
   factory OFFProductNutriments.fromJson(Map<String, dynamic> json) =>
       _$OFFProductNutrimentsFromJson(json);
