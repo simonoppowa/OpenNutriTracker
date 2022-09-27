@@ -1,6 +1,7 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:opennutritracker/features/addItem/data/dto/off_product_nutriments.dart';
 
 part 'off_product.g.dart';
 
@@ -24,6 +25,8 @@ class OFFProduct {
   final dynamic serving_quantity; // Can either be int or String
   final String? serving_size;
 
+  final OFFProductNutriments nutriments;
+
   OFFProduct(
       {required this.code,
       required this.product_name,
@@ -38,7 +41,8 @@ class OFFProduct {
       required this.quantity,
       required this.product_quantity,
       required this.serving_quantity,
-      required this.serving_size});
+      required this.serving_size,
+      required this.nutriments});
 
   factory OFFProduct.fromJson(Map<String, dynamic> json) =>
       _$OFFProductFromJson(json);

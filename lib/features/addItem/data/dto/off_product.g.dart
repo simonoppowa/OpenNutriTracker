@@ -21,6 +21,8 @@ OFFProduct _$OFFProductFromJson(Map<String, dynamic> json) => OFFProduct(
       product_quantity: json['product_quantity'],
       serving_quantity: json['serving_quantity'],
       serving_size: json['serving_size'] as String?,
+      nutriments: OFFProductNutriments.fromJson(
+          json['nutriments'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$OFFProductToJson(OFFProduct instance) =>
@@ -39,4 +41,5 @@ Map<String, dynamic> _$OFFProductToJson(OFFProduct instance) =>
       'product_quantity': instance.product_quantity,
       'serving_quantity': instance.serving_quantity,
       'serving_size': instance.serving_size,
+      'nutriments': instance.nutriments,
     };
