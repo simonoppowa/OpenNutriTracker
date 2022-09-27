@@ -20,12 +20,15 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'en';
 
+  static String m0(versionNumber) => "Version ${versionNumber}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
         "appLicenseLabel":
             MessageLookupByLibrary.simpleMessage("GPL-3.0 license"),
         "appTitle": MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
+        "appVersionName": m0,
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("CANCEL"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),

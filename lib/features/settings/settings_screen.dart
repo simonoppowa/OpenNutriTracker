@@ -35,6 +35,36 @@ class SettingsScreen extends StatelessWidget {
             leading: const Icon(Icons.error_outline_outlined),
             title: Text(S.of(context).settingAboutLabel),
             onTap: () => _showAboutDialog(context),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0.0, 32.0, 0.0, 32.0),
+            child: FutureBuilder(
+              // Version name needs future
+              future: _getVersionNumber(context),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 40,
+                            child:
+                                Image.asset('assets/icon/ont_logo_square.png'),
+                          ),
+                          Text(S.of(context).appTitle,
+                              style: Theme.of(context).textTheme.headline6),
+                        ],
+                      ),
+                      Text(S.of(context).appVersionName(snapshot.requireData))
+                    ],
+                  );
+                } else {
+                  return const SizedBox();
+                }
+              },
+            ),
           )
         ],
       ),
@@ -179,5 +209,10 @@ class SettingsScreen extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(S.of(context).errorOpeningBrowser)));
     }
+  }
+
+  Future<String> _getVersionNumber(BuildContext context) async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    return packageInfo.version;
   }
 }

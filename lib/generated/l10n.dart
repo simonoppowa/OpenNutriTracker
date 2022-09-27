@@ -70,6 +70,16 @@ class S {
     );
   }
 
+  /// `Version {versionNumber}`
+  String appVersionName(Object versionNumber) {
+    return Intl.message(
+      'Version $versionNumber',
+      name: 'appVersionName',
+      desc: '',
+      args: [versionNumber],
+    );
+  }
+
   /// `Add`
   String get addLabel {
     return Intl.message(
