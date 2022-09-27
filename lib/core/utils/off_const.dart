@@ -17,10 +17,14 @@ class OFFConst {
 
   static const _offCodeTag = "code";
   static const _offBrandsTag = "brands";
+
   static const _offUrlTag = "url";
-  static const _offImageThumbTag = "image_front_thumb_url";
-  static const _offImageNutritionTag = "image_nutrition_url";
-  static const _offImageIngredientsTag = "image_ingredients_url";
+  static const _offImageUrlTag = "image_url";
+  static const _offImageThumbUrlTag = "image_front_thumb_url";
+  static const _offImageFrontUrlTag = "image_front_url";
+  static const _offImageNutritionUrlTag = "image_nutrition_url";
+  static const _offImageIngredientsUrlTag = "image_ingredients_url";
+
   static const _offProductQuantityTag = "product_quantity";
   static const _offQuantityTag = "quantity";
   static const _offServingQuantityTag = "serving_quantity";
@@ -36,6 +40,6 @@ class OFFConst {
   }
 
   static String _getReturnFields() {
-    return '$_offCodeTag,$_offBrandsTag,$_offProductNameTag,$_offProductNameENTag,$_offProductNameDETag,$_offUrlTag,$_offImageThumbTag,$_offProductQuantityTag,$_offQuantityTag,$_offServingQuantityTag,$_offServingSizeTag,$_offNutrimentsTag';
+    return '$_offCodeTag,$_offBrandsTag,$_offProductNameTag,$_offProductNameENTag,$_offProductNameDETag,$_offUrlTag,$_offImageUrlTag,$_offImageThumbUrlTag,$_offImageFrontUrlTag,$_offProductQuantityTag,$_offQuantityTag,$_offServingQuantityTag,$_offServingSizeTag,$_offNutrimentsTag';
   }
 }

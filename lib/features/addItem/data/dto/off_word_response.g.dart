@@ -12,6 +12,9 @@ OFFWordResponse _$OFFWordResponseFromJson(Map<String, dynamic> json) =>
       page: json['page'] as int?,
       page_count: json['page_count'] as int?,
       page_size: json['page_size'] as int?,
+      products: (json['products'] as List<dynamic>)
+          .map((e) => OFFProduct.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$OFFWordResponseToJson(OFFWordResponse instance) =>
@@ -20,4 +23,5 @@ Map<String, dynamic> _$OFFWordResponseToJson(OFFWordResponse instance) =>
       'page': instance.page,
       'page_count': instance.page_count,
       'page_size': instance.page_size,
+      'products': instance.products,
     };
