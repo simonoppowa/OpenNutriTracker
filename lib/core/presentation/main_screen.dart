@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
 import 'package:opennutritracker/core/presentation/widgets/diary_page.dart';
 import 'package:opennutritracker/core/presentation/widgets/home_appbar.dart';
 import 'package:opennutritracker/core/presentation/widgets/home_page.dart';
@@ -42,7 +43,7 @@ class _MainScreenState extends State<MainScreen> {
       body: _bodyPages[_selectedPageIndex],
       floatingActionButton: _selectedPageIndex == 0
           ? FloatingActionButton(
-              onPressed: () {},
+              onPressed: () => _onFabPressed(context),
               tooltip: S.of(context).addLabel,
               child: const Icon(Icons.add),
             )
@@ -69,5 +70,18 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       _selectedPageIndex = selectedIndex;
     });
+  }
+
+  void _onFabPressed(BuildContext context) async {
+    showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16.0),
+                topRight: Radius.circular(16.0))),
+        builder: (BuildContext context) {
+          return const AddItemBottomSheet();
+        });
   }
 }

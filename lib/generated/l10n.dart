@@ -280,6 +280,116 @@ class S {
     );
   }
 
+  /// `Add new Item:`
+  String get addItemLabel {
+    return Intl.message(
+      'Add new Item:',
+      name: 'addItemLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Activity`
+  String get activityLabel {
+    return Intl.message(
+      'Activity',
+      name: 'activityLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. running, biking, yoga ...`
+  String get activityExample {
+    return Intl.message(
+      'e.g. running, biking, yoga ...',
+      name: 'activityExample',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Breakfast`
+  String get breakfastLabel {
+    return Intl.message(
+      'Breakfast',
+      name: 'breakfastLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. cereal, milk, coffee ...`
+  String get breakfastExample {
+    return Intl.message(
+      'e.g. cereal, milk, coffee ...',
+      name: 'breakfastExample',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Lunch`
+  String get lunchLabel {
+    return Intl.message(
+      'Lunch',
+      name: 'lunchLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. pizza, salad, rice ...`
+  String get lunchExample {
+    return Intl.message(
+      'e.g. pizza, salad, rice ...',
+      name: 'lunchExample',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Dinner`
+  String get dinnerLabel {
+    return Intl.message(
+      'Dinner',
+      name: 'dinnerLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. soup, chicken, wine ...`
+  String get dinnerExample {
+    return Intl.message(
+      'e.g. soup, chicken, wine ...',
+      name: 'dinnerExample',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Snack`
+  String get snackLabel {
+    return Intl.message(
+      'Snack',
+      name: 'snackLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. apple, ice cream, chocolate ...`
+  String get snackExample {
+    return Intl.message(
+      'e.g. apple, ice cream, chocolate ...',
+      name: 'snackExample',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Error while opening email app`
   String get errorOpeningEmail {
     return Intl.message(

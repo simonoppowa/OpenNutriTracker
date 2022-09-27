@@ -24,14 +24,24 @@ class MessageLookup extends MessageLookupByLibrary {
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
+        "activityExample": MessageLookupByLibrary.simpleMessage(
+            "e.g. running, biking, yoga ..."),
+        "activityLabel": MessageLookupByLibrary.simpleMessage("Activity"),
+        "addItemLabel": MessageLookupByLibrary.simpleMessage("Add new Item:"),
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
         "appLicenseLabel":
             MessageLookupByLibrary.simpleMessage("GPL-3.0 license"),
         "appTitle": MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
         "appVersionName": m0,
+        "breakfastExample": MessageLookupByLibrary.simpleMessage(
+            "e.g. cereal, milk, coffee ..."),
+        "breakfastLabel": MessageLookupByLibrary.simpleMessage("Breakfast"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("CANCEL"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),
+        "dinnerExample": MessageLookupByLibrary.simpleMessage(
+            "e.g. soup, chicken, wine ..."),
+        "dinnerLabel": MessageLookupByLibrary.simpleMessage("Dinner"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
             "OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems.\n\n\nThe application is still under construction. Errors within the app cannot be ruled out."),
         "errorOpeningBrowser": MessageLookupByLibrary.simpleMessage(
@@ -40,6 +50,9 @@ class MessageLookup extends MessageLookupByLibrary {
             "Error while opening email app"),
         "helloWorld": MessageLookupByLibrary.simpleMessage("Hello World"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
+        "lunchExample":
+            MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
+        "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
         "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
             "Do you want to report an error to the developer?"),
@@ -59,6 +72,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Source Code"),
         "settingsUnitsLabel": MessageLookupByLibrary.simpleMessage("Units"),
-        "settingsVolumeLabel": MessageLookupByLibrary.simpleMessage("Volume")
+        "settingsVolumeLabel": MessageLookupByLibrary.simpleMessage("Volume"),
+        "snackExample": MessageLookupByLibrary.simpleMessage(
+            "e.g. apple, ice cream, chocolate ..."),
+        "snackLabel": MessageLookupByLibrary.simpleMessage("Snack")
       };
 }

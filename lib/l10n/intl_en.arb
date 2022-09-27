@@ -25,6 +25,18 @@
   "reportErrorDialogText": "Do you want to report an error to the developer?",
   "appLicenseLabel": "GPL-3.0 license",
 
+  "addItemLabel": "Add new Item:",
+  "activityLabel": "Activity",
+  "activityExample": "e.g. running, biking, yoga ...",
+  "breakfastLabel": "Breakfast",
+  "breakfastExample": "e.g. cereal, milk, coffee ...",
+  "lunchLabel": "Lunch",
+  "lunchExample": "e.g. pizza, salad, rice ...",
+  "dinnerLabel": "Dinner",
+  "dinnerExample": "e.g. soup, chicken, wine ...",
+  "snackLabel": "Snack",
+  "snackExample": "e.g. apple, ice cream, chocolate ...",
+
   "errorOpeningEmail": "Error while opening email app",
   "errorOpeningBrowser": "Error while opening browser app"
 }
