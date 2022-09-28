@@ -50,7 +50,7 @@ class ProductEntity {
     } else if (value is int) {
       parsedValue = value.toDouble();
     } else if (value is String) {
-      value.replaceAll(RegExp("mg|g|kg|ml|l| "), "");
+      value.replaceAll(RegExp("mg|g|kg|ml|cl|l| "), ""); // TODO extract
       final doubleParsed =
           double.tryParse(value) ?? int.tryParse(value)?.toDouble();
       parsedValue = doubleParsed;
