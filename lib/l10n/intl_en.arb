@@ -8,6 +8,7 @@
   "diaryLabel": "Diary",
   "profileLabel": "Profile",
   "searchLabel": "Search",
+  "searchResultsLabel": "Search results",
 
   "dialogOKLabel": "OK",
   "dialogCancelLabel": "CANCEL",

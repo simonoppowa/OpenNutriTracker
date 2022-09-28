@@ -57,6 +57,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
             "Do you want to report an error to the developer?"),
         "searchLabel": MessageLookupByLibrary.simpleMessage("Search"),
+        "searchResultsLabel":
+            MessageLookupByLibrary.simpleMessage("Search results"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),
