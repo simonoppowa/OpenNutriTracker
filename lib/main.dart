@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/styles/color_schemes.dart';
 import 'package:opennutritracker/core/styles/fonts.dart';
+import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  LoggerConfig.intiLogger();
 
+  final log = Logger('main');
+  log.info('Starting App ...');
   runApp(const OpenNutriTrackerApp());
 }
 
@@ -19,8 +24,7 @@ class OpenNutriTrackerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      onGenerateTitle: (context) =>
-      S.of(context).appTitle,
+      onGenerateTitle: (context) => S.of(context).appTitle,
       theme: ThemeData(
           useMaterial3: true,
           colorScheme: lightColorScheme,
