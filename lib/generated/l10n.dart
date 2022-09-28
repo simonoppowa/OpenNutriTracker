@@ -130,6 +130,16 @@ class S {
     );
   }
 
+  /// `Search`
+  String get searchLabel {
+    return Intl.message(
+      'Search',
+      name: 'searchLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `OK`
   String get dialogOKLabel {
     return Intl.message(
