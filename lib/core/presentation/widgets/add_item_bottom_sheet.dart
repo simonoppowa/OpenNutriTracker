@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class AddItemBottomSheet extends StatelessWidget {
@@ -48,6 +49,9 @@ class AddItemBottomSheet extends StatelessWidget {
           leading: Container(
               height: double.infinity,
               child: const Icon(Icons.bakery_dining_outlined)),
+          onTap: () {
+            _showAddItemScreen(context);
+          },
         ),
         ListTile(
           title: Text(
@@ -93,5 +97,9 @@ class AddItemBottomSheet extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  void _showAddItemScreen(BuildContext context) {
+    Navigator.of(context).pushNamed(NavigationOptions.addItemRoute);
   }
 }
