@@ -9,6 +9,7 @@
   "profileLabel": "Profile",
   "searchLabel": "Search",
   "searchResultsLabel": "Search results",
+  "searchDefaultLabel": "Please enter search word",
 
   "dialogOKLabel": "OK",
   "dialogCancelLabel": "CANCEL",

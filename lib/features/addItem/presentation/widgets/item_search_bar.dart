@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ItemSearchBar extends StatelessWidget {
-  const ItemSearchBar({Key? key}) : super(key: key);
+  final Function(String) onSearchSubmit;
+
+  const ItemSearchBar({Key? key, required this.onSearchSubmit})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +15,7 @@ class ItemSearchBar extends StatelessWidget {
           flex: 1,
           child: TextField(
               textInputAction: TextInputAction.search,
-              onSubmitted: (String text) {},
+              onSubmitted: onSearchSubmit,
               decoration: InputDecoration(
                 hintText: S.of(context).searchLabel,
                 prefixIcon: const Icon(Icons.search_outlined),

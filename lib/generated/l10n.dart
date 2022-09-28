@@ -150,6 +150,16 @@ class S {
     );
   }
 
+  /// `Please enter search word`
+  String get searchDefaultLabel {
+    return Intl.message(
+      'Please enter search word',
+      name: 'searchDefaultLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `OK`
   String get dialogOKLabel {
     return Intl.message(
