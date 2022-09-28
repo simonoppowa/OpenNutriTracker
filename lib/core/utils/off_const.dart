@@ -31,15 +31,9 @@ class OFFConst {
   static const _offServingSizeTag = "serving_size";
   static const _offNutrimentsTag = "nutriments";
 
-  static Uri getOffWordSearchUrl(String searchWord) {
-    String searchUrl =
-        '$_offBaseUrl$_offSearchTag?$_offProductNameTag=$searchWord&$_offFieldsTag=${_getReturnFields()}&$_offJsonTag=$_offJsonValue';
-    print('Fetching $searchUrl');
+  static String _getReturnFields() =>
+      '$_offCodeTag,$_offBrandsTag,$_offProductNameTag,$_offProductNameENTag,$_offProductNameDETag,$_offUrlTag,$_offImageUrlTag,$_offImageThumbUrlTag,$_offImageFrontUrlTag,$_offProductQuantityTag,$_offQuantityTag,$_offServingQuantityTag,$_offServingSizeTag,$_offNutrimentsTag';
 
-    return Uri.parse(searchUrl);
-  }
-
-  static String _getReturnFields() {
-    return '$_offCodeTag,$_offBrandsTag,$_offProductNameTag,$_offProductNameENTag,$_offProductNameDETag,$_offUrlTag,$_offImageUrlTag,$_offImageThumbUrlTag,$_offImageFrontUrlTag,$_offProductQuantityTag,$_offQuantityTag,$_offServingQuantityTag,$_offServingSizeTag,$_offNutrimentsTag';
-  }
+  static Uri getOffWordSearchUrl(String searchWord) => Uri.parse(
+      '$_offBaseUrl$_offSearchTag?$_offProductNameTag=$searchWord&$_offFieldsTag=${_getReturnFields()}&$_offJsonTag=$_offJsonValue');
 }
