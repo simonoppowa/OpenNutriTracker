@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/features/addItem/presentation/add_item_screen.dart';
+import 'package:opennutritracker/features/addItem/presentation/add_item_type.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class AddItemBottomSheet extends StatelessWidget {
@@ -34,6 +36,9 @@ class AddItemBottomSheet extends StatelessWidget {
           leading: Container(
               height: double.infinity,
               child: const Icon(Icons.sports_baseball_outlined)),
+          onTap: () {
+            _showAddItemScreen(context, AddItemType.activityType);
+          },
         ),
         const Divider(indent: 16),
         ListTile(
@@ -50,7 +55,7 @@ class AddItemBottomSheet extends StatelessWidget {
               height: double.infinity,
               child: const Icon(Icons.bakery_dining_outlined)),
           onTap: () {
-            _showAddItemScreen(context);
+            _showAddItemScreen(context, AddItemType.breakfastType);
           },
         ),
         ListTile(
@@ -66,6 +71,9 @@ class AddItemBottomSheet extends StatelessWidget {
           leading: Container(
               height: double.infinity,
               child: const Icon(Icons.lunch_dining_outlined)),
+          onTap: () {
+            _showAddItemScreen(context, AddItemType.lunchType);
+          },
         ),
         ListTile(
           title: Text(
@@ -80,6 +88,9 @@ class AddItemBottomSheet extends StatelessWidget {
           leading: Container(
               height: double.infinity,
               child: const Icon(Icons.dinner_dining_outlined)),
+          onTap: () {
+            _showAddItemScreen(context, AddItemType.dinnerType);
+          },
         ),
         ListTile(
           title: Text(
@@ -94,12 +105,16 @@ class AddItemBottomSheet extends StatelessWidget {
           leading: Container(
               height: double.infinity,
               child: const Icon(Icons.icecream_outlined)),
+          onTap: () {
+            _showAddItemScreen(context, AddItemType.snackType);
+          },
         ),
       ],
     );
   }
 
-  void _showAddItemScreen(BuildContext context) {
-    Navigator.of(context).pushNamed(NavigationOptions.addItemRoute);
+  void _showAddItemScreen(BuildContext context, AddItemType itemType) {
+    Navigator.of(context).pushNamed(NavigationOptions.addItemRoute,
+        arguments: AddItemScreenArguments(itemType));
   }
 }
