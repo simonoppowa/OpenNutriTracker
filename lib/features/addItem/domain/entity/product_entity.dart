@@ -14,6 +14,8 @@ class ProductEntity {
   final double? productQuantity;
   final double? servingQuantity;
 
+  String? get productQuantityFormatted => productQuantity?.floor().toString();
+
   ProductEntity(
       {required this.code,
       required this.productName,
