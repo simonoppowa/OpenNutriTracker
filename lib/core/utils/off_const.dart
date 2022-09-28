@@ -1,20 +1,21 @@
 import 'dart:developer';
 
 class OFFConst {
-  static const _offBaseUrl = "https://world.openfoodfacts.org/";
-  static const _offSearchTag = "search";
+  static const _offBaseUrl = "https://world.openfoodfacts.org/cgi/";
+  static const _offSearchTag = "search.pl";
 
   static const offHttpSuccessCode = 200;
   static const offHttpDownCodes = [502, 503, 500];
   static const offProductNotFoundTag = "product not found";
 
-  static const _offProductNameTag = "product_name";
-  static const _offProductNameENTag = "product_name_en";
-  static const _offProductNameDETag = "product_name_de";
+  static const _offProductSearchTermsTag = "search_terms";
   static const _offFieldsTag = "fields";
   static const _offJsonTag = "json";
   static const _offJsonValue = "true";
 
+  static const _offProductNameTag = "product_name";
+  static const _offProductNameENTag = "product_name_en";
+  static const _offProductNameDETag = "product_name_de";
   static const _offCodeTag = "code";
   static const _offBrandsTag = "brands";
 
@@ -35,5 +36,5 @@ class OFFConst {
       '$_offCodeTag,$_offBrandsTag,$_offProductNameTag,$_offProductNameENTag,$_offProductNameDETag,$_offUrlTag,$_offImageUrlTag,$_offImageThumbUrlTag,$_offImageFrontUrlTag,$_offProductQuantityTag,$_offQuantityTag,$_offServingQuantityTag,$_offServingSizeTag,$_offNutrimentsTag';
 
   static Uri getOffWordSearchUrl(String searchWord) => Uri.parse(
-      '$_offBaseUrl$_offSearchTag?$_offProductNameTag=$searchWord&$_offFieldsTag=${_getReturnFields()}&$_offJsonTag=$_offJsonValue');
+      '$_offBaseUrl$_offSearchTag?$_offProductSearchTermsTag=$searchWord&$_offFieldsTag=${_getReturnFields()}&$_offJsonTag=$_offJsonValue');
 }
