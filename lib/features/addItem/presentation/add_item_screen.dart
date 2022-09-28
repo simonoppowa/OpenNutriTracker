@@ -22,7 +22,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text(itemType.typeName)),
+        appBar: AppBar(title: Text(itemType.getTypeName(context))),
         body: const Center(child: Text('Add Item Body')));
   }
 }
