@@ -51,6 +51,7 @@
   "sugarLabel": "sugar",
   "fiberLabel": "fiber",
   "per100gLabel": "Per 100g",
+  "additionalInfoLabelOFF": "More Information at\nOpenFoodFacts",
 
   "errorOpeningEmail": "Error while opening email app",
   "errorOpeningBrowser": "Error while opening browser app"

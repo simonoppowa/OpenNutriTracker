@@ -530,6 +530,16 @@ class S {
     );
   }
 
+  /// `More Information at\nOpenFoodFacts`
+  String get additionalInfoLabelOFF {
+    return Intl.message(
+      'More Information at\nOpenFoodFacts',
+      name: 'additionalInfoLabelOFF',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Error while opening email app`
   String get errorOpeningEmail {
     return Intl.message(

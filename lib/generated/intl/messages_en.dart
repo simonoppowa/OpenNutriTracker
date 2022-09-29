@@ -29,6 +29,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "activityLabel": MessageLookupByLibrary.simpleMessage("Activity"),
         "addItemLabel": MessageLookupByLibrary.simpleMessage("Add new Item:"),
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
+        "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
+            "More Information at\nOpenFoodFacts"),
         "appLicenseLabel":
             MessageLookupByLibrary.simpleMessage("GPL-3.0 license"),
         "appTitle": MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
