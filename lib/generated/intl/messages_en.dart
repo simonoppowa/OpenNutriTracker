@@ -67,6 +67,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "per100gLabel": MessageLookupByLibrary.simpleMessage("Per 100g"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
         "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),
+        "quantityLabel": MessageLookupByLibrary.simpleMessage("Quantity"),
         "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
             "Do you want to report an error to the developer?"),
         "saturatedFatLabel":
@@ -96,6 +97,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "snackExample": MessageLookupByLibrary.simpleMessage(
             "e.g. apple, ice cream, chocolate ..."),
         "snackLabel": MessageLookupByLibrary.simpleMessage("Snack"),
-        "sugarLabel": MessageLookupByLibrary.simpleMessage("sugar")
+        "sugarLabel": MessageLookupByLibrary.simpleMessage("sugar"),
+        "unitLabel": MessageLookupByLibrary.simpleMessage("Unit")
       };
 }

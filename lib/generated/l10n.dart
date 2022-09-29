@@ -540,6 +540,26 @@ class S {
     );
   }
 
+  /// `Quantity`
+  String get quantityLabel {
+    return Intl.message(
+      'Quantity',
+      name: 'quantityLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unit`
+  String get unitLabel {
+    return Intl.message(
+      'Unit',
+      name: 'unitLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Error while opening email app`
   String get errorOpeningEmail {
     return Intl.message(

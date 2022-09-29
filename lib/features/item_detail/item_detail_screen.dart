@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_macro_nutrients.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_nutriments_table.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_info_button.dart';
@@ -64,6 +65,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           )
         ],
       ),
+      bottomSheet: const ItemDetailBottomSheet(),
     );
   }
 }
