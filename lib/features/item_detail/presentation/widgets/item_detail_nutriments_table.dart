@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ItemDetailNutrimentsTable extends StatelessWidget {
-  const ItemDetailNutrimentsTable({Key? key}) : super(key: key);
+  final ProductEntity product;
+
+  const ItemDetailNutrimentsTable({Key? key, required this.product})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {

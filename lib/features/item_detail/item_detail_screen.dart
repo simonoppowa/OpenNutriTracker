@@ -29,12 +29,12 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Coffee')),
+      appBar: AppBar(title: Text('${product.productName} (${product.brands}) [${product.productQuantity?.toInt()}]' ?? "?")),
       body: ListView(
         children: [
           CachedNetworkImage(
             imageUrl:
-                "",
+                product.mainImageUrl ?? "",
             imageBuilder: (context, imageProvider) {
               return Container(
                 height: 300,
@@ -69,7 +69,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 ),
                 const Divider(),
                 const SizedBox(height: 16.0),
-                const ItemDetailNutrimentsTable(),
+                ItemDetailNutrimentsTable(product: product),
                 const SizedBox(height: 32.0),
                 const ItemInfoButton()
               ],
