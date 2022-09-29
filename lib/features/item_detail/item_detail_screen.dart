@@ -15,26 +15,28 @@ class ItemDetailScreen extends StatefulWidget {
 }
 
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
-
   late ProductEntity product;
 
   @override
   void didChangeDependencies() {
     final args =
-    ModalRoute.of(context)?.settings.arguments as ItemDetailScreenArguments;
+        ModalRoute.of(context)?.settings.arguments as ItemDetailScreenArguments;
     product = args.productEntity;
 
     super.didChangeDependencies();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${product.productName} (${product.brands}) [${product.productQuantity?.toInt()}]' ?? "?")),
+      appBar: AppBar(
+          title: Text(
+              '${product.productName} (${product.brands}) [${product.productQuantity?.toInt()}]' ??
+                  "?")),
       body: ListView(
         children: [
           CachedNetworkImage(
-            imageUrl:
-                product.mainImageUrl ?? "",
+            imageUrl: product.mainImageUrl ?? "",
             imageBuilder: (context, imageProvider) {
               return Container(
                 height: 300,
@@ -71,7 +73,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 const SizedBox(height: 16.0),
                 ItemDetailNutrimentsTable(product: product),
                 const SizedBox(height: 32.0),
-                const ItemInfoButton()
+                const ItemInfoButton(),
+                const SizedBox(height: 200.0) // height added to scroll
               ],
             ),
           )
@@ -87,4 +90,3 @@ class ItemDetailScreenArguments {
 
   ItemDetailScreenArguments(this.productEntity);
 }
-
