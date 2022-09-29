@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/styles/fonts.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/addItem/presentation/add_item_screen.dart';
+import 'package:opennutritracker/features/item_detail/item_detail_screen.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -46,6 +47,8 @@ class OpenNutriTrackerApp extends StatelessWidget {
         NavigationOptions.mainRoute: (context) => const MainScreen(),
         NavigationOptions.settingsRoute: (context) => const SettingsScreen(),
         NavigationOptions.addItemRoute: (context) => const AddItemScreen(),
+        NavigationOptions.itemDetailRoute: (context) =>
+            const ItemDetailScreen(),
       },
     );
   }
