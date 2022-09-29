@@ -36,6 +36,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "breakfastExample": MessageLookupByLibrary.simpleMessage(
             "e.g. cereal, milk, coffee ..."),
         "breakfastLabel": MessageLookupByLibrary.simpleMessage("Breakfast"),
+        "carbohydrateLabel":
+            MessageLookupByLibrary.simpleMessage("carbohydrate"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("carbs"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("CANCEL"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
@@ -45,21 +47,28 @@ class MessageLookup extends MessageLookupByLibrary {
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Dinner"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
             "OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems.\n\n\nThe application is still under construction. Errors within the app cannot be ruled out."),
+        "energyLabel": MessageLookupByLibrary.simpleMessage("energy"),
         "errorOpeningBrowser": MessageLookupByLibrary.simpleMessage(
             "Error while opening browser app"),
         "errorOpeningEmail": MessageLookupByLibrary.simpleMessage(
             "Error while opening email app"),
         "fatLabel": MessageLookupByLibrary.simpleMessage("fat"),
+        "fiberLabel": MessageLookupByLibrary.simpleMessage("fiber"),
         "helloWorld": MessageLookupByLibrary.simpleMessage("Hello World"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
         "lunchExample":
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
+        "nutritionInfoLabel":
+            MessageLookupByLibrary.simpleMessage("Nutrition Information"),
+        "per100gLabel": MessageLookupByLibrary.simpleMessage("Per 100g"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
         "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),
         "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
             "Do you want to report an error to the developer?"),
+        "saturatedFatLabel":
+            MessageLookupByLibrary.simpleMessage("saturated fat"),
         "searchDefaultLabel":
             MessageLookupByLibrary.simpleMessage("Please enter search word"),
         "searchLabel": MessageLookupByLibrary.simpleMessage("Search"),
@@ -84,6 +93,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsVolumeLabel": MessageLookupByLibrary.simpleMessage("Volume"),
         "snackExample": MessageLookupByLibrary.simpleMessage(
             "e.g. apple, ice cream, chocolate ..."),
-        "snackLabel": MessageLookupByLibrary.simpleMessage("Snack")
+        "snackLabel": MessageLookupByLibrary.simpleMessage("Snack"),
+        "sugarLabel": MessageLookupByLibrary.simpleMessage("sugar")
       };
 }

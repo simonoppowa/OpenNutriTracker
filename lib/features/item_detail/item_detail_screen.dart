@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_macro_nutrients.dart';
+import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_nutriments_table.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ItemDetailScreen extends StatefulWidget {
@@ -54,6 +55,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 ),
                 const Divider(),
                 const SizedBox(height: 16.0),
+                const ItemDetailNutrimentsTable()
               ],
             ),
           )

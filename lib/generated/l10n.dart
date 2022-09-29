@@ -420,6 +420,16 @@ class S {
     );
   }
 
+  /// `Nutrition Information`
+  String get nutritionInfoLabel {
+    return Intl.message(
+      'Nutrition Information',
+      name: 'nutritionInfoLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `kcal`
   String get kcalLabel {
     return Intl.message(
@@ -455,6 +465,66 @@ class S {
     return Intl.message(
       'protein',
       name: 'proteinLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `energy`
+  String get energyLabel {
+    return Intl.message(
+      'energy',
+      name: 'energyLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `saturated fat`
+  String get saturatedFatLabel {
+    return Intl.message(
+      'saturated fat',
+      name: 'saturatedFatLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `carbohydrate`
+  String get carbohydrateLabel {
+    return Intl.message(
+      'carbohydrate',
+      name: 'carbohydrateLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `sugar`
+  String get sugarLabel {
+    return Intl.message(
+      'sugar',
+      name: 'sugarLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `fiber`
+  String get fiberLabel {
+    return Intl.message(
+      'fiber',
+      name: 'fiberLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Per 100g`
+  String get per100gLabel {
+    return Intl.message(
+      'Per 100g',
+      name: 'per100gLabel',
       desc: '',
       args: [],
     );

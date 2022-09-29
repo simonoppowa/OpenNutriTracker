@@ -40,10 +40,17 @@
   "snackLabel": "Snack",
   "snackExample": "e.g. apple, ice cream, chocolate ...",
 
+  "nutritionInfoLabel": "Nutrition Information",
   "kcalLabel": "kcal",
   "carbsLabel": "carbs",
   "fatLabel": "fat",
   "proteinLabel": "protein",
+  "energyLabel": "energy",
+  "saturatedFatLabel": "saturated fat",
+  "carbohydrateLabel": "carbohydrate",
+  "sugarLabel": "sugar",
+  "fiberLabel": "fiber",
+  "per100gLabel": "Per 100g",
 
   "errorOpeningEmail": "Error while opening email app",
   "errorOpeningBrowser": "Error while opening browser app"
