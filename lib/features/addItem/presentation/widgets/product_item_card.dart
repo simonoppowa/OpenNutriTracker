@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/item_detail/item_detail_screen.dart';
 
 class ProductItemCard extends StatelessWidget {
   final ProductEntity productEntity;
@@ -51,6 +52,7 @@ class ProductItemCard extends StatelessWidget {
   }
 
   void _onItemPressed(BuildContext context) {
-    Navigator.of(context).pushNamed(NavigationOptions.itemDetailRoute);
+    Navigator.of(context).pushNamed(NavigationOptions.itemDetailRoute,
+        arguments: ItemDetailScreenArguments(productEntity));
   }
 }

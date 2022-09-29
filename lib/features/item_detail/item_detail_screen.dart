@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_macro_nutrients.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_nutriments_table.dart';
@@ -14,6 +15,17 @@ class ItemDetailScreen extends StatefulWidget {
 }
 
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
+
+  late ProductEntity product;
+
+  @override
+  void didChangeDependencies() {
+    final args =
+    ModalRoute.of(context)?.settings.arguments as ItemDetailScreenArguments;
+    product = args.productEntity;
+
+    super.didChangeDependencies();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,3 +81,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     );
   }
 }
+
+class ItemDetailScreenArguments {
+  final ProductEntity productEntity;
+
+  ItemDetailScreenArguments(this.productEntity);
+}
+
