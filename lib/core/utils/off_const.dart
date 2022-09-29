@@ -1,8 +1,6 @@
-import 'dart:developer';
-
 class OFFConst {
-  static const _offBaseUrl = "https://world.openfoodfacts.org/cgi/";
-  static const _offSearchTag = "search.pl";
+  static const _offBaseUrl = "world.openfoodfacts.org";
+  static const _offSearchTag = "/cgi/search.pl";
 
   static const offHttpSuccessCode = 200;
   static const offHttpDownCodes = [502, 503, 500];
@@ -32,9 +30,34 @@ class OFFConst {
   static const _offServingSizeTag = "serving_size";
   static const _offNutrimentsTag = "nutriments";
 
-  static String _getReturnFields() =>
-      '$_offCodeTag,$_offBrandsTag,$_offProductNameTag,$_offProductNameENTag,$_offProductNameDETag,$_offUrlTag,$_offImageUrlTag,$_offImageThumbUrlTag,$_offImageFrontUrlTag,$_offProductQuantityTag,$_offQuantityTag,$_offServingQuantityTag,$_offServingSizeTag,$_offNutrimentsTag';
+  static const _returnFields = [
+    _offCodeTag,
+    _offBrandsTag,
+    _offProductNameTag,
+    _offProductNameENTag,
+    _offProductNameDETag,
+    _offUrlTag,
+    _offImageUrlTag,
+    _offImageThumbUrlTag,
+    _offImageFrontUrlTag,
+    _offProductQuantityTag,
+    _offQuantityTag,
+    _offServingQuantityTag,
+    _offServingSizeTag,
+    _offNutrimentsTag
+  ];
 
-  static Uri getOffWordSearchUrl(String searchWord) => Uri.parse(
-      '$_offBaseUrl$_offSearchTag?$_offProductSearchTermsTag=$searchWord&$_offFieldsTag=${_getReturnFields()}&$_offJsonTag=$_offJsonValue');
+  // TODO Add Header info
+
+  static String _getReturnFields() => _returnFields.join(",");
+
+  static Uri getOffWordSearchUrl(String searchString) {
+    final queryParameters = {
+      _offProductSearchTermsTag: searchString,
+      _offFieldsTag: _getReturnFields(),
+      _offJsonTag: _offJsonValue,
+    };
+
+    return Uri.https(_offBaseUrl, _offSearchTag, queryParameters);
+  }
 }
