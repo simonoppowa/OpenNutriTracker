@@ -36,6 +36,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "breakfastExample": MessageLookupByLibrary.simpleMessage(
             "e.g. cereal, milk, coffee ..."),
         "breakfastLabel": MessageLookupByLibrary.simpleMessage("Breakfast"),
+        "carbsLabel": MessageLookupByLibrary.simpleMessage("carbs"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("CANCEL"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),
@@ -48,12 +49,15 @@ class MessageLookup extends MessageLookupByLibrary {
             "Error while opening browser app"),
         "errorOpeningEmail": MessageLookupByLibrary.simpleMessage(
             "Error while opening email app"),
+        "fatLabel": MessageLookupByLibrary.simpleMessage("fat"),
         "helloWorld": MessageLookupByLibrary.simpleMessage("Hello World"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
+        "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
         "lunchExample":
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
+        "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),
         "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
             "Do you want to report an error to the developer?"),
         "searchDefaultLabel":

@@ -40,6 +40,11 @@
   "snackLabel": "Snack",
   "snackExample": "e.g. apple, ice cream, chocolate ...",
 
+  "kcalLabel": "kcal",
+  "carbsLabel": "carbs",
+  "fatLabel": "fat",
+  "proteinLabel": "protein",
+
   "errorOpeningEmail": "Error while opening email app",
   "errorOpeningBrowser": "Error while opening browser app"
 }

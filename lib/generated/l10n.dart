@@ -420,6 +420,46 @@ class S {
     );
   }
 
+  /// `kcal`
+  String get kcalLabel {
+    return Intl.message(
+      'kcal',
+      name: 'kcalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `carbs`
+  String get carbsLabel {
+    return Intl.message(
+      'carbs',
+      name: 'carbsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `fat`
+  String get fatLabel {
+    return Intl.message(
+      'fat',
+      name: 'fatLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `protein`
+  String get proteinLabel {
+    return Intl.message(
+      'protein',
+      name: 'proteinLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Error while opening email app`
   String get errorOpeningEmail {
     return Intl.message(
