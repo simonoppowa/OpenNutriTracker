@@ -52,9 +52,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               children: [
                 Row(
                   children: [
-                    Text('12 ${S.of(context).kcalLabel}', // TODO Change
+                    Text(
+                        '${product.nutriments.energyKcal100g?.toInt()} ${S.of(context).kcalLabel}',
                         style: Theme.of(context).textTheme.headline5),
-                    Text(' / 100 g')
+                    Text(' / 100 ${product.productUnit}')
                   ],
                 ),
                 const SizedBox(height: 8.0),
@@ -62,11 +63,14 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     ItemDetailMacroNutrients(
-                        typeString: S.of(context).carbsLabel, value: 15),
+                        typeString: S.of(context).carbsLabel,
+                        value: product.nutriments.carbohydrates100g),
                     ItemDetailMacroNutrients(
-                        typeString: S.of(context).fatLabel, value: 0.4),
+                        typeString: S.of(context).fatLabel,
+                        value: product.nutriments.fat100g),
                     ItemDetailMacroNutrients(
-                        typeString: S.of(context).proteinLabel, value: 4.5)
+                        typeString: S.of(context).proteinLabel,
+                        value: product.nutriments.proteins100g)
                   ],
                 ),
                 const Divider(),
