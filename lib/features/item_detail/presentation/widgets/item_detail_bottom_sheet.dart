@@ -14,6 +14,7 @@ class _ItemDetailBottomSheetState extends State<ItemDetailBottomSheet> {
     return BottomSheet(
         elevation: 10,
         onClosing: () {},
+        enableDrag: false,
         builder: (context) {
           return Container(
             decoration: BoxDecoration(
