@@ -16,14 +16,19 @@ class AddItemScreen extends StatefulWidget {
 class _AddItemScreenState extends State<AddItemScreen> {
   late AddItemType itemType;
 
-  late ProductsBloc _productBloc;
+  late ProductsBloc _productsBloc;
+
+  @override
+  void initState() {
+    _productsBloc = ProductsBloc();
+    super.initState();
+  }
 
   @override
   void didChangeDependencies() {
     final args =
         ModalRoute.of(context)?.settings.arguments as AddItemScreenArguments;
     itemType = args.itemType;
-    _productBloc = ProductsBloc();
     super.didChangeDependencies();
   }
 
@@ -43,7 +48,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   child: Text(S.of(context).searchResultsLabel,
                       style: Theme.of(context).textTheme.headline5)),
               BlocBuilder<ProductsBloc, ProductsState>(
-                bloc: _productBloc,
+                bloc: _productsBloc,
                 builder: (context, state) {
                   if (state is ProductsInitial) {
                     return Text(S.of(context).searchDefaultLabel);
@@ -68,7 +73,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   }
 
   void _onSearchSubmit(String inputText) {
-    _productBloc.add(LoadProductsEvent(searchString: inputText));
+    _productsBloc.add(LoadProductsEvent(searchString: inputText));
   }
 }
 
