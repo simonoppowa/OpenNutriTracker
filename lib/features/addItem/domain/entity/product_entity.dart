@@ -11,6 +11,8 @@ class ProductEntity {
   final String? thumbnailImageUrl;
   final String? mainImageUrl;
 
+  final String? url;
+
   final double? productQuantity;
   final String? productUnit;
   final double? servingQuantity;
@@ -26,6 +28,7 @@ class ProductEntity {
       required this.brands,
       required this.thumbnailImageUrl,
       required this.mainImageUrl,
+      required this.url,
       required this.productQuantity,
       required this.productUnit,
       required this.servingQuantity,
@@ -40,6 +43,7 @@ class ProductEntity {
         brands: offProduct.brands,
         thumbnailImageUrl: offProduct.image_front_thumb_url,
         mainImageUrl: offProduct.image_front_url,
+        url: offProduct.url,
         productQuantity: _tryQuantityCast(offProduct.product_quantity),
         productUnit: _tryGetUnit(offProduct.quantity),
         servingQuantity: _tryQuantityCast(offProduct.serving_quantity),
@@ -67,7 +71,7 @@ class ProductEntity {
   }
 
   static String? _tryGetUnit(String? quantityString) {
-    if(quantityString == null) return null;
+    if (quantityString == null) return null;
 
     // TODO extract unit
     return "g";

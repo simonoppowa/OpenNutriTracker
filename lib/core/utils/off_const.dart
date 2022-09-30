@@ -1,4 +1,5 @@
 class OFFConst {
+  static const offWebsiteUrl = "https://world.openfoodfacts.org/";
   static const _offBaseUrl = "world.openfoodfacts.org";
   static const _offSearchTag = "/cgi/search.pl";
 

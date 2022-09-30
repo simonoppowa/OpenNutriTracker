@@ -20,6 +20,8 @@ class OFFProduct {
   final String? image_nutrition_url;
   final String? image_url;
 
+  final String? url;
+
   final String? quantity;
   final dynamic product_quantity; // Can either be int or String
   final dynamic serving_quantity; // Can either be int or String
@@ -38,6 +40,7 @@ class OFFProduct {
       required this.image_ingredients_url,
       required this.image_nutrition_url,
       required this.image_url,
+      required this.url,
       required this.quantity,
       required this.product_quantity,
       required this.serving_quantity,

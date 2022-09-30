@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_macro_nutrients.dart';
@@ -31,8 +32,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     return Scaffold(
       appBar: AppBar(
           title: Text(
-              '${product.productName} (${product.brands}) [${product.productQuantity?.toInt()}${product.productUnit ?? "g/ml"}]' ??
-                  "?")),
+              '${product.productName} (${product.brands}) [${product.productQuantity?.toInt()}${product.productUnit ?? "g/ml"}]')),
       body: ListView(
         children: [
           CachedNetworkImage(
@@ -73,7 +73,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 const SizedBox(height: 16.0),
                 ItemDetailNutrimentsTable(product: product),
                 const SizedBox(height: 32.0),
-                const ItemInfoButton(),
+                ItemInfoButton(url: product.url ?? OFFConst.offWebsiteUrl),
                 const SizedBox(height: 200.0) // height added to scroll
               ],
             ),
