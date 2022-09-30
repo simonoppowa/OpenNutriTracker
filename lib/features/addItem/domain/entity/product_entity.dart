@@ -12,7 +12,9 @@ class ProductEntity {
   final String? mainImageUrl;
 
   final double? productQuantity;
+  final String? productUnit;
   final double? servingQuantity;
+  final String? servingUnit;
 
   String? get productQuantityFormatted => productQuantity?.floor().toString();
 
@@ -25,7 +27,9 @@ class ProductEntity {
       required this.thumbnailImageUrl,
       required this.mainImageUrl,
       required this.productQuantity,
-      required this.servingQuantity});
+      required this.productUnit,
+      required this.servingQuantity,
+      required this.servingUnit});
 
   factory ProductEntity.fromOFFProduct(OFFProduct offProduct) {
     return ProductEntity(
@@ -37,12 +41,14 @@ class ProductEntity {
         thumbnailImageUrl: offProduct.image_front_thumb_url,
         mainImageUrl: offProduct.image_front_url,
         productQuantity: _tryQuantityCast(offProduct.product_quantity),
-        servingQuantity: _tryQuantityCast(offProduct.serving_quantity));
+        productUnit: _tryGetUnit(offProduct.quantity),
+        servingQuantity: _tryQuantityCast(offProduct.serving_quantity),
+        servingUnit: _tryGetUnit(offProduct.quantity));
   }
 
   /// Value returned from OFF can either be String, int or double.
   /// Try casting it to a double value for calculation
-  static double? _tryQuantityCast<T>(dynamic value) {
+  static double? _tryQuantityCast(dynamic value) {
     double? parsedValue;
 
     if (value == null) {
@@ -58,5 +64,12 @@ class ProductEntity {
       parsedValue = doubleParsed;
     }
     return parsedValue;
+  }
+
+  static String? _tryGetUnit(String? quantityString) {
+    if(quantityString == null) return null;
+
+    // TODO extract unit
+    return "g";
   }
 }

@@ -31,7 +31,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     return Scaffold(
       appBar: AppBar(
           title: Text(
-              '${product.productName} (${product.brands}) [${product.productQuantity?.toInt()}]' ??
+              '${product.productName} (${product.brands}) [${product.productQuantity?.toInt()}${product.productUnit ?? "g/ml"}]' ??
                   "?")),
       body: ListView(
         children: [
