@@ -1,4 +1,5 @@
 import 'package:opennutritracker/features/addItem/data/dto/off_product.dart';
+import 'package:opennutritracker/features/addItem/domain/entity/product_nutriments_entity.dart';
 
 class ProductEntity {
   final String? code;
@@ -18,6 +19,8 @@ class ProductEntity {
   final double? servingQuantity;
   final String? servingUnit;
 
+  final ProductNutrimentsEntity nutriments;
+
   String? get productQuantityFormatted => productQuantity?.floor().toString();
 
   ProductEntity(
@@ -32,7 +35,8 @@ class ProductEntity {
       required this.productQuantity,
       required this.productUnit,
       required this.servingQuantity,
-      required this.servingUnit});
+      required this.servingUnit,
+      required this.nutriments});
 
   factory ProductEntity.fromOFFProduct(OFFProduct offProduct) {
     return ProductEntity(
@@ -47,7 +51,9 @@ class ProductEntity {
         productQuantity: _tryQuantityCast(offProduct.product_quantity),
         productUnit: _tryGetUnit(offProduct.quantity),
         servingQuantity: _tryQuantityCast(offProduct.serving_quantity),
-        servingUnit: _tryGetUnit(offProduct.quantity));
+        servingUnit: _tryGetUnit(offProduct.quantity),
+        nutriments:
+            ProductNutrimentsEntity.fromOffNutriments(offProduct.nutriments));
   }
 
   /// Value returned from OFF can either be String, int or double.
