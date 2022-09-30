@@ -31,19 +31,25 @@ class ItemDetailNutrimentsTable extends StatelessWidget {
             _getNutrimentsTableRow(
                 "", S.of(context).per100gLabel, textStyleBold),
             _getNutrimentsTableRow(
-                S.of(context).energyLabel, "241 kcal", textStyleNormal),
+                S.of(context).energyLabel,
+                "${product.nutriments.energyKcal100g?.toInt() ?? "?"} ${S.of(context).kcalLabel}",
+                textStyleNormal),
+            _getNutrimentsTableRow(S.of(context).fatLabel,
+                "${product.nutriments.fat100g ?? "?"}g", textStyleNormal),
             _getNutrimentsTableRow(
-                S.of(context).fatLabel, "13g", textStyleNormal),
-            _getNutrimentsTableRow('   ${S.of(context).saturatedFatLabel}',
-                "10.7g", textStyleNormal),
+                '   ${S.of(context).saturatedFatLabel}',
+                "${product.nutriments.saturatedFat100g ?? "?"}g",
+                textStyleNormal),
             _getNutrimentsTableRow(
-                S.of(context).carbohydrateLabel, "12.0g", textStyleNormal),
-            _getNutrimentsTableRow(
-                '    ${S.of(context).sugarLabel}', "8.3g", textStyleNormal),
-            _getNutrimentsTableRow(
-                S.of(context).fiberLabel, "0g", textStyleNormal),
-            _getNutrimentsTableRow(
-                S.of(context).proteinLabel, "2.4g", textStyleNormal)
+                S.of(context).carbohydrateLabel,
+                "${product.nutriments.carbohydrates100g ?? "?"}g",
+                textStyleNormal),
+            _getNutrimentsTableRow('    ${S.of(context).sugarLabel}',
+                "${product.nutriments.sugars100g ?? "?"}g", textStyleNormal),
+            _getNutrimentsTableRow(S.of(context).fiberLabel,
+                "${product.nutriments.fiber100g ?? "?"}g", textStyleNormal),
+            _getNutrimentsTableRow(S.of(context).proteinLabel,
+                "${product.nutriments.proteins100g ?? "?"}g", textStyleNormal)
           ],
         )
       ],
