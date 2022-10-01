@@ -23,15 +23,16 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   late TextEditingController quantityTextController;
 
   late String totalQuantityText;
+  late String totalKcalText;
 
   @override
   void initState() {
     quantityTextController = TextEditingController();
-    quantityTextController.text = '100';
-    totalQuantityText = '100';
     quantityTextController.addListener(() {
       _onQuantityChanged(quantityTextController.text);
     });
+    quantityTextController.text = '100';
+    totalQuantityText = '100';
     super.initState();
   }
 
@@ -40,6 +41,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     final args =
         ModalRoute.of(context)?.settings.arguments as ItemDetailScreenArguments;
     product = args.productEntity;
+    totalKcalText = product.nutriments.energyKcal100.toString();
     super.didChangeDependencies();
   }
 
@@ -68,8 +70,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               children: [
                 Row(
                   children: [
-                    Text(
-                        '${product.nutriments.energyKcal100?.toInt()} ${S.of(context).kcalLabel}',
+                    Text('$totalKcalText ${S.of(context).kcalLabel}',
                         style: Theme.of(context).textTheme.headline5),
                     Text(' / $totalQuantityText ${product.productUnit}')
                   ],
@@ -100,17 +101,20 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           )
         ],
       ),
-      bottomSheet: ItemDetailBottomSheet(quantityTextController: quantityTextController),
+      bottomSheet:
+          ItemDetailBottomSheet(quantityTextController: quantityTextController),
     );
   }
 
   void _onQuantityChanged(String quantityString) {
     setState(() {
       try {
+        final energyPerUnit = (product.nutriments.energyPerUnit ?? 0);
         final quantity = double.parse(quantityString);
         totalQuantityText = quantity.toInt().toString();
-      } on FormatException catch(e) {
-       log.warning("Error while parsing: \"$quantityString\"");
+        totalKcalText = (quantity * energyPerUnit).toString();
+      } on FormatException catch (e) {
+        log.warning("Error while parsing: \"$quantityString\"");
       }
     });
   }
