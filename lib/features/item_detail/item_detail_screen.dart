@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_bottom_sheet.dart';
@@ -16,14 +17,29 @@ class ItemDetailScreen extends StatefulWidget {
 }
 
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
+  final log = Logger('ItemDetailScreen');
+
   late ProductEntity product;
+  late TextEditingController quantityTextController;
+
+  late String totalQuantityText;
+
+  @override
+  void initState() {
+    quantityTextController = TextEditingController();
+    quantityTextController.text = '100';
+    totalQuantityText = '100';
+    quantityTextController.addListener(() {
+      _onQuantityChanged(quantityTextController.text);
+    });
+    super.initState();
+  }
 
   @override
   void didChangeDependencies() {
     final args =
         ModalRoute.of(context)?.settings.arguments as ItemDetailScreenArguments;
     product = args.productEntity;
-
     super.didChangeDependencies();
   }
 
@@ -53,9 +69,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 Row(
                   children: [
                     Text(
-                        '${product.nutriments.energyKcal100g?.toInt()} ${S.of(context).kcalLabel}',
+                        '${product.nutriments.energyKcal100?.toInt()} ${S.of(context).kcalLabel}',
                         style: Theme.of(context).textTheme.headline5),
-                    Text(' / 100 ${product.productUnit}')
+                    Text(' / $totalQuantityText ${product.productUnit}')
                   ],
                 ),
                 const SizedBox(height: 8.0),
@@ -84,8 +100,19 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           )
         ],
       ),
-      bottomSheet: const ItemDetailBottomSheet(),
+      bottomSheet: ItemDetailBottomSheet(quantityTextController: quantityTextController),
     );
+  }
+
+  void _onQuantityChanged(String quantityString) {
+    setState(() {
+      try {
+        final quantity = double.parse(quantityString);
+        totalQuantityText = quantity.toInt().toString();
+      } on FormatException catch(e) {
+       log.warning("Error while parsing: \"$quantityString\"");
+      }
+    });
   }
 }
 

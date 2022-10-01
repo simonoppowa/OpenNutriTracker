@@ -32,7 +32,7 @@ class ItemDetailNutrimentsTable extends StatelessWidget {
                 "", S.of(context).per100gLabel, textStyleBold),
             _getNutrimentsTableRow(
                 S.of(context).energyLabel,
-                "${product.nutriments.energyKcal100g?.toInt() ?? "?"} ${S.of(context).kcalLabel}",
+                "${product.nutriments.energyKcal100?.toInt() ?? "?"} ${S.of(context).kcalLabel}",
                 textStyleNormal),
             _getNutrimentsTableRow(S.of(context).fatLabel,
                 "${product.nutriments.fat100g ?? "?"}g", textStyleNormal),

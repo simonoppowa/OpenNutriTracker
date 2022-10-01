@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ItemDetailBottomSheet extends StatefulWidget {
-  const ItemDetailBottomSheet({Key? key}) : super(key: key);
+  final TextEditingController quantityTextController;
+
+  const ItemDetailBottomSheet({Key? key, required this.quantityTextController})
+      : super(key: key);
 
   @override
   State<ItemDetailBottomSheet> createState() => _ItemDetailBottomSheetState();
@@ -38,7 +41,7 @@ class _ItemDetailBottomSheetState extends State<ItemDetailBottomSheet> {
                         children: [
                           Expanded(
                             child: TextFormField(
-                              initialValue: '100',
+                              controller: widget.quantityTextController,
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 border: const OutlineInputBorder(),
