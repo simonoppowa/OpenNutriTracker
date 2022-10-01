@@ -22,8 +22,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   late ProductEntity product;
   late TextEditingController quantityTextController;
 
-  late String totalQuantityText;
-  late String totalKcalText;
+  late double totalQuantity;
+  late double totalKcal;
 
   @override
   void initState() {
@@ -32,7 +32,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       _onQuantityChanged(quantityTextController.text);
     });
     quantityTextController.text = '100';
-    totalQuantityText = '100';
+    totalQuantity = 100;
     super.initState();
   }
 
@@ -41,7 +41,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     final args =
         ModalRoute.of(context)?.settings.arguments as ItemDetailScreenArguments;
     product = args.productEntity;
-    totalKcalText = product.nutriments.energyKcal100.toString();
+    totalKcal = product.nutriments.energyKcal100 ?? 0;
     super.didChangeDependencies();
   }
 
@@ -70,9 +70,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               children: [
                 Row(
                   children: [
-                    Text('$totalKcalText ${S.of(context).kcalLabel}',
+                    Text('${totalKcal.toInt()} ${S.of(context).kcalLabel}',
                         style: Theme.of(context).textTheme.headline5),
-                    Text(' / $totalQuantityText ${product.productUnit}')
+                    Text(
+                        ' / ${totalQuantity.toInt()} ${product.productUnit}')
                   ],
                 ),
                 const SizedBox(height: 8.0),
@@ -111,8 +112,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       try {
         final energyPerUnit = (product.nutriments.energyPerUnit ?? 0);
         final quantity = double.parse(quantityString);
-        totalQuantityText = quantity.toInt().toString();
-        totalKcalText = (quantity * energyPerUnit).toString();
+        totalQuantity = quantity;
+        totalKcal = (quantity * energyPerUnit);
       } on FormatException catch (e) {
         log.warning("Error while parsing: \"$quantityString\"");
       }
