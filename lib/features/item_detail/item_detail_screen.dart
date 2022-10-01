@@ -24,6 +24,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
   late double totalQuantity;
   late double totalKcal;
+  late double totalCarbs;
+  late double totalFat;
+  late double totalProtein;
 
   @override
   void initState() {
@@ -42,6 +45,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         ModalRoute.of(context)?.settings.arguments as ItemDetailScreenArguments;
     product = args.productEntity;
     totalKcal = product.nutriments.energyKcal100 ?? 0;
+    totalCarbs = product.nutriments.carbohydrates100g ?? 0;
+    totalFat = product.nutriments.fat100g ?? 0;
+    totalProtein = product.nutriments.fat100g ?? 0;
     super.didChangeDependencies();
   }
 
@@ -72,8 +78,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                   children: [
                     Text('${totalKcal.toInt()} ${S.of(context).kcalLabel}',
                         style: Theme.of(context).textTheme.headline5),
-                    Text(
-                        ' / ${totalQuantity.toInt()} ${product.productUnit}')
+                    Text(' / ${totalQuantity.toInt()} ${product.productUnit}')
                   ],
                 ),
                 const SizedBox(height: 8.0),
@@ -82,13 +87,12 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                   children: [
                     ItemDetailMacroNutrients(
                         typeString: S.of(context).carbsLabel,
-                        value: product.nutriments.carbohydrates100g),
+                        value: totalCarbs),
                     ItemDetailMacroNutrients(
-                        typeString: S.of(context).fatLabel,
-                        value: product.nutriments.fat100g),
+                        typeString: S.of(context).fatLabel, value: totalFat),
                     ItemDetailMacroNutrients(
                         typeString: S.of(context).proteinLabel,
-                        value: product.nutriments.proteins100g)
+                        value: totalProtein)
                   ],
                 ),
                 const Divider(),
@@ -111,9 +115,16 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     setState(() {
       try {
         final energyPerUnit = (product.nutriments.energyPerUnit ?? 0);
+        final carbsPerUnit = (product.nutriments.carbohydratesPerUnit ?? 0);
+        final fatPerUnit = (product.nutriments.fatPerUnit ?? 0);
+        final proteinPerUnit = (product.nutriments.proteinsPerUnit ?? 0);
+
         final quantity = double.parse(quantityString);
         totalQuantity = quantity;
         totalKcal = (quantity * energyPerUnit);
+        totalCarbs = (quantity * carbsPerUnit);
+        totalFat = (quantity * fatPerUnit);
+        totalProtein = (quantity * proteinPerUnit);
       } on FormatException catch (e) {
         log.warning("Error while parsing: \"$quantityString\"");
       }
