@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ItemDetailBottomSheet extends StatefulWidget {
@@ -43,6 +44,15 @@ class _ItemDetailBottomSheetState extends State<ItemDetailBottomSheet> {
                             child: TextFormField(
                               controller: widget.quantityTextController,
                               keyboardType: TextInputType.number,
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter.allow(
+                                    RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
+                                TextInputFormatter.withFunction(
+                                  (oldValue, newValue) => newValue.copyWith(
+                                    text: newValue.text.replaceAll(',', '.'),
+                                  ),
+                                ),
+                              ],
                               decoration: InputDecoration(
                                 border: const OutlineInputBorder(),
                                 labelText: S.of(context).quantityLabel,
