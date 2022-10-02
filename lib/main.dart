@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/styles/color_schemes.dart';
@@ -14,6 +15,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LoggerConfig.intiLogger();
+  await Hive.initFlutter();
 
   final log = Logger('main');
   log.info('Starting App ...');
