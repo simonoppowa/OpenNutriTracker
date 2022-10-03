@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/features/home/presentation/macro_nutriments_widget.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -69,6 +70,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                 ),
               ],
             ),
+            const MacroNutrientsView(),
           ],
         ),
       ),
