@@ -40,6 +40,10 @@
   "snackLabel": "Snack",
   "snackExample": "e.g. apple, ice cream, chocolate ...",
 
+  "suppliedLabel": "supplied",
+  "burnedLabel": "burned",
+  "kcalLeftLabel": "kcal left",
+
   "nutritionInfoLabel": "Nutrition Information",
   "kcalLabel": "kcal",
   "carbsLabel": "carbs",

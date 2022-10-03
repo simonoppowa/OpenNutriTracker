@@ -420,6 +420,36 @@ class S {
     );
   }
 
+  /// `supplied`
+  String get suppliedLabel {
+    return Intl.message(
+      'supplied',
+      name: 'suppliedLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `burned`
+  String get burnedLabel {
+    return Intl.message(
+      'burned',
+      name: 'burnedLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `kcal left`
+  String get kcalLeftLabel {
+    return Intl.message(
+      'kcal left',
+      name: 'kcalLeftLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Nutrition Information`
   String get nutritionInfoLabel {
     return Intl.message(

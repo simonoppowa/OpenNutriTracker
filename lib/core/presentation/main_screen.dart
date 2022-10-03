@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
 import 'package:opennutritracker/core/presentation/widgets/diary_page.dart';
 import 'package:opennutritracker/core/presentation/widgets/home_appbar.dart';
-import 'package:opennutritracker/core/presentation/widgets/home_page.dart';
+import 'package:opennutritracker/features/home/home_page.dart';
 import 'package:opennutritracker/core/presentation/widgets/main_appbar.dart';
 import 'package:opennutritracker/core/presentation/widgets/profile_page.dart';
 import 'package:opennutritracker/generated/l10n.dart';

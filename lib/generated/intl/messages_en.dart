@@ -38,6 +38,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "breakfastExample": MessageLookupByLibrary.simpleMessage(
             "e.g. cereal, milk, coffee ..."),
         "breakfastLabel": MessageLookupByLibrary.simpleMessage("Breakfast"),
+        "burnedLabel": MessageLookupByLibrary.simpleMessage("burned"),
         "carbohydrateLabel":
             MessageLookupByLibrary.simpleMessage("carbohydrate"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("carbs"),
@@ -59,6 +60,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "helloWorld": MessageLookupByLibrary.simpleMessage("Hello World"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
+        "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal left"),
         "lunchExample":
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
@@ -98,6 +100,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "e.g. apple, ice cream, chocolate ..."),
         "snackLabel": MessageLookupByLibrary.simpleMessage("Snack"),
         "sugarLabel": MessageLookupByLibrary.simpleMessage("sugar"),
+        "suppliedLabel": MessageLookupByLibrary.simpleMessage("supplied"),
         "unitLabel": MessageLookupByLibrary.simpleMessage("Unit")
       };
 }
