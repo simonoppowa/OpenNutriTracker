@@ -3,7 +3,7 @@ import 'package:opennutritracker/features/addItem/domain/entity/product_entity.d
 
 part 'product_dbo.g.dart';
 
-@HiveType(typeId: 0)
+@HiveType(typeId: 1)
 class ProductDBO extends HiveObject {
   @HiveField(0)
   final String? code;

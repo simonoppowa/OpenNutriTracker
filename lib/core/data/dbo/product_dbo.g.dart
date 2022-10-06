@@ -8,7 +8,7 @@ part of 'product_dbo.dart';
 
 class ProductDBOAdapter extends TypeAdapter<ProductDBO> {
   @override
-  final int typeId = 0;
+  final int typeId = 1;
 
   @override
   ProductDBO read(BinaryReader reader) {
