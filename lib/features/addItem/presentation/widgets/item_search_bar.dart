@@ -9,11 +9,13 @@ class ItemSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final searchTextController = TextEditingController();
     return Row(
       children: [
         Flexible(
           flex: 1,
           child: TextField(
+              controller: searchTextController,
               textInputAction: TextInputAction.search,
               onSubmitted: onSearchSubmit,
               decoration: InputDecoration(
@@ -31,7 +33,10 @@ class ItemSearchBar extends StatelessWidget {
         ),
         const SizedBox(width: 8.0),
         IconButton(
-          onPressed: () {},
+          onPressed: () {
+            FocusManager.instance.primaryFocus?.unfocus(); // Hide Keyboard
+            onSearchSubmit(searchTextController.text);
+          },
           icon: const Icon(Icons.search_outlined),
           style: IconButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.onPrimary,
