@@ -74,6 +74,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Do you want to report an error to the developer?"),
         "saturatedFatLabel":
             MessageLookupByLibrary.simpleMessage("saturated fat"),
+        "scanProductLabel":
+            MessageLookupByLibrary.simpleMessage("Scan Product"),
         "searchDefaultLabel":
             MessageLookupByLibrary.simpleMessage("Please enter search word"),
         "searchLabel": MessageLookupByLibrary.simpleMessage("Search"),

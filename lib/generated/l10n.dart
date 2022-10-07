@@ -590,6 +590,16 @@ class S {
     );
   }
 
+  /// `Scan Product`
+  String get scanProductLabel {
+    return Intl.message(
+      'Scan Product',
+      name: 'scanProductLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Error while opening email app`
   String get errorOpeningEmail {
     return Intl.message(
