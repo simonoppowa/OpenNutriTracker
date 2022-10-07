@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logging/logging.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/item_detail/item_detail_screen.dart';
@@ -7,7 +8,9 @@ import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ScannerScreen extends StatelessWidget {
-  const ScannerScreen({Key? key}) : super(key: key);
+  final log = Logger('ScannerScreen');
+
+  ScannerScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +69,8 @@ class ScannerScreen extends StatelessWidget {
           if (barcode.rawValue != null && barcode.type == BarcodeType.product) {
             final productCode = barcode.rawValue;
             if (productCode != null) {
-              debugPrint('Barcode found: $productCode');
+              // TODO check barcode validity
+              log.fine('Barcode found: $productCode');
               scannerBloc.add(ScannerLoadProductEvent(barcode: productCode));
             }
           }
