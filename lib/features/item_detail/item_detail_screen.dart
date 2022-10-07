@@ -31,9 +31,6 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   @override
   void initState() {
     quantityTextController = TextEditingController();
-    quantityTextController.addListener(() {
-      _onQuantityChanged(quantityTextController.text);
-    });
     quantityTextController.text = '100';
     totalQuantity = 100;
     super.initState();
@@ -48,6 +45,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     totalCarbs = product.nutriments.carbohydrates100g ?? 0;
     totalFat = product.nutriments.fat100g ?? 0;
     totalProtein = product.nutriments.fat100g ?? 0;
+    quantityTextController.addListener(() {
+      _onQuantityChanged(quantityTextController.text);
+    });
     super.didChangeDependencies();
   }
 

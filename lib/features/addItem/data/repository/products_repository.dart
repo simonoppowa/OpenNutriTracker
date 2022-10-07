@@ -14,4 +14,10 @@ class ProductsRepository {
 
     return products;
   }
+
+  Future<ProductEntity> getProductByBarcode(String barcode) async {
+    final productResponse = await offDataSource.fetchBarcodeResults(barcode);
+
+    return ProductEntity.fromOFFProduct(productResponse.product);
+  }
 }

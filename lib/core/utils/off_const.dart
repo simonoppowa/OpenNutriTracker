@@ -2,6 +2,7 @@ class OFFConst {
   static const offWebsiteUrl = "https://world.openfoodfacts.org/";
   static const _offBaseUrl = "world.openfoodfacts.org";
   static const _offSearchTag = "/cgi/search.pl";
+  static const _offProductSearchTag = "/api/v2/product";
 
   static const offHttpSuccessCode = 200;
   static const offHttpDownCodes = [502, 503, 500];
@@ -60,5 +61,15 @@ class OFFConst {
     };
 
     return Uri.https(_offBaseUrl, _offSearchTag, queryParameters);
+  }
+
+  static Uri getOffBarcodeSearchUri(String barcode) {
+    final queryParameters = {
+      _offFieldsTag: _getReturnFields(),
+      _offJsonTag: _offJsonValue
+    };
+
+    return Uri.https(
+        _offBaseUrl, '$_offProductSearchTag/$barcode', queryParameters);
   }
 }
