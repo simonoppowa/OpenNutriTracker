@@ -52,6 +52,8 @@ dependencies:
 
   percent_indicator: ^4.0.1
 
+  mobile_scanner: ^2.0.0
+
   hive: ^2.2.3
   hive_flutter: ^1.1.0
 

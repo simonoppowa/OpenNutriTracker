@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ItemSearchBar extends StatelessWidget {
@@ -23,7 +24,9 @@ class ItemSearchBar extends StatelessWidget {
                 prefixIcon: const Icon(Icons.search_outlined),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.qr_code_scanner_outlined),
-                  onPressed: () {},
+                  onPressed: () {
+                    _onBarcodeIconPressed(context);
+                  },
                 ),
                 filled: true,
                 border: OutlineInputBorder(
@@ -44,5 +47,9 @@ class ItemSearchBar extends StatelessWidget {
         )
       ],
     );
+  }
+
+  void _onBarcodeIconPressed(BuildContext context) {
+    Navigator.of(context).pushNamed(NavigationOptions.scannerRoute);
   }
 }
