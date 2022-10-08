@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/product_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/product_nutriments_dbo.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
@@ -23,6 +24,7 @@ Future<void> main() async {
   Hive.registerAdapter(IntakeDBOAdapter());
   Hive.registerAdapter(ProductDBOAdapter());
   Hive.registerAdapter(ProductNutrimentsDBOAdapter());
+  Hive.registerAdapter(IntakeTypeDBOAdapter());
 
   final log = Logger('main');
   log.info('Starting App ...');
