@@ -114,6 +114,7 @@ class AddItemBottomSheet extends StatelessWidget {
   }
 
   void _showAddItemScreen(BuildContext context, AddItemType itemType) {
+    Navigator.of(context).pop(); // Close bottom sheet
     Navigator.of(context).pushNamed(NavigationOptions.addItemRoute,
         arguments: AddItemScreenArguments(itemType));
   }
