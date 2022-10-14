@@ -5,6 +5,7 @@ class IntakeEntity {
   String unit;
   double amount;
   IntakeTypeEntity type;
+  DateTime dateTime;
 
   ProductEntity product;
 
@@ -12,5 +13,6 @@ class IntakeEntity {
       {required this.unit,
       required this.amount,
       required this.type,
-      required this.product});
+      required this.product,
+      required this.dateTime});
 }

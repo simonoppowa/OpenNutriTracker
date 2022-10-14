@@ -17,15 +17,22 @@ class IntakeDBO extends HiveObject {
   @HiveField(3)
   ProductDBO product;
 
-  IntakeDBO({required this.unit,
-    required this.amount,
-    required this.type,
-    required this.product});
+  @HiveField(4)
+  DateTime dateTime;
+
+  IntakeDBO(
+      {required this.unit,
+      required this.amount,
+      required this.type,
+      required this.product,
+      required this.dateTime});
 
   factory IntakeDBO.fromIntakeEntity(IntakeEntity entity) {
-    return IntakeDBO(unit: entity.unit,
+    return IntakeDBO(
+        unit: entity.unit,
         amount: entity.amount,
         type: IntakeTypeDBO.fromIntakeTypeEntity(entity.type),
-        product: ProductDBO.fromProductEntity(entity.product));
+        product: ProductDBO.fromProductEntity(entity.product),
+        dateTime: entity.dateTime);
   }
 }

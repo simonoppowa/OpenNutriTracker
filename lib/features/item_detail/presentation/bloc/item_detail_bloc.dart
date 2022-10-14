@@ -15,7 +15,8 @@ class ItemDetailBloc {
         unit: unit,
         amount: quantity,
         type: type,
-        product: product);
+        product: product,
+        dateTime: DateTime.now());
 
     _addIntakeUseCase.addIntake(context, intakeEntity);
   }
