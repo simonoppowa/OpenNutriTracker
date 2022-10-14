@@ -2,12 +2,15 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/addItem/presentation/add_item_type.dart';
 import 'package:opennutritracker/features/item_detail/item_detail_screen.dart';
 
 class ProductItemCard extends StatelessWidget {
+  final AddItemType addItemType;
   final ProductEntity productEntity;
 
-  const ProductItemCard({Key? key, required this.productEntity})
+  const ProductItemCard(
+      {Key? key, required this.productEntity, required this.addItemType})
       : super(key: key);
 
   @override
@@ -54,6 +57,7 @@ class ProductItemCard extends StatelessWidget {
 
   void _onItemPressed(BuildContext context) {
     Navigator.of(context).pushNamed(NavigationOptions.itemDetailRoute,
-        arguments: ItemDetailScreenArguments(productEntity));
+        arguments: ItemDetailScreenArguments(
+            productEntity, addItemType.getIntakeType()));
   }
 }

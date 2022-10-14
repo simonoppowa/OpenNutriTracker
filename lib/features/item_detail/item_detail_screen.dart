@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
 import 'package:opennutritracker/features/item_detail/presentation/bloc/item_detail_bloc.dart';
@@ -23,6 +24,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   final itemDetailBloc = ItemDetailBloc();
 
   late ProductEntity product;
+  late IntakeTypeEntity intakeTypeEntity;
   late TextEditingController quantityTextController;
 
   late double totalQuantity;
@@ -44,6 +46,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     final args =
         ModalRoute.of(context)?.settings.arguments as ItemDetailScreenArguments;
     product = args.productEntity;
+    intakeTypeEntity = args.intakeTypeEntity;
     totalKcal = product.nutriments.energyKcal100 ?? 0;
     totalCarbs = product.nutriments.carbohydrates100g ?? 0;
     totalFat = product.nutriments.fat100g ?? 0;
@@ -111,6 +114,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       ),
       bottomSheet: ItemDetailBottomSheet(
           product: product,
+          intakeTypeEntity: intakeTypeEntity,
           quantityTextController: quantityTextController,
           itemDetailBloc: itemDetailBloc),
     );
@@ -139,6 +143,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
 class ItemDetailScreenArguments {
   final ProductEntity productEntity;
+  final IntakeTypeEntity intakeTypeEntity;
 
-  ItemDetailScreenArguments(this.productEntity);
+  ItemDetailScreenArguments(this.productEntity, this.intakeTypeEntity);
 }

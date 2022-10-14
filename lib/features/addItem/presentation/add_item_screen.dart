@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/addItem/presentation/add_item_type.dart';
 import 'package:opennutritracker/features/addItem/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/addItem/presentation/widgets/item_search_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/features/addItem/presentation/widgets/product_item_card.dart';
+import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class AddItemScreen extends StatefulWidget {
@@ -40,7 +42,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              ItemSearchBar(onSearchSubmit: _onSearchSubmit),
+              ItemSearchBar(
+                onSearchSubmit: _onSearchSubmit,
+                onBarcodePressed: _onBarcodeIconPressed,
+              ),
               const SizedBox(height: 32.0),
               Container(
                   padding: const EdgeInsets.only(left: 8.0),
@@ -60,7 +65,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
                             itemCount: state.products.length,
                             itemBuilder: (context, index) {
                               return ProductItemCard(
-                                  productEntity: state.products[index]);
+                                  productEntity: state.products[index],
+                                  addItemType: itemType);
                             }));
                   } else {
                     return const SizedBox();
@@ -74,6 +80,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   void _onSearchSubmit(String inputText) {
     _productsBloc.add(LoadProductsEvent(searchString: inputText));
+  }
+
+  void _onBarcodeIconPressed() {
+    Navigator.of(context).pushNamed(NavigationOptions.scannerRoute,
+        arguments: ScannerScreenArguments(itemType.getIntakeType()));
   }
 }
 

@@ -14,7 +14,7 @@ class ItemDetailBloc {
     final intakeEntity = IntakeEntity(
         unit: unit,
         amount: quantity,
-        type: IntakeTypeEntity.breakfast,
+        type: type,
         product: product);
 
     _addIntakeUseCase.addIntake(context, intakeEntity);

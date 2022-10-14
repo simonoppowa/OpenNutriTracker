@@ -62,7 +62,7 @@ class OpenNutriTrackerApp extends StatelessWidget {
         NavigationOptions.mainRoute: (context) => const MainScreen(),
         NavigationOptions.settingsRoute: (context) => const SettingsScreen(),
         NavigationOptions.addItemRoute: (context) => const AddItemScreen(),
-        NavigationOptions.scannerRoute: (context) => ScannerScreen(),
+        NavigationOptions.scannerRoute: (context) => const ScannerScreen(),
         NavigationOptions.itemDetailRoute: (context) =>
             const ItemDetailScreen(),
       },

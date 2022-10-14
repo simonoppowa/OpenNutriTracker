@@ -8,12 +8,14 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 class ItemDetailBottomSheet extends StatefulWidget {
   final ProductEntity product;
+  final IntakeTypeEntity intakeTypeEntity;
   final TextEditingController quantityTextController;
   final ItemDetailBloc itemDetailBloc;
 
   const ItemDetailBottomSheet(
       {Key? key,
       required this.product,
+      required this.intakeTypeEntity,
       required this.itemDetailBloc,
       required this.quantityTextController})
       : super(key: key);
@@ -116,7 +118,7 @@ class _ItemDetailBottomSheetState extends State<ItemDetailBottomSheet> {
         context,
         widget.product.productUnit ?? "g",
         widget.quantityTextController.text,
-        IntakeTypeEntity.breakfast,
+        widget.intakeTypeEntity,
         widget.product);
 
     // Show snackbar and return to dashboard
