@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/item_detail/presentation/bloc/item_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ItemDetailBottomSheet extends StatefulWidget {
+  final ProductEntity product;
   final TextEditingController quantityTextController;
+  final ItemDetailBloc itemDetailBloc;
 
-  const ItemDetailBottomSheet({Key? key, required this.quantityTextController})
+  const ItemDetailBottomSheet(
+      {Key? key,
+      required this.product,
+      required this.itemDetailBloc,
+      required this.quantityTextController})
       : super(key: key);
 
   @override
@@ -75,7 +84,9 @@ class _ItemDetailBottomSheetState extends State<ItemDetailBottomSheet> {
                       SizedBox(
                         width: double.infinity, // Make button full width
                         child: ElevatedButton.icon(
-                            onPressed: () {},
+                            onPressed: () {
+                              onAddButtonPressed(context);
+                            },
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Theme.of(context)
                                   .colorScheme
@@ -96,4 +107,20 @@ class _ItemDetailBottomSheetState extends State<ItemDetailBottomSheet> {
           );
         });
   }
+
+  void onAddButtonPressed(BuildContext context) {
+    // TODO
+
+    widget.itemDetailBloc.addIntake(
+        context,
+        widget.product.productUnit ?? "g",
+        widget.quantityTextController.text,
+        IntakeTypeEntity.breakfast,
+        widget.product);
+
+    // TODO return to dashboard
+  }
+
+
+
 }

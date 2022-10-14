@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/item_detail/presentation/bloc/item_detail_bloc.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_macro_nutrients.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_nutriments_table.dart';
@@ -18,6 +19,8 @@ class ItemDetailScreen extends StatefulWidget {
 
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
   final log = Logger('ItemDetailScreen');
+
+  final itemDetailBloc = ItemDetailBloc();
 
   late ProductEntity product;
   late TextEditingController quantityTextController;
@@ -106,8 +109,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           )
         ],
       ),
-      bottomSheet:
-          ItemDetailBottomSheet(quantityTextController: quantityTextController),
+      bottomSheet: ItemDetailBottomSheet(
+          product: product,
+          quantityTextController: quantityTextController,
+          itemDetailBloc: itemDetailBloc),
     );
   }
 
