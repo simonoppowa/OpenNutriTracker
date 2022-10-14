@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
 import 'package:opennutritracker/features/item_detail/presentation/bloc/item_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -118,9 +119,10 @@ class _ItemDetailBottomSheetState extends State<ItemDetailBottomSheet> {
         IntakeTypeEntity.breakfast,
         widget.product);
 
-    // TODO return to dashboard
+    // Show snackbar and return to dashboard
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).infoAddedIntakeLabel)));
+    Navigator.of(context)
+        .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
   }
-
-
-
 }

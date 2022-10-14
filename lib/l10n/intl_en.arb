@@ -60,6 +60,8 @@
   "unitLabel": "Unit",
   "scanProductLabel": "Scan Product",
 
+  "infoAddedIntakeLabel": "Added new intake",
+
   "errorOpeningEmail": "Error while opening email app",
   "errorOpeningBrowser": "Error while opening browser app"
 }

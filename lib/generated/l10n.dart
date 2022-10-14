@@ -600,6 +600,16 @@ class S {
     );
   }
 
+  /// `Added new intake`
+  String get infoAddedIntakeLabel {
+    return Intl.message(
+      'Added new intake',
+      name: 'infoAddedIntakeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Error while opening email app`
   String get errorOpeningEmail {
     return Intl.message(
