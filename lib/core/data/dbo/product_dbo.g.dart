@@ -29,13 +29,14 @@ class ProductDBOAdapter extends TypeAdapter<ProductDBO> {
       productUnit: fields[9] as String?,
       servingQuantity: fields[10] as double?,
       servingUnit: fields[11] as String?,
+      nutriments: fields[12] as ProductNutrimentsDBO,
     );
   }
 
   @override
   void write(BinaryWriter writer, ProductDBO obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.code)
       ..writeByte(1)
@@ -59,7 +60,9 @@ class ProductDBOAdapter extends TypeAdapter<ProductDBO> {
       ..writeByte(10)
       ..write(obj.servingQuantity)
       ..writeByte(11)
-      ..write(obj.servingUnit);
+      ..write(obj.servingUnit)
+      ..writeByte(12)
+      ..write(obj.nutriments);
   }
 
   @override

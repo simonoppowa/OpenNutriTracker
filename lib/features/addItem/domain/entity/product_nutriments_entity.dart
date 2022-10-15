@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/data/dbo/product_nutriments_dbo.dart';
 import 'package:opennutritracker/features/addItem/data/dto/off_product_nutriments.dart';
 
 class ProductNutrimentsEntity {
@@ -26,13 +27,30 @@ class ProductNutrimentsEntity {
       required this.saturatedFat100g,
       required this.fiber100g});
 
+  factory ProductNutrimentsEntity.fromProductNutrimentsDBO(
+      ProductNutrimentsDBO nutriments) {
+    return ProductNutrimentsEntity(
+        energyKcal100: nutriments.energyKcal100,
+        energyPerUnit: nutriments.energyPerUnit,
+        carbohydrates100g: nutriments.carbohydrates100g,
+        carbohydratesPerUnit: nutriments.carbohydratesPerUnit,
+        fat100g: nutriments.fat100g,
+        fatPerUnit: nutriments.fatPerUnit,
+        proteins100g: nutriments.proteins100g,
+        proteinsPerUnit: nutriments.proteinsPerUnit,
+        sugars100g: nutriments.sugars100g,
+        saturatedFat100g: nutriments.saturatedFat100g,
+        fiber100g: nutriments.fiber100g);
+  }
+
   factory ProductNutrimentsEntity.fromOffNutriments(
       OFFProductNutriments offNutriments) {
     return ProductNutrimentsEntity(
         energyKcal100: offNutriments.energy_kcal_100g,
         energyPerUnit: _getValuePerUnit(offNutriments.energy_kcal_100g),
         carbohydrates100g: offNutriments.carbohydrates_100g,
-        carbohydratesPerUnit: _getValuePerUnit(offNutriments.carbohydrates_100g),
+        carbohydratesPerUnit:
+            _getValuePerUnit(offNutriments.carbohydrates_100g),
         fat100g: offNutriments.fat_100g,
         fatPerUnit: _getValuePerUnit(offNutriments.fat_100g),
         proteins100g: offNutriments.proteins_100g,

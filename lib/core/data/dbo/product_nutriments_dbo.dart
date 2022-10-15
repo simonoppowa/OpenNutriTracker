@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:opennutritracker/features/addItem/domain/entity/product_nutriments_entity.dart';
 
 part 'product_nutriments_dbo.g.dart';
 
@@ -39,4 +40,20 @@ class ProductNutrimentsDBO extends HiveObject {
       required this.sugars100g,
       required this.saturatedFat100g,
       required this.fiber100g});
+
+  factory ProductNutrimentsDBO.fromProductNutrimentsEntity(
+      ProductNutrimentsEntity nutriments) {
+    return ProductNutrimentsDBO(
+        energyKcal100: nutriments.energyKcal100,
+        energyPerUnit: nutriments.energyPerUnit,
+        carbohydrates100g: nutriments.carbohydrates100g,
+        carbohydratesPerUnit: nutriments.carbohydratesPerUnit,
+        fat100g: nutriments.fat100g,
+        fatPerUnit: nutriments.fatPerUnit,
+        proteins100g: nutriments.proteins100g,
+        proteinsPerUnit: nutriments.proteinsPerUnit,
+        sugars100g: nutriments.sugars100g,
+        saturatedFat100g: nutriments.saturatedFat100g,
+        fiber100g: nutriments.fiber100g);
+  }
 }

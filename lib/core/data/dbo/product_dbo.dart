@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:opennutritracker/core/data/dbo/product_nutriments_dbo.dart';
 import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
 
 part 'product_dbo.g.dart';
@@ -34,6 +35,9 @@ class ProductDBO extends HiveObject {
   @HiveField(11)
   final String? servingUnit;
 
+  @HiveField(12)
+  final ProductNutrimentsDBO nutriments;
+
   ProductDBO(
       {required this.code,
       required this.productName,
@@ -46,7 +50,8 @@ class ProductDBO extends HiveObject {
       required this.productQuantity,
       required this.productUnit,
       required this.servingQuantity,
-      required this.servingUnit});
+      required this.servingUnit,
+      required this.nutriments});
 
   factory ProductDBO.fromProductEntity(ProductEntity productEntity) =>
       ProductDBO(
@@ -61,5 +66,7 @@ class ProductDBO extends HiveObject {
           productQuantity: productEntity.productQuantity,
           productUnit: productEntity.productUnit,
           servingQuantity: productEntity.servingQuantity,
-          servingUnit: productEntity.servingUnit);
+          servingUnit: productEntity.servingUnit,
+          nutriments: ProductNutrimentsDBO.fromProductNutrimentsEntity(
+              productEntity.nutriments));
 }

@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/data/dbo/product_dbo.dart';
 import 'package:opennutritracker/features/addItem/data/dto/off_product.dart';
 import 'package:opennutritracker/features/addItem/domain/entity/product_nutriments_entity.dart';
 
@@ -37,6 +38,22 @@ class ProductEntity {
       required this.servingQuantity,
       required this.servingUnit,
       required this.nutriments});
+
+  factory ProductEntity.fromProductDBO(ProductDBO productDBO) => ProductEntity(
+      code: productDBO.code,
+      productName: productDBO.productName,
+      productNameEN: productDBO.productNameEN,
+      productNameDE: productDBO.productNameDE,
+      brands: productDBO.brands,
+      thumbnailImageUrl: productDBO.thumbnailImageUrl,
+      mainImageUrl: productDBO.mainImageUrl,
+      url: productDBO.url,
+      productQuantity: productDBO.productQuantity,
+      productUnit: productDBO.productUnit,
+      servingQuantity: productDBO.servingQuantity,
+      servingUnit: productDBO.servingUnit,
+      nutriments: ProductNutrimentsEntity.fromProductNutrimentsDBO(
+          productDBO.nutriments));
 
   factory ProductEntity.fromOFFProduct(OFFProduct offProduct) {
     return ProductEntity(
