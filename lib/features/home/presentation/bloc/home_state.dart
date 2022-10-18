@@ -16,8 +16,16 @@ class HomeLoadingState extends HomeState {
 
 class HomeLoadedState extends HomeState {
   final List<IntakeEntity> breakfastIntakeList;
+  final List<IntakeEntity> lunchIntakeList;
+  final List<IntakeEntity> dinnerIntakeList;
+  final List<IntakeEntity> snackIntakeList;
 
-  const HomeLoadedState({required this.breakfastIntakeList});
+  const HomeLoadedState({
+    required this.breakfastIntakeList,
+    required this.lunchIntakeList,
+    required this.dinnerIntakeList,
+    required this.snackIntakeList,
+  });
 
   @override
   List<Object?> get props => [breakfastIntakeList];

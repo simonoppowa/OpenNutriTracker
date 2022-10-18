@@ -8,7 +8,7 @@ class IntakeCard extends StatelessWidget {
   final String? intakeImageUrl;
 
   const IntakeCard(
-      {Key? key,
+      {required Key? key,
       required this.intakeName,
       required this.subtitle,
       required this.kcalText,

@@ -17,8 +17,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       final breakfastIntakeList =
           await getIntakeUsecase.getTodayBreakfastIntake(event.context);
+      final lunchIntakeList =
+          await getIntakeUsecase.getTodayLunchIntake(event.context);
+      final dinnerIntakeList =
+          await getIntakeUsecase.getTodayDinnerIntake(event.context);
+      final snackIntakeList =
+          await getIntakeUsecase.getTodaySnackIntake(event.context);
 
-      emit(HomeLoadedState(breakfastIntakeList: breakfastIntakeList));
+      emit(HomeLoadedState(
+          breakfastIntakeList: breakfastIntakeList,
+          lunchIntakeList: lunchIntakeList,
+          dinnerIntakeList: dinnerIntakeList,
+          snackIntakeList: snackIntakeList));
     });
   }
 }
