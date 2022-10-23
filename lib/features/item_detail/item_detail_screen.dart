@@ -60,22 +60,44 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          title: Text(
-              '${product.productName} (${product.brands}) [${product.productQuantity?.toInt()}${product.productUnit ?? "g/ml"}]')),
+      appBar: AppBar(title: Text('${product.productName}')),
       body: ListView(
         children: [
-          CachedNetworkImage(
-            imageUrl: product.mainImageUrl ?? "",
-            imageBuilder: (context, imageProvider) {
-              return Container(
-                height: 300,
-                decoration: BoxDecoration(
-                    image: DecorationImage(
-                        image: imageProvider, fit: BoxFit.cover)),
-              );
-            },
-          ),
+          Stack(children: [
+            CachedNetworkImage(
+              imageUrl: product.mainImageUrl ?? "",
+              imageBuilder: (context, imageProvider) {
+                return Container(
+                  height: 300,
+                  decoration: BoxDecoration(
+                      image: DecorationImage(
+                          image: imageProvider, fit: BoxFit.cover)),
+                );
+              },
+            ),
+            Align(
+              alignment: AlignmentDirectional.topStart,
+              child: Card(
+                child: SizedBox(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text('${product.brands}',
+                        style: Theme.of(context).textTheme.bodyText1),
+                  ),
+                ),
+              ),
+            ),
+            Align(
+              alignment: AlignmentDirectional.topEnd,
+              child: Card(
+                  child: SizedBox(
+                      child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                              '${product.productQuantity?.toInt()} ${product.productUnit}',
+                              style: Theme.of(context).textTheme.bodyText1)))),
+            )
+          ]),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
