@@ -14,20 +14,20 @@ class UserWeightGoalDBOAdapter extends TypeAdapter<UserWeightGoalDBO> {
   UserWeightGoalDBO read(BinaryReader reader) {
     switch (reader.readByte()) {
       case 0:
-        return UserWeightGoalDBO.looseWeight;
+        return UserWeightGoalDBO.loseWeight;
       case 1:
         return UserWeightGoalDBO.maintainWeight;
       case 2:
         return UserWeightGoalDBO.gainWeight;
       default:
-        return UserWeightGoalDBO.looseWeight;
+        return UserWeightGoalDBO.loseWeight;
     }
   }
 
   @override
   void write(BinaryWriter writer, UserWeightGoalDBO obj) {
     switch (obj) {
-      case UserWeightGoalDBO.looseWeight:
+      case UserWeightGoalDBO.loseWeight:
         writer.writeByte(0);
         break;
       case UserWeightGoalDBO.maintainWeight:

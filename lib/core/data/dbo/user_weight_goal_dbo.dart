@@ -5,7 +5,7 @@ part 'user_weight_goal_dbo.g.dart';
 @HiveType(typeId: 7)
 enum UserWeightGoalDBO {
   @HiveField(0)
-  looseWeight,
+  loseWeight,
   @HiveField(1)
   maintainWeight,
   @HiveField(2)
