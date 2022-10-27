@@ -53,5 +53,26 @@ class BMRCalc {
     return bmr;
   }
 
+  ///
+  /// Calculates BMR of UserEntity based on the 1990 Mifflin-St.Jeor equation
+  /// from the paper 'A new predictive equation for resting energy
+  /// expenditure in healthy individuals'
+  /// by Mifflin & St.Jeor
+  /// https://academic.oup.com/ajcn/article-abstract/51/2/241/4695104
+  ///
+  static double getBMRMifflinStJeor1990(UserEntity user) {
+    double a;
+    switch(user.gender) {
+      case UserGenderEntity.male:
+        a = 5;
+        break;
+      case UserGenderEntity.female:
+        a = -161;
+        break;
+    }
+    final bmr = 10 * user.weightKG + 6.25 * user.heightCM - 5 * user.age + a;
+    return bmr;
+  }
+
 
 }
