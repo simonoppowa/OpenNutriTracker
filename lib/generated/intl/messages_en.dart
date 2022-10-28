@@ -27,14 +27,20 @@ class MessageLookup extends MessageLookupByLibrary {
         "activityExample": MessageLookupByLibrary.simpleMessage(
             "e.g. running, biking, yoga ..."),
         "activityLabel": MessageLookupByLibrary.simpleMessage("Activity"),
+        "activityLightLabel":
+            MessageLookupByLibrary.simpleMessage("Light Activity"),
+        "activityModerateLabel":
+            MessageLookupByLibrary.simpleMessage("Moderate Activity"),
         "addItemLabel": MessageLookupByLibrary.simpleMessage("Add new Item:"),
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
         "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
             "More Information at\nOpenFoodFacts"),
+        "ageLabel": MessageLookupByLibrary.simpleMessage("Age"),
         "appLicenseLabel":
             MessageLookupByLibrary.simpleMessage("GPL-3.0 license"),
         "appTitle": MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
         "appVersionName": m0,
+        "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
         "breakfastExample": MessageLookupByLibrary.simpleMessage(
             "e.g. cereal, milk, coffee ..."),
         "breakfastLabel": MessageLookupByLibrary.simpleMessage("Breakfast"),
@@ -57,6 +63,13 @@ class MessageLookup extends MessageLookupByLibrary {
             "Error while opening email app"),
         "fatLabel": MessageLookupByLibrary.simpleMessage("fat"),
         "fiberLabel": MessageLookupByLibrary.simpleMessage("fiber"),
+        "genderLabel": MessageLookupByLibrary.simpleMessage("Gender"),
+        "goalGainWeight": MessageLookupByLibrary.simpleMessage("Gain Weight"),
+        "goalLabel": MessageLookupByLibrary.simpleMessage("Goal"),
+        "goalLooseWeight": MessageLookupByLibrary.simpleMessage("Loose Weight"),
+        "goalMaintainWeight":
+            MessageLookupByLibrary.simpleMessage("Maintain Weight"),
+        "heightLabel": MessageLookupByLibrary.simpleMessage("Height"),
         "helloWorld": MessageLookupByLibrary.simpleMessage("Hello World"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
         "infoAddedIntakeLabel":
@@ -105,6 +118,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "snackLabel": MessageLookupByLibrary.simpleMessage("Snack"),
         "sugarLabel": MessageLookupByLibrary.simpleMessage("sugar"),
         "suppliedLabel": MessageLookupByLibrary.simpleMessage("supplied"),
-        "unitLabel": MessageLookupByLibrary.simpleMessage("Unit")
+        "unitLabel": MessageLookupByLibrary.simpleMessage("Unit"),
+        "vigorousModerateLabel":
+            MessageLookupByLibrary.simpleMessage("Vigorous Activity"),
+        "weightLabel": MessageLookupByLibrary.simpleMessage("Weight")
       };
 }

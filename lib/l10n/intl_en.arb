@@ -62,6 +62,22 @@
 
   "infoAddedIntakeLabel": "Added new intake",
 
+  "bmiLabel": "BMI",
+
+  "activityModerateLabel": "Moderate Activity",
+  "activityLightLabel": "Light Activity",
+  "vigorousModerateLabel": "Vigorous Activity",
+
+  "goalLooseWeight": "Loose Weight",
+  "goalMaintainWeight": "Maintain Weight",
+  "goalGainWeight": "Gain Weight",
+
+  "goalLabel": "Goal",
+  "heightLabel": "Height",
+  "weightLabel": "Weight",
+  "ageLabel": "Age",
+  "genderLabel": "Gender",
+
   "errorOpeningEmail": "Error while opening email app",
   "errorOpeningBrowser": "Error while opening browser app"
 }

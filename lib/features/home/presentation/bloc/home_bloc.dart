@@ -23,7 +23,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           await getIntakeUsecase.getTodayBreakfastIntake(event.context);
       final totalBreakfastKcal =
           breakfastIntakeList.map((intake) => intake.totalKcal).toList().sum;
-      print(totalBreakfastKcal);
       final lunchIntakeList =
           await getIntakeUsecase.getTodayLunchIntake(event.context);
       final totalLunchKcal =

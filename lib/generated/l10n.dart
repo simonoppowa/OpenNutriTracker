@@ -610,6 +610,126 @@ class S {
     );
   }
 
+  /// `BMI`
+  String get bmiLabel {
+    return Intl.message(
+      'BMI',
+      name: 'bmiLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Moderate Activity`
+  String get activityModerateLabel {
+    return Intl.message(
+      'Moderate Activity',
+      name: 'activityModerateLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Light Activity`
+  String get activityLightLabel {
+    return Intl.message(
+      'Light Activity',
+      name: 'activityLightLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Vigorous Activity`
+  String get vigorousModerateLabel {
+    return Intl.message(
+      'Vigorous Activity',
+      name: 'vigorousModerateLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Loose Weight`
+  String get goalLooseWeight {
+    return Intl.message(
+      'Loose Weight',
+      name: 'goalLooseWeight',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Maintain Weight`
+  String get goalMaintainWeight {
+    return Intl.message(
+      'Maintain Weight',
+      name: 'goalMaintainWeight',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Gain Weight`
+  String get goalGainWeight {
+    return Intl.message(
+      'Gain Weight',
+      name: 'goalGainWeight',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Goal`
+  String get goalLabel {
+    return Intl.message(
+      'Goal',
+      name: 'goalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Height`
+  String get heightLabel {
+    return Intl.message(
+      'Height',
+      name: 'heightLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight`
+  String get weightLabel {
+    return Intl.message(
+      'Weight',
+      name: 'weightLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Age`
+  String get ageLabel {
+    return Intl.message(
+      'Age',
+      name: 'ageLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Gender`
+  String get genderLabel {
+    return Intl.message(
+      'Gender',
+      name: 'genderLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Error while opening email app`
   String get errorOpeningEmail {
     return Intl.message(
