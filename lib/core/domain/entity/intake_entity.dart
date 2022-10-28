@@ -25,4 +25,6 @@ class IntakeEntity {
         product: ProductEntity.fromProductDBO(intakeDBO.product),
         dateTime: intakeDBO.dateTime);
   }
+
+  double get totalKcal => amount * (product.nutriments.energyPerUnit ?? 0);
 }
