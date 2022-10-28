@@ -62,7 +62,7 @@ class BMRCalc {
   ///
   static double getBMRMifflinStJeor1990(UserEntity user) {
     double a;
-    switch(user.gender) {
+    switch (user.gender) {
       case UserGenderEntity.male:
         a = 5;
         break;
@@ -74,5 +74,56 @@ class BMRCalc {
     return bmr;
   }
 
-
+  /// Calculates BMR of UserEntity based on the 1985 Schofield equation
+  /// from the paper 'Predicting basal metabolic rate, new standards and
+  /// review of previous work' by Schofield
+  /// https://pubmed.ncbi.nlm.nih.gov/4044297/
+  ///
+  static double getBMRSchofield11985(UserEntity user) {
+    double bmr;
+    final age = user.age;
+    switch (user.gender) {
+      case UserGenderEntity.male:
+        if (age < 3) {
+          bmr = 59.512 * user.weightKG - 30.4;
+          break;
+        } else if (age < 10) {
+          bmr = 22.706 * user.weightKG + 504.3;
+          break;
+        } else if (age < 18) {
+          bmr = 17.686 * user.weightKG + 658.2;
+          break;
+        } else if (age < 30) {
+          bmr = 15.057 * user.weightKG + 692.2;
+          break;
+        } else if (age < 60) {
+          bmr = 11.472 * user.weightKG + 873.1;
+          break;
+        } else {
+          bmr = 11.711 * user.weightKG + 587.7;
+          break;
+        }
+      case UserGenderEntity.female:
+        if (age < 3) {
+          bmr = 58.317 * user.weightKG - 31.1;
+          break;
+        } else if (age < 10) {
+          bmr = 20.315 * user.weightKG + 485.9;
+          break;
+        } else if (age < 18) {
+          bmr = 13.384 * user.weightKG + 692.6;
+          break;
+        } else if (age < 30) {
+          bmr = 14.818 * user.weightKG + 486.6;
+          break;
+        } else if (age < 60) {
+          bmr = 8.126 * user.weightKG + 845.6;
+          break;
+        } else {
+          bmr = 9.082 * user.weightKG + 658.5;
+          break;
+        }
+    }
+    return bmr;
+  }
 }
