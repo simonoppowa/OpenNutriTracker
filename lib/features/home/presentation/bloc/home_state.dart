@@ -15,12 +15,14 @@ class HomeLoadingState extends HomeState {
 }
 
 class HomeLoadedState extends HomeState {
+  final double totalKcalSupplied;
   final List<IntakeEntity> breakfastIntakeList;
   final List<IntakeEntity> lunchIntakeList;
   final List<IntakeEntity> dinnerIntakeList;
   final List<IntakeEntity> snackIntakeList;
 
   const HomeLoadedState({
+    required this.totalKcalSupplied,
     required this.breakfastIntakeList,
     required this.lunchIntakeList,
     required this.dinnerIntakeList,
@@ -28,5 +30,10 @@ class HomeLoadedState extends HomeState {
   });
 
   @override
-  List<Object?> get props => [breakfastIntakeList];
+  List<Object?> get props => [
+        breakfastIntakeList,
+        lunchIntakeList,
+        dinnerIntakeList,
+        snackIntakeList
+      ];
 }

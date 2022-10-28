@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,15 +21,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final user = await getUserUsecase.getUserData(event.context);
       final breakfastIntakeList =
           await getIntakeUsecase.getTodayBreakfastIntake(event.context);
+      final totalBreakfastKcal =
+          breakfastIntakeList.map((intake) => intake.totalKcal).toList().sum;
+      print(totalBreakfastKcal);
       final lunchIntakeList =
           await getIntakeUsecase.getTodayLunchIntake(event.context);
+      final totalLunchKcal =
+          lunchIntakeList.map((intake) => intake.totalKcal).toList().sum;
       final dinnerIntakeList =
           await getIntakeUsecase.getTodayDinnerIntake(event.context);
+      final totalDinnerKcal =
+          dinnerIntakeList.map((intake) => intake.totalKcal).toList().sum;
       final snackIntakeList =
           await getIntakeUsecase.getTodaySnackIntake(event.context);
+      final totalSnackKcal =
+          snackIntakeList.map((intake) => intake.totalKcal).toList().sum;
+      final totalKcalIntake = totalBreakfastKcal +
+          totalLunchKcal +
+          totalDinnerKcal +
+          totalSnackKcal;
 
       emit(HomeLoadedState(
-          // TODO emit user state
+          totalKcalSupplied: totalKcalIntake,
           breakfastIntakeList: breakfastIntakeList,
           lunchIntakeList: lunchIntakeList,
           dinnerIntakeList: dinnerIntakeList,
