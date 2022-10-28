@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
-import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/meal_Intake_list.dart';
@@ -24,6 +23,7 @@ class HomePage extends StatelessWidget {
         } else if (state is HomeLoadedState) {
           return _getLoadedContent(
               context,
+              state.totalKcalSupplied,
               state.breakfastIntakeList,
               state.lunchIntakeList,
               state.dinnerIntakeList,
@@ -43,6 +43,7 @@ class HomePage extends StatelessWidget {
 
   Widget _getLoadedContent(
       BuildContext context,
+      double totalKcalSupplied,
       List<IntakeEntity> breakfastIntakeList,
       List<IntakeEntity> lunchIntakeList,
       List<IntakeEntity> dinnerIntakeList,
@@ -50,7 +51,8 @@ class HomePage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 0.0),
       child: ListView(children: [
-        const DashboardWidget(),
+        DashboardWidget(
+            totalKcalSupplied: totalKcalSupplied, totalKcalBurned: 0),
         MealIntakeList(
             title: S.of(context).breakfastLabel,
             intakeList: breakfastIntakeList),

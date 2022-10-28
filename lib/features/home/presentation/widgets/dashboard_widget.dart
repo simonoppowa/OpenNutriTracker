@@ -4,7 +4,14 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class DashboardWidget extends StatefulWidget {
-  const DashboardWidget({Key? key}) : super(key: key);
+  final double totalKcalSupplied;
+  final double totalKcalBurned;
+
+  const DashboardWidget(
+      {Key? key,
+      required this.totalKcalSupplied,
+      required this.totalKcalBurned})
+      : super(key: key);
 
   @override
   State<DashboardWidget> createState() => _DashboardWidgetState();
@@ -27,7 +34,8 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                 Column(
                   children: [
                     const Icon(Icons.keyboard_arrow_up_outlined),
-                    Text("1056", style: Theme.of(context).textTheme.headline6),
+                    Text('${widget.totalKcalSupplied.toInt()}',
+                        style: Theme.of(context).textTheme.headline6),
                     Text(S.of(context).suppliedLabel,
                         style: Theme.of(context).textTheme.subtitle2),
                   ],
@@ -63,7 +71,8 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                 Column(
                   children: [
                     const Icon(Icons.keyboard_arrow_down_outlined),
-                    Text("153", style: Theme.of(context).textTheme.headline6),
+                    Text('${widget.totalKcalBurned.toInt()}',
+                        style: Theme.of(context).textTheme.headline6),
                     Text(S.of(context).burnedLabel,
                         style: Theme.of(context).textTheme.subtitle2),
                   ],

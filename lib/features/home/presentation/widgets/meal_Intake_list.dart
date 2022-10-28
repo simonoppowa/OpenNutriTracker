@@ -40,7 +40,7 @@ class MealIntakeList extends StatelessWidget {
                         subtitle:
                             '${intakeEntity.amount.toString()}${intakeEntity.unit}',
                         kcalText:
-                            '${intakeEntity.product.nutriments.energyKcal100?.toInt()} kcal',
+                            '${intakeEntity.totalKcal.toInt()} kcal',
                         intakeImageUrl: intakeEntity.product.mainImageUrl);
                   },
                 ),
