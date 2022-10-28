@@ -67,9 +67,13 @@ class IntakeCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(intakeName,
-                        style: Theme.of(context).textTheme.subtitle1?.copyWith(
-                            color: Theme.of(context).colorScheme.onPrimary)),
+                    Text(
+                      intakeName,
+                      style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimary),
+                      maxLines: 2,
+                      overflow: TextOverflow.fade,
+                    ),
                     Text(subtitle,
                         style: Theme.of(context).textTheme.subtitle2?.copyWith(
                             color: Theme.of(context)
