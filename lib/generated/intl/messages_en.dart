@@ -59,7 +59,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "e.g. soup, chicken, wine ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Dinner"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
-            "OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems.\n\n\nThe application is still under construction. Errors within the app cannot be ruled out."),
+            "OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems. Usage during illness, pregnancy or lactation is not advised.\n\n\nThe application is still under construction. Errors, bugs and crashes might occur."),
         "energyLabel": MessageLookupByLibrary.simpleMessage("energy"),
         "errorOpeningBrowser": MessageLookupByLibrary.simpleMessage(
             "Error while opening browser app"),

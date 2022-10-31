@@ -280,10 +280,10 @@ class S {
     );
   }
 
-  /// `OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems.\n\n\nThe application is still under construction. Errors within the app cannot be ruled out.`
+  /// `OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems. Usage during illness, pregnancy or lactation is not advised.\n\n\nThe application is still under construction. Errors, bugs and crashes might occur.`
   String get disclaimerText {
     return Intl.message(
-      'OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems.\n\n\nThe application is still under construction. Errors within the app cannot be ruled out.',
+      'OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems. Usage during illness, pregnancy or lactation is not advised.\n\n\nThe application is still under construction. Errors, bugs and crashes might occur.',
       name: 'disclaimerText',
       desc: '',
       args: [],
