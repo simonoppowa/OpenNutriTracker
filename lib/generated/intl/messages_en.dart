@@ -22,6 +22,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m0(versionNumber) => "Version ${versionNumber}";
 
+  static String m1(age) => "${age} years";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -31,6 +33,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Light Activity"),
         "activityModerateLabel":
             MessageLookupByLibrary.simpleMessage("Moderate Activity"),
+        "activityVigorousLabel":
+            MessageLookupByLibrary.simpleMessage("Vigorous Activity"),
         "addItemLabel": MessageLookupByLibrary.simpleMessage("Add new Item:"),
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
         "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
@@ -63,7 +67,9 @@ class MessageLookup extends MessageLookupByLibrary {
             "Error while opening email app"),
         "fatLabel": MessageLookupByLibrary.simpleMessage("fat"),
         "fiberLabel": MessageLookupByLibrary.simpleMessage("fiber"),
+        "genderFemaleLabel": MessageLookupByLibrary.simpleMessage("female"),
         "genderLabel": MessageLookupByLibrary.simpleMessage("Gender"),
+        "genderMaleLabel": MessageLookupByLibrary.simpleMessage("male"),
         "goalGainWeight": MessageLookupByLibrary.simpleMessage("Gain Weight"),
         "goalLabel": MessageLookupByLibrary.simpleMessage("Goal"),
         "goalLooseWeight": MessageLookupByLibrary.simpleMessage("Loose Weight"),
@@ -119,8 +125,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "sugarLabel": MessageLookupByLibrary.simpleMessage("sugar"),
         "suppliedLabel": MessageLookupByLibrary.simpleMessage("supplied"),
         "unitLabel": MessageLookupByLibrary.simpleMessage("Unit"),
-        "vigorousModerateLabel":
-            MessageLookupByLibrary.simpleMessage("Vigorous Activity"),
-        "weightLabel": MessageLookupByLibrary.simpleMessage("Weight")
+        "weightLabel": MessageLookupByLibrary.simpleMessage("Weight"),
+        "yearsLabel": m1
       };
 }

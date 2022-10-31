@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 enum UserPALEntity {
   lightActivity,
@@ -19,5 +21,21 @@ enum UserPALEntity {
         break;
     }
     return palEntity;
+  }
+
+  String getName(BuildContext context) {
+    String name;
+    switch (this) {
+      case UserPALEntity.lightActivity:
+        name = S.of(context).activityLightLabel;
+        break;
+      case UserPALEntity.moderateActivity:
+        name = S.of(context).activityModerateLabel;
+        break;
+      case UserPALEntity.vigorousActivity:
+        name = S.of(context).activityVigorousLabel;
+        break;
+    }
+    return name;
   }
 }

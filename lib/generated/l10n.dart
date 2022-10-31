@@ -641,10 +641,10 @@ class S {
   }
 
   /// `Vigorous Activity`
-  String get vigorousModerateLabel {
+  String get activityVigorousLabel {
     return Intl.message(
       'Vigorous Activity',
-      name: 'vigorousModerateLabel',
+      name: 'activityVigorousLabel',
       desc: '',
       args: [],
     );
@@ -720,11 +720,41 @@ class S {
     );
   }
 
+  /// `{age} years`
+  String yearsLabel(Object age) {
+    return Intl.message(
+      '$age years',
+      name: 'yearsLabel',
+      desc: '',
+      args: [age],
+    );
+  }
+
   /// `Gender`
   String get genderLabel {
     return Intl.message(
       'Gender',
       name: 'genderLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `male`
+  String get genderMaleLabel {
+    return Intl.message(
+      'male',
+      name: 'genderMaleLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `female`
+  String get genderFemaleLabel {
+    return Intl.message(
+      'female',
+      name: 'genderFemaleLabel',
       desc: '',
       args: [],
     );

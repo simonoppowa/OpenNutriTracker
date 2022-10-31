@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/bmi_overview.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -19,7 +20,7 @@ class ProfilePage extends StatelessWidget {
         } else if (state is ProfileLoadingState) {
           return _getLoadingContent();
         } else if (state is ProfileLoadedState) {
-          return _getLoadedContent(context);
+          return _getLoadedContent(context, state.userBMI, state.userEntity);
         } else {
           return _getLoadingContent();
         }
@@ -34,7 +35,8 @@ Widget _getLoadingContent() {
   );
 }
 
-Widget _getLoadedContent(BuildContext context) {
+Widget _getLoadedContent(
+    BuildContext context, double userBMI, UserEntity user) {
   return ListView(
     children: [
       const SizedBox(height: 32.0),
@@ -46,7 +48,7 @@ Widget _getLoadedContent(BuildContext context) {
           style: Theme.of(context).textTheme.headline6,
         ),
         subtitle: Text(
-          'Moderate Activity',
+          user.pal.getName(context),
           style: Theme.of(context).textTheme.subtitle1,
         ),
         leading: const SizedBox(
@@ -60,7 +62,7 @@ Widget _getLoadedContent(BuildContext context) {
           style: Theme.of(context).textTheme.headline6,
         ),
         subtitle: Text(
-          'Maintain Weight',
+          user.goal.getName(context),
           style: Theme.of(context).textTheme.subtitle1,
         ),
         leading: const SizedBox(
@@ -74,7 +76,7 @@ Widget _getLoadedContent(BuildContext context) {
           style: Theme.of(context).textTheme.headline6,
         ),
         subtitle: Text(
-          '80 kg',
+          '${user.weightKG} kg',
           style: Theme.of(context).textTheme.subtitle1,
         ),
         leading: const SizedBox(
@@ -88,7 +90,7 @@ Widget _getLoadedContent(BuildContext context) {
           style: Theme.of(context).textTheme.headline6,
         ),
         subtitle: Text(
-          '180 cm',
+          '${user.heightCM.toInt()} cm',
           style: Theme.of(context).textTheme.subtitle1,
         ),
         leading: const SizedBox(
@@ -102,7 +104,7 @@ Widget _getLoadedContent(BuildContext context) {
           style: Theme.of(context).textTheme.headline6,
         ),
         subtitle: Text(
-          '22 years',
+          S.of(context).yearsLabel(user.age),
           style: Theme.of(context).textTheme.subtitle1,
         ),
         leading: const SizedBox(
@@ -116,12 +118,12 @@ Widget _getLoadedContent(BuildContext context) {
           style: Theme.of(context).textTheme.headline6,
         ),
         subtitle: Text(
-          '♂ male',
+          user.gender.getName(context),
           style: Theme.of(context).textTheme.subtitle1,
         ),
-        leading: const SizedBox(
+        leading: SizedBox(
           height: double.infinity,
-          child: Icon(Icons.male_outlined),
+          child: Icon(user.gender.getIcon()),
         ),
       ),
     ],

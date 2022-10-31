@@ -66,7 +66,7 @@
 
   "activityModerateLabel": "Moderate Activity",
   "activityLightLabel": "Light Activity",
-  "vigorousModerateLabel": "Vigorous Activity",
+  "activityVigorousLabel": "Vigorous Activity",
 
   "goalLooseWeight": "Loose Weight",
   "goalMaintainWeight": "Maintain Weight",
@@ -76,7 +76,10 @@
   "heightLabel": "Height",
   "weightLabel": "Weight",
   "ageLabel": "Age",
+  "yearsLabel": "{age} years",
   "genderLabel": "Gender",
+  "genderMaleLabel": "male",
+  "genderFemaleLabel": "female",
 
   "errorOpeningEmail": "Error while opening email app",
   "errorOpeningBrowser": "Error while opening browser app"

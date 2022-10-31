@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 enum UserWeightGoalEntity {
   loseWeight,
@@ -20,5 +22,21 @@ enum UserWeightGoalEntity {
         break;
     }
     return weightGoalEntity;
+  }
+
+  String getName(BuildContext context) {
+    String name;
+    switch (this) {
+      case UserWeightGoalEntity.loseWeight:
+        name = S.of(context).goalLooseWeight;
+        break;
+      case UserWeightGoalEntity.maintainWeight:
+        name = S.of(context).goalMaintainWeight;
+        break;
+      case UserWeightGoalEntity.gainWeight:
+        name = S.of(context).goalGainWeight;
+        break;
+    }
+    return name;
   }
 }
