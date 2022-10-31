@@ -87,6 +87,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Nutrition Information"),
+        "nutritionalStatusNormalWeight":
+            MessageLookupByLibrary.simpleMessage("Normal Weight"),
+        "nutritionalStatusObeseClassI":
+            MessageLookupByLibrary.simpleMessage("Obesity class I"),
+        "nutritionalStatusObeseClassII":
+            MessageLookupByLibrary.simpleMessage("Obesity class II"),
+        "nutritionalStatusObeseClassIII":
+            MessageLookupByLibrary.simpleMessage("Obesity class III"),
+        "nutritionalStatusPreObesity":
+            MessageLookupByLibrary.simpleMessage("Pre-obesity"),
+        "nutritionalStatusUnderweight":
+            MessageLookupByLibrary.simpleMessage("Underweight"),
         "per100gLabel": MessageLookupByLibrary.simpleMessage("Per 100g"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
         "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),

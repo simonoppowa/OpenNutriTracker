@@ -760,6 +760,66 @@ class S {
     );
   }
 
+  /// `Underweight`
+  String get nutritionalStatusUnderweight {
+    return Intl.message(
+      'Underweight',
+      name: 'nutritionalStatusUnderweight',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Normal Weight`
+  String get nutritionalStatusNormalWeight {
+    return Intl.message(
+      'Normal Weight',
+      name: 'nutritionalStatusNormalWeight',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pre-obesity`
+  String get nutritionalStatusPreObesity {
+    return Intl.message(
+      'Pre-obesity',
+      name: 'nutritionalStatusPreObesity',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Obesity class I`
+  String get nutritionalStatusObeseClassI {
+    return Intl.message(
+      'Obesity class I',
+      name: 'nutritionalStatusObeseClassI',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Obesity class II`
+  String get nutritionalStatusObeseClassII {
+    return Intl.message(
+      'Obesity class II',
+      name: 'nutritionalStatusObeseClassII',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Obesity class III`
+  String get nutritionalStatusObeseClassIII {
+    return Intl.message(
+      'Obesity class III',
+      name: 'nutritionalStatusObeseClassIII',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Error while opening email app`
   String get errorOpeningEmail {
     return Intl.message(

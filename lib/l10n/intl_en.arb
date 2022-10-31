@@ -81,6 +81,13 @@
   "genderMaleLabel": "male",
   "genderFemaleLabel": "female",
 
+  "nutritionalStatusUnderweight": "Underweight",
+  "nutritionalStatusNormalWeight": "Normal Weight",
+  "nutritionalStatusPreObesity": "Pre-obesity",
+  "nutritionalStatusObeseClassI": "Obesity class I",
+  "nutritionalStatusObeseClassII": "Obesity class II",
+  "nutritionalStatusObeseClassIII": "Obesity class III",
+
   "errorOpeningEmail": "Error while opening email app",
   "errorOpeningBrowser": "Error while opening browser app"
 }

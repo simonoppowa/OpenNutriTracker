@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class BMIOverview extends StatelessWidget {
-  const BMIOverview({Key? key}) : super(key: key);
+  final double bmiValue;
+  final String statusName;
+
+  const BMIOverview({Key? key, required this.bmiValue, required this.statusName})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +21,7 @@ class BMIOverview extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                '23',
+                '${bmiValue.roundToPrecision(1)}',
                 style: Theme.of(context).textTheme.headline3,
               ),
               Text(S.of(context).bmiLabel,
@@ -24,7 +29,8 @@ class BMIOverview extends StatelessWidget {
             ],
           ),
         ),
-        Text('Normal Weight',
+        const SizedBox(height: 8.0),
+        Text(statusName,
             style: Theme.of(context).textTheme.headline6,
             textAlign: TextAlign.center),
       ],

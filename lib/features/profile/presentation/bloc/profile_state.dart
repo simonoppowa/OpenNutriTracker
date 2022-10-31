@@ -15,7 +15,7 @@ class ProfileLoadingState extends ProfileState {
 }
 
 class ProfileLoadedState extends ProfileState {
-  final double userBMI;
+  final UserBMIEntity userBMI;
   final UserEntity userEntity;
 
   const ProfileLoadedState({required this.userBMI, required this.userEntity});

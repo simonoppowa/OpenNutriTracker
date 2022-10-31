@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/domain/entity/user_bmi_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/bmi_overview.dart';
@@ -36,11 +37,14 @@ Widget _getLoadingContent() {
 }
 
 Widget _getLoadedContent(
-    BuildContext context, double userBMI, UserEntity user) {
+    BuildContext context, UserBMIEntity userBMIEntity, UserEntity user) {
   return ListView(
     children: [
       const SizedBox(height: 32.0),
-      const BMIOverview(),
+      BMIOverview(
+        bmiValue: userBMIEntity.bmiValue,
+        statusName: userBMIEntity.nutritionalStatus.getName(context),
+      ),
       const SizedBox(height: 32.0),
       ListTile(
         title: Text(
