@@ -650,6 +650,16 @@ class S {
     );
   }
 
+  /// `Choose Weight Goal`
+  String get chooseWeightGoalLabel {
+    return Intl.message(
+      'Choose Weight Goal',
+      name: 'chooseWeightGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Loose Weight`
   String get goalLooseWeight {
     return Intl.message(
@@ -690,6 +700,16 @@ class S {
     );
   }
 
+  /// `Select Height`
+  String get selectHeightDialogLabel {
+    return Intl.message(
+      'Select Height',
+      name: 'selectHeightDialogLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Height`
   String get heightLabel {
     return Intl.message(
@@ -700,11 +720,31 @@ class S {
     );
   }
 
+  /// `Select Weight`
+  String get selectWeightDialogLabel {
+    return Intl.message(
+      'Select Weight',
+      name: 'selectWeightDialogLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Weight`
   String get weightLabel {
     return Intl.message(
       'Weight',
       name: 'weightLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `kg`
+  String get kgLabel {
+    return Intl.message(
+      'kg',
+      name: 'kgLabel',
       desc: '',
       args: [],
     );
@@ -727,6 +767,16 @@ class S {
       name: 'yearsLabel',
       desc: '',
       args: [age],
+    );
+  }
+
+  /// `Select Gender`
+  String get selectGenderDialogLabel {
+    return Intl.message(
+      'Select Gender',
+      name: 'selectGenderDialogLabel',
+      desc: '',
+      args: [],
     );
   }
 

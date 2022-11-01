@@ -52,6 +52,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "carbohydrateLabel":
             MessageLookupByLibrary.simpleMessage("carbohydrate"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("carbs"),
+        "chooseWeightGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Choose Weight Goal"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("CANCEL"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),
@@ -82,6 +84,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Added new intake"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal left"),
+        "kgLabel": MessageLookupByLibrary.simpleMessage("kg"),
         "lunchExample":
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
@@ -114,6 +117,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "searchLabel": MessageLookupByLibrary.simpleMessage("Search"),
         "searchResultsLabel":
             MessageLookupByLibrary.simpleMessage("Search results"),
+        "selectGenderDialogLabel":
+            MessageLookupByLibrary.simpleMessage("Select Gender"),
+        "selectHeightDialogLabel":
+            MessageLookupByLibrary.simpleMessage("Select Height"),
+        "selectWeightDialogLabel":
+            MessageLookupByLibrary.simpleMessage("Select Weight"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),
