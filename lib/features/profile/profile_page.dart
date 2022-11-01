@@ -9,6 +9,7 @@ import 'package:opennutritracker/features/profile/presentation/widgets/bmi_overv
 import 'package:opennutritracker/features/profile/presentation/widgets/set%20_weight_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_gender_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_goal_dialog.dart';
+import 'package:opennutritracker/features/profile/presentation/widgets/set_height_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -110,6 +111,9 @@ class ProfilePage extends StatelessWidget {
             height: double.infinity,
             child: Icon(Icons.height_outlined),
           ),
+          onTap: () {
+            _showSetHeightDialog(context, user);
+          },
         ),
         ListTile(
           title: Text(
@@ -170,11 +174,24 @@ class ProfilePage extends StatelessWidget {
 
   Future<void> _showSetWeightDialog(
       BuildContext context, UserEntity userEntity) async {
-    final selectedWeight = await showDialog(
+    final selectedWeight = await showDialog<double>(
         context: context,
         builder: (context) => SetWeightDialog(userWeight: userEntity.weightKG));
     if (selectedWeight != null) {
       userEntity.weightKG = selectedWeight;
+      _profileBloc.updateUser(context, userEntity);
+    }
+  }
+
+  Future<void> _showSetHeightDialog(
+      BuildContext context, UserEntity userEntity) async {
+    final selectedHeight = await showDialog<double>(
+        context: context,
+        builder: (context) => SetHeightDialog(
+              userHeightCM: userEntity.heightCM,
+            ));
+    if (selectedHeight != null) {
+      userEntity.heightCM = selectedHeight;
       _profileBloc.updateUser(context, userEntity);
     }
   }

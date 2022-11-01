@@ -75,6 +75,7 @@
   "goalLabel": "Goal",
   "selectHeightDialogLabel": "Select Height",
   "heightLabel": "Height",
+  "cmLabel": "cm",
   "selectWeightDialogLabel": "Select Weight",
   "weightLabel": "Weight",
   "kgLabel": "kg",

@@ -54,6 +54,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "carbsLabel": MessageLookupByLibrary.simpleMessage("carbs"),
         "chooseWeightGoalLabel":
             MessageLookupByLibrary.simpleMessage("Choose Weight Goal"),
+        "cmLabel": MessageLookupByLibrary.simpleMessage("cm"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("CANCEL"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),

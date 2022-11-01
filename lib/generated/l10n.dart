@@ -720,6 +720,16 @@ class S {
     );
   }
 
+  /// `cm`
+  String get cmLabel {
+    return Intl.message(
+      'cm',
+      name: 'cmLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Select Weight`
   String get selectWeightDialogLabel {
     return Intl.message(
