@@ -53,6 +53,7 @@ dependencies:
 
   percent_indicator: ^4.0.1
   horizontal_picker: ^1.2.0
+  table_calendar: ^3.0.8
 
   mobile_scanner: ^2.0.0
 
