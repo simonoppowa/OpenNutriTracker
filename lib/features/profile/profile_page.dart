@@ -128,6 +128,9 @@ class ProfilePage extends StatelessWidget {
             height: double.infinity,
             child: Icon(Icons.cake_outlined),
           ),
+          onTap: () {
+            _showSetBirthdayDialog(context, user);
+          },
         ),
         ListTile(
           title: Text(
@@ -161,13 +164,15 @@ class ProfilePage extends StatelessWidget {
     }
   }
 
-  Future<void> _showSetGenderDialog(
+  Future<void> _showSetHeightDialog(
       BuildContext context, UserEntity userEntity) async {
-    final selectedGender = await showDialog<UserGenderEntity>(
+    final selectedHeight = await showDialog<double>(
         context: context,
-        builder: (BuildContext context) => const SetGenderDialog());
-    if (selectedGender != null) {
-      userEntity.gender = selectedGender;
+        builder: (context) => SetHeightDialog(
+              userHeightCM: userEntity.heightCM,
+            ));
+    if (selectedHeight != null) {
+      userEntity.heightCM = selectedHeight;
       _profileBloc.updateUser(context, userEntity);
     }
   }
@@ -183,15 +188,26 @@ class ProfilePage extends StatelessWidget {
     }
   }
 
-  Future<void> _showSetHeightDialog(
+  Future<void> _showSetBirthdayDialog(
       BuildContext context, UserEntity userEntity) async {
-    final selectedHeight = await showDialog<double>(
+    final selectedDate = await showDatePicker(
         context: context,
-        builder: (context) => SetHeightDialog(
-              userHeightCM: userEntity.heightCM,
-            ));
-    if (selectedHeight != null) {
-      userEntity.heightCM = selectedHeight;
+        initialDate: userEntity.birthday,
+        firstDate: DateTime(1900),
+        lastDate: DateTime(2100));
+    if (selectedDate != null) {
+      userEntity.birthday = selectedDate;
+      _profileBloc.updateUser(context, userEntity);
+    }
+  }
+
+  Future<void> _showSetGenderDialog(
+      BuildContext context, UserEntity userEntity) async {
+    final selectedGender = await showDialog<UserGenderEntity>(
+        context: context,
+        builder: (BuildContext context) => const SetGenderDialog());
+    if (selectedGender != null) {
+      userEntity.gender = selectedGender;
       _profileBloc.updateUser(context, userEntity);
     }
   }
