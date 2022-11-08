@@ -1,7 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/diary_table_calendar.dart';
 
 class DiaryPage extends StatefulWidget {
   const DiaryPage({Key? key}) : super(key: key);
@@ -11,6 +11,8 @@ class DiaryPage extends StatefulWidget {
 }
 
 class _DiaryPageState extends State<DiaryPage> {
+  final _diaryBloc = DiaryBloc();
+
   static const _calendarDurationDays = Duration(days: 356);
   final _currentDate = DateTime.now();
   var _selectedDate = DateTime.now();
@@ -18,60 +20,39 @@ class _DiaryPageState extends State<DiaryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return getLoadedContent(context);
+    return BlocBuilder<DiaryBloc, DiaryState>(
+      bloc: _diaryBloc,
+      builder: (context, state) {
+        if (state is DiaryInitial) {
+          _diaryBloc.add(LoadDiaryEvent());
+        } else if (state is DiaryLoadingState) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is DiaryLoadedState) {
+          return getLoadedContent(context);
+        }
+        return const SizedBox();
+      },
+    );
   }
 
   Widget getLoadedContent(BuildContext context) {
     return ListView(
       children: [
-        TableCalendar(
-          headerStyle: const HeaderStyle(
-              titleCentered: true, formatButtonVisible: false),
-          focusedDay: _focusedDate,
-          firstDay: _currentDate.subtract(_calendarDurationDays),
-          lastDay: _currentDate.add(_calendarDurationDays),
-          startingDayOfWeek: StartingDayOfWeek.monday,
-          onDaySelected: (selectedDay, focusedDay) {
-            setState(() {
-              _selectedDate = selectedDay;
-              _focusedDate = focusedDay;
-            });
-          },
-          calendarStyle: CalendarStyle(
-              markersMaxCount: 1,
-              todayTextStyle:
-                  Theme.of(context).textTheme.bodyMedium ?? const TextStyle(),
-              todayDecoration: BoxDecoration(
-                  border: Border.all(
-                      color: Theme.of(context).colorScheme.onBackground,
-                      width: 2.0),
-                  //color: Theme.of(context).colorScheme.primary,
-                  shape: BoxShape.circle),
-              selectedTextStyle: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimary) ??
-                  const TextStyle(),
-              selectedDecoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  shape: BoxShape.circle)),
-          selectedDayPredicate: (day) => isSameDay(_selectedDate, day),
-          calendarBuilders:
-              CalendarBuilders(markerBuilder: (context, date, events) {
-            return Container(
-              margin: const EdgeInsets.only(top: 10),
-              padding: const EdgeInsets.all(1),
-              decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors
-                      .primaries[Random().nextInt(Colors.primaries.length)]),
-              width: 5.0,
-              height: 5.0,
-            );
-          }),
-        )
+        DiaryTableCalendar(
+          onDateSelected: onDateSelected,
+          calendarDurationDays: _calendarDurationDays,
+          currentDate: _currentDate,
+          selectedDate: _selectedDate,
+          focusedDate: _focusedDate,
+        ),
       ],
     );
+  }
+
+  void onDateSelected(DateTime newDate) {
+    setState(() {
+      _selectedDate = newDate;
+      _focusedDate = _focusedDate;
+    });
   }
 }
