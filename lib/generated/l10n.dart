@@ -620,31 +620,41 @@ class S {
     );
   }
 
-  /// `Moderate Activity`
-  String get activityModerateLabel {
+  /// `Sedentary`
+  String get palSedentaryLabel {
     return Intl.message(
-      'Moderate Activity',
-      name: 'activityModerateLabel',
+      'Sedentary',
+      name: 'palSedentaryLabel',
       desc: '',
       args: [],
     );
   }
 
-  /// `Light Activity`
-  String get activityLightLabel {
+  /// `Low Active`
+  String get palLowLActiveLabel {
     return Intl.message(
-      'Light Activity',
-      name: 'activityLightLabel',
+      'Low Active',
+      name: 'palLowLActiveLabel',
       desc: '',
       args: [],
     );
   }
 
-  /// `Vigorous Activity`
-  String get activityVigorousLabel {
+  /// `Active`
+  String get palActiveLabel {
     return Intl.message(
-      'Vigorous Activity',
-      name: 'activityVigorousLabel',
+      'Active',
+      name: 'palActiveLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Very Active`
+  String get palVeryActiveLabel {
+    return Intl.message(
+      'Very Active',
+      name: 'palVeryActiveLabel',
       desc: '',
       args: [],
     );

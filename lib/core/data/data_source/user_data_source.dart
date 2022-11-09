@@ -26,6 +26,6 @@ class UserDataSource {
             weightKG: 80,
             gender: UserGenderDBO.male,
             goal: UserWeightGoalDBO.maintainWeight,
-            pal: UserPALDBO.moderateActivity);
+            pal: UserPALDBO.active);
   }
 }

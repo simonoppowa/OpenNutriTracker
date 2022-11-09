@@ -64,9 +64,10 @@
 
   "bmiLabel": "BMI",
 
-  "activityModerateLabel": "Moderate Activity",
-  "activityLightLabel": "Light Activity",
-  "activityVigorousLabel": "Vigorous Activity",
+  "palSedentaryLabel": "Sedentary",
+  "palLowLActiveLabel": "Low Active",
+  "palActiveLabel": "Active",
+  "palVeryActiveLabel": "Very Active",
 
   "chooseWeightGoalLabel": "Choose Weight Goal",
   "goalLooseWeight": "Loose Weight",

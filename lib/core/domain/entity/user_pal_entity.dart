@@ -3,21 +3,25 @@ import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 enum UserPALEntity {
-  lightActivity,
-  moderateActivity,
-  vigorousActivity;
+  sedentary,
+  lowActive,
+  active,
+  veryActive;
 
   factory UserPALEntity.fromUserPALDBO(UserPALDBO palDBO) {
     UserPALEntity palEntity;
     switch (palDBO) {
-      case UserPALDBO.lightActivity:
-        palEntity = UserPALEntity.lightActivity;
+      case UserPALDBO.sedentary:
+        palEntity = UserPALEntity.sedentary;
         break;
-      case UserPALDBO.moderateActivity:
-        palEntity = UserPALEntity.moderateActivity;
+      case UserPALDBO.lowActive:
+        palEntity = UserPALEntity.lowActive;
         break;
-      case UserPALDBO.vigorousActivity:
-        palEntity = UserPALEntity.vigorousActivity;
+      case UserPALDBO.active:
+        palEntity = UserPALEntity.active;
+        break;
+      case UserPALDBO.veryActive:
+        palEntity = UserPALEntity.veryActive;
         break;
     }
     return palEntity;
@@ -26,14 +30,17 @@ enum UserPALEntity {
   String getName(BuildContext context) {
     String name;
     switch (this) {
-      case UserPALEntity.lightActivity:
-        name = S.of(context).activityLightLabel;
+      case UserPALEntity.sedentary:
+        name = S.of(context).palSedentaryLabel;
         break;
-      case UserPALEntity.moderateActivity:
-        name = S.of(context).activityModerateLabel;
+      case UserPALEntity.lowActive:
+        name = S.of(context).palLowLActiveLabel;
         break;
-      case UserPALEntity.vigorousActivity:
-        name = S.of(context).activityVigorousLabel;
+      case UserPALEntity.active:
+        name = S.of(context).palActiveLabel;
+        break;
+      case UserPALEntity.veryActive:
+        name = S.of(context).palVeryActiveLabel;
         break;
     }
     return name;

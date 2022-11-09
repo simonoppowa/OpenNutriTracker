@@ -29,12 +29,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "activityExample": MessageLookupByLibrary.simpleMessage(
             "e.g. running, biking, yoga ..."),
         "activityLabel": MessageLookupByLibrary.simpleMessage("Activity"),
-        "activityLightLabel":
-            MessageLookupByLibrary.simpleMessage("Light Activity"),
-        "activityModerateLabel":
-            MessageLookupByLibrary.simpleMessage("Moderate Activity"),
-        "activityVigorousLabel":
-            MessageLookupByLibrary.simpleMessage("Vigorous Activity"),
         "addItemLabel": MessageLookupByLibrary.simpleMessage("Add new Item:"),
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
         "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
@@ -105,6 +99,12 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Pre-obesity"),
         "nutritionalStatusUnderweight":
             MessageLookupByLibrary.simpleMessage("Underweight"),
+        "palActiveLabel": MessageLookupByLibrary.simpleMessage("Active"),
+        "palLowLActiveLabel":
+            MessageLookupByLibrary.simpleMessage("Low Active"),
+        "palSedentaryLabel": MessageLookupByLibrary.simpleMessage("Sedentary"),
+        "palVeryActiveLabel":
+            MessageLookupByLibrary.simpleMessage("Very Active"),
         "per100gLabel": MessageLookupByLibrary.simpleMessage("Per 100g"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
         "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),

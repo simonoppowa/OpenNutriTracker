@@ -14,27 +14,32 @@ class UserPALDBOAdapter extends TypeAdapter<UserPALDBO> {
   UserPALDBO read(BinaryReader reader) {
     switch (reader.readByte()) {
       case 0:
-        return UserPALDBO.lightActivity;
+        return UserPALDBO.sedentary;
       case 1:
-        return UserPALDBO.moderateActivity;
+        return UserPALDBO.lowActive;
       case 2:
-        return UserPALDBO.vigorousActivity;
+        return UserPALDBO.active;
+      case 3:
+        return UserPALDBO.veryActive;
       default:
-        return UserPALDBO.lightActivity;
+        return UserPALDBO.sedentary;
     }
   }
 
   @override
   void write(BinaryWriter writer, UserPALDBO obj) {
     switch (obj) {
-      case UserPALDBO.lightActivity:
+      case UserPALDBO.sedentary:
         writer.writeByte(0);
         break;
-      case UserPALDBO.moderateActivity:
+      case UserPALDBO.lowActive:
         writer.writeByte(1);
         break;
-      case UserPALDBO.vigorousActivity:
+      case UserPALDBO.active:
         writer.writeByte(2);
+        break;
+      case UserPALDBO.veryActive:
+        writer.writeByte(3);
         break;
     }
   }

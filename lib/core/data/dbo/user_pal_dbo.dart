@@ -6,23 +6,28 @@ part 'user_pal_dbo.g.dart';
 @HiveType(typeId: 8)
 enum UserPALDBO {
   @HiveField(0)
-  lightActivity,
+  sedentary,
   @HiveField(1)
-  moderateActivity,
+  lowActive,
   @HiveField(2)
-  vigorousActivity;
+  active,
+  @HiveField(3)
+  veryActive;
 
   factory UserPALDBO.fromUserPALEntity(UserPALEntity palEntity) {
     UserPALDBO palDBO;
     switch (palEntity) {
-      case UserPALEntity.lightActivity:
-        palDBO = UserPALDBO.lightActivity;
+      case UserPALEntity.sedentary:
+        palDBO = UserPALDBO.sedentary;
         break;
-      case UserPALEntity.moderateActivity:
-        palDBO = UserPALDBO.moderateActivity;
+      case UserPALEntity.lowActive:
+        palDBO = UserPALDBO.lowActive;
         break;
-      case UserPALEntity.vigorousActivity:
-        palDBO = UserPALDBO.vigorousActivity;
+      case UserPALEntity.active:
+        palDBO = UserPALDBO.active;
+        break;
+      case UserPALEntity.veryActive:
+        palDBO = UserPALDBO.veryActive;
         break;
     }
     return palDBO;
