@@ -89,6 +89,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "lunchExample":
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
+        "nothingAddedLabel":
+            MessageLookupByLibrary.simpleMessage("Nothing added"),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Nutrition Information"),
         "nutritionalStatusNormalWeight":

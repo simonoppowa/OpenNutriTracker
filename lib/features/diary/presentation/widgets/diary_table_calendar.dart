@@ -4,7 +4,7 @@ import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class DiaryTableCalendar extends StatefulWidget {
-  final Function(DateTime) onDateSelected;
+  final Function(DateTime, Map<String, TrackedDayEntity>) onDateSelected;
   final Duration calendarDurationDays;
   final DateTime focusedDate;
   final DateTime currentDate;
@@ -37,7 +37,7 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
       lastDay: widget.currentDate.add(widget.calendarDurationDays),
       startingDayOfWeek: StartingDayOfWeek.monday,
       onDaySelected: (selectedDay, focusedDay) {
-        widget.onDateSelected(selectedDay);
+        widget.onDateSelected(selectedDay, widget.trackedDaysMap);
       },
       calendarStyle: CalendarStyle(
           markersMaxCount: 1,

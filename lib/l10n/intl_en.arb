@@ -86,6 +86,8 @@
   "genderMaleLabel": "male",
   "genderFemaleLabel": "female",
 
+  "nothingAddedLabel": "Nothing added",
+
   "nutritionalStatusUnderweight": "Underweight",
   "nutritionalStatusNormalWeight": "Normal Weight",
   "nutritionalStatusPreObesity": "Pre-obesity",

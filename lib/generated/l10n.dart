@@ -820,6 +820,16 @@ class S {
     );
   }
 
+  /// `Nothing added`
+  String get nothingAddedLabel {
+    return Intl.message(
+      'Nothing added',
+      name: 'nothingAddedLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Underweight`
   String get nutritionalStatusUnderweight {
     return Intl.message(
