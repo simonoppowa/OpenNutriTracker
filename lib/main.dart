@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/styles/color_schemes.dart';
@@ -27,6 +29,8 @@ Future<void> main() async {
   final IntakeDataSource intakeDataSource =
       IntakeDataSource(hiveDBProvider.intakeBox);
   final UserDataSource userDataSource = UserDataSource(hiveDBProvider.userBox);
+  final TrackedDayDataSource trackedDayDataSource =
+      TrackedDayDataSource(hiveDBProvider.trackedDayBox);
 
   final log = Logger('main');
   log.info('Starting App ...');
@@ -34,7 +38,9 @@ Future<void> main() async {
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (context) => hiveDBProvider),
     RepositoryProvider(create: (context) => IntakeRepository(intakeDataSource)),
-    RepositoryProvider(create: (context) => UserRepository(userDataSource))
+    RepositoryProvider(create: (context) => UserRepository(userDataSource)),
+    RepositoryProvider(
+        create: (context) => TrackedDayRepository(trackedDayDataSource))
   ], child: const OpenNutriTrackerApp()));
 }
 

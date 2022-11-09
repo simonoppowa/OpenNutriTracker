@@ -1,6 +1,6 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class DiaryTableCalendar extends StatefulWidget {
@@ -10,13 +10,16 @@ class DiaryTableCalendar extends StatefulWidget {
   final DateTime currentDate;
   final DateTime selectedDate;
 
+  final Map<String, TrackedDayEntity> trackedDaysMap;
+
   const DiaryTableCalendar(
       {Key? key,
       required this.onDateSelected,
       required this.calendarDurationDays,
       required this.focusedDate,
       required this.currentDate,
-      required this.selectedDate})
+      required this.selectedDate,
+      required this.trackedDaysMap})
       : super(key: key);
 
   @override
@@ -57,16 +60,18 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
       selectedDayPredicate: (day) => isSameDay(widget.selectedDate, day),
       calendarBuilders:
           CalendarBuilders(markerBuilder: (context, date, events) {
-        return Container(
-          margin: const EdgeInsets.only(top: 10),
-          padding: const EdgeInsets.all(1),
-          decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color:
-                  Colors.primaries[Random().nextInt(Colors.primaries.length)]),
-          width: 5.0,
-          height: 5.0,
-        );
+        final trackedDay = widget.trackedDaysMap[date.toParsedDay()];
+        if (trackedDay != null) {
+          return Container(
+            margin: const EdgeInsets.only(top: 10),
+            padding: const EdgeInsets.all(1),
+            decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: trackedDay.getRatingColor(context)),
+            width: 5.0,
+            height: 5.0,
+          );
+        }
       }),
     );
   }

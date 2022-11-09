@@ -15,6 +15,10 @@ class DiaryLoadingState extends DiaryState {
 }
 
 class DiaryLoadedState extends DiaryState {
+  final Map<String, TrackedDayEntity> trackedDayMap;
+
+  const DiaryLoadedState(this.trackedDayMap);
+
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [trackedDayMap];
 }

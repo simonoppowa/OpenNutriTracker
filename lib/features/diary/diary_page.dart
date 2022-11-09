@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_table_calendar.dart';
 
@@ -24,21 +25,26 @@ class _DiaryPageState extends State<DiaryPage> {
       bloc: _diaryBloc,
       builder: (context, state) {
         if (state is DiaryInitial) {
-          _diaryBloc.add(LoadDiaryEvent());
+          _diaryBloc.add(LoadDiaryEvent(
+              context,
+              _currentDate.subtract(_calendarDurationDays),
+              _currentDate.add(_calendarDurationDays)));
         } else if (state is DiaryLoadingState) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is DiaryLoadedState) {
-          return getLoadedContent(context);
+          return getLoadedContent(context, state.trackedDayMap);
         }
         return const SizedBox();
       },
     );
   }
 
-  Widget getLoadedContent(BuildContext context) {
+  Widget getLoadedContent(
+      BuildContext context, Map<String, TrackedDayEntity> trackedDaysMap) {
     return ListView(
       children: [
         DiaryTableCalendar(
+          trackedDaysMap: trackedDaysMap,
           onDateSelected: onDateSelected,
           calendarDurationDays: _calendarDurationDays,
           currentDate: _currentDate,

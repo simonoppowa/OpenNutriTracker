@@ -17,18 +17,21 @@ class TrackedDayDBOAdapter extends TypeAdapter<TrackedDayDBO> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return TrackedDayDBO(
-      calorieGoal: fields[0] as double,
-      caloriesTracked: fields[1] as double,
+      day: fields[0] as DateTime,
+      calorieGoal: fields[1] as double,
+      caloriesTracked: fields[2] as double,
     );
   }
 
   @override
   void write(BinaryWriter writer, TrackedDayDBO obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
-      ..write(obj.calorieGoal)
+      ..write(obj.day)
       ..writeByte(1)
+      ..write(obj.calorieGoal)
+      ..writeByte(2)
       ..write(obj.caloriesTracked);
   }
 
