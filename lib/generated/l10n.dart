@@ -660,6 +660,16 @@ class S {
     );
   }
 
+  /// `Select Activity Level`
+  String get selectPalCategoryLabel {
+    return Intl.message(
+      'Select Activity Level',
+      name: 'selectPalCategoryLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Choose Weight Goal`
   String get chooseWeightGoalLabel {
     return Intl.message(

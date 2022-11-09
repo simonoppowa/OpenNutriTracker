@@ -69,6 +69,7 @@
   "palActiveLabel": "Active",
   "palVeryActiveLabel": "Very Active",
 
+  "selectPalCategoryLabel": "Select Activity Level",
   "chooseWeightGoalLabel": "Choose Weight Goal",
   "goalLooseWeight": "Loose Weight",
   "goalMaintainWeight": "Maintain Weight",

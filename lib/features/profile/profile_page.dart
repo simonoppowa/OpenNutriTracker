@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/user_bmi_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/bmi_overview.dart';
@@ -10,6 +11,7 @@ import 'package:opennutritracker/features/profile/presentation/widgets/set%20_we
 import 'package:opennutritracker/features/profile/presentation/widgets/set_gender_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_goal_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_height_dialog.dart';
+import 'package:opennutritracker/features/profile/presentation/widgets/set_pal_category_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -65,6 +67,7 @@ class ProfilePage extends StatelessWidget {
             height: double.infinity,
             child: Icon(Icons.directions_walk_outlined),
           ),
+          onTap: () => _showSetPALCategoryDialog(context, user),
         ),
         ListTile(
           title: Text(
@@ -151,6 +154,17 @@ class ProfilePage extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _showSetPALCategoryDialog(
+      BuildContext context, UserEntity userEntity) async {
+    final selectedPalCategory = await showDialog<UserPALEntity>(
+        context: context,
+        builder: (BuildContext context) => const SetPALCategoryDialog());
+    if (selectedPalCategory != null) {
+      userEntity.pal = selectedPalCategory;
+      _profileBloc.updateUser(context, userEntity);
+    }
   }
 
   Future<void> _showSetGoalDialog(

@@ -124,6 +124,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Select Gender"),
         "selectHeightDialogLabel":
             MessageLookupByLibrary.simpleMessage("Select Height"),
+        "selectPalCategoryLabel":
+            MessageLookupByLibrary.simpleMessage("Select Activity Level"),
         "selectWeightDialogLabel":
             MessageLookupByLibrary.simpleMessage("Select Weight"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
