@@ -39,22 +39,19 @@ class PalCalc {
   /// https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1784117/
   ///
   static double getPAValueFromPALValue(UserEntity userEntity, double palValue) {
-    double paValue;
+    double paValue = 1.0;
     if (palValue < 1.4) {
       paValue = 1.0;
     } else if (palValue < 1.6) {
-      if (userEntity.gender == UserGenderEntity.male) {
-        paValue = 1.12;
-      } else {
-        paValue = 1.14;
-      }
+      userEntity.gender == UserGenderEntity.male
+          ? paValue = 1.12
+          : paValue = 1.14;
     } else if (palValue < 1.9) {
-      palValue = 1.27;
-    }
-    if (userEntity.gender == UserGenderEntity.male) {
-      paValue = 1.54;
+      paValue = 1.27;
     } else {
-      paValue = 1.45;
+      userEntity.gender == UserGenderEntity.male
+          ? paValue = 1.54
+          : paValue = 1.45;
     }
     return paValue;
   }
