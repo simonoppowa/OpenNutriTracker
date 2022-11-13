@@ -99,6 +99,192 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Pre-obesity"),
         "nutritionalStatusUnderweight":
             MessageLookupByLibrary.simpleMessage("Underweight"),
+        "paAmericanFootballGeneral": MessageLookupByLibrary.simpleMessage(
+            "football, touch, flag, general (Taylor Code 510)"),
+        "paArcheryGeneral":
+            MessageLookupByLibrary.simpleMessage("archery, non-hunting"),
+        "paAutoRacing":
+            MessageLookupByLibrary.simpleMessage("auto racing, open wheel"),
+        "paBackpackingGeneral":
+            MessageLookupByLibrary.simpleMessage("backpacking"),
+        "paBadmintonGeneral": MessageLookupByLibrary.simpleMessage(
+            "badminton, social singles and doubles, general"),
+        "paBasketballGeneral":
+            MessageLookupByLibrary.simpleMessage("basketball, general"),
+        "paBicyclingGeneral":
+            MessageLookupByLibrary.simpleMessage("bicycling, general"),
+        "paBicyclingMountainGeneral": MessageLookupByLibrary.simpleMessage(
+            "bicycling, mountain, general"),
+        "paBicyclingStationaryGeneral": MessageLookupByLibrary.simpleMessage(
+            "bicycling, stationary, general"),
+        "paBilliardsGeneral": MessageLookupByLibrary.simpleMessage("billiards"),
+        "paBowlingGeneral":
+            MessageLookupByLibrary.simpleMessage("bowling (Taylor Code 390)"),
+        "paBoxingBag":
+            MessageLookupByLibrary.simpleMessage("boxing, punching bag"),
+        "paBoxingGeneral":
+            MessageLookupByLibrary.simpleMessage("boxing, in ring, general"),
+        "paBroomball": MessageLookupByLibrary.simpleMessage("broomball"),
+        "paCalisthenicsGeneral": MessageLookupByLibrary.simpleMessage(
+            "calisthenics, light or moderate effort, general (e.g., back exercises), going up & down from floor (Taylor Code 150)"),
+        "paCanoeingGeneral": MessageLookupByLibrary.simpleMessage(
+            "canoeing, rowing, for pleasure, general (Taylor Code 250)"),
+        "paCatch": MessageLookupByLibrary.simpleMessage(
+            "football or baseball, playing catch"),
+        "paCheerleading": MessageLookupByLibrary.simpleMessage(
+            "cheerleading, gymnastic moves, competitive"),
+        "paChildrenGame": MessageLookupByLibrary.simpleMessage(
+            "children’s games, adults playing (e.g., hopscotch, 4-square, dodgeball, playground apparatus, t-ball, tetherball, marbles, arcade games), moderate effort"),
+        "paClimbingHillsNoLoadGeneral":
+            MessageLookupByLibrary.simpleMessage("climbing hills, no load"),
+        "paCricket": MessageLookupByLibrary.simpleMessage(
+            "cricket, batting, bowling, fielding"),
+        "paCroquet": MessageLookupByLibrary.simpleMessage("croquet"),
+        "paCurling": MessageLookupByLibrary.simpleMessage("curling"),
+        "paDancingAerobicGeneral":
+            MessageLookupByLibrary.simpleMessage("aerobic, general"),
+        "paDancingGeneral": MessageLookupByLibrary.simpleMessage(
+            "general dancing (e.g., disco, folk, Irish step dancing, line dancing, polka, contra, country)"),
+        "paDartsWall":
+            MessageLookupByLibrary.simpleMessage("darts, wall or lawn"),
+        "paDivingGeneral": MessageLookupByLibrary.simpleMessage(
+            "skindiving, scuba diving, general (Taylor Code 310)"),
+        "paDivingSpringboardPlatform": MessageLookupByLibrary.simpleMessage(
+            "diving, springboard or platform"),
+        "paFencing": MessageLookupByLibrary.simpleMessage("fencing"),
+        "paFrisbee":
+            MessageLookupByLibrary.simpleMessage("frisbee playing, general"),
+        "paGolfGeneral": MessageLookupByLibrary.simpleMessage("golf, general"),
+        "paGymnasticsGeneral":
+            MessageLookupByLibrary.simpleMessage("gymnastics, general"),
+        "paHackySack": MessageLookupByLibrary.simpleMessage("hacky sack"),
+        "paHandballGeneral": MessageLookupByLibrary.simpleMessage(
+            "handball, general (Taylor Code 520)"),
+        "paHangGliding": MessageLookupByLibrary.simpleMessage("hang gliding"),
+        "paHeadingBicycling": MessageLookupByLibrary.simpleMessage("bicycling"),
+        "paHeadingConditionalExercise":
+            MessageLookupByLibrary.simpleMessage("conditioning exercise"),
+        "paHeadingDancing": MessageLookupByLibrary.simpleMessage("dancing"),
+        "paHeadingRunning": MessageLookupByLibrary.simpleMessage("running"),
+        "paHeadingSports": MessageLookupByLibrary.simpleMessage("sports"),
+        "paHeadingWalking": MessageLookupByLibrary.simpleMessage("walking"),
+        "paHeadingWaterActivities":
+            MessageLookupByLibrary.simpleMessage("water activities"),
+        "paHeadingWinterActivities":
+            MessageLookupByLibrary.simpleMessage("winter activities"),
+        "paHikingCrossCountry": MessageLookupByLibrary.simpleMessage(
+            "hiking, cross country (Taylor Code 040)"),
+        "paHockeyField": MessageLookupByLibrary.simpleMessage("hockey, field"),
+        "paHorseRidingGeneral":
+            MessageLookupByLibrary.simpleMessage("horseback riding, general"),
+        "paIceHockeyGeneral":
+            MessageLookupByLibrary.simpleMessage("hockey, ice, general"),
+        "paIceSkatingGeneral":
+            MessageLookupByLibrary.simpleMessage("skating, ice, general"),
+        "paJaiAlai": MessageLookupByLibrary.simpleMessage("jai alai"),
+        "paJoggingGeneral":
+            MessageLookupByLibrary.simpleMessage("jogging, general"),
+        "paJuggling": MessageLookupByLibrary.simpleMessage("juggling"),
+        "paKayakingModerate":
+            MessageLookupByLibrary.simpleMessage("kayaking, moderate effort"),
+        "paKickball": MessageLookupByLibrary.simpleMessage("kickball"),
+        "paLacrosse": MessageLookupByLibrary.simpleMessage("lacrosse"),
+        "paLawnBowling": MessageLookupByLibrary.simpleMessage(
+            "lawn bowling, bocce ball, outdoor"),
+        "paMartialArtsModerate": MessageLookupByLibrary.simpleMessage(
+            "martial arts, different types, moderate pace (e.g., judo, jujitsu, karate, kick boxing, tae kwan do, tai-bo, Muay Thai boxing)"),
+        "paMartialArtsSlower": MessageLookupByLibrary.simpleMessage(
+            "martial arts, different types, slower pace, novice performers, practice"),
+        "paMotoCross": MessageLookupByLibrary.simpleMessage(
+            "moto-cross, off-road motor sports, all-terrain vehicle, general"),
+        "paMountainClimbing": MessageLookupByLibrary.simpleMessage(
+            "rock or mountain climbing (Taylor Code 470)"),
+        "paOrienteering": MessageLookupByLibrary.simpleMessage("orienteering"),
+        "paPaddleBoarding":
+            MessageLookupByLibrary.simpleMessage("paddle boarding, standing"),
+        "paPaddleBoat": MessageLookupByLibrary.simpleMessage("paddle boat"),
+        "paPaddleball": MessageLookupByLibrary.simpleMessage(
+            "paddleball, casual, general (Taylor Code 460)"),
+        "paPoloHorse":
+            MessageLookupByLibrary.simpleMessage("polo, on horseback"),
+        "paRacquetball": MessageLookupByLibrary.simpleMessage(
+            "racquetball, general (Taylor Code 470)"),
+        "paResistanceTraining": MessageLookupByLibrary.simpleMessage(
+            "resistance training (weight lifting, free weight, nautilus or universal), power lifting or body building, vigorous effort (Taylor Code 210)"),
+        "paRodeoSportGeneralModerate": MessageLookupByLibrary.simpleMessage(
+            "rodeo sports, general, moderate effort"),
+        "paRollerbladingLight": MessageLookupByLibrary.simpleMessage(
+            "rollerblading, in-line skating, 14.4 km/h (9.0 mph), recreational pace"),
+        "paRopeJumpingGeneral": MessageLookupByLibrary.simpleMessage(
+            "rope jumping, moderate pace, 100-120 skips/min, general, 2 foot skip, plain bounce"),
+        "paRopeSkippingGeneral":
+            MessageLookupByLibrary.simpleMessage("rope skipping, general"),
+        "paRugbyCompetitive": MessageLookupByLibrary.simpleMessage(
+            "rugby, union, team, competitive"),
+        "paRugbyNonCompetitive": MessageLookupByLibrary.simpleMessage(
+            "rugby, touch, non-competitive"),
+        "paRunningGeneral":
+            MessageLookupByLibrary.simpleMessage("running, (Taylor code 200)"),
+        "paSailingGeneral": MessageLookupByLibrary.simpleMessage(
+            "sailing, boat and board sailing, windsurfing, ice sailing, general (Taylor Code 235)"),
+        "paShuffleboard": MessageLookupByLibrary.simpleMessage("shuffleboard"),
+        "paSkateboardingGeneral": MessageLookupByLibrary.simpleMessage(
+            "skateboarding, general, moderate effort"),
+        "paSkatingRoller": MessageLookupByLibrary.simpleMessage(
+            "skating, roller (Taylor Code 360)"),
+        "paSkiingGeneral":
+            MessageLookupByLibrary.simpleMessage("skiing, general"),
+        "paSkiingWaterWakeboarding": MessageLookupByLibrary.simpleMessage(
+            "skiing, water or wakeboarding (Taylor Code 220)"),
+        "paSkydiving": MessageLookupByLibrary.simpleMessage(
+            "skydiving, base jumping, bungee jumping"),
+        "paSnorkeling": MessageLookupByLibrary.simpleMessage(
+            "snorkeling (Taylor Code 310)"),
+        "paSnowShovingModerate": MessageLookupByLibrary.simpleMessage(
+            "snow shoveling, by hand, moderate effort"),
+        "paSoccerGeneral": MessageLookupByLibrary.simpleMessage(
+            "soccer, casual, general (Taylor Code 540)"),
+        "paSoftballBaseballGeneral": MessageLookupByLibrary.simpleMessage(
+            "softball or baseball, fast or slow pitch, general (Taylor Code 440)"),
+        "paSquashGeneral":
+            MessageLookupByLibrary.simpleMessage("squash, general"),
+        "paSurfing": MessageLookupByLibrary.simpleMessage(
+            "surfing, body or board, general"),
+        "paSwimmingGeneral": MessageLookupByLibrary.simpleMessage(
+            "swimming, treading water, moderate effort, general"),
+        "paTableTennisGeneral": MessageLookupByLibrary.simpleMessage(
+            "table tennis, ping pong (Taylor Code 410)"),
+        "paTaiChiQiGongGeneral":
+            MessageLookupByLibrary.simpleMessage("tai chi, qi gong, general"),
+        "paTennisGeneral":
+            MessageLookupByLibrary.simpleMessage("tennis, general"),
+        "paTrackField1": MessageLookupByLibrary.simpleMessage(
+            "track and field (e.g., shot, discus, hammer throw)"),
+        "paTrackField2": MessageLookupByLibrary.simpleMessage(
+            "track and field (e.g., high jump, long jump, triple jump, javelin, pole vault)"),
+        "paTrackField3": MessageLookupByLibrary.simpleMessage(
+            "track and field (e.g., steeplechase, hurdles)"),
+        "paTrampolineLight":
+            MessageLookupByLibrary.simpleMessage("trampoline, recreational"),
+        "paUnicyclingGeneral":
+            MessageLookupByLibrary.simpleMessage("unicycling"),
+        "paVolleyballGeneral": MessageLookupByLibrary.simpleMessage(
+            "volleyball, non-competitive, 6 - 9 member team, general"),
+        "paWalkingForPleasure":
+            MessageLookupByLibrary.simpleMessage("walking for pleasure"),
+        "paWalkingTheDog":
+            MessageLookupByLibrary.simpleMessage("walking the dog"),
+        "paWallyball":
+            MessageLookupByLibrary.simpleMessage("wallyball, general"),
+        "paWaterAerobics": MessageLookupByLibrary.simpleMessage(
+            "water aerobics, water calisthenics, water exercise"),
+        "paWaterPolo": MessageLookupByLibrary.simpleMessage("water polo"),
+        "paWaterVolleyball":
+            MessageLookupByLibrary.simpleMessage("water volleyball"),
+        "paWateraerobicsCalisthenics": MessageLookupByLibrary.simpleMessage(
+            "water aerobics, water calisthenics"),
+        "paWrestling": MessageLookupByLibrary.simpleMessage(
+            "wrestling (one match = 5 minutes)"),
         "palActiveLabel": MessageLookupByLibrary.simpleMessage("Active"),
         "palLowLActiveLabel":
             MessageLookupByLibrary.simpleMessage("Low Active"),

@@ -929,6 +929,1046 @@ class S {
       args: [],
     );
   }
+
+  /// `bicycling`
+  String get paHeadingBicycling {
+    return Intl.message(
+      'bicycling',
+      name: 'paHeadingBicycling',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `conditioning exercise`
+  String get paHeadingConditionalExercise {
+    return Intl.message(
+      'conditioning exercise',
+      name: 'paHeadingConditionalExercise',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `dancing`
+  String get paHeadingDancing {
+    return Intl.message(
+      'dancing',
+      name: 'paHeadingDancing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `running`
+  String get paHeadingRunning {
+    return Intl.message(
+      'running',
+      name: 'paHeadingRunning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `sports`
+  String get paHeadingSports {
+    return Intl.message(
+      'sports',
+      name: 'paHeadingSports',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `walking`
+  String get paHeadingWalking {
+    return Intl.message(
+      'walking',
+      name: 'paHeadingWalking',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `water activities`
+  String get paHeadingWaterActivities {
+    return Intl.message(
+      'water activities',
+      name: 'paHeadingWaterActivities',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `winter activities`
+  String get paHeadingWinterActivities {
+    return Intl.message(
+      'winter activities',
+      name: 'paHeadingWinterActivities',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `bicycling, general`
+  String get paBicyclingGeneral {
+    return Intl.message(
+      'bicycling, general',
+      name: 'paBicyclingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `bicycling, mountain, general`
+  String get paBicyclingMountainGeneral {
+    return Intl.message(
+      'bicycling, mountain, general',
+      name: 'paBicyclingMountainGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `unicycling`
+  String get paUnicyclingGeneral {
+    return Intl.message(
+      'unicycling',
+      name: 'paUnicyclingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `bicycling, stationary, general`
+  String get paBicyclingStationaryGeneral {
+    return Intl.message(
+      'bicycling, stationary, general',
+      name: 'paBicyclingStationaryGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `calisthenics, light or moderate effort, general (e.g., back exercises), going up & down from floor (Taylor Code 150)`
+  String get paCalisthenicsGeneral {
+    return Intl.message(
+      'calisthenics, light or moderate effort, general (e.g., back exercises), going up & down from floor (Taylor Code 150)',
+      name: 'paCalisthenicsGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `resistance training (weight lifting, free weight, nautilus or universal), power lifting or body building, vigorous effort (Taylor Code 210)`
+  String get paResistanceTraining {
+    return Intl.message(
+      'resistance training (weight lifting, free weight, nautilus or universal), power lifting or body building, vigorous effort (Taylor Code 210)',
+      name: 'paResistanceTraining',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `rope skipping, general`
+  String get paRopeSkippingGeneral {
+    return Intl.message(
+      'rope skipping, general',
+      name: 'paRopeSkippingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `water aerobics, water calisthenics, water exercise`
+  String get paWaterAerobics {
+    return Intl.message(
+      'water aerobics, water calisthenics, water exercise',
+      name: 'paWaterAerobics',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `aerobic, general`
+  String get paDancingAerobicGeneral {
+    return Intl.message(
+      'aerobic, general',
+      name: 'paDancingAerobicGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `general dancing (e.g., disco, folk, Irish step dancing, line dancing, polka, contra, country)`
+  String get paDancingGeneral {
+    return Intl.message(
+      'general dancing (e.g., disco, folk, Irish step dancing, line dancing, polka, contra, country)',
+      name: 'paDancingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `jogging, general`
+  String get paJoggingGeneral {
+    return Intl.message(
+      'jogging, general',
+      name: 'paJoggingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `running, (Taylor code 200)`
+  String get paRunningGeneral {
+    return Intl.message(
+      'running, (Taylor code 200)',
+      name: 'paRunningGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `archery, non-hunting`
+  String get paArcheryGeneral {
+    return Intl.message(
+      'archery, non-hunting',
+      name: 'paArcheryGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `badminton, social singles and doubles, general`
+  String get paBadmintonGeneral {
+    return Intl.message(
+      'badminton, social singles and doubles, general',
+      name: 'paBadmintonGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `basketball, general`
+  String get paBasketballGeneral {
+    return Intl.message(
+      'basketball, general',
+      name: 'paBasketballGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `billiards`
+  String get paBilliardsGeneral {
+    return Intl.message(
+      'billiards',
+      name: 'paBilliardsGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `bowling (Taylor Code 390)`
+  String get paBowlingGeneral {
+    return Intl.message(
+      'bowling (Taylor Code 390)',
+      name: 'paBowlingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `boxing, punching bag`
+  String get paBoxingBag {
+    return Intl.message(
+      'boxing, punching bag',
+      name: 'paBoxingBag',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `boxing, in ring, general`
+  String get paBoxingGeneral {
+    return Intl.message(
+      'boxing, in ring, general',
+      name: 'paBoxingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `broomball`
+  String get paBroomball {
+    return Intl.message(
+      'broomball',
+      name: 'paBroomball',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `children’s games, adults playing (e.g., hopscotch, 4-square, dodgeball, playground apparatus, t-ball, tetherball, marbles, arcade games), moderate effort`
+  String get paChildrenGame {
+    return Intl.message(
+      'children’s games, adults playing (e.g., hopscotch, 4-square, dodgeball, playground apparatus, t-ball, tetherball, marbles, arcade games), moderate effort',
+      name: 'paChildrenGame',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `cheerleading, gymnastic moves, competitive`
+  String get paCheerleading {
+    return Intl.message(
+      'cheerleading, gymnastic moves, competitive',
+      name: 'paCheerleading',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `cricket, batting, bowling, fielding`
+  String get paCricket {
+    return Intl.message(
+      'cricket, batting, bowling, fielding',
+      name: 'paCricket',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `croquet`
+  String get paCroquet {
+    return Intl.message(
+      'croquet',
+      name: 'paCroquet',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `curling`
+  String get paCurling {
+    return Intl.message(
+      'curling',
+      name: 'paCurling',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `darts, wall or lawn`
+  String get paDartsWall {
+    return Intl.message(
+      'darts, wall or lawn',
+      name: 'paDartsWall',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `auto racing, open wheel`
+  String get paAutoRacing {
+    return Intl.message(
+      'auto racing, open wheel',
+      name: 'paAutoRacing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `fencing`
+  String get paFencing {
+    return Intl.message(
+      'fencing',
+      name: 'paFencing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `football, touch, flag, general (Taylor Code 510)`
+  String get paAmericanFootballGeneral {
+    return Intl.message(
+      'football, touch, flag, general (Taylor Code 510)',
+      name: 'paAmericanFootballGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `football or baseball, playing catch`
+  String get paCatch {
+    return Intl.message(
+      'football or baseball, playing catch',
+      name: 'paCatch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `frisbee playing, general`
+  String get paFrisbee {
+    return Intl.message(
+      'frisbee playing, general',
+      name: 'paFrisbee',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `golf, general`
+  String get paGolfGeneral {
+    return Intl.message(
+      'golf, general',
+      name: 'paGolfGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `gymnastics, general`
+  String get paGymnasticsGeneral {
+    return Intl.message(
+      'gymnastics, general',
+      name: 'paGymnasticsGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `hacky sack`
+  String get paHackySack {
+    return Intl.message(
+      'hacky sack',
+      name: 'paHackySack',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `handball, general (Taylor Code 520)`
+  String get paHandballGeneral {
+    return Intl.message(
+      'handball, general (Taylor Code 520)',
+      name: 'paHandballGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `hang gliding`
+  String get paHangGliding {
+    return Intl.message(
+      'hang gliding',
+      name: 'paHangGliding',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `hockey, field`
+  String get paHockeyField {
+    return Intl.message(
+      'hockey, field',
+      name: 'paHockeyField',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `hockey, ice, general`
+  String get paIceHockeyGeneral {
+    return Intl.message(
+      'hockey, ice, general',
+      name: 'paIceHockeyGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `horseback riding, general`
+  String get paHorseRidingGeneral {
+    return Intl.message(
+      'horseback riding, general',
+      name: 'paHorseRidingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `jai alai`
+  String get paJaiAlai {
+    return Intl.message(
+      'jai alai',
+      name: 'paJaiAlai',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `martial arts, different types, slower pace, novice performers, practice`
+  String get paMartialArtsSlower {
+    return Intl.message(
+      'martial arts, different types, slower pace, novice performers, practice',
+      name: 'paMartialArtsSlower',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `martial arts, different types, moderate pace (e.g., judo, jujitsu, karate, kick boxing, tae kwan do, tai-bo, Muay Thai boxing)`
+  String get paMartialArtsModerate {
+    return Intl.message(
+      'martial arts, different types, moderate pace (e.g., judo, jujitsu, karate, kick boxing, tae kwan do, tai-bo, Muay Thai boxing)',
+      name: 'paMartialArtsModerate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `juggling`
+  String get paJuggling {
+    return Intl.message(
+      'juggling',
+      name: 'paJuggling',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `kickball`
+  String get paKickball {
+    return Intl.message(
+      'kickball',
+      name: 'paKickball',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `lacrosse`
+  String get paLacrosse {
+    return Intl.message(
+      'lacrosse',
+      name: 'paLacrosse',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `lawn bowling, bocce ball, outdoor`
+  String get paLawnBowling {
+    return Intl.message(
+      'lawn bowling, bocce ball, outdoor',
+      name: 'paLawnBowling',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `moto-cross, off-road motor sports, all-terrain vehicle, general`
+  String get paMotoCross {
+    return Intl.message(
+      'moto-cross, off-road motor sports, all-terrain vehicle, general',
+      name: 'paMotoCross',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `orienteering`
+  String get paOrienteering {
+    return Intl.message(
+      'orienteering',
+      name: 'paOrienteering',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `paddleball, casual, general (Taylor Code 460)`
+  String get paPaddleball {
+    return Intl.message(
+      'paddleball, casual, general (Taylor Code 460)',
+      name: 'paPaddleball',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `polo, on horseback`
+  String get paPoloHorse {
+    return Intl.message(
+      'polo, on horseback',
+      name: 'paPoloHorse',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `racquetball, general (Taylor Code 470)`
+  String get paRacquetball {
+    return Intl.message(
+      'racquetball, general (Taylor Code 470)',
+      name: 'paRacquetball',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `rock or mountain climbing (Taylor Code 470)`
+  String get paMountainClimbing {
+    return Intl.message(
+      'rock or mountain climbing (Taylor Code 470)',
+      name: 'paMountainClimbing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `rodeo sports, general, moderate effort`
+  String get paRodeoSportGeneralModerate {
+    return Intl.message(
+      'rodeo sports, general, moderate effort',
+      name: 'paRodeoSportGeneralModerate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `rope jumping, moderate pace, 100-120 skips/min, general, 2 foot skip, plain bounce`
+  String get paRopeJumpingGeneral {
+    return Intl.message(
+      'rope jumping, moderate pace, 100-120 skips/min, general, 2 foot skip, plain bounce',
+      name: 'paRopeJumpingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `rugby, union, team, competitive`
+  String get paRugbyCompetitive {
+    return Intl.message(
+      'rugby, union, team, competitive',
+      name: 'paRugbyCompetitive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `rugby, touch, non-competitive`
+  String get paRugbyNonCompetitive {
+    return Intl.message(
+      'rugby, touch, non-competitive',
+      name: 'paRugbyNonCompetitive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `shuffleboard`
+  String get paShuffleboard {
+    return Intl.message(
+      'shuffleboard',
+      name: 'paShuffleboard',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `skateboarding, general, moderate effort`
+  String get paSkateboardingGeneral {
+    return Intl.message(
+      'skateboarding, general, moderate effort',
+      name: 'paSkateboardingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `skating, roller (Taylor Code 360)`
+  String get paSkatingRoller {
+    return Intl.message(
+      'skating, roller (Taylor Code 360)',
+      name: 'paSkatingRoller',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `rollerblading, in-line skating, 14.4 km/h (9.0 mph), recreational pace`
+  String get paRollerbladingLight {
+    return Intl.message(
+      'rollerblading, in-line skating, 14.4 km/h (9.0 mph), recreational pace',
+      name: 'paRollerbladingLight',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `skydiving, base jumping, bungee jumping`
+  String get paSkydiving {
+    return Intl.message(
+      'skydiving, base jumping, bungee jumping',
+      name: 'paSkydiving',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `soccer, casual, general (Taylor Code 540)`
+  String get paSoccerGeneral {
+    return Intl.message(
+      'soccer, casual, general (Taylor Code 540)',
+      name: 'paSoccerGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `softball or baseball, fast or slow pitch, general (Taylor Code 440)`
+  String get paSoftballBaseballGeneral {
+    return Intl.message(
+      'softball or baseball, fast or slow pitch, general (Taylor Code 440)',
+      name: 'paSoftballBaseballGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `squash, general`
+  String get paSquashGeneral {
+    return Intl.message(
+      'squash, general',
+      name: 'paSquashGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `table tennis, ping pong (Taylor Code 410)`
+  String get paTableTennisGeneral {
+    return Intl.message(
+      'table tennis, ping pong (Taylor Code 410)',
+      name: 'paTableTennisGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `tai chi, qi gong, general`
+  String get paTaiChiQiGongGeneral {
+    return Intl.message(
+      'tai chi, qi gong, general',
+      name: 'paTaiChiQiGongGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `tennis, general`
+  String get paTennisGeneral {
+    return Intl.message(
+      'tennis, general',
+      name: 'paTennisGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `trampoline, recreational`
+  String get paTrampolineLight {
+    return Intl.message(
+      'trampoline, recreational',
+      name: 'paTrampolineLight',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `volleyball, non-competitive, 6 - 9 member team, general`
+  String get paVolleyballGeneral {
+    return Intl.message(
+      'volleyball, non-competitive, 6 - 9 member team, general',
+      name: 'paVolleyballGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `wrestling (one match = 5 minutes)`
+  String get paWrestling {
+    return Intl.message(
+      'wrestling (one match = 5 minutes)',
+      name: 'paWrestling',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `wallyball, general`
+  String get paWallyball {
+    return Intl.message(
+      'wallyball, general',
+      name: 'paWallyball',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `track and field (e.g., shot, discus, hammer throw)`
+  String get paTrackField1 {
+    return Intl.message(
+      'track and field (e.g., shot, discus, hammer throw)',
+      name: 'paTrackField1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `track and field (e.g., high jump, long jump, triple jump, javelin, pole vault)`
+  String get paTrackField2 {
+    return Intl.message(
+      'track and field (e.g., high jump, long jump, triple jump, javelin, pole vault)',
+      name: 'paTrackField2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `track and field (e.g., steeplechase, hurdles)`
+  String get paTrackField3 {
+    return Intl.message(
+      'track and field (e.g., steeplechase, hurdles)',
+      name: 'paTrackField3',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `backpacking`
+  String get paBackpackingGeneral {
+    return Intl.message(
+      'backpacking',
+      name: 'paBackpackingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `climbing hills, no load`
+  String get paClimbingHillsNoLoadGeneral {
+    return Intl.message(
+      'climbing hills, no load',
+      name: 'paClimbingHillsNoLoadGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `hiking, cross country (Taylor Code 040)`
+  String get paHikingCrossCountry {
+    return Intl.message(
+      'hiking, cross country (Taylor Code 040)',
+      name: 'paHikingCrossCountry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `walking for pleasure`
+  String get paWalkingForPleasure {
+    return Intl.message(
+      'walking for pleasure',
+      name: 'paWalkingForPleasure',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `walking the dog`
+  String get paWalkingTheDog {
+    return Intl.message(
+      'walking the dog',
+      name: 'paWalkingTheDog',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `canoeing, rowing, for pleasure, general (Taylor Code 250)`
+  String get paCanoeingGeneral {
+    return Intl.message(
+      'canoeing, rowing, for pleasure, general (Taylor Code 250)',
+      name: 'paCanoeingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `diving, springboard or platform`
+  String get paDivingSpringboardPlatform {
+    return Intl.message(
+      'diving, springboard or platform',
+      name: 'paDivingSpringboardPlatform',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `kayaking, moderate effort`
+  String get paKayakingModerate {
+    return Intl.message(
+      'kayaking, moderate effort',
+      name: 'paKayakingModerate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `paddle boat`
+  String get paPaddleBoat {
+    return Intl.message(
+      'paddle boat',
+      name: 'paPaddleBoat',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `sailing, boat and board sailing, windsurfing, ice sailing, general (Taylor Code 235)`
+  String get paSailingGeneral {
+    return Intl.message(
+      'sailing, boat and board sailing, windsurfing, ice sailing, general (Taylor Code 235)',
+      name: 'paSailingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `skiing, water or wakeboarding (Taylor Code 220)`
+  String get paSkiingWaterWakeboarding {
+    return Intl.message(
+      'skiing, water or wakeboarding (Taylor Code 220)',
+      name: 'paSkiingWaterWakeboarding',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `skindiving, scuba diving, general (Taylor Code 310)`
+  String get paDivingGeneral {
+    return Intl.message(
+      'skindiving, scuba diving, general (Taylor Code 310)',
+      name: 'paDivingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `snorkeling (Taylor Code 310)`
+  String get paSnorkeling {
+    return Intl.message(
+      'snorkeling (Taylor Code 310)',
+      name: 'paSnorkeling',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `surfing, body or board, general`
+  String get paSurfing {
+    return Intl.message(
+      'surfing, body or board, general',
+      name: 'paSurfing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `paddle boarding, standing`
+  String get paPaddleBoarding {
+    return Intl.message(
+      'paddle boarding, standing',
+      name: 'paPaddleBoarding',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `swimming, treading water, moderate effort, general`
+  String get paSwimmingGeneral {
+    return Intl.message(
+      'swimming, treading water, moderate effort, general',
+      name: 'paSwimmingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `water aerobics, water calisthenics`
+  String get paWateraerobicsCalisthenics {
+    return Intl.message(
+      'water aerobics, water calisthenics',
+      name: 'paWateraerobicsCalisthenics',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `water polo`
+  String get paWaterPolo {
+    return Intl.message(
+      'water polo',
+      name: 'paWaterPolo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `water volleyball`
+  String get paWaterVolleyball {
+    return Intl.message(
+      'water volleyball',
+      name: 'paWaterVolleyball',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `skating, ice, general`
+  String get paIceSkatingGeneral {
+    return Intl.message(
+      'skating, ice, general',
+      name: 'paIceSkatingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `skiing, general`
+  String get paSkiingGeneral {
+    return Intl.message(
+      'skiing, general',
+      name: 'paSkiingGeneral',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `snow shoveling, by hand, moderate effort`
+  String get paSnowShovingModerate {
+    return Intl.message(
+      'snow shoveling, by hand, moderate effort',
+      name: 'paSnowShovingModerate',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
