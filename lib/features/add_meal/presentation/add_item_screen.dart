@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/features/addItem/presentation/add_item_type.dart';
-import 'package:opennutritracker/features/addItem/presentation/bloc/products_bloc.dart';
-import 'package:opennutritracker/features/addItem/presentation/widgets/item_search_bar.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_item_type.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/item_search_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:opennutritracker/features/addItem/presentation/widgets/product_item_card.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/product_item_card.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 

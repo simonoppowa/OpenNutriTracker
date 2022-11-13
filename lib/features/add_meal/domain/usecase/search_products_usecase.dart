@@ -1,7 +1,8 @@
-import 'package:opennutritracker/features/addItem/data/repository/products_repository.dart';
-import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 
 class SearchProductsUseCase {
+  // TODO make singleton
   final ProductsRepository productsRepository = ProductsRepository();
 
   Future<List<ProductEntity>> searchProductsByString(

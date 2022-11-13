@@ -1,5 +1,5 @@
 import 'package:opennutritracker/core/data/dbo/product_nutriments_dbo.dart';
-import 'package:opennutritracker/features/addItem/data/dto/off_product_nutriments.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off_product_nutriments.dart';
 
 class ProductNutrimentsEntity {
   final double? energyKcal100;

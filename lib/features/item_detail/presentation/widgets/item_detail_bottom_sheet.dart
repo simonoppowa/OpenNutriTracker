@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 import 'package:opennutritracker/features/item_detail/presentation/bloc/item_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 

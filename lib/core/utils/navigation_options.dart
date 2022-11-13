@@ -4,4 +4,5 @@ class NavigationOptions {
   static const addItemRoute = "addItem";
   static const scannerRoute = "scanner";
   static const itemDetailRoute = "itemDetail";
+  static const addActivityRoute = "addActivity";
 }

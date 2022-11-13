@@ -1,6 +1,6 @@
 // ignore_for_file: non_constant_identifier_names
 import 'package:json_annotation/json_annotation.dart';
-import 'package:opennutritracker/features/addItem/data/dto/off_product.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off_product.dart';
 
 part 'off_word_response.g.dart';
 

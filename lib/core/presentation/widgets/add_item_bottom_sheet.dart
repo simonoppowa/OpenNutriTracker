@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/features/addItem/presentation/add_item_screen.dart';
-import 'package:opennutritracker/features/addItem/presentation/add_item_type.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_item_screen.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_item_type.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class AddItemBottomSheet extends StatelessWidget {
@@ -37,7 +37,7 @@ class AddItemBottomSheet extends StatelessWidget {
               height: double.infinity,
               child: const Icon(Icons.sports_baseball_outlined)),
           onTap: () {
-            _showAddItemScreen(context, AddItemType.activityType);
+            _showAddActivityScreen(context);
           },
         ),
         const Divider(indent: 16),
@@ -117,5 +117,10 @@ class AddItemBottomSheet extends StatelessWidget {
     Navigator.of(context).pop(); // Close bottom sheet
     Navigator.of(context).pushNamed(NavigationOptions.addItemRoute,
         arguments: AddItemScreenArguments(itemType));
+  }
+
+  void _showAddActivityScreen(BuildContext context) {
+    Navigator.of(context).pop();
+    Navigator.of(context).pushNamed(NavigationOptions.addActivityRoute);
   }
 }

@@ -12,7 +12,7 @@ class PhysicalActivityEntity {
   final double mets;
   final IconData? _icon;
 
-  get icon => _icon ?? type.getTypeIcon();
+  get displayIcon => _icon ?? type.getTypeIcon();
 
   final List<String> tags;
 
@@ -125,7 +125,7 @@ class PhysicalActivityEntity {
               activityDBO.type));
 }
 
-extension Icon on PhysicalActivityTypeEntity {
+extension ActivityIcon on PhysicalActivityTypeEntity {
   String getName(BuildContext context) {
     String name;
     switch (this) {

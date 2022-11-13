@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
-import 'package:opennutritracker/features/addItem/data/dto/off_product_response.dart';
-import 'package:opennutritracker/features/addItem/data/dto/off_word_response.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off_product_response.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off_word_response.dart';
 
 class OFFDataSource {
   final log = Logger('OFFDataSource');

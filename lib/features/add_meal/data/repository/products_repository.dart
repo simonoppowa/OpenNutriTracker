@@ -1,5 +1,5 @@
-import 'package:opennutritracker/features/addItem/data/data_sources/off_data_source.dart';
-import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 
 class ProductsRepository {
   final offDataSource = OFFDataSource();

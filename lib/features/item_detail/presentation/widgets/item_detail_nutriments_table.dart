@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ItemDetailNutrimentsTable extends StatelessWidget {

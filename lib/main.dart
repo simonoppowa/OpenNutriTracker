@@ -3,9 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/physical_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/data/repository/physical_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
@@ -14,7 +16,8 @@ import 'package:opennutritracker/core/styles/fonts.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/features/addItem/presentation/add_item_screen.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_item_screen.dart';
+import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/item_detail/item_detail_screen.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
@@ -28,6 +31,7 @@ Future<void> main() async {
   await hiveDBProvider.initHiveDB();
   final IntakeDataSource intakeDataSource =
       IntakeDataSource(hiveDBProvider.intakeBox);
+  final physicalActivityDataSource = PhysicalActivityDataSource();
   final UserDataSource userDataSource = UserDataSource(hiveDBProvider.userBox);
   final TrackedDayDataSource trackedDayDataSource =
       TrackedDayDataSource(hiveDBProvider.trackedDayBox);
@@ -38,6 +42,9 @@ Future<void> main() async {
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (context) => hiveDBProvider),
     RepositoryProvider(create: (context) => IntakeRepository(intakeDataSource)),
+    RepositoryProvider(
+        create: (context) =>
+            PhysicalActivityRepository(physicalActivityDataSource)),
     RepositoryProvider(create: (context) => UserRepository(userDataSource)),
     RepositoryProvider(
         create: (context) => TrackedDayRepository(trackedDayDataSource))
@@ -74,6 +81,8 @@ class OpenNutriTrackerApp extends StatelessWidget {
         NavigationOptions.scannerRoute: (context) => const ScannerScreen(),
         NavigationOptions.itemDetailRoute: (context) =>
             const ItemDetailScreen(),
+        NavigationOptions.addActivityRoute: (context) =>
+            const AddActivityScreen()
       },
     );
   }

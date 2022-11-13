@@ -1,5 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:opennutritracker/features/addItem/domain/entity/product_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/product_nutriments_entity.dart';
 
 part 'product_nutriments_dbo.g.dart';
 

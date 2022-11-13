@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
-import 'package:opennutritracker/features/addItem/domain/usecase/search_products_usecase.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 
 part 'products_event.dart';
 

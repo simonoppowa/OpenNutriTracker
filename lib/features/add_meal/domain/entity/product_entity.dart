@@ -1,6 +1,6 @@
 import 'package:opennutritracker/core/data/dbo/product_dbo.dart';
-import 'package:opennutritracker/features/addItem/data/dto/off_product.dart';
-import 'package:opennutritracker/features/addItem/domain/entity/product_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off_product.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/product_nutriments_entity.dart';
 
 class ProductEntity {
   final String? code;

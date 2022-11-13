@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
-import 'package:opennutritracker/features/addItem/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 import 'package:opennutritracker/features/item_detail/presentation/bloc/item_detail_bloc.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_macro_nutrients.dart';
