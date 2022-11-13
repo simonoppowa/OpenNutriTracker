@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/data/dbo/PhysicalActivityDBO.dart';
+import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 
 /// Selection of  physical activities by the
 /// '2011 Compendium of Physical Activities'
