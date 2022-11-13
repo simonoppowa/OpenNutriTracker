@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_item_type.dart';
-import 'package:opennutritracker/features/item_detail/item_detail_screen.dart';
+import 'package:opennutritracker/features/meal_detail//meal_detail_screen.dart';
 
 class ProductItemCard extends StatelessWidget {
   final AddItemType addItemType;

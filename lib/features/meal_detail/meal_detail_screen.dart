@@ -4,21 +4,21 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
-import 'package:opennutritracker/features/item_detail/presentation/bloc/item_detail_bloc.dart';
-import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_bottom_sheet.dart';
-import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_macro_nutrients.dart';
-import 'package:opennutritracker/features/item_detail/presentation/widgets/item_detail_nutriments_table.dart';
-import 'package:opennutritracker/features/item_detail/presentation/widgets/item_info_button.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/bloc/item_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/item_detail_bottom_sheet.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/item_detail_macro_nutrients.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/item_detail_nutriments_table.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/item_info_button.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-class ItemDetailScreen extends StatefulWidget {
-  const ItemDetailScreen({Key? key}) : super(key: key);
+class MealDetailScreen extends StatefulWidget {
+  const MealDetailScreen({Key? key}) : super(key: key);
 
   @override
-  State<ItemDetailScreen> createState() => _ItemDetailScreenState();
+  State<MealDetailScreen> createState() => _MealDetailScreenState();
 }
 
-class _ItemDetailScreenState extends State<ItemDetailScreen> {
+class _MealDetailScreenState extends State<MealDetailScreen> {
   final log = Logger('ItemDetailScreen');
 
   final itemDetailBloc = ItemDetailBloc();
