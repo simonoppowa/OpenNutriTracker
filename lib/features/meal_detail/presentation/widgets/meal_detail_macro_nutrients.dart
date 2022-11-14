@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 
-class ItemDetailMacroNutrients extends StatelessWidget {
+class MealDetailMacroNutrients extends StatelessWidget {
   final String typeString;
   final double? value;
 
-  const ItemDetailMacroNutrients(
+  const MealDetailMacroNutrients(
       {Key? key, required this.typeString, required this.value})
       : super(key: key);
 

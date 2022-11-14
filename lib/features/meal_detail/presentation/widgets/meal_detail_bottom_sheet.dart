@@ -3,28 +3,28 @@ import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
-import 'package:opennutritracker/features/meal_detail/presentation/bloc/item_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-class ItemDetailBottomSheet extends StatefulWidget {
+class MealDetailBottomSheet extends StatefulWidget {
   final ProductEntity product;
   final IntakeTypeEntity intakeTypeEntity;
   final TextEditingController quantityTextController;
-  final ItemDetailBloc itemDetailBloc;
+  final MealDetailBloc mealDetailBloc;
 
-  const ItemDetailBottomSheet(
+  const MealDetailBottomSheet(
       {Key? key,
       required this.product,
       required this.intakeTypeEntity,
-      required this.itemDetailBloc,
+      required this.mealDetailBloc,
       required this.quantityTextController})
       : super(key: key);
 
   @override
-  State<ItemDetailBottomSheet> createState() => _ItemDetailBottomSheetState();
+  State<MealDetailBottomSheet> createState() => _MealDetailBottomSheetState();
 }
 
-class _ItemDetailBottomSheetState extends State<ItemDetailBottomSheet> {
+class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return BottomSheet(
@@ -114,7 +114,7 @@ class _ItemDetailBottomSheetState extends State<ItemDetailBottomSheet> {
   void onAddButtonPressed(BuildContext context) {
     // TODO
 
-    widget.itemDetailBloc.addIntake(
+    widget.mealDetailBloc.addIntake(
         context,
         widget.product.productUnit ?? "g",
         widget.quantityTextController.text,

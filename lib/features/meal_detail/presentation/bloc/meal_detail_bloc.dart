@@ -5,7 +5,7 @@ import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 
-class ItemDetailBloc {
+class MealDetailBloc {
   final _addIntakeUseCase = AddIntakeUsecase();
   final _addTrackedDayUsecase = AddTrackedDayUsecase();
 

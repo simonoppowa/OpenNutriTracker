@@ -4,11 +4,11 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
-import 'package:opennutritracker/features/meal_detail/presentation/bloc/item_detail_bloc.dart';
-import 'package:opennutritracker/features/meal_detail/presentation/widgets/item_detail_bottom_sheet.dart';
-import 'package:opennutritracker/features/meal_detail/presentation/widgets/item_detail_macro_nutrients.dart';
-import 'package:opennutritracker/features/meal_detail/presentation/widgets/item_detail_nutriments_table.dart';
-import 'package:opennutritracker/features/meal_detail/presentation/widgets/item_info_button.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_macro_nutrients.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_nutriments_table.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_info_button.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailScreen extends StatefulWidget {
@@ -21,7 +21,7 @@ class MealDetailScreen extends StatefulWidget {
 class _MealDetailScreenState extends State<MealDetailScreen> {
   final log = Logger('ItemDetailScreen');
 
-  final itemDetailBloc = ItemDetailBloc();
+  final mealDetailBloc = MealDetailBloc();
 
   late ProductEntity product;
   late IntakeTypeEntity intakeTypeEntity;
@@ -113,32 +113,32 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    ItemDetailMacroNutrients(
+                    MealDetailMacroNutrients(
                         typeString: S.of(context).carbsLabel,
                         value: totalCarbs),
-                    ItemDetailMacroNutrients(
+                    MealDetailMacroNutrients(
                         typeString: S.of(context).fatLabel, value: totalFat),
-                    ItemDetailMacroNutrients(
+                    MealDetailMacroNutrients(
                         typeString: S.of(context).proteinLabel,
                         value: totalProtein)
                   ],
                 ),
                 const Divider(),
                 const SizedBox(height: 16.0),
-                ItemDetailNutrimentsTable(product: product),
+                MealDetailNutrimentsTable(product: product),
                 const SizedBox(height: 32.0),
-                ItemInfoButton(url: product.url ?? OFFConst.offWebsiteUrl),
+                MealInfoButton(url: product.url ?? OFFConst.offWebsiteUrl),
                 const SizedBox(height: 200.0) // height added to scroll
               ],
             ),
           )
         ],
       ),
-      bottomSheet: ItemDetailBottomSheet(
+      bottomSheet: MealDetailBottomSheet(
           product: product,
           intakeTypeEntity: intakeTypeEntity,
           quantityTextController: quantityTextController,
-          itemDetailBloc: itemDetailBloc),
+          mealDetailBloc: mealDetailBloc),
     );
   }
 

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ItemInfoButton extends StatelessWidget {
+class MealInfoButton extends StatelessWidget {
   final String url;
 
-  const ItemInfoButton({Key? key, required this.url}) : super(key: key);
+  const MealInfoButton({Key? key, required this.url}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
