@@ -56,11 +56,13 @@
   "fiberLabel": "fiber",
   "per100gLabel": "Per 100g",
   "additionalInfoLabelOFF": "More Information at\nOpenFoodFacts",
+  "additionalInfoLabelCompendium2011": "Information provided\n by the \n'2011 Compendium\n of Physical Activities'",
   "quantityLabel": "Quantity",
   "unitLabel": "Unit",
   "scanProductLabel": "Scan Product",
 
   "infoAddedIntakeLabel": "Added new intake",
+  "infoAddedActivityLabel": "Added new activity",
 
   "bmiLabel": "BMI",
 

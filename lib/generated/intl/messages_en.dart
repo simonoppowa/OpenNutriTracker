@@ -31,6 +31,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "activityLabel": MessageLookupByLibrary.simpleMessage("Activity"),
         "addItemLabel": MessageLookupByLibrary.simpleMessage("Add new Item:"),
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
+        "additionalInfoLabelCompendium2011": MessageLookupByLibrary.simpleMessage(
+            "Information provided\n by the \n\'2011 Compendium\n of Physical Activities\'"),
         "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
             "More Information at\nOpenFoodFacts"),
         "ageLabel": MessageLookupByLibrary.simpleMessage("Age"),
@@ -75,6 +77,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "heightLabel": MessageLookupByLibrary.simpleMessage("Height"),
         "helloWorld": MessageLookupByLibrary.simpleMessage("Hello World"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
+        "infoAddedActivityLabel":
+            MessageLookupByLibrary.simpleMessage("Added new activity"),
         "infoAddedIntakeLabel":
             MessageLookupByLibrary.simpleMessage("Added new intake"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),

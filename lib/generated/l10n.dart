@@ -570,6 +570,16 @@ class S {
     );
   }
 
+  /// `Information provided\n by the \n'2011 Compendium\n of Physical Activities'`
+  String get additionalInfoLabelCompendium2011 {
+    return Intl.message(
+      'Information provided\n by the \n\'2011 Compendium\n of Physical Activities\'',
+      name: 'additionalInfoLabelCompendium2011',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Quantity`
   String get quantityLabel {
     return Intl.message(
@@ -605,6 +615,16 @@ class S {
     return Intl.message(
       'Added new intake',
       name: 'infoAddedIntakeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Added new activity`
+  String get infoAddedActivityLabel {
+    return Intl.message(
+      'Added new activity',
+      name: 'infoAddedActivityLabel',
       desc: '',
       args: [],
     );

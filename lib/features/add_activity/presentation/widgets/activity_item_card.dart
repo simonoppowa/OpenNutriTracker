@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/features/activity_detail/activity_detail_screen.dart';
 
 class ActivityItemCard extends StatelessWidget {
   final PhysicalActivityEntity physicalActivityEntity;
@@ -43,11 +45,16 @@ class ActivityItemCard extends StatelessWidget {
                 icon: const Icon(Icons.add_outlined),
                 onPressed: () {},
               ),
-              onTap: () => {},
+              onTap: () => _onItemPressed(context),
             ),
           ),
         ),
       ),
     );
+  }
+
+  void _onItemPressed(BuildContext context) {
+    Navigator.of(context).pushNamed(NavigationOptions.activityDetailRoute,
+        arguments: ActivityDetailScreenArguments(physicalActivityEntity));
   }
 }

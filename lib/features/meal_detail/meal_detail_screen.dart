@@ -44,7 +44,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   @override
   void didChangeDependencies() {
     final args =
-        ModalRoute.of(context)?.settings.arguments as ItemDetailScreenArguments;
+        ModalRoute.of(context)?.settings.arguments as MealDetailScreenArguments;
     product = args.productEntity;
     intakeTypeEntity = args.intakeTypeEntity;
     totalKcal = product.nutriments.energyKcal100 ?? 0;
@@ -163,9 +163,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   }
 }
 
-class ItemDetailScreenArguments {
+class MealDetailScreenArguments {
   final ProductEntity productEntity;
   final IntakeTypeEntity intakeTypeEntity;
 
-  ItemDetailScreenArguments(this.productEntity, this.intakeTypeEntity);
+  MealDetailScreenArguments(this.productEntity, this.intakeTypeEntity);
 }

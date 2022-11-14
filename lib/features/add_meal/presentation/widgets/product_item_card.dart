@@ -57,7 +57,7 @@ class ProductItemCard extends StatelessWidget {
 
   void _onItemPressed(BuildContext context) {
     Navigator.of(context).pushNamed(NavigationOptions.itemDetailRoute,
-        arguments: ItemDetailScreenArguments(
+        arguments: MealDetailScreenArguments(
             productEntity, addItemType.getIntakeType()));
   }
 }

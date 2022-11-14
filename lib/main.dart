@@ -16,6 +16,7 @@ import 'package:opennutritracker/core/styles/fonts.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/features/activity_detail/activity_detail_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_item_screen.dart';
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
@@ -82,7 +83,9 @@ class OpenNutriTrackerApp extends StatelessWidget {
         NavigationOptions.itemDetailRoute: (context) =>
             const MealDetailScreen(),
         NavigationOptions.addActivityRoute: (context) =>
-            const AddActivityScreen()
+            const AddActivityScreen(),
+        NavigationOptions.activityDetailRoute: (context) =>
+            const ActivityDetailScreen()
       },
     );
   }

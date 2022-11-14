@@ -45,7 +45,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           Future.microtask(() => Navigator.of(context).pushReplacementNamed(
               NavigationOptions.itemDetailRoute,
               arguments:
-                  ItemDetailScreenArguments(state.product, intakeTypeEntity)));
+                  MealDetailScreenArguments(state.product, intakeTypeEntity)));
         }
         return const SizedBox();
       },
