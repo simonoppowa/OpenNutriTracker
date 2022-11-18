@@ -5,10 +5,12 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/physical_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/physical_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
+import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/styles/color_schemes.dart';
@@ -32,6 +34,8 @@ Future<void> main() async {
   await hiveDBProvider.initHiveDB();
   final IntakeDataSource intakeDataSource =
       IntakeDataSource(hiveDBProvider.intakeBox);
+  final userActivityDataSource =
+      UserActivityDataSource(hiveDBProvider.userActivityBox);
   final physicalActivityDataSource = PhysicalActivityDataSource();
   final UserDataSource userDataSource = UserDataSource(hiveDBProvider.userBox);
   final TrackedDayDataSource trackedDayDataSource =
@@ -43,6 +47,8 @@ Future<void> main() async {
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (context) => hiveDBProvider),
     RepositoryProvider(create: (context) => IntakeRepository(intakeDataSource)),
+    RepositoryProvider(
+        create: (context) => UserActivityRepository(userActivityDataSource)),
     RepositoryProvider(
         create: (context) =>
             PhysicalActivityRepository(physicalActivityDataSource)),

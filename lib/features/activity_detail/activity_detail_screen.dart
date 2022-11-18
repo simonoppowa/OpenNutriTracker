@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_info_button.dart';
@@ -70,6 +71,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         },
       ),
       bottomSheet: ActivityDetailBottomSheet(
+        onAddButtonPressed: onAddButtonPressed,
         quantityTextController: quantityTextController,
         activityEntity: activityEntity,
         activityDetailBloc: activityDetailBloc,
@@ -129,6 +131,17 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     } on FormatException catch (e) {
       log.warning("Error while parsing: \"$quantityString\"");
     }
+  }
+
+  void onAddButtonPressed(BuildContext context) {
+    activityDetailBloc.persistActivity(
+        context, quantityTextController.text, totalKcal, activityEntity);
+
+    // Show snackbar and return to dashboard
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).infoAddedIntakeLabel)));
+    Navigator.of(context)
+        .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
   }
 }
 

@@ -19,7 +19,7 @@ class UserActivityDBO {
   UserActivityDBO(
       this.duration, this.burnedKcal, this.date, this.physicalActivityDBO);
 
-  factory UserActivityDBO.toUserActivityEntity(
+  factory UserActivityDBO.fromUserActivityEntity(
       UserActivityEntity userActivityEntity) {
     return UserActivityDBO(
         userActivityEntity.duration,

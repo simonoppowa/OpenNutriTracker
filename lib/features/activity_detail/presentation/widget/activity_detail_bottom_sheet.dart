@@ -6,12 +6,14 @@ import 'package:opennutritracker/features/activity_detail/presentation/bloc/acti
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ActivityDetailBottomSheet extends StatefulWidget {
+  final Function(BuildContext) onAddButtonPressed;
   final PhysicalActivityEntity activityEntity;
   final TextEditingController quantityTextController;
   final ActivityDetailBloc activityDetailBloc;
 
   const ActivityDetailBottomSheet(
       {Key? key,
+      required this.onAddButtonPressed,
       required this.quantityTextController,
       required this.activityEntity,
       required this.activityDetailBloc})
@@ -86,7 +88,7 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                       width: double.infinity, // Make button full width
                       child: ElevatedButton.icon(
                           onPressed: () {
-                            onAddButtonPressed(context);
+                            widget.onAddButtonPressed(context);
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Theme.of(context)
@@ -107,15 +109,5 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
         );
       },
     );
-  }
-
-  void onAddButtonPressed(BuildContext context) {
-    // TODO Add user activity
-
-    // Show snackbar and return to dashboard
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context).infoAddedIntakeLabel)));
-    Navigator.of(context)
-        .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
   }
 }
