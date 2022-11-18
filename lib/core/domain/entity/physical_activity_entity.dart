@@ -120,7 +120,7 @@ class PhysicalActivityEntity {
           activityDBO.specificActivity,
           activityDBO.mets,
           activityDBO.tags,
-          activityDBO.icon,
+          null, // TODO set icon
           PhysicalActivityTypeEntity.fromPhysicalActivityTypeDBO(
               activityDBO.type));
 }

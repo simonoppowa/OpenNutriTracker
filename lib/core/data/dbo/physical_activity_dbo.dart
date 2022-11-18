@@ -16,8 +16,6 @@ class PhysicalActivityDBO {
   final String specificActivity;
   @HiveField(3)
   final double mets;
-  @HiveField(4)
-  final IconData? icon;
 
   @HiveField(5)
   final List<String> tags;
@@ -25,8 +23,7 @@ class PhysicalActivityDBO {
   @HiveField(6)
   final PhysicalActivityTypeDBO type;
 
-  PhysicalActivityDBO(this.code, this.specificActivity, this.mets, this.tags,
-      this.icon, this.type);
+  PhysicalActivityDBO(this.code, this.specificActivity, this.mets, this.tags, this.type);
 
   factory PhysicalActivityDBO.fromPhysicalActivityEntity(
       PhysicalActivityEntity entity) {
@@ -35,7 +32,6 @@ class PhysicalActivityDBO {
         entity.specificActivity,
         entity.mets,
         entity.tags,
-        entity.displayIcon,
         PhysicalActivityTypeDBO.fromPhysicalActivityTypeEntity(entity.type));
   }
 }
