@@ -45,9 +45,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       final userActivities =
           await _getUserActivityUsecase.getTodayUserActivity(event.context);
+      final totalKcalActivities =
+          userActivities.map((activity) => activity.burnedKcal).toList().sum;
 
       emit(HomeLoadedState(
           totalKcalSupplied: totalKcalIntake,
+          totalKcalBurned: totalKcalActivities,
           breakfastIntakeList: breakfastIntakeList,
           lunchIntakeList: lunchIntakeList,
           dinnerIntakeList: dinnerIntakeList,
