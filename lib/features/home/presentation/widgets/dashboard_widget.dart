@@ -4,13 +4,17 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class DashboardWidget extends StatefulWidget {
+  final double totalKcalDaily;
+  final double totalKcalLeft;
   final double totalKcalSupplied;
   final double totalKcalBurned;
 
   const DashboardWidget(
       {Key? key,
       required this.totalKcalSupplied,
-      required this.totalKcalBurned})
+      required this.totalKcalBurned,
+      required this.totalKcalDaily,
+      required this.totalKcalLeft})
       : super(key: key);
 
   @override
@@ -20,6 +24,19 @@ class DashboardWidget extends StatefulWidget {
 class _DashboardWidgetState extends State<DashboardWidget> {
   @override
   Widget build(BuildContext context) {
+    double kcalLeftLabel = 0;
+    double gaugeValue = 0;
+    if (widget.totalKcalLeft > widget.totalKcalDaily) {
+      kcalLeftLabel = widget.totalKcalDaily;
+      gaugeValue = 0;
+    } else if (widget.totalKcalLeft < 0) {
+      kcalLeftLabel = 0;
+      gaugeValue = 1;
+    } else {
+      kcalLeftLabel = widget.totalKcalLeft;
+      gaugeValue = (widget.totalKcalDaily - widget.totalKcalLeft) /
+          widget.totalKcalDaily;
+    }
     return Card(
       elevation: 4.0,
       child: Padding(
@@ -44,7 +61,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                   radius: 90.0,
                   lineWidth: 13.0,
                   animation: true,
-                  percent: 0.7,
+                  percent: gaugeValue,
                   arcType: ArcType.FULL,
                   progressColor: Theme.of(context).colorScheme.primary,
                   arcBackgroundColor:
@@ -52,7 +69,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                   center: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("1542",
+                      Text(kcalLeftLabel.toInt().toString(),
                           style: Theme.of(context)
                               .textTheme
                               .headline4

@@ -15,6 +15,8 @@ class HomeLoadingState extends HomeState {
 }
 
 class HomeLoadedState extends HomeState {
+  final double totalKcalDaily;
+  final double totalKcalLeft;
   final double totalKcalSupplied;
   final double totalKcalBurned;
   final List<UserActivityEntity> userActivityList;
@@ -24,9 +26,11 @@ class HomeLoadedState extends HomeState {
   final List<IntakeEntity> snackIntakeList;
 
   const HomeLoadedState({
-    required this.userActivityList,
+    required this.totalKcalDaily,
+    required this.totalKcalLeft,
     required this.totalKcalSupplied,
     required this.totalKcalBurned,
+    required this.userActivityList,
     required this.breakfastIntakeList,
     required this.lunchIntakeList,
     required this.dinnerIntakeList,

@@ -26,6 +26,8 @@ class HomePage extends StatelessWidget {
         } else if (state is HomeLoadedState) {
           return _getLoadedContent(
               context,
+              state.totalKcalDaily,
+              state.totalKcalLeft,
               state.totalKcalSupplied,
               state.totalKcalBurned,
               state.breakfastIntakeList,
@@ -48,6 +50,8 @@ class HomePage extends StatelessWidget {
 
   Widget _getLoadedContent(
       BuildContext context,
+      double totalKcalDaily,
+      double totalKcalLeft,
       double totalKcalSupplied,
       double totalKcalBurned,
       List<IntakeEntity> breakfastIntakeList,
@@ -59,6 +63,8 @@ class HomePage extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 0.0),
       child: ListView(children: [
         DashboardWidget(
+            totalKcalDaily: totalKcalDaily,
+            totalKcalLeft: totalKcalLeft,
             totalKcalSupplied: totalKcalSupplied,
             totalKcalBurned: totalKcalBurned),
         ActivityVerticalList(
