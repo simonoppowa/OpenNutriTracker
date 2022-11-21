@@ -38,9 +38,8 @@ class MealIntakeList extends StatelessWidget {
                         key: ValueKey(intakeEntity.product.code),
                         intakeName: intakeEntity.product.productName ?? "",
                         subtitle:
-                            '${intakeEntity.amount.toString()}${intakeEntity.unit}',
-                        kcalText:
-                            '${intakeEntity.totalKcal.toInt()} kcal',
+                            '${intakeEntity.amount.toInt().toString()} ${intakeEntity.unit}',
+                        kcalText: '${intakeEntity.totalKcal.toInt()} kcal',
                         intakeImageUrl: intakeEntity.product.mainImageUrl);
                   },
                 ),
