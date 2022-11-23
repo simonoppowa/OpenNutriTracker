@@ -14,10 +14,15 @@ import 'package:opennutritracker/features/profile/presentation/widgets/set_heigh
 import 'package:opennutritracker/features/profile/presentation/widgets/set_pal_category_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-class ProfilePage extends StatelessWidget {
-  final _profileBloc = ProfileBloc();
-
+class ProfilePage extends StatefulWidget {
   ProfilePage({Key? key}) : super(key: key);
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final _profileBloc = ProfileBloc();
 
   @override
   Widget build(BuildContext context) {
@@ -187,6 +192,7 @@ class ProfilePage extends StatelessWidget {
             ));
     if (selectedHeight != null) {
       userEntity.heightCM = selectedHeight;
+
       _profileBloc.updateUser(context, userEntity);
     }
   }
@@ -222,6 +228,7 @@ class ProfilePage extends StatelessWidget {
         builder: (BuildContext context) => const SetGenderDialog());
     if (selectedGender != null) {
       userEntity.gender = selectedGender;
+
       _profileBloc.updateUser(context, userEntity);
     }
   }

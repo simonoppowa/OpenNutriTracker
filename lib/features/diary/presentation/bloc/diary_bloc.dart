@@ -13,11 +13,16 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
   final _getDayTrackedUsecase = GetTrackedDayUsecase();
 
   DiaryBloc() : super(DiaryInitial()) {
-    on<LoadDiaryEvent>((event, emit) async {
+    on<LoadDiaryYearEvent>((event, emit) async {
       emit(DiaryLoadingState());
 
+      final currentDate = DateTime.now();
+      const yearDuration = Duration(days: 356);
+
       final trackedDays = await _getDayTrackedUsecase.getTrackedDaysByRange(
-          event.context, event.startDate, event.endDate);
+          event.context,
+          currentDate.subtract(yearDuration),
+          currentDate.add(yearDuration));
 
       final trackedDaysMap = {
         for (var trackedDay in trackedDays)

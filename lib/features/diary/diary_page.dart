@@ -6,6 +6,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_table_calendar.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/day_info.dart';
+import 'package:provider/provider.dart';
 
 class DiaryPage extends StatefulWidget {
   const DiaryPage({Key? key}) : super(key: key);
@@ -15,7 +16,7 @@ class DiaryPage extends StatefulWidget {
 }
 
 class _DiaryPageState extends State<DiaryPage> {
-  final _diaryBloc = DiaryBloc();
+  late DiaryBloc _diaryBloc;
   final _calendarDayBloc = CalendarDayBloc();
 
   static const _calendarDurationDays = Duration(days: 356);
@@ -24,15 +25,18 @@ class _DiaryPageState extends State<DiaryPage> {
   var _focusedDate = DateTime.now();
 
   @override
+  void initState() {
+    _diaryBloc = BlocProvider.of<DiaryBloc>(context, listen: false);
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<DiaryBloc, DiaryState>(
       bloc: _diaryBloc,
       builder: (context, state) {
         if (state is DiaryInitial) {
-          _diaryBloc.add(LoadDiaryEvent(
-              context,
-              _currentDate.subtract(_calendarDurationDays),
-              _currentDate.add(_calendarDurationDays)));
+          _diaryBloc.add(LoadDiaryYearEvent(context));
         } else if (state is DiaryLoadingState) {
           return _getLoadingContent();
         } else if (state is DiaryLoadedState) {

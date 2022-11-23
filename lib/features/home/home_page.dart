@@ -2,24 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
-import 'package:opennutritracker/core/presentation/widgets/activity_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/meal_Intake_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  late HomeBloc _homeBloc;
+
+  @override
+  void initState() {
+    _homeBloc = Provider.of<HomeBloc>(context, listen: false);
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final homeBloc = HomeBloc();
     return BlocBuilder<HomeBloc, HomeState>(
-      bloc: homeBloc,
+      bloc: _homeBloc,
       builder: (context, state) {
         if (state is HomeInitial) {
-          homeBloc.add(LoadItemsEvent(context: context));
+          _homeBloc.add(LoadItemsEvent(context: context));
           return _getLoadingContent();
         } else if (state is HomeLoadingState) {
           return _getLoadingContent();

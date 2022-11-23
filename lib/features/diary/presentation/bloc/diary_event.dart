@@ -4,12 +4,10 @@ abstract class DiaryEvent extends Equatable {
   const DiaryEvent();
 }
 
-class LoadDiaryEvent extends DiaryEvent {
+class LoadDiaryYearEvent extends DiaryEvent {
   final BuildContext context;
-  final DateTime startDate;
-  final DateTime endDate;
 
-  const LoadDiaryEvent(this.context, this.startDate, this.endDate);
+  const LoadDiaryYearEvent(this.context);
 
   @override
   List<Object?> get props => [];

@@ -21,6 +21,9 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/activity_detail/activity_detail_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_item_screen.dart';
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
@@ -45,6 +48,9 @@ Future<void> main() async {
   log.info('Starting App ...');
 
   runApp(MultiProvider(providers: [
+    BlocProvider<HomeBloc>(create: (context) => HomeBloc()),
+    BlocProvider<DiaryBloc>(create: (context) => DiaryBloc()),
+    BlocProvider<ProfileBloc>(create: (context) => ProfileBloc()),
     ChangeNotifierProvider(create: (context) => hiveDBProvider),
     RepositoryProvider(create: (context) => IntakeRepository(intakeDataSource)),
     RepositoryProvider(

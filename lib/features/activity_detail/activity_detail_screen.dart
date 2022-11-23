@@ -7,7 +7,9 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_info_button.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
 class ActivityDetailScreen extends StatefulWidget {
   const ActivityDetailScreen({Key? key}) : super(key: key);
@@ -136,6 +138,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   void onAddButtonPressed(BuildContext context) {
     activityDetailBloc.persistActivity(
         context, quantityTextController.text, totalKcal, activityEntity);
+
+    // Refresh Home Page
+    Provider.of<HomeBloc>(context, listen: false)
+        .add(LoadItemsEvent(context: context));
 
     // Show snackbar and return to dashboard
     ScaffoldMessenger.of(context).showSnackBar(

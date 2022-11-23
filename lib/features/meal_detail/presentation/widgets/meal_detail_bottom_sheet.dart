@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
 class MealDetailBottomSheet extends StatefulWidget {
   final ProductEntity product;
@@ -120,6 +122,10 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
         widget.quantityTextController.text,
         widget.intakeTypeEntity,
         widget.product);
+
+    // Refresh Home Page
+    Provider.of<HomeBloc>(context, listen: false)
+        .add(LoadItemsEvent(context: context));
 
     // Show snackbar and return to dashboard
     ScaffoldMessenger.of(context).showSnackBar(
