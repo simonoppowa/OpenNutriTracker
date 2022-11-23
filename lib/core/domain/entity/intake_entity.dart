@@ -27,4 +27,11 @@ class IntakeEntity {
   }
 
   double get totalKcal => amount * (product.nutriments.energyPerUnit ?? 0);
+
+  double get totalCarbsGram =>
+      amount * (product.nutriments.carbohydratesPerUnit ?? 0);
+  double get totalFatsGram =>
+      amount * (product.nutriments.fatPerUnit ?? 0);
+  double get totalProteinsGram =>
+      amount * (product.nutriments.proteinsPerUnit ?? 0);
 }

@@ -3,7 +3,16 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MacroNutrientsView extends StatefulWidget {
-  const MacroNutrientsView({Key? key}) : super(key: key);
+  final double totalCarbsIntake;
+  final double totalFatsIntake;
+  final double totalProteinsIntake;
+
+  const MacroNutrientsView(
+      {Key? key,
+      required this.totalCarbsIntake,
+      required this.totalFatsIntake,
+      required this.totalProteinsIntake})
+      : super(key: key);
 
   @override
   State<MacroNutrientsView> createState() => _MacroNutrientsViewState();
@@ -30,7 +39,7 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
               child: Column(
                 children: [
                   Text(
-                    "286/151 g",
+                    '${widget.totalCarbsIntake.toInt()}/151 g',
                     style: Theme.of(context).textTheme.subtitle2,
                   ),
                   Text(
@@ -57,7 +66,7 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
               child: Column(
                 children: [
                   Text(
-                    "12/76 g",
+                    "${widget.totalFatsIntake.toInt()}/76 g",
                     style: Theme.of(context).textTheme.subtitle2,
                   ),
                   Text(
@@ -84,7 +93,7 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
               child: Column(
                 children: [
                   Text(
-                    "58/114 g",
+                    "${widget.totalProteinsIntake.toInt()}/114 g",
                     style: Theme.of(context).textTheme.subtitle2,
                   ),
                   Text(

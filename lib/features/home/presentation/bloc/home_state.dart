@@ -19,6 +19,9 @@ class HomeLoadedState extends HomeState {
   final double totalKcalLeft;
   final double totalKcalSupplied;
   final double totalKcalBurned;
+  final double totalCarbsIntake;
+  final double totalFatsIntake;
+  final double totalProteinsIntake;
   final List<UserActivityEntity> userActivityList;
   final List<IntakeEntity> breakfastIntakeList;
   final List<IntakeEntity> lunchIntakeList;
@@ -30,6 +33,9 @@ class HomeLoadedState extends HomeState {
     required this.totalKcalLeft,
     required this.totalKcalSupplied,
     required this.totalKcalBurned,
+    required this.totalCarbsIntake,
+    required this.totalFatsIntake,
+    required this.totalProteinsIntake,
     required this.userActivityList,
     required this.breakfastIntakeList,
     required this.lunchIntakeList,

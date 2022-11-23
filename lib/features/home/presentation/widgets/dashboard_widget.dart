@@ -8,13 +8,19 @@ class DashboardWidget extends StatefulWidget {
   final double totalKcalLeft;
   final double totalKcalSupplied;
   final double totalKcalBurned;
+  final double totalCarbsIntake;
+  final double totalFatsIntake;
+  final double totalProteinsIntake;
 
   const DashboardWidget(
       {Key? key,
       required this.totalKcalSupplied,
       required this.totalKcalBurned,
       required this.totalKcalDaily,
-      required this.totalKcalLeft})
+      required this.totalKcalLeft,
+      required this.totalCarbsIntake,
+      required this.totalFatsIntake,
+      required this.totalProteinsIntake})
       : super(key: key);
 
   @override
@@ -96,7 +102,10 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                 ),
               ],
             ),
-            const MacroNutrientsView(),
+            MacroNutrientsView(
+                totalCarbsIntake: widget.totalCarbsIntake,
+                totalFatsIntake: widget.totalFatsIntake,
+                totalProteinsIntake: widget.totalProteinsIntake),
           ],
         ),
       ),

@@ -24,24 +24,48 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       final breakfastIntakeList =
           await _getIntakeUsecase.getTodayBreakfastIntake(event.context);
-      final totalBreakfastKcal =
-          breakfastIntakeList.map((intake) => intake.totalKcal).toList().sum;
+      final totalBreakfastKcal = getTotalKcal(breakfastIntakeList);
+      final totalBreakfastCarbs = getTotalCarbs(breakfastIntakeList);
+      final totalBreakfastFats = getTotalFats(breakfastIntakeList);
+      final totalBreakfastProteins = getTotalProteins(breakfastIntakeList);
+
       final lunchIntakeList =
           await _getIntakeUsecase.getTodayLunchIntake(event.context);
-      final totalLunchKcal =
-          lunchIntakeList.map((intake) => intake.totalKcal).toList().sum;
+      final totalLunchKcal = getTotalKcal(lunchIntakeList);
+      final totalLunchCarbs = getTotalCarbs(lunchIntakeList);
+      final totalLunchFats = getTotalFats(lunchIntakeList);
+      final totalLunchProteins = getTotalProteins(lunchIntakeList);
+
       final dinnerIntakeList =
           await _getIntakeUsecase.getTodayDinnerIntake(event.context);
-      final totalDinnerKcal =
-          dinnerIntakeList.map((intake) => intake.totalKcal).toList().sum;
+      final totalDinnerKcal = getTotalKcal(dinnerIntakeList);
+      final totalDinnerCarbs = getTotalCarbs(dinnerIntakeList);
+      final totalDinnerFats = getTotalFats(dinnerIntakeList);
+      final totalDinnerProteins = getTotalProteins(dinnerIntakeList);
+
       final snackIntakeList =
           await _getIntakeUsecase.getTodaySnackIntake(event.context);
-      final totalSnackKcal =
-          snackIntakeList.map((intake) => intake.totalKcal).toList().sum;
+      final totalSnackKcal = getTotalKcal(snackIntakeList);
+      final totalSnackCarbs = getTotalCarbs(snackIntakeList);
+      final totalSnackFats = getTotalFats(snackIntakeList);
+      final totalSnackProteins = getTotalProteins(snackIntakeList);
+
       final totalKcalIntake = totalBreakfastKcal +
           totalLunchKcal +
           totalDinnerKcal +
           totalSnackKcal;
+      final totalCarbsIntake = totalBreakfastCarbs +
+          totalLunchCarbs +
+          totalDinnerCarbs +
+          totalSnackCarbs;
+      final totalFatsIntake = totalBreakfastFats +
+          totalLunchFats +
+          totalDinnerFats +
+          totalSnackFats;
+      final totalProteinsIntake = totalBreakfastProteins +
+          totalLunchProteins +
+          totalDinnerProteins +
+          totalSnackProteins;
 
       final userActivities =
           await _getUserActivityUsecase.getTodayUserActivity(event.context);
@@ -58,6 +82,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           totalKcalLeft: totalKcalLeft,
           totalKcalSupplied: totalKcalIntake,
           totalKcalBurned: totalKcalActivities,
+          totalCarbsIntake: totalCarbsIntake,
+          totalFatsIntake: totalFatsIntake,
+          totalProteinsIntake: totalProteinsIntake,
           breakfastIntakeList: breakfastIntakeList,
           lunchIntakeList: lunchIntakeList,
           dinnerIntakeList: dinnerIntakeList,
@@ -65,4 +92,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           userActivityList: userActivities));
     });
   }
+
+  double getTotalKcal(List<IntakeEntity> intakeList) =>
+      intakeList.map((intake) => intake.totalKcal).toList().sum;
+
+  double getTotalCarbs(List<IntakeEntity> intakeList) =>
+      intakeList.map((intake) => intake.totalCarbsGram).toList().sum;
+
+  double getTotalFats(List<IntakeEntity> intakeList) =>
+      intakeList.map((intake) => intake.totalFatsGram).toList().sum;
+
+  double getTotalProteins(List<IntakeEntity> intakeList) =>
+      intakeList.map((intake) => intake.totalProteinsGram).toList().sum;
 }
