@@ -40,7 +40,7 @@ dependencies:
   logging: ^1.0.2
   flutter_launcher_icons: ^0.10.0
   path_provider: ^2.0.11
-  flutter_secure_storage: ^6.0.0
+  flutter_secure_storage: ^6.1.0
   cupertino_icons: ^1.0.2
   package_info_plus: ^1.4.3+1
   url_launcher: ^6.1.5

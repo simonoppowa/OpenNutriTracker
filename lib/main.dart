@@ -20,6 +20,7 @@ import 'package:opennutritracker/core/styles/fonts.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
 import 'package:opennutritracker/features/activity_detail/activity_detail_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_item_screen.dart';
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
@@ -35,8 +36,10 @@ import 'package:provider/provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LoggerConfig.intiLogger();
+  final secureAppStorageProvider = SecureAppStorageProvider();
   final hiveDBProvider = HiveDBProvider();
-  await hiveDBProvider.initHiveDB();
+  await hiveDBProvider
+      .initHiveDB(await secureAppStorageProvider.getHiveEncryptionKey());
   final ConfigDataSource configDataSource =
       ConfigDataSource(hiveDBProvider.configBox);
   final IntakeDataSource intakeDataSource =
