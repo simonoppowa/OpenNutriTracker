@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
@@ -13,11 +14,13 @@ import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
 
 class HiveDBProvider extends ChangeNotifier {
+  static const configBoxName = 'ConfigBox';
   static const intakeBoxName = 'IntakeBox';
   static const userActivityBoxName = 'UserActivityBox';
   static const userBoxName = 'UserBox';
   static const trackedDayBoxName = 'TrackedDayBox';
 
+  late Box<ConfigDBO> configBox;
   late Box<IntakeDBO> intakeBox;
   late Box<UserActivityDBO> userActivityBox;
   late Box<UserDBO> userBox;
@@ -25,6 +28,7 @@ class HiveDBProvider extends ChangeNotifier {
 
   Future<void> initHiveDB() async {
     await Hive.initFlutter();
+    Hive.registerAdapter(ConfigDBOAdapter());
     Hive.registerAdapter(IntakeDBOAdapter());
     Hive.registerAdapter(ProductDBOAdapter());
     Hive.registerAdapter(ProductNutrimentsDBOAdapter());
@@ -38,6 +42,7 @@ class HiveDBProvider extends ChangeNotifier {
     Hive.registerAdapter(PhysicalActivityDBOAdapter());
     Hive.registerAdapter(PhysicalActivityTypeDBOAdapter());
 
+    configBox = await Hive.openBox(configBoxName);
     intakeBox = await Hive.openBox(intakeBoxName);
     userActivityBox = await Hive.openBox(userActivityBoxName);
     userBox = await Hive.openBox(userBoxName);

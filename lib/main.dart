@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/physical_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/physical_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
@@ -35,6 +37,8 @@ Future<void> main() async {
   LoggerConfig.intiLogger();
   final hiveDBProvider = HiveDBProvider();
   await hiveDBProvider.initHiveDB();
+  final ConfigDataSource configDataSource =
+      ConfigDataSource(hiveDBProvider.configBox);
   final IntakeDataSource intakeDataSource =
       IntakeDataSource(hiveDBProvider.intakeBox);
   final userActivityDataSource =
@@ -48,10 +52,11 @@ Future<void> main() async {
   log.info('Starting App ...');
 
   runApp(MultiProvider(providers: [
+    ChangeNotifierProvider(create: (context) => hiveDBProvider),
     BlocProvider<HomeBloc>(create: (context) => HomeBloc()),
     BlocProvider<DiaryBloc>(create: (context) => DiaryBloc()),
     BlocProvider<ProfileBloc>(create: (context) => ProfileBloc()),
-    ChangeNotifierProvider(create: (context) => hiveDBProvider),
+    RepositoryProvider(create: (context) => ConfigRepository(configDataSource)),
     RepositoryProvider(create: (context) => IntakeRepository(intakeDataSource)),
     RepositoryProvider(
         create: (context) => UserActivityRepository(userActivityDataSource)),
