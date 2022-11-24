@@ -22,7 +22,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m0(versionNumber) => "Version ${versionNumber}";
 
-  static String m1(age) => "${age} years";
+  static String m1(pctCarbs, pctFats, pctProteins) =>
+      "${pctCarbs}% carbs, ${pctFats}% fats, ${pctProteins}% proteins";
+
+  static String m2(age) => "${age} years";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -45,6 +48,15 @@ class MessageLookup extends MessageLookupByLibrary {
             "e.g. cereal, milk, coffee ..."),
         "breakfastLabel": MessageLookupByLibrary.simpleMessage("Breakfast"),
         "burnedLabel": MessageLookupByLibrary.simpleMessage("burned"),
+        "calculationsMacronutrientsDistributionLabel":
+            MessageLookupByLibrary.simpleMessage("Macros distribution"),
+        "calculationsMacrosDistribution": m1,
+        "calculationsRecommendedLabel":
+            MessageLookupByLibrary.simpleMessage("(recommended)"),
+        "calculationsTDEEIOM2006Label":
+            MessageLookupByLibrary.simpleMessage("IOM 2006"),
+        "calculationsTDEELabel":
+            MessageLookupByLibrary.simpleMessage("TDEE equation"),
         "carbohydrateLabel":
             MessageLookupByLibrary.simpleMessage("carbohydrate"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("carbs"),
@@ -321,6 +333,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),
+        "settingsCalculationsLabel":
+            MessageLookupByLibrary.simpleMessage("Calculations"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Disclaimer"),
         "settingsDistanceLabel":
@@ -342,6 +356,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "suppliedLabel": MessageLookupByLibrary.simpleMessage("supplied"),
         "unitLabel": MessageLookupByLibrary.simpleMessage("Unit"),
         "weightLabel": MessageLookupByLibrary.simpleMessage("Weight"),
-        "yearsLabel": m1
+        "yearsLabel": m2
       };
 }

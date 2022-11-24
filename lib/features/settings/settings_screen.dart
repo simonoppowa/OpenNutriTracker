@@ -22,6 +22,11 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => _showUnitsDialog(context),
           ),
           ListTile(
+            leading: const Icon(Icons.calculate_outlined),
+            title: Text(S.of(context).settingsCalculationsLabel),
+            onTap: () => _showCalculationsDialog(context),
+          ),
+          ListTile(
             leading: const Icon(Icons.description_outlined),
             title: Text(S.of(context).settingsDisclaimerLabel),
             onTap: () => _showDisclaimerDialog(context),
@@ -76,6 +81,7 @@ class SettingsScreen extends StatelessWidget {
         context: context,
         builder: (context) {
           return AlertDialog(
+            title: Text(S.of(context).settingsUnitsLabel),
               content: Wrap(children: [
                 Column(
                   children: [
@@ -119,6 +125,48 @@ class SettingsScreen extends StatelessWidget {
                     child: Text(S.of(context).dialogOKLabel))
               ]);
         });
+  }
+
+  void _showCalculationsDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(S.of(context).settingsCalculationsLabel),
+              content: Wrap(
+                children: [
+                  DropdownButtonFormField(
+                      decoration: InputDecoration(
+                        enabled: false,
+                        filled: false,
+                        labelText: S.of(context).calculationsTDEELabel,
+                      ),
+                      items: [
+                        DropdownMenuItem(
+                            child: Text(
+                                '${S.of(context).calculationsTDEEIOM2006Label} ${S.of(context).calculationsRecommendedLabel}')),
+                      ],
+                      onChanged: null),
+                  DropdownButtonFormField(
+                    isExpanded: true,
+                      decoration: InputDecoration(
+                          enabled: false,
+                          filled: false,
+                          labelText: S
+                              .of(context)
+                              .calculationsMacronutrientsDistributionLabel),
+                      items: [
+                        DropdownMenuItem(
+                            child: Text(
+                          S
+                              .of(context)
+                              .calculationsMacrosDistribution("50", "20", "20"), // TODO
+                          overflow: TextOverflow.ellipsis,
+                        ))
+                      ],
+                      onChanged: null)
+                ],
+              ),
+            ));
   }
 
   void _showDisclaimerDialog(BuildContext context) {

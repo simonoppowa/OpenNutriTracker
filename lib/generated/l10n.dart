@@ -190,6 +190,16 @@ class S {
     );
   }
 
+  /// `Calculations`
+  String get settingsCalculationsLabel {
+    return Intl.message(
+      'Calculations',
+      name: 'settingsCalculationsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Licenses`
   String get settingsLicensesLabel {
     return Intl.message(
@@ -307,6 +317,57 @@ class S {
       name: 'appLicenseLabel',
       desc: '',
       args: [],
+    );
+  }
+
+  /// `TDEE equation`
+  String get calculationsTDEELabel {
+    return Intl.message(
+      'TDEE equation',
+      name: 'calculationsTDEELabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IOM 2006`
+  String get calculationsTDEEIOM2006Label {
+    return Intl.message(
+      'IOM 2006',
+      name: 'calculationsTDEEIOM2006Label',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `(recommended)`
+  String get calculationsRecommendedLabel {
+    return Intl.message(
+      '(recommended)',
+      name: 'calculationsRecommendedLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Macros distribution`
+  String get calculationsMacronutrientsDistributionLabel {
+    return Intl.message(
+      'Macros distribution',
+      name: 'calculationsMacronutrientsDistributionLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{pctCarbs}% carbs, {pctFats}% fats, {pctProteins}% proteins`
+  String calculationsMacrosDistribution(
+      Object pctCarbs, Object pctFats, Object pctProteins) {
+    return Intl.message(
+      '$pctCarbs% carbs, $pctFats% fats, $pctProteins% proteins',
+      name: 'calculationsMacrosDistribution',
+      desc: '',
+      args: [pctCarbs, pctFats, pctProteins],
     );
   }
 

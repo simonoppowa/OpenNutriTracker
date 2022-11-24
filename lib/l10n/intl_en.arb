@@ -15,6 +15,7 @@
   "dialogCancelLabel": "CANCEL",
 
   "settingsUnitsLabel": "Units",
+  "settingsCalculationsLabel": "Calculations",
   "settingsLicensesLabel": "Licenses",
   "settingsDisclaimerLabel": "Disclaimer",
   "settingsReportErrorLabel": "Report Error",
@@ -27,6 +28,11 @@
   "disclaimerText": "OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems. Usage during illness, pregnancy or lactation is not advised.\n\n\nThe application is still under construction. Errors, bugs and crashes might occur.",
   "reportErrorDialogText": "Do you want to report an error to the developer?",
   "appLicenseLabel": "GPL-3.0 license",
+  "calculationsTDEELabel": "TDEE equation",
+  "calculationsTDEEIOM2006Label": "IOM 2006",
+  "calculationsRecommendedLabel": "(recommended)",
+  "calculationsMacronutrientsDistributionLabel": "Macros distribution",
+  "calculationsMacrosDistribution": "{pctCarbs}% carbs, {pctFats}% fats, {pctProteins}% proteins",
 
   "addItemLabel": "Add new Item:",
   "activityLabel": "Activity",
