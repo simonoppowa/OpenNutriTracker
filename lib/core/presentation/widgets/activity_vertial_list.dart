@@ -25,7 +25,9 @@ class ActivityVerticalList extends StatelessWidget {
         ),
         userActivityList.isEmpty
             ? const Align(
-                alignment: Alignment.centerLeft, child: PlaceholderIntakeCard())
+                alignment: Alignment.centerLeft,
+                child:
+                    PlaceholderIntakeCard(icon: Icons.directions_run_outlined))
             : SizedBox(
                 height: 120,
                 child: ListView.builder(
@@ -37,7 +39,7 @@ class ActivityVerticalList extends StatelessWidget {
                         activityName: userActivity.physicalActivityEntity
                             .getName(context),
                         kcal: '${userActivity.burnedKcal.toInt()}',
-                    icon: userActivity.physicalActivityEntity.displayIcon);
+                        icon: userActivity.physicalActivityEntity.displayIcon);
                   },
                 ),
               ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class PlaceholderIntakeCard extends StatelessWidget {
-  const PlaceholderIntakeCard({Key? key}) : super(key: key);
+  final IconData icon;
+
+  const PlaceholderIntakeCard({Key? key, required this.icon}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,9 +17,8 @@ class PlaceholderIntakeCard extends StatelessWidget {
         ),
         //elevation: 4,
         color: Theme.of(context).colorScheme.surface,
-        child: Icon(Icons.local_pizza_outlined,
-            size: 36,
-            color: Theme.of(context).colorScheme.onSurface),
+        child: Icon(icon,
+            size: 36, color: Theme.of(context).colorScheme.onSurface),
       ),
     );
   }

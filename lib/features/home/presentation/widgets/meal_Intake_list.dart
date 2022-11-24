@@ -6,10 +6,14 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 class MealIntakeList extends StatelessWidget {
   final String title;
+  final IconData listIcon;
   final List<IntakeEntity> intakeList;
 
   const MealIntakeList(
-      {Key? key, required this.title, required this.intakeList})
+      {Key? key,
+      required this.title,
+      required this.listIcon,
+      required this.intakeList})
       : super(key: key);
 
   @override
@@ -25,8 +29,11 @@ class MealIntakeList extends StatelessWidget {
           ),
         ),
         intakeList.isEmpty
-            ? const Align(
-                alignment: Alignment.centerLeft, child: PlaceholderIntakeCard())
+            ? Align(
+                alignment: Alignment.centerLeft,
+                child: PlaceholderIntakeCard(
+                  icon: listIcon,
+                ))
             : SizedBox(
                 height: 120,
                 child: ListView.builder(
