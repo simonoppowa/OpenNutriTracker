@@ -26,6 +26,7 @@ import 'package:opennutritracker/features/add_meal/presentation/add_item_screen.
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/onboarding/onboarding_screen.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
@@ -94,9 +95,11 @@ class OpenNutriTrackerApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: S.delegate.supportedLocales,
-      initialRoute: NavigationOptions.mainRoute,
+      initialRoute: NavigationOptions.onboardingRoute,
       routes: {
         NavigationOptions.mainRoute: (context) => const MainScreen(),
+        NavigationOptions.onboardingRoute: (context) =>
+            const OnboardingScreen(),
         NavigationOptions.settingsRoute: (context) => const SettingsScreen(),
         NavigationOptions.addItemRoute: (context) => const AddItemScreen(),
         NavigationOptions.scannerRoute: (context) => const ScannerScreen(),

@@ -50,16 +50,6 @@ class S {
     return Localizations.of<S>(context, S);
   }
 
-  /// `Hello World`
-  String get helloWorld {
-    return Intl.message(
-      'Hello World',
-      name: 'helloWorld',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `OpenNutriTracker`
   String get appTitle {
     return Intl.message(
@@ -77,6 +67,16 @@ class S {
       name: 'appVersionName',
       desc: '',
       args: [versionNumber],
+    );
+  }
+
+  /// `OpenNutriTracker is a free and open-source calorie and activity tracker that respects your privacy.`
+  String get appDescription {
+    return Intl.message(
+      'OpenNutriTracker is a free and open-source calorie and activity tracker that respects your privacy.',
+      name: 'appDescription',
+      desc: '',
+      args: [],
     );
   }
 
@@ -175,6 +175,46 @@ class S {
     return Intl.message(
       'CANCEL',
       name: 'dialogCancelLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `START`
+  String get buttonStartLabel {
+    return Intl.message(
+      'START',
+      name: 'buttonStartLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `NEXT`
+  String get buttonNextLabel {
+    return Intl.message(
+      'NEXT',
+      name: 'buttonNextLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Welcome to`
+  String get onboardingWelcomeLabel {
+    return Intl.message(
+      'Welcome to',
+      name: 'onboardingWelcomeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device.`
+  String get onboardingIntroDescription {
+    return Intl.message(
+      'To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device.',
+      name: 'onboardingIntroDescription',
       desc: '',
       args: [],
     );

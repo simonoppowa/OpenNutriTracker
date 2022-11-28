@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -41,36 +42,8 @@ class SettingsScreen extends StatelessWidget {
             title: Text(S.of(context).settingAboutLabel),
             onTap: () => _showAboutDialog(context),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0.0, 32.0, 0.0, 32.0),
-            child: FutureBuilder(
-              // Version name needs future
-              future: _getVersionNumber(context),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 40,
-                            child:
-                                Image.asset('assets/icon/ont_logo_square.png'),
-                          ),
-                          Text(S.of(context).appTitle,
-                              style: Theme.of(context).textTheme.headline6),
-                        ],
-                      ),
-                      Text(S.of(context).appVersionName(snapshot.requireData))
-                    ],
-                  );
-                } else {
-                  return const SizedBox();
-                }
-              },
-            ),
-          )
+          const SizedBox(height: 32.0),
+          const AppBannerVersion()
         ],
       ),
     );

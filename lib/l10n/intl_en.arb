@@ -1,7 +1,8 @@
 {
-  "helloWorld": "Hello World",
   "appTitle": "OpenNutriTracker",
   "appVersionName": "Version {versionNumber}",
+  "appDescription": "OpenNutriTracker is a free and open-source calorie and activity tracker that respects your privacy.",
+
   "addLabel": "Add",
   "settingsLabel": "Settings",
   "homeLabel": "Home",
@@ -13,6 +14,11 @@
 
   "dialogOKLabel": "OK",
   "dialogCancelLabel": "CANCEL",
+  "buttonStartLabel": "START",
+  "buttonNextLabel": "NEXT",
+
+  "onboardingWelcomeLabel": "Welcome to",
+  "onboardingIntroDescription": "To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device.",
 
   "settingsUnitsLabel": "Units",
   "settingsCalculationsLabel": "Calculations",

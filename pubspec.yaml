@@ -54,6 +54,7 @@ dependencies:
   percent_indicator: ^4.0.1
   horizontal_picker: ^1.2.0
   table_calendar: ^3.0.8
+  introduction_screen: ^3.1.0
 
   mobile_scanner: ^2.0.0
 
@@ -75,6 +76,7 @@ flutter:
 
   assets:
     - assets/icon/ont_logo_square.png
+    - assets/icon/ont_banner_top.png
 
   fonts:
     - family: Poppins

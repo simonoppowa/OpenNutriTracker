@@ -39,6 +39,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
             "More Information at\nOpenFoodFacts"),
         "ageLabel": MessageLookupByLibrary.simpleMessage("Age"),
+        "appDescription": MessageLookupByLibrary.simpleMessage(
+            "OpenNutriTracker is a free and open-source calorie and activity tracker that respects your privacy."),
         "appLicenseLabel":
             MessageLookupByLibrary.simpleMessage("GPL-3.0 license"),
         "appTitle": MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
@@ -48,6 +50,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "e.g. cereal, milk, coffee ..."),
         "breakfastLabel": MessageLookupByLibrary.simpleMessage("Breakfast"),
         "burnedLabel": MessageLookupByLibrary.simpleMessage("burned"),
+        "buttonNextLabel": MessageLookupByLibrary.simpleMessage("NEXT"),
+        "buttonStartLabel": MessageLookupByLibrary.simpleMessage("START"),
         "calculationsMacronutrientsDistributionLabel":
             MessageLookupByLibrary.simpleMessage("Macros distribution"),
         "calculationsMacrosDistribution": m1,
@@ -87,7 +91,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "goalMaintainWeight":
             MessageLookupByLibrary.simpleMessage("Maintain Weight"),
         "heightLabel": MessageLookupByLibrary.simpleMessage("Height"),
-        "helloWorld": MessageLookupByLibrary.simpleMessage("Hello World"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Added new activity"),
@@ -115,6 +118,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Pre-obesity"),
         "nutritionalStatusUnderweight":
             MessageLookupByLibrary.simpleMessage("Underweight"),
+        "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
+            "To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device."),
+        "onboardingWelcomeLabel":
+            MessageLookupByLibrary.simpleMessage("Welcome to"),
         "paAmericanFootballGeneral": MessageLookupByLibrary.simpleMessage(
             "football, touch, flag, general (Taylor Code 510)"),
         "paArcheryGeneral":
