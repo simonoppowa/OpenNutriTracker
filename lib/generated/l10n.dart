@@ -220,6 +220,46 @@ class S {
     );
   }
 
+  /// `What's your gender?`
+  String get onboardingGenderQuestionSubtitle {
+    return Intl.message(
+      'What\'s your gender?',
+      name: 'onboardingGenderQuestionSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Birthday`
+  String get onboardingEnterBirthdayLabel {
+    return Intl.message(
+      'Birthday',
+      name: 'onboardingEnterBirthdayLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter Date`
+  String get onboardingBirthdayHint {
+    return Intl.message(
+      'Enter Date',
+      name: 'onboardingBirthdayHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `When is your birthday?`
+  String get onboardingBirthdayQuestionSubtitle {
+    return Intl.message(
+      'When is your birthday?',
+      name: 'onboardingBirthdayQuestionSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Units`
   String get settingsUnitsLabel {
     return Intl.message(

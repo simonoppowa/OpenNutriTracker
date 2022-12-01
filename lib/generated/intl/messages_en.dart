@@ -118,6 +118,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Pre-obesity"),
         "nutritionalStatusUnderweight":
             MessageLookupByLibrary.simpleMessage("Underweight"),
+        "onboardingBirthdayHint":
+            MessageLookupByLibrary.simpleMessage("Enter Date"),
+        "onboardingBirthdayQuestionSubtitle":
+            MessageLookupByLibrary.simpleMessage("When is your birthday?"),
+        "onboardingEnterBirthdayLabel":
+            MessageLookupByLibrary.simpleMessage("Birthday"),
+        "onboardingGenderQuestionSubtitle":
+            MessageLookupByLibrary.simpleMessage("What\'s your gender?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device."),
         "onboardingWelcomeLabel":
