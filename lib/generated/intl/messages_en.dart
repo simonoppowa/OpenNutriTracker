@@ -126,10 +126,22 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Birthday"),
         "onboardingGenderQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("What\'s your gender?"),
+        "onboardingHeightExampleHint":
+            MessageLookupByLibrary.simpleMessage("e.g. 60"),
+        "onboardingHeightQuestionSubtitle":
+            MessageLookupByLibrary.simpleMessage("Whats your current height?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device."),
+        "onboardingWeightExampleHint":
+            MessageLookupByLibrary.simpleMessage("e.g. 170"),
+        "onboardingWeightQuestionSubtitle":
+            MessageLookupByLibrary.simpleMessage("Whats your current weight?"),
         "onboardingWelcomeLabel":
             MessageLookupByLibrary.simpleMessage("Welcome to"),
+        "onboardingWrongHeightLabel":
+            MessageLookupByLibrary.simpleMessage("Enter correct height?"),
+        "onboardingWrongWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Enter correct weight?"),
         "paAmericanFootballGeneral": MessageLookupByLibrary.simpleMessage(
             "football, touch, flag, general (Taylor Code 510)"),
         "paArcheryGeneral":

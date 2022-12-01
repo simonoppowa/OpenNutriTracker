@@ -260,6 +260,66 @@ class S {
     );
   }
 
+  /// `Whats your current height?`
+  String get onboardingHeightQuestionSubtitle {
+    return Intl.message(
+      'Whats your current height?',
+      name: 'onboardingHeightQuestionSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Whats your current weight?`
+  String get onboardingWeightQuestionSubtitle {
+    return Intl.message(
+      'Whats your current weight?',
+      name: 'onboardingWeightQuestionSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter correct height?`
+  String get onboardingWrongHeightLabel {
+    return Intl.message(
+      'Enter correct height?',
+      name: 'onboardingWrongHeightLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. 170`
+  String get onboardingWeightExampleHint {
+    return Intl.message(
+      'e.g. 170',
+      name: 'onboardingWeightExampleHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter correct weight?`
+  String get onboardingWrongWeightLabel {
+    return Intl.message(
+      'Enter correct weight?',
+      name: 'onboardingWrongWeightLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. 60`
+  String get onboardingHeightExampleHint {
+    return Intl.message(
+      'e.g. 60',
+      name: 'onboardingHeightExampleHint',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Units`
   String get settingsUnitsLabel {
     return Intl.message(

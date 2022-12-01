@@ -3,6 +3,7 @@ import 'package:introduction_screen/introduction_screen.dart';
 import 'package:opennutritracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/highlight_button.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_first_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_second_page_body.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _introKey = GlobalKey<IntroductionScreenState>();
   bool _firstPageButtonActive = false;
+  bool _secondPageButtonActive = false;
 
   @override
   Widget build(BuildContext context) {
@@ -47,28 +49,44 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             bodyWidget: const OnboardingIntroPageBody(),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonStartLabel,
-              onButtonPressed: () => scrollNexPage(1),
+              onButtonPressed: () => _scrollNexPage(1),
               buttonActive: true,
             )),
         PageViewModel(
             titleWidget: const SizedBox(), // empty
             bodyWidget: OnboardingFirstPageBody(
-              setButtonActive: setFirstPageButton,
+              setButtonActive: _setFirstPageButton,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonNextLabel,
-              onButtonPressed: () => scrollNexPage(2),
+              onButtonPressed: () => _scrollNexPage(2),
               buttonActive: _firstPageButtonActive,
+            )),
+        PageViewModel(
+            titleWidget: const SizedBox(), // empty
+            bodyWidget: OnboardingSecondPageBody(
+              setButtonActive: _setSecondPageButton,
+            ),
+            footer: HighlightButton(
+              buttonLabel: S.of(context).buttonNextLabel,
+              onButtonPressed: () => _scrollNexPage(3),
+              buttonActive: _secondPageButtonActive,
             ))
       ];
 
-  void scrollNexPage(int page) {
+  void _scrollNexPage(int page) {
     _introKey.currentState?.animateScroll(page);
   }
 
-  void setFirstPageButton(bool active) {
+  void _setFirstPageButton(bool active) {
     setState(() {
       _firstPageButtonActive = active;
+    });
+  }
+
+  void _setSecondPageButton(bool active) {
+    setState(() {
+      _secondPageButtonActive = active;
     });
   }
 }

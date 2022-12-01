@@ -23,6 +23,12 @@
   "onboardingEnterBirthdayLabel": "Birthday",
   "onboardingBirthdayHint": "Enter Date",
   "onboardingBirthdayQuestionSubtitle": "When is your birthday?",
+  "onboardingHeightQuestionSubtitle": "Whats your current height?",
+  "onboardingWeightQuestionSubtitle": "Whats your current weight?",
+  "onboardingWrongHeightLabel": "Enter correct height?",
+  "onboardingWeightExampleHint": "e.g. 170",
+  "onboardingWrongWeightLabel": "Enter correct weight?",
+  "onboardingHeightExampleHint": "e.g. 60",
 
   "settingsUnitsLabel": "Units",
   "settingsCalculationsLabel": "Calculations",
