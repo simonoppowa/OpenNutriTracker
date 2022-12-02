@@ -320,6 +320,16 @@ class S {
     );
   }
 
+  /// `How active are you? (Without workouts)`
+  String get onboardingActivityQuestionSubtitle {
+    return Intl.message(
+      'How active are you? (Without workouts)',
+      name: 'onboardingActivityQuestionSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Units`
   String get settingsUnitsLabel {
     return Intl.message(
@@ -851,11 +861,31 @@ class S {
     );
   }
 
+  /// `e.g. office job and mostly sitting free time activities`
+  String get palSedentaryDescriptionLabel {
+    return Intl.message(
+      'e.g. office job and mostly sitting free time activities',
+      name: 'palSedentaryDescriptionLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Low Active`
   String get palLowLActiveLabel {
     return Intl.message(
       'Low Active',
       name: 'palLowLActiveLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. sitting or standing in job and light free time activities`
+  String get palLowActiveDescriptionLabel {
+    return Intl.message(
+      'e.g. sitting or standing in job and light free time activities',
+      name: 'palLowActiveDescriptionLabel',
       desc: '',
       args: [],
     );
@@ -871,11 +901,31 @@ class S {
     );
   }
 
+  /// `Mostly standing or walking in job and active free time activities`
+  String get palActiveDescriptionLabel {
+    return Intl.message(
+      'Mostly standing or walking in job and active free time activities',
+      name: 'palActiveDescriptionLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Very Active`
   String get palVeryActiveLabel {
     return Intl.message(
       'Very Active',
       name: 'palVeryActiveLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mostly walking, running or carrying weight in job and active free time activities`
+  String get palVeryActiveDescriptionLabel {
+    return Intl.message(
+      'Mostly walking, running or carrying weight in job and active free time activities',
+      name: 'palVeryActiveDescriptionLabel',
       desc: '',
       args: [],
     );

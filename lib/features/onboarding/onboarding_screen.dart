@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:opennutritracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/onboarding_third_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/highlight_button.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_first_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_second_page_body.dart';
@@ -17,6 +18,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _introKey = GlobalKey<IntroductionScreenState>();
   bool _firstPageButtonActive = false;
   bool _secondPageButtonActive = false;
+  bool _thirdPageButtonActive = false;
+  bool _fourthPageButtonActive = false;
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +74,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               buttonLabel: S.of(context).buttonNextLabel,
               onButtonPressed: () => _scrollNexPage(3),
               buttonActive: _secondPageButtonActive,
-            ))
+            )),
+        PageViewModel(
+            titleWidget: const SizedBox(), // empty
+            bodyWidget: OnboardingThirdPageBody(
+              setButtonActive: _setThirdPageButton,
+            ),
+            footer: HighlightButton(
+              buttonLabel: S.of(context).buttonNextLabel,
+              onButtonPressed: () => _scrollNexPage(4),
+              buttonActive: _thirdPageButtonActive,
+            )),
       ];
 
   void _scrollNexPage(int page) {
@@ -87,6 +100,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _setSecondPageButton(bool active) {
     setState(() {
       _secondPageButtonActive = active;
+    });
+  }
+
+  void _setThirdPageButton(bool active) {
+    setState(() {
+      _thirdPageButtonActive = active;
+    });
+  }
+
+  void _setFourthPageButton(bool active) {
+    setState(() {
+      _fourthPageButtonActive = active;
     });
   }
 }

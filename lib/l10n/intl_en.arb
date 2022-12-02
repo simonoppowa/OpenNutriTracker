@@ -29,6 +29,7 @@
   "onboardingWeightExampleHint": "e.g. 170",
   "onboardingWrongWeightLabel": "Enter correct weight?",
   "onboardingHeightExampleHint": "e.g. 60",
+  "onboardingActivityQuestionSubtitle": "How active are you? (Without workouts)",
 
   "settingsUnitsLabel": "Units",
   "settingsCalculationsLabel": "Calculations",
@@ -89,9 +90,13 @@
   "bmiLabel": "BMI",
 
   "palSedentaryLabel": "Sedentary",
+  "palSedentaryDescriptionLabel": "e.g. office job and mostly sitting free time activities",
   "palLowLActiveLabel": "Low Active",
+  "palLowActiveDescriptionLabel": "e.g. sitting or standing in job and light free time activities",
   "palActiveLabel": "Active",
+  "palActiveDescriptionLabel": "Mostly standing or walking in job and active free time activities",
   "palVeryActiveLabel": "Very Active",
+  "palVeryActiveDescriptionLabel": "Mostly walking, running or carrying weight in job and active free time activities",
 
   "selectPalCategoryLabel": "Select Activity Level",
   "chooseWeightGoalLabel": "Choose Weight Goal",

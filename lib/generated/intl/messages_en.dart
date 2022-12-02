@@ -118,6 +118,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Pre-obesity"),
         "nutritionalStatusUnderweight":
             MessageLookupByLibrary.simpleMessage("Underweight"),
+        "onboardingActivityQuestionSubtitle":
+            MessageLookupByLibrary.simpleMessage(
+                "How active are you? (Without workouts)"),
         "onboardingBirthdayHint":
             MessageLookupByLibrary.simpleMessage("Enter Date"),
         "onboardingBirthdayQuestionSubtitle":
@@ -328,10 +331,18 @@ class MessageLookup extends MessageLookupByLibrary {
             "water aerobics, water calisthenics"),
         "paWrestling": MessageLookupByLibrary.simpleMessage(
             "wrestling (one match = 5 minutes)"),
+        "palActiveDescriptionLabel": MessageLookupByLibrary.simpleMessage(
+            "Mostly standing or walking in job and active free time activities"),
         "palActiveLabel": MessageLookupByLibrary.simpleMessage("Active"),
+        "palLowActiveDescriptionLabel": MessageLookupByLibrary.simpleMessage(
+            "e.g. sitting or standing in job and light free time activities"),
         "palLowLActiveLabel":
             MessageLookupByLibrary.simpleMessage("Low Active"),
+        "palSedentaryDescriptionLabel": MessageLookupByLibrary.simpleMessage(
+            "e.g. office job and mostly sitting free time activities"),
         "palSedentaryLabel": MessageLookupByLibrary.simpleMessage("Sedentary"),
+        "palVeryActiveDescriptionLabel": MessageLookupByLibrary.simpleMessage(
+            "Mostly walking, running or carrying weight in job and active free time activities"),
         "palVeryActiveLabel":
             MessageLookupByLibrary.simpleMessage("Very Active"),
         "per100gLabel": MessageLookupByLibrary.simpleMessage("Per 100g"),
