@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:opennutritracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
-import 'package:opennutritracker/features/onboarding/presentation/onboarding_third_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_fourth_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_third_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/highlight_button.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_first_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_second_page_body.dart';
@@ -84,6 +85,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               buttonLabel: S.of(context).buttonNextLabel,
               onButtonPressed: () => _scrollNexPage(4),
               buttonActive: _thirdPageButtonActive,
+            )),
+        PageViewModel(
+            titleWidget: const SizedBox(), // empty
+            bodyWidget: OnboardingFourthPageBody(
+              setButtonActive: _setFourthPageButton,
+            ),
+            footer: HighlightButton(
+              buttonLabel: S.of(context).buttonNextLabel,
+              onButtonPressed: () => _scrollNexPage(5),
+              buttonActive: _fourthPageButtonActive,
             )),
       ];
 

@@ -30,6 +30,7 @@
   "onboardingWrongWeightLabel": "Enter correct weight?",
   "onboardingHeightExampleHint": "e.g. 60",
   "onboardingActivityQuestionSubtitle": "How active are you? (Without workouts)",
+  "onboardingGoalQuestionSubtitle": "What's your current weight goal?",
 
   "settingsUnitsLabel": "Units",
   "settingsCalculationsLabel": "Calculations",

@@ -330,6 +330,16 @@ class S {
     );
   }
 
+  /// `What's your current weight goal?`
+  String get onboardingGoalQuestionSubtitle {
+    return Intl.message(
+      'What\'s your current weight goal?',
+      name: 'onboardingGoalQuestionSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Units`
   String get settingsUnitsLabel {
     return Intl.message(

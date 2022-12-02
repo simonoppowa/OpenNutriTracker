@@ -129,6 +129,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Birthday"),
         "onboardingGenderQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("What\'s your gender?"),
+        "onboardingGoalQuestionSubtitle": MessageLookupByLibrary.simpleMessage(
+            "What\'s your current weight goal?"),
         "onboardingHeightExampleHint":
             MessageLookupByLibrary.simpleMessage("e.g. 60"),
         "onboardingHeightQuestionSubtitle":
