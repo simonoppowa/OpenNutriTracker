@@ -2,7 +2,7 @@ import 'package:opennutritracker/features/onboarding/domain/entity/user_activity
 import 'package:opennutritracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_goal_selection_entity.dart';
 
-class UserDataMaskEntity {
+class UserDataSelectionEntity {
   UserGenderSelectionEntity? gender;
   DateTime? birthday;
   double? height;
@@ -10,7 +10,7 @@ class UserDataMaskEntity {
   UserActivitySelectionEntity? activity;
   UserGoalSelectionEntity? goal;
 
-  UserDataMaskEntity(
+  UserDataSelectionEntity(
       {this.gender,
       this.birthday,
       this.height,
@@ -18,7 +18,7 @@ class UserDataMaskEntity {
       this.activity,
       this.goal});
 
-  bool checkUserData() {
+  bool checkDataProvided() {
     if (gender != null &&
         birthday != null &&
         height != null &&

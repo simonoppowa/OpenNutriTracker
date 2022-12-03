@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/features/onboarding/domain/entity/user_goal_selection_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingFourthPageBody extends StatefulWidget {
-  final Function(bool active) setButtonActive;
+  final Function(bool active, UserGoalSelectionEntity? selectedGoal)
+      setButtonContent;
 
-  const OnboardingFourthPageBody({Key? key, required this.setButtonActive})
+  const OnboardingFourthPageBody({Key? key, required this.setButtonContent})
       : super(key: key);
 
   @override
@@ -73,12 +75,19 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
   }
 
   void _checkCorrectInput() {
-    if (_looseWeightSelected ||
-        _maintainWeightSelected ||
-        _gainWeightSelected) {
-      widget.setButtonActive(true);
+    UserGoalSelectionEntity? selectedGoal;
+    if (_looseWeightSelected) {
+      selectedGoal = UserGoalSelectionEntity.looseWeight;
+    } else if (_maintainWeightSelected) {
+      selectedGoal = UserGoalSelectionEntity.maintainWeight;
+    } else if (_gainWeightSelected) {
+      selectedGoal = UserGoalSelectionEntity.gainWeigh;
+    }
+
+    if (selectedGoal != null) {
+      widget.setButtonContent(true, selectedGoal);
     } else {
-      widget.setButtonActive(false);
+      widget.setButtonContent(false, null);
     }
   }
 }

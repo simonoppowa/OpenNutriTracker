@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:introduction_screen/introduction_screen.dart';
+import 'package:opennutritracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_data_mask_entity.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
+import 'package:opennutritracker/features/onboarding/domain/entity/user_goal_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_fourth_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_overview_page_body.dart';
@@ -21,7 +23,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _introKey = GlobalKey<IntroductionScreenState>();
 
-  final _userData = UserDataMaskEntity();
+  final _userData = UserDataSelectionEntity();
 
   bool _firstPageButtonActive = false;
   bool _secondPageButtonActive = false;
@@ -50,6 +52,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 borderRadius: BorderRadius.all(Radius.circular(25.0)),
               ),
             ),
+            onChange: onPageChanged,
             pages: getPageViewModels()),
       ),
     );
@@ -77,7 +80,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         PageViewModel(
             titleWidget: const SizedBox(), // empty
             bodyWidget: OnboardingSecondPageBody(
-              setButtonActive: _setSecondPageButton,
+              setButtonContent: _setSecondPageData,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonNextLabel,
@@ -87,7 +90,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         PageViewModel(
             titleWidget: const SizedBox(), // empty
             bodyWidget: OnboardingThirdPageBody(
-              setButtonActive: _setThirdPageButton,
+              setButtonContent: _setThirdPageButton,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonNextLabel,
@@ -97,7 +100,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         PageViewModel(
             titleWidget: const SizedBox(), // empty
             bodyWidget: OnboardingFourthPageBody(
-              setButtonActive: _setFourthPageButton,
+              setButtonContent: _setFourthPageButton,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonNextLabel,
@@ -122,8 +125,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _introKey.currentState?.animateScroll(page);
   }
 
-  void _setFirstPageData(bool active,
-      UserGenderSelectionEntity? selectedGender, DateTime? selectedBirthday) {
+  void _setFirstPageData(bool active, UserGenderSelectionEntity? selectedGender,
+      DateTime? selectedBirthday) {
     setState(() {
       _userData.gender = selectedGender;
       _userData.birthday = selectedBirthday;
@@ -132,22 +135,42 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
   }
 
-  void _setSecondPageButton(bool active) {
+  void _setSecondPageData(
+      bool active, double? selectedHeight, double? selectedWeight) {
     setState(() {
+      _userData.height = selectedHeight;
+      _userData.weight = selectedWeight;
+
       _secondPageButtonActive = active;
     });
   }
 
-  void _setThirdPageButton(bool active) {
+  void _setThirdPageButton(
+      bool active, UserActivitySelectionEntity? selectedActivity) {
     setState(() {
+      _userData.activity = selectedActivity;
+
       _thirdPageButtonActive = active;
     });
   }
 
-  void _setFourthPageButton(bool active) {
+  void _setFourthPageButton(
+      bool active, UserGoalSelectionEntity? selectedGoal) {
     setState(() {
+      _userData.goal = selectedGoal;
+
       _fourthPageButtonActive = active;
     });
+  }
+
+  void onPageChanged(int page) {
+    checkUserDataProvided();
+  }
+
+  void checkUserDataProvided() {
+    _userData.checkDataProvided()
+        ? _setOverviewPageButton(true)
+        : _setOverviewPageButton(false);
   }
 
   void _setOverviewPageButton(bool active) {

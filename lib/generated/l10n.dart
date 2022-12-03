@@ -290,10 +290,10 @@ class S {
     );
   }
 
-  /// `Enter correct height?`
+  /// `Enter correct height`
   String get onboardingWrongHeightLabel {
     return Intl.message(
-      'Enter correct height?',
+      'Enter correct height',
       name: 'onboardingWrongHeightLabel',
       desc: '',
       args: [],
@@ -310,10 +310,10 @@ class S {
     );
   }
 
-  /// `Enter correct weight?`
+  /// `Enter correct weight`
   String get onboardingWrongWeightLabel {
     return Intl.message(
-      'Enter correct weight?',
+      'Enter correct weight',
       name: 'onboardingWrongWeightLabel',
       desc: '',
       args: [],

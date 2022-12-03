@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingThirdPageBody extends StatefulWidget {
-  final Function(bool active) setButtonActive;
+  final Function(bool active, UserActivitySelectionEntity? selectedActivity)
+      setButtonContent;
 
-  const OnboardingThirdPageBody({Key? key, required this.setButtonActive})
+  const OnboardingThirdPageBody({Key? key, required this.setButtonContent})
       : super(key: key);
 
   @override
@@ -151,13 +153,21 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
   }
 
   void checkCorrectInput() {
-    if (_sedentarySelected ||
-        _lowActiveSelected ||
-        _activeSelected ||
-        _veryActiveSelected) {
-      widget.setButtonActive(true);
+    UserActivitySelectionEntity? selectedActivity;
+    if (_sedentarySelected) {
+      selectedActivity = UserActivitySelectionEntity.sedentary;
+    } else if (_lowActiveSelected) {
+      selectedActivity = UserActivitySelectionEntity.lowActive;
+    } else if (_activeSelected) {
+      selectedActivity = UserActivitySelectionEntity.active;
+    } else if (_veryActiveSelected) {
+      selectedActivity = UserActivitySelectionEntity.veryActive;
+    }
+
+    if (selectedActivity != null) {
+      widget.setButtonContent(true, selectedActivity);
     } else {
-      widget.setButtonActive(false);
+      widget.setButtonContent(false, null);
     }
   }
 }

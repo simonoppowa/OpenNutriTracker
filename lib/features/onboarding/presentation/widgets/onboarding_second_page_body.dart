@@ -3,9 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingSecondPageBody extends StatefulWidget {
-  final Function(bool active) setButtonActive;
+  final Function(bool active, double? selectedHeight, double? selectedWeight)
+      setButtonContent;
 
-  const OnboardingSecondPageBody({Key? key, required this.setButtonActive})
+  const OnboardingSecondPageBody({Key? key, required this.setButtonContent})
       : super(key: key);
 
   @override
@@ -14,29 +15,34 @@ class OnboardingSecondPageBody extends StatefulWidget {
 }
 
 class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
-  final _pageFormKey = GlobalKey<FormState>();
+  final _heightFormKey = GlobalKey<FormState>();
+  final _weightFormKey = GlobalKey<FormState>();
+  double? _parsedHeight;
+  double? _parsedWeight;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child: Form(
-        key: _pageFormKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(S.of(context).heightLabel,
-                style: Theme.of(context).textTheme.headline5),
-            Text(S.of(context).onboardingHeightQuestionSubtitle,
-                style: Theme.of(context).textTheme.subtitle1),
-            const SizedBox(height: 16.0),
-            TextFormField(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(S.of(context).heightLabel,
+              style: Theme.of(context).textTheme.headline5),
+          Text(S.of(context).onboardingHeightQuestionSubtitle,
+              style: Theme.of(context).textTheme.subtitle1),
+          const SizedBox(height: 16.0),
+          Form(
+            key: _heightFormKey,
+            child: TextFormField(
                 onChanged: (text) {
-                  if (_pageFormKey.currentState!.validate()) {
-                    widget.setButtonActive(true);
+                  if (_heightFormKey.currentState!.validate()) {
+                    _parsedHeight = double.tryParse(text);
+                    checkCorrectInput();
                   } else {
-                    widget.setButtonActive(false);
+                    _parsedHeight = null;
+                    checkCorrectInput();
                   }
                 },
                 validator: validateHeight,
@@ -50,21 +56,26 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
                 ),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly]),
-            const SizedBox(height: 32.0),
-            Text(S.of(context).weightLabel,
-                style: Theme.of(context).textTheme.headline5),
-            Text(S.of(context).onboardingWeightQuestionSubtitle,
-                style: Theme.of(context).textTheme.subtitle1),
-            const SizedBox(height: 16.0),
-            TextFormField(
+          ),
+          const SizedBox(height: 32.0),
+          Text(S.of(context).weightLabel,
+              style: Theme.of(context).textTheme.headline5),
+          Text(S.of(context).onboardingWeightQuestionSubtitle,
+              style: Theme.of(context).textTheme.subtitle1),
+          const SizedBox(height: 16.0),
+          Form(
+            key: _weightFormKey,
+            child: TextFormField(
                 onChanged: (text) {
-                  if (_pageFormKey.currentState!.validate()) {
-                    widget.setButtonActive(true);
+                  if (_weightFormKey.currentState!.validate()) {
+                    _parsedWeight = double.tryParse(text);
+                    checkCorrectInput();
                   } else {
-                    widget.setButtonActive(false);
+                    _parsedWeight = null;
+                    checkCorrectInput();
                   }
                 },
-                validator: validateHeight,
+                validator: validateWeight,
                 decoration: InputDecoration(
                   labelText: 'kg',
                   hintText: S.of(context).onboardingWeightExampleHint,
@@ -75,8 +86,8 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
                 ),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly]),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -96,6 +107,14 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
       return S.of(context).onboardingWrongHeightLabel;
     } else {
       return null;
+    }
+  }
+
+  void checkCorrectInput() {
+    if (_parsedHeight != null && _parsedWeight != null) {
+      widget.setButtonContent(true, _parsedHeight, _parsedWeight);
+    } else {
+      widget.setButtonContent(false, null, null);
     }
   }
 }

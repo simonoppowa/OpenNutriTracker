@@ -146,9 +146,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingWelcomeLabel":
             MessageLookupByLibrary.simpleMessage("Welcome to"),
         "onboardingWrongHeightLabel":
-            MessageLookupByLibrary.simpleMessage("Enter correct height?"),
+            MessageLookupByLibrary.simpleMessage("Enter correct height"),
         "onboardingWrongWeightLabel":
-            MessageLookupByLibrary.simpleMessage("Enter correct weight?"),
+            MessageLookupByLibrary.simpleMessage("Enter correct weight"),
         "paAmericanFootballGeneral": MessageLookupByLibrary.simpleMessage(
             "football, touch, flag, general (Taylor Code 510)"),
         "paArcheryGeneral":
