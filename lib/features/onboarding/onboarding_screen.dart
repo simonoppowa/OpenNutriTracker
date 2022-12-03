@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:introduction_screen/introduction_screen.dart';
+import 'package:opennutritracker/features/onboarding/domain/entity/user_data_mask_entity.dart';
+import 'package:opennutritracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_fourth_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_overview_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_third_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/highlight_button.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_first_page_body.dart';
@@ -17,10 +20,14 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _introKey = GlobalKey<IntroductionScreenState>();
+
+  final _userData = UserDataMaskEntity();
+
   bool _firstPageButtonActive = false;
   bool _secondPageButtonActive = false;
   bool _thirdPageButtonActive = false;
   bool _fourthPageButtonActive = false;
+  bool _overviewPageButtonActive = false;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +40,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             showBackButton: true,
             showNextButton: false,
             showDoneButton: false,
+            isProgressTap: false,
             dotsFlex: 0,
             dotsDecorator: DotsDecorator(
               size: const Size(10.0, 10.0),
@@ -59,7 +67,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         PageViewModel(
             titleWidget: const SizedBox(), // empty
             bodyWidget: OnboardingFirstPageBody(
-              setButtonActive: _setFirstPageButton,
+              setPageContent: _setFirstPageData,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonNextLabel,
@@ -96,14 +104,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               onButtonPressed: () => _scrollNexPage(5),
               buttonActive: _fourthPageButtonActive,
             )),
+        PageViewModel(
+            titleWidget: const SizedBox(), // empty
+            bodyWidget: OnboardingOverviewPageBody(
+              setButtonActive: _setOverviewPageButton,
+            ),
+            footer: HighlightButton(
+              buttonLabel: S.of(context).buttonStartLabel,
+              onButtonPressed: () {
+                _onOverviewStartButtonPressed();
+              },
+              buttonActive: _overviewPageButtonActive,
+            )),
       ];
 
   void _scrollNexPage(int page) {
     _introKey.currentState?.animateScroll(page);
   }
 
-  void _setFirstPageButton(bool active) {
+  void _setFirstPageData(bool active,
+      UserGenderSelectionEntity? selectedGender, DateTime? selectedBirthday) {
     setState(() {
+      _userData.gender = selectedGender;
+      _userData.birthday = selectedBirthday;
+
       _firstPageButtonActive = active;
     });
   }
@@ -124,5 +148,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() {
       _fourthPageButtonActive = active;
     });
+  }
+
+  void _setOverviewPageButton(bool active) {
+    setState(() {
+      _overviewPageButtonActive = active;
+    });
+  }
+
+  void _onOverviewStartButtonPressed() {
+    // TODO
   }
 }

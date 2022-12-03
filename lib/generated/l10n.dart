@@ -210,6 +210,16 @@ class S {
     );
   }
 
+  /// `Overview`
+  String get onboardingOverviewLabel {
+    return Intl.message(
+      'Overview',
+      name: 'onboardingOverviewLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device.`
   String get onboardingIntroDescription {
     return Intl.message(

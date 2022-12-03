@@ -137,6 +137,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Whats your current height?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device."),
+        "onboardingOverviewLabel":
+            MessageLookupByLibrary.simpleMessage("Overview"),
         "onboardingWeightExampleHint":
             MessageLookupByLibrary.simpleMessage("e.g. 170"),
         "onboardingWeightQuestionSubtitle":

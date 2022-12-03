@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opennutritracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingFirstPageBody extends StatefulWidget {
-  final Function(bool active) setButtonActive;
+  final Function(
+          bool active, UserGenderSelectionEntity? gender, DateTime? birthday)
+      setPageContent;
 
-  const OnboardingFirstPageBody({Key? key, required this.setButtonActive})
+  const OnboardingFirstPageBody({Key? key, required this.setPageContent})
       : super(key: key);
 
   @override
@@ -15,6 +18,7 @@ class OnboardingFirstPageBody extends StatefulWidget {
 
 class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
   final _dateInput = TextEditingController();
+  DateTime? _selectedDate;
 
   bool _maleSelected = false;
   bool _femaleSelected = false;
@@ -91,6 +95,7 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
     if (pickedDate != null) {
       String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
       setState(() {
+        _selectedDate = pickedDate;
         _dateInput.text = formattedDate;
         checkCorrectInput();
       });
@@ -98,10 +103,17 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
   }
 
   void checkCorrectInput() {
-    if ((_maleSelected || _femaleSelected) && (_dateInput.text != "")) {
-      widget.setButtonActive(true);
+    UserGenderSelectionEntity? selectedGender;
+    if (_maleSelected) {
+      selectedGender = UserGenderSelectionEntity.genderMale;
+    } else if (_femaleSelected) {
+      selectedGender = UserGenderSelectionEntity.genderFemale;
+    }
+
+    if (selectedGender != null && _selectedDate != null) {
+      widget.setPageContent(true, selectedGender, _selectedDate);
     } else {
-      widget.setButtonActive(false);
+      widget.setPageContent(false, null, null);
     }
   }
 }

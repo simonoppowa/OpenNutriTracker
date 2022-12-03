@@ -18,6 +18,7 @@
   "buttonNextLabel": "NEXT",
 
   "onboardingWelcomeLabel": "Welcome to",
+  "onboardingOverviewLabel": "Overview",
   "onboardingIntroDescription": "To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device.",
   "onboardingGenderQuestionSubtitle": "What's your gender?",
   "onboardingEnterBirthdayLabel": "Birthday",

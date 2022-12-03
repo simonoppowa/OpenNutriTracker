@@ -1,0 +1,4 @@
+enum UserGenderSelectionEntity {
+  genderMale,
+  genderFemale
+}
