@@ -1,5 +1,5 @@
 enum UserGoalSelectionEntity {
-  looseWeight,
+  loseWeight,
   maintainWeight,
   gainWeigh
 }

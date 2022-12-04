@@ -24,6 +24,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _introKey = GlobalKey<IntroductionScreenState>();
 
   final _userData = UserDataSelectionEntity();
+  double? _totalKcalOverview;
 
   bool _firstPageButtonActive = false;
   bool _secondPageButtonActive = false;
@@ -110,7 +111,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         PageViewModel(
             titleWidget: const SizedBox(), // empty
             bodyWidget: OnboardingOverviewPageBody(
-              setButtonActive: _setOverviewPageButton,
+              setButtonActive: _setOverviewPageContent,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonStartLabel,
@@ -169,12 +170,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void checkUserDataProvided() {
     _userData.checkDataProvided()
-        ? _setOverviewPageButton(true)
-        : _setOverviewPageButton(false);
+        ? _setOverviewPageContent(true)
+        : _setOverviewPageContent(false);
   }
 
-  void _setOverviewPageButton(bool active) {
+  void _setOverviewPageContent(bool active) {
     setState(() {
+
+
+
       _overviewPageButtonActive = active;
     });
   }

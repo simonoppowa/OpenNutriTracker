@@ -132,15 +132,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingGoalQuestionSubtitle": MessageLookupByLibrary.simpleMessage(
             "What\'s your current weight goal?"),
         "onboardingHeightExampleHint":
-            MessageLookupByLibrary.simpleMessage("e.g. 60"),
+            MessageLookupByLibrary.simpleMessage("e.g. 170"),
         "onboardingHeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Whats your current height?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device."),
+        "onboardingKcalPerDayLabel":
+            MessageLookupByLibrary.simpleMessage("kcal per day"),
         "onboardingOverviewLabel":
             MessageLookupByLibrary.simpleMessage("Overview"),
         "onboardingWeightExampleHint":
-            MessageLookupByLibrary.simpleMessage("e.g. 170"),
+            MessageLookupByLibrary.simpleMessage("e.g. 60"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Whats your current weight?"),
         "onboardingWelcomeLabel":
@@ -149,6 +151,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Enter correct height"),
         "onboardingWrongWeightLabel":
             MessageLookupByLibrary.simpleMessage("Enter correct weight"),
+        "onboardingYourGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Your goal:"),
         "paAmericanFootballGeneral": MessageLookupByLibrary.simpleMessage(
             "football, touch, flag, general (Taylor Code 510)"),
         "paArcheryGeneral":

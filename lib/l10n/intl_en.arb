@@ -19,6 +19,8 @@
 
   "onboardingWelcomeLabel": "Welcome to",
   "onboardingOverviewLabel": "Overview",
+  "onboardingYourGoalLabel": "Your goal:",
+  "onboardingKcalPerDayLabel": "kcal per day",
   "onboardingIntroDescription": "To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device.",
   "onboardingGenderQuestionSubtitle": "What's your gender?",
   "onboardingEnterBirthdayLabel": "Birthday",
@@ -27,9 +29,9 @@
   "onboardingHeightQuestionSubtitle": "Whats your current height?",
   "onboardingWeightQuestionSubtitle": "Whats your current weight?",
   "onboardingWrongHeightLabel": "Enter correct height",
-  "onboardingWeightExampleHint": "e.g. 170",
   "onboardingWrongWeightLabel": "Enter correct weight",
-  "onboardingHeightExampleHint": "e.g. 60",
+  "onboardingWeightExampleHint": "e.g. 60",
+  "onboardingHeightExampleHint": "e.g. 170",
   "onboardingActivityQuestionSubtitle": "How active are you? (Without workouts)",
   "onboardingGoalQuestionSubtitle": "What's your current weight goal?",
 

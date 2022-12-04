@@ -77,7 +77,7 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
   void _checkCorrectInput() {
     UserGoalSelectionEntity? selectedGoal;
     if (_looseWeightSelected) {
-      selectedGoal = UserGoalSelectionEntity.looseWeight;
+      selectedGoal = UserGoalSelectionEntity.loseWeight;
     } else if (_maintainWeightSelected) {
       selectedGoal = UserGoalSelectionEntity.maintainWeight;
     } else if (_gainWeightSelected) {

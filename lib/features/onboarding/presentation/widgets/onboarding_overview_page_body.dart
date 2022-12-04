@@ -3,7 +3,11 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingOverviewPageBody extends StatelessWidget {
   final Function(bool active) setButtonActive;
-  const OnboardingOverviewPageBody({Key? key, required this.setButtonActive}) : super(key: key);
+  final double? totalKcalCalculated;
+
+  const OnboardingOverviewPageBody(
+      {Key? key, required this.setButtonActive, this.totalKcalCalculated})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +19,27 @@ class OnboardingOverviewPageBody extends StatelessWidget {
         children: [
           Text(S.of(context).onboardingOverviewLabel,
               style: Theme.of(context).textTheme.headline5),
+          const SizedBox(height: 32.0),
+          Text(S.of(context).onboardingYourGoalLabel,
+              style: Theme.of(context).textTheme.bodyText1),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("1233",
+                    style: Theme.of(context).textTheme.headline4?.copyWith(
+                        color: Theme.of(context).colorScheme.primary)),
+                Text(S.of(context).onboardingKcalPerDayLabel,
+                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onBackground
+                            .withOpacity(0.6)))
+              ],
+            ),
+          ),
+          const SizedBox(height: 16.0)
         ],
       ),
     );

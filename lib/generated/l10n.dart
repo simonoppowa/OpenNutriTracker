@@ -220,6 +220,26 @@ class S {
     );
   }
 
+  /// `Your goal:`
+  String get onboardingYourGoalLabel {
+    return Intl.message(
+      'Your goal:',
+      name: 'onboardingYourGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `kcal per day`
+  String get onboardingKcalPerDayLabel {
+    return Intl.message(
+      'kcal per day',
+      name: 'onboardingKcalPerDayLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device.`
   String get onboardingIntroDescription {
     return Intl.message(
@@ -300,16 +320,6 @@ class S {
     );
   }
 
-  /// `e.g. 170`
-  String get onboardingWeightExampleHint {
-    return Intl.message(
-      'e.g. 170',
-      name: 'onboardingWeightExampleHint',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Enter correct weight`
   String get onboardingWrongWeightLabel {
     return Intl.message(
@@ -321,9 +331,19 @@ class S {
   }
 
   /// `e.g. 60`
-  String get onboardingHeightExampleHint {
+  String get onboardingWeightExampleHint {
     return Intl.message(
       'e.g. 60',
+      name: 'onboardingWeightExampleHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. 170`
+  String get onboardingHeightExampleHint {
+    return Intl.message(
+      'e.g. 170',
       name: 'onboardingHeightExampleHint',
       desc: '',
       args: [],
