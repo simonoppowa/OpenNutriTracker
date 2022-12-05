@@ -52,29 +52,40 @@ Future<void> main() async {
   final TrackedDayDataSource trackedDayDataSource =
       TrackedDayDataSource(hiveDBProvider.trackedDayBox);
 
+  final userInitialized = await userDataSource.hasUserData();
+
   final log = Logger('main');
   log.info('Starting App ...');
 
-  runApp(MultiProvider(providers: [
-    ChangeNotifierProvider(create: (context) => hiveDBProvider),
-    BlocProvider<HomeBloc>(create: (context) => HomeBloc()),
-    BlocProvider<DiaryBloc>(create: (context) => DiaryBloc()),
-    BlocProvider<ProfileBloc>(create: (context) => ProfileBloc()),
-    RepositoryProvider(create: (context) => ConfigRepository(configDataSource)),
-    RepositoryProvider(create: (context) => IntakeRepository(intakeDataSource)),
-    RepositoryProvider(
-        create: (context) => UserActivityRepository(userActivityDataSource)),
-    RepositoryProvider(
-        create: (context) =>
-            PhysicalActivityRepository(physicalActivityDataSource)),
-    RepositoryProvider(create: (context) => UserRepository(userDataSource)),
-    RepositoryProvider(
-        create: (context) => TrackedDayRepository(trackedDayDataSource))
-  ], child: const OpenNutriTrackerApp()));
+  runApp(MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => hiveDBProvider),
+        BlocProvider<HomeBloc>(create: (context) => HomeBloc()),
+        BlocProvider<DiaryBloc>(create: (context) => DiaryBloc()),
+        BlocProvider<ProfileBloc>(create: (context) => ProfileBloc()),
+        RepositoryProvider(
+            create: (context) => ConfigRepository(configDataSource)),
+        RepositoryProvider(
+            create: (context) => IntakeRepository(intakeDataSource)),
+        RepositoryProvider(
+            create: (context) =>
+                UserActivityRepository(userActivityDataSource)),
+        RepositoryProvider(
+            create: (context) =>
+                PhysicalActivityRepository(physicalActivityDataSource)),
+        RepositoryProvider(create: (context) => UserRepository(userDataSource)),
+        RepositoryProvider(
+            create: (context) => TrackedDayRepository(trackedDayDataSource))
+      ],
+      child: OpenNutriTrackerApp(
+        userInitialized: userInitialized,
+      )));
 }
 
 class OpenNutriTrackerApp extends StatelessWidget {
-  const OpenNutriTrackerApp({super.key});
+  final bool userInitialized;
+
+  const OpenNutriTrackerApp({super.key, required this.userInitialized});
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +106,9 @@ class OpenNutriTrackerApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: S.delegate.supportedLocales,
-      initialRoute: NavigationOptions.onboardingRoute,
+      initialRoute: userInitialized
+          ? NavigationOptions.mainRoute
+          : NavigationOptions.onboardingRoute,
       routes: {
         NavigationOptions.mainRoute: (context) => const MainScreen(),
         NavigationOptions.onboardingRoute: (context) =>

@@ -8,4 +8,9 @@ class GetUserUsecase {
     final userRepository = Provider.of<UserRepository>(context, listen: false);
     return await userRepository.getUserData();
   }
+
+  Future<bool> hasUserData(BuildContext context) async {
+    final userRepository = Provider.of<UserRepository>(context, listen: false);
+    return await userRepository.hasUserData();
+  }
 }
