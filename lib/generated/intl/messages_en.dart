@@ -141,6 +141,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("kcal per day"),
         "onboardingOverviewLabel":
             MessageLookupByLibrary.simpleMessage("Overview"),
+        "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
+            "Wrong input, please try again"),
         "onboardingWeightExampleHint":
             MessageLookupByLibrary.simpleMessage("e.g. 60"),
         "onboardingWeightQuestionSubtitle":

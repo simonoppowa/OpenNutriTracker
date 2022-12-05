@@ -370,6 +370,16 @@ class S {
     );
   }
 
+  /// `Wrong input, please try again`
+  String get onboardingSaveUserError {
+    return Intl.message(
+      'Wrong input, please try again',
+      name: 'onboardingSaveUserError',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Units`
   String get settingsUnitsLabel {
     return Intl.message(

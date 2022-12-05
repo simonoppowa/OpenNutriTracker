@@ -34,6 +34,7 @@
   "onboardingHeightExampleHint": "e.g. 170",
   "onboardingActivityQuestionSubtitle": "How active are you? (Without workouts)",
   "onboardingGoalQuestionSubtitle": "What's your current weight goal?",
+  "onboardingSaveUserError": "Wrong input, please try again",
 
   "settingsUnitsLabel": "Units",
   "settingsCalculationsLabel": "Calculations",

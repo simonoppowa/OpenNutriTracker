@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingOverviewPageBody extends StatelessWidget {
+  final String calorieGoalDayString;
   final Function(bool active) setButtonActive;
   final double? totalKcalCalculated;
 
   const OnboardingOverviewPageBody(
-      {Key? key, required this.setButtonActive, this.totalKcalCalculated})
+      {Key? key, required this.setButtonActive, this.totalKcalCalculated, required this.calorieGoalDayString})
       : super(key: key);
 
   @override
@@ -27,7 +28,7 @@ class OnboardingOverviewPageBody extends StatelessWidget {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("1233",
+                Text(calorieGoalDayString,
                     style: Theme.of(context).textTheme.headline4?.copyWith(
                         color: Theme.of(context).colorScheme.primary)),
                 Text(S.of(context).onboardingKcalPerDayLabel,
