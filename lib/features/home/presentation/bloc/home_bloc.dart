@@ -1,9 +1,12 @@
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
@@ -14,6 +17,8 @@ part 'home_event.dart';
 part 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
+  final _getConfigUsecase = GetConfigUsecase();
+  final _addConfigUsecase = AddConfigUsecase();
   final _getIntakeUsecase = GetIntakeUsecase();
   final _getUserActivityUsecase = GetUserActivityUsecase();
   final _getUserUsecase = GetUserUsecase();
@@ -21,6 +26,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc() : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
+
+      final configData = await _getConfigUsecase.getConfig(event.context);
+      final showDisclaimerDialog = !configData.hasAcceptedDisclaimer;
 
       final breakfastIntakeList =
           await _getIntakeUsecase.getTodayBreakfastIntake(event.context);
@@ -78,6 +86,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           totalKcalDaily - totalKcalIntake + totalKcalActivities;
 
       emit(HomeLoadedState(
+          showDisclaimerDialog: showDisclaimerDialog,
           totalKcalDaily: totalKcalDaily,
           totalKcalLeft: totalKcalLeft,
           totalKcalSupplied: totalKcalIntake,
@@ -104,4 +113,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   double getTotalProteins(List<IntakeEntity> intakeList) =>
       intakeList.map((intake) => intake.totalProteinsGram).toList().sum;
+
+  void saveConfigData(BuildContext context, bool acceptedDisclaimer) async {
+    _addConfigUsecase.setConfigDisclaimer(context, acceptedDisclaimer);
+  }
 }

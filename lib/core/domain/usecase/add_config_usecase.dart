@@ -10,4 +10,11 @@ class AddConfigUsecase {
         Provider.of<ConfigRepository>(context, listen: false);
     configRepository.updateConfig(configEntity);
   }
+
+  Future<void> setConfigDisclaimer(
+      BuildContext context, bool hasAcceptedDisclaimer) async {
+    final configRepository =
+        Provider.of<ConfigRepository>(context, listen: false);
+    configRepository.setConfigDisclaimer(hasAcceptedDisclaimer);
+  }
 }

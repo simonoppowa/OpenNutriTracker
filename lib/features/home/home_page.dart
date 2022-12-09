@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
+import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/meal_Intake_list.dart';
@@ -38,6 +39,7 @@ class _HomePageState extends State<HomePage> {
         } else if (state is HomeLoadedState) {
           return _getLoadedContent(
               context,
+              state.showDisclaimerDialog,
               state.totalKcalDaily,
               state.totalKcalLeft,
               state.totalKcalSupplied,
@@ -65,6 +67,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _getLoadedContent(
       BuildContext context,
+      bool showDisclaimerDialog,
       double totalKcalDaily,
       double totalKcalLeft,
       double totalKcalSupplied,
@@ -77,6 +80,9 @@ class _HomePageState extends State<HomePage> {
       List<IntakeEntity> dinnerIntakeList,
       List<IntakeEntity> snackIntakeList,
       List<UserActivityEntity> userActivities) {
+    if (showDisclaimerDialog) {
+      _showDisclaimerDialog(context);
+    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 0.0),
       child: ListView(children: [
@@ -110,5 +116,20 @@ class _HomePageState extends State<HomePage> {
             intakeList: snackIntakeList)
       ]),
     );
+  }
+
+  /// Show disclaimer dialog after build method
+  void _showDisclaimerDialog(BuildContext context) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final dialogConfirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return const DisclaimerDialog();
+          });
+      if (dialogConfirmed != null) {
+        _homeBloc.saveConfigData(context, dialogConfirmed);
+        _homeBloc.add(LoadItemsEvent(context: context));
+      }
+    });
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
+import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -54,7 +55,7 @@ class SettingsScreen extends StatelessWidget {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text(S.of(context).settingsUnitsLabel),
+              title: Text(S.of(context).settingsUnitsLabel),
               content: Wrap(children: [
                 Column(
                   children: [
@@ -104,7 +105,7 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text(S.of(context).settingsCalculationsLabel),
+              title: Text(S.of(context).settingsCalculationsLabel),
               content: Wrap(
                 children: [
                   DropdownButtonFormField(
@@ -120,7 +121,7 @@ class SettingsScreen extends StatelessWidget {
                       ],
                       onChanged: null),
                   DropdownButtonFormField(
-                    isExpanded: true,
+                      isExpanded: true,
                       decoration: InputDecoration(
                           enabled: false,
                           filled: false,
@@ -130,9 +131,8 @@ class SettingsScreen extends StatelessWidget {
                       items: [
                         DropdownMenuItem(
                             child: Text(
-                          S
-                              .of(context)
-                              .calculationsMacrosDistribution("50", "20", "20"), // TODO
+                          S.of(context).calculationsMacrosDistribution(
+                              "50", "20", "20"), // TODO
                           overflow: TextOverflow.ellipsis,
                         ))
                       ],
@@ -146,17 +146,7 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
         context: context,
         builder: (context) {
-          return AlertDialog(
-            title: Text(S.of(context).settingsDisclaimerLabel),
-            content: Text(S.of(context).disclaimerText),
-            actions: [
-              TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(S.of(context).dialogOKLabel))
-            ],
-          );
+          return const DisclaimerDialog();
         });
   }
 

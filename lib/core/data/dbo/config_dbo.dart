@@ -4,7 +4,7 @@ import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 part 'config_dbo.g.dart';
 
 @HiveType(typeId: 13)
-class ConfigDBO {
+class ConfigDBO extends HiveObject {
   @HiveField(0)
   bool hasAcceptedDisclaimer;
   @HiveField(1)

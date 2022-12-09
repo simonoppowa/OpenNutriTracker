@@ -10,12 +10,25 @@ class ConfigDataSource {
 
   ConfigDataSource(this._configBox);
 
+  Future<bool> configInitialized() async => _configBox.containsKey(_configKey);
+
+  Future<void> initializeConfig() async =>
+      _configBox.put(_configKey, ConfigDBO(false, false));
+
   Future<void> addConfig(ConfigDBO configDBO) async {
-    _log.fine('Adding new intake item to db');
+    _log.fine('Adding new config item to db');
     _configBox.put(_configKey, configDBO);
   }
 
+  Future<void> setConfigDisclaimer(bool hasAcceptedDisclaimer) async {
+    _log.fine(
+        'Updating config hasAcceptedDisclaimer to $hasAcceptedDisclaimer');
+    final config = _configBox.get(_configKey);
+    config?.hasAcceptedDisclaimer = hasAcceptedDisclaimer;
+    config?.save();
+  }
+
   Future<ConfigDBO> getConfig() async {
-    return _configBox.get(_configBox) ?? ConfigDBO.empty();
+    return _configBox.get(_configKey) ?? ConfigDBO.empty();
   }
 }

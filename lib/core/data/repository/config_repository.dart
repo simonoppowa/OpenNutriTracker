@@ -12,6 +12,10 @@ class ConfigRepository {
     _configDataSource.addConfig(configDBO);
   }
 
+  Future<void> setConfigDisclaimer(bool hasAcceptedDisclaimer) async {
+    _configDataSource.setConfigDisclaimer(hasAcceptedDisclaimer);
+  }
+
   Future<ConfigEntity> getConfig() async {
     final configDBO = await _configDataSource.getConfig();
     return ConfigEntity.fromConfigDBO(configDBO);

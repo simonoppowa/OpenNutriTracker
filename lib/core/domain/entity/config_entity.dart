@@ -1,8 +1,8 @@
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 
 class ConfigEntity {
-  final bool hasAcceptedDisclaimer;
-  final bool hasAcceptedPolicy;
+  bool hasAcceptedDisclaimer;
+  bool hasAcceptedPolicy;
 
   ConfigEntity(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy);
 

@@ -52,6 +52,7 @@ Future<void> main() async {
   final TrackedDayDataSource trackedDayDataSource =
       TrackedDayDataSource(hiveDBProvider.trackedDayBox);
 
+  await initializeConfig(configDataSource);
   final userInitialized = await userDataSource.hasUserData();
 
   final log = Logger('main');
@@ -80,6 +81,12 @@ Future<void> main() async {
       child: OpenNutriTrackerApp(
         userInitialized: userInitialized,
       )));
+}
+
+Future<void> initializeConfig(ConfigDataSource configDataSource) async {
+  if (!await configDataSource.configInitialized()) {
+    configDataSource.initializeConfig();
+  }
 }
 
 class OpenNutriTrackerApp extends StatelessWidget {
