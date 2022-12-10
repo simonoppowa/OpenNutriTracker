@@ -11,6 +11,9 @@ class DashboardWidget extends StatefulWidget {
   final double totalCarbsIntake;
   final double totalFatsIntake;
   final double totalProteinsIntake;
+  final double totalCarbsGoal;
+  final double totalFatsGoal;
+  final double totalProteinsGoal;
 
   const DashboardWidget(
       {Key? key,
@@ -20,7 +23,10 @@ class DashboardWidget extends StatefulWidget {
       required this.totalKcalLeft,
       required this.totalCarbsIntake,
       required this.totalFatsIntake,
-      required this.totalProteinsIntake})
+      required this.totalProteinsIntake,
+      required this.totalCarbsGoal,
+      required this.totalFatsGoal,
+      required this.totalProteinsGoal})
       : super(key: key);
 
   @override
@@ -105,7 +111,10 @@ class _DashboardWidgetState extends State<DashboardWidget> {
             MacroNutrientsView(
                 totalCarbsIntake: widget.totalCarbsIntake,
                 totalFatsIntake: widget.totalFatsIntake,
-                totalProteinsIntake: widget.totalProteinsIntake),
+                totalProteinsIntake: widget.totalProteinsIntake,
+                totalCarbsGoal: widget.totalCarbsGoal,
+                totalFatsGoal: widget.totalFatsGoal,
+                totalProteinsGoal: widget.totalProteinsGoal),
           ],
         ),
       ),
