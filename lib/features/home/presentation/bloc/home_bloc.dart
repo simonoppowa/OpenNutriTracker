@@ -9,8 +9,8 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
-import 'package:opennutritracker/core/utils/calc/tdee_calc.dart';
 
 part 'home_event.dart';
 
@@ -81,17 +81,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           userActivities.map((activity) => activity.burnedKcal).toList().sum;
 
       final user = await _getUserUsecase.getUserData(event.context);
-      final totalKcalDaily = TDEECalc.getTDEEKcalIOM2006(user);
-      final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(totalKcalDaily);
-      final totalFatsGoal = MacroCalc.getTotalFatsGoal(totalKcalDaily);
-      final totalProteinsGoal = MacroCalc.getTotalProteinsGoal(totalKcalDaily);
+      final totalKcalGoal =
+          CalorieGoalCalc.getTotalKcalGoal(user, totalKcalActivities);
+      final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(totalKcalGoal);
+      final totalFatsGoal = MacroCalc.getTotalFatsGoal(totalKcalGoal);
+      final totalProteinsGoal = MacroCalc.getTotalProteinsGoal(totalKcalGoal);
 
       final totalKcalLeft =
-          totalKcalDaily - totalKcalIntake + totalKcalActivities;
+          CalorieGoalCalc.getDailyKcalLeft(totalKcalGoal, totalKcalIntake);
 
       emit(HomeLoadedState(
           showDisclaimerDialog: showDisclaimerDialog,
-          totalKcalDaily: totalKcalDaily,
+          totalKcalDaily: totalKcalGoal,
           totalKcalLeft: totalKcalLeft,
           totalKcalSupplied: totalKcalIntake,
           totalKcalBurned: totalKcalActivities,
