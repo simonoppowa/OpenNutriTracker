@@ -17,24 +17,27 @@ class UserActivityDBOAdapter extends TypeAdapter<UserActivityDBO> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return UserActivityDBO(
-      fields[0] as double,
+      fields[0] as String,
       fields[1] as double,
-      fields[2] as DateTime,
-      fields[3] as PhysicalActivityDBO,
+      fields[2] as double,
+      fields[3] as DateTime,
+      fields[4] as PhysicalActivityDBO,
     );
   }
 
   @override
   void write(BinaryWriter writer, UserActivityDBO obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
-      ..write(obj.duration)
+      ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.burnedKcal)
+      ..write(obj.duration)
       ..writeByte(2)
-      ..write(obj.date)
+      ..write(obj.burnedKcal)
       ..writeByte(3)
+      ..write(obj.date)
+      ..writeByte(4)
       ..write(obj.physicalActivityDBO);
   }
 

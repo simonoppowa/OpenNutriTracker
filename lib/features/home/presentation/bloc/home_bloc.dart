@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
@@ -23,6 +24,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final _getIntakeUsecase = GetIntakeUsecase();
   final _deleteIntakeUsecase = DeleteIntakeUsecase();
   final _getUserActivityUsecase = GetUserActivityUsecase();
+  final _deleteUserActivityUsecase = DeleteUserActivityUsecase();
   final _getUserUsecase = GetUserUsecase();
 
   HomeBloc() : super(HomeInitial()) {
@@ -131,5 +133,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> deleteIntakeItem(
       BuildContext context, IntakeEntity intakeEntity) async {
     await _deleteIntakeUsecase.deleteIntake(context, intakeEntity);
+  }
+
+  Future<void> deleteUserActivityItem(
+      BuildContext context, UserActivityEntity activityEntity) async {
+    await _deleteUserActivityUsecase.deleteUserActivity(
+        context, activityEntity);
   }
 }

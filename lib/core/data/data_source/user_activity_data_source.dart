@@ -14,6 +14,16 @@ class UserActivityDataSource {
     _userActivityBox.add(userActivityDBO);
   }
 
+  Future<void> deleteIntakeFromId(String activityId) async {
+    log.fine('Deleting activity item from db');
+    _userActivityBox.values
+        .where((dbo) => dbo.id == activityId)
+        .toList()
+        .forEach((element) {
+      element.delete();
+    });
+  }
+
   Future<List<UserActivityDBO>> getAllUserActivitiesByDate(
       DateTime dateTime) async {
     return _userActivityBox.values

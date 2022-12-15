@@ -6,10 +6,10 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 
 class IntakeCard extends StatelessWidget {
   final IntakeEntity intake;
-  final Function(BuildContext, IntakeEntity) onDeleteItem;
+  final Function(BuildContext, IntakeEntity) onItemLongPressed;
 
   const IntakeCard(
-      {required Key? key, required this.intake, required this.onDeleteItem})
+      {required Key? key, required this.intake, required this.onItemLongPressed})
       : super(key: key);
 
   @override
@@ -94,6 +94,6 @@ class IntakeCard extends StatelessWidget {
   }
 
   void onLongPressedItem(BuildContext context) {
-    onDeleteItem(context, intake);
+    onItemLongPressed(context, intake);
   }
 }

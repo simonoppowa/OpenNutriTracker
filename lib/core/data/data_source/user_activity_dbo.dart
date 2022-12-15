@@ -5,23 +5,26 @@ import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 part 'user_activity_dbo.g.dart';
 
 @HiveType(typeId: 10)
-class UserActivityDBO {
+class UserActivityDBO extends HiveObject {
   @HiveField(0)
-  final double duration;
+  final String id;
   @HiveField(1)
-  final double burnedKcal;
+  final double duration;
   @HiveField(2)
+  final double burnedKcal;
+  @HiveField(3)
   final DateTime date;
 
-  @HiveField(3)
+  @HiveField(4)
   final PhysicalActivityDBO physicalActivityDBO;
 
-  UserActivityDBO(
-      this.duration, this.burnedKcal, this.date, this.physicalActivityDBO);
+  UserActivityDBO(this.id, this.duration, this.burnedKcal, this.date,
+      this.physicalActivityDBO);
 
   factory UserActivityDBO.fromUserActivityEntity(
       UserActivityEntity userActivityEntity) {
     return UserActivityDBO(
+        userActivityEntity.id,
         userActivityEntity.duration,
         userActivityEntity.burnedKcal,
         userActivityEntity.date,

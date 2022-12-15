@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/met_calc.dart';
+import 'package:opennutritracker/core/utils/id_generator.dart';
 
 part 'activity_detail_event.dart';
 
@@ -39,7 +40,7 @@ class ActivityDetailBloc
       double totalKcalBurned, PhysicalActivityEntity activityEntity) {
     final duration = double.parse(durationText);
 
-    final userActivityEntity = UserActivityEntity(
+    final userActivityEntity = UserActivityEntity(IdGenerator.getUniqueID(),
         duration, totalKcalBurned, DateTime.now(), activityEntity);
 
     _addUserActivityUsecase.addUserActivity(context, userActivityEntity);

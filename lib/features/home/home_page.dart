@@ -105,8 +105,10 @@ class _HomePageState extends State<HomePage> {
           totalProteinsGoal: totalProteinsGoal,
         ),
         ActivityVerticalList(
-            title: S.of(context).activityLabel,
-            userActivityList: userActivities),
+          title: S.of(context).activityLabel,
+          userActivityList: userActivities,
+          homeBloc: _homeBloc,
+        ),
         MealIntakeList(
           title: S.of(context).breakfastLabel,
           listIcon: Icons.bakery_dining_outlined,

@@ -13,6 +13,10 @@ class UserActivityRepository {
     _userActivityDataSource.addUserActivity(activityDBO);
   }
 
+  Future<void> deleteUserActivity(UserActivityEntity userActivityEntity) async {
+    await _userActivityDataSource.deleteIntakeFromId(userActivityEntity.id);
+  }
+
   Future<List<UserActivityEntity>> getAllUserActivityByDate(
       DateTime dateTime) async {
     final userActivityDBOList =

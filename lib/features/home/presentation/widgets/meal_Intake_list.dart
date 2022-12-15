@@ -48,7 +48,7 @@ class MealIntakeList extends StatelessWidget {
                     return IntakeCard(
                         key: ValueKey(intakeEntity.product.code),
                         intake: intakeEntity,
-                        onDeleteItem: onItemLongPressed);
+                        onItemLongPressed: onItemLongPressed);
                   },
                 ),
               ),
