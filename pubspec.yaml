@@ -36,6 +36,7 @@ dependencies:
   collection: ^1.16.0
   intl: ^0.17.0
   http: ^0.13.5
+  uuid: ^3.0.7
   json_annotation: ^4.6.0
   logging: ^1.0.2
   flutter_launcher_icons: ^0.10.0

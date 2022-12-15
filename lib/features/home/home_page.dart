@@ -108,21 +108,29 @@ class _HomePageState extends State<HomePage> {
             title: S.of(context).activityLabel,
             userActivityList: userActivities),
         MealIntakeList(
-            title: S.of(context).breakfastLabel,
-            listIcon: Icons.bakery_dining_outlined,
-            intakeList: breakfastIntakeList),
+          title: S.of(context).breakfastLabel,
+          listIcon: Icons.bakery_dining_outlined,
+          intakeList: breakfastIntakeList,
+          homeBloc: _homeBloc,
+        ),
         MealIntakeList(
-            title: S.of(context).lunchLabel,
-            listIcon: Icons.lunch_dining_outlined,
-            intakeList: lunchIntakeList),
+          title: S.of(context).lunchLabel,
+          listIcon: Icons.lunch_dining_outlined,
+          intakeList: lunchIntakeList,
+          homeBloc: _homeBloc,
+        ),
         MealIntakeList(
-            title: S.of(context).dinnerLabel,
-            listIcon: Icons.dinner_dining_outlined,
-            intakeList: dinnerIntakeList),
+          title: S.of(context).dinnerLabel,
+          listIcon: Icons.dinner_dining_outlined,
+          intakeList: dinnerIntakeList,
+          homeBloc: _homeBloc,
+        ),
         MealIntakeList(
-            title: S.of(context).snackLabel,
-            listIcon: Icons.icecream_outlined,
-            intakeList: snackIntakeList)
+          title: S.of(context).snackLabel,
+          listIcon: Icons.icecream_outlined,
+          intakeList: snackIntakeList,
+          homeBloc: _homeBloc,
+        )
       ]),
     );
   }

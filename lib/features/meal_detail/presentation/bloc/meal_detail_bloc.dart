@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 
 class MealDetailBloc {
@@ -14,6 +15,7 @@ class MealDetailBloc {
     final quantity = double.parse(amountText);
 
     final intakeEntity = IntakeEntity(
+        id: IdGenerator.getUniqueID(),
         unit: unit,
         amount: quantity,
         type: type,

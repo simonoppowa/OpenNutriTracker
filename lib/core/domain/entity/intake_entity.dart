@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 
 class IntakeEntity {
+  String id;
   String unit;
   double amount;
   IntakeTypeEntity type;
@@ -11,7 +12,8 @@ class IntakeEntity {
   ProductEntity product;
 
   IntakeEntity(
-      {required this.unit,
+      {required this.id,
+      required this.unit,
       required this.amount,
       required this.type,
       required this.product,
@@ -19,6 +21,7 @@ class IntakeEntity {
 
   factory IntakeEntity.fromIntakeDBO(IntakeDBO intakeDBO) {
     return IntakeEntity(
+        id: intakeDBO.id,
         unit: intakeDBO.unit,
         amount: intakeDBO.amount,
         type: IntakeTypeEntity.fromIntakeTypeDBO(intakeDBO.type),
@@ -30,8 +33,9 @@ class IntakeEntity {
 
   double get totalCarbsGram =>
       amount * (product.nutriments.carbohydratesPerUnit ?? 0);
-  double get totalFatsGram =>
-      amount * (product.nutriments.fatPerUnit ?? 0);
+
+  double get totalFatsGram => amount * (product.nutriments.fatPerUnit ?? 0);
+
   double get totalProteinsGram =>
       amount * (product.nutriments.proteinsPerUnit ?? 0);
 }

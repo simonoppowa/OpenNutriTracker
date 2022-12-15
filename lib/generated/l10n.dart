@@ -681,6 +681,36 @@ class S {
     );
   }
 
+  /// `Delete Item?`
+  String get deleteTimeDialogTitle {
+    return Intl.message(
+      'Delete Item?',
+      name: 'deleteTimeDialogTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Do want to delete the selected item?`
+  String get deleteTimeDialogContent {
+    return Intl.message(
+      'Do want to delete the selected item?',
+      name: 'deleteTimeDialogContent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Item deleted`
+  String get itemDeletedSnackbar {
+    return Intl.message(
+      'Item deleted',
+      name: 'itemDeletedSnackbar',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `supplied`
   String get suppliedLabel {
     return Intl.message(

@@ -12,7 +12,11 @@ class IntakeRepository {
   Future<void> addIntake(IntakeEntity intakeEntity) async {
     final intakeDBO = IntakeDBO.fromIntakeEntity(intakeEntity);
 
-    _intakeDataSource.addIntake(intakeDBO);
+    await _intakeDataSource.addIntake(intakeDBO);
+  }
+
+  Future<void> deleteIntake(IntakeEntity intakeEntity) async {
+    await _intakeDataSource.deleteIntakeFromId(intakeEntity.id);
   }
 
   Future<List<IntakeEntity>> getIntakeByDateAndType(

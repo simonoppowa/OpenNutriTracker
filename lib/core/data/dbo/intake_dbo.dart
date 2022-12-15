@@ -8,20 +8,23 @@ part 'intake_dbo.g.dart';
 @HiveType(typeId: 0)
 class IntakeDBO extends HiveObject {
   @HiveField(0)
-  String unit;
+  String id;
   @HiveField(1)
-  double amount;
+  String unit;
   @HiveField(2)
+  double amount;
+  @HiveField(3)
   IntakeTypeDBO type;
 
-  @HiveField(3)
+  @HiveField(4)
   ProductDBO product;
 
-  @HiveField(4)
+  @HiveField(5)
   DateTime dateTime;
 
   IntakeDBO(
-      {required this.unit,
+      {required this.id,
+      required this.unit,
       required this.amount,
       required this.type,
       required this.product,
@@ -29,6 +32,7 @@ class IntakeDBO extends HiveObject {
 
   factory IntakeDBO.fromIntakeEntity(IntakeEntity entity) {
     return IntakeDBO(
+        id: entity.id,
         unit: entity.unit,
         amount: entity.amount,
         type: IntakeTypeDBO.fromIntakeTypeEntity(entity.type),

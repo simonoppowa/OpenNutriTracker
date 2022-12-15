@@ -15,6 +15,16 @@ class IntakeDataSource {
     intakeBox.add(intakeDBO);
   }
 
+  Future<void> deleteIntakeFromId(String intakeId) async {
+    log.fine('Deleting intake item from db');
+    intakeBox.values
+        .where((dbo) => dbo.id == intakeId)
+        .toList()
+        .forEach((element) {
+      element.delete();
+    });
+  }
+
   Future<List<IntakeDBO>> getAllIntakesByDate(
       IntakeTypeDBO intakeType, DateTime dateTime) async {
     return intakeBox.values

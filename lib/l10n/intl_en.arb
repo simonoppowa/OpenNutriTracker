@@ -68,6 +68,10 @@
   "snackLabel": "Snack",
   "snackExample": "e.g. apple, ice cream, chocolate ...",
 
+  "deleteTimeDialogTitle": "Delete Item?",
+  "deleteTimeDialogContent": "Do want to delete the selected item?",
+  "itemDeletedSnackbar": "Item deleted",
+
   "suppliedLabel": "supplied",
   "burnedLabel": "burned",
   "kcalLeftLabel": "kcal left",

@@ -17,27 +17,30 @@ class IntakeDBOAdapter extends TypeAdapter<IntakeDBO> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return IntakeDBO(
-      unit: fields[0] as String,
-      amount: fields[1] as double,
-      type: fields[2] as IntakeTypeDBO,
-      product: fields[3] as ProductDBO,
-      dateTime: fields[4] as DateTime,
+      id: fields[0] as String,
+      unit: fields[1] as String,
+      amount: fields[2] as double,
+      type: fields[3] as IntakeTypeDBO,
+      product: fields[4] as ProductDBO,
+      dateTime: fields[5] as DateTime,
     );
   }
 
   @override
   void write(BinaryWriter writer, IntakeDBO obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
-      ..write(obj.unit)
+      ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.amount)
+      ..write(obj.unit)
       ..writeByte(2)
-      ..write(obj.type)
+      ..write(obj.amount)
       ..writeByte(3)
-      ..write(obj.product)
+      ..write(obj.type)
       ..writeByte(4)
+      ..write(obj.product)
+      ..writeByte(5)
       ..write(obj.dateTime);
   }
 

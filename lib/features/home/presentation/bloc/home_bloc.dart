@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
@@ -20,6 +21,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final _getConfigUsecase = GetConfigUsecase();
   final _addConfigUsecase = AddConfigUsecase();
   final _getIntakeUsecase = GetIntakeUsecase();
+  final _deleteIntakeUsecase = DeleteIntakeUsecase();
   final _getUserActivityUsecase = GetUserActivityUsecase();
   final _getUserUsecase = GetUserUsecase();
 
@@ -124,5 +126,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   void saveConfigData(BuildContext context, bool acceptedDisclaimer) async {
     _addConfigUsecase.setConfigDisclaimer(context, acceptedDisclaimer);
+  }
+
+  Future<void> deleteIntakeItem(
+      BuildContext context, IntakeEntity intakeEntity) async {
+    await _deleteIntakeUsecase.deleteIntake(context, intakeEntity);
   }
 }
