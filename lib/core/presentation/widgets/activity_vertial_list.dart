@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_card.dart';
-import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_intake_card.dart';
-import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
-import 'package:opennutritracker/generated/l10n.dart';
 
 class ActivityVerticalList extends StatelessWidget {
   final String title;
   final List<UserActivityEntity> userActivityList;
-  final HomeBloc homeBloc;
+  final Function(BuildContext, UserActivityEntity) onItemLongPressedCallback;
 
   const ActivityVerticalList(
       {Key? key,
       required this.title,
       required this.userActivityList,
-      required this.homeBloc})
+      required this.onItemLongPressedCallback})
       : super(key: key);
 
   @override
@@ -44,25 +41,12 @@ class ActivityVerticalList extends StatelessWidget {
                     final userActivity = userActivityList[index];
                     return ActivityCard(
                       activityEntity: userActivity,
-                      onItemLongPressed: onItemLongPressed,
+                      onItemLongPressed: onItemLongPressedCallback,
                     );
                   },
                 ),
               ),
       ],
     );
-  }
-
-  void onItemLongPressed(
-      BuildContext context, UserActivityEntity activityEntity) async {
-    final deleteIntake = await showDialog<bool>(
-        context: context, builder: (context) => const DeleteDialog());
-
-    if (deleteIntake != null) {
-      homeBloc.deleteUserActivityItem(context, activityEntity);
-      homeBloc.add(LoadItemsEvent(context: context));
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
-    }
   }
 }

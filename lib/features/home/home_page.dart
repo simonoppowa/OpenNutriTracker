@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
+import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
@@ -107,34 +108,60 @@ class _HomePageState extends State<HomePage> {
         ActivityVerticalList(
           title: S.of(context).activityLabel,
           userActivityList: userActivities,
-          homeBloc: _homeBloc,
+          onItemLongPressedCallback: onActivityItemLongPressed,
         ),
         MealIntakeList(
           title: S.of(context).breakfastLabel,
           listIcon: Icons.bakery_dining_outlined,
           intakeList: breakfastIntakeList,
-          homeBloc: _homeBloc,
+          onItemLongPressedCallback: onIntakeItemLongPressed,
         ),
         MealIntakeList(
           title: S.of(context).lunchLabel,
           listIcon: Icons.lunch_dining_outlined,
           intakeList: lunchIntakeList,
-          homeBloc: _homeBloc,
+          onItemLongPressedCallback: onIntakeItemLongPressed,
         ),
         MealIntakeList(
           title: S.of(context).dinnerLabel,
           listIcon: Icons.dinner_dining_outlined,
           intakeList: dinnerIntakeList,
-          homeBloc: _homeBloc,
+          onItemLongPressedCallback: onIntakeItemLongPressed,
         ),
         MealIntakeList(
           title: S.of(context).snackLabel,
           listIcon: Icons.icecream_outlined,
           intakeList: snackIntakeList,
-          homeBloc: _homeBloc,
+          onItemLongPressedCallback: onIntakeItemLongPressed,
         )
       ]),
     );
+  }
+
+  void onActivityItemLongPressed(
+      BuildContext context, UserActivityEntity activityEntity) async {
+    final deleteIntake = await showDialog<bool>(
+        context: context, builder: (context) => const DeleteDialog());
+
+    if (deleteIntake != null) {
+      _homeBloc.deleteUserActivityItem(context, activityEntity);
+      _homeBloc.add(LoadItemsEvent(context: context));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+    }
+  }
+
+  void onIntakeItemLongPressed(
+      BuildContext context, IntakeEntity intakeEntity) async {
+    final deleteIntake = await showDialog<bool>(
+        context: context, builder: (context) => const DeleteDialog());
+
+    if (deleteIntake != null) {
+      _homeBloc.deleteIntakeItem(context, intakeEntity);
+      _homeBloc.add(LoadItemsEvent(context: context));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+    }
   }
 
   /// Show disclaimer dialog after build method
