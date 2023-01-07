@@ -56,7 +56,7 @@ class _ProfilePageState extends State<ProfilePage> {
         const SizedBox(height: 32.0),
         BMIOverview(
           bmiValue: userBMIEntity.bmiValue,
-          statusName: userBMIEntity.nutritionalStatus.getName(context),
+          nutritionalStatus: userBMIEntity.nutritionalStatus,
         ),
         const SizedBox(height: 32.0),
         ListTile(

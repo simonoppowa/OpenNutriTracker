@@ -1261,6 +1261,76 @@ class S {
     );
   }
 
+  /// `Risk of comorbidities: {riskValue}`
+  String nutritionalStatusRiskLabel(Object riskValue) {
+    return Intl.message(
+      'Risk of comorbidities: $riskValue',
+      name: 'nutritionalStatusRiskLabel',
+      desc: '',
+      args: [riskValue],
+    );
+  }
+
+  /// `Low \n(but risk of other \nclinical problems increased)`
+  String get nutritionalStatusRiskLow {
+    return Intl.message(
+      'Low \n(but risk of other \nclinical problems increased)',
+      name: 'nutritionalStatusRiskLow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Average`
+  String get nutritionalStatusRiskAverage {
+    return Intl.message(
+      'Average',
+      name: 'nutritionalStatusRiskAverage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Increased`
+  String get nutritionalStatusRiskIncreased {
+    return Intl.message(
+      'Increased',
+      name: 'nutritionalStatusRiskIncreased',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Moderate`
+  String get nutritionalStatusRiskModerate {
+    return Intl.message(
+      'Moderate',
+      name: 'nutritionalStatusRiskModerate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Severe`
+  String get nutritionalStatusRiskSevere {
+    return Intl.message(
+      'Severe',
+      name: 'nutritionalStatusRiskSevere',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Very severe`
+  String get nutritionalStatusRiskVerySevere {
+    return Intl.message(
+      'Very severe',
+      name: 'nutritionalStatusRiskVerySevere',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Error while opening email app`
   String get errorOpeningEmail {
     return Intl.message(

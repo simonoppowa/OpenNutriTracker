@@ -25,7 +25,9 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m1(pctCarbs, pctFats, pctProteins) =>
       "${pctCarbs}% carbs, ${pctFats}% fats, ${pctProteins}% proteins";
 
-  static String m2(age) => "${age} years";
+  static String m2(riskValue) => "Risk of comorbidities: ${riskValue}";
+
+  static String m3(age) => "${age} years";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -122,6 +124,19 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Obesity class III"),
         "nutritionalStatusPreObesity":
             MessageLookupByLibrary.simpleMessage("Pre-obesity"),
+        "nutritionalStatusRiskAverage":
+            MessageLookupByLibrary.simpleMessage("Average"),
+        "nutritionalStatusRiskIncreased":
+            MessageLookupByLibrary.simpleMessage("Increased"),
+        "nutritionalStatusRiskLabel": m2,
+        "nutritionalStatusRiskLow": MessageLookupByLibrary.simpleMessage(
+            "Low \n(but risk of other \nclinical problems increased)"),
+        "nutritionalStatusRiskModerate":
+            MessageLookupByLibrary.simpleMessage("Moderate"),
+        "nutritionalStatusRiskSevere":
+            MessageLookupByLibrary.simpleMessage("Severe"),
+        "nutritionalStatusRiskVerySevere":
+            MessageLookupByLibrary.simpleMessage("Very severe"),
         "nutritionalStatusUnderweight":
             MessageLookupByLibrary.simpleMessage("Underweight"),
         "onboardingActivityQuestionSubtitle":
@@ -410,6 +425,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "suppliedLabel": MessageLookupByLibrary.simpleMessage("supplied"),
         "unitLabel": MessageLookupByLibrary.simpleMessage("Unit"),
         "weightLabel": MessageLookupByLibrary.simpleMessage("Weight"),
-        "yearsLabel": m2
+        "yearsLabel": m3
       };
 }

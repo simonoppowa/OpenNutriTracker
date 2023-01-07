@@ -42,4 +42,29 @@ enum UserNutritionalStatus {
     }
     return name;
   }
+
+  String getRiskStatus(BuildContext context) {
+    String riskStatus;
+    switch (this) {
+      case UserNutritionalStatus.underWeight:
+        riskStatus = S.of(context).nutritionalStatusRiskLow;
+        break;
+      case UserNutritionalStatus.normalWeight:
+        riskStatus = S.of(context).nutritionalStatusRiskAverage;
+        break;
+      case UserNutritionalStatus.preObesity:
+        riskStatus = S.of(context).nutritionalStatusRiskIncreased;
+        break;
+      case UserNutritionalStatus.obesityClassI:
+        riskStatus = S.of(context).nutritionalStatusRiskModerate;
+        break;
+      case UserNutritionalStatus.obesityClassII:
+        riskStatus = S.of(context).nutritionalStatusRiskSevere;
+        break;
+      case UserNutritionalStatus.obesityClassIII:
+        riskStatus = S.of(context).nutritionalStatusRiskVerySevere;
+        break;
+    }
+    return riskStatus;
+  }
 }
