@@ -41,11 +41,21 @@ class TrackedDayDataSource {
   }
 
   Future<void> addDayCaloriesTracked(DateTime day, double addCalories) async {
-    log.fine('Updating tracked day calories');
+    log.fine('Adding new tracked day calories');
     final updateDay = await getTrackedDay(day);
 
     if (updateDay != null) {
       updateDay.caloriesTracked += addCalories;
+      updateDay.save();
+    }
+  }
+
+  Future<void> removeDayCaloriesTracked(DateTime day, double addCalories) async {
+    log.fine('Removing tracked day calories');
+    final updateDay = await getTrackedDay(day);
+
+    if (updateDay != null) {
+      updateDay.caloriesTracked -= addCalories;
       updateDay.save();
     }
   }

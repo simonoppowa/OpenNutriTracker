@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
@@ -26,6 +27,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final _getUserActivityUsecase = GetUserActivityUsecase();
   final _deleteUserActivityUsecase = DeleteUserActivityUsecase();
   final _getUserUsecase = GetUserUsecase();
+  final _addTrackedDayUseCase = AddTrackedDayUsecase();
 
   HomeBloc() : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
@@ -133,6 +135,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> deleteIntakeItem(
       BuildContext context, IntakeEntity intakeEntity) async {
     await _deleteIntakeUsecase.deleteIntake(context, intakeEntity);
+    _addTrackedDayUseCase.removeDayCaloriesTracked(
+        context, DateTime.now(), intakeEntity.totalKcal);
   }
 
   Future<void> deleteUserActivityItem(

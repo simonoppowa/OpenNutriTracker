@@ -10,10 +10,30 @@ class AddTrackedDayUsecase {
     trackedDayRepository.updateDayCalorieGoal(day, calorieGoal);
   }
 
+  Future<bool> hasTrackedDay(BuildContext context, DateTime day) async {
+    final trackedDayRepository =
+        Provider.of<TrackedDayRepository>(context, listen: false);
+    return await trackedDayRepository.hasTrackedDay(day);
+  }
+
+  Future<void> addNewTrackedDay(
+      BuildContext context, DateTime day, totalKcalGoal) async {
+    final trackedDayRepository =
+        Provider.of<TrackedDayRepository>(context, listen: false);
+    return await trackedDayRepository.addNewTrackedDay(day, totalKcalGoal);
+  }
+
   Future<void> addDayCaloriesTracked(
       BuildContext context, DateTime day, double caloriesTracked) async {
     final trackedDayRepository =
         Provider.of<TrackedDayRepository>(context, listen: false);
     trackedDayRepository.addDayTrackedCalories(day, caloriesTracked);
+  }
+
+  Future<void> removeDayCaloriesTracked(
+      BuildContext context, DateTime day, double caloriesTracked) async {
+    final trackedDayRepository =
+        Provider.of<TrackedDayRepository>(context, listen: false);
+    trackedDayRepository.removeDayTrackedCalories(day, caloriesTracked);
   }
 }

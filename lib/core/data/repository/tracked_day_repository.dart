@@ -16,6 +16,15 @@ class TrackedDayRepository {
     }
   }
 
+  Future<bool> hasTrackedDay(DateTime day) async {
+    final trackedDay = await getTrackedDay(day);
+    if (trackedDay != null) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   Future<List<TrackedDayEntity>> getTrackedDayByRange(
       DateTime start, DateTime end) async {
     final List<TrackedDayDBO> trackedDaysDBO =
@@ -31,17 +40,20 @@ class TrackedDayRepository {
     _trackedDayDataSource.updateDayCalorieGoal(day, calorieGoal);
   }
 
-  /// Adds new tracked calories to DB.
-  /// If day was not tracked, a new tracked day item will be persisted
+  Future<void> addNewTrackedDay(DateTime day, double totalKcalGoal) async {
+    _trackedDayDataSource.saveTrackedDay(TrackedDayDBO(
+        day: day, calorieGoal: totalKcalGoal, caloriesTracked: 0));
+  }
+
   Future<void> addDayTrackedCalories(DateTime day, double addCalories) async {
     if (await _trackedDayDataSource.hasTrackedDay(day)) {
       _trackedDayDataSource.addDayCaloriesTracked(day, addCalories);
-    } else {
-      _trackedDayDataSource.saveTrackedDay(TrackedDayDBO(
-          // TODO get total calories
-          day: day,
-          calorieGoal: 2000,
-          caloriesTracked: addCalories));
+    }
+  }
+
+  Future<void> removeDayTrackedCalories(DateTime day, double addCalories) async {
+    if (await _trackedDayDataSource.hasTrackedDay(day)) {
+      _trackedDayDataSource.removeDayCaloriesTracked(day, addCalories);
     }
   }
 }
