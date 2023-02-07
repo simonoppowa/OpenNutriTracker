@@ -97,6 +97,7 @@
   "infoAddedActivityLabel": "Added new activity",
 
   "bmiLabel": "BMI",
+  "bmiInfo": "Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals.",
 
   "palSedentaryLabel": "Sedentary",
   "palSedentaryDescriptionLabel": "e.g. office job and mostly sitting free time activities",
@@ -131,9 +132,9 @@
   "nutritionalStatusUnderweight": "Underweight",
   "nutritionalStatusNormalWeight": "Normal Weight",
   "nutritionalStatusPreObesity": "Pre-obesity",
-  "nutritionalStatusObeseClassI": "Obesity class I",
-  "nutritionalStatusObeseClassII": "Obesity class II",
-  "nutritionalStatusObeseClassIII": "Obesity class III",
+  "nutritionalStatusObeseClassI": "Obesity Class I",
+  "nutritionalStatusObeseClassII": "Obesity Class II",
+  "nutritionalStatusObeseClassIII": "Obesity Class III",
 
   "nutritionalStatusRiskLabel": "Risk of comorbidities: {riskValue}",
   "nutritionalStatusRiskLow": "Low \n(but risk of other \nclinical problems increased)",

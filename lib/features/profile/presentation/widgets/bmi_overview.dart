@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_bmi_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/info_dialog.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -37,9 +38,21 @@ class BMIOverview extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8.0),
-        Text(nutritionalStatus.getName(context),
-            style: Theme.of(context).textTheme.headline6,
-            textAlign: TextAlign.center),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(nutritionalStatus.getName(context),
+                style: Theme.of(context).textTheme.headline6,
+                textAlign: TextAlign.center),
+            InkWell(
+                onTap: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) => const InfoDialog());
+                },
+                child: const Icon(Icons.help_outline_outlined))
+          ],
+        ),
         Text(
           S.of(context).nutritionalStatusRiskLabel(
               nutritionalStatus.getRiskStatus(context)),

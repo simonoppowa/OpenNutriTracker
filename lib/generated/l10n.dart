@@ -931,6 +931,16 @@ class S {
     );
   }
 
+  /// `Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals.`
+  String get bmiInfo {
+    return Intl.message(
+      'Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals.',
+      name: 'bmiInfo',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Sedentary`
   String get palSedentaryLabel {
     return Intl.message(
@@ -1231,30 +1241,30 @@ class S {
     );
   }
 
-  /// `Obesity class I`
+  /// `Obesity Class I`
   String get nutritionalStatusObeseClassI {
     return Intl.message(
-      'Obesity class I',
+      'Obesity Class I',
       name: 'nutritionalStatusObeseClassI',
       desc: '',
       args: [],
     );
   }
 
-  /// `Obesity class II`
+  /// `Obesity Class II`
   String get nutritionalStatusObeseClassII {
     return Intl.message(
-      'Obesity class II',
+      'Obesity Class II',
       name: 'nutritionalStatusObeseClassII',
       desc: '',
       args: [],
     );
   }
 
-  /// `Obesity class III`
+  /// `Obesity Class III`
   String get nutritionalStatusObeseClassIII {
     return Intl.message(
-      'Obesity class III',
+      'Obesity Class III',
       name: 'nutritionalStatusObeseClassIII',
       desc: '',
       args: [],
