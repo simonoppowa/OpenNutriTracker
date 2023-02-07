@@ -38,7 +38,7 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
           title: RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                  text: 'I have read the',
+                  text: S.of(context).readLabel,
                   style: Theme.of(context).textTheme.bodySmall,
                   children: [
                     WidgetSpan(
@@ -47,7 +47,7 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                         child: TextButton(
                             onPressed: _launchUrl,
                             child: Text(
-                              'data protection',
+                              S.of(context).privacyPolicyLabel,
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall

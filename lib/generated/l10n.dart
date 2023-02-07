@@ -941,6 +941,26 @@ class S {
     );
   }
 
+  /// `I have read the`
+  String get readLabel {
+    return Intl.message(
+      'I have read the',
+      name: 'readLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `privacy policy`
+  String get privacyPolicyLabel {
+    return Intl.message(
+      'privacy policy',
+      name: 'privacyPolicyLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Sedentary`
   String get palSedentaryLabel {
     return Intl.message(

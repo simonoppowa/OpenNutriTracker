@@ -379,9 +379,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "palVeryActiveLabel":
             MessageLookupByLibrary.simpleMessage("Very Active"),
         "per100gLabel": MessageLookupByLibrary.simpleMessage("Per 100g"),
+        "privacyPolicyLabel":
+            MessageLookupByLibrary.simpleMessage("privacy policy"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
         "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),
         "quantityLabel": MessageLookupByLibrary.simpleMessage("Quantity"),
+        "readLabel": MessageLookupByLibrary.simpleMessage("I have read the"),
         "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
             "Do you want to report an error to the developer?"),
         "saturatedFatLabel":
