@@ -26,6 +26,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _onboardingBloc = OnboardingBloc();
   final _introKey = GlobalKey<IntroductionScreenState>();
 
+  bool _introPageButtonActive = false;
   bool _firstPageButtonActive = false;
   bool _secondPageButtonActive = false;
   bool _thirdPageButtonActive = false;
@@ -83,11 +84,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   List<PageViewModel> _getPageViewModels() => <PageViewModel>[
         PageViewModel(
             title: S.of(context).onboardingWelcomeLabel,
-            bodyWidget: const OnboardingIntroPageBody(),
+            bodyWidget: OnboardingIntroPageBody(
+              setPageContent: _setIntroPageData,
+            ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonStartLabel,
               onButtonPressed: () => _scrollToPage(1),
-              buttonActive: true,
+              buttonActive: _introPageButtonActive,
             )),
         PageViewModel(
             titleWidget: const SizedBox(), // empty
@@ -150,6 +153,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _scrollToPage(int page) {
     _introKey.currentState?.animateScroll(page);
+  }
+
+  void _setIntroPageData(bool active) {
+    setState(() {
+      _introPageButtonActive = active;
+    });
   }
 
   void _setFirstPageData(bool active, UserGenderSelectionEntity? selectedGender,
