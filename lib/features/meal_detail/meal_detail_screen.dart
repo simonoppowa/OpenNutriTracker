@@ -9,6 +9,7 @@ import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_macro_nutrients.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_nutriments_table.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_info_button.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_placeholder.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailScreen extends StatefulWidget {
@@ -74,6 +75,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                           image: imageProvider, fit: BoxFit.cover)),
                 );
               },
+              placeholder: (context, string) => const MealPlaceholder(),
+              errorWidget: (context, url, error) => const MealPlaceholder(),
             ),
             Align(
               alignment: AlignmentDirectional.topStart,
