@@ -28,7 +28,7 @@ enum UserWeightGoalEntity {
     String name;
     switch (this) {
       case UserWeightGoalEntity.loseWeight:
-        name = S.of(context).goalLooseWeight;
+        name = S.of(context).goalLoseWeight;
         break;
       case UserWeightGoalEntity.maintainWeight:
         name = S.of(context).goalMaintainWeight;

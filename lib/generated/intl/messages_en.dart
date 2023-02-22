@@ -42,7 +42,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "More Information at\nOpenFoodFacts"),
         "ageLabel": MessageLookupByLibrary.simpleMessage("Age"),
         "appDescription": MessageLookupByLibrary.simpleMessage(
-            "OpenNutriTracker is a free and open-source calorie and activity tracker that respects your privacy."),
+            "OpenNutriTracker is a free and open-source calorie and nutrient tracker that respects your privacy."),
         "appLicenseLabel":
             MessageLookupByLibrary.simpleMessage("GPL-3.0 license"),
         "appTitle": MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
@@ -95,7 +95,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "genderMaleLabel": MessageLookupByLibrary.simpleMessage("male"),
         "goalGainWeight": MessageLookupByLibrary.simpleMessage("Gain Weight"),
         "goalLabel": MessageLookupByLibrary.simpleMessage("Goal"),
-        "goalLooseWeight": MessageLookupByLibrary.simpleMessage("Loose Weight"),
+        "goalLoseWeight": MessageLookupByLibrary.simpleMessage("Lose Weight"),
         "goalMaintainWeight":
             MessageLookupByLibrary.simpleMessage("Maintain Weight"),
         "heightLabel": MessageLookupByLibrary.simpleMessage("Height"),
@@ -159,7 +159,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingHeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Whats your current height?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
-            "To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device."),
+            "To start, the app needs some information about you to calculate your daily calorie goal.\nAll information about you is stored securely on your device."),
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("kcal per day"),
         "onboardingOverviewLabel":

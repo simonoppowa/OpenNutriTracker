@@ -33,7 +33,7 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
               style: Theme.of(context).textTheme.subtitle1),
           const SizedBox(height: 16.0),
           ChoiceChip(
-            label: Text(S.of(context).goalLooseWeight),
+            label: Text(S.of(context).goalLoseWeight),
             selected: _looseWeightSelected,
             onSelected: (bool selected) {
               setState(() {

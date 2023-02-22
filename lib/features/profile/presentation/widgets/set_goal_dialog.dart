@@ -11,7 +11,7 @@ class SetWeightGoalDialog extends StatelessWidget {
       title: Text(S.of(context).chooseWeightGoalLabel),
       children: [
         SimpleDialogOption(
-          child: Text(S.of(context).goalLooseWeight),
+          child: Text(S.of(context).goalLoseWeight),
           onPressed: () {
             Navigator.pop(context, UserWeightGoalEntity.loseWeight);
           },

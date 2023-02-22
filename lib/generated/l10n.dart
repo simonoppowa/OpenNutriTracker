@@ -70,10 +70,10 @@ class S {
     );
   }
 
-  /// `OpenNutriTracker is a free and open-source calorie and activity tracker that respects your privacy.`
+  /// `OpenNutriTracker is a free and open-source calorie and nutrient tracker that respects your privacy.`
   String get appDescription {
     return Intl.message(
-      'OpenNutriTracker is a free and open-source calorie and activity tracker that respects your privacy.',
+      'OpenNutriTracker is a free and open-source calorie and nutrient tracker that respects your privacy.',
       name: 'appDescription',
       desc: '',
       args: [],
@@ -240,10 +240,10 @@ class S {
     );
   }
 
-  /// `To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device.`
+  /// `To start, the app needs some information about you to calculate your daily calorie goal.\nAll information about you is stored securely on your device.`
   String get onboardingIntroDescription {
     return Intl.message(
-      'To start, the app needs some information about you to calculate your daily calorie goal.\nAll data about you is stored secure on your device.',
+      'To start, the app needs some information about you to calculate your daily calorie goal.\nAll information about you is stored securely on your device.',
       name: 'onboardingIntroDescription',
       desc: '',
       args: [],
@@ -1061,11 +1061,11 @@ class S {
     );
   }
 
-  /// `Loose Weight`
-  String get goalLooseWeight {
+  /// `Lose Weight`
+  String get goalLoseWeight {
     return Intl.message(
-      'Loose Weight',
-      name: 'goalLooseWeight',
+      'Lose Weight',
+      name: 'goalLoseWeight',
       desc: '',
       args: [],
     );
