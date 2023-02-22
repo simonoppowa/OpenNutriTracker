@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
+import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -207,14 +208,34 @@ class SettingsScreen extends StatelessWidget {
                   const SizedBox(width: 8.0),
                   Text(S.of(context).settingsSourceCodeLabel),
                 ],
+              )),
+          TextButton(
+              onPressed: () {
+                _launchPrivacyPolicyUrl(context);
+              },
+              child: Row(
+                children: [
+                  const Icon(Icons.policy_outlined),
+                  const SizedBox(width: 8.0),
+                  Text(S.of(context).privacyPolicyLabel),
+                ],
               ))
         ]);
   }
 
   void _launchSourceCodeUrl(BuildContext context) async {
     final sourceCodeUri = Uri.parse(AppConst.sourceCodeUrl);
-    if (await canLaunchUrl(sourceCodeUri)) {
-      launchUrl(sourceCodeUri, mode: LaunchMode.externalApplication);
+    _launchUrl(context, sourceCodeUri);
+  }
+
+  void _launchPrivacyPolicyUrl(BuildContext context) async {
+    final sourceCodeUri = Uri.parse(URLConst.privacyPolicyURL);
+    _launchUrl(context, sourceCodeUri);
+  }
+
+  void _launchUrl(BuildContext context, Uri url) async {
+    if (await canLaunchUrl(url)) {
+      launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       // Cannot open browser app, show error snackbar
       ScaffoldMessenger.of(context).showSnackBar(

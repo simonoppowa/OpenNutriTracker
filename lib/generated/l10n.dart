@@ -951,10 +951,10 @@ class S {
     );
   }
 
-  /// `privacy policy`
+  /// `Privacy Policy`
   String get privacyPolicyLabel {
     return Intl.message(
-      'privacy policy',
+      'Privacy Policy',
       name: 'privacyPolicyLabel',
       desc: '',
       args: [],

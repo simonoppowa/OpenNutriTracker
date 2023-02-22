@@ -380,7 +380,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Very Active"),
         "per100gLabel": MessageLookupByLibrary.simpleMessage("Per 100g"),
         "privacyPolicyLabel":
-            MessageLookupByLibrary.simpleMessage("privacy policy"),
+            MessageLookupByLibrary.simpleMessage("Privacy Policy"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
         "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),
         "quantityLabel": MessageLookupByLibrary.simpleMessage("Quantity"),
