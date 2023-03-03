@@ -1,20 +1,103 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/physical_activity_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/data/repository/physical_activity_repository.dart';
+import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
+import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/core/data/repository/user_repository.dart';
+import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/styles/color_schemes.dart';
 import 'package:opennutritracker/core/styles/fonts.dart';
+import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/logger_config.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
+import 'package:opennutritracker/features/activity_detail/activity_detail_screen.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_item_screen.dart';
+import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/onboarding/onboarding_screen.dart';
+import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:opennutritracker/features/scanner/scanner_screen.dart';
+import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
-void main() {
-  runApp(const MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  LoggerConfig.intiLogger();
+  final secureAppStorageProvider = SecureAppStorageProvider();
+  final hiveDBProvider = HiveDBProvider();
+  await hiveDBProvider
+      .initHiveDB(await secureAppStorageProvider.getHiveEncryptionKey());
+  final ConfigDataSource configDataSource =
+      ConfigDataSource(hiveDBProvider.configBox);
+  final IntakeDataSource intakeDataSource =
+      IntakeDataSource(hiveDBProvider.intakeBox);
+  final userActivityDataSource =
+      UserActivityDataSource(hiveDBProvider.userActivityBox);
+  final physicalActivityDataSource = PhysicalActivityDataSource();
+  final UserDataSource userDataSource = UserDataSource(hiveDBProvider.userBox);
+  final TrackedDayDataSource trackedDayDataSource =
+      TrackedDayDataSource(hiveDBProvider.trackedDayBox);
+
+  await initializeConfig(configDataSource);
+  final userInitialized = await userDataSource.hasUserData();
+
+  final log = Logger('main');
+  log.info('Starting App ...');
+
+  runApp(MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => hiveDBProvider),
+        BlocProvider<HomeBloc>(create: (context) => HomeBloc()),
+        BlocProvider<DiaryBloc>(create: (context) => DiaryBloc()),
+        BlocProvider<ProfileBloc>(create: (context) => ProfileBloc()),
+        RepositoryProvider(
+            create: (context) => ConfigRepository(configDataSource)),
+        RepositoryProvider(
+            create: (context) => IntakeRepository(intakeDataSource)),
+        RepositoryProvider(
+            create: (context) =>
+                UserActivityRepository(userActivityDataSource)),
+        RepositoryProvider(
+            create: (context) =>
+                PhysicalActivityRepository(physicalActivityDataSource)),
+        RepositoryProvider(create: (context) => UserRepository(userDataSource)),
+        RepositoryProvider(
+            create: (context) => TrackedDayRepository(trackedDayDataSource))
+      ],
+      child: OpenNutriTrackerApp(
+        userInitialized: userInitialized,
+      )));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+Future<void> initializeConfig(ConfigDataSource configDataSource) async {
+  if (!await configDataSource.configInitialized()) {
+    configDataSource.initializeConfig();
+  }
+}
+
+class OpenNutriTrackerApp extends StatelessWidget {
+  final bool userInitialized;
+
+  const OpenNutriTrackerApp({super.key, required this.userInitialized});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      onGenerateTitle: (context) => S.of(context).appTitle,
       theme: ThemeData(
           useMaterial3: true,
           colorScheme: lightColorScheme,
@@ -30,92 +113,23 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: S.delegate.supportedLocales,
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      initialRoute: userInitialized
+          ? NavigationOptions.mainRoute
+          : NavigationOptions.onboardingRoute,
+      routes: {
+        NavigationOptions.mainRoute: (context) => const MainScreen(),
+        NavigationOptions.onboardingRoute: (context) =>
+            const OnboardingScreen(),
+        NavigationOptions.settingsRoute: (context) => const SettingsScreen(),
+        NavigationOptions.addItemRoute: (context) => const AddItemScreen(),
+        NavigationOptions.scannerRoute: (context) => const ScannerScreen(),
+        NavigationOptions.itemDetailRoute: (context) =>
+            const MealDetailScreen(),
+        NavigationOptions.addActivityRoute: (context) =>
+            const AddActivityScreen(),
+        NavigationOptions.activityDetailRoute: (context) =>
+            const ActivityDetailScreen()
+      },
     );
   }
 }
