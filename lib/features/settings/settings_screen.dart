@@ -110,6 +110,7 @@ class SettingsScreen extends StatelessWidget {
               content: Wrap(
                 children: [
                   DropdownButtonFormField(
+                      isExpanded: true,
                       decoration: InputDecoration(
                         enabled: false,
                         filled: false,
@@ -118,7 +119,9 @@ class SettingsScreen extends StatelessWidget {
                       items: [
                         DropdownMenuItem(
                             child: Text(
-                                '${S.of(context).calculationsTDEEIOM2006Label} ${S.of(context).calculationsRecommendedLabel}')),
+                          '${S.of(context).calculationsTDEEIOM2006Label} ${S.of(context).calculationsRecommendedLabel}',
+                          overflow: TextOverflow.ellipsis,
+                        )),
                       ],
                       onChanged: null),
                   DropdownButtonFormField(
@@ -132,8 +135,9 @@ class SettingsScreen extends StatelessWidget {
                       items: [
                         DropdownMenuItem(
                             child: Text(
-                          S.of(context).calculationsMacrosDistribution(
-                              "50", "20", "20"), // TODO
+                          S
+                              .of(context)
+                              .calculationsMacrosDistribution("60", "25", "15"),
                           overflow: TextOverflow.ellipsis,
                         ))
                       ],

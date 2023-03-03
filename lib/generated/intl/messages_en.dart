@@ -61,8 +61,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsMacrosDistribution": m1,
         "calculationsRecommendedLabel":
             MessageLookupByLibrary.simpleMessage("(recommended)"),
-        "calculationsTDEEIOM2006Label":
-            MessageLookupByLibrary.simpleMessage("IOM 2006"),
+        "calculationsTDEEIOM2006Label": MessageLookupByLibrary.simpleMessage(
+            "Institute of Medicine Equation"),
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("TDEE equation"),
         "carbohydrateLabel":

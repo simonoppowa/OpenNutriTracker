@@ -530,10 +530,10 @@ class S {
     );
   }
 
-  /// `IOM 2006`
+  /// `Institute of Medicine Equation`
   String get calculationsTDEEIOM2006Label {
     return Intl.message(
-      'IOM 2006',
+      'Institute of Medicine Equation',
       name: 'calculationsTDEEIOM2006Label',
       desc: '',
       args: [],

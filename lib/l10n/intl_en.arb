@@ -51,7 +51,7 @@
   "reportErrorDialogText": "Do you want to report an error to the developer?",
   "appLicenseLabel": "GPL-3.0 license",
   "calculationsTDEELabel": "TDEE equation",
-  "calculationsTDEEIOM2006Label": "IOM 2006",
+  "calculationsTDEEIOM2006Label": "Institute of Medicine Equation",
   "calculationsRecommendedLabel": "(recommended)",
   "calculationsMacronutrientsDistributionLabel": "Macros distribution",
   "calculationsMacrosDistribution": "{pctCarbs}% carbs, {pctFats}% fats, {pctProteins}% proteins",
