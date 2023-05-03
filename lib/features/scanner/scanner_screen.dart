@@ -80,19 +80,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
         ],
       ),
       body: MobileScanner(
-        controller: cameraController,
-        allowDuplicates: false,
-        onDetect: (barcode, args) {
-          if (barcode.rawValue != null && barcode.type == BarcodeType.product) {
-            final productCode = barcode.rawValue;
-            if (productCode != null) {
-              // TODO check barcode validity
-              log.fine('Barcode found: $productCode');
-              scannerBloc.add(ScannerLoadProductEvent(barcode: productCode));
+          controller: cameraController,
+          onDetect: (capture) {
+            final List<Barcode> barcodes = capture.barcodes;
+            for (final barcode in barcodes) {
+              if (barcode.rawValue != null &&
+                  barcode.type == BarcodeType.product) {
+                final productCode = barcode.rawValue;
+                if (productCode != null) {
+                  // TODO check barcode validity
+                  log.fine('Barcode found: $productCode');
+                  scannerBloc
+                      .add(ScannerLoadProductEvent(barcode: productCode));
+                }
+              }
             }
-          }
-        },
-      ),
+          }),
     );
   }
 }

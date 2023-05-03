@@ -57,7 +57,7 @@ dependencies:
   table_calendar: ^3.0.9
   introduction_screen: ^3.1.8
 
-  mobile_scanner: ^2.0.0 # TODO update
+  mobile_scanner: ^3.2.0
 
   hive: ^2.2.3
   hive_flutter: ^1.1.0
