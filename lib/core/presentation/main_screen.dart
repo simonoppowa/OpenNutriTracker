@@ -53,13 +53,19 @@ class _MainScreenState extends State<MainScreen> {
         onDestinationSelected: _setPage,
         destinations: [
           NavigationDestination(
-              icon: const Icon(Icons.home_outlined),
+              icon: _selectedPageIndex == 0
+                  ? const Icon(Icons.home)
+                  : const Icon(Icons.home_outlined),
               label: S.of(context).homeLabel),
           NavigationDestination(
-              icon: const Icon(Icons.book_outlined),
+              icon: _selectedPageIndex == 1
+                  ? const Icon(Icons.book)
+                  : const Icon((Icons.book_outlined)),
               label: S.of(context).diaryLabel),
           NavigationDestination(
-              icon: const Icon(Icons.account_circle_outlined),
+              icon: _selectedPageIndex == 2
+                  ? const Icon(Icons.account_circle)
+                  : const Icon(Icons.account_circle_outlined),
               label: S.of(context).profileLabel)
         ],
       ),
