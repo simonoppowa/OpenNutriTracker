@@ -31,7 +31,7 @@ class ActivityItemCard extends StatelessWidget {
               ),
               title: Text(
                 physicalActivityEntity.getName(context),
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.titleLarge,
                 maxLines: 1,
                 overflow: TextOverflow.fade,
               ),

@@ -27,6 +27,6 @@ class _HighlightButtonState extends State<HighlightButton> {
         ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0)),
         icon: const Icon(Icons.navigate_next_outlined),
         label: Text(widget.buttonLabel,
-            style: Theme.of(context).textTheme.button));
+            style: Theme.of(context).textTheme.labelLarge));
   }
 }

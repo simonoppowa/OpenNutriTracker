@@ -11,10 +11,10 @@ class MealDetailNutrimentsTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textStyleNormal =
-        Theme.of(context).textTheme.bodyText2 ?? const TextStyle();
+        Theme.of(context).textTheme.bodyMedium ?? const TextStyle();
     final textStyleBold = Theme.of(context)
             .textTheme
-            .bodyText2
+            .bodyMedium
             ?.copyWith(fontWeight: FontWeight.bold) ??
         const TextStyle();
 
@@ -22,7 +22,7 @@ class MealDetailNutrimentsTable extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(S.of(context).nutritionInfoLabel,
-            style: Theme.of(context).textTheme.headline6),
+            style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8.0),
         Table(
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,

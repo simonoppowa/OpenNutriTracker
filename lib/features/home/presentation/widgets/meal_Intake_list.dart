@@ -26,7 +26,7 @@ class MealIntakeList extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: Text(
             title,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
         ),
         intakeList.isEmpty

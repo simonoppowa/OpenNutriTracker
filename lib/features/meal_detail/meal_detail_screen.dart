@@ -85,7 +85,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text('${product.brands}',
-                        style: Theme.of(context).textTheme.bodyText1),
+                        style: Theme.of(context).textTheme.bodyLarge),
                   ),
                 ),
               ),
@@ -98,7 +98,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                               '${product.productQuantity?.toInt()} ${product.productUnit}',
-                              style: Theme.of(context).textTheme.bodyText1)))),
+                              style: Theme.of(context).textTheme.bodyLarge)))),
             )
           ]),
           Padding(
@@ -108,7 +108,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 Row(
                   children: [
                     Text('${totalKcal.toInt()} ${S.of(context).kcalLabel}',
-                        style: Theme.of(context).textTheme.headline5),
+                        style: Theme.of(context).textTheme.headlineSmall),
                     Text(' / ${totalQuantity.toInt()} ${product.productUnit}')
                   ],
                 ),

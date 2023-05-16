@@ -35,14 +35,14 @@ class DayInfoWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(DateFormat.yMMMMEEEEd().format(selectedDay),
-              style: Theme.of(context).textTheme.headline5),
+              style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 16.0),
           trackedDayEntity != null
               ? Text(
                   '${trackedDayEntity?.caloriesTracked.toInt()}/${trackedDayEntity?.calorieGoal.toInt()} kcal',
                   style: Theme.of(context)
                       .textTheme
-                      .headline6
+                      .titleLarge
                       ?.copyWith(fontWeight: FontWeight.bold),
                 )
               : Text(S.of(context).nothingAddedLabel),

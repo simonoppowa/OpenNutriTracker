@@ -28,12 +28,12 @@ class BMIOverview extends StatelessWidget {
                     context,
                     Theme.of(context)
                         .textTheme
-                        .headline3
+                        .displaySmall
                         ?.copyWith(fontWeight: FontWeight.w500)),
               ),
               Text(S.of(context).bmiLabel,
                   style: getContainerTextStyle(
-                      context, Theme.of(context).textTheme.headline6))
+                      context, Theme.of(context).textTheme.titleLarge))
             ],
           ),
         ),
@@ -42,7 +42,7 @@ class BMIOverview extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(nutritionalStatus.getName(context),
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.titleLarge,
                 textAlign: TextAlign.center),
             InkWell(
                 onTap: () {
@@ -56,7 +56,7 @@ class BMIOverview extends StatelessWidget {
         Text(
           S.of(context).nutritionalStatusRiskLabel(
               nutritionalStatus.getRiskStatus(context)),
-          style: Theme.of(context).textTheme.subtitle1?.copyWith(
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color:
                   Theme.of(context).colorScheme.onBackground.withOpacity(0.7)),
         )

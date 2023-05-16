@@ -15,7 +15,7 @@ class MealInfoButton extends StatelessWidget {
         S.of(context).additionalInfoLabelOFF,
         style: Theme.of(context)
             .textTheme
-            .subtitle1
+            .titleMedium
             ?.copyWith(decoration: TextDecoration.underline),
         textAlign: TextAlign.center,
       ),

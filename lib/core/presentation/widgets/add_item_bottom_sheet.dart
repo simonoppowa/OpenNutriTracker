@@ -19,18 +19,18 @@ class AddItemBottomSheet extends StatelessWidget {
             S.of(context).addItemLabel,
             style: Theme.of(context)
                 .textTheme
-                .headline6
+                .titleLarge
                 ?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),
         ListTile(
           title: Text(
             S.of(context).activityLabel,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
             S.of(context).activityExample,
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
@@ -40,15 +40,15 @@ class AddItemBottomSheet extends StatelessWidget {
             _showAddActivityScreen(context);
           },
         ),
-        const Divider(indent: 16),
+        const Divider(indent: 16, endIndent: 16),
         ListTile(
           title: Text(
             S.of(context).breakfastLabel,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
             S.of(context).breakfastExample,
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
@@ -61,11 +61,11 @@ class AddItemBottomSheet extends StatelessWidget {
         ListTile(
           title: Text(
             S.of(context).lunchLabel,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
             S.of(context).lunchExample,
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
@@ -78,11 +78,11 @@ class AddItemBottomSheet extends StatelessWidget {
         ListTile(
           title: Text(
             S.of(context).dinnerLabel,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
             S.of(context).dinnerExample,
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
@@ -95,11 +95,11 @@ class AddItemBottomSheet extends StatelessWidget {
         ListTile(
           title: Text(
             S.of(context).snackLabel,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
             S.of(context).snackExample,
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(

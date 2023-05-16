@@ -19,20 +19,20 @@ class OnboardingOverviewPageBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(S.of(context).onboardingOverviewLabel,
-              style: Theme.of(context).textTheme.headline5),
+              style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 32.0),
           Text(S.of(context).onboardingYourGoalLabel,
-              style: Theme.of(context).textTheme.bodyText1),
+              style: Theme.of(context).textTheme.bodyLarge),
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(calorieGoalDayString,
-                    style: Theme.of(context).textTheme.headline4?.copyWith(
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         color: Theme.of(context).colorScheme.primary)),
                 Text(S.of(context).onboardingKcalPerDayLabel,
-                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context)
                             .colorScheme
                             .onBackground

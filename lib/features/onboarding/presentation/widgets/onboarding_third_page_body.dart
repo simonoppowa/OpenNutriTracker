@@ -29,9 +29,9 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(S.of(context).activityLabel,
-              style: Theme.of(context).textTheme.headline5),
+              style: Theme.of(context).textTheme.headlineSmall),
           Text(S.of(context).onboardingActivityQuestionSubtitle,
-              style: Theme.of(context).textTheme.subtitle1),
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 16.0),
           SizedBox(
             width: 300,
@@ -39,10 +39,10 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
               label: Column(
                 children: [
                   Text(S.of(context).palSedentaryLabel,
-                      style: Theme.of(context).textTheme.subtitle2),
+                      style: Theme.of(context).textTheme.titleSmall),
                   Text(
                     S.of(context).palSedentaryDescriptionLabel,
-                    style: Theme.of(context).textTheme.overline,
+                    style: Theme.of(context).textTheme.labelSmall,
                     overflow: TextOverflow.visible,
                     softWrap: true,
                     maxLines: 3,
@@ -65,10 +65,10 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
               label: Column(
                 children: [
                   Text(S.of(context).palLowLActiveLabel,
-                      style: Theme.of(context).textTheme.subtitle2),
+                      style: Theme.of(context).textTheme.titleSmall),
                   Text(
                     S.of(context).palLowActiveDescriptionLabel,
-                    style: Theme.of(context).textTheme.overline,
+                    style: Theme.of(context).textTheme.labelSmall,
                     overflow: TextOverflow.visible,
                     softWrap: true,
                     maxLines: 3,
@@ -91,10 +91,10 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
               label: Column(
                 children: [
                   Text(S.of(context).palActiveLabel,
-                      style: Theme.of(context).textTheme.subtitle2),
+                      style: Theme.of(context).textTheme.titleSmall),
                   Text(
                     S.of(context).palActiveDescriptionLabel,
-                    style: Theme.of(context).textTheme.overline,
+                    style: Theme.of(context).textTheme.labelSmall,
                     overflow: TextOverflow.visible,
                     softWrap: true,
                     maxLines: 3,
@@ -117,10 +117,10 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
               label: Column(
                 children: [
                   Text(S.of(context).palVeryActiveLabel,
-                      style: Theme.of(context).textTheme.subtitle2),
+                      style: Theme.of(context).textTheme.titleSmall),
                   Text(
                     S.of(context).palVeryActiveDescriptionLabel,
-                    style: Theme.of(context).textTheme.overline,
+                    style: Theme.of(context).textTheme.labelSmall,
                     overflow: TextOverflow.visible,
                     softWrap: true,
                     maxLines: 5,

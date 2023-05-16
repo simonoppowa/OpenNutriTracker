@@ -105,7 +105,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
               Row(
                 children: [
                   Text('~${totalKcal.toInt()} ${S.of(context).kcalLabel}',
-                      style: Theme.of(context).textTheme.headline5),
+                      style: Theme.of(context).textTheme.headlineSmall),
                   Text(' / ${totalQuantity.toInt()} min')
                 ],
               ),

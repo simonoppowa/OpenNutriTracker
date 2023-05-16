@@ -3,61 +3,61 @@ import 'package:flutter/material.dart';
 const String fontFamily = 'Poppins';
 
 var appTextTheme = const TextTheme(
-  headline1: TextStyle(
+  displayLarge: TextStyle(
       fontFamily: fontFamily,
       fontSize: 93,
       fontWeight: FontWeight.w300,
       letterSpacing: -1.5),
-  headline2: TextStyle(
+  displayMedium: TextStyle(
       fontFamily: fontFamily,
       fontSize: 58,
       fontWeight: FontWeight.w300,
       letterSpacing: -0.5),
-  headline3: TextStyle(
+  displaySmall: TextStyle(
       fontFamily: fontFamily, fontSize: 46, fontWeight: FontWeight.w400),
-  headline4: TextStyle(
+  headlineMedium: TextStyle(
       fontFamily: fontFamily,
       fontSize: 33,
       fontWeight: FontWeight.w400,
       letterSpacing: 0.25),
-  headline5: TextStyle(
+  headlineSmall: TextStyle(
       fontFamily: fontFamily, fontSize: 23, fontWeight: FontWeight.w400),
-  headline6: TextStyle(
+  titleLarge: TextStyle(
       fontFamily: fontFamily,
       fontSize: 19,
       fontWeight: FontWeight.w500,
       letterSpacing: 0.15),
-  subtitle1: TextStyle(
+  titleMedium: TextStyle(
       fontFamily: fontFamily,
       fontSize: 15,
       fontWeight: FontWeight.w400,
       letterSpacing: 0.15),
-  subtitle2: TextStyle(
+  titleSmall: TextStyle(
       fontFamily: fontFamily,
       fontSize: 13,
       fontWeight: FontWeight.w500,
       letterSpacing: 0.1),
-  bodyText1: TextStyle(
+  bodyLarge: TextStyle(
       fontFamily: fontFamily,
       fontSize: 15,
       fontWeight: FontWeight.w400,
       letterSpacing: 0.5),
-  bodyText2: TextStyle(
+  bodyMedium: TextStyle(
       fontFamily: fontFamily,
       fontSize: 13,
       fontWeight: FontWeight.w400,
       letterSpacing: 0.25),
-  button: TextStyle(
+  labelLarge: TextStyle(
       fontFamily: fontFamily,
       fontSize: 13,
       fontWeight: FontWeight.w500,
       letterSpacing: 1.25),
-  caption: TextStyle(
+  bodySmall: TextStyle(
       fontFamily: fontFamily,
       fontSize: 12,
       fontWeight: FontWeight.w400,
       letterSpacing: 0.4),
-  overline: TextStyle(
+  labelSmall: TextStyle(
       fontFamily: fontFamily,
       fontSize: 10,
       fontWeight: FontWeight.w400,

@@ -28,9 +28,9 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(S.of(context).goalLabel,
-              style: Theme.of(context).textTheme.headline5),
+              style: Theme.of(context).textTheme.headlineSmall),
           Text(S.of(context).onboardingGoalQuestionSubtitle,
-              style: Theme.of(context).textTheme.subtitle1),
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 16.0),
           ChoiceChip(
             label: Text(S.of(context).goalLoseWeight),

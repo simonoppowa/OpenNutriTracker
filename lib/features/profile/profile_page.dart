@@ -62,11 +62,11 @@ class _ProfilePageState extends State<ProfilePage> {
         ListTile(
           title: Text(
             S.of(context).activityLabel,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
             user.pal.getName(context),
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           leading: const SizedBox(
             height: double.infinity,
@@ -77,11 +77,11 @@ class _ProfilePageState extends State<ProfilePage> {
         ListTile(
           title: Text(
             S.of(context).goalLabel,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
             user.goal.getName(context),
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           leading: const SizedBox(
             height: double.infinity,
@@ -92,11 +92,11 @@ class _ProfilePageState extends State<ProfilePage> {
         ListTile(
           title: Text(
             S.of(context).weightLabel,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
             '${user.weightKG} kg',
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           leading: const SizedBox(
             height: double.infinity,
@@ -109,11 +109,11 @@ class _ProfilePageState extends State<ProfilePage> {
         ListTile(
           title: Text(
             S.of(context).heightLabel,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
             '${user.heightCM.toInt()} cm',
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           leading: const SizedBox(
             height: double.infinity,
@@ -126,11 +126,11 @@ class _ProfilePageState extends State<ProfilePage> {
         ListTile(
           title: Text(
             S.of(context).ageLabel,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
             S.of(context).yearsLabel(user.age),
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           leading: const SizedBox(
             height: double.infinity,
@@ -143,11 +143,11 @@ class _ProfilePageState extends State<ProfilePage> {
         ListTile(
           title: Text(
             S.of(context).genderLabel,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
             user.gender.getName(context),
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           leading: SizedBox(
             height: double.infinity,

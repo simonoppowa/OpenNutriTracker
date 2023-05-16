@@ -53,14 +53,14 @@ class ActivityCard extends StatelessWidget {
                     Text(
                       activityEntity.physicalActivityEntity.getName(context),
                       textAlign: TextAlign.start,
-                      style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface),
                       maxLines: 2,
                       overflow: TextOverflow.fade,
                     ),
                     Text("🔥${activityEntity.burnedKcal.toInt()} kcal",
                         textAlign: TextAlign.start,
-                        style: Theme.of(context).textTheme.subtitle2?.copyWith(
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
                                 .onPrimaryContainer

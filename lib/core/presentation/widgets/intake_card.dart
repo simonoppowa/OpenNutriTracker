@@ -70,7 +70,7 @@ class IntakeCard extends StatelessWidget {
                     children: [
                       Text(
                         intake.product.productName ?? "?",
-                        style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Theme.of(context).colorScheme.onPrimary),
                         maxLines: 2,
                         overflow: TextOverflow.fade,
@@ -78,7 +78,7 @@ class IntakeCard extends StatelessWidget {
                       Text('${intake.amount.toInt().toString()} ${intake.unit}',
                           style: Theme.of(context)
                               .textTheme
-                              .subtitle2
+                              .titleSmall
                               ?.copyWith(
                                   color: Theme.of(context)
                                       .colorScheme

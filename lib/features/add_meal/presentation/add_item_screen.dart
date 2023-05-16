@@ -51,7 +51,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   padding: const EdgeInsets.only(left: 8.0),
                   alignment: Alignment.centerLeft,
                   child: Text(S.of(context).searchResultsLabel,
-                      style: Theme.of(context).textTheme.headline5)),
+                      style: Theme.of(context).textTheme.headlineSmall)),
               BlocBuilder<ProductsBloc, ProductsState>(
                 bloc: _productsBloc,
                 builder: (context, state) {
