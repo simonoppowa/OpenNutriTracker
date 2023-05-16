@@ -21,6 +21,7 @@ class SetHeightDialog extends StatelessWidget {
             children: [
               HorizontalPicker(
                   height: 100,
+                  backgroundColor: Colors.transparent,
                   minValue: selectedHeightCM - _heightRangeCM,
                   maxValue: selectedHeightCM + _heightRangeCM,
                   divisions: 400,
