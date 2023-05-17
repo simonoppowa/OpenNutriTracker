@@ -38,7 +38,6 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
           const SizedBox(height: 16.0),
           ChoiceChip(
             label: Text(S.of(context).genderMaleLabel),
-            avatar: const Text("♂"),
             selected: _maleSelected,
             onSelected: (bool selected) {
               setState(() {
@@ -50,7 +49,6 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
           ),
           ChoiceChip(
             label: Text(S.of(context).genderFemaleLabel),
-            avatar: const Text("♀"),
             selected: _femaleSelected,
             onSelected: (bool selected) {
               setState(() {

@@ -1201,20 +1201,20 @@ class S {
     );
   }
 
-  /// `male`
+  /// `♂ male`
   String get genderMaleLabel {
     return Intl.message(
-      'male',
+      '♂ male',
       name: 'genderMaleLabel',
       desc: '',
       args: [],
     );
   }
 
-  /// `female`
+  /// `♀ female`
   String get genderFemaleLabel {
     return Intl.message(
-      'female',
+      '♀ female',
       name: 'genderFemaleLabel',
       desc: '',
       args: [],

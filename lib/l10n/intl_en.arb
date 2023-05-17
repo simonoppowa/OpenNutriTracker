@@ -126,8 +126,8 @@
   "yearsLabel": "{age} years",
   "selectGenderDialogLabel": "Select Gender",
   "genderLabel": "Gender",
-  "genderMaleLabel": "male",
-  "genderFemaleLabel": "female",
+  "genderMaleLabel": "♂ male",
+  "genderFemaleLabel": "♀ female",
 
   "nothingAddedLabel": "Nothing added",
 
