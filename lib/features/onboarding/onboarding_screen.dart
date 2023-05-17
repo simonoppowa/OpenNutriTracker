@@ -174,6 +174,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ];
 
   void _scrollToPage(int page) {
+    FocusScope.of(context).requestFocus(FocusNode()); // Dismiss Keyboard
     _introKey.currentState?.animateScroll(page);
   }
 
