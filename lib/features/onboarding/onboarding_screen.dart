@@ -26,6 +26,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _onboardingBloc = OnboardingBloc();
   final _introKey = GlobalKey<IntroductionScreenState>();
 
+  final _pageDecoration = const PageDecoration(
+      safeArea: 0, bodyAlignment: Alignment.topCenter, bodyFlex: 6);
+
+  final _defaultImageWidget = null;
+
   bool _introPageButtonActive = false;
   bool _firstPageButtonActive = false;
   bool _secondPageButtonActive = false;
@@ -84,6 +89,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   List<PageViewModel> _getPageViewModels() => <PageViewModel>[
         PageViewModel(
             title: S.of(context).onboardingWelcomeLabel,
+            decoration: _pageDecoration,
+            image: _defaultImageWidget,
             bodyWidget: OnboardingIntroPageBody(
               setPageContent: _setIntroPageData,
             ),
@@ -93,7 +100,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               buttonActive: _introPageButtonActive,
             )),
         PageViewModel(
-            titleWidget: const SizedBox(), // empty
+            titleWidget: const SizedBox(),
+            // empty
+            decoration: _pageDecoration,
+            image: _defaultImageWidget,
             bodyWidget: OnboardingFirstPageBody(
               setPageContent: _setFirstPageData,
             ),
@@ -103,7 +113,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               buttonActive: _firstPageButtonActive,
             )),
         PageViewModel(
-            titleWidget: const SizedBox(), // empty
+            titleWidget: const SizedBox(),
+            // empty
+            decoration: _pageDecoration,
+            image: _defaultImageWidget,
             bodyWidget: OnboardingSecondPageBody(
               setButtonContent: _setSecondPageData,
             ),
@@ -113,7 +126,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               buttonActive: _secondPageButtonActive,
             )),
         PageViewModel(
-            titleWidget: const SizedBox(), // empty
+            titleWidget: const SizedBox(),
+            // empty
+            decoration: _pageDecoration,
+            image: _defaultImageWidget,
             bodyWidget: OnboardingThirdPageBody(
               setButtonContent: _setThirdPageButton,
             ),
@@ -123,7 +139,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               buttonActive: _thirdPageButtonActive,
             )),
         PageViewModel(
-            titleWidget: const SizedBox(), // empty
+            titleWidget: const SizedBox(),
+            // empty
+            decoration: _pageDecoration,
+            image: _defaultImageWidget,
             bodyWidget: OnboardingFourthPageBody(
               setButtonContent: _setFourthPageButton,
             ),
@@ -133,7 +152,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               buttonActive: _fourthPageButtonActive,
             )),
         PageViewModel(
-            titleWidget: const SizedBox(), // empty
+            titleWidget: const SizedBox(),
+            // empty
+            decoration: _pageDecoration,
+            image: _defaultImageWidget,
             bodyWidget: OnboardingOverviewPageBody(
               calorieGoalDayString: _onboardingBloc
                       .getOverviewCalorieGoal()
