@@ -48,7 +48,10 @@ class BMIOverview extends StatelessWidget {
                 onTap: () {
                   showDialog(
                       context: context,
-                      builder: (context) => const InfoDialog());
+                      builder: (context) => InfoDialog(
+                            title: S.of(context).bmiLabel,
+                            body: S.of(context).bmiInfo,
+                          ));
                 },
                 child: const Icon(Icons.help_outline_outlined))
           ],

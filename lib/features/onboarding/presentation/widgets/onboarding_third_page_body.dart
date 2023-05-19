@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/presentation/widgets/info_dialog.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -35,105 +36,131 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
           const SizedBox(height: 16.0),
           SizedBox(
             width: 300,
-            child: ChoiceChip(
-              label: Column(
-                children: [
-                  Text(S.of(context).palSedentaryLabel,
-                      style: Theme.of(context).textTheme.titleSmall),
-                  Text(
-                    S.of(context).palSedentaryDescriptionLabel,
-                    style: Theme.of(context).textTheme.labelSmall,
-                    overflow: TextOverflow.visible,
-                    softWrap: true,
-                    maxLines: 3,
-                  ),
-                ],
-              ),
-              selected: _sedentarySelected,
-              onSelected: (bool selected) {
-                setState(() {
-                  _setSelectedChoiceChip(sedentary: true);
-                  checkCorrectInput();
-                });
-              },
+            child: Row(
+              children: [
+                ChoiceChip(
+                  label: Text(S.of(context).palSedentaryLabel,
+                      style: Theme.of(context).textTheme.titleLarge),
+                  selected: _sedentarySelected,
+                  onSelected: (bool selected) {
+                    setState(() {
+                      _setSelectedChoiceChip(sedentary: true);
+                      checkCorrectInput();
+                    });
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: InkWell(
+                      onTap: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) => InfoDialog(
+                                title: S.of(context).palSedentaryLabel,
+                                body: S
+                                    .of(context)
+                                    .palSedentaryDescriptionLabel));
+                      },
+                      child: const Icon(Icons.help_outline_outlined)),
+                )
+              ],
             ),
           ),
           const SizedBox(height: 16.0),
           SizedBox(
             width: 400,
-            child: ChoiceChip(
-              label: Column(
-                children: [
-                  Text(S.of(context).palLowLActiveLabel,
-                      style: Theme.of(context).textTheme.titleSmall),
-                  Text(
-                    S.of(context).palLowActiveDescriptionLabel,
-                    style: Theme.of(context).textTheme.labelSmall,
-                    overflow: TextOverflow.visible,
-                    softWrap: true,
-                    maxLines: 3,
-                  ),
-                ],
-              ),
-              selected: _lowActiveSelected,
-              onSelected: (bool selected) {
-                setState(() {
-                  _setSelectedChoiceChip(lowActive: true);
-                  checkCorrectInput();
-                });
-              },
+            child: Row(
+              children: [
+                ChoiceChip(
+                  label: Text(S.of(context).palLowLActiveLabel,
+                      style: Theme.of(context).textTheme.titleLarge),
+                  selected: _lowActiveSelected,
+                  onSelected: (bool selected) {
+                    setState(() {
+                      _setSelectedChoiceChip(lowActive: true);
+                      checkCorrectInput();
+                    });
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: InkWell(
+                      onTap: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) => InfoDialog(
+                                title: S.of(context).palLowLActiveLabel,
+                                body: S
+                                    .of(context)
+                                    .palLowActiveDescriptionLabel));
+                      },
+                      child: const Icon(Icons.help_outline_outlined)),
+                )
+              ],
             ),
           ),
           const SizedBox(height: 16.0),
           SizedBox(
             width: 400,
-            child: ChoiceChip(
-              label: Column(
-                children: [
-                  Text(S.of(context).palActiveLabel,
-                      style: Theme.of(context).textTheme.titleSmall),
-                  Text(
-                    S.of(context).palActiveDescriptionLabel,
-                    style: Theme.of(context).textTheme.labelSmall,
-                    overflow: TextOverflow.visible,
-                    softWrap: true,
-                    maxLines: 3,
-                  ),
-                ],
-              ),
-              selected: _activeSelected,
-              onSelected: (bool selected) {
-                setState(() {
-                  _setSelectedChoiceChip(active: true);
-                  checkCorrectInput();
-                });
-              },
+            child: Row(
+              children: [
+                ChoiceChip(
+                  label: Text(S.of(context).palActiveLabel,
+                      style: Theme.of(context).textTheme.titleLarge),
+                  selected: _activeSelected,
+                  onSelected: (bool selected) {
+                    setState(() {
+                      _setSelectedChoiceChip(active: true);
+                      checkCorrectInput();
+                    });
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: InkWell(
+                      onTap: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) => InfoDialog(
+                                title: S.of(context).palActiveLabel,
+                                body: S.of(context).palActiveDescriptionLabel));
+                      },
+                      child: const Icon(Icons.help_outline_outlined)),
+                )
+              ],
             ),
           ),
           const SizedBox(height: 16.0),
           SizedBox(
             width: 400,
-            child: ChoiceChip(
-              label: Column(
-                children: [
-                  Text(S.of(context).palVeryActiveLabel,
-                      style: Theme.of(context).textTheme.titleSmall),
-                  Text(
-                    S.of(context).palVeryActiveDescriptionLabel,
-                    style: Theme.of(context).textTheme.labelSmall,
-                    overflow: TextOverflow.visible,
-                    softWrap: true,
-                    maxLines: 5,
-                  ),
-                ],
-              ),
-              selected: _veryActiveSelected,
-              onSelected: (bool selected) {
-                setState(() {
-                  _setSelectedChoiceChip(veryActive: true);
-                  checkCorrectInput();
-                });
-              },
+            child: Row(
+              children: [
+                ChoiceChip(
+                  label: Text(S.of(context).palVeryActiveLabel,
+                      style: Theme.of(context).textTheme.titleLarge),
+                  selected: _veryActiveSelected,
+                  onSelected: (bool selected) {
+                    setState(() {
+                      _setSelectedChoiceChip(veryActive: true);
+                      checkCorrectInput();
+                    });
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: InkWell(
+                      onTap: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) => InfoDialog(
+                                title: S.of(context).palVeryActiveLabel,
+                                body: S
+                                    .of(context)
+                                    .palVeryActiveDescriptionLabel));
+                      },
+                      child: const Icon(Icons.help_outline_outlined)),
+                )
+              ],
             ),
           ),
         ],
