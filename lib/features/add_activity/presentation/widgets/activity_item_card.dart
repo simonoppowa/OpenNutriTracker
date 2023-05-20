@@ -47,7 +47,7 @@ class ActivityItemCard extends StatelessWidget {
                     backgroundColor:
                         Theme.of(context).colorScheme.primaryContainer),
                 icon: const Icon(Icons.add_outlined),
-                onPressed: () {},
+                onPressed: () => _onItemPressed(context),
               ),
               onTap: () => _onItemPressed(context),
             ),
