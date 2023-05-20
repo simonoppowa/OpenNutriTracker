@@ -2731,10 +2731,10 @@ class S {
     );
   }
 
-  /// `squash, general`
+  /// `squash`
   String get paSquashGeneral {
     return Intl.message(
-      'squash, general',
+      'squash',
       name: 'paSquashGeneral',
       desc: '',
       args: [],
@@ -3051,10 +3051,10 @@ class S {
     );
   }
 
-  /// `diving, springboard or platform`
+  /// `diving`
   String get paDivingSpringboardPlatform {
     return Intl.message(
-      'diving, springboard or platform',
+      'diving',
       name: 'paDivingSpringboardPlatform',
       desc: '',
       args: [],

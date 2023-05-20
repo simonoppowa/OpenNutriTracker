@@ -9,17 +9,17 @@ import 'package:opennutritracker/generated/l10n.dart';
 class PhysicalActivityDataSource {
   List<PhysicalActivityDBO> getPhysicalActivityList(BuildContext context) => [
         PhysicalActivityDBO(
-            "01009",
+            "01015",
             S.of(context).paBicyclingGeneral,
             S.of(context).paBicyclingGeneralDesc,
-            8.5,
+            7.5,
             [],
             PhysicalActivityTypeDBO.bicycling),
         PhysicalActivityDBO(
-            "01015",
-            S.of(context).paBicyclingGeneral,
+            "01009",
+            S.of(context).paBicyclingMountainGeneral,
             S.of(context).paBicyclingMountainGeneralDesc,
-            7.5,
+            8.5,
             [],
             PhysicalActivityTypeDBO.bicycling),
         PhysicalActivityDBO(

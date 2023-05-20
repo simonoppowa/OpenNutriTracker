@@ -261,8 +261,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "paDivingGeneral": MessageLookupByLibrary.simpleMessage("diving"),
         "paDivingGeneralDesc": MessageLookupByLibrary.simpleMessage(
             "skindiving, scuba diving, general"),
-        "paDivingSpringboardPlatform": MessageLookupByLibrary.simpleMessage(
-            "diving, springboard or platform"),
+        "paDivingSpringboardPlatform":
+            MessageLookupByLibrary.simpleMessage("diving"),
         "paDivingSpringboardPlatformDesc":
             MessageLookupByLibrary.simpleMessage("springboard or platform"),
         "paFencing": MessageLookupByLibrary.simpleMessage("fencing"),
@@ -418,8 +418,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("softball / baseball"),
         "paSoftballBaseballGeneralDesc":
             MessageLookupByLibrary.simpleMessage("fast or slow pitch, general"),
-        "paSquashGeneral":
-            MessageLookupByLibrary.simpleMessage("squash, general"),
+        "paSquashGeneral": MessageLookupByLibrary.simpleMessage("squash"),
         "paSquashGeneralDesc": MessageLookupByLibrary.simpleMessage("general"),
         "paSurfing": MessageLookupByLibrary.simpleMessage("surfing"),
         "paSurfingDesc":
