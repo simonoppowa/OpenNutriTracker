@@ -35,7 +35,11 @@ class ActivityItemCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.fade,
               ),
-              subtitle: Text('${physicalActivityEntity.mets} METs'),
+              subtitle: Text(
+                physicalActivityEntity.description,
+                maxLines: 3,
+                overflow: TextOverflow.fade,
+              ),
               trailing: IconButton(
                 style: IconButton.styleFrom(
                     foregroundColor:

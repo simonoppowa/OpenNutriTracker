@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 
@@ -15,6 +14,8 @@ class PhysicalActivityDBO {
   @HiveField(2)
   final String specificActivity;
   @HiveField(3)
+  final String description;
+  @HiveField(4)
   final double mets;
 
   @HiveField(5)
@@ -23,13 +24,15 @@ class PhysicalActivityDBO {
   @HiveField(6)
   final PhysicalActivityTypeDBO type;
 
-  PhysicalActivityDBO(this.code, this.specificActivity, this.mets, this.tags, this.type);
+  PhysicalActivityDBO(this.code, this.specificActivity, this.description,
+      this.mets, this.tags, this.type);
 
   factory PhysicalActivityDBO.fromPhysicalActivityEntity(
       PhysicalActivityEntity entity) {
     return PhysicalActivityDBO(
         entity.code,
         entity.specificActivity,
+        entity.description,
         entity.mets,
         entity.tags,
         PhysicalActivityTypeDBO.fromPhysicalActivityTypeEntity(entity.type));

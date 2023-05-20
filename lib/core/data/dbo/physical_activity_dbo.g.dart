@@ -19,7 +19,8 @@ class PhysicalActivityDBOAdapter extends TypeAdapter<PhysicalActivityDBO> {
     return PhysicalActivityDBO(
       fields[1] as String,
       fields[2] as String,
-      fields[3] as double,
+      fields[3] as String,
+      fields[4] as double,
       (fields[5] as List).cast<String>(),
       fields[6] as PhysicalActivityTypeDBO,
     );
@@ -28,12 +29,14 @@ class PhysicalActivityDBOAdapter extends TypeAdapter<PhysicalActivityDBO> {
   @override
   void write(BinaryWriter writer, PhysicalActivityDBO obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(1)
       ..write(obj.code)
       ..writeByte(2)
       ..write(obj.specificActivity)
       ..writeByte(3)
+      ..write(obj.description)
+      ..writeByte(4)
       ..write(obj.mets)
       ..writeByte(5)
       ..write(obj.tags)
