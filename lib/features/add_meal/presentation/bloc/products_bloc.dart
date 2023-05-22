@@ -13,10 +13,13 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   ProductsBloc() : super(ProductsInitial()) {
     on<LoadProductsEvent>((event, emit) async {
       emit(ProductsLoadingState());
-
-      final result =
-          await searchProductUseCase.searchProductsByString(event.searchString);
-      emit(ProductsLoadedState(products: result));
+      try {
+        final result = await searchProductUseCase
+            .searchProductsByString(event.searchString);
+        emit(ProductsLoadedState(products: result));
+      } catch (error) {
+        emit(ProductsFailedState());
+      }
     });
   }
 }

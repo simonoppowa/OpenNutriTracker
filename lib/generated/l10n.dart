@@ -1381,6 +1381,16 @@ class S {
     );
   }
 
+  /// `Error while fetching product data`
+  String get errorFetchingProductData {
+    return Intl.message(
+      'Error while fetching product data',
+      name: 'errorFetchingProductData',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `bicycling`
   String get paHeadingBicycling {
     return Intl.message(

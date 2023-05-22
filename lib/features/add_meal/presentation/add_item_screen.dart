@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_item_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/item_search_bar.dart';
@@ -71,6 +72,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                   productEntity: state.products[index],
                                   addItemType: itemType);
                             }));
+                  } else if (state is ProductsFailedState) {
+                    return ErrorDialog(
+                        errorText: S.of(context).errorFetchingProductData);
                   } else {
                     return const SizedBox();
                   }
