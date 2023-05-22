@@ -20,9 +20,12 @@ class MealDetailScreen extends StatefulWidget {
 }
 
 class _MealDetailScreenState extends State<MealDetailScreen> {
+  static const _containerSize = 300.0;
+
   final log = Logger('ItemDetailScreen');
 
   final mealDetailBloc = MealDetailBloc();
+  final _scrollController = ScrollController();
 
   late ProductEntity product;
   late IntakeTypeEntity intakeTypeEntity;
@@ -63,13 +66,14 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('${product.productName}')),
       body: ListView(
+        controller: _scrollController,
         children: [
           Stack(children: [
             CachedNetworkImage(
               imageUrl: product.mainImageUrl ?? "",
               imageBuilder: (context, imageProvider) {
                 return Container(
-                  height: 300,
+                  height: _containerSize,
                   decoration: BoxDecoration(
                       image: DecorationImage(
                           image: imageProvider, fit: BoxFit.cover)),
@@ -145,6 +149,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     );
   }
 
+  void scrollToCalorieText() {
+    _scrollController.animateTo(_containerSize - 50,
+        duration: const Duration(seconds: 1), curve: Curves.easeInOut);
+  }
+
   void _onQuantityChanged(String quantityString) {
     setState(() {
       try {
@@ -159,6 +168,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         totalCarbs = (quantity * carbsPerUnit);
         totalFat = (quantity * fatPerUnit);
         totalProtein = (quantity * proteinPerUnit);
+        scrollToCalorieText();
       } on FormatException catch (e) {
         log.warning("Error while parsing: \"$quantityString\"");
       }

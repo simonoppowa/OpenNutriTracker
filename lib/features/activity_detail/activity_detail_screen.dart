@@ -19,7 +19,10 @@ class ActivityDetailScreen extends StatefulWidget {
 }
 
 class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
+  static const _containerSize = 300.0;
+
   final log = Logger('ItemDetailScreen');
+  final _scrollController = ScrollController();
 
   late PhysicalActivityEntity activityEntity;
   late TextEditingController quantityTextController;
@@ -87,9 +90,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
   Widget getLoadedContent(double totalKcalBurned, UserEntity userEntity) {
     return ListView(
+      controller: _scrollController,
       children: [
         Container(
-          height: 300,
+          height: _containerSize,
           decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.secondaryContainer),
           child: Icon(
@@ -104,6 +108,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
             children: [
               Row(
                 children: [
+                  // set Focus
                   Text('~${totalKcal.toInt()} ${S.of(context).kcalLabel}',
                       style: Theme.of(context).textTheme.headlineSmall),
                   Text(' / ${totalQuantity.toInt()} min')
@@ -129,10 +134,16 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       setState(() {
         totalQuantity = newQuantity;
         totalKcal = newTotalKcal;
+        scrollToCalorieText();
       });
     } on FormatException catch (e) {
       log.warning("Error while parsing: \"$quantityString\"");
     }
+  }
+
+  void scrollToCalorieText() {
+    _scrollController.animateTo(_containerSize - 50,
+        duration: const Duration(seconds: 1), curve: Curves.easeInOut);
   }
 
   void onAddButtonPressed(BuildContext context) {
