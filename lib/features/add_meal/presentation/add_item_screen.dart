@@ -58,7 +58,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   if (state is ProductsInitial) {
                     return Text(S.of(context).searchDefaultLabel);
                   } else if (state is ProductsLoadingState) {
-                    return const CircularProgressIndicator();
+                    return const Padding(
+                      padding: EdgeInsets.only(top: 32),
+                      child: CircularProgressIndicator(),
+                    );
                   } else if (state is ProductsLoadedState) {
                     return Flexible(
                         child: ListView.builder(
