@@ -87,7 +87,7 @@ class SettingsScreen extends StatelessWidget {
                         labelText: S.of(context).settingsVolumeLabel,
                       ),
                       onChanged: null,
-                      items: const [DropdownMenuItem(child: Text('ml, l'))],
+                      items: const [DropdownMenuItem(child: Text('ml, cl, l'))],
                     ),
                   ],
                 ),
@@ -144,6 +144,13 @@ class SettingsScreen extends StatelessWidget {
                       onChanged: null)
                 ],
               ),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(S.of(context).dialogOKLabel))
+              ],
             ));
   }
 
