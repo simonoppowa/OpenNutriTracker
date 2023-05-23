@@ -15,9 +15,13 @@ class ScannerBloc extends Bloc<ScannerEvent, ScannerState> {
     on<ScannerLoadProductEvent>((event, emit) async {
       emit(ScannerLoadingState());
 
-      final result =
-          await searchProductUseCase.searchProductByBarcode(event.barcode);
-      emit(ScannerLoadedState(product: result));
+      try {
+        final result =
+            await searchProductUseCase.searchProductByBarcode(event.barcode);
+        emit(ScannerLoadedState(product: result));
+      } catch (error) {
+        emit(ScannerFailedState());
+      }
     });
   }
 }

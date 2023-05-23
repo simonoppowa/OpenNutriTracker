@@ -25,5 +25,5 @@ class ProductsLoadedState extends ProductsState {
 
 class ProductsFailedState extends ProductsState {
   @override
-  List<Object?> get props => throw UnimplementedError();
+  List<Object?> get props => [];
 }

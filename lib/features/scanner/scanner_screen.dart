@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
@@ -37,15 +38,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
         if (state is ScannerInitial) {
           return _getScannerContent(context, scannerBloc);
         } else if (state is ScannerLoadingState) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return Scaffold(
+              appBar: AppBar(),
+              body: const Center(child: CircularProgressIndicator()));
         } else if (state is ScannerLoadedState) {
           // Push new route after build
           Future.microtask(() => Navigator.of(context).pushReplacementNamed(
               NavigationOptions.itemDetailRoute,
               arguments:
                   MealDetailScreenArguments(state.product, intakeTypeEntity)));
+        } else if (state is ScannerFailedState) {
+          return Scaffold(
+              appBar: AppBar(),
+              body: Center(
+                child: ErrorDialog(
+                    errorText: S.of(context).errorFetchingProductData),
+              ));
         }
         return const SizedBox();
       },

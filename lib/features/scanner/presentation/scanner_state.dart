@@ -23,3 +23,8 @@ class ScannerLoadedState extends ScannerState {
   @override
   List<Object?> get props => [product];
 }
+
+class ScannerFailedState extends ScannerState {
+  @override
+  List<Object?> get props => [];
+}
