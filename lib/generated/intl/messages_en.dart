@@ -208,9 +208,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "paBicyclingMountainGeneralDesc":
             MessageLookupByLibrary.simpleMessage("general"),
         "paBicyclingStationaryGeneral":
-            MessageLookupByLibrary.simpleMessage("bicycling"),
+            MessageLookupByLibrary.simpleMessage("bicycling, stationary"),
         "paBicyclingStationaryGeneralDesc":
-            MessageLookupByLibrary.simpleMessage("stationary, general"),
+            MessageLookupByLibrary.simpleMessage("general"),
         "paBilliardsGeneral": MessageLookupByLibrary.simpleMessage("billiards"),
         "paBilliardsGeneralDesc":
             MessageLookupByLibrary.simpleMessage("general"),
@@ -296,22 +296,21 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("water activities"),
         "paHeadingWinterActivities":
             MessageLookupByLibrary.simpleMessage("winter activities"),
-        "paHikingCrossCountry": MessageLookupByLibrary.simpleMessage(
-            "hiking, cross country (Taylor Code 040)"),
+        "paHikingCrossCountry": MessageLookupByLibrary.simpleMessage("hiking"),
         "paHikingCrossCountryDesc":
             MessageLookupByLibrary.simpleMessage("cross country"),
         "paHockeyField": MessageLookupByLibrary.simpleMessage("hockey, field"),
-        "paHockeyFieldDesc": MessageLookupByLibrary.simpleMessage("field"),
+        "paHockeyFieldDesc": MessageLookupByLibrary.simpleMessage("general"),
         "paHorseRidingGeneral":
             MessageLookupByLibrary.simpleMessage("horseback riding"),
         "paHorseRidingGeneralDesc":
             MessageLookupByLibrary.simpleMessage("general"),
         "paIceHockeyGeneral":
-            MessageLookupByLibrary.simpleMessage("hockey, ice"),
+            MessageLookupByLibrary.simpleMessage("ice hockey"),
         "paIceHockeyGeneralDesc":
             MessageLookupByLibrary.simpleMessage("general"),
         "paIceSkatingGeneral":
-            MessageLookupByLibrary.simpleMessage("skating, ice"),
+            MessageLookupByLibrary.simpleMessage("ice skating"),
         "paIceSkatingGeneralDesc":
             MessageLookupByLibrary.simpleMessage("general"),
         "paJaiAlai": MessageLookupByLibrary.simpleMessage("jai alai"),
@@ -392,8 +391,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "boat and board sailing, windsurfing, ice sailing, general (Taylor Code 235)"),
         "paShuffleboard": MessageLookupByLibrary.simpleMessage("shuffleboard"),
         "paShuffleboardDesc": MessageLookupByLibrary.simpleMessage("general"),
-        "paSkateboardingGeneral": MessageLookupByLibrary.simpleMessage(
-            "skateboarding, general, moderate effort"),
+        "paSkateboardingGeneral":
+            MessageLookupByLibrary.simpleMessage("skateboarding"),
         "paSkateboardingGeneralDesc":
             MessageLookupByLibrary.simpleMessage("general, moderate effort"),
         "paSkatingRoller": MessageLookupByLibrary.simpleMessage("skating"),
@@ -401,7 +400,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "paSkiingGeneral": MessageLookupByLibrary.simpleMessage("skiing"),
         "paSkiingGeneralDesc": MessageLookupByLibrary.simpleMessage("general"),
         "paSkiingWaterWakeboarding":
-            MessageLookupByLibrary.simpleMessage("skiing, water"),
+            MessageLookupByLibrary.simpleMessage("water skiing"),
         "paSkiingWaterWakeboardingDesc":
             MessageLookupByLibrary.simpleMessage("water or wakeboarding"),
         "paSkydiving": MessageLookupByLibrary.simpleMessage("skydiving"),
@@ -445,8 +444,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "(e.g. high jump, long jump, triple jump, javelin, pole vault)"),
         "paTrackField3Desc": MessageLookupByLibrary.simpleMessage(
             "(e.g. steeplechase, hurdles)"),
-        "paTrampolineLight":
-            MessageLookupByLibrary.simpleMessage("trampoline, recreational"),
+        "paTrampolineLight": MessageLookupByLibrary.simpleMessage("trampoline"),
         "paTrampolineLightDesc":
             MessageLookupByLibrary.simpleMessage("recreational"),
         "paUnicyclingGeneral":

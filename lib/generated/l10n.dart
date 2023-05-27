@@ -1541,20 +1541,20 @@ class S {
     );
   }
 
-  /// `bicycling`
+  /// `bicycling, stationary`
   String get paBicyclingStationaryGeneral {
     return Intl.message(
-      'bicycling',
+      'bicycling, stationary',
       name: 'paBicyclingStationaryGeneral',
       desc: '',
       args: [],
     );
   }
 
-  /// `stationary, general`
+  /// `general`
   String get paBicyclingStationaryGeneralDesc {
     return Intl.message(
-      'stationary, general',
+      'general',
       name: 'paBicyclingStationaryGeneralDesc',
       desc: '',
       args: [],
@@ -2211,20 +2211,20 @@ class S {
     );
   }
 
-  /// `field`
+  /// `general`
   String get paHockeyFieldDesc {
     return Intl.message(
-      'field',
+      'general',
       name: 'paHockeyFieldDesc',
       desc: '',
       args: [],
     );
   }
 
-  /// `hockey, ice`
+  /// `ice hockey`
   String get paIceHockeyGeneral {
     return Intl.message(
-      'hockey, ice',
+      'ice hockey',
       name: 'paIceHockeyGeneral',
       desc: '',
       args: [],
@@ -2621,10 +2621,10 @@ class S {
     );
   }
 
-  /// `skateboarding, general, moderate effort`
+  /// `skateboarding`
   String get paSkateboardingGeneral {
     return Intl.message(
-      'skateboarding, general, moderate effort',
+      'skateboarding',
       name: 'paSkateboardingGeneral',
       desc: '',
       args: [],
@@ -2821,10 +2821,10 @@ class S {
     );
   }
 
-  /// `trampoline, recreational`
+  /// `trampoline`
   String get paTrampolineLight {
     return Intl.message(
-      'trampoline, recreational',
+      'trampoline',
       name: 'paTrampolineLight',
       desc: '',
       args: [],
@@ -2981,10 +2981,10 @@ class S {
     );
   }
 
-  /// `hiking, cross country (Taylor Code 040)`
+  /// `hiking`
   String get paHikingCrossCountry {
     return Intl.message(
-      'hiking, cross country (Taylor Code 040)',
+      'hiking',
       name: 'paHikingCrossCountry',
       desc: '',
       args: [],
@@ -3141,10 +3141,10 @@ class S {
     );
   }
 
-  /// `skiing, water`
+  /// `water skiing`
   String get paSkiingWaterWakeboarding {
     return Intl.message(
-      'skiing, water',
+      'water skiing',
       name: 'paSkiingWaterWakeboarding',
       desc: '',
       args: [],
@@ -3321,10 +3321,10 @@ class S {
     );
   }
 
-  /// `skating, ice`
+  /// `ice skating`
   String get paIceSkatingGeneral {
     return Intl.message(
-      'skating, ice',
+      'ice skating',
       name: 'paIceSkatingGeneral',
       desc: '',
       args: [],
