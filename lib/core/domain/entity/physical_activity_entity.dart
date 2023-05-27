@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
+import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// A physical activity with it's measured MET value by the
@@ -11,16 +12,15 @@ class PhysicalActivityEntity {
   final String specificActivity;
   final String description;
   final double mets;
-  final IconData? _icon;
 
-  get displayIcon => _icon ?? type.getTypeIcon();
+  get displayIcon => getDisplayIcon();
 
   final List<String> tags;
 
   final PhysicalActivityTypeEntity type;
 
   PhysicalActivityEntity(this.code, this.specificActivity, this.description,
-      this.mets, this.tags, this._icon, this.type);
+      this.mets, this.tags, this.type);
 
   String getName(BuildContext context) {
     final physicalActivityMap = {
@@ -218,6 +218,264 @@ class PhysicalActivityEntity {
     return physicalActivityMap[code] ?? type.getName(context);
   }
 
+  IconData getDisplayIcon() {
+    IconData iconData;
+    switch (code) {
+      case "01015":
+        iconData = Icons.directions_bike_outlined;
+        break;
+      case "01009":
+        iconData = Icons.directions_bike_outlined;
+        break;
+      case "01070":
+        iconData = CustomIcons.unicycle;
+        break;
+      case "02010":
+        iconData = CustomIcons.bike_pedal;
+        break;
+      case "02030":
+        iconData = Icons.sports_gymnastics;
+        break;
+      case "02050":
+        iconData = CustomIcons.kettlebell;
+        break;
+      case "02068":
+        iconData = CustomIcons.jump_rope;
+        break;
+      case "02120":
+        iconData = Icons.water;
+        break;
+      case "03015":
+        iconData = Icons.music_note;
+        break;
+      case "12020":
+        iconData = Icons.directions_run;
+        break;
+      case "12150":
+        iconData = CustomIcons.run_fast;
+        break;
+      case "15010":
+        iconData = CustomIcons.bow_arrow;
+        break;
+      case "15030":
+        iconData = CustomIcons.badminton;
+        break;
+      case "15055":
+        iconData = Icons.sports_basketball;
+        break;
+      case "15080":
+        iconData = CustomIcons.billiards;
+        break;
+      case "15090":
+        iconData = CustomIcons.bowling;
+        break;
+      case "15100":
+        iconData = CustomIcons.boxing_glove;
+        break;
+      case "15110":
+        iconData = CustomIcons.boxing_glove;
+        break;
+      case "15130":
+        iconData = Icons.snowshoeing;
+        break;
+      case "15135":
+        iconData = CustomIcons.seesaw;
+        break;
+      case "15138":
+        iconData = CustomIcons.podium;
+        break;
+      case "15150":
+        iconData = Icons.sports_cricket;
+        break;
+      case "15160":
+        iconData = CustomIcons.trophy;
+        break;
+      case "15170":
+        iconData = CustomIcons.curling;
+        break;
+      case "15180":
+        iconData = CustomIcons.bullseye_arrow;
+        break;
+      case "15192":
+        iconData = Icons.directions_car;
+        break;
+      case "15200":
+        iconData = CustomIcons.fencing;
+        break;
+      case "15230":
+        iconData = Icons.sports_football;
+        break;
+      case "15235":
+        iconData = Icons.sports_baseball;
+        break;
+      case "15255":
+        iconData = Icons.sports_golf;
+        break;
+      case "15300":
+        iconData = Icons.sports_gymnastics;
+        break;
+      case "15320":
+        iconData = Icons.sports_handball;
+        break;
+      case "15350":
+        iconData = Icons.sports_hockey;
+        break;
+      case "15360":
+        iconData = CustomIcons.hockey_puck;
+        break;
+      case "15370":
+        iconData = CustomIcons.horseshoe;
+        break;
+      case "15425":
+        iconData = Icons.sports_martial_arts;
+        break;
+      case "15430":
+        iconData = Icons.sports_martial_arts;
+        break;
+      case "15460":
+        iconData = CustomIcons.racquetball;
+        break;
+      case "15465":
+        iconData = Icons.grass;
+        break;
+      case "15470":
+        iconData = Icons.sports_motorsports;
+        break;
+      case "15480":
+        iconData = CustomIcons.compass;
+        break;
+      case "15510":
+        iconData = CustomIcons.polo;
+        break;
+      case "15530":
+        iconData = CustomIcons.racquetball;
+        break;
+      case "15533":
+        iconData = CustomIcons.carabiner;
+        break;
+      case "15544":
+        iconData = CustomIcons.horseshoe;
+        break;
+      case "15551":
+        iconData = CustomIcons.jump_rope;
+        break;
+      case "15560":
+        iconData = Icons.sports_rugby;
+        break;
+      case "15562":
+        iconData = Icons.sports_rugby;
+        break;
+      case "15580":
+        iconData = Icons.skateboarding;
+        break;
+      case "15590":
+        iconData = Icons.roller_skating;
+        break;
+      case "15592":
+        iconData = CustomIcons.rollerblade;
+        break;
+      case "15600":
+        iconData = CustomIcons.parachute;
+        break;
+      case "15610":
+        iconData = Icons.sports_soccer;
+        break;
+      case "15620":
+        iconData = Icons.sports_baseball;
+        break;
+      case "15652":
+        iconData = CustomIcons.racquetball;
+        break;
+      case "15660":
+        iconData = CustomIcons.table_tennis;
+        break;
+      case "15670":
+        iconData = CustomIcons.karate;
+        break;
+      case "15675":
+        iconData = CustomIcons.tennis;
+        break;
+      case "15710":
+        iconData = Icons.sports_volleyball;
+        break;
+      case "15730":
+        iconData = Icons.sports_kabaddi;
+        break;
+      case "15732":
+        iconData = Icons.stadium;
+        break;
+      case "15733":
+        iconData = Icons.stadium;
+        break;
+      case "15734":
+        iconData = Icons.stadium;
+        break;
+      case "17010":
+        iconData = Icons.hiking;
+        break;
+      case "17080":
+        iconData = Icons.hiking;
+        break;
+      case "17160":
+        iconData = Icons.directions_walk;
+        break;
+      case "17165":
+        iconData = CustomIcons.dog;
+        break;
+      case "18070":
+        iconData = Icons.water;
+        break;
+      case "18090":
+        iconData = CustomIcons.diving;
+        break;
+      case "18100":
+        iconData = Icons.kayaking;
+        break;
+      case "18110":
+        iconData = Icons.water;
+        break;
+      case "18120":
+        iconData = Icons.sailing;
+        break;
+      case "18150":
+        iconData = CustomIcons.ski_water;
+        break;
+      case "18200":
+        iconData = CustomIcons.diving_scuba;
+        break;
+      case "18210":
+        iconData = CustomIcons.diving_snorkel;
+        break;
+      case "18220":
+        iconData = Icons.surfing;
+        break;
+      case "18225":
+        iconData = Icons.water;
+        break;
+      case "18350":
+        iconData = CustomIcons.swim;
+        break;
+      case "18355":
+        iconData = Icons.water;
+        break;
+      case "18360":
+        iconData = CustomIcons.water_polo;
+        break;
+      case "19030":
+        iconData = Icons.ice_skating;
+        break;
+      case "19075":
+        iconData = Icons.downhill_skiing;
+        break;
+      case "19252":
+        iconData = CustomIcons.snowflake;
+        break;
+      default:
+        iconData = CustomIcons.medal;
+    }
+    return iconData;
+  }
+
   factory PhysicalActivityEntity.fromPhysicalActivityDBO(
           PhysicalActivityDBO activityDBO) =>
       PhysicalActivityEntity(
@@ -226,8 +484,6 @@ class PhysicalActivityEntity {
           activityDBO.description,
           activityDBO.mets,
           activityDBO.tags,
-          null,
-          // TODO set icon
           PhysicalActivityTypeEntity.fromPhysicalActivityTypeDBO(
               activityDBO.type));
 }
