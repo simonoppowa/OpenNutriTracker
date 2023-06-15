@@ -93,10 +93,17 @@ class ProductEntity {
     return parsedValue;
   }
 
+  /// TODO extract correct unit
+  /// Unit can either be 100g or 100ml
   static String? _tryGetUnit(String? quantityString) {
     if (quantityString == null) return null;
 
-    // TODO extract unit
-    return "g";
+    final isLiter = quantityString.toUpperCase().contains("L");
+
+    if (isLiter) {
+      return "ml";
+    } else {
+      return "g";
+    }
   }
 }
