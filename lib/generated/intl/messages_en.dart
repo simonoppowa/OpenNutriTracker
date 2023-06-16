@@ -41,6 +41,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
             "More Information at\nOpenFoodFacts"),
         "ageLabel": MessageLookupByLibrary.simpleMessage("Age"),
+        "alphaVersionName": MessageLookupByLibrary.simpleMessage("[Alpha]"),
         "appDescription": MessageLookupByLibrary.simpleMessage(
             "OpenNutriTracker is a free and open-source calorie and nutrient tracker that respects your privacy."),
         "appLicenseLabel":

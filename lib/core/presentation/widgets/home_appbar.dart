@@ -14,7 +14,17 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
             width: 40,
             child: Image.asset('assets/icon/ont_logo_square.png'),
           ),
-          Text(S.of(context).appTitle)
+          Row(
+            children: [
+              Text(S.of(context).appTitle,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
+              const SizedBox(width: 5),
+              Text(
+                S.of(context).alphaVersionName,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ],
+          )
         ],
       ),
       actions: [

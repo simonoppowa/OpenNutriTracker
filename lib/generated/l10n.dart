@@ -80,6 +80,16 @@ class S {
     );
   }
 
+  /// `[Alpha]`
+  String get alphaVersionName {
+    return Intl.message(
+      '[Alpha]',
+      name: 'alphaVersionName',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Add`
   String get addLabel {
     return Intl.message(
