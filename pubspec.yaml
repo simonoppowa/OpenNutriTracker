@@ -34,7 +34,7 @@ dependencies:
 
 
   collection: ^1.17.0
-  intl: ^0.18.1
+  intl: ^0.18.0
   http: ^0.13.6
   uuid: ^3.0.7
   json_annotation: ^4.8.0
@@ -80,6 +80,9 @@ flutter:
     - assets/icon/ont_banner_top.png
 
   fonts:
+    - family: CustomIcons
+      fonts:
+      - asset: fonts/CustomIcons.ttf
     - family: Poppins
       fonts:
       - asset: fonts/Poppins-Black.ttf

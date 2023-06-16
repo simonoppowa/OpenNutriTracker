@@ -1,4 +1,5 @@
 import 'package:opennutritracker/core/data/dbo/product_nutriments_dbo.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off_product_nutriments.dart';
 
 class ProductNutrimentsEntity {
@@ -45,19 +46,28 @@ class ProductNutrimentsEntity {
 
   factory ProductNutrimentsEntity.fromOffNutriments(
       OFFProductNutriments offNutriments) {
+    // 1. OFF product nutriments can either be String, int, double or null
+    // 2. Extension function asDoubleOrNull does not work on a dynamic data
+    // type, so cast to it Object?
     return ProductNutrimentsEntity(
-        energyKcal100: offNutriments.energy_kcal_100g,
-        energyPerUnit: _getValuePerUnit(offNutriments.energy_kcal_100g),
-        carbohydrates100g: offNutriments.carbohydrates_100g,
-        carbohydratesPerUnit:
-            _getValuePerUnit(offNutriments.carbohydrates_100g),
-        fat100g: offNutriments.fat_100g,
-        fatPerUnit: _getValuePerUnit(offNutriments.fat_100g),
-        proteins100g: offNutriments.proteins_100g,
-        proteinsPerUnit: _getValuePerUnit(offNutriments.proteins_100g),
-        sugars100g: offNutriments.sugars_100g,
-        saturatedFat100g: offNutriments.saturated_fat_100g,
-        fiber100g: offNutriments.fiber_100g);
+        energyKcal100:
+            (offNutriments.energy_kcal_100g as Object?).asDoubleOrNull(),
+        energyPerUnit: _getValuePerUnit(
+            (offNutriments.energy_kcal_100g as Object?).asDoubleOrNull()),
+        carbohydrates100g:
+            (offNutriments.carbohydrates_100g as Object?).asDoubleOrNull(),
+        carbohydratesPerUnit: _getValuePerUnit(
+            (offNutriments.carbohydrates_100g as Object?).asDoubleOrNull()),
+        fat100g: (offNutriments.fat_100g as Object?).asDoubleOrNull(),
+        fatPerUnit: _getValuePerUnit(
+            (offNutriments.fat_100g as Object?).asDoubleOrNull()),
+        proteins100g: (offNutriments.proteins_100g as Object?).asDoubleOrNull(),
+        proteinsPerUnit: _getValuePerUnit(
+            (offNutriments.proteins_100g as Object?).asDoubleOrNull()),
+        sugars100g: (offNutriments.sugars_100g as Object?).asDoubleOrNull(),
+        saturatedFat100g:
+            (offNutriments.saturated_fat_100g as Object?).asDoubleOrNull(),
+        fiber100g: (offNutriments.fiber_100g as Object?).asDoubleOrNull());
   }
 
   static double? _getValuePerUnit(double? valuePer100) {
