@@ -18,7 +18,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       emit(ProductsLoadingState());
       try {
         final result = await searchProductUseCase
-            .searchProductsByString(event.searchString);
+            .searchOFFProductsByString(event.searchString);
         emit(ProductsLoadedState(products: result));
       } catch (error) {
         log.severe(error);
