@@ -14,6 +14,7 @@ class FDCFood {
 
   final String? packageWeight;
   final double? servingSize;
+  final String? servingSizeUnit;
 
   final List<FDCFoodNutriment> foodNutrients;
 
@@ -25,7 +26,8 @@ class FDCFood {
       required this.brandName,
       required this.packageWeight,
       required this.servingSize,
-      required this.foodNutrients});
+      required this.foodNutrients,
+      required this.servingSizeUnit});
 
   factory FDCFood.fromJson(Map<String, dynamic> json) =>
       _$FDCFoodFromJson(json);

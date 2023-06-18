@@ -17,6 +17,7 @@ FDCFood _$FDCFoodFromJson(Map<String, dynamic> json) => FDCFood(
       foodNutrients: (json['foodNutrients'] as List<dynamic>)
           .map((e) => FDCFoodNutriment.fromJson(e as Map<String, dynamic>))
           .toList(),
+      servingSizeUnit: json['servingSizeUnit'] as String?,
     );
 
 Map<String, dynamic> _$FDCFoodToJson(FDCFood instance) => <String, dynamic>{
@@ -27,5 +28,6 @@ Map<String, dynamic> _$FDCFoodToJson(FDCFood instance) => <String, dynamic>{
       'brandName': instance.brandName,
       'packageWeight': instance.packageWeight,
       'servingSize': instance.servingSize,
+      'servingSizeUnit': instance.servingSizeUnit,
       'foodNutrients': instance.foodNutrients,
     };
