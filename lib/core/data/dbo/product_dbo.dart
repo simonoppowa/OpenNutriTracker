@@ -27,7 +27,7 @@ class ProductDBO extends HiveObject {
   final String? url;
 
   @HiveField(8)
-  final double? productQuantity;
+  final String? productQuantity;
   @HiveField(9)
   final String? productUnit;
   @HiveField(10)

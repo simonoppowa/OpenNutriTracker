@@ -25,7 +25,7 @@ class ProductDBOAdapter extends TypeAdapter<ProductDBO> {
       thumbnailImageUrl: fields[5] as String?,
       mainImageUrl: fields[6] as String?,
       url: fields[7] as String?,
-      productQuantity: fields[8] as double?,
+      productQuantity: fields[8] as String?,
       productUnit: fields[9] as String?,
       servingQuantity: fields[10] as double?,
       servingUnit: fields[11] as String?,

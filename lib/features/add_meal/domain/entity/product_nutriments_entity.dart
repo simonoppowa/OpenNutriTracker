@@ -1,5 +1,8 @@
+import 'package:collection/collection.dart';
 import 'package:opennutritracker/core/data/dbo/product_nutriments_dbo.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_nutriment.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off_product_nutriments.dart';
 
 class ProductNutrimentsEntity {
@@ -68,6 +71,57 @@ class ProductNutrimentsEntity {
         saturatedFat100g:
             (offNutriments.saturated_fat_100g as Object?).asDoubleOrNull(),
         fiber100g: (offNutriments.fiber_100g as Object?).asDoubleOrNull());
+  }
+
+  factory ProductNutrimentsEntity.fromFDCNutriments(
+      List<FDCFoodNutriment> fdcNutriment) {
+    final energyTotal = fdcNutriment
+        .firstWhereOrNull(
+            (nutriment) => nutriment.nutrientId == FDCConst.fdcTotalKcalId)
+        ?.value;
+
+    final carbsTotal = fdcNutriment
+        .firstWhereOrNull(
+            (nutriment) => nutriment.nutrientId == FDCConst.fdcTotalCarbsId)
+        ?.value;
+
+    final fatTotal = fdcNutriment
+        .firstWhereOrNull(
+            (nutriment) => nutriment.nutrientId == FDCConst.fdcTotalFatId)
+        ?.value;
+
+    final proteinsTotal = fdcNutriment
+        .firstWhereOrNull(
+            (nutriment) => nutriment.nutrientId == FDCConst.fdcTotalProteinsId)
+        ?.value;
+
+    final sugarTotal = fdcNutriment
+        .firstWhereOrNull(
+            (nutriment) => nutriment.nutrientId == FDCConst.fdcTotalSugarId)
+        ?.value;
+
+    final saturatedFatTotal = fdcNutriment
+        .firstWhereOrNull((nutriment) =>
+            nutriment.nutrientId == FDCConst.fdcTotalSaturatedFatId)
+        ?.value;
+
+    final fiberTotal = fdcNutriment
+        .firstWhereOrNull((nutriment) =>
+            nutriment.nutrientId == FDCConst.fdcTotalDietaryFiberId)
+        ?.value;
+
+    return ProductNutrimentsEntity(
+        energyKcal100: energyTotal,
+        energyPerUnit: _getValuePerUnit(energyTotal),
+        carbohydrates100g: carbsTotal,
+        carbohydratesPerUnit: _getValuePerUnit(carbsTotal),
+        fat100g: fatTotal,
+        fatPerUnit: _getValuePerUnit(fatTotal),
+        proteins100g: proteinsTotal,
+        proteinsPerUnit: _getValuePerUnit(proteinsTotal),
+        sugars100g: sugarTotal,
+        saturatedFat100g: saturatedFatTotal,
+        fiber100g: fiberTotal);
   }
 
   static double? _getValuePerUnit(double? valuePer100) {

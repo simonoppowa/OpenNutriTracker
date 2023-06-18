@@ -101,7 +101,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                              '${product.productQuantity?.toInt()} ${product.productUnit}',
+                              '${product.productQuantity} ${product.productUnit}',
                               style: Theme.of(context).textTheme.bodyLarge)))),
             )
           ]),

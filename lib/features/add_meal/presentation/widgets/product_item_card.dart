@@ -37,7 +37,7 @@ class ProductItemCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.fade),
             subtitle: Text(
-                '${productEntity.productQuantityFormatted ?? ""}${productEntity.productUnit ?? "g/ml"}',
+                '${productEntity.productQuantity ?? ""}${productEntity.productUnit ?? ""}',
                 style: Theme.of(context).textTheme.titleMedium),
             trailing: IconButton(
               style: IconButton.styleFrom(
