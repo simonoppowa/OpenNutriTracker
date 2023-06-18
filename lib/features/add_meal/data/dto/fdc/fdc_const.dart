@@ -1,11 +1,12 @@
 class FDCConst {
-
   static const _pageSize = "10";
 
   // URL
-  static const _fdcWebsiteUrl = "https://api.nal.usda.gov/fdc";
+  static const _fdcWebsiteUrl = "https://fdc.nal.usda.gov/fdc-app.html#";
+  static const _fdcFoodDetailPath = "/food-details/";
+  static const _fdcFoodDetailNutrientsPath = "/nutrients";
   static const _fdcBaseUrl = "api.nal.usda.gov";
-  static const _fdcFoodSearchTag = "/fdc/v1/foods/search";
+  static const _fdcFoodSearchPath = "/fdc/v1/foods/search";
 
   static const _fdcQueryTag = "query";
   static const _fdcPageSizeTag = "pageSize";
@@ -23,6 +24,17 @@ class FDCConst {
     _fdcDataTypeSRLegacyValue
   ];
 
+  static String getFoodDetailUrlString(String? code) {
+    if (code == null) {
+      return _fdcBaseUrl;
+    } else {
+      return _fdcWebsiteUrl +
+          _fdcFoodDetailPath +
+          code +
+          _fdcFoodDetailNutrientsPath;
+    }
+  }
+
   static String _getDataTypeParams() => _dataTypeParams.join(",");
 
   static Uri getFDCWordSearchUrl(String searchString, String apiKey) {
@@ -34,7 +46,7 @@ class FDCConst {
       _fdcApiKeyTag: apiKey
     };
 
-    return Uri.https(_fdcBaseUrl, _fdcFoodSearchTag, queryParameters);
+    return Uri.https(_fdcBaseUrl, _fdcFoodSearchPath, queryParameters);
   }
 
   // Nutriment codes
