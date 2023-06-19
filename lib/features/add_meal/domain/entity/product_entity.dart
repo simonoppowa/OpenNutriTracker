@@ -4,6 +4,7 @@ import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off_product.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_nutriments_entity.dart';
 
+// TODO rename
 class ProductEntity {
   final String? code;
   final String? productName;
