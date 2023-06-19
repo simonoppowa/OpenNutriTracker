@@ -10,6 +10,8 @@
   "diaryLabel": "Diary",
   "profileLabel": "Profile",
   "searchLabel": "Search",
+  "searchProductsPage": "Products",
+  "searchFoodPage": "Food",
   "searchResultsLabel": "Search results",
   "searchDefaultLabel": "Please enter search word",
 

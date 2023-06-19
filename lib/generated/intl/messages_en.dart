@@ -510,7 +510,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Scan Product"),
         "searchDefaultLabel":
             MessageLookupByLibrary.simpleMessage("Please enter search word"),
+        "searchFoodPage": MessageLookupByLibrary.simpleMessage("Food"),
         "searchLabel": MessageLookupByLibrary.simpleMessage("Search"),
+        "searchProductsPage": MessageLookupByLibrary.simpleMessage("Products"),
         "searchResultsLabel":
             MessageLookupByLibrary.simpleMessage("Search results"),
         "selectGenderDialogLabel":

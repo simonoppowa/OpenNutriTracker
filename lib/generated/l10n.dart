@@ -150,6 +150,26 @@ class S {
     );
   }
 
+  /// `Products`
+  String get searchProductsPage {
+    return Intl.message(
+      'Products',
+      name: 'searchProductsPage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Food`
+  String get searchFoodPage {
+    return Intl.message(
+      'Food',
+      name: 'searchFoodPage',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Search results`
   String get searchResultsLabel {
     return Intl.message(

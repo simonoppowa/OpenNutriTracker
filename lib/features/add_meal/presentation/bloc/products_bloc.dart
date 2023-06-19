@@ -13,16 +13,21 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
 
   final SearchProductsUseCase searchProductUseCase = SearchProductsUseCase();
 
+  String _searchString = "";
+
   ProductsBloc() : super(ProductsInitial()) {
     on<LoadProductsEvent>((event, emit) async {
-      emit(ProductsLoadingState());
-      try {
-        final result = await searchProductUseCase
-            .searchOFFProductsByString(event.searchString);
-        emit(ProductsLoadedState(products: result));
-      } catch (error) {
-        log.severe(error);
-        emit(ProductsFailedState());
+      if (event.searchString != _searchString) {
+        _searchString = event.searchString;
+        emit(ProductsLoadingState());
+        try {
+          final result = await searchProductUseCase
+              .searchOFFProductsByString(_searchString);
+          emit(ProductsLoadedState(products: result));
+        } catch (error) {
+          log.severe(error);
+          emit(ProductsFailedState());
+        }
       }
     });
   }

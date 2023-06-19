@@ -13,16 +13,21 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
 
   final SearchProductsUseCase searchProductUseCase = SearchProductsUseCase();
 
+  String _searchString = "";
+
   FoodBloc() : super(FoodInitial()) {
     on<LoadFoodEvent>((event, emit) async {
-      emit(FoodLoadingState());
-      try {
-        final result = await searchProductUseCase
-            .searchFDCFoodByString(event.searchString);
-        emit(FoodLoadedState(food: result));
-      } catch (error) {
-        log.severe(error);
-        emit(FoodFailedState());
+      if (event.searchString != _searchString) {
+        _searchString = event.searchString;
+        emit(FoodLoadingState());
+        try {
+          final result =
+              await searchProductUseCase.searchFDCFoodByString(_searchString);
+          emit(FoodLoadedState(food: result));
+        } catch (error) {
+          log.severe(error);
+          emit(FoodFailedState());
+        }
       }
     });
   }
