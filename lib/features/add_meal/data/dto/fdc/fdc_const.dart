@@ -2,7 +2,7 @@ class FDCConst {
   static const _pageSize = "20";
 
   // URL
-  static const _fdcWebsiteUrl = "https://fdc.nal.usda.gov/fdc-app.html#";
+  static const fdcWebsiteUrl = "https://fdc.nal.usda.gov/fdc-app.html#";
   static const _fdcFoodDetailPath = "/food-details/";
   static const _fdcFoodDetailNutrientsPath = "/nutrients";
   static const _fdcBaseUrl = "api.nal.usda.gov";
@@ -27,7 +27,7 @@ class FDCConst {
     if (code == null) {
       return _fdcBaseUrl;
     } else {
-      return _fdcWebsiteUrl +
+      return fdcWebsiteUrl +
           _fdcFoodDetailPath +
           code +
           _fdcFoodDetailNutrientsPath;

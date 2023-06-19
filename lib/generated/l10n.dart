@@ -891,6 +891,16 @@ class S {
     );
   }
 
+  /// `More Information at\nFoodData Central`
+  String get additionalInfoLabelFDC {
+    return Intl.message(
+      'More Information at\nFoodData Central',
+      name: 'additionalInfoLabelFDC',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Information provided\n by the \n'2011 Compendium\n of Physical Activities'`
   String get additionalInfoLabelCompendium2011 {
     return Intl.message(
