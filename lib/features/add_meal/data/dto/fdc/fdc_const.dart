@@ -1,5 +1,5 @@
 class FDCConst {
-  static const _pageSize = "10";
+  static const _pageSize = "20";
 
   // URL
   static const _fdcWebsiteUrl = "https://fdc.nal.usda.gov/fdc-app.html#";
@@ -19,7 +19,6 @@ class FDCConst {
   static const _fdcApiKeyTag = "api_key";
 
   static const _dataTypeParams = [
-    _fdcDataTypeBrandedValue,
     _fdcDataTypeFoundationValue,
     _fdcDataTypeSRLegacyValue
   ];
