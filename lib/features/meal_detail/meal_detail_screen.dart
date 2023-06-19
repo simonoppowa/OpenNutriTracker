@@ -101,7 +101,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                              '${product.productQuantity?.toInt()} ${product.productUnit}',
+                              '${product.productQuantity} ${product.productUnit}',
                               style: Theme.of(context).textTheme.bodyLarge)))),
             )
           ]),
@@ -134,7 +134,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 const SizedBox(height: 16.0),
                 MealDetailNutrimentsTable(product: product),
                 const SizedBox(height: 32.0),
-                MealInfoButton(url: product.url ?? OFFConst.offWebsiteUrl),
+                MealInfoButton(url: product.url, source: product.source),
                 const SizedBox(height: 200.0) // height added to scroll
               ],
             ),

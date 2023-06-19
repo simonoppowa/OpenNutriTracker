@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ItemSearchBar extends StatelessWidget {
+  final ValueNotifier<String> searchStringListener;
   final Function(String) onSearchSubmit;
   final Function() onBarcodePressed;
 
   const ItemSearchBar(
-      {Key? key, required this.onSearchSubmit, required this.onBarcodePressed})
+      {Key? key,
+      required this.searchStringListener,
+      required this.onSearchSubmit,
+      required this.onBarcodePressed})
       : super(key: key);
 
   @override
@@ -19,6 +23,9 @@ class ItemSearchBar extends StatelessWidget {
           child: TextField(
               controller: searchTextController,
               textInputAction: TextInputAction.search,
+              onChanged: (input) {
+                searchStringListener.value = input;
+              },
               onSubmitted: onSearchSubmit,
               decoration: InputDecoration(
                 hintText: S.of(context).searchLabel,
@@ -49,5 +56,4 @@ class ItemSearchBar extends StatelessWidget {
       ],
     );
   }
-
 }

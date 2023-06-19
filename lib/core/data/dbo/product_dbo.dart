@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:opennutritracker/core/data/dbo/product_nutriments_dbo.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
@@ -27,7 +29,7 @@ class ProductDBO extends HiveObject {
   final String? url;
 
   @HiveField(8)
-  final double? productQuantity;
+  final String? productQuantity;
   @HiveField(9)
   final String? productUnit;
   @HiveField(10)
@@ -36,6 +38,9 @@ class ProductDBO extends HiveObject {
   final String? servingUnit;
 
   @HiveField(12)
+  final ProductSourceDBO source;
+
+  @HiveField(13)
   final ProductNutrimentsDBO nutriments;
 
   ProductDBO(
@@ -51,9 +56,11 @@ class ProductDBO extends HiveObject {
       required this.productUnit,
       required this.servingQuantity,
       required this.servingUnit,
-      required this.nutriments});
+      required this.nutriments,
+      required this.source});
 
-  factory ProductDBO.fromProductEntity(ProductEntity productEntity) =>
+  factory ProductDBO.fromProductEntity(
+          ProductEntity productEntity) =>
       ProductDBO(
           code: productEntity.code,
           productName: productEntity.productName,
@@ -67,6 +74,35 @@ class ProductDBO extends HiveObject {
           productUnit: productEntity.productUnit,
           servingQuantity: productEntity.servingQuantity,
           servingUnit: productEntity.servingUnit,
-          nutriments: ProductNutrimentsDBO.fromProductNutrimentsEntity(
-              productEntity.nutriments));
+          nutriments:
+              ProductNutrimentsDBO.fromProductNutrimentsEntity(
+                  productEntity.nutriments),
+          source:
+              ProductSourceDBO.fromProductSourceEntity(productEntity.source));
+}
+
+@HiveType(typeId: 14)
+enum ProductSourceDBO {
+  @HiveField(0)
+  Unknown,
+  @HiveField(1)
+  OFF,
+  @HiveField(2)
+  FDC;
+
+  factory ProductSourceDBO.fromProductSourceEntity(ProductSourceEntity entity) {
+    ProductSourceDBO productSourceDBO;
+    switch (entity) {
+      case ProductSourceEntity.Unknown:
+        productSourceDBO = ProductSourceDBO.Unknown;
+        break;
+      case ProductSourceEntity.OFF:
+        productSourceDBO = ProductSourceDBO.OFF;
+        break;
+      case ProductSourceEntity.FDC:
+        productSourceDBO = ProductSourceDBO.FDC;
+        break;
+    }
+    return productSourceDBO;
+  }
 }

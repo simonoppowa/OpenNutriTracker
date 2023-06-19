@@ -47,6 +47,7 @@ dependencies:
   url_launcher: ^6.1.10
   cached_network_image: ^3.2.3
   flutter_cache_manager: ^3.3.0
+  envied: ^0.3.0+3
 
   flutter_bloc: ^8.1.2
   equatable: ^2.0.5
@@ -70,6 +71,7 @@ dev_dependencies:
   json_serializable: ^6.6.1
   flutter_lints: ^2.0.1
   hive_generator: ^2.0.0
+  envied_generator: ^0.3.0+3
 
 flutter:
 

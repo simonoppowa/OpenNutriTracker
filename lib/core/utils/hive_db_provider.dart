@@ -35,6 +35,7 @@ class HiveDBProvider extends ChangeNotifier {
     Hive.registerAdapter(IntakeDBOAdapter());
     Hive.registerAdapter(ProductDBOAdapter());
     Hive.registerAdapter(ProductNutrimentsDBOAdapter());
+    Hive.registerAdapter(ProductSourceDBOAdapter());
     Hive.registerAdapter(IntakeTypeDBOAdapter());
     Hive.registerAdapter(UserDBOAdapter());
     Hive.registerAdapter(UserGenderDBOAdapter());

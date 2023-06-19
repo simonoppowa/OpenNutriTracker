@@ -150,6 +150,26 @@ class S {
     );
   }
 
+  /// `Products`
+  String get searchProductsPage {
+    return Intl.message(
+      'Products',
+      name: 'searchProductsPage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Food`
+  String get searchFoodPage {
+    return Intl.message(
+      'Food',
+      name: 'searchFoodPage',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Search results`
   String get searchResultsLabel {
     return Intl.message(
@@ -866,6 +886,16 @@ class S {
     return Intl.message(
       'More Information at\nOpenFoodFacts',
       name: 'additionalInfoLabelOFF',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `More Information at\nFoodData Central`
+  String get additionalInfoLabelFDC {
+    return Intl.message(
+      'More Information at\nFoodData Central',
+      name: 'additionalInfoLabelFDC',
       desc: '',
       args: [],
     );

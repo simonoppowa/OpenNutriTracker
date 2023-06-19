@@ -5,6 +5,6 @@ class SearchProductByBarcodeUseCase {
   final ProductsRepository productsRepository = ProductsRepository();
 
   Future<ProductEntity> searchProductByBarcode(String barcode) async {
-    return await productsRepository.getProductByBarcode(barcode);
+    return await productsRepository.getOFFProductByBarcode(barcode);
   }
 }

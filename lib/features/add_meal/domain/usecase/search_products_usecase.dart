@@ -5,9 +5,15 @@ class SearchProductsUseCase {
   // TODO make singleton
   final ProductsRepository productsRepository = ProductsRepository();
 
-  Future<List<ProductEntity>> searchProductsByString(
+  Future<List<ProductEntity>> searchOFFProductsByString(
       String searchString) async {
-    final products = await productsRepository.getProductsByString(searchString);
+    final products =
+        await productsRepository.getOFFProductsByString(searchString);
     return products;
+  }
+
+  Future<List<ProductEntity>> searchFDCFoodByString(String searchString) async {
+    final foods = await productsRepository.getFDCFoodsByString(searchString);
+    return foods;
   }
 }

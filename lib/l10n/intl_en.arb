@@ -10,6 +10,8 @@
   "diaryLabel": "Diary",
   "profileLabel": "Profile",
   "searchLabel": "Search",
+  "searchProductsPage": "Products",
+  "searchFoodPage": "Food",
   "searchResultsLabel": "Search results",
   "searchDefaultLabel": "Please enter search word",
 
@@ -89,6 +91,7 @@
   "fiberLabel": "fiber",
   "per100gLabel": "Per 100g",
   "additionalInfoLabelOFF": "More Information at\nOpenFoodFacts",
+  "additionalInfoLabelFDC": "More Information at\nFoodData Central",
   "additionalInfoLabelCompendium2011": "Information provided\n by the \n'2011 Compendium\n of Physical Activities'",
   "quantityLabel": "Quantity",
   "unitLabel": "Unit",

@@ -38,6 +38,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
         "additionalInfoLabelCompendium2011": MessageLookupByLibrary.simpleMessage(
             "Information provided\n by the \n\'2011 Compendium\n of Physical Activities\'"),
+        "additionalInfoLabelFDC": MessageLookupByLibrary.simpleMessage(
+            "More Information at\nFoodData Central"),
         "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
             "More Information at\nOpenFoodFacts"),
         "ageLabel": MessageLookupByLibrary.simpleMessage("Age"),
@@ -510,7 +512,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Scan Product"),
         "searchDefaultLabel":
             MessageLookupByLibrary.simpleMessage("Please enter search word"),
+        "searchFoodPage": MessageLookupByLibrary.simpleMessage("Food"),
         "searchLabel": MessageLookupByLibrary.simpleMessage("Search"),
+        "searchProductsPage": MessageLookupByLibrary.simpleMessage("Products"),
         "searchResultsLabel":
             MessageLookupByLibrary.simpleMessage("Search results"),
         "selectGenderDialogLabel":

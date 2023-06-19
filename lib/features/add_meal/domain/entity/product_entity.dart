@@ -1,7 +1,12 @@
+// ignore_for_file: constant_identifier_names
+
 import 'package:opennutritracker/core/data/dbo/product_dbo.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off_product.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_nutriments_entity.dart';
 
+// TODO rename
 class ProductEntity {
   final String? code;
   final String? productName;
@@ -15,29 +20,30 @@ class ProductEntity {
 
   final String? url;
 
-  final double? productQuantity;
+  final String? productQuantity;
   final String? productUnit;
   final double? servingQuantity;
   final String? servingUnit;
 
-  final ProductNutrimentsEntity nutriments;
+  final ProductSourceEntity source;
 
-  String? get productQuantityFormatted => productQuantity?.floor().toString();
+  final ProductNutrimentsEntity nutriments;
 
   ProductEntity(
       {required this.code,
       required this.productName,
-      required this.productNameEN,
-      required this.productNameDE,
-      required this.brands,
-      required this.thumbnailImageUrl,
-      required this.mainImageUrl,
+      this.productNameEN,
+      this.productNameDE,
+      this.brands,
+      this.thumbnailImageUrl,
+      this.mainImageUrl,
       required this.url,
       required this.productQuantity,
       required this.productUnit,
       required this.servingQuantity,
       required this.servingUnit,
-      required this.nutriments});
+      required this.nutriments,
+      required this.source});
 
   factory ProductEntity.fromProductDBO(ProductDBO productDBO) => ProductEntity(
       code: productDBO.code,
@@ -48,12 +54,13 @@ class ProductEntity {
       thumbnailImageUrl: productDBO.thumbnailImageUrl,
       mainImageUrl: productDBO.mainImageUrl,
       url: productDBO.url,
-      productQuantity: productDBO.productQuantity,
+      productQuantity: productDBO.productQuantity.toString(),
       productUnit: productDBO.productUnit,
       servingQuantity: productDBO.servingQuantity,
       servingUnit: productDBO.servingUnit,
       nutriments: ProductNutrimentsEntity.fromProductNutrimentsDBO(
-          productDBO.nutriments));
+          productDBO.nutriments),
+      source: ProductSourceEntity.fromProductSourceDBO(productDBO.source));
 
   factory ProductEntity.fromOFFProduct(OFFProduct offProduct) {
     return ProductEntity(
@@ -65,12 +72,30 @@ class ProductEntity {
         thumbnailImageUrl: offProduct.image_front_thumb_url,
         mainImageUrl: offProduct.image_front_url,
         url: offProduct.url,
-        productQuantity: _tryQuantityCast(offProduct.product_quantity),
+        productQuantity: offProduct.product_quantity.toString(),
         productUnit: _tryGetUnit(offProduct.quantity),
         servingQuantity: _tryQuantityCast(offProduct.serving_quantity),
         servingUnit: _tryGetUnit(offProduct.quantity),
         nutriments:
-            ProductNutrimentsEntity.fromOffNutriments(offProduct.nutriments));
+            ProductNutrimentsEntity.fromOffNutriments(offProduct.nutriments),
+        source: ProductSourceEntity.OFF);
+  }
+
+  factory ProductEntity.fromFDCFood(FDCFood fdcFood) {
+    final fdcId = fdcFood.fdcId?.toInt().toString();
+
+    return ProductEntity(
+        code: fdcFood.gtinUpc,
+        productName: fdcFood.description,
+        brands: fdcFood.brandName,
+        url: FDCConst.getFoodDetailUrlString(fdcId),
+        productQuantity: fdcFood.packageWeight,
+        productUnit: fdcFood.servingSizeUnit,
+        servingQuantity: fdcFood.servingSize,
+        servingUnit: fdcFood.servingSizeUnit,
+        nutriments:
+            ProductNutrimentsEntity.fromFDCNutriments(fdcFood.foodNutrients),
+        source: ProductSourceEntity.FDC);
   }
 
   /// Value returned from OFF can either be String, int or double.
@@ -105,5 +130,28 @@ class ProductEntity {
     } else {
       return "g";
     }
+  }
+}
+
+enum ProductSourceEntity {
+  Unknown,
+  OFF,
+  FDC;
+
+  factory ProductSourceEntity.fromProductSourceDBO(
+      ProductSourceDBO productSourceDBO) {
+    ProductSourceEntity productSourceEntity;
+    switch (productSourceDBO) {
+      case ProductSourceDBO.Unknown:
+        productSourceEntity = ProductSourceEntity.Unknown;
+        break;
+      case ProductSourceDBO.OFF:
+        productSourceEntity = ProductSourceEntity.OFF;
+        break;
+      case ProductSourceDBO.FDC:
+        productSourceEntity = ProductSourceEntity.FDC;
+        break;
+    }
+    return productSourceEntity;
   }
 }

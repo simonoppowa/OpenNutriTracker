@@ -4,29 +4,29 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 
-part 'products_event.dart';
+part 'food_event.dart';
 
-part 'products_state.dart';
+part 'food_state.dart';
 
-class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
-  final log = Logger('ProductsBloc');
+class FoodBloc extends Bloc<FoodEvent, FoodState> {
+  final log = Logger('FoodBloc');
 
   final SearchProductsUseCase searchProductUseCase = SearchProductsUseCase();
 
   String _searchString = "";
 
-  ProductsBloc() : super(ProductsInitial()) {
-    on<LoadProductsEvent>((event, emit) async {
+  FoodBloc() : super(FoodInitial()) {
+    on<LoadFoodEvent>((event, emit) async {
       if (event.searchString != _searchString) {
         _searchString = event.searchString;
-        emit(ProductsLoadingState());
+        emit(FoodLoadingState());
         try {
-          final result = await searchProductUseCase
-              .searchOFFProductsByString(_searchString);
-          emit(ProductsLoadedState(products: result));
+          final result =
+              await searchProductUseCase.searchFDCFoodByString(_searchString);
+          emit(FoodLoadedState(food: result));
         } catch (error) {
           log.severe(error);
-          emit(ProductsFailedState());
+          emit(FoodFailedState());
         }
       }
     });

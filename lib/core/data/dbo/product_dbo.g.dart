@@ -25,18 +25,19 @@ class ProductDBOAdapter extends TypeAdapter<ProductDBO> {
       thumbnailImageUrl: fields[5] as String?,
       mainImageUrl: fields[6] as String?,
       url: fields[7] as String?,
-      productQuantity: fields[8] as double?,
+      productQuantity: fields[8] as String?,
       productUnit: fields[9] as String?,
       servingQuantity: fields[10] as double?,
       servingUnit: fields[11] as String?,
-      nutriments: fields[12] as ProductNutrimentsDBO,
+      nutriments: fields[13] as ProductNutrimentsDBO,
+      source: fields[12] as ProductSourceDBO,
     );
   }
 
   @override
   void write(BinaryWriter writer, ProductDBO obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.code)
       ..writeByte(1)
@@ -62,6 +63,8 @@ class ProductDBOAdapter extends TypeAdapter<ProductDBO> {
       ..writeByte(11)
       ..write(obj.servingUnit)
       ..writeByte(12)
+      ..write(obj.source)
+      ..writeByte(13)
       ..write(obj.nutriments);
   }
 
@@ -72,6 +75,50 @@ class ProductDBOAdapter extends TypeAdapter<ProductDBO> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is ProductDBOAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class ProductSourceDBOAdapter extends TypeAdapter<ProductSourceDBO> {
+  @override
+  final int typeId = 14;
+
+  @override
+  ProductSourceDBO read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return ProductSourceDBO.Unknown;
+      case 1:
+        return ProductSourceDBO.OFF;
+      case 2:
+        return ProductSourceDBO.FDC;
+      default:
+        return ProductSourceDBO.Unknown;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, ProductSourceDBO obj) {
+    switch (obj) {
+      case ProductSourceDBO.Unknown:
+        writer.writeByte(0);
+        break;
+      case ProductSourceDBO.OFF:
+        writer.writeByte(1);
+        break;
+      case ProductSourceDBO.FDC:
+        writer.writeByte(2);
+        break;
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ProductSourceDBOAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
