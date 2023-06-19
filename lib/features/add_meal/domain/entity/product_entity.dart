@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 import 'package:opennutritracker/core/data/dbo/product_dbo.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food.dart';
@@ -23,6 +25,8 @@ class ProductEntity {
   final double? servingQuantity;
   final String? servingUnit;
 
+  final ProductSourceEntity source;
+
   final ProductNutrimentsEntity nutriments;
 
   ProductEntity(
@@ -38,7 +42,8 @@ class ProductEntity {
       required this.productUnit,
       required this.servingQuantity,
       required this.servingUnit,
-      required this.nutriments});
+      required this.nutriments,
+      required this.source});
 
   factory ProductEntity.fromProductDBO(ProductDBO productDBO) => ProductEntity(
       code: productDBO.code,
@@ -54,7 +59,8 @@ class ProductEntity {
       servingQuantity: productDBO.servingQuantity,
       servingUnit: productDBO.servingUnit,
       nutriments: ProductNutrimentsEntity.fromProductNutrimentsDBO(
-          productDBO.nutriments));
+          productDBO.nutriments),
+      source: ProductSourceEntity.fromProductSourceDBO(productDBO.source));
 
   factory ProductEntity.fromOFFProduct(OFFProduct offProduct) {
     return ProductEntity(
@@ -71,7 +77,8 @@ class ProductEntity {
         servingQuantity: _tryQuantityCast(offProduct.serving_quantity),
         servingUnit: _tryGetUnit(offProduct.quantity),
         nutriments:
-            ProductNutrimentsEntity.fromOffNutriments(offProduct.nutriments));
+            ProductNutrimentsEntity.fromOffNutriments(offProduct.nutriments),
+        source: ProductSourceEntity.OFF);
   }
 
   factory ProductEntity.fromFDCFood(FDCFood fdcFood) {
@@ -87,7 +94,8 @@ class ProductEntity {
         servingQuantity: fdcFood.servingSize,
         servingUnit: fdcFood.servingSizeUnit,
         nutriments:
-            ProductNutrimentsEntity.fromFDCNutriments(fdcFood.foodNutrients));
+            ProductNutrimentsEntity.fromFDCNutriments(fdcFood.foodNutrients),
+        source: ProductSourceEntity.FDC);
   }
 
   /// Value returned from OFF can either be String, int or double.
@@ -122,5 +130,28 @@ class ProductEntity {
     } else {
       return "g";
     }
+  }
+}
+
+enum ProductSourceEntity {
+  Unknown,
+  OFF,
+  FDC;
+
+  factory ProductSourceEntity.fromProductSourceDBO(
+      ProductSourceDBO productSourceDBO) {
+    ProductSourceEntity productSourceEntity;
+    switch (productSourceDBO) {
+      case ProductSourceDBO.Unknown:
+        productSourceEntity = ProductSourceEntity.Unknown;
+        break;
+      case ProductSourceDBO.OFF:
+        productSourceEntity = ProductSourceEntity.OFF;
+        break;
+      case ProductSourceDBO.FDC:
+        productSourceEntity = ProductSourceEntity.FDC;
+        break;
+    }
+    return productSourceEntity;
   }
 }
