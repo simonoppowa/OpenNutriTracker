@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_item_type.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 class ProductItemCard extends StatelessWidget {
   final AddItemType addItemType;
@@ -36,9 +37,11 @@ class ProductItemCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge,
                 maxLines: 2,
                 overflow: TextOverflow.fade),
-            subtitle: Text(
-                '${productEntity.productQuantity ?? ""}${productEntity.productUnit ?? ""}',
-                style: Theme.of(context).textTheme.titleMedium),
+            subtitle: productEntity.productQuantity != null
+                ? Text(
+                    '${productEntity.productQuantity}${productEntity.productUnit ?? S.of(context).gramMilliliterUnit}',
+                    style: Theme.of(context).textTheme.titleMedium)
+                : const SizedBox(),
             trailing: IconButton(
               style: IconButton.styleFrom(
                   foregroundColor:

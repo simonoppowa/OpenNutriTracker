@@ -72,7 +72,7 @@ class ProductEntity {
         thumbnailImageUrl: offProduct.image_front_thumb_url,
         mainImageUrl: offProduct.image_front_url,
         url: offProduct.url,
-        productQuantity: offProduct.product_quantity.toString(),
+        productQuantity: offProduct.product_quantity?.toString(),
         productUnit: _tryGetUnit(offProduct.quantity),
         servingQuantity: _tryQuantityCast(offProduct.serving_quantity),
         servingUnit: _tryGetUnit(offProduct.quantity),
