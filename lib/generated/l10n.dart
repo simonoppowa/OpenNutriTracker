@@ -941,6 +941,36 @@ class S {
     );
   }
 
+  /// `g`
+  String get gramUnit {
+    return Intl.message(
+      'g',
+      name: 'gramUnit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `ml`
+  String get milliliterUnit {
+    return Intl.message(
+      'ml',
+      name: 'milliliterUnit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `g/ml`
+  String get gramMilliliterUnit {
+    return Intl.message(
+      'g/ml',
+      name: 'gramMilliliterUnit',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Added new intake`
   String get infoAddedIntakeLabel {
     return Intl.message(

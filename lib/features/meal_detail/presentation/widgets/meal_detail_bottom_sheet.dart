@@ -76,14 +76,17 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                           const SizedBox(width: 16.0),
                           Expanded(
                               child: DropdownButtonFormField(
-                            decoration: InputDecoration(
-                                border: const OutlineInputBorder(),
-                                labelText: S.of(context).unitLabel),
-                            items: const <DropdownMenuItem<String>>[
-                              DropdownMenuItem(child: Text('g'))
-                            ],
-                            onChanged: (Object? value) {},
-                          ))
+                                  decoration: InputDecoration(
+                                      border: const OutlineInputBorder(),
+                                      labelText: S.of(context).unitLabel),
+                                  items: <DropdownMenuItem<String>>[
+                                    DropdownMenuItem(
+                                        child: Text(widget
+                                                .product.productUnit ??
+                                            S.of(context).gramMilliliterUnit))
+                                  ],
+                                  onChanged: null // deactivate item,
+                                  ))
                         ],
                       ),
                       SizedBox(
@@ -118,7 +121,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
 
     widget.mealDetailBloc.addIntake(
         context,
-        widget.product.productUnit ?? "g",
+        widget.product.productUnit ??  S.of(context).gramMilliliterUnit,
         widget.quantityTextController.text,
         widget.intakeTypeEntity,
         widget.product);

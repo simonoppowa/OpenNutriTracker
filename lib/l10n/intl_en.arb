@@ -96,6 +96,9 @@
   "quantityLabel": "Quantity",
   "unitLabel": "Unit",
   "scanProductLabel": "Scan Product",
+  "gramUnit": "g",
+  "milliliterUnit": "ml",
+  "gramMilliliterUnit": "g/ml",
 
   "infoAddedIntakeLabel": "Added new intake",
   "infoAddedActivityLabel": "Added new activity",

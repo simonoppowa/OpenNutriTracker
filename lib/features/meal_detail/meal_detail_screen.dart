@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
-import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
@@ -113,7 +112,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   children: [
                     Text('${totalKcal.toInt()} ${S.of(context).kcalLabel}',
                         style: Theme.of(context).textTheme.headlineSmall),
-                    Text(' / ${totalQuantity.toInt()} ${product.productUnit}')
+                    Text(
+                        ' / ${totalQuantity.toInt()} ${product.productUnit ?? S.of(context).gramMilliliterUnit}')
                   ],
                 ),
                 const SizedBox(height: 8.0),

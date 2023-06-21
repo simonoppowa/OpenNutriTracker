@@ -103,6 +103,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "goalLoseWeight": MessageLookupByLibrary.simpleMessage("Lose Weight"),
         "goalMaintainWeight":
             MessageLookupByLibrary.simpleMessage("Maintain Weight"),
+        "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("g/ml"),
+        "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
         "heightLabel": MessageLookupByLibrary.simpleMessage("Height"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
         "infoAddedActivityLabel":
@@ -117,6 +119,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "lunchExample":
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
+        "milliliterUnit": MessageLookupByLibrary.simpleMessage("ml"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Nothing added"),
         "nutritionInfoLabel":
