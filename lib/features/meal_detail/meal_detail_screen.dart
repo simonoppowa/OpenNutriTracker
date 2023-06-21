@@ -81,28 +81,34 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               placeholder: (context, string) => const MealPlaceholder(),
               errorWidget: (context, url, error) => const MealPlaceholder(),
             ),
-            Align(
-              alignment: AlignmentDirectional.topStart,
-              child: Card(
-                child: SizedBox(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text('${product.brands}',
-                        style: Theme.of(context).textTheme.bodyLarge),
-                  ),
-                ),
-              ),
-            ),
-            Align(
-              alignment: AlignmentDirectional.topEnd,
-              child: Card(
-                  child: SizedBox(
-                      child: Padding(
+            product.brands != null
+                ? Align(
+                    alignment: AlignmentDirectional.topStart,
+                    child: Card(
+                      child: SizedBox(
+                        child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                              '${product.productQuantity} ${product.productUnit}',
-                              style: Theme.of(context).textTheme.bodyLarge)))),
-            )
+                          child: Text('${product.brands}',
+                              style: Theme.of(context).textTheme.bodyLarge),
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox(),
+            product.productQuantity != null
+                ? Align(
+                    alignment: AlignmentDirectional.topEnd,
+                    child: Card(
+                        child: SizedBox(
+                            child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                    '${product.productQuantity} ${product.productUnit ?? S.of(context).gramMilliliterUnit}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge)))),
+                  )
+                : const SizedBox()
           ]),
           Padding(
             padding: const EdgeInsets.all(16.0),
