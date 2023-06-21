@@ -9,8 +9,9 @@ part of 'off_product.dart';
 OFFProduct _$OFFProductFromJson(Map<String, dynamic> json) => OFFProduct(
       code: json['code'] as String?,
       product_name: json['product_name'] as String?,
-      product_name_de: json['product_name_de'] as String?,
       product_name_en: json['product_name_en'] as String?,
+      product_name_fr: json['product_name_fr'] as String?,
+      product_name_de: json['product_name_de'] as String?,
       brands: json['brands'] as String?,
       image_front_thumb_url: json['image_front_thumb_url'] as String?,
       image_front_url: json['image_front_url'] as String?,
@@ -30,8 +31,9 @@ Map<String, dynamic> _$OFFProductToJson(OFFProduct instance) =>
     <String, dynamic>{
       'code': instance.code,
       'product_name': instance.product_name,
-      'product_name_de': instance.product_name_de,
       'product_name_en': instance.product_name_en,
+      'product_name_fr': instance.product_name_fr,
+      'product_name_de': instance.product_name_de,
       'brands': instance.brands,
       'image_front_thumb_url': instance.image_front_thumb_url,
       'image_front_url': instance.image_front_url,

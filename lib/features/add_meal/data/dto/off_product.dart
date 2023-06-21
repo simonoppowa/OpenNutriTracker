@@ -9,8 +9,9 @@ part 'off_product.g.dart';
 class OFFProduct {
   final String? code;
   final String? product_name;
-  final String? product_name_de;
   final String? product_name_en;
+  final String? product_name_fr;
+  final String? product_name_de;
 
   final String? brands;
 
@@ -32,8 +33,9 @@ class OFFProduct {
   OFFProduct(
       {required this.code,
       required this.product_name,
-      required this.product_name_de,
       required this.product_name_en,
+      required this.product_name_fr,
+      required this.product_name_de,
       required this.brands,
       required this.image_front_thumb_url,
       required this.image_front_url,

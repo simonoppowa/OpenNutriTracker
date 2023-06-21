@@ -65,7 +65,11 @@ class ProductEntity {
   factory ProductEntity.fromOFFProduct(OFFProduct offProduct) {
     return ProductEntity(
         code: offProduct.code,
-        productName: offProduct.product_name,
+        productName: offProduct.product_name ??
+            offProduct.product_name_fr ??
+            offProduct.product_name_en ??
+            offProduct.product_name_de ??
+            offProduct.brands,
         productNameEN: offProduct.product_name_en,
         productNameDE: offProduct.product_name_de,
         brands: offProduct.brands,
