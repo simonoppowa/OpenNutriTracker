@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -9,7 +7,9 @@ class IntakeCard extends StatelessWidget {
   final Function(BuildContext, IntakeEntity) onItemLongPressed;
 
   const IntakeCard(
-      {required Key? key, required this.intake, required this.onItemLongPressed})
+      {required Key? key,
+      required this.intake,
+      required this.onItemLongPressed})
       : super(key: key);
 
   @override
@@ -30,16 +30,20 @@ class IntakeCard extends StatelessWidget {
           },
           child: Stack(
             children: [
-              CachedNetworkImage(
-                imageUrl: intake.product.mainImageUrl ?? "",
-                imageBuilder: (context, imageProvider) => Container(
-                  decoration: BoxDecoration(
-                      image: DecorationImage(
-                    image: imageProvider,
-                    fit: BoxFit.cover,
-                  )),
-                ),
-              ),
+              intake.product.mainImageUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: intake.product.mainImageUrl ?? "",
+                      imageBuilder: (context, imageProvider) => Container(
+                        decoration: BoxDecoration(
+                            image: DecorationImage(
+                          image: imageProvider,
+                          fit: BoxFit.cover,
+                        )),
+                      ),
+                    )
+                  : Center(
+                      child: Icon(Icons.restaurant_outlined,
+                          color: Theme.of(context).colorScheme.secondary)),
               Container(
                 // Add color shade
                 decoration: BoxDecoration(
@@ -70,8 +74,11 @@ class IntakeCard extends StatelessWidget {
                     children: [
                       Text(
                         intake.product.productName ?? "?",
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onPrimary),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                                color: Theme.of(context).colorScheme.onPrimary),
                         maxLines: 2,
                         overflow: TextOverflow.fade,
                       ),
