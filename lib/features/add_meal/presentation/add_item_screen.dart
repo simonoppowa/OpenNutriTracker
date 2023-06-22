@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_item_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/default_results_widget.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/item_search_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/no_results_widget.dart';
@@ -91,7 +92,7 @@ class _AddItemScreenState extends State<AddItemScreen>
                         bloc: _productsBloc,
                         builder: (context, state) {
                           if (state is ProductsInitial) {
-                            return Text(S.of(context).searchDefaultLabel);
+                            return const DefaultsResultsWidget();
                           } else if (state is ProductsLoadingState) {
                             return const Padding(
                               padding: EdgeInsets.only(top: 32),
@@ -132,7 +133,7 @@ class _AddItemScreenState extends State<AddItemScreen>
                         bloc: _foodBloc,
                         builder: (context, state) {
                           if (state is FoodInitial) {
-                            return Text(S.of(context).searchDefaultLabel);
+                            return const DefaultsResultsWidget();
                           } else if (state is FoodLoadingState) {
                             return const Padding(
                               padding: EdgeInsets.only(top: 32),
