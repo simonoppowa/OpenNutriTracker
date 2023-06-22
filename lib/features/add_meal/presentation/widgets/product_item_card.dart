@@ -49,7 +49,7 @@ class ProductItemCard extends StatelessWidget {
                   backgroundColor:
                       Theme.of(context).colorScheme.secondaryContainer),
               icon: const Icon(Icons.add_outlined),
-              onPressed: () {},
+              onPressed: () => _onItemPressed(context),
             ),
           )),
         ),
