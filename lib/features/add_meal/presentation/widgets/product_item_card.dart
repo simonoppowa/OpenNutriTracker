@@ -27,12 +27,17 @@ class ProductItemCard extends StatelessWidget {
           height: 100,
           child: Center(
               child: ListTile(
-            leading: CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.grey,
-              backgroundImage: CachedNetworkImageProvider(
-                  productEntity.thumbnailImageUrl ?? ""),
-            ),
+            leading: ClipOval(
+                child: CachedNetworkImage(
+              fit: BoxFit.cover,
+              width: 60,
+              height: 60,
+              imageUrl: productEntity.thumbnailImageUrl ?? "",
+              placeholder: (context, url) =>
+                  const Icon(Icons.restaurant_outlined),
+              errorWidget: (context, url, error) =>
+                  const Icon(Icons.restaurant_outlined),
+            )),
             title: Text(productEntity.productName ?? "?",
                 style: Theme.of(context).textTheme.titleLarge,
                 maxLines: 2,
