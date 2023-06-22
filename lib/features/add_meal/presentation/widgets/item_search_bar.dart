@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ItemSearchBar extends StatelessWidget {
@@ -31,7 +32,7 @@ class ItemSearchBar extends StatelessWidget {
                 hintText: S.of(context).searchLabel,
                 prefixIcon: const Icon(Icons.search_outlined),
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.qr_code_scanner_outlined),
+                  icon: const Icon(CustomIcons.barcode_scan),
                   onPressed: () {
                     onBarcodePressed();
                   },
