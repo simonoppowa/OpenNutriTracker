@@ -229,10 +229,10 @@ packages:
     dependency: transitive
     description:
       name: dots_indicator
-      sha256: f1599baa429936ba87f06ae5f2adc920a367b16d08f74db58c3d0f6e93bcdb5c
+      sha256: "58b6a365744aa62aa1b70c4ea29e5106fbe064f5edaf7e9652e9b856edbfd9bb"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.2"
+    version: "3.0.0"
   envied:
     dependency: "direct main"
     description:
@@ -367,7 +367,7 @@ packages:
     source: hosted
     version: "1.0.0"
   flutter_launcher_icons:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: flutter_launcher_icons
       sha256: "526faf84284b86a4cb36d20a5e45147747b7563d921373d4ee0559c54fcdbcea"
@@ -545,10 +545,10 @@ packages:
     dependency: "direct main"
     description:
       name: introduction_screen
-      sha256: f194ae655a84b945a2aedb7961d09948d789fc91088efb032666112923bcbc1e
+      sha256: f39be426026785b8fea4ed93e226e7fc28ef49a4c78c3f86c958bae26dabef00
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.8"
+    version: "3.1.9"
   io:
     dependency: transitive
     description:
