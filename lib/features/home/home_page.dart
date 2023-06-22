@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
+import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/meal_Intake_list.dart';
@@ -130,7 +131,7 @@ class _HomePageState extends State<HomePage> {
         ),
         MealIntakeList(
           title: S.of(context).snackLabel,
-          listIcon: Icons.icecream_outlined,
+          listIcon: CustomIcons.food_apple_outline,
           intakeList: snackIntakeList,
           onItemLongPressedCallback: onIntakeItemLongPressed,
         )

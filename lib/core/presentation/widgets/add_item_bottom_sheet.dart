@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_item_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_item_type.dart';
@@ -104,7 +105,7 @@ class AddItemBottomSheet extends StatelessWidget {
           // ignore: sized_box_for_whitespace
           leading: Container(
               height: double.infinity,
-              child: const Icon(Icons.icecream_outlined)),
+              child: const Icon(CustomIcons.food_apple_outline)),
           onTap: () {
             _showAddItemScreen(context, AddItemType.snackType);
           },

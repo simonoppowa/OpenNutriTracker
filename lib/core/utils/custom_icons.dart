@@ -93,4 +93,5 @@ class CustomIcons {
   static const IconData unicycle = IconData(0xe83f, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData bike_pedal = IconData(0xe840, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData medal = IconData(0xe841, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData food_apple_outline = IconData(0xe842, fontFamily: _kFontFam, fontPackage: _kFontPkg);
 }
