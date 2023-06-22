@@ -120,6 +120,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
         "milliliterUnit": MessageLookupByLibrary.simpleMessage("ml"),
+        "missingProductInfo": MessageLookupByLibrary.simpleMessage(
+            "Product missing required kcal or macronutrients information"),
         "noResultsFound":
             MessageLookupByLibrary.simpleMessage("No results found"),
         "nothingAddedLabel":

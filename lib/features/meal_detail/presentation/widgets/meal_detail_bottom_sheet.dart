@@ -27,6 +27,14 @@ class MealDetailBottomSheet extends StatefulWidget {
 }
 
 class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
+  late bool _productMissingRequiredInfo;
+
+  @override
+  void initState() {
+    _productMissingRequiredInfo = _hasRequiredProductInfoMissing();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BottomSheet(
@@ -56,6 +64,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                         children: [
                           Expanded(
                             child: TextFormField(
+                              enabled: !_productMissingRequiredInfo,
                               controller: widget.quantityTextController,
                               keyboardType: TextInputType.number,
                               inputFormatters: <TextInputFormatter>[
@@ -92,9 +101,11 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                       SizedBox(
                         width: double.infinity, // Make button full width
                         child: ElevatedButton.icon(
-                            onPressed: () {
-                              onAddButtonPressed(context);
-                            },
+                            onPressed: !_productMissingRequiredInfo
+                                ? () {
+                                    onAddButtonPressed(context);
+                                  }
+                                : null,
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Theme.of(context)
                                   .colorScheme
@@ -107,6 +118,15 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                             icon: const Icon(Icons.add_outlined),
                             label: Text(S.of(context).addLabel)),
                       ),
+                      _productMissingRequiredInfo
+                          ? Text(S.of(context).missingProductInfo,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                      color:
+                                          Theme.of(context).colorScheme.error))
+                          : const SizedBox()
                     ],
                   ),
                 ),
@@ -116,12 +136,24 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
         });
   }
 
+  bool _hasRequiredProductInfoMissing() {
+    final productNutriments = widget.product.nutriments;
+    if (productNutriments.energyKcal100 == null ||
+        productNutriments.carbohydrates100g == null ||
+        productNutriments.fat100g == null ||
+        productNutriments.proteins100g == null) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   void onAddButtonPressed(BuildContext context) {
     // TODO
 
     widget.mealDetailBloc.addIntake(
         context,
-        widget.product.productUnit ??  S.of(context).gramMilliliterUnit,
+        widget.product.productUnit ?? S.of(context).gramMilliliterUnit,
         widget.quantityTextController.text,
         widget.intakeTypeEntity,
         widget.product);

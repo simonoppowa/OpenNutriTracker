@@ -971,6 +971,16 @@ class S {
     );
   }
 
+  /// `Product missing required kcal or macronutrients information`
+  String get missingProductInfo {
+    return Intl.message(
+      'Product missing required kcal or macronutrients information',
+      name: 'missingProductInfo',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Added new intake`
   String get infoAddedIntakeLabel {
     return Intl.message(
