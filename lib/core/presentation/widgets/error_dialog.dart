@@ -8,12 +8,12 @@ class ErrorDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 32),
+      padding: const EdgeInsets.only(top: 64),
       child: Column(
         children: [
           const Icon(
             Icons.cloud_off,
-            size: 128,
+            size: 64,
           ),
           const SizedBox(height: 8),
           Text(errorText, style: Theme.of(context).textTheme.titleMedium),

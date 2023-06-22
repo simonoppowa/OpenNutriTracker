@@ -1461,6 +1461,16 @@ class S {
     );
   }
 
+  /// `No results found`
+  String get noResultsFound {
+    return Intl.message(
+      'No results found',
+      name: 'noResultsFound',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `bicycling`
   String get paHeadingBicycling {
     return Intl.message(

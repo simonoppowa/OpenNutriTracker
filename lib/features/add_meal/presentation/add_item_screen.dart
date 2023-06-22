@@ -5,6 +5,7 @@ import 'package:opennutritracker/features/add_meal/presentation/add_item_type.da
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/item_search_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/no_results_widget.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/product_item_card.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
@@ -97,14 +98,17 @@ class _AddItemScreenState extends State<AddItemScreen>
                               child: CircularProgressIndicator(),
                             );
                           } else if (state is ProductsLoadedState) {
-                            return Flexible(
-                                child: ListView.builder(
-                                    itemCount: state.products.length,
-                                    itemBuilder: (context, index) {
-                                      return ProductItemCard(
-                                          productEntity: state.products[index],
-                                          addItemType: itemType);
-                                    }));
+                            return state.products.isNotEmpty
+                                ? Flexible(
+                                    child: ListView.builder(
+                                        itemCount: state.products.length,
+                                        itemBuilder: (context, index) {
+                                          return ProductItemCard(
+                                              productEntity:
+                                                  state.products[index],
+                                              addItemType: itemType);
+                                        }))
+                                : const NoResultsWidget();
                           } else if (state is ProductsFailedState) {
                             return ErrorDialog(
                                 errorText:
@@ -135,14 +139,16 @@ class _AddItemScreenState extends State<AddItemScreen>
                               child: CircularProgressIndicator(),
                             );
                           } else if (state is FoodLoadedState) {
-                            return Flexible(
-                                child: ListView.builder(
-                                    itemCount: state.food.length,
-                                    itemBuilder: (context, index) {
-                                      return ProductItemCard(
-                                          productEntity: state.food[index],
-                                          addItemType: itemType);
-                                    }));
+                            return state.food.isNotEmpty
+                                ? Flexible(
+                                    child: ListView.builder(
+                                        itemCount: state.food.length,
+                                        itemBuilder: (context, index) {
+                                          return ProductItemCard(
+                                              productEntity: state.food[index],
+                                              addItemType: itemType);
+                                        }))
+                                : const NoResultsWidget();
                           } else if (state is ProductsFailedState) {
                             return ErrorDialog(
                                 errorText:

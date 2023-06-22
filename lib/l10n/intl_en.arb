@@ -156,7 +156,7 @@
   "errorOpeningEmail": "Error while opening email app",
   "errorOpeningBrowser": "Error while opening browser app",
   "errorFetchingProductData": "Error while fetching product data",
-
+  "noResultsFound": "No results found",
 
   "@PHYSICAL_ACTIVITIES": {},
 
