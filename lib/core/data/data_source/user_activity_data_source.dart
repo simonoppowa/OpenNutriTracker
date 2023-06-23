@@ -30,4 +30,11 @@ class UserActivityDataSource {
         .where((activity) => DateUtils.isSameDay(dateTime, activity.date))
         .toList();
   }
+
+  Future<List<UserActivityDBO>> getRecentlyAddedUserActivity(
+      {int number = 5}) async {
+    final userActivities = _userActivityBox.values.toList();
+    userActivities.sort((a, b) => a.date.toString().compareTo(b.toString()));
+    return userActivities;
+  }
 }

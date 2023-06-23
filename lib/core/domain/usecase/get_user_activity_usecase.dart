@@ -10,9 +10,16 @@ class GetUserActivityUsecase {
     return userActivityRepository.getAllUserActivityByDate(DateTime.now());
   }
 
-  Future<List<UserActivityEntity>> getUserActivityByDay(BuildContext context, DateTime day) {
+  Future<List<UserActivityEntity>> getUserActivityByDay(
+      BuildContext context, DateTime day) {
     final userActivityRepository =
-    Provider.of<UserActivityRepository>(context, listen: false);
+        Provider.of<UserActivityRepository>(context, listen: false);
     return userActivityRepository.getAllUserActivityByDate(day);
+  }
+
+  Future<List<UserActivityEntity>> getRecentUserActivity(BuildContext context) {
+    final userActivityRepository =
+        Provider.of<UserActivityRepository>(context, listen: false);
+    return userActivityRepository.getRecentUserActivity();
   }
 }
