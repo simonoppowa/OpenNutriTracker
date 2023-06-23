@@ -71,9 +71,6 @@ Future<void> main() async {
         RepositoryProvider(
             create: (context) =>
                 UserActivityRepository(userActivityDataSource)),
-        RepositoryProvider(
-            create: (context) =>
-                PhysicalActivityRepository(physicalActivityDataSource)),
         RepositoryProvider(create: (context) => UserRepository(userDataSource)),
         RepositoryProvider(
             create: (context) => TrackedDayRepository(trackedDayDataSource))

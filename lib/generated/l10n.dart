@@ -190,6 +190,36 @@ class S {
     );
   }
 
+  /// `Recently added`
+  String get recentlyAddedLabel {
+    return Intl.message(
+      'Recently added',
+      name: 'recentlyAddedLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No meals recently added`
+  String get noMealsRecentlyAddedLabel {
+    return Intl.message(
+      'No meals recently added',
+      name: 'noMealsRecentlyAddedLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No activity recently added`
+  String get noActivityRecentlyAddedLabel {
+    return Intl.message(
+      'No activity recently added',
+      name: 'noActivityRecentlyAddedLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `OK`
   String get dialogOKLabel {
     return Intl.message(
@@ -1466,6 +1496,16 @@ class S {
     return Intl.message(
       'Error while fetching product data',
       name: 'errorFetchingProductData',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error while loading activities`
+  String get errorLoadingActivities {
+    return Intl.message(
+      'Error while loading activities',
+      name: 'errorLoadingActivities',
       desc: '',
       args: [],
     );

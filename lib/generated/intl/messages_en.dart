@@ -89,6 +89,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "energyLabel": MessageLookupByLibrary.simpleMessage("energy"),
         "errorFetchingProductData": MessageLookupByLibrary.simpleMessage(
             "Error while fetching product data"),
+        "errorLoadingActivities": MessageLookupByLibrary.simpleMessage(
+            "Error while loading activities"),
         "errorOpeningBrowser": MessageLookupByLibrary.simpleMessage(
             "Error while opening browser app"),
         "errorOpeningEmail": MessageLookupByLibrary.simpleMessage(
@@ -122,6 +124,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "milliliterUnit": MessageLookupByLibrary.simpleMessage("ml"),
         "missingProductInfo": MessageLookupByLibrary.simpleMessage(
             "Product missing required kcal or macronutrients information"),
+        "noActivityRecentlyAddedLabel":
+            MessageLookupByLibrary.simpleMessage("No activity recently added"),
+        "noMealsRecentlyAddedLabel":
+            MessageLookupByLibrary.simpleMessage("No meals recently added"),
         "noResultsFound":
             MessageLookupByLibrary.simpleMessage("No results found"),
         "nothingAddedLabel":
@@ -511,6 +517,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),
         "quantityLabel": MessageLookupByLibrary.simpleMessage("Quantity"),
         "readLabel": MessageLookupByLibrary.simpleMessage("I have read the"),
+        "recentlyAddedLabel":
+            MessageLookupByLibrary.simpleMessage("Recently added"),
         "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
             "Do you want to report an error to the developer?"),
         "saturatedFatLabel":

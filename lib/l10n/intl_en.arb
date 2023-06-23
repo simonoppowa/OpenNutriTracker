@@ -14,6 +14,9 @@
   "searchFoodPage": "Food",
   "searchResultsLabel": "Search results",
   "searchDefaultLabel": "Please enter search word",
+  "recentlyAddedLabel": "Recently added",
+  "noMealsRecentlyAddedLabel": "No meals recently added",
+  "noActivityRecentlyAddedLabel": "No activity recently added",
 
   "dialogOKLabel": "OK",
   "dialogCancelLabel": "CANCEL",
@@ -157,6 +160,7 @@
   "errorOpeningEmail": "Error while opening email app",
   "errorOpeningBrowser": "Error while opening browser app",
   "errorFetchingProductData": "Error while fetching product data",
+  "errorLoadingActivities": "Error while loading activities",
   "noResultsFound": "No results found",
 
   "@PHYSICAL_ACTIVITIES": {},

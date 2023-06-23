@@ -3,13 +3,13 @@ import 'package:opennutritracker/core/data/data_source/physical_activity_data_so
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 
 class PhysicalActivityRepository {
-  final PhysicalActivityDataSource _physicalActivityDataSource;
+  final PhysicalActivityDataSource physicalActivityDataSource =
+      PhysicalActivityDataSource();
 
-  PhysicalActivityRepository(this._physicalActivityDataSource);
-
-  List<PhysicalActivityEntity> getAllPhysicalActivities(BuildContext context) {
+  Future<List<PhysicalActivityEntity>> getAllPhysicalActivities(
+      BuildContext context) async {
     final physicalActivitiesDBOList =
-        _physicalActivityDataSource.getPhysicalActivityList(context);
+        physicalActivityDataSource.getPhysicalActivityList(context);
     return physicalActivitiesDBOList
         .map((dbo) => PhysicalActivityEntity.fromPhysicalActivityDBO(dbo))
         .toList();
