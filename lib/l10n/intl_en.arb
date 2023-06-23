@@ -14,7 +14,8 @@
   "searchFoodPage": "Food",
   "searchResultsLabel": "Search results",
   "searchDefaultLabel": "Please enter search word",
-  "recentlyAddedLabel": "Recently added",
+  "allItemsLabel": "All",
+  "recentlyAddedLabel": "Recently Added",
   "noMealsRecentlyAddedLabel": "No meals recently added",
   "noActivityRecentlyAddedLabel": "No activity recently added",
 

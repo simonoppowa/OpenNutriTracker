@@ -190,10 +190,20 @@ class S {
     );
   }
 
-  /// `Recently added`
+  /// `All`
+  String get allItemsLabel {
+    return Intl.message(
+      'All',
+      name: 'allItemsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recently Added`
   String get recentlyAddedLabel {
     return Intl.message(
-      'Recently added',
+      'Recently Added',
       name: 'recentlyAddedLabel',
       desc: '',
       args: [],

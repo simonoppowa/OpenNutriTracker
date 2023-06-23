@@ -43,6 +43,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
             "More Information at\nOpenFoodFacts"),
         "ageLabel": MessageLookupByLibrary.simpleMessage("Age"),
+        "allItemsLabel": MessageLookupByLibrary.simpleMessage("All"),
         "alphaVersionName": MessageLookupByLibrary.simpleMessage("[Alpha]"),
         "appDescription": MessageLookupByLibrary.simpleMessage(
             "OpenNutriTracker is a free and open-source calorie and nutrient tracker that respects your privacy."),
@@ -518,7 +519,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "quantityLabel": MessageLookupByLibrary.simpleMessage("Quantity"),
         "readLabel": MessageLookupByLibrary.simpleMessage("I have read the"),
         "recentlyAddedLabel":
-            MessageLookupByLibrary.simpleMessage("Recently added"),
+            MessageLookupByLibrary.simpleMessage("Recently Added"),
         "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
             "Do you want to report an error to the developer?"),
         "saturatedFatLabel":
