@@ -253,9 +253,4 @@ class SettingsScreen extends StatelessWidget {
           SnackBar(content: Text(S.of(context).errorOpeningBrowser)));
     }
   }
-
-  Future<String> _getVersionNumber(BuildContext context) async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    return packageInfo.version;
-  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -9,7 +10,7 @@ class AppBannerVersion extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder(
       // Version name needs future
-      future: _getVersionNumber(context),
+      future: AppConst.getVersionNumber(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           return Column(
@@ -34,10 +35,5 @@ class AppBannerVersion extends StatelessWidget {
         }
       },
     );
-  }
-
-  Future<String> _getVersionNumber(BuildContext context) async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    return packageInfo.version;
   }
 }
