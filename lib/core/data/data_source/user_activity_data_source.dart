@@ -38,7 +38,7 @@ class UserActivityDataSource {
     //  sort list by date and filter unique activities
     userActivities
         .toList()
-        .sort((a, b) => a.date.toString().compareTo(b.toString()));
+        .sort((a, b) => a.date.toString().compareTo(b.date.toString()));
 
     final filterActivityCodes = <String>{};
     final uniqueUserActivities = userActivities
