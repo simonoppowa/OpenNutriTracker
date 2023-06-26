@@ -41,4 +41,11 @@ class GetIntakeUsecase {
 
   Future<List<IntakeEntity>> getTodaySnackIntake(BuildContext context) async =>
       await getSnackIntakeByDay(context, DateTime.now());
+
+  Future<List<IntakeEntity>> getRecentIntake(BuildContext context) async {
+    final intakeRepository =
+        Provider.of<IntakeRepository>(context, listen: false);
+
+    return intakeRepository.getRecentIntake();
+  }
 }
