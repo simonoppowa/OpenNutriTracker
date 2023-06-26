@@ -54,7 +54,7 @@ class ProductEntity {
       thumbnailImageUrl: productDBO.thumbnailImageUrl,
       mainImageUrl: productDBO.mainImageUrl,
       url: productDBO.url,
-      productQuantity: productDBO.productQuantity.toString(),
+      productQuantity: productDBO.productQuantity,
       productUnit: productDBO.productUnit,
       servingQuantity: productDBO.servingQuantity,
       servingUnit: productDBO.servingUnit,
