@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_item_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/default_results_widget.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/item_search_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +13,7 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bl
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+// TODO rename
 class AddItemScreen extends StatefulWidget {
   const AddItemScreen({Key? key}) : super(key: key);
 
@@ -27,6 +29,7 @@ class _AddItemScreenState extends State<AddItemScreen>
 
   late ProductsBloc _productsBloc;
   late FoodBloc _foodBloc;
+  late RecentMealBloc _recentMealBloc;
 
   late TabController _tabController;
 
@@ -34,7 +37,8 @@ class _AddItemScreenState extends State<AddItemScreen>
   void initState() {
     _productsBloc = ProductsBloc();
     _foodBloc = FoodBloc();
-    _tabController = TabController(length: 2, vsync: this);
+    _recentMealBloc = RecentMealBloc();
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       // Update search results when tab changes
       _onSearchSubmit(_searchStringListener.value);
@@ -73,7 +77,8 @@ class _AddItemScreenState extends State<AddItemScreen>
               TabBar(
                   tabs: [
                     Tab(text: S.of(context).searchProductsPage),
-                    Tab(text: S.of(context).searchFoodPage)
+                    Tab(text: S.of(context).searchFoodPage),
+                    Tab(text: S.of(context).recentlyAddedLabel)
                   ],
                   controller: _tabController,
                   indicatorSize: TabBarIndicatorSize.tab),
@@ -161,6 +166,41 @@ class _AddItemScreenState extends State<AddItemScreen>
                       )
                     ],
                   ),
+                  Column(
+                    children: [
+                      BlocBuilder<RecentMealBloc, RecentMealState>(
+                          bloc: _recentMealBloc,
+                          builder: (context, state) {
+                            if (state is RecentMealInitial) {
+                              _recentMealBloc
+                                  .add(LoadRecentMealEvent(context: context));
+                              return const SizedBox();
+                            } else if (state is RecentMealLoadingState) {
+                              return const Padding(
+                                padding: EdgeInsets.only(top: 32),
+                                child: CircularProgressIndicator(),
+                              );
+                            } else if (state is RecentMealLoadedState) {
+                              return state.recentMeals.isNotEmpty
+                                  ? Flexible(
+                                      child: ListView.builder(
+                                          itemCount: state.recentMeals.length,
+                                          itemBuilder: (context, index) {
+                                            return ProductItemCard(
+                                                productEntity:
+                                                    state.recentMeals[index],
+                                                addItemType: itemType);
+                                          }))
+                                  : const NoResultsWidget();
+                            } else if (state is RecentMealFailedState) {
+                              return ErrorDialog(
+                                  errorText:
+                                      S.of(context).noMealsRecentlyAddedLabel);
+                            }
+                            return const SizedBox();
+                          })
+                    ],
+                  )
                 ]),
               )
             ],

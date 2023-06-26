@@ -200,10 +200,10 @@ class S {
     );
   }
 
-  /// `Recently Added`
+  /// `Recently`
   String get recentlyAddedLabel {
     return Intl.message(
-      'Recently Added',
+      'Recently',
       name: 'recentlyAddedLabel',
       desc: '',
       args: [],

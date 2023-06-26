@@ -518,8 +518,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),
         "quantityLabel": MessageLookupByLibrary.simpleMessage("Quantity"),
         "readLabel": MessageLookupByLibrary.simpleMessage("I have read the"),
-        "recentlyAddedLabel":
-            MessageLookupByLibrary.simpleMessage("Recently Added"),
+        "recentlyAddedLabel": MessageLookupByLibrary.simpleMessage("Recently"),
         "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
             "Do you want to report an error to the developer?"),
         "saturatedFatLabel":
