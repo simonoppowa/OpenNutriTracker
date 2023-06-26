@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -29,16 +30,16 @@ class ActivityItemCard extends StatelessWidget {
                 child: Icon(physicalActivityEntity.displayIcon,
                     color: Theme.of(context).colorScheme.onSecondaryContainer),
               ),
-              title: Text(
+              title: AutoSizeText(
                 physicalActivityEntity.getName(context),
                 style: Theme.of(context).textTheme.titleLarge,
                 maxLines: 1,
-                overflow: TextOverflow.fade,
+                overflow: TextOverflow.ellipsis,
               ),
-              subtitle: Text(
+              subtitle: AutoSizeText(
                 physicalActivityEntity.description,
                 maxLines: 3,
-                overflow: TextOverflow.fade,
+                overflow: TextOverflow.ellipsis,
               ),
               trailing: IconButton(
                 style: IconButton.styleFrom(

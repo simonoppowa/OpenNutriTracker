@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -38,14 +39,16 @@ class ProductItemCard extends StatelessWidget {
               errorWidget: (context, url, error) =>
                   const Icon(Icons.restaurant_outlined),
             )),
-            title: Text(productEntity.productName ?? "?",
+            title: AutoSizeText(productEntity.productName ?? "?",
                 style: Theme.of(context).textTheme.titleLarge,
                 maxLines: 2,
-                overflow: TextOverflow.fade),
+                overflow: TextOverflow.ellipsis),
             subtitle: productEntity.productQuantity != null
-                ? Text(
+                ? AutoSizeText(
                     '${productEntity.productQuantity}${productEntity.productUnit ?? S.of(context).gramMilliliterUnit}',
-                    style: Theme.of(context).textTheme.titleMedium)
+                    style: Theme.of(context).textTheme.titleMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis)
                 : const SizedBox(),
             trailing: IconButton(
               style: IconButton.styleFrom(

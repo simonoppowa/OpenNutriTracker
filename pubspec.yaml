@@ -56,6 +56,7 @@ dependencies:
   horizontal_picker: ^1.2.0
   table_calendar: ^3.0.9
   introduction_screen: ^3.1.8
+  auto_size_text: ^3.0.0
 
   mobile_scanner: ^3.2.0
 
