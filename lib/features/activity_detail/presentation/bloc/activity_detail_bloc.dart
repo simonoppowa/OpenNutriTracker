@@ -4,8 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/met_calc.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 
@@ -17,6 +19,7 @@ class ActivityDetailBloc
     extends Bloc<ActivityDetailEvent, ActivityDetailState> {
   final _getUserUsecase = GetUserUsecase();
   final _addUserActivityUsecase = AddUserActivityUsecase();
+  final _addTrackedDayUsecase = AddTrackedDayUsecase();
 
   ActivityDetailBloc() : super(ActivityDetailInitial()) {
     on<LoadActivityDetailEvent>((event, emit) async {
@@ -37,12 +40,26 @@ class ActivityDetailBloc
   }
 
   void persistActivity(BuildContext context, String durationText,
-      double totalKcalBurned, PhysicalActivityEntity activityEntity) {
+      double totalKcalBurned, PhysicalActivityEntity activityEntity) async {
     final duration = double.parse(durationText);
+    final dateTime = DateTime.now();
 
     final userActivityEntity = UserActivityEntity(IdGenerator.getUniqueID(),
-        duration, totalKcalBurned, DateTime.now(), activityEntity);
+        duration, totalKcalBurned, dateTime, activityEntity);
 
     _addUserActivityUsecase.addUserActivity(context, userActivityEntity);
+    _persistTrackedDay(context, dateTime, totalKcalBurned);
+  }
+
+  void _persistTrackedDay(
+      BuildContext context, DateTime dateTime, double caloriesBurned) async {
+    if (await _addTrackedDayUsecase.hasTrackedDay(context, dateTime)) {
+      _addTrackedDayUsecase.removeDayCaloriesTracked(
+          context, dateTime, caloriesBurned);
+    } else {
+      final userEntity = await _getUserUsecase.getUserData(context);
+      final totalKcalGoal = CalorieGoalCalc.getTdee(userEntity);
+      _addTrackedDayUsecase.addNewTrackedDay(context, dateTime, totalKcalGoal);
+    }
   }
 }
