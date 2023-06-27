@@ -134,14 +134,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> deleteIntakeItem(
       BuildContext context, IntakeEntity intakeEntity) async {
+    final dateTime = DateTime.now();
     await _deleteIntakeUsecase.deleteIntake(context, intakeEntity);
-    _addTrackedDayUseCase.removeDayCaloriesTracked(
-        context, DateTime.now(), intakeEntity.totalKcal);
+    await _addTrackedDayUseCase.removeDayCaloriesTracked(
+        context, dateTime, intakeEntity.totalKcal);
   }
 
   Future<void> deleteUserActivityItem(
       BuildContext context, UserActivityEntity activityEntity) async {
+    final dateTime = DateTime.now();
     await _deleteUserActivityUsecase.deleteUserActivity(
         context, activityEntity);
+    await _addTrackedDayUseCase.addDayCaloriesTracked(
+        context, dateTime, activityEntity.burnedKcal);
   }
 }
