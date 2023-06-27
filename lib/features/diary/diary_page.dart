@@ -17,7 +17,7 @@ class DiaryPage extends StatefulWidget {
 
 class _DiaryPageState extends State<DiaryPage> {
   late DiaryBloc _diaryBloc;
-  final _calendarDayBloc = CalendarDayBloc();
+  late CalendarDayBloc _calendarDayBloc;
 
   static const _calendarDurationDays = Duration(days: 356);
   final _currentDate = DateTime.now();
@@ -26,7 +26,8 @@ class _DiaryPageState extends State<DiaryPage> {
 
   @override
   void initState() {
-    _diaryBloc = BlocProvider.of<DiaryBloc>(context, listen: false);
+    _diaryBloc = DiaryBloc();
+    _calendarDayBloc = CalendarDayBloc();
     super.initState();
   }
 
