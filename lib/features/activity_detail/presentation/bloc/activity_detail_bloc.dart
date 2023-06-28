@@ -48,18 +48,21 @@ class ActivityDetailBloc
         duration, totalKcalBurned, dateTime, activityEntity);
 
     _addUserActivityUsecase.addUserActivity(context, userActivityEntity);
-    _persistTrackedDay(context, dateTime, totalKcalBurned);
+    _updateTrackedDay(context, dateTime, totalKcalBurned);
   }
 
-  void _persistTrackedDay(
+  void _updateTrackedDay(
       BuildContext context, DateTime dateTime, double caloriesBurned) async {
-    if (await _addTrackedDayUsecase.hasTrackedDay(context, dateTime)) {
-      _addTrackedDayUsecase.removeDayCaloriesTracked(
-          context, dateTime, caloriesBurned);
-    } else {
-      final userEntity = await _getUserUsecase.getUserData(context);
-      final totalKcalGoal = CalorieGoalCalc.getTdee(userEntity);
-      _addTrackedDayUsecase.addNewTrackedDay(context, dateTime, totalKcalGoal);
+    final userEntity = await _getUserUsecase.getUserData(context);
+    final totalKcalGoal = CalorieGoalCalc.getTdee(userEntity);
+
+    final hasTrackedDay =
+        await _addTrackedDayUsecase.hasTrackedDay(context, DateTime.now());
+    if (!hasTrackedDay) {
+      await _addTrackedDayUsecase.addNewTrackedDay(
+          context, dateTime, totalKcalGoal);
     }
+    _addTrackedDayUsecase.removeDayCaloriesTracked(
+        context, dateTime, caloriesBurned);
   }
 }
