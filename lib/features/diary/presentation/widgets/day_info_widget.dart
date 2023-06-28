@@ -30,6 +30,7 @@ class DayInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final trackedDay = trackedDayEntity;
     return Container(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -38,57 +39,74 @@ class DayInfoWidget extends StatelessWidget {
           Text(DateFormat.yMMMMEEEEd().format(selectedDay),
               style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 16.0),
-          trackedDayEntity != null
-              ? Text(
-                  '${trackedDayEntity?.caloriesTracked.toInt()}/${trackedDayEntity?.calorieGoal.toInt()} kcal',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
+          trackedDay != null
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _getCaloriesTrackedDisplayString(trackedDay),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8.0),
+                    userActivities.isNotEmpty
+                        ? ActivityVerticalList(
+                            title: S.of(context).activityLabel,
+                            userActivityList: userActivities,
+                            onItemLongPressedCallback:
+                                onActivityItemLongPressed)
+                        : const SizedBox(),
+                    breakfastIntake.isNotEmpty
+                        ? MealIntakeList(
+                            title: S.of(context).breakfastLabel,
+                            listIcon: Icons.bakery_dining_outlined,
+                            intakeList: breakfastIntake,
+                            onItemLongPressedCallback: onIntakeItemLongPressed,
+                          )
+                        : const SizedBox(),
+                    lunchIntake.isNotEmpty
+                        ? MealIntakeList(
+                            title: S.of(context).lunchLabel,
+                            listIcon: Icons.lunch_dining_outlined,
+                            intakeList: lunchIntake,
+                            onItemLongPressedCallback: onIntakeItemLongPressed,
+                          )
+                        : const SizedBox(),
+                    dinnerIntake.isNotEmpty
+                        ? MealIntakeList(
+                            title: S.of(context).dinnerLabel,
+                            listIcon: Icons.dinner_dining_outlined,
+                            intakeList: dinnerIntake,
+                            onItemLongPressedCallback: onIntakeItemLongPressed,
+                          )
+                        : const SizedBox(),
+                    snackIntake.isNotEmpty
+                        ? MealIntakeList(
+                            title: S.of(context).snackLabel,
+                            listIcon: CustomIcons.food_apple_outline,
+                            intakeList: snackIntake,
+                            onItemLongPressedCallback: onIntakeItemLongPressed,
+                          )
+                        : const SizedBox()
+                  ],
                 )
               : Text(S.of(context).nothingAddedLabel),
-          const SizedBox(height: 8.0),
-          userActivities.isNotEmpty
-              ? ActivityVerticalList(
-                  title: S.of(context).activityLabel,
-                  userActivityList: userActivities,
-                  onItemLongPressedCallback: onActivityItemLongPressed)
-              : const SizedBox(),
-          breakfastIntake.isNotEmpty
-              ? MealIntakeList(
-                  title: S.of(context).breakfastLabel,
-                  listIcon: Icons.bakery_dining_outlined,
-                  intakeList: breakfastIntake,
-                  onItemLongPressedCallback: onIntakeItemLongPressed,
-                )
-              : const SizedBox(),
-          lunchIntake.isNotEmpty
-              ? MealIntakeList(
-                  title: S.of(context).lunchLabel,
-                  listIcon: Icons.lunch_dining_outlined,
-                  intakeList: lunchIntake,
-                  onItemLongPressedCallback: onIntakeItemLongPressed,
-                )
-              : const SizedBox(),
-          dinnerIntake.isNotEmpty
-              ? MealIntakeList(
-                  title: S.of(context).dinnerLabel,
-                  listIcon: Icons.dinner_dining_outlined,
-                  intakeList: dinnerIntake,
-                  onItemLongPressedCallback: onIntakeItemLongPressed,
-                )
-              : const SizedBox(),
-          snackIntake.isNotEmpty
-              ? MealIntakeList(
-                  title: S.of(context).snackLabel,
-                  listIcon: CustomIcons.food_apple_outline,
-                  intakeList: snackIntake,
-                  onItemLongPressedCallback: onIntakeItemLongPressed,
-                )
-              : const SizedBox()
         ],
       ),
     );
+  }
+
+  String _getCaloriesTrackedDisplayString(TrackedDayEntity trackedDay) {
+    int caloriesTracked;
+    if (trackedDay.caloriesTracked.isNegative) {
+      caloriesTracked = 0;
+    } else {
+      caloriesTracked = trackedDay.caloriesTracked.toInt();
+    }
+
+    return '$caloriesTracked/${trackedDay.calorieGoal.toInt()} kcal';
   }
 
   void onIntakeItemLongPressed(
