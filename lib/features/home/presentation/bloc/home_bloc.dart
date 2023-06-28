@@ -147,5 +147,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         context, activityEntity);
     await _addTrackedDayUseCase.addDayCaloriesTracked(
         context, dateTime, activityEntity.burnedKcal);
+    _addTrackedDayUseCase.reduceDayCalorieGoal(
+        context, dateTime, activityEntity.burnedKcal);
   }
 }

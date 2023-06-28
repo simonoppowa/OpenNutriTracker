@@ -62,7 +62,9 @@ class ActivityDetailBloc
       await _addTrackedDayUsecase.addNewTrackedDay(
           context, dateTime, totalKcalGoal);
     }
-    _addTrackedDayUsecase.removeDayCaloriesTracked(
+    await _addTrackedDayUsecase.removeDayCaloriesTracked(
+        context, dateTime, caloriesBurned);
+    _addTrackedDayUsecase.increaseDayCalorieGoal(
         context, dateTime, caloriesBurned);
   }
 }
