@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/activities_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_activities_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/widgets/activity_item_card.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/no_results_widget.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class AddActivityScreen extends StatefulWidget {
@@ -125,15 +126,17 @@ class _AddActivityScreenState extends State<AddActivityScreen>
                           }
                           if (state is RecentActivitiesLoadedState) {
                             final recentActivities = state.recentActivities;
-                            return Flexible(
-                              child: ListView.builder(
-                                  itemCount: recentActivities.length,
-                                  itemBuilder: (context, index) {
-                                    return ActivityItemCard(
-                                        physicalActivityEntity:
-                                            recentActivities[index]);
-                                  }),
-                            );
+                            return state.recentActivities.isNotEmpty
+                                ? Flexible(
+                                    child: ListView.builder(
+                                        itemCount: recentActivities.length,
+                                        itemBuilder: (context, index) {
+                                          return ActivityItemCard(
+                                              physicalActivityEntity:
+                                                  recentActivities[index]);
+                                        }),
+                                  )
+                                : const NoResultsWidget();
                           }
                           if (state is RecentActivitiesFailedState) {
                             return ErrorDialog(
