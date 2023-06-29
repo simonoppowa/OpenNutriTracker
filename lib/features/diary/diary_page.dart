@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
-import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_table_calendar.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/day_info_widget.dart';
-import 'package:provider/provider.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 class DiaryPage extends StatefulWidget {
   const DiaryPage({Key? key}) : super(key: key);
@@ -68,8 +69,8 @@ class _DiaryPageState extends State<DiaryPage> {
           bloc: _calendarDayBloc,
           builder: (context, state) {
             if (state is CalendarDayInitial) {
-              _calendarDayBloc.add(LoadCalendarDayEvent(context, _selectedDate,
-                  trackedDaysMap[_selectedDate.toParsedDay()]));
+              _calendarDayBloc
+                  .add(LoadCalendarDayEvent(context, _selectedDate));
             } else if (state is CalendarDayLoading) {
               return _getLoadingContent();
             } else if (state is CalendarDayLoaded) {
@@ -81,6 +82,8 @@ class _DiaryPageState extends State<DiaryPage> {
                 lunchIntake: state.lunchIntakeList,
                 dinnerIntake: state.dinnerIntakeList,
                 snackIntake: state.snackIntakeList,
+                onDeleteIntake: _onDeleteIntakeItem,
+                onDeleteActivity: _onDeleteActivityItem,
               );
             }
             return const SizedBox();
@@ -90,14 +93,34 @@ class _DiaryPageState extends State<DiaryPage> {
     );
   }
 
+  void _onDeleteIntakeItem(
+      IntakeEntity intakeEntity, TrackedDayEntity? trackedDayEntity) async {
+    await _calendarDayBloc.deleteIntakeItem(
+        context, intakeEntity, trackedDayEntity?.day ?? DateTime.now());
+    _diaryBloc.add(LoadDiaryYearEvent(context));
+    _calendarDayBloc.add(LoadCalendarDayEvent(context, _selectedDate));
+    _diaryBloc.updateHomePage(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+  }
+
+  void _onDeleteActivityItem(UserActivityEntity userActivityEntity,
+      TrackedDayEntity? trackedDayEntity) async {
+    await _calendarDayBloc.deleteUserActivityItem(
+        context, userActivityEntity, trackedDayEntity?.day ?? DateTime.now());
+    _diaryBloc.add(LoadDiaryYearEvent(context));
+    _calendarDayBloc.add(LoadCalendarDayEvent(context, _selectedDate));
+    _diaryBloc.updateHomePage(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+  }
+
   void _onDateSelected(
       DateTime newDate, Map<String, TrackedDayEntity> trackedDaysMap) {
     setState(() {
       _selectedDate = newDate;
       _focusedDate = newDate;
-      final trackedDayEvent = trackedDaysMap[newDate.toParsedDay()];
-      _calendarDayBloc
-          .add(LoadCalendarDayEvent(context, newDate, trackedDayEvent));
+      _calendarDayBloc.add(LoadCalendarDayEvent(context, newDate));
     });
   }
 }

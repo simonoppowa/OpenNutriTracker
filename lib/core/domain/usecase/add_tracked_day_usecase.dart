@@ -48,6 +48,6 @@ class AddTrackedDayUsecase {
       BuildContext context, DateTime day, double caloriesTracked) async {
     final trackedDayRepository =
         Provider.of<TrackedDayRepository>(context, listen: false);
-    trackedDayRepository.removeDayTrackedCalories(day, caloriesTracked);
+    await trackedDayRepository.removeDayTrackedCalories(day, caloriesTracked);
   }
 }

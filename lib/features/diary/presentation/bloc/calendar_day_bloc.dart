@@ -4,7 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 
 part 'calendar_day_event.dart';
@@ -14,6 +18,10 @@ part 'calendar_day_state.dart';
 class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   final _getUserActivityUsecase = GetUserActivityUsecase();
   final _getIntakeUsecase = GetIntakeUsecase();
+  final _deleteIntakeUsecase = DeleteIntakeUsecase();
+  final _deleteUserActivityUsecase = DeleteUserActivityUsecase();
+  final _addTrackedDayUsecase = AddTrackedDayUsecase();
+  final _getTrackedDayUsecase = GetTrackedDayUsecase();
 
   CalendarDayBloc() : super(CalendarDayInitial()) {
     on<LoadCalendarDayEvent>((event, emit) async {
@@ -31,13 +39,33 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
       final snackIntakeList =
           await _getIntakeUsecase.getSnackIntakeByDay(event.context, event.day);
 
+      final trackedDayEntity =
+          await _getTrackedDayUsecase.getTrackedDay(event.context, event.day);
+
       emit(CalendarDayLoaded(
-          event.trackedDayEntity,
+          trackedDayEntity,
           userActivities,
           breakfastIntakeList,
           lunchIntakeList,
           dinnerIntakeList,
           snackIntakeList));
     });
+  }
+
+  Future<void> deleteIntakeItem(
+      BuildContext context, IntakeEntity intakeEntity, DateTime day) async {
+    await _deleteIntakeUsecase.deleteIntake(context, intakeEntity);
+    await _addTrackedDayUsecase.removeDayCaloriesTracked(
+        context, day, intakeEntity.totalKcal);
+  }
+
+  Future<void> deleteUserActivityItem(BuildContext context,
+      UserActivityEntity activityEntity, DateTime day) async {
+    await _deleteUserActivityUsecase.deleteUserActivity(
+        context, activityEntity);
+    await _addTrackedDayUsecase.addDayCaloriesTracked(
+        context, day, activityEntity.burnedKcal);
+    _addTrackedDayUsecase.reduceDayCalorieGoal(
+        context, day, activityEntity.burnedKcal);
   }
 }

@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
+import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/meal_Intake_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -16,6 +17,10 @@ class DayInfoWidget extends StatelessWidget {
   final List<IntakeEntity> lunchIntake;
   final List<IntakeEntity> dinnerIntake;
   final List<IntakeEntity> snackIntake;
+  final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity)
+      onDeleteIntake;
+  final Function(UserActivityEntity userActivityEntity,
+      TrackedDayEntity? trackedDayEntity) onDeleteActivity;
 
   const DayInfoWidget(
       {Key? key,
@@ -25,7 +30,9 @@ class DayInfoWidget extends StatelessWidget {
       required this.breakfastIntake,
       required this.lunchIntake,
       required this.dinnerIntake,
-      required this.snackIntake})
+      required this.snackIntake,
+      required this.onDeleteIntake,
+      required this.onDeleteActivity})
       : super(key: key);
 
   @override
@@ -111,11 +118,21 @@ class DayInfoWidget extends StatelessWidget {
 
   void onIntakeItemLongPressed(
       BuildContext context, IntakeEntity intakeEntity) async {
-    // TODO
+    final shouldDeleteIntake = await showDialog<bool>(
+        context: context, builder: (context) => const DeleteDialog());
+
+    if (shouldDeleteIntake != null) {
+      onDeleteIntake(intakeEntity, trackedDayEntity);
+    }
   }
 
   void onActivityItemLongPressed(
       BuildContext context, UserActivityEntity activityEntity) async {
-    // TODO
+    final shouldDeleteActivity = await showDialog<bool>(
+        context: context, builder: (context) => const DeleteDialog());
+
+    if (shouldDeleteActivity != null) {
+      onDeleteActivity(activityEntity, trackedDayEntity);
+    }
   }
 }
