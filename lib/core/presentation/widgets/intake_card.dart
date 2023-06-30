@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -23,7 +24,7 @@ class IntakeCard extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.0),
         ),
-        elevation: 4,
+        elevation: 1,
         child: InkWell(
           onLongPress: () {
             onLongPressedItem(context);
@@ -72,7 +73,7 @@ class IntakeCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      AutoSizeText(
                         intake.product.productName ?? "?",
                         style: Theme.of(context)
                             .textTheme
@@ -80,17 +81,17 @@ class IntakeCard extends StatelessWidget {
                             ?.copyWith(
                                 color: Theme.of(context).colorScheme.onPrimary),
                         maxLines: 2,
-                        overflow: TextOverflow.fade,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      Text('${intake.amount.toInt().toString()} ${intake.unit}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimary
-                                      .withOpacity(0.8))),
+                      Text(
+                        '${intake.amount.toInt().toString()} ${intake.unit}',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimary
+                                .withOpacity(0.8)),
+                        maxLines: 1,
+                      ),
                     ],
                   ))
             ],
