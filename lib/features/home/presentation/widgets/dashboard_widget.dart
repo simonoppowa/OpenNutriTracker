@@ -50,7 +50,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
           widget.totalKcalDaily;
     }
     return Card(
-      elevation: 4.0,
+      elevation: 1,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
