@@ -57,7 +57,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => hiveDBProvider),
         BlocProvider<HomeBloc>(create: (context) => locator<HomeBloc>()),
-        BlocProvider<DiaryBloc>(create: (context) => DiaryBloc()),
+        BlocProvider<DiaryBloc>(create: (context) => locator<DiaryBloc>()),
         RepositoryProvider(
             create: (context) => ConfigRepository(configDataSource)),
         RepositoryProvider(

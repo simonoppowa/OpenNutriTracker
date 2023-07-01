@@ -12,9 +12,9 @@ part 'diary_event.dart';
 part 'diary_state.dart';
 
 class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
-  final _getDayTrackedUsecase = GetTrackedDayUsecase();
+  final GetTrackedDayUsecase _getDayTrackedUsecase;
 
-  DiaryBloc() : super(DiaryInitial()) {
+  DiaryBloc(this._getDayTrackedUsecase) : super(DiaryInitial()) {
     on<LoadDiaryYearEvent>((event, emit) async {
       emit(DiaryLoadingState());
 
@@ -22,9 +22,7 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
       const yearDuration = Duration(days: 356);
 
       final trackedDays = await _getDayTrackedUsecase.getTrackedDaysByRange(
-          event.context,
-          currentDate.subtract(yearDuration),
-          currentDate.add(yearDuration));
+          currentDate.subtract(yearDuration), currentDate.add(yearDuration));
 
       final trackedDaysMap = {
         for (var trackedDay in trackedDays)

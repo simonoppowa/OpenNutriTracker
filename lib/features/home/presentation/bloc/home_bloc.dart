@@ -27,10 +27,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final _getUserActivityUsecase = GetUserActivityUsecase();
   final _deleteUserActivityUsecase = DeleteUserActivityUsecase();
   final GetUserUsecase _getUserUsecase;
-  final _addTrackedDayUseCase = AddTrackedDayUsecase();
+  final AddTrackedDayUsecase _addTrackedDayUseCase;
 
   HomeBloc(this._getConfigUsecase, this._addConfigUsecase,
-      this._getIntakeUsecase, this._getUserUsecase)
+      this._getIntakeUsecase, this._getUserUsecase, this._addTrackedDayUseCase)
       : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
@@ -136,7 +136,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final dateTime = DateTime.now();
     await _deleteIntakeUsecase.deleteIntake(context, intakeEntity);
     await _addTrackedDayUseCase.removeDayCaloriesTracked(
-        context, dateTime, intakeEntity.totalKcal);
+        dateTime, intakeEntity.totalKcal);
   }
 
   Future<void> deleteUserActivityItem(
@@ -145,8 +145,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     await _deleteUserActivityUsecase.deleteUserActivity(
         context, activityEntity);
     await _addTrackedDayUseCase.addDayCaloriesTracked(
-        context, dateTime, activityEntity.burnedKcal);
+        dateTime, activityEntity.burnedKcal);
     _addTrackedDayUseCase.reduceDayCalorieGoal(
-        context, dateTime, activityEntity.burnedKcal);
+        dateTime, activityEntity.burnedKcal);
   }
 }

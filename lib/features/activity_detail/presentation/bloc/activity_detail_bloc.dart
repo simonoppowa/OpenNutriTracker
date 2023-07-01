@@ -19,9 +19,10 @@ class ActivityDetailBloc
     extends Bloc<ActivityDetailEvent, ActivityDetailState> {
   final GetUserUsecase _getUserUsecase;
   final _addUserActivityUsecase = AddUserActivityUsecase();
-  final _addTrackedDayUsecase = AddTrackedDayUsecase();
+  final AddTrackedDayUsecase _addTrackedDayUsecase;
 
-  ActivityDetailBloc(this._getUserUsecase) : super(ActivityDetailInitial()) {
+  ActivityDetailBloc(this._getUserUsecase, this._addTrackedDayUsecase)
+      : super(ActivityDetailInitial()) {
     on<LoadActivityDetailEvent>((event, emit) async {
       emit(ActivityDetailLoadingState());
       const quantityDefault = 60.0;
@@ -57,14 +58,12 @@ class ActivityDetailBloc
     final totalKcalGoal = CalorieGoalCalc.getTdee(userEntity);
 
     final hasTrackedDay =
-        await _addTrackedDayUsecase.hasTrackedDay(context, DateTime.now());
+        await _addTrackedDayUsecase.hasTrackedDay(DateTime.now());
     if (!hasTrackedDay) {
-      await _addTrackedDayUsecase.addNewTrackedDay(
-          context, dateTime, totalKcalGoal);
+      await _addTrackedDayUsecase.addNewTrackedDay(dateTime, totalKcalGoal);
     }
     await _addTrackedDayUsecase.removeDayCaloriesTracked(
-        context, dateTime, caloriesBurned);
-    _addTrackedDayUsecase.increaseDayCalorieGoal(
-        context, dateTime, caloriesBurned);
+        dateTime, caloriesBurned);
+    _addTrackedDayUsecase.increaseDayCalorieGoal(dateTime, caloriesBurned);
   }
 }

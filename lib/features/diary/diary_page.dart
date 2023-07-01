@@ -28,7 +28,7 @@ class _DiaryPageState extends State<DiaryPage> {
 
   @override
   void initState() {
-    _diaryBloc = DiaryBloc();
+    _diaryBloc = locator<DiaryBloc>();
     _calendarDayBloc = locator<CalendarDayBloc>();
     super.initState();
   }

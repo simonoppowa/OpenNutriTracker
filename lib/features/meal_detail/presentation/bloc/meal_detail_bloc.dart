@@ -10,10 +10,11 @@ import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.
 
 class MealDetailBloc {
   final AddIntakeUsecase _addIntakeUseCase;
-  final _addTrackedDayUsecase = AddTrackedDayUsecase();
+  final AddTrackedDayUsecase _addTrackedDayUsecase;
   final GetUserUsecase _getUserUsecase;
 
-  MealDetailBloc(this._getUserUsecase, this._addIntakeUseCase);
+  MealDetailBloc(
+      this._getUserUsecase, this._addTrackedDayUsecase, this._addIntakeUseCase);
 
   void addIntake(BuildContext context, String unit, String amountText,
       IntakeTypeEntity type, ProductEntity product) async {
@@ -36,12 +37,12 @@ class MealDetailBloc {
     final totalKcalGoal = CalorieGoalCalc.getTdee(userEntity);
 
     final hasTrackedDay =
-        await _addTrackedDayUsecase.hasTrackedDay(context, DateTime.now());
+        await _addTrackedDayUsecase.hasTrackedDay(DateTime.now());
     if (!hasTrackedDay) {
       await _addTrackedDayUsecase.addNewTrackedDay(
-          context, DateTime.now(), totalKcalGoal);
+          DateTime.now(), totalKcalGoal);
     }
     _addTrackedDayUsecase.addDayCaloriesTracked(
-        context, DateTime.now(), intakeEntity.totalKcal);
+        DateTime.now(), intakeEntity.totalKcal);
   }
 }
