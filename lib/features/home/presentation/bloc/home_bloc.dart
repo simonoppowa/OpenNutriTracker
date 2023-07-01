@@ -20,8 +20,8 @@ part 'home_event.dart';
 part 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  final _getConfigUsecase = GetConfigUsecase();
-  final _addConfigUsecase = AddConfigUsecase();
+  final GetConfigUsecase _getConfigUsecase;
+  final AddConfigUsecase _addConfigUsecase;
   final _getIntakeUsecase = GetIntakeUsecase();
   final _deleteIntakeUsecase = DeleteIntakeUsecase();
   final _getUserActivityUsecase = GetUserActivityUsecase();
@@ -29,11 +29,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetUserUsecase _getUserUsecase;
   final _addTrackedDayUseCase = AddTrackedDayUsecase();
 
-  HomeBloc(this._getUserUsecase) : super(HomeInitial()) {
+  HomeBloc(this._getConfigUsecase, this._addConfigUsecase, this._getUserUsecase)
+      : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
 
-      final configData = await _getConfigUsecase.getConfig(event.context);
+      final configData = await _getConfigUsecase.getConfig();
       final showDisclaimerDialog = !configData.hasAcceptedDisclaimer;
 
       final breakfastIntakeList =
@@ -129,7 +130,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       intakeList.map((intake) => intake.totalProteinsGram).toList().sum;
 
   void saveConfigData(BuildContext context, bool acceptedDisclaimer) async {
-    _addConfigUsecase.setConfigDisclaimer(context, acceptedDisclaimer);
+    _addConfigUsecase.setConfigDisclaimer(acceptedDisclaimer);
   }
 
   Future<void> deleteIntakeItem(

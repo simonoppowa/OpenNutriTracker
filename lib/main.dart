@@ -38,8 +38,7 @@ Future<void> main() async {
   await initLocator();
 
   final hiveDBProvider = locator.get<HiveDBProvider>(); // TODO remove
-  final ConfigDataSource configDataSource =
-      ConfigDataSource(hiveDBProvider.configBox);
+  final ConfigDataSource configDataSource = locator<ConfigDataSource>();
   final IntakeDataSource intakeDataSource =
       IntakeDataSource(hiveDBProvider.intakeBox);
   final userActivityDataSource =
@@ -55,7 +54,8 @@ Future<void> main() async {
   final log = Logger('main');
   log.info('Starting App ...');
 
-  runApp(MultiProvider( // TODO remove
+  runApp(MultiProvider(
+      // TODO remove
       providers: [
         ChangeNotifierProvider(create: (context) => hiveDBProvider),
         BlocProvider<HomeBloc>(create: (context) => locator<HomeBloc>()),

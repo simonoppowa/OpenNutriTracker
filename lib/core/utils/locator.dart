@@ -1,7 +1,11 @@
 import 'package:get_it/get_it.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
+import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
@@ -24,7 +28,8 @@ Future<void> initLocator() async {
   // BLoCs
   locator
       .registerLazySingleton<OnboardingBloc>(() => OnboardingBloc(locator()));
-  locator.registerLazySingleton<HomeBloc>(() => HomeBloc(locator()));
+  locator.registerLazySingleton<HomeBloc>(
+      () => HomeBloc(locator(), locator(), locator()));
   locator.registerLazySingleton<ActivityDetailBloc>(
       () => ActivityDetailBloc(locator()));
   locator
@@ -33,16 +38,23 @@ Future<void> initLocator() async {
       () => ProfileBloc(locator(), locator()));
 
   // UseCases
+  locator.registerLazySingleton<GetConfigUsecase>(
+      () => GetConfigUsecase(locator()));
+  locator.registerLazySingleton<AddConfigUsecase>(
+      () => AddConfigUsecase(locator()));
   locator
       .registerLazySingleton<GetUserUsecase>(() => GetUserUsecase(locator()));
   locator
       .registerLazySingleton<AddUserUsecase>(() => AddUserUsecase(locator()));
 
   // Repositories
+  locator.registerLazySingleton(() => ConfigRepository(locator()));
   locator
       .registerLazySingleton<UserRepository>(() => UserRepository(locator()));
 
   // DataSources
+  locator
+      .registerLazySingleton(() => ConfigDataSource(hiveDBProvider.configBox));
   locator.registerLazySingleton<UserDataSource>(
       () => UserDataSource(hiveDBProvider.userBox));
 }
