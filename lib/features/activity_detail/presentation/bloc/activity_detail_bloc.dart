@@ -17,11 +17,11 @@ part 'activity_detail_state.dart';
 
 class ActivityDetailBloc
     extends Bloc<ActivityDetailEvent, ActivityDetailState> {
-  final _getUserUsecase = GetUserUsecase();
+  final GetUserUsecase _getUserUsecase;
   final _addUserActivityUsecase = AddUserActivityUsecase();
   final _addTrackedDayUsecase = AddTrackedDayUsecase();
 
-  ActivityDetailBloc() : super(ActivityDetailInitial()) {
+  ActivityDetailBloc(this._getUserUsecase) : super(ActivityDetailInitial()) {
     on<LoadActivityDetailEvent>((event, emit) async {
       emit(ActivityDetailLoadingState());
       const quantityDefault = 60.0;

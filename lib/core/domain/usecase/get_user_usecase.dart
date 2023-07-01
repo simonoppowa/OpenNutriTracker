@@ -4,13 +4,15 @@ import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:provider/provider.dart';
 
 class GetUserUsecase {
+  final UserRepository userRepository;
+
+  GetUserUsecase(this.userRepository);
+
   Future<UserEntity> getUserData(BuildContext context) async {
-    final userRepository = Provider.of<UserRepository>(context, listen: false);
     return await userRepository.getUserData();
   }
 
   Future<bool> hasUserData(BuildContext context) async {
-    final userRepository = Provider.of<UserRepository>(context, listen: false);
     return await userRepository.hasUserData();
   }
 }

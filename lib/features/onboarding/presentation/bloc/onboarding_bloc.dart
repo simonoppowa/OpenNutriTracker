@@ -12,9 +12,9 @@ part 'onboarding_state.dart';
 
 class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   final userSelection = UserDataSelectionEntity();
-  final addUserUsecase = AddUserUsecase();
+  final AddUserUsecase _addUserUsecase;
 
-  OnboardingBloc() : super(OnboardingInitialState()) {
+  OnboardingBloc(this._addUserUsecase) : super(OnboardingInitialState()) {
     on<LoadOnboardingEvent>((event, emit) async {
       emit(OnboardingLoadingState());
 
@@ -24,7 +24,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
   void addOnboardingUserData(
       BuildContext context, UserEntity userEntity) async {
-    addUserUsecase.addUser(context, userEntity);
+    _addUserUsecase.addUser(context, userEntity);
   }
 
   double? getOverviewCalorieGoal() {

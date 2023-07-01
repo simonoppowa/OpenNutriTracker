@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/meal_Intake_list.dart';
@@ -24,7 +25,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    _homeBloc = Provider.of<HomeBloc>(context, listen: false);
+    _homeBloc = locator<HomeBloc>();
     super.initState();
   }
 

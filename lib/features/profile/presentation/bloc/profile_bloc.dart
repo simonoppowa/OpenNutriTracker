@@ -15,10 +15,10 @@ part 'profile_event.dart';
 part 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
-  final _getUserUsecase = GetUserUsecase();
-  final _addUserUsecase = AddUserUsecase();
+  final GetUserUsecase _getUserUsecase;
+  final AddUserUsecase _addUserUsecase;
 
-  ProfileBloc() : super(ProfileInitial()) {
+  ProfileBloc(this._getUserUsecase, this._addUserUsecase) : super(ProfileInitial()) {
     on<LoadProfileEvent>((event, emit) async {
       emit(ProfileLoadingState());
 

@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/bmi_overview.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set%20_weight_dialog.dart';
@@ -22,7 +23,13 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final _profileBloc = ProfileBloc();
+  late ProfileBloc _profileBloc;
+
+  @override
+  void initState() {
+    _profileBloc = locator<ProfileBloc>();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
@@ -23,7 +24,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   final log = Logger('ItemDetailScreen');
 
-  final mealDetailBloc = MealDetailBloc();
+  late MealDetailBloc _mealDetailBloc;
   final _scrollController = ScrollController();
 
   late ProductEntity product;
@@ -38,6 +39,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   @override
   void initState() {
+    _mealDetailBloc = locator<MealDetailBloc>();
     quantityTextController = TextEditingController();
     quantityTextController.text = '100';
     totalQuantity = 100;
@@ -151,7 +153,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           product: product,
           intakeTypeEntity: intakeTypeEntity,
           quantityTextController: quantityTextController,
-          mealDetailBloc: mealDetailBloc),
+          mealDetailBloc: _mealDetailBloc),
     );
   }
 

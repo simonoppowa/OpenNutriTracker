@@ -35,6 +35,7 @@ dependencies:
 
   collection: ^1.17.0
   intl: ^0.18.0
+  get_it: ^7.6.0
   http: ^0.13.6
   uuid: ^3.0.7
   json_annotation: ^4.8.0

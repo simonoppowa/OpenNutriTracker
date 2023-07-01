@@ -11,7 +11,9 @@ import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.
 class MealDetailBloc {
   final _addIntakeUseCase = AddIntakeUsecase();
   final _addTrackedDayUsecase = AddTrackedDayUsecase();
-  final _getUserUsecase = GetUserUsecase();
+  final GetUserUsecase _getUserUsecase;
+
+  MealDetailBloc(this._getUserUsecase);
 
   void addIntake(BuildContext context, String unit, String amountText,
       IntakeTypeEntity type, ProductEntity product) async {

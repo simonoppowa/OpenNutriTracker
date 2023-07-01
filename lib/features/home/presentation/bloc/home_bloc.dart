@@ -26,10 +26,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final _deleteIntakeUsecase = DeleteIntakeUsecase();
   final _getUserActivityUsecase = GetUserActivityUsecase();
   final _deleteUserActivityUsecase = DeleteUserActivityUsecase();
-  final _getUserUsecase = GetUserUsecase();
+  final GetUserUsecase _getUserUsecase;
   final _addTrackedDayUseCase = AddTrackedDayUsecase();
 
-  HomeBloc() : super(HomeInitial()) {
+  HomeBloc(this._getUserUsecase) : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
 
