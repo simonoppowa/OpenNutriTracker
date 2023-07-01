@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_item_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
@@ -37,7 +38,7 @@ class _AddItemScreenState extends State<AddItemScreen>
   void initState() {
     _productsBloc = ProductsBloc();
     _foodBloc = FoodBloc();
-    _recentMealBloc = RecentMealBloc();
+    _recentMealBloc = locator<RecentMealBloc>();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       // Update search results when tab changes

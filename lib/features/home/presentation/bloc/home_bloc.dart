@@ -22,14 +22,15 @@ part 'home_state.dart';
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetConfigUsecase _getConfigUsecase;
   final AddConfigUsecase _addConfigUsecase;
-  final _getIntakeUsecase = GetIntakeUsecase();
+  final GetIntakeUsecase _getIntakeUsecase;
   final _deleteIntakeUsecase = DeleteIntakeUsecase();
   final _getUserActivityUsecase = GetUserActivityUsecase();
   final _deleteUserActivityUsecase = DeleteUserActivityUsecase();
   final GetUserUsecase _getUserUsecase;
   final _addTrackedDayUseCase = AddTrackedDayUsecase();
 
-  HomeBloc(this._getConfigUsecase, this._addConfigUsecase, this._getUserUsecase)
+  HomeBloc(this._getConfigUsecase, this._addConfigUsecase,
+      this._getIntakeUsecase, this._getUserUsecase)
       : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
@@ -38,28 +39,25 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final showDisclaimerDialog = !configData.hasAcceptedDisclaimer;
 
       final breakfastIntakeList =
-          await _getIntakeUsecase.getTodayBreakfastIntake(event.context);
+          await _getIntakeUsecase.getTodayBreakfastIntake();
       final totalBreakfastKcal = getTotalKcal(breakfastIntakeList);
       final totalBreakfastCarbs = getTotalCarbs(breakfastIntakeList);
       final totalBreakfastFats = getTotalFats(breakfastIntakeList);
       final totalBreakfastProteins = getTotalProteins(breakfastIntakeList);
 
-      final lunchIntakeList =
-          await _getIntakeUsecase.getTodayLunchIntake(event.context);
+      final lunchIntakeList = await _getIntakeUsecase.getTodayLunchIntake();
       final totalLunchKcal = getTotalKcal(lunchIntakeList);
       final totalLunchCarbs = getTotalCarbs(lunchIntakeList);
       final totalLunchFats = getTotalFats(lunchIntakeList);
       final totalLunchProteins = getTotalProteins(lunchIntakeList);
 
-      final dinnerIntakeList =
-          await _getIntakeUsecase.getTodayDinnerIntake(event.context);
+      final dinnerIntakeList = await _getIntakeUsecase.getTodayDinnerIntake();
       final totalDinnerKcal = getTotalKcal(dinnerIntakeList);
       final totalDinnerCarbs = getTotalCarbs(dinnerIntakeList);
       final totalDinnerFats = getTotalFats(dinnerIntakeList);
       final totalDinnerProteins = getTotalProteins(dinnerIntakeList);
 
-      final snackIntakeList =
-          await _getIntakeUsecase.getTodaySnackIntake(event.context);
+      final snackIntakeList = await _getIntakeUsecase.getTodaySnackIntake();
       final totalSnackKcal = getTotalKcal(snackIntakeList);
       final totalSnackCarbs = getTotalCarbs(snackIntakeList);
       final totalSnackFats = getTotalFats(snackIntakeList);

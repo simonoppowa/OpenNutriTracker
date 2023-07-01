@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_table_calendar.dart';
@@ -28,7 +29,7 @@ class _DiaryPageState extends State<DiaryPage> {
   @override
   void initState() {
     _diaryBloc = DiaryBloc();
-    _calendarDayBloc = CalendarDayBloc();
+    _calendarDayBloc = locator<CalendarDayBloc>();
     super.initState();
   }
 

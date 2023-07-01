@@ -17,27 +17,27 @@ part 'calendar_day_state.dart';
 
 class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   final _getUserActivityUsecase = GetUserActivityUsecase();
-  final _getIntakeUsecase = GetIntakeUsecase();
+  final GetIntakeUsecase _getIntakeUsecase;
   final _deleteIntakeUsecase = DeleteIntakeUsecase();
   final _deleteUserActivityUsecase = DeleteUserActivityUsecase();
   final _addTrackedDayUsecase = AddTrackedDayUsecase();
   final _getTrackedDayUsecase = GetTrackedDayUsecase();
 
-  CalendarDayBloc() : super(CalendarDayInitial()) {
+  CalendarDayBloc(this._getIntakeUsecase) : super(CalendarDayInitial()) {
     on<LoadCalendarDayEvent>((event, emit) async {
       emit(CalendarDayLoading());
       final userActivities = await _getUserActivityUsecase.getUserActivityByDay(
           event.context, event.day);
 
       final breakfastIntakeList = await _getIntakeUsecase
-          .getBreakfastIntakeByDay(event.context, event.day);
+          .getBreakfastIntakeByDay(event.day);
 
       final lunchIntakeList =
-          await _getIntakeUsecase.getLunchIntakeByDay(event.context, event.day);
+          await _getIntakeUsecase.getLunchIntakeByDay(event.day);
       final dinnerIntakeList = await _getIntakeUsecase.getDinnerIntakeByDay(
-          event.context, event.day);
+          event.day);
       final snackIntakeList =
-          await _getIntakeUsecase.getSnackIntakeByDay(event.context, event.day);
+          await _getIntakeUsecase.getSnackIntakeByDay(event.day);
 
       final trackedDayEntity =
           await _getTrackedDayUsecase.getTrackedDay(event.context, event.day);

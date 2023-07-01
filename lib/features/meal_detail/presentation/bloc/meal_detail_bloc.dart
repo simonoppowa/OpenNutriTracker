@@ -9,11 +9,11 @@ import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 
 class MealDetailBloc {
-  final _addIntakeUseCase = AddIntakeUsecase();
+  final AddIntakeUsecase _addIntakeUseCase;
   final _addTrackedDayUsecase = AddTrackedDayUsecase();
   final GetUserUsecase _getUserUsecase;
 
-  MealDetailBloc(this._getUserUsecase);
+  MealDetailBloc(this._getUserUsecase, this._addIntakeUseCase);
 
   void addIntake(BuildContext context, String unit, String amountText,
       IntakeTypeEntity type, ProductEntity product) async {
@@ -26,8 +26,7 @@ class MealDetailBloc {
         type: type,
         product: product,
         dateTime: DateTime.now());
-
-    _addIntakeUseCase.addIntake(context, intakeEntity);
+    _addIntakeUseCase.addIntake(intakeEntity);
     _updateTrackedDay(context, intakeEntity);
   }
 

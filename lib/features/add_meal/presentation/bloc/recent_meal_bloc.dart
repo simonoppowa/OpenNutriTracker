@@ -12,15 +12,15 @@ part 'recent_meal_state.dart';
 class RecentMealBloc extends Bloc<RecentMealEvent, RecentMealState> {
   final log = Logger('RecentMealBloc');
 
-  final getIntakeUsecase = GetIntakeUsecase();
+  final GetIntakeUsecase _getIntakeUsecase;
 
-  RecentMealBloc() : super(RecentMealInitial()) {
+  RecentMealBloc(this._getIntakeUsecase) : super(RecentMealInitial()) {
     on<LoadRecentMealEvent>((event, emit) async {
       emit(RecentMealLoadingState());
 
       try {
         final recentIntake =
-            await getIntakeUsecase.getRecentIntake(event.context);
+            await _getIntakeUsecase.getRecentIntake();
         emit(RecentMealLoadedState(
             recentMeals:
                 recentIntake.map((intake) => intake.product).toList()));

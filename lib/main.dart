@@ -39,8 +39,6 @@ Future<void> main() async {
 
   final hiveDBProvider = locator.get<HiveDBProvider>(); // TODO remove
   final ConfigDataSource configDataSource = locator<ConfigDataSource>();
-  final IntakeDataSource intakeDataSource =
-      IntakeDataSource(hiveDBProvider.intakeBox);
   final userActivityDataSource =
       UserActivityDataSource(hiveDBProvider.userActivityBox);
   final physicalActivityDataSource = PhysicalActivityDataSource();
@@ -63,7 +61,7 @@ Future<void> main() async {
         RepositoryProvider(
             create: (context) => ConfigRepository(configDataSource)),
         RepositoryProvider(
-            create: (context) => IntakeRepository(intakeDataSource)),
+            create: (context) => IntakeRepository(locator<IntakeDataSource>())),
         RepositoryProvider(
             create: (context) =>
                 UserActivityRepository(userActivityDataSource)),
