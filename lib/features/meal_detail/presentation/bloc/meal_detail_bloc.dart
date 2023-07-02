@@ -27,13 +27,12 @@ class MealDetailBloc {
         type: type,
         product: product,
         dateTime: DateTime.now());
-    _addIntakeUseCase.addIntake(intakeEntity);
-    _updateTrackedDay(context, intakeEntity);
+    await _addIntakeUseCase.addIntake(intakeEntity);
+    _updateTrackedDay(intakeEntity);
   }
 
-  Future<void> _updateTrackedDay(
-      BuildContext context, IntakeEntity intakeEntity) async {
-    final userEntity = await _getUserUsecase.getUserData(context);
+  Future<void> _updateTrackedDay(IntakeEntity intakeEntity) async {
+    final userEntity = await _getUserUsecase.getUserData();
     final totalKcalGoal = CalorieGoalCalc.getTdee(userEntity);
 
     final hasTrackedDay =

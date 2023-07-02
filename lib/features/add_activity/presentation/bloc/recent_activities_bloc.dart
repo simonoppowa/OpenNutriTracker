@@ -13,14 +13,15 @@ class RecentActivitiesBloc
     extends Bloc<RecentActivitiesEvent, RecentActivitiesState> {
   final log = Logger('RecentActivitiesEvent');
 
-  final getUserActivityUsecase = GetUserActivityUsecase();
+  final GetUserActivityUsecase _getUserActivityUsecase;
 
-  RecentActivitiesBloc() : super(RecentActivitiesInitial()) {
+  RecentActivitiesBloc(this._getUserActivityUsecase)
+      : super(RecentActivitiesInitial()) {
     on<LoadRecentActivitiesEvent>((event, emit) async {
       emit(RecentActivitiesLoadingState());
       try {
         final recentUserActivities =
-            await getUserActivityUsecase.getRecentUserActivity(event.context);
+            await _getUserActivityUsecase.getRecentUserActivity();
         emit(RecentActivitiesLoadedState(
             recentActivities: recentUserActivities
                 .map((activity) => activity.physicalActivityEntity)

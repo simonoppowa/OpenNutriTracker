@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/user_bmi_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
@@ -18,11 +18,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final GetUserUsecase _getUserUsecase;
   final AddUserUsecase _addUserUsecase;
 
-  ProfileBloc(this._getUserUsecase, this._addUserUsecase) : super(ProfileInitial()) {
+  ProfileBloc(this._getUserUsecase, this._addUserUsecase)
+      : super(ProfileInitial()) {
     on<LoadProfileEvent>((event, emit) async {
       emit(ProfileLoadingState());
 
-      final user = await _getUserUsecase.getUserData(event.context);
+      final user = await _getUserUsecase.getUserData();
       final userBMIValue = BMICalc.getBMI(user);
       final userBMIEntity = UserBMIEntity(
           bmiValue: userBMIValue,

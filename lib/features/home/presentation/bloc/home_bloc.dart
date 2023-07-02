@@ -24,8 +24,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final AddConfigUsecase _addConfigUsecase;
   final GetIntakeUsecase _getIntakeUsecase;
   final DeleteIntakeUsecase _deleteIntakeUsecase;
-  final _getUserActivityUsecase = GetUserActivityUsecase();
-  final _deleteUserActivityUsecase = DeleteUserActivityUsecase();
+  final GetUserActivityUsecase _getUserActivityUsecase;
+  final DeleteUserActivityUsecase _deleteUserActivityUsecase;
   final GetUserUsecase _getUserUsecase;
   final AddTrackedDayUsecase _addTrackedDayUseCase;
 
@@ -34,6 +34,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       this._addConfigUsecase,
       this._getIntakeUsecase,
       this._deleteIntakeUsecase,
+      this._getUserActivityUsecase,
+      this._deleteUserActivityUsecase,
       this._getUserUsecase,
       this._addTrackedDayUseCase)
       : super(HomeInitial()) {
@@ -86,11 +88,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           totalSnackProteins;
 
       final userActivities =
-          await _getUserActivityUsecase.getTodayUserActivity(event.context);
+          await _getUserActivityUsecase.getTodayUserActivity();
       final totalKcalActivities =
           userActivities.map((activity) => activity.burnedKcal).toList().sum;
 
-      final user = await _getUserUsecase.getUserData(event.context);
+      final user = await _getUserUsecase.getUserData();
       final totalKcalGoal =
           CalorieGoalCalc.getTotalKcalGoal(user, totalKcalActivities);
       final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(totalKcalGoal);
@@ -147,8 +149,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> deleteUserActivityItem(
       BuildContext context, UserActivityEntity activityEntity) async {
     final dateTime = DateTime.now();
-    await _deleteUserActivityUsecase.deleteUserActivity(
-        context, activityEntity);
+    await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
     await _addTrackedDayUseCase.addDayCaloriesTracked(
         dateTime, activityEntity.burnedKcal);
     _addTrackedDayUseCase.reduceDayCalorieGoal(
