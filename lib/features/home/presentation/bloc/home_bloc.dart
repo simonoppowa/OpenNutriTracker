@@ -23,14 +23,19 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetConfigUsecase _getConfigUsecase;
   final AddConfigUsecase _addConfigUsecase;
   final GetIntakeUsecase _getIntakeUsecase;
-  final _deleteIntakeUsecase = DeleteIntakeUsecase();
+  final DeleteIntakeUsecase _deleteIntakeUsecase;
   final _getUserActivityUsecase = GetUserActivityUsecase();
   final _deleteUserActivityUsecase = DeleteUserActivityUsecase();
   final GetUserUsecase _getUserUsecase;
   final AddTrackedDayUsecase _addTrackedDayUseCase;
 
-  HomeBloc(this._getConfigUsecase, this._addConfigUsecase,
-      this._getIntakeUsecase, this._getUserUsecase, this._addTrackedDayUseCase)
+  HomeBloc(
+      this._getConfigUsecase,
+      this._addConfigUsecase,
+      this._getIntakeUsecase,
+      this._deleteIntakeUsecase,
+      this._getUserUsecase,
+      this._addTrackedDayUseCase)
       : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
@@ -134,7 +139,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> deleteIntakeItem(
       BuildContext context, IntakeEntity intakeEntity) async {
     final dateTime = DateTime.now();
-    await _deleteIntakeUsecase.deleteIntake(context, intakeEntity);
+    await _deleteIntakeUsecase.deleteIntake(intakeEntity);
     await _addTrackedDayUseCase.removeDayCaloriesTracked(
         dateTime, intakeEntity.totalKcal);
   }

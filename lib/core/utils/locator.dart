@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
@@ -39,8 +40,8 @@ Future<void> initLocator() async {
   // BLoCs
   locator
       .registerLazySingleton<OnboardingBloc>(() => OnboardingBloc(locator()));
-  locator.registerLazySingleton<HomeBloc>(
-      () => HomeBloc(locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton<HomeBloc>(() => HomeBloc(
+      locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<ActivityDetailBloc>(
       () => ActivityDetailBloc(locator(), locator()));
   locator.registerLazySingleton<MealDetailBloc>(
@@ -50,7 +51,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => RecentMealBloc(locator()));
   locator.registerLazySingleton(() => DiaryBloc(locator()));
   locator.registerLazySingleton(
-      () => CalendarDayBloc(locator(), locator(), locator()));
+      () => CalendarDayBloc(locator(), locator(), locator(), locator()));
 
   // UseCases
   locator.registerLazySingleton<GetConfigUsecase>(
@@ -65,6 +66,8 @@ Future<void> initLocator() async {
       () => GetIntakeUsecase(locator()));
   locator.registerLazySingleton<AddIntakeUsecase>(
       () => AddIntakeUsecase(locator()));
+  locator.registerLazySingleton<DeleteIntakeUsecase>(
+      () => DeleteIntakeUsecase(locator()));
   locator.registerLazySingleton<GetTrackedDayUsecase>(
       () => GetTrackedDayUsecase(locator()));
   locator.registerLazySingleton<AddTrackedDayUsecase>(

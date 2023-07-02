@@ -18,13 +18,13 @@ part 'calendar_day_state.dart';
 class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   final _getUserActivityUsecase = GetUserActivityUsecase();
   final GetIntakeUsecase _getIntakeUsecase;
-  final _deleteIntakeUsecase = DeleteIntakeUsecase();
+  final DeleteIntakeUsecase _deleteIntakeUsecase;
   final _deleteUserActivityUsecase = DeleteUserActivityUsecase();
   final GetTrackedDayUsecase _getTrackedDayUsecase;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
 
-  CalendarDayBloc(this._getIntakeUsecase, this._getTrackedDayUsecase,
-      this._addTrackedDayUsecase)
+  CalendarDayBloc(this._getIntakeUsecase, this._deleteIntakeUsecase,
+      this._getTrackedDayUsecase, this._addTrackedDayUsecase)
       : super(CalendarDayInitial()) {
     on<LoadCalendarDayEvent>((event, emit) async {
       emit(CalendarDayLoading());
@@ -56,7 +56,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
 
   Future<void> deleteIntakeItem(
       BuildContext context, IntakeEntity intakeEntity, DateTime day) async {
-    await _deleteIntakeUsecase.deleteIntake(context, intakeEntity);
+    await _deleteIntakeUsecase.deleteIntake(intakeEntity);
     await _addTrackedDayUsecase.removeDayCaloriesTracked(
         day, intakeEntity.totalKcal);
   }
