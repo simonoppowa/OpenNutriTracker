@@ -36,8 +36,8 @@ class _AddItemScreenState extends State<AddItemScreen>
 
   @override
   void initState() {
-    _productsBloc = ProductsBloc();
-    _foodBloc = FoodBloc();
+    _productsBloc = locator<ProductsBloc>();
+    _foodBloc = locator<FoodBloc>();
     _recentMealBloc = locator<RecentMealBloc>();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {

@@ -11,18 +11,18 @@ part 'food_state.dart';
 class FoodBloc extends Bloc<FoodEvent, FoodState> {
   final log = Logger('FoodBloc');
 
-  final SearchProductsUseCase searchProductUseCase = SearchProductsUseCase();
+  final SearchProductsUseCase _searchProductUseCase;
 
   String _searchString = "";
 
-  FoodBloc() : super(FoodInitial()) {
+  FoodBloc(this._searchProductUseCase) : super(FoodInitial()) {
     on<LoadFoodEvent>((event, emit) async {
       if (event.searchString != _searchString) {
         _searchString = event.searchString;
         emit(FoodLoadingState());
         try {
           final result =
-              await searchProductUseCase.searchFDCFoodByString(_searchString);
+              await _searchProductUseCase.searchFDCFoodByString(_searchString);
           emit(FoodLoadedState(food: result));
         } catch (error) {
           log.severe(error);

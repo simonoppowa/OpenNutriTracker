@@ -9,15 +9,15 @@ part 'scanner_event.dart';
 part 'scanner_state.dart';
 
 class ScannerBloc extends Bloc<ScannerEvent, ScannerState> {
-  final searchProductUseCase = SearchProductByBarcodeUseCase();
+  final SearchProductByBarcodeUseCase _searchProductUseCase;
 
-  ScannerBloc() : super(ScannerInitial()) {
+  ScannerBloc(this._searchProductUseCase) : super(ScannerInitial()) {
     on<ScannerLoadProductEvent>((event, emit) async {
       emit(ScannerLoadingState());
 
       try {
         final result =
-            await searchProductUseCase.searchProductByBarcode(event.barcode);
+            await _searchProductUseCase.searchProductByBarcode(event.barcode);
         emit(ScannerLoadedState(product: result));
       } catch (error) {
         emit(ScannerFailedState());

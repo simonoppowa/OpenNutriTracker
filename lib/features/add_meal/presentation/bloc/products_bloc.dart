@@ -11,17 +11,17 @@ part 'products_state.dart';
 class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   final log = Logger('ProductsBloc');
 
-  final SearchProductsUseCase searchProductUseCase = SearchProductsUseCase();
+  final SearchProductsUseCase _searchProductUseCase;
 
   String _searchString = "";
 
-  ProductsBloc() : super(ProductsInitial()) {
+  ProductsBloc(this._searchProductUseCase) : super(ProductsInitial()) {
     on<LoadProductsEvent>((event, emit) async {
       if (event.searchString != _searchString) {
         _searchString = event.searchString;
         emit(ProductsLoadingState());
         try {
-          final result = await searchProductUseCase
+          final result = await _searchProductUseCase
               .searchOFFProductsByString(_searchString);
           emit(ProductsLoadedState(products: result));
         } catch (error) {

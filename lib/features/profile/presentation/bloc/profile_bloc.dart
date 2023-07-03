@@ -34,7 +34,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   void updateUser(BuildContext context, UserEntity userEntity) {
-    _addUserUsecase.addUser(context, userEntity);
+    _addUserUsecase.addUser(userEntity);
 
     // Refresh Profile
     add(LoadProfileEvent(context: context));

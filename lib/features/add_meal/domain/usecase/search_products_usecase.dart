@@ -2,18 +2,19 @@ import 'package:opennutritracker/features/add_meal/data/repository/products_repo
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 
 class SearchProductsUseCase {
-  // TODO make singleton
-  final ProductsRepository productsRepository = ProductsRepository();
+  final ProductsRepository _productsRepository;
+
+  SearchProductsUseCase(this._productsRepository);
 
   Future<List<ProductEntity>> searchOFFProductsByString(
       String searchString) async {
     final products =
-        await productsRepository.getOFFProductsByString(searchString);
+        await _productsRepository.getOFFProductsByString(searchString);
     return products;
   }
 
   Future<List<ProductEntity>> searchFDCFoodByString(String searchString) async {
-    final foods = await productsRepository.getFDCFoodsByString(searchString);
+    final foods = await _productsRepository.getFDCFoodsByString(searchString);
     return foods;
   }
 }

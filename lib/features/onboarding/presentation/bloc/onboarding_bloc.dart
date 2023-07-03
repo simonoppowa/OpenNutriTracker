@@ -24,7 +24,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
   void addOnboardingUserData(
       BuildContext context, UserEntity userEntity) async {
-    _addUserUsecase.addUser(context, userEntity);
+    _addUserUsecase.addUser(userEntity);
   }
 
   double? getOverviewCalorieGoal() {
