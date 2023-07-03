@@ -137,7 +137,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         totalKcal = newTotalKcal;
         scrollToCalorieText();
       });
-    } on FormatException catch (e) {
+    } on FormatException catch (_) {
       log.warning("Error while parsing: \"$quantityString\"");
     }
   }

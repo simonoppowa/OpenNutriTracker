@@ -25,7 +25,7 @@ class _MainScreenState extends State<MainScreen> {
     _bodyPages = [
       const HomePage(),
       const DiaryPage(),
-      ProfilePage(),
+      const ProfilePage(),
     ];
     _appbarPages = [
       const HomeAppbar(),

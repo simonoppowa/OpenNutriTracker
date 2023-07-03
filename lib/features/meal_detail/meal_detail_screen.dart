@@ -177,7 +177,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         totalFat = (quantity * fatPerUnit);
         totalProtein = (quantity * proteinPerUnit);
         scrollToCalorieText();
-      } on FormatException catch (e) {
+      } on FormatException catch (_) {
         log.warning("Error while parsing: \"$quantityString\"");
       }
     });
