@@ -1,13 +1,11 @@
-import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
-import 'package:opennutritracker/generated/l10n.dart';
 
 /// Selection of  physical activities by the
 /// '2011 Compendium of Physical Activities'
 /// https://pubmed.ncbi.nlm.nih.gov/21681120/
 /// by Ainsworth et al.
 class PhysicalActivityDataSource {
-  List<PhysicalActivityDBO> getPhysicalActivityList(BuildContext context) => [
+  List<PhysicalActivityDBO> getPhysicalActivityList() => [
         PhysicalActivityDBO("01015", "bicycling", "general", 7.5, [],
             PhysicalActivityTypeDBO.bicycling),
         PhysicalActivityDBO("01009", "bicycling, mountain", "general", 8.5, [],

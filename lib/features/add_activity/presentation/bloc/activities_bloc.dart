@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
@@ -12,17 +12,17 @@ part 'activities_state.dart';
 class ActivitiesBloc extends Bloc<ActivitiesEvent, ActivitiesState> {
   final log = Logger('ActivitiesBloc');
 
-  final GetPhysicalActivityUsecase _getPhysicalActivityUsecase =
-      GetPhysicalActivityUsecase();
+  final GetPhysicalActivityUsecase _getPhysicalActivityUsecase;
 
   List<PhysicalActivityEntity> physicalActivities = [];
 
-  ActivitiesBloc() : super(ActivitiesInitial()) {
+  ActivitiesBloc(this._getPhysicalActivityUsecase)
+      : super(ActivitiesInitial()) {
     on<LoadActivitiesEvent>((event, emit) async {
       emit(ActivitiesLoadingState());
       try {
-        physicalActivities = await _getPhysicalActivityUsecase
-            .getAllPhysicalActivities(event.context);
+        physicalActivities =
+            await _getPhysicalActivityUsecase.getAllPhysicalActivities();
 
         emit(ActivitiesLoadedState(activities: physicalActivities));
       } catch (error) {

@@ -24,7 +24,7 @@ class _AddActivityScreenState extends State<AddActivityScreen>
 
   @override
   void initState() {
-    _activitiesBloc = ActivitiesBloc();
+    _activitiesBloc = locator<ActivitiesBloc>();
     _recentActivitiesBloc = locator<RecentActivitiesBloc>();
     _tabController = TabController(length: 2, vsync: this);
     super.initState();
