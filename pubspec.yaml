@@ -51,7 +51,6 @@ dependencies:
 
   flutter_bloc: ^8.1.2
   equatable: ^2.0.5
-  provider: ^6.0.5
 
   percent_indicator: ^4.2.3
   horizontal_picker: ^1.2.0

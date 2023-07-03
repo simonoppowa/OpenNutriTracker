@@ -6,9 +6,9 @@ import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/bmi_calc.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
-import 'package:provider/provider.dart';
 
 part 'profile_event.dart';
 
@@ -39,10 +39,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     // Refresh Profile
     add(LoadProfileEvent(context: context));
     // Refresh Home Page
-    Provider.of<HomeBloc>(context, listen: false)
-        .add(LoadItemsEvent(context: context));
+    locator<HomeBloc>().add(LoadItemsEvent(context: context));
     // Refresh Diary Page
-    Provider.of<DiaryBloc>(context, listen: false)
-        .add(LoadDiaryYearEvent(context));
+    locator<DiaryBloc>().add(LoadDiaryYearEvent(context));
   }
 }

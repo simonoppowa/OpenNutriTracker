@@ -14,6 +14,9 @@ import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.d
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 
 part 'home_event.dart';
 
@@ -144,6 +147,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     await _deleteIntakeUsecase.deleteIntake(intakeEntity);
     await _addTrackedDayUseCase.removeDayCaloriesTracked(
         dateTime, intakeEntity.totalKcal);
+    _updateDiaryPage(context, dateTime);
   }
 
   Future<void> deleteUserActivityItem(
@@ -154,5 +158,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         dateTime, activityEntity.burnedKcal);
     _addTrackedDayUseCase.reduceDayCalorieGoal(
         dateTime, activityEntity.burnedKcal);
+    _updateDiaryPage(context, dateTime);
+  }
+
+  Future<void> _updateDiaryPage(BuildContext context, DateTime day) async {
+    locator<DiaryBloc>().add(LoadDiaryYearEvent(context));
+    locator<CalendarDayBloc>().add(LoadCalendarDayEvent(context, day));
   }
 }

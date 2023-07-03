@@ -60,23 +60,23 @@ Future<void> initLocator() async {
       .registerLazySingleton<OnboardingBloc>(() => OnboardingBloc(locator()));
   locator.registerLazySingleton<HomeBloc>(() => HomeBloc(locator(), locator(),
       locator(), locator(), locator(), locator(), locator(), locator()));
-  locator
-      .registerLazySingleton<ActivitiesBloc>(() => ActivitiesBloc(locator()));
-  locator.registerLazySingleton<ActivityDetailBloc>(
-      () => ActivityDetailBloc(locator(), locator(), locator()));
-  locator.registerLazySingleton<RecentActivitiesBloc>(
-      () => RecentActivitiesBloc(locator()));
-  locator.registerLazySingleton<ProductsBloc>(() => ProductsBloc(locator()));
-  locator.registerLazySingleton<FoodBloc>(() => FoodBloc(locator()));
-  locator.registerLazySingleton<MealDetailBloc>(
-      () => MealDetailBloc(locator(), locator(), locator()));
-  locator.registerLazySingleton<ProfileBloc>(
-      () => ProfileBloc(locator(), locator()));
-  locator.registerLazySingleton(() => RecentMealBloc(locator()));
   locator.registerLazySingleton(() => DiaryBloc(locator()));
   locator.registerLazySingleton(() => CalendarDayBloc(
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<ScannerBloc>(() => ScannerBloc(locator()));
+  locator.registerLazySingleton<ProfileBloc>(
+      () => ProfileBloc(locator(), locator()));
+
+  locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
+  locator.registerFactory<RecentActivitiesBloc>(
+      () => RecentActivitiesBloc(locator()));
+  locator.registerFactory<ActivityDetailBloc>(
+      () => ActivityDetailBloc(locator(), locator(), locator()));
+  locator.registerFactory<MealDetailBloc>(
+      () => MealDetailBloc(locator(), locator(), locator()));
+  locator.registerFactory<ProductsBloc>(() => ProductsBloc(locator()));
+  locator.registerFactory<FoodBloc>(() => FoodBloc(locator()));
+  locator.registerFactory(() => RecentMealBloc(locator()));
 
   // UseCases
   locator.registerLazySingleton<GetConfigUsecase>(
@@ -140,4 +140,12 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<FDCDataSource>(() => FDCDataSource());
   locator.registerLazySingleton(
       () => TrackedDayDataSource(hiveDBProvider.trackedDayBox));
+
+  await initializeConfig(locator());
+}
+
+Future<void> initializeConfig(ConfigDataSource configDataSource) async {
+  if (!await configDataSource.configInitialized()) {
+    configDataSource.initializeConfig();
+  }
 }
