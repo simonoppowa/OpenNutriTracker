@@ -37,7 +37,7 @@ class _ProfilePageState extends State<ProfilePage> {
       bloc: _profileBloc,
       builder: (context, state) {
         if (state is ProfileInitial) {
-          _profileBloc.add(LoadProfileEvent(context: context));
+          _profileBloc.add(LoadProfileEvent());
           return _getLoadingContent();
         } else if (state is ProfileLoadingState) {
           return _getLoadingContent();
@@ -175,7 +175,7 @@ class _ProfilePageState extends State<ProfilePage> {
         builder: (BuildContext context) => const SetPALCategoryDialog());
     if (selectedPalCategory != null) {
       userEntity.pal = selectedPalCategory;
-      _profileBloc.updateUser(context, userEntity);
+      _profileBloc.updateUser(userEntity);
     }
   }
 
@@ -186,7 +186,7 @@ class _ProfilePageState extends State<ProfilePage> {
         builder: (BuildContext context) => const SetWeightGoalDialog());
     if (selectedGoal != null) {
       userEntity.goal = selectedGoal;
-      _profileBloc.updateUser(context, userEntity);
+      _profileBloc.updateUser(userEntity);
     }
   }
 
@@ -200,7 +200,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (selectedHeight != null) {
       userEntity.heightCM = selectedHeight;
 
-      _profileBloc.updateUser(context, userEntity);
+      _profileBloc.updateUser(userEntity);
     }
   }
 
@@ -211,7 +211,7 @@ class _ProfilePageState extends State<ProfilePage> {
         builder: (context) => SetWeightDialog(userWeight: userEntity.weightKG));
     if (selectedWeight != null) {
       userEntity.weightKG = selectedWeight;
-      _profileBloc.updateUser(context, userEntity);
+      _profileBloc.updateUser(userEntity);
     }
   }
 
@@ -224,7 +224,7 @@ class _ProfilePageState extends State<ProfilePage> {
         lastDate: DateTime(2100));
     if (selectedDate != null) {
       userEntity.birthday = selectedDate;
-      _profileBloc.updateUser(context, userEntity);
+      _profileBloc.updateUser(userEntity);
     }
   }
 
@@ -236,7 +236,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (selectedGender != null) {
       userEntity.gender = selectedGender;
 
-      _profileBloc.updateUser(context, userEntity);
+      _profileBloc.updateUser(userEntity);
     }
   }
 }

@@ -5,9 +5,7 @@ abstract class DiaryEvent extends Equatable {
 }
 
 class LoadDiaryYearEvent extends DiaryEvent {
-  final BuildContext context;
-
-  const LoadDiaryYearEvent(this.context);
+  const LoadDiaryYearEvent();
 
   @override
   List<Object?> get props => [];

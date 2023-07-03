@@ -51,7 +51,6 @@ Future<void> initLocator() async {
   // Init secure storage and Hive database;
   final secureAppStorageProvider = SecureAppStorageProvider();
   final hiveDBProvider = HiveDBProvider();
-  locator.registerSingleton<HiveDBProvider>(hiveDBProvider); // TODO remove
   await hiveDBProvider
       .initHiveDB(await secureAppStorageProvider.getHiveEncryptionKey());
 

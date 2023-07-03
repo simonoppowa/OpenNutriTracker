@@ -152,7 +152,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         context, quantityTextController.text, totalKcal, activityEntity);
 
     // Refresh Home Page
-    locator<HomeBloc>().add(LoadItemsEvent(context: context));
+    locator<HomeBloc>().add(const LoadItemsEvent());
 
     // Show snackbar and return to dashboard
     ScaffoldMessenger.of(context).showSnackBar(

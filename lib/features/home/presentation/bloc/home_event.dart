@@ -8,7 +8,5 @@ abstract class HomeEvent extends Equatable {
 }
 
 class LoadItemsEvent extends HomeEvent {
-  final BuildContext context;
-
-  const LoadItemsEvent({required this.context});
+  const LoadItemsEvent();
 }

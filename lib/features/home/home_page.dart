@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
       bloc: _homeBloc,
       builder: (context, state) {
         if (state is HomeInitial) {
-          _homeBloc.add(LoadItemsEvent(context: context));
+          _homeBloc.add(const LoadItemsEvent());
           return _getLoadingContent();
         } else if (state is HomeLoadingState) {
           return _getLoadingContent();
@@ -145,10 +145,12 @@ class _HomePageState extends State<HomePage> {
         context: context, builder: (context) => const DeleteDialog());
 
     if (deleteIntake != null) {
-      _homeBloc.deleteUserActivityItem(context, activityEntity);
-      _homeBloc.add(LoadItemsEvent(context: context));
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+      _homeBloc.deleteUserActivityItem(activityEntity);
+      _homeBloc.add(const LoadItemsEvent());
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+      }
     }
   }
 
@@ -158,10 +160,12 @@ class _HomePageState extends State<HomePage> {
         context: context, builder: (context) => const DeleteDialog());
 
     if (deleteIntake != null) {
-      _homeBloc.deleteIntakeItem(context, intakeEntity);
-      _homeBloc.add(LoadItemsEvent(context: context));
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+      _homeBloc.deleteIntakeItem(intakeEntity);
+      _homeBloc.add(const LoadItemsEvent());
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+      }
     }
   }
 
@@ -174,8 +178,8 @@ class _HomePageState extends State<HomePage> {
             return const DisclaimerDialog();
           });
       if (dialogConfirmed != null) {
-        _homeBloc.saveConfigData(context, dialogConfirmed);
-        _homeBloc.add(LoadItemsEvent(context: context));
+        _homeBloc.saveConfigData(dialogConfirmed);
+        _homeBloc.add(const LoadItemsEvent());
       }
     });
   }

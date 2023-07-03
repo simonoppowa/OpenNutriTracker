@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/user_bmi_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
@@ -33,14 +32,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     });
   }
 
-  void updateUser(BuildContext context, UserEntity userEntity) {
+  void updateUser(UserEntity userEntity) {
     _addUserUsecase.addUser(userEntity);
 
     // Refresh Profile
-    add(LoadProfileEvent(context: context));
+    add(LoadProfileEvent());
     // Refresh Home Page
-    locator<HomeBloc>().add(LoadItemsEvent(context: context));
+    locator<HomeBloc>().add(const LoadItemsEvent());
     // Refresh Diary Page
-    locator<DiaryBloc>().add(LoadDiaryYearEvent(context));
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
   }
 }

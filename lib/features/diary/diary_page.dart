@@ -39,7 +39,7 @@ class _DiaryPageState extends State<DiaryPage> {
       bloc: _diaryBloc,
       builder: (context, state) {
         if (state is DiaryInitial) {
-          _diaryBloc.add(LoadDiaryYearEvent(context));
+          _diaryBloc.add(const LoadDiaryYearEvent());
         } else if (state is DiaryLoadingState) {
           return _getLoadingContent();
         } else if (state is DiaryLoadedState) {
@@ -70,8 +70,7 @@ class _DiaryPageState extends State<DiaryPage> {
           bloc: _calendarDayBloc,
           builder: (context, state) {
             if (state is CalendarDayInitial) {
-              _calendarDayBloc
-                  .add(LoadCalendarDayEvent(context, _selectedDate));
+              _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
             } else if (state is CalendarDayLoading) {
               return _getLoadingContent();
             } else if (state is CalendarDayLoaded) {
@@ -98,22 +97,26 @@ class _DiaryPageState extends State<DiaryPage> {
       IntakeEntity intakeEntity, TrackedDayEntity? trackedDayEntity) async {
     await _calendarDayBloc.deleteIntakeItem(
         context, intakeEntity, trackedDayEntity?.day ?? DateTime.now());
-    _diaryBloc.add(LoadDiaryYearEvent(context));
-    _calendarDayBloc.add(LoadCalendarDayEvent(context, _selectedDate));
-    _diaryBloc.updateHomePage(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+    _diaryBloc.add(const LoadDiaryYearEvent());
+    _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
+    _diaryBloc.updateHomePage();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+    }
   }
 
   void _onDeleteActivityItem(UserActivityEntity userActivityEntity,
       TrackedDayEntity? trackedDayEntity) async {
     await _calendarDayBloc.deleteUserActivityItem(
         context, userActivityEntity, trackedDayEntity?.day ?? DateTime.now());
-    _diaryBloc.add(LoadDiaryYearEvent(context));
-    _calendarDayBloc.add(LoadCalendarDayEvent(context, _selectedDate));
-    _diaryBloc.updateHomePage(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+    _diaryBloc.add(const LoadDiaryYearEvent());
+    _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
+    _diaryBloc.updateHomePage();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+    }
   }
 
   void _onDateSelected(
@@ -121,7 +124,7 @@ class _DiaryPageState extends State<DiaryPage> {
     setState(() {
       _selectedDate = newDate;
       _focusedDate = newDate;
-      _calendarDayBloc.add(LoadCalendarDayEvent(context, newDate));
+      _calendarDayBloc.add(LoadCalendarDayEvent(newDate));
     });
   }
 }

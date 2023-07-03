@@ -157,7 +157,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
         widget.product);
 
     // Refresh Home Page
-    locator<HomeBloc>().add(LoadItemsEvent(context: context));
+    locator<HomeBloc>().add(const LoadItemsEvent());
 
     // Show snackbar and return to dashboard
     ScaffoldMessenger.of(context).showSnackBar(

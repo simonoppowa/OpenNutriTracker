@@ -194,44 +194,48 @@ class SettingsScreen extends StatelessWidget {
       launchUrl(reportUri);
     } else {
       // Cannot open email app, show error snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).errorOpeningEmail)));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(S.of(context).errorOpeningEmail)));
+      }
     }
   }
 
   void _showAboutDialog(BuildContext context) async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    showAboutDialog(
-        context: context,
-        applicationName: S.of(context).appTitle,
-        applicationIcon: SizedBox(
-            width: 40, child: Image.asset('assets/icon/ont_logo_square.png')),
-        applicationVersion: packageInfo.version,
-        applicationLegalese: S.of(context).appLicenseLabel,
-        children: [
-          TextButton(
-              onPressed: () {
-                _launchSourceCodeUrl(context);
-              },
-              child: Row(
-                children: [
-                  const Icon(Icons.code_outlined),
-                  const SizedBox(width: 8.0),
-                  Text(S.of(context).settingsSourceCodeLabel),
-                ],
-              )),
-          TextButton(
-              onPressed: () {
-                _launchPrivacyPolicyUrl(context);
-              },
-              child: Row(
-                children: [
-                  const Icon(Icons.policy_outlined),
-                  const SizedBox(width: 8.0),
-                  Text(S.of(context).privacyPolicyLabel),
-                ],
-              ))
-        ]);
+    if (context.mounted) {
+      showAboutDialog(
+          context: context,
+          applicationName: S.of(context).appTitle,
+          applicationIcon: SizedBox(
+              width: 40, child: Image.asset('assets/icon/ont_logo_square.png')),
+          applicationVersion: packageInfo.version,
+          applicationLegalese: S.of(context).appLicenseLabel,
+          children: [
+            TextButton(
+                onPressed: () {
+                  _launchSourceCodeUrl(context);
+                },
+                child: Row(
+                  children: [
+                    const Icon(Icons.code_outlined),
+                    const SizedBox(width: 8.0),
+                    Text(S.of(context).settingsSourceCodeLabel),
+                  ],
+                )),
+            TextButton(
+                onPressed: () {
+                  _launchPrivacyPolicyUrl(context);
+                },
+                child: Row(
+                  children: [
+                    const Icon(Icons.policy_outlined),
+                    const SizedBox(width: 8.0),
+                    Text(S.of(context).privacyPolicyLabel),
+                  ],
+                ))
+          ]);
+    }
   }
 
   void _launchSourceCodeUrl(BuildContext context) async {
@@ -249,8 +253,10 @@ class SettingsScreen extends StatelessWidget {
       launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       // Cannot open browser app, show error snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).errorOpeningBrowser)));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(S.of(context).errorOpeningBrowser)));
+      }
     }
   }
 }

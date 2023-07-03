@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
@@ -33,7 +32,7 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
     });
   }
 
-  void updateHomePage(BuildContext context) {
-    locator<HomeBloc>().add(LoadItemsEvent(context: context));
+  void updateHomePage() {
+    locator<HomeBloc>().add(const LoadItemsEvent());
   }
 }
