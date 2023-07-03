@@ -3141,10 +3141,10 @@ class S {
     );
   }
 
-  /// `walking for pleasure`
+  /// `walking`
   String get paWalkingForPleasure {
     return Intl.message(
-      'walking for pleasure',
+      'walking',
       name: 'paWalkingForPleasure',
       desc: '',
       args: [],
@@ -3271,10 +3271,10 @@ class S {
     );
   }
 
-  /// `boat and board sailing, windsurfing, ice sailing, general (Taylor Code 235)`
+  /// `boat and board sailing, windsurfing, ice sailing, general`
   String get paSailingGeneralDesc {
     return Intl.message(
-      'boat and board sailing, windsurfing, ice sailing, general (Taylor Code 235)',
+      'boat and board sailing, windsurfing, ice sailing, general',
       name: 'paSailingGeneralDesc',
       desc: '',
       args: [],
