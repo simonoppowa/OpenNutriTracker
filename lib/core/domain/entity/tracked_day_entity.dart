@@ -1,12 +1,13 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 
-class TrackedDayEntity {
+class TrackedDayEntity extends Equatable {
   final DateTime day;
   final double calorieGoal;
   final double caloriesTracked;
 
-  TrackedDayEntity(
+  const TrackedDayEntity(
       {required this.day,
       required this.calorieGoal,
       required this.caloriesTracked});
@@ -27,4 +28,6 @@ class TrackedDayEntity {
     }
   }
 
+  @override
+  List<Object?> get props => [day, calorieGoal, caloriesTracked];
 }

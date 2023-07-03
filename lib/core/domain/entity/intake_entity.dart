@@ -1,17 +1,18 @@
+import 'package:equatable/equatable.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
 
-class IntakeEntity {
-  String id;
-  String unit;
-  double amount;
-  IntakeTypeEntity type;
-  DateTime dateTime;
+class IntakeEntity extends Equatable {
+  final String id;
+  final String unit;
+  final double amount;
+  final IntakeTypeEntity type;
+  final DateTime dateTime;
 
-  ProductEntity product;
+  final ProductEntity product;
 
-  IntakeEntity(
+  const IntakeEntity(
       {required this.id,
       required this.unit,
       required this.amount,
@@ -38,4 +39,7 @@ class IntakeEntity {
 
   double get totalProteinsGram =>
       amount * (product.nutriments.proteinsPerUnit ?? 0);
+
+  @override
+  List<Object?> get props => [id, unit, amount, type, dateTime];
 }

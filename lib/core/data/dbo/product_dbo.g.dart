@@ -87,26 +87,26 @@ class ProductSourceDBOAdapter extends TypeAdapter<ProductSourceDBO> {
   ProductSourceDBO read(BinaryReader reader) {
     switch (reader.readByte()) {
       case 0:
-        return ProductSourceDBO.Unknown;
+        return ProductSourceDBO.unknown;
       case 1:
-        return ProductSourceDBO.OFF;
+        return ProductSourceDBO.off;
       case 2:
-        return ProductSourceDBO.FDC;
+        return ProductSourceDBO.fdc;
       default:
-        return ProductSourceDBO.Unknown;
+        return ProductSourceDBO.unknown;
     }
   }
 
   @override
   void write(BinaryWriter writer, ProductSourceDBO obj) {
     switch (obj) {
-      case ProductSourceDBO.Unknown:
+      case ProductSourceDBO.unknown:
         writer.writeByte(0);
         break;
-      case ProductSourceDBO.OFF:
+      case ProductSourceDBO.off:
         writer.writeByte(1);
         break;
-      case ProductSourceDBO.FDC:
+      case ProductSourceDBO.fdc:
         writer.writeByte(2);
         break;
     }

@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
@@ -7,7 +8,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// '2011 Compendium of Physical Activities'
 /// https://pubmed.ncbi.nlm.nih.gov/21681120/
 /// by Ainsworth et al.
-class PhysicalActivityEntity {
+class PhysicalActivityEntity extends Equatable {
   final String code;
   final String specificActivity;
   final String description;
@@ -19,8 +20,11 @@ class PhysicalActivityEntity {
 
   final PhysicalActivityTypeEntity type;
 
-  PhysicalActivityEntity(this.code, this.specificActivity, this.description,
-      this.mets, this.tags, this.type);
+  const PhysicalActivityEntity(this.code, this.specificActivity,
+      this.description, this.mets, this.tags, this.type);
+
+  @override
+  List<Object?> get props => [code, specificActivity, description, mets];
 
   String getName(BuildContext context) {
     final physicalActivityMap = {

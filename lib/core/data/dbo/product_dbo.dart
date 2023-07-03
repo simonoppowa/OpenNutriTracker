@@ -84,23 +84,23 @@ class ProductDBO extends HiveObject {
 @HiveType(typeId: 14)
 enum ProductSourceDBO {
   @HiveField(0)
-  Unknown,
+  unknown,
   @HiveField(1)
-  OFF,
+  off,
   @HiveField(2)
-  FDC;
+  fdc;
 
   factory ProductSourceDBO.fromProductSourceEntity(ProductSourceEntity entity) {
     ProductSourceDBO productSourceDBO;
     switch (entity) {
-      case ProductSourceEntity.Unknown:
-        productSourceDBO = ProductSourceDBO.Unknown;
+      case ProductSourceEntity.unknown:
+        productSourceDBO = ProductSourceDBO.unknown;
         break;
-      case ProductSourceEntity.OFF:
-        productSourceDBO = ProductSourceDBO.OFF;
+      case ProductSourceEntity.off:
+        productSourceDBO = ProductSourceDBO.off;
         break;
-      case ProductSourceEntity.FDC:
-        productSourceDBO = ProductSourceDBO.FDC;
+      case ProductSourceEntity.fdc:
+        productSourceDBO = ProductSourceDBO.fdc;
         break;
     }
     return productSourceDBO;

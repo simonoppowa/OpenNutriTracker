@@ -1,11 +1,12 @@
 import 'package:collection/collection.dart';
+import 'package:equatable/equatable.dart';
 import 'package:opennutritracker/core/data/dbo/product_nutriments_dbo.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_nutriment.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off_product_nutriments.dart';
 
-class ProductNutrimentsEntity {
+class ProductNutrimentsEntity extends Equatable {
   final double? energyKcal100;
   final double? energyPerUnit;
   final double? carbohydrates100g;
@@ -18,7 +19,7 @@ class ProductNutrimentsEntity {
   final double? saturatedFat100g;
   final double? fiber100g;
 
-  ProductNutrimentsEntity(
+  const ProductNutrimentsEntity(
       {required this.energyKcal100,
       required this.energyPerUnit,
       required this.carbohydrates100g,
@@ -131,4 +132,8 @@ class ProductNutrimentsEntity {
       return null;
     }
   }
+
+  @override
+  List<Object?> get props =>
+      [energyKcal100, carbohydrates100g, fat100g, proteins100g];
 }

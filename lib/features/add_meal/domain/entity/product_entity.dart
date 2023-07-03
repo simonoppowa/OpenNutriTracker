@@ -1,5 +1,4 @@
-// ignore_for_file: constant_identifier_names
-
+import 'package:equatable/equatable.dart';
 import 'package:opennutritracker/core/data/dbo/product_dbo.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food.dart';
@@ -7,7 +6,7 @@ import 'package:opennutritracker/features/add_meal/data/dto/off_product.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/product_nutriments_entity.dart';
 
 // TODO rename
-class ProductEntity {
+class ProductEntity extends Equatable{
   final String? code;
   final String? productName;
   final String? productNameEN;
@@ -29,7 +28,7 @@ class ProductEntity {
 
   final ProductNutrimentsEntity nutriments;
 
-  ProductEntity(
+  const ProductEntity(
       {required this.code,
       required this.productName,
       this.productNameEN,
@@ -82,7 +81,7 @@ class ProductEntity {
         servingUnit: _tryGetUnit(offProduct.quantity),
         nutriments:
             ProductNutrimentsEntity.fromOffNutriments(offProduct.nutriments),
-        source: ProductSourceEntity.OFF);
+        source: ProductSourceEntity.off);
   }
 
   factory ProductEntity.fromFDCFood(FDCFood fdcFood) {
@@ -99,7 +98,7 @@ class ProductEntity {
         servingUnit: fdcFood.servingSizeUnit,
         nutriments:
             ProductNutrimentsEntity.fromFDCNutriments(fdcFood.foodNutrients),
-        source: ProductSourceEntity.FDC);
+        source: ProductSourceEntity.fdc);
   }
 
   /// Value returned from OFF can either be String, int or double.
@@ -135,25 +134,28 @@ class ProductEntity {
       return "g";
     }
   }
+
+  @override
+  List<Object?> get props => [code, productName];
 }
 
 enum ProductSourceEntity {
-  Unknown,
-  OFF,
-  FDC;
+  unknown,
+  off,
+  fdc;
 
   factory ProductSourceEntity.fromProductSourceDBO(
       ProductSourceDBO productSourceDBO) {
     ProductSourceEntity productSourceEntity;
     switch (productSourceDBO) {
-      case ProductSourceDBO.Unknown:
-        productSourceEntity = ProductSourceEntity.Unknown;
+      case ProductSourceDBO.unknown:
+        productSourceEntity = ProductSourceEntity.unknown;
         break;
-      case ProductSourceDBO.OFF:
-        productSourceEntity = ProductSourceEntity.OFF;
+      case ProductSourceDBO.off:
+        productSourceEntity = ProductSourceEntity.off;
         break;
-      case ProductSourceDBO.FDC:
-        productSourceEntity = ProductSourceEntity.FDC;
+      case ProductSourceDBO.fdc:
+        productSourceEntity = ProductSourceEntity.fdc;
         break;
     }
     return productSourceEntity;
