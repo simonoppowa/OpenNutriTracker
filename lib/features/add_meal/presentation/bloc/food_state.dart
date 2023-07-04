@@ -15,7 +15,7 @@ class FoodLoadingState extends FoodState {
 }
 
 class FoodLoadedState extends FoodState {
-  final List<ProductEntity> food;
+  final List<MealEntity> food;
 
   const FoodLoadedState({required this.food});
 

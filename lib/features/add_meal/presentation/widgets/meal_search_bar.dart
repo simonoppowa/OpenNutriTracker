@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-class ItemSearchBar extends StatelessWidget {
+class MealSearchBar extends StatelessWidget {
   final ValueNotifier<String> searchStringListener;
   final Function(String) onSearchSubmit;
   final Function() onBarcodePressed;
 
-  const ItemSearchBar(
+  final _searchTextController = TextEditingController();
+
+  MealSearchBar(
       {Key? key,
       required this.searchStringListener,
       required this.onSearchSubmit,
@@ -16,13 +18,12 @@ class ItemSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final searchTextController = TextEditingController();
     return Row(
       children: [
         Flexible(
           flex: 1,
           child: TextField(
-              controller: searchTextController,
+              controller: _searchTextController,
               textInputAction: TextInputAction.search,
               onChanged: (input) {
                 searchStringListener.value = input;
@@ -47,7 +48,7 @@ class ItemSearchBar extends StatelessWidget {
         IconButton(
           onPressed: () {
             FocusManager.instance.primaryFocus?.unfocus(); // Hide Keyboard
-            onSearchSubmit(searchTextController.text);
+            onSearchSubmit(_searchTextController.text);
           },
           icon: const Icon(Icons.search_outlined),
           style: IconButton.styleFrom(

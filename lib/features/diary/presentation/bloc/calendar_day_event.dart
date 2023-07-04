@@ -5,10 +5,9 @@ abstract class CalendarDayEvent extends Equatable {
 }
 
 class LoadCalendarDayEvent extends CalendarDayEvent {
-  final BuildContext context;
   final DateTime day;
 
-  const LoadCalendarDayEvent(this.context, this.day);
+  const LoadCalendarDayEvent(this.day);
 
   @override
   List<Object?> get props => [];

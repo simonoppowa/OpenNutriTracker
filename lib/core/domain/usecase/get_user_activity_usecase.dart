@@ -1,25 +1,20 @@
-import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
-import 'package:provider/provider.dart';
 
 class GetUserActivityUsecase {
-  Future<List<UserActivityEntity>> getTodayUserActivity(BuildContext context) {
-    final userActivityRepository =
-        Provider.of<UserActivityRepository>(context, listen: false);
-    return userActivityRepository.getAllUserActivityByDate(DateTime.now());
+  final UserActivityRepository _userActivityRepository;
+
+  GetUserActivityUsecase(this._userActivityRepository);
+
+  Future<List<UserActivityEntity>> getTodayUserActivity() {
+    return _userActivityRepository.getAllUserActivityByDate(DateTime.now());
   }
 
-  Future<List<UserActivityEntity>> getUserActivityByDay(
-      BuildContext context, DateTime day) {
-    final userActivityRepository =
-        Provider.of<UserActivityRepository>(context, listen: false);
-    return userActivityRepository.getAllUserActivityByDate(day);
+  Future<List<UserActivityEntity>> getUserActivityByDay(DateTime day) {
+    return _userActivityRepository.getAllUserActivityByDate(day);
   }
 
-  Future<List<UserActivityEntity>> getRecentUserActivity(BuildContext context) {
-    final userActivityRepository =
-        Provider.of<UserActivityRepository>(context, listen: false);
-    return userActivityRepository.getRecentUserActivity();
+  Future<List<UserActivityEntity>> getRecentUserActivity() {
+    return _userActivityRepository.getRecentUserActivity();
   }
 }

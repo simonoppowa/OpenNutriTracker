@@ -405,7 +405,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "paRunningGeneralDesc": MessageLookupByLibrary.simpleMessage("general"),
         "paSailingGeneral": MessageLookupByLibrary.simpleMessage("sailing"),
         "paSailingGeneralDesc": MessageLookupByLibrary.simpleMessage(
-            "boat and board sailing, windsurfing, ice sailing, general (Taylor Code 235)"),
+            "boat and board sailing, windsurfing, ice sailing, general"),
         "paShuffleboard": MessageLookupByLibrary.simpleMessage("shuffleboard"),
         "paShuffleboardDesc": MessageLookupByLibrary.simpleMessage("general"),
         "paSkateboardingGeneral":
@@ -472,8 +472,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("volleyball"),
         "paVolleyballGeneralDesc": MessageLookupByLibrary.simpleMessage(
             "non-competitive, 6 - 9 member team, general"),
-        "paWalkingForPleasure":
-            MessageLookupByLibrary.simpleMessage("walking for pleasure"),
+        "paWalkingForPleasure": MessageLookupByLibrary.simpleMessage("walking"),
         "paWalkingForPleasureDesc":
             MessageLookupByLibrary.simpleMessage("for pleasure"),
         "paWalkingTheDog":

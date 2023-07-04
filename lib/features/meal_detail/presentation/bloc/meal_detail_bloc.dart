@@ -6,15 +6,18 @@ import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 class MealDetailBloc {
-  final _addIntakeUseCase = AddIntakeUsecase();
-  final _addTrackedDayUsecase = AddTrackedDayUsecase();
-  final _getUserUsecase = GetUserUsecase();
+  final AddIntakeUsecase _addIntakeUseCase;
+  final AddTrackedDayUsecase _addTrackedDayUsecase;
+  final GetUserUsecase _getUserUsecase;
+
+  MealDetailBloc(
+      this._getUserUsecase, this._addTrackedDayUsecase, this._addIntakeUseCase);
 
   void addIntake(BuildContext context, String unit, String amountText,
-      IntakeTypeEntity type, ProductEntity product) async {
+      IntakeTypeEntity type, MealEntity meal) async {
     final quantity = double.parse(amountText);
 
     final intakeEntity = IntakeEntity(
@@ -22,25 +25,23 @@ class MealDetailBloc {
         unit: unit,
         amount: quantity,
         type: type,
-        product: product,
+        meal: meal,
         dateTime: DateTime.now());
-
-    _addIntakeUseCase.addIntake(context, intakeEntity);
-    _updateTrackedDay(context, intakeEntity);
+    await _addIntakeUseCase.addIntake(intakeEntity);
+    _updateTrackedDay(intakeEntity);
   }
 
-  Future<void> _updateTrackedDay(
-      BuildContext context, IntakeEntity intakeEntity) async {
-    final userEntity = await _getUserUsecase.getUserData(context);
+  Future<void> _updateTrackedDay(IntakeEntity intakeEntity) async {
+    final userEntity = await _getUserUsecase.getUserData();
     final totalKcalGoal = CalorieGoalCalc.getTdee(userEntity);
 
     final hasTrackedDay =
-        await _addTrackedDayUsecase.hasTrackedDay(context, DateTime.now());
+        await _addTrackedDayUsecase.hasTrackedDay(DateTime.now());
     if (!hasTrackedDay) {
       await _addTrackedDayUsecase.addNewTrackedDay(
-          context, DateTime.now(), totalKcalGoal);
+          DateTime.now(), totalKcalGoal);
     }
     _addTrackedDayUsecase.addDayCaloriesTracked(
-        context, DateTime.now(), intakeEntity.totalKcal);
+        DateTime.now(), intakeEntity.totalKcal);
   }
 }

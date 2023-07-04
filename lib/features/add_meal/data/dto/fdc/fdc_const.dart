@@ -11,7 +11,7 @@ class FDCConst {
   static const _fdcQueryTag = "query";
   static const _fdcPageSizeTag = "pageSize";
   static const _fdcDataTypeTag = "dataType";
-  static const _fdcDataTypeBrandedValue = "Branded";
+  // static const _fdcDataTypeBrandedValue = "Branded";
   static const _fdcDataTypeFoundationValue = "Foundation";
   static const _fdcDataTypeSRLegacyValue = "SR Legacy";
   static const _fdcSortOrderTag = "sortOrder";

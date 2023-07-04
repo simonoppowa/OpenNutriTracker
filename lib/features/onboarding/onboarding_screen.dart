@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:introduction_screen/introduction_screen.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
@@ -23,7 +24,7 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final _onboardingBloc = OnboardingBloc();
+  late OnboardingBloc _onboardingBloc;
   final _introKey = GlobalKey<IntroductionScreenState>();
 
   final _pageDecoration = const PageDecoration(
@@ -37,6 +38,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _thirdPageButtonActive = false;
   bool _fourthPageButtonActive = false;
   bool _overviewPageButtonActive = false;
+
+  @override
+  void initState() {
+    _onboardingBloc = locator<OnboardingBloc>();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -17,15 +17,17 @@ part 'activity_detail_state.dart';
 
 class ActivityDetailBloc
     extends Bloc<ActivityDetailEvent, ActivityDetailState> {
-  final _getUserUsecase = GetUserUsecase();
-  final _addUserActivityUsecase = AddUserActivityUsecase();
-  final _addTrackedDayUsecase = AddTrackedDayUsecase();
+  final GetUserUsecase _getUserUsecase;
+  final AddUserActivityUsecase _addUserActivityUsecase;
+  final AddTrackedDayUsecase _addTrackedDayUsecase;
 
-  ActivityDetailBloc() : super(ActivityDetailInitial()) {
+  ActivityDetailBloc(this._getUserUsecase, this._addUserActivityUsecase,
+      this._addTrackedDayUsecase)
+      : super(ActivityDetailInitial()) {
     on<LoadActivityDetailEvent>((event, emit) async {
       emit(ActivityDetailLoadingState());
       const quantityDefault = 60.0;
-      final user = await _getUserUsecase.getUserData(event.context);
+      final user = await _getUserUsecase.getUserData();
       final totalBurnedKcal =
           getTotalKcalBurned(user, event.physicalActivity, quantityDefault);
 
@@ -47,24 +49,22 @@ class ActivityDetailBloc
     final userActivityEntity = UserActivityEntity(IdGenerator.getUniqueID(),
         duration, totalKcalBurned, dateTime, activityEntity);
 
-    _addUserActivityUsecase.addUserActivity(context, userActivityEntity);
-    _updateTrackedDay(context, dateTime, totalKcalBurned);
+    await _addUserActivityUsecase.addUserActivity(userActivityEntity);
+    _updateTrackedDay(dateTime, totalKcalBurned);
   }
 
   void _updateTrackedDay(
-      BuildContext context, DateTime dateTime, double caloriesBurned) async {
-    final userEntity = await _getUserUsecase.getUserData(context);
+      DateTime dateTime, double caloriesBurned) async {
+    final userEntity = await _getUserUsecase.getUserData();
     final totalKcalGoal = CalorieGoalCalc.getTdee(userEntity);
 
     final hasTrackedDay =
-        await _addTrackedDayUsecase.hasTrackedDay(context, DateTime.now());
+        await _addTrackedDayUsecase.hasTrackedDay(DateTime.now());
     if (!hasTrackedDay) {
-      await _addTrackedDayUsecase.addNewTrackedDay(
-          context, dateTime, totalKcalGoal);
+      await _addTrackedDayUsecase.addNewTrackedDay(dateTime, totalKcalGoal);
     }
     await _addTrackedDayUsecase.removeDayCaloriesTracked(
-        context, dateTime, caloriesBurned);
-    _addTrackedDayUsecase.increaseDayCalorieGoal(
-        context, dateTime, caloriesBurned);
+        dateTime, caloriesBurned);
+    _addTrackedDayUsecase.increaseDayCalorieGoal(dateTime, caloriesBurned);
   }
 }

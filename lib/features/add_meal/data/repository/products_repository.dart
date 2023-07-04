@@ -1,35 +1,37 @@
 import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 class ProductsRepository {
-  final offDataSource = OFFDataSource();
-  final fdcDataSource = FDCDataSource();
+  final OFFDataSource _offDataSource;
+  final FDCDataSource _fdcDataSource;
 
-  Future<List<ProductEntity>> getOFFProductsByString(
+  ProductsRepository(this._offDataSource, this._fdcDataSource);
+
+  Future<List<MealEntity>> getOFFProductsByString(
       String searchString) async {
     final offWordResponse =
-        await offDataSource.fetchSearchWordResults(searchString);
+        await _offDataSource.fetchSearchWordResults(searchString);
 
     final products = offWordResponse.products
-        .map((offProduct) => ProductEntity.fromOFFProduct(offProduct))
+        .map((offProduct) => MealEntity.fromOFFProduct(offProduct))
         .toList();
 
     return products;
   }
 
-  Future<List<ProductEntity>> getFDCFoodsByString(String searchString) async {
+  Future<List<MealEntity>> getFDCFoodsByString(String searchString) async {
     final fdcWordResponse =
-        await fdcDataSource.fetchSearchWordResults(searchString);
+        await _fdcDataSource.fetchSearchWordResults(searchString);
     final products = fdcWordResponse.foods
-        .map((food) => ProductEntity.fromFDCFood(food))
+        .map((food) => MealEntity.fromFDCFood(food))
         .toList();
     return products;
   }
 
-  Future<ProductEntity> getOFFProductByBarcode(String barcode) async {
-    final productResponse = await offDataSource.fetchBarcodeResults(barcode);
+  Future<MealEntity> getOFFProductByBarcode(String barcode) async {
+    final productResponse = await _offDataSource.fetchBarcodeResults(barcode);
 
-    return ProductEntity.fromOFFProduct(productResponse.product);
+    return MealEntity.fromOFFProduct(productResponse.product);
   }
 }

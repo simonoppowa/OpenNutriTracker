@@ -43,7 +43,7 @@ class MealIntakeList extends StatelessWidget {
                   itemBuilder: (BuildContext context, int index) {
                     final intakeEntity = intakeList[index];
                     return IntakeCard(
-                        key: ValueKey(intakeEntity.product.code),
+                        key: ValueKey(intakeEntity.meal.code),
                         intake: intakeEntity,
                         onItemLongPressed: onItemLongPressedCallback);
                   },

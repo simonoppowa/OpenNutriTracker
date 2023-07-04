@@ -31,9 +31,9 @@ class IntakeCard extends StatelessWidget {
           },
           child: Stack(
             children: [
-              intake.product.mainImageUrl != null
+              intake.meal.mainImageUrl != null
                   ? CachedNetworkImage(
-                      imageUrl: intake.product.mainImageUrl ?? "",
+                      imageUrl: intake.meal.mainImageUrl ?? "",
                       imageBuilder: (context, imageProvider) => Container(
                         decoration: BoxDecoration(
                             image: DecorationImage(
@@ -74,7 +74,7 @@ class IntakeCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       AutoSizeText(
-                        intake.product.productName ?? "?",
+                        intake.meal.name ?? "?",
                         style: Theme.of(context)
                             .textTheme
                             .titleMedium

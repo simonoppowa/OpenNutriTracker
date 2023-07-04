@@ -2,7 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_macro_nutrients.dart';
@@ -23,10 +24,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   final log = Logger('ItemDetailScreen');
 
-  final mealDetailBloc = MealDetailBloc();
+  late MealDetailBloc _mealDetailBloc;
   final _scrollController = ScrollController();
 
-  late ProductEntity product;
+  late MealEntity product;
   late IntakeTypeEntity intakeTypeEntity;
   late TextEditingController quantityTextController;
 
@@ -38,6 +39,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   @override
   void initState() {
+    _mealDetailBloc = locator<MealDetailBloc>();
     quantityTextController = TextEditingController();
     quantityTextController.text = '100';
     totalQuantity = 100;
@@ -63,7 +65,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${product.productName}')),
+      appBar: AppBar(title: Text('${product.name}')),
       body: ListView(
         controller: _scrollController,
         children: [
@@ -95,7 +97,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     ),
                   )
                 : const SizedBox(),
-            product.productQuantity != null
+            product.mealQuantity != null
                 ? Align(
                     alignment: AlignmentDirectional.topEnd,
                     child: Card(
@@ -103,7 +105,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                             child: Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
-                                    '${product.productQuantity} ${product.productUnit ?? S.of(context).gramMilliliterUnit}',
+                                    '${product.mealQuantity} ${product.mealUnit ?? S.of(context).gramMilliliterUnit}',
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyLarge)))),
@@ -119,7 +121,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     Text('${totalKcal.toInt()} ${S.of(context).kcalLabel}',
                         style: Theme.of(context).textTheme.headlineSmall),
                     Text(
-                        ' / ${totalQuantity.toInt()} ${product.productUnit ?? S.of(context).gramMilliliterUnit}')
+                        ' / ${totalQuantity.toInt()} ${product.mealUnit ?? S.of(context).gramMilliliterUnit}')
                   ],
                 ),
                 const SizedBox(height: 8.0),
@@ -151,7 +153,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           product: product,
           intakeTypeEntity: intakeTypeEntity,
           quantityTextController: quantityTextController,
-          mealDetailBloc: mealDetailBloc),
+          mealDetailBloc: _mealDetailBloc),
     );
   }
 
@@ -175,7 +177,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         totalFat = (quantity * fatPerUnit);
         totalProtein = (quantity * proteinPerUnit);
         scrollToCalorieText();
-      } on FormatException catch (e) {
+      } on FormatException catch (_) {
         log.warning("Error while parsing: \"$quantityString\"");
       }
     });
@@ -183,7 +185,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 }
 
 class MealDetailScreenArguments {
-  final ProductEntity productEntity;
+  final MealEntity productEntity;
   final IntakeTypeEntity intakeTypeEntity;
 
   MealDetailScreenArguments(this.productEntity, this.intakeTypeEntity);

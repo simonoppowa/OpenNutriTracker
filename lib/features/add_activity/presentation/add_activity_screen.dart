@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/activities_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_activities_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/widgets/activity_item_card.dart';
@@ -23,8 +24,8 @@ class _AddActivityScreenState extends State<AddActivityScreen>
 
   @override
   void initState() {
-    _activitiesBloc = ActivitiesBloc();
-    _recentActivitiesBloc = RecentActivitiesBloc();
+    _activitiesBloc = locator<ActivitiesBloc>();
+    _recentActivitiesBloc = locator<RecentActivitiesBloc>();
     _tabController = TabController(length: 2, vsync: this);
     super.initState();
   }

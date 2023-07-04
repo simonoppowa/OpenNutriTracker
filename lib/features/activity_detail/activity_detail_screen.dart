@@ -3,13 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_info_button.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:provider/provider.dart';
 
 class ActivityDetailScreen extends StatefulWidget {
   const ActivityDetailScreen({Key? key}) : super(key: key);
@@ -27,13 +27,14 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   late PhysicalActivityEntity activityEntity;
   late TextEditingController quantityTextController;
 
-  final activityDetailBloc = ActivityDetailBloc();
+  late ActivityDetailBloc _activityDetailBloc;
 
   late double totalQuantity;
   late double totalKcal;
 
   @override
   void initState() {
+    _activityDetailBloc = locator<ActivityDetailBloc>();
     quantityTextController = TextEditingController();
     quantityTextController.text = "0";
     totalQuantity = 0; // TODO change to 60
@@ -57,10 +58,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         title: Text(activityEntity.getName(context)),
       ),
       body: BlocBuilder<ActivityDetailBloc, ActivityDetailState>(
-        bloc: activityDetailBloc,
+        bloc: _activityDetailBloc,
         builder: (context, state) {
           if (state is ActivityDetailInitial) {
-            activityDetailBloc
+            _activityDetailBloc
                 .add(LoadActivityDetailEvent(context, activityEntity));
             return getLoadingContent();
           } else if (state is ActivityDetailLoadingState) {
@@ -79,7 +80,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         onAddButtonPressed: onAddButtonPressed,
         quantityTextController: quantityTextController,
         activityEntity: activityEntity,
-        activityDetailBloc: activityDetailBloc,
+        activityDetailBloc: _activityDetailBloc,
       ),
     );
   }
@@ -129,14 +130,14 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   void _onQuantityChanged(String quantityString, UserEntity userEntity) async {
     try {
       final newQuantity = double.parse(quantityString);
-      final newTotalKcal = activityDetailBloc.getTotalKcalBurned(
+      final newTotalKcal = _activityDetailBloc.getTotalKcalBurned(
           userEntity, activityEntity, newQuantity);
       setState(() {
         totalQuantity = newQuantity;
         totalKcal = newTotalKcal;
         scrollToCalorieText();
       });
-    } on FormatException catch (e) {
+    } on FormatException catch (_) {
       log.warning("Error while parsing: \"$quantityString\"");
     }
   }
@@ -147,12 +148,11 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   }
 
   void onAddButtonPressed(BuildContext context) {
-    activityDetailBloc.persistActivity(
+    _activityDetailBloc.persistActivity(
         context, quantityTextController.text, totalKcal, activityEntity);
 
     // Refresh Home Page
-    Provider.of<HomeBloc>(context, listen: false)
-        .add(LoadItemsEvent(context: context));
+    locator<HomeBloc>().add(const LoadItemsEvent());
 
     // Show snackbar and return to dashboard
     ScaffoldMessenger.of(context).showSnackBar(

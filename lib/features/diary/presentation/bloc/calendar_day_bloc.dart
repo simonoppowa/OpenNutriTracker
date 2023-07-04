@@ -16,31 +16,38 @@ part 'calendar_day_event.dart';
 part 'calendar_day_state.dart';
 
 class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
-  final _getUserActivityUsecase = GetUserActivityUsecase();
-  final _getIntakeUsecase = GetIntakeUsecase();
-  final _deleteIntakeUsecase = DeleteIntakeUsecase();
-  final _deleteUserActivityUsecase = DeleteUserActivityUsecase();
-  final _addTrackedDayUsecase = AddTrackedDayUsecase();
-  final _getTrackedDayUsecase = GetTrackedDayUsecase();
+  final GetUserActivityUsecase _getUserActivityUsecase;
+  final GetIntakeUsecase _getIntakeUsecase;
+  final DeleteIntakeUsecase _deleteIntakeUsecase;
+  final DeleteUserActivityUsecase _deleteUserActivityUsecase;
+  final GetTrackedDayUsecase _getTrackedDayUsecase;
+  final AddTrackedDayUsecase _addTrackedDayUsecase;
 
-  CalendarDayBloc() : super(CalendarDayInitial()) {
+  CalendarDayBloc(
+      this._getUserActivityUsecase,
+      this._getIntakeUsecase,
+      this._deleteIntakeUsecase,
+      this._deleteUserActivityUsecase,
+      this._getTrackedDayUsecase,
+      this._addTrackedDayUsecase)
+      : super(CalendarDayInitial()) {
     on<LoadCalendarDayEvent>((event, emit) async {
       emit(CalendarDayLoading());
-      final userActivities = await _getUserActivityUsecase.getUserActivityByDay(
-          event.context, event.day);
+      final userActivities =
+          await _getUserActivityUsecase.getUserActivityByDay(event.day);
 
-      final breakfastIntakeList = await _getIntakeUsecase
-          .getBreakfastIntakeByDay(event.context, event.day);
+      final breakfastIntakeList =
+          await _getIntakeUsecase.getBreakfastIntakeByDay(event.day);
 
       final lunchIntakeList =
-          await _getIntakeUsecase.getLunchIntakeByDay(event.context, event.day);
-      final dinnerIntakeList = await _getIntakeUsecase.getDinnerIntakeByDay(
-          event.context, event.day);
+          await _getIntakeUsecase.getLunchIntakeByDay(event.day);
+      final dinnerIntakeList =
+          await _getIntakeUsecase.getDinnerIntakeByDay(event.day);
       final snackIntakeList =
-          await _getIntakeUsecase.getSnackIntakeByDay(event.context, event.day);
+          await _getIntakeUsecase.getSnackIntakeByDay(event.day);
 
       final trackedDayEntity =
-          await _getTrackedDayUsecase.getTrackedDay(event.context, event.day);
+          await _getTrackedDayUsecase.getTrackedDay(event.day);
 
       emit(CalendarDayLoaded(
           trackedDayEntity,
@@ -54,18 +61,17 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
 
   Future<void> deleteIntakeItem(
       BuildContext context, IntakeEntity intakeEntity, DateTime day) async {
-    await _deleteIntakeUsecase.deleteIntake(context, intakeEntity);
+    await _deleteIntakeUsecase.deleteIntake(intakeEntity);
     await _addTrackedDayUsecase.removeDayCaloriesTracked(
-        context, day, intakeEntity.totalKcal);
+        day, intakeEntity.totalKcal);
   }
 
   Future<void> deleteUserActivityItem(BuildContext context,
       UserActivityEntity activityEntity, DateTime day) async {
     await _deleteUserActivityUsecase.deleteUserActivity(
-        context, activityEntity);
+        activityEntity);
     await _addTrackedDayUsecase.addDayCaloriesTracked(
-        context, day, activityEntity.burnedKcal);
-    _addTrackedDayUsecase.reduceDayCalorieGoal(
-        context, day, activityEntity.burnedKcal);
+        day, activityEntity.burnedKcal);
+    _addTrackedDayUsecase.reduceDayCalorieGoal(day, activityEntity.burnedKcal);
   }
 }

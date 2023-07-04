@@ -6,7 +6,7 @@ import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
-import 'package:opennutritracker/features/home/presentation/widgets/meal_Intake_list.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/meal_intake_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class DayInfoWidget extends StatelessWidget {

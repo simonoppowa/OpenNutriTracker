@@ -6,7 +6,5 @@ abstract class ProfileEvent extends Equatable {
 }
 
 class LoadProfileEvent extends ProfileEvent {
-  final BuildContext context;
-
-  LoadProfileEvent({required this.context});
+  LoadProfileEvent();
 }
