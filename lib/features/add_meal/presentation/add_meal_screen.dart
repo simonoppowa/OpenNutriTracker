@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/features/add_meal/presentation/add_item_type.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/default_results_widget.dart';
-import 'package:opennutritracker/features/add_meal/presentation/widgets/item_search_bar.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_search_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/no_results_widget.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
@@ -14,19 +14,18 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bl
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-// TODO rename
-class AddItemScreen extends StatefulWidget {
-  const AddItemScreen({Key? key}) : super(key: key);
+class AddMealScreen extends StatefulWidget {
+  const AddMealScreen({Key? key}) : super(key: key);
 
   @override
-  State<AddItemScreen> createState() => _AddItemScreenState();
+  State<AddMealScreen> createState() => _AddMealScreenState();
 }
 
-class _AddItemScreenState extends State<AddItemScreen>
+class _AddMealScreenState extends State<AddMealScreen>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<String> _searchStringListener = ValueNotifier('');
 
-  late AddItemType itemType;
+  late AddMealType mealType;
 
   late ProductsBloc _productsBloc;
   late FoodBloc _foodBloc;
@@ -50,8 +49,8 @@ class _AddItemScreenState extends State<AddItemScreen>
   @override
   void didChangeDependencies() {
     final args =
-        ModalRoute.of(context)?.settings.arguments as AddItemScreenArguments;
-    itemType = args.itemType;
+        ModalRoute.of(context)?.settings.arguments as AddMealScreenArguments;
+    mealType = args.mealType;
     super.didChangeDependencies();
   }
 
@@ -64,12 +63,12 @@ class _AddItemScreenState extends State<AddItemScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text(itemType.getTypeName(context))),
+        appBar: AppBar(title: Text(mealType.getTypeName(context))),
         body: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              ItemSearchBar(
+              MealSearchBar(
                 searchStringListener: _searchStringListener,
                 onSearchSubmit: _onSearchSubmit,
                 onBarcodePressed: _onBarcodeIconPressed,
@@ -111,9 +110,8 @@ class _AddItemScreenState extends State<AddItemScreen>
                                         itemCount: state.products.length,
                                         itemBuilder: (context, index) {
                                           return MealItemCard(
-                                              mealEntity:
-                                                  state.products[index],
-                                              addItemType: itemType);
+                                              mealEntity: state.products[index],
+                                              addMealType: mealType);
                                         }))
                                 : const NoResultsWidget();
                           } else if (state is ProductsFailedState) {
@@ -153,7 +151,7 @@ class _AddItemScreenState extends State<AddItemScreen>
                                         itemBuilder: (context, index) {
                                           return MealItemCard(
                                               mealEntity: state.food[index],
-                                              addItemType: itemType);
+                                              addMealType: mealType);
                                         }))
                                 : const NoResultsWidget();
                           } else if (state is ProductsFailedState) {
@@ -190,7 +188,7 @@ class _AddItemScreenState extends State<AddItemScreen>
                                             return MealItemCard(
                                                 mealEntity:
                                                     state.recentMeals[index],
-                                                addItemType: itemType);
+                                                addMealType: mealType);
                                           }))
                                   : const NoResultsWidget();
                             } else if (state is RecentMealFailedState) {
@@ -219,12 +217,12 @@ class _AddItemScreenState extends State<AddItemScreen>
 
   void _onBarcodeIconPressed() {
     Navigator.of(context).pushNamed(NavigationOptions.scannerRoute,
-        arguments: ScannerScreenArguments(itemType.getIntakeType()));
+        arguments: ScannerScreenArguments(mealType.getIntakeType()));
   }
 }
 
-class AddItemScreenArguments {
-  final AddItemType itemType;
+class AddMealScreenArguments {
+  final AddMealType mealType;
 
-  AddItemScreenArguments(this.itemType);
+  AddMealScreenArguments(this.mealType);
 }

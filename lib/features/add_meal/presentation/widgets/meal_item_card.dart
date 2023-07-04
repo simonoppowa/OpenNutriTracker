@@ -3,16 +3,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
-import 'package:opennutritracker/features/add_meal/presentation/add_item_type.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealItemCard extends StatelessWidget {
-  final AddItemType addItemType;
+  final AddMealType addMealType;
   final MealEntity mealEntity;
 
   const MealItemCard(
-      {Key? key, required this.mealEntity, required this.addItemType})
+      {Key? key, required this.mealEntity, required this.addMealType})
       : super(key: key);
 
   @override
@@ -68,7 +68,7 @@ class MealItemCard extends StatelessWidget {
 
   void _onItemPressed(BuildContext context) {
     Navigator.of(context).pushNamed(NavigationOptions.itemDetailRoute,
-        arguments: MealDetailScreenArguments(
-            mealEntity, addItemType.getIntakeType()));
+        arguments:
+            MealDetailScreenArguments(mealEntity, addMealType.getIntakeType()));
   }
 }

@@ -2,41 +2,36 @@ import 'package:flutter/cupertino.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-enum AddItemType {
-  activityType,
+enum AddMealType {
   breakfastType,
   lunchType,
   dinnerType,
   snackType;
 }
 
-extension AddItemExtension on AddItemType {
+extension AddMealExtension on AddMealType {
   String getTypeName(BuildContext context) {
     switch (this) {
-      case AddItemType.activityType:
-        return S.of(context).activityLabel;
-      case AddItemType.breakfastType:
+      case AddMealType.breakfastType:
         return S.of(context).breakfastLabel;
-      case AddItemType.lunchType:
+      case AddMealType.lunchType:
         return S.of(context).lunchLabel;
-      case AddItemType.dinnerType:
+      case AddMealType.dinnerType:
         return S.of(context).dinnerLabel;
-      case AddItemType.snackType:
+      case AddMealType.snackType:
         return S.of(context).snackLabel;
     }
   }
 
   IntakeTypeEntity getIntakeType() {
     switch (this) {
-      case AddItemType.activityType:
-        return IntakeTypeEntity.breakfast; // TODO
-      case AddItemType.breakfastType:
+      case AddMealType.breakfastType:
         return IntakeTypeEntity.breakfast;
-      case AddItemType.lunchType:
+      case AddMealType.lunchType:
         return IntakeTypeEntity.lunch;
-      case AddItemType.dinnerType:
+      case AddMealType.dinnerType:
         return IntakeTypeEntity.dinner;
-      case AddItemType.snackType:
+      case AddMealType.snackType:
         return IntakeTypeEntity.snack;
     }
   }
