@@ -6,7 +6,7 @@ import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 class MealDetailBloc {
   final AddIntakeUsecase _addIntakeUseCase;
@@ -17,7 +17,7 @@ class MealDetailBloc {
       this._getUserUsecase, this._addTrackedDayUsecase, this._addIntakeUseCase);
 
   void addIntake(BuildContext context, String unit, String amountText,
-      IntakeTypeEntity type, ProductEntity product) async {
+      IntakeTypeEntity type, MealEntity meal) async {
     final quantity = double.parse(amountText);
 
     final intakeEntity = IntakeEntity(
@@ -25,7 +25,7 @@ class MealDetailBloc {
         unit: unit,
         amount: quantity,
         type: type,
-        product: product,
+        meal: meal,
         dateTime: DateTime.now());
     await _addIntakeUseCase.addIntake(intakeEntity);
     _updateTrackedDay(intakeEntity);

@@ -21,7 +21,7 @@ class IntakeDBOAdapter extends TypeAdapter<IntakeDBO> {
       unit: fields[1] as String,
       amount: fields[2] as double,
       type: fields[3] as IntakeTypeDBO,
-      product: fields[4] as ProductDBO,
+      meal: fields[4] as MealDBO,
       dateTime: fields[5] as DateTime,
     );
   }
@@ -39,7 +39,7 @@ class IntakeDBOAdapter extends TypeAdapter<IntakeDBO> {
       ..writeByte(3)
       ..write(obj.type)
       ..writeByte(4)
-      ..write(obj.product)
+      ..write(obj.meal)
       ..writeByte(5)
       ..write(obj.dateTime);
   }

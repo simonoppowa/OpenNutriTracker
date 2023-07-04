@@ -3,13 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailBottomSheet extends StatefulWidget {
-  final ProductEntity product;
+  final MealEntity product;
   final IntakeTypeEntity intakeTypeEntity;
   final TextEditingController quantityTextController;
   final MealDetailBloc mealDetailBloc;
@@ -91,7 +91,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                                   items: <DropdownMenuItem<String>>[
                                     DropdownMenuItem(
                                         child: Text(widget
-                                                .product.productUnit ??
+                                                .product.mealUnit ??
                                             S.of(context).gramMilliliterUnit))
                                   ],
                                   onChanged: null // deactivate item,
@@ -151,7 +151,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   void onAddButtonPressed(BuildContext context) {
     widget.mealDetailBloc.addIntake(
         context,
-        widget.product.productUnit ?? S.of(context).gramMilliliterUnit,
+        widget.product.mealUnit ?? S.of(context).gramMilliliterUnit,
         widget.quantityTextController.text,
         widget.intakeTypeEntity,
         widget.product);

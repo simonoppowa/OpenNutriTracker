@@ -1,12 +1,12 @@
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
-import 'package:opennutritracker/core/data/dbo/product_nutriments_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_nutriment.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off_product_nutriments.dart';
 
-class ProductNutrimentsEntity extends Equatable {
+class MealNutrimentsEntity extends Equatable {
   final double? energyKcal100;
   final double? energyPerUnit;
   final double? carbohydrates100g;
@@ -19,7 +19,7 @@ class ProductNutrimentsEntity extends Equatable {
   final double? saturatedFat100g;
   final double? fiber100g;
 
-  const ProductNutrimentsEntity(
+  const MealNutrimentsEntity(
       {required this.energyKcal100,
       required this.energyPerUnit,
       required this.carbohydrates100g,
@@ -32,9 +32,9 @@ class ProductNutrimentsEntity extends Equatable {
       required this.saturatedFat100g,
       required this.fiber100g});
 
-  factory ProductNutrimentsEntity.fromProductNutrimentsDBO(
-      ProductNutrimentsDBO nutriments) {
-    return ProductNutrimentsEntity(
+  factory MealNutrimentsEntity.fromMealNutrimentsDBO(
+      MealNutrimentsDBO nutriments) {
+    return MealNutrimentsEntity(
         energyKcal100: nutriments.energyKcal100,
         energyPerUnit: nutriments.energyPerUnit,
         carbohydrates100g: nutriments.carbohydrates100g,
@@ -48,12 +48,12 @@ class ProductNutrimentsEntity extends Equatable {
         fiber100g: nutriments.fiber100g);
   }
 
-  factory ProductNutrimentsEntity.fromOffNutriments(
+  factory MealNutrimentsEntity.fromOffNutriments(
       OFFProductNutriments offNutriments) {
     // 1. OFF product nutriments can either be String, int, double or null
     // 2. Extension function asDoubleOrNull does not work on a dynamic data
     // type, so cast to it Object?
-    return ProductNutrimentsEntity(
+    return MealNutrimentsEntity(
         energyKcal100:
             (offNutriments.energy_kcal_100g as Object?).asDoubleOrNull(),
         energyPerUnit: _getValuePerUnit(
@@ -74,7 +74,7 @@ class ProductNutrimentsEntity extends Equatable {
         fiber100g: (offNutriments.fiber_100g as Object?).asDoubleOrNull());
   }
 
-  factory ProductNutrimentsEntity.fromFDCNutriments(
+  factory MealNutrimentsEntity.fromFDCNutriments(
       List<FDCFoodNutriment> fdcNutriment) {
     final energyTotal = fdcNutriment
         .firstWhereOrNull(
@@ -111,7 +111,7 @@ class ProductNutrimentsEntity extends Equatable {
             nutriment.nutrientId == FDCConst.fdcTotalDietaryFiberId)
         ?.value;
 
-    return ProductNutrimentsEntity(
+    return MealNutrimentsEntity(
         energyKcal100: energyTotal,
         energyPerUnit: _getValuePerUnit(energyTotal),
         carbohydrates100g: carbsTotal,

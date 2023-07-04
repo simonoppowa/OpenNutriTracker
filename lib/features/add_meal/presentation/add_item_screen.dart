@@ -9,7 +9,7 @@ import 'package:opennutritracker/features/add_meal/presentation/widgets/default_
 import 'package:opennutritracker/features/add_meal/presentation/widgets/item_search_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/no_results_widget.dart';
-import 'package:opennutritracker/features/add_meal/presentation/widgets/product_item_card.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -110,8 +110,8 @@ class _AddItemScreenState extends State<AddItemScreen>
                                     child: ListView.builder(
                                         itemCount: state.products.length,
                                         itemBuilder: (context, index) {
-                                          return ProductItemCard(
-                                              productEntity:
+                                          return MealItemCard(
+                                              mealEntity:
                                                   state.products[index],
                                               addItemType: itemType);
                                         }))
@@ -151,8 +151,8 @@ class _AddItemScreenState extends State<AddItemScreen>
                                     child: ListView.builder(
                                         itemCount: state.food.length,
                                         itemBuilder: (context, index) {
-                                          return ProductItemCard(
-                                              productEntity: state.food[index],
+                                          return MealItemCard(
+                                              mealEntity: state.food[index],
                                               addItemType: itemType);
                                         }))
                                 : const NoResultsWidget();
@@ -187,8 +187,8 @@ class _AddItemScreenState extends State<AddItemScreen>
                                       child: ListView.builder(
                                           itemCount: state.recentMeals.length,
                                           itemBuilder: (context, index) {
-                                            return ProductItemCard(
-                                                productEntity:
+                                            return MealItemCard(
+                                                mealEntity:
                                                     state.recentMeals[index],
                                                 addItemType: itemType);
                                           }))

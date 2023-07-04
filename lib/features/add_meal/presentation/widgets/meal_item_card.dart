@@ -2,17 +2,17 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_item_type.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-class ProductItemCard extends StatelessWidget {
+class MealItemCard extends StatelessWidget {
   final AddItemType addItemType;
-  final ProductEntity productEntity;
+  final MealEntity mealEntity;
 
-  const ProductItemCard(
-      {Key? key, required this.productEntity, required this.addItemType})
+  const MealItemCard(
+      {Key? key, required this.mealEntity, required this.addItemType})
       : super(key: key);
 
   @override
@@ -33,19 +33,19 @@ class ProductItemCard extends StatelessWidget {
               fit: BoxFit.cover,
               width: 60,
               height: 60,
-              imageUrl: productEntity.thumbnailImageUrl ?? "",
+              imageUrl: mealEntity.thumbnailImageUrl ?? "",
               placeholder: (context, url) =>
                   const Icon(Icons.restaurant_outlined),
               errorWidget: (context, url, error) =>
                   const Icon(Icons.restaurant_outlined),
             )),
-            title: AutoSizeText(productEntity.productName ?? "?",
+            title: AutoSizeText(mealEntity.name ?? "?",
                 style: Theme.of(context).textTheme.titleLarge,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis),
-            subtitle: productEntity.productQuantity != null
+            subtitle: mealEntity.mealQuantity != null
                 ? AutoSizeText(
-                    '${productEntity.productQuantity}${productEntity.productUnit ?? S.of(context).gramMilliliterUnit}',
+                    '${mealEntity.mealQuantity}${mealEntity.mealUnit ?? S.of(context).gramMilliliterUnit}',
                     style: Theme.of(context).textTheme.titleMedium,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis)
@@ -69,6 +69,6 @@ class ProductItemCard extends StatelessWidget {
   void _onItemPressed(BuildContext context) {
     Navigator.of(context).pushNamed(NavigationOptions.itemDetailRoute,
         arguments: MealDetailScreenArguments(
-            productEntity, addItemType.getIntakeType()));
+            mealEntity, addItemType.getIntakeType()));
   }
 }

@@ -1,10 +1,10 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/product_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
-part 'product_nutriments_dbo.g.dart';
+part 'meal_nutriments_dbo.g.dart';
 
 @HiveType(typeId: 3)
-class ProductNutrimentsDBO extends HiveObject {
+class MealNutrimentsDBO extends HiveObject {
   @HiveField(0)
   final double? energyKcal100;
   @HiveField(1)
@@ -28,7 +28,7 @@ class ProductNutrimentsDBO extends HiveObject {
   @HiveField(10)
   final double? fiber100g;
 
-  ProductNutrimentsDBO(
+  MealNutrimentsDBO(
       {required this.energyKcal100,
       required this.energyPerUnit,
       required this.carbohydrates100g,
@@ -41,9 +41,9 @@ class ProductNutrimentsDBO extends HiveObject {
       required this.saturatedFat100g,
       required this.fiber100g});
 
-  factory ProductNutrimentsDBO.fromProductNutrimentsEntity(
-      ProductNutrimentsEntity nutriments) {
-    return ProductNutrimentsDBO(
+  factory MealNutrimentsDBO.fromProductNutrimentsEntity(
+      MealNutrimentsEntity nutriments) {
+    return MealNutrimentsDBO(
         energyKcal100: nutriments.energyKcal100,
         energyPerUnit: nutriments.energyPerUnit,
         carbohydrates100g: nutriments.carbohydrates100g,

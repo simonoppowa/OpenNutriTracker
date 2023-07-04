@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MealInfoButton extends StatelessWidget {
   final String? url;
-  final ProductSourceEntity source;
+  final MealSourceEntity source;
 
   const MealInfoButton({Key? key, required this.url, required this.source})
       : super(key: key);
@@ -30,13 +30,13 @@ class MealInfoButton extends StatelessWidget {
   String _getInfoUrl() {
     String siteUrl;
     switch (source) {
-      case ProductSourceEntity.unknown:
+      case MealSourceEntity.unknown:
         siteUrl = "";
         break;
-      case ProductSourceEntity.off:
+      case MealSourceEntity.off:
         siteUrl = url ?? OFFConst.offWebsiteUrl;
         break;
-      case ProductSourceEntity.fdc:
+      case MealSourceEntity.fdc:
         siteUrl = url ?? FDCConst.fdcWebsiteUrl;
         break;
     }
@@ -46,13 +46,13 @@ class MealInfoButton extends StatelessWidget {
   String _getInfoLabelText(BuildContext context) {
     String infoLabel;
     switch (source) {
-      case ProductSourceEntity.unknown:
+      case MealSourceEntity.unknown:
         infoLabel = "";
         break;
-      case ProductSourceEntity.off:
+      case MealSourceEntity.off:
         infoLabel = S.of(context).additionalInfoLabelOFF;
         break;
-      case ProductSourceEntity.fdc:
+      case MealSourceEntity.fdc:
         infoLabel = S.of(context).additionalInfoLabelFDC;
     }
     return infoLabel;

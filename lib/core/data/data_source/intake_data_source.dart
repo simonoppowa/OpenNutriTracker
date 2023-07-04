@@ -42,10 +42,10 @@ class IntakeDataSource {
         .toList()
         .sort((a, b) => a.dateTime.toString().compareTo(b.dateTime.toString()));
 
-    final filterProductCodes = <String>{};
+    final filterCodes = <String>{};
     final uniqueIntake = intakeList
-        .where((intake) => filterProductCodes
-            .add(intake.product.code ?? intake.product.productName ?? ""))
+        .where((intake) => filterCodes
+            .add(intake.meal.code ?? intake.meal.name ?? ""))
         .toList();
 
     // return range or full list

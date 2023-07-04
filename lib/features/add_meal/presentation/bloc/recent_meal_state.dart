@@ -15,7 +15,7 @@ class RecentMealLoadingState extends RecentMealState {
 }
 
 class RecentMealLoadedState extends RecentMealState {
-  final List<ProductEntity> recentMeals;
+  final List<MealEntity> recentMeals;
 
   const RecentMealLoadedState({required this.recentMeals});
 

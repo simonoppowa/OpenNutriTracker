@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/product_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 
 part 'intake_dbo.g.dart';
@@ -17,7 +17,7 @@ class IntakeDBO extends HiveObject {
   IntakeTypeDBO type;
 
   @HiveField(4)
-  ProductDBO product;
+  MealDBO meal;
 
   @HiveField(5)
   DateTime dateTime;
@@ -27,7 +27,7 @@ class IntakeDBO extends HiveObject {
       required this.unit,
       required this.amount,
       required this.type,
-      required this.product,
+      required this.meal,
       required this.dateTime});
 
   factory IntakeDBO.fromIntakeEntity(IntakeEntity entity) {
@@ -36,7 +36,7 @@ class IntakeDBO extends HiveObject {
         unit: entity.unit,
         amount: entity.amount,
         type: IntakeTypeDBO.fromIntakeTypeEntity(entity.type),
-        product: ProductDBO.fromProductEntity(entity.product),
+        meal: MealDBO.fromMealEntity(entity.meal),
         dateTime: entity.dateTime);
   }
 }

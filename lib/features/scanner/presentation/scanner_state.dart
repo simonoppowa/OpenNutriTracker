@@ -16,7 +16,7 @@ class ScannerLoadingState extends ScannerState {
 }
 
 class ScannerLoadedState extends ScannerState {
-  final ProductEntity product;
+  final MealEntity product;
 
   const ScannerLoadedState({required this.product});
 
