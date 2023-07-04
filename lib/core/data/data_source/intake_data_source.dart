@@ -34,7 +34,7 @@ class IntakeDataSource {
         .toList();
   }
 
-  Future<List<IntakeDBO>> getRecentlyAddedIntake({int number = 10}) async {
+  Future<List<IntakeDBO>> getRecentlyAddedIntake({int number = 20}) async {
     final intakeList = _intakeBox.values.toList().reversed;
 
     //  sort list by date and filter unique intake
@@ -44,8 +44,8 @@ class IntakeDataSource {
 
     final filterCodes = <String>{};
     final uniqueIntake = intakeList
-        .where((intake) => filterCodes
-            .add(intake.meal.code ?? intake.meal.name ?? ""))
+        .where((intake) =>
+            filterCodes.add(intake.meal.code ?? intake.meal.name ?? ""))
         .toList();
 
     // return range or full list
