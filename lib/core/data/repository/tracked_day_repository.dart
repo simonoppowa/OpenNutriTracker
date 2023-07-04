@@ -40,6 +40,14 @@ class TrackedDayRepository {
     _trackedDayDataSource.updateDayCalorieGoal(day, calorieGoal);
   }
 
+  Future<void> increaseDayCalorieGoal(DateTime day, double amount) async {
+    _trackedDayDataSource.increaseDayCalorieGoal(day, amount);
+  }
+
+  Future<void> reduceDayCalorieGoal(DateTime day, double amount) async {
+    _trackedDayDataSource.reduceDayCalorieGoal(day, amount);
+  }
+
   Future<void> addNewTrackedDay(DateTime day, double totalKcalGoal) async {
     _trackedDayDataSource.saveTrackedDay(TrackedDayDBO(
         day: day, calorieGoal: totalKcalGoal, caloriesTracked: 0));
@@ -51,7 +59,8 @@ class TrackedDayRepository {
     }
   }
 
-  Future<void> removeDayTrackedCalories(DateTime day, double addCalories) async {
+  Future<void> removeDayTrackedCalories(
+      DateTime day, double addCalories) async {
     if (await _trackedDayDataSource.hasTrackedDay(day)) {
       _trackedDayDataSource.removeDayCaloriesTracked(day, addCalories);
     }

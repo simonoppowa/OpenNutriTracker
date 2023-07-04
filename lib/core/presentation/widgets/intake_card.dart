@@ -1,5 +1,4 @@
-import 'dart:ffi';
-
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -9,7 +8,9 @@ class IntakeCard extends StatelessWidget {
   final Function(BuildContext, IntakeEntity) onItemLongPressed;
 
   const IntakeCard(
-      {required Key? key, required this.intake, required this.onItemLongPressed})
+      {required Key? key,
+      required this.intake,
+      required this.onItemLongPressed})
       : super(key: key);
 
   @override
@@ -23,23 +24,27 @@ class IntakeCard extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.0),
         ),
-        elevation: 4,
+        elevation: 1,
         child: InkWell(
           onLongPress: () {
             onLongPressedItem(context);
           },
           child: Stack(
             children: [
-              CachedNetworkImage(
-                imageUrl: intake.product.mainImageUrl ?? "",
-                imageBuilder: (context, imageProvider) => Container(
-                  decoration: BoxDecoration(
-                      image: DecorationImage(
-                    image: imageProvider,
-                    fit: BoxFit.cover,
-                  )),
-                ),
-              ),
+              intake.meal.mainImageUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: intake.meal.mainImageUrl ?? "",
+                      imageBuilder: (context, imageProvider) => Container(
+                        decoration: BoxDecoration(
+                            image: DecorationImage(
+                          image: imageProvider,
+                          fit: BoxFit.cover,
+                        )),
+                      ),
+                    )
+                  : Center(
+                      child: Icon(Icons.restaurant_outlined,
+                          color: Theme.of(context).colorScheme.secondary)),
               Container(
                 // Add color shade
                 decoration: BoxDecoration(
@@ -68,22 +73,25 @@ class IntakeCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        intake.product.productName ?? "?",
-                        style: Theme.of(context).textTheme.subtitle1?.copyWith(
-                            color: Theme.of(context).colorScheme.onPrimary),
+                      AutoSizeText(
+                        intake.meal.name ?? "?",
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                                color: Theme.of(context).colorScheme.onPrimary),
                         maxLines: 2,
-                        overflow: TextOverflow.fade,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      Text('${intake.amount.toInt().toString()} ${intake.unit}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .subtitle2
-                              ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimary
-                                      .withOpacity(0.8))),
+                      Text(
+                        '${intake.amount.toInt().toString()} ${intake.unit}',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimary
+                                .withOpacity(0.8)),
+                        maxLines: 1,
+                      ),
                     ],
                   ))
             ],

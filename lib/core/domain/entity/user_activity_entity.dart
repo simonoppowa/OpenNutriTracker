@@ -1,7 +1,8 @@
+import 'package:equatable/equatable.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 
-class UserActivityEntity {
+class UserActivityEntity extends Equatable {
   final String id;
   final double duration;
   final double burnedKcal;
@@ -9,8 +10,8 @@ class UserActivityEntity {
 
   final PhysicalActivityEntity physicalActivityEntity;
 
-  UserActivityEntity(
-      this.id, this.duration, this.burnedKcal, this.date, this.physicalActivityEntity);
+  const UserActivityEntity(this.id, this.duration, this.burnedKcal, this.date,
+      this.physicalActivityEntity);
 
   factory UserActivityEntity.fromUserActivityDBO(UserActivityDBO activityDBO) {
     return UserActivityEntity(
@@ -21,4 +22,7 @@ class UserActivityEntity {
         PhysicalActivityEntity.fromPhysicalActivityDBO(
             activityDBO.physicalActivityDBO));
   }
+
+  @override
+  List<Object?> get props => [id, duration, burnedKcal, date];
 }

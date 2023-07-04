@@ -5,11 +5,12 @@ import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
+import 'package:opennutritracker/core/utils/custom_icons.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
-import 'package:opennutritracker/features/home/presentation/widgets/meal_Intake_list.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/meal_intake_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -23,7 +24,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    _homeBloc = Provider.of<HomeBloc>(context, listen: false);
+    _homeBloc = locator<HomeBloc>();
     super.initState();
   }
 
@@ -33,7 +34,7 @@ class _HomePageState extends State<HomePage> {
       bloc: _homeBloc,
       builder: (context, state) {
         if (state is HomeInitial) {
-          _homeBloc.add(LoadItemsEvent(context: context));
+          _homeBloc.add(const LoadItemsEvent());
           return _getLoadingContent();
         } else if (state is HomeLoadingState) {
           return _getLoadingContent();
@@ -130,7 +131,7 @@ class _HomePageState extends State<HomePage> {
         ),
         MealIntakeList(
           title: S.of(context).snackLabel,
-          listIcon: Icons.icecream_outlined,
+          listIcon: CustomIcons.food_apple_outline,
           intakeList: snackIntakeList,
           onItemLongPressedCallback: onIntakeItemLongPressed,
         )
@@ -144,10 +145,12 @@ class _HomePageState extends State<HomePage> {
         context: context, builder: (context) => const DeleteDialog());
 
     if (deleteIntake != null) {
-      _homeBloc.deleteUserActivityItem(context, activityEntity);
-      _homeBloc.add(LoadItemsEvent(context: context));
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+      _homeBloc.deleteUserActivityItem(activityEntity);
+      _homeBloc.add(const LoadItemsEvent());
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+      }
     }
   }
 
@@ -157,10 +160,12 @@ class _HomePageState extends State<HomePage> {
         context: context, builder: (context) => const DeleteDialog());
 
     if (deleteIntake != null) {
-      _homeBloc.deleteIntakeItem(context, intakeEntity);
-      _homeBloc.add(LoadItemsEvent(context: context));
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+      _homeBloc.deleteIntakeItem(intakeEntity);
+      _homeBloc.add(const LoadItemsEvent());
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+      }
     }
   }
 
@@ -173,8 +178,8 @@ class _HomePageState extends State<HomePage> {
             return const DisclaimerDialog();
           });
       if (dialogConfirmed != null) {
-        _homeBloc.saveConfigData(context, dialogConfirmed);
-        _homeBloc.add(LoadItemsEvent(context: context));
+        _homeBloc.saveConfigData(dialogConfirmed);
+        _homeBloc.add(const LoadItemsEvent());
       }
     });
   }

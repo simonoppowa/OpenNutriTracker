@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 
@@ -15,6 +16,7 @@ class ActivityCard extends StatelessWidget {
       height: 120,
       width: 120,
       child: Card(
+        elevation: 1,
         margin: const EdgeInsets.only(right: 8.0),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(16.0)),
@@ -23,52 +25,58 @@ class ActivityCard extends StatelessWidget {
           onLongPress: () {
             onLongPressedItem(context);
           },
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .tertiaryContainer
-                              .withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Icon(activityEntity
-                              .physicalActivityEntity.displayIcon),
-                        ))
-                  ],
+          child: Stack(
+            children: [
+              Container(
+                alignment: Alignment.topLeft,
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .tertiaryContainer
+                          .withOpacity(0.5),
+                      shape: BoxShape.circle),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      activityEntity.physicalActivityEntity.displayIcon,
+                      size: 26,
+                    ),
+                  ),
                 ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
+              ),
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                alignment: Alignment.bottomLeft,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    AutoSizeText(
                       activityEntity.physicalActivityEntity.getName(context),
-                      textAlign: TextAlign.start,
-                      style: Theme.of(context).textTheme.bodyText2?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer,
+                          fontWeight: FontWeight.w500,
+                          height: 1.2),
                       maxLines: 2,
-                      overflow: TextOverflow.fade,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
                     ),
-                    Text("🔥${activityEntity.burnedKcal.toInt()} kcal",
+                    AutoSizeText("🔥${activityEntity.burnedKcal.toInt()} kcal",
                         textAlign: TextAlign.start,
-                        style: Theme.of(context).textTheme.subtitle2?.copyWith(
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
-                                .onPrimaryContainer
-                                .withOpacity(0.7)))
+                                .onSecondaryContainer
+                                .withOpacity(0.6)))
                   ],
                 ),
-              ],
-            ),
+              )
+            ],
           ),
         ),
       ),

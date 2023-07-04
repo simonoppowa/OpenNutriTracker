@@ -71,6 +71,8 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
             width: 5.0,
             height: 5.0,
           );
+        } else {
+          return const SizedBox();
         }
       }),
     );

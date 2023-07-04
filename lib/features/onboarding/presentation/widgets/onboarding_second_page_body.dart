@@ -29,9 +29,9 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(S.of(context).heightLabel,
-              style: Theme.of(context).textTheme.headline5),
+              style: Theme.of(context).textTheme.headlineSmall),
           Text(S.of(context).onboardingHeightQuestionSubtitle,
-              style: Theme.of(context).textTheme.subtitle1),
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 16.0),
           Form(
             key: _heightFormKey,
@@ -59,9 +59,9 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
           ),
           const SizedBox(height: 32.0),
           Text(S.of(context).weightLabel,
-              style: Theme.of(context).textTheme.headline5),
+              style: Theme.of(context).textTheme.headlineSmall),
           Text(S.of(context).onboardingWeightQuestionSubtitle,
-              style: Theme.of(context).textTheme.subtitle1),
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 16.0),
           Form(
             key: _weightFormKey,

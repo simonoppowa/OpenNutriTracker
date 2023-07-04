@@ -47,11 +47,11 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
                 children: [
                   Text(
                     '${widget.totalCarbsIntake.toInt()}/${widget.totalCarbsGoal.toInt()} g',
-                    style: Theme.of(context).textTheme.subtitle2,
+                    style: Theme.of(context).textTheme.titleSmall,
                   ),
                   Text(
                     S.of(context).carbsLabel,
-                    style: Theme.of(context).textTheme.bodyText2,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   )
                 ],
               ),
@@ -75,11 +75,11 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
                 children: [
                   Text(
                     "${widget.totalFatsIntake.toInt()}/${widget.totalFatsGoal.toInt()} g",
-                    style: Theme.of(context).textTheme.subtitle2,
+                    style: Theme.of(context).textTheme.titleSmall,
                   ),
                   Text(
                     S.of(context).fatLabel,
-                    style: Theme.of(context).textTheme.bodyText2,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   )
                 ],
               ),
@@ -103,11 +103,11 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
                 children: [
                   Text(
                     "${widget.totalProteinsIntake.toInt()}/${widget.totalProteinsGoal.toInt()} g",
-                    style: Theme.of(context).textTheme.subtitle2,
+                    style: Theme.of(context).textTheme.titleSmall,
                   ),
                   Text(
                     S.of(context).proteinLabel,
-                    style: Theme.of(context).textTheme.bodyText2,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   )
                 ],
               ),

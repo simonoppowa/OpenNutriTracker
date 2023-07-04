@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:opennutritracker/core/data/data_source/physical_activity_data_source.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 
@@ -7,9 +6,9 @@ class PhysicalActivityRepository {
 
   PhysicalActivityRepository(this._physicalActivityDataSource);
 
-  List<PhysicalActivityEntity> getAllPhysicalActivities(BuildContext context) {
+  Future<List<PhysicalActivityEntity>> getAllPhysicalActivities() async {
     final physicalActivitiesDBOList =
-        _physicalActivityDataSource.getPhysicalActivityList(context);
+        _physicalActivityDataSource.getPhysicalActivityList();
     return physicalActivitiesDBOList
         .map((dbo) => PhysicalActivityEntity.fromPhysicalActivityDBO(dbo))
         .toList();

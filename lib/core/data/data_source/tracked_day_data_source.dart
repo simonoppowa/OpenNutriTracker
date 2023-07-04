@@ -40,6 +40,26 @@ class TrackedDayDataSource {
     }
   }
 
+  Future<void> increaseDayCalorieGoal(DateTime day, double amount) async {
+    log.fine('Increasing tracked day total calories');
+    final updateDay = await getTrackedDay(day);
+
+    if (updateDay != null) {
+      updateDay.calorieGoal += amount;
+      updateDay.save();
+    }
+  }
+
+  Future<void> reduceDayCalorieGoal(DateTime day, double amount) async {
+    log.fine('Reducing tracked day total calories');
+    final updateDay = await getTrackedDay(day);
+
+    if (updateDay != null) {
+      updateDay.calorieGoal -= amount;
+      updateDay.save();
+    }
+  }
+
   Future<void> addDayCaloriesTracked(DateTime day, double addCalories) async {
     log.fine('Adding new tracked day calories');
     final updateDay = await getTrackedDay(day);
@@ -50,7 +70,8 @@ class TrackedDayDataSource {
     }
   }
 
-  Future<void> removeDayCaloriesTracked(DateTime day, double addCalories) async {
+  Future<void> removeDayCaloriesTracked(
+      DateTime day, double addCalories) async {
     log.fine('Removing tracked day calories');
     final updateDay = await getTrackedDay(day);
 

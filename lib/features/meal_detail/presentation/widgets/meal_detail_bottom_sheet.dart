@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:provider/provider.dart';
 
 class MealDetailBottomSheet extends StatefulWidget {
-  final ProductEntity product;
+  final MealEntity product;
   final IntakeTypeEntity intakeTypeEntity;
   final TextEditingController quantityTextController;
   final MealDetailBloc mealDetailBloc;
@@ -27,6 +27,14 @@ class MealDetailBottomSheet extends StatefulWidget {
 }
 
 class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
+  late bool _productMissingRequiredInfo;
+
+  @override
+  void initState() {
+    _productMissingRequiredInfo = _hasRequiredProductInfoMissing();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BottomSheet(
@@ -56,6 +64,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                         children: [
                           Expanded(
                             child: TextFormField(
+                              enabled: !_productMissingRequiredInfo,
                               controller: widget.quantityTextController,
                               keyboardType: TextInputType.number,
                               inputFormatters: <TextInputFormatter>[
@@ -76,22 +85,27 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                           const SizedBox(width: 16.0),
                           Expanded(
                               child: DropdownButtonFormField(
-                            decoration: InputDecoration(
-                                border: const OutlineInputBorder(),
-                                labelText: S.of(context).unitLabel),
-                            items: const <DropdownMenuItem<String>>[
-                              DropdownMenuItem(child: Text('g'))
-                            ],
-                            onChanged: (Object? value) {},
-                          ))
+                                  decoration: InputDecoration(
+                                      border: const OutlineInputBorder(),
+                                      labelText: S.of(context).unitLabel),
+                                  items: <DropdownMenuItem<String>>[
+                                    DropdownMenuItem(
+                                        child: Text(widget
+                                                .product.mealUnit ??
+                                            S.of(context).gramMilliliterUnit))
+                                  ],
+                                  onChanged: null // deactivate item,
+                                  ))
                         ],
                       ),
                       SizedBox(
                         width: double.infinity, // Make button full width
                         child: ElevatedButton.icon(
-                            onPressed: () {
-                              onAddButtonPressed(context);
-                            },
+                            onPressed: !_productMissingRequiredInfo
+                                ? () {
+                                    onAddButtonPressed(context);
+                                  }
+                                : null,
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Theme.of(context)
                                   .colorScheme
@@ -104,6 +118,15 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                             icon: const Icon(Icons.add_outlined),
                             label: Text(S.of(context).addLabel)),
                       ),
+                      _productMissingRequiredInfo
+                          ? Text(S.of(context).missingProductInfo,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                      color:
+                                          Theme.of(context).colorScheme.error))
+                          : const SizedBox()
                     ],
                   ),
                 ),
@@ -113,19 +136,28 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
         });
   }
 
-  void onAddButtonPressed(BuildContext context) {
-    // TODO
+  bool _hasRequiredProductInfoMissing() {
+    final productNutriments = widget.product.nutriments;
+    if (productNutriments.energyKcal100 == null ||
+        productNutriments.carbohydrates100g == null ||
+        productNutriments.fat100g == null ||
+        productNutriments.proteins100g == null) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
+  void onAddButtonPressed(BuildContext context) {
     widget.mealDetailBloc.addIntake(
         context,
-        widget.product.productUnit ?? "g",
+        widget.product.mealUnit ?? S.of(context).gramMilliliterUnit,
         widget.quantityTextController.text,
         widget.intakeTypeEntity,
         widget.product);
 
     // Refresh Home Page
-    Provider.of<HomeBloc>(context, listen: false)
-        .add(LoadItemsEvent(context: context));
+    locator<HomeBloc>().add(const LoadItemsEvent());
 
     // Show snackbar and return to dashboard
     ScaffoldMessenger.of(context).showSnackBar(

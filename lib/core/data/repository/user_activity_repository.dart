@@ -27,4 +27,13 @@ class UserActivityRepository {
             UserActivityEntity.fromUserActivityDBO(userActivityDBO))
         .toList();
   }
+
+  Future<List<UserActivityEntity>> getRecentUserActivity() async {
+    final userActivityDBOList =
+        await _userActivityDataSource.getRecentlyAddedUserActivity();
+    return userActivityDBOList
+        .map((userActivityDBO) =>
+            UserActivityEntity.fromUserActivityDBO(userActivityDBO))
+        .toList();
+  }
 }

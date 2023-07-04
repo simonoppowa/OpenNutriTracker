@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:introduction_screen/introduction_screen.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
@@ -23,8 +24,13 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final _onboardingBloc = OnboardingBloc();
+  late OnboardingBloc _onboardingBloc;
   final _introKey = GlobalKey<IntroductionScreenState>();
+
+  final _pageDecoration = const PageDecoration(
+      safeArea: 0, bodyAlignment: Alignment.topCenter, bodyFlex: 6);
+
+  final _defaultImageWidget = null;
 
   bool _introPageButtonActive = false;
   bool _firstPageButtonActive = false;
@@ -32,6 +38,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _thirdPageButtonActive = false;
   bool _fourthPageButtonActive = false;
   bool _overviewPageButtonActive = false;
+
+  @override
+  void initState() {
+    _onboardingBloc = locator<OnboardingBloc>();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +96,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   List<PageViewModel> _getPageViewModels() => <PageViewModel>[
         PageViewModel(
             title: S.of(context).onboardingWelcomeLabel,
+            decoration: _pageDecoration,
+            image: _defaultImageWidget,
             bodyWidget: OnboardingIntroPageBody(
               setPageContent: _setIntroPageData,
             ),
@@ -93,7 +107,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               buttonActive: _introPageButtonActive,
             )),
         PageViewModel(
-            titleWidget: const SizedBox(), // empty
+            titleWidget: const SizedBox(),
+            // empty
+            decoration: _pageDecoration,
+            image: _defaultImageWidget,
             bodyWidget: OnboardingFirstPageBody(
               setPageContent: _setFirstPageData,
             ),
@@ -103,7 +120,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               buttonActive: _firstPageButtonActive,
             )),
         PageViewModel(
-            titleWidget: const SizedBox(), // empty
+            titleWidget: const SizedBox(),
+            // empty
+            decoration: _pageDecoration,
+            image: _defaultImageWidget,
             bodyWidget: OnboardingSecondPageBody(
               setButtonContent: _setSecondPageData,
             ),
@@ -113,7 +133,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               buttonActive: _secondPageButtonActive,
             )),
         PageViewModel(
-            titleWidget: const SizedBox(), // empty
+            titleWidget: const SizedBox(),
+            // empty
+            decoration: _pageDecoration,
+            image: _defaultImageWidget,
             bodyWidget: OnboardingThirdPageBody(
               setButtonContent: _setThirdPageButton,
             ),
@@ -123,7 +146,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               buttonActive: _thirdPageButtonActive,
             )),
         PageViewModel(
-            titleWidget: const SizedBox(), // empty
+            titleWidget: const SizedBox(),
+            // empty
+            decoration: _pageDecoration,
+            image: _defaultImageWidget,
             bodyWidget: OnboardingFourthPageBody(
               setButtonContent: _setFourthPageButton,
             ),
@@ -133,7 +159,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               buttonActive: _fourthPageButtonActive,
             )),
         PageViewModel(
-            titleWidget: const SizedBox(), // empty
+            titleWidget: const SizedBox(),
+            // empty
+            decoration: _pageDecoration,
+            image: _defaultImageWidget,
             bodyWidget: OnboardingOverviewPageBody(
               calorieGoalDayString: _onboardingBloc
                       .getOverviewCalorieGoal()
@@ -152,6 +181,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ];
 
   void _scrollToPage(int page) {
+    FocusScope.of(context).requestFocus(FocusNode()); // Dismiss Keyboard
     _introKey.currentState?.animateScroll(page);
   }
 

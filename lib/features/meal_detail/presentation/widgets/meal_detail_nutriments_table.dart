@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailNutrimentsTable extends StatelessWidget {
-  final ProductEntity product;
+  final MealEntity product;
 
   const MealDetailNutrimentsTable({Key? key, required this.product})
       : super(key: key);
@@ -11,10 +11,10 @@ class MealDetailNutrimentsTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textStyleNormal =
-        Theme.of(context).textTheme.bodyText2 ?? const TextStyle();
+        Theme.of(context).textTheme.bodyMedium ?? const TextStyle();
     final textStyleBold = Theme.of(context)
             .textTheme
-            .bodyText2
+            .bodyMedium
             ?.copyWith(fontWeight: FontWeight.bold) ??
         const TextStyle();
 
@@ -22,7 +22,7 @@ class MealDetailNutrimentsTable extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(S.of(context).nutritionInfoLabel,
-            style: Theme.of(context).textTheme.headline6),
+            style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8.0),
         Table(
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,

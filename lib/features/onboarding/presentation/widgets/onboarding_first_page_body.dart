@@ -32,13 +32,12 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(S.of(context).genderLabel,
-              style: Theme.of(context).textTheme.headline5),
+              style: Theme.of(context).textTheme.headlineSmall),
           Text(S.of(context).onboardingGenderQuestionSubtitle,
-              style: Theme.of(context).textTheme.subtitle1),
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 16.0),
           ChoiceChip(
             label: Text(S.of(context).genderMaleLabel),
-            avatar: const Text("♂"),
             selected: _maleSelected,
             onSelected: (bool selected) {
               setState(() {
@@ -50,7 +49,6 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
           ),
           ChoiceChip(
             label: Text(S.of(context).genderFemaleLabel),
-            avatar: const Text("♀"),
             selected: _femaleSelected,
             onSelected: (bool selected) {
               setState(() {
@@ -62,9 +60,9 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
           ),
           const SizedBox(height: 32.0),
           Text(S.of(context).ageLabel,
-              style: Theme.of(context).textTheme.headline5),
+              style: Theme.of(context).textTheme.headlineSmall),
           Text(S.of(context).onboardingBirthdayQuestionSubtitle,
-              style: Theme.of(context).textTheme.subtitle1),
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 16.0),
           TextFormField(
             controller: _dateInput,

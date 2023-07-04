@@ -16,10 +16,10 @@ class MealDetailMacroNutrients extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text('${value?.roundToPrecision(1) ?? "?"} g',
-            style: Theme.of(context).textTheme.headline6),
+            style: Theme.of(context).textTheme.titleLarge),
         Text(
           typeString,
-          style: Theme.of(context).textTheme.bodyText2,
+          style: Theme.of(context).textTheme.bodyMedium,
         )
       ],
     );

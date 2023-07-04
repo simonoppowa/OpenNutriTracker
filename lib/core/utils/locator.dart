@@ -1,0 +1,150 @@
+import 'package:get_it/get_it.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/physical_activity_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/data/repository/physical_activity_repository.dart';
+import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
+import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/core/data/repository/user_repository.dart';
+import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
+import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_physical_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
+import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
+import 'package:opennutritracker/features/add_activity/presentation/bloc/activities_bloc.dart';
+import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_activities_bloc.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
+import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
+
+final locator = GetIt.instance;
+
+Future<void> initLocator() async {
+  // Init secure storage and Hive database;
+  final secureAppStorageProvider = SecureAppStorageProvider();
+  final hiveDBProvider = HiveDBProvider();
+  await hiveDBProvider
+      .initHiveDB(await secureAppStorageProvider.getHiveEncryptionKey());
+
+  // BLoCs
+  locator
+      .registerLazySingleton<OnboardingBloc>(() => OnboardingBloc(locator()));
+  locator.registerLazySingleton<HomeBloc>(() => HomeBloc(locator(), locator(),
+      locator(), locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton(() => DiaryBloc(locator()));
+  locator.registerLazySingleton(() => CalendarDayBloc(
+      locator(), locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton<ScannerBloc>(() => ScannerBloc(locator()));
+  locator.registerLazySingleton<ProfileBloc>(
+      () => ProfileBloc(locator(), locator()));
+
+  locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
+  locator.registerFactory<RecentActivitiesBloc>(
+      () => RecentActivitiesBloc(locator()));
+  locator.registerFactory<ActivityDetailBloc>(
+      () => ActivityDetailBloc(locator(), locator(), locator()));
+  locator.registerFactory<MealDetailBloc>(
+      () => MealDetailBloc(locator(), locator(), locator()));
+  locator.registerFactory<ProductsBloc>(() => ProductsBloc(locator()));
+  locator.registerFactory<FoodBloc>(() => FoodBloc(locator()));
+  locator.registerFactory(() => RecentMealBloc(locator()));
+
+  // UseCases
+  locator.registerLazySingleton<GetConfigUsecase>(
+      () => GetConfigUsecase(locator()));
+  locator.registerLazySingleton<AddConfigUsecase>(
+      () => AddConfigUsecase(locator()));
+  locator
+      .registerLazySingleton<GetUserUsecase>(() => GetUserUsecase(locator()));
+  locator
+      .registerLazySingleton<AddUserUsecase>(() => AddUserUsecase(locator()));
+  locator.registerLazySingleton<SearchProductsUseCase>(
+      () => SearchProductsUseCase(locator()));
+  locator.registerLazySingleton<SearchProductByBarcodeUseCase>(
+      () => SearchProductByBarcodeUseCase(locator()));
+  locator.registerLazySingleton<GetIntakeUsecase>(
+      () => GetIntakeUsecase(locator()));
+  locator.registerLazySingleton<AddIntakeUsecase>(
+      () => AddIntakeUsecase(locator()));
+  locator.registerLazySingleton<DeleteIntakeUsecase>(
+      () => DeleteIntakeUsecase(locator()));
+  locator.registerLazySingleton<GetUserActivityUsecase>(
+      () => GetUserActivityUsecase(locator()));
+  locator.registerLazySingleton<AddUserActivityUsecase>(
+      () => AddUserActivityUsecase(locator()));
+  locator.registerLazySingleton<DeleteUserActivityUsecase>(
+      () => DeleteUserActivityUsecase(locator()));
+  locator.registerLazySingleton<GetPhysicalActivityUsecase>(
+      () => GetPhysicalActivityUsecase(locator()));
+  locator.registerLazySingleton<GetTrackedDayUsecase>(
+      () => GetTrackedDayUsecase(locator()));
+  locator.registerLazySingleton<AddTrackedDayUsecase>(
+      () => AddTrackedDayUsecase(locator()));
+
+  // Repositories
+  locator.registerLazySingleton(() => ConfigRepository(locator()));
+  locator
+      .registerLazySingleton<UserRepository>(() => UserRepository(locator()));
+  locator.registerLazySingleton<IntakeRepository>(
+      () => IntakeRepository(locator()));
+  locator.registerLazySingleton<ProductsRepository>(
+      () => ProductsRepository(locator(), locator()));
+  locator.registerLazySingleton<UserActivityRepository>(
+      () => UserActivityRepository(locator()));
+  locator.registerLazySingleton<PhysicalActivityRepository>(
+      () => PhysicalActivityRepository(locator()));
+  locator.registerLazySingleton<TrackedDayRepository>(
+      () => TrackedDayRepository(locator()));
+
+  // DataSources
+  locator
+      .registerLazySingleton(() => ConfigDataSource(hiveDBProvider.configBox));
+  locator.registerLazySingleton<UserDataSource>(
+      () => UserDataSource(hiveDBProvider.userBox));
+  locator.registerLazySingleton<IntakeDataSource>(
+      () => IntakeDataSource(hiveDBProvider.intakeBox));
+  locator.registerLazySingleton<UserActivityDataSource>(
+      () => UserActivityDataSource(hiveDBProvider.userActivityBox));
+  locator.registerLazySingleton<PhysicalActivityDataSource>(
+      () => PhysicalActivityDataSource());
+  locator.registerLazySingleton<OFFDataSource>(() => OFFDataSource());
+  locator.registerLazySingleton<FDCDataSource>(() => FDCDataSource());
+  locator.registerLazySingleton(
+      () => TrackedDayDataSource(hiveDBProvider.trackedDayBox));
+
+  await initializeConfig(locator());
+}
+
+Future<void> initializeConfig(ConfigDataSource configDataSource) async {
+  if (!await configDataSource.configInitialized()) {
+    configDataSource.initializeConfig();
+  }
+}

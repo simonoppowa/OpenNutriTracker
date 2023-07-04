@@ -1,22 +1,22 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'product_nutriments_dbo.dart';
+part of 'meal_nutriments_dbo.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class ProductNutrimentsDBOAdapter extends TypeAdapter<ProductNutrimentsDBO> {
+class MealNutrimentsDBOAdapter extends TypeAdapter<MealNutrimentsDBO> {
   @override
   final int typeId = 3;
 
   @override
-  ProductNutrimentsDBO read(BinaryReader reader) {
+  MealNutrimentsDBO read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return ProductNutrimentsDBO(
+    return MealNutrimentsDBO(
       energyKcal100: fields[0] as double?,
       energyPerUnit: fields[1] as double?,
       carbohydrates100g: fields[2] as double?,
@@ -32,7 +32,7 @@ class ProductNutrimentsDBOAdapter extends TypeAdapter<ProductNutrimentsDBO> {
   }
 
   @override
-  void write(BinaryWriter writer, ProductNutrimentsDBO obj) {
+  void write(BinaryWriter writer, MealNutrimentsDBO obj) {
     writer
       ..writeByte(11)
       ..writeByte(0)
@@ -65,7 +65,7 @@ class ProductNutrimentsDBOAdapter extends TypeAdapter<ProductNutrimentsDBO> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ProductNutrimentsDBOAdapter &&
+      other is MealNutrimentsDBOAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

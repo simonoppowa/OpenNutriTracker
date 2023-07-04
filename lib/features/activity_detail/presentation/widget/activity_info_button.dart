@@ -16,7 +16,7 @@ class ActivityInfoButton extends StatelessWidget {
         S.of(context).additionalInfoLabelCompendium2011,
         style: Theme.of(context)
             .textTheme
-            .subtitle1
+            .titleMedium
             ?.copyWith(decoration: TextDecoration.underline),
         textAlign: TextAlign.center,
       ),

@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
@@ -18,41 +20,55 @@ class ScannerScreen extends StatefulWidget {
 class _ScannerScreenState extends State<ScannerScreen> {
   final log = Logger('ScannerScreen');
 
-  late IntakeTypeEntity intakeTypeEntity;
+  late IntakeTypeEntity _intakeTypeEntity;
+
+  late ScannerBloc _scannerBloc;
+
+  @override
+  void initState() {
+    _scannerBloc = locator<ScannerBloc>();
+    super.initState();
+  }
 
   @override
   void didChangeDependencies() {
     final args =
         ModalRoute.of(context)?.settings.arguments as ScannerScreenArguments;
-    intakeTypeEntity = args.intakeTypeEntity;
+    _intakeTypeEntity = args.intakeTypeEntity;
     super.didChangeDependencies();
   }
 
   @override
   Widget build(BuildContext context) {
-    final scannerBloc = ScannerBloc();
     return BlocBuilder<ScannerBloc, ScannerState>(
-      bloc: scannerBloc,
+      bloc: _scannerBloc,
       builder: (context, state) {
         if (state is ScannerInitial) {
-          return _getScannerContent(context, scannerBloc);
+          return _getScannerContent(context);
         } else if (state is ScannerLoadingState) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return Scaffold(
+              appBar: AppBar(),
+              body: const Center(child: CircularProgressIndicator()));
         } else if (state is ScannerLoadedState) {
           // Push new route after build
           Future.microtask(() => Navigator.of(context).pushReplacementNamed(
               NavigationOptions.itemDetailRoute,
               arguments:
-                  MealDetailScreenArguments(state.product, intakeTypeEntity)));
+                  MealDetailScreenArguments(state.product, _intakeTypeEntity)));
+        } else if (state is ScannerFailedState) {
+          return Scaffold(
+              appBar: AppBar(),
+              body: Center(
+                child: ErrorDialog(
+                    errorText: S.of(context).errorFetchingProductData),
+              ));
         }
         return const SizedBox();
       },
     );
   }
 
-  Scaffold _getScannerContent(BuildContext context, ScannerBloc scannerBloc) {
+  Scaffold _getScannerContent(BuildContext context) {
     final cameraController = MobileScannerController();
     return Scaffold(
       appBar: AppBar(
@@ -80,19 +96,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
         ],
       ),
       body: MobileScanner(
-        controller: cameraController,
-        allowDuplicates: false,
-        onDetect: (barcode, args) {
-          if (barcode.rawValue != null && barcode.type == BarcodeType.product) {
-            final productCode = barcode.rawValue;
-            if (productCode != null) {
-              // TODO check barcode validity
-              log.fine('Barcode found: $productCode');
-              scannerBloc.add(ScannerLoadProductEvent(barcode: productCode));
+          controller: cameraController,
+          onDetect: (capture) {
+            final List<Barcode> barcodes = capture.barcodes;
+            for (final barcode in barcodes) {
+              if (barcode.rawValue != null &&
+                  barcode.type == BarcodeType.product) {
+                final productCode = barcode.rawValue;
+                if (productCode != null) {
+                  // TODO check barcode validity
+                  log.fine('Barcode found: $productCode');
+                  _scannerBloc
+                      .add(ScannerLoadProductEvent(barcode: productCode));
+                }
+              }
             }
-          }
-        },
-      ),
+          }),
     );
   }
 }

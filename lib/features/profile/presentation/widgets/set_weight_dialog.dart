@@ -19,6 +19,7 @@ class SetWeightDialog extends StatelessWidget {
           children: [
             HorizontalPicker(
                 height: 100,
+                backgroundColor: Colors.transparent,
                 minValue: userWeight - weightRange,
                 maxValue: userWeight + weightRange,
                 initialPosition: InitialPosition.center,

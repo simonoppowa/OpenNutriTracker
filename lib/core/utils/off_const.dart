@@ -23,8 +23,8 @@ class OFFConst {
   static const _offImageUrlTag = "image_url";
   static const _offImageThumbUrlTag = "image_front_thumb_url";
   static const _offImageFrontUrlTag = "image_front_url";
-  static const _offImageNutritionUrlTag = "image_nutrition_url";
-  static const _offImageIngredientsUrlTag = "image_ingredients_url";
+  // static const _offImageNutritionUrlTag = "image_nutrition_url";
+  // static const _offImageIngredientsUrlTag = "image_ingredients_url";
 
   static const _offProductQuantityTag = "product_quantity";
   static const _offQuantityTag = "quantity";

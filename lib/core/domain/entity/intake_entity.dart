@@ -1,22 +1,23 @@
+import 'package:equatable/equatable.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
-class IntakeEntity {
-  String id;
-  String unit;
-  double amount;
-  IntakeTypeEntity type;
-  DateTime dateTime;
+class IntakeEntity extends Equatable {
+  final String id;
+  final String unit;
+  final double amount;
+  final IntakeTypeEntity type;
+  final DateTime dateTime;
 
-  ProductEntity product;
+  final MealEntity meal;
 
-  IntakeEntity(
+  const IntakeEntity(
       {required this.id,
       required this.unit,
       required this.amount,
       required this.type,
-      required this.product,
+      required this.meal,
       required this.dateTime});
 
   factory IntakeEntity.fromIntakeDBO(IntakeDBO intakeDBO) {
@@ -25,17 +26,20 @@ class IntakeEntity {
         unit: intakeDBO.unit,
         amount: intakeDBO.amount,
         type: IntakeTypeEntity.fromIntakeTypeDBO(intakeDBO.type),
-        product: ProductEntity.fromProductDBO(intakeDBO.product),
+        meal: MealEntity.fromMealDBO(intakeDBO.meal),
         dateTime: intakeDBO.dateTime);
   }
 
-  double get totalKcal => amount * (product.nutriments.energyPerUnit ?? 0);
+  double get totalKcal => amount * (meal.nutriments.energyPerUnit ?? 0);
 
   double get totalCarbsGram =>
-      amount * (product.nutriments.carbohydratesPerUnit ?? 0);
+      amount * (meal.nutriments.carbohydratesPerUnit ?? 0);
 
-  double get totalFatsGram => amount * (product.nutriments.fatPerUnit ?? 0);
+  double get totalFatsGram => amount * (meal.nutriments.fatPerUnit ?? 0);
 
   double get totalProteinsGram =>
-      amount * (product.nutriments.proteinsPerUnit ?? 0);
+      amount * (meal.nutriments.proteinsPerUnit ?? 0);
+
+  @override
+  List<Object?> get props => [id, unit, amount, type, dateTime];
 }

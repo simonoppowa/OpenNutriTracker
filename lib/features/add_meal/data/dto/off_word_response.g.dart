@@ -9,7 +9,7 @@ part of 'off_word_response.dart';
 OFFWordResponse _$OFFWordResponseFromJson(Map<String, dynamic> json) =>
     OFFWordResponse(
       count: (json['count'] as num?)?.toDouble(),
-      page: json['page'] as int?,
+      page: json['page'],
       page_count: json['page_count'] as int?,
       page_size: json['page_size'] as int?,
       products: (json['products'] as List<dynamic>)

@@ -28,4 +28,12 @@ class IntakeRepository {
         .map((intakeDBO) => IntakeEntity.fromIntakeDBO(intakeDBO))
         .toList();
   }
+
+  Future<List<IntakeEntity>> getRecentIntake() async {
+    final intakeList = await _intakeDataSource.getRecentlyAddedIntake();
+
+    return intakeList
+        .map((intakeDBO) => IntakeEntity.fromIntakeDBO(intakeDBO))
+        .toList();
+  }
 }

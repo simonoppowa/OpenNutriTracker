@@ -16,10 +16,15 @@ class ScannerLoadingState extends ScannerState {
 }
 
 class ScannerLoadedState extends ScannerState {
-  final ProductEntity product;
+  final MealEntity product;
 
   const ScannerLoadedState({required this.product});
 
   @override
   List<Object?> get props => [product];
+}
+
+class ScannerFailedState extends ScannerState {
+  @override
+  List<Object?> get props => [];
 }

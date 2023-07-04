@@ -2,8 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
-import 'package:opennutritracker/core/utils/off_const.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/product_entity.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_macro_nutrients.dart';
@@ -20,11 +20,14 @@ class MealDetailScreen extends StatefulWidget {
 }
 
 class _MealDetailScreenState extends State<MealDetailScreen> {
+  static const _containerSize = 300.0;
+
   final log = Logger('ItemDetailScreen');
 
-  final mealDetailBloc = MealDetailBloc();
+  late MealDetailBloc _mealDetailBloc;
+  final _scrollController = ScrollController();
 
-  late ProductEntity product;
+  late MealEntity product;
   late IntakeTypeEntity intakeTypeEntity;
   late TextEditingController quantityTextController;
 
@@ -36,6 +39,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   @override
   void initState() {
+    _mealDetailBloc = locator<MealDetailBloc>();
     quantityTextController = TextEditingController();
     quantityTextController.text = '100';
     totalQuantity = 100;
@@ -61,15 +65,16 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${product.productName}')),
+      appBar: AppBar(title: Text('${product.name}')),
       body: ListView(
+        controller: _scrollController,
         children: [
           Stack(children: [
             CachedNetworkImage(
               imageUrl: product.mainImageUrl ?? "",
               imageBuilder: (context, imageProvider) {
                 return Container(
-                  height: 300,
+                  height: _containerSize,
                   decoration: BoxDecoration(
                       image: DecorationImage(
                           image: imageProvider, fit: BoxFit.cover)),
@@ -78,28 +83,34 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               placeholder: (context, string) => const MealPlaceholder(),
               errorWidget: (context, url, error) => const MealPlaceholder(),
             ),
-            Align(
-              alignment: AlignmentDirectional.topStart,
-              child: Card(
-                child: SizedBox(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text('${product.brands}',
-                        style: Theme.of(context).textTheme.bodyText1),
-                  ),
-                ),
-              ),
-            ),
-            Align(
-              alignment: AlignmentDirectional.topEnd,
-              child: Card(
-                  child: SizedBox(
-                      child: Padding(
+            product.brands != null
+                ? Align(
+                    alignment: AlignmentDirectional.topStart,
+                    child: Card(
+                      child: SizedBox(
+                        child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                              '${product.productQuantity?.toInt()} ${product.productUnit}',
-                              style: Theme.of(context).textTheme.bodyText1)))),
-            )
+                          child: Text('${product.brands}',
+                              style: Theme.of(context).textTheme.bodyLarge),
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox(),
+            product.mealQuantity != null
+                ? Align(
+                    alignment: AlignmentDirectional.topEnd,
+                    child: Card(
+                        child: SizedBox(
+                            child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                    '${product.mealQuantity} ${product.mealUnit ?? S.of(context).gramMilliliterUnit}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge)))),
+                  )
+                : const SizedBox()
           ]),
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -108,8 +119,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 Row(
                   children: [
                     Text('${totalKcal.toInt()} ${S.of(context).kcalLabel}',
-                        style: Theme.of(context).textTheme.headline5),
-                    Text(' / ${totalQuantity.toInt()} ${product.productUnit}')
+                        style: Theme.of(context).textTheme.headlineSmall),
+                    Text(
+                        ' / ${totalQuantity.toInt()} ${product.mealUnit ?? S.of(context).gramMilliliterUnit}')
                   ],
                 ),
                 const SizedBox(height: 8.0),
@@ -130,7 +142,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 const SizedBox(height: 16.0),
                 MealDetailNutrimentsTable(product: product),
                 const SizedBox(height: 32.0),
-                MealInfoButton(url: product.url ?? OFFConst.offWebsiteUrl),
+                MealInfoButton(url: product.url, source: product.source),
                 const SizedBox(height: 200.0) // height added to scroll
               ],
             ),
@@ -141,8 +153,13 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           product: product,
           intakeTypeEntity: intakeTypeEntity,
           quantityTextController: quantityTextController,
-          mealDetailBloc: mealDetailBloc),
+          mealDetailBloc: _mealDetailBloc),
     );
+  }
+
+  void scrollToCalorieText() {
+    _scrollController.animateTo(_containerSize - 50,
+        duration: const Duration(seconds: 1), curve: Curves.easeInOut);
   }
 
   void _onQuantityChanged(String quantityString) {
@@ -159,7 +176,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         totalCarbs = (quantity * carbsPerUnit);
         totalFat = (quantity * fatPerUnit);
         totalProtein = (quantity * proteinPerUnit);
-      } on FormatException catch (e) {
+        scrollToCalorieText();
+      } on FormatException catch (_) {
         log.warning("Error while parsing: \"$quantityString\"");
       }
     });
@@ -167,7 +185,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 }
 
 class MealDetailScreenArguments {
-  final ProductEntity productEntity;
+  final MealEntity productEntity;
   final IntakeTypeEntity intakeTypeEntity;
 
   MealDetailScreenArguments(this.productEntity, this.intakeTypeEntity);

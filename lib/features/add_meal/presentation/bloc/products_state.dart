@@ -15,10 +15,15 @@ class ProductsLoadingState extends ProductsState {
 }
 
 class ProductsLoadedState extends ProductsState {
-  final List<ProductEntity> products;
+  final List<MealEntity> products;
 
   const ProductsLoadedState({required this.products});
 
   @override
   List<Object?> get props => [products];
+}
+
+class ProductsFailedState extends ProductsState {
+  @override
+  List<Object?> get props => [];
 }

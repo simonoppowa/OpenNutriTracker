@@ -50,7 +50,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
           widget.totalKcalDaily;
     }
     return Card(
-      elevation: 4.0,
+      elevation: 1,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -64,9 +64,9 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                   children: [
                     const Icon(Icons.keyboard_arrow_up_outlined),
                     Text('${widget.totalKcalSupplied.toInt()}',
-                        style: Theme.of(context).textTheme.headline6),
+                        style: Theme.of(context).textTheme.titleLarge),
                     Text(S.of(context).suppliedLabel,
-                        style: Theme.of(context).textTheme.subtitle2),
+                        style: Theme.of(context).textTheme.titleSmall),
                   ],
                 ),
                 CircularPercentIndicator(
@@ -84,14 +84,14 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                       Text(kcalLeftLabel.toInt().toString(),
                           style: Theme.of(context)
                               .textTheme
-                              .headline4
+                              .headlineMedium
                               ?.copyWith(
                                   color: Theme.of(context)
                                       .colorScheme
                                       .onSecondaryContainer)),
                       Text(
                         S.of(context).kcalLeftLabel,
-                        style: Theme.of(context).textTheme.subtitle1,
+                        style: Theme.of(context).textTheme.titleMedium,
                       )
                     ],
                   ),
@@ -101,9 +101,9 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                   children: [
                     const Icon(Icons.keyboard_arrow_down_outlined),
                     Text('${widget.totalKcalBurned.toInt()}',
-                        style: Theme.of(context).textTheme.headline6),
+                        style: Theme.of(context).textTheme.titleLarge),
                     Text(S.of(context).burnedLabel,
-                        style: Theme.of(context).textTheme.subtitle2),
+                        style: Theme.of(context).textTheme.titleSmall),
                   ],
                 ),
               ],

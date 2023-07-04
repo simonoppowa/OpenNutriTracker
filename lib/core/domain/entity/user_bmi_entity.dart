@@ -1,11 +1,16 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-class UserBMIEntity {
+class UserBMIEntity extends Equatable {
   final double bmiValue;
   final UserNutritionalStatus nutritionalStatus;
 
-  UserBMIEntity({required this.bmiValue, required this.nutritionalStatus});
+  const UserBMIEntity(
+      {required this.bmiValue, required this.nutritionalStatus});
+
+  @override
+  List<Object?> get props => [bmiValue, nutritionalStatus];
 }
 
 /// Nutritional Status by WHO

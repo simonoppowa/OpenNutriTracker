@@ -19,14 +19,17 @@ class HighlightButton extends StatefulWidget {
 class _HighlightButtonState extends State<HighlightButton> {
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton.icon(
-        onPressed: widget.buttonActive ? widget.onButtonPressed : null,
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0)),
-        icon: const Icon(Icons.navigate_next_outlined),
-        label: Text(widget.buttonLabel,
-            style: Theme.of(context).textTheme.button));
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: ElevatedButton.icon(
+          onPressed: widget.buttonActive ? widget.onButtonPressed : null,
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0)),
+          icon: const Icon(Icons.navigate_next_outlined),
+          label: Text(widget.buttonLabel,
+              style: Theme.of(context).textTheme.labelLarge)),
+    );
   }
 }

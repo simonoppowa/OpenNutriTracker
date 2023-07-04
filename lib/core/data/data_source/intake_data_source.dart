@@ -6,18 +6,18 @@ import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 
 class IntakeDataSource {
   final log = Logger('IntakeDataSource');
-  final Box<IntakeDBO> intakeBox;
+  final Box<IntakeDBO> _intakeBox;
 
-  IntakeDataSource(this.intakeBox);
+  IntakeDataSource(this._intakeBox);
 
   Future<void> addIntake(IntakeDBO intakeDBO) async {
     log.fine('Adding new intake item to db');
-    intakeBox.add(intakeDBO);
+    _intakeBox.add(intakeDBO);
   }
 
   Future<void> deleteIntakeFromId(String intakeId) async {
     log.fine('Deleting intake item from db');
-    intakeBox.values
+    _intakeBox.values
         .where((dbo) => dbo.id == intakeId)
         .toList()
         .forEach((element) {
@@ -27,10 +27,32 @@ class IntakeDataSource {
 
   Future<List<IntakeDBO>> getAllIntakesByDate(
       IntakeTypeDBO intakeType, DateTime dateTime) async {
-    return intakeBox.values
+    return _intakeBox.values
         .where((intake) =>
             DateUtils.isSameDay(dateTime, intake.dateTime) &&
             intake.type == intakeType)
         .toList();
+  }
+
+  Future<List<IntakeDBO>> getRecentlyAddedIntake({int number = 20}) async {
+    final intakeList = _intakeBox.values.toList().reversed;
+
+    //  sort list by date and filter unique intake
+    intakeList
+        .toList()
+        .sort((a, b) => a.dateTime.toString().compareTo(b.dateTime.toString()));
+
+    final filterCodes = <String>{};
+    final uniqueIntake = intakeList
+        .where((intake) =>
+            filterCodes.add(intake.meal.code ?? intake.meal.name ?? ""))
+        .toList();
+
+    // return range or full list
+    try {
+      return uniqueIntake.getRange(0, number).toList();
+    } on RangeError catch (_) {
+      return uniqueIntake.toList();
+    }
   }
 }
