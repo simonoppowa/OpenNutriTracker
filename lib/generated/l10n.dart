@@ -1531,6 +1531,16 @@ class S {
     );
   }
 
+  /// `Retry`
+  String get retryLabel {
+    return Intl.message(
+      'Retry',
+      name: 'retryLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `bicycling`
   String get paHeadingBicycling {
     return Intl.message(

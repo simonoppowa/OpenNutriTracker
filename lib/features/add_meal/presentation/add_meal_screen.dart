@@ -116,8 +116,9 @@ class _AddMealScreenState extends State<AddMealScreen>
                                 : const NoResultsWidget();
                           } else if (state is ProductsFailedState) {
                             return ErrorDialog(
-                                errorText:
-                                    S.of(context).errorFetchingProductData);
+                              errorText: S.of(context).errorFetchingProductData,
+                              onRefreshPressed: _onProductsRefreshButtonPressed,
+                            );
                           } else {
                             return const SizedBox();
                           }
@@ -154,10 +155,11 @@ class _AddMealScreenState extends State<AddMealScreen>
                                               addMealType: mealType);
                                         }))
                                 : const NoResultsWidget();
-                          } else if (state is ProductsFailedState) {
+                          } else if (state is FoodFailedState) {
                             return ErrorDialog(
-                                errorText:
-                                    S.of(context).errorFetchingProductData);
+                              errorText: S.of(context).errorFetchingProductData,
+                              onRefreshPressed: _onFoodRefreshButtonPressed,
+                            );
                           } else {
                             return const SizedBox();
                           }
@@ -193,8 +195,11 @@ class _AddMealScreenState extends State<AddMealScreen>
                                   : const NoResultsWidget();
                             } else if (state is RecentMealFailedState) {
                               return ErrorDialog(
-                                  errorText:
-                                      S.of(context).noMealsRecentlyAddedLabel);
+                                errorText:
+                                    S.of(context).noMealsRecentlyAddedLabel,
+                                onRefreshPressed:
+                                    _onRecentMealsRefreshButtonPressed,
+                              );
                             }
                             return const SizedBox();
                           })
@@ -205,6 +210,18 @@ class _AddMealScreenState extends State<AddMealScreen>
             ],
           ),
         ));
+  }
+
+  void _onProductsRefreshButtonPressed() {
+    _productsBloc.add(const RefreshProductsEvent());
+  }
+
+  void _onFoodRefreshButtonPressed() {
+    _foodBloc.add(const RefreshFoodEvent());
+  }
+
+  void _onRecentMealsRefreshButtonPressed() {
+    _recentMealBloc.add(LoadRecentMealEvent(context: context));
   }
 
   void _onSearchSubmit(String inputText) {

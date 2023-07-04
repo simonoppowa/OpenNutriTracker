@@ -163,6 +163,7 @@
   "errorFetchingProductData": "Error while fetching product data",
   "errorLoadingActivities": "Error while loading activities",
   "noResultsFound": "No results found",
+  "retryLabel": "Retry",
 
   "@PHYSICAL_ACTIVITIES": {},
 

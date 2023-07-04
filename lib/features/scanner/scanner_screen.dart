@@ -20,6 +20,7 @@ class ScannerScreen extends StatefulWidget {
 class _ScannerScreenState extends State<ScannerScreen> {
   final log = Logger('ScannerScreen');
 
+  String? _scannedBarcode;
   late IntakeTypeEntity _intakeTypeEntity;
 
   late ScannerBloc _scannerBloc;
@@ -60,7 +61,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
               appBar: AppBar(),
               body: Center(
                 child: ErrorDialog(
-                    errorText: S.of(context).errorFetchingProductData),
+                  errorText: S.of(context).errorFetchingProductData,
+                  onRefreshPressed: _onRefreshButtonPressed,
+                ),
               ));
         }
         return const SizedBox();
@@ -102,17 +105,28 @@ class _ScannerScreenState extends State<ScannerScreen> {
             for (final barcode in barcodes) {
               if (barcode.rawValue != null &&
                   barcode.type == BarcodeType.product) {
-                final productCode = barcode.rawValue;
-                if (productCode != null) {
+                final barcodeResult = barcode.rawValue;
+                if (barcodeResult != null) {
                   // TODO check barcode validity
-                  log.fine('Barcode found: $productCode');
+                  _scannedBarcode = barcodeResult;
+                  log.fine('Barcode found: $barcodeResult');
                   _scannerBloc
-                      .add(ScannerLoadProductEvent(barcode: productCode));
+                      .add(ScannerLoadProductEvent(barcode: barcodeResult));
                 }
               }
             }
           }),
     );
+  }
+
+  void _onRefreshButtonPressed() {
+    final barcode = _scannedBarcode;
+    if (barcode != null) {
+      _scannerBloc.add(ScannerLoadProductEvent(barcode: barcode));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).errorFetchingProductData)));
+    }
   }
 }
 

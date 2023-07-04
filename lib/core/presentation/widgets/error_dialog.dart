@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 class ErrorDialog extends StatelessWidget {
   final String errorText;
+  final VoidCallback onRefreshPressed;
 
-  const ErrorDialog({Key? key, required this.errorText}) : super(key: key);
+  const ErrorDialog(
+      {Key? key, required this.errorText, required this.onRefreshPressed})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +21,11 @@ class ErrorDialog extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(errorText, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          ElevatedButton.icon(
+              onPressed: () => onRefreshPressed(),
+              icon: const Icon(Icons.refresh_outlined),
+              label: Text(S.of(context).retryLabel))
         ],
       ),
     );

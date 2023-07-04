@@ -520,6 +520,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "recentlyAddedLabel": MessageLookupByLibrary.simpleMessage("Recently"),
         "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
             "Do you want to report an error to the developer?"),
+        "retryLabel": MessageLookupByLibrary.simpleMessage("Retry"),
         "saturatedFatLabel":
             MessageLookupByLibrary.simpleMessage("saturated fat"),
         "scanProductLabel":

@@ -30,5 +30,16 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         }
       }
     });
+    on<RefreshProductsEvent>((event, emit) async {
+      emit(ProductsLoadingState());
+      try {
+        final result = await _searchProductUseCase
+            .searchOFFProductsByString(_searchString);
+        emit(ProductsLoadedState(products: result));
+      } catch (error) {
+        log.severe(error);
+        emit(ProductsFailedState());
+      }
+    });
   }
 }
