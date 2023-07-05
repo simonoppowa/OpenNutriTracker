@@ -28,17 +28,21 @@ class MealItemCard extends StatelessWidget {
           height: 100,
           child: Center(
               child: ListTile(
-            leading: ClipOval(
-                child: CachedNetworkImage(
-              fit: BoxFit.cover,
-              width: 60,
-              height: 60,
-              imageUrl: mealEntity.thumbnailImageUrl ?? "",
-              placeholder: (context, url) =>
-                  const Icon(Icons.restaurant_outlined),
-              errorWidget: (context, url, error) =>
-                  const Icon(Icons.restaurant_outlined),
-            )),
+            leading: mealEntity.thumbnailImageUrl != null
+                ? ClipOval(
+                    child: CachedNetworkImage(
+                    fit: BoxFit.cover,
+                    width: 60,
+                    height: 60,
+                    imageUrl: mealEntity.thumbnailImageUrl ?? "",
+                  ))
+                : ClipOval(
+                    child: Container(
+                        width: 60,
+                        height: 60,
+                        color: Theme.of(context).colorScheme.secondaryContainer,
+                        child: const Icon(Icons.restaurant_outlined)),
+                  ),
             title: AutoSizeText(mealEntity.name ?? "?",
                 style: Theme.of(context).textTheme.titleLarge,
                 maxLines: 2,
@@ -53,9 +57,7 @@ class MealItemCard extends StatelessWidget {
             trailing: IconButton(
               style: IconButton.styleFrom(
                   foregroundColor:
-                      Theme.of(context).colorScheme.onSecondaryContainer,
-                  backgroundColor:
-                      Theme.of(context).colorScheme.secondaryContainer),
+                      Theme.of(context).colorScheme.onSurface,),
               icon: const Icon(Icons.add_outlined),
               onPressed: () => _onItemPressed(context),
             ),
