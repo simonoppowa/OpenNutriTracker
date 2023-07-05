@@ -6,7 +6,7 @@ part 'off_word_response.g.dart';
 
 @JsonSerializable()
 class OFFWordResponse {
-  final double? count;
+  final dynamic count;
   final dynamic page;  // TODO can be string
   final int? page_count;
   final int? page_size;
