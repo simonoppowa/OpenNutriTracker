@@ -16,6 +16,11 @@ class ConfigRepository {
     _configDataSource.setConfigDisclaimer(hasAcceptedDisclaimer);
   }
 
+  Future<void> setConfigHasAcceptedAnonymousData(
+      bool hasAcceptedAnonymousData) async {
+    _configDataSource.setConfigAcceptedAnonymousData(hasAcceptedAnonymousData);
+  }
+
   Future<ConfigEntity> getConfig() async {
     final configDBO = await _configDataSource.getConfig();
     return ConfigEntity.fromConfigDBO(configDBO);

@@ -46,6 +46,7 @@ import 'package:opennutritracker/features/onboarding/presentation/bloc/onboardin
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 
 final locator = GetIt.instance;
 
@@ -71,6 +72,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<ScannerBloc>(() => ScannerBloc(locator()));
   locator.registerLazySingleton<ProfileBloc>(
       () => ProfileBloc(locator(), locator()));
+  locator.registerLazySingleton(() => SettingsBloc(locator(), locator()));
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
   locator.registerFactory<RecentActivitiesBloc>(
