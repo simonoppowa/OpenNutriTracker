@@ -540,6 +540,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Select Activity Level"),
         "selectWeightDialogLabel":
             MessageLookupByLibrary.simpleMessage("Select Weight"),
+        "sendAnonymousUserData":
+            MessageLookupByLibrary.simpleMessage("Send anonymous error data?"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),
@@ -553,6 +555,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsLicensesLabel":
             MessageLookupByLibrary.simpleMessage("Licenses"),
         "settingsMassLabel": MessageLookupByLibrary.simpleMessage("Mass"),
+        "settingsPrivacySettings":
+            MessageLookupByLibrary.simpleMessage("Privacy Settings"),
         "settingsReportErrorLabel":
             MessageLookupByLibrary.simpleMessage("Report Error"),
         "settingsSourceCodeLabel":

@@ -7,8 +7,14 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +44,11 @@ class SettingsScreen extends StatelessWidget {
             leading: const Icon(Icons.bug_report_outlined),
             title: Text(S.of(context).settingsReportErrorLabel),
             onTap: () => _showReportErrorDialog(context),
+          ),
+          ListTile(
+            leading: const Icon(Icons.policy_outlined),
+            title: Text(S.of(context).settingsPrivacySettings),
+            onTap: () => _showPrivacyDialog(context),
           ),
           ListTile(
             leading: const Icon(Icons.error_outline_outlined),
@@ -199,6 +210,43 @@ class SettingsScreen extends StatelessWidget {
             SnackBar(content: Text(S.of(context).errorOpeningEmail)));
       }
     }
+  }
+
+  void _showPrivacyDialog(BuildContext context) async {
+    showDialog(
+        context: context,
+        builder: (context) {
+          bool buttonActive = false; // TODO
+          return AlertDialog(
+            title: Text(S.of(context).settingsPrivacySettings),
+            content: StatefulBuilder(
+              builder: (BuildContext context,
+                  void Function(void Function()) setState) {
+                return SwitchListTile(
+                  title: Text(S.of(context).sendAnonymousUserData),
+                  value: buttonActive,
+                  onChanged: (bool value) {
+                    setState(() {
+                      buttonActive = value;
+                    });
+                  },
+                );
+              },
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(S.of(context).dialogCancelLabel)),
+              TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(S.of(context).dialogOKLabel))
+            ],
+          );
+        });
   }
 
   void _showAboutDialog(BuildContext context) async {
