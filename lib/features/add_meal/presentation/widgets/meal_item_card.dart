@@ -1,6 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
@@ -31,6 +33,7 @@ class MealItemCard extends StatelessWidget {
             leading: mealEntity.thumbnailImageUrl != null
                 ? ClipOval(
                     child: CachedNetworkImage(
+                    cacheManager: locator<CacheManager>(),
                     fit: BoxFit.cover,
                     width: 60,
                     height: 60,
@@ -56,8 +59,8 @@ class MealItemCard extends StatelessWidget {
                 : const SizedBox(),
             trailing: IconButton(
               style: IconButton.styleFrom(
-                  foregroundColor:
-                      Theme.of(context).colorScheme.onSurface,),
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
+              ),
               icon: const Icon(Icons.add_outlined),
               onPressed: () => _onItemPressed(context),
             ),
