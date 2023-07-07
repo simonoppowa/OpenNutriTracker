@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/activity_detail/activity_detail_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
+import 'package:opennutritracker/features/edit_meal/presenation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/onboarding/onboarding_screen.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
@@ -86,8 +87,9 @@ class OpenNutriTrackerApp extends StatelessWidget {
         NavigationOptions.settingsRoute: (context) => const SettingsScreen(),
         NavigationOptions.addMealRoute: (context) => const AddMealScreen(),
         NavigationOptions.scannerRoute: (context) => const ScannerScreen(),
-        NavigationOptions.itemDetailRoute: (context) =>
+        NavigationOptions.mealDetailRoute: (context) =>
             const MealDetailScreen(),
+        NavigationOptions.editMealRoute: (context) => const EditMealScreen(),
         NavigationOptions.addActivityRoute: (context) =>
             const AddActivityScreen(),
         NavigationOptions.activityDetailRoute: (context) =>

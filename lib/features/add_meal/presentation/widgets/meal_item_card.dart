@@ -72,7 +72,7 @@ class MealItemCard extends StatelessWidget {
   }
 
   void _onItemPressed(BuildContext context) {
-    Navigator.of(context).pushNamed(NavigationOptions.itemDetailRoute,
+    Navigator.of(context).pushNamed(NavigationOptions.mealDetailRoute,
         arguments:
             MealDetailScreenArguments(mealEntity, addMealType.getIntakeType()));
   }

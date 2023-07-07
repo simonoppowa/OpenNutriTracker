@@ -1061,6 +1061,96 @@ class S {
     );
   }
 
+  /// `Edit Meal`
+  String get editMealLabel {
+    return Intl.message(
+      'Edit Meal',
+      name: 'editMealLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Meal name`
+  String get mealNameLabel {
+    return Intl.message(
+      'Meal name',
+      name: 'mealNameLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Brands`
+  String get mealBrandsLabel {
+    return Intl.message(
+      'Brands',
+      name: 'mealBrandsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Meal size (g/ml)`
+  String get mealSizeLabel {
+    return Intl.message(
+      'Meal size (g/ml)',
+      name: 'mealSizeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Meal unit`
+  String get mealUnitLabel {
+    return Intl.message(
+      'Meal unit',
+      name: 'mealUnitLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `kcal per 100 g/ml`
+  String get mealKcalLabel {
+    return Intl.message(
+      'kcal per 100 g/ml',
+      name: 'mealKcalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `carbs per 100 g/ml`
+  String get mealCarbsLabel {
+    return Intl.message(
+      'carbs per 100 g/ml',
+      name: 'mealCarbsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `fat per 100 g/ml`
+  String get mealFatLabel {
+    return Intl.message(
+      'fat per 100 g/ml',
+      name: 'mealFatLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `protein per 100 g/ml`
+  String get mealProteinLabel {
+    return Intl.message(
+      'protein per 100 g/ml',
+      name: 'mealProteinLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `BMI`
   String get bmiLabel {
     return Intl.message(

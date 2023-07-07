@@ -110,6 +110,16 @@
   "infoAddedIntakeLabel": "Added new intake",
   "infoAddedActivityLabel": "Added new activity",
 
+  "editMealLabel": "Edit Meal",
+  "mealNameLabel": "Meal name",
+  "mealBrandsLabel": "Brands",
+  "mealSizeLabel": "Meal size (g/ml)",
+  "mealUnitLabel": "Meal unit",
+  "mealKcalLabel": "kcal per 100 g/ml",
+  "mealCarbsLabel": "carbs per 100 g/ml",
+  "mealFatLabel": "fat per 100 g/ml",
+  "mealProteinLabel": "protein per 100 g/ml",
+
   "bmiLabel": "BMI",
   "bmiInfo": "Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals.",
   "readLabel": "I have read the",

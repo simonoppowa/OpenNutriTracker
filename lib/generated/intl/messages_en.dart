@@ -87,6 +87,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Dinner"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
             "OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.\n\n\nThe application is still under development. Errors, bugs and crashes may occur."),
+        "editMealLabel": MessageLookupByLibrary.simpleMessage("Edit Meal"),
         "energyLabel": MessageLookupByLibrary.simpleMessage("energy"),
         "errorFetchingProductData": MessageLookupByLibrary.simpleMessage(
             "Error while fetching product data"),
@@ -122,6 +123,19 @@ class MessageLookup extends MessageLookupByLibrary {
         "lunchExample":
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
+        "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Brands"),
+        "mealCarbsLabel":
+            MessageLookupByLibrary.simpleMessage("carbs per 100 g/ml"),
+        "mealFatLabel":
+            MessageLookupByLibrary.simpleMessage("fat per 100 g/ml"),
+        "mealKcalLabel":
+            MessageLookupByLibrary.simpleMessage("kcal per 100 g/ml"),
+        "mealNameLabel": MessageLookupByLibrary.simpleMessage("Meal name"),
+        "mealProteinLabel":
+            MessageLookupByLibrary.simpleMessage("protein per 100 g/ml"),
+        "mealSizeLabel":
+            MessageLookupByLibrary.simpleMessage("Meal size (g/ml)"),
+        "mealUnitLabel": MessageLookupByLibrary.simpleMessage("Meal unit"),
         "milliliterUnit": MessageLookupByLibrary.simpleMessage("ml"),
         "missingProductInfo": MessageLookupByLibrary.simpleMessage(
             "Product missing required kcal or macronutrients information"),
