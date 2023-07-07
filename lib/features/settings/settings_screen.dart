@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -266,6 +267,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               TextButton(
                   onPressed: () async {
                     _settingsBloc.setHasAcceptedAnonymousData(switchActive);
+                    if (!switchActive) Sentry.close();
                     _settingsBloc.add(LoadSettingsEvent());
                     Navigator.of(context).pop();
                   },

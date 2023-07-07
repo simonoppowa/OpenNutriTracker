@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/core/utils/ont_http_client.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off_product_response.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off_word_response.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class OFFDataSource {
   static const _timeoutDuration = Duration(seconds: 10);
@@ -30,9 +31,10 @@ class OFFDataSource {
         log.warning('Failed OFF call: ${response.statusCode}');
         return Future.error(response.statusCode);
       }
-    } catch (error) {
-      log.severe('Exception while getting OFF word search $error');
-      return Future.error(error);
+    } catch (exception, stacktrace) {
+      log.severe('Exception while getting OFF word search $exception');
+      Sentry.captureException(exception, stackTrace: stacktrace);
+      return Future.error(exception);
     }
   }
 
@@ -54,9 +56,10 @@ class OFFDataSource {
         log.warning('Failed OFF call: ${response.statusCode}');
         return Future.error(response.statusCode);
       }
-    } catch (error) {
-      log.severe('Exception while getting OFF barcode search $error');
-      return Future.error(error);
+    } catch (exception, stacktrace) {
+      log.severe('Exception while getting OFF barcode search $exception');
+      Sentry.captureException(exception, stackTrace: stacktrace);
+      return Future.error(exception);
     }
   }
 }
