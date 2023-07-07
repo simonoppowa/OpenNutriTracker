@@ -140,9 +140,9 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   bool _hasRequiredProductInfoMissing() {
     final productNutriments = widget.product.nutriments;
     if (productNutriments.energyKcal100 == null ||
-        productNutriments.carbohydrates100g == null ||
-        productNutriments.fat100g == null ||
-        productNutriments.proteins100g == null) {
+        productNutriments.carbohydrates100 == null ||
+        productNutriments.fat100 == null ||
+        productNutriments.proteins100 == null) {
       return true;
     } else {
       return false;

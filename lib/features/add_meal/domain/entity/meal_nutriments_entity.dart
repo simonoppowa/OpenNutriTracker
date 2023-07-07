@@ -8,44 +8,41 @@ import 'package:opennutritracker/features/add_meal/data/dto/off_product_nutrimen
 
 class MealNutrimentsEntity extends Equatable {
   final double? energyKcal100;
-  final double? energyPerUnit;
-  final double? carbohydrates100g;
-  final double? carbohydratesPerUnit;
-  final double? fat100g;
-  final double? fatPerUnit;
-  final double? proteins100g;
-  final double? proteinsPerUnit;
-  final double? sugars100g;
-  final double? saturatedFat100g;
-  final double? fiber100g;
+
+  final double? carbohydrates100;
+  final double? fat100;
+  final double? proteins100;
+  final double? sugars100;
+  final double? saturatedFat100;
+  final double? fiber100;
+
+  double? get energyPerUnit => _getValuePerUnit(energyKcal100);
+
+  double? get carbohydratesPerUnit => _getValuePerUnit(carbohydrates100);
+
+  double? get fatPerUnit => _getValuePerUnit(fat100);
+
+  double? get proteinsPerUnit => _getValuePerUnit(proteins100);
 
   const MealNutrimentsEntity(
       {required this.energyKcal100,
-      required this.energyPerUnit,
-      required this.carbohydrates100g,
-      required this.carbohydratesPerUnit,
-      required this.fat100g,
-      required this.fatPerUnit,
-      required this.proteins100g,
-      required this.proteinsPerUnit,
-      required this.sugars100g,
-      required this.saturatedFat100g,
-      required this.fiber100g});
+      required this.carbohydrates100,
+      required this.fat100,
+      required this.proteins100,
+      required this.sugars100,
+      required this.saturatedFat100,
+      required this.fiber100});
 
   factory MealNutrimentsEntity.fromMealNutrimentsDBO(
       MealNutrimentsDBO nutriments) {
     return MealNutrimentsEntity(
         energyKcal100: nutriments.energyKcal100,
-        energyPerUnit: nutriments.energyPerUnit,
-        carbohydrates100g: nutriments.carbohydrates100g,
-        carbohydratesPerUnit: nutriments.carbohydratesPerUnit,
-        fat100g: nutriments.fat100g,
-        fatPerUnit: nutriments.fatPerUnit,
-        proteins100g: nutriments.proteins100g,
-        proteinsPerUnit: nutriments.proteinsPerUnit,
-        sugars100g: nutriments.sugars100g,
-        saturatedFat100g: nutriments.saturatedFat100g,
-        fiber100g: nutriments.fiber100g);
+        carbohydrates100: nutriments.carbohydrates100,
+        fat100: nutriments.fat100,
+        proteins100: nutriments.proteins100,
+        sugars100: nutriments.sugars100,
+        saturatedFat100: nutriments.saturatedFat100,
+        fiber100: nutriments.fiber100);
   }
 
   factory MealNutrimentsEntity.fromOffNutriments(
@@ -56,22 +53,14 @@ class MealNutrimentsEntity extends Equatable {
     return MealNutrimentsEntity(
         energyKcal100:
             (offNutriments.energy_kcal_100g as Object?).asDoubleOrNull(),
-        energyPerUnit: _getValuePerUnit(
-            (offNutriments.energy_kcal_100g as Object?).asDoubleOrNull()),
-        carbohydrates100g:
+        carbohydrates100:
             (offNutriments.carbohydrates_100g as Object?).asDoubleOrNull(),
-        carbohydratesPerUnit: _getValuePerUnit(
-            (offNutriments.carbohydrates_100g as Object?).asDoubleOrNull()),
-        fat100g: (offNutriments.fat_100g as Object?).asDoubleOrNull(),
-        fatPerUnit: _getValuePerUnit(
-            (offNutriments.fat_100g as Object?).asDoubleOrNull()),
-        proteins100g: (offNutriments.proteins_100g as Object?).asDoubleOrNull(),
-        proteinsPerUnit: _getValuePerUnit(
-            (offNutriments.proteins_100g as Object?).asDoubleOrNull()),
-        sugars100g: (offNutriments.sugars_100g as Object?).asDoubleOrNull(),
-        saturatedFat100g:
+        fat100: (offNutriments.fat_100g as Object?).asDoubleOrNull(),
+        proteins100: (offNutriments.proteins_100g as Object?).asDoubleOrNull(),
+        sugars100: (offNutriments.sugars_100g as Object?).asDoubleOrNull(),
+        saturatedFat100:
             (offNutriments.saturated_fat_100g as Object?).asDoubleOrNull(),
-        fiber100g: (offNutriments.fiber_100g as Object?).asDoubleOrNull());
+        fiber100: (offNutriments.fiber_100g as Object?).asDoubleOrNull());
   }
 
   factory MealNutrimentsEntity.fromFDCNutriments(
@@ -113,16 +102,12 @@ class MealNutrimentsEntity extends Equatable {
 
     return MealNutrimentsEntity(
         energyKcal100: energyTotal,
-        energyPerUnit: _getValuePerUnit(energyTotal),
-        carbohydrates100g: carbsTotal,
-        carbohydratesPerUnit: _getValuePerUnit(carbsTotal),
-        fat100g: fatTotal,
-        fatPerUnit: _getValuePerUnit(fatTotal),
-        proteins100g: proteinsTotal,
-        proteinsPerUnit: _getValuePerUnit(proteinsTotal),
-        sugars100g: sugarTotal,
-        saturatedFat100g: saturatedFatTotal,
-        fiber100g: fiberTotal);
+        carbohydrates100: carbsTotal,
+        fat100: fatTotal,
+        proteins100: proteinsTotal,
+        sugars100: sugarTotal,
+        saturatedFat100: saturatedFatTotal,
+        fiber100: fiberTotal);
   }
 
   static double? _getValuePerUnit(double? valuePer100) {
@@ -135,5 +120,5 @@ class MealNutrimentsEntity extends Equatable {
 
   @override
   List<Object?> get props =>
-      [energyKcal100, carbohydrates100g, fat100g, proteins100g];
+      [energyKcal100, carbohydrates100, fat100, proteins100];
 }
