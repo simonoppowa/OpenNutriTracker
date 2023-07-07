@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -71,6 +72,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         children: [
           Stack(children: [
             CachedNetworkImage(
+              cacheManager: locator<CacheManager>(),
               imageUrl: product.mainImageUrl ?? "",
               imageBuilder: (context, imageProvider) {
                 return Container(

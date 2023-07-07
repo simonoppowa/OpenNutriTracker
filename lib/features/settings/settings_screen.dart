@@ -1,14 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  late SettingsBloc _settingsBloc;
+
+  @override
+  void initState() {
+    _settingsBloc = locator<SettingsBloc>();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,37 +33,55 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(S.of(context).settingsLabel),
       ),
-      body: ListView(
-        children: [
-          const SizedBox(height: 16.0),
-          ListTile(
-            leading: const Icon(Icons.ac_unit_outlined),
-            title: Text(S.of(context).settingsUnitsLabel),
-            onTap: () => _showUnitsDialog(context),
-          ),
-          ListTile(
-            leading: const Icon(Icons.calculate_outlined),
-            title: Text(S.of(context).settingsCalculationsLabel),
-            onTap: () => _showCalculationsDialog(context),
-          ),
-          ListTile(
-            leading: const Icon(Icons.description_outlined),
-            title: Text(S.of(context).settingsDisclaimerLabel),
-            onTap: () => _showDisclaimerDialog(context),
-          ),
-          ListTile(
-            leading: const Icon(Icons.bug_report_outlined),
-            title: Text(S.of(context).settingsReportErrorLabel),
-            onTap: () => _showReportErrorDialog(context),
-          ),
-          ListTile(
-            leading: const Icon(Icons.error_outline_outlined),
-            title: Text(S.of(context).settingAboutLabel),
-            onTap: () => _showAboutDialog(context),
-          ),
-          const SizedBox(height: 32.0),
-          const AppBannerVersion()
-        ],
+      body: BlocBuilder<SettingsBloc, SettingsState>(
+        bloc: _settingsBloc,
+        builder: (context, state) {
+          if (state is SettingsInitial) {
+            _settingsBloc.add(LoadSettingsEvent());
+          } else if (state is SettingsLoadingState) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is SettingsLoadedState) {
+            return ListView(
+              children: [
+                const SizedBox(height: 16.0),
+                ListTile(
+                  leading: const Icon(Icons.ac_unit_outlined),
+                  title: Text(S.of(context).settingsUnitsLabel),
+                  onTap: () => _showUnitsDialog(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.calculate_outlined),
+                  title: Text(S.of(context).settingsCalculationsLabel),
+                  onTap: () => _showCalculationsDialog(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.description_outlined),
+                  title: Text(S.of(context).settingsDisclaimerLabel),
+                  onTap: () => _showDisclaimerDialog(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.bug_report_outlined),
+                  title: Text(S.of(context).settingsReportErrorLabel),
+                  onTap: () => _showReportErrorDialog(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.policy_outlined),
+                  title: Text(S.of(context).settingsPrivacySettings),
+                  onTap: () =>
+                      _showPrivacyDialog(context, state.sendAnonymousData),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.error_outline_outlined),
+                  title: Text(S.of(context).settingAboutLabel),
+                  onTap: () => _showAboutDialog(context),
+                ),
+                const SizedBox(height: 32.0),
+                AppBannerVersion(versionNumber: state.versionNumber)
+              ],
+            );
+          }
+          return const SizedBox();
+        },
       ),
     );
   }
@@ -199,6 +234,47 @@ class SettingsScreen extends StatelessWidget {
             SnackBar(content: Text(S.of(context).errorOpeningEmail)));
       }
     }
+  }
+
+  void _showPrivacyDialog(
+      BuildContext context, bool hasAcceptedAnonymousData) async {
+    bool switchActive = hasAcceptedAnonymousData;
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(S.of(context).settingsPrivacySettings),
+            content: StatefulBuilder(
+              builder: (BuildContext context,
+                  void Function(void Function()) setState) {
+                return SwitchListTile(
+                  title: Text(S.of(context).sendAnonymousUserData),
+                  value: switchActive,
+                  onChanged: (bool value) {
+                    setState(() {
+                      switchActive = value;
+                    });
+                  },
+                );
+              },
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(S.of(context).dialogCancelLabel)),
+              TextButton(
+                  onPressed: () async {
+                    _settingsBloc.setHasAcceptedAnonymousData(switchActive);
+                    if (!switchActive) Sentry.close();
+                    _settingsBloc.add(LoadSettingsEvent());
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(S.of(context).dialogOKLabel))
+            ],
+          );
+        });
   }
 
   void _showAboutDialog(BuildContext context) async {

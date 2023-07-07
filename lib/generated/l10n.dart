@@ -500,6 +500,16 @@ class S {
     );
   }
 
+  /// `Privacy Settings`
+  String get settingsPrivacySettings {
+    return Intl.message(
+      'Privacy Settings',
+      name: 'settingsPrivacySettings',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Source Code`
   String get settingsSourceCodeLabel {
     return Intl.message(
@@ -560,10 +570,10 @@ class S {
     );
   }
 
-  /// `OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems. Usage during illness, pregnancy or lactation is not advised.\n\n\nThe application is still under construction. Errors, bugs and crashes might occur.`
+  /// `OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.\n\n\nThe application is still under development. Errors, bugs and crashes may occur.`
   String get disclaimerText {
     return Intl.message(
-      'OpenNutriTracker is not a medical application. All data provider is not validated and should be taken with caution. Please ensure a healthy lifestyle and talk to a professional if you have problems. Usage during illness, pregnancy or lactation is not advised.\n\n\nThe application is still under construction. Errors, bugs and crashes might occur.',
+      'OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.\n\n\nThe application is still under development. Errors, bugs and crashes may occur.',
       name: 'disclaimerText',
       desc: '',
       args: [],
@@ -575,6 +585,16 @@ class S {
     return Intl.message(
       'Do you want to report an error to the developer?',
       name: 'reportErrorDialogText',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Send anonymous error data?`
+  String get sendAnonymousUserData {
+    return Intl.message(
+      'Send anonymous error data?',
+      name: 'sendAnonymousUserData',
       desc: '',
       args: [],
     );
@@ -1526,6 +1546,16 @@ class S {
     return Intl.message(
       'No results found',
       name: 'noResultsFound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retry`
+  String get retryLabel {
+    return Intl.message(
+      'Retry',
+      name: 'retryLabel',
       desc: '',
       args: [],
     );

@@ -30,5 +30,16 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
         }
       }
     });
+    on<RefreshFoodEvent>((event, emit) async {
+      emit(FoodLoadingState());
+      try {
+        final result =
+            await _searchProductUseCase.searchFDCFoodByString(_searchString);
+        emit(FoodLoadedState(food: result));
+      } catch (error) {
+        log.severe(error);
+        emit(FoodFailedState());
+      }
+    });
   }
 }

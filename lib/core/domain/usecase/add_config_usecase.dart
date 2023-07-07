@@ -13,4 +13,10 @@ class AddConfigUsecase {
   Future<void> setConfigDisclaimer(bool hasAcceptedDisclaimer) async {
     _configRepository.setConfigDisclaimer(hasAcceptedDisclaimer);
   }
+
+  Future<void> setConfigHasAcceptedAnonymousData(
+      bool hasAcceptedAnonymousData) async {
+    _configRepository
+        .setConfigHasAcceptedAnonymousData(hasAcceptedAnonymousData);
+  }
 }

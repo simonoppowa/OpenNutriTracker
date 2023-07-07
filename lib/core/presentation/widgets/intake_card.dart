@@ -1,7 +1,9 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 
 class IntakeCard extends StatelessWidget {
   final IntakeEntity intake;
@@ -33,6 +35,7 @@ class IntakeCard extends StatelessWidget {
             children: [
               intake.meal.mainImageUrl != null
                   ? CachedNetworkImage(
+                      cacheManager: locator<CacheManager>(),
                       imageUrl: intake.meal.mainImageUrl ?? "",
                       imageBuilder: (context, imageProvider) => Container(
                         decoration: BoxDecoration(

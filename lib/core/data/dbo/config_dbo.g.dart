@@ -19,17 +19,20 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
     return ConfigDBO(
       fields[0] as bool,
       fields[1] as bool,
+      fields[2] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
-      ..write(obj.hasAcceptedPolicy);
+      ..write(obj.hasAcceptedPolicy)
+      ..writeByte(2)
+      ..write(obj.hasAcceptedSendAnonymousData);
   }
 
   @override

@@ -101,8 +101,10 @@ class _AddActivityScreenState extends State<AddActivityScreen>
                           }
                           if (state is ActivitiesFailedState) {
                             return ErrorDialog(
-                                errorText:
-                                    S.of(context).errorLoadingActivities);
+                              errorText: S.of(context).errorLoadingActivities,
+                              onRefreshPressed:
+                                  _onActivitiesRefreshButtonPressed,
+                            );
                           }
                           return const SizedBox();
                         },
@@ -141,8 +143,10 @@ class _AddActivityScreenState extends State<AddActivityScreen>
                           }
                           if (state is RecentActivitiesFailedState) {
                             return ErrorDialog(
-                                errorText:
-                                    S.of(context).errorLoadingActivities);
+                              errorText: S.of(context).errorLoadingActivities,
+                              onRefreshPressed:
+                                  _onRecentActivitiesRefreshButtonPressed,
+                            );
                           }
                           return const SizedBox();
                         },
@@ -154,5 +158,13 @@ class _AddActivityScreenState extends State<AddActivityScreen>
             ],
           ),
         ));
+  }
+
+  void _onActivitiesRefreshButtonPressed() {
+    _activitiesBloc.add(LoadActivitiesEvent(context: context));
+  }
+
+  void _onRecentActivitiesRefreshButtonPressed() {
+    _recentActivitiesBloc.add(LoadRecentActivitiesEvent(context: context));
   }
 }

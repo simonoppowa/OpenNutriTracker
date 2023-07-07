@@ -15,3 +15,10 @@ class LoadProductsEvent extends ProductsEvent {
   @override
   List<Object?> get props => [searchString];
 }
+
+class RefreshProductsEvent extends ProductsEvent {
+  const RefreshProductsEvent();
+
+  @override
+  List<Object?> get props => [];
+}

@@ -4,6 +4,8 @@ import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -90,8 +92,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                                       labelText: S.of(context).unitLabel),
                                   items: <DropdownMenuItem<String>>[
                                     DropdownMenuItem(
-                                        child: Text(widget
-                                                .product.mealUnit ??
+                                        child: Text(widget.product.mealUnit ??
                                             S.of(context).gramMilliliterUnit))
                                   ],
                                   onChanged: null // deactivate item,
@@ -158,6 +159,10 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());
+
+    // Refresh Diary Page
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+    locator<CalendarDayBloc>().add(LoadCalendarDayEvent(DateTime.now()));
 
     // Show snackbar and return to dashboard
     ScaffoldMessenger.of(context).showSnackBar(

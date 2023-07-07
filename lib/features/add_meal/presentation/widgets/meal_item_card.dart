@@ -1,6 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
@@ -28,17 +30,22 @@ class MealItemCard extends StatelessWidget {
           height: 100,
           child: Center(
               child: ListTile(
-            leading: ClipOval(
-                child: CachedNetworkImage(
-              fit: BoxFit.cover,
-              width: 60,
-              height: 60,
-              imageUrl: mealEntity.thumbnailImageUrl ?? "",
-              placeholder: (context, url) =>
-                  const Icon(Icons.restaurant_outlined),
-              errorWidget: (context, url, error) =>
-                  const Icon(Icons.restaurant_outlined),
-            )),
+            leading: mealEntity.thumbnailImageUrl != null
+                ? ClipOval(
+                    child: CachedNetworkImage(
+                    cacheManager: locator<CacheManager>(),
+                    fit: BoxFit.cover,
+                    width: 60,
+                    height: 60,
+                    imageUrl: mealEntity.thumbnailImageUrl ?? "",
+                  ))
+                : ClipOval(
+                    child: Container(
+                        width: 60,
+                        height: 60,
+                        color: Theme.of(context).colorScheme.secondaryContainer,
+                        child: const Icon(Icons.restaurant_outlined)),
+                  ),
             title: AutoSizeText(mealEntity.name ?? "?",
                 style: Theme.of(context).textTheme.titleLarge,
                 maxLines: 2,
@@ -52,10 +59,8 @@ class MealItemCard extends StatelessWidget {
                 : const SizedBox(),
             trailing: IconButton(
               style: IconButton.styleFrom(
-                  foregroundColor:
-                      Theme.of(context).colorScheme.onSecondaryContainer,
-                  backgroundColor:
-                      Theme.of(context).colorScheme.secondaryContainer),
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
+              ),
               icon: const Icon(Icons.add_outlined),
               onPressed: () => _onItemPressed(context),
             ),

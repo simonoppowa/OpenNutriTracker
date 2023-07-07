@@ -13,7 +13,7 @@ class ConfigDataSource {
   Future<bool> configInitialized() async => _configBox.containsKey(_configKey);
 
   Future<void> initializeConfig() async =>
-      _configBox.put(_configKey, ConfigDBO(false, false));
+      _configBox.put(_configKey, ConfigDBO.empty());
 
   Future<void> addConfig(ConfigDBO configDBO) async {
     _log.fine('Adding new config item to db');
@@ -28,7 +28,21 @@ class ConfigDataSource {
     config?.save();
   }
 
+  Future<void> setConfigAcceptedAnonymousData(
+      bool hasAcceptedAnonymousData) async {
+    _log.fine(
+        'Updating config hasAcceptedAnonymousData to $hasAcceptedAnonymousData');
+    final config = _configBox.get(_configKey);
+    config?.hasAcceptedSendAnonymousData = hasAcceptedAnonymousData;
+    config?.save();
+  }
+
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();
+  }
+
+  Future<bool> getHasAcceptedAnonymousData() async {
+    final config = _configBox.get(_configKey);
+    return config?.hasAcceptedSendAnonymousData ?? false;
   }
 }

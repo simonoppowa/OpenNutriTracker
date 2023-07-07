@@ -9,11 +9,16 @@ class ConfigDBO extends HiveObject {
   bool hasAcceptedDisclaimer;
   @HiveField(1)
   bool hasAcceptedPolicy;
+  @HiveField(2)
+  bool hasAcceptedSendAnonymousData;
 
-  ConfigDBO(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy);
+  ConfigDBO(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
+      this.hasAcceptedSendAnonymousData);
 
-  factory ConfigDBO.empty() => ConfigDBO(false, false);
+  factory ConfigDBO.empty() => ConfigDBO(false, false, false);
 
-  factory ConfigDBO.fromConfigEntity(ConfigEntity entity) =>
-      ConfigDBO(entity.hasAcceptedDisclaimer, entity.hasAcceptedPolicy);
+  factory ConfigDBO.fromConfigEntity(ConfigEntity entity) => ConfigDBO(
+      entity.hasAcceptedDisclaimer,
+      entity.hasAcceptedPolicy,
+      entity.hasAcceptedSendAnonymousData);
 }
