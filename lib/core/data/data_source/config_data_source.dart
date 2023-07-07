@@ -40,4 +40,9 @@ class ConfigDataSource {
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();
   }
+
+  Future<bool> getHasAcceptedAnonymousData() async {
+    final config = _configBox.get(_configKey);
+    return config?.hasAcceptedSendAnonymousData ?? false;
+  }
 }
