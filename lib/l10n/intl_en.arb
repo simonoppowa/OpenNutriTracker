@@ -23,6 +23,7 @@
   "dialogCancelLabel": "CANCEL",
   "buttonStartLabel": "START",
   "buttonNextLabel": "NEXT",
+  "buttonSaveLabel": "Save",
 
   "onboardingWelcomeLabel": "Welcome to",
   "onboardingOverviewLabel": "Overview",
@@ -114,6 +115,7 @@
   "mealNameLabel": "Meal name",
   "mealBrandsLabel": "Brands",
   "mealSizeLabel": "Meal size (g/ml)",
+  "servingSizeLabel": "Serving size (g/ml)",
   "mealUnitLabel": "Meal unit",
   "mealKcalLabel": "kcal per 100 g/ml",
   "mealCarbsLabel": "carbs per 100 g/ml",

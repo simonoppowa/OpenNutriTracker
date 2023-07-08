@@ -56,9 +56,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     meal = args.mealEntity;
     intakeTypeEntity = args.intakeTypeEntity;
     totalKcal = meal.nutriments.energyKcal100 ?? 0;
-    totalCarbs = meal.nutriments.carbohydrates100g ?? 0;
-    totalFat = meal.nutriments.fat100g ?? 0;
-    totalProtein = meal.nutriments.fat100g ?? 0;
+    totalCarbs = meal.nutriments.carbohydrates100 ?? 0;
+    totalFat = meal.nutriments.fat100 ?? 0;
+    totalProtein = meal.nutriments.fat100 ?? 0;
     quantityTextController.addListener(() {
       _onQuantityChanged(quantityTextController.text);
     });
@@ -74,7 +74,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           IconButton(
               onPressed: () {
                 Navigator.of(context).pushNamed(NavigationOptions.editMealRoute,
-                    arguments: EditMealScreenArguments(meal));
+                    arguments: EditMealScreenArguments(meal, intakeTypeEntity));
               },
               icon: const Icon(Icons.edit_outlined))
         ],

@@ -270,6 +270,16 @@ class S {
     );
   }
 
+  /// `Save`
+  String get buttonSaveLabel {
+    return Intl.message(
+      'Save',
+      name: 'buttonSaveLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Welcome to`
   String get onboardingWelcomeLabel {
     return Intl.message(
@@ -1096,6 +1106,16 @@ class S {
     return Intl.message(
       'Meal size (g/ml)',
       name: 'mealSizeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Serving size (g/ml)`
+  String get servingSizeLabel {
+    return Intl.message(
+      'Serving size (g/ml)',
+      name: 'servingSizeLabel',
       desc: '',
       args: [],
     );

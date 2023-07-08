@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -69,15 +69,8 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                               enabled: !_productMissingRequiredInfo,
                               controller: widget.quantityTextController,
                               keyboardType: TextInputType.number,
-                              inputFormatters: <TextInputFormatter>[
-                                FilteringTextInputFormatter.allow(
-                                    RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
-                                TextInputFormatter.withFunction(
-                                  (oldValue, newValue) => newValue.copyWith(
-                                    text: newValue.text.replaceAll(',', '.'),
-                                  ),
-                                ),
-                              ],
+                              inputFormatters:
+                                  CustomTextInputFormatter.doubleOnly(),
                               decoration: InputDecoration(
                                 border: const OutlineInputBorder(),
                                 labelText: S.of(context).quantityLabel,
