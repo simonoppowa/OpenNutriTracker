@@ -40,6 +40,7 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bl
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
@@ -81,6 +82,7 @@ Future<void> initLocator() async {
       () => ActivityDetailBloc(locator(), locator(), locator()));
   locator.registerFactory<MealDetailBloc>(
       () => MealDetailBloc(locator(), locator(), locator()));
+  locator.registerLazySingleton<EditMealBloc>(() => EditMealBloc());
   locator.registerFactory<ProductsBloc>(() => ProductsBloc(locator()));
   locator.registerFactory<FoodBloc>(() => FoodBloc(locator()));
   locator.registerFactory(() => RecentMealBloc(locator()));

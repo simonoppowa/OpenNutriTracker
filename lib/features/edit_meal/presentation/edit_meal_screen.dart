@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -19,10 +20,12 @@ class _EditMealScreenState extends State<EditMealScreen> {
   late MealEntity _mealEntity;
   late IntakeTypeEntity _intakeTypeEntity;
 
+  late EditMealBloc _editMealBloc;
+
   final _nameTextController = TextEditingController();
   final _brandsTextController = TextEditingController();
-  final _mealSizeTextController = TextEditingController();
-  final _servingSizeTextController = TextEditingController();
+  final _mealQuantityTextController = TextEditingController();
+  final _servingQuantityTextController = TextEditingController();
   final _kcalTextController = TextEditingController();
   final _carbsTextController = TextEditingController();
   final _fatTextController = TextEditingController();
@@ -33,6 +36,12 @@ class _EditMealScreenState extends State<EditMealScreen> {
   late List<DropdownMenuItem> _mealUnitDropdownItems;
 
   @override
+  void initState() {
+    _editMealBloc = locator<EditMealBloc>();
+    super.initState();
+  }
+
+  @override
   void didChangeDependencies() {
     final args =
         ModalRoute.of(context)?.settings.arguments as EditMealScreenArguments;
@@ -41,8 +50,8 @@ class _EditMealScreenState extends State<EditMealScreen> {
 
     _nameTextController.text = _mealEntity.name ?? "";
     _brandsTextController.text = _mealEntity.brands ?? "";
-    _mealSizeTextController.text = _mealEntity.mealQuantity ?? "";
-    _servingSizeTextController.text =
+    _mealQuantityTextController.text = _mealEntity.mealQuantity ?? "";
+    _servingQuantityTextController.text =
         _mealEntity.servingQuantity.toStringOrEmpty();
     _kcalTextController.text =
         _mealEntity.nutriments.energyKcal100.toStringOrEmpty();
@@ -107,7 +116,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
           ),
           const SizedBox(height: 32),
           TextFormField(
-            controller: _mealSizeTextController,
+            controller: _mealQuantityTextController,
             decoration: InputDecoration(
                 labelText: S.of(context).mealSizeLabel,
                 border: const OutlineInputBorder()),
@@ -115,7 +124,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
           ),
           const SizedBox(height: 16),
           TextFormField(
-            controller: _servingSizeTextController,
+            controller: _servingQuantityTextController,
             inputFormatters: CustomTextInputFormatter.doubleOnly(),
             decoration: InputDecoration(
                 labelText: S.of(context).servingSizeLabel,
@@ -175,28 +184,17 @@ class _EditMealScreenState extends State<EditMealScreen> {
   }
 
   void _onSavePressed() {
-    final newMealNutriments = MealNutrimentsEntity(
-        energyKcal100: _kcalTextController.text.toDoubleOrNull(),
-        carbohydrates100: _carbsTextController.text.toDoubleOrNull(),
-        fat100: _fatTextController.text.toDoubleOrNull(),
-        proteins100: _proteinTextController.text.toDoubleOrNull(),
-        sugars100: _mealEntity.nutriments.sugars100,
-        saturatedFat100: _mealEntity.nutriments.saturatedFat100,
-        fiber100: _mealEntity.nutriments.fiber100);
-
-    final newMealEntity = MealEntity(
-        code: _mealEntity.code,
-        name: _nameTextController.text,
-        brands: _brandsTextController.text,
-        url: _mealEntity.url,
-        thumbnailImageUrl: _mealEntity.thumbnailImageUrl,
-        mainImageUrl: _mealEntity.mainImageUrl,
-        mealQuantity: _mealSizeTextController.text,
-        mealUnit: _dropdownUnitValue,
-        servingQuantity: _servingSizeTextController.text.toDoubleOrNull(),
-        servingUnit: _dropdownUnitValue,
-        nutriments: newMealNutriments,
-        source: _mealEntity.source);
+    final newMealEntity = _editMealBloc.createNewMealEntity(
+        _mealEntity,
+        _nameTextController.text,
+        _brandsTextController.text,
+        _mealQuantityTextController.text,
+        _servingQuantityTextController.text,
+        _dropdownUnitValue,
+        _kcalTextController.text,
+        _carbsTextController.text,
+        _fatTextController.text,
+        _proteinTextController.text);
 
     Navigator.of(context).pushNamedAndRemoveUntil(
         NavigationOptions.mealDetailRoute,
