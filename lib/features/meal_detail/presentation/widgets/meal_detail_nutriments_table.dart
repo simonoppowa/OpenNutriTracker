@@ -35,21 +35,21 @@ class MealDetailNutrimentsTable extends StatelessWidget {
                 "${product.nutriments.energyKcal100?.toInt() ?? "?"} ${S.of(context).kcalLabel}",
                 textStyleNormal),
             _getNutrimentsTableRow(S.of(context).fatLabel,
-                "${product.nutriments.fat100g ?? "?"}g", textStyleNormal),
+                "${product.nutriments.fat100 ?? "?"}g", textStyleNormal),
             _getNutrimentsTableRow(
                 '   ${S.of(context).saturatedFatLabel}',
-                "${product.nutriments.saturatedFat100g ?? "?"}g",
+                "${product.nutriments.saturatedFat100 ?? "?"}g",
                 textStyleNormal),
             _getNutrimentsTableRow(
                 S.of(context).carbohydrateLabel,
-                "${product.nutriments.carbohydrates100g ?? "?"}g",
+                "${product.nutriments.carbohydrates100 ?? "?"}g",
                 textStyleNormal),
             _getNutrimentsTableRow('    ${S.of(context).sugarLabel}',
-                "${product.nutriments.sugars100g ?? "?"}g", textStyleNormal),
+                "${product.nutriments.sugars100 ?? "?"}g", textStyleNormal),
             _getNutrimentsTableRow(S.of(context).fiberLabel,
-                "${product.nutriments.fiber100g ?? "?"}g", textStyleNormal),
+                "${product.nutriments.fiber100 ?? "?"}g", textStyleNormal),
             _getNutrimentsTableRow(S.of(context).proteinLabel,
-                "${product.nutriments.proteins100g ?? "?"}g", textStyleNormal)
+                "${product.nutriments.proteins100 ?? "?"}g", textStyleNormal)
           ],
         )
       ],

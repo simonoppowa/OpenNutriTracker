@@ -38,10 +38,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
         "additionalInfoLabelCompendium2011": MessageLookupByLibrary.simpleMessage(
             "Information provided\n by the \n\'2011 Compendium\n of Physical Activities\'"),
+        "additionalInfoLabelCustom":
+            MessageLookupByLibrary.simpleMessage("Custom Meal Item"),
         "additionalInfoLabelFDC": MessageLookupByLibrary.simpleMessage(
             "More Information at\nFoodData Central"),
         "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
             "More Information at\nOpenFoodFacts"),
+        "additionalInfoLabelUnknown":
+            MessageLookupByLibrary.simpleMessage("Unknown Meal Item"),
         "ageLabel": MessageLookupByLibrary.simpleMessage("Age"),
         "allItemsLabel": MessageLookupByLibrary.simpleMessage("All"),
         "alphaVersionName": MessageLookupByLibrary.simpleMessage("[Alpha]"),
@@ -59,7 +63,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "breakfastLabel": MessageLookupByLibrary.simpleMessage("Breakfast"),
         "burnedLabel": MessageLookupByLibrary.simpleMessage("burned"),
         "buttonNextLabel": MessageLookupByLibrary.simpleMessage("NEXT"),
+        "buttonSaveLabel": MessageLookupByLibrary.simpleMessage("Save"),
         "buttonStartLabel": MessageLookupByLibrary.simpleMessage("START"),
+        "buttonYesLabel": MessageLookupByLibrary.simpleMessage("YES"),
         "calculationsMacronutrientsDistributionLabel":
             MessageLookupByLibrary.simpleMessage("Macros distribution"),
         "calculationsMacrosDistribution": m1,
@@ -75,6 +81,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "chooseWeightGoalLabel":
             MessageLookupByLibrary.simpleMessage("Choose Weight Goal"),
         "cmLabel": MessageLookupByLibrary.simpleMessage("cm"),
+        "createCustomDialogContent": MessageLookupByLibrary.simpleMessage(
+            "Do you want create a custom meal item?"),
+        "createCustomDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Create custom meal item?"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Do want to delete the selected item?"),
         "deleteTimeDialogTitle":
@@ -87,11 +97,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Dinner"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
             "OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.\n\n\nThe application is still under development. Errors, bugs and crashes may occur."),
+        "editMealLabel": MessageLookupByLibrary.simpleMessage("Edit meal"),
         "energyLabel": MessageLookupByLibrary.simpleMessage("energy"),
         "errorFetchingProductData": MessageLookupByLibrary.simpleMessage(
             "Error while fetching product data"),
         "errorLoadingActivities": MessageLookupByLibrary.simpleMessage(
             "Error while loading activities"),
+        "errorMealSave": MessageLookupByLibrary.simpleMessage(
+            "Error while saving meal. Did you input the correct meal information?"),
         "errorOpeningBrowser": MessageLookupByLibrary.simpleMessage(
             "Error while opening browser app"),
         "errorOpeningEmail": MessageLookupByLibrary.simpleMessage(
@@ -122,6 +135,19 @@ class MessageLookup extends MessageLookupByLibrary {
         "lunchExample":
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
+        "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Brands"),
+        "mealCarbsLabel":
+            MessageLookupByLibrary.simpleMessage("carbs per 100 g/ml"),
+        "mealFatLabel":
+            MessageLookupByLibrary.simpleMessage("fat per 100 g/ml"),
+        "mealKcalLabel":
+            MessageLookupByLibrary.simpleMessage("kcal per 100 g/ml"),
+        "mealNameLabel": MessageLookupByLibrary.simpleMessage("Meal name"),
+        "mealProteinLabel":
+            MessageLookupByLibrary.simpleMessage("protein per 100 g/ml"),
+        "mealSizeLabel":
+            MessageLookupByLibrary.simpleMessage("Meal size (g/ml)"),
+        "mealUnitLabel": MessageLookupByLibrary.simpleMessage("Meal unit"),
         "milliliterUnit": MessageLookupByLibrary.simpleMessage("ml"),
         "missingProductInfo": MessageLookupByLibrary.simpleMessage(
             "Product missing required kcal or macronutrients information"),
@@ -542,6 +568,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Select Weight"),
         "sendAnonymousUserData":
             MessageLookupByLibrary.simpleMessage("Send anonymous error data?"),
+        "servingSizeLabel":
+            MessageLookupByLibrary.simpleMessage("Serving size (g/ml)"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),

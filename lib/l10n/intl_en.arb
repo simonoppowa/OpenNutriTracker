@@ -5,6 +5,8 @@
   "alphaVersionName": "[Alpha]",
 
   "addLabel": "Add",
+  "createCustomDialogTitle": "Create custom meal item?",
+  "createCustomDialogContent": "Do you want create a custom meal item?",
   "settingsLabel": "Settings",
   "homeLabel": "Home",
   "diaryLabel": "Diary",
@@ -23,6 +25,8 @@
   "dialogCancelLabel": "CANCEL",
   "buttonStartLabel": "START",
   "buttonNextLabel": "NEXT",
+  "buttonSaveLabel": "Save",
+  "buttonYesLabel": "YES",
 
   "onboardingWelcomeLabel": "Welcome to",
   "onboardingOverviewLabel": "Overview",
@@ -98,6 +102,8 @@
   "per100gLabel": "Per 100g",
   "additionalInfoLabelOFF": "More Information at\nOpenFoodFacts",
   "additionalInfoLabelFDC": "More Information at\nFoodData Central",
+  "additionalInfoLabelUnknown": "Unknown Meal Item",
+  "additionalInfoLabelCustom": "Custom Meal Item",
   "additionalInfoLabelCompendium2011": "Information provided\n by the \n'2011 Compendium\n of Physical Activities'",
   "quantityLabel": "Quantity",
   "unitLabel": "Unit",
@@ -109,6 +115,18 @@
 
   "infoAddedIntakeLabel": "Added new intake",
   "infoAddedActivityLabel": "Added new activity",
+
+  "editMealLabel": "Edit meal",
+  "mealNameLabel": "Meal name",
+  "mealBrandsLabel": "Brands",
+  "mealSizeLabel": "Meal size (g/ml)",
+  "servingSizeLabel": "Serving size (g/ml)",
+  "mealUnitLabel": "Meal unit",
+  "mealKcalLabel": "kcal per 100 g/ml",
+  "mealCarbsLabel": "carbs per 100 g/ml",
+  "mealFatLabel": "fat per 100 g/ml",
+  "mealProteinLabel": "protein per 100 g/ml",
+  "errorMealSave": "Error while saving meal. Did you input the correct meal information?",
 
   "bmiLabel": "BMI",
   "bmiInfo": "Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals.",

@@ -4,7 +4,8 @@ class NavigationOptions {
   static const settingsRoute = "settings";
   static const addMealRoute = "addMeal";
   static const scannerRoute = "scanner";
-  static const itemDetailRoute = "itemDetail";
+  static const mealDetailRoute = "mealDetail";
+  static const editMealRoute = "editMeal";
   static const addActivityRoute = "addActivity";
   static const activityDetailRoute = "activityDetail";
 }

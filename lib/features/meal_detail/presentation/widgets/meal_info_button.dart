@@ -33,6 +33,9 @@ class MealInfoButton extends StatelessWidget {
       case MealSourceEntity.unknown:
         siteUrl = "";
         break;
+      case MealSourceEntity.custom:
+        siteUrl = "";
+        break;
       case MealSourceEntity.off:
         siteUrl = url ?? OFFConst.offWebsiteUrl;
         break;
@@ -47,7 +50,10 @@ class MealInfoButton extends StatelessWidget {
     String infoLabel;
     switch (source) {
       case MealSourceEntity.unknown:
-        infoLabel = "";
+        infoLabel = S.of(context).additionalInfoLabelUnknown;
+        break;
+      case MealSourceEntity.custom:
+        infoLabel = S.of(context).additionalInfoLabelCustom;
         break;
       case MealSourceEntity.off:
         infoLabel = S.of(context).additionalInfoLabelOFF;

@@ -100,6 +100,26 @@ class S {
     );
   }
 
+  /// `Create custom meal item?`
+  String get createCustomDialogTitle {
+    return Intl.message(
+      'Create custom meal item?',
+      name: 'createCustomDialogTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Do you want create a custom meal item?`
+  String get createCustomDialogContent {
+    return Intl.message(
+      'Do you want create a custom meal item?',
+      name: 'createCustomDialogContent',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Settings`
   String get settingsLabel {
     return Intl.message(
@@ -265,6 +285,26 @@ class S {
     return Intl.message(
       'NEXT',
       name: 'buttonNextLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save`
+  String get buttonSaveLabel {
+    return Intl.message(
+      'Save',
+      name: 'buttonSaveLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `YES`
+  String get buttonYesLabel {
+    return Intl.message(
+      'YES',
+      name: 'buttonYesLabel',
       desc: '',
       args: [],
     );
@@ -961,6 +1001,26 @@ class S {
     );
   }
 
+  /// `Unknown Meal Item`
+  String get additionalInfoLabelUnknown {
+    return Intl.message(
+      'Unknown Meal Item',
+      name: 'additionalInfoLabelUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Custom Meal Item`
+  String get additionalInfoLabelCustom {
+    return Intl.message(
+      'Custom Meal Item',
+      name: 'additionalInfoLabelCustom',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Information provided\n by the \n'2011 Compendium\n of Physical Activities'`
   String get additionalInfoLabelCompendium2011 {
     return Intl.message(
@@ -1056,6 +1116,116 @@ class S {
     return Intl.message(
       'Added new activity',
       name: 'infoAddedActivityLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Edit meal`
+  String get editMealLabel {
+    return Intl.message(
+      'Edit meal',
+      name: 'editMealLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Meal name`
+  String get mealNameLabel {
+    return Intl.message(
+      'Meal name',
+      name: 'mealNameLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Brands`
+  String get mealBrandsLabel {
+    return Intl.message(
+      'Brands',
+      name: 'mealBrandsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Meal size (g/ml)`
+  String get mealSizeLabel {
+    return Intl.message(
+      'Meal size (g/ml)',
+      name: 'mealSizeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Serving size (g/ml)`
+  String get servingSizeLabel {
+    return Intl.message(
+      'Serving size (g/ml)',
+      name: 'servingSizeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Meal unit`
+  String get mealUnitLabel {
+    return Intl.message(
+      'Meal unit',
+      name: 'mealUnitLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `kcal per 100 g/ml`
+  String get mealKcalLabel {
+    return Intl.message(
+      'kcal per 100 g/ml',
+      name: 'mealKcalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `carbs per 100 g/ml`
+  String get mealCarbsLabel {
+    return Intl.message(
+      'carbs per 100 g/ml',
+      name: 'mealCarbsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `fat per 100 g/ml`
+  String get mealFatLabel {
+    return Intl.message(
+      'fat per 100 g/ml',
+      name: 'mealFatLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `protein per 100 g/ml`
+  String get mealProteinLabel {
+    return Intl.message(
+      'protein per 100 g/ml',
+      name: 'mealProteinLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error while saving meal. Did you input the correct meal information?`
+  String get errorMealSave {
+    return Intl.message(
+      'Error while saving meal. Did you input the correct meal information?',
+      name: 'errorMealSave',
       desc: '',
       args: [],
     );

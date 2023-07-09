@@ -53,7 +53,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         } else if (state is ScannerLoadedState) {
           // Push new route after build
           Future.microtask(() => Navigator.of(context).pushReplacementNamed(
-              NavigationOptions.itemDetailRoute,
+              NavigationOptions.mealDetailRoute,
               arguments:
                   MealDetailScreenArguments(state.product, _intakeTypeEntity)));
         } else if (state is ScannerFailedState) {
