@@ -65,6 +65,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "buttonNextLabel": MessageLookupByLibrary.simpleMessage("NEXT"),
         "buttonSaveLabel": MessageLookupByLibrary.simpleMessage("Save"),
         "buttonStartLabel": MessageLookupByLibrary.simpleMessage("START"),
+        "buttonYesLabel": MessageLookupByLibrary.simpleMessage("YES"),
         "calculationsMacronutrientsDistributionLabel":
             MessageLookupByLibrary.simpleMessage("Macros distribution"),
         "calculationsMacrosDistribution": m1,
@@ -80,6 +81,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "chooseWeightGoalLabel":
             MessageLookupByLibrary.simpleMessage("Choose Weight Goal"),
         "cmLabel": MessageLookupByLibrary.simpleMessage("cm"),
+        "createCustomDialogContent": MessageLookupByLibrary.simpleMessage(
+            "Do you want create a custom meal item?"),
+        "createCustomDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Create custom meal item?"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Do want to delete the selected item?"),
         "deleteTimeDialogTitle":

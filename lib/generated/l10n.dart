@@ -100,6 +100,26 @@ class S {
     );
   }
 
+  /// `Create custom meal item?`
+  String get createCustomDialogTitle {
+    return Intl.message(
+      'Create custom meal item?',
+      name: 'createCustomDialogTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Do you want create a custom meal item?`
+  String get createCustomDialogContent {
+    return Intl.message(
+      'Do you want create a custom meal item?',
+      name: 'createCustomDialogContent',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Settings`
   String get settingsLabel {
     return Intl.message(
@@ -275,6 +295,16 @@ class S {
     return Intl.message(
       'Save',
       name: 'buttonSaveLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `YES`
+  String get buttonYesLabel {
+    return Intl.message(
+      'YES',
+      name: 'buttonYesLabel',
       desc: '',
       args: [],
     );

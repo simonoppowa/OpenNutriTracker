@@ -248,6 +248,28 @@ class _AddMealScreenState extends State<AddMealScreen>
   }
 
   void _onCustomAddButtonPressed() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(S.of(context).createCustomDialogTitle),
+            content: Text(S.of(context).createCustomDialogContent),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.of(context).pop(), // close dialog
+                  child: Text(S.of(context).dialogCancelLabel)),
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close dialog
+                    _openEditMealScreen();
+                  },
+                  child: Text(S.of(context).buttonYesLabel)),
+            ],
+          );
+        });
+  }
+
+  void _openEditMealScreen() {
     Navigator.of(context).pushNamed(NavigationOptions.editMealRoute,
         arguments: EditMealScreenArguments(
             MealEntity.empty(), _mealType.getIntakeType()));
