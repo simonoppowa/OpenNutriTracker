@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
@@ -6,6 +8,7 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/widgets/default_meal_image.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -89,15 +92,19 @@ class _EditMealScreenState extends State<EditMealScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          CircleAvatar(
-            radius: 60,
-            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-            child: Icon(
-              Icons.restaurant_outlined,
-              size: 48,
-              color: Theme.of(context).colorScheme.onSecondaryContainer,
+          Center(
+              child: ClipOval(
+            child: CachedNetworkImage(
+              cacheManager: locator<CacheManager>(),
+              width: 120,
+              height: 120,
+              placeholder: (context, string) => const DefaultMealImage(),
+              errorWidget: (context, exception, stacktrace) =>
+                  const DefaultMealImage(),
+              fit: BoxFit.cover,
+              imageUrl: _mealEntity.mainImageUrl ?? "",
             ),
-          ),
+          )),
           const SizedBox(height: 32),
           TextFormField(
             controller: _nameTextController,
