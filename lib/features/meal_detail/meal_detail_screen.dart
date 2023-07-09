@@ -58,7 +58,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     totalKcal = meal.nutriments.energyKcal100 ?? 0;
     totalCarbs = meal.nutriments.carbohydrates100 ?? 0;
     totalFat = meal.nutriments.fat100 ?? 0;
-    totalProtein = meal.nutriments.fat100 ?? 0;
+    totalProtein = meal.nutriments.proteins100 ?? 0;
     quantityTextController.addListener(() {
       _onQuantityChanged(quantityTextController.text);
     });
