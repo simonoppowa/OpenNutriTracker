@@ -1071,10 +1071,10 @@ class S {
     );
   }
 
-  /// `Edit Meal`
+  /// `Edit meal`
   String get editMealLabel {
     return Intl.message(
-      'Edit Meal',
+      'Edit meal',
       name: 'editMealLabel',
       desc: '',
       args: [],
@@ -1166,6 +1166,16 @@ class S {
     return Intl.message(
       'protein per 100 g/ml',
       name: 'mealProteinLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error while saving meal. Did you input the correct meal information?`
+  String get errorMealSave {
+    return Intl.message(
+      'Error while saving meal. Did you input the correct meal information?',
+      name: 'errorMealSave',
       desc: '',
       args: [],
     );

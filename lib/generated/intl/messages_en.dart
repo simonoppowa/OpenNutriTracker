@@ -88,12 +88,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Dinner"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
             "OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.\n\n\nThe application is still under development. Errors, bugs and crashes may occur."),
-        "editMealLabel": MessageLookupByLibrary.simpleMessage("Edit Meal"),
+        "editMealLabel": MessageLookupByLibrary.simpleMessage("Edit meal"),
         "energyLabel": MessageLookupByLibrary.simpleMessage("energy"),
         "errorFetchingProductData": MessageLookupByLibrary.simpleMessage(
             "Error while fetching product data"),
         "errorLoadingActivities": MessageLookupByLibrary.simpleMessage(
             "Error while loading activities"),
+        "errorMealSave": MessageLookupByLibrary.simpleMessage(
+            "Error while saving meal. Did you input the correct meal information?"),
         "errorOpeningBrowser": MessageLookupByLibrary.simpleMessage(
             "Error while opening browser app"),
         "errorOpeningEmail": MessageLookupByLibrary.simpleMessage(

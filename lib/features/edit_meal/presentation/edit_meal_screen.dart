@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
@@ -11,6 +12,7 @@ import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_
 import 'package:opennutritracker/features/edit_meal/presentation/widgets/default_meal_image.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class EditMealScreen extends StatefulWidget {
   const EditMealScreen({super.key});
@@ -20,6 +22,7 @@ class EditMealScreen extends StatefulWidget {
 }
 
 class _EditMealScreenState extends State<EditMealScreen> {
+  final log = Logger('EditMealScreen');
   late MealEntity _mealEntity;
   late IntakeTypeEntity _intakeTypeEntity;
 
@@ -191,22 +194,31 @@ class _EditMealScreenState extends State<EditMealScreen> {
   }
 
   void _onSavePressed() {
-    final newMealEntity = _editMealBloc.createNewMealEntity(
-        _mealEntity,
-        _nameTextController.text,
-        _brandsTextController.text,
-        _mealQuantityTextController.text,
-        _servingQuantityTextController.text,
-        _dropdownUnitValue,
-        _kcalTextController.text,
-        _carbsTextController.text,
-        _fatTextController.text,
-        _proteinTextController.text);
+    try {
+      final newMealEntity = _editMealBloc.createNewMealEntity(
+          _mealEntity,
+          _nameTextController.text,
+          _brandsTextController.text,
+          _mealQuantityTextController.text,
+          _servingQuantityTextController.text,
+          _dropdownUnitValue,
+          _kcalTextController.text,
+          _carbsTextController.text,
+          _fatTextController.text,
+          _proteinTextController.text);
 
-    Navigator.of(context).pushNamedAndRemoveUntil(
-        NavigationOptions.mealDetailRoute,
-        ModalRoute.withName(NavigationOptions.addMealRoute),
-        arguments: MealDetailScreenArguments(newMealEntity, _intakeTypeEntity));
+      Navigator.of(context).pushNamedAndRemoveUntil(
+          NavigationOptions.mealDetailRoute,
+          ModalRoute.withName(NavigationOptions.addMealRoute),
+          arguments:
+              MealDetailScreenArguments(newMealEntity, _intakeTypeEntity));
+    } catch (exception, stacktrace) {
+      log.warning("Error while creating new meal entity");
+      Sentry.captureException(exception, stackTrace: stacktrace);
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(S.of(context).errorMealSave)));
+    }
   }
 
   String? _switchDropdownUnit(String? unit) {
