@@ -70,7 +70,6 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => DiaryBloc(locator()));
   locator.registerLazySingleton(() => CalendarDayBloc(
       locator(), locator(), locator(), locator(), locator(), locator()));
-  locator.registerLazySingleton<ScannerBloc>(() => ScannerBloc(locator()));
   locator.registerLazySingleton<ProfileBloc>(
       () => ProfileBloc(locator(), locator()));
   locator.registerLazySingleton(() => SettingsBloc(locator(), locator()));
@@ -82,7 +81,8 @@ Future<void> initLocator() async {
       () => ActivityDetailBloc(locator(), locator(), locator()));
   locator.registerFactory<MealDetailBloc>(
       () => MealDetailBloc(locator(), locator(), locator()));
-  locator.registerLazySingleton<EditMealBloc>(() => EditMealBloc());
+  locator.registerFactory<ScannerBloc>(() => ScannerBloc(locator()));
+  locator.registerFactory<EditMealBloc>(() => EditMealBloc());
   locator.registerFactory<ProductsBloc>(() => ProductsBloc(locator()));
   locator.registerFactory<FoodBloc>(() => FoodBloc(locator()));
   locator.registerFactory(() => RecentMealBloc(locator()));
