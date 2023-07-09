@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off_product.dart';
@@ -38,6 +39,17 @@ class MealEntity extends Equatable {
       required this.servingUnit,
       required this.nutriments,
       required this.source});
+
+  factory MealEntity.empty() => MealEntity(
+      code: IdGenerator.getUniqueID(),
+      name: null,
+      url: null,
+      mealQuantity: null,
+      mealUnit: 'g',
+      servingQuantity: null,
+      servingUnit: 'g',
+      nutriments: MealNutrimentsEntity.empty(),
+      source: MealSourceEntity.custom);
 
   factory MealEntity.fromMealDBO(MealDBO mealDBO) => MealEntity(
       code: mealDBO.code,
@@ -132,14 +144,18 @@ class MealEntity extends Equatable {
 
 enum MealSourceEntity {
   unknown,
+  custom,
   off,
   fdc;
 
-  factory MealSourceEntity.fromMealSourceDBO(MealSourceDBO productSourceDBO) {
+  factory MealSourceEntity.fromMealSourceDBO(MealSourceDBO mealSourceDBO) {
     MealSourceEntity mealSourceEntity;
-    switch (productSourceDBO) {
+    switch (mealSourceDBO) {
       case MealSourceDBO.unknown:
         mealSourceEntity = MealSourceEntity.unknown;
+        break;
+      case MealSourceDBO.custom:
+        mealSourceEntity = MealSourceEntity.custom;
         break;
       case MealSourceDBO.off:
         mealSourceEntity = MealSourceEntity.off;

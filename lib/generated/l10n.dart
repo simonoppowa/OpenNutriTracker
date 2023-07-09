@@ -971,6 +971,26 @@ class S {
     );
   }
 
+  /// `Unknown Meal Item`
+  String get additionalInfoLabelUnknown {
+    return Intl.message(
+      'Unknown Meal Item',
+      name: 'additionalInfoLabelUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Custom Meal Item`
+  String get additionalInfoLabelCustom {
+    return Intl.message(
+      'Custom Meal Item',
+      name: 'additionalInfoLabelCustom',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Information provided\n by the \n'2011 Compendium\n of Physical Activities'`
   String get additionalInfoLabelCompendium2011 {
     return Intl.message(

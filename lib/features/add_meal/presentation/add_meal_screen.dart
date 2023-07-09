@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
@@ -11,6 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/no_results_widget.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -25,7 +27,7 @@ class _AddMealScreenState extends State<AddMealScreen>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<String> _searchStringListener = ValueNotifier('');
 
-  late AddMealType mealType;
+  late AddMealType _mealType;
 
   late ProductsBloc _productsBloc;
   late FoodBloc _foodBloc;
@@ -50,7 +52,7 @@ class _AddMealScreenState extends State<AddMealScreen>
   void didChangeDependencies() {
     final args =
         ModalRoute.of(context)?.settings.arguments as AddMealScreenArguments;
-    mealType = args.mealType;
+    _mealType = args.mealType;
     super.didChangeDependencies();
   }
 
@@ -63,7 +65,15 @@ class _AddMealScreenState extends State<AddMealScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text(mealType.getTypeName(context))),
+        appBar: AppBar(
+          title: Text(_mealType.getTypeName(context)),
+          actions: [
+            IconButton(
+              onPressed: _onCustomAddButtonPressed,
+              icon: const Icon(Icons.add_circle_outline),
+            )
+          ],
+        ),
         body: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
@@ -111,7 +121,7 @@ class _AddMealScreenState extends State<AddMealScreen>
                                         itemBuilder: (context, index) {
                                           return MealItemCard(
                                               mealEntity: state.products[index],
-                                              addMealType: mealType);
+                                              addMealType: _mealType);
                                         }))
                                 : const NoResultsWidget();
                           } else if (state is ProductsFailedState) {
@@ -152,7 +162,7 @@ class _AddMealScreenState extends State<AddMealScreen>
                                         itemBuilder: (context, index) {
                                           return MealItemCard(
                                               mealEntity: state.food[index],
-                                              addMealType: mealType);
+                                              addMealType: _mealType);
                                         }))
                                 : const NoResultsWidget();
                           } else if (state is FoodFailedState) {
@@ -190,7 +200,7 @@ class _AddMealScreenState extends State<AddMealScreen>
                                             return MealItemCard(
                                                 mealEntity:
                                                     state.recentMeals[index],
-                                                addMealType: mealType);
+                                                addMealType: _mealType);
                                           }))
                                   : const NoResultsWidget();
                             } else if (state is RecentMealFailedState) {
@@ -234,7 +244,13 @@ class _AddMealScreenState extends State<AddMealScreen>
 
   void _onBarcodeIconPressed() {
     Navigator.of(context).pushNamed(NavigationOptions.scannerRoute,
-        arguments: ScannerScreenArguments(mealType.getIntakeType()));
+        arguments: ScannerScreenArguments(_mealType.getIntakeType()));
+  }
+
+  void _onCustomAddButtonPressed() {
+    Navigator.of(context).pushNamed(NavigationOptions.editMealRoute,
+        arguments: EditMealScreenArguments(
+            MealEntity.empty(), _mealType.getIntakeType()));
   }
 }
 

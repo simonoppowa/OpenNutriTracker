@@ -38,10 +38,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
         "additionalInfoLabelCompendium2011": MessageLookupByLibrary.simpleMessage(
             "Information provided\n by the \n\'2011 Compendium\n of Physical Activities\'"),
+        "additionalInfoLabelCustom":
+            MessageLookupByLibrary.simpleMessage("Custom Meal Item"),
         "additionalInfoLabelFDC": MessageLookupByLibrary.simpleMessage(
             "More Information at\nFoodData Central"),
         "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
             "More Information at\nOpenFoodFacts"),
+        "additionalInfoLabelUnknown":
+            MessageLookupByLibrary.simpleMessage("Unknown Meal Item"),
         "ageLabel": MessageLookupByLibrary.simpleMessage("Age"),
         "allItemsLabel": MessageLookupByLibrary.simpleMessage("All"),
         "alphaVersionName": MessageLookupByLibrary.simpleMessage("[Alpha]"),
