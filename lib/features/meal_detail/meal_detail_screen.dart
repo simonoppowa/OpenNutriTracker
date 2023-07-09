@@ -69,7 +69,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${meal.name}'),
+        title: Text(meal.name ?? ""),
         actions: [
           IconButton(
               onPressed: () {

@@ -37,7 +37,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
   final _fatTextController = TextEditingController();
   final _proteinTextController = TextEditingController();
 
-  final _dropdownValues = ['g', 'ml'];
+  final _dropdownValues = ['g', 'ml', 'g/ml'];
   late String? _dropdownUnitValue;
   late List<DropdownMenuItem> _mealUnitDropdownItems;
 
@@ -73,6 +73,9 @@ class _EditMealScreenState extends State<EditMealScreen> {
           value: _dropdownValues[0], child: Text(S.of(context).gramUnit)),
       DropdownMenuItem(
           value: _dropdownValues[1], child: Text(S.of(context).milliliterUnit)),
+      DropdownMenuItem(
+          value: _dropdownValues[2],
+          child: Text(S.of(context).gramMilliliterUnit)),
     ];
 
     super.didChangeDependencies();

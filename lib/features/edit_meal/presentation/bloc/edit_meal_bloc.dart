@@ -25,15 +25,15 @@ class EditMealBloc {
 
     return MealEntity(
         code: oldMealEntity.code,
-        name: nameText,
-        brands: brandsText,
+        name: nameText.toStringOrNull(),
+        brands: brandsText.toStringOrNull(),
         url: oldMealEntity.url,
         thumbnailImageUrl: oldMealEntity.thumbnailImageUrl,
         mainImageUrl: oldMealEntity.mainImageUrl,
-        mealQuantity: mealQuantityText,
+        mealQuantity: mealQuantityText.toStringOrNull(),
         mealUnit: unitText,
         servingQuantity: servingQuantityText.toDoubleOrNull(),
-        servingUnit: servingQuantityText,
+        servingUnit: servingQuantityText.toStringOrNull(),
         nutriments: newMealNutriments,
         source: oldMealEntity.source);
   }

@@ -22,6 +22,14 @@ extension Cast on Object? {
 }
 
 extension CastString on String {
+  String? toStringOrNull() {
+    if (isEmpty) {
+      return null;
+    } else {
+      return this;
+    }
+  }
+
   double? toDoubleOrNull() {
     if (isEmpty) {
       return null;
