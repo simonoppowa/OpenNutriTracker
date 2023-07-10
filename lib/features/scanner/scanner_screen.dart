@@ -110,7 +110,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   barcode.type == BarcodeType.product) {
                 final barcodeResult = barcode.rawValue;
                 if (barcodeResult != null) {
-                  // TODO check barcode validity
                   _scannedBarcode = barcodeResult;
                   log.fine('Barcode found: $barcodeResult');
                   _scannerBloc
