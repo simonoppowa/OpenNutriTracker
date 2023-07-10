@@ -1701,6 +1701,16 @@ class S {
     );
   }
 
+  /// `Product not found`
+  String get errorProductNotFound {
+    return Intl.message(
+      'Product not found',
+      name: 'errorProductNotFound',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Error while loading activities`
   String get errorLoadingActivities {
     return Intl.message(

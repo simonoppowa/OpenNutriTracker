@@ -181,6 +181,7 @@
   "errorOpeningEmail": "Error while opening email app",
   "errorOpeningBrowser": "Error while opening browser app",
   "errorFetchingProductData": "Error while fetching product data",
+  "errorProductNotFound": "Product not found",
   "errorLoadingActivities": "Error while loading activities",
   "noResultsFound": "No results found",
   "retryLabel": "Retry",

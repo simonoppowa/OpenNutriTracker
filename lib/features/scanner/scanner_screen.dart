@@ -61,7 +61,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
               appBar: AppBar(),
               body: Center(
                 child: ErrorDialog(
-                  errorText: S.of(context).errorFetchingProductData,
+                  errorText:
+                      state.type == ScannerFailedStateType.productNotFound
+                          ? S.of(context).errorProductNotFound
+                          : S.of(context).errorFetchingProductData,
                   onRefreshPressed: _onRefreshButtonPressed,
                 ),
               ));

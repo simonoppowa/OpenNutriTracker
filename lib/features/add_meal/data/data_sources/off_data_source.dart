@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/core/utils/ont_http_client.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off_product_response.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off_word_response.dart';
+import 'package:opennutritracker/features/scanner/data/product_not_found_exception.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class OFFDataSource {
@@ -52,6 +53,9 @@ class OFFDataSource {
             OFFProductResponse.fromJson(jsonDecode(response.body));
         log.fine('Successful response from OFF');
         return productResponse;
+      } else if (response.statusCode == OFFConst.offProductNotFoundCode) {
+        log.warning("404 OFF Product not found");
+        return Future.error(ProductNotFoundException);
       } else {
         log.warning('Failed OFF call: ${response.statusCode}');
         return Future.error(response.statusCode);

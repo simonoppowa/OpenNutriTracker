@@ -109,6 +109,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Error while opening browser app"),
         "errorOpeningEmail": MessageLookupByLibrary.simpleMessage(
             "Error while opening email app"),
+        "errorProductNotFound":
+            MessageLookupByLibrary.simpleMessage("Product not found"),
         "fatLabel": MessageLookupByLibrary.simpleMessage("fat"),
         "fiberLabel": MessageLookupByLibrary.simpleMessage("fiber"),
         "genderFemaleLabel": MessageLookupByLibrary.simpleMessage("♀ female"),
