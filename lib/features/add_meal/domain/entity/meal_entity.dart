@@ -91,7 +91,7 @@ class MealEntity extends Equatable {
     final fdcId = fdcFood.fdcId?.toInt().toString();
 
     return MealEntity(
-        code: fdcFood.gtinUpc,
+        code: fdcId,
         name: fdcFood.description,
         brands: fdcFood.brandName,
         url: FDCConst.getFoodDetailUrlString(fdcId),
