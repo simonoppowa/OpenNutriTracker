@@ -5,8 +5,8 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/core/utils/ont_http_client.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/off_product_response.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/off_word_response.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_response.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off/off_word_response.dart';
 import 'package:opennutritracker/features/scanner/data/product_not_found_exception.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
