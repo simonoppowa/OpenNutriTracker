@@ -200,10 +200,10 @@ class S {
     );
   }
 
-  /// `Please enter search word`
+  /// `Please enter a search word`
   String get searchDefaultLabel {
     return Intl.message(
-      'Please enter search word',
+      'Please enter a search word',
       name: 'searchDefaultLabel',
       desc: '',
       args: [],
@@ -1251,10 +1251,10 @@ class S {
     );
   }
 
-  /// `I have read the`
+  /// `I have read and accept the privacy policy.`
   String get readLabel {
     return Intl.message(
-      'I have read the',
+      'I have read and accept the privacy policy.',
       name: 'readLabel',
       desc: '',
       args: [],
@@ -2991,20 +2991,20 @@ class S {
     );
   }
 
-  /// `skating`
+  /// `roller skating`
   String get paSkatingRoller {
     return Intl.message(
-      'skating',
+      'roller skating',
       name: 'paSkatingRoller',
       desc: '',
       args: [],
     );
   }
 
-  /// `roller`
+  /// `general`
   String get paSkatingRollerDesc {
     return Intl.message(
-      'roller',
+      'general',
       name: 'paSkatingRollerDesc',
       desc: '',
       args: [],
@@ -3021,10 +3021,10 @@ class S {
     );
   }
 
-  /// `in-line skating, 14.4 km/h (9.0 mph), recreational pace`
+  /// `in-line skating`
   String get paRollerbladingLightDesc {
     return Intl.message(
-      'in-line skating, 14.4 km/h (9.0 mph), recreational pace',
+      'in-line skating',
       name: 'paRollerbladingLightDesc',
       desc: '',
       args: [],
