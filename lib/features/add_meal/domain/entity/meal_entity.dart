@@ -2,9 +2,9 @@ import 'package:equatable/equatable.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc_sp/sp_fdc_food_dto.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/off/off_product.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
 class MealEntity extends Equatable {
@@ -67,7 +67,7 @@ class MealEntity extends Equatable {
           MealNutrimentsEntity.fromMealNutrimentsDBO(mealDBO.nutriments),
       source: MealSourceEntity.fromMealSourceDBO(mealDBO.source));
 
-  factory MealEntity.fromOFFProduct(OFFProduct offProduct) {
+  factory MealEntity.fromOFFProduct(OFFProductDTO offProduct) {
     return MealEntity(
         code: offProduct.code,
         name: offProduct.product_name ??
@@ -88,7 +88,7 @@ class MealEntity extends Equatable {
         source: MealSourceEntity.off);
   }
 
-  factory MealEntity.fromFDCFood(FDCFood fdcFood) {
+  factory MealEntity.fromFDCFood(FDCFoodDTO fdcFood) {
     final fdcId = fdcFood.fdcId?.toInt().toString();
 
     return MealEntity(

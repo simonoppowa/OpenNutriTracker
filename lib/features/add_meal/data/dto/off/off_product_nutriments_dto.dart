@@ -2,10 +2,10 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-part 'off_product_nutriments.g.dart';
+part 'off_product_nutriments_dto.g.dart';
 
 @JsonSerializable()
-class OFFProductNutriments {
+class OFFProductNutrimentsDTO {
   // Energy Values
   @JsonKey(name: 'energy-kcal_100g')
   final dynamic energy_kcal_100g; // can be String, int, double or null
@@ -60,7 +60,7 @@ class OFFProductNutriments {
   // final double? fiber_value;
   // final String? fiber_unit;
 
-  OFFProductNutriments({
+  OFFProductNutrimentsDTO({
     //required this.energy_kcal,
     required this.energy_kcal_100g,
     // required this.energy_kcal_serving,
@@ -98,8 +98,8 @@ class OFFProductNutriments {
     // required this.fiber_unit,
   });
 
-  factory OFFProductNutriments.fromJson(Map<String, dynamic> json) =>
-      _$OFFProductNutrimentsFromJson(json);
+  factory OFFProductNutrimentsDTO.fromJson(Map<String, dynamic> json) =>
+      _$OFFProductNutrimentsDTOFromJson(json);
 
-  Map<String, dynamic> toJson() => _$OFFProductNutrimentsToJson(this);
+  Map<String, dynamic> toJson() => _$OFFProductNutrimentsDTOToJson(this);
 }

@@ -1,12 +1,12 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_nutriments.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_nutriments_dto.dart';
 
-part 'off_product.g.dart';
+part 'off_product_dto.g.dart';
 
 @JsonSerializable()
-class OFFProduct {
+class OFFProductDTO {
   final String? code;
   final String? product_name;
   final String? product_name_en;
@@ -28,9 +28,9 @@ class OFFProduct {
   final dynamic serving_quantity; // Can either be int or String
   final String? serving_size;
 
-  final OFFProductNutriments nutriments;
+  final OFFProductNutrimentsDTO nutriments;
 
-  OFFProduct(
+  OFFProductDTO(
       {required this.code,
       required this.product_name,
       required this.product_name_en,
@@ -49,8 +49,8 @@ class OFFProduct {
       required this.serving_size,
       required this.nutriments});
 
-  factory OFFProduct.fromJson(Map<String, dynamic> json) =>
-      _$OFFProductFromJson(json);
+  factory OFFProductDTO.fromJson(Map<String, dynamic> json) =>
+      _$OFFProductDTOFromJson(json);
 
-  Map<String, dynamic> toJson() => _$OFFProductToJson(this);
+  Map<String, dynamic> toJson() => _$OFFProductDTOToJson(this);
 }

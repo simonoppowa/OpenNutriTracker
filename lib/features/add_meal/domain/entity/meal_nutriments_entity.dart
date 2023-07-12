@@ -3,8 +3,8 @@ import 'package:equatable/equatable.dart';
 import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_nutriment.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_nutriments.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_nutriment_dto.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_nutriments_dto.dart';
 
 class MealNutrimentsEntity extends Equatable {
   final double? energyKcal100;
@@ -55,7 +55,7 @@ class MealNutrimentsEntity extends Equatable {
   }
 
   factory MealNutrimentsEntity.fromOffNutriments(
-      OFFProductNutriments offNutriments) {
+      OFFProductNutrimentsDTO offNutriments) {
     // 1. OFF product nutriments can either be String, int, double or null
     // 2. Extension function asDoubleOrNull does not work on a dynamic data
     // type, so cast to it Object?
@@ -73,7 +73,7 @@ class MealNutrimentsEntity extends Equatable {
   }
 
   factory MealNutrimentsEntity.fromFDCNutriments(
-      List<FDCFoodNutriment> fdcNutriment) {
+      List<FDCFoodNutrimentDTO> fdcNutriment) {
     // FDC Food nutriments can have different values for Energy [Energy,
     // Energy (Atwater General Factors), Energy (Atwater Specific Factors)]
     final energyTotal = fdcNutriment
