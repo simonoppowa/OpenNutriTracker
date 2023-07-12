@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/utils/id_generator.dart';
+import 'package:opennutritracker/core/utils/supported_language.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/off_product.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_dto.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/fdc_sp/sp_fdc_food_dto.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
 class MealEntity extends Equatable {
@@ -39,6 +44,17 @@ class MealEntity extends Equatable {
       required this.nutriments,
       required this.source});
 
+  factory MealEntity.empty() => MealEntity(
+      code: IdGenerator.getUniqueID(),
+      name: null,
+      url: null,
+      mealQuantity: null,
+      mealUnit: 'g',
+      servingQuantity: null,
+      servingUnit: 'g',
+      nutriments: MealNutrimentsEntity.empty(),
+      source: MealSourceEntity.custom);
+
   factory MealEntity.fromMealDBO(MealDBO mealDBO) => MealEntity(
       code: mealDBO.code,
       name: mealDBO.name,
@@ -54,7 +70,7 @@ class MealEntity extends Equatable {
           MealNutrimentsEntity.fromMealNutrimentsDBO(mealDBO.nutriments),
       source: MealSourceEntity.fromMealSourceDBO(mealDBO.source));
 
-  factory MealEntity.fromOFFProduct(OFFProduct offProduct) {
+  factory MealEntity.fromOFFProduct(OFFProductDTO offProduct) {
     return MealEntity(
         code: offProduct.code,
         name: offProduct.product_name ??
@@ -75,11 +91,11 @@ class MealEntity extends Equatable {
         source: MealSourceEntity.off);
   }
 
-  factory MealEntity.fromFDCFood(FDCFood fdcFood) {
+  factory MealEntity.fromFDCFood(FDCFoodDTO fdcFood) {
     final fdcId = fdcFood.fdcId?.toInt().toString();
 
     return MealEntity(
-        code: fdcFood.gtinUpc,
+        code: fdcId,
         name: fdcFood.description,
         brands: fdcFood.brandName,
         url: FDCConst.getFoodDetailUrlString(fdcId),
@@ -89,6 +105,23 @@ class MealEntity extends Equatable {
         servingUnit: fdcFood.servingSizeUnit,
         nutriments:
             MealNutrimentsEntity.fromFDCNutriments(fdcFood.foodNutrients),
+        source: MealSourceEntity.fdc);
+  }
+
+  factory MealEntity.fromSpFDCFood(SpFdcFoodDTO foodItem) {
+    final fdcId = foodItem.fdcId?.toInt().toString();
+
+    return MealEntity(
+        code: fdcId,
+        name: foodItem.getLocaleDescription(
+            SupportedLanguage.fromCode(Platform.localeName)),
+        brands: null,
+        url: FDCConst.getFoodDetailUrlString(fdcId),
+        mealQuantity: null,
+        mealUnit: FDCConst.fdcDefaultUnit,
+        servingQuantity: foodItem.servingSize,
+        servingUnit: FDCConst.fdcDefaultUnit,
+        nutriments: MealNutrimentsEntity.fromFDCNutriments(foodItem.nutrients),
         source: MealSourceEntity.fdc);
   }
 
@@ -132,14 +165,18 @@ class MealEntity extends Equatable {
 
 enum MealSourceEntity {
   unknown,
+  custom,
   off,
   fdc;
 
-  factory MealSourceEntity.fromMealSourceDBO(MealSourceDBO productSourceDBO) {
+  factory MealSourceEntity.fromMealSourceDBO(MealSourceDBO mealSourceDBO) {
     MealSourceEntity mealSourceEntity;
-    switch (productSourceDBO) {
+    switch (mealSourceDBO) {
       case MealSourceDBO.unknown:
         mealSourceEntity = MealSourceEntity.unknown;
+        break;
+      case MealSourceDBO.custom:
+        mealSourceEntity = MealSourceEntity.custom;
         break;
       case MealSourceDBO.off:
         mealSourceEntity = MealSourceEntity.off;

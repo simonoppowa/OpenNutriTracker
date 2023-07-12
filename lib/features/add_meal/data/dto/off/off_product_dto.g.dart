@@ -1,12 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'off_product.dart';
+part of 'off_product_dto.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-OFFProduct _$OFFProductFromJson(Map<String, dynamic> json) => OFFProduct(
+OFFProductDTO _$OFFProductDTOFromJson(Map<String, dynamic> json) =>
+    OFFProductDTO(
       code: json['code'] as String?,
       product_name: json['product_name'] as String?,
       product_name_en: json['product_name_en'] as String?,
@@ -23,11 +24,11 @@ OFFProduct _$OFFProductFromJson(Map<String, dynamic> json) => OFFProduct(
       product_quantity: json['product_quantity'],
       serving_quantity: json['serving_quantity'],
       serving_size: json['serving_size'] as String?,
-      nutriments: OFFProductNutriments.fromJson(
+      nutriments: OFFProductNutrimentsDTO.fromJson(
           json['nutriments'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$OFFProductToJson(OFFProduct instance) =>
+Map<String, dynamic> _$OFFProductDTOToJson(OFFProductDTO instance) =>
     <String, dynamic>{
       'code': instance.code,
       'product_name': instance.product_name,

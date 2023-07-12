@@ -1,10 +1,10 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_nutriment.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_nutriment_dto.dart';
 
-part 'fdc_food.g.dart';
+part 'fdc_food_dto.g.dart';
 
 @JsonSerializable()
-class FDCFood {
+class FDCFoodDTO {
   final double? fdcId;
   final String? gtinUpc;
   final String? description;
@@ -16,9 +16,9 @@ class FDCFood {
   final double? servingSize;
   final String? servingSizeUnit;
 
-  final List<FDCFoodNutriment> foodNutrients;
+  final List<FDCFoodNutrimentDTO> foodNutrients;
 
-  FDCFood(
+  FDCFoodDTO(
       {required this.fdcId,
       required this.gtinUpc,
       required this.description,
@@ -29,8 +29,8 @@ class FDCFood {
       required this.foodNutrients,
       required this.servingSizeUnit});
 
-  factory FDCFood.fromJson(Map<String, dynamic> json) =>
-      _$FDCFoodFromJson(json);
+  factory FDCFoodDTO.fromJson(Map<String, dynamic> json) =>
+      _$FDCFoodDTOFromJson(json);
 
-  Map<String, dynamic> toJson() => _$FDCFoodToJson(this);
+  Map<String, dynamic> toJson() => _$FDCFoodDTOToJson(this);
 }

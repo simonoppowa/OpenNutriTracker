@@ -53,7 +53,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         } else if (state is ScannerLoadedState) {
           // Push new route after build
           Future.microtask(() => Navigator.of(context).pushReplacementNamed(
-              NavigationOptions.itemDetailRoute,
+              NavigationOptions.mealDetailRoute,
               arguments:
                   MealDetailScreenArguments(state.product, _intakeTypeEntity)));
         } else if (state is ScannerFailedState) {
@@ -61,7 +61,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
               appBar: AppBar(),
               body: Center(
                 child: ErrorDialog(
-                  errorText: S.of(context).errorFetchingProductData,
+                  errorText:
+                      state.type == ScannerFailedStateType.productNotFound
+                          ? S.of(context).errorProductNotFound
+                          : S.of(context).errorFetchingProductData,
                   onRefreshPressed: _onRefreshButtonPressed,
                 ),
               ));
@@ -107,7 +110,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   barcode.type == BarcodeType.product) {
                 final barcodeResult = barcode.rawValue;
                 if (barcodeResult != null) {
-                  // TODO check barcode validity
                   _scannedBarcode = barcodeResult;
                   log.fine('Barcode found: $barcodeResult');
                   _scannerBloc

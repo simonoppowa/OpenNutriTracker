@@ -4,7 +4,9 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_macro_nutrients.dart';
@@ -28,7 +30,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   late MealDetailBloc _mealDetailBloc;
   final _scrollController = ScrollController();
 
-  late MealEntity product;
+  late MealEntity meal;
   late IntakeTypeEntity intakeTypeEntity;
   late TextEditingController quantityTextController;
 
@@ -51,12 +53,12 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   void didChangeDependencies() {
     final args =
         ModalRoute.of(context)?.settings.arguments as MealDetailScreenArguments;
-    product = args.productEntity;
+    meal = args.mealEntity;
     intakeTypeEntity = args.intakeTypeEntity;
-    totalKcal = product.nutriments.energyKcal100 ?? 0;
-    totalCarbs = product.nutriments.carbohydrates100g ?? 0;
-    totalFat = product.nutriments.fat100g ?? 0;
-    totalProtein = product.nutriments.fat100g ?? 0;
+    totalKcal = meal.nutriments.energyKcal100 ?? 0;
+    totalCarbs = meal.nutriments.carbohydrates100 ?? 0;
+    totalFat = meal.nutriments.fat100 ?? 0;
+    totalProtein = meal.nutriments.proteins100 ?? 0;
     quantityTextController.addListener(() {
       _onQuantityChanged(quantityTextController.text);
     });
@@ -66,14 +68,24 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${product.name}')),
+      appBar: AppBar(
+        title: Text(meal.name ?? ""),
+        actions: [
+          IconButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed(NavigationOptions.editMealRoute,
+                    arguments: EditMealScreenArguments(meal, intakeTypeEntity));
+              },
+              icon: const Icon(Icons.edit_outlined))
+        ],
+      ),
       body: ListView(
         controller: _scrollController,
         children: [
           Stack(children: [
             CachedNetworkImage(
               cacheManager: locator<CacheManager>(),
-              imageUrl: product.mainImageUrl ?? "",
+              imageUrl: meal.mainImageUrl ?? "",
               imageBuilder: (context, imageProvider) {
                 return Container(
                   height: _containerSize,
@@ -85,21 +97,21 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               placeholder: (context, string) => const MealPlaceholder(),
               errorWidget: (context, url, error) => const MealPlaceholder(),
             ),
-            product.brands != null
+            meal.brands != null
                 ? Align(
                     alignment: AlignmentDirectional.topStart,
                     child: Card(
                       child: SizedBox(
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text('${product.brands}',
+                          child: Text('${meal.brands}',
                               style: Theme.of(context).textTheme.bodyLarge),
                         ),
                       ),
                     ),
                   )
                 : const SizedBox(),
-            product.mealQuantity != null
+            meal.mealQuantity != null
                 ? Align(
                     alignment: AlignmentDirectional.topEnd,
                     child: Card(
@@ -107,7 +119,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                             child: Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
-                                    '${product.mealQuantity} ${product.mealUnit ?? S.of(context).gramMilliliterUnit}',
+                                    '${meal.mealQuantity} ${meal.mealUnit ?? S.of(context).gramMilliliterUnit}',
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyLarge)))),
@@ -123,7 +135,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     Text('${totalKcal.toInt()} ${S.of(context).kcalLabel}',
                         style: Theme.of(context).textTheme.headlineSmall),
                     Text(
-                        ' / ${totalQuantity.toInt()} ${product.mealUnit ?? S.of(context).gramMilliliterUnit}')
+                        ' / ${totalQuantity.toInt()} ${meal.mealUnit ?? S.of(context).gramMilliliterUnit}')
                   ],
                 ),
                 const SizedBox(height: 8.0),
@@ -142,9 +154,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 ),
                 const Divider(),
                 const SizedBox(height: 16.0),
-                MealDetailNutrimentsTable(product: product),
+                MealDetailNutrimentsTable(product: meal),
                 const SizedBox(height: 32.0),
-                MealInfoButton(url: product.url, source: product.source),
+                MealInfoButton(url: meal.url, source: meal.source),
                 const SizedBox(height: 200.0) // height added to scroll
               ],
             ),
@@ -152,7 +164,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         ],
       ),
       bottomSheet: MealDetailBottomSheet(
-          product: product,
+          product: meal,
           intakeTypeEntity: intakeTypeEntity,
           quantityTextController: quantityTextController,
           mealDetailBloc: _mealDetailBloc),
@@ -167,10 +179,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   void _onQuantityChanged(String quantityString) {
     setState(() {
       try {
-        final energyPerUnit = (product.nutriments.energyPerUnit ?? 0);
-        final carbsPerUnit = (product.nutriments.carbohydratesPerUnit ?? 0);
-        final fatPerUnit = (product.nutriments.fatPerUnit ?? 0);
-        final proteinPerUnit = (product.nutriments.proteinsPerUnit ?? 0);
+        final energyPerUnit = (meal.nutriments.energyPerUnit ?? 0);
+        final carbsPerUnit = (meal.nutriments.carbohydratesPerUnit ?? 0);
+        final fatPerUnit = (meal.nutriments.fatPerUnit ?? 0);
+        final proteinPerUnit = (meal.nutriments.proteinsPerUnit ?? 0);
 
         final quantity = double.parse(quantityString);
         totalQuantity = quantity;
@@ -187,8 +199,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 }
 
 class MealDetailScreenArguments {
-  final MealEntity productEntity;
+  final MealEntity mealEntity;
   final IntakeTypeEntity intakeTypeEntity;
 
-  MealDetailScreenArguments(this.productEntity, this.intakeTypeEntity);
+  MealDetailScreenArguments(this.mealEntity, this.intakeTypeEntity);
 }

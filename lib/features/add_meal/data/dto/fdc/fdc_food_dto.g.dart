@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'fdc_food.dart';
+part of 'fdc_food_dto.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-FDCFood _$FDCFoodFromJson(Map<String, dynamic> json) => FDCFood(
+FDCFoodDTO _$FDCFoodDTOFromJson(Map<String, dynamic> json) => FDCFoodDTO(
       fdcId: (json['fdcId'] as num?)?.toDouble(),
       gtinUpc: json['gtinUpc'] as String?,
       description: json['description'] as String?,
@@ -15,12 +15,13 @@ FDCFood _$FDCFoodFromJson(Map<String, dynamic> json) => FDCFood(
       packageWeight: json['packageWeight'] as String?,
       servingSize: (json['servingSize'] as num?)?.toDouble(),
       foodNutrients: (json['foodNutrients'] as List<dynamic>)
-          .map((e) => FDCFoodNutriment.fromJson(e as Map<String, dynamic>))
+          .map((e) => FDCFoodNutrimentDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
       servingSizeUnit: json['servingSizeUnit'] as String?,
     );
 
-Map<String, dynamic> _$FDCFoodToJson(FDCFood instance) => <String, dynamic>{
+Map<String, dynamic> _$FDCFoodDTOToJson(FDCFoodDTO instance) =>
+    <String, dynamic>{
       'fdcId': instance.fdcId,
       'gtinUpc': instance.gtinUpc,
       'description': instance.description,

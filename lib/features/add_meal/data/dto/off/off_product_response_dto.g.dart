@@ -1,19 +1,21 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'off_product_response.dart';
+part of 'off_product_response_dto.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-OFFProductResponse _$OFFProductResponseFromJson(Map<String, dynamic> json) =>
-    OFFProductResponse(
+OFFProductResponseDTO _$OFFProductResponseDTOFromJson(
+        Map<String, dynamic> json) =>
+    OFFProductResponseDTO(
       status: json['status'] as int,
       status_verbose: json['status_verbose'] as String,
-      product: OFFProduct.fromJson(json['product'] as Map<String, dynamic>),
+      product: OFFProductDTO.fromJson(json['product'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$OFFProductResponseToJson(OFFProductResponse instance) =>
+Map<String, dynamic> _$OFFProductResponseDTOToJson(
+        OFFProductResponseDTO instance) =>
     <String, dynamic>{
       'status': instance.status,
       'status_verbose': instance.status_verbose,

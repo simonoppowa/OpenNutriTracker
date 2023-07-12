@@ -83,8 +83,10 @@ class MealSourceDBOAdapter extends TypeAdapter<MealSourceDBO> {
       case 0:
         return MealSourceDBO.unknown;
       case 1:
-        return MealSourceDBO.off;
+        return MealSourceDBO.custom;
       case 2:
+        return MealSourceDBO.off;
+      case 3:
         return MealSourceDBO.fdc;
       default:
         return MealSourceDBO.unknown;
@@ -97,11 +99,14 @@ class MealSourceDBOAdapter extends TypeAdapter<MealSourceDBO> {
       case MealSourceDBO.unknown:
         writer.writeByte(0);
         break;
-      case MealSourceDBO.off:
+      case MealSourceDBO.custom:
         writer.writeByte(1);
         break;
-      case MealSourceDBO.fdc:
+      case MealSourceDBO.off:
         writer.writeByte(2);
+        break;
+      case MealSourceDBO.fdc:
+        writer.writeByte(3);
         break;
     }
   }

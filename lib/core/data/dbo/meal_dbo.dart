@@ -76,8 +76,10 @@ enum MealSourceDBO {
   @HiveField(0)
   unknown,
   @HiveField(1)
-  off,
+  custom,
   @HiveField(2)
+  off,
+  @HiveField(3)
   fdc;
 
   factory MealSourceDBO.fromMealSourceEntity(MealSourceEntity entity) {
@@ -85,6 +87,9 @@ enum MealSourceDBO {
     switch (entity) {
       case MealSourceEntity.unknown:
         mealSourceDBO = MealSourceDBO.unknown;
+        break;
+      case MealSourceEntity.custom:
+        mealSourceDBO = MealSourceDBO.custom;
         break;
       case MealSourceEntity.off:
         mealSourceDBO = MealSourceDBO.off;

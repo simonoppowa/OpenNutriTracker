@@ -21,10 +21,38 @@ extension Cast on Object? {
   }
 }
 
+extension CastString on String {
+  String? toStringOrNull() {
+    if (isEmpty) {
+      return null;
+    } else {
+      return this;
+    }
+  }
+
+  double? toDoubleOrNull() {
+    if (isEmpty) {
+      return null;
+    } else {
+      return double.parse(this);
+    }
+  }
+}
+
 extension Round on double {
   double roundToPrecision(int n) {
     int fac = pow(10, n).toInt();
     return (this * fac).round() / fac;
+  }
+}
+
+extension DisplayDouble on double? {
+  String toStringOrEmpty() {
+    if (this == null) {
+      return "";
+    } else {
+      return toString();
+    }
   }
 }
 

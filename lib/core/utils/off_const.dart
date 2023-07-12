@@ -6,7 +6,7 @@ class OFFConst {
 
   static const offHttpSuccessCode = 200;
   static const offHttpDownCodes = [502, 503, 500];
-  static const offProductNotFoundTag = "product not found";
+  static const offProductNotFoundCode = 404;
 
   static const _offProductSearchTermsTag = "search_terms";
   static const _offFieldsTag = "fields";

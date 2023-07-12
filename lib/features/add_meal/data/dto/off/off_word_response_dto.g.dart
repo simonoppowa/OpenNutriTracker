@@ -1,23 +1,23 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'off_word_response.dart';
+part of 'off_word_response_dto.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-OFFWordResponse _$OFFWordResponseFromJson(Map<String, dynamic> json) =>
-    OFFWordResponse(
+OFFWordResponseDTO _$OFFWordResponseDTOFromJson(Map<String, dynamic> json) =>
+    OFFWordResponseDTO(
       count: json['count'],
       page: json['page'],
       page_count: json['page_count'] as int?,
       page_size: json['page_size'] as int?,
       products: (json['products'] as List<dynamic>)
-          .map((e) => OFFProduct.fromJson(e as Map<String, dynamic>))
+          .map((e) => OFFProductDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
-Map<String, dynamic> _$OFFWordResponseToJson(OFFWordResponse instance) =>
+Map<String, dynamic> _$OFFWordResponseDTOToJson(OFFWordResponseDTO instance) =>
     <String, dynamic>{
       'count': instance.count,
       'page': instance.page,

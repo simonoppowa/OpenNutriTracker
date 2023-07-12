@@ -38,10 +38,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
         "additionalInfoLabelCompendium2011": MessageLookupByLibrary.simpleMessage(
             "Information provided\n by the \n\'2011 Compendium\n of Physical Activities\'"),
+        "additionalInfoLabelCustom":
+            MessageLookupByLibrary.simpleMessage("Custom Meal Item"),
         "additionalInfoLabelFDC": MessageLookupByLibrary.simpleMessage(
             "More Information at\nFoodData Central"),
         "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
             "More Information at\nOpenFoodFacts"),
+        "additionalInfoLabelUnknown":
+            MessageLookupByLibrary.simpleMessage("Unknown Meal Item"),
         "ageLabel": MessageLookupByLibrary.simpleMessage("Age"),
         "allItemsLabel": MessageLookupByLibrary.simpleMessage("All"),
         "alphaVersionName": MessageLookupByLibrary.simpleMessage("[Alpha]"),
@@ -59,7 +63,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "breakfastLabel": MessageLookupByLibrary.simpleMessage("Breakfast"),
         "burnedLabel": MessageLookupByLibrary.simpleMessage("burned"),
         "buttonNextLabel": MessageLookupByLibrary.simpleMessage("NEXT"),
+        "buttonSaveLabel": MessageLookupByLibrary.simpleMessage("Save"),
         "buttonStartLabel": MessageLookupByLibrary.simpleMessage("START"),
+        "buttonYesLabel": MessageLookupByLibrary.simpleMessage("YES"),
         "calculationsMacronutrientsDistributionLabel":
             MessageLookupByLibrary.simpleMessage("Macros distribution"),
         "calculationsMacrosDistribution": m1,
@@ -75,6 +81,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "chooseWeightGoalLabel":
             MessageLookupByLibrary.simpleMessage("Choose Weight Goal"),
         "cmLabel": MessageLookupByLibrary.simpleMessage("cm"),
+        "createCustomDialogContent": MessageLookupByLibrary.simpleMessage(
+            "Do you want create a custom meal item?"),
+        "createCustomDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Create custom meal item?"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Do want to delete the selected item?"),
         "deleteTimeDialogTitle":
@@ -87,15 +97,20 @@ class MessageLookup extends MessageLookupByLibrary {
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Dinner"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
             "OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.\n\n\nThe application is still under development. Errors, bugs and crashes may occur."),
+        "editMealLabel": MessageLookupByLibrary.simpleMessage("Edit meal"),
         "energyLabel": MessageLookupByLibrary.simpleMessage("energy"),
         "errorFetchingProductData": MessageLookupByLibrary.simpleMessage(
             "Error while fetching product data"),
         "errorLoadingActivities": MessageLookupByLibrary.simpleMessage(
             "Error while loading activities"),
+        "errorMealSave": MessageLookupByLibrary.simpleMessage(
+            "Error while saving meal. Did you input the correct meal information?"),
         "errorOpeningBrowser": MessageLookupByLibrary.simpleMessage(
             "Error while opening browser app"),
         "errorOpeningEmail": MessageLookupByLibrary.simpleMessage(
             "Error while opening email app"),
+        "errorProductNotFound":
+            MessageLookupByLibrary.simpleMessage("Product not found"),
         "fatLabel": MessageLookupByLibrary.simpleMessage("fat"),
         "fiberLabel": MessageLookupByLibrary.simpleMessage("fiber"),
         "genderFemaleLabel": MessageLookupByLibrary.simpleMessage("♀ female"),
@@ -122,6 +137,19 @@ class MessageLookup extends MessageLookupByLibrary {
         "lunchExample":
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
+        "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Brands"),
+        "mealCarbsLabel":
+            MessageLookupByLibrary.simpleMessage("carbs per 100 g/ml"),
+        "mealFatLabel":
+            MessageLookupByLibrary.simpleMessage("fat per 100 g/ml"),
+        "mealKcalLabel":
+            MessageLookupByLibrary.simpleMessage("kcal per 100 g/ml"),
+        "mealNameLabel": MessageLookupByLibrary.simpleMessage("Meal name"),
+        "mealProteinLabel":
+            MessageLookupByLibrary.simpleMessage("protein per 100 g/ml"),
+        "mealSizeLabel":
+            MessageLookupByLibrary.simpleMessage("Meal size (g/ml)"),
+        "mealUnitLabel": MessageLookupByLibrary.simpleMessage("Meal unit"),
         "milliliterUnit": MessageLookupByLibrary.simpleMessage("ml"),
         "missingProductInfo": MessageLookupByLibrary.simpleMessage(
             "Product missing required kcal or macronutrients information"),
@@ -385,8 +413,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("general, moderate effort"),
         "paRollerbladingLight":
             MessageLookupByLibrary.simpleMessage("rollerblading"),
-        "paRollerbladingLightDesc": MessageLookupByLibrary.simpleMessage(
-            "in-line skating, 14.4 km/h (9.0 mph), recreational pace"),
+        "paRollerbladingLightDesc":
+            MessageLookupByLibrary.simpleMessage("in-line skating"),
         "paRopeJumpingGeneral":
             MessageLookupByLibrary.simpleMessage("rope jumping"),
         "paRopeJumpingGeneralDesc": MessageLookupByLibrary.simpleMessage(
@@ -412,8 +440,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("skateboarding"),
         "paSkateboardingGeneralDesc":
             MessageLookupByLibrary.simpleMessage("general, moderate effort"),
-        "paSkatingRoller": MessageLookupByLibrary.simpleMessage("skating"),
-        "paSkatingRollerDesc": MessageLookupByLibrary.simpleMessage("roller"),
+        "paSkatingRoller":
+            MessageLookupByLibrary.simpleMessage("roller skating"),
+        "paSkatingRollerDesc": MessageLookupByLibrary.simpleMessage("general"),
         "paSkiingGeneral": MessageLookupByLibrary.simpleMessage("skiing"),
         "paSkiingGeneralDesc": MessageLookupByLibrary.simpleMessage("general"),
         "paSkiingWaterWakeboarding":
@@ -516,7 +545,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
         "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),
         "quantityLabel": MessageLookupByLibrary.simpleMessage("Quantity"),
-        "readLabel": MessageLookupByLibrary.simpleMessage("I have read the"),
+        "readLabel": MessageLookupByLibrary.simpleMessage(
+            "I have read and accept the privacy policy."),
         "recentlyAddedLabel": MessageLookupByLibrary.simpleMessage("Recently"),
         "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
             "Do you want to report an error to the developer?"),
@@ -526,7 +556,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "scanProductLabel":
             MessageLookupByLibrary.simpleMessage("Scan Product"),
         "searchDefaultLabel":
-            MessageLookupByLibrary.simpleMessage("Please enter search word"),
+            MessageLookupByLibrary.simpleMessage("Please enter a search word"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Food"),
         "searchLabel": MessageLookupByLibrary.simpleMessage("Search"),
         "searchProductsPage": MessageLookupByLibrary.simpleMessage("Products"),
@@ -542,6 +572,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Select Weight"),
         "sendAnonymousUserData":
             MessageLookupByLibrary.simpleMessage("Send anonymous error data?"),
+        "servingSizeLabel":
+            MessageLookupByLibrary.simpleMessage("Serving size (g/ml)"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),

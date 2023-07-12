@@ -25,6 +25,12 @@ class ScannerLoadedState extends ScannerState {
 }
 
 class ScannerFailedState extends ScannerState {
+  final ScannerFailedStateType type;
+
+  const ScannerFailedState(this.type);
+
   @override
   List<Object?> get props => [];
 }
+
+enum ScannerFailedStateType { productNotFound, error }

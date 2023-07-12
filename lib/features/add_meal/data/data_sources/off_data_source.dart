@@ -5,15 +5,16 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/core/utils/ont_http_client.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/off_product_response.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/off_word_response.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_response_dto.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off/off_word_response_dto.dart';
+import 'package:opennutritracker/features/scanner/data/product_not_found_exception.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class OFFDataSource {
   static const _timeoutDuration = Duration(seconds: 10);
   final log = Logger('OFFDataSource');
 
-  Future<OFFWordResponse> fetchSearchWordResults(String searchString) async {
+  Future<OFFWordResponseDTO> fetchSearchWordResults(String searchString) async {
     try {
       final searchUrlString = OFFConst.getOffWordSearchUrl(searchString);
       final userAgentString = await AppConst.getUserAgentString();
@@ -24,7 +25,7 @@ class OFFDataSource {
       log.fine('Fetching OFF results from: $searchUrlString');
       if (response.statusCode == OFFConst.offHttpSuccessCode) {
         final wordResponse =
-            OFFWordResponse.fromJson(jsonDecode(response.body));
+            OFFWordResponseDTO.fromJson(jsonDecode(response.body));
         log.fine('Successful response from OFF');
         return wordResponse;
       } else {
@@ -38,7 +39,7 @@ class OFFDataSource {
     }
   }
 
-  Future<OFFProductResponse> fetchBarcodeResults(String barcode) async {
+  Future<OFFProductResponseDTO> fetchBarcodeResults(String barcode) async {
     try {
       final searchUrl = OFFConst.getOffBarcodeSearchUri(barcode);
       final userAgentString = await AppConst.getUserAgentString();
@@ -49,9 +50,12 @@ class OFFDataSource {
       log.fine('Fetching OFF result from: $searchUrl');
       if (response.statusCode == OFFConst.offHttpSuccessCode) {
         final productResponse =
-            OFFProductResponse.fromJson(jsonDecode(response.body));
+            OFFProductResponseDTO.fromJson(jsonDecode(response.body));
         log.fine('Successful response from OFF');
         return productResponse;
+      } else if (response.statusCode == OFFConst.offProductNotFoundCode) {
+        log.warning("404 OFF Product not found");
+        return Future.error(ProductNotFoundException);
       } else {
         log.warning('Failed OFF call: ${response.statusCode}');
         return Future.error(response.statusCode);
