@@ -34,7 +34,7 @@ import 'package:opennutritracker/features/add_activity/presentation/bloc/activit
 import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_activities_bloc.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
-import 'package:opennutritracker/features/add_meal/data/data_sources/sp_backend_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/sp_fdc_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
@@ -156,7 +156,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<OFFDataSource>(() => OFFDataSource());
   locator.registerLazySingleton<FDCDataSource>(() => FDCDataSource());
   locator
-      .registerLazySingleton<SPBackendDataSource>(() => SPBackendDataSource());
+      .registerLazySingleton<SpFdcDataSource>(() => SpFdcDataSource());
   locator.registerLazySingleton(
       () => TrackedDayDataSource(hiveDBProvider.trackedDayBox));
 

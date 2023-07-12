@@ -5,7 +5,7 @@ import 'package:opennutritracker/features/add_meal/data/dto/fdc_sp/sp_fdc_food_d
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class SPBackendDataSource {
+class SpFdcDataSource {
   final log = Logger('SPBackendDataSource');
 
   Future<List<SpFdcFoodDTO>> fetchSearchWordResults(String searchString) async {
