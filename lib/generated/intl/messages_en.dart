@@ -413,8 +413,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("general, moderate effort"),
         "paRollerbladingLight":
             MessageLookupByLibrary.simpleMessage("rollerblading"),
-        "paRollerbladingLightDesc": MessageLookupByLibrary.simpleMessage(
-            "in-line skating, 14.4 km/h (9.0 mph), recreational pace"),
+        "paRollerbladingLightDesc":
+            MessageLookupByLibrary.simpleMessage("in-line skating"),
         "paRopeJumpingGeneral":
             MessageLookupByLibrary.simpleMessage("rope jumping"),
         "paRopeJumpingGeneralDesc": MessageLookupByLibrary.simpleMessage(
@@ -440,8 +440,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("skateboarding"),
         "paSkateboardingGeneralDesc":
             MessageLookupByLibrary.simpleMessage("general, moderate effort"),
-        "paSkatingRoller": MessageLookupByLibrary.simpleMessage("skating"),
-        "paSkatingRollerDesc": MessageLookupByLibrary.simpleMessage("roller"),
+        "paSkatingRoller":
+            MessageLookupByLibrary.simpleMessage("roller skating"),
+        "paSkatingRollerDesc": MessageLookupByLibrary.simpleMessage("general"),
         "paSkiingGeneral": MessageLookupByLibrary.simpleMessage("skiing"),
         "paSkiingGeneralDesc": MessageLookupByLibrary.simpleMessage("general"),
         "paSkiingWaterWakeboarding":
@@ -554,7 +555,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "scanProductLabel":
             MessageLookupByLibrary.simpleMessage("Scan Product"),
         "searchDefaultLabel":
-            MessageLookupByLibrary.simpleMessage("Please enter search word"),
+            MessageLookupByLibrary.simpleMessage("Please enter a search word"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Food"),
         "searchLabel": MessageLookupByLibrary.simpleMessage("Search"),
         "searchProductsPage": MessageLookupByLibrary.simpleMessage("Products"),
