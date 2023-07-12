@@ -8,12 +8,12 @@ part of 'fdc_food_nutriment.dart';
 
 FDCFoodNutriment _$FDCFoodNutrimentFromJson(Map<String, dynamic> json) =>
     FDCFoodNutriment(
-      nutrientId: json['nutrientId'] as int?,
-      value: (json['value'] as num?)?.toDouble(),
+      nutrientId: json['nutrient_id'] as int?,
+      amount: (json['amount'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$FDCFoodNutrimentToJson(FDCFoodNutriment instance) =>
     <String, dynamic>{
-      'nutrientId': instance.nutrientId,
-      'value': instance.value,
+      'nutrient_id': instance.nutrientId,
+      'amount': instance.amount,
     };

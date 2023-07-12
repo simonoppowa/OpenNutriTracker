@@ -24,23 +24,23 @@ class MealNutrimentsEntity extends Equatable {
 
   double? get proteinsPerUnit => _getValuePerUnit(proteins100);
 
-  const MealNutrimentsEntity({required this.energyKcal100,
-    required this.carbohydrates100,
-    required this.fat100,
-    required this.proteins100,
-    required this.sugars100,
-    required this.saturatedFat100,
-    required this.fiber100});
+  const MealNutrimentsEntity(
+      {required this.energyKcal100,
+      required this.carbohydrates100,
+      required this.fat100,
+      required this.proteins100,
+      required this.sugars100,
+      required this.saturatedFat100,
+      required this.fiber100});
 
-  factory MealNutrimentsEntity.empty() =>
-      const MealNutrimentsEntity(energyKcal100: null,
-          carbohydrates100: null,
-          fat100: null,
-          proteins100: null,
-          sugars100: null,
-          saturatedFat100: null,
-          fiber100: null);
-
+  factory MealNutrimentsEntity.empty() => const MealNutrimentsEntity(
+      energyKcal100: null,
+      carbohydrates100: null,
+      fat100: null,
+      proteins100: null,
+      sugars100: null,
+      saturatedFat100: null,
+      fiber100: null);
 
   factory MealNutrimentsEntity.fromMealNutrimentsDBO(
       MealNutrimentsDBO nutriments) {
@@ -61,14 +61,14 @@ class MealNutrimentsEntity extends Equatable {
     // type, so cast to it Object?
     return MealNutrimentsEntity(
         energyKcal100:
-        (offNutriments.energy_kcal_100g as Object?).asDoubleOrNull(),
+            (offNutriments.energy_kcal_100g as Object?).asDoubleOrNull(),
         carbohydrates100:
-        (offNutriments.carbohydrates_100g as Object?).asDoubleOrNull(),
+            (offNutriments.carbohydrates_100g as Object?).asDoubleOrNull(),
         fat100: (offNutriments.fat_100g as Object?).asDoubleOrNull(),
         proteins100: (offNutriments.proteins_100g as Object?).asDoubleOrNull(),
         sugars100: (offNutriments.sugars_100g as Object?).asDoubleOrNull(),
         saturatedFat100:
-        (offNutriments.saturated_fat_100g as Object?).asDoubleOrNull(),
+            (offNutriments.saturated_fat_100g as Object?).asDoubleOrNull(),
         fiber100: (offNutriments.fiber_100g as Object?).asDoubleOrNull());
   }
 
@@ -77,37 +77,37 @@ class MealNutrimentsEntity extends Equatable {
     final energyTotal = fdcNutriment
         .firstWhereOrNull(
             (nutriment) => nutriment.nutrientId == FDCConst.fdcTotalKcalId)
-        ?.value;
+        ?.amount;
 
     final carbsTotal = fdcNutriment
         .firstWhereOrNull(
             (nutriment) => nutriment.nutrientId == FDCConst.fdcTotalCarbsId)
-        ?.value;
+        ?.amount;
 
     final fatTotal = fdcNutriment
         .firstWhereOrNull(
             (nutriment) => nutriment.nutrientId == FDCConst.fdcTotalFatId)
-        ?.value;
+        ?.amount;
 
     final proteinsTotal = fdcNutriment
         .firstWhereOrNull(
             (nutriment) => nutriment.nutrientId == FDCConst.fdcTotalProteinsId)
-        ?.value;
+        ?.amount;
 
     final sugarTotal = fdcNutriment
         .firstWhereOrNull(
             (nutriment) => nutriment.nutrientId == FDCConst.fdcTotalSugarId)
-        ?.value;
+        ?.amount;
 
     final saturatedFatTotal = fdcNutriment
         .firstWhereOrNull((nutriment) =>
-    nutriment.nutrientId == FDCConst.fdcTotalSaturatedFatId)
-        ?.value;
+            nutriment.nutrientId == FDCConst.fdcTotalSaturatedFatId)
+        ?.amount;
 
     final fiberTotal = fdcNutriment
         .firstWhereOrNull((nutriment) =>
-    nutriment.nutrientId == FDCConst.fdcTotalDietaryFiberId)
-        ?.value;
+            nutriment.nutrientId == FDCConst.fdcTotalDietaryFiberId)
+        ?.amount;
 
     return MealNutrimentsEntity(
         energyKcal100: energyTotal,

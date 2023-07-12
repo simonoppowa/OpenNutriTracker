@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/fdc_sp/sp_fdc_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
@@ -101,6 +102,23 @@ class MealEntity extends Equatable {
         servingUnit: fdcFood.servingSizeUnit,
         nutriments:
             MealNutrimentsEntity.fromFDCNutriments(fdcFood.foodNutrients),
+        source: MealSourceEntity.fdc);
+  }
+
+  factory MealEntity.fromSpFDCFood(SpFdcFoodDTO foodItem) {
+    final fdcId = foodItem.fdcId?.toInt().toString();
+
+    return MealEntity(
+        code: fdcId,
+        name: foodItem.description,
+        brands: null,
+        url: FDCConst.getFoodDetailUrlString(fdcId),
+        mealQuantity: null,
+        mealUnit: null,
+        servingQuantity: null,
+        servingUnit: null,
+        nutriments:
+        MealNutrimentsEntity.fromFDCNutriments(foodItem.nutrients),
         source: MealSourceEntity.fdc);
   }
 
