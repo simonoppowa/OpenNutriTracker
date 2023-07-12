@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
+import 'package:opennutritracker/core/utils/supported_language.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc_sp/sp_fdc_food_dto.dart';
@@ -110,7 +113,8 @@ class MealEntity extends Equatable {
 
     return MealEntity(
         code: fdcId,
-        name: foodItem.description,
+        name: foodItem.getLocaleDescription(
+            SupportedLanguage.fromCode(Platform.localeName)),
         brands: null,
         url: FDCConst.getFoodDetailUrlString(fdcId),
         mealQuantity: null,

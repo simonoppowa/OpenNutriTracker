@@ -1,5 +1,6 @@
-class SPConst {
+import 'package:opennutritracker/core/utils/supported_language.dart';
 
+class SPConst {
   static const maxNumberOfItems = 20;
 
   // Table names
@@ -18,4 +19,16 @@ class SPConst {
 
   static const fdcNutrientId = 'nutrient_id';
   static const fdcNutrientsAmount = 'amount';
+
+  static String getFdcFoodDescriptionColumnName(SupportedLanguage language) {
+    switch (language) {
+      case SupportedLanguage.en:
+        return fdcFoodDescriptionEn;
+      case SupportedLanguage.de:
+        return fdcFoodDescriptionDe;
+      default:
+        return fdcFoodDescriptionEn;
+    }
+  }
+
 }
