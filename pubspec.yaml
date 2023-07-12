@@ -65,6 +65,8 @@ dependencies:
 
   sentry_flutter: ^7.8.0
 
+  supabase_flutter: ^1.10.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
