@@ -2,6 +2,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc_sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc_sp/sp_fdc_food_dto.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SPBackendDataSource {
@@ -25,9 +26,10 @@ class SPBackendDataSource {
 
       log.fine('Successful response from Supabase');
       return fdcFoodItems;
-    } catch (error) {
-      log.severe('Exception while getting FDC word search $error');
-      return Future.error(error);
+    } catch (exception, stacktrace) {
+      log.severe('Exception while getting FDC word search $exception');
+      Sentry.captureException(exception, stackTrace: stacktrace);
+      return Future.error(exception);
     }
   }
 }
