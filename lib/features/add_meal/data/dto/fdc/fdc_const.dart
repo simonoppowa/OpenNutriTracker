@@ -50,6 +50,8 @@ class FDCConst {
 
   // Nutriment codes
   static const fdcTotalKcalId = 1008;
+  static const fdcKcalAtwaterGeneralId = 957;
+  static const fdcKcalAtwaterSpecificId = 958;
   static const fdcTotalCarbsId = 1005;
   static const fdcTotalFatId = 1004;
   static const fdcTotalProteinsId = 1003;

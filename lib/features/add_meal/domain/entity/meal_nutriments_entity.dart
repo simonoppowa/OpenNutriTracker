@@ -74,10 +74,20 @@ class MealNutrimentsEntity extends Equatable {
 
   factory MealNutrimentsEntity.fromFDCNutriments(
       List<FDCFoodNutriment> fdcNutriment) {
+    // FDC Food nutriments can have different values for Energy [Energy,
+    // Energy (Atwater General Factors), Energy (Atwater Specific Factors)]
     final energyTotal = fdcNutriment
-        .firstWhereOrNull(
-            (nutriment) => nutriment.nutrientId == FDCConst.fdcTotalKcalId)
-        ?.amount;
+            .firstWhereOrNull(
+                (nutriment) => nutriment.nutrientId == FDCConst.fdcTotalKcalId)
+            ?.amount ??
+        fdcNutriment
+            .firstWhereOrNull((nutriment) =>
+                nutriment.nutrientId == FDCConst.fdcKcalAtwaterGeneralId)
+            ?.amount ??
+        fdcNutriment
+            .firstWhereOrNull((nutriment) =>
+                nutriment.nutrientId == FDCConst.fdcKcalAtwaterSpecificId)
+            ?.amount;
 
     final carbsTotal = fdcNutriment
         .firstWhereOrNull(
