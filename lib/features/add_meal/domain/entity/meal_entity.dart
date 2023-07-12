@@ -114,11 +114,10 @@ class MealEntity extends Equatable {
         brands: null,
         url: FDCConst.getFoodDetailUrlString(fdcId),
         mealQuantity: null,
-        mealUnit: null,
-        servingQuantity: null,
-        servingUnit: null,
-        nutriments:
-        MealNutrimentsEntity.fromFDCNutriments(foodItem.nutrients),
+        mealUnit: FDCConst.fdcDefaultUnit,
+        servingQuantity: foodItem.servingSize,
+        servingUnit: FDCConst.fdcDefaultUnit,
+        nutriments: MealNutrimentsEntity.fromFDCNutriments(foodItem.nutrients),
         source: MealSourceEntity.fdc);
   }
 
