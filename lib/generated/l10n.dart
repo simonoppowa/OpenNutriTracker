@@ -1251,10 +1251,10 @@ class S {
     );
   }
 
-  /// `I have read the`
+  /// `I have read and accept the privacy policy.`
   String get readLabel {
     return Intl.message(
-      'I have read the',
+      'I have read and accept the privacy policy.',
       name: 'readLabel',
       desc: '',
       args: [],
