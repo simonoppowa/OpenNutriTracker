@@ -3,8 +3,21 @@
   <h1 align="center">OpenNutriTracker</h1>
 </p>
 
+<p align="center">
+  <a href="https://opensource.org/licenses/MIT" alt="License">
+        <img src="https://img.shields.io/badge/license-GPLv3-blue" /></a>
+  <a href="https://github.com/simonoppowa/OpenNutriTracker/stargazers" alt="GitHub Stars">
+        <img src="https://img.shields.io/github/stars/simonoppowa/OpenNutriTracker.svg" /></a>
+  <a href="https://github.com/simonoppowa/OpenNutriTracker/issues" alt="GitHub Issues">
+        <img src="https://img.shields.io/github/issues/simonoppowa/OpenNutriTracker.svg" /></a>
+  <a href="https://github.com/simonoppowa/OpenNutriTracker/pulls" alt="GitHub Pull Requests">
+        <img src="https://img.shields.io/github/issues-pr/simonoppowa/OpenNutriTracker.svg" /></a> 
+  <a alt="Version">
+        <img src="https://img.shields.io/badge/version-alpha-orange.svg" /></a> 
+</p>
+
 ## Description
-OpenNutriTracker is an open-source iOS/Android application designed to help users track their nutrition intake and monitor their dietary habits. Whether you are looking to improve your health, lose weight, or simply maintain a balanced diet, OpenNutriTracker provides a minimalistic interface to easily track and analyze your daily nutrition.
+OpenNutriTracker is an open-source mobile application designed to simplify nutritional tracking and management. Whether you are looking to improve your health, lose weight, or simply maintain a balanced diet, OpenNutriTracker provides a minimalistic interface to easily track and analyze your daily nutrition.
 
 ## Screenshots
 <p align="center">
@@ -17,13 +30,13 @@ OpenNutriTracker is an open-source iOS/Android application designed to help user
   <img alt="Logo" src="screenshots/screenshot_profile.png" width="20%" />
 </p>
 
-## Features
-- **Daily overview**
-- **Diary**
-- **Product or meal search**
-- **Barcode scanner**
-- **Create custom meal itemts**
-- **No ads, subscriptions or in-app purchases**
+## Key Features
+- **🍎 Nutritional Tracking:** Easily log your meals and snacks, and access a vast database of food items and ingredients to get detailed nutritional information.
+- **📓 Food Diary:** Maintain a comprehensive food diary to keep track of your daily food consumption, habits, and progress.
+- **🍽️ Custom Meals:** Plan your meals in advance, create personalized meal plans, and optimize them according to your dietary goals.
+- **📷 Barcode Scanner:** Scan barcodes on packaged food items to instantly retrieve their nutritional information.
+- **🔒 Privacy Focused:** OpenNutriTracker prioritizes the privacy its users. It does not collect or share any personal data without your consent.
+- **🚫💰 No Subscription, In-App Purchases, or Ads:** OpenNutriTracker is completely free to use, without any subscription fees, in-app purchases, or intrusive advertisements.
 
 ## Privacy
 - **Data Encryption**: All collected user data is encrypted and stored locally on your device
