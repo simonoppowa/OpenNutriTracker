@@ -16,6 +16,7 @@ class OFFConst {
   static const _offProductNameTag = "product_name";
   static const _offProductNameENTag = "product_name_en";
   static const _offProductNameDETag = "product_name_de";
+  static const _offProductNameFRTag = "product_name_fr";
   static const _offCodeTag = "code";
   static const _offBrandsTag = "brands";
 
@@ -38,6 +39,7 @@ class OFFConst {
     _offProductNameTag,
     _offProductNameENTag,
     _offProductNameDETag,
+    _offProductNameFRTag,
     _offUrlTag,
     _offImageUrlTag,
     _offImageThumbUrlTag,
@@ -48,8 +50,6 @@ class OFFConst {
     _offServingSizeTag,
     _offNutrimentsTag
   ];
-
-  // TODO Add Header info
 
   static String _getReturnFields() => _returnFields.join(",");
 
