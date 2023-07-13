@@ -75,7 +75,7 @@ class _AddMealScreenState extends State<AddMealScreen>
           ],
         ),
         body: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Column(
             children: [
               MealSearchBar(
