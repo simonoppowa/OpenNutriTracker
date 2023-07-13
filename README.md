@@ -18,9 +18,11 @@ OpenNutriTracker is an open-source iOS/Android application designed to help user
 </p>
 
 ## Features
-- **Daily overview page**
+- **Daily overview**
 - **Diary**
-- **Product scanner**
+- **Product or meal search**
+- **Barcode scanner**
+- **Create custom meal itemts**
 - **No ads, subscriptions or in-app purchases**
 
 ## Privacy
