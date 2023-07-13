@@ -73,11 +73,8 @@ class MealEntity extends Equatable {
   factory MealEntity.fromOFFProduct(OFFProductDTO offProduct) {
     return MealEntity(
         code: offProduct.code,
-        name: offProduct.product_name ??
-            offProduct.product_name_fr ??
-            offProduct.product_name_en ??
-            offProduct.product_name_de ??
-            offProduct.brands,
+        name: offProduct
+            .getLocaleName(SupportedLanguage.fromCode(Platform.localeName)),
         brands: offProduct.brands,
         thumbnailImageUrl: offProduct.image_front_thumb_url,
         mainImageUrl: offProduct.image_front_url,
