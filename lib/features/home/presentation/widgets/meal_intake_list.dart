@@ -24,9 +24,15 @@ class MealIntakeList extends StatelessWidget {
         Container(
           padding: const EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 8.0),
           alignment: Alignment.centerLeft,
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge,
+          child: Row(
+            children: [
+              Icon(listIcon, size: 24),
+              const SizedBox(width: 4.0),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ],
           ),
         ),
         intakeList.isEmpty

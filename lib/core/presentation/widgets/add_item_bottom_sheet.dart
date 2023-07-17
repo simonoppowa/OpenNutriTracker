@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/utils/custom_icons.dart';
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
@@ -36,7 +37,7 @@ class AddItemBottomSheet extends StatelessWidget {
           // ignore: sized_box_for_whitespace
           leading: Container(
               height: double.infinity,
-              child: const Icon(Icons.sports_baseball_outlined)),
+              child: Icon(UserActivityEntity.getIconData())),
           onTap: () {
             _showAddActivityScreen(context);
           },
@@ -54,7 +55,7 @@ class AddItemBottomSheet extends StatelessWidget {
           // ignore: sized_box_for_whitespace
           leading: Container(
               height: double.infinity,
-              child: const Icon(Icons.bakery_dining_outlined)),
+              child: Icon(IntakeTypeEntity.breakfast.getIconData())),
           onTap: () {
             _showAddItemScreen(context, AddMealType.breakfastType);
           },
@@ -71,7 +72,7 @@ class AddItemBottomSheet extends StatelessWidget {
           // ignore: sized_box_for_whitespace
           leading: Container(
               height: double.infinity,
-              child: const Icon(Icons.lunch_dining_outlined)),
+              child: Icon(IntakeTypeEntity.lunch.getIconData())),
           onTap: () {
             _showAddItemScreen(context, AddMealType.lunchType);
           },
@@ -88,7 +89,7 @@ class AddItemBottomSheet extends StatelessWidget {
           // ignore: sized_box_for_whitespace
           leading: Container(
               height: double.infinity,
-              child: const Icon(Icons.dinner_dining_outlined)),
+              child: Icon(IntakeTypeEntity.dinner.getIconData())),
           onTap: () {
             _showAddItemScreen(context, AddMealType.dinnerType);
           },
@@ -105,7 +106,7 @@ class AddItemBottomSheet extends StatelessWidget {
           // ignore: sized_box_for_whitespace
           leading: Container(
               height: double.infinity,
-              child: const Icon(CustomIcons.food_apple_outline)),
+              child: Icon(IntakeTypeEntity.snack.getIconData())),
           onTap: () {
             _showAddItemScreen(context, AddMealType.snackType);
           },

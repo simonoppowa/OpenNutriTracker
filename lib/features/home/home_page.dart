@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
-import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
@@ -113,25 +113,25 @@ class _HomePageState extends State<HomePage> {
         ),
         MealIntakeList(
           title: S.of(context).breakfastLabel,
-          listIcon: Icons.bakery_dining_outlined,
+          listIcon: IntakeTypeEntity.breakfast.getIconData(),
           intakeList: breakfastIntakeList,
           onItemLongPressedCallback: onIntakeItemLongPressed,
         ),
         MealIntakeList(
           title: S.of(context).lunchLabel,
-          listIcon: Icons.lunch_dining_outlined,
+          listIcon: IntakeTypeEntity.lunch.getIconData(),
           intakeList: lunchIntakeList,
           onItemLongPressedCallback: onIntakeItemLongPressed,
         ),
         MealIntakeList(
           title: S.of(context).dinnerLabel,
-          listIcon: Icons.dinner_dining_outlined,
+          listIcon: IntakeTypeEntity.dinner.getIconData(),
           intakeList: dinnerIntakeList,
           onItemLongPressedCallback: onIntakeItemLongPressed,
         ),
         MealIntakeList(
           title: S.of(context).snackLabel,
-          listIcon: CustomIcons.food_apple_outline,
+          listIcon: IntakeTypeEntity.snack.getIconData(),
           intakeList: snackIntakeList,
           onItemLongPressedCallback: onIntakeItemLongPressed,
         )
