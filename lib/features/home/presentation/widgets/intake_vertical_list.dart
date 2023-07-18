@@ -3,13 +3,13 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_intake_card.dart';
 
-class MealIntakeList extends StatelessWidget {
+class IntakeVerticalList extends StatelessWidget {
   final String title;
   final IconData listIcon;
   final List<IntakeEntity> intakeList;
   final Function(BuildContext, IntakeEntity) onItemLongPressedCallback;
 
-  const MealIntakeList(
+  const IntakeVerticalList(
       {Key? key,
       required this.title,
       required this.listIcon,
@@ -22,7 +22,7 @@ class MealIntakeList extends StatelessWidget {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 8.0),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           alignment: Alignment.centerLeft,
           child: Row(
             children: [
@@ -53,7 +53,8 @@ class MealIntakeList extends StatelessWidget {
                     return IntakeCard(
                         key: ValueKey(intakeEntity.meal.code),
                         intake: intakeEntity,
-                        onItemLongPressed: onItemLongPressedCallback);
+                        onItemLongPressed: onItemLongPressedCallback,
+                        firstListElement: index == 0 ? true : false);
                   },
                 ),
               ),

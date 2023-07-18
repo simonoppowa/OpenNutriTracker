@@ -49,96 +49,99 @@ class _DashboardWidgetState extends State<DashboardWidget> {
       gaugeValue = (widget.totalKcalDaily - widget.totalKcalLeft) /
           widget.totalKcalDaily;
     }
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Column(
-                  children: [
-                    Icon(
-                      Icons.keyboard_arrow_up_outlined,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    Text('${widget.totalKcalSupplied.toInt()}',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface)),
-                    Text(S.of(context).suppliedLabel,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface)),
-                  ],
-                ),
-                CircularPercentIndicator(
-                  radius: 90.0,
-                  lineWidth: 13.0,
-                  animation: true,
-                  percent: gaugeValue,
-                  arcType: ArcType.FULL,
-                  progressColor: Theme.of(context).colorScheme.primary,
-                  arcBackgroundColor:
-                      Theme.of(context).colorScheme.primary.withAlpha(50),
-                  center: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Card(
+        elevation: 1,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Column(
                     children: [
-                      Text(kcalLeftLabel.toInt().toString(),
+                      Icon(
+                        Icons.keyboard_arrow_up_outlined,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      Text('${widget.totalKcalSupplied.toInt()}',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface)),
+                      Text(S.of(context).suppliedLabel,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface)),
+                    ],
+                  ),
+                  CircularPercentIndicator(
+                    radius: 90.0,
+                    lineWidth: 13.0,
+                    animation: true,
+                    percent: gaugeValue,
+                    arcType: ArcType.FULL,
+                    progressColor: Theme.of(context).colorScheme.primary,
+                    arcBackgroundColor:
+                        Theme.of(context).colorScheme.primary.withAlpha(50),
+                    center: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(kcalLeftLabel.toInt().toString(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface)),
+                        Text(
+                          S.of(context).kcalLeftLabel,
                           style: Theme.of(context)
                               .textTheme
-                              .headlineMedium
+                              .titleMedium
                               ?.copyWith(
                                   color: Theme.of(context)
                                       .colorScheme
-                                      .onSurface)),
-                      Text(
-                        S.of(context).kcalLeftLabel,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface),
-                      )
+                                      .onSurface),
+                        )
+                      ],
+                    ),
+                    circularStrokeCap: CircularStrokeCap.round,
+                  ),
+                  Column(
+                    children: [
+                      Icon(Icons.keyboard_arrow_down_outlined,
+                          color:
+                              Theme.of(context).colorScheme.onSurface),
+                      Text('${widget.totalKcalBurned.toInt()}',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface)),
+                      Text(S.of(context).burnedLabel,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface)),
                     ],
                   ),
-                  circularStrokeCap: CircularStrokeCap.round,
-                ),
-                Column(
-                  children: [
-                    Icon(Icons.keyboard_arrow_down_outlined,
-                        color:
-                            Theme.of(context).colorScheme.onSurface),
-                    Text('${widget.totalKcalBurned.toInt()}',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface)),
-                    Text(S.of(context).burnedLabel,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface)),
-                  ],
-                ),
-              ],
-            ),
-            MacroNutrientsView(
-                totalCarbsIntake: widget.totalCarbsIntake,
-                totalFatsIntake: widget.totalFatsIntake,
-                totalProteinsIntake: widget.totalProteinsIntake,
-                totalCarbsGoal: widget.totalCarbsGoal,
-                totalFatsGoal: widget.totalFatsGoal,
-                totalProteinsGoal: widget.totalProteinsGoal),
-          ],
+                ],
+              ),
+              MacroNutrientsView(
+                  totalCarbsIntake: widget.totalCarbsIntake,
+                  totalFatsIntake: widget.totalFatsIntake,
+                  totalProteinsIntake: widget.totalProteinsIntake,
+                  totalCarbsGoal: widget.totalCarbsGoal,
+                  totalFatsGoal: widget.totalFatsGoal,
+                  totalProteinsGoal: widget.totalProteinsGoal),
+            ],
+          ),
         ),
       ),
     );

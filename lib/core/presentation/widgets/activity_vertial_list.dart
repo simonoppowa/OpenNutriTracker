@@ -20,7 +20,7 @@ class ActivityVerticalList extends StatelessWidget {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 8.0),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           alignment: Alignment.centerLeft,
           child: Row(
             children: [
@@ -50,6 +50,7 @@ class ActivityVerticalList extends StatelessWidget {
                     return ActivityCard(
                       activityEntity: userActivity,
                       onItemLongPressed: onItemLongPressedCallback,
+                      firstListElement: index == 0 ? true : false,
                     );
                   },
                 ),

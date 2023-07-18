@@ -6,7 +6,7 @@ import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
-import 'package:opennutritracker/features/home/presentation/widgets/meal_intake_list.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class DayInfoWidget extends StatelessWidget {
@@ -66,7 +66,7 @@ class DayInfoWidget extends StatelessWidget {
                                 onActivityItemLongPressed)
                         : const SizedBox(),
                     breakfastIntake.isNotEmpty
-                        ? MealIntakeList(
+                        ? IntakeVerticalList(
                             title: S.of(context).breakfastLabel,
                             listIcon: Icons.bakery_dining_outlined,
                             intakeList: breakfastIntake,
@@ -74,7 +74,7 @@ class DayInfoWidget extends StatelessWidget {
                           )
                         : const SizedBox(),
                     lunchIntake.isNotEmpty
-                        ? MealIntakeList(
+                        ? IntakeVerticalList(
                             title: S.of(context).lunchLabel,
                             listIcon: Icons.lunch_dining_outlined,
                             intakeList: lunchIntake,
@@ -82,7 +82,7 @@ class DayInfoWidget extends StatelessWidget {
                           )
                         : const SizedBox(),
                     dinnerIntake.isNotEmpty
-                        ? MealIntakeList(
+                        ? IntakeVerticalList(
                             title: S.of(context).dinnerLabel,
                             listIcon: Icons.dinner_dining_outlined,
                             intakeList: dinnerIntake,
@@ -90,7 +90,7 @@ class DayInfoWidget extends StatelessWidget {
                           )
                         : const SizedBox(),
                     snackIntake.isNotEmpty
-                        ? MealIntakeList(
+                        ? IntakeVerticalList(
                             title: S.of(context).snackLabel,
                             listIcon: CustomIcons.food_apple_outline,
                             intakeList: snackIntake,
