@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -23,7 +24,7 @@ class MealDetailScreen extends StatefulWidget {
 }
 
 class _MealDetailScreenState extends State<MealDetailScreen> {
-  static const _containerSize = 300.0;
+  static const _containerSize = 350.0;
 
   final log = Logger('ItemDetailScreen');
 
@@ -69,7 +70,6 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(meal.name ?? ""),
         actions: [
           IconButton(
               onPressed: () {
@@ -82,50 +82,52 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       body: ListView(
         controller: _scrollController,
         children: [
-          Stack(children: [
-            CachedNetworkImage(
-              cacheManager: locator<CacheManager>(),
-              imageUrl: meal.mainImageUrl ?? "",
-              imageBuilder: (context, imageProvider) {
-                return Container(
-                  height: _containerSize,
-                  decoration: BoxDecoration(
-                      image: DecorationImage(
-                          image: imageProvider, fit: BoxFit.cover)),
-                );
-              },
-              placeholder: (context, string) => const MealPlaceholder(),
-              errorWidget: (context, url, error) => const MealPlaceholder(),
+          const SizedBox(height: 16),
+          AutoSizeText.rich(
+              minFontSize: 6,
+              maxFontSize: 16,
+              TextSpan(
+                  text: meal.name ?? '',
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onBackground),
+                  children: [
+                    TextSpan(
+                        text: ' ${meal.brands ?? ''}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .displaySmall
+                            ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onBackground
+                                    .withOpacity(0.8)))
+                  ]),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis),
+          Center(
+            child: Text('${meal.mealQuantity ?? ""} g',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onBackground
+                        .withOpacity(0.8))),
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(80),
+              child: CachedNetworkImage(
+                width: 250,
+                height: 250,
+                cacheManager: locator<CacheManager>(),
+                imageUrl: meal.mainImageUrl ?? "",
+                fit: BoxFit.cover,
+                placeholder: (context, string) => const MealPlaceholder(),
+                errorWidget: (context, url, error) => const MealPlaceholder(),
+              ),
             ),
-            meal.brands != null
-                ? Align(
-                    alignment: AlignmentDirectional.topStart,
-                    child: Card(
-                      child: SizedBox(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text('${meal.brands}',
-                              style: Theme.of(context).textTheme.bodyLarge),
-                        ),
-                      ),
-                    ),
-                  )
-                : const SizedBox(),
-            meal.mealQuantity != null
-                ? Align(
-                    alignment: AlignmentDirectional.topEnd,
-                    child: Card(
-                        child: SizedBox(
-                            child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                    '${meal.mealQuantity} ${meal.mealUnit ?? S.of(context).gramMilliliterUnit}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge)))),
-                  )
-                : const SizedBox()
-          ]),
+          ),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
