@@ -66,10 +66,10 @@ class OpenNutriTrackerApp extends StatelessWidget {
           useMaterial3: true,
           colorScheme: lightColorScheme,
           textTheme: appTextTheme),
-      // darkTheme: ThemeData(
-      //     useMaterial3: true,
-      //     colorScheme: darkColorScheme,
-      //     textTheme: appTextTheme),
+      darkTheme: ThemeData(
+          useMaterial3: true,
+          colorScheme: darkColorScheme,
+          textTheme: appTextTheme),
       localizationsDelegates: const [
         S.delegate,
         GlobalMaterialLocalizations.delegate,

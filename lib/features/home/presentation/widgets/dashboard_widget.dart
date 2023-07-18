@@ -52,7 +52,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
     return Card(
       elevation: 1,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -62,11 +62,20 @@ class _DashboardWidgetState extends State<DashboardWidget> {
               children: [
                 Column(
                   children: [
-                    const Icon(Icons.keyboard_arrow_up_outlined),
+                    Icon(
+                      Icons.keyboard_arrow_up_outlined,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                     Text('${widget.totalKcalSupplied.toInt()}',
-                        style: Theme.of(context).textTheme.titleLarge),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface)),
                     Text(S.of(context).suppliedLabel,
-                        style: Theme.of(context).textTheme.titleSmall),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface)),
                   ],
                 ),
                 CircularPercentIndicator(
@@ -88,10 +97,16 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                               ?.copyWith(
                                   color: Theme.of(context)
                                       .colorScheme
-                                      .onSecondaryContainer)),
+                                      .onSurface)),
                       Text(
                         S.of(context).kcalLeftLabel,
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface),
                       )
                     ],
                   ),
@@ -99,11 +114,19 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                 ),
                 Column(
                   children: [
-                    const Icon(Icons.keyboard_arrow_down_outlined),
+                    Icon(Icons.keyboard_arrow_down_outlined,
+                        color:
+                            Theme.of(context).colorScheme.onSurface),
                     Text('${widget.totalKcalBurned.toInt()}',
-                        style: Theme.of(context).textTheme.titleLarge),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface)),
                     Text(S.of(context).burnedLabel,
-                        style: Theme.of(context).textTheme.titleSmall),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface)),
                   ],
                 ),
               ],

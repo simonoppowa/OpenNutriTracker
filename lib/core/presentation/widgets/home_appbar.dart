@@ -17,11 +17,15 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
           Row(
             children: [
               Text(S.of(context).appTitle,
-                  style: const TextStyle(fontWeight: FontWeight.w700)),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.onBackground)),
               const SizedBox(width: 5),
               Text(
                 S.of(context).alphaVersionName,
-                style: const TextStyle(fontWeight: FontWeight.w500),
+                style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onBackground),
               ),
             ],
           )
@@ -29,7 +33,8 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.settings_outlined),
+          icon: Icon(Icons.settings_outlined,
+              color: Theme.of(context).colorScheme.onBackground),
           tooltip: S.of(context).settingsLabel,
           onPressed: () {
             Navigator.of(context).pushNamed(NavigationOptions.settingsRoute);

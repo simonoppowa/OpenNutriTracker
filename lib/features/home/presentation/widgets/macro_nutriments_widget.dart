@@ -39,6 +39,8 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
               percent: getGoalPercentage(
                   widget.totalCarbsGoal, widget.totalCarbsIntake),
               progressColor: Theme.of(context).colorScheme.primary,
+              backgroundColor:
+                  Theme.of(context).colorScheme.primary.withAlpha(50),
               circularStrokeCap: CircularStrokeCap.round,
             ),
             Padding(
@@ -47,11 +49,15 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
                 children: [
                   Text(
                     '${widget.totalCarbsIntake.toInt()}/${widget.totalCarbsGoal.toInt()} g',
-                    style: Theme.of(context).textTheme.titleSmall,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color:
+                            Theme.of(context).colorScheme.onSurface),
                   ),
                   Text(
                     S.of(context).carbsLabel,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color:
+                            Theme.of(context).colorScheme.onSurface),
                   )
                 ],
               ),
@@ -67,6 +73,8 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
               percent: getGoalPercentage(
                   widget.totalFatsGoal, widget.totalFatsIntake),
               progressColor: Theme.of(context).colorScheme.primary,
+              backgroundColor:
+                  Theme.of(context).colorScheme.primary.withAlpha(50),
               circularStrokeCap: CircularStrokeCap.round,
             ),
             Padding(
@@ -75,12 +83,15 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
                 children: [
                   Text(
                     "${widget.totalFatsIntake.toInt()}/${widget.totalFatsGoal.toInt()} g",
-                    style: Theme.of(context).textTheme.titleSmall,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color:
+                            Theme.of(context).colorScheme.onSurface),
                   ),
-                  Text(
-                    S.of(context).fatLabel,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  )
+                  Text(S.of(context).fatLabel,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface)),
                 ],
               ),
             )
@@ -95,6 +106,8 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
               percent: getGoalPercentage(
                   widget.totalProteinsGoal, widget.totalProteinsIntake),
               progressColor: Theme.of(context).colorScheme.primary,
+              backgroundColor:
+                  Theme.of(context).colorScheme.primary.withAlpha(50),
               circularStrokeCap: CircularStrokeCap.round,
             ),
             Padding(
@@ -103,11 +116,15 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
                 children: [
                   Text(
                     "${widget.totalProteinsIntake.toInt()}/${widget.totalProteinsGoal.toInt()} g",
-                    style: Theme.of(context).textTheme.titleSmall,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color:
+                            Theme.of(context).colorScheme.onSurface),
                   ),
                   Text(
                     S.of(context).proteinLabel,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color:
+                            Theme.of(context).colorScheme.onSurface),
                   )
                 ],
               ),

@@ -26,11 +26,13 @@ class MealIntakeList extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: Row(
             children: [
-              Icon(listIcon, size: 24),
+              Icon(listIcon,
+                  size: 24, color: Theme.of(context).colorScheme.onBackground),
               const SizedBox(width: 4.0),
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground),
               ),
             ],
           ),
