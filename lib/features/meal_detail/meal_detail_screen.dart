@@ -83,36 +83,45 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         controller: _scrollController,
         children: [
           const SizedBox(height: 16),
-          AutoSizeText.rich(
-              minFontSize: 6,
-              maxFontSize: 16,
-              TextSpan(
-                  text: meal.name ?? '',
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onBackground),
-                  children: [
-                    TextSpan(
-                        text: ' ${meal.brands ?? ''}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .displaySmall
-                            ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onBackground
-                                    .withOpacity(0.8)))
-                  ]),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis),
-          Center(
-            child: Text('${meal.mealQuantity ?? ""} g',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onBackground
-                        .withOpacity(0.8))),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: AutoSizeText.rich(
+                minFontSize: 6,
+                maxFontSize: 16,
+                TextSpan(
+                    text: meal.name ?? '',
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onBackground),
+                    children: [
+                      TextSpan(
+                          text: ' ${meal.brands ?? ''}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .displaySmall
+                              ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onBackground
+                                      .withOpacity(0.7)))
+                    ]),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis),
           ),
+          meal.mealQuantity != null
+              ? Center(
+                  child: Text(
+                      '${meal.mealQuantity ?? ""} ${meal.mealUnit ?? ""} ',
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onBackground
+                                  .withOpacity(0.8))),
+                )
+              : const SizedBox(),
           const SizedBox(height: 16),
           Center(
             child: ClipRRect(
