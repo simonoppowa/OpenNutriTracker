@@ -71,22 +71,22 @@ class BMIOverview extends StatelessWidget {
     Color theme;
     switch (nutritionalStatus) {
       case UserNutritionalStatus.underWeight:
-        theme = Theme.of(context).colorScheme.error.withOpacity(0.1);
+        theme = Theme.of(context).colorScheme.errorContainer.withOpacity(0.1);
         break;
       case UserNutritionalStatus.normalWeight:
         theme = Theme.of(context).colorScheme.primaryContainer.withOpacity(0.6);
         break;
       case UserNutritionalStatus.preObesity:
-        theme = Theme.of(context).colorScheme.error.withOpacity(0.1);
+        theme = Theme.of(context).colorScheme.errorContainer.withOpacity(0.2);
         break;
       case UserNutritionalStatus.obesityClassI:
-        theme = Theme.of(context).colorScheme.error.withOpacity(0.4);
+        theme = Theme.of(context).colorScheme.errorContainer.withOpacity(0.4);
         break;
       case UserNutritionalStatus.obesityClassII:
-        theme = Theme.of(context).colorScheme.error.withOpacity(0.7);
+        theme = Theme.of(context).colorScheme.errorContainer.withOpacity(0.7);
         break;
       case UserNutritionalStatus.obesityClassIII:
-        theme = Theme.of(context).colorScheme.error;
+        theme = Theme.of(context).colorScheme.errorContainer;
         break;
     }
     return theme;

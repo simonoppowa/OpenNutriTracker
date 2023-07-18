@@ -19,25 +19,31 @@ class AddItemBottomSheet extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Text(
             S.of(context).addItemLabel,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface),
           ),
         ),
         ListTile(
           title: Text(
             S.of(context).activityLabel,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
           subtitle: Text(
             S.of(context).activityExample,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
               height: double.infinity,
-              child: Icon(UserActivityEntity.getIconData())),
+              child: Icon(
+                UserActivityEntity.getIconData(),
+                color: Theme.of(context).colorScheme.onSurface,
+              )),
           onTap: () {
             _showAddActivityScreen(context);
           },
@@ -46,11 +52,15 @@ class AddItemBottomSheet extends StatelessWidget {
         ListTile(
           title: Text(
             S.of(context).breakfastLabel,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
           subtitle: Text(
             S.of(context).breakfastExample,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
@@ -63,11 +73,15 @@ class AddItemBottomSheet extends StatelessWidget {
         ListTile(
           title: Text(
             S.of(context).lunchLabel,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
           subtitle: Text(
             S.of(context).lunchExample,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
@@ -80,11 +94,15 @@ class AddItemBottomSheet extends StatelessWidget {
         ListTile(
           title: Text(
             S.of(context).dinnerLabel,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
           subtitle: Text(
             S.of(context).dinnerExample,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
@@ -97,11 +115,15 @@ class AddItemBottomSheet extends StatelessWidget {
         ListTile(
           title: Text(
             S.of(context).snackLabel,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
           subtitle: Text(
             S.of(context).snackExample,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(

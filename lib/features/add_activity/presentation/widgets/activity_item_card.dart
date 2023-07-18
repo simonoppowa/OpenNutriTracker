@@ -32,21 +32,22 @@ class ActivityItemCard extends StatelessWidget {
               ),
               title: AutoSizeText(
                 physicalActivityEntity.getName(context),
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               subtitle: AutoSizeText(
                 physicalActivityEntity.description,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
               trailing: IconButton(
                 style: IconButton.styleFrom(
                     foregroundColor:
-                        Theme.of(context).colorScheme.onPrimaryContainer,
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer),
+                        Theme.of(context).colorScheme.onSurface),
                 icon: const Icon(Icons.add_outlined),
                 onPressed: () => _onItemPressed(context),
               ),

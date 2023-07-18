@@ -50,7 +50,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                 color: Theme.of(context).colorScheme.outline,
                 width: 0.5,
               ),
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(32),
                 topRight: Radius.circular(32),

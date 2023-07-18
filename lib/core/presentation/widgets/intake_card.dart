@@ -51,7 +51,7 @@ class IntakeCard extends StatelessWidget {
               Container(
                 // Add color shade
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withAlpha(80),
+                  color: Theme.of(context).colorScheme.surface.withAlpha(90),
                 ),
               ),
               Container(
@@ -81,8 +81,8 @@ class IntakeCard extends StatelessWidget {
                         style: Theme.of(context)
                             .textTheme
                             .titleMedium
-                            ?.copyWith(
-                                color: Theme.of(context).colorScheme.onPrimary),
+                            ?.copyWith(fontWeight: FontWeight.w500,
+                                color: Theme.of(context).colorScheme.onSurface),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -91,8 +91,8 @@ class IntakeCard extends StatelessWidget {
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
-                                .onPrimary
-                                .withOpacity(0.8)),
+                                .onSurface
+                                .withOpacity(0.7)),
                         maxLines: 1,
                       ),
                     ],
