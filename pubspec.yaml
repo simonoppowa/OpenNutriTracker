@@ -84,7 +84,9 @@ flutter:
 
   assets:
     - assets/icon/ont_logo_square.png
+    - assets/icon/ont_logo_square_light.png
     - assets/icon/ont_banner_top.png
+    - assets/icon/ont_banner_top_light.png
 
   fonts:
     - family: CustomIcons

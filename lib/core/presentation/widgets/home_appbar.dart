@@ -12,7 +12,10 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           SizedBox(
             width: 40,
-            child: Image.asset('assets/icon/ont_logo_square.png'),
+            child: Image.asset(
+                MediaQuery.of(context).platformBrightness == Brightness.light
+                    ? 'assets/icon/ont_logo_square.png'
+                    : 'assets/icon/ont_logo_square_light.png'),
           ),
           Row(
             children: [
