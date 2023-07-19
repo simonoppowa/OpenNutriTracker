@@ -17,21 +17,24 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
                     ? 'assets/icon/ont_logo_square.png'
                     : 'assets/icon/ont_logo_square_light.png'),
           ),
-          Row(
-            children: [
-              Text(S.of(context).appTitle,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: Theme.of(context).colorScheme.onBackground)),
-              const SizedBox(width: 5),
-              Text(
-                S.of(context).alphaVersionName,
-                style: TextStyle(
-                    fontWeight: FontWeight.w500,
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                text: S.of(context).appTitle,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onBackground),
+                children: <TextSpan>[
+                  TextSpan(
+                      text: ' ${S.of(context).alphaVersionName}',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: Theme.of(context).colorScheme.onBackground)),
+                ],
               ),
-            ],
-          )
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
       actions: [
