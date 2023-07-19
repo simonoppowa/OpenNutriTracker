@@ -77,7 +77,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             expandedHeight: 200,
             flexibleSpace: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
-              var top = constraints.biggest.height;
+              final top = constraints.biggest.height;
               return FlexibleSpaceBar(
                   expandedTitleScale: 1, // don't scale title
                   background: MealTitleExpanded(meal: meal),
