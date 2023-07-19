@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -14,6 +13,7 @@ import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_nutriments_table.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_info_button.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_placeholder.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_title_expanded.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailScreen extends StatefulWidget {
@@ -69,109 +69,91 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-              onPressed: () {
-                Navigator.of(context).pushNamed(NavigationOptions.editMealRoute,
-                    arguments: EditMealScreenArguments(meal, intakeTypeEntity));
-              },
-              icon: const Icon(Icons.edit_outlined))
-        ],
-      ),
-      body: ListView(
+      body: CustomScrollView(
         controller: _scrollController,
-        children: [
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: AutoSizeText.rich(
-                minFontSize: 6,
-                maxFontSize: 16,
-                TextSpan(
-                    text: meal.name ?? '',
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onBackground),
-                    children: [
-                      TextSpan(
-                          text: ' ${meal.brands ?? ''}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .displaySmall
-                              ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onBackground
-                                      .withOpacity(0.7)))
-                    ]),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis),
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 200,
+            flexibleSpace: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+              var top = constraints.biggest.height;
+              return FlexibleSpaceBar(
+                  expandedTitleScale: 1, // don't scale title
+                  background: MealTitleExpanded(meal: meal),
+                  title: AnimatedOpacity(
+                      opacity: 1.0,
+                      duration: const Duration(milliseconds: 300),
+                      child: top > 71 && top < 91
+                          ? Text(meal.name ?? '',
+                              style: Theme.of(context).textTheme.titleLarge,
+                              overflow: TextOverflow.ellipsis)
+                          : const SizedBox()));
+            }),
+            actions: [
+              IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(
+                        NavigationOptions.editMealRoute,
+                        arguments:
+                            EditMealScreenArguments(meal, intakeTypeEntity));
+                  },
+                  icon: const Icon(Icons.edit_outlined))
+            ],
           ),
-          meal.mealQuantity != null
-              ? Center(
-                  child: Text(
-                      '${meal.mealQuantity ?? ""} ${meal.mealUnit ?? ""} ',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onBackground
-                                  .withOpacity(0.8))),
-                )
-              : const SizedBox(),
-          const SizedBox(height: 16),
-          Center(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(80),
-              child: CachedNetworkImage(
-                width: 250,
-                height: 250,
-                cacheManager: locator<CacheManager>(),
-                imageUrl: meal.mainImageUrl ?? "",
-                fit: BoxFit.cover,
-                placeholder: (context, string) => const MealPlaceholder(),
-                errorWidget: (context, url, error) => const MealPlaceholder(),
+          SliverList(
+              delegate: SliverChildListDelegate([
+            const SizedBox(height: 16),
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(80),
+                child: CachedNetworkImage(
+                  width: 250,
+                  height: 250,
+                  cacheManager: locator<CacheManager>(),
+                  imageUrl: meal.mainImageUrl ?? "",
+                  fit: BoxFit.cover,
+                  placeholder: (context, string) => const MealPlaceholder(),
+                  errorWidget: (context, url, error) => const MealPlaceholder(),
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Text('${totalKcal.toInt()} ${S.of(context).kcalLabel}',
-                        style: Theme.of(context).textTheme.headlineSmall),
-                    Text(
-                        ' / ${totalQuantity.toInt()} ${meal.mealUnit ?? S.of(context).gramMilliliterUnit}')
-                  ],
-                ),
-                const SizedBox(height: 8.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    MealDetailMacroNutrients(
-                        typeString: S.of(context).carbsLabel,
-                        value: totalCarbs),
-                    MealDetailMacroNutrients(
-                        typeString: S.of(context).fatLabel, value: totalFat),
-                    MealDetailMacroNutrients(
-                        typeString: S.of(context).proteinLabel,
-                        value: totalProtein)
-                  ],
-                ),
-                const Divider(),
-                const SizedBox(height: 16.0),
-                MealDetailNutrimentsTable(product: meal),
-                const SizedBox(height: 32.0),
-                MealInfoButton(url: meal.url, source: meal.source),
-                const SizedBox(height: 200.0) // height added to scroll
-              ],
-            ),
-          )
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Text('${totalKcal.toInt()} ${S.of(context).kcalLabel}',
+                          style: Theme.of(context).textTheme.headlineSmall),
+                      Text(
+                          ' / ${totalQuantity.toInt()} ${meal.mealUnit ?? S.of(context).gramMilliliterUnit}')
+                    ],
+                  ),
+                  const SizedBox(height: 8.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      MealDetailMacroNutrients(
+                          typeString: S.of(context).carbsLabel,
+                          value: totalCarbs),
+                      MealDetailMacroNutrients(
+                          typeString: S.of(context).fatLabel, value: totalFat),
+                      MealDetailMacroNutrients(
+                          typeString: S.of(context).proteinLabel,
+                          value: totalProtein)
+                    ],
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 16.0),
+                  MealDetailNutrimentsTable(product: meal),
+                  const SizedBox(height: 32.0),
+                  MealInfoButton(url: meal.url, source: meal.source),
+                  const SizedBox(height: 200.0) // height added to scroll
+                ],
+              ),
+            )
+          ]))
         ],
       ),
       bottomSheet: MealDetailBottomSheet(
