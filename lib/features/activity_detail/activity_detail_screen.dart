@@ -20,7 +20,7 @@ class ActivityDetailScreen extends StatefulWidget {
 }
 
 class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
-  static const _containerSize = 300.0;
+  static const _containerSize = 250.0;
 
   final log = Logger('ItemDetailScreen');
   final _scrollController = ScrollController();
@@ -112,14 +112,20 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
             )),
         SliverList(
             delegate: SliverChildListDelegate([
-          Container(
-            height: _containerSize,
-            decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.secondaryContainer),
-            child: Icon(
-              activityEntity.displayIcon,
-              size: 48,
-              color: Theme.of(context).colorScheme.onSecondaryContainer,
+          Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(80),
+              child: Container(
+                width: _containerSize,
+                height: _containerSize,
+                decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondaryContainer),
+                child: Icon(
+                  activityEntity.displayIcon,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
+              ),
             ),
           ),
           Padding(
@@ -163,7 +169,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   }
 
   void scrollToCalorieText() {
-    _scrollController.animateTo(_containerSize - 50,
+    _scrollController.animateTo(_containerSize,
         duration: const Duration(seconds: 1), curve: Curves.easeInOut);
   }
 
