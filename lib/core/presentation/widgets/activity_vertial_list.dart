@@ -38,8 +38,11 @@ class ActivityVerticalList extends StatelessWidget {
         userActivityList.isEmpty
             ? Align(
                 alignment: Alignment.centerLeft,
-                child: PlaceholderIntakeCard(
-                    icon: UserActivityEntity.getIconData()))
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: PlaceholderIntakeCard(
+                      icon: UserActivityEntity.getIconData()),
+                ))
             : SizedBox(
                 height: 160,
                 child: ListView.builder(

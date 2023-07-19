@@ -40,8 +40,11 @@ class IntakeVerticalList extends StatelessWidget {
         intakeList.isEmpty
             ? Align(
                 alignment: Alignment.centerLeft,
-                child: PlaceholderIntakeCard(
-                  icon: listIcon,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: PlaceholderIntakeCard(
+                    icon: listIcon,
+                  ),
                 ))
             : SizedBox(
                 height: 120,
