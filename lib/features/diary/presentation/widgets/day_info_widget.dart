@@ -102,7 +102,15 @@ class DayInfoWidget extends StatelessWidget {
                       : const SizedBox()
                 ],
               )
-            : Text(S.of(context).nothingAddedLabel),
+            : Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(S.of(context).nothingAddedLabel,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onBackground
+                            .withOpacity(0.7))),
+              ),
       ],
     );
   }
