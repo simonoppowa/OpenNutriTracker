@@ -86,7 +86,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "createCustomDialogContent": MessageLookupByLibrary.simpleMessage(
             "Möchten Sie einen benutzerdefinierte Mahlzeit erstellen?"),
         "createCustomDialogTitle": MessageLookupByLibrary.simpleMessage(
-            "Benutzerdefinierten Mahlzeitenartikel erstellen?"),
+            "Benutzerdefinierte Mahlzeit erstellen?"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Möchten Sie den ausgewählten Eintrag löschen?"),
         "deleteTimeDialogTitle":
@@ -597,7 +597,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsCalculationsLabel":
             MessageLookupByLibrary.simpleMessage("Berechnungen"),
         "settingsDisclaimerLabel":
-            MessageLookupByLibrary.simpleMessage("Haftungsausschluss"),
+            MessageLookupByLibrary.simpleMessage("Hinweis"),
         "settingsDistanceLabel":
             MessageLookupByLibrary.simpleMessage("Entfernung"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Einstellungen"),
