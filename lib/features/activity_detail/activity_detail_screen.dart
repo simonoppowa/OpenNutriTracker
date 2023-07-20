@@ -104,7 +104,14 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                     opacity: 1.0,
                     duration: const Duration(milliseconds: 300),
                     child: top > 71 && top < 91
-                        ? Text(activityEntity.getName(context))
+                        ? Text(activityEntity.getName(context),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onBackground))
                         : const SizedBox(),
                   ),
                 );
