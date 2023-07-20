@@ -11,9 +11,9 @@
   <a href="https://github.com/simonoppowa/OpenNutriTracker/issues" alt="GitHub Issues">
         <img src="https://img.shields.io/github/issues/simonoppowa/OpenNutriTracker.svg" /></a>
   <a href="https://github.com/simonoppowa/OpenNutriTracker/pulls" alt="GitHub Pull Requests">
-        <img src="https://img.shields.io/github/issues-pr/simonoppowa/OpenNutriTracker.svg" /></a> 
+        <img src="https://img.shields.io/github/issues-pr/simonoppowa/OpenNutriTracker.svg" /></a>
   <a alt="Version">
-        <img src="https://img.shields.io/badge/version-alpha-orange.svg" /></a> 
+        <img src="https://img.shields.io/badge/version-alpha-orange.svg" /></a>
 </p>
 
 ## Description
@@ -22,11 +22,11 @@ OpenNutriTracker is an open-source mobile application designed to simplify nutri
 ## Screenshots
 <p align="center">
   <img alt="Logo" src="screenshots/screenshot_home.png" width="20%" />
-  &nbsp;&nbsp; 
+  &nbsp;&nbsp;
   <img alt="Logo" src="screenshots/screenshot_product_detail.png" width="20%" />
-  &nbsp;&nbsp; 
-  <img alt="Logo" src="screenshots/screenshot_product_search.png" width="20%" />
-  &nbsp;&nbsp; 
+  &nbsp;&nbsp;
+  <img alt="Logo" src="screenshots/screenshot_activity_search.png" width="20%" />
+  &nbsp;&nbsp;
   <img alt="Logo" src="screenshots/screenshot_profile.png" width="20%" />
 </p>
 
