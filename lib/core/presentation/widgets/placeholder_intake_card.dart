@@ -15,10 +15,12 @@ class PlaceholderIntakeCard extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.0),
         ),
-        //elevation: 4,
-        color: Theme.of(context).colorScheme.surface,
         child: Icon(icon,
-            size: 36, color: Theme.of(context).colorScheme.onSurface),
+            size: 36,
+            color: Theme.of(context)
+                .colorScheme
+                .onSurface
+                .withOpacity(0.8)),
       ),
     );
   }

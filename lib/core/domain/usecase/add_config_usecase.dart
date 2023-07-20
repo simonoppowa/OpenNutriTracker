@@ -1,4 +1,5 @@
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 
 class AddConfigUsecase {
@@ -18,5 +19,9 @@ class AddConfigUsecase {
       bool hasAcceptedAnonymousData) async {
     _configRepository
         .setConfigHasAcceptedAnonymousData(hasAcceptedAnonymousData);
+  }
+
+  Future<void> setConfigAppTheme(AppThemeEntity appTheme) async {
+    await _configRepository.setConfigAppTheme(appTheme);
   }
 }

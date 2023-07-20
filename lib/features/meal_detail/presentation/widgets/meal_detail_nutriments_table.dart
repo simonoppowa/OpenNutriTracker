@@ -23,10 +23,12 @@ class MealDetailNutrimentsTable extends StatelessWidget {
       children: [
         Text(S.of(context).nutritionInfoLabel,
             style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8.0),
+        const SizedBox(height: 16.0),
         Table(
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          border: TableBorder.all(),
+          border: TableBorder.all(
+              color:
+                  Theme.of(context).colorScheme.onBackground.withOpacity(0.5)),
           children: <TableRow>[
             _getNutrimentsTableRow(
                 "", S.of(context).per100gLabel, textStyleBold),

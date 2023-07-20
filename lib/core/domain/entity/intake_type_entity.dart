@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
+import 'package:opennutritracker/core/utils/custom_icons.dart';
 
 enum IntakeTypeEntity {
   breakfast,
@@ -23,5 +25,23 @@ enum IntakeTypeEntity {
         break;
     }
     return intakeTypeEntity;
+  }
+
+  IconData getIconData() {
+    IconData icon;
+    switch (this) {
+      case IntakeTypeEntity.breakfast:
+        icon = Icons.bakery_dining_outlined;
+        break;
+      case IntakeTypeEntity.lunch:
+        icon = Icons.lunch_dining_outlined;
+        break;
+      case IntakeTypeEntity.dinner:
+        icon = Icons.dinner_dining_outlined;
+        break;
+      case IntakeTypeEntity.snack:
+        icon = CustomIcons.food_apple_outline;
+    }
+    return icon;
   }
 }

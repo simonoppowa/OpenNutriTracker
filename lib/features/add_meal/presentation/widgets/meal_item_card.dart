@@ -31,22 +31,40 @@ class MealItemCard extends StatelessWidget {
           child: Center(
               child: ListTile(
             leading: mealEntity.thumbnailImageUrl != null
-                ? ClipOval(
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
                     child: CachedNetworkImage(
-                    cacheManager: locator<CacheManager>(),
-                    fit: BoxFit.cover,
-                    width: 60,
-                    height: 60,
-                    imageUrl: mealEntity.thumbnailImageUrl ?? "",
-                  ))
-                : ClipOval(
+                      cacheManager: locator<CacheManager>(),
+                      fit: BoxFit.cover,
+                      width: 60,
+                      height: 60,
+                      imageUrl: mealEntity.thumbnailImageUrl ?? "",
+                    ))
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
                     child: Container(
                         width: 60,
                         height: 60,
                         color: Theme.of(context).colorScheme.secondaryContainer,
                         child: const Icon(Icons.restaurant_outlined)),
                   ),
-            title: AutoSizeText(mealEntity.name ?? "?",
+            title: AutoSizeText.rich(
+                TextSpan(
+                    text: mealEntity.name ?? "?",
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onBackground),
+                    children: [
+                      TextSpan(
+                          text: ' ${mealEntity.brands ?? ""}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onBackground
+                                      .withOpacity(0.8)))
+                    ]),
                 style: Theme.of(context).textTheme.titleLarge,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis),

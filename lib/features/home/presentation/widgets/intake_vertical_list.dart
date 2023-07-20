@@ -3,13 +3,13 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_intake_card.dart';
 
-class MealIntakeList extends StatelessWidget {
+class IntakeVerticalList extends StatelessWidget {
   final String title;
   final IconData listIcon;
   final List<IntakeEntity> intakeList;
   final Function(BuildContext, IntakeEntity) onItemLongPressedCallback;
 
-  const MealIntakeList(
+  const IntakeVerticalList(
       {Key? key,
       required this.title,
       required this.listIcon,
@@ -22,18 +22,29 @@ class MealIntakeList extends StatelessWidget {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 8.0),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           alignment: Alignment.centerLeft,
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge,
+          child: Row(
+            children: [
+              Icon(listIcon,
+                  size: 24, color: Theme.of(context).colorScheme.onBackground),
+              const SizedBox(width: 4.0),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground),
+              ),
+            ],
           ),
         ),
         intakeList.isEmpty
             ? Align(
                 alignment: Alignment.centerLeft,
-                child: PlaceholderIntakeCard(
-                  icon: listIcon,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: PlaceholderIntakeCard(
+                    icon: listIcon,
+                  ),
                 ))
             : SizedBox(
                 height: 120,
@@ -45,7 +56,8 @@ class MealIntakeList extends StatelessWidget {
                     return IntakeCard(
                         key: ValueKey(intakeEntity.meal.code),
                         intake: intakeEntity,
-                        onItemLongPressed: onItemLongPressedCallback);
+                        onItemLongPressed: onItemLongPressedCallback,
+                        firstListElement: index == 0 ? true : false);
                   },
                 ),
               ),

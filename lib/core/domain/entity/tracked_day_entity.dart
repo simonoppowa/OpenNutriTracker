@@ -24,7 +24,7 @@ class TrackedDayEntity extends Equatable {
     if (calorieGoal - caloriesTracked < 500) {
       return Theme.of(context).colorScheme.primaryContainer;
     } else {
-      return Theme.of(context).colorScheme.error;
+      return Theme.of(context).colorScheme.errorContainer;
     }
   }
 

@@ -86,7 +86,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "createCustomDialogContent": MessageLookupByLibrary.simpleMessage(
             "Möchten Sie einen benutzerdefinierte Mahlzeit erstellen?"),
         "createCustomDialogTitle": MessageLookupByLibrary.simpleMessage(
-            "Benutzerdefinierten Mahlzeitenartikel erstellen?"),
+            "Benutzerdefinierte Mahlzeit erstellen?"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Möchten Sie den ausgewählten Eintrag löschen?"),
         "deleteTimeDialogTitle":
@@ -597,7 +597,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsCalculationsLabel":
             MessageLookupByLibrary.simpleMessage("Berechnungen"),
         "settingsDisclaimerLabel":
-            MessageLookupByLibrary.simpleMessage("Haftungsausschluss"),
+            MessageLookupByLibrary.simpleMessage("Hinweis"),
         "settingsDistanceLabel":
             MessageLookupByLibrary.simpleMessage("Entfernung"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Einstellungen"),
@@ -610,6 +610,12 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Fehler melden"),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Quellcode"),
+        "settingsThemeDarkLabel":
+            MessageLookupByLibrary.simpleMessage("Dunkel"),
+        "settingsThemeLabel": MessageLookupByLibrary.simpleMessage("Thema"),
+        "settingsThemeLightLabel": MessageLookupByLibrary.simpleMessage("Hell"),
+        "settingsThemeSystemDefaultLabel":
+            MessageLookupByLibrary.simpleMessage("Systemstandard"),
         "settingsUnitsLabel": MessageLookupByLibrary.simpleMessage("Einheiten"),
         "settingsVolumeLabel": MessageLookupByLibrary.simpleMessage("Volumen"),
         "snackExample": MessageLookupByLibrary.simpleMessage(

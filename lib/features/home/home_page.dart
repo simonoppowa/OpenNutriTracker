@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
-import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
-import 'package:opennutritracker/features/home/presentation/widgets/meal_intake_list.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class HomePage extends StatefulWidget {
@@ -91,52 +91,49 @@ class _HomePageState extends State<HomePage> {
     if (showDisclaimerDialog) {
       _showDisclaimerDialog(context);
     }
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 0.0),
-      child: ListView(children: [
-        DashboardWidget(
-          totalKcalDaily: totalKcalDaily,
-          totalKcalLeft: totalKcalLeft,
-          totalKcalSupplied: totalKcalSupplied,
-          totalKcalBurned: totalKcalBurned,
-          totalCarbsIntake: totalCarbsIntake,
-          totalFatsIntake: totalFatsIntake,
-          totalProteinsIntake: totalProteinsIntake,
-          totalCarbsGoal: totalCarbsGoal,
-          totalFatsGoal: totalFatsGoal,
-          totalProteinsGoal: totalProteinsGoal,
-        ),
-        ActivityVerticalList(
-          title: S.of(context).activityLabel,
-          userActivityList: userActivities,
-          onItemLongPressedCallback: onActivityItemLongPressed,
-        ),
-        MealIntakeList(
-          title: S.of(context).breakfastLabel,
-          listIcon: Icons.bakery_dining_outlined,
-          intakeList: breakfastIntakeList,
-          onItemLongPressedCallback: onIntakeItemLongPressed,
-        ),
-        MealIntakeList(
-          title: S.of(context).lunchLabel,
-          listIcon: Icons.lunch_dining_outlined,
-          intakeList: lunchIntakeList,
-          onItemLongPressedCallback: onIntakeItemLongPressed,
-        ),
-        MealIntakeList(
-          title: S.of(context).dinnerLabel,
-          listIcon: Icons.dinner_dining_outlined,
-          intakeList: dinnerIntakeList,
-          onItemLongPressedCallback: onIntakeItemLongPressed,
-        ),
-        MealIntakeList(
-          title: S.of(context).snackLabel,
-          listIcon: CustomIcons.food_apple_outline,
-          intakeList: snackIntakeList,
-          onItemLongPressedCallback: onIntakeItemLongPressed,
-        )
-      ]),
-    );
+    return ListView(children: [
+      DashboardWidget(
+        totalKcalDaily: totalKcalDaily,
+        totalKcalLeft: totalKcalLeft,
+        totalKcalSupplied: totalKcalSupplied,
+        totalKcalBurned: totalKcalBurned,
+        totalCarbsIntake: totalCarbsIntake,
+        totalFatsIntake: totalFatsIntake,
+        totalProteinsIntake: totalProteinsIntake,
+        totalCarbsGoal: totalCarbsGoal,
+        totalFatsGoal: totalFatsGoal,
+        totalProteinsGoal: totalProteinsGoal,
+      ),
+      ActivityVerticalList(
+        title: S.of(context).activityLabel,
+        userActivityList: userActivities,
+        onItemLongPressedCallback: onActivityItemLongPressed,
+      ),
+      IntakeVerticalList(
+        title: S.of(context).breakfastLabel,
+        listIcon: IntakeTypeEntity.breakfast.getIconData(),
+        intakeList: breakfastIntakeList,
+        onItemLongPressedCallback: onIntakeItemLongPressed,
+      ),
+      IntakeVerticalList(
+        title: S.of(context).lunchLabel,
+        listIcon: IntakeTypeEntity.lunch.getIconData(),
+        intakeList: lunchIntakeList,
+        onItemLongPressedCallback: onIntakeItemLongPressed,
+      ),
+      IntakeVerticalList(
+        title: S.of(context).dinnerLabel,
+        listIcon: IntakeTypeEntity.dinner.getIconData(),
+        intakeList: dinnerIntakeList,
+        onItemLongPressedCallback: onIntakeItemLongPressed,
+      ),
+      IntakeVerticalList(
+        title: S.of(context).snackLabel,
+        listIcon: IntakeTypeEntity.snack.getIconData(),
+        intakeList: snackIntakeList,
+        onItemLongPressedCallback: onIntakeItemLongPressed,
+      )
+    ]);
   }
 
   void onActivityItemLongPressed(

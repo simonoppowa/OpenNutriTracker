@@ -5,7 +5,7 @@
   "alphaVersionName": "[Alpha]",
 
   "addLabel": "Hinzufügen",
-  "createCustomDialogTitle": "Benutzerdefinierten Mahlzeitenartikel erstellen?",
+  "createCustomDialogTitle": "Benutzerdefinierte Mahlzeit erstellen?",
   "createCustomDialogContent": "Möchten Sie einen benutzerdefinierte Mahlzeit erstellen?",
   "settingsLabel": "Einstellungen",
   "homeLabel": "Startseite",
@@ -49,8 +49,12 @@
 
   "settingsUnitsLabel": "Einheiten",
   "settingsCalculationsLabel": "Berechnungen",
+  "settingsThemeLabel": "Thema",
+  "settingsThemeLightLabel": "Hell",
+  "settingsThemeDarkLabel": "Dunkel",
+  "settingsThemeSystemDefaultLabel": "Systemstandard",
   "settingsLicensesLabel": "Lizenzen",
-  "settingsDisclaimerLabel": "Haftungsausschluss",
+  "settingsDisclaimerLabel": "Hinweis",
   "settingsReportErrorLabel": "Fehler melden",
   "settingsPrivacySettings": "Datenschutzeinstellungen",
   "settingsSourceCodeLabel": "Quellcode",
