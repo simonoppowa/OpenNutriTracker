@@ -21,8 +21,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
-  late HomeBloc _homeBloc;
   final log = Logger('HomePage');
+
+  late HomeBloc _homeBloc;
 
   @override
   void initState() {

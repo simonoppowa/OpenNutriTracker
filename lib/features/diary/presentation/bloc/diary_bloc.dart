@@ -13,15 +13,17 @@ part 'diary_state.dart';
 class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
   final GetTrackedDayUsecase _getDayTrackedUsecase;
 
+  DateTime currentDay = DateTime.now();
+
   DiaryBloc(this._getDayTrackedUsecase) : super(DiaryInitial()) {
     on<LoadDiaryYearEvent>((event, emit) async {
       emit(DiaryLoadingState());
 
-      final currentDate = DateTime.now();
+      currentDay = DateTime.now();
       const yearDuration = Duration(days: 356);
 
       final trackedDays = await _getDayTrackedUsecase.getTrackedDaysByRange(
-          currentDate.subtract(yearDuration), currentDate.add(yearDuration));
+          currentDay.subtract(yearDuration), currentDay.add(yearDuration));
 
       final trackedDaysMap = {
         for (var trackedDay in trackedDays)
