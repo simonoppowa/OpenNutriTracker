@@ -49,6 +49,10 @@
 
   "settingsUnitsLabel": "Units",
   "settingsCalculationsLabel": "Calculations",
+  "settingsThemeLabel": "Theme",
+  "settingsThemeLightLabel": "Light",
+  "settingsThemeDarkLabel": "Dark",
+  "settingsThemeSystemDefaultLabel": "System default",
   "settingsLicensesLabel": "Licenses",
   "settingsDisclaimerLabel": "Disclaimer",
   "settingsReportErrorLabel": "Report Error",

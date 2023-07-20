@@ -49,6 +49,10 @@
 
   "settingsUnitsLabel": "Einheiten",
   "settingsCalculationsLabel": "Berechnungen",
+  "settingsThemeLabel": "Thema",
+  "settingsThemeLightLabel": "Hell",
+  "settingsThemeDarkLabel": "Dunkel",
+  "settingsThemeSystemDefaultLabel": "Systemstandard",
   "settingsLicensesLabel": "Lizenzen",
   "settingsDisclaimerLabel": "Haftungsausschluss",
   "settingsReportErrorLabel": "Fehler melden",

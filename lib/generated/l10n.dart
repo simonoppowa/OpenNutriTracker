@@ -510,6 +510,46 @@ class S {
     );
   }
 
+  /// `Theme`
+  String get settingsThemeLabel {
+    return Intl.message(
+      'Theme',
+      name: 'settingsThemeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Light`
+  String get settingsThemeLightLabel {
+    return Intl.message(
+      'Light',
+      name: 'settingsThemeLightLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Dark`
+  String get settingsThemeDarkLabel {
+    return Intl.message(
+      'Dark',
+      name: 'settingsThemeDarkLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System default`
+  String get settingsThemeSystemDefaultLabel {
+    return Intl.message(
+      'System default',
+      name: 'settingsThemeSystemDefaultLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Licenses`
   String get settingsLicensesLabel {
     return Intl.message(

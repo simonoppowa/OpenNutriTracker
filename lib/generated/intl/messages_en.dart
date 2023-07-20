@@ -593,6 +593,12 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Report Error"),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Source Code"),
+        "settingsThemeDarkLabel": MessageLookupByLibrary.simpleMessage("Dark"),
+        "settingsThemeLabel": MessageLookupByLibrary.simpleMessage("Theme"),
+        "settingsThemeLightLabel":
+            MessageLookupByLibrary.simpleMessage("Light"),
+        "settingsThemeSystemDefaultLabel":
+            MessageLookupByLibrary.simpleMessage("System default"),
         "settingsUnitsLabel": MessageLookupByLibrary.simpleMessage("Units"),
         "settingsVolumeLabel": MessageLookupByLibrary.simpleMessage("Volume"),
         "snackExample": MessageLookupByLibrary.simpleMessage(
