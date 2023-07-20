@@ -8,6 +8,9 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_info_button.dart';
+import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_title_expanded.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -19,7 +22,7 @@ class ActivityDetailScreen extends StatefulWidget {
 }
 
 class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
-  static const _containerSize = 300.0;
+  static const _containerSize = 250.0;
 
   final log = Logger('ItemDetailScreen');
   final _scrollController = ScrollController();
@@ -54,9 +57,6 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(activityEntity.getName(context)),
-      ),
       body: BlocBuilder<ActivityDetailBloc, ActivityDetailState>(
         bloc: _activityDetailBloc,
         builder: (context, state) {
@@ -90,39 +90,74 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   }
 
   Widget getLoadedContent(double totalKcalBurned, UserEntity userEntity) {
-    return ListView(
+    return CustomScrollView(
       controller: _scrollController,
-      children: [
-        Container(
-          height: _containerSize,
-          decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.secondaryContainer),
-          child: Icon(
-            activityEntity.displayIcon,
-            size: 48,
-            color: Theme.of(context).colorScheme.onSecondaryContainer,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  // set Focus
-                  Text('~${totalKcal.toInt()} ${S.of(context).kcalLabel}',
-                      style: Theme.of(context).textTheme.headlineSmall),
-                  Text(' / ${totalQuantity.toInt()} min')
-                ],
+      slivers: [
+        SliverAppBar(
+            pinned: true,
+            expandedHeight: 200,
+            flexibleSpace: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                final top = constraints.biggest.height;
+                return FlexibleSpaceBar(
+                  expandedTitleScale: 1, // don't scale title
+                  background: ActivityTitleExpanded(activity: activityEntity),
+                  title: AnimatedOpacity(
+                    opacity: 1.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: top > 71 && top < 91
+                        ? Text(activityEntity.getName(context),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onBackground))
+                        : const SizedBox(),
+                  ),
+                );
+              },
+            )),
+        SliverList(
+            delegate: SliverChildListDelegate([
+          Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(80),
+              child: Container(
+                width: _containerSize,
+                height: _containerSize,
+                decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondaryContainer),
+                child: Icon(
+                  activityEntity.displayIcon,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
               ),
-              const SizedBox(height: 8.0),
-              const Divider(),
-              const SizedBox(height: 48.0),
-              const ActivityInfoButton(),
-              const SizedBox(height: 200.0) // height added to scroll
-            ],
+            ),
           ),
-        )
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    // set Focus
+                    Text('~${totalKcal.toInt()} ${S.of(context).kcalLabel}',
+                        style: Theme.of(context).textTheme.headlineSmall),
+                    Text(' / ${totalQuantity.toInt()} min')
+                  ],
+                ),
+                const SizedBox(height: 8.0),
+                const Divider(),
+                const SizedBox(height: 48.0),
+                const ActivityInfoButton(),
+                const SizedBox(height: 200.0) // height added to scroll
+              ],
+            ),
+          )
+        ]))
       ],
     );
   }
@@ -143,7 +178,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   }
 
   void scrollToCalorieText() {
-    _scrollController.animateTo(_containerSize - 50,
+    _scrollController.animateTo(_containerSize,
         duration: const Duration(seconds: 1), curve: Curves.easeInOut);
   }
 
@@ -153,6 +188,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());
+
+    // Refresh Diary Page
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+    locator<CalendarDayBloc>().add(LoadCalendarDayEvent(DateTime.now()));
 
     // Show snackbar and return to dashboard
     ScaffoldMessenger.of(context).showSnackBar(

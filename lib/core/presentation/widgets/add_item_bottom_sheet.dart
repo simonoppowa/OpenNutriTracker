@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/utils/custom_icons.dart';
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
@@ -18,25 +19,31 @@ class AddItemBottomSheet extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Text(
             S.of(context).addItemLabel,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface),
           ),
         ),
         ListTile(
           title: Text(
             S.of(context).activityLabel,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
           subtitle: Text(
             S.of(context).activityExample,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
               height: double.infinity,
-              child: const Icon(Icons.sports_baseball_outlined)),
+              child: Icon(
+                UserActivityEntity.getIconData(),
+                color: Theme.of(context).colorScheme.onSurface,
+              )),
           onTap: () {
             _showAddActivityScreen(context);
           },
@@ -45,16 +52,20 @@ class AddItemBottomSheet extends StatelessWidget {
         ListTile(
           title: Text(
             S.of(context).breakfastLabel,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
           subtitle: Text(
             S.of(context).breakfastExample,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
               height: double.infinity,
-              child: const Icon(Icons.bakery_dining_outlined)),
+              child: Icon(IntakeTypeEntity.breakfast.getIconData())),
           onTap: () {
             _showAddItemScreen(context, AddMealType.breakfastType);
           },
@@ -62,16 +73,20 @@ class AddItemBottomSheet extends StatelessWidget {
         ListTile(
           title: Text(
             S.of(context).lunchLabel,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
           subtitle: Text(
             S.of(context).lunchExample,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
               height: double.infinity,
-              child: const Icon(Icons.lunch_dining_outlined)),
+              child: Icon(IntakeTypeEntity.lunch.getIconData())),
           onTap: () {
             _showAddItemScreen(context, AddMealType.lunchType);
           },
@@ -79,16 +94,20 @@ class AddItemBottomSheet extends StatelessWidget {
         ListTile(
           title: Text(
             S.of(context).dinnerLabel,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
           subtitle: Text(
             S.of(context).dinnerExample,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
               height: double.infinity,
-              child: const Icon(Icons.dinner_dining_outlined)),
+              child: Icon(IntakeTypeEntity.dinner.getIconData())),
           onTap: () {
             _showAddItemScreen(context, AddMealType.dinnerType);
           },
@@ -96,16 +115,20 @@ class AddItemBottomSheet extends StatelessWidget {
         ListTile(
           title: Text(
             S.of(context).snackLabel,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
           subtitle: Text(
             S.of(context).snackExample,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
               height: double.infinity,
-              child: const Icon(CustomIcons.food_apple_outline)),
+              child: Icon(IntakeTypeEntity.snack.getIconData())),
           onTap: () {
             _showAddItemScreen(context, AddMealType.snackType);
           },

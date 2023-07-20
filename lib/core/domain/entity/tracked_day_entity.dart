@@ -21,8 +21,8 @@ class TrackedDayEntity extends Equatable {
 
   // TODO Change calorie difference
   Color getRatingColor(BuildContext context) {
-    if (calorieGoal - caloriesTracked < 500) {
-      return Theme.of(context).colorScheme.primaryContainer;
+    if ((calorieGoal - caloriesTracked).abs() < 500) {
+      return Theme.of(context).colorScheme.primary;
     } else {
       return Theme.of(context).colorScheme.error;
     }

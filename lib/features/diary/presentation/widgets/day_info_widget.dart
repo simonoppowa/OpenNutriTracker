@@ -6,7 +6,7 @@ import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
-import 'package:opennutritracker/features/home/presentation/widgets/meal_intake_list.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class DayInfoWidget extends StatelessWidget {
@@ -38,70 +38,80 @@ class DayInfoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final trackedDay = trackedDayEntity;
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(DateFormat.yMMMMEEEEd().format(selectedDay),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(DateFormat.yMMMMEEEEd().format(selectedDay),
               style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 16.0),
-          trackedDay != null
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
+        ),
+        const SizedBox(height: 16.0),
+        trackedDay != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
                       _getCaloriesTrackedDisplayString(trackedDay),
                       style: Theme.of(context)
                           .textTheme
                           .titleLarge
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 8.0),
-                    userActivities.isNotEmpty
-                        ? ActivityVerticalList(
-                            title: S.of(context).activityLabel,
-                            userActivityList: userActivities,
-                            onItemLongPressedCallback:
-                                onActivityItemLongPressed)
-                        : const SizedBox(),
-                    breakfastIntake.isNotEmpty
-                        ? MealIntakeList(
-                            title: S.of(context).breakfastLabel,
-                            listIcon: Icons.bakery_dining_outlined,
-                            intakeList: breakfastIntake,
-                            onItemLongPressedCallback: onIntakeItemLongPressed,
-                          )
-                        : const SizedBox(),
-                    lunchIntake.isNotEmpty
-                        ? MealIntakeList(
-                            title: S.of(context).lunchLabel,
-                            listIcon: Icons.lunch_dining_outlined,
-                            intakeList: lunchIntake,
-                            onItemLongPressedCallback: onIntakeItemLongPressed,
-                          )
-                        : const SizedBox(),
-                    dinnerIntake.isNotEmpty
-                        ? MealIntakeList(
-                            title: S.of(context).dinnerLabel,
-                            listIcon: Icons.dinner_dining_outlined,
-                            intakeList: dinnerIntake,
-                            onItemLongPressedCallback: onIntakeItemLongPressed,
-                          )
-                        : const SizedBox(),
-                    snackIntake.isNotEmpty
-                        ? MealIntakeList(
-                            title: S.of(context).snackLabel,
-                            listIcon: CustomIcons.food_apple_outline,
-                            intakeList: snackIntake,
-                            onItemLongPressedCallback: onIntakeItemLongPressed,
-                          )
-                        : const SizedBox()
-                  ],
-                )
-              : Text(S.of(context).nothingAddedLabel),
-        ],
-      ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  userActivities.isNotEmpty
+                      ? ActivityVerticalList(
+                          title: S.of(context).activityLabel,
+                          userActivityList: userActivities,
+                          onItemLongPressedCallback: onActivityItemLongPressed)
+                      : const SizedBox(),
+                  breakfastIntake.isNotEmpty
+                      ? IntakeVerticalList(
+                          title: S.of(context).breakfastLabel,
+                          listIcon: Icons.bakery_dining_outlined,
+                          intakeList: breakfastIntake,
+                          onItemLongPressedCallback: onIntakeItemLongPressed,
+                        )
+                      : const SizedBox(),
+                  lunchIntake.isNotEmpty
+                      ? IntakeVerticalList(
+                          title: S.of(context).lunchLabel,
+                          listIcon: Icons.lunch_dining_outlined,
+                          intakeList: lunchIntake,
+                          onItemLongPressedCallback: onIntakeItemLongPressed,
+                        )
+                      : const SizedBox(),
+                  dinnerIntake.isNotEmpty
+                      ? IntakeVerticalList(
+                          title: S.of(context).dinnerLabel,
+                          listIcon: Icons.dinner_dining_outlined,
+                          intakeList: dinnerIntake,
+                          onItemLongPressedCallback: onIntakeItemLongPressed,
+                        )
+                      : const SizedBox(),
+                  snackIntake.isNotEmpty
+                      ? IntakeVerticalList(
+                          title: S.of(context).snackLabel,
+                          listIcon: CustomIcons.food_apple_outline,
+                          intakeList: snackIntake,
+                          onItemLongPressedCallback: onIntakeItemLongPressed,
+                        )
+                      : const SizedBox()
+                ],
+              )
+            : Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(S.of(context).nothingAddedLabel,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onBackground
+                            .withOpacity(0.7))),
+              ),
+      ],
     );
   }
 

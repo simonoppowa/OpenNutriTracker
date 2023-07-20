@@ -23,7 +23,7 @@ class SetPALCategoryDialog extends StatelessWidget {
           },
         ),
         SimpleDialogOption(
-          child: Text(S.of(context).activityLabel),
+          child: Text(S.of(context).palActiveLabel),
           onPressed: () {
             Navigator.pop(context, UserPALEntity.active);
           },

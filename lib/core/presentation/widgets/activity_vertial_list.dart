@@ -20,20 +20,31 @@ class ActivityVerticalList extends StatelessWidget {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 8.0),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           alignment: Alignment.centerLeft,
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge,
+          child: Row(
+            children: [
+              Icon(UserActivityEntity.getIconData(),
+                  size: 24, color: Theme.of(context).colorScheme.onBackground),
+              const SizedBox(width: 4.0),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground),
+              ),
+            ],
           ),
         ),
         userActivityList.isEmpty
-            ? const Align(
+            ? Align(
                 alignment: Alignment.centerLeft,
-                child:
-                    PlaceholderIntakeCard(icon: Icons.directions_run_outlined))
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: PlaceholderIntakeCard(
+                      icon: UserActivityEntity.getIconData()),
+                ))
             : SizedBox(
-                height: 120,
+                height: 160,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: userActivityList.length,
@@ -42,6 +53,7 @@ class ActivityVerticalList extends StatelessWidget {
                     return ActivityCard(
                       activityEntity: userActivity,
                       onItemLongPressed: onItemLongPressedCallback,
+                      firstListElement: index == 0 ? true : false,
                     );
                   },
                 ),

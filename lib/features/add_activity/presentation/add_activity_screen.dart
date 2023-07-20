@@ -43,7 +43,7 @@ class _AddActivityScreenState extends State<AddActivityScreen>
           title: Text(S.of(context).activityLabel),
         ),
         body: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Column(
             children: [
               TextField(

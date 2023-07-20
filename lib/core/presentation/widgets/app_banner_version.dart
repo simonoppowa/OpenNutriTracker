@@ -16,7 +16,10 @@ class AppBannerVersion extends StatelessWidget {
           children: [
             SizedBox(
               height: 90,
-              child: Image.asset('assets/icon/ont_banner_top.png'),
+              child: Image.asset(
+                  MediaQuery.of(context).platformBrightness == Brightness.light
+                      ? 'assets/icon/ont_banner_top.png'
+                      : 'assets/icon/ont_banner_top_light.png'),
             ),
           ],
         ),

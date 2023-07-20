@@ -12,24 +12,35 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           SizedBox(
             width: 40,
-            child: Image.asset('assets/icon/ont_logo_square.png'),
+            child: Image.asset(
+                MediaQuery.of(context).platformBrightness == Brightness.light
+                    ? 'assets/icon/ont_logo_square.png'
+                    : 'assets/icon/ont_logo_square_light.png'),
           ),
-          Row(
-            children: [
-              Text(S.of(context).appTitle,
-                  style: const TextStyle(fontWeight: FontWeight.w700)),
-              const SizedBox(width: 5),
-              Text(
-                S.of(context).alphaVersionName,
-                style: const TextStyle(fontWeight: FontWeight.w500),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                text: S.of(context).appTitle,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground),
+                children: <TextSpan>[
+                  TextSpan(
+                      text: ' ${S.of(context).alphaVersionName}',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: Theme.of(context).colorScheme.onBackground)),
+                ],
               ),
-            ],
-          )
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.settings_outlined),
+          icon: Icon(Icons.settings_outlined,
+              color: Theme.of(context).colorScheme.onBackground),
           tooltip: S.of(context).settingsLabel,
           onPressed: () {
             Navigator.of(context).pushNamed(NavigationOptions.settingsRoute);

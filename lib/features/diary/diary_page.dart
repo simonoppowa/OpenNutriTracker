@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
@@ -17,7 +18,9 @@ class DiaryPage extends StatefulWidget {
   State<DiaryPage> createState() => _DiaryPageState();
 }
 
-class _DiaryPageState extends State<DiaryPage> {
+class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
+  final log = Logger('DiaryPage');
+
   late DiaryBloc _diaryBloc;
   late CalendarDayBloc _calendarDayBloc;
 
@@ -28,9 +31,16 @@ class _DiaryPageState extends State<DiaryPage> {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     _diaryBloc = locator<DiaryBloc>();
     _calendarDayBloc = locator<CalendarDayBloc>();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
@@ -48,6 +58,15 @@ class _DiaryPageState extends State<DiaryPage> {
         return const SizedBox();
       },
     );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      log.info('App resumed');
+      _refreshPageOnDayChange();
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   Widget _getLoadingContent() =>
@@ -126,5 +145,12 @@ class _DiaryPageState extends State<DiaryPage> {
       _focusedDate = newDate;
       _calendarDayBloc.add(LoadCalendarDayEvent(newDate));
     });
+  }
+
+  void _refreshPageOnDayChange() {
+    if (DateUtils.isSameDay(_selectedDate, DateTime.now())) {
+      _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
+      _diaryBloc.add(const LoadDiaryYearEvent());
+    }
   }
 }

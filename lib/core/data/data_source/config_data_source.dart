@@ -1,5 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 
 class ConfigDataSource {
@@ -34,6 +35,18 @@ class ConfigDataSource {
         'Updating config hasAcceptedAnonymousData to $hasAcceptedAnonymousData');
     final config = _configBox.get(_configKey);
     config?.hasAcceptedSendAnonymousData = hasAcceptedAnonymousData;
+    config?.save();
+  }
+
+  Future<AppThemeDBO> getAppTheme() async {
+    final config = _configBox.get(_configKey);
+    return config?.selectedAppTheme ?? AppThemeDBO.defaultTheme;
+  }
+
+  Future<void> setConfigAppTheme(AppThemeDBO appTheme) async {
+    _log.fine('Updating config appTheme to $appTheme');
+    final config = _configBox.get(_configKey);
+    config?.selectedAppTheme = appTheme;
     config?.save();
   }
 
