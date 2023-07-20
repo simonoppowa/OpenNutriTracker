@@ -53,8 +53,7 @@ class ActivityDetailBloc
     _updateTrackedDay(dateTime, totalKcalBurned);
   }
 
-  void _updateTrackedDay(
-      DateTime dateTime, double caloriesBurned) async {
+  void _updateTrackedDay(DateTime dateTime, double caloriesBurned) async {
     final userEntity = await _getUserUsecase.getUserData();
     final totalKcalGoal = CalorieGoalCalc.getTdee(userEntity);
 
@@ -63,8 +62,6 @@ class ActivityDetailBloc
     if (!hasTrackedDay) {
       await _addTrackedDayUsecase.addNewTrackedDay(dateTime, totalKcalGoal);
     }
-    await _addTrackedDayUsecase.removeDayCaloriesTracked(
-        dateTime, caloriesBurned);
     _addTrackedDayUsecase.increaseDayCalorieGoal(dateTime, caloriesBurned);
   }
 }
