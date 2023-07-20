@@ -9,6 +9,8 @@ import 'package:opennutritracker/features/activity_detail/presentation/bloc/acti
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_info_button.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_title_expanded.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -186,6 +188,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());
+
+    // Refresh Diary Page
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+    locator<CalendarDayBloc>().add(LoadCalendarDayEvent(DateTime.now()));
 
     // Show snackbar and return to dashboard
     ScaffoldMessenger.of(context).showSnackBar(
