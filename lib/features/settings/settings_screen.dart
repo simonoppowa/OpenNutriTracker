@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -53,6 +56,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: const Icon(Icons.calculate_outlined),
                   title: Text(S.of(context).settingsCalculationsLabel),
                   onTap: () => _showCalculationsDialog(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.brightness_medium_outlined),
+                  title: Text(S.of(context).settingsThemeLabel),
+                  onTap: () => _showThemeDialog(context, state.appTheme),
                 ),
                 ListTile(
                   leading: const Icon(Icons.description_outlined),
@@ -187,6 +195,78 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Text(S.of(context).dialogOKLabel))
               ],
             ));
+  }
+
+  void _showThemeDialog(BuildContext context, AppThemeEntity currentAppTheme) {
+    AppThemeEntity selectedTheme = currentAppTheme;
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            contentPadding: EdgeInsets.zero,
+            title: Text(S.of(context).settingsThemeLabel),
+            content: StatefulBuilder(
+              builder: (BuildContext context,
+                  void Function(void Function()) setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile(
+                      title:
+                          Text(S.of(context).settingsThemeSystemDefaultLabel),
+                      value: AppThemeEntity.system,
+                      groupValue: selectedTheme,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedTheme = value as AppThemeEntity;
+                        });
+                      },
+                    ),
+                    RadioListTile(
+                      title: Text(S.of(context).settingsThemeLightLabel),
+                      value: AppThemeEntity.light,
+                      groupValue: selectedTheme,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedTheme = value as AppThemeEntity;
+                        });
+                      },
+                    ),
+                    RadioListTile(
+                      title: Text(S.of(context).settingsThemeDarkLabel),
+                      value: AppThemeEntity.dark,
+                      groupValue: selectedTheme,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedTheme = value as AppThemeEntity;
+                        });
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(S.of(context).dialogCancelLabel)),
+              TextButton(
+                  onPressed: () async {
+                    _settingsBloc.setAppTheme(selectedTheme);
+                    _settingsBloc.add(LoadSettingsEvent());
+                    setState(() {
+                      // Update Theme
+                      Provider.of<ThemeModeProvider>(context, listen: false)
+                          .updateTheme(selectedTheme);
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(S.of(context).dialogOKLabel)),
+            ],
+          );
+        });
   }
 
   void _showDisclaimerDialog(BuildContext context) {

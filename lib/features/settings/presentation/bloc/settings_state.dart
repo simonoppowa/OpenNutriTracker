@@ -17,9 +17,11 @@ class SettingsLoadingState extends SettingsState {
 class SettingsLoadedState extends SettingsState {
   final String versionNumber;
   final bool sendAnonymousData;
+  final AppThemeEntity appTheme;
 
-  const SettingsLoadedState(this.versionNumber, this.sendAnonymousData);
+  const SettingsLoadedState(
+      this.versionNumber, this.sendAnonymousData, this.appTheme);
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [versionNumber, sendAnonymousData, appTheme];
 }
