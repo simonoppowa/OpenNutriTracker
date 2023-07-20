@@ -31,6 +31,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetUserUsecase _getUserUsecase;
   final AddTrackedDayUsecase _addTrackedDayUseCase;
 
+  DateTime currentDay = DateTime.now();
+
   HomeBloc(
       this._getConfigUsecase,
       this._addConfigUsecase,
@@ -44,6 +46,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
 
+      currentDay = DateTime.now();
       final configData = await _getConfigUsecase.getConfig();
       final showDisclaimerDialog = !configData.hasAcceptedDisclaimer;
 

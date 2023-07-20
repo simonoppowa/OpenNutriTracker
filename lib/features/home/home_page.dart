@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
@@ -19,13 +20,21 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late HomeBloc _homeBloc;
+  final log = Logger('HomePage');
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     _homeBloc = locator<HomeBloc>();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
@@ -62,6 +71,15 @@ class _HomePageState extends State<HomePage> {
         }
       },
     );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      log.info('App resumed');
+      _refreshPageOnDayChange();
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   Widget _getLoadingContent() {
@@ -179,5 +197,12 @@ class _HomePageState extends State<HomePage> {
         _homeBloc.add(const LoadItemsEvent());
       }
     });
+  }
+
+  /// Refresh page when day changes
+  void _refreshPageOnDayChange() {
+    if (!DateUtils.isSameDay(_homeBloc.currentDay, DateTime.now())) {
+      _homeBloc.add(const LoadItemsEvent());
+    }
   }
 }
