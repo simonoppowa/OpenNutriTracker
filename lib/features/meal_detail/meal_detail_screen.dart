@@ -78,17 +78,21 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             flexibleSpace: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
               final top = constraints.biggest.height;
+              final barsHeight =
+                  MediaQuery.of(context).padding.top + kToolbarHeight;
+              const offset = 10;
               return FlexibleSpaceBar(
                   expandedTitleScale: 1, // don't scale title
                   background: MealTitleExpanded(meal: meal),
                   title: AnimatedOpacity(
                       opacity: 1.0,
                       duration: const Duration(milliseconds: 300),
-                      child: top > 71 && top < 91
-                          ? Text(meal.name ?? '',
-                              style: Theme.of(context).textTheme.titleLarge,
-                              overflow: TextOverflow.ellipsis)
-                          : const SizedBox()));
+                      child:
+                          top > barsHeight - offset && top < barsHeight + offset
+                              ? Text(meal.name ?? '',
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                  overflow: TextOverflow.ellipsis)
+                              : const SizedBox()));
             }),
             actions: [
               IconButton(
