@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
@@ -43,35 +44,32 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
               ),
               const SizedBox(height: 16.0),
               ListTile(
-                title: RichText(
+                onTap: () => _togglePolicy(),
+                title: Text.rich(
                     textAlign: TextAlign.center,
-                    text: TextSpan(
+                    TextSpan(
                         text: S.of(context).readLabel,
                         style: Theme.of(context).textTheme.bodySmall,
                         children: [
-                          WidgetSpan(
-                              alignment: PlaceholderAlignment.baseline,
-                              baseline: TextBaseline.alphabetic,
-                              child: TextButton(
-                                  onPressed: _launchUrl,
-                                  child: Text(
-                                    S.of(context).privacyPolicyLabel,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary),
-                                  )))
+                          TextSpan(
+                              text: ' 📄${S.of(context).privacyPolicyLabel}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      decoration: TextDecoration.underline),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  _launchUrl();
+                                }),
                         ])),
                 leading: Checkbox(
                   value: _acceptedPolicy,
                   onChanged: (value) {
                     if (value != null) {
-                      _acceptedPolicy = value;
-                      widget.setPageContent(
-                          _acceptedPolicy, _acceptedDataCollection);
+                      _togglePolicy();
                     }
                   },
                 ),
@@ -92,6 +90,13 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
         }
       },
     );
+  }
+
+  void _togglePolicy() {
+    setState(() {
+      _acceptedPolicy = !_acceptedPolicy;
+      widget.setPageContent(_acceptedPolicy, _acceptedDataCollection);
+    });
   }
 
   void _toggleDataCollection() {
