@@ -43,7 +43,7 @@
   "onboardingWrongWeightLabel": "Enter correct weight",
   "onboardingWeightExampleHint": "e.g. 60",
   "onboardingHeightExampleHint": "e.g. 170",
-  "onboardingActivityQuestionSubtitle": "How active are you? (Without workouts)",
+  "onboardingActivityQuestionSubtitle": "How active are you? (without workouts)",
   "onboardingGoalQuestionSubtitle": "What's your current weight goal?",
   "onboardingSaveUserError": "Wrong input, please try again",
 

@@ -192,7 +192,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Underweight"),
         "onboardingActivityQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage(
-                "How active are you? (Without workouts)"),
+                "How active are you? (without workouts)"),
         "onboardingBirthdayHint":
             MessageLookupByLibrary.simpleMessage("Enter Date"),
         "onboardingBirthdayQuestionSubtitle":

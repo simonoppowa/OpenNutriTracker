@@ -66,7 +66,7 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
               ],
             ),
           ),
-          const SizedBox(height: 16.0),
+          const SizedBox(height: 8.0),
           SizedBox(
             width: 400,
             child: Row(
@@ -99,7 +99,7 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
               ],
             ),
           ),
-          const SizedBox(height: 16.0),
+          const SizedBox(height: 8.0),
           SizedBox(
             width: 400,
             child: Row(
@@ -130,7 +130,7 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
               ],
             ),
           ),
-          const SizedBox(height: 16.0),
+          const SizedBox(height: 8.0),
           SizedBox(
             width: 400,
             child: Row(

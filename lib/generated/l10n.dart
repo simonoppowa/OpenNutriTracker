@@ -460,10 +460,10 @@ class S {
     );
   }
 
-  /// `How active are you? (Without workouts)`
+  /// `How active are you? (without workouts)`
   String get onboardingActivityQuestionSubtitle {
     return Intl.message(
-      'How active are you? (Without workouts)',
+      'How active are you? (without workouts)',
       name: 'onboardingActivityQuestionSubtitle',
       desc: '',
       args: [],
