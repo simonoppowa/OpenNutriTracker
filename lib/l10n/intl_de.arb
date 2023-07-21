@@ -136,6 +136,7 @@
   "bmiInfo": "Der Body-Mass-Index (BMI) ist ein Index zur Klassifizierung von Übergewicht und Fettleibigkeit bei Erwachsenen. Er wird berechnet, indem das Gewicht in Kilogramm durch das Quadrat der Körpergröße in Metern (kg/m²) geteilt wird.\n\nDer BMI unterscheidet nicht zwischen Fett- und Muskelmasse und kann für einige Personen irreführend sein.",
   "readLabel": "Ich habe die Datenschutzbestimmungen gelesen und akzeptiere sie.",
   "privacyPolicyLabel": "Datenschutzrichtlinie",
+  "dataCollectionLabel": "Unterstützen der Entwicklung durch Bereitstellung anonymer Nutzungsdaten",
 
   "palSedentaryLabel": "Sitzend",
   "palSedentaryDescriptionLabel": "z. B. Büroarbeit und hauptsächlich sitzende Freizeitaktivitäten",

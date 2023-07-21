@@ -85,6 +85,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Do you want create a custom meal item?"),
         "createCustomDialogTitle":
             MessageLookupByLibrary.simpleMessage("Create custom meal item?"),
+        "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
+            "Support development by providing anonymous usage data"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Do want to delete the selected item?"),
         "deleteTimeDialogTitle":
@@ -541,7 +543,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Very Active"),
         "per100gLabel": MessageLookupByLibrary.simpleMessage("Per 100g"),
         "privacyPolicyLabel":
-            MessageLookupByLibrary.simpleMessage("Privacy Policy"),
+            MessageLookupByLibrary.simpleMessage("Privacy policy"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
         "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),
         "quantityLabel": MessageLookupByLibrary.simpleMessage("Quantity"),

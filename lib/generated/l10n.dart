@@ -1301,11 +1301,21 @@ class S {
     );
   }
 
-  /// `Privacy Policy`
+  /// `Privacy policy`
   String get privacyPolicyLabel {
     return Intl.message(
-      'Privacy Policy',
+      'Privacy policy',
       name: 'privacyPolicyLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Support development by providing anonymous usage data`
+  String get dataCollectionLabel {
+    return Intl.message(
+      'Support development by providing anonymous usage data',
+      name: 'dataCollectionLabel',
       desc: '',
       args: [],
     );

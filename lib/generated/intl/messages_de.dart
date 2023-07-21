@@ -87,6 +87,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Möchten Sie einen benutzerdefinierte Mahlzeit erstellen?"),
         "createCustomDialogTitle": MessageLookupByLibrary.simpleMessage(
             "Benutzerdefinierte Mahlzeit erstellen?"),
+        "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
+            "Unterstützen der Entwicklung durch Bereitstellung anonymer Nutzungsdaten"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Möchten Sie den ausgewählten Eintrag löschen?"),
         "deleteTimeDialogTitle":

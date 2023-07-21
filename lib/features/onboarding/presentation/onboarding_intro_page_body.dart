@@ -9,7 +9,7 @@ class OnboardingIntroPageBody extends StatefulWidget {
   const OnboardingIntroPageBody({Key? key, required this.setPageContent})
       : super(key: key);
 
-  final Function(bool active) setPageContent;
+  final Function(bool active, bool acceptedDataCollection) setPageContent;
 
   @override
   State<OnboardingIntroPageBody> createState() =>
@@ -18,6 +18,7 @@ class OnboardingIntroPageBody extends StatefulWidget {
 
 class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   bool _acceptedPolicy = false;
+  bool _acceptedDataCollection = false;
 
   @override
   Widget build(BuildContext context) {
@@ -69,9 +70,19 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                   onChanged: (value) {
                     if (value != null) {
                       _acceptedPolicy = value;
-                      widget.setPageContent(_acceptedPolicy);
+                      widget.setPageContent(
+                          _acceptedPolicy, _acceptedDataCollection);
                     }
                   },
+                ),
+              ),
+              ListTile(
+                onTap: () => _toggleDataCollection(),
+                title: Text(S.of(context).dataCollectionLabel,
+                    style: Theme.of(context).textTheme.bodySmall),
+                leading: Checkbox(
+                  value: _acceptedDataCollection,
+                  onChanged: (value) => _toggleDataCollection(),
                 ),
               )
             ],
@@ -81,6 +92,13 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
         }
       },
     );
+  }
+
+  void _toggleDataCollection() {
+    setState(() {
+      _acceptedDataCollection = !_acceptedDataCollection;
+      widget.setPageContent(_acceptedPolicy, _acceptedDataCollection);
+    });
   }
 
   Future<void> _launchUrl() async {

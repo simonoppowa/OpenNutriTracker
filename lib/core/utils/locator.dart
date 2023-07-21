@@ -71,8 +71,8 @@ Future<void> initLocator() async {
       .registerLazySingleton<CacheManager>(() => OntImageCacheManager.instance);
 
   // BLoCs
-  locator
-      .registerLazySingleton<OnboardingBloc>(() => OnboardingBloc(locator()));
+  locator.registerLazySingleton<OnboardingBloc>(
+      () => OnboardingBloc(locator(), locator()));
   locator.registerLazySingleton<HomeBloc>(() => HomeBloc(locator(), locator(),
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() => DiaryBloc(locator()));
@@ -155,8 +155,7 @@ Future<void> initLocator() async {
       () => PhysicalActivityDataSource());
   locator.registerLazySingleton<OFFDataSource>(() => OFFDataSource());
   locator.registerLazySingleton<FDCDataSource>(() => FDCDataSource());
-  locator
-      .registerLazySingleton<SpFdcDataSource>(() => SpFdcDataSource());
+  locator.registerLazySingleton<SpFdcDataSource>(() => SpFdcDataSource());
   locator.registerLazySingleton(
       () => TrackedDayDataSource(hiveDBProvider.trackedDayBox));
 
