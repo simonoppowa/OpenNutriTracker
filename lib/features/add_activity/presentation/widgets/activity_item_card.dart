@@ -38,7 +38,7 @@ class ActivityItemCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               subtitle: AutoSizeText(
-                physicalActivityEntity.description,
+                physicalActivityEntity.getDescription(context),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onBackground),
                 maxLines: 3,
