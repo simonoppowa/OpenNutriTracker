@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_card.dart';
-import 'package:opennutritracker/core/presentation/widgets/placeholder_intake_card.dart';
+import 'package:opennutritracker/core/presentation/widgets/placeholder_card.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
 
 class ActivityVerticalList extends StatelessWidget {
   final String title;
@@ -35,30 +37,35 @@ class ActivityVerticalList extends StatelessWidget {
             ],
           ),
         ),
-        userActivityList.isEmpty
-            ? Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: PlaceholderIntakeCard(
-                      icon: UserActivityEntity.getIconData()),
-                ))
-            : SizedBox(
-                height: 160,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: userActivityList.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final userActivity = userActivityList[index];
-                    return ActivityCard(
-                      activityEntity: userActivity,
-                      onItemLongPressed: onItemLongPressedCallback,
-                      firstListElement: index == 0 ? true : false,
-                    );
-                  },
-                ),
-              ),
+        SizedBox(
+          height: 160,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount:
+                userActivityList.length + 1, // List length + placeholder card
+            itemBuilder: (BuildContext context, int index) {
+              final firstListElement = index == 0 ? true : false;
+              if (index == userActivityList.length) {
+                return PlaceholderCard(
+                    onTap: () => _onPlaceholderCardTapped(context),
+                    firstListElement: firstListElement);
+              } else {
+                final userActivity = userActivityList[index];
+                return ActivityCard(
+                  activityEntity: userActivity,
+                  onItemLongPressed: onItemLongPressedCallback,
+                  firstListElement: firstListElement,
+                );
+              }
+            },
+          ),
+        )
       ],
     );
+  }
+
+  void _onPlaceholderCardTapped(BuildContext context) {
+    Navigator.of(context).pushNamed(NavigationOptions.addActivityRoute,
+        arguments: const AddActivityScreen());
   }
 }
