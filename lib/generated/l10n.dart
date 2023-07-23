@@ -1031,6 +1031,16 @@ class S {
     );
   }
 
+  /// `The data provided to you by this app are retrieved from the Open Food Facts database. No guarantees can be made for the accuracy, completeness, or reliability of the information provided. The data are provided “as is” and the originating source for the data (Open Food Facts) is not liable for any damages arising out of the use of the data.`
+  String get offDisclaimer {
+    return Intl.message(
+      'The data provided to you by this app are retrieved from the Open Food Facts database. No guarantees can be made for the accuracy, completeness, or reliability of the information provided. The data are provided “as is” and the originating source for the data (Open Food Facts) is not liable for any damages arising out of the use of the data.',
+      name: 'offDisclaimer',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `More Information at\nFoodData Central`
   String get additionalInfoLabelFDC {
     return Intl.message(

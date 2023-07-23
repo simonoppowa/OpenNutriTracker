@@ -190,6 +190,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Very severe"),
         "nutritionalStatusUnderweight":
             MessageLookupByLibrary.simpleMessage("Underweight"),
+        "offDisclaimer": MessageLookupByLibrary.simpleMessage(
+            "The data provided to you by this app are retrieved from the Open Food Facts database. No guarantees can be made for the accuracy, completeness, or reliability of the information provided. The data are provided “as is” and the originating source for the data (Open Food Facts) is not liable for any damages arising out of the use of the data."),
         "onboardingActivityQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage(
                 "How active are you? (without workouts)"),

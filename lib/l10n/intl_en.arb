@@ -105,6 +105,7 @@
   "fiberLabel": "fiber",
   "per100gLabel": "Per 100g",
   "additionalInfoLabelOFF": "More Information at\nOpenFoodFacts",
+  "offDisclaimer": "The data provided to you by this app are retrieved from the Open Food Facts database. No guarantees can be made for the accuracy, completeness, or reliability of the information provided. The data are provided “as is” and the originating source for the data (Open Food Facts) is not liable for any damages arising out of the use of the data.",
   "additionalInfoLabelFDC": "More Information at\nFoodData Central",
   "additionalInfoLabelUnknown": "Unknown Meal Item",
   "additionalInfoLabelCustom": "Custom Meal Item",

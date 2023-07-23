@@ -105,6 +105,7 @@
   "fiberLabel": "Ballaststoffe",
   "per100gLabel": "Pro 100 g",
   "additionalInfoLabelOFF": "Weitere Informationen unter\nOpenFoodFacts",
+  "offDisclaimer": "Die Daten, die Ihnen mit dieser App zur Verfügung gestellt werden, stammen aus der Open Food Facts-Datenbank. Es kann keine Garantie für die Richtigkeit, Vollständigkeit oder Zuverlässigkeit der bereitgestellten Informationen übernommen werden. Die Daten werden ohne Mängelgewähr zur Verfügung gestellt, und die Ursprungsquelle der Daten (Open Food Facts) haftet nicht für Schäden, die aus der Verwendung der Daten entstehen.",
   "additionalInfoLabelFDC": "Weitere Informationen unter\nFoodData Central",
   "additionalInfoLabelCompendium2011": "Informationen bereitgestellt von\n'2011 Compendium\n of Physical Activities'",
   "additionalInfoLabelUnknown": "Unbekannte Mahlzeit",
