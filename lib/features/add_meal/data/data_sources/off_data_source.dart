@@ -11,7 +11,7 @@ import 'package:opennutritracker/features/scanner/data/product_not_found_excepti
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class OFFDataSource {
-  static const _timeoutDuration = Duration(seconds: 15);
+  static const _timeoutDuration = Duration(seconds: 20); // TODO lower timeout
   final log = Logger('OFFDataSource');
 
   Future<OFFWordResponseDTO> fetchSearchWordResults(String searchString) async {
