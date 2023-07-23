@@ -99,22 +99,26 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
             flexibleSpace: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 final top = constraints.biggest.height;
+                final barsHeight =
+                    MediaQuery.of(context).padding.top + kToolbarHeight;
+                const offset = 10;
                 return FlexibleSpaceBar(
                   expandedTitleScale: 1, // don't scale title
                   background: ActivityTitleExpanded(activity: activityEntity),
                   title: AnimatedOpacity(
                     opacity: 1.0,
                     duration: const Duration(milliseconds: 300),
-                    child: top > 71 && top < 91
-                        ? Text(activityEntity.getName(context),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onBackground))
-                        : const SizedBox(),
+                    child:
+                        top > barsHeight - offset && top < barsHeight + offset
+                            ? Text(activityEntity.getName(context),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onBackground))
+                            : const SizedBox(),
                   ),
                 );
               },
