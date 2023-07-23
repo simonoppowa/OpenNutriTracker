@@ -43,7 +43,7 @@
   "onboardingWrongWeightLabel": "Enter correct weight",
   "onboardingWeightExampleHint": "e.g. 60",
   "onboardingHeightExampleHint": "e.g. 170",
-  "onboardingActivityQuestionSubtitle": "How active are you? (Without workouts)",
+  "onboardingActivityQuestionSubtitle": "How active are you? (without workouts)",
   "onboardingGoalQuestionSubtitle": "What's your current weight goal?",
   "onboardingSaveUserError": "Wrong input, please try again",
 
@@ -105,6 +105,7 @@
   "fiberLabel": "fiber",
   "per100gLabel": "Per 100g",
   "additionalInfoLabelOFF": "More Information at\nOpenFoodFacts",
+  "offDisclaimer": "The data provided to you by this app are retrieved from the Open Food Facts database. No guarantees can be made for the accuracy, completeness, or reliability of the information provided. The data are provided “as is” and the originating source for the data (Open Food Facts) is not liable for any damages arising out of the use of the data.",
   "additionalInfoLabelFDC": "More Information at\nFoodData Central",
   "additionalInfoLabelUnknown": "Unknown Meal Item",
   "additionalInfoLabelCustom": "Custom Meal Item",
@@ -135,7 +136,8 @@
   "bmiLabel": "BMI",
   "bmiInfo": "Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals.",
   "readLabel": "I have read and accept the privacy policy.",
-  "privacyPolicyLabel": "Privacy Policy",
+  "privacyPolicyLabel": "Privacy policy",
+  "dataCollectionLabel": "Support development by providing anonymous usage data",
 
   "palSedentaryLabel": "Sedentary",
   "palSedentaryDescriptionLabel": "e.g. office job and mostly sitting free time activities",

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
-import 'package:opennutritracker/core/presentation/widgets/placeholder_intake_card.dart';
+import 'package:opennutritracker/core/presentation/widgets/placeholder_card.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 
 class IntakeVerticalList extends StatelessWidget {
   final String title;
   final IconData listIcon;
+  final AddMealType addMealType;
   final List<IntakeEntity> intakeList;
   final Function(BuildContext, IntakeEntity) onItemLongPressedCallback;
 
@@ -13,6 +17,7 @@ class IntakeVerticalList extends StatelessWidget {
       {Key? key,
       required this.title,
       required this.listIcon,
+      required this.addMealType,
       required this.intakeList,
       required this.onItemLongPressedCallback})
       : super(key: key);
@@ -37,31 +42,34 @@ class IntakeVerticalList extends StatelessWidget {
             ],
           ),
         ),
-        intakeList.isEmpty
-            ? Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: PlaceholderIntakeCard(
-                    icon: listIcon,
-                  ),
-                ))
-            : SizedBox(
-                height: 120,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: intakeList.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final intakeEntity = intakeList[index];
-                    return IntakeCard(
-                        key: ValueKey(intakeEntity.meal.code),
-                        intake: intakeEntity,
-                        onItemLongPressed: onItemLongPressedCallback,
-                        firstListElement: index == 0 ? true : false);
-                  },
-                ),
-              ),
+        SizedBox(
+          height: 120,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: intakeList.length + 1, // List length + placeholder card
+            itemBuilder: (BuildContext context, int index) {
+              final firstListElement = index == 0 ? true : false;
+              if (index == intakeList.length) {
+                return PlaceholderCard(
+                    onTap: () => _onPlaceholderCardTapped(context),
+                    firstListElement: firstListElement);
+              } else {
+                final intakeEntity = intakeList[index];
+                return IntakeCard(
+                    key: ValueKey(intakeEntity.meal.code),
+                    intake: intakeEntity,
+                    onItemLongPressed: onItemLongPressedCallback,
+                    firstListElement: firstListElement);
+              }
+            },
+          ),
+        ),
       ],
     );
+  }
+
+  void _onPlaceholderCardTapped(BuildContext context) {
+    Navigator.pushNamed(context, NavigationOptions.addMealRoute,
+        arguments: AddMealScreenArguments(addMealType));
   }
 }

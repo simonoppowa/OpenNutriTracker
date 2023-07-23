@@ -43,6 +43,7 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
               });
             },
           ),
+          const SizedBox(height: 8.0),
           ChoiceChip(
             label: Text(S.of(context).goalMaintainWeight,
                 style: Theme.of(context).textTheme.titleLarge),
@@ -54,6 +55,7 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
               });
             },
           ),
+          const SizedBox(height: 8.0),
           ChoiceChip(
             label: Text(S.of(context).goalGainWeight,
                 style: Theme.of(context).textTheme.titleLarge),

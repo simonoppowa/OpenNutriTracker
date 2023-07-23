@@ -460,10 +460,10 @@ class S {
     );
   }
 
-  /// `How active are you? (Without workouts)`
+  /// `How active are you? (without workouts)`
   String get onboardingActivityQuestionSubtitle {
     return Intl.message(
-      'How active are you? (Without workouts)',
+      'How active are you? (without workouts)',
       name: 'onboardingActivityQuestionSubtitle',
       desc: '',
       args: [],
@@ -1031,6 +1031,16 @@ class S {
     );
   }
 
+  /// `The data provided to you by this app are retrieved from the Open Food Facts database. No guarantees can be made for the accuracy, completeness, or reliability of the information provided. The data are provided “as is” and the originating source for the data (Open Food Facts) is not liable for any damages arising out of the use of the data.`
+  String get offDisclaimer {
+    return Intl.message(
+      'The data provided to you by this app are retrieved from the Open Food Facts database. No guarantees can be made for the accuracy, completeness, or reliability of the information provided. The data are provided “as is” and the originating source for the data (Open Food Facts) is not liable for any damages arising out of the use of the data.',
+      name: 'offDisclaimer',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `More Information at\nFoodData Central`
   String get additionalInfoLabelFDC {
     return Intl.message(
@@ -1301,11 +1311,21 @@ class S {
     );
   }
 
-  /// `Privacy Policy`
+  /// `Privacy policy`
   String get privacyPolicyLabel {
     return Intl.message(
-      'Privacy Policy',
+      'Privacy policy',
       name: 'privacyPolicyLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Support development by providing anonymous usage data`
+  String get dataCollectionLabel {
+    return Intl.message(
+      'Support development by providing anonymous usage data',
+      name: 'dataCollectionLabel',
       desc: '',
       args: [],
     );

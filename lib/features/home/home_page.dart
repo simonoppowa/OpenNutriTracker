@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
@@ -131,17 +132,20 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       IntakeVerticalList(
         title: S.of(context).breakfastLabel,
         listIcon: IntakeTypeEntity.breakfast.getIconData(),
+        addMealType: AddMealType.breakfastType,
         intakeList: breakfastIntakeList,
         onItemLongPressedCallback: onIntakeItemLongPressed,
       ),
       IntakeVerticalList(
         title: S.of(context).lunchLabel,
         listIcon: IntakeTypeEntity.lunch.getIconData(),
+        addMealType: AddMealType.lunchType,
         intakeList: lunchIntakeList,
         onItemLongPressedCallback: onIntakeItemLongPressed,
       ),
       IntakeVerticalList(
         title: S.of(context).dinnerLabel,
+        addMealType: AddMealType.dinnerType,
         listIcon: IntakeTypeEntity.dinner.getIconData(),
         intakeList: dinnerIntakeList,
         onItemLongPressedCallback: onIntakeItemLongPressed,
@@ -149,6 +153,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       IntakeVerticalList(
         title: S.of(context).snackLabel,
         listIcon: IntakeTypeEntity.snack.getIconData(),
+        addMealType: AddMealType.snackType,
         intakeList: snackIntakeList,
         onItemLongPressedCallback: onIntakeItemLongPressed,
       )

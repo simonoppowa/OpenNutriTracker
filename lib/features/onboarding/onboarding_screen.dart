@@ -185,8 +185,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _introKey.currentState?.animateScroll(page);
   }
 
-  void _setIntroPageData(bool active) {
+  void _setIntroPageData(bool active, bool acceptedDataCollection) {
     setState(() {
+      _onboardingBloc.userSelection.acceptDataCollection =
+          acceptedDataCollection;
+
       _introPageButtonActive = active;
     });
   }
@@ -247,8 +250,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _onOverviewStartButtonPressed(BuildContext context) {
     final userEntity = _onboardingBloc.userSelection.toUserEntity();
+    final hasAcceptedDataCollection =
+        _onboardingBloc.userSelection.acceptDataCollection;
     if (userEntity != null) {
-      _onboardingBloc.addOnboardingUserData(context, userEntity);
+      _onboardingBloc.saveOnboardingData(
+          context, userEntity, hasAcceptedDataCollection);
       Navigator.pushReplacementNamed(context, NavigationOptions.mainRoute);
     } else {
       // Error with user input

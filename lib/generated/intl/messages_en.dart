@@ -85,6 +85,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Do you want create a custom meal item?"),
         "createCustomDialogTitle":
             MessageLookupByLibrary.simpleMessage("Create custom meal item?"),
+        "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
+            "Support development by providing anonymous usage data"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Do want to delete the selected item?"),
         "deleteTimeDialogTitle":
@@ -188,9 +190,11 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Very severe"),
         "nutritionalStatusUnderweight":
             MessageLookupByLibrary.simpleMessage("Underweight"),
+        "offDisclaimer": MessageLookupByLibrary.simpleMessage(
+            "The data provided to you by this app are retrieved from the Open Food Facts database. No guarantees can be made for the accuracy, completeness, or reliability of the information provided. The data are provided “as is” and the originating source for the data (Open Food Facts) is not liable for any damages arising out of the use of the data."),
         "onboardingActivityQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage(
-                "How active are you? (Without workouts)"),
+                "How active are you? (without workouts)"),
         "onboardingBirthdayHint":
             MessageLookupByLibrary.simpleMessage("Enter Date"),
         "onboardingBirthdayQuestionSubtitle":
@@ -541,7 +545,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Very Active"),
         "per100gLabel": MessageLookupByLibrary.simpleMessage("Per 100g"),
         "privacyPolicyLabel":
-            MessageLookupByLibrary.simpleMessage("Privacy Policy"),
+            MessageLookupByLibrary.simpleMessage("Privacy policy"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
         "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),
         "quantityLabel": MessageLookupByLibrary.simpleMessage("Quantity"),

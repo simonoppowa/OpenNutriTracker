@@ -14,6 +14,7 @@ import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_info_button.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_placeholder.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_title_expanded.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/off_disclaimer.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailScreen extends StatefulWidget {
@@ -153,6 +154,14 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   MealDetailNutrimentsTable(product: meal),
                   const SizedBox(height: 32.0),
                   MealInfoButton(url: meal.url, source: meal.source),
+                  meal.source == MealSourceEntity.off
+                      ? const Column(
+                          children: [
+                            SizedBox(height: 32),
+                            OffDisclaimer(),
+                          ],
+                        )
+                      : const SizedBox(),
                   const SizedBox(height: 200.0) // height added to scroll
                 ],
               ),
