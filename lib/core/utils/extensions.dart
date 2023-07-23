@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 extension Cast on Object? {
@@ -58,4 +59,14 @@ extension DisplayDouble on double? {
 
 extension FormatString on DateTime {
   String toParsedDay() => DateFormat.yMd().format(this);
+}
+
+extension ColorExtension on Color {
+  /// Converts the color to a hexadecimal string.
+  String toHex() {
+    return '#${red.toRadixString(16).padLeft(2, '0')}'
+        '${green.toRadixString(16).padLeft(2, '0')}'
+        '${blue.toRadixString(16).padLeft(2, '0')}'
+        '${alpha.toRadixString(16).padLeft(2, '0')}'; // Includes the alpha channel
+  }
 }

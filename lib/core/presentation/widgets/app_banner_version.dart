@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/presentation/widgets/dynamic_ont_logo.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class AppBannerVersion extends StatelessWidget {
@@ -11,21 +12,16 @@ class AppBannerVersion extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              height: 90,
-              child: Image.asset(
-                  MediaQuery.of(context).platformBrightness == Brightness.light
-                      ? 'assets/icon/ont_banner_top.png'
-                      : 'assets/icon/ont_banner_top_light.png'),
-            ),
-          ],
-        ),
+        const SizedBox(height: 70, child: DynamicOntLogo()),
+        Text(S.of(context).appTitle,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onBackground,
+                fontWeight: FontWeight.w600)),
         Text(
           S.of(context).appVersionName(versionNumber),
-          style: Theme.of(context).textTheme.titleMedium,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color:
+                  Theme.of(context).colorScheme.onBackground.withOpacity(0.7)),
         )
       ],
     );
