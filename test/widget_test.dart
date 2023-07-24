@@ -1,30 +1,40 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:opennutritracker/main.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('DashboardWidget displays correct data',
+      (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const OpenNutriTrackerApp(userInitialized: true));
+    await tester.pumpWidget(MaterialApp(
+      localizationsDelegates: const [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: S.delegate.supportedLocales,
+      home: const DashboardWidget(
+        totalKcalSupplied: 1500,
+        totalKcalBurned: 500,
+        totalKcalDaily: 2000,
+        totalKcalLeft: 1000,
+        totalCarbsIntake: 200,
+        totalFatsIntake: 50,
+        totalProteinsIntake: 100,
+        totalCarbsGoal: 250,
+        totalFatsGoal: 60,
+        totalProteinsGoal: 120,
+      ),
+    ));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verify that the supplied and burned calorie values are displayed.
+    expect(find.text('1500'), findsOneWidget);
+    expect(find.text('500'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that the kcal left label is displayed.
+    expect(find.text('1000'), findsOneWidget);
   });
 }
