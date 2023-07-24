@@ -43,7 +43,7 @@ jobs:
         run: flutter pub get
         
       - name: Build with secrets
-        run: flutter pub run build_runner build
+        run: flutter pub run build_runner build --delete-conflicting-outputs
         env:
           FDC_API_KEY: ${{ secrets.FDC_API_KEY }}
           SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
