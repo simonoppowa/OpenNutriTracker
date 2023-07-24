@@ -41,6 +41,14 @@ jobs:
 
       - name: Install Pub Dependencies
         run: flutter pub get
+        
+      - name: Build with secrets
+        run: flutter pub run build_runner build
+        env:
+          FDC_API_KEY: ${{ secrets.FDC_API_KEY }}
+          SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
+          SUPABASE_PROJECT_ANON_KEY: ${{ secrets.SUPABASE_PROJECT_ANON_KEY }}
+          SUPABASE_PROJECT_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
 
       - name: Analyze Code
         run: flutter analyze
