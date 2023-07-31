@@ -30,6 +30,9 @@ OpenNutriTracker is an open-source mobile application designed to simplify nutri
   <img alt="Logo" src="screenshots/screenshot_profile.png" width="20%" />
 </p>
 
+## Install
+- Coming soon
+
 ## Key Features
 - **🍎 Nutritional Tracking:** Easily log your meals and snacks, and access a vast database of food items and ingredients to get detailed nutritional information.
 - **📓 Food Diary:** Maintain a comprehensive food diary to keep track of your daily food consumption, habits, and progress.
@@ -39,11 +42,10 @@ OpenNutriTracker is an open-source mobile application designed to simplify nutri
 - **🚫💰 No Subscription, In-App Purchases, or Ads:** OpenNutriTracker is completely free to use, without any subscription fees, in-app purchases, or intrusive advertisements.
 
 ## Privacy
+See [Data Protection](https://www.iubenda.com/privacy-policy/53501884)
 - **Data Encryption**: All collected user data is encrypted and stored locally on your device
 - **Minimal Data Collection**: OpenNutriTracker only collects the necessary information required for tracking nutrition and providing personalized insights. Your data will not be shared with third parties without your consent.
 - **Open-Source**: OpenNutriTracker is an open-source application
-
-See [Data Protection](https://www.iubenda.com/privacy-policy/53922100)
 
 ## TODOs
 - Add serving sizes to meals
