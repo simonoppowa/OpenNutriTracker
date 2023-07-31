@@ -47,19 +47,30 @@ class DayInfoWidget extends StatelessWidget {
           child: Text(DateFormat.yMMMMEEEEd().format(selectedDay),
               style: Theme.of(context).textTheme.headlineSmall),
         ),
-        const SizedBox(height: 16.0),
+        const SizedBox(height: 8.0),
         trackedDay != null
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      _getCaloriesTrackedDisplayString(trackedDay),
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                    child: Card(
+                      elevation: 0.0,
+                      margin: const EdgeInsets.all(0.0),
+                      color: trackedDayEntity?.getRatingDayTextBackgroundColor(context),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                        child: Text(
+                          _getCaloriesTrackedDisplayString(trackedDay),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                  color:
+                                      trackedDayEntity?.getRatingDayTextColor(context),
+                                  fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8.0),
