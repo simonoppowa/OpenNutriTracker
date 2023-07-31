@@ -17,7 +17,7 @@ class MealDetailBloc {
       this._getUserUsecase, this._addTrackedDayUsecase, this._addIntakeUseCase);
 
   void addIntake(BuildContext context, String unit, String amountText,
-      IntakeTypeEntity type, MealEntity meal) async {
+      IntakeTypeEntity type, MealEntity meal, DateTime day) async {
     final quantity = double.parse(amountText);
 
     final intakeEntity = IntakeEntity(
@@ -26,22 +26,22 @@ class MealDetailBloc {
         amount: quantity,
         type: type,
         meal: meal,
-        dateTime: DateTime.now());
+        dateTime: day);
     await _addIntakeUseCase.addIntake(intakeEntity);
-    _updateTrackedDay(intakeEntity);
+    _updateTrackedDay(intakeEntity, day);
   }
 
-  Future<void> _updateTrackedDay(IntakeEntity intakeEntity) async {
+  Future<void> _updateTrackedDay(IntakeEntity intakeEntity, DateTime day) async {
     final userEntity = await _getUserUsecase.getUserData();
     final totalKcalGoal = CalorieGoalCalc.getTdee(userEntity);
 
     final hasTrackedDay =
-        await _addTrackedDayUsecase.hasTrackedDay(DateTime.now());
+        await _addTrackedDayUsecase.hasTrackedDay(day);
     if (!hasTrackedDay) {
       await _addTrackedDayUsecase.addNewTrackedDay(
-          DateTime.now(), totalKcalGoal);
+          day, totalKcalGoal);
     }
     _addTrackedDayUsecase.addDayCaloriesTracked(
-        DateTime.now(), intakeEntity.totalKcal);
+        day, intakeEntity.totalKcal);
   }
 }

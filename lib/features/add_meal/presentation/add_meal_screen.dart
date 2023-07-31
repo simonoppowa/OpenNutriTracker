@@ -28,6 +28,7 @@ class _AddMealScreenState extends State<AddMealScreen>
   final ValueNotifier<String> _searchStringListener = ValueNotifier('');
 
   late AddMealType _mealType;
+  late DateTime _day;
 
   late ProductsBloc _productsBloc;
   late FoodBloc _foodBloc;
@@ -53,6 +54,7 @@ class _AddMealScreenState extends State<AddMealScreen>
     final args =
         ModalRoute.of(context)?.settings.arguments as AddMealScreenArguments;
     _mealType = args.mealType;
+    _day = args.day;
     super.didChangeDependencies();
   }
 
@@ -120,6 +122,7 @@ class _AddMealScreenState extends State<AddMealScreen>
                                         itemCount: state.products.length,
                                         itemBuilder: (context, index) {
                                           return MealItemCard(
+                                              day: _day,
                                               mealEntity: state.products[index],
                                               addMealType: _mealType);
                                         }))
@@ -161,6 +164,7 @@ class _AddMealScreenState extends State<AddMealScreen>
                                         itemCount: state.food.length,
                                         itemBuilder: (context, index) {
                                           return MealItemCard(
+                                              day: _day,
                                               mealEntity: state.food[index],
                                               addMealType: _mealType);
                                         }))
@@ -198,6 +202,7 @@ class _AddMealScreenState extends State<AddMealScreen>
                                           itemCount: state.recentMeals.length,
                                           itemBuilder: (context, index) {
                                             return MealItemCard(
+                                                day: _day,
                                                 mealEntity:
                                                     state.recentMeals[index],
                                                 addMealType: _mealType);
@@ -244,7 +249,7 @@ class _AddMealScreenState extends State<AddMealScreen>
 
   void _onBarcodeIconPressed() {
     Navigator.of(context).pushNamed(NavigationOptions.scannerRoute,
-        arguments: ScannerScreenArguments(_mealType.getIntakeType()));
+        arguments: ScannerScreenArguments(_day, _mealType.getIntakeType()));
   }
 
   void _onCustomAddButtonPressed() {
@@ -272,12 +277,13 @@ class _AddMealScreenState extends State<AddMealScreen>
   void _openEditMealScreen() {
     Navigator.of(context).pushNamed(NavigationOptions.editMealRoute,
         arguments: EditMealScreenArguments(
-            MealEntity.empty(), _mealType.getIntakeType()));
+            _day, MealEntity.empty(), _mealType.getIntakeType()));
   }
 }
 
 class AddMealScreenArguments {
   final AddMealType mealType;
+  final DateTime day;
 
-  AddMealScreenArguments(this.mealType);
+  AddMealScreenArguments(this.mealType, this.day);
 }

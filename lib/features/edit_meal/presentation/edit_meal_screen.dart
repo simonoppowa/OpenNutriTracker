@@ -24,6 +24,7 @@ class EditMealScreen extends StatefulWidget {
 class _EditMealScreenState extends State<EditMealScreen> {
   final log = Logger('EditMealScreen');
   late MealEntity _mealEntity;
+  late DateTime _day;
   late IntakeTypeEntity _intakeTypeEntity;
 
   late EditMealBloc _editMealBloc;
@@ -52,6 +53,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
     final args =
         ModalRoute.of(context)?.settings.arguments as EditMealScreenArguments;
     _mealEntity = args.mealEntity;
+    _day = args.day;
     _intakeTypeEntity = args.intakeTypeEntity;
 
     _nameTextController.text = _mealEntity.name ?? "";
@@ -213,8 +215,8 @@ class _EditMealScreenState extends State<EditMealScreen> {
       Navigator.of(context).pushNamedAndRemoveUntil(
           NavigationOptions.mealDetailRoute,
           ModalRoute.withName(NavigationOptions.addMealRoute),
-          arguments:
-              MealDetailScreenArguments(newMealEntity, _intakeTypeEntity));
+          arguments: MealDetailScreenArguments(
+              newMealEntity, _intakeTypeEntity, _day));
     } catch (exception, stacktrace) {
       log.warning("Error while creating new meal entity");
       Sentry.captureException(exception, stackTrace: stacktrace);
@@ -236,8 +238,9 @@ class _EditMealScreenState extends State<EditMealScreen> {
 }
 
 class EditMealScreenArguments {
+  final DateTime day;
   final MealEntity mealEntity;
   final IntakeTypeEntity intakeTypeEntity;
 
-  EditMealScreenArguments(this.mealEntity, this.intakeTypeEntity);
+  EditMealScreenArguments(this.day, this.mealEntity, this.intakeTypeEntity);
 }

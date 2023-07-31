@@ -22,6 +22,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   String? _scannedBarcode;
   late IntakeTypeEntity _intakeTypeEntity;
+  late DateTime _day;
 
   late ScannerBloc _scannerBloc;
 
@@ -36,6 +37,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     final args =
         ModalRoute.of(context)?.settings.arguments as ScannerScreenArguments;
     _intakeTypeEntity = args.intakeTypeEntity;
+    _day = args.day;
     super.didChangeDependencies();
   }
 
@@ -54,8 +56,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
           // Push new route after build
           Future.microtask(() => Navigator.of(context).pushReplacementNamed(
               NavigationOptions.mealDetailRoute,
-              arguments:
-                  MealDetailScreenArguments(state.product, _intakeTypeEntity)));
+              arguments: MealDetailScreenArguments(
+                  state.product, _intakeTypeEntity, _day)));
         } else if (state is ScannerFailedState) {
           return Scaffold(
               appBar: AppBar(),
@@ -133,7 +135,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
 }
 
 class ScannerScreenArguments {
+  final DateTime day;
   final IntakeTypeEntity intakeTypeEntity;
 
-  ScannerScreenArguments(this.intakeTypeEntity);
+  ScannerScreenArguments(this.day, this.intakeTypeEntity);
 }

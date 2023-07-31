@@ -87,7 +87,7 @@ class _MainScreenState extends State<MainScreen> {
                 topLeft: Radius.circular(16.0),
                 topRight: Radius.circular(16.0))),
         builder: (BuildContext context) {
-          return const AddItemBottomSheet();
+          return AddItemBottomSheet(day: DateTime.now());
         });
   }
 }

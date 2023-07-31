@@ -131,6 +131,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         onItemLongPressedCallback: onActivityItemLongPressed,
       ),
       IntakeVerticalList(
+        day: DateTime.now(),
         title: S.of(context).breakfastLabel,
         listIcon: IntakeTypeEntity.breakfast.getIconData(),
         addMealType: AddMealType.breakfastType,
@@ -138,6 +139,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         onItemLongPressedCallback: onIntakeItemLongPressed,
       ),
       IntakeVerticalList(
+        day: DateTime.now(),
         title: S.of(context).lunchLabel,
         listIcon: IntakeTypeEntity.lunch.getIconData(),
         addMealType: AddMealType.lunchType,
@@ -145,6 +147,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         onItemLongPressedCallback: onIntakeItemLongPressed,
       ),
       IntakeVerticalList(
+        day: DateTime.now(),
         title: S.of(context).dinnerLabel,
         addMealType: AddMealType.dinnerType,
         listIcon: IntakeTypeEntity.dinner.getIconData(),
@@ -152,6 +155,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         onItemLongPressedCallback: onIntakeItemLongPressed,
       ),
       IntakeVerticalList(
+        day: DateTime.now(),
         title: S.of(context).snackLabel,
         listIcon: IntakeTypeEntity.snack.getIconData(),
         addMealType: AddMealType.snackType,

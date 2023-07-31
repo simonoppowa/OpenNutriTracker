@@ -10,11 +10,15 @@ import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealItemCard extends StatelessWidget {
+  final DateTime day;
   final AddMealType addMealType;
   final MealEntity mealEntity;
 
   const MealItemCard(
-      {Key? key, required this.mealEntity, required this.addMealType})
+      {Key? key,
+      required this.day,
+      required this.mealEntity,
+      required this.addMealType})
       : super(key: key);
 
   @override
@@ -91,7 +95,7 @@ class MealItemCard extends StatelessWidget {
 
   void _onItemPressed(BuildContext context) {
     Navigator.of(context).pushNamed(NavigationOptions.mealDetailRoute,
-        arguments:
-            MealDetailScreenArguments(mealEntity, addMealType.getIntakeType()));
+        arguments: MealDetailScreenArguments(
+            mealEntity, addMealType.getIntakeType(), day));
   }
 }

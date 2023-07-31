@@ -7,6 +7,7 @@ import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 
 class IntakeVerticalList extends StatelessWidget {
+  final DateTime day;
   final String title;
   final IconData listIcon;
   final AddMealType addMealType;
@@ -15,6 +16,7 @@ class IntakeVerticalList extends StatelessWidget {
 
   const IntakeVerticalList(
       {Key? key,
+      required this.day,
       required this.title,
       required this.listIcon,
       required this.addMealType,
@@ -51,7 +53,7 @@ class IntakeVerticalList extends StatelessWidget {
               final firstListElement = index == 0 ? true : false;
               if (index == intakeList.length) {
                 return PlaceholderCard(
-                    day: DateTime.now(),
+                    day: day,
                     onTap: () => _onPlaceholderCardTapped(context),
                     firstListElement: firstListElement);
               } else {
@@ -71,6 +73,6 @@ class IntakeVerticalList extends StatelessWidget {
 
   void _onPlaceholderCardTapped(BuildContext context) {
     Navigator.pushNamed(context, NavigationOptions.addMealRoute,
-        arguments: AddMealScreenArguments(addMealType));
+        arguments: AddMealScreenArguments(addMealType, day));
   }
 }

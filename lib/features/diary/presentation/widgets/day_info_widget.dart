@@ -72,6 +72,7 @@ class DayInfoWidget extends StatelessWidget {
                       : const SizedBox(),
                   breakfastIntake.isNotEmpty
                       ? IntakeVerticalList(
+                          day: selectedDay,
                           title: S.of(context).breakfastLabel,
                           listIcon: Icons.bakery_dining_outlined,
                           addMealType: AddMealType.breakfastType,
@@ -81,6 +82,7 @@ class DayInfoWidget extends StatelessWidget {
                       : const SizedBox(),
                   lunchIntake.isNotEmpty
                       ? IntakeVerticalList(
+                          day: selectedDay,
                           title: S.of(context).lunchLabel,
                           listIcon: Icons.lunch_dining_outlined,
                           addMealType: AddMealType.lunchType,
@@ -90,6 +92,7 @@ class DayInfoWidget extends StatelessWidget {
                       : const SizedBox(),
                   dinnerIntake.isNotEmpty
                       ? IntakeVerticalList(
+                          day: selectedDay,
                           title: S.of(context).dinnerLabel,
                           listIcon: Icons.dinner_dining_outlined,
                           addMealType: AddMealType.dinnerType,
@@ -99,6 +102,7 @@ class DayInfoWidget extends StatelessWidget {
                       : const SizedBox(),
                   snackIntake.isNotEmpty
                       ? IntakeVerticalList(
+                          day: selectedDay,
                           title: S.of(context).snackLabel,
                           listIcon: CustomIcons.food_apple_outline,
                           addMealType: AddMealType.snackType,
