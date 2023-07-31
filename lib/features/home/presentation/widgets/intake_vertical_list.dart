@@ -51,6 +51,7 @@ class IntakeVerticalList extends StatelessWidget {
               final firstListElement = index == 0 ? true : false;
               if (index == intakeList.length) {
                 return PlaceholderCard(
+                    day: DateTime.now(),
                     onTap: () => _onPlaceholderCardTapped(context),
                     firstListElement: firstListElement);
               } else {

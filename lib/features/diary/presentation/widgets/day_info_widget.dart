@@ -65,6 +65,7 @@ class DayInfoWidget extends StatelessWidget {
                   const SizedBox(height: 8.0),
                   userActivities.isNotEmpty
                       ? ActivityVerticalList(
+                          day: selectedDay,
                           title: S.of(context).activityLabel,
                           userActivityList: userActivities,
                           onItemLongPressedCallback: onActivityItemLongPressed)

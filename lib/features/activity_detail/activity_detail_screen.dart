@@ -28,6 +28,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   final _scrollController = ScrollController();
 
   late PhysicalActivityEntity activityEntity;
+  late DateTime _day;
   late TextEditingController quantityTextController;
 
   late ActivityDetailBloc _activityDetailBloc;
@@ -50,6 +51,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     final args = ModalRoute.of(context)?.settings.arguments
         as ActivityDetailScreenArguments;
     activityEntity = args.activityEntity;
+    _day = args.day;
     quantityTextController.addListener(() {});
     super.didChangeDependencies();
   }
@@ -188,7 +190,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
   void onAddButtonPressed(BuildContext context) {
     _activityDetailBloc.persistActivity(
-        context, quantityTextController.text, totalKcal, activityEntity);
+        context, quantityTextController.text, totalKcal, activityEntity, _day);
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());
@@ -207,6 +209,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
 class ActivityDetailScreenArguments {
   final PhysicalActivityEntity activityEntity;
+  final DateTime day;
 
-  ActivityDetailScreenArguments(this.activityEntity);
+  ActivityDetailScreenArguments(this.activityEntity, this.day);
 }

@@ -6,12 +6,14 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
 
 class ActivityVerticalList extends StatelessWidget {
+  final DateTime day;
   final String title;
   final List<UserActivityEntity> userActivityList;
   final Function(BuildContext, UserActivityEntity) onItemLongPressedCallback;
 
   const ActivityVerticalList(
       {Key? key,
+      required this.day,
       required this.title,
       required this.userActivityList,
       required this.onItemLongPressedCallback})
@@ -47,6 +49,7 @@ class ActivityVerticalList extends StatelessWidget {
               final firstListElement = index == 0 ? true : false;
               if (index == userActivityList.length) {
                 return PlaceholderCard(
+                    day: day,
                     onTap: () => _onPlaceholderCardTapped(context),
                     firstListElement: firstListElement);
               } else {
@@ -66,6 +69,6 @@ class ActivityVerticalList extends StatelessWidget {
 
   void _onPlaceholderCardTapped(BuildContext context) {
     Navigator.of(context).pushNamed(NavigationOptions.addActivityRoute,
-        arguments: const AddActivityScreen());
+        arguments: AddActivityScreenArguments(day: day));
   }
 }

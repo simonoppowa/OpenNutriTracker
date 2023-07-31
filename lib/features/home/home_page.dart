@@ -125,6 +125,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         totalProteinsGoal: totalProteinsGoal,
       ),
       ActivityVerticalList(
+        day: DateTime.now(),
         title: S.of(context).activityLabel,
         userActivityList: userActivities,
         onItemLongPressedCallback: onActivityItemLongPressed,

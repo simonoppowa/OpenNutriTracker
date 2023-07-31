@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 
 class PlaceholderCard extends StatelessWidget {
+  final DateTime day;
   final VoidCallback onTap;
   final bool firstListElement;
 
-  const PlaceholderCard(
-      {super.key, required this.onTap, required this.firstListElement});
+  const PlaceholderCard({
+    super.key,
+    required this.day,
+    required this.onTap,
+    required this.firstListElement,
+  });
 
   @override
   Widget build(BuildContext context) {
