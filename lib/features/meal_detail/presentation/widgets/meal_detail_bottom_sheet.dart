@@ -12,6 +12,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailBottomSheet extends StatefulWidget {
   final MealEntity product;
+  final DateTime day;
   final IntakeTypeEntity intakeTypeEntity;
   final TextEditingController quantityTextController;
   final MealDetailBloc mealDetailBloc;
@@ -19,6 +20,7 @@ class MealDetailBottomSheet extends StatefulWidget {
   const MealDetailBottomSheet(
       {Key? key,
       required this.product,
+      required this.day,
       required this.intakeTypeEntity,
       required this.mealDetailBloc,
       required this.quantityTextController})
@@ -148,7 +150,8 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
         widget.product.mealUnit ?? S.of(context).gramMilliliterUnit,
         widget.quantityTextController.text,
         widget.intakeTypeEntity,
-        widget.product);
+        widget.product,
+        widget.day);
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());

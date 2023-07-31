@@ -6,8 +6,10 @@ import 'package:opennutritracker/features/activity_detail/activity_detail_screen
 
 class ActivityItemCard extends StatelessWidget {
   final PhysicalActivityEntity physicalActivityEntity;
+  final DateTime day;
 
-  const ActivityItemCard({Key? key, required this.physicalActivityEntity})
+  const ActivityItemCard(
+      {Key? key, required this.physicalActivityEntity, required this.day})
       : super(key: key);
 
   @override
@@ -46,8 +48,7 @@ class ActivityItemCard extends StatelessWidget {
               ),
               trailing: IconButton(
                 style: IconButton.styleFrom(
-                    foregroundColor:
-                        Theme.of(context).colorScheme.onSurface),
+                    foregroundColor: Theme.of(context).colorScheme.onSurface),
                 icon: const Icon(Icons.add_outlined),
                 onPressed: () => _onItemPressed(context),
               ),
@@ -61,6 +62,6 @@ class ActivityItemCard extends StatelessWidget {
 
   void _onItemPressed(BuildContext context) {
     Navigator.of(context).pushNamed(NavigationOptions.activityDetailRoute,
-        arguments: ActivityDetailScreenArguments(physicalActivityEntity));
+        arguments: ActivityDetailScreenArguments(physicalActivityEntity, day));
   }
 }

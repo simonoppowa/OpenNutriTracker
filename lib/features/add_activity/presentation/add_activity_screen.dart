@@ -17,6 +17,8 @@ class AddActivityScreen extends StatefulWidget {
 
 class _AddActivityScreenState extends State<AddActivityScreen>
     with SingleTickerProviderStateMixin {
+  late DateTime _day;
+
   late ActivitiesBloc _activitiesBloc;
   late RecentActivitiesBloc _recentActivitiesBloc;
 
@@ -28,6 +30,14 @@ class _AddActivityScreenState extends State<AddActivityScreen>
     _recentActivitiesBloc = locator<RecentActivitiesBloc>();
     _tabController = TabController(length: 2, vsync: this);
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    final args = ModalRoute.of(context)!.settings.arguments
+        as AddActivityScreenArguments;
+    _day = args.day;
+    super.didChangeDependencies();
   }
 
   @override
@@ -95,7 +105,8 @@ class _AddActivityScreenState extends State<AddActivityScreen>
                                   itemBuilder: (context, index) {
                                     return ActivityItemCard(
                                         physicalActivityEntity:
-                                            physicalActivities[index]);
+                                            physicalActivities[index],
+                                        day: _day);
                                   }),
                             );
                           }
@@ -135,8 +146,10 @@ class _AddActivityScreenState extends State<AddActivityScreen>
                                         itemCount: recentActivities.length,
                                         itemBuilder: (context, index) {
                                           return ActivityItemCard(
-                                              physicalActivityEntity:
-                                                  recentActivities[index]);
+                                            physicalActivityEntity:
+                                                recentActivities[index],
+                                            day: _day,
+                                          );
                                         }),
                                   )
                                 : const NoResultsWidget();
@@ -167,4 +180,10 @@ class _AddActivityScreenState extends State<AddActivityScreen>
   void _onRecentActivitiesRefreshButtonPressed() {
     _recentActivitiesBloc.add(LoadRecentActivitiesEvent(context: context));
   }
+}
+
+class AddActivityScreenArguments {
+  final DateTime day;
+
+  AddActivityScreenArguments({required this.day});
 }

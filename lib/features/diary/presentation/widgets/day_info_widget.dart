@@ -47,30 +47,43 @@ class DayInfoWidget extends StatelessWidget {
           child: Text(DateFormat.yMMMMEEEEd().format(selectedDay),
               style: Theme.of(context).textTheme.headlineSmall),
         ),
-        const SizedBox(height: 16.0),
+        const SizedBox(height: 8.0),
         trackedDay != null
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      _getCaloriesTrackedDisplayString(trackedDay),
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                    child: Card(
+                      elevation: 0.0,
+                      margin: const EdgeInsets.all(0.0),
+                      color: trackedDayEntity?.getRatingDayTextBackgroundColor(context),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                        child: Text(
+                          _getCaloriesTrackedDisplayString(trackedDay),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                  color:
+                                      trackedDayEntity?.getRatingDayTextColor(context),
+                                  fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8.0),
                   userActivities.isNotEmpty
                       ? ActivityVerticalList(
+                          day: selectedDay,
                           title: S.of(context).activityLabel,
                           userActivityList: userActivities,
                           onItemLongPressedCallback: onActivityItemLongPressed)
                       : const SizedBox(),
                   breakfastIntake.isNotEmpty
                       ? IntakeVerticalList(
+                          day: selectedDay,
                           title: S.of(context).breakfastLabel,
                           listIcon: Icons.bakery_dining_outlined,
                           addMealType: AddMealType.breakfastType,
@@ -80,6 +93,7 @@ class DayInfoWidget extends StatelessWidget {
                       : const SizedBox(),
                   lunchIntake.isNotEmpty
                       ? IntakeVerticalList(
+                          day: selectedDay,
                           title: S.of(context).lunchLabel,
                           listIcon: Icons.lunch_dining_outlined,
                           addMealType: AddMealType.lunchType,
@@ -89,6 +103,7 @@ class DayInfoWidget extends StatelessWidget {
                       : const SizedBox(),
                   dinnerIntake.isNotEmpty
                       ? IntakeVerticalList(
+                          day: selectedDay,
                           title: S.of(context).dinnerLabel,
                           listIcon: Icons.dinner_dining_outlined,
                           addMealType: AddMealType.dinnerType,
@@ -98,6 +113,7 @@ class DayInfoWidget extends StatelessWidget {
                       : const SizedBox(),
                   snackIntake.isNotEmpty
                       ? IntakeVerticalList(
+                          day: selectedDay,
                           title: S.of(context).snackLabel,
                           listIcon: CustomIcons.food_apple_outline,
                           addMealType: AddMealType.snackType,

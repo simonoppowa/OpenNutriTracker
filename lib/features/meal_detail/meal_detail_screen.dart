@@ -33,6 +33,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   final _scrollController = ScrollController();
 
   late MealEntity meal;
+  late DateTime _day;
   late IntakeTypeEntity intakeTypeEntity;
   late TextEditingController quantityTextController;
 
@@ -56,6 +57,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     final args =
         ModalRoute.of(context)?.settings.arguments as MealDetailScreenArguments;
     meal = args.mealEntity;
+    _day = args.day;
     intakeTypeEntity = args.intakeTypeEntity;
     totalKcal = meal.nutriments.energyKcal100 ?? 0;
     totalCarbs = meal.nutriments.carbohydrates100 ?? 0;
@@ -100,8 +102,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   onPressed: () {
                     Navigator.of(context).pushNamed(
                         NavigationOptions.editMealRoute,
-                        arguments:
-                            EditMealScreenArguments(meal, intakeTypeEntity));
+                        arguments: EditMealScreenArguments(
+                            _day, meal, intakeTypeEntity));
                   },
                   icon: const Icon(Icons.edit_outlined))
             ],
@@ -171,6 +173,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       ),
       bottomSheet: MealDetailBottomSheet(
           product: meal,
+          day: _day,
           intakeTypeEntity: intakeTypeEntity,
           quantityTextController: quantityTextController,
           mealDetailBloc: _mealDetailBloc),
@@ -207,6 +210,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 class MealDetailScreenArguments {
   final MealEntity mealEntity;
   final IntakeTypeEntity intakeTypeEntity;
+  final DateTime day;
 
-  MealDetailScreenArguments(this.mealEntity, this.intakeTypeEntity);
+  MealDetailScreenArguments(this.mealEntity, this.intakeTypeEntity, this.day);
 }

@@ -66,7 +66,7 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
             padding: const EdgeInsets.all(1),
             decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: trackedDay.getRatingColor(context)),
+                color: trackedDay.getCalendarDayRatingColor(context)),
             width: 5.0,
             height: 5.0,
           );

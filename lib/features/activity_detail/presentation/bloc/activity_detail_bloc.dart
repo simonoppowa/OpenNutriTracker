@@ -42,15 +42,14 @@ class ActivityDetailBloc
   }
 
   void persistActivity(BuildContext context, String durationText,
-      double totalKcalBurned, PhysicalActivityEntity activityEntity) async {
+      double totalKcalBurned, PhysicalActivityEntity activityEntity, DateTime day) async {
     final duration = double.parse(durationText);
-    final dateTime = DateTime.now();
 
     final userActivityEntity = UserActivityEntity(IdGenerator.getUniqueID(),
-        duration, totalKcalBurned, dateTime, activityEntity);
+        duration, totalKcalBurned, day, activityEntity);
 
     await _addUserActivityUsecase.addUserActivity(userActivityEntity);
-    _updateTrackedDay(dateTime, totalKcalBurned);
+    _updateTrackedDay(day, totalKcalBurned);
   }
 
   void _updateTrackedDay(DateTime dateTime, double caloriesBurned) async {
