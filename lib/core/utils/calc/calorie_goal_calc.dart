@@ -12,7 +12,7 @@ class CalorieGoalCalc {
       totalKcalGoal - totalKcalIntake;
 
   static double getTdee(UserEntity userEntity) =>
-      TDEECalc.getTDEEKcalIOM2006(userEntity);
+      TDEECalc.getTDEEKcalIOM2005(userEntity);
 
   static double getTotalKcalGoal(
           UserEntity userEntity, double totalKcalActivities) =>

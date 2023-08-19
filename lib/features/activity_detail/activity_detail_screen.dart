@@ -201,7 +201,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
     // Show snackbar and return to dashboard
     ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context).infoAddedIntakeLabel)));
+        SnackBar(content: Text(S.of(context).infoAddedActivityLabel)));
     Navigator.of(context)
         .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
   }

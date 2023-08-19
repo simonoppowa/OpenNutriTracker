@@ -34,10 +34,13 @@ class PalCalc {
   ///
   /// Returns the physical activity coefficient (PA) from the PAL value
   /// and user gender based on IOM recommendation
-  /// 'An Easy Approach to Calculating Estimated Energy Requirements'
-  /// by Gerrior et al.
-  /// https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1784117/
   ///
+  /// Institute of Medicine. 2005. Dietary Reference Intakes for Energy,
+  /// Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein,
+  /// and Amino Acids. (p.204)
+  /// Washington, DC: The National Academies Press.
+  /// https://doi.org/10.17226/10490.
+  /// https://nap.nationalacademies.org/catalog/10490/dietary-reference-intakes-for-energy-carbohydrate-fiber-fat-fatty-acids-cholesterol-protein-and-amino-acids
   static double getPAValueFromPALValue(UserEntity userEntity, double palValue) {
     double paValue = 1.0;
     if (palValue < 1.4) {
