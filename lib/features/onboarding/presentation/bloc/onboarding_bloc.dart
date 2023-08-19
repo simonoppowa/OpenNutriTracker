@@ -36,7 +36,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     final userEntity = userSelection.toUserEntity();
     double? calorieGoal;
     if (userEntity != null) {
-      calorieGoal = TDEECalc.getTDEEKcalIOM2006(userEntity);
+      calorieGoal = TDEECalc.getTDEEKcalIOM2005(userEntity);
     }
     return calorieGoal;
   }

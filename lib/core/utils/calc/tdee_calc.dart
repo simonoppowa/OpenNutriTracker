@@ -15,14 +15,16 @@ class TDEECalc {
     return userBMR * userPAL;
   }
 
+  /// Returns the total daily energy expenditure (TDEE) of given userEntity
+  /// based on 2005 IOM equation
   ///
-  /// Returns the total daily energy expenditure (TDEE) userEntity
-  /// based on 2006 IOM recommendation
-  /// 'An Easy Approach to Calculating Estimated Energy Requirements'
-  /// by Gerrior et al.
-  /// https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1784117/
-  ///
-  static double getTDEEKcalIOM2006(UserEntity userEntity) {
+  /// Institute of Medicine. 2005. Dietary Reference Intakes for Energy,
+  /// Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein,
+  /// and Amino Acids. (p.204)
+  /// Washington, DC: The National Academies Press.
+  /// https://doi.org/10.17226/10490.
+  /// https://nap.nationalacademies.org/catalog/10490/dietary-reference-intakes-for-energy-carbohydrate-fiber-fat-fatty-acids-cholesterol-protein-and-amino-acids
+  static double getTDEEKcalIOM2005(UserEntity userEntity) {
     double tdeeKcal;
     if (userEntity.gender == UserGenderEntity.male) {
       tdeeKcal = 864 -
