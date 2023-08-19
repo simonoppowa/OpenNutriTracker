@@ -21,13 +21,13 @@ OpenNutriTracker is an open-source mobile application designed to simplify nutri
 
 ## Screenshots
 <p align="center">
-  <img alt="Logo" src="screenshots/screenshot_home.png" width="20%" />
+  <img alt="Logo" src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_en-US.png" width="20%" />
   &nbsp;&nbsp;
-  <img alt="Logo" src="screenshots/screenshot_product_detail.png" width="20%" />
+  <img alt="Logo" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_en-US.png" width="20%" />
   &nbsp;&nbsp;
-  <img alt="Logo" src="screenshots/screenshot_activity_search.png" width="20%" />
+  <img alt="Logo" src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_en-US.png" width="20%" />
   &nbsp;&nbsp;
-  <img alt="Logo" src="screenshots/screenshot_profile.png" width="20%" />
+  <img alt="Logo" src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_en-US.png" width="20%" />
 </p>
 
 ## Install
