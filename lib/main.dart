@@ -72,6 +72,7 @@ class OpenNutriTrackerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       onGenerateTitle: (context) => S.of(context).appTitle,
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
           useMaterial3: true,
           colorScheme: lightColorScheme,
