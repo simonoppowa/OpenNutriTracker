@@ -77,6 +77,7 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
               ListTile(
                 onTap: () => _toggleDataCollection(),
                 title: Text(S.of(context).dataCollectionLabel,
+                    textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall),
                 leading: Checkbox(
                   value: _acceptedDataCollection,
