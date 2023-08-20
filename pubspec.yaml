@@ -33,7 +33,7 @@ dependencies:
     sdk: flutter
 
 
-  collection: ^1.17.0
+  collection: ^1.17.2
   intl: ^0.18.0
   get_it: ^7.6.0
   provider: ^6.0.5
@@ -60,7 +60,7 @@ dependencies:
   introduction_screen: ^3.1.8
   auto_size_text: ^3.0.0
 
-  mobile_scanner: ^3.2.0
+  mobile_scanner: ^3.4.1
 
   hive: ^2.2.3
   hive_flutter: ^1.1.0
