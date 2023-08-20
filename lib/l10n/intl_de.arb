@@ -65,7 +65,7 @@
   "settingsVolumeLabel": "Volumen",
   "disclaimerText": "OpenNutriTracker ist keine medizinische Anwendung. Alle bereitgestellten Daten sind nicht validiert und sollten mit Vorsicht verwendet werden. Bitte pflegen Sie einen gesunden Lebensstil und konsultieren Sie einen Fachmann, wenn Sie Probleme haben. Die Verwendung während einer Krankheit, Schwangerschaft oder Stillzeit wird nicht empfohlen.\n\n\nDie Anwendung befindet sich noch in der Entwicklung. Fehler, Bugs und Abstürze können auftreten.",
   "reportErrorDialogText": "Möchten Sie einen Fehler an den Entwickler melden?",
-  "sendAnonymousUserData": "Anonyme Fehlerdaten senden?",
+  "sendAnonymousUserData": "Anonyme Nutzungsdaten senden?",
   "appLicenseLabel": "GPL-3.0 Lizenz",
   "calculationsTDEELabel": "TDEE-Gleichung",
   "calculationsTDEEIOM2006Label": "Institute of Medicine Gleichung",

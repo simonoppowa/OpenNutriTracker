@@ -52,7 +52,7 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                         style: Theme.of(context).textTheme.bodySmall,
                         children: [
                           TextSpan(
-                              text: ' 📄${S.of(context).privacyPolicyLabel}',
+                              text: ' ${S.of(context).privacyPolicyLabel}',
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
