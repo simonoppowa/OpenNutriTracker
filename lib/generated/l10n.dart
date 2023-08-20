@@ -670,10 +670,10 @@ class S {
     );
   }
 
-  /// `Send anonymous error data?`
+  /// `Send anonymous usage data`
   String get sendAnonymousUserData {
     return Intl.message(
-      'Send anonymous error data?',
+      'Send anonymous usage data',
       name: 'sendAnonymousUserData',
       desc: '',
       args: [],

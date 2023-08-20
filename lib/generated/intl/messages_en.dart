@@ -575,7 +575,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "selectWeightDialogLabel":
             MessageLookupByLibrary.simpleMessage("Select Weight"),
         "sendAnonymousUserData":
-            MessageLookupByLibrary.simpleMessage("Send anonymous error data?"),
+            MessageLookupByLibrary.simpleMessage("Send anonymous usage data"),
         "servingSizeLabel":
             MessageLookupByLibrary.simpleMessage("Serving size (g/ml)"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),

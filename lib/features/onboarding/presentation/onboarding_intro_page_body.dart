@@ -52,7 +52,7 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                         style: Theme.of(context).textTheme.bodySmall,
                         children: [
                           TextSpan(
-                              text: ' 📄${S.of(context).privacyPolicyLabel}',
+                              text: ' ${S.of(context).privacyPolicyLabel}',
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
@@ -77,6 +77,7 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
               ListTile(
                 onTap: () => _toggleDataCollection(),
                 title: Text(S.of(context).dataCollectionLabel,
+                    textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall),
                 leading: Checkbox(
                   value: _acceptedDataCollection,

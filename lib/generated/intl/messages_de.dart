@@ -591,8 +591,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Aktivitätslevel auswählen"),
         "selectWeightDialogLabel":
             MessageLookupByLibrary.simpleMessage("Gewicht auswählen"),
-        "sendAnonymousUserData":
-            MessageLookupByLibrary.simpleMessage("Anonyme Fehlerdaten senden?"),
+        "sendAnonymousUserData": MessageLookupByLibrary.simpleMessage(
+            "Anonyme Nutzungsdaten senden?"),
         "servingSizeLabel":
             MessageLookupByLibrary.simpleMessage("Portionsgröße (g/ml)"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("Über"),
