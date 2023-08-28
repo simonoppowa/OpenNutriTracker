@@ -59,6 +59,7 @@ dependencies:
   table_calendar: ^3.0.9
   introduction_screen: ^3.1.8
   auto_size_text: ^3.0.0
+  animated_flip_counter: ^0.2.6
 
   mobile_scanner: ^3.4.1
 

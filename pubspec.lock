@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.13.0"
+  animated_flip_counter:
+    dependency: "direct main"
+    description:
+      name: animated_flip_counter
+      sha256: "2c25ace054ac3932a3f203875a90ddae760ba7016cb9233573067a12ae51e3c6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.6"
   app_links:
     dependency: transitive
     description:
@@ -133,10 +141,10 @@ packages:
     dependency: transitive
     description:
       name: built_value
-      sha256: "598a2a682e2a7a90f08ba39c0aaa9374c5112340f0a2e275f61b59389543d166"
+      sha256: ff627b645b28fb8bdb69e645f910c2458fd6b65f6585c3a53e0626024897dedf
       url: "https://pub.dev"
     source: hosted
-    version: "8.6.1"
+    version: "8.6.2"
   cached_network_image:
     dependency: "direct main"
     description:
@@ -881,10 +889,10 @@ packages:
     dependency: transitive
     description:
       name: realtime_client
-      sha256: "69187110a1930e8db2b121cad25a247283f384f078d213ab87072814be12b1a4"
+      sha256: b4b7bb293417dafc73943ed639209b2dcb796db8495e56bba29a4e26fadef5cd
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.0"
+    version: "1.2.1"
   retry:
     dependency: transitive
     description:
@@ -1110,18 +1118,18 @@ packages:
     dependency: transitive
     description:
       name: supabase
-      sha256: "2f274a29c28e0b0fe7642196c099efeba50a83a570aac6b86577389585a7da82"
+      sha256: c48671b62720f15067f6b31abe964950bf1405b7eec367a97f683dee25715a77
       url: "https://pub.dev"
     source: hosted
-    version: "1.11.0"
+    version: "1.11.1"
   supabase_flutter:
     dependency: "direct main"
     description:
       name: supabase_flutter
-      sha256: "9dbd6f66fb95a1a5b37f0f4c79d8de8c34181e4012833289273d08d6ab61faa3"
+      sha256: a9070f578d8b21799b43d7145586b32838b7970c831a5637f67e91f3bd3ea287
       url: "https://pub.dev"
     source: hosted
-    version: "1.10.13"
+    version: "1.10.14"
   synchronized:
     dependency: transitive
     description:
@@ -1310,10 +1318,10 @@ packages:
     dependency: transitive
     description:
       name: webview_flutter
-      sha256: "789d52bd789373cc1e100fb634af2127e86c99cf9abde09499743270c5de8d00"
+      sha256: "04a0782fb058b7c71f2048935583488f4d32e9147ca403abc4e58f1de9964629"
       url: "https://pub.dev"
     source: hosted
-    version: "4.2.2"
+    version: "4.2.3"
   webview_flutter_android:
     dependency: transitive
     description:
@@ -1342,10 +1350,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: f2add6fa510d3ae152903412227bda57d0d5a8da61d2c39c1fb022c9429a41c0
+      sha256: "9e82a402b7f3d518fb9c02d0e9ae45952df31b9bf34d77baf19da2de03fc2aaa"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.6"
+    version: "5.0.7"
   xdg_directories:
     dependency: transitive
     description:
