@@ -90,6 +90,16 @@ class S {
     );
   }
 
+  /// `[Beta]`
+  String get betaVersionName {
+    return Intl.message(
+      '[Beta]',
+      name: 'betaVersionName',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Add`
   String get addLabel {
     return Intl.message(

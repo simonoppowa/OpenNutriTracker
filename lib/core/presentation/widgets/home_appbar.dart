@@ -20,7 +20,7 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
                     color: Theme.of(context).colorScheme.onBackground),
                 children: <TextSpan>[
                   TextSpan(
-                      text: ' ${S.of(context).alphaVersionName}',
+                      text: ' ${S.of(context).betaVersionName}',
                       style: TextStyle(
                           fontWeight: FontWeight.w500,
                           color: Theme.of(context).colorScheme.onBackground)),

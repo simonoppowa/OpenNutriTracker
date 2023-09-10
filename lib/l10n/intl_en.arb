@@ -3,6 +3,7 @@
   "appVersionName": "Version {versionNumber}",
   "appDescription": "OpenNutriTracker is a free and open-source calorie and nutrient tracker that respects your privacy.",
   "alphaVersionName": "[Alpha]",
+  "betaVersionName": "[Beta]",
 
   "addLabel": "Add",
   "createCustomDialogTitle": "Create custom meal item?",
