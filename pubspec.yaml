@@ -33,7 +33,7 @@ dependencies:
     sdk: flutter
 
 
-  collection: ^1.17.2
+  collection: ^1.17.1
   intl: ^0.18.0
   get_it: ^7.6.0
   provider: ^6.0.5
