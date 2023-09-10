@@ -1,3 +1,4 @@
+import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/macro_nutriments_widget.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
@@ -69,15 +70,19 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                       Text('${widget.totalKcalSupplied.toInt()}',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface)),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
                       Text(S.of(context).suppliedLabel,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface)),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
                     ],
                   ),
                   CircularPercentIndicator(
@@ -92,23 +97,24 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                     center: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(kcalLeftLabel.toInt().toString(),
-                            style: Theme.of(context)
+                        AnimatedFlipCounter(
+                            duration: const Duration(milliseconds: 1000),
+                            value: kcalLeftLabel.toInt(),
+                            textStyle: Theme.of(context)
                                 .textTheme
                                 .headlineMedium
                                 ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface)),
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                    letterSpacing: -1)),
                         Text(
                           S.of(context).kcalLeftLabel,
                           style: Theme.of(context)
                               .textTheme
                               .titleMedium
                               ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface),
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface),
                         )
                       ],
                     ),
@@ -117,18 +123,21 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                   Column(
                     children: [
                       Icon(Icons.keyboard_arrow_down_outlined,
-                          color:
-                              Theme.of(context).colorScheme.onSurface),
+                          color: Theme.of(context).colorScheme.onSurface),
                       Text('${widget.totalKcalBurned.toInt()}',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface)),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
                       Text(S.of(context).burnedLabel,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface)),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
                     ],
                   ),
                 ],

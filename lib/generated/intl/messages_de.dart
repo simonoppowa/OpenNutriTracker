@@ -56,6 +56,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("GPL-3.0 Lizenz"),
         "appTitle": MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
         "appVersionName": m0,
+        "betaVersionName": MessageLookupByLibrary.simpleMessage("[Beta]"),
         "bmiInfo": MessageLookupByLibrary.simpleMessage(
             "Der Body-Mass-Index (BMI) ist ein Index zur Klassifizierung von Übergewicht und Fettleibigkeit bei Erwachsenen. Er wird berechnet, indem das Gewicht in Kilogramm durch das Quadrat der Körpergröße in Metern (kg/m²) geteilt wird.\n\nDer BMI unterscheidet nicht zwischen Fett- und Muskelmasse und kann für einige Personen irreführend sein."),
         "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),

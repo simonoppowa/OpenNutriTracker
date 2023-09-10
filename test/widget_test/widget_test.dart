@@ -1,3 +1,4 @@
+import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,12 +30,15 @@ void main() {
         totalProteinsGoal: 120,
       ),
     ));
+    await tester.pumpAndSettle();
 
     // Verify that the supplied and burned calorie values are displayed.
     expect(find.text('1500'), findsOneWidget);
     expect(find.text('500'), findsOneWidget);
 
-    // Verify that the kcal left label is displayed.
-    expect(find.text('1000'), findsOneWidget);
+    // Verify that the kcal left label is displayed as AnimatedFlipCounter
+    final kcalLeftFlipCounter = tester
+        .firstWidget<AnimatedFlipCounter>(find.byType(AnimatedFlipCounter));
+    expect(kcalLeftFlipCounter.value, 1000);
   });
 }
