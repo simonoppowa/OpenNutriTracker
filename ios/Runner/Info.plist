@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -24,8 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>CFBundleLocalizations</key>
 	<array>
-	    <string>en</string>
-	    <string>de</string>
+		<string>en</string>
+		<string>de</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
