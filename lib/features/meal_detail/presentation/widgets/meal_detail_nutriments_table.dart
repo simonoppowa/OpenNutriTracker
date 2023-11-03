@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -36,22 +37,30 @@ class MealDetailNutrimentsTable extends StatelessWidget {
                 S.of(context).energyLabel,
                 "${product.nutriments.energyKcal100?.toInt() ?? "?"} ${S.of(context).kcalLabel}",
                 textStyleNormal),
-            _getNutrimentsTableRow(S.of(context).fatLabel,
-                "${product.nutriments.fat100 ?? "?"}g", textStyleNormal),
+            _getNutrimentsTableRow(
+                S.of(context).fatLabel,
+                "${product.nutriments.fat100?.roundToPrecision(2) ?? "?"}g",
+                textStyleNormal),
             _getNutrimentsTableRow(
                 '   ${S.of(context).saturatedFatLabel}',
-                "${product.nutriments.saturatedFat100 ?? "?"}g",
+                "${product.nutriments.saturatedFat100?.roundToPrecision(2) ?? "?"}g",
                 textStyleNormal),
             _getNutrimentsTableRow(
                 S.of(context).carbohydrateLabel,
-                "${product.nutriments.carbohydrates100 ?? "?"}g",
+                "${product.nutriments.carbohydrates100?.roundToPrecision(2) ?? "?"}g",
                 textStyleNormal),
-            _getNutrimentsTableRow('    ${S.of(context).sugarLabel}',
-                "${product.nutriments.sugars100 ?? "?"}g", textStyleNormal),
-            _getNutrimentsTableRow(S.of(context).fiberLabel,
-                "${product.nutriments.fiber100 ?? "?"}g", textStyleNormal),
-            _getNutrimentsTableRow(S.of(context).proteinLabel,
-                "${product.nutriments.proteins100 ?? "?"}g", textStyleNormal)
+            _getNutrimentsTableRow(
+                '    ${S.of(context).sugarLabel}',
+                "${product.nutriments.sugars100?.roundToPrecision(2) ?? "?"}g",
+                textStyleNormal),
+            _getNutrimentsTableRow(
+                S.of(context).fiberLabel,
+                "${product.nutriments.fiber100?.roundToPrecision(2) ?? "?"}g",
+                textStyleNormal),
+            _getNutrimentsTableRow(
+                S.of(context).proteinLabel,
+                "${product.nutriments.proteins100?.roundToPrecision(2) ?? "?"}g",
+                textStyleNormal)
           ],
         )
       ],
