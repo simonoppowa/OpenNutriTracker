@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/calc/tdee_calc.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_data_mask_entity.dart';
 
@@ -39,5 +40,35 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       calorieGoal = TDEECalc.getTDEEKcalIOM2005(userEntity);
     }
     return calorieGoal;
+  }
+
+  double? getOverviewCarbsGoal() {
+    final userEntity = userSelection.toUserEntity();
+    final calorieGoal = getOverviewCalorieGoal();
+    double? carbsGoal;
+    if (userEntity != null && calorieGoal != null) {
+      carbsGoal = MacroCalc.getTotalCarbsGoal(calorieGoal);
+    }
+    return carbsGoal;
+  }
+
+  double? getOverviewFatGoal() {
+    final userEntity = userSelection.toUserEntity();
+    final calorieGoal = getOverviewCalorieGoal();
+    double? fatGoal;
+    if (userEntity != null && calorieGoal != null) {
+      fatGoal = MacroCalc.getTotalFatsGoal(calorieGoal);
+    }
+    return fatGoal;
+  }
+
+  double? getOverviewProteinGoal() {
+    final userEntity = userSelection.toUserEntity();
+    final calorieGoal = getOverviewCalorieGoal();
+    double? proteinGoal;
+    if (userEntity != null && calorieGoal != null) {
+      proteinGoal = MacroCalc.getTotalProteinsGoal(calorieGoal);
+    }
+    return proteinGoal;
   }
 }

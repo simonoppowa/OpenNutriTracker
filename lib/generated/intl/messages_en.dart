@@ -229,7 +229,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingWrongWeightLabel":
             MessageLookupByLibrary.simpleMessage("Enter correct weight"),
         "onboardingYourGoalLabel":
-            MessageLookupByLibrary.simpleMessage("Your goal:"),
+            MessageLookupByLibrary.simpleMessage("Your calorie goal:"),
+        "onboardingYourMacrosGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Your macronutrient goals:"),
         "paAmericanFootballGeneral":
             MessageLookupByLibrary.simpleMessage("football"),
         "paAmericanFootballGeneralDesc":

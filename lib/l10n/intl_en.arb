@@ -31,7 +31,8 @@
 
   "onboardingWelcomeLabel": "Welcome to",
   "onboardingOverviewLabel": "Overview",
-  "onboardingYourGoalLabel": "Your goal:",
+  "onboardingYourGoalLabel": "Your calorie goal:",
+  "onboardingYourMacrosGoalLabel": "Your macronutrient goals:",
   "onboardingKcalPerDayLabel": "kcal per day",
   "onboardingIntroDescription": "To start, the app needs some information about you to calculate your daily calorie goal.\nAll information about you is stored securely on your device.",
   "onboardingGenderQuestionSubtitle": "What's your gender?",

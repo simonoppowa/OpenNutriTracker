@@ -3,11 +3,20 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingOverviewPageBody extends StatelessWidget {
   final String calorieGoalDayString;
+  final String carbsGoalString;
+  final String fatGoalString;
+  final String proteinGoalString;
   final Function(bool active) setButtonActive;
   final double? totalKcalCalculated;
 
   const OnboardingOverviewPageBody(
-      {Key? key, required this.setButtonActive, this.totalKcalCalculated, required this.calorieGoalDayString})
+      {Key? key,
+      required this.setButtonActive,
+      this.totalKcalCalculated,
+      required this.calorieGoalDayString,
+      required this.carbsGoalString,
+      required this.fatGoalString,
+      required this.proteinGoalString})
       : super(key: key);
 
   @override
@@ -23,6 +32,7 @@ class OnboardingOverviewPageBody extends StatelessWidget {
           const SizedBox(height: 32.0),
           Text(S.of(context).onboardingYourGoalLabel,
               style: Theme.of(context).textTheme.bodyLarge),
+          const SizedBox(height: 8.0),
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.max,
@@ -40,7 +50,48 @@ class OnboardingOverviewPageBody extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16.0)
+          const SizedBox(height: 32.0),
+          Text(S.of(context).onboardingYourMacrosGoalLabel,
+              style: Theme.of(context).textTheme.bodyLarge),
+          const SizedBox(height: 16.0),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('$carbsGoalString g',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.secondary)),
+                const SizedBox(height: 8.0),
+                Text(S.of(context).carbsLabel,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onBackground
+                            .withOpacity(0.6))),
+                const SizedBox(height: 8.0),
+                Text('$fatGoalString g',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.secondary)),
+                Text(S.of(context).fatLabel,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onBackground
+                            .withOpacity(0.6))),
+                const SizedBox(height: 8.0),
+                Text('$proteinGoalString g',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.secondary)),
+                Text(S.of(context).proteinLabel,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onBackground
+                            .withOpacity(0.6))),
+              ],
+            ),
+          ),
         ],
       ),
     );
