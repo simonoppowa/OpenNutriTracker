@@ -340,11 +340,21 @@ class S {
     );
   }
 
-  /// `Your goal:`
+  /// `Your calorie goal:`
   String get onboardingYourGoalLabel {
     return Intl.message(
-      'Your goal:',
+      'Your calorie goal:',
       name: 'onboardingYourGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your macronutrient goals:`
+  String get onboardingYourMacrosGoalLabel {
+    return Intl.message(
+      'Your macronutrient goals:',
+      name: 'onboardingYourMacrosGoalLabel',
       desc: '',
       args: [],
     );

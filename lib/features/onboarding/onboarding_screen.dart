@@ -169,6 +169,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ?.toInt()
                       .toString() ??
                   "?",
+              carbsGoalString:
+                  _onboardingBloc.getOverviewCarbsGoal()?.toInt().toString() ??
+                      "?",
+              fatGoalString:
+                  _onboardingBloc.getOverviewFatGoal()?.toInt().toString() ??
+                      "?",
+              proteinGoalString: _onboardingBloc
+                      .getOverviewProteinGoal()
+                      ?.toInt()
+                      .toString() ??
+                  "?",
               setButtonActive: _setOverviewPageContent,
             ),
             footer: HighlightButton(
