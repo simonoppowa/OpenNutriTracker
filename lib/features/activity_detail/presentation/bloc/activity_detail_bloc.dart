@@ -41,8 +41,12 @@ class ActivityDetailBloc
     return METCalc.getTotalBurnedKcal(user, physicalActivity, duration);
   }
 
-  void persistActivity(BuildContext context, String durationText,
-      double totalKcalBurned, PhysicalActivityEntity activityEntity, DateTime day) async {
+  void persistActivity(
+      BuildContext context,
+      String durationText,
+      double totalKcalBurned,
+      PhysicalActivityEntity activityEntity,
+      DateTime day) async {
     final duration = double.parse(durationText);
 
     final userActivityEntity = UserActivityEntity(IdGenerator.getUniqueID(),
@@ -54,7 +58,8 @@ class ActivityDetailBloc
 
   void _updateTrackedDay(DateTime dateTime, double caloriesBurned) async {
     final userEntity = await _getUserUsecase.getUserData();
-    final totalKcalGoal = CalorieGoalCalc.getTdee(userEntity);
+    final totalKcalGoal =
+        CalorieGoalCalc.getTotalKcalGoal(userEntity, caloriesBurned);
 
     final hasTrackedDay =
         await _addTrackedDayUsecase.hasTrackedDay(DateTime.now());

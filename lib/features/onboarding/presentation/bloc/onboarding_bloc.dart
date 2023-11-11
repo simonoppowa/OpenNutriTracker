@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
-import 'package:opennutritracker/core/utils/calc/tdee_calc.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_data_mask_entity.dart';
 
 part 'onboarding_event.dart';
@@ -37,7 +37,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     final userEntity = userSelection.toUserEntity();
     double? calorieGoal;
     if (userEntity != null) {
-      calorieGoal = TDEECalc.getTDEEKcalIOM2005(userEntity);
+      calorieGoal = CalorieGoalCalc.getTotalKcalGoal(userEntity, 0);
     }
     return calorieGoal;
   }
