@@ -18,13 +18,12 @@ class MealDetailBottomSheet extends StatefulWidget {
   final MealDetailBloc mealDetailBloc;
 
   const MealDetailBottomSheet(
-      {Key? key,
+      {super.key,
       required this.product,
       required this.day,
       required this.intakeTypeEntity,
       required this.mealDetailBloc,
-      required this.quantityTextController})
-      : super(key: key);
+      required this.quantityTextController});
 
   @override
   State<MealDetailBottomSheet> createState() => _MealDetailBottomSheetState();

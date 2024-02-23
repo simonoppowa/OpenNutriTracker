@@ -17,7 +17,7 @@ import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class AddMealScreen extends StatefulWidget {
-  const AddMealScreen({Key? key}) : super(key: key);
+  const AddMealScreen({super.key});
 
   @override
   State<AddMealScreen> createState() => _AddMealScreenState();

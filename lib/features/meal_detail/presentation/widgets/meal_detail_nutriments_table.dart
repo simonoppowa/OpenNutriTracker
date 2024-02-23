@@ -6,8 +6,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 class MealDetailNutrimentsTable extends StatelessWidget {
   final MealEntity product;
 
-  const MealDetailNutrimentsTable({Key? key, required this.product})
-      : super(key: key);
+  const MealDetailNutrimentsTable({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {

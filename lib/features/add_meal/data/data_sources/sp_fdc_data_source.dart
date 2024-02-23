@@ -20,7 +20,7 @@ class SpFdcDataSource {
 
       final response = await supaBaseClient
           .from(SPConst.fdcFoodTableName)
-          .select<List<Map<String, dynamic>>>(
+          .select(
               '''fdc_id, $queryDescriptionColumn, fdc_portions ( measure_unit_id, amount, gram_weight ), fdc_nutrients ( nutrient_id, amount )''')
           .textSearch(queryDescriptionColumn, searchString,
               type: TextSearchType.websearch)

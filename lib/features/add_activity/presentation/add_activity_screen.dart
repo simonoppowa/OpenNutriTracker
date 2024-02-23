@@ -9,7 +9,7 @@ import 'package:opennutritracker/features/add_meal/presentation/widgets/no_resul
 import 'package:opennutritracker/generated/l10n.dart';
 
 class AddActivityScreen extends StatefulWidget {
-  const AddActivityScreen({Key? key}) : super(key: key);
+  const AddActivityScreen({super.key});
 
   @override
   State<AddActivityScreen> createState() => _AddActivityScreenState();

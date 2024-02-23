@@ -11,7 +11,7 @@ import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ScannerScreen extends StatefulWidget {
-  const ScannerScreen({Key? key}) : super(key: key);
+  const ScannerScreen({super.key});
 
   @override
   State<ScannerScreen> createState() => _ScannerScreenState();

@@ -11,11 +11,10 @@ class IntakeCard extends StatelessWidget {
   final bool firstListElement;
 
   const IntakeCard(
-      {required Key? key,
+      {required super.key,
       required this.intake,
       required this.onItemLongPressed,
-      required this.firstListElement})
-      : super(key: key);
+      required this.firstListElement});
 
   @override
   Widget build(BuildContext context) {

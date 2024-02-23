@@ -7,8 +7,7 @@ class OnboardingThirdPageBody extends StatefulWidget {
   final Function(bool active, UserActivitySelectionEntity? selectedActivity)
       setButtonContent;
 
-  const OnboardingThirdPageBody({Key? key, required this.setButtonContent})
-      : super(key: key);
+  const OnboardingThirdPageBody({super.key, required this.setButtonContent});
 
   @override
   State<OnboardingThirdPageBody> createState() =>

@@ -10,11 +10,10 @@ class MealSearchBar extends StatelessWidget {
   final _searchTextController = TextEditingController();
 
   MealSearchBar(
-      {Key? key,
+      {super.key,
       required this.searchStringListener,
       required this.onSearchSubmit,
-      required this.onBarcodePressed})
-      : super(key: key);
+      required this.onBarcodePressed});
 
   @override
   Widget build(BuildContext context) {

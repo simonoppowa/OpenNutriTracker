@@ -17,7 +17,7 @@ class DashboardWidget extends StatefulWidget {
   final double totalProteinsGoal;
 
   const DashboardWidget(
-      {Key? key,
+      {super.key,
       required this.totalKcalSupplied,
       required this.totalKcalBurned,
       required this.totalKcalDaily,
@@ -27,8 +27,7 @@ class DashboardWidget extends StatefulWidget {
       required this.totalProteinsIntake,
       required this.totalCarbsGoal,
       required this.totalFatsGoal,
-      required this.totalProteinsGoal})
-      : super(key: key);
+      required this.totalProteinsGoal});
 
   @override
   State<DashboardWidget> createState() => _DashboardWidgetState();

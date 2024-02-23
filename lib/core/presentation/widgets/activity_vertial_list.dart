@@ -12,12 +12,11 @@ class ActivityVerticalList extends StatelessWidget {
   final Function(BuildContext, UserActivityEntity) onItemLongPressedCallback;
 
   const ActivityVerticalList(
-      {Key? key,
+      {super.key,
       required this.day,
       required this.title,
       required this.userActivityList,
-      required this.onItemLongPressedCallback})
-      : super(key: key);
+      required this.onItemLongPressedCallback});
 
   @override
   Widget build(BuildContext context) {

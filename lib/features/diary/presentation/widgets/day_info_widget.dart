@@ -24,7 +24,7 @@ class DayInfoWidget extends StatelessWidget {
       TrackedDayEntity? trackedDayEntity) onDeleteActivity;
 
   const DayInfoWidget(
-      {Key? key,
+      {super.key,
       required this.selectedDay,
       required this.trackedDayEntity,
       required this.userActivities,
@@ -33,8 +33,7 @@ class DayInfoWidget extends StatelessWidget {
       required this.dinnerIntake,
       required this.snackIntake,
       required this.onDeleteIntake,
-      required this.onDeleteActivity})
-      : super(key: key);
+      required this.onDeleteActivity});
 
   @override
   Widget build(BuildContext context) {
