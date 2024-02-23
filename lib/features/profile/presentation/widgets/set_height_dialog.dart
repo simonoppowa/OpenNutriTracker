@@ -7,8 +7,7 @@ class SetHeightDialog extends StatelessWidget {
 
   final double userHeightCM;
 
-  const SetHeightDialog({Key? key, required this.userHeightCM})
-      : super(key: key);
+  const SetHeightDialog({super.key, required this.userHeightCM});
 
   @override
   Widget build(BuildContext context) {

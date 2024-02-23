@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class DeleteDialog extends StatelessWidget {
-  const DeleteDialog({Key? key}) : super(key: key);
+  const DeleteDialog({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -3,7 +3,7 @@ import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class SetGenderDialog extends StatelessWidget {
-  const SetGenderDialog({Key? key}) : super(key: key);
+  const SetGenderDialog({super.key});
 
   @override
   Widget build(BuildContext context) {

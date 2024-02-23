@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class NoResultsWidget extends StatelessWidget {
-  const NoResultsWidget({Key? key}) : super(key: key);
+  const NoResultsWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

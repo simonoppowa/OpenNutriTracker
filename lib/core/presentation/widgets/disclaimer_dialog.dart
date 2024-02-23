@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class DisclaimerDialog extends StatelessWidget {
-  const DisclaimerDialog({Key? key}) : super(key: key);
+  const DisclaimerDialog({super.key});
 
   @override
   Widget build(BuildContext context) {

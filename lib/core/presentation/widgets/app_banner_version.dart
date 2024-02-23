@@ -5,8 +5,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 class AppBannerVersion extends StatelessWidget {
   final String versionNumber;
 
-  const AppBannerVersion({Key? key, required this.versionNumber})
-      : super(key: key);
+  const AppBannerVersion({super.key, required this.versionNumber});
 
   @override
   Widget build(BuildContext context) {

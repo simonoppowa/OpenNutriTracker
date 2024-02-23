@@ -6,8 +6,7 @@ class MealDetailMacroNutrients extends StatelessWidget {
   final double? value;
 
   const MealDetailMacroNutrients(
-      {Key? key, required this.typeString, required this.value})
-      : super(key: key);
+      {super.key, required this.typeString, required this.value});
 
   @override
   Widget build(BuildContext context) {

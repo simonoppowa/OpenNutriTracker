@@ -3,7 +3,7 @@ import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class SetPALCategoryDialog extends StatelessWidget {
-  const SetPALCategoryDialog({Key? key}) : super(key: key);
+  const SetPALCategoryDialog({super.key});
 
   @override
   Widget build(BuildContext context) {

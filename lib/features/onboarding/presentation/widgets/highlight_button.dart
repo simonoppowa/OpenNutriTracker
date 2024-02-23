@@ -6,11 +6,10 @@ class HighlightButton extends StatefulWidget {
   final bool buttonActive;
 
   const HighlightButton(
-      {Key? key,
+      {super.key,
       required this.buttonLabel,
       required this.onButtonPressed,
-      required this.buttonActive})
-      : super(key: key);
+      required this.buttonActive});
 
   @override
   State<HighlightButton> createState() => _HighlightButtonState();

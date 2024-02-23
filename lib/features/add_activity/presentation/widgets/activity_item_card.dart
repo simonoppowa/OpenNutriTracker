@@ -9,8 +9,7 @@ class ActivityItemCard extends StatelessWidget {
   final DateTime day;
 
   const ActivityItemCard(
-      {Key? key, required this.physicalActivityEntity, required this.day})
-      : super(key: key);
+      {super.key, required this.physicalActivityEntity, required this.day});
 
   @override
   Widget build(BuildContext context) {

@@ -6,8 +6,7 @@ class ErrorDialog extends StatelessWidget {
   final VoidCallback onRefreshPressed;
 
   const ErrorDialog(
-      {Key? key, required this.errorText, required this.onRefreshPressed})
-      : super(key: key);
+      {super.key, required this.errorText, required this.onRefreshPressed});
 
   @override
   Widget build(BuildContext context) {

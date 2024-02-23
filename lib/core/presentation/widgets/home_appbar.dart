@@ -4,7 +4,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
-  const HomeAppbar({Key? key}) : super(key: key);
+  const HomeAppbar({super.key});
 
   @override
   Widget build(BuildContext context) {

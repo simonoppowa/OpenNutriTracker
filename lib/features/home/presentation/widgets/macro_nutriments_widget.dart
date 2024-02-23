@@ -11,14 +11,13 @@ class MacroNutrientsView extends StatefulWidget {
   final double totalProteinsGoal;
 
   const MacroNutrientsView(
-      {Key? key,
+      {super.key,
       required this.totalCarbsIntake,
       required this.totalFatsIntake,
       required this.totalProteinsIntake,
       required this.totalCarbsGoal,
       required this.totalFatsGoal,
-      required this.totalProteinsGoal})
-      : super(key: key);
+      required this.totalProteinsGoal});
 
   @override
   State<MacroNutrientsView> createState() => _MacroNutrientsViewState();
