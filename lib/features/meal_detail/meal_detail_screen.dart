@@ -18,7 +18,7 @@ import 'package:opennutritracker/features/meal_detail/presentation/widgets/off_d
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailScreen extends StatefulWidget {
-  const MealDetailScreen({Key? key}) : super(key: key);
+  const MealDetailScreen({super.key});
 
   @override
   State<MealDetailScreen> createState() => _MealDetailScreenState();

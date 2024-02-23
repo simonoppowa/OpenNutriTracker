@@ -15,11 +15,10 @@ class MealItemCard extends StatelessWidget {
   final MealEntity mealEntity;
 
   const MealItemCard(
-      {Key? key,
+      {super.key,
       required this.day,
       required this.mealEntity,
-      required this.addMealType})
-      : super(key: key);
+      required this.addMealType});
 
   @override
   Widget build(BuildContext context) {

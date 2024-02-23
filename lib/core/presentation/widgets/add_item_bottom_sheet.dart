@@ -10,7 +10,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 class AddItemBottomSheet extends StatelessWidget {
   final DateTime day;
 
-  const AddItemBottomSheet({Key? key, required this.day}) : super(key: key);
+  const AddItemBottomSheet({super.key, required this.day});
 
   @override
   Widget build(BuildContext context) {

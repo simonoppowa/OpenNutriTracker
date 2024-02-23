@@ -8,8 +8,7 @@ class OnboardingFirstPageBody extends StatefulWidget {
           bool active, UserGenderSelectionEntity? gender, DateTime? birthday)
       setPageContent;
 
-  const OnboardingFirstPageBody({Key? key, required this.setPageContent})
-      : super(key: key);
+  const OnboardingFirstPageBody({super.key, required this.setPageContent});
 
   @override
   State<OnboardingFirstPageBody> createState() =>

@@ -3,7 +3,7 @@ import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart
 import 'package:opennutritracker/generated/l10n.dart';
 
 class SetWeightGoalDialog extends StatelessWidget {
-  const SetWeightGoalDialog({Key? key}) : super(key: key);
+  const SetWeightGoalDialog({super.key});
 
   @override
   Widget build(BuildContext context) {

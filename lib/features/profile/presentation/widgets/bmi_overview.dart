@@ -9,8 +9,7 @@ class BMIOverview extends StatelessWidget {
   final UserNutritionalStatus nutritionalStatus;
 
   const BMIOverview(
-      {Key? key, required this.bmiValue, required this.nutritionalStatus})
-      : super(key: key);
+      {super.key, required this.bmiValue, required this.nutritionalStatus});
 
   @override
   Widget build(BuildContext context) {

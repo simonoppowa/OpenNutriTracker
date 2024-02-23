@@ -18,6 +18,7 @@
 ///         Homepage:  https://design.google.com/icons/
 ///
 // ignore_for_file: constant_identifier_names
+// ignore_for_file: dangling_library_doc_comments
 
 import 'package:flutter/widgets.dart';
 

@@ -6,8 +6,7 @@ class OnboardingSecondPageBody extends StatefulWidget {
   final Function(bool active, double? selectedHeight, double? selectedWeight)
       setButtonContent;
 
-  const OnboardingSecondPageBody({Key? key, required this.setButtonContent})
-      : super(key: key);
+  const OnboardingSecondPageBody({super.key, required this.setButtonContent});
 
   @override
   State<OnboardingSecondPageBody> createState() =>

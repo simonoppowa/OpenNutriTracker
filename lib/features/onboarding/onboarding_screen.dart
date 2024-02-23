@@ -17,7 +17,7 @@ import 'package:opennutritracker/features/onboarding/presentation/widgets/onboar
 import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({Key? key}) : super(key: key);
+  const OnboardingScreen({super.key});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();

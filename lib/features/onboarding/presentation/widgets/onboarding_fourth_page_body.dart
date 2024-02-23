@@ -6,8 +6,7 @@ class OnboardingFourthPageBody extends StatefulWidget {
   final Function(bool active, UserGoalSelectionEntity? selectedGoal)
       setButtonContent;
 
-  const OnboardingFourthPageBody({Key? key, required this.setButtonContent})
-      : super(key: key);
+  const OnboardingFourthPageBody({super.key, required this.setButtonContent});
 
   @override
   State<OnboardingFourthPageBody> createState() =>

@@ -15,7 +15,7 @@ import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart'
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ActivityDetailScreen extends StatefulWidget {
-  const ActivityDetailScreen({Key? key}) : super(key: key);
+  const ActivityDetailScreen({super.key});
 
   @override
   State<ActivityDetailScreen> createState() => _ActivityDetailScreenState();

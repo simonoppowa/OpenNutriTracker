@@ -11,12 +11,11 @@ class ActivityDetailBottomSheet extends StatefulWidget {
   final ActivityDetailBloc activityDetailBloc;
 
   const ActivityDetailBottomSheet(
-      {Key? key,
+      {super.key,
       required this.onAddButtonPressed,
       required this.quantityTextController,
       required this.activityEntity,
-      required this.activityDetailBloc})
-      : super(key: key);
+      required this.activityDetailBloc});
 
   @override
   State<ActivityDetailBottomSheet> createState() =>

@@ -12,7 +12,7 @@ import 'package:opennutritracker/features/diary/presentation/widgets/day_info_wi
 import 'package:opennutritracker/generated/l10n.dart';
 
 class DiaryPage extends StatefulWidget {
-  const DiaryPage({Key? key}) : super(key: key);
+  const DiaryPage({super.key});
 
   @override
   State<DiaryPage> createState() => _DiaryPageState();

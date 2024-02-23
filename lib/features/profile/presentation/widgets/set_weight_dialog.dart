@@ -7,7 +7,7 @@ class SetWeightDialog extends StatelessWidget {
 
   final double userWeight;
 
-  const SetWeightDialog({Key? key, required this.userWeight}) : super(key: key);
+  const SetWeightDialog({super.key, required this.userWeight});
 
   @override
   Widget build(BuildContext context) {

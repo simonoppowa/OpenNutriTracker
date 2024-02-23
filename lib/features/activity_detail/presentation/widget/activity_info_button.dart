@@ -4,7 +4,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ActivityInfoButton extends StatelessWidget {
-  const ActivityInfoButton({Key? key}) : super(key: key);
+  const ActivityInfoButton({super.key});
 
   final url = URLConst.paCompendium2011URL;
 

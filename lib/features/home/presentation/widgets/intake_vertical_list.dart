@@ -15,14 +15,13 @@ class IntakeVerticalList extends StatelessWidget {
   final Function(BuildContext, IntakeEntity) onItemLongPressedCallback;
 
   const IntakeVerticalList(
-      {Key? key,
+      {super.key,
       required this.day,
       required this.title,
       required this.listIcon,
       required this.addMealType,
       required this.intakeList,
-      required this.onItemLongPressedCallback})
-      : super(key: key);
+      required this.onItemLongPressedCallback});
 
   @override
   Widget build(BuildContext context) {

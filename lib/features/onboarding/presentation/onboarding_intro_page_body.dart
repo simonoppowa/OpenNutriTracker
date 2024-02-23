@@ -7,8 +7,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OnboardingIntroPageBody extends StatefulWidget {
-  const OnboardingIntroPageBody({Key? key, required this.setPageContent})
-      : super(key: key);
+  const OnboardingIntroPageBody({super.key, required this.setPageContent});
 
   final Function(bool active, bool acceptedDataCollection) setPageContent;
 

@@ -9,8 +9,7 @@ class MealInfoButton extends StatelessWidget {
   final String? url;
   final MealSourceEntity source;
 
-  const MealInfoButton({Key? key, required this.url, required this.source})
-      : super(key: key);
+  const MealInfoButton({super.key, required this.url, required this.source});
 
   @override
   Widget build(BuildContext context) {

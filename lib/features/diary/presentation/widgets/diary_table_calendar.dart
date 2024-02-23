@@ -13,14 +13,13 @@ class DiaryTableCalendar extends StatefulWidget {
   final Map<String, TrackedDayEntity> trackedDaysMap;
 
   const DiaryTableCalendar(
-      {Key? key,
+      {super.key,
       required this.onDateSelected,
       required this.calendarDurationDays,
       required this.focusedDate,
       required this.currentDate,
       required this.selectedDate,
-      required this.trackedDaysMap})
-      : super(key: key);
+      required this.trackedDaysMap});
 
   @override
   State<DiaryTableCalendar> createState() => _DiaryTableCalendarState();
