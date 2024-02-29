@@ -188,7 +188,7 @@ class _AddMealScreenState extends State<AddMealScreen>
                           builder: (context, state) {
                             if (state is RecentMealInitial) {
                               _recentMealBloc
-                                  .add(LoadRecentMealEvent(searchString: ""));
+                                  .add(const LoadRecentMealEvent(searchString: ""));
                               return const SizedBox();
                             } else if (state is RecentMealLoadingState) {
                               return const Padding(
@@ -236,7 +236,7 @@ class _AddMealScreenState extends State<AddMealScreen>
   }
 
   void _onRecentMealsRefreshButtonPressed() {
-    _recentMealBloc.add(LoadRecentMealEvent(searchString: ""));
+    _recentMealBloc.add(const LoadRecentMealEvent(searchString: ""));
   }
 
   void _onSearchSubmit(String inputText) {

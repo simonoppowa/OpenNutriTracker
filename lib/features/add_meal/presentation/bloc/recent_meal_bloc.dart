@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -20,7 +19,7 @@ class RecentMealBloc extends Bloc<RecentMealEvent, RecentMealState> {
       emit(RecentMealLoadingState());
       try {
         final recentIntake = await _getIntakeUsecase.getRecentIntake();
-        final searchString = (event.searchString ?? "").toLowerCase();
+        final searchString = (event.searchString).toLowerCase();
 
         if (searchString.isEmpty) {
           emit(RecentMealLoadedState(
