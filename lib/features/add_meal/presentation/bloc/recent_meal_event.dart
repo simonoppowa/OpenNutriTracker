@@ -5,9 +5,10 @@ abstract class RecentMealEvent extends Equatable {
 }
 
 class LoadRecentMealEvent extends RecentMealEvent {
-  final BuildContext context;
+  final String searchString;
 
-  const LoadRecentMealEvent({required this.context});
+  /// an empty `searchString` will load all RecentMeal
+  const LoadRecentMealEvent({required this.searchString});
 
   @override
   List<Object?> get props => [];

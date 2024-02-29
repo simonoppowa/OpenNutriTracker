@@ -35,12 +35,11 @@ class IntakeDataSource {
   }
 
   Future<List<IntakeDBO>> getRecentlyAddedIntake({int number = 100}) async {
-    final intakeList = _intakeBox.values.toList().reversed;
+    final intakeList = _intakeBox.values.toList();
 
     //  sort list by date and filter unique intake
     intakeList
-        .toList()
-        .sort((a, b) => a.dateTime.toString().compareTo(b.dateTime.toString()));
+        .sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
     final filterCodes = <String>{};
     final uniqueIntake = intakeList
@@ -48,11 +47,6 @@ class IntakeDataSource {
             filterCodes.add(intake.meal.code ?? intake.meal.name ?? ""))
         .toList();
 
-    // return range or full list
-    try {
-      return uniqueIntake.getRange(0, number).toList();
-    } on RangeError catch (_) {
-      return uniqueIntake.toList();
-    }
+    return uniqueIntake.take(number).toList();
   }
 }
