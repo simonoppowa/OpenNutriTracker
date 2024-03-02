@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
+import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
 import 'package:opennutritracker/core/styles/color_schemes.dart';
 import 'package:opennutritracker/core/styles/fonts.dart';
 import 'package:opennutritracker/core/utils/env.dart';
@@ -105,7 +106,9 @@ class OpenNutriTrackerApp extends StatelessWidget {
         NavigationOptions.addActivityRoute: (context) =>
             const AddActivityScreen(),
         NavigationOptions.activityDetailRoute: (context) =>
-            const ActivityDetailScreen()
+            const ActivityDetailScreen(),
+        NavigationOptions.imageFullScreenRoute: (context) =>
+            const ImageFullScreen(),
       },
     );
   }
