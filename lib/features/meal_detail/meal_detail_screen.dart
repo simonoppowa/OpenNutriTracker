@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -114,15 +115,26 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             Center(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(80),
-                child: CachedNetworkImage(
-                  width: 250,
-                  height: 250,
-                  cacheManager: locator<CacheManager>(),
-                  imageUrl: meal.mainImageUrl ?? "",
-                  fit: BoxFit.cover,
-                  placeholder: (context, string) => const MealPlaceholder(),
-                  errorWidget: (context, url, error) => const MealPlaceholder(),
-                ),
+                child: GestureDetector(
+                    child: Hero(
+                      tag: ImageFullScreen.fullScreenHeroTag,
+                      child: CachedNetworkImage(
+                        width: 250,
+                        height: 250,
+                        cacheManager: locator<CacheManager>(),
+                        imageUrl: meal.mainImageUrl ?? "",
+                        fit: BoxFit.cover,
+                        placeholder: (context, string) => const MealPlaceholder(),
+                        errorWidget: (context, url, error) =>
+                            const MealPlaceholder(),
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                          NavigationOptions.imageFullScreenRoute,
+                          arguments: ImageFullScreenArguments(
+                              meal.mainImageUrl ?? ""));
+                    }),
               ),
             ),
             Padding(
