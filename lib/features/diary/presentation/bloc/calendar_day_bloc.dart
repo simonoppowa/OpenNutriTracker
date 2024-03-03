@@ -10,6 +10,9 @@ import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecas
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 
 part 'calendar_day_event.dart';
 
@@ -64,14 +67,33 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     await _deleteIntakeUsecase.deleteIntake(intakeEntity);
     await _addTrackedDayUsecase.removeDayCaloriesTracked(
         day, intakeEntity.totalKcal);
+    await _addTrackedDayUsecase.removeDayMacrosTracked(day,
+        carbsTracked: intakeEntity.totalCarbsGram,
+        fatTracked: intakeEntity.totalFatsGram,
+        proteinTracked: intakeEntity.totalProteinsGram);
   }
 
   Future<void> deleteUserActivityItem(BuildContext context,
       UserActivityEntity activityEntity, DateTime day) async {
-    await _deleteUserActivityUsecase.deleteUserActivity(
-        activityEntity);
+    await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
     await _addTrackedDayUsecase.addDayCaloriesTracked(
         day, activityEntity.burnedKcal);
     _addTrackedDayUsecase.reduceDayCalorieGoal(day, activityEntity.burnedKcal);
+
+    final carbsAmount = MacroCalc.getTotalCarbsGoal(activityEntity.burnedKcal);
+    final fatAmount = MacroCalc.getTotalFatsGoal(activityEntity.burnedKcal);
+    final proteinAmount =
+        MacroCalc.getTotalProteinsGoal(activityEntity.burnedKcal);
+
+    _addTrackedDayUsecase.reduceDayMacroGoals(day,
+        carbsAmount: carbsAmount,
+        fatAmount: fatAmount,
+        proteinAmount: proteinAmount);
+    _updateDiaryPage(day);
+  }
+
+  Future<void> _updateDiaryPage(DateTime day) async {
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+    locator<CalendarDayBloc>().add(LoadCalendarDayEvent(day));
   }
 }
