@@ -11,16 +11,40 @@ class TrackedDayDBO extends HiveObject {
   double calorieGoal;
   @HiveField(2)
   double caloriesTracked;
+  @HiveField(3)
+  double? carbsGoal;
+  @HiveField(4)
+  double? carbsTracked;
+  @HiveField(5)
+  double? fatGoal;
+  @HiveField(6)
+  double? fatTracked;
+  @HiveField(7)
+  double? proteinGoal;
+  @HiveField(8)
+  double? proteinTracked;
 
   TrackedDayDBO(
       {required this.day,
       required this.calorieGoal,
-      required this.caloriesTracked});
+      required this.caloriesTracked,
+      this.carbsGoal,
+      this.carbsTracked,
+      this.fatGoal,
+      this.fatTracked,
+      this.proteinGoal,
+      this.proteinTracked});
 
   factory TrackedDayDBO.fromTrackedDayEntity(TrackedDayEntity entity) {
     return TrackedDayDBO(
         day: entity.day,
         calorieGoal: entity.calorieGoal,
-        caloriesTracked: entity.caloriesTracked);
+        caloriesTracked: entity.caloriesTracked,
+        carbsGoal: entity.carbsGoal,
+        carbsTracked: entity.carbsTracked,
+        fatGoal: entity.fatGoal,
+        fatTracked: entity.fatTracked,
+        proteinGoal: entity.proteinGoal,
+        proteinTracked: entity.proteinTracked);
   }
 }
