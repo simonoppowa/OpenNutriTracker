@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
@@ -37,9 +38,18 @@ class MealDetailBloc {
     if (!hasTrackedDay) {
       final userEntity = await _getUserUsecase.getUserData();
       final totalKcalGoal = CalorieGoalCalc.getTotalKcalGoal(userEntity, 0);
+      final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(totalKcalGoal);
+      final totalFatGoal = MacroCalc.getTotalFatsGoal(totalKcalGoal);
+      final totalProteinGoal = MacroCalc.getTotalProteinsGoal(totalKcalGoal);
 
-      await _addTrackedDayUsecase.addNewTrackedDay(day, totalKcalGoal);
+      await _addTrackedDayUsecase.addNewTrackedDay(
+          day, totalKcalGoal, totalCarbsGoal, totalFatGoal, totalProteinGoal);
     }
+
     _addTrackedDayUsecase.addDayCaloriesTracked(day, intakeEntity.totalKcal);
+    _addTrackedDayUsecase.addDayMacrosTracked(day,
+        carbsTracked: intakeEntity.totalCarbsGram,
+        fatTracked: intakeEntity.totalFatsGram,
+        proteinTracked: intakeEntity.totalProteinsGram);
   }
 }

@@ -148,16 +148,29 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     await _deleteIntakeUsecase.deleteIntake(intakeEntity);
     await _addTrackedDayUseCase.removeDayCaloriesTracked(
         dateTime, intakeEntity.totalKcal);
+    await _addTrackedDayUseCase.removeDayMacrosTracked(dateTime,
+        carbsTracked: intakeEntity.totalCarbsGram,
+        fatTracked: intakeEntity.totalFatsGram,
+        proteinTracked: intakeEntity.totalProteinsGram);
+
     _updateDiaryPage(dateTime);
   }
 
   Future<void> deleteUserActivityItem(UserActivityEntity activityEntity) async {
     final dateTime = DateTime.now();
     await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
-    await _addTrackedDayUseCase.addDayCaloriesTracked(
-        dateTime, activityEntity.burnedKcal);
     _addTrackedDayUseCase.reduceDayCalorieGoal(
         dateTime, activityEntity.burnedKcal);
+
+    final carbsAmount = MacroCalc.getTotalCarbsGoal(activityEntity.burnedKcal);
+    final fatAmount = MacroCalc.getTotalFatsGoal(activityEntity.burnedKcal);
+    final proteinAmount =
+        MacroCalc.getTotalProteinsGoal(activityEntity.burnedKcal);
+
+    _addTrackedDayUseCase.reduceDayMacroGoals(dateTime,
+        carbsAmount: carbsAmount,
+        fatAmount: fatAmount,
+        proteinAmount: proteinAmount);
     _updateDiaryPage(dateTime);
   }
 

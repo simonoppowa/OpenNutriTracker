@@ -70,13 +70,111 @@ class TrackedDayDataSource {
     }
   }
 
-  Future<void> removeDayCaloriesTracked(
+  Future<void> decreaseDayCaloriesTracked(
       DateTime day, double addCalories) async {
-    log.fine('Removing tracked day calories');
+    log.fine('Decreasing tracked day calories');
     final updateDay = await getTrackedDay(day);
 
     if (updateDay != null) {
       updateDay.caloriesTracked -= addCalories;
+      updateDay.save();
+    }
+  }
+
+  Future<void> updateDayMacroGoals(DateTime day,
+      {double? carbsGoal, double? fatGoal, double? proteinGoal}) async {
+    log.fine('Updating tracked day macro goals');
+
+    final updateDay = await getTrackedDay(day);
+
+    if (updateDay != null) {
+      if (carbsGoal != null) {
+        updateDay.carbsGoal = carbsGoal;
+      }
+      if (fatGoal != null) {
+        updateDay.fatGoal = fatGoal;
+      }
+      if (proteinGoal != null) {
+        updateDay.proteinGoal = proteinGoal;
+      }
+      updateDay.save();
+    }
+  }
+
+  Future<void> increaseDayMacroGoal(DateTime day,
+      {double? carbsAmount, double? fatAmount, double? proteinAmount}) async {
+    log.fine('Increasing tracked day macro goals');
+    final updateDay = await getTrackedDay(day);
+
+    if (updateDay != null) {
+      if (carbsAmount != null) {
+        updateDay.carbsGoal = (updateDay.carbsGoal ?? 0) + carbsAmount;
+      }
+      if (fatAmount != null) {
+        updateDay.fatGoal = (updateDay.fatGoal ?? 0) + fatAmount;
+      }
+      if (proteinAmount != null) {
+        updateDay.proteinGoal = (updateDay.proteinGoal ?? 0) + proteinAmount;
+      }
+      updateDay.save();
+    }
+  }
+
+  Future<void> reduceDayMacroGoal(DateTime day,
+      {double? carbsAmount, double? fatAmount, double? proteinAmount}) async {
+    log.fine('Reducing tracked day macro goals');
+    final updateDay = await getTrackedDay(day);
+
+    if (updateDay != null) {
+      if (carbsAmount != null) {
+        updateDay.carbsGoal = (updateDay.carbsGoal ?? 0) - carbsAmount;
+      }
+      if (fatAmount != null) {
+        updateDay.fatGoal = (updateDay.fatGoal ?? 0) - fatAmount;
+      }
+      if (proteinAmount != null) {
+        updateDay.proteinGoal = (updateDay.proteinGoal ?? 0) - proteinAmount;
+      }
+      updateDay.save();
+    }
+  }
+
+  Future<void> addDayMacroTracked(DateTime day,
+      {double? carbsAmount, double? fatAmount, double? proteinAmount}) async {
+    log.fine('Adding new tracked day macro');
+    final updateDay = await getTrackedDay(day);
+
+    if (updateDay != null) {
+      if (carbsAmount != null) {
+        updateDay.carbsTracked = (updateDay.carbsTracked ?? 0) + carbsAmount;
+      }
+      if (fatAmount != null) {
+        updateDay.fatTracked = (updateDay.fatTracked ?? 0) + fatAmount;
+      }
+      if (proteinAmount != null) {
+        updateDay.proteinTracked =
+            (updateDay.proteinTracked ?? 0) + proteinAmount;
+      }
+      updateDay.save();
+    }
+  }
+
+  Future<void> removeDayMacroTracked(DateTime day,
+      {double? carbsAmount, double? fatAmount, double? proteinAmount}) async {
+    log.fine('Removing tracked day macro');
+    final updateDay = await getTrackedDay(day);
+
+    if (updateDay != null) {
+      if (carbsAmount != null) {
+        updateDay.carbsTracked = (updateDay.carbsTracked ?? 0) - carbsAmount;
+      }
+      if (fatAmount != null) {
+        updateDay.fatTracked = (updateDay.fatTracked ?? 0) - fatAmount;
+      }
+      if (proteinAmount != null) {
+        updateDay.proteinTracked =
+            (updateDay.proteinTracked ?? 0) - proteinAmount;
+      }
       updateDay.save();
     }
   }
