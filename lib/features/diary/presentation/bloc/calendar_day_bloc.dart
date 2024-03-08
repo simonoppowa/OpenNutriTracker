@@ -76,8 +76,6 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   Future<void> deleteUserActivityItem(BuildContext context,
       UserActivityEntity activityEntity, DateTime day) async {
     await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
-    await _addTrackedDayUsecase.addDayCaloriesTracked(
-        day, activityEntity.burnedKcal);
     _addTrackedDayUsecase.reduceDayCalorieGoal(day, activityEntity.burnedKcal);
 
     final carbsAmount = MacroCalc.getTotalCarbsGoal(activityEntity.burnedKcal);

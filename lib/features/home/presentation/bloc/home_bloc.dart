@@ -159,8 +159,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> deleteUserActivityItem(UserActivityEntity activityEntity) async {
     final dateTime = DateTime.now();
     await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
-    await _addTrackedDayUseCase.addDayCaloriesTracked(
-        dateTime, activityEntity.burnedKcal);
     _addTrackedDayUseCase.reduceDayCalorieGoal(
         dateTime, activityEntity.burnedKcal);
 
