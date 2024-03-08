@@ -8,4 +8,5 @@ class NavigationOptions {
   static const editMealRoute = "editMeal";
   static const addActivityRoute = "addActivity";
   static const activityDetailRoute = "activityDetail";
+  static const imageFullScreenRoute = "imageFullScreen";
 }

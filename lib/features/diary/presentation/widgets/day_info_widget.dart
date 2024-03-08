@@ -61,27 +61,48 @@ class DayInfoWidget extends StatelessWidget {
                                 .withOpacity(0.7))),
                   )
                 : const SizedBox(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Card(
-                elevation: 0.0,
-                margin: const EdgeInsets.all(0.0),
-                color:
-                    trackedDayEntity?.getRatingDayTextBackgroundColor(context),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0, vertical: 8.0),
-                  child: Text(
-                    trackedDay != null
-                        ? _getCaloriesTrackedDisplayString(trackedDay)
-                        : "",
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: trackedDayEntity?.getRatingDayTextColor(context),
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ),
+            trackedDay != null
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Card(
+                          elevation: 0.0,
+                          margin: const EdgeInsets.all(0.0),
+                          color: trackedDayEntity
+                              ?.getRatingDayTextBackgroundColor(context),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0, vertical: 8.0),
+                            child: Text(
+                              _getCaloriesTrackedDisplayString(trackedDay),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
+                                      color: trackedDayEntity
+                                          ?.getRatingDayTextColor(context),
+                                      fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4.0),
+                        Text(_getMacroTrackedDisplayString(trackedDay),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onBackground
+                                        .withOpacity(0.7)))
+                      ],
+                    ),
+                  )
+                : const SizedBox(),
             const SizedBox(height: 8.0),
             ActivityVerticalList(
                 day: selectedDay,
@@ -136,6 +157,18 @@ class DayInfoWidget extends StatelessWidget {
     }
 
     return '$caloriesTracked/${trackedDay.calorieGoal.toInt()} kcal';
+  }
+
+  String _getMacroTrackedDisplayString(TrackedDayEntity trackedDay) {
+    final carbsTracked = trackedDay.carbsTracked?.floor().toString() ?? '?';
+    final fatTracked = trackedDay.fatTracked?.floor().toString() ?? '?';
+    final proteinTracked = trackedDay.proteinTracked?.floor().toString() ?? '?';
+
+    final carbsGoal = trackedDay.carbsGoal?.floor().toString() ?? '?';
+    final fatGoal = trackedDay.fatGoal?.floor().toString() ?? '?';
+    final proteinGoal = trackedDay.proteinGoal?.floor().toString() ?? '?';
+
+    return 'Carbs: $carbsTracked/${carbsGoal}g, Fat: $fatTracked/${fatGoal}g, Protein: $proteinTracked/${proteinGoal}g';
   }
 
   void onIntakeItemLongPressed(
