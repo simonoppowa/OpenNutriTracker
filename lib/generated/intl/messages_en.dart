@@ -68,7 +68,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "buttonStartLabel": MessageLookupByLibrary.simpleMessage("START"),
         "buttonYesLabel": MessageLookupByLibrary.simpleMessage("YES"),
         "calculationsMacronutrientsDistributionLabel":
-            MessageLookupByLibrary.simpleMessage("Macros distribution"),
+            MessageLookupByLibrary.simpleMessage("Meal guidelines"),
         "calculationsMacrosDistribution": m1,
         "calculationsRecommendedLabel":
             MessageLookupByLibrary.simpleMessage("(recommended)"),
