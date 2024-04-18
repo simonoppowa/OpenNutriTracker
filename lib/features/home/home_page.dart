@@ -25,6 +25,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final log = Logger('HomePage');
 
   late HomeBloc _homeBloc;
+  bool _isDragging = false;
 
   @override
   void initState() {
@@ -111,57 +112,86 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (showDisclaimerDialog) {
       _showDisclaimerDialog(context);
     }
-    return ListView(children: [
-      DashboardWidget(
-        totalKcalDaily: totalKcalDaily,
-        totalKcalLeft: totalKcalLeft,
-        totalKcalSupplied: totalKcalSupplied,
-        totalKcalBurned: totalKcalBurned,
-        totalCarbsIntake: totalCarbsIntake,
-        totalFatsIntake: totalFatsIntake,
-        totalProteinsIntake: totalProteinsIntake,
-        totalCarbsGoal: totalCarbsGoal,
-        totalFatsGoal: totalFatsGoal,
-        totalProteinsGoal: totalProteinsGoal,
-      ),
-      ActivityVerticalList(
-        day: DateTime.now(),
-        title: S.of(context).activityLabel,
-        userActivityList: userActivities,
-        onItemLongPressedCallback: onActivityItemLongPressed,
-      ),
-      IntakeVerticalList(
-        day: DateTime.now(),
-        title: S.of(context).breakfastLabel,
-        listIcon: IntakeTypeEntity.breakfast.getIconData(),
-        addMealType: AddMealType.breakfastType,
-        intakeList: breakfastIntakeList,
-        onItemLongPressedCallback: onIntakeItemLongPressed,
-      ),
-      IntakeVerticalList(
-        day: DateTime.now(),
-        title: S.of(context).lunchLabel,
-        listIcon: IntakeTypeEntity.lunch.getIconData(),
-        addMealType: AddMealType.lunchType,
-        intakeList: lunchIntakeList,
-        onItemLongPressedCallback: onIntakeItemLongPressed,
-      ),
-      IntakeVerticalList(
-        day: DateTime.now(),
-        title: S.of(context).dinnerLabel,
-        addMealType: AddMealType.dinnerType,
-        listIcon: IntakeTypeEntity.dinner.getIconData(),
-        intakeList: dinnerIntakeList,
-        onItemLongPressedCallback: onIntakeItemLongPressed,
-      ),
-      IntakeVerticalList(
-        day: DateTime.now(),
-        title: S.of(context).snackLabel,
-        listIcon: IntakeTypeEntity.snack.getIconData(),
-        addMealType: AddMealType.snackType,
-        intakeList: snackIntakeList,
-        onItemLongPressedCallback: onIntakeItemLongPressed,
-      )
+    return Stack(children: [
+      ListView(children: [
+        DashboardWidget(
+          totalKcalDaily: totalKcalDaily,
+          totalKcalLeft: totalKcalLeft,
+          totalKcalSupplied: totalKcalSupplied,
+          totalKcalBurned: totalKcalBurned,
+          totalCarbsIntake: totalCarbsIntake,
+          totalFatsIntake: totalFatsIntake,
+          totalProteinsIntake: totalProteinsIntake,
+          totalCarbsGoal: totalCarbsGoal,
+          totalFatsGoal: totalFatsGoal,
+          totalProteinsGoal: totalProteinsGoal,
+        ),
+        ActivityVerticalList(
+          day: DateTime.now(),
+          title: S.of(context).activityLabel,
+          userActivityList: userActivities,
+          onItemLongPressedCallback: onActivityItemLongPressed,
+        ),
+        IntakeVerticalList(
+          day: DateTime.now(),
+          title: S.of(context).breakfastLabel,
+          listIcon: IntakeTypeEntity.breakfast.getIconData(),
+          addMealType: AddMealType.breakfastType,
+          intakeList: breakfastIntakeList,
+          onItemDragCallback: onIntakeItemDrag,
+        ),
+        IntakeVerticalList(
+          day: DateTime.now(),
+          title: S.of(context).lunchLabel,
+          listIcon: IntakeTypeEntity.lunch.getIconData(),
+          addMealType: AddMealType.lunchType,
+          intakeList: lunchIntakeList,
+          onItemDragCallback: onIntakeItemDrag,
+        ),
+        IntakeVerticalList(
+          day: DateTime.now(),
+          title: S.of(context).dinnerLabel,
+          addMealType: AddMealType.dinnerType,
+          listIcon: IntakeTypeEntity.dinner.getIconData(),
+          intakeList: dinnerIntakeList,
+          onItemDragCallback: onIntakeItemDrag,
+        ),
+        IntakeVerticalList(
+          day: DateTime.now(),
+          title: S.of(context).snackLabel,
+          listIcon: IntakeTypeEntity.snack.getIconData(),
+          addMealType: AddMealType.snackType,
+          intakeList: snackIntakeList,
+          onItemDragCallback: onIntakeItemDrag,
+        )
+      ]),
+      Align(
+          alignment: Alignment.bottomCenter,
+          child: Visibility(
+              visible: _isDragging,
+              child: Container(
+                height: 70,
+                color: Colors.red.withOpacity(0.3),
+                child: DragTarget<IntakeEntity>(
+                  onAcceptWithDetails: (data) {
+                    _confirmDelete(context, data.data);
+                  },
+                  onLeave: (data) {
+                    setState(() {
+                      _isDragging = false;
+                    });
+                  },
+                  builder: (context, candidateData, rejectedData) {
+                    return Center(
+                      child: Icon(
+                        Icons.delete_outline,
+                        size: 36,
+                        color: Colors.white,
+                      ),
+                    );
+                  },
+                ),
+              )))
     ]);
   }
 
@@ -193,6 +223,27 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
       }
     }
+  }
+
+  void onIntakeItemDrag(bool isDragging) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _isDragging = isDragging;
+      });
+    });
+  }
+
+  void _confirmDelete(BuildContext context, IntakeEntity intake) async {
+    bool? delete = await showDialog<bool>(
+        context: context, builder: (context) => const DeleteDialog());
+
+    if (delete == true) {
+      _homeBloc.deleteIntakeItem(intake);
+      _homeBloc.add(const LoadItemsEvent());
+    }
+    setState(() {
+      _isDragging = false;
+    });
   }
 
   /// Show disclaimer dialog after build method
