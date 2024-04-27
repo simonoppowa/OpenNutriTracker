@@ -2,26 +2,49 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_card.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 
-class IntakeVerticalList extends StatelessWidget {
+class IntakeVerticalList extends StatefulWidget {
   final DateTime day;
   final String title;
   final IconData listIcon;
   final AddMealType addMealType;
   final List<IntakeEntity> intakeList;
-  final Function(BuildContext, IntakeEntity) onItemLongPressedCallback;
+  final Function(BuildContext, IntakeEntity)? onItemLongPressedCallback;
+  final Function(bool)? onItemDragCallback;
 
-  const IntakeVerticalList(
-      {super.key,
-      required this.day,
-      required this.title,
-      required this.listIcon,
-      required this.addMealType,
-      required this.intakeList,
-      required this.onItemLongPressedCallback});
+  const IntakeVerticalList({
+    super.key,
+    required this.day,
+    required this.title,
+    required this.listIcon,
+    required this.addMealType,
+    required this.intakeList,
+    this.onItemLongPressedCallback,
+    this.onItemDragCallback,
+  });
+
+  @override
+  State<IntakeVerticalList> createState() => _IntakeVerticalListState();
+}
+
+class _IntakeVerticalListState extends State<IntakeVerticalList> {
+  late MealDetailBloc _mealDetailBloc;
+  late HomeBloc _homeBloc;
+
+  @override
+  void initState() {
+    _mealDetailBloc = locator<MealDetailBloc>();
+    _homeBloc = locator<HomeBloc>();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,39 +55,86 @@ class IntakeVerticalList extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: Row(
             children: [
-              Icon(listIcon,
+              Icon(widget.listIcon,
                   size: 24, color: Theme.of(context).colorScheme.onBackground),
               const SizedBox(width: 4.0),
               Text(
-                title,
+                widget.title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onBackground),
               ),
             ],
           ),
         ),
-        SizedBox(
-          height: 120,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: intakeList.length + 1, // List length + placeholder card
-            itemBuilder: (BuildContext context, int index) {
-              final firstListElement = index == 0 ? true : false;
-              if (index == intakeList.length) {
-                return PlaceholderCard(
-                    day: day,
-                    onTap: () => _onPlaceholderCardTapped(context),
-                    firstListElement: firstListElement);
-              } else {
-                final intakeEntity = intakeList[index];
-                return IntakeCard(
-                    key: ValueKey(intakeEntity.meal.code),
-                    intake: intakeEntity,
-                    onItemLongPressed: onItemLongPressedCallback,
-                    firstListElement: firstListElement);
-              }
-            },
-          ),
+        DragTarget<IntakeEntity>(
+          onAcceptWithDetails: (intake) {
+            _onItemDropped(intake.data);
+          },
+          builder: (context, candidateData, rejectedData) {
+            return SizedBox(
+              height: 120,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: widget.intakeList.length + 1,
+                // List length + placeholder card
+                itemBuilder: (BuildContext context, int index) {
+                  final firstListElement = index == 0 ? true : false;
+                  if (index == widget.intakeList.length) {
+                    return PlaceholderCard(
+                        day: widget.day,
+                        onTap: () => _onPlaceholderCardTapped(context),
+                        firstListElement: firstListElement);
+                  } else {
+                    final intakeEntity = widget.intakeList[index];
+                    return LongPressDraggable<IntakeEntity>(
+                      onDragStarted: () {
+                        widget.onItemDragCallback?.call(true);
+                      },
+                      onDragEnd: (details) {
+                        widget.onItemDragCallback?.call(false);
+                      },
+                      data: intakeEntity,
+                      feedback: Material(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16.0),
+                        ),
+                        child: Opacity(
+                          opacity: 0.7,
+                          child: IntakeCard(
+                            key: ValueKey(intakeEntity.meal.code),
+                            intake: intakeEntity,
+                            firstListElement: false,
+                          ),
+                        ),
+                      ),
+                      childWhenDragging: Row(
+                        children: [
+                          SizedBox(width: firstListElement ? 16 : 0),
+                          SizedBox(
+                            width: 120,
+                            height: 120,
+                            child: Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16.0),
+                              ),
+                              color:
+                                  Theme.of(context).cardColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      child: IntakeCard(
+                        key: ValueKey(intakeEntity.meal.code),
+                        intake: intakeEntity,
+                        onItemLongPressed: widget.onItemLongPressedCallback,
+                        firstListElement: firstListElement,
+                      ),
+                    );
+                  }
+                },
+              ),
+            );
+          },
         ),
       ],
     );
@@ -72,6 +142,19 @@ class IntakeVerticalList extends StatelessWidget {
 
   void _onPlaceholderCardTapped(BuildContext context) {
     Navigator.pushNamed(context, NavigationOptions.addMealRoute,
-        arguments: AddMealScreenArguments(addMealType, day));
+        arguments: AddMealScreenArguments(widget.addMealType, widget.day));
+  }
+
+  void _onItemDropped(IntakeEntity entity) {
+    _mealDetailBloc.addIntake(context, entity.unit, entity.amount.toString(),
+        widget.addMealType.getIntakeType(), entity.meal, entity.dateTime);
+    _homeBloc.deleteIntakeItem(entity);
+
+    // Refresh Home Page
+    locator<HomeBloc>().add(const LoadItemsEvent());
+
+    // Refresh Diary Page
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+    locator<CalendarDayBloc>().add(LoadCalendarDayEvent(DateTime.now()));
   }
 }
