@@ -163,7 +163,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           addMealType: AddMealType.snackType,
           intakeList: snackIntakeList,
           onItemDragCallback: onIntakeItemDrag,
-        )
+        ),
+        const SizedBox(height: 48.0)
       ]),
       Align(
           alignment: Alignment.bottomCenter,
@@ -171,7 +172,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               visible: _isDragging,
               child: Container(
                 height: 70,
-                color: Colors.red.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.error.withOpacity(0.3),
                 child: DragTarget<IntakeEntity>(
                   onAcceptWithDetails: (data) {
                     _confirmDelete(context, data.data);
@@ -182,7 +183,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     });
                   },
                   builder: (context, candidateData, rejectedData) {
-                    return Center(
+                    return const Center(
                       child: Icon(
                         Icons.delete_outline,
                         size: 36,

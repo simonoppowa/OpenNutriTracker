@@ -88,35 +88,40 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                     final intakeEntity = widget.intakeList[index];
                     return LongPressDraggable<IntakeEntity>(
                       onDragStarted: () {
-                        if (widget.onItemDragCallback != null) {
-                          widget.onItemDragCallback!(true);
-                        }
+                        widget.onItemDragCallback?.call(true);
                       },
                       onDragEnd: (details) {
-                        if (widget.onItemDragCallback != null) {
-                          widget.onItemDragCallback!(false);
-                        }
+                        widget.onItemDragCallback?.call(false);
                       },
                       data: intakeEntity,
                       feedback: Material(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16.0),
+                        ),
                         child: Opacity(
                           opacity: 0.7,
                           child: IntakeCard(
                             key: ValueKey(intakeEntity.meal.code),
                             intake: intakeEntity,
-                            firstListElement: firstListElement,
+                            firstListElement: false,
                           ),
                         ),
                       ),
-                      childWhenDragging: Container(
-                        width: 120,
-                        height: 120,
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16.0),
+                      childWhenDragging: Row(
+                        children: [
+                          SizedBox(width: firstListElement ? 16 : 0),
+                          SizedBox(
+                            width: 120,
+                            height: 120,
+                            child: Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16.0),
+                              ),
+                              color:
+                                  Theme.of(context).cardColor,
+                            ),
                           ),
-                          color: Colors.grey.shade300,
-                        ),
+                        ],
                       ),
                       child: IntakeCard(
                         key: ValueKey(intakeEntity.meal.code),
