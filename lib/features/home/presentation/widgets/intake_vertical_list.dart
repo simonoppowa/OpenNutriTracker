@@ -10,6 +10,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 class IntakeVerticalList extends StatefulWidget {
   final DateTime day;
@@ -46,6 +47,10 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
     super.initState();
   }
 
+  double get totalKcal {
+    return widget.intakeList.fold(0, (previousValue, element) => previousValue + element.totalKcal);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -62,6 +67,16 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                 widget.title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onBackground),
+              ),
+              const Spacer(),
+              if (totalKcal > 0)
+              Text(
+                '${totalKcal.toInt()} ${S.of(context).kcalLabel}',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onBackground
+                                        .withOpacity(0.7)),
               ),
             ],
           ),
