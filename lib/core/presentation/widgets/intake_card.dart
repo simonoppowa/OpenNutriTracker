@@ -131,7 +131,6 @@ class IntakeCard extends StatelessWidget {
   }
 
   void onTappedItem(BuildContext context) {
-    print("TAPPED");
     onItemTapped?.call(context, intake);
   }
 }
