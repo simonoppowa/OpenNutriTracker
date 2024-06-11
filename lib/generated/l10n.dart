@@ -901,6 +901,26 @@ class S {
     );
   }
 
+  /// `Item updated`
+  String get itemUpdatedSnackbar {
+    return Intl.message(
+      'Item updated',
+      name: 'itemUpdatedSnackbar',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Edit Item`
+  String get editItemDialogTitle {
+    return Intl.message(
+      'Edit item',
+      name: 'changeItemDialogTitle',
+      desc: '',
+      args: []
+    );
+  }
+
   /// `supplied`
   String get suppliedLabel {
     return Intl.message(

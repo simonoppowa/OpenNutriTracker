@@ -1,12 +1,13 @@
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 
-class DeleteIntakeUsecase {
+class UpdateIntakeUsecase {
   final IntakeRepository _intakeRepository;
 
-  DeleteIntakeUsecase(this._intakeRepository);
+  UpdateIntakeUsecase(this._intakeRepository);
 
-  Future<void> deleteIntake(IntakeEntity intakeEntity) async {
-    await _intakeRepository.deleteIntake(intakeEntity);
+  Future<IntakeEntity?> updateIntake(
+      String intakeId, Map<String, dynamic> intakeFields) async {
+    return await _intakeRepository.updateIntake(intakeId, intakeFields);
   }
 }

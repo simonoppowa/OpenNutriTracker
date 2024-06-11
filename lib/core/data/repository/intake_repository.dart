@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
@@ -19,6 +20,11 @@ class IntakeRepository {
     await _intakeDataSource.deleteIntakeFromId(intakeEntity.id);
   }
 
+  Future<IntakeEntity?> updateIntake(String intakeId, Map<String, dynamic> fields) async {
+    var result = await _intakeDataSource.updateIntake(intakeId, fields);
+    return result == null ? null : IntakeEntity.fromIntakeDBO(result);
+  }
+
   Future<List<IntakeEntity>> getIntakeByDateAndType(
       IntakeTypeEntity intakeType, DateTime date) async {
     final intakeDBOList = await _intakeDataSource.getAllIntakesByDate(
@@ -35,5 +41,10 @@ class IntakeRepository {
     return intakeList
         .map((intakeDBO) => IntakeEntity.fromIntakeDBO(intakeDBO))
         .toList();
+  }
+
+  Future<IntakeEntity?> getIntakeById(String intakeId) async {
+    final result = await _intakeDataSource.getIntakeById(intakeId);
+    return result == null ? null : IntakeEntity.fromIntakeDBO(result);
   }
 }

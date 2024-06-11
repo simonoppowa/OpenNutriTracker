@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
+import 'package:opennutritracker/core/presentation/widgets/edit_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -139,6 +140,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           addMealType: AddMealType.breakfastType,
           intakeList: breakfastIntakeList,
           onItemDragCallback: onIntakeItemDrag,
+          onItemTappedCallback: onIntakeItemTapped,
         ),
         IntakeVerticalList(
           day: DateTime.now(),
@@ -147,6 +149,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           addMealType: AddMealType.lunchType,
           intakeList: lunchIntakeList,
           onItemDragCallback: onIntakeItemDrag,
+          onItemTappedCallback: onIntakeItemTapped,
         ),
         IntakeVerticalList(
           day: DateTime.now(),
@@ -155,6 +158,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           listIcon: IntakeTypeEntity.dinner.getIconData(),
           intakeList: dinnerIntakeList,
           onItemDragCallback: onIntakeItemDrag,
+          onItemTappedCallback: onIntakeItemTapped,
         ),
         IntakeVerticalList(
           day: DateTime.now(),
@@ -163,6 +167,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           addMealType: AddMealType.snackType,
           intakeList: snackIntakeList,
           onItemDragCallback: onIntakeItemDrag,
+          onItemTappedCallback: onIntakeItemTapped,
         ),
         const SizedBox(height: 48.0)
       ]),
@@ -232,6 +237,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         _isDragging = isDragging;
       });
     });
+  }
+
+  void onIntakeItemTapped(
+      BuildContext context, IntakeEntity intakeEntity) async {
+    final changeIntakeAmount = await showDialog<double>(
+      context: context, builder: (context) => EditDialog(
+        intakeEntity: intakeEntity)
+    );
+    if(changeIntakeAmount != null) {
+      _homeBloc.updateIntakeItem(intakeEntity.id, { 'amount': changeIntakeAmount });
+      _homeBloc.add(const LoadItemsEvent());
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(S.of(context).itemUpdatedSnackbar)));
+      }
+    }
   }
 
   void _confirmDelete(BuildContext context, IntakeEntity intake) async {

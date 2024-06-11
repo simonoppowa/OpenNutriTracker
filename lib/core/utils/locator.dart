@@ -25,6 +25,7 @@ import 'package:opennutritracker/core/domain/usecase/get_physical_activity_useca
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/ont_image_cache_manager.dart';
@@ -73,7 +74,7 @@ Future<void> initLocator() async {
   // BLoCs
   locator.registerLazySingleton<OnboardingBloc>(
       () => OnboardingBloc(locator(), locator()));
-  locator.registerLazySingleton<HomeBloc>(() => HomeBloc(locator(), locator(),
+  locator.registerLazySingleton<HomeBloc>(() => HomeBloc(locator(), locator(), locator(),
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() => DiaryBloc(locator()));
   locator.registerLazySingleton(() => CalendarDayBloc(
@@ -114,6 +115,8 @@ Future<void> initLocator() async {
       () => AddIntakeUsecase(locator()));
   locator.registerLazySingleton<DeleteIntakeUsecase>(
       () => DeleteIntakeUsecase(locator()));
+  locator.registerLazySingleton<UpdateIntakeUsecase>(
+      () => UpdateIntakeUsecase(locator()));
   locator.registerLazySingleton<GetUserActivityUsecase>(
       () => GetUserActivityUsecase(locator()));
   locator.registerLazySingleton<AddUserActivityUsecase>(
