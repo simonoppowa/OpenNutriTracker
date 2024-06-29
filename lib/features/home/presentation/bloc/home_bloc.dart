@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -26,6 +27,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final AddConfigUsecase _addConfigUsecase;
   final GetIntakeUsecase _getIntakeUsecase;
   final DeleteIntakeUsecase _deleteIntakeUsecase;
+  final UpdateIntakeUsecase _updateIntakeUsecase;
   final GetUserActivityUsecase _getUserActivityUsecase;
   final DeleteUserActivityUsecase _deleteUserActivityUsecase;
   final GetUserUsecase _getUserUsecase;
@@ -38,6 +40,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       this._addConfigUsecase,
       this._getIntakeUsecase,
       this._deleteIntakeUsecase,
+      this._updateIntakeUsecase,
       this._getUserActivityUsecase,
       this._deleteUserActivityUsecase,
       this._getUserUsecase,
@@ -141,6 +144,35 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   void saveConfigData(bool acceptedDisclaimer) async {
     _addConfigUsecase.setConfigDisclaimer(acceptedDisclaimer);
+  }
+
+  Future<void> updateIntakeItem(
+      String intakeId, Map<String, dynamic> fields) async {
+    final dateTime = DateTime.now();
+    // Get old intake values
+    final oldIntakeObject = await _getIntakeUsecase.getIntakeById(intakeId);
+    assert(oldIntakeObject != null);
+    final newIntakeObject =
+        await _updateIntakeUsecase.updateIntake(intakeId, fields);
+    assert(newIntakeObject != null);
+    if(oldIntakeObject!.amount > newIntakeObject!.amount) {
+      // Amounts shrunk
+      await _addTrackedDayUseCase.removeDayCaloriesTracked(
+          dateTime, oldIntakeObject.totalKcal - newIntakeObject.totalKcal);
+      await _addTrackedDayUseCase.removeDayMacrosTracked(dateTime,
+          carbsTracked: oldIntakeObject.totalCarbsGram - newIntakeObject.totalCarbsGram,
+          fatTracked: oldIntakeObject.totalFatsGram - newIntakeObject.totalFatsGram,
+          proteinTracked: oldIntakeObject.totalProteinsGram - newIntakeObject.totalProteinsGram);
+    } else if(newIntakeObject.amount > oldIntakeObject.amount) {
+      // Amounts gained
+      await _addTrackedDayUseCase.addDayCaloriesTracked(
+          dateTime, newIntakeObject.totalKcal - oldIntakeObject.totalKcal);
+      await _addTrackedDayUseCase.addDayMacrosTracked(dateTime,
+          carbsTracked: newIntakeObject.totalCarbsGram - oldIntakeObject.totalCarbsGram,
+          fatTracked: newIntakeObject.totalFatsGram - oldIntakeObject.totalFatsGram,
+          proteinTracked: newIntakeObject.totalProteinsGram - oldIntakeObject.totalProteinsGram);
+    }
+    _updateDiaryPage(dateTime);
   }
 
   Future<void> deleteIntakeItem(IntakeEntity intakeEntity) async {

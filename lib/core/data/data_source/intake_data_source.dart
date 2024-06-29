@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
@@ -23,6 +24,25 @@ class IntakeDataSource {
         .forEach((element) {
       element.delete();
     });
+  }
+
+  Future<IntakeDBO?> updateIntake(String intakeId, Map<String, dynamic> fields) async {
+    log.fine('Updating intake $intakeId with fields ${fields.toString()} in db');
+    var intakeObject = _intakeBox.values.indexed
+      .where((indexedDbo) => indexedDbo.$2.id == intakeId).firstOrNull;
+    if(intakeObject == null) {
+      log.fine('Cannot update intake $intakeId as it is non existent');
+      return null;
+    }
+    intakeObject.$2.amount = fields['amount'] ?? intakeObject.$2.amount;
+    _intakeBox.putAt(intakeObject.$1, intakeObject.$2);
+    return _intakeBox.getAt(intakeObject.$1);
+  }
+
+  Future<IntakeDBO?> getIntakeById(String intakeId) async {
+    return _intakeBox.values.firstWhereOrNull(
+            (intake) => intake.id == intakeId
+    );
   }
 
   Future<List<IntakeDBO>> getAllIntakesByDate(

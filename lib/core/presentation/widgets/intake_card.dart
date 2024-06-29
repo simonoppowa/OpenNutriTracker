@@ -8,12 +8,14 @@ import 'package:opennutritracker/core/utils/locator.dart';
 class IntakeCard extends StatelessWidget {
   final IntakeEntity intake;
   final Function(BuildContext, IntakeEntity)? onItemLongPressed;
+  final Function(BuildContext, IntakeEntity)? onItemTapped;
   final bool firstListElement;
 
   const IntakeCard(
       {required super.key,
       required this.intake,
       this.onItemLongPressed,
+      this.onItemTapped,
       required this.firstListElement});
 
   @override
@@ -34,6 +36,9 @@ class IntakeCard extends StatelessWidget {
             child: InkWell(
               onLongPress: onItemLongPressed != null
                   ? () => onLongPressedItem(context)
+                  : null,
+              onTap: onItemTapped != null
+                  ? () => onTappedItem(context)
                   : null,
               child: Stack(
                 children: [
@@ -122,8 +127,10 @@ class IntakeCard extends StatelessWidget {
   }
 
   void onLongPressedItem(BuildContext context) {
-    if (onItemLongPressed != null) {
-      onItemLongPressed!(context, intake);
-    }
+    onItemLongPressed?.call(context, intake);
+  }
+
+  void onTappedItem(BuildContext context) {
+    onItemTapped?.call(context, intake);
   }
 }

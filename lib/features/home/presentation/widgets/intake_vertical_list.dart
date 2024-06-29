@@ -20,6 +20,7 @@ class IntakeVerticalList extends StatefulWidget {
   final List<IntakeEntity> intakeList;
   final Function(BuildContext, IntakeEntity)? onItemLongPressedCallback;
   final Function(bool)? onItemDragCallback;
+  final Function(BuildContext, IntakeEntity)? onItemTappedCallback;
 
   const IntakeVerticalList({
     super.key,
@@ -30,6 +31,7 @@ class IntakeVerticalList extends StatefulWidget {
     required this.intakeList,
     this.onItemLongPressedCallback,
     this.onItemDragCallback,
+    this.onItemTappedCallback
   });
 
   @override
@@ -142,6 +144,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                         key: ValueKey(intakeEntity.meal.code),
                         intake: intakeEntity,
                         onItemLongPressed: widget.onItemLongPressedCallback,
+                        onItemTapped: widget.onItemTappedCallback,
                         firstListElement: firstListElement,
                       ),
                     );
