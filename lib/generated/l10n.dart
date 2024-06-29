@@ -871,6 +871,26 @@ class S {
     );
   }
 
+  /// `Edit item`
+  String get editItemDialogTitle {
+    return Intl.message(
+      'Edit item',
+      name: 'editItemDialogTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Item updated`
+  String get itemUpdatedSnackbar {
+    return Intl.message(
+      'Item updated',
+      name: 'itemUpdatedSnackbar',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Delete Item?`
   String get deleteTimeDialogTitle {
     return Intl.message(
@@ -898,26 +918,6 @@ class S {
       name: 'itemDeletedSnackbar',
       desc: '',
       args: [],
-    );
-  }
-
-  /// `Item updated`
-  String get itemUpdatedSnackbar {
-    return Intl.message(
-      'Item updated',
-      name: 'itemUpdatedSnackbar',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Edit Item`
-  String get editItemDialogTitle {
-    return Intl.message(
-      'Edit item',
-      name: 'changeItemDialogTitle',
-      desc: '',
-      args: []
     );
   }
 
