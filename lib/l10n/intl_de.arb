@@ -87,6 +87,9 @@
   "snackLabel": "Snack",
   "snackExample": "z. B. Apfel, Eiscreme, Schokolade ...",
 
+  "editItemDialogTitle": "Eintrag aktualisieren",
+  "itemUpdatedSnackbar": "Eintrag aktualisiert",
+
   "deleteTimeDialogTitle": "Eintrag löschen?",
   "deleteTimeDialogContent": "Möchten Sie den ausgewählten Eintrag löschen?",
   "itemDeletedSnackbar": "Eintrag gelöscht",
