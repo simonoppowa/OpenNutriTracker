@@ -25,6 +25,10 @@ void main() {
       Hive.registerAdapter(MealNutrimentsDBOAdapter());
     });
 
+    tearDown(() {
+      Hive.deleteFromDisk();
+    });
+
     test('returns last added first', () async {
       final box = await Hive.openBox<IntakeDBO>('intake_test');
 
