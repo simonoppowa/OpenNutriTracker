@@ -135,7 +135,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
             decoration: InputDecoration(
                 labelText: S.of(context).mealSizeLabel,
                 border: const OutlineInputBorder()),
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -144,7 +144,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
             decoration: InputDecoration(
                 labelText: S.of(context).servingSizeLabel,
                 border: const OutlineInputBorder()),
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField(
@@ -164,7 +164,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
             decoration: InputDecoration(
                 labelText: S.of(context).mealKcalLabel,
                 border: const OutlineInputBorder()),
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -173,7 +173,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
             decoration: InputDecoration(
                 labelText: S.of(context).mealCarbsLabel,
                 border: const OutlineInputBorder()),
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -182,7 +182,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
             decoration: InputDecoration(
                 labelText: S.of(context).mealFatLabel,
                 border: const OutlineInputBorder()),
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -191,7 +191,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
             decoration: InputDecoration(
                 labelText: S.of(context).mealProteinLabel,
                 border: const OutlineInputBorder()),
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
           ),
         ],
       ),
