@@ -1271,40 +1271,50 @@ class S {
     );
   }
 
-  /// `kcal per 100 g/ml`
+  /// `Base quantity (g/ml)`
+  String get baseQuantityLabel {
+    return Intl.message(
+      'Base quantity (g/ml)',
+      name: 'baseQuantityLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `kcal per`
   String get mealKcalLabel {
     return Intl.message(
-      'kcal per 100 g/ml',
+      'kcal per',
       name: 'mealKcalLabel',
       desc: '',
       args: [],
     );
   }
 
-  /// `carbs per 100 g/ml`
+  /// `carbs per`
   String get mealCarbsLabel {
     return Intl.message(
-      'carbs per 100 g/ml',
+      'carbs per',
       name: 'mealCarbsLabel',
       desc: '',
       args: [],
     );
   }
 
-  /// `fat per 100 g/ml`
+  /// `fat per`
   String get mealFatLabel {
     return Intl.message(
-      'fat per 100 g/ml',
+      'fat per',
       name: 'mealFatLabel',
       desc: '',
       args: [],
     );
   }
 
-  /// `protein per 100 g/ml`
+  /// `protein per`
   String get mealProteinLabel {
     return Intl.message(
-      'protein per 100 g/ml',
+      'protein per',
       name: 'mealProteinLabel',
       desc: '',
       args: [],
