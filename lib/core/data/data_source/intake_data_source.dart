@@ -57,9 +57,9 @@ class IntakeDataSource {
   Future<List<IntakeDBO>> getRecentlyAddedIntake({int number = 100}) async {
     final intakeList = _intakeBox.values.toList();
 
-    //  sort list by date and filter unique intake
+    //  sort list by date (newest first) and filter unique intake
     intakeList
-        .sort((a, b) => a.dateTime.compareTo(b.dateTime));
+        .sort((a, b) =>  (-1) * a.dateTime.compareTo(b.dateTime));
 
     final filterCodes = <String>{};
     final uniqueIntake = intakeList

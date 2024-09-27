@@ -33,19 +33,30 @@ class _EditMealScreenState extends State<EditMealScreen> {
   final _brandsTextController = TextEditingController();
   final _mealQuantityTextController = TextEditingController();
   final _servingQuantityTextController = TextEditingController();
+  final _baseQuantityTextController = TextEditingController();
   final _kcalTextController = TextEditingController();
   final _carbsTextController = TextEditingController();
   final _fatTextController = TextEditingController();
   final _proteinTextController = TextEditingController();
 
-  final _dropdownValues = ['g', 'ml', 'g/ml'];
+  final _units = ['g', 'ml', 'g/ml'];
   late String? _dropdownUnitValue;
   late List<DropdownMenuItem> _mealUnitDropdownItems;
+
+ String baseQuantity = "100";
+ String baseQuantityUnit = " g/ml";
+
 
   @override
   void initState() {
     _editMealBloc = locator<EditMealBloc>();
     super.initState();
+
+    _baseQuantityTextController.addListener(() {
+      setState(() {
+        baseQuantity = _baseQuantityTextController.text;
+      });
+    });
   }
 
   @override
@@ -72,11 +83,11 @@ class _EditMealScreenState extends State<EditMealScreen> {
 
     _mealUnitDropdownItems = <DropdownMenuItem>[
       DropdownMenuItem(
-          value: _dropdownValues[0], child: Text(S.of(context).gramUnit)),
+          value: _units[0], child: Text(S.of(context).gramUnit)),
       DropdownMenuItem(
-          value: _dropdownValues[1], child: Text(S.of(context).milliliterUnit)),
+          value: _units[1], child: Text(S.of(context).milliliterUnit)),
       DropdownMenuItem(
-          value: _dropdownValues[2],
+          value: _units[2],
           child: Text(S.of(context).gramMilliliterUnit)),
     ];
 
@@ -135,7 +146,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
             decoration: InputDecoration(
                 labelText: S.of(context).mealSizeLabel,
                 border: const OutlineInputBorder()),
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -144,11 +155,11 @@ class _EditMealScreenState extends State<EditMealScreen> {
             decoration: InputDecoration(
                 labelText: S.of(context).servingSizeLabel,
                 border: const OutlineInputBorder()),
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField(
-            value: _dropdownUnitValue ?? _dropdownValues.first,
+            value: _dropdownUnitValue ?? _units.first,
             items: _mealUnitDropdownItems,
             onChanged: (text) {
               _dropdownUnitValue = _switchDropdownUnit(text);
@@ -159,39 +170,48 @@ class _EditMealScreenState extends State<EditMealScreen> {
           ),
           const SizedBox(height: 48),
           TextFormField(
+            controller: _baseQuantityTextController,
+            inputFormatters: CustomTextInputFormatter.doubleOnly(),
+            decoration: InputDecoration(
+                labelText: S.of(context).baseQuantityLabel,
+                border: const OutlineInputBorder()),
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 48),
+          TextFormField(
             controller: _kcalTextController,
             inputFormatters: CustomTextInputFormatter.doubleOnly(),
             decoration: InputDecoration(
-                labelText: S.of(context).mealKcalLabel,
+                labelText: S.of(context).mealKcalLabel+baseQuantity+baseQuantityUnit,
                 border: const OutlineInputBorder()),
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _carbsTextController,
             inputFormatters: CustomTextInputFormatter.doubleOnly(),
             decoration: InputDecoration(
-                labelText: S.of(context).mealCarbsLabel,
+                labelText: S.of(context).mealCarbsLabel+baseQuantity+baseQuantityUnit,
                 border: const OutlineInputBorder()),
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _fatTextController,
             inputFormatters: CustomTextInputFormatter.doubleOnly(),
             decoration: InputDecoration(
-                labelText: S.of(context).mealFatLabel,
+                labelText: S.of(context).mealFatLabel+baseQuantity+baseQuantityUnit,
                 border: const OutlineInputBorder()),
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _proteinTextController,
             inputFormatters: CustomTextInputFormatter.doubleOnly(),
             decoration: InputDecoration(
-                labelText: S.of(context).mealProteinLabel,
+                labelText: S.of(context).mealProteinLabel+baseQuantity+baseQuantityUnit,
                 border: const OutlineInputBorder()),
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
         ],
       ),
@@ -206,6 +226,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
           _brandsTextController.text,
           _mealQuantityTextController.text,
           _servingQuantityTextController.text,
+          _baseQuantityTextController.text,
           _dropdownUnitValue,
           _kcalTextController.text,
           _carbsTextController.text,
@@ -228,8 +249,8 @@ class _EditMealScreenState extends State<EditMealScreen> {
 
   String? _switchDropdownUnit(String? unit) {
     String? dropdownValue;
-    if (!_dropdownValues.contains(unit)) {
-      dropdownValue = _dropdownValues.first;
+    if (!_units.contains(unit)) {
+      dropdownValue = _units.first;
     } else {
       dropdownValue = unit;
     }

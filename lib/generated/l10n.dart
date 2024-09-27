@@ -1131,6 +1131,16 @@ class S {
     );
   }
 
+  /// `Base quantity (g/ml)`
+  String get baseQuantityLabel {
+    return Intl.message(
+      'Base quantity (g/ml)',
+      name: 'baseQuantityLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Unit`
   String get unitLabel {
     return Intl.message(
@@ -1271,30 +1281,30 @@ class S {
     );
   }
 
-  /// `kcal per 100 g/ml`
+  /// `kcal per`
   String get mealKcalLabel {
     return Intl.message(
-      'kcal per 100 g/ml',
+      'kcal per',
       name: 'mealKcalLabel',
       desc: '',
       args: [],
     );
   }
 
-  /// `carbs per 100 g/ml`
+  /// `carbs per`
   String get mealCarbsLabel {
     return Intl.message(
-      'carbs per 100 g/ml',
+      'carbs per',
       name: 'mealCarbsLabel',
       desc: '',
       args: [],
     );
   }
 
-  /// `fat per 100 g/ml`
+  /// `fat per`
   String get mealFatLabel {
     return Intl.message(
-      'fat per 100 g/ml',
+      'fat per',
       name: 'mealFatLabel',
       desc: '',
       args: [],
