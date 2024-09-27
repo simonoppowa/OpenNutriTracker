@@ -9,19 +9,29 @@ class EditMealBloc {
       String brandsText,
       String mealQuantityText,
       String servingQuantityText,
+      String baseQuantity,
       String? unitText,
       String kcalText,
       String carbsText,
       String fatText,
       String proteinText) {
+
+    final baseQuantityDouble = double.tryParse(baseQuantity); 
+    
+    final double factorTo100g = baseQuantityDouble != null ? (100/baseQuantityDouble): 1;
+    
+    double? multiplyIfNotNull(double? nutritmentValue) {
+      return nutritmentValue != null ? nutritmentValue * factorTo100g: null;
+    }
+
     final newMealNutriments = MealNutrimentsEntity(
-        energyKcal100: kcalText.toDoubleOrNull(),
-        carbohydrates100: carbsText.toDoubleOrNull(),
-        fat100: fatText.toDoubleOrNull(),
-        proteins100: proteinText.toDoubleOrNull(),
-        sugars100: oldMealEntity.nutriments.sugars100,
-        saturatedFat100: oldMealEntity.nutriments.saturatedFat100,
-        fiber100: oldMealEntity.nutriments.fiber100);
+        energyKcal100: multiplyIfNotNull(kcalText.toDoubleOrNull()),
+        carbohydrates100: multiplyIfNotNull(carbsText.toDoubleOrNull()),
+        fat100: multiplyIfNotNull(fatText.toDoubleOrNull()),
+        proteins100: multiplyIfNotNull(proteinText.toDoubleOrNull()),
+        sugars100: multiplyIfNotNull(oldMealEntity.nutriments.sugars100),
+        saturatedFat100: multiplyIfNotNull(oldMealEntity.nutriments.saturatedFat100),
+        fiber100: multiplyIfNotNull(oldMealEntity.nutriments.fiber100));
 
     return MealEntity(
         code: oldMealEntity.code,

@@ -55,6 +55,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("GPL-3.0 license"),
         "appTitle": MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
         "appVersionName": m0,
+        "baseQuantityLabel":
+            MessageLookupByLibrary.simpleMessage("Base quantity (g/ml)"),
         "betaVersionName": MessageLookupByLibrary.simpleMessage("[Beta]"),
         "bmiInfo": MessageLookupByLibrary.simpleMessage(
             "Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals."),
@@ -100,6 +102,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Dinner"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
             "OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.\n\n\nThe application is still under development. Errors, bugs and crashes may occur."),
+        "editItemDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Edit item"),
         "editMealLabel": MessageLookupByLibrary.simpleMessage("Edit meal"),
         "energyLabel": MessageLookupByLibrary.simpleMessage("energy"),
         "errorFetchingProductData": MessageLookupByLibrary.simpleMessage(
@@ -134,6 +138,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Added new intake"),
         "itemDeletedSnackbar":
             MessageLookupByLibrary.simpleMessage("Item deleted"),
+        "itemUpdatedSnackbar":
+            MessageLookupByLibrary.simpleMessage("Item updated"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal left"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("kg"),
@@ -141,12 +147,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Brands"),
-        "mealCarbsLabel":
-            MessageLookupByLibrary.simpleMessage("carbs per 100 g/ml"),
-        "mealFatLabel":
-            MessageLookupByLibrary.simpleMessage("fat per 100 g/ml"),
-        "mealKcalLabel":
-            MessageLookupByLibrary.simpleMessage("kcal per 100 g/ml"),
+        "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("carbs per"),
+        "mealFatLabel": MessageLookupByLibrary.simpleMessage("fat per"),
+        "mealKcalLabel": MessageLookupByLibrary.simpleMessage("kcal per"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("Meal name"),
         "mealProteinLabel":
             MessageLookupByLibrary.simpleMessage("protein per 100 g/ml"),
