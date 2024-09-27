@@ -1131,6 +1131,16 @@ class S {
     );
   }
 
+  /// `Base quantity (g/ml)`
+  String get baseQuantityLabel {
+    return Intl.message(
+      'Base quantity (g/ml)',
+      name: 'baseQuantityLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Unit`
   String get unitLabel {
     return Intl.message(
@@ -1271,16 +1281,6 @@ class S {
     );
   }
 
-  /// `Base quantity (g/ml)`
-  String get baseQuantityLabel {
-    return Intl.message(
-      'Base quantity (g/ml)',
-      name: 'baseQuantityLabel',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `kcal per`
   String get mealKcalLabel {
     return Intl.message(
@@ -1311,10 +1311,10 @@ class S {
     );
   }
 
-  /// `protein per`
+  /// `protein per 100 g/ml`
   String get mealProteinLabel {
     return Intl.message(
-      'protein per',
+      'protein per 100 g/ml',
       name: 'mealProteinLabel',
       desc: '',
       args: [],
