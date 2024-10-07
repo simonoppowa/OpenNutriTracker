@@ -585,6 +585,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "servingSizeLabel":
             MessageLookupByLibrary.simpleMessage("Serving size (g/ml)"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
+        "settingImportLabel": MessageLookupByLibrary.simpleMessage("Import CSV"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),
         "settingsCalculationsLabel":

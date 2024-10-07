@@ -164,6 +164,7 @@ enum MealSourceEntity {
   unknown,
   custom,
   off,
+  imported,
   fdc;
 
   factory MealSourceEntity.fromMealSourceDBO(MealSourceDBO mealSourceDBO) {
@@ -174,6 +175,9 @@ enum MealSourceEntity {
         break;
       case MealSourceDBO.custom:
         mealSourceEntity = MealSourceEntity.custom;
+        break;
+      case MealSourceDBO.imported:
+        mealSourceEntity = MealSourceEntity.imported;
         break;
       case MealSourceDBO.off:
         mealSourceEntity = MealSourceEntity.off;

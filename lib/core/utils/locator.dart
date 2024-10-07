@@ -6,8 +6,10 @@ import 'package:opennutritracker/core/data/data_source/physical_activity_data_so
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/meal_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/data/repository/meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/physical_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
@@ -36,6 +38,7 @@ import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_
 import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_fdc_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/local_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
@@ -137,13 +140,15 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<IntakeRepository>(
       () => IntakeRepository(locator()));
   locator.registerLazySingleton<ProductsRepository>(
-      () => ProductsRepository(locator(), locator(), locator()));
+      () => ProductsRepository(locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<UserActivityRepository>(
       () => UserActivityRepository(locator()));
   locator.registerLazySingleton<PhysicalActivityRepository>(
       () => PhysicalActivityRepository(locator()));
   locator.registerLazySingleton<TrackedDayRepository>(
       () => TrackedDayRepository(locator()));
+  locator.registerLazySingleton<MealRepository>(
+      () => MealRepository(locator()));
 
   // DataSources
   locator
@@ -156,9 +161,12 @@ Future<void> initLocator() async {
       () => UserActivityDataSource(hiveDBProvider.userActivityBox));
   locator.registerLazySingleton<PhysicalActivityDataSource>(
       () => PhysicalActivityDataSource());
+  locator.registerLazySingleton<MealDataSource>(
+      () => MealDataSource(hiveDBProvider.importedMealsBox));
   locator.registerLazySingleton<OFFDataSource>(() => OFFDataSource());
   locator.registerLazySingleton<FDCDataSource>(() => FDCDataSource());
   locator.registerLazySingleton<SpFdcDataSource>(() => SpFdcDataSource());
+  locator.registerLazySingleton<LocalDataSource>(() => LocalDataSource());
   locator.registerLazySingleton(
       () => TrackedDayDataSource(hiveDBProvider.trackedDayBox));
 

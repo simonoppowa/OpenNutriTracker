@@ -20,13 +20,21 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       if (event.searchString != _searchString) {
         _searchString = event.searchString;
         emit(ProductsLoadingState());
-        try {
-          final result = await _searchProductUseCase
-              .searchOFFProductsByString(_searchString);
+
+        // First search locally
+        final result = await _searchProductUseCase
+            .searchLocalProductsByString(_searchString);
+        if (result.isNotEmpty) {
           emit(ProductsLoadedState(products: result));
-        } catch (error) {
-          log.severe(error);
-          emit(ProductsFailedState());
+        } else {
+          try {
+            final result = await _searchProductUseCase
+                .searchOFFProductsByString(_searchString);
+            emit(ProductsLoadedState(products: result));
+          } catch (error) {
+            log.severe(error);
+            emit(ProductsFailedState());
+          }
         }
       }
     });
