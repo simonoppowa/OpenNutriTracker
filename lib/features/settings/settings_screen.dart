@@ -20,9 +20,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:csv/csv.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/core/data/data_source/meal_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -436,7 +436,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           final sugarIndex = fields[0].indexOf('total_sugars');
           final saturatedFatIndex = fields[0].indexOf('saturated_fat');
           final fiberIndex = fields[0].indexOf('fiber');
-          // TODO: Currently unused, useful in the future.
           final barcodeIndex = fields[0].indexOf('barcode');
 
           if (context.mounted) {
@@ -453,7 +452,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               continue;
             }
 
-            final nutriments = MealNutrimentsEntity(
+            final nutriments = MealNutrimentsDBO(
               energyKcal100: kcalIndex == -1 || item[kcalIndex] is String ? null : item[kcalIndex].toDouble(),
               carbohydrates100: carbsIndex == -1 || item[carbsIndex] is String ? null : item[carbsIndex].toDouble(),
               fat100: fatIndex == -1 || item[fatIndex] is String ? null : item[fatIndex].toDouble(),
@@ -462,17 +461,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               saturatedFat100: saturatedFatIndex == -1 || item[saturatedFatIndex] is String ? null : item[saturatedFatIndex].toDouble(),
               fiber100: fiberIndex == -1 || item[fiberIndex] is String ? null : item[fiberIndex].toDouble()
             );
-            final mealEntity = MealEntity(
+            final mealDBO = MealDBO(
               code: IdGenerator.getUniqueID(),
               name: item[nameIndex],
+              brands: null,
+              thumbnailImageUrl: null,
+              mainImageUrl: null,
               url: null,
-              mealQuantity: "100",
+              mealQuantity: '100',
               mealUnit: 'g',
               servingQuantity: null,
               servingUnit: 'g',
               nutriments: nutriments,
-              source: MealSourceEntity.imported);
-            mealSrc.addMeal(MealDBO.fromMealEntity(mealEntity));
+              source: MealSourceDBO.imported,
+              barcode: item[barcodeIndex]);
+            mealSrc.addMeal(mealDBO);
           }
         }
       } else {

@@ -37,6 +37,9 @@ class MealDBO extends HiveObject {
   @HiveField(11)
   final MealNutrimentsDBO nutriments;
 
+  @HiveField(12)
+  final String? barcode;
+
   MealDBO(
       {required this.code,
       required this.name,
@@ -49,7 +52,8 @@ class MealDBO extends HiveObject {
       required this.servingQuantity,
       required this.servingUnit,
       required this.nutriments,
-      required this.source});
+      required this.source,
+      required this.barcode});
 
   factory MealDBO.fromMealEntity(
           MealEntity mealEntity) =>
@@ -68,7 +72,8 @@ class MealDBO extends HiveObject {
               MealNutrimentsDBO.fromProductNutrimentsEntity(
                   mealEntity.nutriments),
           source:
-              MealSourceDBO.fromMealSourceEntity(mealEntity.source));
+              MealSourceDBO.fromMealSourceEntity(mealEntity.source),
+          barcode: mealEntity.barcode);
 }
 
 @HiveType(typeId: 14)
