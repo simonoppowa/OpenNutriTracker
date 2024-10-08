@@ -449,6 +449,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Adding the new meals
           for (var item in fields.sublist(1)) {
+            if (item[nameIndex].isEmpty) {
+              continue;
+            }
+
             final nutriments = MealNutrimentsEntity(
               energyKcal100: kcalIndex == -1 || item[kcalIndex] is String ? null : item[kcalIndex].toDouble(),
               carbohydrates100: carbsIndex == -1 || item[carbsIndex] is String ? null : item[carbsIndex].toDouble(),
