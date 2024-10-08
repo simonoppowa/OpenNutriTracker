@@ -35,6 +35,9 @@ class MealInfoButton extends StatelessWidget {
       case MealSourceEntity.custom:
         siteUrl = "";
         break;
+      case MealSourceEntity.imported:
+        siteUrl = "";
+        break;
       case MealSourceEntity.off:
         siteUrl = url ?? OFFConst.offWebsiteUrl;
         break;
@@ -53,6 +56,9 @@ class MealInfoButton extends StatelessWidget {
         break;
       case MealSourceEntity.custom:
         infoLabel = S.of(context).additionalInfoLabelCustom;
+        break;
+      case MealSourceEntity.imported:
+        infoLabel = S.of(context).additionalInfoLabelImport;
         break;
       case MealSourceEntity.off:
         infoLabel = S.of(context).additionalInfoLabelOFF;

@@ -29,13 +29,14 @@ class MealDBOAdapter extends TypeAdapter<MealDBO> {
       servingUnit: fields[9] as String?,
       nutriments: fields[11] as MealNutrimentsDBO,
       source: fields[10] as MealSourceDBO,
+      barcode: fields[12] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, MealDBO obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.code)
       ..writeByte(1)
@@ -59,7 +60,9 @@ class MealDBOAdapter extends TypeAdapter<MealDBO> {
       ..writeByte(10)
       ..write(obj.source)
       ..writeByte(11)
-      ..write(obj.nutriments);
+      ..write(obj.nutriments)
+      ..writeByte(12)
+      ..write(obj.barcode);
   }
 
   @override
@@ -88,6 +91,8 @@ class MealSourceDBOAdapter extends TypeAdapter<MealSourceDBO> {
         return MealSourceDBO.off;
       case 3:
         return MealSourceDBO.fdc;
+      case 4:
+        return MealSourceDBO.imported;
       default:
         return MealSourceDBO.unknown;
     }
@@ -107,6 +112,9 @@ class MealSourceDBOAdapter extends TypeAdapter<MealSourceDBO> {
         break;
       case MealSourceDBO.fdc:
         writer.writeByte(3);
+        break;
+      case MealSourceDBO.imported:
+        writer.writeByte(4);
         break;
     }
   }

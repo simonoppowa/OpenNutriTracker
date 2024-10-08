@@ -640,6 +640,16 @@ class S {
     );
   }
 
+  /// `Import CSV`
+  String get settingImportLabel {
+    return Intl.message(
+      'Import CSV',
+      name: 'settingImportLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Mass`
   String get settingsMassLabel {
     return Intl.message(
@@ -1106,6 +1116,16 @@ class S {
     return Intl.message(
       'Custom Meal Item',
       name: 'additionalInfoLabelCustom',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Imported Meal Item`
+  String get additionalInfoLabelImport {
+    return Intl.message(
+      'Imported Meal Item',
+      name: 'additionalInfoLabelImport',
       desc: '',
       args: [],
     );
