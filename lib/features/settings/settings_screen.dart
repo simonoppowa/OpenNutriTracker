@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
@@ -13,6 +15,12 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
+import 'package:opennutritracker/core/data/data_source/meal_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
+import 'package:opennutritracker/core/utils/id_generator.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -23,10 +31,12 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late SettingsBloc _settingsBloc;
+  late EditMealBloc _editMealBloc;
 
   @override
   void initState() {
     _settingsBloc = locator<SettingsBloc>();
+    _editMealBloc = locator<EditMealBloc>();
     super.initState();
   }
 
@@ -77,6 +87,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: Text(S.of(context).settingsPrivacySettings),
                   onTap: () =>
                       _showPrivacyDialog(context, state.sendAnonymousData),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.import_export),
+                  title: Text(S.of(context).settingImportLabel),
+                  onTap: () => _showImportFilePicker(context),
                 ),
                 ListTile(
                   leading: const Icon(Icons.error_outline_outlined),
@@ -391,6 +406,83 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ))
           ]);
+    }
+  }
+
+  void _showImportFilePicker(BuildContext context) async {
+    // FilePicker currently doesn't support picking exclusivley CSV files:
+    // https://github.com/miguelpruivo/flutter_file_picker/issues/976#issuecomment-1063914016
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (context.mounted) {
+      if (result != null) {
+        final String filePath = result.files.single.path!;
+        if (!filePath.endsWith('csv')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Not a valid file type. Only CSV is supported.')),
+          );
+        }
+        else {
+          final file = File(filePath);
+          final lines = await file.readAsLines();
+          final columns = lines[0].split(',');
+          final nameIndex = columns[0].indexOf('name');
+          final proteinIndex = columns[0].indexOf('protein');
+          final kcalIndex = columns[0].indexOf('food_energy');
+          final carbsIndex = columns[0].indexOf('carbohydrates');
+          final fatIndex = columns[0].indexOf('total_fat');
+          final sugarIndex = columns[0].indexOf('total_sugars');
+          final saturatedFatIndex = columns[0].indexOf('saturated_fat');
+          final fiberIndex = columns[0].indexOf('fiber');
+          final barcodeIndex = columns[0].indexOf('barcode');
+
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Loading meals, this could take a while.')),
+            );
+          }
+
+          final mealSrc = locator<MealDataSource>();
+
+          // Adding the new meals
+          for (var line in lines.sublist(1)) {
+            final item = line.split(',');
+            if (item[nameIndex].isEmpty) {
+              continue;
+            }
+
+            final nutriments = MealNutrimentsDBO(
+              energyKcal100: kcalIndex == -1 ? null : double.tryParse(item[kcalIndex]),
+              carbohydrates100: carbsIndex == -1 ? null : double.tryParse(item[carbsIndex]),
+              fat100: fatIndex == -1 ? null : double.tryParse(item[fatIndex]),
+              proteins100: proteinIndex == -1 ? null : double.tryParse(item[proteinIndex]),
+              sugars100: sugarIndex == -1 ? null : double.tryParse(item[sugarIndex]),
+              saturatedFat100: saturatedFatIndex == -1 ? null : double.tryParse(item[saturatedFatIndex]),
+              fiber100: fiberIndex == -1 ? null : double.tryParse(item[fiberIndex])
+            );
+            final mealDBO = MealDBO(
+              code: IdGenerator.getUniqueID(),
+              name: item[nameIndex],
+              brands: null,
+              thumbnailImageUrl: null,
+              mainImageUrl: null,
+              url: null,
+              mealQuantity: '100',
+              mealUnit: 'g',
+              servingQuantity: null,
+              servingUnit: 'g',
+              nutriments: nutriments,
+              source: MealSourceDBO.imported,
+              barcode: barcodeIndex == -1 ? null : item[barcodeIndex]);
+            mealSrc.addMeal(mealDBO);
+          }
+        }
+      } else {
+        // User canceled the picker
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No file selected')),
+        );
+      }
     }
   }
 

@@ -26,6 +26,8 @@ class MealEntity extends Equatable {
   final double? servingQuantity;
   final String? servingUnit;
 
+  final String? barcode;
+
   final MealSourceEntity source;
 
   final MealNutrimentsEntity nutriments;
@@ -42,7 +44,8 @@ class MealEntity extends Equatable {
       required this.servingQuantity,
       required this.servingUnit,
       required this.nutriments,
-      required this.source});
+      required this.source,
+      this.barcode});
 
   factory MealEntity.empty() => MealEntity(
       code: IdGenerator.getUniqueID(),
@@ -53,7 +56,8 @@ class MealEntity extends Equatable {
       servingQuantity: null,
       servingUnit: 'g',
       nutriments: MealNutrimentsEntity.empty(),
-      source: MealSourceEntity.custom);
+      source: MealSourceEntity.custom,
+      barcode: null);
 
   factory MealEntity.fromMealDBO(MealDBO mealDBO) => MealEntity(
       code: mealDBO.code,
@@ -68,7 +72,8 @@ class MealEntity extends Equatable {
       servingUnit: mealDBO.servingUnit,
       nutriments:
           MealNutrimentsEntity.fromMealNutrimentsDBO(mealDBO.nutriments),
-      source: MealSourceEntity.fromMealSourceDBO(mealDBO.source));
+      source: MealSourceEntity.fromMealSourceDBO(mealDBO.source),
+      barcode: mealDBO.barcode);
 
   factory MealEntity.fromOFFProduct(OFFProductDTO offProduct) {
     return MealEntity(
@@ -164,6 +169,7 @@ enum MealSourceEntity {
   unknown,
   custom,
   off,
+  imported,
   fdc;
 
   factory MealSourceEntity.fromMealSourceDBO(MealSourceDBO mealSourceDBO) {
@@ -174,6 +180,9 @@ enum MealSourceEntity {
         break;
       case MealSourceDBO.custom:
         mealSourceEntity = MealSourceEntity.custom;
+        break;
+      case MealSourceDBO.imported:
+        mealSourceEntity = MealSourceEntity.imported;
         break;
       case MealSourceDBO.off:
         mealSourceEntity = MealSourceEntity.off;

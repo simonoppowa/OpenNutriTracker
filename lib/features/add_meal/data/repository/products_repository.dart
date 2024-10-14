@@ -1,15 +1,18 @@
 import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_fdc_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/local_data_source.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 class ProductsRepository {
   final OFFDataSource _offDataSource;
   final FDCDataSource _fdcDataSource;
   final SpFdcDataSource _spBackendDataSource;
+  final LocalDataSource _localDataSource;
 
   ProductsRepository(
-      this._offDataSource, this._fdcDataSource, this._spBackendDataSource);
+      this._offDataSource, this._fdcDataSource, this._spBackendDataSource,
+      this._localDataSource);
 
   Future<List<MealEntity>> getOFFProductsByString(String searchString) async {
     final offWordResponse =
@@ -41,9 +44,20 @@ class ProductsRepository {
     return products;
   }
 
+  Future<List<MealEntity>> getLocalMealsByString(String searchString) async {
+    return await _localDataSource.fetchSearchWordResults(searchString);
+  }
+
   Future<MealEntity> getOFFProductByBarcode(String barcode) async {
     final productResponse = await _offDataSource.fetchBarcodeResults(barcode);
 
     return MealEntity.fromOFFProduct(productResponse.product);
   }
+
+  Future<MealEntity> getImportProductByBarcode(String barcode) async {
+    final productResponse = await _localDataSource.fetchBarcodeResults(barcode);
+
+    return productResponse;
+  }
+
 }
