@@ -53,4 +53,11 @@ class ProductsRepository {
 
     return MealEntity.fromOFFProduct(productResponse.product);
   }
+
+  Future<MealEntity> getImportProductByBarcode(String barcode) async {
+    final productResponse = await _localDataSource.fetchBarcodeResults(barcode);
+
+    return productResponse;
+  }
+
 }

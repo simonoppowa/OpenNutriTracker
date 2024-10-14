@@ -45,7 +45,7 @@ class MealDataSource {
   }
 
 
-  Future<MealDBO?> getMealByBarCode(String barcode) async {
+  Future<MealDBO?> getMealByBarcode(String barcode) async {
     return _mealBox.values.firstWhereOrNull(
             (meal) => meal.barcode == barcode
     );

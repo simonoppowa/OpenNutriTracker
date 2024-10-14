@@ -426,17 +426,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
           );
         }
         else {
-          final input = File(filePath).openRead();
-          final fields = await input.transform(utf8.decoder).transform(const CsvToListConverter()).toList();
-          final nameIndex = fields[0].indexOf('name');
-          final proteinIndex = fields[0].indexOf('protein');
-          final kcalIndex = fields[0].indexOf('food_energy');
-          final carbsIndex = fields[0].indexOf('carbohydrates');
-          final fatIndex = fields[0].indexOf('total_fat');
-          final sugarIndex = fields[0].indexOf('total_sugars');
-          final saturatedFatIndex = fields[0].indexOf('saturated_fat');
-          final fiberIndex = fields[0].indexOf('fiber');
-          final barcodeIndex = fields[0].indexOf('barcode');
+          final file = File(filePath);
+          final lines = await file.readAsLines();
+          final columns = lines[0].split(',');
+          final nameIndex = columns[0].indexOf('name');
+          final proteinIndex = columns[0].indexOf('protein');
+          final kcalIndex = columns[0].indexOf('food_energy');
+          final carbsIndex = columns[0].indexOf('carbohydrates');
+          final fatIndex = columns[0].indexOf('total_fat');
+          final sugarIndex = columns[0].indexOf('total_sugars');
+          final saturatedFatIndex = columns[0].indexOf('saturated_fat');
+          final fiberIndex = columns[0].indexOf('fiber');
+          final barcodeIndex = columns[0].indexOf('barcode');
 
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -447,19 +448,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           final mealSrc = locator<MealDataSource>();
 
           // Adding the new meals
-          for (var item in fields.sublist(1)) {
+          for (var line in lines.sublist(1)) {
+            final item = line.split(',');
             if (item[nameIndex].isEmpty) {
               continue;
             }
 
             final nutriments = MealNutrimentsDBO(
-              energyKcal100: kcalIndex == -1 || item[kcalIndex] is String ? null : item[kcalIndex].toDouble(),
-              carbohydrates100: carbsIndex == -1 || item[carbsIndex] is String ? null : item[carbsIndex].toDouble(),
-              fat100: fatIndex == -1 || item[fatIndex] is String ? null : item[fatIndex].toDouble(),
-              proteins100: proteinIndex == -1 || item[proteinIndex] is String ? null : item[proteinIndex].toDouble(),
-              sugars100: sugarIndex == -1 || item[sugarIndex] is String ? null : item[sugarIndex].toDouble(),
-              saturatedFat100: saturatedFatIndex == -1 || item[saturatedFatIndex] is String ? null : item[saturatedFatIndex].toDouble(),
-              fiber100: fiberIndex == -1 || item[fiberIndex] is String ? null : item[fiberIndex].toDouble()
+              energyKcal100: kcalIndex == -1 ? null : double.tryParse(item[kcalIndex]),
+              carbohydrates100: carbsIndex == -1 ? null : double.tryParse(item[carbsIndex]),
+              fat100: fatIndex == -1 ? null : double.tryParse(item[fatIndex]),
+              proteins100: proteinIndex == -1 ? null : double.tryParse(item[proteinIndex]),
+              sugars100: sugarIndex == -1 ? null : double.tryParse(item[sugarIndex]),
+              saturatedFat100: saturatedFatIndex == -1 ? null : double.tryParse(item[saturatedFatIndex]),
+              fiber100: fiberIndex == -1 ? null : double.tryParse(item[fiberIndex])
             );
             final mealDBO = MealDBO(
               code: IdGenerator.getUniqueID(),
@@ -474,7 +476,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               servingUnit: 'g',
               nutriments: nutriments,
               source: MealSourceDBO.imported,
-              barcode: item[barcodeIndex]);
+              barcode: barcodeIndex == -1 ? null : item[barcodeIndex]);
             mealSrc.addMeal(mealDBO);
           }
         }

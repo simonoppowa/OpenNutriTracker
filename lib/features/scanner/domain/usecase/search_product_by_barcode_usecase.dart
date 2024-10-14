@@ -7,6 +7,11 @@ class SearchProductByBarcodeUseCase {
   SearchProductByBarcodeUseCase(this._productsRepository);
 
   Future<MealEntity> searchProductByBarcode(String barcode) async {
-    return await _productsRepository.getOFFProductByBarcode(barcode);
+    try {
+      final localProduct = await _productsRepository.getImportProductByBarcode(barcode);
+      return localProduct;
+    } catch (e) {
+      return await _productsRepository.getOFFProductByBarcode(barcode);
+    }
   }
 }
