@@ -51,7 +51,6 @@ dependencies:
   flutter_cache_manager: ^3.3.0
   envied: ^0.5.3
   file_picker: ^8.0.0
-  csv: ^6.0.0
 
   flutter_bloc: ^8.1.2
   equatable: ^2.0.5
