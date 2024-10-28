@@ -38,9 +38,9 @@ class MealDetailBloc {
     if (!hasTrackedDay) {
       final userEntity = await _getUserUsecase.getUserData();
       final totalKcalGoal = CalorieGoalCalc.getTotalKcalGoal(userEntity, 0);
-      final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(totalKcalGoal);
-      final totalFatGoal = MacroCalc.getTotalFatsGoal(totalKcalGoal);
-      final totalProteinGoal = MacroCalc.getTotalProteinsGoal(totalKcalGoal);
+      final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(userEntity, totalKcalGoal);
+      final totalFatGoal = MacroCalc.getTotalFatsGoal(userEntity, totalKcalGoal);
+      final totalProteinGoal = MacroCalc.getTotalProteinsGoal(userEntity, totalKcalGoal);
 
       await _addTrackedDayUsecase.addNewTrackedDay(
           day, totalKcalGoal, totalCarbsGoal, totalFatGoal, totalProteinGoal);

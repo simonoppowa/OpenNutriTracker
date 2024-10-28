@@ -47,7 +47,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     final calorieGoal = getOverviewCalorieGoal();
     double? carbsGoal;
     if (userEntity != null && calorieGoal != null) {
-      carbsGoal = MacroCalc.getTotalCarbsGoal(calorieGoal);
+      carbsGoal = MacroCalc.getTotalCarbsGoal(userEntity, calorieGoal);
     }
     return carbsGoal;
   }
@@ -57,7 +57,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     final calorieGoal = getOverviewCalorieGoal();
     double? fatGoal;
     if (userEntity != null && calorieGoal != null) {
-      fatGoal = MacroCalc.getTotalFatsGoal(calorieGoal);
+      fatGoal = MacroCalc.getTotalFatsGoal(userEntity, calorieGoal);
     }
     return fatGoal;
   }
@@ -67,7 +67,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     final calorieGoal = getOverviewCalorieGoal();
     double? proteinGoal;
     if (userEntity != null && calorieGoal != null) {
-      proteinGoal = MacroCalc.getTotalProteinsGoal(calorieGoal);
+      proteinGoal = MacroCalc.getTotalProteinsGoal(userEntity, calorieGoal);
     }
     return proteinGoal;
   }

@@ -36,10 +36,7 @@ class UserDataMaskEntity {
         height != null &&
         weight != null &&
         activity != null &&
-        goal != null &&
-        carbsPercentageGoal != null &&
-        fatsPercentageGoal != null &&
-        proteinsPercentageGoal != null){
+        goal != null){
       return true;
     } else {
       return false;
