@@ -161,6 +161,7 @@
   "goalGainWeight": "Gain Weight",
   "goalLabel": "Goal",
   "selectHeightDialogLabel": "Select Height",
+  "selectPercentageDialogLabel": "Select Percentage",
   "heightLabel": "Height",
   "cmLabel": "cm",
   "selectWeightDialogLabel": "Select Weight",
@@ -170,6 +171,9 @@
   "yearsLabel": "{age} years",
   "selectGenderDialogLabel": "Select Gender",
   "genderLabel": "Gender",
+  "carbGoalLabel": "Carbohydrate percentage Goal",
+  "fatsGoalLabel": "Fat ercentage Goal",
+  "proteinsGoalLabel": "Protein percentage Goal",
   "genderMaleLabel": "♂ male",
   "genderFemaleLabel": "♀ female",
 

@@ -28,6 +28,9 @@ class UserDataSource {
             weightKG: 80,
             gender: UserGenderDBO.male,
             goal: UserWeightGoalDBO.maintainWeight,
-            pal: UserPALDBO.active);
+            pal: UserPALDBO.active,
+            carbsPercentageGoal: 0.6,
+            fatsPercentageGoal: 0.25,
+            proteinsPercentageGoal: 0.15);
   }
 }

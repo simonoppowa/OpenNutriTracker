@@ -1531,6 +1531,46 @@ class S {
     );
   }
 
+    /// `Select Percentage`
+  String get selectPercentageDialogLabel {
+    return Intl.message(
+      'Select Percentage',
+      name: 'selectPercentageDialogLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Carbohydrates Percentage Goal`
+  String get carbGoalLabel {
+    return Intl.message(
+      'Carbohydrates Goal',
+      name: 'carbGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fats Percentage Goal`
+  String get fatsGoalLabel {
+    return Intl.message(
+      'Fats Percentage Goal',
+      name: 'fatsGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Proteins Percentage Goal`
+  String get proteinsGoalLabel {
+    return Intl.message(
+      'Proteins Percentage Goal',
+      name: 'proteinsGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Height`
   String get heightLabel {
     return Intl.message(

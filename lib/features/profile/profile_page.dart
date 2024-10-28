@@ -13,6 +13,7 @@ import 'package:opennutritracker/features/profile/presentation/widgets/set_goal_
 import 'package:opennutritracker/features/profile/presentation/widgets/set_height_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_pal_category_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_weight_dialog.dart';
+import 'package:opennutritracker/features/profile/presentation/widgets/set_percentage_goal_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -164,6 +165,57 @@ class _ProfilePageState extends State<ProfilePage> {
             _showSetGenderDialog(context, user);
           },
         ),
+        ListTile(
+          title: Text(
+            S.of(context).carbGoalLabel,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          subtitle: Text(
+            '${user.carbsPercentageGoal*100} %',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          leading: const SizedBox(
+            height: double.infinity,
+            child: Icon(Icons.percent_outlined),
+          ),
+          onTap: () {
+            _showSetCarbGoalDialog(context, user);
+          },
+        ),
+        ListTile(
+          title: Text(
+            S.of(context).fatsGoalLabel,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          subtitle: Text(
+            '${user.fatsPercentageGoal*100} %',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          leading: const SizedBox(
+            height: double.infinity,
+            child: Icon(Icons.percent_outlined),
+          ),
+          onTap: () {
+            _showSetFatsGoalDialog(context, user);
+          },
+        ),
+        ListTile(
+          title: Text(
+            S.of(context).proteinsGoalLabel,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          subtitle: Text(
+            '${user.proteinsPercentageGoal*100} %',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          leading: const SizedBox(
+            height: double.infinity,
+            child: Icon(Icons.percent_outlined),
+          ),
+          onTap: () {
+            _showSetProteinsGoalDialog(context, user);
+          },
+        ),
       ],
     );
   }
@@ -235,6 +287,46 @@ class _ProfilePageState extends State<ProfilePage> {
         builder: (BuildContext context) => const SetGenderDialog());
     if (selectedGender != null) {
       userEntity.gender = selectedGender;
+
+      _profileBloc.updateUser(userEntity);
+    }
+  }
+
+  Future<void> _showSetCarbGoalDialog(
+      BuildContext context, UserEntity userEntity) async {
+    final selectedCarbsGoal = await showDialog<double>(
+        context: context,
+        builder: (context) => SetPercentageDialog(
+              userPercentage: userEntity.carbsPercentageGoal,
+            ));
+    if (selectedCarbsGoal != null) {
+      userEntity.carbsPercentageGoal = selectedCarbsGoal;
+
+      _profileBloc.updateUser(userEntity);
+    }
+  }
+  Future<void> _showSetFatsGoalDialog(
+      BuildContext context, UserEntity userEntity) async {
+    final selectedFatsGoal = await showDialog<double>(
+        context: context,
+        builder: (context) => SetPercentageDialog(
+              userPercentage: userEntity.fatsPercentageGoal,
+            ));
+    if (selectedFatsGoal != null) {
+      userEntity.fatsPercentageGoal = selectedFatsGoal;
+
+      _profileBloc.updateUser(userEntity);
+    }
+  }
+    Future<void> _showSetProteinsGoalDialog(
+      BuildContext context, UserEntity userEntity) async {
+    final selectedProteinsGoal = await showDialog<double>(
+        context: context,
+        builder: (context) => SetPercentageDialog(
+              userPercentage: userEntity.proteinsPercentageGoal,
+            ));
+    if (selectedProteinsGoal != null) {
+      userEntity.proteinsPercentageGoal = selectedProteinsGoal;
 
       _profileBloc.updateUser(userEntity);
     }
