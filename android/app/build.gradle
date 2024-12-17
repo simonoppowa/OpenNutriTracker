@@ -46,7 +46,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.opennutritracker.ont.opennutritracker"
+        applicationId "com.doktormerlin.ont.opennutritracker"
         minSdkVersion 21
         targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()

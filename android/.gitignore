@@ -11,3 +11,7 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Adding gradle.properties because of changes regarding the JDK version.
+# Android Studio 2024.3 ships with JDK 21, which is incompatible with the required gradle 7.6.1
+gradle.properties

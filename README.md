@@ -34,7 +34,7 @@ OpenNutriTracker is an open-source mobile application designed to simplify nutri
 
 ## Install
 [<img src="fastlane/metadata/android/en-US/images/appstore_banner.png" width="30%">](https://testflight.apple.com/join/j7uKoEDl)
-[<img src="fastlane/metadata/android/en-US/images/playstore_banner.png" width="30%">](https://play.google.com/store/apps/details?id=com.opennutritracker.ont.opennutritracker)
+[<img src="fastlane/metadata/android/en-US/images/playstore_banner.png" width="30%">](https://play.google.com/store/apps/details?id=com.doktormerlin.ont.opennutritracker)
 
 ## Key Features
 - **🍎 Nutritional Tracking:** Easily log your meals and snacks, and access a vast database of food items and ingredients to get detailed nutritional information.
