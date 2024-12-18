@@ -891,7 +891,18 @@ class S {
     );
   }
 
-  /// `Delete Item?`
+  /// `Select meal to copy to`
+  String get copyDialogTitle {
+    return Intl.message(
+      'Select meal to copy to',
+      name: 'copyDialogTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+
+  /// `What do you want to do?`
   String get copyOrDeleteTimeDialogTitle {
     return Intl.message(
       'What do you want to do?',
@@ -901,7 +912,7 @@ class S {
     );
   }
 
-  /// `Do want to delete the selected item?`
+  /// `Click "Copy to today" to copy the content to the current day or click "Delete" to delete the item.`
   String get copyOrDeleteTimeDialogContent {
     return Intl.message(
       'Click "Copy to today" to copy the content to the current day or click "Delete" to delete the item.',

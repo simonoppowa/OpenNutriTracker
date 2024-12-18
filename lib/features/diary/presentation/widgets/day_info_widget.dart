@@ -1,11 +1,11 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
+import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
@@ -26,8 +26,8 @@ class DayInfoWidget extends StatelessWidget {
       onDeleteIntake;
   final Function(UserActivityEntity userActivityEntity,
       TrackedDayEntity? trackedDayEntity) onDeleteActivity;
-  final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity)
-      onCopyIntake;
+  final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity,
+      IntakeTypeEntity? type) onCopyIntake;
   final Function(UserActivityEntity userActivityEntity,
       TrackedDayEntity? trackedDayEntity) onCopyActivity;
 
@@ -182,37 +182,61 @@ class DayInfoWidget extends StatelessWidget {
     return 'Carbs: $carbsTracked/${carbsGoal}g, Fat: $fatTracked/${fatGoal}g, Protein: $proteinTracked/${proteinGoal}g';
   }
 
-  void onIntakeItemLongPressed(
+  void showCopyOrDeleteIntakeDialog(
       BuildContext context, IntakeEntity intakeEntity) async {
     final copyOrDelete = await showDialog<bool>(
         context: context, builder: (context) => const CopyOrDeleteDialog());
-
-    if (copyOrDelete != null && !copyOrDelete) {
-      final shouldDeleteIntake = await showDialog<bool>(
-          context: context, builder: (context) => const DeleteDialog());
-      if (shouldDeleteIntake != null) {
-        onDeleteIntake(intakeEntity, trackedDayEntity);
+    if (context.mounted) {
+      if (copyOrDelete != null && !copyOrDelete) {
+        showDeleteIntakeDialog(context, intakeEntity);
+      } else if (copyOrDelete != null && copyOrDelete) {
+        showCopyDialog(context, intakeEntity);
       }
-    } else if (copyOrDelete != null && copyOrDelete) {
-      onCopyIntake(intakeEntity, null);
     }
   }
 
-  void showCopyOrDeleteDialog(
+  void showCopyDialog(BuildContext context, IntakeEntity intakeEntity) async {
+    const copyDialog = CopyDialog();
+    final shouldCopyIntake = await showDialog<bool>(
+        context: context, builder: (context) => copyDialog);
+    if (shouldCopyIntake != null) {
+      onCopyIntake(intakeEntity, null, null);
+    }
+  }
+
+  void showDeleteIntakeDialog(
+      BuildContext context, IntakeEntity intakeEntity) async {
+    final shouldDeleteIntake = await showDialog<bool>(
+        context: context, builder: (context) => const DeleteDialog());
+    if (shouldDeleteIntake != null) {
+      onDeleteIntake(intakeEntity, trackedDayEntity);
+    }
+  }
+
+  void onIntakeItemLongPressed(
+      BuildContext context, IntakeEntity intakeEntity) async {
+    if (DateUtils.isSameDay(selectedDay, DateTime.now())) {
+      showDeleteIntakeDialog(context, intakeEntity);
+    } else {
+      showCopyOrDeleteIntakeDialog(context, intakeEntity);
+    }
+  }
+
+  void showCopyOrDeleteActivityDialog(
       BuildContext context, UserActivityEntity activityEntity) async {
     final copyOrDelete = await showDialog<bool>(
         context: context, builder: (context) => const CopyOrDeleteDialog());
 
     if (copyOrDelete != null && !copyOrDelete) {
       if (context.mounted) {
-        showDeleteDialog(context, activityEntity);
+        showDeleteActivityDialog(context, activityEntity);
       }
     } else if (copyOrDelete != null && copyOrDelete) {
       onCopyActivity(activityEntity, null);
     }
   }
 
-  void showDeleteDialog(
+  void showDeleteActivityDialog(
       BuildContext context, UserActivityEntity activityEntity) async {
     final shouldDeleteIntake = await showDialog<bool>(
         context: context, builder: (context) => const DeleteDialog());
@@ -224,9 +248,9 @@ class DayInfoWidget extends StatelessWidget {
   void onActivityItemLongPressed(
       BuildContext context, UserActivityEntity activityEntity) async {
     if (DateUtils.isSameDay(selectedDay, DateTime.now())) {
-      showDeleteDialog(context, activityEntity);
+      showDeleteActivityDialog(context, activityEntity);
     } else {
-      showCopyOrDeleteDialog(context, activityEntity);
+      showCopyOrDeleteActivityDialog(context, activityEntity);
     }
   }
 }
