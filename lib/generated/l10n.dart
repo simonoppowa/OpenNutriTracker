@@ -891,57 +891,6 @@ class S {
     );
   }
 
-  /// `Select meal to copy to`
-  String get copyDialogTitle {
-    return Intl.message(
-      'Select meal to copy to',
-      name: 'copyDialogTitle',
-      desc: '',
-      args: [],
-    );
-  }
-
-
-  /// `What do you want to do?`
-  String get copyOrDeleteTimeDialogTitle {
-    return Intl.message(
-      'What do you want to do?',
-      name: 'copyOrDeleteTimeDialogTitle',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Click "Copy to today" to copy the content to the current day or click "Delete" to delete the item.`
-  String get copyOrDeleteTimeDialogContent {
-    return Intl.message(
-      'Click "Copy to today" to copy the content to the current day or click "Delete" to delete the item.',
-      name: 'copyOrDeleteTimeDialogContent',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `COPY TO TODAY`
-  String get dialogCopyLabel {
-    return Intl.message(
-      'COPY TO TODAY',
-      name: 'dialogCopyLabel',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `DELETE`
-  String get dialogDeleteLabel {
-    return Intl.message(
-      'DELETE',
-      name: 'dialogDeleteLabel',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Delete Item?`
   String get deleteTimeDialogTitle {
     return Intl.message(
@@ -967,6 +916,56 @@ class S {
     return Intl.message(
       'Item deleted',
       name: 'itemDeletedSnackbar',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Which meal type di you want to copy to?`
+  String get copyDialogTitle {
+    return Intl.message(
+      'Which meal type di you want to copy to?',
+      name: 'copyDialogTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `What do you want to do?`
+  String get copyOrDeleteTimeDialogTitle {
+    return Intl.message(
+      'What do you want to do?',
+      name: 'copyOrDeleteTimeDialogTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `With "Copy to today" you can copy the meal to today. With "Delete" you can delete the meal.`
+  String get copyOrDeleteTimeDialogContent {
+    return Intl.message(
+      'With "Copy to today" you can copy the meal to today. With "Delete" you can delete the meal.',
+      name: 'copyOrDeleteTimeDialogContent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `COPY TO TODAY`
+  String get dialogCopyLabel {
+    return Intl.message(
+      'COPY TO TODAY',
+      name: 'dialogCopyLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `DELETE`
+  String get dialogDeleteLabel {
+    return Intl.message(
+      'DELETE',
+      name: 'dialogDeleteLabel',
       desc: '',
       args: [],
     );

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
-import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
@@ -27,7 +26,7 @@ class DayInfoWidget extends StatelessWidget {
   final Function(UserActivityEntity userActivityEntity,
       TrackedDayEntity? trackedDayEntity) onDeleteActivity;
   final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity,
-      IntakeTypeEntity? type) onCopyIntake;
+      AddMealType? type) onCopyIntake;
   final Function(UserActivityEntity userActivityEntity,
       TrackedDayEntity? trackedDayEntity) onCopyActivity;
 
@@ -197,10 +196,10 @@ class DayInfoWidget extends StatelessWidget {
 
   void showCopyDialog(BuildContext context, IntakeEntity intakeEntity) async {
     const copyDialog = CopyDialog();
-    final shouldCopyIntake = await showDialog<bool>(
+    final selectedMealType = await showDialog<AddMealType>(
         context: context, builder: (context) => copyDialog);
-    if (shouldCopyIntake != null) {
-      onCopyIntake(intakeEntity, null, null);
+    if (selectedMealType != null) {
+      onCopyIntake(intakeEntity, null, selectedMealType);
     }
   }
 

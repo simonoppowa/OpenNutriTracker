@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_table_calendar.dart';
@@ -77,8 +78,8 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   Widget _getLoadingContent() =>
       const Center(child: CircularProgressIndicator());
 
-  Widget _getLoadedContent(BuildContext context,
-      Map<String, TrackedDayEntity> trackedDaysMap) {
+  Widget _getLoadedContent(
+      BuildContext context, Map<String, TrackedDayEntity> trackedDaysMap) {
     return ListView(
       children: [
         DiaryTableCalendar(
@@ -119,8 +120,8 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     );
   }
 
-  void _onDeleteIntakeItem(IntakeEntity intakeEntity,
-      TrackedDayEntity? trackedDayEntity) async {
+  void _onDeleteIntakeItem(
+      IntakeEntity intakeEntity, TrackedDayEntity? trackedDayEntity) async {
     await _calendarDayBloc.deleteIntakeItem(
         context, intakeEntity, trackedDayEntity?.day ?? DateTime.now());
     _diaryBloc.add(const LoadDiaryYearEvent());
@@ -128,9 +129,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     _diaryBloc.updateHomePage();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S
-              .of(context)
-              .itemDeletedSnackbar)));
+          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
     }
   }
 
@@ -143,19 +142,17 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     _diaryBloc.updateHomePage();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S
-              .of(context)
-              .itemDeletedSnackbar)));
+          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
     }
   }
 
   void _onCopyIntakeItem(IntakeEntity intakeEntity,
-      TrackedDayEntity? trackedDayEntity, IntakeTypeEntity? type) async {
+      TrackedDayEntity? trackedDayEntity, AddMealType? type) async {
     IntakeTypeEntity finalType;
     if (type == null) {
       finalType = intakeEntity.type;
     } else {
-      finalType = type;
+      finalType = type.getIntakeType();
     }
     _mealDetailBloc.addIntake(
         context,
@@ -172,8 +169,8 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     log.info("Should copy activity");
   }
 
-  void _onDateSelected(DateTime newDate,
-      Map<String, TrackedDayEntity> trackedDaysMap) {
+  void _onDateSelected(
+      DateTime newDate, Map<String, TrackedDayEntity> trackedDaysMap) {
     setState(() {
       _selectedDate = newDate;
       _focusedDate = newDate;

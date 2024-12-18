@@ -82,6 +82,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "chooseWeightGoalLabel":
             MessageLookupByLibrary.simpleMessage("Kilo Hedefi Seçin"),
         "cmLabel": MessageLookupByLibrary.simpleMessage("cm"),
+        "copyDialogTitle": MessageLookupByLibrary.simpleMessage(
+            "Hangi öğüne eklemek istiyorsunuz?"),
+        "copyOrDeleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
+            "\"Bugüne kopyala\" seçeneğine tıklayarak öğünü bugüne kopyalayabilirsiniz. \"Sil\" seçeneği ile öğün kaldırılabilir."),
+        "copyOrDeleteTimeDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Ne yapılmalı?"),
         "createCustomDialogContent": MessageLookupByLibrary.simpleMessage(
             "Özel bir yemek öğesi oluşturmak istiyor musunuz?"),
         "createCustomDialogTitle": MessageLookupByLibrary.simpleMessage(
@@ -93,6 +99,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "deleteTimeDialogTitle":
             MessageLookupByLibrary.simpleMessage("Öğe Silinsin mi?"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("İPTAL"),
+        "dialogCopyLabel":
+            MessageLookupByLibrary.simpleMessage("BUGÜNE KOPYALA"),
+        "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("SİL"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("TAMAM"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Günlük"),
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
