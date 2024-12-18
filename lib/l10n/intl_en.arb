@@ -94,7 +94,7 @@
   "deleteTimeDialogContent": "Do want to delete the selected item?",
   "itemDeletedSnackbar": "Item deleted",
 
-  "copyDialogTitle": "Which meal type di you want to copy to?",
+  "copyDialogTitle": "Which meal type do you want to copy to?",
 
   "copyOrDeleteTimeDialogTitle": "What do you want to do?",
   "copyOrDeleteTimeDialogContent": "With \"Copy to today\" you can copy the meal to today. With \"Delete\" you can delete the meal.",
