@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -9,6 +11,8 @@ import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+
+import '../../../../core/presentation/widgets/copy_or_delete_dialog.dart';
 
 class DayInfoWidget extends StatelessWidget {
   final DateTime selectedDay;
@@ -22,18 +26,25 @@ class DayInfoWidget extends StatelessWidget {
       onDeleteIntake;
   final Function(UserActivityEntity userActivityEntity,
       TrackedDayEntity? trackedDayEntity) onDeleteActivity;
+  final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity)
+      onCopyIntake;
+  final Function(UserActivityEntity userActivityEntity,
+      TrackedDayEntity? trackedDayEntity) onCopyActivity;
 
-  const DayInfoWidget(
-      {super.key,
-      required this.selectedDay,
-      required this.trackedDayEntity,
-      required this.userActivities,
-      required this.breakfastIntake,
-      required this.lunchIntake,
-      required this.dinnerIntake,
-      required this.snackIntake,
-      required this.onDeleteIntake,
-      required this.onDeleteActivity});
+  const DayInfoWidget({
+    super.key,
+    required this.selectedDay,
+    required this.trackedDayEntity,
+    required this.userActivities,
+    required this.breakfastIntake,
+    required this.lunchIntake,
+    required this.dinnerIntake,
+    required this.snackIntake,
+    required this.onDeleteIntake,
+    required this.onDeleteActivity,
+    required this.onCopyIntake,
+    required this.onCopyActivity,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -173,21 +184,49 @@ class DayInfoWidget extends StatelessWidget {
 
   void onIntakeItemLongPressed(
       BuildContext context, IntakeEntity intakeEntity) async {
+    final copyOrDelete = await showDialog<bool>(
+        context: context, builder: (context) => const CopyOrDeleteDialog());
+
+    if (copyOrDelete != null && !copyOrDelete) {
+      final shouldDeleteIntake = await showDialog<bool>(
+          context: context, builder: (context) => const DeleteDialog());
+      if (shouldDeleteIntake != null) {
+        onDeleteIntake(intakeEntity, trackedDayEntity);
+      }
+    } else if (copyOrDelete != null && copyOrDelete) {
+      onCopyIntake(intakeEntity, null);
+    }
+  }
+
+  void showCopyOrDeleteDialog(
+      BuildContext context, UserActivityEntity activityEntity) async {
+    final copyOrDelete = await showDialog<bool>(
+        context: context, builder: (context) => const CopyOrDeleteDialog());
+
+    if (copyOrDelete != null && !copyOrDelete) {
+      if (context.mounted) {
+        showDeleteDialog(context, activityEntity);
+      }
+    } else if (copyOrDelete != null && copyOrDelete) {
+      onCopyActivity(activityEntity, null);
+    }
+  }
+
+  void showDeleteDialog(
+      BuildContext context, UserActivityEntity activityEntity) async {
     final shouldDeleteIntake = await showDialog<bool>(
         context: context, builder: (context) => const DeleteDialog());
-
     if (shouldDeleteIntake != null) {
-      onDeleteIntake(intakeEntity, trackedDayEntity);
+      onDeleteActivity(activityEntity, trackedDayEntity);
     }
   }
 
   void onActivityItemLongPressed(
       BuildContext context, UserActivityEntity activityEntity) async {
-    final shouldDeleteActivity = await showDialog<bool>(
-        context: context, builder: (context) => const DeleteDialog());
-
-    if (shouldDeleteActivity != null) {
-      onDeleteActivity(activityEntity, trackedDayEntity);
+    if (DateUtils.isSameDay(selectedDay, DateTime.now())) {
+      showDeleteDialog(context, activityEntity);
+    } else {
+      showCopyOrDeleteDialog(context, activityEntity);
     }
   }
 }

@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_table_calendar.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/day_info_widget.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+
+import '../../core/data/dbo/intake_dbo.dart';
+import '../../core/utils/id_generator.dart';
 
 class DiaryPage extends StatefulWidget {
   const DiaryPage({super.key});
@@ -23,6 +28,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
 
   late DiaryBloc _diaryBloc;
   late CalendarDayBloc _calendarDayBloc;
+  late AddIntakeUsecase _addIntakeUsecase;
 
   static const _calendarDurationDays = Duration(days: 356);
   final _currentDate = DateTime.now();
@@ -34,6 +40,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _diaryBloc = locator<DiaryBloc>();
     _calendarDayBloc = locator<CalendarDayBloc>();
+    _addIntakeUsecase = locator<AddIntakeUsecase>();
     super.initState();
   }
 
@@ -103,6 +110,8 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
                 snackIntake: state.snackIntakeList,
                 onDeleteIntake: _onDeleteIntakeItem,
                 onDeleteActivity: _onDeleteActivityItem,
+                onCopyIntake: _onCopyIntakeItem,
+                onCopyActivity: _onCopyActivityItem,
               );
             }
             return const SizedBox();
@@ -136,6 +145,24 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
     }
+  }
+
+  void _onCopyIntakeItem(
+      IntakeEntity intakeEntity, TrackedDayEntity? trackedDayEntity) async {
+    final newIntake = IntakeEntity(
+        id: IdGenerator.getUniqueID(),
+        unit: intakeEntity.unit,
+        amount: intakeEntity.amount,
+        type: intakeEntity.type,
+        meal: intakeEntity.meal,
+        dateTime: DateTime.now());
+    _addIntakeUsecase.addIntake(newIntake);
+    _diaryBloc.updateHomePage();
+  }
+
+  void _onCopyActivityItem(UserActivityEntity userActivityEntity,
+      TrackedDayEntity? trackedDayEntity) async {
+    log.info("Should copy activity");
   }
 
   void _onDateSelected(

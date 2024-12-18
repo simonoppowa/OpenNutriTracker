@@ -892,6 +892,46 @@ class S {
   }
 
   /// `Delete Item?`
+  String get copyOrDeleteTimeDialogTitle {
+    return Intl.message(
+      'What do you want to do?',
+      name: 'copyOrDeleteTimeDialogTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Do want to delete the selected item?`
+  String get copyOrDeleteTimeDialogContent {
+    return Intl.message(
+      'Click "Copy to today" to copy the content to the current day or click "Delete" to delete the item.',
+      name: 'copyOrDeleteTimeDialogContent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `COPY TO TODAY`
+  String get dialogCopyLabel {
+    return Intl.message(
+      'COPY TO TODAY',
+      name: 'dialogCopyLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `DELETE`
+  String get dialogDeleteLabel {
+    return Intl.message(
+      'DELETE',
+      name: 'dialogDeleteLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete Item?`
   String get deleteTimeDialogTitle {
     return Intl.message(
       'Delete Item?',
