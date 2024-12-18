@@ -921,10 +921,10 @@ class S {
     );
   }
 
-  /// `Which meal type di you want to copy to?`
+  /// `Which meal type do you want to copy to?`
   String get copyDialogTitle {
     return Intl.message(
-      'Which meal type di you want to copy to?',
+      'Which meal type do you want to copy to?',
       name: 'copyDialogTitle',
       desc: '',
       args: [],
