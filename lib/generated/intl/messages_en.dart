@@ -84,6 +84,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "chooseWeightGoalLabel":
             MessageLookupByLibrary.simpleMessage("Choose Weight Goal"),
         "cmLabel": MessageLookupByLibrary.simpleMessage("cm"),
+        "copyDialogTitle": MessageLookupByLibrary.simpleMessage(
+            "Which meal type do you want to copy to?"),
+        "copyOrDeleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
+            "With \"Copy to today\" you can copy the meal to today. With \"Delete\" you can delete the meal."),
+        "copyOrDeleteTimeDialogTitle":
+            MessageLookupByLibrary.simpleMessage("What do you want to do?"),
         "createCustomDialogContent": MessageLookupByLibrary.simpleMessage(
             "Do you want create a custom meal item?"),
         "createCustomDialogTitle":
@@ -95,6 +101,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "deleteTimeDialogTitle":
             MessageLookupByLibrary.simpleMessage("Delete Item?"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("CANCEL"),
+        "dialogCopyLabel":
+            MessageLookupByLibrary.simpleMessage("COPY TO TODAY"),
+        "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("DELETE"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),
         "dinnerExample": MessageLookupByLibrary.simpleMessage(

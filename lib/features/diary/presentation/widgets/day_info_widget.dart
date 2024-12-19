@@ -4,11 +4,14 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
+import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+
+import '../../../../core/presentation/widgets/copy_or_delete_dialog.dart';
 
 class DayInfoWidget extends StatelessWidget {
   final DateTime selectedDay;
@@ -22,18 +25,25 @@ class DayInfoWidget extends StatelessWidget {
       onDeleteIntake;
   final Function(UserActivityEntity userActivityEntity,
       TrackedDayEntity? trackedDayEntity) onDeleteActivity;
+  final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity,
+      AddMealType? type) onCopyIntake;
+  final Function(UserActivityEntity userActivityEntity,
+      TrackedDayEntity? trackedDayEntity) onCopyActivity;
 
-  const DayInfoWidget(
-      {super.key,
-      required this.selectedDay,
-      required this.trackedDayEntity,
-      required this.userActivities,
-      required this.breakfastIntake,
-      required this.lunchIntake,
-      required this.dinnerIntake,
-      required this.snackIntake,
-      required this.onDeleteIntake,
-      required this.onDeleteActivity});
+  const DayInfoWidget({
+    super.key,
+    required this.selectedDay,
+    required this.trackedDayEntity,
+    required this.userActivities,
+    required this.breakfastIntake,
+    required this.lunchIntake,
+    required this.dinnerIntake,
+    required this.snackIntake,
+    required this.onDeleteIntake,
+    required this.onDeleteActivity,
+    required this.onCopyIntake,
+    required this.onCopyActivity,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -171,13 +181,43 @@ class DayInfoWidget extends StatelessWidget {
     return 'Carbs: $carbsTracked/${carbsGoal}g, Fat: $fatTracked/${fatGoal}g, Protein: $proteinTracked/${proteinGoal}g';
   }
 
-  void onIntakeItemLongPressed(
+  void showCopyOrDeleteIntakeDialog(
+      BuildContext context, IntakeEntity intakeEntity) async {
+    final copyOrDelete = await showDialog<bool>(
+        context: context, builder: (context) => const CopyOrDeleteDialog());
+    if (context.mounted) {
+      if (copyOrDelete != null && !copyOrDelete) {
+        showDeleteIntakeDialog(context, intakeEntity);
+      } else if (copyOrDelete != null && copyOrDelete) {
+        showCopyDialog(context, intakeEntity);
+      }
+    }
+  }
+
+  void showCopyDialog(BuildContext context, IntakeEntity intakeEntity) async {
+    const copyDialog = CopyDialog();
+    final selectedMealType = await showDialog<AddMealType>(
+        context: context, builder: (context) => copyDialog);
+    if (selectedMealType != null) {
+      onCopyIntake(intakeEntity, null, selectedMealType);
+    }
+  }
+
+  void showDeleteIntakeDialog(
       BuildContext context, IntakeEntity intakeEntity) async {
     final shouldDeleteIntake = await showDialog<bool>(
         context: context, builder: (context) => const DeleteDialog());
-
     if (shouldDeleteIntake != null) {
       onDeleteIntake(intakeEntity, trackedDayEntity);
+    }
+  }
+
+  void onIntakeItemLongPressed(
+      BuildContext context, IntakeEntity intakeEntity) async {
+    if (DateUtils.isSameDay(selectedDay, DateTime.now())) {
+      showDeleteIntakeDialog(context, intakeEntity);
+    } else {
+      showCopyOrDeleteIntakeDialog(context, intakeEntity);
     }
   }
 

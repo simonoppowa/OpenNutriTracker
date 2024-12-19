@@ -84,6 +84,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "chooseWeightGoalLabel":
             MessageLookupByLibrary.simpleMessage("Gewichtsziel wählen"),
         "cmLabel": MessageLookupByLibrary.simpleMessage("cm"),
+        "copyDialogTitle": MessageLookupByLibrary.simpleMessage(
+            "Zu welcher Mahlzeit hinzufügen?"),
+        "copyOrDeleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
+            "Auf \"Nach heute kopieren\" klicken, um die Mahlzeit nach heute zu kopieren. Mit \"Löschen\" kann die Mahlzeit entfernt werden"),
+        "copyOrDeleteTimeDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Was soll getan werden?"),
         "createCustomDialogContent": MessageLookupByLibrary.simpleMessage(
             "Möchten Sie einen benutzerdefinierte Mahlzeit erstellen?"),
         "createCustomDialogTitle": MessageLookupByLibrary.simpleMessage(
@@ -95,6 +101,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "deleteTimeDialogTitle":
             MessageLookupByLibrary.simpleMessage("Eintrag löschen?"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("ABBRECHEN"),
+        "dialogCopyLabel":
+            MessageLookupByLibrary.simpleMessage("NACH HEUTE KOPIEREN"),
+        "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("LÖSCHEN"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Tagebuch"),
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
