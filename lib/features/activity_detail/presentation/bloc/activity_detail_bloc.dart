@@ -61,9 +61,9 @@ class ActivityDetailBloc
     final userEntity = await _getUserUsecase.getUserData();
     final totalKcalGoal =
         CalorieGoalCalc.getTotalKcalGoal(userEntity, caloriesBurned);
-    final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(totalKcalGoal);
-    final totalFatGoal = MacroCalc.getTotalFatsGoal(totalKcalGoal);
-    final totalProteinGoal = MacroCalc.getTotalProteinsGoal(totalKcalGoal);
+    final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(userEntity, totalKcalGoal);
+    final totalFatGoal = MacroCalc.getTotalFatsGoal(userEntity, totalKcalGoal);
+    final totalProteinGoal = MacroCalc.getTotalProteinsGoal(userEntity, totalKcalGoal);
 
     final hasTrackedDay =
         await _addTrackedDayUsecase.hasTrackedDay(DateTime.now());
@@ -71,9 +71,9 @@ class ActivityDetailBloc
       await _addTrackedDayUsecase.addNewTrackedDay(dateTime, totalKcalGoal,
           totalCarbsGoal, totalFatGoal, totalProteinGoal);
     }
-    final carbsIncrease = MacroCalc.getTotalCarbsGoal(caloriesBurned);
-    final fatIncrease = MacroCalc.getTotalFatsGoal(caloriesBurned);
-    final proteinIncrease = MacroCalc.getTotalProteinsGoal(caloriesBurned);
+    final carbsIncrease = MacroCalc.getTotalCarbsGoal(userEntity, caloriesBurned);
+    final fatIncrease = MacroCalc.getTotalFatsGoal(userEntity, caloriesBurned);
+    final proteinIncrease = MacroCalc.getTotalProteinsGoal(userEntity, caloriesBurned);
 
     _addTrackedDayUsecase.increaseDayCalorieGoal(dateTime, caloriesBurned);
     _addTrackedDayUsecase.increaseDayMacroGoals(dateTime,

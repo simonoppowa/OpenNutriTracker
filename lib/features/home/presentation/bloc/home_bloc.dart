@@ -103,9 +103,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final user = await _getUserUsecase.getUserData();
       final totalKcalGoal =
           CalorieGoalCalc.getTotalKcalGoal(user, totalKcalActivities);
-      final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(totalKcalGoal);
-      final totalFatsGoal = MacroCalc.getTotalFatsGoal(totalKcalGoal);
-      final totalProteinsGoal = MacroCalc.getTotalProteinsGoal(totalKcalGoal);
+      final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(user, totalKcalGoal);
+      final totalFatsGoal = MacroCalc.getTotalFatsGoal(user, totalKcalGoal);
+      final totalProteinsGoal = MacroCalc.getTotalProteinsGoal(user, totalKcalGoal);
 
       final totalKcalLeft =
           CalorieGoalCalc.getDailyKcalLeft(totalKcalGoal, totalKcalIntake);
@@ -190,14 +190,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> deleteUserActivityItem(UserActivityEntity activityEntity) async {
     final dateTime = DateTime.now();
+    final user = await _getUserUsecase.getUserData();
     await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
     _addTrackedDayUseCase.reduceDayCalorieGoal(
         dateTime, activityEntity.burnedKcal);
 
-    final carbsAmount = MacroCalc.getTotalCarbsGoal(activityEntity.burnedKcal);
-    final fatAmount = MacroCalc.getTotalFatsGoal(activityEntity.burnedKcal);
+    final carbsAmount = MacroCalc.getTotalCarbsGoal(user, activityEntity.burnedKcal);
+    final fatAmount = MacroCalc.getTotalFatsGoal(user, activityEntity.burnedKcal);
     final proteinAmount =
-        MacroCalc.getTotalProteinsGoal(activityEntity.burnedKcal);
+        MacroCalc.getTotalProteinsGoal(user, activityEntity.burnedKcal);
 
     _addTrackedDayUseCase.reduceDayMacroGoals(dateTime,
         carbsAmount: carbsAmount,

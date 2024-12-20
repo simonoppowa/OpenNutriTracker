@@ -10,6 +10,9 @@ class UserEntity {
   UserGenderEntity gender;
   UserWeightGoalEntity goal;
   UserPALEntity pal;
+  double carbsPercentageGoal;
+  double fatsPercentageGoal;
+  double proteinsPercentageGoal;
 
   UserEntity(
       {required this.birthday,
@@ -17,7 +20,10 @@ class UserEntity {
       required this.weightKG,
       required this.gender,
       required this.goal,
-      required this.pal});
+      required this.pal,
+      required this.carbsPercentageGoal,
+      required this.fatsPercentageGoal,
+      required this.proteinsPercentageGoal});
 
   factory UserEntity.fromUserDBO(UserDBO userDBO) {
     return UserEntity(
@@ -26,7 +32,10 @@ class UserEntity {
         weightKG: userDBO.weightKG,
         gender: UserGenderEntity.fromUserGenderDBO(userDBO.gender),
         goal: UserWeightGoalEntity.fromUserWeightGoalDBO(userDBO.goal),
-        pal: UserPALEntity.fromUserPALDBO(userDBO.pal));
+        pal: UserPALEntity.fromUserPALDBO(userDBO.pal),
+        carbsPercentageGoal: userDBO.carbsPercentageGoal,
+        fatsPercentageGoal: userDBO.fatsPercentageGoal,
+        proteinsPercentageGoal: userDBO.proteinsPercentageGoal);
   }
 
   int get age => DateTime.now().difference(birthday).inDays~/365;

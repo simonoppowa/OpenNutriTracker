@@ -17,7 +17,10 @@ void main() {
         weightKG: 80.0,
         gender: UserGenderEntity.male,
         goal: UserWeightGoalEntity.maintainWeight,
-        pal: UserPALEntity.sedentary);
+        pal: UserPALEntity.sedentary,
+        carbsPercentageGoal: 0.6,
+        fatsPercentageGoal: 0.25,
+        proteinsPercentageGoal: 0.15);
 
 
     // Call the TDEE calculation method

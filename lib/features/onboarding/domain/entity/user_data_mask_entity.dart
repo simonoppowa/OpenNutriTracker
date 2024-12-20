@@ -13,6 +13,9 @@ class UserDataMaskEntity {
   double? weight;
   UserActivitySelectionEntity? activity;
   UserGoalSelectionEntity? goal;
+  double? carbsPercentageGoal;
+  double? fatsPercentageGoal;
+  double? proteinsPercentageGoal;
 
   bool acceptDataCollection = false;
 
@@ -22,7 +25,10 @@ class UserDataMaskEntity {
       this.height,
       this.weight,
       this.activity,
-      this.goal});
+      this.goal,
+      this.carbsPercentageGoal,
+      this.fatsPercentageGoal,
+      this.proteinsPercentageGoal});
 
   bool checkDataProvided() {
     if (gender != null &&
@@ -30,7 +36,7 @@ class UserDataMaskEntity {
         height != null &&
         weight != null &&
         activity != null &&
-        goal != null) {
+        goal != null){
       return true;
     } else {
       return false;
@@ -44,6 +50,9 @@ class UserDataMaskEntity {
     final userBirthday = birthday ?? DateTime.now(); // TODO
     final userHeight = height ?? 180;
     final userWeight = weight ?? 70;
+    final userCarbsPercentageGoal = carbsPercentageGoal ?? 0.6;
+    final userFatsPercentageGoal = fatsPercentageGoal ?? 0.25;
+    final userProteinsPercentageGoal = proteinsPercentageGoal ?? 0.15;
     UserGenderEntity userGender;
     if (gender == UserGenderSelectionEntity.genderMale) {
       userGender = UserGenderEntity.male;
@@ -88,6 +97,9 @@ class UserDataMaskEntity {
         weightKG: userWeight,
         gender: userGender,
         goal: userGoal,
-        pal: userPal);
+        pal: userPal,
+        carbsPercentageGoal: userCarbsPercentageGoal,
+        fatsPercentageGoal: userFatsPercentageGoal,
+        proteinsPercentageGoal: userProteinsPercentageGoal);
   }
 }
