@@ -219,7 +219,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Cinsiyetiniz nedir?"),
         "onboardingGoalQuestionSubtitle": MessageLookupByLibrary.simpleMessage(
             "Mevcut kilo hedefiniz nedir?"),
-        "onboardingHeightExampleHint":
+        "onboardingHeightExampleHintCm":
             MessageLookupByLibrary.simpleMessage("örn. 170"),
         "onboardingHeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Mevcut boyunuz nedir?"),
@@ -231,7 +231,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Genel Bakış"),
         "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
             "Yanlış giriş, lütfen tekrar deneyin"),
-        "onboardingWeightExampleHint":
+        "onboardingWeightExampleHintKg":
             MessageLookupByLibrary.simpleMessage("örn. 60"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Mevcut kilonuz nedir?"),

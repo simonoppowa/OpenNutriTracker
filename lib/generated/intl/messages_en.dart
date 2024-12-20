@@ -129,6 +129,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Product not found"),
         "fatLabel": MessageLookupByLibrary.simpleMessage("fat"),
         "fiberLabel": MessageLookupByLibrary.simpleMessage("fiber"),
+        "ftLabel": MessageLookupByLibrary.simpleMessage("ft"),
         "genderFemaleLabel": MessageLookupByLibrary.simpleMessage("♀ female"),
         "genderLabel": MessageLookupByLibrary.simpleMessage("Gender"),
         "genderMaleLabel": MessageLookupByLibrary.simpleMessage("♂ male"),
@@ -152,6 +153,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal left"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("kg"),
+        "lbsLabel": MessageLookupByLibrary.simpleMessage("lbs"),
         "lunchExample":
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
@@ -218,8 +220,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("What\'s your gender?"),
         "onboardingGoalQuestionSubtitle": MessageLookupByLibrary.simpleMessage(
             "What\'s your current weight goal?"),
-        "onboardingHeightExampleHint":
+        "onboardingHeightExampleHintCm":
             MessageLookupByLibrary.simpleMessage("e.g. 170"),
+        "onboardingHeightExampleHintFt":
+            MessageLookupByLibrary.simpleMessage("e.g. 5.8"),
         "onboardingHeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Whats your current height?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
@@ -230,8 +234,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Overview"),
         "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
             "Wrong input, please try again"),
-        "onboardingWeightExampleHint":
+        "onboardingWeightExampleHintKg":
             MessageLookupByLibrary.simpleMessage("e.g. 60"),
+        "onboardingWeightExampleHintLbs":
+            MessageLookupByLibrary.simpleMessage("e.g. 132"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Whats your current weight?"),
         "onboardingWelcomeLabel":

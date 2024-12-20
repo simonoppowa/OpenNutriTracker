@@ -461,20 +461,40 @@ class S {
   }
 
   /// `e.g. 60`
-  String get onboardingWeightExampleHint {
+  String get onboardingWeightExampleHintKg {
     return Intl.message(
       'e.g. 60',
-      name: 'onboardingWeightExampleHint',
+      name: 'onboardingWeightExampleHintKg',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. 132`
+  String get onboardingWeightExampleHintLbs {
+    return Intl.message(
+      'e.g. 132',
+      name: 'onboardingWeightExampleHintLbs',
       desc: '',
       args: [],
     );
   }
 
   /// `e.g. 170`
-  String get onboardingHeightExampleHint {
+  String get onboardingHeightExampleHintCm {
     return Intl.message(
       'e.g. 170',
-      name: 'onboardingHeightExampleHint',
+      name: 'onboardingHeightExampleHintCm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. 5.8`
+  String get onboardingHeightExampleHintFt {
+    return Intl.message(
+      'e.g. 5.8',
+      name: 'onboardingHeightExampleHintFt',
       desc: '',
       args: [],
     );
@@ -1601,6 +1621,16 @@ class S {
     );
   }
 
+  /// `ft`
+  String get ftLabel {
+    return Intl.message(
+      'ft',
+      name: 'ftLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Select Weight`
   String get selectWeightDialogLabel {
     return Intl.message(
@@ -1626,6 +1656,16 @@ class S {
     return Intl.message(
       'kg',
       name: 'kgLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `lbs`
+  String get lbsLabel {
+    return Intl.message(
+      'lbs',
+      name: 'lbsLabel',
       desc: '',
       args: [],
     );

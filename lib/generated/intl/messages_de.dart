@@ -225,7 +225,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Was ist Ihr Geschlecht?"),
         "onboardingGoalQuestionSubtitle": MessageLookupByLibrary.simpleMessage(
             "Was ist Ihr aktuelles Gewichtsziel?"),
-        "onboardingHeightExampleHint":
+        "onboardingHeightExampleHintCm":
             MessageLookupByLibrary.simpleMessage("z. B. 170"),
         "onboardingHeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Wie groß sind Sie derzeit?"),
@@ -237,7 +237,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Übersicht"),
         "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
             "Falsche Eingabe, bitte versuchen Sie es erneut"),
-        "onboardingWeightExampleHint":
+        "onboardingWeightExampleHintKg":
             MessageLookupByLibrary.simpleMessage("z. B. 60"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage(
