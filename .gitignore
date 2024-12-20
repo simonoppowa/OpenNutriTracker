@@ -50,3 +50,6 @@ app.*.map.json
 # nix related
 result
 .direnv/
+
+# FVM Version Cache
+.fvm/
