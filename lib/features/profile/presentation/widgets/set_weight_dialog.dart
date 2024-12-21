@@ -3,11 +3,14 @@ import 'package:horizontal_picker/horizontal_picker.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class SetWeightDialog extends StatelessWidget {
-  static const weightRange = 50.0;
+  static const weightRangeKg = 50.0;
+  static const weightRangeLbs = 100.0;
 
   final double userWeight;
+  final bool usesImperialUnits;
 
-  const SetWeightDialog({super.key, required this.userWeight});
+  const SetWeightDialog(
+      {super.key, required this.userWeight, required this.usesImperialUnits});
 
   @override
   Widget build(BuildContext context) {
@@ -20,11 +23,17 @@ class SetWeightDialog extends StatelessWidget {
             HorizontalPicker(
                 height: 100,
                 backgroundColor: Colors.transparent,
-                minValue: userWeight - weightRange,
-                maxValue: userWeight + weightRange,
+                minValue: usesImperialUnits
+                    ? userWeight - weightRangeLbs
+                    : userWeight - weightRangeKg,
+                maxValue: usesImperialUnits
+                    ? userWeight + weightRangeLbs
+                    : userWeight + weightRangeKg,
                 initialPosition: InitialPosition.center,
                 divisions: 1000,
-                suffix: S.of(context).kgLabel,
+                suffix: usesImperialUnits
+                    ? S.of(context).lbsLabel
+                    : S.of(context).kgLabel,
                 onChanged: (value) {
                   selectedWeight = value;
                 })

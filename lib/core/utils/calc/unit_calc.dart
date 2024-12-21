@@ -1,3 +1,5 @@
+import 'package:opennutritracker/core/utils/extensions.dart';
+
 class UnitCalc {
   static double cmToInches(double cm) {
     return cm / 2.54;
@@ -7,8 +9,9 @@ class UnitCalc {
     return inches * 2.54;
   }
 
+  /// Converts centimeters to feet and rounds the result
   static double cmToFeet(double cm) {
-    return cm / 30.48;
+    return (cm / 30.48).roundToPrecision(2);
   }
 
   /// Converts feet to centimeters and rounds the result

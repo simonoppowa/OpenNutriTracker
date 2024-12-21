@@ -670,6 +670,36 @@ class S {
     );
   }
 
+  /// `System`
+  String get settingsSystemLabel {
+    return Intl.message(
+      'System',
+      name: 'settingsSystemLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Metric (kg, cm, ml)`
+  String get settingsMetricLabel {
+    return Intl.message(
+      'Metric (kg, cm, ml)',
+      name: 'settingsMetricLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Imperial (lbs, ft, oz)`
+  String get settingsImperialLabel {
+    return Intl.message(
+      'Imperial (lbs, ft, oz)',
+      name: 'settingsImperialLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Distance`
   String get settingsDistanceLabel {
     return Intl.message(

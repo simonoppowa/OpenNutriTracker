@@ -74,13 +74,21 @@ Future<void> initLocator() async {
   // BLoCs
   locator.registerLazySingleton<OnboardingBloc>(
       () => OnboardingBloc(locator(), locator()));
-  locator.registerLazySingleton<HomeBloc>(() => HomeBloc(locator(), locator(), locator(),
-      locator(), locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton<HomeBloc>(() => HomeBloc(
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator()));
   locator.registerLazySingleton(() => DiaryBloc(locator()));
   locator.registerLazySingleton(() => CalendarDayBloc(
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<ProfileBloc>(
-      () => ProfileBloc(locator(), locator(), locator(), locator()));
+      () => ProfileBloc(locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() => SettingsBloc(locator(), locator()));
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));

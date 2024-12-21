@@ -608,16 +608,21 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Disclaimer"),
         "settingsDistanceLabel":
             MessageLookupByLibrary.simpleMessage("Distance"),
+        "settingsImperialLabel":
+            MessageLookupByLibrary.simpleMessage("Imperial (lbs, ft, oz)"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Settings"),
         "settingsLicensesLabel":
             MessageLookupByLibrary.simpleMessage("Licenses"),
         "settingsMassLabel": MessageLookupByLibrary.simpleMessage("Mass"),
+        "settingsMetricLabel":
+            MessageLookupByLibrary.simpleMessage("Metric (kg, cm, ml)"),
         "settingsPrivacySettings":
             MessageLookupByLibrary.simpleMessage("Privacy Settings"),
         "settingsReportErrorLabel":
             MessageLookupByLibrary.simpleMessage("Report Error"),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Source Code"),
+        "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("System"),
         "settingsThemeDarkLabel": MessageLookupByLibrary.simpleMessage("Dark"),
         "settingsThemeLabel": MessageLookupByLibrary.simpleMessage("Theme"),
         "settingsThemeLightLabel":

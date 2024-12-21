@@ -50,6 +50,13 @@ class ConfigDataSource {
     config?.save();
   }
 
+  Future<void> setConfigUsesImperialUnits(bool usesImperialUnits) async {
+    _log.fine('Updating config usesImperialUnits to $usesImperialUnits');
+    final config = _configBox.get(_configKey);
+    config?.usesImperialUnits = usesImperialUnits;
+    config?.save();
+  }
+
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();
   }

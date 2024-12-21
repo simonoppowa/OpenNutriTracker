@@ -4,8 +4,8 @@ import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingSecondPageBody extends StatefulWidget {
-  final Function(bool active, double? selectedHeight, double? selectedWeight)
-      setButtonContent;
+  final Function(bool active, double? selectedHeight, double? selectedWeight,
+      bool usesImperialUnits) setButtonContent;
 
   const OnboardingSecondPageBody({super.key, required this.setButtonContent});
 
@@ -201,12 +201,12 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
             ? UnitCalc.lbsToKg(_parsedWeight!)
             : _parsedWeight!;
 
-        widget.setButtonContent(true, heightCm, weightKg);
+        widget.setButtonContent(true, heightCm, weightKg, _isImperialSelected);
       } else {
-        widget.setButtonContent(false, null, null);
+        widget.setButtonContent(false, null, null, _isImperialSelected);
       }
     } else {
-      widget.setButtonContent(false, null, null);
+      widget.setButtonContent(false, null, null, _isImperialSelected);
     }
   }
 }

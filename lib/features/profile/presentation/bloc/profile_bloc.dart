@@ -5,10 +5,12 @@ import 'package:opennutritracker/core/domain/entity/user_bmi_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/bmi_calc.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
@@ -24,8 +26,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final AddTrackedDayUsecase _addTrackedDayUsecase;
   final GetUserActivityUsecase _getUserActivityUsecase;
 
-  ProfileBloc(this._getUserUsecase, this._addUserUsecase,
-      this._addTrackedDayUsecase, this._getUserActivityUsecase)
+  final GetConfigUsecase _getConfigUsecase;
+
+  ProfileBloc(
+      this._getUserUsecase,
+      this._addUserUsecase,
+      this._addTrackedDayUsecase,
+      this._getUserActivityUsecase,
+      this._getConfigUsecase)
       : super(ProfileInitial()) {
     on<LoadProfileEvent>((event, emit) async {
       emit(ProfileLoadingState());
@@ -35,8 +43,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       final userBMIEntity = UserBMIEntity(
           bmiValue: userBMIValue,
           nutritionalStatus: BMICalc.getNutritionalStatus(userBMIValue));
+      final userConfig = await _getConfigUsecase.getConfig();
 
-      emit(ProfileLoadedState(userBMI: userBMIEntity, userEntity: user));
+      emit(ProfileLoadedState(
+          userBMI: userBMIEntity,
+          userEntity: user,
+          usesImperialUnits: userConfig.usesImperialUnits));
     });
   }
 
@@ -64,9 +76,29 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           await _getUserActivityUsecase.getTodayUserActivity();
       final totalActivityKcal =
           activityDayList.map((activity) => activity.burnedKcal).sum;
-      final totalKcalGoal = CalorieGoalCalc.getTotalKcalGoal(user, totalActivityKcal);
+      final totalKcalGoal =
+          CalorieGoalCalc.getTotalKcalGoal(user, totalActivityKcal);
 
       await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);
+    }
+  }
+
+  /// Returns the user's height in cm or ft/in based on the user's config
+  String getDisplayHeight(UserEntity user, bool usesImperialUnits) {
+    if (usesImperialUnits) {
+      // Convert cm to feet and inches
+      return UnitCalc.cmToFeet(user.heightCM).toStringAsFixed(1);
+    } else {
+      return user.heightCM.roundToDouble().toStringAsFixed(0);
+    }
+  }
+
+  /// Returns the user's weight in kg or lbs based on the user's config
+  String getDisplayWeight(UserEntity user, bool usesImperialUnits) {
+    if (usesImperialUnits) {
+      return UnitCalc.kgToLbs(user.weightKG).toStringAsFixed(0);
+    } else {
+      return user.weightKG.roundToDouble().toStringAsFixed(0);
     }
   }
 }
