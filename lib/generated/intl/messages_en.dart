@@ -129,6 +129,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Product not found"),
         "fatLabel": MessageLookupByLibrary.simpleMessage("fat"),
         "fiberLabel": MessageLookupByLibrary.simpleMessage("fiber"),
+        "flOzUnit": MessageLookupByLibrary.simpleMessage("fl.oz"),
         "ftLabel": MessageLookupByLibrary.simpleMessage("ft"),
         "genderFemaleLabel": MessageLookupByLibrary.simpleMessage("♀ female"),
         "genderLabel": MessageLookupByLibrary.simpleMessage("Gender"),
@@ -166,6 +167,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("protein per 100 g/ml"),
         "mealSizeLabel":
             MessageLookupByLibrary.simpleMessage("Meal size (g/ml)"),
+        "mealSizeLabelImperial":
+            MessageLookupByLibrary.simpleMessage("Meal size (oz/fl oz)"),
         "mealUnitLabel": MessageLookupByLibrary.simpleMessage("Meal unit"),
         "milliliterUnit": MessageLookupByLibrary.simpleMessage("ml"),
         "missingProductInfo": MessageLookupByLibrary.simpleMessage(
@@ -250,6 +253,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Your calorie goal:"),
         "onboardingYourMacrosGoalLabel":
             MessageLookupByLibrary.simpleMessage("Your macronutrient goals:"),
+        "ozUnit": MessageLookupByLibrary.simpleMessage("oz"),
         "paAmericanFootballGeneral":
             MessageLookupByLibrary.simpleMessage("football"),
         "paAmericanFootballGeneralDesc":
@@ -564,7 +568,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Mostly walking, running or carrying weight in job and active free time activities"),
         "palVeryActiveLabel":
             MessageLookupByLibrary.simpleMessage("Very Active"),
-        "per100gLabel": MessageLookupByLibrary.simpleMessage("Per 100g"),
+        "per100gmlLabel": MessageLookupByLibrary.simpleMessage("Per 100g/ml"),
         "privacyPolicyLabel":
             MessageLookupByLibrary.simpleMessage("Privacy policy"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
@@ -599,6 +603,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Send anonymous usage data"),
         "servingSizeLabel":
             MessageLookupByLibrary.simpleMessage("Serving size (g/ml)"),
+        "servingSizeLabelImperial":
+            MessageLookupByLibrary.simpleMessage("Serving size (oz/fl oz)"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),

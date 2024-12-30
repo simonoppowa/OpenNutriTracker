@@ -170,6 +170,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Protein pro 100 g/ml"),
         "mealSizeLabel":
             MessageLookupByLibrary.simpleMessage("Mahlzeitsgröße (g/ml)"),
+        "mealSizeLabelImperial":
+            MessageLookupByLibrary.simpleMessage("Mahlzeitsgröße (oz/fl oz)"),
         "mealUnitLabel":
             MessageLookupByLibrary.simpleMessage("Mahlzeiteinheit"),
         "milliliterUnit": MessageLookupByLibrary.simpleMessage("ml"),
@@ -576,7 +578,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Überwiegend Gehen, Laufen oder Gewichte tragen bei der Arbeit und aktive Freizeitaktivitäten"),
         "palVeryActiveLabel":
             MessageLookupByLibrary.simpleMessage("Sehr aktiv"),
-        "per100gLabel": MessageLookupByLibrary.simpleMessage("Pro 100 g"),
+        "per100gmlLabel": MessageLookupByLibrary.simpleMessage("Pro 100 g/ml"),
         "privacyPolicyLabel":
             MessageLookupByLibrary.simpleMessage("Datenschutzrichtlinie"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profil"),

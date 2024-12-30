@@ -56,8 +56,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
           // Push new route after build
           Future.microtask(() => Navigator.of(context).pushReplacementNamed(
               NavigationOptions.mealDetailRoute,
-              arguments: MealDetailScreenArguments(
-                  state.product, _intakeTypeEntity, _day)));
+              arguments: MealDetailScreenArguments(state.product,
+                  _intakeTypeEntity, _day, state.usesImperialUnits)));
         } else if (state is ScannerFailedState) {
           return Scaffold(
               appBar: AppBar(),

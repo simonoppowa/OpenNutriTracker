@@ -1151,11 +1151,11 @@ class S {
     );
   }
 
-  /// `Per 100g`
-  String get per100gLabel {
+  /// `Per 100g/ml`
+  String get per100gmlLabel {
     return Intl.message(
-      'Per 100g',
-      name: 'per100gLabel',
+      'Per 100g/ml',
+      name: 'per100gmlLabel',
       desc: '',
       args: [],
     );
@@ -1291,6 +1291,26 @@ class S {
     );
   }
 
+  /// `oz`
+  String get ozUnit {
+    return Intl.message(
+      'oz',
+      name: 'ozUnit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `fl.oz`
+  String get flOzUnit {
+    return Intl.message(
+      'fl.oz',
+      name: 'flOzUnit',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Product missing required kcal or macronutrients information`
   String get missingProductInfo {
     return Intl.message(
@@ -1361,11 +1381,31 @@ class S {
     );
   }
 
+  /// `Meal size (oz/fl oz)`
+  String get mealSizeLabelImperial {
+    return Intl.message(
+      'Meal size (oz/fl oz)',
+      name: 'mealSizeLabelImperial',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Serving size (g/ml)`
   String get servingSizeLabel {
     return Intl.message(
       'Serving size (g/ml)',
       name: 'servingSizeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Serving size (oz/fl oz)`
+  String get servingSizeLabelImperial {
+    return Intl.message(
+      'Serving size (oz/fl oz)',
+      name: 'servingSizeLabelImperial',
       desc: '',
       args: [],
     );

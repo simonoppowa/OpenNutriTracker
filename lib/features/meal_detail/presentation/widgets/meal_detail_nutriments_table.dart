@@ -31,7 +31,7 @@ class MealDetailNutrimentsTable extends StatelessWidget {
                   Theme.of(context).colorScheme.onBackground.withOpacity(0.5)),
           children: <TableRow>[
             _getNutrimentsTableRow(
-                "", S.of(context).per100gLabel, textStyleBold),
+                "", S.of(context).per100gmlLabel, textStyleBold),
             _getNutrimentsTableRow(
                 S.of(context).energyLabel,
                 "${product.nutriments.energyKcal100?.toInt() ?? "?"} ${S.of(context).kcalLabel}",

@@ -21,6 +21,8 @@ class DayInfoWidget extends StatelessWidget {
   final List<IntakeEntity> lunchIntake;
   final List<IntakeEntity> dinnerIntake;
   final List<IntakeEntity> snackIntake;
+
+  final bool usesImperialUnits;
   final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity)
       onDeleteIntake;
   final Function(UserActivityEntity userActivityEntity,
@@ -39,6 +41,7 @@ class DayInfoWidget extends StatelessWidget {
     required this.lunchIntake,
     required this.dinnerIntake,
     required this.snackIntake,
+    required this.usesImperialUnits,
     required this.onDeleteIntake,
     required this.onDeleteActivity,
     required this.onCopyIntake,
@@ -126,6 +129,7 @@ class DayInfoWidget extends StatelessWidget {
               addMealType: AddMealType.breakfastType,
               intakeList: breakfastIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
+              usesImperialUnits: usesImperialUnits,
             ),
             IntakeVerticalList(
               day: selectedDay,
@@ -134,6 +138,7 @@ class DayInfoWidget extends StatelessWidget {
               addMealType: AddMealType.lunchType,
               intakeList: lunchIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
+              usesImperialUnits: usesImperialUnits,
             ),
             IntakeVerticalList(
               day: selectedDay,
@@ -142,6 +147,7 @@ class DayInfoWidget extends StatelessWidget {
               addMealType: AddMealType.dinnerType,
               intakeList: dinnerIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
+              usesImperialUnits: usesImperialUnits,
             ),
             IntakeVerticalList(
               day: selectedDay,
@@ -150,6 +156,7 @@ class DayInfoWidget extends StatelessWidget {
               addMealType: AddMealType.snackType,
               intakeList: snackIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
+              usesImperialUnits: usesImperialUnits,
             ),
             const SizedBox(height: 16.0)
           ],

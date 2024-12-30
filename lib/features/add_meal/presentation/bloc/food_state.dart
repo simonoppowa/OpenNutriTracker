@@ -16,11 +16,12 @@ class FoodLoadingState extends FoodState {
 
 class FoodLoadedState extends FoodState {
   final List<MealEntity> food;
+  final bool usesImperialUnits;
 
-  const FoodLoadedState({required this.food});
+  const FoodLoadedState({required this.food, this.usesImperialUnits = false});
 
   @override
-  List<Object?> get props => [food];
+  List<Object?> get props => [food, usesImperialUnits];
 }
 
 class FoodFailedState extends FoodState {

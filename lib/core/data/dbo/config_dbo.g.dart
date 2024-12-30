@@ -21,13 +21,14 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       fields[1] as bool,
       fields[2] as bool,
       fields[3] as AppThemeDBO,
+      usesImperialUnits: fields[4] as bool?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(2)
       ..write(obj.hasAcceptedSendAnonymousData)
       ..writeByte(3)
-      ..write(obj.selectedAppTheme);
+      ..write(obj.selectedAppTheme)
+      ..writeByte(4)
+      ..write(obj.usesImperialUnits);
   }
 
   @override

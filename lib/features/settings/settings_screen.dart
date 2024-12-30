@@ -7,6 +7,8 @@ import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -25,11 +27,15 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late SettingsBloc _settingsBloc;
   late ProfileBloc _profileBloc;
+  late HomeBloc _homeBloc;
+  late DiaryBloc _diaryBloc;
 
   @override
   void initState() {
     _settingsBloc = locator<SettingsBloc>();
     _profileBloc = locator<ProfileBloc>();
+    _homeBloc = locator<HomeBloc>();
+    _diaryBloc = locator<DiaryBloc>();
     super.initState();
   }
 
@@ -144,8 +150,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _settingsBloc
           .setUsesImperialUnits(selectedUnit == SystemDropDownType.imperial);
       _settingsBloc.add(LoadSettingsEvent());
-      // Update Profile bloc
+
+      // Update blocs
       _profileBloc.add(LoadProfileEvent());
+      _homeBloc.add(LoadItemsEvent());
+      _diaryBloc.add(const LoadDiaryYearEvent());
     }
   }
 

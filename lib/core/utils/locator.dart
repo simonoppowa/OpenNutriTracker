@@ -38,6 +38,7 @@ import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_so
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_fdc_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
@@ -84,7 +85,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator()));
-  locator.registerLazySingleton(() => DiaryBloc(locator()));
+  locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
   locator.registerLazySingleton(() => CalendarDayBloc(
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<ProfileBloc>(
@@ -98,11 +99,13 @@ Future<void> initLocator() async {
       () => ActivityDetailBloc(locator(), locator(), locator()));
   locator.registerFactory<MealDetailBloc>(
       () => MealDetailBloc(locator(), locator(), locator()));
-  locator.registerFactory<ScannerBloc>(() => ScannerBloc(locator()));
-  locator.registerFactory<EditMealBloc>(() => EditMealBloc());
-  locator.registerFactory<ProductsBloc>(() => ProductsBloc(locator()));
-  locator.registerFactory<FoodBloc>(() => FoodBloc(locator()));
-  locator.registerFactory(() => RecentMealBloc(locator()));
+  locator.registerFactory<ScannerBloc>(() => ScannerBloc(locator(), locator()));
+  locator.registerFactory<EditMealBloc>(() => EditMealBloc(locator()));
+  locator.registerFactory<AddMealBloc>(() => AddMealBloc(locator()));
+  locator
+      .registerFactory<ProductsBloc>(() => ProductsBloc(locator(), locator()));
+  locator.registerFactory<FoodBloc>(() => FoodBloc(locator(), locator()));
+  locator.registerFactory(() => RecentMealBloc(locator(), locator()));
 
   // UseCases
   locator.registerLazySingleton<GetConfigUsecase>(

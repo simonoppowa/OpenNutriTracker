@@ -28,4 +28,20 @@ class UnitCalc {
   static double lbsToKg(double lbs) {
     return (lbs / 2.20462).roundToDouble();
   }
+
+  static double gToOz(double g) {
+    return g / 28.3495;
+  }
+
+  static double ozToG(double oz) {
+    return oz * 28.3495;
+  }
+
+  static double mlToFlOz(double ml) {
+    return ml / 29.5735;
+  }
+
+  static double flOzToMl(double flOz) {
+    return flOz * 29.5735;
+  }
 }
