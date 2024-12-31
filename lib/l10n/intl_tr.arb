@@ -98,7 +98,7 @@
 
   "copyOrDeleteTimeDialogTitle": "Ne yapılmalı?",
   "copyOrDeleteTimeDialogContent": "\"Bugüne kopyala\" seçeneğine tıklayarak öğünü bugüne kopyalayabilirsiniz. \"Sil\" seçeneği ile öğün kaldırılabilir.",
-  "dialogCopyLabel": "BUGÜNE KOPYALA",
+  "dialogCopyLabel": "Bugüne kopyala",
   "dialogDeleteLabel": "SİL",
 
   "suppliedLabel": "alınan",

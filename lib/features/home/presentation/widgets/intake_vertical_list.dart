@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_card.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -21,18 +23,20 @@ class IntakeVerticalList extends StatefulWidget {
   final Function(BuildContext, IntakeEntity)? onItemLongPressedCallback;
   final Function(bool)? onItemDragCallback;
   final Function(BuildContext, IntakeEntity)? onItemTappedCallback;
+  final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity,
+      AddMealType? type)? onCopyIntakeCallback;
 
-  const IntakeVerticalList({
-    super.key,
-    required this.day,
-    required this.title,
-    required this.listIcon,
-    required this.addMealType,
-    required this.intakeList,
-    this.onItemLongPressedCallback,
-    this.onItemDragCallback,
-    this.onItemTappedCallback
-  });
+  const IntakeVerticalList(
+      {super.key,
+      required this.day,
+      required this.title,
+      required this.listIcon,
+      required this.addMealType,
+      required this.intakeList,
+      this.onItemLongPressedCallback,
+      this.onItemDragCallback,
+      this.onItemTappedCallback,
+      this.onCopyIntakeCallback});
 
   @override
   State<IntakeVerticalList> createState() => _IntakeVerticalListState();
@@ -50,7 +54,8 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
   }
 
   double get totalKcal {
-    return widget.intakeList.fold(0, (previousValue, element) => previousValue + element.totalKcal);
+    return widget.intakeList
+        .fold(0, (previousValue, element) => previousValue + element.totalKcal);
   }
 
   @override
@@ -72,14 +77,36 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
               ),
               const Spacer(),
               if (totalKcal > 0)
-              Text(
-                '${totalKcal.toInt()} ${S.of(context).kcalLabel}',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onBackground
-                                        .withOpacity(0.7)),
-              ),
+                Text(
+                  '${totalKcal.toInt()} ${S.of(context).kcalLabel} ',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onBackground
+                          .withOpacity(0.7)),
+                ),
+              if (widget.onCopyIntakeCallback != null)
+                PopupMenuButton<String>(
+                    onSelected: (String selection) async {
+                      if (selection == "ON_COPY_INTAKE") {
+                        // const today = DateTime.now();
+                        const copyDialog = CopyDialog();
+                        final selectedMealType = await showDialog<AddMealType>(
+                            context: context, builder: (context) => copyDialog);
+                        if (selectedMealType != null) {
+                          for (IntakeEntity intake in widget.intakeList) {
+                            widget.onCopyIntakeCallback!(
+                                intake, null, selectedMealType);
+                          }
+                        }
+                      }
+                    },
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<String>>[
+                          PopupMenuItem<String>(
+                              value: "ON_COPY_INTAKE",
+                              child: Text(S.of(context).dialogCopyLabel)),
+                        ]),
             ],
           ),
         ),
@@ -134,8 +161,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16.0),
                               ),
-                              color:
-                                  Theme.of(context).cardColor,
+                              color: Theme.of(context).cardColor,
                             ),
                           ),
                         ],

@@ -100,7 +100,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Öğe Silinsin mi?"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("İPTAL"),
         "dialogCopyLabel":
-            MessageLookupByLibrary.simpleMessage("BUGÜNE KOPYALA"),
+            MessageLookupByLibrary.simpleMessage("Bugüne kopyala"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("SİL"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("TAMAM"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Günlük"),
