@@ -92,14 +92,17 @@
 
   "deleteTimeDialogTitle": "Öğe Silinsin mi?",
   "deleteTimeDialogContent": "Seçili öğeyi silmek istiyor musunuz?",
+  "deleteTimeDialogPluralTitle": "Girdiler silinsin mi?",
+  "deleteTimeDialogPluralContent": "Bu öğüne ait tüm girdileri silmek istiyor musunuz?",
   "itemDeletedSnackbar": "Öğe silindi",
 
   "copyDialogTitle": "Hangi öğüne eklemek istiyorsunuz?",
 
   "copyOrDeleteTimeDialogTitle": "Ne yapılmalı?",
   "copyOrDeleteTimeDialogContent": "\"Bugüne kopyala\" seçeneğine tıklayarak öğünü bugüne kopyalayabilirsiniz. \"Sil\" seçeneği ile öğün kaldırılabilir.",
-  "dialogCopyLabel": "BUGÜNE KOPYALA",
+  "dialogCopyLabel": "Bugüne kopyala",
   "dialogDeleteLabel": "SİL",
+  "deleteAllLabel": "Hepsini sil",
 
   "suppliedLabel": "alınan",
   "burnedLabel": "yakılan",
