@@ -1091,10 +1091,10 @@ class S {
     );
   }
 
-  /// `COPY TO TODAY`
+  /// `Copy to today`
   String get dialogCopyLabel {
     return Intl.message(
-      'COPY TO TODAY',
+      'Copy to today',
       name: 'dialogCopyLabel',
       desc: '',
       args: [],

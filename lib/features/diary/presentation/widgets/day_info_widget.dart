@@ -127,6 +127,10 @@ class DayInfoWidget extends StatelessWidget {
               addMealType: AddMealType.breakfastType,
               intakeList: breakfastIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
+              onCopyIntakeCallback:
+                  DateUtils.isSameDay(selectedDay, DateTime.now())
+                      ? null
+                      : onCopyIntake,
               usesImperialUnits: usesImperialUnits,
             ),
             IntakeVerticalList(
@@ -137,6 +141,10 @@ class DayInfoWidget extends StatelessWidget {
               intakeList: lunchIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
               usesImperialUnits: usesImperialUnits,
+              onCopyIntakeCallback:
+                  DateUtils.isSameDay(selectedDay, DateTime.now())
+                      ? null
+                      : onCopyIntake,
             ),
             IntakeVerticalList(
               day: selectedDay,
@@ -145,6 +153,10 @@ class DayInfoWidget extends StatelessWidget {
               addMealType: AddMealType.dinnerType,
               intakeList: dinnerIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
+              onCopyIntakeCallback:
+                  DateUtils.isSameDay(selectedDay, DateTime.now())
+                      ? null
+                      : onCopyIntake,
               usesImperialUnits: usesImperialUnits,
             ),
             IntakeVerticalList(
@@ -155,6 +167,10 @@ class DayInfoWidget extends StatelessWidget {
               intakeList: snackIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
               usesImperialUnits: usesImperialUnits,
+              onCopyIntakeCallback:
+                  DateUtils.isSameDay(selectedDay, DateTime.now())
+                      ? null
+                      : onCopyIntake,
             ),
             const SizedBox(height: 16.0)
           ],

@@ -103,7 +103,7 @@
   "copyDialogTitle": "Which meal type do you want to copy to?",
   "copyOrDeleteTimeDialogTitle": "What do you want to do?",
   "copyOrDeleteTimeDialogContent": "With \"Copy to today\" you can copy the meal to today. With \"Delete\" you can delete the meal.",
-  "dialogCopyLabel": "COPY TO TODAY",
+  "dialogCopyLabel": "Copy to today",
   "dialogDeleteLabel": "DELETE",
   "suppliedLabel": "supplied",
   "burnedLabel": "burned",

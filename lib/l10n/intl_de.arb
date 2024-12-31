@@ -98,7 +98,7 @@
   "copyDialogTitle": "Zu welcher Mahlzeit hinzufügen?",
   "copyOrDeleteTimeDialogTitle": "Was soll getan werden?",
   "copyOrDeleteTimeDialogContent": "Auf \"Nach heute kopieren\" klicken, um die Mahlzeit nach heute zu kopieren. Mit \"Löschen\" kann die Mahlzeit entfernt werden",
-  "dialogCopyLabel": "NACH HEUTE KOPIEREN",
+  "dialogCopyLabel": "Nach heute kopieren",
   "dialogDeleteLabel": "LÖSCHEN",
   "suppliedLabel": "zugeführt",
   "burnedLabel": "verbrannt",

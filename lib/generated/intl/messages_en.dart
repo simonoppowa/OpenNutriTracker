@@ -105,7 +105,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Delete Item?"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("CANCEL"),
         "dialogCopyLabel":
-            MessageLookupByLibrary.simpleMessage("COPY TO TODAY"),
+            MessageLookupByLibrary.simpleMessage("Copy to today"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("DELETE"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),

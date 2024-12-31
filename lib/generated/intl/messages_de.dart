@@ -106,7 +106,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Eintrag löschen?"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("ABBRECHEN"),
         "dialogCopyLabel":
-            MessageLookupByLibrary.simpleMessage("NACH HEUTE KOPIEREN"),
+            MessageLookupByLibrary.simpleMessage("Nach heute kopieren"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("LÖSCHEN"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Tagebuch"),
