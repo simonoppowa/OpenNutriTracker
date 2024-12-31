@@ -29,7 +29,8 @@ if (flutterVersionName == null) {
 }
 
 android {
-    compileSdkVersion 34
+    namespace "com.opennutritracker.ont.opennutritracker"
+    compileSdkVersion 35
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -38,7 +39,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = JavaVersion.VERSION_1_8
     }
 
     sourceSets {
@@ -48,7 +49,7 @@ android {
     defaultConfig {
         applicationId "com.opennutritracker.ont.opennutritracker"
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
@@ -71,8 +72,4 @@ android {
 
 flutter {
     source '../..'
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22"
 }
