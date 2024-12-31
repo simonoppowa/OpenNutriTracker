@@ -94,8 +94,13 @@ class MessageLookup extends MessageLookupByLibrary {
             "Özel yemek öğesi oluşturulsun mu?"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Anonim kullanım verileri sağlayarak geliştirmeyi destekleyin"),
+        "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Hepsini sil"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Seçili öğeyi silmek istiyor musunuz?"),
+        "deleteTimeDialogPluralContent": MessageLookupByLibrary.simpleMessage(
+            "Bu öğüne ait tüm girdileri silmek istiyor musunuz?"),
+        "deleteTimeDialogPluralTitle":
+            MessageLookupByLibrary.simpleMessage("Girdiler silinsin mi?"),
         "deleteTimeDialogTitle":
             MessageLookupByLibrary.simpleMessage("Öğe Silinsin mi?"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("İPTAL"),

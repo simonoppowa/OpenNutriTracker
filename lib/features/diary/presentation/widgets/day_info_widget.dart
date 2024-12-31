@@ -4,14 +4,13 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
+import 'package:opennutritracker/core/presentation/widgets/copy_or_delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-
-import '../../../../core/presentation/widgets/copy_or_delete_dialog.dart';
 
 class DayInfoWidget extends StatelessWidget {
   final DateTime selectedDay;
@@ -125,11 +124,13 @@ class DayInfoWidget extends StatelessWidget {
               listIcon: Icons.bakery_dining_outlined,
               addMealType: AddMealType.breakfastType,
               intakeList: breakfastIntake,
+              onDeleteIntakeCallback: onDeleteIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
               onCopyIntakeCallback:
                   DateUtils.isSameDay(selectedDay, DateTime.now())
                       ? null
                       : onCopyIntake,
+              trackedDayEntity: trackedDay,
             ),
             IntakeVerticalList(
               day: selectedDay,
@@ -137,11 +138,13 @@ class DayInfoWidget extends StatelessWidget {
               listIcon: Icons.lunch_dining_outlined,
               addMealType: AddMealType.lunchType,
               intakeList: lunchIntake,
+              onDeleteIntakeCallback: onDeleteIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
               onCopyIntakeCallback:
                   DateUtils.isSameDay(selectedDay, DateTime.now())
                       ? null
                       : onCopyIntake,
+              trackedDayEntity: trackedDay,
             ),
             IntakeVerticalList(
               day: selectedDay,
@@ -149,6 +152,7 @@ class DayInfoWidget extends StatelessWidget {
               listIcon: Icons.dinner_dining_outlined,
               addMealType: AddMealType.dinnerType,
               intakeList: dinnerIntake,
+              onDeleteIntakeCallback: onDeleteIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
               onCopyIntakeCallback:
                   DateUtils.isSameDay(selectedDay, DateTime.now())
@@ -161,11 +165,13 @@ class DayInfoWidget extends StatelessWidget {
               listIcon: CustomIcons.food_apple_outline,
               addMealType: AddMealType.snackType,
               intakeList: snackIntake,
+              onDeleteIntakeCallback: onDeleteIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
               onCopyIntakeCallback:
                   DateUtils.isSameDay(selectedDay, DateTime.now())
                       ? null
                       : onCopyIntake,
+              trackedDayEntity: trackedDay,
             ),
             const SizedBox(height: 16.0)
           ],

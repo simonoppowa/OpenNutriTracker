@@ -92,6 +92,8 @@
 
   "deleteTimeDialogTitle": "Eintrag löschen?",
   "deleteTimeDialogContent": "Möchten Sie den ausgewählten Eintrag löschen?",
+  "deleteTimeDialogPluralTitle": "Einträge löschen?",
+  "deleteTimeDialogPluralContent": "Möchten Sie alle Einträge dieser Mahlzeit löschen?",
   "itemDeletedSnackbar": "Eintrag gelöscht",
 
   "copyDialogTitle": "Zu welcher Mahlzeit hinzufügen?",
@@ -100,6 +102,7 @@
   "copyOrDeleteTimeDialogContent": "Auf \"Nach heute kopieren\" klicken, um die Mahlzeit nach heute zu kopieren. Mit \"Löschen\" kann die Mahlzeit entfernt werden",
   "dialogCopyLabel": "Nach heute kopieren",
   "dialogDeleteLabel": "LÖSCHEN",
+  "deleteAllLabel": "Alle löschen",
 
   "suppliedLabel": "zugeführt",
   "burnedLabel": "verbrannt",
