@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_card.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/vertical_list_popup_menu_items.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -24,7 +25,6 @@ class IntakeVerticalList extends StatefulWidget {
   final Function(BuildContext, IntakeEntity)? onItemLongPressedCallback;
   final Function(bool)? onItemDragCallback;
   final Function(BuildContext, IntakeEntity, bool)? onItemTappedCallback;
-  final Function(BuildContext, IntakeEntity)? onItemTappedCallback;
   final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity,
       AddMealType? type)? onCopyIntakeCallback;
 
@@ -91,27 +91,28 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                           .withValues(alpha: 0.7)),
                 ),
               if (widget.onCopyIntakeCallback != null)
-                PopupMenuButton<String>(
-                    onSelected: (String selection) async {
-                      if (selection == "ON_COPY_INTAKE") {
-                        // const today = DateTime.now();
-                        const copyDialog = CopyDialog();
-                        final selectedMealType = await showDialog<AddMealType>(
-                            context: context, builder: (context) => copyDialog);
-                        if (selectedMealType != null) {
-                          for (IntakeEntity intake in widget.intakeList) {
-                            widget.onCopyIntakeCallback!(
-                                intake, null, selectedMealType);
-                          }
-                        }
+                PopupMenuButton<VerticalListPopupMenuItems>(
+                    onSelected: (VerticalListPopupMenuItems selection) async {
+                      switch (selection) {
+                        case VerticalListPopupMenuItems.onCopy:
+                          const copyDialog = CopyDialog();
+                          final selectedMealType = await showDialog<AddMealType>(
+                              context: context, builder: (context) => copyDialog);
+                          if (selectedMealType != null) {
+                            for (IntakeEntity intake in widget.intakeList) {
+                              widget.onCopyIntakeCallback!(
+                                  intake, null, selectedMealType);
+                            }
+                          };
+                          break;
                       }
                     },
                     itemBuilder: (BuildContext context) =>
-                    <PopupMenuEntry<String>>[
-                      PopupMenuItem<String>(
-                          value: "ON_COPY_INTAKE",
-                          child: Text(S.of(context).dialogCopyLabel)),
-                    ]),
+                        <PopupMenuEntry<VerticalListPopupMenuItems>>[
+                          PopupMenuItem<VerticalListPopupMenuItems>(
+                              value: VerticalListPopupMenuItems.onCopy,
+                              child: Text(S.of(context).dialogCopyLabel)),
+                        ]),
             ],
           ),
         ),
