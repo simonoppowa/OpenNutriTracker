@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/core/presentation/widgets/edit_dialog.dart';
@@ -141,6 +142,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           listIcon: IntakeTypeEntity.breakfast.getIconData(),
           addMealType: AddMealType.breakfastType,
           intakeList: breakfastIntakeList,
+          onDeleteIntakeCallback: onDeleteIntake,
           onItemDragCallback: onIntakeItemDrag,
           onItemTappedCallback: onIntakeItemTapped,
           usesImperialUnits: usesImperialUnits,
@@ -151,6 +153,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           listIcon: IntakeTypeEntity.lunch.getIconData(),
           addMealType: AddMealType.lunchType,
           intakeList: lunchIntakeList,
+          onDeleteIntakeCallback: onDeleteIntake,
           onItemDragCallback: onIntakeItemDrag,
           onItemTappedCallback: onIntakeItemTapped,
           usesImperialUnits: usesImperialUnits,
@@ -161,6 +164,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           addMealType: AddMealType.dinnerType,
           listIcon: IntakeTypeEntity.dinner.getIconData(),
           intakeList: dinnerIntakeList,
+          onDeleteIntakeCallback: onDeleteIntake,
           onItemDragCallback: onIntakeItemDrag,
           onItemTappedCallback: onIntakeItemTapped,
           usesImperialUnits: usesImperialUnits,
@@ -171,6 +175,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           listIcon: IntakeTypeEntity.snack.getIconData(),
           addMealType: AddMealType.snackType,
           intakeList: snackIntakeList,
+          onDeleteIntakeCallback: onDeleteIntake,
           onItemDragCallback: onIntakeItemDrag,
           onItemTappedCallback: onIntakeItemTapped,
           usesImperialUnits: usesImperialUnits,
@@ -263,13 +268,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
+  void onDeleteIntake(IntakeEntity intake, TrackedDayEntity? trackedDayEntity) {
+    _homeBloc.deleteIntakeItem(intake);
+    _homeBloc.add(const LoadItemsEvent());
+  }
+
   void _confirmDelete(BuildContext context, IntakeEntity intake) async {
     bool? delete = await showDialog<bool>(
         context: context, builder: (context) => const DeleteDialog());
 
     if (delete == true) {
-      _homeBloc.deleteIntakeItem(intake);
-      _homeBloc.add(const LoadItemsEvent());
+      onDeleteIntake(intake, null);
     }
     setState(() {
       _isDragging = false;

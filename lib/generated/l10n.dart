@@ -1111,6 +1111,16 @@ class S {
     );
   }
 
+  /// `Delete all`
+  String get deleteAllLabel {
+    return Intl.message(
+      'Delete all',
+      name: 'deleteAllLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `supplied`
   String get suppliedLabel {
     return Intl.message(

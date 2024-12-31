@@ -105,6 +105,9 @@
   "copyOrDeleteTimeDialogContent": "With \"Copy to today\" you can copy the meal to today. With \"Delete\" you can delete the meal.",
   "dialogCopyLabel": "Copy to today",
   "dialogDeleteLabel": "DELETE",
+
+  "deleteAllLabel": "Delete all",
+
   "suppliedLabel": "supplied",
   "burnedLabel": "burned",
   "kcalLeftLabel": "kcal left",
