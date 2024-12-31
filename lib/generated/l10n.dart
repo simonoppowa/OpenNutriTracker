@@ -911,6 +911,26 @@ class S {
     );
   }
 
+  /// `Delete Items?`
+  String get deleteTimeDialogPluralTitle {
+    return Intl.message(
+      'Delete Items?',
+      name: 'deleteTimeDialogPluralTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Do want to delete all items of this meal?`
+  String get deleteTimeDialogPluralContent {
+    return Intl.message(
+      'Do want to delete all items of this meal?',
+      name: 'deleteTimeDialogPluralContent',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Item deleted`
   String get itemDeletedSnackbar {
     return Intl.message(
@@ -951,10 +971,10 @@ class S {
     );
   }
 
-  /// `COPY TO TODAY`
+  /// `Copy to today`
   String get dialogCopyLabel {
     return Intl.message(
-      'COPY TO TODAY',
+      'Copy to today',
       name: 'dialogCopyLabel',
       desc: '',
       args: [],
@@ -966,6 +986,16 @@ class S {
     return Intl.message(
       'DELETE',
       name: 'dialogDeleteLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete all`
+  String get deleteAllLabel {
+    return Intl.message(
+      'Delete all',
+      name: 'deleteAllLabel',
       desc: '',
       args: [],
     );
