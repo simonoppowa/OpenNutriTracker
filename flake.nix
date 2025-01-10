@@ -1,5 +1,5 @@
 {
-  description = "Flutter 3.19.x";
+  description = "Flutter 3.27.x";
   inputs = {
     nixpkgs.url = "nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
