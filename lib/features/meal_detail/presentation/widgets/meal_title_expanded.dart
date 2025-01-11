@@ -24,7 +24,7 @@ class MealTitleExpanded extends StatelessWidget {
                 TextSpan(
                     text: meal.name ?? '',
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onBackground),
+                        color: Theme.of(context).colorScheme.onSurface),
                     children: [
                       TextSpan(
                           text: ' ${meal.brands ?? ''}',
@@ -34,8 +34,8 @@ class MealTitleExpanded extends StatelessWidget {
                               ?.copyWith(
                                   color: Theme.of(context)
                                       .colorScheme
-                                      .onBackground
-                                      .withOpacity(0.7)))
+                                      .onSurface
+                                      .withValues(alpha: 0.7))),
                     ]),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -52,8 +52,8 @@ class MealTitleExpanded extends StatelessWidget {
                             ?.copyWith(
                                 color: Theme.of(context)
                                     .colorScheme
-                                    .onBackground
-                                    .withOpacity(0.8)),
+                                    .onSurface
+                                    .withValues(alpha: 0.8)),
                         prefix: ''),
                   )
                 : const SizedBox(),

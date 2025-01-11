@@ -70,8 +70,7 @@ class DayInfoWidget extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
-                                .onBackground
-                                .withOpacity(0.7))),
+                                .onSurface.withValues(alpha: 0.7))),
                   )
                 : const SizedBox(),
             trackedDay != null
@@ -110,8 +109,7 @@ class DayInfoWidget extends StatelessWidget {
                                 ?.copyWith(
                                     color: Theme.of(context)
                                         .colorScheme
-                                        .onBackground
-                                        .withOpacity(0.7)))
+                                        .onSurface.withValues(alpha: 0.7))),
                       ],
                     ),
                   )

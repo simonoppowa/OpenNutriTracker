@@ -276,10 +276,6 @@ class _EditMealScreenState extends State<EditMealScreen> {
           ? _convertToMetric(
               _mealQuantityTextController.text, _mealEntity.mealUnit ?? "0")
           : _mealQuantityTextController.text;
-      final servingQuantity = usesImperialUnits
-          ? _convertToMetric(
-              _servingQuantityTextController.text, _mealEntity.mealUnit ?? "0")
-          : _servingQuantityTextController.text;
 
       final newMealEntity = _editMealBloc.createNewMealEntity(
           _mealEntity,

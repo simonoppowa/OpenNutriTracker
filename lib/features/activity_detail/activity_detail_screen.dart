@@ -119,7 +119,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                     ?.copyWith(
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .onBackground))
+                                            .onSurface))
                             : const SizedBox(),
                   ),
                 );

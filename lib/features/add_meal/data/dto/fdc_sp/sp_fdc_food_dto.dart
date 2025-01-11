@@ -29,9 +29,7 @@ class SpFdcFoodDTO {
         return descriptionEn;
       case SupportedLanguage.de:
         return descriptionDe;
-      default:
-        return descriptionEn;
-    }
+      }
   }
 
   get servingSize => portions

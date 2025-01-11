@@ -44,7 +44,7 @@ class ActivityCard extends StatelessWidget {
                               color: Theme.of(context)
                                   .colorScheme
                                   .tertiaryContainer
-                                  .withOpacity(0.8),
+                                  .withValues(alpha: 0.8),
                               borderRadius: BorderRadius.circular(12)),
                           child: Text(
                             "🔥${activityEntity.burnedKcal.toInt()} kcal",
@@ -75,7 +75,7 @@ class ActivityCard extends StatelessWidget {
                 child: Text(
                   activityEntity.physicalActivityEntity.getName(context),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onBackground),
+                      color: Theme.of(context).colorScheme.onSurface),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -87,8 +87,7 @@ class ActivityCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context)
                             .colorScheme
-                            .onBackground
-                            .withOpacity(0.8)),
+                            .onSurface.withValues(alpha: 0.8)),
                     maxLines: 1,
                   ))
             ],

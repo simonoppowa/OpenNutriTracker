@@ -54,10 +54,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
               body: const Center(child: CircularProgressIndicator()));
         } else if (state is ScannerLoadedState) {
           // Push new route after build
-          Future.microtask(() => Navigator.of(context).pushReplacementNamed(
-              NavigationOptions.mealDetailRoute,
-              arguments: MealDetailScreenArguments(state.product,
-                  _intakeTypeEntity, _day, state.usesImperialUnits)));
+          Future.microtask(() {
+            if (context.mounted) {
+              return Navigator.of(context).pushReplacementNamed(
+                  NavigationOptions.mealDetailRoute,
+                  arguments: MealDetailScreenArguments(state.product,
+                      _intakeTypeEntity, _day, state.usesImperialUnits));
+            }
+          });
         } else if (state is ScannerFailedState) {
           return Scaffold(
               appBar: AppBar(),

@@ -65,8 +65,7 @@ class IntakeCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Theme.of(context)
                           .colorScheme
-                          .secondaryContainer
-                          .withOpacity(0.5),
+                          .secondaryContainer.withValues(alpha: 0.5),
                     ),
                   ),
                   Container(
@@ -75,8 +74,7 @@ class IntakeCard extends StatelessWidget {
                     decoration: BoxDecoration(
                         color: Theme.of(context)
                             .colorScheme
-                            .tertiaryContainer
-                            .withOpacity(0.8),
+                            .tertiaryContainer.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(20)),
                     child: Text(
                       '${intake.totalKcal.toInt()} kcal',
@@ -116,8 +114,8 @@ class IntakeCard extends StatelessWidget {
                                 ?.copyWith(
                                     color: Theme.of(context)
                                         .colorScheme
-                                        .onSecondaryContainer
-                                        .withOpacity(0.7)),
+                                        .onSecondaryContainer.withValues(
+                                            alpha: 0.7)),
                           ),
                         ],
                       ))

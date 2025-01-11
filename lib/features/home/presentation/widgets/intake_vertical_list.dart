@@ -65,12 +65,14 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
           child: Row(
             children: [
               Icon(widget.listIcon,
-                  size: 24, color: Theme.of(context).colorScheme.onBackground),
+                  size: 24, color: Theme.of(context).colorScheme.onSurface),
               const SizedBox(width: 4.0),
               Text(
                 widget.title,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
               ),
               const Spacer(),
               if (totalKcal > 0)
@@ -79,8 +81,8 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: Theme.of(context)
                           .colorScheme
-                          .onBackground
-                          .withOpacity(0.7)),
+                          .onSurface
+                          .withValues(alpha: 0.7)),
                 ),
             ],
           ),

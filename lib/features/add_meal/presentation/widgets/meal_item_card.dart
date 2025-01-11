@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+
 class MealItemCard extends StatelessWidget {
   final DateTime day;
   final AddMealType addMealType;
@@ -56,7 +57,7 @@ class MealItemCard extends StatelessWidget {
                 TextSpan(
                     text: mealEntity.name ?? "?",
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onBackground),
+                        color: Theme.of(context).colorScheme.onSurface),
                     children: [
                       TextSpan(
                           text: ' ${mealEntity.brands ?? ""}',
@@ -66,8 +67,8 @@ class MealItemCard extends StatelessWidget {
                               ?.copyWith(
                                   color: Theme.of(context)
                                       .colorScheme
-                                      .onBackground
-                                      .withOpacity(0.8)))
+                                      .onSurface
+                                      .withValues(alpha: 0.8))),
                     ]),
                 style: Theme.of(context).textTheme.titleLarge,
                 maxLines: 2,

@@ -183,7 +183,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               visible: _isDragging,
               child: Container(
                 height: 70,
-                color: Theme.of(context).colorScheme.error.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.error
+                  ..withValues(alpha: 0.3),
                 child: DragTarget<IntakeEntity>(
                   onAcceptWithDetails: (data) {
                     _confirmDelete(context, data.data);
