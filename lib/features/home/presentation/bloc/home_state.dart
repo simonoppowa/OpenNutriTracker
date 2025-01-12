@@ -31,6 +31,7 @@ class HomeLoadedState extends HomeState {
   final List<IntakeEntity> lunchIntakeList;
   final List<IntakeEntity> dinnerIntakeList;
   final List<IntakeEntity> snackIntakeList;
+  final bool usesImperialUnits;
 
   const HomeLoadedState({
     required this.showDisclaimerDialog,
@@ -49,9 +50,15 @@ class HomeLoadedState extends HomeState {
     required this.lunchIntakeList,
     required this.dinnerIntakeList,
     required this.snackIntakeList,
+    required this.usesImperialUnits,
   });
 
   @override
-  List<Object?> get props =>
-      [breakfastIntakeList, lunchIntakeList, dinnerIntakeList, snackIntakeList];
+  List<Object?> get props => [
+        breakfastIntakeList,
+        lunchIntakeList,
+        dinnerIntakeList,
+        snackIntakeList,
+        usesImperialUnits
+      ];
 }

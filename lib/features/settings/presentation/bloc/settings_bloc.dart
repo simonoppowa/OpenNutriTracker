@@ -23,9 +23,13 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
       final userConfig = await _getConfigUsecase.getConfig();
       final appVersion = await AppConst.getVersionNumber();
+      final usesImperialUnits = userConfig.usesImperialUnits;
 
-      emit(SettingsLoadedState(appVersion,
-          userConfig.hasAcceptedSendAnonymousData, userConfig.appTheme));
+      emit(SettingsLoadedState(
+          appVersion,
+          userConfig.hasAcceptedSendAnonymousData,
+          userConfig.appTheme,
+          usesImperialUnits));
     });
   }
 
@@ -37,4 +41,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   void setAppTheme(AppThemeEntity appTheme) async {
     await _addConfigUsecase.setConfigAppTheme(appTheme);
   }
+
+  void setUsesImperialUnits(bool usesImperialUnits) {
+    _addConfigUsecase.setConfigUsesImperialUnits(usesImperialUnits);
+  }
 }
+
+enum SystemDropDownType { metric, imperial }

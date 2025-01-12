@@ -64,9 +64,10 @@ extension FormatString on DateTime {
 extension ColorExtension on Color {
   /// Converts the color to a hexadecimal string.
   String toHex() {
-    return '#${red.toRadixString(16).padLeft(2, '0')}'
-        '${green.toRadixString(16).padLeft(2, '0')}'
-        '${blue.toRadixString(16).padLeft(2, '0')}'
-        '${alpha.toRadixString(16).padLeft(2, '0')}'; // Includes the alpha channel
+    final red = (r * 255).toInt().toRadixString(16).padLeft(2, '0');
+    final green = (g * 255).toInt().toRadixString(16).padLeft(2, '0');
+    final blue = (b * 255).toInt().toRadixString(16).padLeft(2, '0');
+
+    return '#' '$red$green$blue'.toUpperCase();
   }
 }

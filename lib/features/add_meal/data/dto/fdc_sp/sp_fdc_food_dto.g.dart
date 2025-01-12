@@ -7,7 +7,7 @@ part of 'sp_fdc_food_dto.dart';
 // **************************************************************************
 
 SpFdcFoodDTO _$SpFdcFoodDTOFromJson(Map<String, dynamic> json) => SpFdcFoodDTO(
-      fdcId: json['fdc_id'] as int?,
+      fdcId: (json['fdc_id'] as num?)?.toInt(),
       descriptionEn: json['description_en'] as String?,
       descriptionDe: json['description_de'] as String?,
       nutrients: (json['fdc_nutrients'] as List<dynamic>)

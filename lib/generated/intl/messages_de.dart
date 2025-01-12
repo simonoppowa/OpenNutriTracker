@@ -84,6 +84,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "chooseWeightGoalLabel":
             MessageLookupByLibrary.simpleMessage("Gewichtsziel wählen"),
         "cmLabel": MessageLookupByLibrary.simpleMessage("cm"),
+        "copyDialogTitle": MessageLookupByLibrary.simpleMessage(
+            "Zu welcher Mahlzeit hinzufügen?"),
+        "copyOrDeleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
+            "Auf \"Nach heute kopieren\" klicken, um die Mahlzeit nach heute zu kopieren. Mit \"Löschen\" kann die Mahlzeit entfernt werden"),
+        "copyOrDeleteTimeDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Was soll getan werden?"),
         "createCustomDialogContent": MessageLookupByLibrary.simpleMessage(
             "Möchten Sie einen benutzerdefinierte Mahlzeit erstellen?"),
         "createCustomDialogTitle": MessageLookupByLibrary.simpleMessage(
@@ -95,6 +101,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "deleteTimeDialogTitle":
             MessageLookupByLibrary.simpleMessage("Eintrag löschen?"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("ABBRECHEN"),
+        "dialogCopyLabel":
+            MessageLookupByLibrary.simpleMessage("NACH HEUTE KOPIEREN"),
+        "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("LÖSCHEN"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Tagebuch"),
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
@@ -161,6 +170,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Protein pro 100 g/ml"),
         "mealSizeLabel":
             MessageLookupByLibrary.simpleMessage("Mahlzeitsgröße (g/ml)"),
+        "mealSizeLabelImperial":
+            MessageLookupByLibrary.simpleMessage("Mahlzeitsgröße (oz/fl oz)"),
         "mealUnitLabel":
             MessageLookupByLibrary.simpleMessage("Mahlzeiteinheit"),
         "milliliterUnit": MessageLookupByLibrary.simpleMessage("ml"),
@@ -216,7 +227,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Was ist Ihr Geschlecht?"),
         "onboardingGoalQuestionSubtitle": MessageLookupByLibrary.simpleMessage(
             "Was ist Ihr aktuelles Gewichtsziel?"),
-        "onboardingHeightExampleHint":
+        "onboardingHeightExampleHintCm":
             MessageLookupByLibrary.simpleMessage("z. B. 170"),
         "onboardingHeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Wie groß sind Sie derzeit?"),
@@ -228,7 +239,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Übersicht"),
         "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
             "Falsche Eingabe, bitte versuchen Sie es erneut"),
-        "onboardingWeightExampleHint":
+        "onboardingWeightExampleHintKg":
             MessageLookupByLibrary.simpleMessage("z. B. 60"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage(
@@ -567,7 +578,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Überwiegend Gehen, Laufen oder Gewichte tragen bei der Arbeit und aktive Freizeitaktivitäten"),
         "palVeryActiveLabel":
             MessageLookupByLibrary.simpleMessage("Sehr aktiv"),
-        "per100gLabel": MessageLookupByLibrary.simpleMessage("Pro 100 g"),
+        "per100gmlLabel": MessageLookupByLibrary.simpleMessage("Pro 100 g/ml"),
         "privacyPolicyLabel":
             MessageLookupByLibrary.simpleMessage("Datenschutzrichtlinie"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profil"),

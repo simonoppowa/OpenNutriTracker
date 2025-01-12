@@ -27,10 +27,11 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   void saveOnboardingData(BuildContext context, UserEntity userEntity,
-      bool hasAcceptedDataCollection) async {
+      bool hasAcceptedDataCollection, bool usesImperialUnits) async {
     _addUserUsecase.addUser(userEntity);
     _addConfigUsecase
         .setConfigHasAcceptedAnonymousData(hasAcceptedDataCollection);
+    _addConfigUsecase.setConfigUsesImperialUnits(usesImperialUnits);
   }
 
   double? getOverviewCalorieGoal() {

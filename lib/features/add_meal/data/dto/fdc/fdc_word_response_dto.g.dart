@@ -8,8 +8,8 @@ part of 'fdc_word_response_dto.dart';
 
 FDCWordResponseDTO _$FDCWordResponseDTOFromJson(Map<String, dynamic> json) =>
     FDCWordResponseDTO(
-      totalHits: json['totalHits'] as int?,
-      currentPage: json['currentPage'] as int?,
+      totalHits: (json['totalHits'] as num?)?.toInt(),
+      currentPage: (json['currentPage'] as num?)?.toInt(),
       foods: (json['foods'] as List<dynamic>)
           .map((e) => FDCFoodDTO.fromJson(e as Map<String, dynamic>))
           .toList(),

@@ -24,4 +24,8 @@ class AddConfigUsecase {
   Future<void> setConfigAppTheme(AppThemeEntity appTheme) async {
     await _configRepository.setConfigAppTheme(appTheme);
   }
+
+  Future<void> setConfigUsesImperialUnits(bool usesImperialUnits) async {
+    _configRepository.setConfigUsesImperialUnits(usesImperialUnits);
+  }
 }

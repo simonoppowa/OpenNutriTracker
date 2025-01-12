@@ -54,10 +54,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
               body: const Center(child: CircularProgressIndicator()));
         } else if (state is ScannerLoadedState) {
           // Push new route after build
-          Future.microtask(() => Navigator.of(context).pushReplacementNamed(
-              NavigationOptions.mealDetailRoute,
-              arguments: MealDetailScreenArguments(
-                  state.product, _intakeTypeEntity, _day)));
+          Future.microtask(() {
+            if (context.mounted) {
+              return Navigator.of(context).pushReplacementNamed(
+                  NavigationOptions.mealDetailRoute,
+                  arguments: MealDetailScreenArguments(state.product,
+                      _intakeTypeEntity, _day, state.usesImperialUnits));
+            }
+          });
         } else if (state is ScannerFailedState) {
           return Scaffold(
               appBar: AppBar(),
@@ -84,13 +88,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
         actions: [
           IconButton(
             icon: ValueListenableBuilder(
-              valueListenable: cameraController.torchState,
+              valueListenable: cameraController,
               builder: (context, state, child) {
-                switch (state) {
-                  case TorchState.off:
+                switch (state.torchState) {
+                  case TorchState.off || TorchState.unavailable:
                     return const Icon(Icons.flash_off_outlined,
                         color: Colors.grey);
-                  case TorchState.on:
+                  case TorchState.on || TorchState.auto:
                     return const Icon(Icons.flash_on_outlined);
                 }
               },

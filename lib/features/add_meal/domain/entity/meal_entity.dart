@@ -11,6 +11,15 @@ import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
 class MealEntity extends Equatable {
+  static const liquidUnits = {'ml', 'l', 'dl', 'cl', 'fl oz', 'fl.oz'};
+  static const solidUnits = {
+    'kg',
+    'g',
+    'mg',
+    'µg',
+    'oz',
+  };
+
   final String? code;
   final String? name;
 
@@ -29,6 +38,10 @@ class MealEntity extends Equatable {
   final MealSourceEntity source;
 
   final MealNutrimentsEntity nutriments;
+
+  bool get isLiquid => liquidUnits.contains(mealUnit);
+
+  bool get isSolid => solidUnits.contains(mealUnit);
 
   const MealEntity(
       {required this.code,
@@ -49,9 +62,9 @@ class MealEntity extends Equatable {
       name: null,
       url: null,
       mealQuantity: null,
-      mealUnit: 'g',
+      mealUnit: 'gml',
       servingQuantity: null,
-      servingUnit: 'g',
+      servingUnit: 'gml',
       nutriments: MealNutrimentsEntity.empty(),
       source: MealSourceEntity.custom);
 

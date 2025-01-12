@@ -4,7 +4,6 @@
   "appDescription": "OpenNutriTracker is a free and open-source calorie and nutrient tracker that respects your privacy.",
   "alphaVersionName": "[Alpha]",
   "betaVersionName": "[Beta]",
-
   "addLabel": "Add",
   "createCustomDialogTitle": "Create custom meal item?",
   "createCustomDialogContent": "Do you want create a custom meal item?",
@@ -21,14 +20,12 @@
   "recentlyAddedLabel": "Recently",
   "noMealsRecentlyAddedLabel": "No meals recently added",
   "noActivityRecentlyAddedLabel": "No activity recently added",
-
   "dialogOKLabel": "OK",
   "dialogCancelLabel": "CANCEL",
   "buttonStartLabel": "START",
   "buttonNextLabel": "NEXT",
   "buttonSaveLabel": "Save",
   "buttonYesLabel": "YES",
-
   "onboardingWelcomeLabel": "Welcome to",
   "onboardingOverviewLabel": "Overview",
   "onboardingYourGoalLabel": "Your calorie goal:",
@@ -43,12 +40,13 @@
   "onboardingWeightQuestionSubtitle": "Whats your current weight?",
   "onboardingWrongHeightLabel": "Enter correct height",
   "onboardingWrongWeightLabel": "Enter correct weight",
-  "onboardingWeightExampleHint": "e.g. 60",
-  "onboardingHeightExampleHint": "e.g. 170",
+  "onboardingWeightExampleHintKg": "e.g. 60",
+  "onboardingWeightExampleHintLbs": "e.g. 132",
+  "onboardingHeightExampleHintCm": "e.g. 170",
+  "onboardingHeightExampleHintFt": "e.g. 5.8",
   "onboardingActivityQuestionSubtitle": "How active are you? (without workouts)",
   "onboardingGoalQuestionSubtitle": "What's your current weight goal?",
   "onboardingSaveUserError": "Wrong input, please try again",
-
   "settingsUnitsLabel": "Units",
   "settingsCalculationsLabel": "Calculations",
   "settingsThemeLabel": "Theme",
@@ -63,6 +61,9 @@
   "settingFeedbackLabel": "Feedback",
   "settingAboutLabel": "About",
   "settingsMassLabel": "Mass",
+  "settingsSystemLabel": "System",
+  "settingsMetricLabel": "Metric (kg, cm, ml)",
+  "settingsImperialLabel": "Imperial (lbs, ft, oz)",
   "settingsDistanceLabel": "Distance",
   "settingsVolumeLabel": "Volume",
   "disclaimerText": "OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.\n\n\nThe application is still under development. Errors, bugs and crashes may occur.",
@@ -74,7 +75,6 @@
   "calculationsRecommendedLabel": "(recommended)",
   "calculationsMacronutrientsDistributionLabel": "Macros distribution",
   "calculationsMacrosDistribution": "{pctCarbs}% carbs, {pctFats}% fats, {pctProteins}% proteins",
-
   "addItemLabel": "Add new Item:",
   "activityLabel": "Activity",
   "activityExample": "e.g. running, biking, yoga ...",
@@ -86,18 +86,19 @@
   "dinnerExample": "e.g. soup, chicken, wine ...",
   "snackLabel": "Snack",
   "snackExample": "e.g. apple, ice cream, chocolate ...",
-
   "editItemDialogTitle": "Edit item",
   "itemUpdatedSnackbar": "Item updated",
-
   "deleteTimeDialogTitle": "Delete Item?",
   "deleteTimeDialogContent": "Do want to delete the selected item?",
   "itemDeletedSnackbar": "Item deleted",
-
+  "copyDialogTitle": "Which meal type do you want to copy to?",
+  "copyOrDeleteTimeDialogTitle": "What do you want to do?",
+  "copyOrDeleteTimeDialogContent": "With \"Copy to today\" you can copy the meal to today. With \"Delete\" you can delete the meal.",
+  "dialogCopyLabel": "COPY TO TODAY",
+  "dialogDeleteLabel": "DELETE",
   "suppliedLabel": "supplied",
   "burnedLabel": "burned",
   "kcalLeftLabel": "kcal left",
-
   "nutritionInfoLabel": "Nutrition Information",
   "kcalLabel": "kcal",
   "carbsLabel": "carbs",
@@ -108,7 +109,7 @@
   "carbohydrateLabel": "carbohydrate",
   "sugarLabel": "sugar",
   "fiberLabel": "fiber",
-  "per100gLabel": "Per 100g",
+  "per100gmlLabel": "Per 100g/ml",
   "additionalInfoLabelOFF": "More Information at\nOpenFoodFacts",
   "offDisclaimer": "The data provided to you by this app are retrieved from the Open Food Facts database. No guarantees can be made for the accuracy, completeness, or reliability of the information provided. The data are provided “as is” and the originating source for the data (Open Food Facts) is not liable for any damages arising out of the use of the data.",
   "additionalInfoLabelFDC": "More Information at\nFoodData Central",
@@ -122,29 +123,29 @@
   "gramUnit": "g",
   "milliliterUnit": "ml",
   "gramMilliliterUnit": "g/ml",
+  "ozUnit": "oz",
+  "flOzUnit": "fl.oz",
   "missingProductInfo": "Product missing required kcal or macronutrients information",
-
   "infoAddedIntakeLabel": "Added new intake",
   "infoAddedActivityLabel": "Added new activity",
-
   "editMealLabel": "Edit meal",
   "mealNameLabel": "Meal name",
   "mealBrandsLabel": "Brands",
   "mealSizeLabel": "Meal size (g/ml)",
+  "mealSizeLabelImperial": "Meal size (oz/fl oz)",
   "servingSizeLabel": "Serving size (g/ml)",
+  "servingSizeLabelImperial": "Serving size (oz/fl oz)",
   "mealUnitLabel": "Meal unit",
   "mealKcalLabel": "kcal per",
   "mealCarbsLabel": "carbs per",
   "mealFatLabel": "fat per",
   "mealProteinLabel": "protein per 100 g/ml",
   "errorMealSave": "Error while saving meal. Did you input the correct meal information?",
-
   "bmiLabel": "BMI",
   "bmiInfo": "Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals.",
   "readLabel": "I have read and accept the privacy policy.",
   "privacyPolicyLabel": "Privacy policy",
   "dataCollectionLabel": "Support development by providing anonymous usage data",
-
   "palSedentaryLabel": "Sedentary",
   "palSedentaryDescriptionLabel": "e.g. office job and mostly sitting free time activities",
   "palLowLActiveLabel": "Low Active",
@@ -153,7 +154,6 @@
   "palActiveDescriptionLabel": "Mostly standing or walking in job and active free time activities",
   "palVeryActiveLabel": "Very Active",
   "palVeryActiveDescriptionLabel": "Mostly walking, running or carrying weight in job and active free time activities",
-
   "selectPalCategoryLabel": "Select Activity Level",
   "chooseWeightGoalLabel": "Choose Weight Goal",
   "goalLoseWeight": "Lose Weight",
@@ -163,25 +163,24 @@
   "selectHeightDialogLabel": "Select Height",
   "heightLabel": "Height",
   "cmLabel": "cm",
+  "ftLabel": "ft",
   "selectWeightDialogLabel": "Select Weight",
   "weightLabel": "Weight",
   "kgLabel": "kg",
+  "lbsLabel": "lbs",
   "ageLabel": "Age",
   "yearsLabel": "{age} years",
   "selectGenderDialogLabel": "Select Gender",
   "genderLabel": "Gender",
   "genderMaleLabel": "♂ male",
   "genderFemaleLabel": "♀ female",
-
   "nothingAddedLabel": "Nothing added",
-
   "nutritionalStatusUnderweight": "Underweight",
   "nutritionalStatusNormalWeight": "Normal Weight",
   "nutritionalStatusPreObesity": "Pre-obesity",
   "nutritionalStatusObeseClassI": "Obesity Class I",
   "nutritionalStatusObeseClassII": "Obesity Class II",
   "nutritionalStatusObeseClassIII": "Obesity Class III",
-
   "nutritionalStatusRiskLabel": "Risk of comorbidities: {riskValue}",
   "nutritionalStatusRiskLow": "Low \n(but risk of other \nclinical problems increased)",
   "nutritionalStatusRiskAverage": "Average",
@@ -189,7 +188,6 @@
   "nutritionalStatusRiskModerate": "Moderate",
   "nutritionalStatusRiskSevere": "Severe",
   "nutritionalStatusRiskVerySevere": "Very severe",
-
   "errorOpeningEmail": "Error while opening email app",
   "errorOpeningBrowser": "Error while opening browser app",
   "errorFetchingProductData": "Error while fetching product data",
@@ -197,9 +195,7 @@
   "errorLoadingActivities": "Error while loading activities",
   "noResultsFound": "No results found",
   "retryLabel": "Retry",
-
   "@PHYSICAL_ACTIVITIES": {},
-
   "paHeadingBicycling": "bicycling",
   "paHeadingConditionalExercise": "conditioning exercise",
   "paHeadingDancing": "dancing",
@@ -208,9 +204,7 @@
   "paHeadingWalking": "walking",
   "paHeadingWaterActivities": "water activities",
   "paHeadingWinterActivities": "winter activities",
-
   "paGeneralDesc": "general",
-
   "paBicyclingGeneral": "bicycling",
   "paBicyclingGeneralDesc": "general",
   "paBicyclingMountainGeneral": "bicycling, mountain",
@@ -401,5 +395,4 @@
   "paSkiingGeneralDesc": "general",
   "paSnowShovingModerate": "snow shoveling",
   "paSnowShovingModerateDesc": "by hand, moderate effort"
-
 }

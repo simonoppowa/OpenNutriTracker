@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -12,12 +13,17 @@ part 'diary_state.dart';
 
 class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
   final GetTrackedDayUsecase _getDayTrackedUsecase;
+  final GetConfigUsecase _getConfigUsecase;
 
   DateTime currentDay = DateTime.now();
 
-  DiaryBloc(this._getDayTrackedUsecase) : super(DiaryInitial()) {
+  DiaryBloc(this._getDayTrackedUsecase, this._getConfigUsecase)
+      : super(DiaryInitial()) {
     on<LoadDiaryYearEvent>((event, emit) async {
       emit(DiaryLoadingState());
+
+      final usesImperialUnits =
+          (await _getConfigUsecase.getConfig()).usesImperialUnits;
 
       currentDay = DateTime.now();
       const yearDuration = Duration(days: 356);
@@ -30,7 +36,7 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
           trackedDay.day.toParsedDay(): trackedDay
       };
 
-      emit(DiaryLoadedState(trackedDaysMap));
+      emit(DiaryLoadedState(trackedDaysMap, usesImperialUnits));
     });
   }
 

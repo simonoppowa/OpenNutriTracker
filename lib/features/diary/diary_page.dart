@@ -5,11 +5,15 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_table_calendar.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/day_info_widget.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+
+import '../../core/domain/entity/intake_type_entity.dart';
 
 class DiaryPage extends StatefulWidget {
   const DiaryPage({super.key});
@@ -23,6 +27,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
 
   late DiaryBloc _diaryBloc;
   late CalendarDayBloc _calendarDayBloc;
+  late MealDetailBloc _mealDetailBloc;
 
   static const _calendarDurationDays = Duration(days: 356);
   final _currentDate = DateTime.now();
@@ -34,6 +39,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _diaryBloc = locator<DiaryBloc>();
     _calendarDayBloc = locator<CalendarDayBloc>();
+    _mealDetailBloc = locator<MealDetailBloc>();
     super.initState();
   }
 
@@ -53,7 +59,8 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
         } else if (state is DiaryLoadingState) {
           return _getLoadingContent();
         } else if (state is DiaryLoadedState) {
-          return _getLoadedContent(context, state.trackedDayMap);
+          return _getLoadedContent(
+              context, state.trackedDayMap, state.usesImperialUnits);
         }
         return const SizedBox();
       },
@@ -72,8 +79,8 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   Widget _getLoadingContent() =>
       const Center(child: CircularProgressIndicator());
 
-  Widget _getLoadedContent(
-      BuildContext context, Map<String, TrackedDayEntity> trackedDaysMap) {
+  Widget _getLoadedContent(BuildContext context,
+      Map<String, TrackedDayEntity> trackedDaysMap, bool usesImperialUnits) {
     return ListView(
       children: [
         DiaryTableCalendar(
@@ -103,6 +110,9 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
                 snackIntake: state.snackIntakeList,
                 onDeleteIntake: _onDeleteIntakeItem,
                 onDeleteActivity: _onDeleteActivityItem,
+                onCopyIntake: _onCopyIntakeItem,
+                onCopyActivity: _onCopyActivityItem,
+                usesImperialUnits: usesImperialUnits,
               );
             }
             return const SizedBox();
@@ -136,6 +146,29 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
     }
+  }
+
+  void _onCopyIntakeItem(IntakeEntity intakeEntity,
+      TrackedDayEntity? trackedDayEntity, AddMealType? type) async {
+    IntakeTypeEntity finalType;
+    if (type == null) {
+      finalType = intakeEntity.type;
+    } else {
+      finalType = type.getIntakeType();
+    }
+    _mealDetailBloc.addIntake(
+        context,
+        intakeEntity.unit,
+        intakeEntity.amount.toString(),
+        finalType,
+        intakeEntity.meal,
+        DateTime.now());
+    _diaryBloc.updateHomePage();
+  }
+
+  void _onCopyActivityItem(UserActivityEntity userActivityEntity,
+      TrackedDayEntity? trackedDayEntity) async {
+    log.info("Should copy activity");
   }
 
   void _onDateSelected(

@@ -51,6 +51,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       currentDay = DateTime.now();
       final configData = await _getConfigUsecase.getConfig();
+      final usesImperialUnits = configData.usesImperialUnits;
       final showDisclaimerDialog = !configData.hasAcceptedDisclaimer;
 
       final breakfastIntakeList =
@@ -126,7 +127,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           lunchIntakeList: lunchIntakeList,
           dinnerIntakeList: dinnerIntakeList,
           snackIntakeList: snackIntakeList,
-          userActivityList: userActivities));
+          userActivityList: userActivities,
+          usesImperialUnits: usesImperialUnits));
     });
   }
 
@@ -155,22 +157,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final newIntakeObject =
         await _updateIntakeUsecase.updateIntake(intakeId, fields);
     assert(newIntakeObject != null);
-    if(oldIntakeObject!.amount > newIntakeObject!.amount) {
+    if (oldIntakeObject!.amount > newIntakeObject!.amount) {
       // Amounts shrunk
       await _addTrackedDayUseCase.removeDayCaloriesTracked(
           dateTime, oldIntakeObject.totalKcal - newIntakeObject.totalKcal);
       await _addTrackedDayUseCase.removeDayMacrosTracked(dateTime,
-          carbsTracked: oldIntakeObject.totalCarbsGram - newIntakeObject.totalCarbsGram,
-          fatTracked: oldIntakeObject.totalFatsGram - newIntakeObject.totalFatsGram,
-          proteinTracked: oldIntakeObject.totalProteinsGram - newIntakeObject.totalProteinsGram);
-    } else if(newIntakeObject.amount > oldIntakeObject.amount) {
+          carbsTracked:
+              oldIntakeObject.totalCarbsGram - newIntakeObject.totalCarbsGram,
+          fatTracked:
+              oldIntakeObject.totalFatsGram - newIntakeObject.totalFatsGram,
+          proteinTracked: oldIntakeObject.totalProteinsGram -
+              newIntakeObject.totalProteinsGram);
+    } else if (newIntakeObject.amount > oldIntakeObject.amount) {
       // Amounts gained
       await _addTrackedDayUseCase.addDayCaloriesTracked(
           dateTime, newIntakeObject.totalKcal - oldIntakeObject.totalKcal);
       await _addTrackedDayUseCase.addDayMacrosTracked(dateTime,
-          carbsTracked: newIntakeObject.totalCarbsGram - oldIntakeObject.totalCarbsGram,
-          fatTracked: newIntakeObject.totalFatsGram - oldIntakeObject.totalFatsGram,
-          proteinTracked: newIntakeObject.totalProteinsGram - oldIntakeObject.totalProteinsGram);
+          carbsTracked:
+              newIntakeObject.totalCarbsGram - oldIntakeObject.totalCarbsGram,
+          fatTracked:
+              newIntakeObject.totalFatsGram - oldIntakeObject.totalFatsGram,
+          proteinTracked: newIntakeObject.totalProteinsGram -
+              oldIntakeObject.totalProteinsGram);
     }
     _updateDiaryPage(dateTime);
   }

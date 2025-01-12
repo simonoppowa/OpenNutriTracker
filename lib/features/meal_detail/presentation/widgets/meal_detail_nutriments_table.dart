@@ -28,10 +28,10 @@ class MealDetailNutrimentsTable extends StatelessWidget {
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,
           border: TableBorder.all(
               color:
-                  Theme.of(context).colorScheme.onBackground.withOpacity(0.5)),
+                  Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
           children: <TableRow>[
             _getNutrimentsTableRow(
-                "", S.of(context).per100gLabel, textStyleBold),
+                "", S.of(context).per100gmlLabel, textStyleBold),
             _getNutrimentsTableRow(
                 S.of(context).energyLabel,
                 "${product.nutriments.energyKcal100?.toInt() ?? "?"} ${S.of(context).kcalLabel}",
