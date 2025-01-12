@@ -14,13 +14,13 @@ class AppBannerVersion extends StatelessWidget {
         const SizedBox(height: 70, child: DynamicOntLogo()),
         Text(S.of(context).appTitle,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onBackground,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w600)),
         Text(
           S.of(context).appVersionName(versionNumber),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color:
-                  Theme.of(context).colorScheme.onBackground.withOpacity(0.7)),
+                  Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
         )
       ],
     );

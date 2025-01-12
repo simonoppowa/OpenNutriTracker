@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/default_results_widget.dart';
@@ -70,9 +71,18 @@ class _AddMealScreenState extends State<AddMealScreen>
         appBar: AppBar(
           title: Text(_mealType.getTypeName(context)),
           actions: [
-            IconButton(
-              onPressed: _onCustomAddButtonPressed,
-              icon: const Icon(Icons.add_circle_outline),
+            BlocBuilder<AddMealBloc, AddMealState>(
+              bloc: locator<AddMealBloc>()..add(InitializeAddMealEvent()),
+              builder: (BuildContext context, AddMealState state) {
+                if (state is AddMealLoadedState) {
+                  return IconButton(
+                    onPressed: () =>
+                        _onCustomAddButtonPressed(state.usesImperialUnits),
+                    icon: const Icon(Icons.add_circle_outline),
+                  );
+                }
+                return const SizedBox();
+              },
             )
           ],
         ),
@@ -122,9 +132,12 @@ class _AddMealScreenState extends State<AddMealScreen>
                                         itemCount: state.products.length,
                                         itemBuilder: (context, index) {
                                           return MealItemCard(
-                                              day: _day,
-                                              mealEntity: state.products[index],
-                                              addMealType: _mealType);
+                                            day: _day,
+                                            mealEntity: state.products[index],
+                                            addMealType: _mealType,
+                                            usesImperialUnits:
+                                                state.usesImperialUnits,
+                                          );
                                         }))
                                 : const NoResultsWidget();
                           } else if (state is ProductsFailedState) {
@@ -164,9 +177,12 @@ class _AddMealScreenState extends State<AddMealScreen>
                                         itemCount: state.food.length,
                                         itemBuilder: (context, index) {
                                           return MealItemCard(
-                                              day: _day,
-                                              mealEntity: state.food[index],
-                                              addMealType: _mealType);
+                                            day: _day,
+                                            mealEntity: state.food[index],
+                                            addMealType: _mealType,
+                                            usesImperialUnits:
+                                                state.usesImperialUnits,
+                                          );
                                         }))
                                 : const NoResultsWidget();
                           } else if (state is FoodFailedState) {
@@ -187,8 +203,8 @@ class _AddMealScreenState extends State<AddMealScreen>
                           bloc: _recentMealBloc,
                           builder: (context, state) {
                             if (state is RecentMealInitial) {
-                              _recentMealBloc
-                                  .add(const LoadRecentMealEvent(searchString: ""));
+                              _recentMealBloc.add(
+                                  const LoadRecentMealEvent(searchString: ""));
                               return const SizedBox();
                             } else if (state is RecentMealLoadingState) {
                               return const Padding(
@@ -202,10 +218,13 @@ class _AddMealScreenState extends State<AddMealScreen>
                                           itemCount: state.recentMeals.length,
                                           itemBuilder: (context, index) {
                                             return MealItemCard(
-                                                day: _day,
-                                                mealEntity:
-                                                    state.recentMeals[index],
-                                                addMealType: _mealType);
+                                              day: _day,
+                                              mealEntity:
+                                                  state.recentMeals[index],
+                                              addMealType: _mealType,
+                                              usesImperialUnits:
+                                                  state.usesImperialUnits,
+                                            );
                                           }))
                                   : const NoResultsWidget();
                             } else if (state is RecentMealFailedState) {
@@ -255,7 +274,7 @@ class _AddMealScreenState extends State<AddMealScreen>
         arguments: ScannerScreenArguments(_day, _mealType.getIntakeType()));
   }
 
-  void _onCustomAddButtonPressed() {
+  void _onCustomAddButtonPressed(bool usesImperialUnits) {
     showDialog(
         context: context,
         builder: (context) {
@@ -269,7 +288,7 @@ class _AddMealScreenState extends State<AddMealScreen>
               TextButton(
                   onPressed: () {
                     Navigator.of(context).pop(); // Close dialog
-                    _openEditMealScreen();
+                    _openEditMealScreen(usesImperialUnits);
                   },
                   child: Text(S.of(context).buttonYesLabel)),
             ],
@@ -277,10 +296,15 @@ class _AddMealScreenState extends State<AddMealScreen>
         });
   }
 
-  void _openEditMealScreen() {
+  void _openEditMealScreen(bool usesImperialUnits) {
+    // TODO
     Navigator.of(context).pushNamed(NavigationOptions.editMealRoute,
         arguments: EditMealScreenArguments(
-            _day, MealEntity.empty(), _mealType.getIntakeType()));
+          _day,
+          MealEntity.empty(),
+          _mealType.getIntakeType(),
+          usesImperialUnits,
+        ));
   }
 }
 

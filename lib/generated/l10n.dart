@@ -461,20 +461,40 @@ class S {
   }
 
   /// `e.g. 60`
-  String get onboardingWeightExampleHint {
+  String get onboardingWeightExampleHintKg {
     return Intl.message(
       'e.g. 60',
-      name: 'onboardingWeightExampleHint',
+      name: 'onboardingWeightExampleHintKg',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. 132`
+  String get onboardingWeightExampleHintLbs {
+    return Intl.message(
+      'e.g. 132',
+      name: 'onboardingWeightExampleHintLbs',
       desc: '',
       args: [],
     );
   }
 
   /// `e.g. 170`
-  String get onboardingHeightExampleHint {
+  String get onboardingHeightExampleHintCm {
     return Intl.message(
       'e.g. 170',
-      name: 'onboardingHeightExampleHint',
+      name: 'onboardingHeightExampleHintCm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. 5.8`
+  String get onboardingHeightExampleHintFt {
+    return Intl.message(
+      'e.g. 5.8',
+      name: 'onboardingHeightExampleHintFt',
       desc: '',
       args: [],
     );
@@ -645,6 +665,36 @@ class S {
     return Intl.message(
       'Mass',
       name: 'settingsMassLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System`
+  String get settingsSystemLabel {
+    return Intl.message(
+      'System',
+      name: 'settingsSystemLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Metric (kg, cm, ml)`
+  String get settingsMetricLabel {
+    return Intl.message(
+      'Metric (kg, cm, ml)',
+      name: 'settingsMetricLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Imperial (lbs, ft, oz)`
+  String get settingsImperialLabel {
+    return Intl.message(
+      'Imperial (lbs, ft, oz)',
+      name: 'settingsImperialLabel',
       desc: '',
       args: [],
     );
@@ -1101,11 +1151,11 @@ class S {
     );
   }
 
-  /// `Per 100g`
-  String get per100gLabel {
+  /// `Per 100g/ml`
+  String get per100gmlLabel {
     return Intl.message(
-      'Per 100g',
-      name: 'per100gLabel',
+      'Per 100g/ml',
+      name: 'per100gmlLabel',
       desc: '',
       args: [],
     );
@@ -1241,6 +1291,26 @@ class S {
     );
   }
 
+  /// `oz`
+  String get ozUnit {
+    return Intl.message(
+      'oz',
+      name: 'ozUnit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `fl.oz`
+  String get flOzUnit {
+    return Intl.message(
+      'fl.oz',
+      name: 'flOzUnit',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Product missing required kcal or macronutrients information`
   String get missingProductInfo {
     return Intl.message(
@@ -1311,11 +1381,31 @@ class S {
     );
   }
 
+  /// `Meal size (oz/fl oz)`
+  String get mealSizeLabelImperial {
+    return Intl.message(
+      'Meal size (oz/fl oz)',
+      name: 'mealSizeLabelImperial',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Serving size (g/ml)`
   String get servingSizeLabel {
     return Intl.message(
       'Serving size (g/ml)',
       name: 'servingSizeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Serving size (oz/fl oz)`
+  String get servingSizeLabelImperial {
+    return Intl.message(
+      'Serving size (oz/fl oz)',
+      name: 'servingSizeLabelImperial',
       desc: '',
       args: [],
     );
@@ -1601,6 +1691,16 @@ class S {
     );
   }
 
+  /// `ft`
+  String get ftLabel {
+    return Intl.message(
+      'ft',
+      name: 'ftLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Select Weight`
   String get selectWeightDialogLabel {
     return Intl.message(
@@ -1626,6 +1726,16 @@ class S {
     return Intl.message(
       'kg',
       name: 'kgLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `lbs`
+  String get lbsLabel {
+    return Intl.message(
+      'lbs',
+      name: 'lbsLabel',
       desc: '',
       args: [],
     );

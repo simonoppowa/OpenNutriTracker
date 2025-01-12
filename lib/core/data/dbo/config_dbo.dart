@@ -14,9 +14,12 @@ class ConfigDBO extends HiveObject {
   bool hasAcceptedSendAnonymousData;
   @HiveField(3)
   AppThemeDBO selectedAppTheme;
+  @HiveField(4)
+  bool? usesImperialUnits;
 
   ConfigDBO(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
-      this.hasAcceptedSendAnonymousData, this.selectedAppTheme);
+      this.hasAcceptedSendAnonymousData, this.selectedAppTheme,
+      {this.usesImperialUnits = false});
 
   factory ConfigDBO.empty() =>
       ConfigDBO(false, false, false, AppThemeDBO.system);
@@ -25,5 +28,6 @@ class ConfigDBO extends HiveObject {
       entity.hasAcceptedDisclaimer,
       entity.hasAcceptedPolicy,
       entity.hasAcceptedSendAnonymousData,
-      AppThemeDBO.fromAppThemeEntity(entity.appTheme));
+      AppThemeDBO.fromAppThemeEntity(entity.appTheme),
+      usesImperialUnits: entity.usesImperialUnits);
 }

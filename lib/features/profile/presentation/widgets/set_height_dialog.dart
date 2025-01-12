@@ -4,14 +4,17 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 class SetHeightDialog extends StatelessWidget {
   static const _heightRangeCM = 100.0;
+  static const _heightRangeFt = 10;
 
-  final double userHeightCM;
+  final double userHeight;
+  final bool usesImperialUnits;
 
-  const SetHeightDialog({super.key, required this.userHeightCM});
+  const SetHeightDialog(
+      {super.key, required this.userHeight, required this.usesImperialUnits});
 
   @override
   Widget build(BuildContext context) {
-    double selectedHeightCM = userHeightCM;
+    double selectedHeight = userHeight;
     return AlertDialog(
       title: Text(S.of(context).selectHeightDialogLabel),
       content: Wrap(
@@ -21,12 +24,18 @@ class SetHeightDialog extends StatelessWidget {
               HorizontalPicker(
                   height: 100,
                   backgroundColor: Colors.transparent,
-                  minValue: selectedHeightCM - _heightRangeCM,
-                  maxValue: selectedHeightCM + _heightRangeCM,
+                  minValue: usesImperialUnits
+                      ? selectedHeight - _heightRangeFt
+                      : selectedHeight - _heightRangeCM,
+                  maxValue: usesImperialUnits
+                      ? selectedHeight + _heightRangeFt
+                      : selectedHeight + _heightRangeCM,
                   divisions: 400,
-                  suffix: ' ${S.of(context).cmLabel}',
+                  suffix: usesImperialUnits
+                      ? S.of(context).ftLabel
+                      : S.of(context).cmLabel,
                   onChanged: (value) {
-                    selectedHeightCM = value;
+                    selectedHeight = value;
                   })
             ],
           )
@@ -41,7 +50,7 @@ class SetHeightDialog extends StatelessWidget {
         TextButton(
             onPressed: () {
               // TODO validate selected height
-              Navigator.pop(context, selectedHeightCM);
+              Navigator.pop(context, selectedHeight);
             },
             child: Text(S.of(context).dialogOKLabel))
       ],

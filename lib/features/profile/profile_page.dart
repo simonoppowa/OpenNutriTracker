@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/bmi_overview.dart';
@@ -42,7 +43,8 @@ class _ProfilePageState extends State<ProfilePage> {
         } else if (state is ProfileLoadingState) {
           return _getLoadingContent();
         } else if (state is ProfileLoadedState) {
-          return _getLoadedContent(context, state.userBMI, state.userEntity);
+          return _getLoadedContent(context, state.userBMI, state.userEntity,
+              state.usesImperialUnits);
         } else {
           return _getLoadingContent();
         }
@@ -56,8 +58,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _getLoadedContent(
-      BuildContext context, UserBMIEntity userBMIEntity, UserEntity user) {
+  Widget _getLoadedContent(BuildContext context, UserBMIEntity userBMIEntity,
+      UserEntity user, bool usesImperialUnits) {
     return ListView(
       children: [
         const SizedBox(height: 32.0),
@@ -102,7 +104,7 @@ class _ProfilePageState extends State<ProfilePage> {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
-            '${user.weightKG} kg',
+            '${_profileBloc.getDisplayWeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           leading: const SizedBox(
@@ -110,7 +112,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Icon(Icons.monitor_weight_outlined),
           ),
           onTap: () {
-            _showSetWeightDialog(context, user);
+            _showSetWeightDialog(context, user, usesImperialUnits);
           },
         ),
         ListTile(
@@ -119,7 +121,7 @@ class _ProfilePageState extends State<ProfilePage> {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
-            '${user.heightCM.toInt()} cm',
+            '${_profileBloc.getDisplayHeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).ftLabel : S.of(context).cmLabel}',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           leading: const SizedBox(
@@ -127,7 +129,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Icon(Icons.height_outlined),
           ),
           onTap: () {
-            _showSetHeightDialog(context, user);
+            _showSetHeightDialog(context, user, usesImperialUnits);
           },
         ),
         ListTile(
@@ -190,27 +192,43 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _showSetHeightDialog(
-      BuildContext context, UserEntity userEntity) async {
+  Future<void> _showSetHeightDialog(BuildContext context, UserEntity userEntity,
+      bool usesImperialUnits) async {
     final selectedHeight = await showDialog<double>(
         context: context,
         builder: (context) => SetHeightDialog(
-              userHeightCM: userEntity.heightCM,
+              userHeight: usesImperialUnits
+                  ? UnitCalc.cmToFeet(userEntity.heightCM)
+                  : userEntity.heightCM,
+              usesImperialUnits: usesImperialUnits,
             ));
     if (selectedHeight != null) {
-      userEntity.heightCM = selectedHeight;
+      if (usesImperialUnits) {
+        userEntity.heightCM = UnitCalc.feetToCm(selectedHeight);
+      } else {
+        userEntity.heightCM = selectedHeight;
+      }
 
       _profileBloc.updateUser(userEntity);
     }
   }
 
-  Future<void> _showSetWeightDialog(
-      BuildContext context, UserEntity userEntity) async {
+  Future<void> _showSetWeightDialog(BuildContext context, UserEntity userEntity,
+      bool usesImperialSystem) async {
     final selectedWeight = await showDialog<double>(
         context: context,
-        builder: (context) => SetWeightDialog(userWeight: userEntity.weightKG));
+        builder: (context) => SetWeightDialog(
+              userWeight: usesImperialSystem
+                  ? UnitCalc.kgToLbs(userEntity.weightKG)
+                  : userEntity.weightKG,
+              usesImperialUnits: usesImperialSystem,
+            ));
     if (selectedWeight != null) {
-      userEntity.weightKG = selectedWeight;
+      if (usesImperialSystem) {
+        userEntity.weightKG = UnitCalc.lbsToKg(selectedWeight);
+      } else {
+        userEntity.weightKG = selectedWeight;
+      }
       _profileBloc.updateUser(userEntity);
     }
   }

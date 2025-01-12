@@ -10,36 +10,30 @@ import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart'
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-class MealDetailBottomSheet extends StatefulWidget {
+class MealDetailBottomSheet extends StatelessWidget {
   final MealEntity product;
   final DateTime day;
   final IntakeTypeEntity intakeTypeEntity;
   final TextEditingController quantityTextController;
   final MealDetailBloc mealDetailBloc;
 
+  final String selectedUnit;
+
+  final Function(String?, String?) onQuantityOrUnitChanged;
+
   const MealDetailBottomSheet(
       {super.key,
       required this.product,
       required this.day,
       required this.intakeTypeEntity,
+      required this.quantityTextController,
+      required this.onQuantityOrUnitChanged,
       required this.mealDetailBloc,
-      required this.quantityTextController});
-
-  @override
-  State<MealDetailBottomSheet> createState() => _MealDetailBottomSheetState();
-}
-
-class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
-  late bool _productMissingRequiredInfo;
-
-  @override
-  void initState() {
-    _productMissingRequiredInfo = _hasRequiredProductInfoMissing();
-    super.initState();
-  }
+      required this.selectedUnit});
 
   @override
   Widget build(BuildContext context) {
+    final productMissingRequiredInfo = _hasRequiredProductInfoMissing();
     return BottomSheet(
         elevation: 10,
         onClosing: () {},
@@ -67,8 +61,13 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                         children: [
                           Expanded(
                             child: TextFormField(
-                              enabled: !_productMissingRequiredInfo,
-                              controller: widget.quantityTextController,
+                              enabled: !productMissingRequiredInfo,
+                              controller: quantityTextController
+                                ..addListener(() {
+                                  onQuantityOrUnitChanged(
+                                      quantityTextController.text,
+                                      selectedUnit);
+                                }),
                               keyboardType: TextInputType.number,
                               inputFormatters:
                                   CustomTextInputFormatter.doubleOnly(),
@@ -81,22 +80,28 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                           const SizedBox(width: 16.0),
                           Expanded(
                               child: DropdownButtonFormField(
+                                  value: selectedUnit,
                                   decoration: InputDecoration(
                                       border: const OutlineInputBorder(),
                                       labelText: S.of(context).unitLabel),
                                   items: <DropdownMenuItem<String>>[
-                                    DropdownMenuItem(
-                                        child: Text(widget.product.mealUnit ??
-                                            S.of(context).gramMilliliterUnit))
+                                    if (product.isSolid && !product.isLiquid)
+                                      ..._getSolidUnitDropdownItems(context)
+                                    else if (product.isLiquid &&
+                                        !product.isSolid)
+                                      ..._getLiquidUnitDropdownItems(context),
+                                    ..._getOtherDropdownItems(context)
                                   ],
-                                  onChanged: null // deactivate item,
-                                  ))
+                                  onChanged: (value) {
+                                    onQuantityOrUnitChanged(
+                                        quantityTextController.text, value);
+                                  }))
                         ],
                       ),
                       SizedBox(
                         width: double.infinity, // Make button full width
                         child: ElevatedButton.icon(
-                            onPressed: !_productMissingRequiredInfo
+                            onPressed: !productMissingRequiredInfo
                                 ? () {
                                     onAddButtonPressed(context);
                                   }
@@ -113,7 +118,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                             icon: const Icon(Icons.add_outlined),
                             label: Text(S.of(context).addLabel)),
                       ),
-                      _productMissingRequiredInfo
+                      productMissingRequiredInfo
                           ? Text(S.of(context).missingProductInfo,
                               style: Theme.of(context)
                                   .textTheme
@@ -132,7 +137,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   }
 
   bool _hasRequiredProductInfoMissing() {
-    final productNutriments = widget.product.nutriments;
+    final productNutriments = product.nutriments;
     if (productNutriments.energyKcal100 == null ||
         productNutriments.carbohydrates100 == null ||
         productNutriments.fat100 == null ||
@@ -144,13 +149,13 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   }
 
   void onAddButtonPressed(BuildContext context) {
-    widget.mealDetailBloc.addIntake(
+    mealDetailBloc.addIntake(
         context,
-        widget.product.mealUnit ?? S.of(context).gramMilliliterUnit,
-        widget.quantityTextController.text,
-        widget.intakeTypeEntity,
-        widget.product,
-        widget.day);
+        mealDetailBloc.state.selectedUnit,
+        mealDetailBloc.state.totalQuantityConverted,
+        intakeTypeEntity,
+        product,
+        day);
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());
@@ -164,5 +169,37 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
         SnackBar(content: Text(S.of(context).infoAddedIntakeLabel)));
     Navigator.of(context)
         .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
+  }
+
+  List<DropdownMenuItem<String>> _getSolidUnitDropdownItems(
+      BuildContext context) {
+    return [
+      DropdownMenuItem(
+          value: UnitDropdownItem.g.toString(),
+          child: Text(S.of(context).gramUnit)),
+      DropdownMenuItem(
+          value: UnitDropdownItem.oz.toString(),
+          child: Text(S.of(context).ozUnit)),
+    ];
+  }
+
+  List<DropdownMenuItem<String>> _getLiquidUnitDropdownItems(
+      BuildContext context) {
+    return [
+      DropdownMenuItem(
+          value: UnitDropdownItem.ml.toString(),
+          child: Text(S.of(context).milliliterUnit)),
+      DropdownMenuItem(
+          value: UnitDropdownItem.flOz.toString(),
+          child: Text(S.of(context).flOzUnit)),
+    ];
+  }
+
+  List<DropdownMenuItem<String>> _getOtherDropdownItems(BuildContext context) {
+    return [
+      DropdownMenuItem(
+          value: UnitDropdownItem.gml.toString(),
+          child: Text(S.of(context).gramMilliliterUnit)),
+    ];
   }
 }

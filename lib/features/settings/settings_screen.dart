@@ -7,6 +7,9 @@ import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -23,10 +26,16 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late SettingsBloc _settingsBloc;
+  late ProfileBloc _profileBloc;
+  late HomeBloc _homeBloc;
+  late DiaryBloc _diaryBloc;
 
   @override
   void initState() {
     _settingsBloc = locator<SettingsBloc>();
+    _profileBloc = locator<ProfileBloc>();
+    _homeBloc = locator<HomeBloc>();
+    _diaryBloc = locator<DiaryBloc>();
     super.initState();
   }
 
@@ -50,7 +59,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.ac_unit_outlined),
                   title: Text(S.of(context).settingsUnitsLabel),
-                  onTap: () => _showUnitsDialog(context),
+                  onTap: () =>
+                      _showUnitsDialog(context, state.usesImperialUnits),
                 ),
                 ListTile(
                   leading: const Icon(Icons.calculate_outlined),
@@ -94,8 +104,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showUnitsDialog(BuildContext context) {
-    showDialog(
+  void _showUnitsDialog(BuildContext context, bool usesImperialUnits) async {
+    SystemDropDownType selectedUnit = usesImperialUnits
+        ? SystemDropDownType.imperial
+        : SystemDropDownType.metric;
+    final shouldUpdate = await showDialog<bool?>(
         context: context,
         builder: (context) {
           return AlertDialog(
@@ -104,45 +117,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Column(
                   children: [
                     DropdownButtonFormField(
+                      value: selectedUnit,
                       decoration: InputDecoration(
-                        enabled: false,
+                        enabled: true,
                         filled: false,
-                        labelText: S.of(context).settingsMassLabel,
+                        labelText: S.of(context).settingsSystemLabel,
                       ),
-                      onChanged: null,
-                      items: const [
-                        DropdownMenuItem(child: Text('kg, g, mg'))
-                      ], // TODO add units
-                    ),
-                    DropdownButtonFormField(
-                      decoration: InputDecoration(
-                        enabled: false,
-                        filled: false,
-                        labelText: S.of(context).settingsDistanceLabel,
-                      ),
-                      onChanged: null,
-                      items: const [DropdownMenuItem(child: Text('cm, m, km'))],
-                    ),
-                    DropdownButtonFormField(
-                      decoration: InputDecoration(
-                        enabled: false,
-                        filled: false,
-                        labelText: S.of(context).settingsVolumeLabel,
-                      ),
-                      onChanged: null,
-                      items: const [DropdownMenuItem(child: Text('ml, cl, l'))],
-                    ),
+                      onChanged: (value) {
+                        selectedUnit = value ?? SystemDropDownType.metric;
+                      },
+                      items: [
+                        DropdownMenuItem(
+                            value: SystemDropDownType.metric,
+                            child: Text(S.of(context).settingsMetricLabel)),
+                        DropdownMenuItem(
+                            value: SystemDropDownType.imperial,
+                            child: Text(S.of(context).settingsImperialLabel))
+                      ],
+                    )
                   ],
                 ),
               ]),
               actions: <Widget>[
                 TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(true);
                     },
                     child: Text(S.of(context).dialogOKLabel))
               ]);
         });
+    if (shouldUpdate == true) {
+      _settingsBloc
+          .setUsesImperialUnits(selectedUnit == SystemDropDownType.imperial);
+      _settingsBloc.add(LoadSettingsEvent());
+
+      // Update blocs
+      _profileBloc.add(LoadProfileEvent());
+      _homeBloc.add(LoadItemsEvent());
+      _diaryBloc.add(const LoadDiaryYearEvent());
+    }
   }
 
   void _showCalculationsDialog(BuildContext context) {

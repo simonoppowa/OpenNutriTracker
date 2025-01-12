@@ -35,8 +35,7 @@ class PlaceholderCard extends StatelessWidget {
                     size: 36,
                     color: Theme.of(context)
                         .colorScheme
-                        .onSurface
-                        .withOpacity(0.5)),
+                        .onSurface.withValues(alpha: 0.5)),
               ),
             ),
           ),

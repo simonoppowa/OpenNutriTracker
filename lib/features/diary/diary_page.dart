@@ -59,7 +59,8 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
         } else if (state is DiaryLoadingState) {
           return _getLoadingContent();
         } else if (state is DiaryLoadedState) {
-          return _getLoadedContent(context, state.trackedDayMap);
+          return _getLoadedContent(
+              context, state.trackedDayMap, state.usesImperialUnits);
         }
         return const SizedBox();
       },
@@ -78,8 +79,8 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   Widget _getLoadingContent() =>
       const Center(child: CircularProgressIndicator());
 
-  Widget _getLoadedContent(
-      BuildContext context, Map<String, TrackedDayEntity> trackedDaysMap) {
+  Widget _getLoadedContent(BuildContext context,
+      Map<String, TrackedDayEntity> trackedDaysMap, bool usesImperialUnits) {
     return ListView(
       children: [
         DiaryTableCalendar(
@@ -111,6 +112,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
                 onDeleteActivity: _onDeleteActivityItem,
                 onCopyIntake: _onCopyIntakeItem,
                 onCopyActivity: _onCopyActivityItem,
+                usesImperialUnits: usesImperialUnits,
               );
             }
             return const SizedBox();

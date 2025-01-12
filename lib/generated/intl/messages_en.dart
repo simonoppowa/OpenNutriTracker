@@ -129,6 +129,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Product not found"),
         "fatLabel": MessageLookupByLibrary.simpleMessage("fat"),
         "fiberLabel": MessageLookupByLibrary.simpleMessage("fiber"),
+        "flOzUnit": MessageLookupByLibrary.simpleMessage("fl.oz"),
+        "ftLabel": MessageLookupByLibrary.simpleMessage("ft"),
         "genderFemaleLabel": MessageLookupByLibrary.simpleMessage("♀ female"),
         "genderLabel": MessageLookupByLibrary.simpleMessage("Gender"),
         "genderMaleLabel": MessageLookupByLibrary.simpleMessage("♂ male"),
@@ -152,6 +154,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal left"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("kg"),
+        "lbsLabel": MessageLookupByLibrary.simpleMessage("lbs"),
         "lunchExample":
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
@@ -164,6 +167,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("protein per 100 g/ml"),
         "mealSizeLabel":
             MessageLookupByLibrary.simpleMessage("Meal size (g/ml)"),
+        "mealSizeLabelImperial":
+            MessageLookupByLibrary.simpleMessage("Meal size (oz/fl oz)"),
         "mealUnitLabel": MessageLookupByLibrary.simpleMessage("Meal unit"),
         "milliliterUnit": MessageLookupByLibrary.simpleMessage("ml"),
         "missingProductInfo": MessageLookupByLibrary.simpleMessage(
@@ -218,8 +223,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("What\'s your gender?"),
         "onboardingGoalQuestionSubtitle": MessageLookupByLibrary.simpleMessage(
             "What\'s your current weight goal?"),
-        "onboardingHeightExampleHint":
+        "onboardingHeightExampleHintCm":
             MessageLookupByLibrary.simpleMessage("e.g. 170"),
+        "onboardingHeightExampleHintFt":
+            MessageLookupByLibrary.simpleMessage("e.g. 5.8"),
         "onboardingHeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Whats your current height?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
@@ -230,8 +237,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Overview"),
         "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
             "Wrong input, please try again"),
-        "onboardingWeightExampleHint":
+        "onboardingWeightExampleHintKg":
             MessageLookupByLibrary.simpleMessage("e.g. 60"),
+        "onboardingWeightExampleHintLbs":
+            MessageLookupByLibrary.simpleMessage("e.g. 132"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Whats your current weight?"),
         "onboardingWelcomeLabel":
@@ -244,6 +253,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Your calorie goal:"),
         "onboardingYourMacrosGoalLabel":
             MessageLookupByLibrary.simpleMessage("Your macronutrient goals:"),
+        "ozUnit": MessageLookupByLibrary.simpleMessage("oz"),
         "paAmericanFootballGeneral":
             MessageLookupByLibrary.simpleMessage("football"),
         "paAmericanFootballGeneralDesc":
@@ -558,7 +568,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Mostly walking, running or carrying weight in job and active free time activities"),
         "palVeryActiveLabel":
             MessageLookupByLibrary.simpleMessage("Very Active"),
-        "per100gLabel": MessageLookupByLibrary.simpleMessage("Per 100g"),
+        "per100gmlLabel": MessageLookupByLibrary.simpleMessage("Per 100g/ml"),
         "privacyPolicyLabel":
             MessageLookupByLibrary.simpleMessage("Privacy policy"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profile"),
@@ -593,6 +603,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Send anonymous usage data"),
         "servingSizeLabel":
             MessageLookupByLibrary.simpleMessage("Serving size (g/ml)"),
+        "servingSizeLabelImperial":
+            MessageLookupByLibrary.simpleMessage("Serving size (oz/fl oz)"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),
@@ -602,16 +614,21 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Disclaimer"),
         "settingsDistanceLabel":
             MessageLookupByLibrary.simpleMessage("Distance"),
+        "settingsImperialLabel":
+            MessageLookupByLibrary.simpleMessage("Imperial (lbs, ft, oz)"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Settings"),
         "settingsLicensesLabel":
             MessageLookupByLibrary.simpleMessage("Licenses"),
         "settingsMassLabel": MessageLookupByLibrary.simpleMessage("Mass"),
+        "settingsMetricLabel":
+            MessageLookupByLibrary.simpleMessage("Metric (kg, cm, ml)"),
         "settingsPrivacySettings":
             MessageLookupByLibrary.simpleMessage("Privacy Settings"),
         "settingsReportErrorLabel":
             MessageLookupByLibrary.simpleMessage("Report Error"),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Source Code"),
+        "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("System"),
         "settingsThemeDarkLabel": MessageLookupByLibrary.simpleMessage("Dark"),
         "settingsThemeLabel": MessageLookupByLibrary.simpleMessage("Theme"),
         "settingsThemeLightLabel":

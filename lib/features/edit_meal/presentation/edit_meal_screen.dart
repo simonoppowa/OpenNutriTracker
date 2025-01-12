@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -26,6 +28,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
   late MealEntity _mealEntity;
   late DateTime _day;
   late IntakeTypeEntity _intakeTypeEntity;
+  late bool _usesImperialUnits;
 
   late EditMealBloc _editMealBloc;
 
@@ -40,12 +43,14 @@ class _EditMealScreenState extends State<EditMealScreen> {
   final _proteinTextController = TextEditingController();
 
   final _units = ['g', 'ml', 'g/ml'];
-  late String? _dropdownUnitValue;
-  late List<DropdownMenuItem> _mealUnitDropdownItems;
+  late String? selectedUnit;
 
- String baseQuantity = "100";
- String baseQuantityUnit = " g/ml";
+  // late List<DropdownMenuItem> _mealUnitDropdownItems;
+  late List<ButtonSegment<String>> _mealUnitButtonSegment;
 
+  // TODO: Add base quantity and unit
+  String baseQuantity = "100";
+  String baseQuantityUnit = " g/ml";
 
   @override
   void initState() {
@@ -66,6 +71,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _mealEntity = args.mealEntity;
     _day = args.day;
     _intakeTypeEntity = args.intakeTypeEntity;
+    _usesImperialUnits = args.usesImperialUnits;
 
     _nameTextController.text = _mealEntity.name ?? "";
     _brandsTextController.text = _mealEntity.brands ?? "";
@@ -79,16 +85,32 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _fatTextController.text = _mealEntity.nutriments.fat100.toStringOrEmpty();
     _proteinTextController.text =
         _mealEntity.nutriments.proteins100.toStringOrEmpty();
-    _dropdownUnitValue = _switchDropdownUnit(_mealEntity.mealUnit);
+    selectedUnit = _switchButtonUnit(_mealEntity.mealUnit);
 
-    _mealUnitDropdownItems = <DropdownMenuItem>[
-      DropdownMenuItem(
-          value: _units[0], child: Text(S.of(context).gramUnit)),
-      DropdownMenuItem(
-          value: _units[1], child: Text(S.of(context).milliliterUnit)),
-      DropdownMenuItem(
-          value: _units[2],
-          child: Text(S.of(context).gramMilliliterUnit)),
+    // Convert meal size to imperial units if necessary
+    if (_usesImperialUnits) {
+      _mealQuantityTextController.text = _convertToImperial(
+          _mealQuantityTextController.text, _mealEntity.mealUnit ?? "0");
+      _servingQuantityTextController.text = _convertToImperial(
+          _servingQuantityTextController.text, _mealEntity.mealUnit ?? "0");
+    }
+
+    _mealUnitButtonSegment = [
+      ButtonSegment(
+        value: _units[0],
+        label: Text(
+            _usesImperialUnits ? S.of(context).ozUnit : S.of(context).gramUnit),
+      ),
+      ButtonSegment(
+        value: _units[1],
+        label: Text(_usesImperialUnits
+            ? S.of(context).flOzUnit
+            : S.of(context).milliliterUnit),
+      ),
+      ButtonSegment(
+        value: _units[2],
+        label: Text(S.of(context).gramMilliliterUnit),
+      ),
     ];
 
     super.didChangeDependencies();
@@ -103,131 +125,166 @@ class _EditMealScreenState extends State<EditMealScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
             child: FilledButton(
-                onPressed: _onSavePressed,
+                onPressed: () => _onSavePressed(_usesImperialUnits),
                 child: Text(S.of(context).buttonSaveLabel)),
           )
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Center(
-              child: ClipOval(
-            child: CachedNetworkImage(
-              cacheManager: locator<CacheManager>(),
-              width: 120,
-              height: 120,
-              placeholder: (context, string) => const DefaultMealImage(),
-              errorWidget: (context, exception, stacktrace) =>
-                  const DefaultMealImage(),
-              fit: BoxFit.cover,
-              imageUrl: _mealEntity.mainImageUrl ?? "",
-            ),
-          )),
-          const SizedBox(height: 32),
-          TextFormField(
-            controller: _nameTextController,
-            decoration: InputDecoration(
-                labelText: S.of(context).mealNameLabel,
-                border: const OutlineInputBorder()),
-            keyboardType: TextInputType.text,
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _brandsTextController,
-            decoration: InputDecoration(
-                labelText: S.of(context).mealBrandsLabel,
-                border: const OutlineInputBorder()),
-            keyboardType: TextInputType.text,
-          ),
-          const SizedBox(height: 32),
-          TextFormField(
-            controller: _mealQuantityTextController,
-            decoration: InputDecoration(
-                labelText: S.of(context).mealSizeLabel,
-                border: const OutlineInputBorder()),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _servingQuantityTextController,
-            inputFormatters: CustomTextInputFormatter.doubleOnly(),
-            decoration: InputDecoration(
-                labelText: S.of(context).servingSizeLabel,
-                border: const OutlineInputBorder()),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField(
-            value: _dropdownUnitValue ?? _units.first,
-            items: _mealUnitDropdownItems,
-            onChanged: (text) {
-              _dropdownUnitValue = _switchDropdownUnit(text);
-            },
-            decoration: InputDecoration(
-                labelText: S.of(context).mealUnitLabel,
-                border: const OutlineInputBorder()),
-          ),
-          const SizedBox(height: 48),
-          TextFormField(
-            controller: _baseQuantityTextController,
-            inputFormatters: CustomTextInputFormatter.doubleOnly(),
-            decoration: InputDecoration(
-                labelText: S.of(context).baseQuantityLabel,
-                border: const OutlineInputBorder()),
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 48),
-          TextFormField(
-            controller: _kcalTextController,
-            inputFormatters: CustomTextInputFormatter.doubleOnly(),
-            decoration: InputDecoration(
-                labelText: S.of(context).mealKcalLabel+baseQuantity+baseQuantityUnit,
-                border: const OutlineInputBorder()),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _carbsTextController,
-            inputFormatters: CustomTextInputFormatter.doubleOnly(),
-            decoration: InputDecoration(
-                labelText: S.of(context).mealCarbsLabel+baseQuantity+baseQuantityUnit,
-                border: const OutlineInputBorder()),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _fatTextController,
-            inputFormatters: CustomTextInputFormatter.doubleOnly(),
-            decoration: InputDecoration(
-                labelText: S.of(context).mealFatLabel+baseQuantity+baseQuantityUnit,
-                border: const OutlineInputBorder()),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _proteinTextController,
-            inputFormatters: CustomTextInputFormatter.doubleOnly(),
-            decoration: InputDecoration(
-                labelText: S.of(context).mealProteinLabel+baseQuantity+baseQuantityUnit,
-                border: const OutlineInputBorder()),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          ),
-        ],
+      body: BlocBuilder<EditMealBloc, EditMealState>(
+        bloc: locator<EditMealBloc>()..add(InitializeEditMealEvent()),
+        builder: (BuildContext context, EditMealState state) {
+          if (state is EditMealLoadingState) {
+            return _getLoadingContent();
+          } else if (state is EditMealLoadedState) {
+            return _getLoadedContent(state.usesImperialUnits);
+          }
+          return const SizedBox.shrink();
+        },
       ),
     );
   }
 
-  void _onSavePressed() {
+  Widget _getLoadingContent() {
+    return const Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+
+  Widget _getLoadedContent(bool usesImperialUnits) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Center(
+            child: ClipOval(
+          child: CachedNetworkImage(
+            cacheManager: locator<CacheManager>(),
+            width: 120,
+            height: 120,
+            placeholder: (context, string) => const DefaultMealImage(),
+            errorWidget: (context, exception, stacktrace) =>
+                const DefaultMealImage(),
+            fit: BoxFit.cover,
+            imageUrl: _mealEntity.mainImageUrl ?? "",
+          ),
+        )),
+        const SizedBox(height: 32),
+        TextFormField(
+          controller: _nameTextController,
+          decoration: InputDecoration(
+              labelText: S.of(context).mealNameLabel,
+              border: const OutlineInputBorder()),
+          keyboardType: TextInputType.text,
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _brandsTextController,
+          decoration: InputDecoration(
+              labelText: S.of(context).mealBrandsLabel,
+              border: const OutlineInputBorder()),
+          keyboardType: TextInputType.text,
+        ),
+        const SizedBox(height: 32),
+        TextFormField(
+          controller: _mealQuantityTextController,
+          decoration: InputDecoration(
+              labelText: _usesImperialUnits
+                  ? S.of(context).mealSizeLabelImperial
+                  : S.of(context).mealSizeLabel,
+              border: const OutlineInputBorder()),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _servingQuantityTextController,
+          inputFormatters: CustomTextInputFormatter.doubleOnly(),
+          decoration: InputDecoration(
+              labelText: _usesImperialUnits
+                  ? S.of(context).servingSizeLabelImperial
+                  : S.of(context).servingSizeLabel,
+              border: const OutlineInputBorder()),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        ),
+        const SizedBox(height: 16),
+        SegmentedButton<String>(
+          segments: _mealUnitButtonSegment,
+          selected: {selectedUnit ?? _units[2]},
+          onSelectionChanged: (Set<String> newSelection) {
+            setState(() {
+              selectedUnit = newSelection.first;
+            });
+          },
+        ),
+        const SizedBox(height: 48),
+        TextFormField(
+          controller: _baseQuantityTextController,
+          inputFormatters: CustomTextInputFormatter.doubleOnly(),
+          decoration: InputDecoration(
+              labelText: S.of(context).baseQuantityLabel,
+              border: const OutlineInputBorder()),
+          keyboardType: TextInputType.number,
+        ),
+        const SizedBox(height: 48),
+        TextFormField(
+          controller: _kcalTextController,
+          inputFormatters: CustomTextInputFormatter.doubleOnly(),
+          decoration: InputDecoration(
+              labelText:
+                  S.of(context).mealKcalLabel + baseQuantity + baseQuantityUnit,
+              border: const OutlineInputBorder()),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _carbsTextController,
+          inputFormatters: CustomTextInputFormatter.doubleOnly(),
+          decoration: InputDecoration(
+              labelText: S.of(context).mealCarbsLabel +
+                  baseQuantity +
+                  baseQuantityUnit,
+              border: const OutlineInputBorder()),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _fatTextController,
+          inputFormatters: CustomTextInputFormatter.doubleOnly(),
+          decoration: InputDecoration(
+              labelText:
+                  S.of(context).mealFatLabel + baseQuantity + baseQuantityUnit,
+              border: const OutlineInputBorder()),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _proteinTextController,
+          inputFormatters: CustomTextInputFormatter.doubleOnly(),
+          decoration: InputDecoration(
+              labelText: S.of(context).mealProteinLabel +
+                  baseQuantity +
+                  baseQuantityUnit,
+              border: const OutlineInputBorder()),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        ),
+      ],
+    );
+  }
+
+  void _onSavePressed(bool usesImperialUnits) {
     try {
+      // Convert meal size back to metric units if necessary
+      final mealQuantity = usesImperialUnits
+          ? _convertToMetric(
+              _mealQuantityTextController.text, _mealEntity.mealUnit ?? "0")
+          : _mealQuantityTextController.text;
+
       final newMealEntity = _editMealBloc.createNewMealEntity(
           _mealEntity,
           _nameTextController.text,
           _brandsTextController.text,
-          _mealQuantityTextController.text,
+          mealQuantity,
           _servingQuantityTextController.text,
           _baseQuantityTextController.text,
-          _dropdownUnitValue,
+          selectedUnit,
           _kcalTextController.text,
           _carbsTextController.text,
           _fatTextController.text,
@@ -237,7 +294,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
           NavigationOptions.mealDetailRoute,
           ModalRoute.withName(NavigationOptions.addMealRoute),
           arguments: MealDetailScreenArguments(
-              newMealEntity, _intakeTypeEntity, _day));
+              newMealEntity, _intakeTypeEntity, _day, usesImperialUnits));
     } catch (exception, stacktrace) {
       log.warning("Error while creating new meal entity");
       Sentry.captureException(exception, stackTrace: stacktrace);
@@ -247,14 +304,38 @@ class _EditMealScreenState extends State<EditMealScreen> {
     }
   }
 
-  String? _switchDropdownUnit(String? unit) {
-    String? dropdownValue;
+  String? _switchButtonUnit(String? unit) {
+    String? selectedUnit;
     if (!_units.contains(unit)) {
-      dropdownValue = _units.first;
+      selectedUnit = _units[2]; // Default to g/ml
     } else {
-      dropdownValue = unit;
+      selectedUnit = unit;
     }
-    return dropdownValue;
+    return selectedUnit;
+  }
+
+  String _convertToImperial(String value, String unit) {
+    final double quantityValue = double.tryParse(value) ?? 0.0;
+    switch (unit) {
+      case 'g':
+        return (UnitCalc.gToOz(quantityValue)).toStringAsFixed(2);
+      case 'ml':
+        return (UnitCalc.mlToFlOz(quantityValue)).toStringAsFixed(2);
+      default:
+        return value;
+    }
+  }
+
+  String _convertToMetric(String value, String unit) {
+    final double quantityValue = double.tryParse(value) ?? 0.0;
+    switch (unit) {
+      case 'g':
+        return (UnitCalc.ozToG(quantityValue)).toStringAsFixed(2);
+      case 'ml':
+        return (UnitCalc.flOzToMl(quantityValue)).toStringAsFixed(2);
+      default:
+        return value;
+    }
   }
 }
 
@@ -262,6 +343,8 @@ class EditMealScreenArguments {
   final DateTime day;
   final MealEntity mealEntity;
   final IntakeTypeEntity intakeTypeEntity;
+  final bool usesImperialUnits;
 
-  EditMealScreenArguments(this.day, this.mealEntity, this.intakeTypeEntity);
+  EditMealScreenArguments(
+      this.day, this.mealEntity, this.intakeTypeEntity, this.usesImperialUnits);
 }

@@ -69,7 +69,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               state.lunchIntakeList,
               state.dinnerIntakeList,
               state.snackIntakeList,
-              state.userActivityList);
+              state.userActivityList,
+              state.usesImperialUnits);
         } else {
           return _getLoadingContent();
         }
@@ -109,7 +110,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       List<IntakeEntity> lunchIntakeList,
       List<IntakeEntity> dinnerIntakeList,
       List<IntakeEntity> snackIntakeList,
-      List<UserActivityEntity> userActivities) {
+      List<UserActivityEntity> userActivities,
+      bool usesImperialUnits) {
     if (showDisclaimerDialog) {
       _showDisclaimerDialog(context);
     }
@@ -141,6 +143,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           intakeList: breakfastIntakeList,
           onItemDragCallback: onIntakeItemDrag,
           onItemTappedCallback: onIntakeItemTapped,
+          usesImperialUnits: usesImperialUnits,
         ),
         IntakeVerticalList(
           day: DateTime.now(),
@@ -150,6 +153,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           intakeList: lunchIntakeList,
           onItemDragCallback: onIntakeItemDrag,
           onItemTappedCallback: onIntakeItemTapped,
+          usesImperialUnits: usesImperialUnits,
         ),
         IntakeVerticalList(
           day: DateTime.now(),
@@ -159,6 +163,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           intakeList: dinnerIntakeList,
           onItemDragCallback: onIntakeItemDrag,
           onItemTappedCallback: onIntakeItemTapped,
+          usesImperialUnits: usesImperialUnits,
         ),
         IntakeVerticalList(
           day: DateTime.now(),
@@ -168,6 +173,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           intakeList: snackIntakeList,
           onItemDragCallback: onIntakeItemDrag,
           onItemTappedCallback: onIntakeItemTapped,
+          usesImperialUnits: usesImperialUnits,
         ),
         const SizedBox(height: 48.0)
       ]),
@@ -177,7 +183,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               visible: _isDragging,
               child: Container(
                 height: 70,
-                color: Theme.of(context).colorScheme.error.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.error
+                  ..withValues(alpha: 0.3),
                 child: DragTarget<IntakeEntity>(
                   onAcceptWithDetails: (data) {
                     _confirmDelete(context, data.data);
@@ -239,14 +246,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     });
   }
 
-  void onIntakeItemTapped(
-      BuildContext context, IntakeEntity intakeEntity) async {
+  void onIntakeItemTapped(BuildContext context, IntakeEntity intakeEntity,
+      bool usesImperialUnits) async {
     final changeIntakeAmount = await showDialog<double>(
-      context: context, builder: (context) => EditDialog(
-        intakeEntity: intakeEntity)
-    );
-    if(changeIntakeAmount != null) {
-      _homeBloc.updateIntakeItem(intakeEntity.id, { 'amount': changeIntakeAmount });
+        context: context,
+        builder: (context) => EditDialog(
+            intakeEntity: intakeEntity, usesImperialUnits: usesImperialUnits));
+    if (changeIntakeAmount != null) {
+      _homeBloc
+          .updateIntakeItem(intakeEntity.id, {'amount': changeIntakeAmount});
       _homeBloc.add(const LoadItemsEvent());
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

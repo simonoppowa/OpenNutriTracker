@@ -165,6 +165,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("100 g/ml başına protein"),
         "mealSizeLabel":
             MessageLookupByLibrary.simpleMessage("Yemek boyutu (g/ml)"),
+        "mealSizeLabelImperial":
+            MessageLookupByLibrary.simpleMessage("Yemek boyutu (oz/fl oz)"),
         "mealUnitLabel": MessageLookupByLibrary.simpleMessage("Yemek birimi"),
         "milliliterUnit": MessageLookupByLibrary.simpleMessage("ml"),
         "missingProductInfo": MessageLookupByLibrary.simpleMessage(
@@ -219,7 +221,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Cinsiyetiniz nedir?"),
         "onboardingGoalQuestionSubtitle": MessageLookupByLibrary.simpleMessage(
             "Mevcut kilo hedefiniz nedir?"),
-        "onboardingHeightExampleHint":
+        "onboardingHeightExampleHintCm":
             MessageLookupByLibrary.simpleMessage("örn. 170"),
         "onboardingHeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Mevcut boyunuz nedir?"),
@@ -231,7 +233,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Genel Bakış"),
         "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
             "Yanlış giriş, lütfen tekrar deneyin"),
-        "onboardingWeightExampleHint":
+        "onboardingWeightExampleHintKg":
             MessageLookupByLibrary.simpleMessage("örn. 60"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Mevcut kilonuz nedir?"),
@@ -551,7 +553,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "palVeryActiveDescriptionLabel": MessageLookupByLibrary.simpleMessage(
             "Çoğunlukla işte yürümek, koşmak veya ağırlık taşımak ve aktif boş zaman aktiviteleri"),
         "palVeryActiveLabel": MessageLookupByLibrary.simpleMessage("Çok Aktif"),
-        "per100gLabel": MessageLookupByLibrary.simpleMessage("100g başına"),
+        "per100gmlLabel":
+            MessageLookupByLibrary.simpleMessage("100g/ml başına"),
         "privacyPolicyLabel":
             MessageLookupByLibrary.simpleMessage("Gizlilik politikası"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profil"),
@@ -585,6 +588,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Anonim kullanım verilerini gönder"),
         "servingSizeLabel":
             MessageLookupByLibrary.simpleMessage("Porsiyon boyutu (g/ml)"),
+        "servingSizeLabelImperial":
+            MessageLookupByLibrary.simpleMessage("Porsiyon boyutu (oz/fl oz)"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("Hakkında"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Geri Bildirim"),

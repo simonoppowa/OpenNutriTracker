@@ -3,20 +3,23 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 
 class IntakeCard extends StatelessWidget {
   final IntakeEntity intake;
   final Function(BuildContext, IntakeEntity)? onItemLongPressed;
-  final Function(BuildContext, IntakeEntity)? onItemTapped;
+  final Function(BuildContext, IntakeEntity, bool)? onItemTapped;
   final bool firstListElement;
+  final bool usesImperialUnits;
 
   const IntakeCard(
       {required super.key,
       required this.intake,
       this.onItemLongPressed,
       this.onItemTapped,
-      required this.firstListElement});
+      required this.firstListElement,
+      required this.usesImperialUnits});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +41,7 @@ class IntakeCard extends StatelessWidget {
                   ? () => onLongPressedItem(context)
                   : null,
               onTap: onItemTapped != null
-                  ? () => onTappedItem(context)
+                  ? () => onTappedItem(context, usesImperialUnits)
                   : null,
               child: Stack(
                 children: [
@@ -62,8 +65,7 @@ class IntakeCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Theme.of(context)
                           .colorScheme
-                          .secondaryContainer
-                          .withOpacity(0.5),
+                          .secondaryContainer.withValues(alpha: 0.5),
                     ),
                   ),
                   Container(
@@ -72,8 +74,7 @@ class IntakeCard extends StatelessWidget {
                     decoration: BoxDecoration(
                         color: Theme.of(context)
                             .colorScheme
-                            .tertiaryContainer
-                            .withOpacity(0.8),
+                            .tertiaryContainer.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(20)),
                     child: Text(
                       '${intake.totalKcal.toInt()} kcal',
@@ -103,17 +104,18 @@ class IntakeCard extends StatelessWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          Text(
-                            '${intake.amount.toInt().toString()} ${intake.unit}',
-                            style: Theme.of(context)
+                          MealValueUnitText(
+                            value: intake.amount,
+                            meal: intake.meal,
+                            usesImperialUnits: usesImperialUnits,
+                            textStyle: Theme.of(context)
                                 .textTheme
                                 .titleSmall
                                 ?.copyWith(
                                     color: Theme.of(context)
                                         .colorScheme
-                                        .onSecondaryContainer
-                                        .withOpacity(0.7)),
-                            maxLines: 1,
+                                        .onSecondaryContainer.withValues(
+                                            alpha: 0.7)),
                           ),
                         ],
                       ))
@@ -130,7 +132,7 @@ class IntakeCard extends StatelessWidget {
     onItemLongPressed?.call(context, intake);
   }
 
-  void onTappedItem(BuildContext context) {
-    onItemTapped?.call(context, intake);
+  void onTappedItem(BuildContext context, bool usesImperialUnits) {
+    onItemTapped?.call(context, intake, usesImperialUnits);
   }
 }

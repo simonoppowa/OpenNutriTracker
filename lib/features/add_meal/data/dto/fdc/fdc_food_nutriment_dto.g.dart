@@ -8,7 +8,7 @@ part of 'fdc_food_nutriment_dto.dart';
 
 FDCFoodNutrimentDTO _$FDCFoodNutrimentDTOFromJson(Map<String, dynamic> json) =>
     FDCFoodNutrimentDTO(
-      nutrientId: json['nutrient_id'] as int?,
+      nutrientId: (json['nutrient_id'] as num?)?.toInt(),
       amount: (json['amount'] as num?)?.toDouble(),
     );
 

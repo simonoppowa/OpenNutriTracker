@@ -40,9 +40,7 @@ class OFFProductDTO {
       case SupportedLanguage.de:
         localeName = product_name_de;
         break;
-      default:
-        return product_name_en;
-    }
+      }
 
     // If local language is not available, return available language
     if (localeName == null || localeName.isEmpty) {

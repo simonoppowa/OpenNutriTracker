@@ -21,7 +21,7 @@ class ActivityTitleExpanded extends StatelessWidget {
                 TextSpan(
                     text: activity.getName(context),
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onBackground),
+                        color: Theme.of(context).colorScheme.onSurface),
                     children: [
                       TextSpan(
                         text: ' ${activity.getDescription(context)} ',
@@ -31,8 +31,7 @@ class ActivityTitleExpanded extends StatelessWidget {
                             ?.copyWith(
                                 color: Theme.of(context)
                                     .colorScheme
-                                    .onBackground
-                                    .withOpacity(0.7)),
+                                    .onSurface.withValues(alpha: 0.7)),
                       )
                     ]),
                 textAlign: TextAlign.center,

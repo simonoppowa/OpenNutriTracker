@@ -215,11 +215,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
   }
 
-  void _setSecondPageData(
-      bool active, double? selectedHeight, double? selectedWeight) {
+  void _setSecondPageData(bool active, double? selectedHeight,
+      double? selectedWeight, bool usesImperial) {
     setState(() {
       _onboardingBloc.userSelection.height = selectedHeight;
       _onboardingBloc.userSelection.weight = selectedWeight;
+      _onboardingBloc.userSelection.usesImperialUnits = usesImperial;
 
       _secondPageButtonActive = active;
     });
@@ -263,9 +264,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final userEntity = _onboardingBloc.userSelection.toUserEntity();
     final hasAcceptedDataCollection =
         _onboardingBloc.userSelection.acceptDataCollection;
+    final usesImperialUnits = _onboardingBloc.userSelection.usesImperialUnits;
     if (userEntity != null) {
       _onboardingBloc.saveOnboardingData(
-          context, userEntity, hasAcceptedDataCollection);
+          context, userEntity, hasAcceptedDataCollection, usesImperialUnits);
       Navigator.pushReplacementNamed(context, NavigationOptions.mainRoute);
     } else {
       // Error with user input

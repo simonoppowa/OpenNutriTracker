@@ -16,13 +16,17 @@ class UserDataMaskEntity {
 
   bool acceptDataCollection = false;
 
+  bool usesImperialUnits = false;
+
   UserDataMaskEntity(
       {this.gender,
       this.birthday,
       this.height,
       this.weight,
       this.activity,
-      this.goal});
+      this.goal,
+      this.acceptDataCollection = false,
+      this.usesImperialUnits = false});
 
   bool checkDataProvided() {
     if (gender != null &&

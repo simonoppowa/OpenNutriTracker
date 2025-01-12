@@ -22,7 +22,7 @@ class DynamicOntLogo extends StatelessWidget {
           svgString = svgString.replaceAll(_circleColor,
               Theme.of(context).colorScheme.primaryContainer.toHex());
           svgString = svgString.replaceAll(
-              _spoonColor, Theme.of(context).colorScheme.onBackground.toHex());
+              _spoonColor, Theme.of(context).colorScheme.onSurface.toHex());
           return SvgPicture.string(svgString);
         } else if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox();

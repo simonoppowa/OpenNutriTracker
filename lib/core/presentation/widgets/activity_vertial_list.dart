@@ -28,12 +28,12 @@ class ActivityVerticalList extends StatelessWidget {
           child: Row(
             children: [
               Icon(UserActivityEntity.getIconData(),
-                  size: 24, color: Theme.of(context).colorScheme.onBackground),
+                  size: 24, color: Theme.of(context).colorScheme.onSurface),
               const SizedBox(width: 4.0),
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground),
+                    color: Theme.of(context).colorScheme.onSurface),
               ),
             ],
           ),

@@ -59,8 +59,10 @@ class BMIOverview extends StatelessWidget {
           S.of(context).nutritionalStatusRiskLabel(
               nutritionalStatus.getRiskStatus(context)),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color:
-                  Theme.of(context).colorScheme.onBackground.withOpacity(0.7)),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7)),
         )
       ],
     );
@@ -70,19 +72,26 @@ class BMIOverview extends StatelessWidget {
     Color theme;
     switch (nutritionalStatus) {
       case UserNutritionalStatus.underWeight:
-        theme = Theme.of(context).colorScheme.errorContainer.withOpacity(0.1);
+        theme = Theme.of(context).colorScheme.errorContainer
+          ..withValues(alpha: 0.1);
         break;
       case UserNutritionalStatus.normalWeight:
-        theme = Theme.of(context).colorScheme.primaryContainer.withOpacity(0.6);
+        theme = Theme.of(context)
+            .colorScheme
+            .primaryContainer
+            .withValues(alpha: 0.6);
         break;
       case UserNutritionalStatus.preObesity:
-        theme = Theme.of(context).colorScheme.errorContainer.withOpacity(0.2);
+        theme =
+            Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.2);
         break;
       case UserNutritionalStatus.obesityClassI:
-        theme = Theme.of(context).colorScheme.errorContainer.withOpacity(0.4);
+        theme =
+            Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.4);
         break;
       case UserNutritionalStatus.obesityClassII:
-        theme = Theme.of(context).colorScheme.errorContainer.withOpacity(0.7);
+        theme =
+            Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.7);
         break;
       case UserNutritionalStatus.obesityClassIII:
         theme = Theme.of(context).colorScheme.errorContainer;

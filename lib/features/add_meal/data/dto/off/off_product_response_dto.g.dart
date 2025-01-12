@@ -9,7 +9,7 @@ part of 'off_product_response_dto.dart';
 OFFProductResponseDTO _$OFFProductResponseDTOFromJson(
         Map<String, dynamic> json) =>
     OFFProductResponseDTO(
-      status: json['status'] as int,
+      status: (json['status'] as num).toInt(),
       status_verbose: json['status_verbose'] as String,
       product: OFFProductDTO.fromJson(json['product'] as Map<String, dynamic>),
     );

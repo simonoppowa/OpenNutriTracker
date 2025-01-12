@@ -8,7 +8,8 @@ class OffDisclaimer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(S.of(context).offDisclaimer,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontStyle: FontStyle.italic)
-    );
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            fontStyle: FontStyle.italic));
   }
 }

@@ -18,21 +18,22 @@ class IntakeVerticalList extends StatefulWidget {
   final IconData listIcon;
   final AddMealType addMealType;
   final List<IntakeEntity> intakeList;
+  final bool usesImperialUnits;
   final Function(BuildContext, IntakeEntity)? onItemLongPressedCallback;
   final Function(bool)? onItemDragCallback;
-  final Function(BuildContext, IntakeEntity)? onItemTappedCallback;
+  final Function(BuildContext, IntakeEntity, bool)? onItemTappedCallback;
 
-  const IntakeVerticalList({
-    super.key,
-    required this.day,
-    required this.title,
-    required this.listIcon,
-    required this.addMealType,
-    required this.intakeList,
-    this.onItemLongPressedCallback,
-    this.onItemDragCallback,
-    this.onItemTappedCallback
-  });
+  const IntakeVerticalList(
+      {super.key,
+      required this.day,
+      required this.title,
+      required this.listIcon,
+      required this.addMealType,
+      required this.intakeList,
+      required this.usesImperialUnits,
+      this.onItemLongPressedCallback,
+      this.onItemDragCallback,
+      this.onItemTappedCallback});
 
   @override
   State<IntakeVerticalList> createState() => _IntakeVerticalListState();
@@ -50,7 +51,8 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
   }
 
   double get totalKcal {
-    return widget.intakeList.fold(0, (previousValue, element) => previousValue + element.totalKcal);
+    return widget.intakeList
+        .fold(0, (previousValue, element) => previousValue + element.totalKcal);
   }
 
   @override
@@ -63,23 +65,25 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
           child: Row(
             children: [
               Icon(widget.listIcon,
-                  size: 24, color: Theme.of(context).colorScheme.onBackground),
+                  size: 24, color: Theme.of(context).colorScheme.onSurface),
               const SizedBox(width: 4.0),
               Text(
                 widget.title,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
               ),
               const Spacer(),
               if (totalKcal > 0)
-              Text(
-                '${totalKcal.toInt()} ${S.of(context).kcalLabel}',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onBackground
-                                        .withOpacity(0.7)),
-              ),
+                Text(
+                  '${totalKcal.toInt()} ${S.of(context).kcalLabel}',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.7)),
+                ),
             ],
           ),
         ),
@@ -121,6 +125,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                             key: ValueKey(intakeEntity.meal.code),
                             intake: intakeEntity,
                             firstListElement: false,
+                            usesImperialUnits: widget.usesImperialUnits,
                           ),
                         ),
                       ),
@@ -134,8 +139,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16.0),
                               ),
-                              color:
-                                  Theme.of(context).cardColor,
+                              color: Theme.of(context).cardColor,
                             ),
                           ),
                         ],
@@ -146,6 +150,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                         onItemLongPressed: widget.onItemLongPressedCallback,
                         onItemTapped: widget.onItemTappedCallback,
                         firstListElement: firstListElement,
+                        usesImperialUnits: widget.usesImperialUnits,
                       ),
                     );
                   }

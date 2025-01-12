@@ -26,9 +26,7 @@ enum AppThemeDBO {
       case AppThemeEntity.system:
         dbo = AppThemeDBO.system;
         break;
-      default:
-        return AppThemeDBO.system;
-    }
+      }
     return dbo;
   }
 }
