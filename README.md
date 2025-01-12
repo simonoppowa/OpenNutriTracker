@@ -13,7 +13,7 @@
   <a href="https://github.com/simonoppowa/OpenNutriTracker/pulls" alt="GitHub Pull Requests">
         <img src="https://img.shields.io/github/issues-pr/simonoppowa/OpenNutriTracker.svg" /></a>
   <a alt="Version">
-        <img src="https://img.shields.io/badge/version-alpha-orange.svg" /></a>
+        <img src="https://img.shields.io/badge/version-beta-yellow.svg" /></a>
 </p>
 
 ## Description
@@ -52,7 +52,7 @@ See [Data Protection](https://www.iubenda.com/privacy-policy/53501884)
 
 ## TODOs
 - Add serving sizes to meals
-- Add Imperial unit support
+~~- Add Imperial unit support~~
 - Add support for Material You themes
 
 ## Contribution
