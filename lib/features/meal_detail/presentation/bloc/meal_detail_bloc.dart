@@ -44,7 +44,8 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         final fatPerUnit = (event.meal.nutriments.fatPerUnit ?? 0);
         final proteinPerUnit = (event.meal.nutriments.proteinsPerUnit ?? 0);
 
-        final quantity = double.parse(selectedTotalQuantity);
+        final quantity =
+            double.parse(selectedTotalQuantity.replaceAll(',', '.'));
 
         // Convert imperial quantity to metric
         double convertedQuantity = quantity;
@@ -70,7 +71,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
 
   void addIntake(BuildContext context, String unit, String amountText,
       IntakeTypeEntity type, MealEntity meal, DateTime day) async {
-    final quantity = double.parse(amountText);
+    final quantity = double.parse(amountText.replaceAll(',', '.'));
 
     final intakeEntity = IntakeEntity(
         id: IdGenerator.getUniqueID(),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
-import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -68,9 +68,12 @@ class MealDetailBottomSheet extends StatelessWidget {
                                       quantityTextController.text,
                                       selectedUnit);
                                 }),
-                              keyboardType: TextInputType.number,
-                              inputFormatters:
-                                  CustomTextInputFormatter.doubleOnly(),
+                              keyboardType: TextInputType.numberWithOptions(
+                                  decimal: true),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d+([.,]\d{0,2})?$'))
+                              ],
                               decoration: InputDecoration(
                                 border: const OutlineInputBorder(),
                                 labelText: S.of(context).quantityLabel,
