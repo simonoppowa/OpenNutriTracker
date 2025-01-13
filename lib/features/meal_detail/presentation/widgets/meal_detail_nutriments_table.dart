@@ -5,8 +5,16 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailNutrimentsTable extends StatelessWidget {
   final MealEntity product;
+  final bool usesImperialUnits;
+  final double? servingQuantity;
+  final String? servingUnit;
 
-  const MealDetailNutrimentsTable({super.key, required this.product});
+  const MealDetailNutrimentsTable(
+      {super.key,
+      required this.product,
+      required this.usesImperialUnits,
+      this.servingQuantity,
+      this.servingUnit});
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +26,10 @@ class MealDetailNutrimentsTable extends StatelessWidget {
             ?.copyWith(fontWeight: FontWeight.bold) ??
         const TextStyle();
 
+    final headerText = usesImperialUnits && servingQuantity != null
+        ? "${S.of(context).perServingLabel} (${servingQuantity!.roundToPrecision(1)}${servingUnit ?? 'g/ml'})"
+        : S.of(context).per100gmlLabel;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -27,43 +39,52 @@ class MealDetailNutrimentsTable extends StatelessWidget {
         Table(
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,
           border: TableBorder.all(
-              color:
-                  Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.5)),
           children: <TableRow>[
-            _getNutrimentsTableRow(
-                "", S.of(context).per100gmlLabel, textStyleBold),
+            _getNutrimentsTableRow("", headerText, textStyleBold),
             _getNutrimentsTableRow(
                 S.of(context).energyLabel,
-                "${product.nutriments.energyKcal100?.toInt() ?? "?"} ${S.of(context).kcalLabel}",
+                "${_adjustValueForServing(product.nutriments.energyKcal100?.toDouble() ?? 0).toInt()} ${S.of(context).kcalLabel}",
                 textStyleNormal),
             _getNutrimentsTableRow(
                 S.of(context).fatLabel,
-                "${product.nutriments.fat100?.roundToPrecision(2) ?? "?"}g",
+                "${_adjustValueForServing(product.nutriments.fat100 ?? 0).roundToPrecision(2)}g",
                 textStyleNormal),
             _getNutrimentsTableRow(
                 '   ${S.of(context).saturatedFatLabel}',
-                "${product.nutriments.saturatedFat100?.roundToPrecision(2) ?? "?"}g",
+                "${_adjustValueForServing(product.nutriments.saturatedFat100 ?? 0).roundToPrecision(2)}g",
                 textStyleNormal),
             _getNutrimentsTableRow(
                 S.of(context).carbohydrateLabel,
-                "${product.nutriments.carbohydrates100?.roundToPrecision(2) ?? "?"}g",
+                "${_adjustValueForServing(product.nutriments.carbohydrates100 ?? 0).roundToPrecision(2)}g",
                 textStyleNormal),
             _getNutrimentsTableRow(
                 '    ${S.of(context).sugarLabel}',
-                "${product.nutriments.sugars100?.roundToPrecision(2) ?? "?"}g",
+                "${_adjustValueForServing(product.nutriments.sugars100 ?? 0).roundToPrecision(2)}g",
                 textStyleNormal),
             _getNutrimentsTableRow(
                 S.of(context).fiberLabel,
-                "${product.nutriments.fiber100?.roundToPrecision(2) ?? "?"}g",
+                "${_adjustValueForServing(product.nutriments.fiber100 ?? 0).roundToPrecision(2)}g",
                 textStyleNormal),
             _getNutrimentsTableRow(
                 S.of(context).proteinLabel,
-                "${product.nutriments.proteins100?.roundToPrecision(2) ?? "?"}g",
+                "${_adjustValueForServing(product.nutriments.proteins100 ?? 0).roundToPrecision(2)}g",
                 textStyleNormal)
           ],
         )
       ],
     );
+  }
+
+  double _adjustValueForServing(double value) {
+    if (!usesImperialUnits || servingQuantity == null) {
+      return value;
+    }
+    // Calculate per serving value based on 100g reference
+    return (value * servingQuantity!) / 100;
   }
 
   TableRow _getNutrimentsTableRow(

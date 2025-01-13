@@ -586,10 +586,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Kilo Seçin"),
         "sendAnonymousUserData": MessageLookupByLibrary.simpleMessage(
             "Anonim kullanım verilerini gönder"),
-        "servingSizeLabel":
-            MessageLookupByLibrary.simpleMessage("Porsiyon boyutu (g/ml)"),
         "servingSizeLabelImperial":
             MessageLookupByLibrary.simpleMessage("Porsiyon boyutu (oz/fl oz)"),
+        "servingSizeLabelMetric":
+            MessageLookupByLibrary.simpleMessage("Porsiyon boyutu (g/ml)"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("Hakkında"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Geri Bildirim"),

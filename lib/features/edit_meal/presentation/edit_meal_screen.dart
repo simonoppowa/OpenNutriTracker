@@ -200,7 +200,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
           decoration: InputDecoration(
               labelText: _usesImperialUnits
                   ? S.of(context).servingSizeLabelImperial
-                  : S.of(context).servingSizeLabel,
+                  : S.of(context).servingSizeLabelMetric,
               border: const OutlineInputBorder()),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),

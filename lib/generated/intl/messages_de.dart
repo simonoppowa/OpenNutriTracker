@@ -579,6 +579,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "palVeryActiveLabel":
             MessageLookupByLibrary.simpleMessage("Sehr aktiv"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("Pro 100 g/ml"),
+        "perServingLabel": MessageLookupByLibrary.simpleMessage("Pro Portion"),
         "privacyPolicyLabel":
             MessageLookupByLibrary.simpleMessage("Datenschutzrichtlinie"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profil"),
@@ -611,7 +612,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Gewicht auswählen"),
         "sendAnonymousUserData": MessageLookupByLibrary.simpleMessage(
             "Anonyme Nutzungsdaten senden?"),
-        "servingSizeLabel":
+        "servingSizeLabelImperial":
+            MessageLookupByLibrary.simpleMessage("Portionsgröße (oz/fl oz)"),
+        "servingSizeLabelMetric":
             MessageLookupByLibrary.simpleMessage("Portionsgröße (g/ml)"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("Über"),
         "settingFeedbackLabel":

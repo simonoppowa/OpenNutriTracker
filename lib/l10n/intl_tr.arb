@@ -138,7 +138,7 @@
   "mealBrandsLabel": "Markalar",
   "mealSizeLabel": "Yemek boyutu (g/ml)",
   "mealSizeLabelImperial": "Yemek boyutu (oz/fl oz)",
-  "servingSizeLabel": "Porsiyon boyutu (g/ml)",
+  "servingSizeLabelMetric": "Porsiyon boyutu (g/ml)",
   "servingSizeLabelImperial": "Porsiyon boyutu (oz/fl oz)",
   "mealUnitLabel": "Yemek birimi",
   "mealKcalLabel": "100 g/ml başına kalori",
