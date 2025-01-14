@@ -41,7 +41,7 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
             child: TextFormField(
                 onChanged: (text) {
                   if (_heightFormKey.currentState!.validate()) {
-                    _parsedHeight = double.tryParse(text);
+                    _parsedHeight = double.tryParse(text.replaceAll(',', '.'));
                     checkCorrectInput();
                   } else {
                     _parsedHeight = null;
@@ -59,11 +59,12 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
                   !_isImperialSelected
                       ? FilteringTextInputFormatter.digitsOnly
-                      : FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
+                      : FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d+([.,]\d{0,1})?$'))
                 ]),
           ),
           Padding(
@@ -163,7 +164,7 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
 
     if (_isImperialSelected) {
       // Regex for feet and inches
-      if (value.isEmpty || !RegExp(r'^[0-9]+(\.[0-9]+)?$').hasMatch(value)) {
+      if (value.isEmpty || !RegExp(r'^[0-9]+([.,][0-9])?$').hasMatch(value)) {
         return S.of(context).onboardingWrongHeightLabel;
       } else {
         return null;

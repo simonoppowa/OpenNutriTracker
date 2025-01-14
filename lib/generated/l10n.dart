@@ -1391,11 +1391,21 @@ class S {
     );
   }
 
+  /// `Per Serving`
+  String get perServingLabel {
+    return Intl.message(
+      'Per Serving',
+      name: 'perServingLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Serving size (g/ml)`
-  String get servingSizeLabel {
+  String get servingSizeLabelMetric {
     return Intl.message(
       'Serving size (g/ml)',
-      name: 'servingSizeLabel',
+      name: 'servingSizeLabelMetric',
       desc: '',
       args: [],
     );

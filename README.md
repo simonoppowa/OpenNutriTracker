@@ -52,7 +52,7 @@ See [Data Protection](https://www.iubenda.com/privacy-policy/53501884)
 
 ## TODOs
 - Add serving sizes to meals
-~~- Add Imperial unit support~~
+- ~~Add Imperial unit support~~
 - Add support for Material You themes
 
 ## Contribution

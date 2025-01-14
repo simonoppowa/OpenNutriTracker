@@ -6,38 +6,63 @@ import 'package:opennutritracker/generated/l10n.dart';
 class MealValueUnitText extends StatelessWidget {
   final double value;
   final MealEntity meal;
+  final String? displayUnit;
   final bool usesImperialUnits;
   final TextStyle? textStyle;
   final String? prefix;
 
-  const MealValueUnitText(
-      {super.key,
-      required this.value,
-      required this.meal,
-      required this.usesImperialUnits,
-      this.textStyle,
-      this.prefix = ''});
+  const MealValueUnitText({
+    super.key,
+    required this.value,
+    required this.meal,
+    this.displayUnit,
+    required this.usesImperialUnits,
+    this.textStyle,
+    this.prefix = '',
+  });
 
   @override
   Widget build(BuildContext context) {
     final mealUnit = meal.mealUnit ?? S.of(context).gramMilliliterUnit;
-    final displayUnit = _convertUnit(context, mealUnit);
-    final displayValue = _convertValue(value, mealUnit);
+    final unitToDisplay = displayUnit ?? _convertUnit(context, mealUnit);
+    final convertedValue = _convertValue(value, mealUnit, unitToDisplay);
 
     return Text(
-      '$prefix${_formatValue(displayValue)} $displayUnit',
+      '$prefix${_formatValue(convertedValue)} $unitToDisplay',
       style: textStyle,
       overflow: TextOverflow.ellipsis,
       maxLines: 1,
     );
   }
 
-  double _convertValue(double value, String unit) {
-    switch (unit) {
-      case 'g':
-        return usesImperialUnits ? UnitCalc.gToOz(value) : value;
-      case 'ml':
-        return usesImperialUnits ? UnitCalc.mlToFlOz(value) : value;
+  double _convertValue(double value, String fromUnit, String toUnit) {
+    // If units are the same, no conversion needed
+    if (fromUnit == toUnit) return value;
+
+    // Convert to base unit first (g or ml)
+    double baseValue = _convertToBaseUnit(value, fromUnit);
+
+    // Then convert from base unit to target unit
+    return _convertFromBaseUnit(baseValue, toUnit);
+  }
+
+  double _convertToBaseUnit(double value, String fromUnit) {
+    switch (fromUnit) {
+      case 'oz':
+        return UnitCalc.ozToG(value);
+      case 'fl oz' || 'fl.oz':
+        return UnitCalc.flOzToMl(value);
+      default:
+        return value;
+    }
+  }
+
+  double _convertFromBaseUnit(double value, String toUnit) {
+    switch (toUnit) {
+      case 'oz':
+        return UnitCalc.gToOz(value);
+      case 'fl oz' || 'fl.oz':
+        return UnitCalc.mlToFlOz(value);
       default:
         return value;
     }

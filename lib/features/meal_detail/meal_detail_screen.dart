@@ -224,6 +224,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     MealValueUnitText(
                       value: double.parse(totalQuantity),
                       meal: meal,
+                      displayUnit: selectedUnit,
                       usesImperialUnits: _usesImperialUnits,
                       textStyle: Theme.of(context).textTheme.bodyMedium,
                       prefix: ' / ',
@@ -246,7 +247,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 ),
                 const Divider(),
                 const SizedBox(height: 16.0),
-                MealDetailNutrimentsTable(product: meal),
+                MealDetailNutrimentsTable(
+                    product: meal,
+                    usesImperialUnits: _usesImperialUnits,
+                    servingQuantity: meal.servingQuantity,
+                    servingUnit: meal.servingUnit),
                 const SizedBox(height: 32.0),
                 MealInfoButton(url: meal.url, source: meal.source),
                 meal.source == MealSourceEntity.off
