@@ -224,6 +224,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     MealValueUnitText(
                       value: double.parse(totalQuantity),
                       meal: meal,
+                      displayUnit: selectedUnit,
                       usesImperialUnits: _usesImperialUnits,
                       textStyle: Theme.of(context).textTheme.bodyMedium,
                       prefix: ' / ',

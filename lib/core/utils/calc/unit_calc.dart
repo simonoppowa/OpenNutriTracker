@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 class UnitCalc {
   static double cmToInches(double cm) {
@@ -43,5 +45,49 @@ class UnitCalc {
 
   static double flOzToMl(double flOz) {
     return flOz * 29.5735;
+  }
+
+  static double metricToImperialValue(double metricValue, String unit) {
+    switch (unit) {
+      case 'g':
+        return gToOz(metricValue);
+      case 'ml':
+        return mlToFlOz(metricValue);
+      default:
+        return metricValue;
+    }
+  }
+
+  static double imperialToMetricValue(double imperialValue, String unit) {
+    switch (unit) {
+      case 'oz':
+        return ozToG(imperialValue);
+      case 'fl oz' || 'fl.oz':
+        return flOzToMl(imperialValue);
+      default:
+        return imperialValue;
+    }
+  }
+
+  static String metricToImperialUnit(BuildContext context, String unit) {
+    switch (unit) {
+      case 'g':
+        return S.of(context).ozUnit;
+      case 'ml':
+        return S.of(context).flOzUnit;
+      default:
+        return unit;
+    }
+  }
+
+  static String imperialToMetricUnit(BuildContext context, String unit) {
+    switch (unit) {
+      case 'oz':
+        return S.of(context).gramUnit;
+      case 'fl oz' || 'fl.oz':
+        return S.of(context).milliliterUnit;
+      default:
+        return unit;
+    }
   }
 }

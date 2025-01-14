@@ -88,10 +88,11 @@ class MealDetailBottomSheet extends StatelessWidget {
                                       border: const OutlineInputBorder(),
                                       labelText: S.of(context).unitLabel),
                                   items: <DropdownMenuItem<String>>[
-                                    if (product.isSolid && !product.isLiquid)
-                                      ..._getSolidUnitDropdownItems(context)
-                                    else if (product.isLiquid &&
-                                        !product.isSolid)
+                                    if (product.isSolid ||
+                                        !product.isLiquid && !product.isSolid)
+                                      ..._getSolidUnitDropdownItems(context),
+                                    if (product.isLiquid ||
+                                        !product.isLiquid && !product.isSolid)
                                       ..._getLiquidUnitDropdownItems(context),
                                     ..._getOtherDropdownItems(context)
                                   ],
