@@ -28,4 +28,8 @@ class AddConfigUsecase {
   Future<void> setConfigUsesImperialUnits(bool usesImperialUnits) async {
     _configRepository.setConfigUsesImperialUnits(usesImperialUnits);
   }
+
+  Future<void> setConfigKcalAdjustment(double kcalAdjustment) async {
+    _configRepository.setConfigKcalAdjustment(kcalAdjustment);
+  }
 }

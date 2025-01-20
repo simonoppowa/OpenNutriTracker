@@ -8,10 +8,11 @@ class ConfigEntity extends Equatable {
   final bool hasAcceptedSendAnonymousData;
   final AppThemeEntity appTheme;
   final bool usesImperialUnits;
+  final double? userKcalAdjustment;
 
   const ConfigEntity(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.appTheme,
-      {this.usesImperialUnits = false});
+      {this.usesImperialUnits = false, this.userKcalAdjustment});
 
   factory ConfigEntity.fromConfigDBO(ConfigDBO dbo) => ConfigEntity(
         dbo.hasAcceptedDisclaimer,
@@ -19,6 +20,7 @@ class ConfigEntity extends Equatable {
         dbo.hasAcceptedSendAnonymousData,
         AppThemeEntity.fromAppThemeDBO(dbo.selectedAppTheme),
         usesImperialUnits: dbo.usesImperialUnits ?? false,
+        userKcalAdjustment: dbo.kcalAdjustment,
       );
 
   @override
@@ -26,6 +28,7 @@ class ConfigEntity extends Equatable {
         hasAcceptedDisclaimer,
         hasAcceptedPolicy,
         hasAcceptedSendAnonymousData,
-        usesImperialUnits
+        usesImperialUnits,
+        userKcalAdjustment,
       ];
 }

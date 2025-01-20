@@ -6,8 +6,8 @@ import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
-import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/calc/met_calc.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
@@ -21,9 +21,10 @@ class ActivityDetailBloc
   final GetUserUsecase _getUserUsecase;
   final AddUserActivityUsecase _addUserActivityUsecase;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
+  final GetKcalGoalUsecase _getKcalGoalUsecase;
 
   ActivityDetailBloc(this._getUserUsecase, this._addUserActivityUsecase,
-      this._addTrackedDayUsecase)
+      this._addTrackedDayUsecase, this._getKcalGoalUsecase)
       : super(ActivityDetailInitial()) {
     on<LoadActivityDetailEvent>((event, emit) async {
       emit(ActivityDetailLoadingState());
@@ -58,9 +59,8 @@ class ActivityDetailBloc
   }
 
   void _updateTrackedDay(DateTime dateTime, double caloriesBurned) async {
-    final userEntity = await _getUserUsecase.getUserData();
-    final totalKcalGoal =
-        CalorieGoalCalc.getTotalKcalGoal(userEntity, caloriesBurned);
+    final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
+        totalKcalActivitiesParam: caloriesBurned);
     final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(totalKcalGoal);
     final totalFatGoal = MacroCalc.getTotalFatsGoal(totalKcalGoal);
     final totalProteinGoal = MacroCalc.getTotalProteinsGoal(totalKcalGoal);

@@ -45,4 +45,12 @@ class ConfigRepository {
   Future<void> setConfigUsesImperialUnits(bool usesImperialUnits) async {
     _configDataSource.setConfigUsesImperialUnits(usesImperialUnits);
   }
+
+  Future<double> getConfigKcalAdjustment() async {
+    return await _configDataSource.getKcalAdjustment();
+  }
+
+  Future<void> setConfigKcalAdjustment(double kcalAdjustment) async {
+    _configDataSource.setConfigKcalAdjustment(kcalAdjustment);
+  }
 }

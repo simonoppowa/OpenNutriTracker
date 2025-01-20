@@ -65,6 +65,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "breakfastLabel": MessageLookupByLibrary.simpleMessage("Frühstück"),
         "burnedLabel": MessageLookupByLibrary.simpleMessage("verbrannt"),
         "buttonNextLabel": MessageLookupByLibrary.simpleMessage("WEITER"),
+        "buttonResetLabel":
+            MessageLookupByLibrary.simpleMessage("Zurücksetzen"),
         "buttonSaveLabel": MessageLookupByLibrary.simpleMessage("Speichern"),
         "buttonStartLabel": MessageLookupByLibrary.simpleMessage("START"),
         "buttonYesLabel": MessageLookupByLibrary.simpleMessage("JA"),
@@ -94,6 +96,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Möchten Sie einen benutzerdefinierte Mahlzeit erstellen?"),
         "createCustomDialogTitle": MessageLookupByLibrary.simpleMessage(
             "Benutzerdefinierte Mahlzeit erstellen?"),
+        "dailyKcalAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("Tägliche kcal-Anpassung:"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Unterstützen der Entwicklung durch Bereitstellung anonymer Nutzungsdaten"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(

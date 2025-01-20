@@ -6,8 +6,7 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
-import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
+import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
@@ -22,10 +21,10 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
   final log = Logger('MealDetailBloc');
   final AddIntakeUsecase _addIntakeUseCase;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
-  final GetUserUsecase _getUserUsecase;
+  final GetKcalGoalUsecase _getKcalGoalUsecase;
 
-  MealDetailBloc(
-      this._addIntakeUseCase, this._addTrackedDayUsecase, this._getUserUsecase)
+  MealDetailBloc(this._addIntakeUseCase, this._addTrackedDayUsecase,
+      this._getKcalGoalUsecase)
       : super(MealDetailInitial(
             totalQuantityConverted: '100',
             selectedUnit: UnitDropdownItem.gml.toString())) {
@@ -88,8 +87,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       IntakeEntity intakeEntity, DateTime day) async {
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
     if (!hasTrackedDay) {
-      final userEntity = await _getUserUsecase.getUserData();
-      final totalKcalGoal = CalorieGoalCalc.getTotalKcalGoal(userEntity, 0);
+      final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
       final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(totalKcalGoal);
       final totalFatGoal = MacroCalc.getTotalFatsGoal(totalKcalGoal);
       final totalProteinGoal = MacroCalc.getTotalProteinsGoal(totalKcalGoal);

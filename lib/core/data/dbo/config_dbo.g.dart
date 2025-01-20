@@ -22,13 +22,14 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       fields[2] as bool,
       fields[3] as AppThemeDBO,
       usesImperialUnits: fields[4] as bool?,
+      kcalAdjustment: fields[5] as double?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(3)
       ..write(obj.selectedAppTheme)
       ..writeByte(4)
-      ..write(obj.usesImperialUnits);
+      ..write(obj.usesImperialUnits)
+      ..writeByte(5)
+      ..write(obj.kcalAdjustment);
   }
 
   @override

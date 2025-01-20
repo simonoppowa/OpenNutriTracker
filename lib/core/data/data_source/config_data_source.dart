@@ -57,6 +57,18 @@ class ConfigDataSource {
     config?.save();
   }
 
+  Future<double> getKcalAdjustment() async {
+    final config = _configBox.get(_configKey);
+    return config?.kcalAdjustment ?? 0;
+  }
+
+  Future<void> setConfigKcalAdjustment(double kcalAdjustment) async {
+    _log.fine('Updating config kcalAdjustment to $kcalAdjustment');
+    final config = _configBox.get(_configKey);
+    config?.kcalAdjustment = kcalAdjustment;
+    config?.save();
+  }
+
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();
   }

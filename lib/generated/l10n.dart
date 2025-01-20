@@ -320,6 +320,16 @@ class S {
     );
   }
 
+  /// `Reset`
+  String get buttonResetLabel {
+    return Intl.message(
+      'Reset',
+      name: 'buttonResetLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Welcome to`
   String get onboardingWelcomeLabel {
     return Intl.message(
@@ -808,6 +818,16 @@ class S {
       name: 'calculationsMacrosDistribution',
       desc: '',
       args: [pctCarbs, pctFats, pctProteins],
+    );
+  }
+
+  /// `Daily kcal adjustment:`
+  String get dailyKcalAdjustmentLabel {
+    return Intl.message(
+      'Daily kcal adjustment:',
+      name: 'dailyKcalAdjustmentLabel',
+      desc: '',
+      args: [],
     );
   }
 
