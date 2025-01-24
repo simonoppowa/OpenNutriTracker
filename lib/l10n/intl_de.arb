@@ -72,6 +72,7 @@
   "calculationsMacronutrientsDistributionLabel": "Verteilung der Makronährstoffe",
   "calculationsMacrosDistribution": "{pctCarbs}% Kohlenhydrate, {pctFats}% Fette, {pctProteins}% Proteine",
   "dailyKcalAdjustmentLabel": "Tägliche kcal-Anpassung:",
+  "macroDistributionLabel": "Makronährstoff-Verteilung:",
   "addItemLabel": "Neuen Eintrag hinzufügen:",
   "activityLabel": "Aktivität",
   "activityExample": "z. B. Laufen, Radfahren, Yoga ...",

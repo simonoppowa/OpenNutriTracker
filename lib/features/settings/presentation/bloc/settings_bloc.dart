@@ -6,8 +6,8 @@ import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
-import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 
 part 'settings_event.dart';
 
@@ -20,9 +20,14 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final AddConfigUsecase _addConfigUsecase;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
   final GetKcalGoalUsecase _getKcalGoalUsecase;
+  final GetMacroGoalUsecase _getMacroGoalUsecase;
 
-  SettingsBloc(this._getConfigUsecase, this._addConfigUsecase,
-      this._addTrackedDayUsecase, this._getKcalGoalUsecase)
+  SettingsBloc(
+      this._getConfigUsecase,
+      this._addConfigUsecase,
+      this._addTrackedDayUsecase,
+      this._getKcalGoalUsecase,
+      this._getMacroGoalUsecase)
       : super(SettingsInitial()) {
     on<LoadSettingsEvent>((event, emit) async {
       emit(SettingsLoadingState());
@@ -57,16 +62,38 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return config.userKcalAdjustment ?? 0;
   }
 
+  Future<double?> getUserCarbGoalPct() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.userCarbGoalPct;
+  }
+
+  Future<double?> getUserProteinGoalPct() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.userProteinGoalPct;
+  }
+
+  Future<double?> getUserFatGoalPct() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.userFatGoalPct;
+  }
+
   void setKcalAdjustment(double kcalAdjustment) {
     _addConfigUsecase.setConfigKcalAdjustment(kcalAdjustment);
+  }
+  void setMacroGoals(
+      double carbGoalPct, double proteinGoalPct, double fatGoalPct) {
+    _addConfigUsecase.setConfigMacroGoalPct(carbGoalPct.toInt() / 100,
+        proteinGoalPct.toInt() / 100, fatGoalPct.toInt() / 100);
   }
 
   void updateTrackedDay(DateTime day) async {
     final day = DateTime.now();
     final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
-    final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(totalKcalGoal);
-    final totalFatGoal = MacroCalc.getTotalFatsGoal(totalKcalGoal);
-    final totalProteinGoal = MacroCalc.getTotalProteinsGoal(totalKcalGoal);
+    final totalCarbsGoal =
+        await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
+    final totalFatGoal = await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
+    final totalProteinGoal =
+        await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
 
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
 

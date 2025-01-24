@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecas
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
@@ -32,6 +33,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final DeleteUserActivityUsecase _deleteUserActivityUsecase;
   final AddTrackedDayUsecase _addTrackedDayUseCase;
   final GetKcalGoalUsecase _getKcalGoalUsecase;
+  final GetMacroGoalUsecase _getMacroGoalUsecase;
 
   DateTime currentDay = DateTime.now();
 
@@ -44,7 +46,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       this._getUserActivityUsecase,
       this._deleteUserActivityUsecase,
       this._addTrackedDayUseCase,
-      this._getKcalGoalUsecase)
+      this._getKcalGoalUsecase,
+      this._getMacroGoalUsecase)
       : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
@@ -102,9 +105,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           userActivities.map((activity) => activity.burnedKcal).toList().sum;
 
       final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
-      final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(totalKcalGoal);
-      final totalFatsGoal = MacroCalc.getTotalFatsGoal(totalKcalGoal);
-      final totalProteinsGoal = MacroCalc.getTotalProteinsGoal(totalKcalGoal);
+      final totalCarbsGoal =
+          await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
+      final totalFatsGoal =
+          await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
+      final totalProteinsGoal =
+          await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
 
       final totalKcalLeft =
           CalorieGoalCalc.getDailyKcalLeft(totalKcalGoal, totalKcalIntake);

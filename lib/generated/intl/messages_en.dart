@@ -96,7 +96,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "createCustomDialogTitle":
             MessageLookupByLibrary.simpleMessage("Create custom meal item?"),
         "dailyKcalAdjustmentLabel":
-            MessageLookupByLibrary.simpleMessage("Daily kcal adjustment:"),
+            MessageLookupByLibrary.simpleMessage("Daily Kcal adjustment:"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Support development by providing anonymous usage data"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
@@ -161,6 +161,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "lunchExample":
             MessageLookupByLibrary.simpleMessage("e.g. pizza, salad, rice ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
+        "macroDistributionLabel":
+            MessageLookupByLibrary.simpleMessage("Macronutrient Distribution:"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Brands"),
         "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("carbs per"),
         "mealFatLabel": MessageLookupByLibrary.simpleMessage("fat per"),

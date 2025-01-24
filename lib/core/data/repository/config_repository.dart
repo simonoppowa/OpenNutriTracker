@@ -53,4 +53,10 @@ class ConfigRepository {
   Future<void> setConfigKcalAdjustment(double kcalAdjustment) async {
     _configDataSource.setConfigKcalAdjustment(kcalAdjustment);
   }
+
+  Future<void> setUserMacroPct(double carbs, double protein, double fat) async {
+    _configDataSource.setConfigCarbGoalPct(carbs);
+    _configDataSource.setConfigProteinGoalPct(protein);
+    _configDataSource.setConfigFatGoalPct(fat);
+  }
 }

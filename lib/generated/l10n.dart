@@ -821,11 +821,21 @@ class S {
     );
   }
 
-  /// `Daily kcal adjustment:`
+  /// `Daily Kcal adjustment:`
   String get dailyKcalAdjustmentLabel {
     return Intl.message(
-      'Daily kcal adjustment:',
+      'Daily Kcal adjustment:',
       name: 'dailyKcalAdjustmentLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Macronutrient Distribution:`
+  String get macroDistributionLabel {
+    return Intl.message(
+      'Macronutrient Distribution:',
+      name: 'macroDistributionLabel',
       desc: '',
       args: [],
     );

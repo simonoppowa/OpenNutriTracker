@@ -162,6 +162,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "lunchExample": MessageLookupByLibrary.simpleMessage(
             "z. B. Pizza, Salat, Reis ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Mittagessen"),
+        "macroDistributionLabel":
+            MessageLookupByLibrary.simpleMessage("Makronährstoff-Verteilung:"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Marken"),
         "mealCarbsLabel":
             MessageLookupByLibrary.simpleMessage("Kohlenhydrate pro 100 g/ml"),
