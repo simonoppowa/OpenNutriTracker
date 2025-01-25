@@ -275,17 +275,14 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
             ),
             child: Slider(
               min: 5,
-              // Minimum 5%
               max: 90,
-              // Maximum 90%
               value: value,
               divisions: 85,
-              onChanged: (newValue) {
-                // Only allow changes if the total will remain 100%
-                double otherValues = 100 - newValue;
-                if (otherValues >= 10) {
-                  // Ensure at least 5% each for other macros
+              onChanged: (value) {
+                final newValue = value.round().toDouble();
+                if (100 - newValue >= 10) {
                   onChanged(newValue);
+                  _normalizeMacros();
                 }
               },
             ),
@@ -293,6 +290,48 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
         ),
       ],
     );
+  }
+
+  void _normalizeMacros() {
+    setState(() {
+      // First, ensure all values are rounded
+      _carbsPctSelection = _carbsPctSelection.roundToDouble();
+      _proteinPctSelection = _proteinPctSelection.roundToDouble();
+      _fatPctSelection = _fatPctSelection.roundToDouble();
+
+      // Calculate total
+      double total =
+          _carbsPctSelection + _proteinPctSelection + _fatPctSelection;
+
+      // If total isn't 100, adjust values proportionally
+      if (total != 100) {
+        // Calculate adjustment factor
+        double factor = 100 / total;
+
+        // Adjust the first two values
+        _carbsPctSelection = (_carbsPctSelection * factor).roundToDouble();
+        _proteinPctSelection = (_proteinPctSelection * factor).roundToDouble();
+
+        // Set the last value to make total exactly 100
+        _fatPctSelection = 100 - _carbsPctSelection - _proteinPctSelection;
+
+        // Ensure minimum values (5%)
+        if (_fatPctSelection < 5) {
+          _fatPctSelection = 5;
+          // Distribute remaining 95% proportionally between carbs and protein
+          double remaining = 95;
+          double ratio =
+              _carbsPctSelection / (_carbsPctSelection + _proteinPctSelection);
+          _carbsPctSelection = (remaining * ratio).roundToDouble();
+          _proteinPctSelection = remaining - _carbsPctSelection;
+        }
+      }
+
+      // Verify final values
+      assert(
+          _carbsPctSelection + _proteinPctSelection + _fatPctSelection == 100,
+          'Macros must total 100%');
+    });
   }
 
   void _saveCalculationSettings() {
