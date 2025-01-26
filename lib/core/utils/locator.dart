@@ -21,6 +21,8 @@ import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_physical_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
@@ -84,21 +86,23 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator(),
       locator()));
   locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
   locator.registerLazySingleton(() => CalendarDayBloc(
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<ProfileBloc>(
       () => ProfileBloc(locator(), locator(), locator(), locator(), locator()));
-  locator.registerLazySingleton(() => SettingsBloc(locator(), locator()));
+  locator.registerLazySingleton(() =>
+      SettingsBloc(locator(), locator(), locator(), locator(), locator()));
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
   locator.registerFactory<RecentActivitiesBloc>(
       () => RecentActivitiesBloc(locator()));
-  locator.registerFactory<ActivityDetailBloc>(
-      () => ActivityDetailBloc(locator(), locator(), locator()));
+  locator.registerFactory<ActivityDetailBloc>(() => ActivityDetailBloc(
+      locator(), locator(), locator(), locator(), locator()));
   locator.registerFactory<MealDetailBloc>(
-      () => MealDetailBloc(locator(), locator(), locator()));
+      () => MealDetailBloc(locator(), locator(), locator(), locator()));
   locator.registerFactory<ScannerBloc>(() => ScannerBloc(locator(), locator()));
   locator.registerFactory<EditMealBloc>(() => EditMealBloc(locator()));
   locator.registerFactory<AddMealBloc>(() => AddMealBloc(locator()));
@@ -140,6 +144,9 @@ Future<void> initLocator() async {
       () => GetTrackedDayUsecase(locator()));
   locator.registerLazySingleton<AddTrackedDayUsecase>(
       () => AddTrackedDayUsecase(locator()));
+  locator.registerLazySingleton(
+      () => GetKcalGoalUsecase(locator(), locator(), locator()));
+  locator.registerLazySingleton(() => GetMacroGoalUsecase(locator()));
 
   // Repositories
   locator.registerLazySingleton(() => ConfigRepository(locator()));

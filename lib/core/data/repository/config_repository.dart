@@ -45,4 +45,18 @@ class ConfigRepository {
   Future<void> setConfigUsesImperialUnits(bool usesImperialUnits) async {
     _configDataSource.setConfigUsesImperialUnits(usesImperialUnits);
   }
+
+  Future<double> getConfigKcalAdjustment() async {
+    return await _configDataSource.getKcalAdjustment();
+  }
+
+  Future<void> setConfigKcalAdjustment(double kcalAdjustment) async {
+    _configDataSource.setConfigKcalAdjustment(kcalAdjustment);
+  }
+
+  Future<void> setUserMacroPct(double carbs, double protein, double fat) async {
+    _configDataSource.setConfigCarbGoalPct(carbs);
+    _configDataSource.setConfigProteinGoalPct(protein);
+    _configDataSource.setConfigFatGoalPct(fat);
+  }
 }

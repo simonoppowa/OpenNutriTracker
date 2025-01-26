@@ -6,8 +6,9 @@ import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
-import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/calc/met_calc.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
@@ -21,9 +22,15 @@ class ActivityDetailBloc
   final GetUserUsecase _getUserUsecase;
   final AddUserActivityUsecase _addUserActivityUsecase;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
+  final GetKcalGoalUsecase _getKcalGoalUsecase;
+  final GetMacroGoalUsecase _getMacroGoalUsecase;
 
-  ActivityDetailBloc(this._getUserUsecase, this._addUserActivityUsecase,
-      this._addTrackedDayUsecase)
+  ActivityDetailBloc(
+      this._getUserUsecase,
+      this._addUserActivityUsecase,
+      this._addTrackedDayUsecase,
+      this._getKcalGoalUsecase,
+      this._getMacroGoalUsecase)
       : super(ActivityDetailInitial()) {
     on<LoadActivityDetailEvent>((event, emit) async {
       emit(ActivityDetailLoadingState());
@@ -58,12 +65,13 @@ class ActivityDetailBloc
   }
 
   void _updateTrackedDay(DateTime dateTime, double caloriesBurned) async {
-    final userEntity = await _getUserUsecase.getUserData();
-    final totalKcalGoal =
-        CalorieGoalCalc.getTotalKcalGoal(userEntity, caloriesBurned);
-    final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(totalKcalGoal);
-    final totalFatGoal = MacroCalc.getTotalFatsGoal(totalKcalGoal);
-    final totalProteinGoal = MacroCalc.getTotalProteinsGoal(totalKcalGoal);
+    final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
+        totalKcalActivitiesParam: caloriesBurned);
+    final totalCarbsGoal =
+        await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
+    final totalFatGoal = await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
+    final totalProteinGoal =
+        await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
 
     final hasTrackedDay =
         await _addTrackedDayUsecase.hasTrackedDay(DateTime.now());

@@ -9,8 +9,9 @@ import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
@@ -30,8 +31,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final UpdateIntakeUsecase _updateIntakeUsecase;
   final GetUserActivityUsecase _getUserActivityUsecase;
   final DeleteUserActivityUsecase _deleteUserActivityUsecase;
-  final GetUserUsecase _getUserUsecase;
   final AddTrackedDayUsecase _addTrackedDayUseCase;
+  final GetKcalGoalUsecase _getKcalGoalUsecase;
+  final GetMacroGoalUsecase _getMacroGoalUsecase;
 
   DateTime currentDay = DateTime.now();
 
@@ -43,8 +45,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       this._updateIntakeUsecase,
       this._getUserActivityUsecase,
       this._deleteUserActivityUsecase,
-      this._getUserUsecase,
-      this._addTrackedDayUseCase)
+      this._addTrackedDayUseCase,
+      this._getKcalGoalUsecase,
+      this._getMacroGoalUsecase)
       : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
@@ -101,12 +104,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final totalKcalActivities =
           userActivities.map((activity) => activity.burnedKcal).toList().sum;
 
-      final user = await _getUserUsecase.getUserData();
-      final totalKcalGoal =
-          CalorieGoalCalc.getTotalKcalGoal(user, totalKcalActivities);
-      final totalCarbsGoal = MacroCalc.getTotalCarbsGoal(totalKcalGoal);
-      final totalFatsGoal = MacroCalc.getTotalFatsGoal(totalKcalGoal);
-      final totalProteinsGoal = MacroCalc.getTotalProteinsGoal(totalKcalGoal);
+      final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
+      final totalCarbsGoal =
+          await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
+      final totalFatsGoal =
+          await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
+      final totalProteinsGoal =
+          await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
 
       final totalKcalLeft =
           CalorieGoalCalc.getDailyKcalLeft(totalKcalGoal, totalKcalIntake);
