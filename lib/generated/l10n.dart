@@ -320,6 +320,16 @@ class S {
     );
   }
 
+  /// `Reset`
+  String get buttonResetLabel {
+    return Intl.message(
+      'Reset',
+      name: 'buttonResetLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Welcome to`
   String get onboardingWelcomeLabel {
     return Intl.message(
@@ -808,6 +818,26 @@ class S {
       name: 'calculationsMacrosDistribution',
       desc: '',
       args: [pctCarbs, pctFats, pctProteins],
+    );
+  }
+
+  /// `Daily Kcal adjustment:`
+  String get dailyKcalAdjustmentLabel {
+    return Intl.message(
+      'Daily Kcal adjustment:',
+      name: 'dailyKcalAdjustmentLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Macronutrient Distribution:`
+  String get macroDistributionLabel {
+    return Intl.message(
+      'Macronutrient Distribution:',
+      name: 'macroDistributionLabel',
+      desc: '',
+      args: [],
     );
   }
 

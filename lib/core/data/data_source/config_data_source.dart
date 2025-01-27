@@ -57,6 +57,39 @@ class ConfigDataSource {
     config?.save();
   }
 
+  Future<double> getKcalAdjustment() async {
+    final config = _configBox.get(_configKey);
+    return config?.userKcalAdjustment ?? 0;
+  }
+
+  Future<void> setConfigKcalAdjustment(double kcalAdjustment) async {
+    _log.fine('Updating config kcalAdjustment to $kcalAdjustment');
+    final config = _configBox.get(_configKey);
+    config?.userKcalAdjustment = kcalAdjustment;
+    config?.save();
+  }
+
+  Future<void> setConfigCarbGoalPct(double carbGoalPct) async {
+    _log.fine('Updating config carbGoalPct to $carbGoalPct');
+    final config = _configBox.get(_configKey);
+    config?.userCarbGoalPct = carbGoalPct;
+    config?.save();
+  }
+
+  Future<void> setConfigProteinGoalPct(double proteinGoalPct) async {
+    _log.fine('Updating config proteinGoalPct to $proteinGoalPct');
+    final config = _configBox.get(_configKey);
+    config?.userProteinGoalPct = proteinGoalPct;
+    config?.save();
+  }
+
+  Future<void> setConfigFatGoalPct(double fatGoalPct) async {
+    _log.fine('Updating config fatGoalPct to $fatGoalPct');
+    final config = _configBox.get(_configKey);
+    config?.userFatGoalPct = fatGoalPct;
+    config?.save();
+  }
+
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();
   }

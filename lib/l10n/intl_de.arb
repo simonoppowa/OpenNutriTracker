@@ -4,7 +4,6 @@
   "appDescription": "OpenNutriTracker ist ein kostenloser und  quelloffener Kalorien- und Nährstofftracker, der Ihre Privatsphäre respektiert.",
   "alphaVersionName": "[Alpha]",
   "betaVersionName": "[Beta]",
-
   "addLabel": "Hinzufügen",
   "createCustomDialogTitle": "Benutzerdefinierte Mahlzeit erstellen?",
   "createCustomDialogContent": "Möchten Sie einen benutzerdefinierte Mahlzeit erstellen?",
@@ -21,14 +20,13 @@
   "recentlyAddedLabel": "Kürzlich",
   "noMealsRecentlyAddedLabel": "Keine kürzlich hinzugefügten Mahlzeiten",
   "noActivityRecentlyAddedLabel": "Keine kürzlich hinzugefügten Aktivitäten",
-
   "dialogOKLabel": "OK",
   "dialogCancelLabel": "ABBRECHEN",
   "buttonStartLabel": "START",
   "buttonNextLabel": "WEITER",
   "buttonSaveLabel": "Speichern",
   "buttonYesLabel": "JA",
-
+  "buttonResetLabel": "Zurücksetzen",
   "onboardingWelcomeLabel": "Willkommen bei",
   "onboardingOverviewLabel": "Übersicht",
   "onboardingYourGoalLabel": "Ihr Kalorienziel:",
@@ -48,7 +46,6 @@
   "onboardingActivityQuestionSubtitle": "Wie aktiv sind Sie? (Ohne Trainingseinheiten)",
   "onboardingGoalQuestionSubtitle": "Was ist Ihr aktuelles Gewichtsziel?",
   "onboardingSaveUserError": "Falsche Eingabe, bitte versuchen Sie es erneut",
-
   "settingsUnitsLabel": "Einheiten",
   "settingsCalculationsLabel": "Berechnungen",
   "settingsThemeLabel": "Thema",
@@ -74,7 +71,8 @@
   "calculationsRecommendedLabel": "(empfohlen)",
   "calculationsMacronutrientsDistributionLabel": "Verteilung der Makronährstoffe",
   "calculationsMacrosDistribution": "{pctCarbs}% Kohlenhydrate, {pctFats}% Fette, {pctProteins}% Proteine",
-
+  "dailyKcalAdjustmentLabel": "Tägliche kcal-Anpassung:",
+  "macroDistributionLabel": "Makronährstoff-Verteilung:",
   "addItemLabel": "Neuen Eintrag hinzufügen:",
   "activityLabel": "Aktivität",
   "activityExample": "z. B. Laufen, Radfahren, Yoga ...",
@@ -86,25 +84,19 @@
   "dinnerExample": "z. B. Suppe, Hähnchen, Wein ...",
   "snackLabel": "Snack",
   "snackExample": "z. B. Apfel, Eiscreme, Schokolade ...",
-
   "editItemDialogTitle": "Eintrag aktualisieren",
   "itemUpdatedSnackbar": "Eintrag aktualisiert",
-
   "deleteTimeDialogTitle": "Eintrag löschen?",
   "deleteTimeDialogContent": "Möchten Sie den ausgewählten Eintrag löschen?",
   "itemDeletedSnackbar": "Eintrag gelöscht",
-
   "copyDialogTitle": "Zu welcher Mahlzeit hinzufügen?",
-
   "copyOrDeleteTimeDialogTitle": "Was soll getan werden?",
   "copyOrDeleteTimeDialogContent": "Auf \"Nach heute kopieren\" klicken, um die Mahlzeit nach heute zu kopieren. Mit \"Löschen\" kann die Mahlzeit entfernt werden",
   "dialogCopyLabel": "NACH HEUTE KOPIEREN",
   "dialogDeleteLabel": "LÖSCHEN",
-
   "suppliedLabel": "zugeführt",
   "burnedLabel": "verbrannt",
   "kcalLeftLabel": "kcal übrig",
-
   "nutritionInfoLabel": "Nährwertangaben",
   "kcalLabel": "kcal",
   "carbsLabel": "Kohlenhydrate",
@@ -129,10 +121,8 @@
   "milliliterUnit": "ml",
   "gramMilliliterUnit": "g/ml",
   "missingProductInfo": "Produkt fehlen die erforderlichen Angaben zu Kalorien oder Makronährstoffen",
-
   "infoAddedIntakeLabel": "Neue Aufnahme hinzugefügt",
   "infoAddedActivityLabel": "Neue Aktivität hinzugefügt",
-
   "editMealLabel": "Mahlzeit bearbeiten",
   "mealNameLabel": "Mahlzeitenname",
   "mealBrandsLabel": "Marken",
@@ -147,13 +137,11 @@
   "mealFatLabel": "Fett pro 100 g/ml",
   "mealProteinLabel": "Protein pro 100 g/ml",
   "errorMealSave": "Fehler beim Speichern der Mahlzeit. Haben Sie die korrekten Mahlzeiteninformationen eingegeben?",
-
   "bmiLabel": "BMI",
   "bmiInfo": "Der Body-Mass-Index (BMI) ist ein Index zur Klassifizierung von Übergewicht und Fettleibigkeit bei Erwachsenen. Er wird berechnet, indem das Gewicht in Kilogramm durch das Quadrat der Körpergröße in Metern (kg/m²) geteilt wird.\n\nDer BMI unterscheidet nicht zwischen Fett- und Muskelmasse und kann für einige Personen irreführend sein.",
   "readLabel": "Ich habe die Datenschutzbestimmungen gelesen und akzeptiere sie.",
   "privacyPolicyLabel": "Datenschutzrichtlinie",
   "dataCollectionLabel": "Unterstützen der Entwicklung durch Bereitstellung anonymer Nutzungsdaten",
-
   "palSedentaryLabel": "Sitzend",
   "palSedentaryDescriptionLabel": "z. B. Büroarbeit und hauptsächlich sitzende Freizeitaktivitäten",
   "palLowLActiveLabel": "Leicht aktiv",
@@ -162,7 +150,6 @@
   "palActiveDescriptionLabel": "Überwiegend Stehen oder Gehen bei der Arbeit und aktive Freizeitaktivitäten",
   "palVeryActiveLabel": "Sehr aktiv",
   "palVeryActiveDescriptionLabel": "Überwiegend Gehen, Laufen oder Gewichte tragen bei der Arbeit und aktive Freizeitaktivitäten",
-
   "selectPalCategoryLabel": "Aktivitätslevel auswählen",
   "chooseWeightGoalLabel": "Gewichtsziel wählen",
   "goalLoseWeight": "Gewicht verlieren",
@@ -181,16 +168,13 @@
   "genderLabel": "Geschlecht",
   "genderMaleLabel": "♂ männlich",
   "genderFemaleLabel": "♀ weiblich",
-
   "nothingAddedLabel": "Nichts hinzugefügt",
-
   "nutritionalStatusUnderweight": "Untergewicht",
   "nutritionalStatusNormalWeight": "Normales Gewicht",
   "nutritionalStatusPreObesity": "Prä-Adipositas",
   "nutritionalStatusObeseClassI": "Fettleibigkeit Klasse I",
   "nutritionalStatusObeseClassII": "Fettleibigkeit Klasse II",
   "nutritionalStatusObeseClassIII": "Fettleibigkeit Klasse III",
-
   "nutritionalStatusRiskLabel": "Risiko für Begleiterkrankungen: {riskValue}",
   "nutritionalStatusRiskLow": "Niedrig \n(aber erhöhtes Risiko für andere \nklinische Probleme)",
   "nutritionalStatusRiskAverage": "Durchschnittlich",
@@ -198,7 +182,6 @@
   "nutritionalStatusRiskModerate": "Mäßig",
   "nutritionalStatusRiskSevere": "Schwerwiegend",
   "nutritionalStatusRiskVerySevere": "Sehr schwerwiegend",
-
   "errorOpeningEmail": "Fehler beim Öffnen der E-Mail-Anwendung",
   "errorOpeningBrowser": "Fehler beim Öffnen der Browser-Anwendung",
   "errorFetchingProductData": "Fehler beim Abrufen von Produktinformationen",
@@ -206,9 +189,7 @@
   "errorLoadingActivities": "Fehler beim Laden von Aktivitäten",
   "noResultsFound": "Keine Ergebnisse gefunden",
   "retryLabel": "Erneut versuchen",
-
   "@PHYSICAL_ACTIVITIES": {},
-
   "paHeadingBicycling": "Radfahren",
   "paHeadingConditionalExercise": "Konditionstraining",
   "paHeadingDancing": "Tanzen",
@@ -217,9 +198,7 @@
   "paHeadingWalking": "Gehen",
   "paHeadingWaterActivities": "Wassersport",
   "paHeadingWinterActivities": "Winteraktivitäten",
-
   "paGeneralDesc": "allgemein",
-
   "paBicyclingGeneral": "Radfahren",
   "paBicyclingGeneralDesc": "allgemein",
   "paBicyclingMountainGeneral": "Mountainbiking",
@@ -409,5 +388,4 @@
   "paSkiingGeneralDesc": "allgemein",
   "paSnowShovingModerate": "Schnee schaufeln",
   "paSnowShovingModerateDesc": "manuell, mäßige Anstrengung"
-
 }
