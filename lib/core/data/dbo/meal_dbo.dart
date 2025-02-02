@@ -31,6 +31,9 @@ class MealDBO extends HiveObject {
   @HiveField(9)
   final String? servingUnit;
 
+  @HiveField(12)
+  final String? servingSize;
+
   @HiveField(10)
   final MealSourceDBO source;
 
@@ -48,27 +51,25 @@ class MealDBO extends HiveObject {
       required this.mealUnit,
       required this.servingQuantity,
       required this.servingUnit,
+      required this.servingSize,
       required this.nutriments,
       required this.source});
 
-  factory MealDBO.fromMealEntity(
-          MealEntity mealEntity) =>
-      MealDBO(
-          code: mealEntity.code,
-          name: mealEntity.name,
-          brands: mealEntity.brands,
-          thumbnailImageUrl: mealEntity.thumbnailImageUrl,
-          mainImageUrl: mealEntity.mainImageUrl,
-          url: mealEntity.url,
-          mealQuantity: mealEntity.mealQuantity,
-          mealUnit: mealEntity.mealUnit,
-          servingQuantity: mealEntity.servingQuantity,
-          servingUnit: mealEntity.servingUnit,
-          nutriments:
-              MealNutrimentsDBO.fromProductNutrimentsEntity(
-                  mealEntity.nutriments),
-          source:
-              MealSourceDBO.fromMealSourceEntity(mealEntity.source));
+  factory MealDBO.fromMealEntity(MealEntity mealEntity) => MealDBO(
+      code: mealEntity.code,
+      name: mealEntity.name,
+      brands: mealEntity.brands,
+      thumbnailImageUrl: mealEntity.thumbnailImageUrl,
+      mainImageUrl: mealEntity.mainImageUrl,
+      url: mealEntity.url,
+      mealQuantity: mealEntity.mealQuantity,
+      mealUnit: mealEntity.mealUnit,
+      servingQuantity: mealEntity.servingQuantity,
+      servingUnit: mealEntity.servingUnit,
+      servingSize: mealEntity.servingSize,
+      nutriments:
+          MealNutrimentsDBO.fromProductNutrimentsEntity(mealEntity.nutriments),
+      source: MealSourceDBO.fromMealSourceEntity(mealEntity.source));
 }
 
 @HiveType(typeId: 14)

@@ -27,7 +27,7 @@ class OFFProductDTO {
   final String? quantity;
   final dynamic product_quantity; // Can either be int or String
   final dynamic serving_quantity; // Can either be int or String
-  final String? serving_size;
+  final String? serving_size;  // E.g. 2 Tbsp (32 g)
 
   final OFFProductNutrimentsDTO nutriments;
 

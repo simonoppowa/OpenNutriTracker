@@ -1341,6 +1341,16 @@ class S {
     );
   }
 
+  /// `N/A`
+  String get notAvailableLabel {
+    return Intl.message(
+      'N/A',
+      name: 'notAvailableLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Product missing required kcal or macronutrients information`
   String get missingProductInfo {
     return Intl.message(
@@ -1416,6 +1426,16 @@ class S {
     return Intl.message(
       'Meal size (oz/fl oz)',
       name: 'mealSizeLabelImperial',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Serving`
+  String get servingLabel {
+    return Intl.message(
+      'Serving',
+      name: 'servingLabel',
       desc: '',
       args: [],
     );

@@ -10,6 +10,7 @@ class MealEntityFixtures {
       mealUnit: 'g',
       servingQuantity: null,
       servingUnit: 'g',
+      servingSize: '2 Tbsp (32 g)',
       nutriments: MealNutrimentsEntity.empty(),
       source: MealSourceEntity.custom);
   static final mealTwo = MealEntity(
@@ -20,6 +21,7 @@ class MealEntityFixtures {
       mealUnit: 'g',
       servingQuantity: null,
       servingUnit: 'g',
+      servingSize: '2 Tbsp (32 g)',
       nutriments: MealNutrimentsEntity.empty(),
       source: MealSourceEntity.custom);
   static final mealThree = MealEntity(
@@ -30,6 +32,7 @@ class MealEntityFixtures {
       mealUnit: 'g',
       servingQuantity: null,
       servingUnit: 'g',
+      servingSize: '2 Tbsp (32 g)',
       nutriments: MealNutrimentsEntity.empty(),
       source: MealSourceEntity.custom);
 }
