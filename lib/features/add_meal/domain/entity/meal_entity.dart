@@ -139,7 +139,8 @@ class MealEntity extends Equatable {
         mealUnit: FDCConst.fdcDefaultUnit,
         servingQuantity: foodItem.servingSize,
         servingUnit: FDCConst.fdcDefaultUnit,
-        servingSize: FDCConst.fdcDefaultUnit,
+        servingSize:
+            "${(foodItem.servingAmount ?? 1).toInt()} ${foodItem.servingSizeUnit}",
         nutriments: MealNutrimentsEntity.fromFDCNutriments(foodItem.nutrients),
         source: MealSourceEntity.fdc);
   }
