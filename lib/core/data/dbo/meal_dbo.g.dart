@@ -27,6 +27,7 @@ class MealDBOAdapter extends TypeAdapter<MealDBO> {
       mealUnit: fields[7] as String?,
       servingQuantity: fields[8] as double?,
       servingUnit: fields[9] as String?,
+      servingSize: fields[12] as String?,
       nutriments: fields[11] as MealNutrimentsDBO,
       source: fields[10] as MealSourceDBO,
     );
@@ -35,7 +36,7 @@ class MealDBOAdapter extends TypeAdapter<MealDBO> {
   @override
   void write(BinaryWriter writer, MealDBO obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.code)
       ..writeByte(1)
@@ -56,6 +57,8 @@ class MealDBOAdapter extends TypeAdapter<MealDBO> {
       ..write(obj.servingQuantity)
       ..writeByte(9)
       ..write(obj.servingUnit)
+      ..writeByte(12)
+      ..write(obj.servingSize)
       ..writeByte(10)
       ..write(obj.source)
       ..writeByte(11)

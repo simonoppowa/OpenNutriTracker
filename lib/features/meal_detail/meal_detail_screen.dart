@@ -66,18 +66,17 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
     // Set initial unit
     if (_initialUnit == "") {
-      if (meal.isLiquid) {
-        if (_usesImperialUnits) {
-          _initialUnit = UnitDropdownItem.flOz.toString();
-        } else {
-          _initialUnit = UnitDropdownItem.ml.toString();
-        }
+      if (meal.hasServingValues) {
+        _initialUnit = UnitDropdownItem.serving.toString();
+      } else if (meal.isLiquid) {
+        _initialUnit = _usesImperialUnits
+            ? UnitDropdownItem.flOz.toString()
+            : UnitDropdownItem.ml.toString();
       } else if (meal.isSolid) {
-        if (_usesImperialUnits) {
-          _initialUnit = UnitDropdownItem.oz.toString();
-        } else {
-          _initialUnit = UnitDropdownItem.g.toString();
-        }
+        _initialUnit = _usesImperialUnits
+            ? UnitDropdownItem.oz.toString()
+
+            : UnitDropdownItem.g.toString();
       } else {
         _initialUnit = UnitDropdownItem.gml.toString();
       }
@@ -87,7 +86,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
     // Set initial quantity
     if (_initialQuantity == "") {
-      if (_usesImperialUnits) {
+      if (meal.hasServingValues) {
+        _initialQuantity = "1";
+        quantityTextController.text = "1";
+      } else if (_usesImperialUnits) {
         _initialQuantity = _initialQuantityImperial;
         quantityTextController.text = _initialQuantityImperial;
       } else {
@@ -224,7 +226,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     MealValueUnitText(
                       value: double.parse(totalQuantity),
                       meal: meal,
-                      displayUnit: selectedUnit,
+                      displayUnit:
+                          selectedUnit == UnitDropdownItem.serving.toString()
+                              ? meal.servingUnit
+                              : selectedUnit,
                       usesImperialUnits: _usesImperialUnits,
                       textStyle: Theme.of(context).textTheme.bodyMedium,
                       prefix: ' / ',

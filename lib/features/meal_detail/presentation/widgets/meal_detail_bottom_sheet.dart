@@ -83,11 +83,14 @@ class MealDetailBottomSheet extends StatelessWidget {
                           const SizedBox(width: 16.0),
                           Expanded(
                               child: DropdownButtonFormField(
+                                  isExpanded: true,
                                   value: selectedUnit,
                                   decoration: InputDecoration(
                                       border: const OutlineInputBorder(),
                                       labelText: S.of(context).unitLabel),
                                   items: <DropdownMenuItem<String>>[
+                                    if (product.hasServingValues)
+                                      _getServingDropdownItem(context),
                                     if (product.isSolid ||
                                         !product.isLiquid && !product.isSolid)
                                       ..._getSolidUnitDropdownItems(context),
@@ -175,15 +178,28 @@ class MealDetailBottomSheet extends StatelessWidget {
         .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
   }
 
+  DropdownMenuItem<String> _getServingDropdownItem(BuildContext context) {
+    return DropdownMenuItem(
+      value: UnitDropdownItem.serving.toString(),
+      child: Text(
+          product.servingSize ??
+              '${S.of(context).servingLabel} (${product.servingQuantity} ${product.servingUnit})',
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1),
+    );
+  }
+
   List<DropdownMenuItem<String>> _getSolidUnitDropdownItems(
       BuildContext context) {
     return [
       DropdownMenuItem(
           value: UnitDropdownItem.g.toString(),
-          child: Text(S.of(context).gramUnit)),
+          child: Text(S.of(context).gramUnit,
+              overflow: TextOverflow.ellipsis, maxLines: 1)),
       DropdownMenuItem(
           value: UnitDropdownItem.oz.toString(),
-          child: Text(S.of(context).ozUnit)),
+          child: Text(S.of(context).ozUnit,
+              overflow: TextOverflow.ellipsis, maxLines: 1)),
     ];
   }
 
@@ -192,10 +208,12 @@ class MealDetailBottomSheet extends StatelessWidget {
     return [
       DropdownMenuItem(
           value: UnitDropdownItem.ml.toString(),
-          child: Text(S.of(context).milliliterUnit)),
+          child: Text(S.of(context).milliliterUnit,
+              overflow: TextOverflow.ellipsis, maxLines: 1)),
       DropdownMenuItem(
           value: UnitDropdownItem.flOz.toString(),
-          child: Text(S.of(context).flOzUnit)),
+          child: Text(S.of(context).flOzUnit,
+              overflow: TextOverflow.ellipsis, maxLines: 1)),
     ];
   }
 
@@ -203,7 +221,10 @@ class MealDetailBottomSheet extends StatelessWidget {
     return [
       DropdownMenuItem(
           value: UnitDropdownItem.gml.toString(),
-          child: Text(S.of(context).gramMilliliterUnit)),
+          child: Text(
+              "${S.of(context).notAvailableLabel} (${S.of(context).gramMilliliterUnit})",
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1)),
     ];
   }
 }

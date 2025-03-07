@@ -34,6 +34,9 @@ class MealEntity extends Equatable {
   final String? mealUnit;
   final double? servingQuantity;
   final String? servingUnit;
+  final String? servingSize;
+
+  get hasServingValues => servingQuantity != null && servingUnit != null;
 
   final MealSourceEntity source;
 
@@ -54,6 +57,7 @@ class MealEntity extends Equatable {
       required this.mealUnit,
       required this.servingQuantity,
       required this.servingUnit,
+      required this.servingSize,
       required this.nutriments,
       required this.source});
 
@@ -65,6 +69,7 @@ class MealEntity extends Equatable {
       mealUnit: 'gml',
       servingQuantity: null,
       servingUnit: 'gml',
+      servingSize: '',
       nutriments: MealNutrimentsEntity.empty(),
       source: MealSourceEntity.custom);
 
@@ -79,6 +84,7 @@ class MealEntity extends Equatable {
       mealUnit: mealDBO.mealUnit,
       servingQuantity: mealDBO.servingQuantity,
       servingUnit: mealDBO.servingUnit,
+      servingSize: mealDBO.servingSize,
       nutriments:
           MealNutrimentsEntity.fromMealNutrimentsDBO(mealDBO.nutriments),
       source: MealSourceEntity.fromMealSourceDBO(mealDBO.source));
@@ -96,6 +102,7 @@ class MealEntity extends Equatable {
         mealUnit: _tryGetUnit(offProduct.quantity),
         servingQuantity: _tryQuantityCast(offProduct.serving_quantity),
         servingUnit: _tryGetUnit(offProduct.quantity),
+        servingSize: offProduct.serving_size,
         nutriments:
             MealNutrimentsEntity.fromOffNutriments(offProduct.nutriments),
         source: MealSourceEntity.off);
@@ -113,6 +120,7 @@ class MealEntity extends Equatable {
         mealUnit: fdcFood.servingSizeUnit,
         servingQuantity: fdcFood.servingSize,
         servingUnit: fdcFood.servingSizeUnit,
+        servingSize: fdcFood.servingSizeUnit,
         nutriments:
             MealNutrimentsEntity.fromFDCNutriments(fdcFood.foodNutrients),
         source: MealSourceEntity.fdc);
@@ -131,6 +139,8 @@ class MealEntity extends Equatable {
         mealUnit: FDCConst.fdcDefaultUnit,
         servingQuantity: foodItem.servingSize,
         servingUnit: FDCConst.fdcDefaultUnit,
+        servingSize:
+            "${(foodItem.servingAmount ?? 1).toInt()} ${foodItem.servingSizeUnit}",
         nutriments: MealNutrimentsEntity.fromFDCNutriments(foodItem.nutrients),
         source: MealSourceEntity.fdc);
   }

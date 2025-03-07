@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 
 class TrackedDayEntity extends Equatable {
-  static const maxKcalDifference = 500;
+  static const maxKcalDifferenceOverGoal = 500;
+  static const maxKcalDifferenceUnderGoal = 1000;
 
   final DateTime day;
   final double calorieGoal;
@@ -41,7 +42,7 @@ class TrackedDayEntity extends Equatable {
 
   // TODO: make enum class for rating
   Color getCalendarDayRatingColor(BuildContext context) {
-    if ((calorieGoal - caloriesTracked).abs() < maxKcalDifference) {
+    if (_hasExceededMaxKcalDifferenceGoal(calorieGoal, caloriesTracked)) {
       return Theme.of(context).colorScheme.primary;
     } else {
       return Theme.of(context).colorScheme.error;
@@ -49,7 +50,7 @@ class TrackedDayEntity extends Equatable {
   }
 
   Color getRatingDayTextColor(BuildContext context) {
-    if ((calorieGoal - caloriesTracked).abs() < maxKcalDifference) {
+    if (_hasExceededMaxKcalDifferenceGoal(calorieGoal, caloriesTracked)) {
       return Theme.of(context).colorScheme.onSecondaryContainer;
     } else {
       return Theme.of(context).colorScheme.onErrorContainer;
@@ -57,10 +58,21 @@ class TrackedDayEntity extends Equatable {
   }
 
   Color getRatingDayTextBackgroundColor(BuildContext context) {
-    if ((calorieGoal - caloriesTracked).abs() < maxKcalDifference) {
+    if (_hasExceededMaxKcalDifferenceGoal(calorieGoal, caloriesTracked)) {
       return Theme.of(context).colorScheme.secondaryContainer;
     } else {
       return Theme.of(context).colorScheme.errorContainer;
+    }
+  }
+
+  bool _hasExceededMaxKcalDifferenceGoal(
+      double calorieGoal, caloriesTracked) {
+    double difference = calorieGoal - caloriesTracked;
+
+    if (calorieGoal < caloriesTracked) {
+      return difference.abs() < maxKcalDifferenceOverGoal;
+    } else {
+      return difference < maxKcalDifferenceUnderGoal;
     }
   }
 
