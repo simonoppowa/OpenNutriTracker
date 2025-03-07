@@ -29,14 +29,30 @@ class SpFdcFoodDTO {
         return descriptionEn;
       case SupportedLanguage.de:
         return descriptionDe;
-      }
+    }
   }
 
-  get servingSize => portions
+  double? get servingSize => portions
       .firstWhereOrNull((portion) =>
           portion.measureUnitId == FDCConst.fdcPortionServingId ||
           portion.measureUnitId == FDCConst.fdcPortionUnknownId)
       ?.gramWeight;
+
+  String? get servingSizeUnit {
+    final id = portions
+            .firstWhereOrNull((portion) =>
+                portion.measureUnitId == FDCConst.fdcPortionServingId ||
+                portion.measureUnitId == FDCConst.fdcPortionUnknownId)
+            ?.measureUnitId ??
+        FDCConst.fdcPortionUnknownId;
+    return FDCConst.measureUnits[id];
+  }
+
+  double? get servingAmount => portions
+      .firstWhereOrNull((portion) =>
+          portion.measureUnitId == FDCConst.fdcPortionServingId ||
+          portion.measureUnitId == FDCConst.fdcPortionUnknownId)
+      ?.amount;
 
   SpFdcFoodDTO(
       {required this.fdcId,

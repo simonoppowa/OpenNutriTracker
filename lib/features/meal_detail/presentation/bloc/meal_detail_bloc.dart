@@ -47,9 +47,14 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         final quantity =
             double.parse(selectedTotalQuantity.replaceAll(',', '.'));
 
-        // Convert imperial quantity to metric
+        // Convert quantity based on selected unit
         double convertedQuantity = quantity;
-        if (selectedUnit == UnitDropdownItem.oz.toString()) {
+        if (selectedUnit == UnitDropdownItem.serving.toString()) {
+          // For serving size, multiply by the product's serving quantity
+          if (event.meal.servingQuantity != null) {
+            convertedQuantity = quantity * event.meal.servingQuantity!;
+          }
+        } else if (selectedUnit == UnitDropdownItem.oz.toString()) {
           convertedQuantity = UnitCalc.ozToG(quantity);
         } else if (selectedUnit == UnitDropdownItem.flOz.toString()) {
           convertedQuantity = UnitCalc.flOzToMl(quantity);
@@ -113,7 +118,8 @@ enum UnitDropdownItem {
   ml,
   gml,
   oz,
-  flOz;
+  flOz,
+  serving;
 
   UnitDropdownItem fromString(String value) {
     switch (value) {
@@ -127,6 +133,8 @@ enum UnitDropdownItem {
         return UnitDropdownItem.oz;
       case 'fl oz' || 'fl.oz':
         return UnitDropdownItem.flOz;
+      case 'serving':
+        return UnitDropdownItem.serving;
       default:
         return UnitDropdownItem.gml;
     }
@@ -145,6 +153,8 @@ enum UnitDropdownItem {
         return 'oz';
       case UnitDropdownItem.flOz:
         return 'fl.oz';
+      case UnitDropdownItem.serving:
+        return 'serving';
     }
   }
 }
