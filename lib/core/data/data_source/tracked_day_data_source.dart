@@ -14,9 +14,18 @@ class TrackedDayDataSource {
     _trackedDayBox.put(trackedDayDBO.day.toParsedDay(), trackedDayDBO);
   }
 
+  Future<void> saveAllTrackedDays(List<TrackedDayDBO> trackedDayDBOList) async {
+    log.fine('Updating tracked days in db');
+    _trackedDayBox.putAll({
+      for (var trackedDayDBO in trackedDayDBOList)
+        trackedDayDBO.day.toParsedDay(): trackedDayDBO
+    });
+  }
+
   Future<List<TrackedDayDBO>> getAllTrackedDays() async {
     return _trackedDayBox.values.toList();
   }
+
   Future<TrackedDayDBO?> getTrackedDay(DateTime day) async {
     return _trackedDayBox.get(day.toParsedDay());
   }

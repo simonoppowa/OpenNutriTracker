@@ -14,6 +14,12 @@ class UserActivityDataSource {
     _userActivityBox.add(userActivityDBO);
   }
 
+  Future<void> addAllUserActivities(
+      List<UserActivityDBO> userActivityDBOList) async {
+    log.fine('Adding new user activities to db');
+    _userActivityBox.addAll(userActivityDBOList);
+  }
+
   Future<void> deleteIntakeFromId(String activityId) async {
     log.fine('Deleting activity item from db');
     _userActivityBox.values

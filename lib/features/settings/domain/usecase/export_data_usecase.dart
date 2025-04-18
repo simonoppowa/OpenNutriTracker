@@ -17,7 +17,7 @@ class ExportDataUsecase {
 
   /// Exports user activity, intake, and tracked day data to a zip of json
   /// files at a user specified location.
-  Future<void> exportData(
+  Future<bool> exportData(
       String exportZipFileName,
       String userActivityJsonFileName,
       String userIntakeJsonFileName,
@@ -42,7 +42,6 @@ class ExportDataUsecase {
     final trackedDayJsonBytes = utf8.encode(fullTrackedDayJson);
 
     // Create a zip file with the exported data
-    // Add
     final archive = Archive();
     archive.addFile(
       ArchiveFile(userActivityJsonFileName, userActivityJsonBytes.length,
@@ -59,11 +58,13 @@ class ExportDataUsecase {
 
     // Save the zip file to the user specified location
     final zipBytes = ZipEncoder().encode(archive);
-    await FilePicker.platform.saveFile(
+    final result = await FilePicker.platform.saveFile(
       fileName: exportZipFileName,
       type: FileType.custom,
       allowedExtensions: ['zip'],
       bytes: Uint8List.fromList(zipBytes),
     );
+
+    return result != null && result.isNotEmpty;
   }
 }

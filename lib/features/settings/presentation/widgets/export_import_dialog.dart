@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ExportImportDialog extends StatelessWidget {
   final exportImportBloc = locator<ExportImportBloc>();
+
+  final _homeBloc = locator<HomeBloc>();
+  final _diaryBloc = locator<DiaryBloc>();
+  final _calendarDayBloc = locator<CalendarDayBloc>();
 
   ExportImportDialog({super.key});
 
@@ -29,9 +36,11 @@ class ExportImportDialog extends StatelessWidget {
                   } else if (state is ExportImportLoadingState) {
                     return const LinearProgressIndicator();
                   } else if (state is ExportImportSuccess) {
+                    refreshScreens();
                     return Row(
                       children: [
-                        const Icon(Icons.check_circle, color: Colors.green),
+                        Icon(Icons.check_circle,
+                            color: Theme.of(context).colorScheme.primary),
                         SizedBox(width: 8),
                         Text(
                           S.of(context).exportImportSuccessLabel,
@@ -41,7 +50,8 @@ class ExportImportDialog extends StatelessWidget {
                   } else if (state is ExportImportError) {
                     return Row(
                       children: [
-                        const Icon(Icons.error, color: Colors.red),
+                        Icon(Icons.error,
+                            color: Theme.of(context).colorScheme.error),
                         SizedBox(width: 8),
                         Text(
                           S.of(context).exportImportErrorLabel,
@@ -59,15 +69,21 @@ class ExportImportDialog extends StatelessWidget {
           onPressed: () {
             exportImportBloc.add(ExportDataEvent());
           },
-          child: Text('Export'),
+          child: Text(S.of(context).exportAction),
         ),
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(true);
+            exportImportBloc.add(ImportDataEvent());
           },
-          child: Text('Import'),
+          child: Text(S.of(context).importAction),
         ),
       ],
     );
+  }
+
+  void refreshScreens() {
+    _homeBloc.add(const LoadItemsEvent());
+    _diaryBloc.add(const LoadDiaryYearEvent());
+    _calendarDayBloc.add(LoadCalendarDayEvent(DateTime.now()));
   }
 }

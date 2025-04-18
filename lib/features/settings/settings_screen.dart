@@ -73,11 +73,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () => _showCalculationsDialog(context),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.folder_zip),
-                  title: Text('Export/Import Data'),
-                  onTap: () => _showExportImportDialog(context),
-                ),
-                ListTile(
                   leading: const Icon(Icons.brightness_medium_outlined),
                   title: Text(S.of(context).settingsThemeLabel),
                   onTap: () => _showThemeDialog(context, state.appTheme),

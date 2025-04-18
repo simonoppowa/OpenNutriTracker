@@ -16,6 +16,11 @@ class IntakeDataSource {
     _intakeBox.add(intakeDBO);
   }
 
+  Future<void> addAllIntakes(List<IntakeDBO> intakeDBOList) async {
+    log.fine('Adding new intake items to db');
+    _intakeBox.addAll(intakeDBOList);
+  }
+
   Future<void> deleteIntakeFromId(String intakeId) async {
     log.fine('Deleting intake item from db');
     _intakeBox.values
