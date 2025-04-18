@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 
 part 'physical_activity_dbo.g.dart';
@@ -8,6 +9,7 @@ part 'physical_activity_dbo.g.dart';
 /// https://pubmed.ncbi.nlm.nih.gov/21681120/
 /// by Ainsworth et al.
 @HiveType(typeId: 11)
+@JsonSerializable()
 class PhysicalActivityDBO {
   @HiveField(1)
   final String code;
@@ -37,6 +39,11 @@ class PhysicalActivityDBO {
         entity.tags,
         PhysicalActivityTypeDBO.fromPhysicalActivityTypeEntity(entity.type));
   }
+
+  factory PhysicalActivityDBO.fromJson(Map<String, dynamic> json) =>
+      _$PhysicalActivityDBOFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PhysicalActivityDBOToJson(this);
 }
 
 @HiveType(typeId: 12)

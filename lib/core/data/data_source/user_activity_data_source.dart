@@ -24,6 +24,9 @@ class UserActivityDataSource {
     });
   }
 
+  Future<List<UserActivityDBO>> getAllUserActivities() async {
+    return _userActivityBox.values.toList();
+  }
   Future<List<UserActivityDBO>> getAllUserActivitiesByDate(
       DateTime dateTime) async {
     return _userActivityBox.values

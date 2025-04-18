@@ -1,9 +1,11 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
 part 'meal_nutriments_dbo.g.dart';
 
 @HiveType(typeId: 3)
+@JsonSerializable()
 class MealNutrimentsDBO extends HiveObject {
   @HiveField(0)
   final double? energyKcal100;
@@ -40,4 +42,9 @@ class MealNutrimentsDBO extends HiveObject {
         saturatedFat100: nutriments.saturatedFat100,
         fiber100: nutriments.fiber100);
   }
+
+  factory MealNutrimentsDBO.fromJson(Map<String, dynamic> json) =>
+      _$MealNutrimentsDBOFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MealNutrimentsDBOToJson(this);
 }

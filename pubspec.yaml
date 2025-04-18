@@ -50,6 +50,8 @@ dependencies:
   cached_network_image: ^3.4.1
   flutter_cache_manager: ^3.4.1
   envied: ^1.0.0
+  archive: 4.0.6
+  file_picker: 10.1.2
 
   flutter_bloc: ^8.1.6
   equatable: ^2.0.7

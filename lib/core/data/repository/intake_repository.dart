@@ -24,6 +24,9 @@ class IntakeRepository {
     return result == null ? null : IntakeEntity.fromIntakeDBO(result);
   }
 
+  Future<List<IntakeDBO>> getAllIntakesDBO() async {
+    return await _intakeDataSource.getAllIntakes();
+  }
   Future<List<IntakeEntity>> getIntakeByDateAndType(
       IntakeTypeEntity intakeType, DateTime date) async {
     final intakeDBOList = await _intakeDataSource.getAllIntakesByDate(

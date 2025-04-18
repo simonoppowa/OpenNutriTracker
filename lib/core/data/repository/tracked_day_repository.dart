@@ -7,6 +7,10 @@ class TrackedDayRepository {
 
   TrackedDayRepository(this._trackedDayDataSource);
 
+
+  Future<List<TrackedDayDBO>> getAllTrackedDaysDBO() async {
+    return await _trackedDayDataSource.getAllTrackedDays();
+  }
   Future<TrackedDayEntity?> getTrackedDay(DateTime day) async {
     final trackedDay = await _trackedDayDataSource.getTrackedDay(day);
     if (trackedDay != null) {

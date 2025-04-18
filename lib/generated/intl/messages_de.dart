@@ -132,6 +132,15 @@ class MessageLookup extends MessageLookupByLibrary {
             "Fehler beim Öffnen der E-Mail-Anwendung"),
         "errorProductNotFound":
             MessageLookupByLibrary.simpleMessage("Produkt nicht gefunden"),
+        "exportAction": MessageLookupByLibrary.simpleMessage("Exportieren"),
+        "exportImportDescription": MessageLookupByLibrary.simpleMessage(
+            "Sie können die App-Daten in eine Zip-Datei exportieren und später importieren. Dies ist nützlich, wenn Sie Ihre Daten sichern oder auf ein anderes Gerät übertragen möchten.\n\nDie App nutzt keinen Cloud-Dienst, um Ihre Daten zu speichern."),
+        "exportImportErrorLabel":
+            MessageLookupByLibrary.simpleMessage("Fehler beim Export/Import"),
+        "exportImportLabel": MessageLookupByLibrary.simpleMessage(
+            "Daten Exportieren / Importieren"),
+        "exportImportSuccessLabel":
+            MessageLookupByLibrary.simpleMessage("Export / Import erfolgreich"),
         "fatLabel": MessageLookupByLibrary.simpleMessage("Fett"),
         "fiberLabel": MessageLookupByLibrary.simpleMessage("Ballaststoffe"),
         "flOzUnit": MessageLookupByLibrary.simpleMessage("fl.oz"),
@@ -149,6 +158,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
         "heightLabel": MessageLookupByLibrary.simpleMessage("Größe"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Startseite"),
+        "importAction": MessageLookupByLibrary.simpleMessage("Importieren"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Neue Aktivität hinzugefügt"),
         "infoAddedIntakeLabel":

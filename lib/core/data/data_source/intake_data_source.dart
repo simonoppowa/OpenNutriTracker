@@ -45,6 +45,10 @@ class IntakeDataSource {
     );
   }
 
+  Future<List<IntakeDBO>> getAllIntakes() async {
+    return _intakeBox.values.toList();
+  }
+
   Future<List<IntakeDBO>> getAllIntakesByDate(
       IntakeTypeDBO intakeType, DateTime dateTime) async {
     return _intakeBox.values
