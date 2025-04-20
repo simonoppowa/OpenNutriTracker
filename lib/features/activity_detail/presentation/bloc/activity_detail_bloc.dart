@@ -64,27 +64,29 @@ class ActivityDetailBloc
     _updateTrackedDay(day, totalKcalBurned);
   }
 
-  void _updateTrackedDay(DateTime dateTime, double caloriesBurned) async {
-    final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
-        totalKcalActivitiesParam: caloriesBurned);
-    final totalCarbsGoal =
-        await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
-    final totalFatGoal = await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
-    final totalProteinGoal =
-        await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
-
-    final hasTrackedDay =
-        await _addTrackedDayUsecase.hasTrackedDay(DateTime.now());
+  void _updateTrackedDay(DateTime day, double caloriesBurned) async {
+    final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
     if (!hasTrackedDay) {
-      await _addTrackedDayUsecase.addNewTrackedDay(dateTime, totalKcalGoal,
-          totalCarbsGoal, totalFatGoal, totalProteinGoal);
+      // If the tracked day does not exist, create a new one
+      final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
+          totalKcalActivitiesParam: 0); // Exclude persisted activities
+      final totalCarbsGoal =
+          await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
+      final totalFatGoal =
+          await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
+      final totalProteinGoal =
+          await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
+
+      await _addTrackedDayUsecase.addNewTrackedDay(
+          day, totalKcalGoal, totalCarbsGoal, totalFatGoal, totalProteinGoal);
     }
+
     final carbsIncrease = MacroCalc.getTotalCarbsGoal(caloriesBurned);
     final fatIncrease = MacroCalc.getTotalFatsGoal(caloriesBurned);
     final proteinIncrease = MacroCalc.getTotalProteinsGoal(caloriesBurned);
 
-    _addTrackedDayUsecase.increaseDayCalorieGoal(dateTime, caloriesBurned);
-    _addTrackedDayUsecase.increaseDayMacroGoals(dateTime,
+    _addTrackedDayUsecase.increaseDayCalorieGoal(day, caloriesBurned);
+    _addTrackedDayUsecase.increaseDayMacroGoals(day,
         carbsAmount: carbsIncrease,
         fatAmount: fatIncrease,
         proteinAmount: proteinIncrease);

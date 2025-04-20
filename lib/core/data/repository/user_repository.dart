@@ -18,4 +18,9 @@ class UserRepository {
     final userDBO = await _userDataSource.getUserData();
     return UserEntity.fromUserDBO(userDBO);
   }
+
+  Future<UserDBO> getUserDBO() async {
+    final userDBO = await _userDataSource.getUserData();
+    return userDBO;
+  }
 }

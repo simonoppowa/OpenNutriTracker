@@ -12,3 +12,11 @@ class LoadCalendarDayEvent extends CalendarDayEvent {
   @override
   List<Object?> get props => [];
 }
+
+class RefreshCalendarDayEvent extends CalendarDayEvent {
+
+  const RefreshCalendarDayEvent();
+
+  @override
+  List<Object?> get props => [];
+}

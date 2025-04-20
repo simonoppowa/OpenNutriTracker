@@ -7,6 +7,10 @@ class TrackedDayRepository {
 
   TrackedDayRepository(this._trackedDayDataSource);
 
+  Future<List<TrackedDayDBO>> getAllTrackedDaysDBO() async {
+    return await _trackedDayDataSource.getAllTrackedDays();
+  }
+
   Future<TrackedDayEntity?> getTrackedDay(DateTime day) async {
     final trackedDay = await _trackedDayDataSource.getTrackedDay(day);
     if (trackedDay != null) {
@@ -66,6 +70,10 @@ class TrackedDayRepository {
         proteinTracked: 0));
   }
 
+  Future<void> addAllTrackedDays(List<TrackedDayDBO> trackedDaysDBO) async {
+    await _trackedDayDataSource.saveAllTrackedDays(trackedDaysDBO);
+  }
+
   Future<void> addDayTrackedCalories(DateTime day, double addCalories) async {
     if (await _trackedDayDataSource.hasTrackedDay(day)) {
       _trackedDayDataSource.addDayCaloriesTracked(day, addCalories);
@@ -98,15 +106,22 @@ class TrackedDayRepository {
   }
 
   Future<void> addDayMacrosTracked(DateTime day,
-      {double? carbsTracked, double? fatTracked, double? proteinTracked}) async {
+      {double? carbsTracked,
+      double? fatTracked,
+      double? proteinTracked}) async {
     _trackedDayDataSource.addDayMacroTracked(day,
-        carbsAmount: carbsTracked, fatAmount: fatTracked, proteinAmount: proteinTracked);
+        carbsAmount: carbsTracked,
+        fatAmount: fatTracked,
+        proteinAmount: proteinTracked);
   }
 
   Future<void> removeDayMacrosTracked(DateTime day,
-      {double? carbsTracked, double? fatTracked, double? proteinTracked}) async {
+      {double? carbsTracked,
+      double? fatTracked,
+      double? proteinTracked}) async {
     _trackedDayDataSource.removeDayMacroTracked(day,
-        carbsAmount: carbsTracked, fatAmount: fatTracked, proteinAmount: proteinTracked);
+        carbsAmount: carbsTracked,
+        fatAmount: fatTracked,
+        proteinAmount: proteinTracked);
   }
-
 }

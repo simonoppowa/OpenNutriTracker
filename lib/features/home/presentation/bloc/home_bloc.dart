@@ -220,6 +220,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> _updateDiaryPage(DateTime day) async {
     locator<DiaryBloc>().add(const LoadDiaryYearEvent());
-    locator<CalendarDayBloc>().add(LoadCalendarDayEvent(day));
+    locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
   }
 }

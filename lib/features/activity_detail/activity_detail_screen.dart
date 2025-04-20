@@ -197,7 +197,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
     // Refresh Diary Page
     locator<DiaryBloc>().add(const LoadDiaryYearEvent());
-    locator<CalendarDayBloc>().add(LoadCalendarDayEvent(DateTime.now()));
+    locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
 
     // Show snackbar and return to dashboard
     ScaffoldMessenger.of(context).showSnackBar(

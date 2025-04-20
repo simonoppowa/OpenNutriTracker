@@ -841,6 +841,66 @@ class S {
     );
   }
 
+  /// `Export / Import data`
+  String get exportImportLabel {
+    return Intl.message(
+      'Export / Import data',
+      name: 'exportImportLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You can export the app data to a zip file and import it later. This is useful if you want to backup your data or transfer it to another device.\n\nThe app does not use any cloud service to store your data.`
+  String get exportImportDescription {
+    return Intl.message(
+      'You can export the app data to a zip file and import it later. This is useful if you want to backup your data or transfer it to another device.\n\nThe app does not use any cloud service to store your data.',
+      name: 'exportImportDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Export / Import successful`
+  String get exportImportSuccessLabel {
+    return Intl.message(
+      'Export / Import successful',
+      name: 'exportImportSuccessLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Export / Import error`
+  String get exportImportErrorLabel {
+    return Intl.message(
+      'Export / Import error',
+      name: 'exportImportErrorLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Export`
+  String get exportAction {
+    return Intl.message(
+      'Export',
+      name: 'exportAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import`
+  String get importAction {
+    return Intl.message(
+      'Import',
+      name: 'importAction',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Add new Item:`
   String get addItemLabel {
     return Intl.message(

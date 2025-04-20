@@ -178,6 +178,6 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
 
     // Refresh Diary Page
     locator<DiaryBloc>().add(const LoadDiaryYearEvent());
-    locator<CalendarDayBloc>().add(LoadCalendarDayEvent(DateTime.now()));
+    locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
   }
 }
