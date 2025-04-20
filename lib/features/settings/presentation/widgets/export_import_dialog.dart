@@ -84,6 +84,6 @@ class ExportImportDialog extends StatelessWidget {
   void refreshScreens() {
     _homeBloc.add(const LoadItemsEvent());
     _diaryBloc.add(const LoadDiaryYearEvent());
-    _calendarDayBloc.add(LoadCalendarDayEvent(DateTime.now()));
+    _calendarDayBloc.add(RefreshCalendarDayEvent());
   }
 }

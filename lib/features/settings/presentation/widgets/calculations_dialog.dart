@@ -349,7 +349,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     // Update tracked day entity
     widget.settingsBloc.updateTrackedDay(DateTime.now());
     widget.diaryBloc.add(LoadDiaryYearEvent());
-    widget.calendarDayBloc.add(LoadCalendarDayEvent(DateTime.now()));
+    widget.calendarDayBloc.add(RefreshCalendarDayEvent());
 
     Navigator.of(context).pop();
   }
