@@ -1,10 +1,12 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 
 part 'config_dbo.g.dart';
 
 @HiveType(typeId: 13)
+@JsonSerializable() // Used for exporting to JSON
 class ConfigDBO extends HiveObject {
   @HiveField(0)
   bool hasAcceptedDisclaimer;
@@ -38,4 +40,9 @@ class ConfigDBO extends HiveObject {
       entity.hasAcceptedSendAnonymousData,
       AppThemeDBO.fromAppThemeEntity(entity.appTheme),
       usesImperialUnits: entity.usesImperialUnits);
+
+  factory ConfigDBO.fromJson(Map<String, dynamic> json) =>
+      _$ConfigDBOFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ConfigDBOToJson(this);
 }

@@ -26,6 +26,8 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   final GetTrackedDayUsecase _getTrackedDayUsecase;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
 
+  DateTime? _currentDay;
+
   CalendarDayBloc(
       this._getUserActivityUsecase,
       this._getIntakeUsecase,
@@ -36,30 +38,39 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
       : super(CalendarDayInitial()) {
     on<LoadCalendarDayEvent>((event, emit) async {
       emit(CalendarDayLoading());
-      final userActivities =
-          await _getUserActivityUsecase.getUserActivityByDay(event.day);
-
-      final breakfastIntakeList =
-          await _getIntakeUsecase.getBreakfastIntakeByDay(event.day);
-
-      final lunchIntakeList =
-          await _getIntakeUsecase.getLunchIntakeByDay(event.day);
-      final dinnerIntakeList =
-          await _getIntakeUsecase.getDinnerIntakeByDay(event.day);
-      final snackIntakeList =
-          await _getIntakeUsecase.getSnackIntakeByDay(event.day);
-
-      final trackedDayEntity =
-          await _getTrackedDayUsecase.getTrackedDay(event.day);
-
-      emit(CalendarDayLoaded(
-          trackedDayEntity,
-          userActivities,
-          breakfastIntakeList,
-          lunchIntakeList,
-          dinnerIntakeList,
-          snackIntakeList));
+      _currentDay = event.day;
+      await _loadCalendarDay(event.day, emit);
     });
+
+    on<RefreshCalendarDayEvent>((event, emit) async {
+      if (_currentDay != null) {
+        emit(CalendarDayLoading());
+        await _loadCalendarDay(_currentDay!, emit);
+      }
+    });
+  }
+
+  Future<void> _loadCalendarDay(
+      DateTime day, Emitter<CalendarDayState> emit) async {
+    final userActivities =
+        await _getUserActivityUsecase.getUserActivityByDay(day);
+
+    final breakfastIntakeList =
+        await _getIntakeUsecase.getBreakfastIntakeByDay(day);
+
+    final lunchIntakeList = await _getIntakeUsecase.getLunchIntakeByDay(day);
+    final dinnerIntakeList = await _getIntakeUsecase.getDinnerIntakeByDay(day);
+    final snackIntakeList = await _getIntakeUsecase.getSnackIntakeByDay(day);
+
+    final trackedDayEntity = await _getTrackedDayUsecase.getTrackedDay(day);
+
+    emit(CalendarDayLoaded(
+        trackedDayEntity,
+        userActivities,
+        breakfastIntakeList,
+        lunchIntakeList,
+        dinnerIntakeList,
+        snackIntakeList));
   }
 
   Future<void> deleteIntakeItem(

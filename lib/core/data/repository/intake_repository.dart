@@ -15,13 +15,22 @@ class IntakeRepository {
     await _intakeDataSource.addIntake(intakeDBO);
   }
 
+  Future<void> addAllIntakeDBOs(List<IntakeDBO> intakeDBOs) async {
+    await _intakeDataSource.addAllIntakes(intakeDBOs);
+  }
+
   Future<void> deleteIntake(IntakeEntity intakeEntity) async {
     await _intakeDataSource.deleteIntakeFromId(intakeEntity.id);
   }
 
-  Future<IntakeEntity?> updateIntake(String intakeId, Map<String, dynamic> fields) async {
+  Future<IntakeEntity?> updateIntake(
+      String intakeId, Map<String, dynamic> fields) async {
     var result = await _intakeDataSource.updateIntake(intakeId, fields);
     return result == null ? null : IntakeEntity.fromIntakeDBO(result);
+  }
+
+  Future<List<IntakeDBO>> getAllIntakesDBO() async {
+    return await _intakeDataSource.getAllIntakes();
   }
 
   Future<List<IntakeEntity>> getIntakeByDateAndType(

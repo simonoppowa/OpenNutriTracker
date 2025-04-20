@@ -62,7 +62,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     locator<HomeBloc>().add(const LoadItemsEvent());
     // Refresh Diary Page
     locator<DiaryBloc>().add(const LoadDiaryYearEvent());
-    locator<CalendarDayBloc>().add(LoadCalendarDayEvent(DateTime.now()));
+    locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
   }
 
   Future<void> _updateTrackedDayCalorieGoal(
