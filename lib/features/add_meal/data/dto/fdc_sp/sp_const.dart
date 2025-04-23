@@ -12,6 +12,7 @@ class SPConst {
   static const fdcFoodId = 'fdc_id';
   static const fdcFoodDescriptionEn = 'description_en';
   static const fdcFoodDescriptionDe = 'description_de';
+  static const fdcFoodDescriptionFr = 'description_fr';
 
   static const fdcPortionsMeasureUnitId = 'measure_unit_id';
   static const fdcPortionsAmount = 'measure_unit_id';
@@ -24,9 +25,10 @@ class SPConst {
     switch (language) {
       case SupportedLanguage.en:
         return fdcFoodDescriptionEn;
+      case SupportedLanguage.fr:
+        return fdcFoodDescriptionFr;
       case SupportedLanguage.de:
         return fdcFoodDescriptionDe;
-      }
+    }
   }
-
 }

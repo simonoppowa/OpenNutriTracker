@@ -10,6 +10,7 @@ SpFdcFoodDTO _$SpFdcFoodDTOFromJson(Map<String, dynamic> json) => SpFdcFoodDTO(
       fdcId: (json['fdc_id'] as num?)?.toInt(),
       descriptionEn: json['description_en'] as String?,
       descriptionDe: json['description_de'] as String?,
+      descriptionFr: json['description_fr'] as String?,
       nutrients: (json['fdc_nutrients'] as List<dynamic>)
           .map((e) => FDCFoodNutrimentDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -23,6 +24,7 @@ Map<String, dynamic> _$SpFdcFoodDTOToJson(SpFdcFoodDTO instance) =>
       'fdc_id': instance.fdcId,
       'description_en': instance.descriptionEn,
       'description_de': instance.descriptionDe,
+      'description_fr': instance.descriptionFr,
       'fdc_nutrients': instance.nutrients,
       'fdc_portions': instance.portions,
     };

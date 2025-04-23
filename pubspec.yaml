@@ -32,7 +32,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-
+  intl_utils: ^2.8.3
   collection: ^1.19.0
   intl: ^0.19.0
   get_it: ^8.0.3

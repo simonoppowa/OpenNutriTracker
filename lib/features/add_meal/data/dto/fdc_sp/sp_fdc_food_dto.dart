@@ -16,6 +16,8 @@ class SpFdcFoodDTO {
   final String? descriptionEn;
   @JsonKey(name: SPConst.fdcFoodDescriptionDe)
   final String? descriptionDe;
+  @JsonKey(name: SPConst.fdcFoodDescriptionFr)
+  final String? descriptionFr;
 
   @JsonKey(name: SPConst.fdcNutrientsName)
   final List<FDCFoodNutrimentDTO> nutrients;
@@ -27,6 +29,8 @@ class SpFdcFoodDTO {
     switch (supportedLanguage) {
       case SupportedLanguage.en:
         return descriptionEn;
+      case SupportedLanguage.fr:
+        return descriptionFr;
       case SupportedLanguage.de:
         return descriptionDe;
     }
@@ -58,6 +62,7 @@ class SpFdcFoodDTO {
       {required this.fdcId,
       required this.descriptionEn,
       required this.descriptionDe,
+      required this.descriptionFr,
       required this.nutrients,
       required this.portions});
 

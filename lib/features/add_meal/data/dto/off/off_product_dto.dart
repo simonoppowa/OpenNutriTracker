@@ -27,7 +27,7 @@ class OFFProductDTO {
   final String? quantity;
   final dynamic product_quantity; // Can either be int or String
   final dynamic serving_quantity; // Can either be int or String
-  final String? serving_size;  // E.g. 2 Tbsp (32 g)
+  final String? serving_size; // E.g. 2 Tbsp (32 g)
 
   final OFFProductNutrimentsDTO nutriments;
 
@@ -37,10 +37,13 @@ class OFFProductDTO {
       case SupportedLanguage.en:
         localeName = product_name_en;
         break;
+      case SupportedLanguage.fr:
+        localeName = product_name_fr;
+        break;
       case SupportedLanguage.de:
         localeName = product_name_de;
         break;
-      }
+    }
 
     // If local language is not available, return available language
     if (localeName == null || localeName.isEmpty) {
