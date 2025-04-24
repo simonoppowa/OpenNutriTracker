@@ -105,36 +105,38 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<MealDetailBloc, MealDetailState>(
-      bloc: _mealDetailBloc,
-      builder: (context, state) {
-        if (state is MealDetailInitial) {
-          return Scaffold(
-            body: _getLoadedContent(
-              context,
-              state.totalQuantityConverted,
-              state.totalKcal,
-              state.totalCarbs,
-              state.totalFat,
-              state.totalProtein,
-              state.selectedUnit,
-            ),
-            bottomSheet: MealDetailBottomSheet(
-              product: meal,
-              day: _day,
-              intakeTypeEntity: intakeTypeEntity,
-              selectedUnit: state.selectedUnit,
-              mealDetailBloc: _mealDetailBloc,
-              quantityTextController: quantityTextController,
-              onQuantityOrUnitChanged: onQuantityOrUnitChanged,
-            ),
-          );
-        } else {
-          return Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-      },
+    return SafeArea(
+      child: BlocBuilder<MealDetailBloc, MealDetailState>(
+        bloc: _mealDetailBloc,
+        builder: (context, state) {
+          if (state is MealDetailInitial) {
+            return Scaffold(
+              body: _getLoadedContent(
+                context,
+                state.totalQuantityConverted,
+                state.totalKcal,
+                state.totalCarbs,
+                state.totalFat,
+                state.totalProtein,
+                state.selectedUnit,
+              ),
+              bottomSheet: MealDetailBottomSheet(
+                product: meal,
+                day: _day,
+                intakeTypeEntity: intakeTypeEntity,
+                selectedUnit: state.selectedUnit,
+                mealDetailBloc: _mealDetailBloc,
+                quantityTextController: quantityTextController,
+                onQuantityOrUnitChanged: onQuantityOrUnitChanged,
+              ),
+            );
+          } else {
+            return Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+        },
+      ),
     );
   }
 
