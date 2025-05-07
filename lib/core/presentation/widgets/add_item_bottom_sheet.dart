@@ -38,8 +38,10 @@ class AddItemBottomSheet extends StatelessWidget {
           subtitle: Text(
             S.of(context).activityExample,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color:
-                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
@@ -64,8 +66,10 @@ class AddItemBottomSheet extends StatelessWidget {
           subtitle: Text(
             S.of(context).breakfastExample,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color:
-                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
@@ -86,8 +90,10 @@ class AddItemBottomSheet extends StatelessWidget {
           subtitle: Text(
             S.of(context).lunchExample,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color:
-                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
@@ -108,8 +114,10 @@ class AddItemBottomSheet extends StatelessWidget {
           subtitle: Text(
             S.of(context).dinnerExample,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color:
-                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
@@ -130,8 +138,10 @@ class AddItemBottomSheet extends StatelessWidget {
           subtitle: Text(
             S.of(context).snackExample,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color:
-                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7)),
           ),
           // ignore: sized_box_for_whitespace
           leading: Container(
