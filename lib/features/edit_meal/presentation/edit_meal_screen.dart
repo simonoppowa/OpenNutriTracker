@@ -118,28 +118,30 @@ class _EditMealScreenState extends State<EditMealScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(S.of(context).editMealLabel),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-            child: FilledButton(
-                onPressed: () => _onSavePressed(_usesImperialUnits),
-                child: Text(S.of(context).buttonSaveLabel)),
-          )
-        ],
-      ),
-      body: BlocBuilder<EditMealBloc, EditMealState>(
-        bloc: locator<EditMealBloc>()..add(InitializeEditMealEvent()),
-        builder: (BuildContext context, EditMealState state) {
-          if (state is EditMealLoadingState) {
-            return _getLoadingContent();
-          } else if (state is EditMealLoadedState) {
-            return _getLoadedContent(state.usesImperialUnits);
-          }
-          return const SizedBox.shrink();
-        },
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(S.of(context).editMealLabel),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+              child: FilledButton(
+                  onPressed: () => _onSavePressed(_usesImperialUnits),
+                  child: Text(S.of(context).buttonSaveLabel)),
+            )
+          ],
+        ),
+        body: BlocBuilder<EditMealBloc, EditMealState>(
+          bloc: locator<EditMealBloc>()..add(InitializeEditMealEvent()),
+          builder: (BuildContext context, EditMealState state) {
+            if (state is EditMealLoadingState) {
+              return _getLoadingContent();
+            } else if (state is EditMealLoadedState) {
+              return _getLoadedContent(state.usesImperialUnits);
+            }
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
   }
