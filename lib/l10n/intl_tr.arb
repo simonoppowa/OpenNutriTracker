@@ -99,6 +99,8 @@
   "itemUpdatedSnackbar": "Öğe güncellendi",
   "deleteTimeDialogTitle": "Öğeyi Sil?",
   "deleteTimeDialogContent": "Seçilen öğeyi silmek istiyor musunuz?",
+  "deleteTimeDialogPluralTitle": "Girdiler silinsin mi?",
+  "deleteTimeDialogPluralContent": "Bu öğüne ait tüm girdileri silmek istiyor musunuz?",
   "itemDeletedSnackbar": "Öğe silindi",
   "copyDialogTitle": "Hangi yemek türüne kopyalamak istiyorsunuz?",
   "copyOrDeleteTimeDialogTitle": "Ne yapmak istiyorsunuz?",

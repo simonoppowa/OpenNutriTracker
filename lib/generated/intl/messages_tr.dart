@@ -101,6 +101,10 @@ class MessageLookup extends MessageLookupByLibrary {
             "Anonim kullanım verileri sağlayarak geliştirmeyi destekleyin"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Seçilen öğeyi silmek istiyor musunuz?"),
+        "deleteTimeDialogPluralContent": MessageLookupByLibrary.simpleMessage(
+            "Bu öğüne ait tüm girdileri silmek istiyor musunuz?"),
+        "deleteTimeDialogPluralTitle":
+            MessageLookupByLibrary.simpleMessage("Girdiler silinsin mi?"),
         "deleteTimeDialogTitle":
             MessageLookupByLibrary.simpleMessage("Öğeyi Sil?"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("İPTAL"),

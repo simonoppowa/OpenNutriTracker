@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
+import 'package:opennutritracker/core/presentation/widgets/delete_all_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_card.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/vertical_list_popup_menu_selections.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -19,21 +23,30 @@ class IntakeVerticalList extends StatefulWidget {
   final AddMealType addMealType;
   final List<IntakeEntity> intakeList;
   final bool usesImperialUnits;
+  final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity)
+      onDeleteIntakeCallback;
   final Function(BuildContext, IntakeEntity)? onItemLongPressedCallback;
   final Function(bool)? onItemDragCallback;
   final Function(BuildContext, IntakeEntity, bool)? onItemTappedCallback;
+  final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity,
+      AddMealType? type)? onCopyIntakeCallback;
+  final TrackedDayEntity? trackedDayEntity;
 
-  const IntakeVerticalList(
-      {super.key,
-      required this.day,
-      required this.title,
-      required this.listIcon,
-      required this.addMealType,
-      required this.intakeList,
-      required this.usesImperialUnits,
-      this.onItemLongPressedCallback,
-      this.onItemDragCallback,
-      this.onItemTappedCallback});
+  const IntakeVerticalList({
+    super.key,
+    required this.day,
+    required this.title,
+    required this.listIcon,
+    required this.addMealType,
+    required this.intakeList,
+    required this.usesImperialUnits,
+    required this.onDeleteIntakeCallback,
+    this.onItemLongPressedCallback,
+    this.onItemDragCallback,
+    this.onItemTappedCallback,
+    this.onCopyIntakeCallback,
+    this.trackedDayEntity,
+  });
 
   @override
   State<IntakeVerticalList> createState() => _IntakeVerticalListState();
@@ -75,7 +88,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                     ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
               ),
               const Spacer(),
-              if (totalKcal > 0)
+              if (totalKcal > 0) ...[
                 Text(
                   '${totalKcal.toInt()} ${S.of(context).kcalLabel}',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -84,6 +97,47 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                           .onSurface
                           .withValues(alpha: 0.7)),
                 ),
+                PopupMenuButton<VerticalListPopupMenuSelections>(
+                    onSelected:
+                        (VerticalListPopupMenuSelections selection) async {
+                      switch (selection) {
+                        case VerticalListPopupMenuSelections.onCopy:
+                          const copyDialog = CopyDialog();
+                          final selectedMealType =
+                              await showDialog<AddMealType>(
+                                  context: context,
+                                  builder: (context) => copyDialog);
+                          if (selectedMealType != null) {
+                            for (IntakeEntity intake in widget.intakeList) {
+                              widget.onCopyIntakeCallback!(
+                                  intake, null, selectedMealType);
+                            }
+                          }
+                          break;
+                        case VerticalListPopupMenuSelections.onDelete:
+                          final shouldDeleteIntakes = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => const DeleteAllDialog());
+                          if (shouldDeleteIntakes != null) {
+                            for (IntakeEntity intake in widget.intakeList) {
+                              widget.onDeleteIntakeCallback(
+                                  intake, widget.trackedDayEntity);
+                            }
+                            break;
+                          }
+                      }
+                    },
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<VerticalListPopupMenuSelections>>[
+                          if (widget.onCopyIntakeCallback != null)
+                            PopupMenuItem<VerticalListPopupMenuSelections>(
+                                value: VerticalListPopupMenuSelections.onCopy,
+                                child: Text(S.of(context).dialogCopyLabel)),
+                          PopupMenuItem<VerticalListPopupMenuSelections>(
+                              value: VerticalListPopupMenuSelections.onDelete,
+                              child: Text(S.of(context).deleteAllLabel)),
+                        ]),
+              ],
             ],
           ),
         ),

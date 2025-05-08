@@ -14,12 +14,12 @@ class CopyOrDeleteDialog extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop(true);
             },
-            child: Text(S.of(context).dialogCopyLabel)),
+            child: Text(S.of(context).dialogCopyLabel.toUpperCase())),
         TextButton(
             onPressed: () {
               Navigator.of(context).pop(false);
             },
-            child: Text(S.of(context).dialogDeleteLabel))
+            child: Text(S.of(context).dialogDeleteLabel.toUpperCase()))
       ],
     );
   }

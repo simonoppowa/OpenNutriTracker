@@ -100,13 +100,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Tägliche kcal-Anpassung:"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Unterstützen der Entwicklung durch Bereitstellung anonymer Nutzungsdaten"),
+        "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Alle löschen"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Möchten Sie den ausgewählten Eintrag löschen?"),
+        "deleteTimeDialogPluralContent": MessageLookupByLibrary.simpleMessage(
+            "Möchten Sie alle Einträge dieser Mahlzeit löschen?"),
+        "deleteTimeDialogPluralTitle":
+            MessageLookupByLibrary.simpleMessage("Einträge löschen?"),
         "deleteTimeDialogTitle":
             MessageLookupByLibrary.simpleMessage("Eintrag löschen?"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("ABBRECHEN"),
         "dialogCopyLabel":
-            MessageLookupByLibrary.simpleMessage("NACH HEUTE KOPIEREN"),
+            MessageLookupByLibrary.simpleMessage("Nach heute kopieren"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("LÖSCHEN"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Tagebuch"),

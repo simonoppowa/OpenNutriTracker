@@ -99,12 +99,17 @@
   "itemUpdatedSnackbar": "Item updated",
   "deleteTimeDialogTitle": "Delete Item?",
   "deleteTimeDialogContent": "Do want to delete the selected item?",
+  "deleteTimeDialogPluralTitle": "Delete Items?",
+  "deleteTimeDialogPluralContent": "Do want to delete all items of this meal?",
   "itemDeletedSnackbar": "Item deleted",
   "copyDialogTitle": "Which meal type do you want to copy to?",
   "copyOrDeleteTimeDialogTitle": "What do you want to do?",
   "copyOrDeleteTimeDialogContent": "With \"Copy to today\" you can copy the meal to today. With \"Delete\" you can delete the meal.",
-  "dialogCopyLabel": "COPY TO TODAY",
+  "dialogCopyLabel": "Copy to today",
   "dialogDeleteLabel": "DELETE",
+
+  "deleteAllLabel": "Delete all",
+
   "suppliedLabel": "supplied",
   "burnedLabel": "burned",
   "kcalLeftLabel": "kcal left",
