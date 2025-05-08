@@ -67,7 +67,7 @@
   "settingsImperialLabel": "Imperial (lbs, ft, oz)",
   "settingsDistanceLabel": "Distance",
   "settingsVolumeLabel": "Volume",
-  "disclaimerText": "OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.\n\n\nThe application is still under development. Errors, bugs and crashes may occur.",
+  "disclaimerText": "OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.",
   "reportErrorDialogText": "Do you want to report an error to the developer?",
   "sendAnonymousUserData": "Send anonymous usage data",
   "appLicenseLabel": "GPL-3.0 license",
