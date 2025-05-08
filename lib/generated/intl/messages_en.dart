@@ -99,13 +99,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Daily Kcal adjustment:"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Support development by providing anonymous usage data"),
+        "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Delete all"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Do want to delete the selected item?"),
+        "deleteTimeDialogPluralContent": MessageLookupByLibrary.simpleMessage(
+            "Do want to delete all items of this meal?"),
+        "deleteTimeDialogPluralTitle":
+            MessageLookupByLibrary.simpleMessage("Delete Items?"),
         "deleteTimeDialogTitle":
             MessageLookupByLibrary.simpleMessage("Delete Item?"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("CANCEL"),
         "dialogCopyLabel":
-            MessageLookupByLibrary.simpleMessage("COPY TO TODAY"),
+            MessageLookupByLibrary.simpleMessage("Copy to today"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("DELETE"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),
@@ -113,7 +118,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "e.g. soup, chicken, wine ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Dinner"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
-            "OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.\n\n\nThe application is still under development. Errors, bugs and crashes may occur."),
+            "OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended."),
         "editItemDialogTitle":
             MessageLookupByLibrary.simpleMessage("Edit item"),
         "editMealLabel": MessageLookupByLibrary.simpleMessage("Edit meal"),
