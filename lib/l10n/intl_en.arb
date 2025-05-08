@@ -99,6 +99,8 @@
   "itemUpdatedSnackbar": "Item updated",
   "deleteTimeDialogTitle": "Delete Item?",
   "deleteTimeDialogContent": "Do want to delete the selected item?",
+  "deleteTimeDialogPluralTitle": "Delete Items?",
+  "deleteTimeDialogPluralContent": "Do want to delete all items of this meal?",
   "itemDeletedSnackbar": "Item deleted",
   "copyDialogTitle": "Which meal type do you want to copy to?",
   "copyOrDeleteTimeDialogTitle": "What do you want to do?",

@@ -102,6 +102,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Delete all"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Do want to delete the selected item?"),
+        "deleteTimeDialogPluralContent": MessageLookupByLibrary.simpleMessage(
+            "Do want to delete all items of this meal?"),
+        "deleteTimeDialogPluralTitle":
+            MessageLookupByLibrary.simpleMessage("Delete Items?"),
         "deleteTimeDialogTitle":
             MessageLookupByLibrary.simpleMessage("Delete Item?"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("CANCEL"),

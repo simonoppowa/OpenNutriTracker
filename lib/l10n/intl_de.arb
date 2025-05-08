@@ -94,6 +94,8 @@
   "itemUpdatedSnackbar": "Eintrag aktualisiert",
   "deleteTimeDialogTitle": "Eintrag löschen?",
   "deleteTimeDialogContent": "Möchten Sie den ausgewählten Eintrag löschen?",
+  "deleteTimeDialogPluralTitle": "Einträge löschen?",
+  "deleteTimeDialogPluralContent": "Möchten Sie alle Einträge dieser Mahlzeit löschen?",
   "itemDeletedSnackbar": "Eintrag gelöscht",
   "copyDialogTitle": "Zu welcher Mahlzeit hinzufügen?",
   "copyOrDeleteTimeDialogTitle": "Was soll getan werden?",

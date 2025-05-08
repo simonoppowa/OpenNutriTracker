@@ -32,19 +32,21 @@ class IntakeVerticalList extends StatefulWidget {
       AddMealType? type)? onCopyIntakeCallback;
   final TrackedDayEntity? trackedDayEntity;
 
-  const IntakeVerticalList(
-      {super.key,
-      required this.day,
-      required this.title,
-      required this.listIcon,
-      required this.addMealType,
-      required this.intakeList,
-      required this.usesImperialUnits,
-      this.onItemLongPressedCallback,
-      this.onItemDragCallback,
-      this.onItemTappedCallback,
-      this.onCopyIntakeCallback,
-        this.trackedDayEntity,});
+  const IntakeVerticalList({
+    super.key,
+    required this.day,
+    required this.title,
+    required this.listIcon,
+    required this.addMealType,
+    required this.intakeList,
+    required this.usesImperialUnits,
+    required this.onDeleteIntakeCallback,
+    this.onItemLongPressedCallback,
+    this.onItemDragCallback,
+    this.onItemTappedCallback,
+    this.onCopyIntakeCallback,
+    this.trackedDayEntity,
+  });
 
   @override
   State<IntakeVerticalList> createState() => _IntakeVerticalListState();

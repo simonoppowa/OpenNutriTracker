@@ -1051,6 +1051,26 @@ class S {
     );
   }
 
+  /// `Delete Items?`
+  String get deleteTimeDialogPluralTitle {
+    return Intl.message(
+      'Delete Items?',
+      name: 'deleteTimeDialogPluralTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Do want to delete all items of this meal?`
+  String get deleteTimeDialogPluralContent {
+    return Intl.message(
+      'Do want to delete all items of this meal?',
+      name: 'deleteTimeDialogPluralContent',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Item deleted`
   String get itemDeletedSnackbar {
     return Intl.message(
