@@ -56,5 +56,7 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera permission is required for barcode scanning.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+    <string>Used for exporting data.</string>
 </dict>
 </plist>

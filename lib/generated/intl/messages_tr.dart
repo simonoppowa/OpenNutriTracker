@@ -20,50 +20,53 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'tr';
 
-  static String m0(versionNumber) => "Sürüm ${versionNumber}";
+  static String m0(versionNumber) => "Versiyon ${versionNumber}";
 
   static String m1(pctCarbs, pctFats, pctProteins) =>
       "%${pctCarbs} karbonhidrat, %${pctFats} yağ, %${pctProteins} protein";
 
   static String m2(riskValue) => "Eşlik eden hastalık riski: ${riskValue}";
 
-  static String m3(age) => "${age} yaş";
+  static String m3(age) => "${age} yıl";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
-            "örn. koşu, bisiklet, yoga ..."),
+            "ör. koşu, bisiklet, yoga ..."),
         "activityLabel": MessageLookupByLibrary.simpleMessage("Aktivite"),
         "addItemLabel": MessageLookupByLibrary.simpleMessage("Yeni Öğe Ekle:"),
         "addLabel": MessageLookupByLibrary.simpleMessage("Ekle"),
         "additionalInfoLabelCompendium2011": MessageLookupByLibrary.simpleMessage(
-            "\'2011 Fiziksel Aktiviteler Özeti\'\ntarafından sağlanan bilgiler"),
+            "Bilgi\n\'2011 Compendium\n of Physical Activities\'\nden sağlanmıştır"),
         "additionalInfoLabelCustom":
             MessageLookupByLibrary.simpleMessage("Özel Yemek Öğesi"),
         "additionalInfoLabelFDC": MessageLookupByLibrary.simpleMessage(
-            "FoodData Central\'da\nDaha Fazla Bilgi"),
+            "Daha Fazla Bilgi\nFoodData Central\'da"),
         "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
-            "OpenFoodFacts\'te\nDaha Fazla Bilgi"),
+            "Daha Fazla Bilgi\nOpenFoodFacts\'te"),
         "additionalInfoLabelUnknown":
             MessageLookupByLibrary.simpleMessage("Bilinmeyen Yemek Öğesi"),
         "ageLabel": MessageLookupByLibrary.simpleMessage("Yaş"),
         "allItemsLabel": MessageLookupByLibrary.simpleMessage("Tümü"),
-        "alphaVersionName": MessageLookupByLibrary.simpleMessage("[Alfa]"),
+        "alphaVersionName": MessageLookupByLibrary.simpleMessage("[Alpha]"),
         "appDescription": MessageLookupByLibrary.simpleMessage(
             "OpenNutriTracker, gizliliğinize saygı duyan ücretsiz ve açık kaynaklı bir kalori ve besin takipçisidir."),
         "appLicenseLabel":
             MessageLookupByLibrary.simpleMessage("GPL-3.0 lisansı"),
         "appTitle": MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
         "appVersionName": m0,
+        "baseQuantityLabel":
+            MessageLookupByLibrary.simpleMessage("Temel miktar (g/ml)"),
         "betaVersionName": MessageLookupByLibrary.simpleMessage("[Beta]"),
         "bmiInfo": MessageLookupByLibrary.simpleMessage(
-            "Vücut Kitle İndeksi (VKİ), yetişkinlerde aşırı kilolu ve obeziteyi sınıflandırmak için kullanılan bir indekstir. Kilogram cinsinden ağırlığın, metre cinsinden boyun karesine bölünmesiyle hesaplanır (kg/m²).\n\nVKİ, yağ ve kas kütlesi arasında ayrım yapmaz ve bazı bireyler için yanıltıcı olabilir."),
-        "bmiLabel": MessageLookupByLibrary.simpleMessage("VKİ"),
-        "breakfastExample":
-            MessageLookupByLibrary.simpleMessage("örn. tahıl, süt, kahve ..."),
+            "Vücut Kitle İndeksi (BMI), yetişkinlerde aşırı kiloyu ve obeziteyi sınıflandırmak için kullanılan bir indekstir. Kilogram cinsinden ağırlığın, metre cinsinden boyun karesine bölünmesiyle tanımlanır (kg/m²).\n\nBMI, yağ ve kas kütlesi arasında ayrım yapmaz ve bazı bireyler için yanıltıcı olabilir."),
+        "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
+        "breakfastExample": MessageLookupByLibrary.simpleMessage(
+            "ör. mısır gevreği, süt, kahve ..."),
         "breakfastLabel": MessageLookupByLibrary.simpleMessage("Kahvaltı"),
         "burnedLabel": MessageLookupByLibrary.simpleMessage("yakılan"),
         "buttonNextLabel": MessageLookupByLibrary.simpleMessage("İLERİ"),
+        "buttonResetLabel": MessageLookupByLibrary.simpleMessage("Sıfırla"),
         "buttonSaveLabel": MessageLookupByLibrary.simpleMessage("Kaydet"),
         "buttonStartLabel": MessageLookupByLibrary.simpleMessage("BAŞLA"),
         "buttonYesLabel": MessageLookupByLibrary.simpleMessage("EVET"),
@@ -80,38 +83,40 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("karbonhidrat"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("karbonhidrat"),
         "chooseWeightGoalLabel":
-            MessageLookupByLibrary.simpleMessage("Kilo Hedefi Seçin"),
+            MessageLookupByLibrary.simpleMessage("Kilo Hedefini Seçin"),
         "cmLabel": MessageLookupByLibrary.simpleMessage("cm"),
         "copyDialogTitle": MessageLookupByLibrary.simpleMessage(
-            "Hangi öğüne eklemek istiyorsunuz?"),
+            "Hangi yemek türüne kopyalamak istiyorsunuz?"),
         "copyOrDeleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
-            "\"Bugüne kopyala\" seçeneğine tıklayarak öğünü bugüne kopyalayabilirsiniz. \"Sil\" seçeneği ile öğün kaldırılabilir."),
+            "\"Bugüne Kopyala\" ile yemeği bugüne kopyalayabilirsiniz. \"Sil\" ile yemeği silebilirsiniz."),
         "copyOrDeleteTimeDialogTitle":
-            MessageLookupByLibrary.simpleMessage("Ne yapılmalı?"),
+            MessageLookupByLibrary.simpleMessage("Ne yapmak istiyorsunuz?"),
         "createCustomDialogContent": MessageLookupByLibrary.simpleMessage(
             "Özel bir yemek öğesi oluşturmak istiyor musunuz?"),
-        "createCustomDialogTitle": MessageLookupByLibrary.simpleMessage(
-            "Özel yemek öğesi oluşturulsun mu?"),
+        "createCustomDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Özel yemek öğesi oluştur?"),
+        "dailyKcalAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("Günlük Kcal ayarı:"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Anonim kullanım verileri sağlayarak geliştirmeyi destekleyin"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
-            "Seçili öğeyi silmek istiyor musunuz?"),
+            "Seçilen öğeyi silmek istiyor musunuz?"),
         "deleteTimeDialogTitle":
-            MessageLookupByLibrary.simpleMessage("Öğe Silinsin mi?"),
+            MessageLookupByLibrary.simpleMessage("Öğeyi Sil?"),
         "dialogCancelLabel": MessageLookupByLibrary.simpleMessage("İPTAL"),
         "dialogCopyLabel":
             MessageLookupByLibrary.simpleMessage("BUGÜNE KOPYALA"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("SİL"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("TAMAM"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Günlük"),
-        "dinnerExample": MessageLookupByLibrary.simpleMessage(
-            "örn. çorba, tavuk, şarap ..."),
+        "dinnerExample":
+            MessageLookupByLibrary.simpleMessage("ör. çorba, tavuk, şarap ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Akşam Yemeği"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
-            "OpenNutriTracker tıbbi bir uygulama değildir. Sağlanan tüm veriler doğrulanmamıştır ve dikkatle kullanılmalıdır. Lütfen sağlıklı bir yaşam tarzı sürdürün ve herhangi bir sorununuz varsa bir uzmana danışın. Hastalık, hamilelik veya emzirme döneminde kullanılması önerilmez.\n\n\nUygulama hala geliştirme aşamasındadır. Hatalar, buglar ve çökmeler meydana gelebilir."),
+            "OpenNutriTracker bir tıbbi uygulama değildir. Sağlanan tüm veriler doğrulanmamıştır ve dikkatle kullanılmalıdır. Lütfen sağlıklı bir yaşam tarzı sürdürün ve herhangi bir sorununuz varsa bir profesyonele danışın. Hastalık, hamilelik veya emzirme döneminde kullanımı önerilmez.\n\n\nUygulama hala geliştirme aşamasındadır. Hatalar, aksaklıklar ve çökmeler meydana gelebilir."),
         "editItemDialogTitle":
-            MessageLookupByLibrary.simpleMessage("Öğeyi düzenle"),
-        "editMealLabel": MessageLookupByLibrary.simpleMessage("Yemeği düzenle"),
+            MessageLookupByLibrary.simpleMessage("Öğeyi Düzenle"),
+        "editMealLabel": MessageLookupByLibrary.simpleMessage("Yemeği Düzenle"),
         "energyLabel": MessageLookupByLibrary.simpleMessage("enerji"),
         "errorFetchingProductData": MessageLookupByLibrary.simpleMessage(
             "Ürün verileri alınırken hata oluştu"),
@@ -125,20 +130,31 @@ class MessageLookup extends MessageLookupByLibrary {
             "E-posta uygulaması açılırken hata oluştu"),
         "errorProductNotFound":
             MessageLookupByLibrary.simpleMessage("Ürün bulunamadı"),
+        "exportAction": MessageLookupByLibrary.simpleMessage("Dışa Aktar"),
+        "exportImportDescription": MessageLookupByLibrary.simpleMessage(
+            "Uygulama verilerini bir zip dosyasına dışa aktarabilir ve daha sonra içe aktarabilirsiniz. Bu, verilerinizi yedeklemek veya başka bir cihaza aktarmak istiyorsanız kullanışlıdır.\n\nUygulama, verilerinizi saklamak için herhangi bir bulut hizmeti kullanmaz."),
+        "exportImportErrorLabel": MessageLookupByLibrary.simpleMessage(
+            "Dışa Aktarma / İçe Aktarma hatası"),
+        "exportImportLabel": MessageLookupByLibrary.simpleMessage(
+            "Verileri Dışa Aktar / İçe Aktar"),
+        "exportImportSuccessLabel": MessageLookupByLibrary.simpleMessage(
+            "Dışa Aktarma / İçe Aktarma başarılı"),
         "fatLabel": MessageLookupByLibrary.simpleMessage("yağ"),
         "fiberLabel": MessageLookupByLibrary.simpleMessage("lif"),
+        "flOzUnit": MessageLookupByLibrary.simpleMessage("fl.oz"),
+        "ftLabel": MessageLookupByLibrary.simpleMessage("ft"),
         "genderFemaleLabel": MessageLookupByLibrary.simpleMessage("♀ kadın"),
         "genderLabel": MessageLookupByLibrary.simpleMessage("Cinsiyet"),
         "genderMaleLabel": MessageLookupByLibrary.simpleMessage("♂ erkek"),
         "goalGainWeight": MessageLookupByLibrary.simpleMessage("Kilo Al"),
         "goalLabel": MessageLookupByLibrary.simpleMessage("Hedef"),
         "goalLoseWeight": MessageLookupByLibrary.simpleMessage("Kilo Ver"),
-        "goalMaintainWeight":
-            MessageLookupByLibrary.simpleMessage("Kiloyu Koru"),
+        "goalMaintainWeight": MessageLookupByLibrary.simpleMessage("Kilo Koru"),
         "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("g/ml"),
         "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
         "heightLabel": MessageLookupByLibrary.simpleMessage("Boy"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Ana Sayfa"),
+        "importAction": MessageLookupByLibrary.simpleMessage("İçe Aktar"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Yeni aktivite eklendi"),
         "infoAddedIntakeLabel":
@@ -147,22 +163,23 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Öğe silindi"),
         "itemUpdatedSnackbar":
             MessageLookupByLibrary.simpleMessage("Öğe güncellendi"),
-        "kcalLabel": MessageLookupByLibrary.simpleMessage("kalori"),
-        "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kalan kalori"),
+        "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
+        "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kalan kcal"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("kg"),
+        "lbsLabel": MessageLookupByLibrary.simpleMessage("lbs"),
         "lunchExample": MessageLookupByLibrary.simpleMessage(
-            "örn. pizza, salata, pilav ..."),
+            "ör. pizza, salata, pirinç ..."),
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Öğle Yemeği"),
+        "macroDistributionLabel":
+            MessageLookupByLibrary.simpleMessage("Makro besin Dağılımı:"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Markalar"),
-        "mealCarbsLabel": MessageLookupByLibrary.simpleMessage(
-            "100 g/ml başına karbonhidrat"),
-        "mealFatLabel":
-            MessageLookupByLibrary.simpleMessage("100 g/ml başına yağ"),
-        "mealKcalLabel":
-            MessageLookupByLibrary.simpleMessage("100 g/ml başına kalori"),
+        "mealCarbsLabel":
+            MessageLookupByLibrary.simpleMessage("karbonhidrat başına"),
+        "mealFatLabel": MessageLookupByLibrary.simpleMessage("yağ başına"),
+        "mealKcalLabel": MessageLookupByLibrary.simpleMessage("kcal başına"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("Yemek adı"),
         "mealProteinLabel":
-            MessageLookupByLibrary.simpleMessage("100 g/ml başına protein"),
+            MessageLookupByLibrary.simpleMessage("protein başına 100 g/ml"),
         "mealSizeLabel":
             MessageLookupByLibrary.simpleMessage("Yemek boyutu (g/ml)"),
         "mealSizeLabelImperial":
@@ -170,19 +187,21 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealUnitLabel": MessageLookupByLibrary.simpleMessage("Yemek birimi"),
         "milliliterUnit": MessageLookupByLibrary.simpleMessage("ml"),
         "missingProductInfo": MessageLookupByLibrary.simpleMessage(
-            "Üründe gerekli kalori veya makrobesin bilgisi eksik"),
+            "Üründe gerekli kcal veya makro besin bilgileri eksik"),
         "noActivityRecentlyAddedLabel": MessageLookupByLibrary.simpleMessage(
             "Son zamanlarda eklenen aktivite yok"),
         "noMealsRecentlyAddedLabel": MessageLookupByLibrary.simpleMessage(
             "Son zamanlarda eklenen yemek yok"),
         "noResultsFound":
             MessageLookupByLibrary.simpleMessage("Sonuç bulunamadı"),
+        "notAvailableLabel":
+            MessageLookupByLibrary.simpleMessage("Mevcut Değil"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Hiçbir şey eklenmedi"),
         "nutritionInfoLabel":
-            MessageLookupByLibrary.simpleMessage("Besin Bilgisi"),
+            MessageLookupByLibrary.simpleMessage("Beslenme Bilgileri"),
         "nutritionalStatusNormalWeight":
-            MessageLookupByLibrary.simpleMessage("Normal Kilolu"),
+            MessageLookupByLibrary.simpleMessage("Normal Kilo"),
         "nutritionalStatusObeseClassI":
             MessageLookupByLibrary.simpleMessage("Obezite Sınıf I"),
         "nutritionalStatusObeseClassII":
@@ -197,20 +216,20 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Artmış"),
         "nutritionalStatusRiskLabel": m2,
         "nutritionalStatusRiskLow": MessageLookupByLibrary.simpleMessage(
-            "Düşük \n(ancak diğer klinik \nsorunların riski artmış)"),
+            "Düşük \n(ancak diğer \nklinik sorunların riski artmış)"),
         "nutritionalStatusRiskModerate":
             MessageLookupByLibrary.simpleMessage("Orta"),
         "nutritionalStatusRiskSevere":
-            MessageLookupByLibrary.simpleMessage("Ciddi"),
+            MessageLookupByLibrary.simpleMessage("Şiddetli"),
         "nutritionalStatusRiskVerySevere":
-            MessageLookupByLibrary.simpleMessage("Çok Ciddi"),
+            MessageLookupByLibrary.simpleMessage("Çok şiddetli"),
         "nutritionalStatusUnderweight":
             MessageLookupByLibrary.simpleMessage("Düşük Kilolu"),
         "offDisclaimer": MessageLookupByLibrary.simpleMessage(
-            "Bu uygulama tarafından size sağlanan veriler Open Food Facts veritabanından alınmıştır. Sağlanan bilgilerin doğruluğu, eksiksizliği veya güvenilirliği konusunda hiçbir garanti verilemez. Veriler \"olduğu gibi\" sağlanır ve verilerin kaynağı (Open Food Facts), verilerin kullanımından kaynaklanan herhangi bir zarardan sorumlu değildir."),
+            "Bu uygulama tarafından size sağlanan veriler Open Food Facts veritabanından alınmaktadır. Sağlanan bilgilerin doğruluğu, eksiksizliği veya güvenilirliği konusunda hiçbir garanti verilmemektedir. Veriler \"olduğu gibi\" sağlanır ve verilerin kullanımıyla ilgili herhangi bir zarardan verilerin kaynağı (Open Food Facts) sorumlu tutulamaz."),
         "onboardingActivityQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage(
-                "Ne kadar aktifsiniz? (antrenmanlar hariç)"),
+                "Ne kadar aktifsiz? (antrenmanlar hariç)"),
         "onboardingBirthdayHint":
             MessageLookupByLibrary.simpleMessage("Tarih Girin"),
         "onboardingBirthdayQuestionSubtitle":
@@ -222,43 +241,48 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingGoalQuestionSubtitle": MessageLookupByLibrary.simpleMessage(
             "Mevcut kilo hedefiniz nedir?"),
         "onboardingHeightExampleHintCm":
-            MessageLookupByLibrary.simpleMessage("örn. 170"),
+            MessageLookupByLibrary.simpleMessage("ör. 170"),
+        "onboardingHeightExampleHintFt":
+            MessageLookupByLibrary.simpleMessage("ör. 5.8"),
         "onboardingHeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Mevcut boyunuz nedir?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "Başlamak için, uygulamanın günlük kalori hedefinizi hesaplamak için hakkınızda bazı bilgilere ihtiyacı var.\nHakkınızdaki tüm bilgiler cihazınızda güvenli bir şekilde saklanır."),
         "onboardingKcalPerDayLabel":
-            MessageLookupByLibrary.simpleMessage("günlük kalori"),
+            MessageLookupByLibrary.simpleMessage("günlük kcal"),
         "onboardingOverviewLabel":
             MessageLookupByLibrary.simpleMessage("Genel Bakış"),
         "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
             "Yanlış giriş, lütfen tekrar deneyin"),
         "onboardingWeightExampleHintKg":
-            MessageLookupByLibrary.simpleMessage("örn. 60"),
+            MessageLookupByLibrary.simpleMessage("ör. 60"),
+        "onboardingWeightExampleHintLbs":
+            MessageLookupByLibrary.simpleMessage("ör. 132"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Mevcut kilonuz nedir?"),
         "onboardingWelcomeLabel":
-            MessageLookupByLibrary.simpleMessage("Hoş Geldiniz"),
+            MessageLookupByLibrary.simpleMessage("Hoş geldiniz"),
         "onboardingWrongHeightLabel":
-            MessageLookupByLibrary.simpleMessage("Doğru boyu girin"),
+            MessageLookupByLibrary.simpleMessage("Doğru boy girin"),
         "onboardingWrongWeightLabel":
-            MessageLookupByLibrary.simpleMessage("Doğru kiloyu girin"),
+            MessageLookupByLibrary.simpleMessage("Doğru kilo girin"),
         "onboardingYourGoalLabel":
             MessageLookupByLibrary.simpleMessage("Kalori hedefiniz:"),
         "onboardingYourMacrosGoalLabel":
-            MessageLookupByLibrary.simpleMessage("Makrobesin hedefleriniz:"),
+            MessageLookupByLibrary.simpleMessage("Makro besin hedefleriniz:"),
+        "ozUnit": MessageLookupByLibrary.simpleMessage("oz"),
         "paAmericanFootballGeneral":
-            MessageLookupByLibrary.simpleMessage("Amerikan futbolu"),
+            MessageLookupByLibrary.simpleMessage("futbol"),
         "paAmericanFootballGeneralDesc":
-            MessageLookupByLibrary.simpleMessage("dokunmalı, bayrak, genel"),
+            MessageLookupByLibrary.simpleMessage("dokunmatik, bayrak, genel"),
         "paArcheryGeneral": MessageLookupByLibrary.simpleMessage("okçuluk"),
         "paArcheryGeneralDesc":
-            MessageLookupByLibrary.simpleMessage("av amaçlı olmayan"),
-        "paAutoRacing": MessageLookupByLibrary.simpleMessage("araba yarışı"),
+            MessageLookupByLibrary.simpleMessage("avcılık dışı"),
+        "paAutoRacing": MessageLookupByLibrary.simpleMessage("otomobil yarışı"),
         "paAutoRacingDesc":
             MessageLookupByLibrary.simpleMessage("açık tekerlek"),
         "paBackpackingGeneral":
-            MessageLookupByLibrary.simpleMessage("sırt çantalı gezme"),
+            MessageLookupByLibrary.simpleMessage("sırt çantasıyla gezme"),
         "paBackpackingGeneralDesc":
             MessageLookupByLibrary.simpleMessage("genel"),
         "paBadmintonGeneral": MessageLookupByLibrary.simpleMessage("badminton"),
@@ -291,28 +315,28 @@ class MessageLookup extends MessageLookupByLibrary {
         "paBroomball": MessageLookupByLibrary.simpleMessage("broomball"),
         "paBroomballDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paCalisthenicsGeneral":
-            MessageLookupByLibrary.simpleMessage("jimnastik"),
+            MessageLookupByLibrary.simpleMessage("kalistenik"),
         "paCalisthenicsGeneralDesc": MessageLookupByLibrary.simpleMessage(
-            "hafif veya orta efor, genel (örn. sırt egzersizleri)"),
+            "hafif veya orta derecede çaba, genel (ör. sırt egzersizleri)"),
         "paCanoeingGeneral": MessageLookupByLibrary.simpleMessage("kano"),
         "paCanoeingGeneralDesc": MessageLookupByLibrary.simpleMessage(
-            "kürek çekme, keyif için, genel"),
+            "kürek çekme, zevk için, genel"),
         "paCatch": MessageLookupByLibrary.simpleMessage("futbol veya beyzbol"),
-        "paCatchDesc": MessageLookupByLibrary.simpleMessage("top yakalama"),
+        "paCatchDesc": MessageLookupByLibrary.simpleMessage("yakalama oyunu"),
         "paCheerleading": MessageLookupByLibrary.simpleMessage("amigo"),
         "paCheerleadingDesc": MessageLookupByLibrary.simpleMessage(
-            "jimnastik hareketleri, yarışma"),
+            "jimnastik hareketleri, rekabetçi"),
         "paChildrenGame":
             MessageLookupByLibrary.simpleMessage("çocuk oyunları"),
         "paChildrenGameDesc": MessageLookupByLibrary.simpleMessage(
-            "(örn. seksek, 4-kare, yakantop, oyun parkı aletleri, t-topu, direk topu, misket, arcade oyunları), orta efor"),
+            "(ör. seksek, 4-kare, dodgeball, oyun alanı aletleri, t-ball, tetherball, misket, arcade oyunları), orta derecede çaba"),
         "paClimbingHillsNoLoadGeneral":
-            MessageLookupByLibrary.simpleMessage("yüksüz tepe tırmanışı"),
+            MessageLookupByLibrary.simpleMessage("tepe tırmanma, yük yok"),
         "paClimbingHillsNoLoadGeneralDesc":
-            MessageLookupByLibrary.simpleMessage("yüksüz"),
+            MessageLookupByLibrary.simpleMessage("yük yok"),
         "paCricket": MessageLookupByLibrary.simpleMessage("kriket"),
-        "paCricketDesc": MessageLookupByLibrary.simpleMessage(
-            "vuruş, top atma, saha savunması"),
+        "paCricketDesc":
+            MessageLookupByLibrary.simpleMessage("vuruş, bowling, saha"),
         "paCroquet": MessageLookupByLibrary.simpleMessage("kroket"),
         "paCroquetDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paCurling": MessageLookupByLibrary.simpleMessage("curling"),
@@ -323,20 +347,20 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("genel"),
         "paDancingGeneral": MessageLookupByLibrary.simpleMessage("genel dans"),
         "paDancingGeneralDesc": MessageLookupByLibrary.simpleMessage(
-            "örn. disko, halk dansı, İrlanda step dansı, sıra dansı, polka, contra, ülke dansları"),
+            "ör. disko, halk, İrlanda step dansı, hat dansı, polka, contra, country"),
         "paDartsWall": MessageLookupByLibrary.simpleMessage("dart"),
         "paDartsWallDesc":
             MessageLookupByLibrary.simpleMessage("duvar veya çim"),
         "paDivingGeneral": MessageLookupByLibrary.simpleMessage("dalış"),
         "paDivingGeneralDesc": MessageLookupByLibrary.simpleMessage(
-            "cilt dalışı, scuba dalışı, genel"),
+            "deri dalışı, scuba dalışı, genel"),
         "paDivingSpringboardPlatform":
             MessageLookupByLibrary.simpleMessage("dalış"),
         "paDivingSpringboardPlatformDesc":
-            MessageLookupByLibrary.simpleMessage("tramplen veya platform"),
+            MessageLookupByLibrary.simpleMessage("trambolin veya platform"),
         "paFencing": MessageLookupByLibrary.simpleMessage("eskrim"),
         "paFencingDesc": MessageLookupByLibrary.simpleMessage("genel"),
-        "paFrisbee": MessageLookupByLibrary.simpleMessage("frizbi oynama"),
+        "paFrisbee": MessageLookupByLibrary.simpleMessage("frisbee oyunu"),
         "paFrisbeeDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paGeneralDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paGolfGeneral": MessageLookupByLibrary.simpleMessage("golf"),
@@ -349,24 +373,23 @@ class MessageLookup extends MessageLookupByLibrary {
         "paHackySackDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paHandballGeneral": MessageLookupByLibrary.simpleMessage("hentbol"),
         "paHandballGeneralDesc": MessageLookupByLibrary.simpleMessage("genel"),
-        "paHangGliding": MessageLookupByLibrary.simpleMessage("yamaç paraşütü"),
+        "paHangGliding": MessageLookupByLibrary.simpleMessage("yelken kanat"),
         "paHangGlidingDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paHeadingBicycling":
             MessageLookupByLibrary.simpleMessage("bisiklet sürme"),
         "paHeadingConditionalExercise":
-            MessageLookupByLibrary.simpleMessage("kondisyon egzersizi"),
+            MessageLookupByLibrary.simpleMessage("koşullandırma egzersizi"),
         "paHeadingDancing": MessageLookupByLibrary.simpleMessage("dans"),
         "paHeadingRunning": MessageLookupByLibrary.simpleMessage("koşu"),
-        "paHeadingSports": MessageLookupByLibrary.simpleMessage("sporlar"),
+        "paHeadingSports": MessageLookupByLibrary.simpleMessage("spor"),
         "paHeadingWalking": MessageLookupByLibrary.simpleMessage("yürüyüş"),
         "paHeadingWaterActivities":
             MessageLookupByLibrary.simpleMessage("su aktiviteleri"),
         "paHeadingWinterActivities":
             MessageLookupByLibrary.simpleMessage("kış aktiviteleri"),
-        "paHikingCrossCountry":
-            MessageLookupByLibrary.simpleMessage("doğa yürüyüşü"),
+        "paHikingCrossCountry": MessageLookupByLibrary.simpleMessage("yürüyüş"),
         "paHikingCrossCountryDesc":
-            MessageLookupByLibrary.simpleMessage("kırsal alanda"),
+            MessageLookupByLibrary.simpleMessage("kırsal alan"),
         "paHockeyField": MessageLookupByLibrary.simpleMessage("çim hokeyi"),
         "paHockeyFieldDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paHorseRidingGeneral":
@@ -382,13 +405,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("genel"),
         "paJaiAlai": MessageLookupByLibrary.simpleMessage("jai alai"),
         "paJaiAlaiDesc": MessageLookupByLibrary.simpleMessage("genel"),
-        "paJoggingGeneral": MessageLookupByLibrary.simpleMessage("hafif koşu"),
+        "paJoggingGeneral": MessageLookupByLibrary.simpleMessage("koşu"),
         "paJoggingGeneralDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paJuggling": MessageLookupByLibrary.simpleMessage("jonglörlük"),
         "paJugglingDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paKayakingModerate": MessageLookupByLibrary.simpleMessage("kano"),
         "paKayakingModerateDesc":
-            MessageLookupByLibrary.simpleMessage("orta efor"),
+            MessageLookupByLibrary.simpleMessage("orta derecede çaba"),
         "paKickball": MessageLookupByLibrary.simpleMessage("kickball"),
         "paKickballDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paLacrosse": MessageLookupByLibrary.simpleMessage("lakros"),
@@ -399,89 +422,90 @@ class MessageLookup extends MessageLookupByLibrary {
         "paMartialArtsModerate":
             MessageLookupByLibrary.simpleMessage("dövüş sanatları"),
         "paMartialArtsModerateDesc": MessageLookupByLibrary.simpleMessage(
-            "farklı türler, orta tempo (örn. judo, jujitsu, karate, kick boks, tekvando, tai-bo, Muay Thai boksu)"),
+            "farklı tipler, orta tempo (ör. judo, jujitsu, karate, kick boxing, tae kwan do, tai-bo, Muay Thai boks)"),
         "paMartialArtsSlower":
             MessageLookupByLibrary.simpleMessage("dövüş sanatları"),
         "paMartialArtsSlowerDesc": MessageLookupByLibrary.simpleMessage(
-            "farklı türler, yavaş tempo, acemi performansçılar, pratik"),
-        "paMotoCross": MessageLookupByLibrary.simpleMessage("motokros"),
+            "farklı tipler, daha yavaş tempo, acemi performansçılar, pratik"),
+        "paMotoCross": MessageLookupByLibrary.simpleMessage("moto-kros"),
         "paMotoCrossDesc": MessageLookupByLibrary.simpleMessage(
-            "off-road motor sporları, arazi aracı, genel"),
-        "paMountainClimbing": MessageLookupByLibrary.simpleMessage("tırmanış"),
+            "arazi motor sporları, arazi aracı, genel"),
+        "paMountainClimbing": MessageLookupByLibrary.simpleMessage("tırmanma"),
         "paMountainClimbingDesc":
             MessageLookupByLibrary.simpleMessage("kaya veya dağ tırmanışı"),
         "paOrienteering": MessageLookupByLibrary.simpleMessage("oryantiring"),
         "paOrienteeringDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paPaddleBoarding":
-            MessageLookupByLibrary.simpleMessage("paddle board"),
+            MessageLookupByLibrary.simpleMessage("kürek tahtası"),
         "paPaddleBoardingDesc": MessageLookupByLibrary.simpleMessage("ayakta"),
         "paPaddleBoat": MessageLookupByLibrary.simpleMessage("pedallı tekne"),
         "paPaddleBoatDesc": MessageLookupByLibrary.simpleMessage("genel"),
-        "paPaddleball": MessageLookupByLibrary.simpleMessage("paddle topu"),
+        "paPaddleball": MessageLookupByLibrary.simpleMessage("paddleball"),
         "paPaddleballDesc":
             MessageLookupByLibrary.simpleMessage("rahat, genel"),
         "paPoloHorse": MessageLookupByLibrary.simpleMessage("polo"),
-        "paPoloHorseDesc": MessageLookupByLibrary.simpleMessage("at üstünde"),
+        "paPoloHorseDesc": MessageLookupByLibrary.simpleMessage("at üzerinde"),
         "paRacquetball": MessageLookupByLibrary.simpleMessage("raketbol"),
         "paRacquetballDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paResistanceTraining":
             MessageLookupByLibrary.simpleMessage("direnç antrenmanı"),
         "paResistanceTrainingDesc": MessageLookupByLibrary.simpleMessage(
-            "ağırlık kaldırma, serbest ağırlık, nautilus veya universal"),
+            "ağırlık kaldırma, serbest ağırlık, nautilus veya evrensel"),
         "paRodeoSportGeneralModerate":
             MessageLookupByLibrary.simpleMessage("rodeo sporları"),
         "paRodeoSportGeneralModerateDesc":
-            MessageLookupByLibrary.simpleMessage("genel, orta efor"),
-        "paRollerbladingLight": MessageLookupByLibrary.simpleMessage("paten"),
+            MessageLookupByLibrary.simpleMessage("genel, orta derecede çaba"),
+        "paRollerbladingLight":
+            MessageLookupByLibrary.simpleMessage("patenle kayma"),
         "paRollerbladingLightDesc":
-            MessageLookupByLibrary.simpleMessage("inline paten"),
+            MessageLookupByLibrary.simpleMessage("sıralı paten"),
         "paRopeJumpingGeneral":
             MessageLookupByLibrary.simpleMessage("ip atlama"),
         "paRopeJumpingGeneralDesc": MessageLookupByLibrary.simpleMessage(
-            "orta tempo, dakikada 100-120 atlama, genel, iki ayak atlama, düz zıplama"),
+            "orta tempo, 100-120 atlama/dakika, genel, 2 ayak atlama, düz atlama"),
         "paRopeSkippingGeneral":
             MessageLookupByLibrary.simpleMessage("ip atlama"),
         "paRopeSkippingGeneralDesc":
             MessageLookupByLibrary.simpleMessage("genel"),
-        "paRugbyCompetitive": MessageLookupByLibrary.simpleMessage("ragbi"),
+        "paRugbyCompetitive": MessageLookupByLibrary.simpleMessage("rugby"),
         "paRugbyCompetitiveDesc":
-            MessageLookupByLibrary.simpleMessage("birlik, takım, yarışma"),
-        "paRugbyNonCompetitive": MessageLookupByLibrary.simpleMessage("ragbi"),
-        "paRugbyNonCompetitiveDesc":
-            MessageLookupByLibrary.simpleMessage("dokunmalı, yarışma dışı"),
+            MessageLookupByLibrary.simpleMessage("birlik, takım, rekabetçi"),
+        "paRugbyNonCompetitive": MessageLookupByLibrary.simpleMessage("rugby"),
+        "paRugbyNonCompetitiveDesc": MessageLookupByLibrary.simpleMessage(
+            "dokunmatik, rekabetçi olmayan"),
         "paRunningGeneral": MessageLookupByLibrary.simpleMessage("koşu"),
         "paRunningGeneralDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paSailingGeneral": MessageLookupByLibrary.simpleMessage("yelken"),
         "paSailingGeneralDesc": MessageLookupByLibrary.simpleMessage(
-            "tekne ve tahta yelken, rüzgar sörfü, buz yelkeni, genel"),
+            "tekne ve tahta yelken, rüzgar sörfü, buz yelken, genel"),
         "paShuffleboard": MessageLookupByLibrary.simpleMessage("shuffleboard"),
         "paShuffleboardDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paSkateboardingGeneral":
             MessageLookupByLibrary.simpleMessage("kaykay"),
         "paSkateboardingGeneralDesc":
-            MessageLookupByLibrary.simpleMessage("genel, orta efor"),
-        "paSkatingRoller": MessageLookupByLibrary.simpleMessage("paten"),
+            MessageLookupByLibrary.simpleMessage("genel, orta derecede çaba"),
+        "paSkatingRoller": MessageLookupByLibrary.simpleMessage("paten kayma"),
         "paSkatingRollerDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paSkiingGeneral": MessageLookupByLibrary.simpleMessage("kayak"),
         "paSkiingGeneralDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paSkiingWaterWakeboarding":
             MessageLookupByLibrary.simpleMessage("su kayağı"),
         "paSkiingWaterWakeboardingDesc":
-            MessageLookupByLibrary.simpleMessage("su kayağı veya wakeboard"),
-        "paSkydiving": MessageLookupByLibrary.simpleMessage("serbest paraşüt"),
+            MessageLookupByLibrary.simpleMessage("su veya wakeboarding"),
+        "paSkydiving": MessageLookupByLibrary.simpleMessage("paraşütle atlama"),
         "paSkydivingDesc": MessageLookupByLibrary.simpleMessage(
-            "serbest paraşüt, base jumping, bungee jumping"),
-        "paSnorkeling": MessageLookupByLibrary.simpleMessage("şnorkel"),
+            "paraşütle atlama, base jumping, bungee jumping"),
+        "paSnorkeling": MessageLookupByLibrary.simpleMessage("şnorkelle dalış"),
         "paSnorkelingDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paSnowShovingModerate":
             MessageLookupByLibrary.simpleMessage("kar küreme"),
         "paSnowShovingModerateDesc":
-            MessageLookupByLibrary.simpleMessage("elle, ılımlı çaba"),
+            MessageLookupByLibrary.simpleMessage("elle, orta derecede çaba"),
         "paSoccerGeneral": MessageLookupByLibrary.simpleMessage("futbol"),
         "paSoccerGeneralDesc":
             MessageLookupByLibrary.simpleMessage("rahat, genel"),
         "paSoftballBaseballGeneral":
-            MessageLookupByLibrary.simpleMessage("softball / beyzbol"),
+            MessageLookupByLibrary.simpleMessage("softbol / beyzbol"),
         "paSoftballBaseballGeneralDesc": MessageLookupByLibrary.simpleMessage(
             "hızlı veya yavaş atış, genel"),
         "paSquashGeneral": MessageLookupByLibrary.simpleMessage("squash"),
@@ -491,7 +515,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("vücut veya tahta, genel"),
         "paSwimmingGeneral": MessageLookupByLibrary.simpleMessage("yüzme"),
         "paSwimmingGeneralDesc": MessageLookupByLibrary.simpleMessage(
-            "su üzerinde durma, orta efor, genel"),
+            "su üzerinde durma, orta derecede çaba, genel"),
         "paTableTennisGeneral":
             MessageLookupByLibrary.simpleMessage("masa tenisi"),
         "paTableTennisGeneralDesc":
@@ -504,12 +528,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "paTennisGeneralDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paTrackField": MessageLookupByLibrary.simpleMessage("atletizm"),
         "paTrackField1Desc": MessageLookupByLibrary.simpleMessage(
-            "(örn. gülle atma, disk atma, çekiç atma)"),
+            "(ör. gülle, disk, çekiç atma)"),
         "paTrackField2Desc": MessageLookupByLibrary.simpleMessage(
-            "(örn. yüksek atlama, uzun atlama, üç adım atlama, cirit atma, sırıkla atlama)"),
+            "(ör. yüksek atlama, uzun atlama, üçlü atlama, cirit, sırıkla atlama)"),
         "paTrackField3Desc": MessageLookupByLibrary.simpleMessage(
-            "(örn. su engelli koşu, engelli koşu)"),
-        "paTrampolineLight": MessageLookupByLibrary.simpleMessage("trampolin"),
+            "(ör. engelli koşu, engelli yarış)"),
+        "paTrampolineLight": MessageLookupByLibrary.simpleMessage("trambolin"),
         "paTrampolineLightDesc":
             MessageLookupByLibrary.simpleMessage("eğlence amaçlı"),
         "paUnicyclingGeneral":
@@ -518,18 +542,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("genel"),
         "paVolleyballGeneral": MessageLookupByLibrary.simpleMessage("voleybol"),
         "paVolleyballGeneralDesc": MessageLookupByLibrary.simpleMessage(
-            "yarışma dışı, 6 - 9 kişilik takım, genel"),
+            "rekabetçi olmayan, 6 - 9 üyeli takım, genel"),
         "paWalkingForPleasure": MessageLookupByLibrary.simpleMessage("yürüyüş"),
         "paWalkingForPleasureDesc":
-            MessageLookupByLibrary.simpleMessage("keyif için"),
+            MessageLookupByLibrary.simpleMessage("zevk için"),
         "paWalkingTheDog":
-            MessageLookupByLibrary.simpleMessage("köpek gezdirme"),
+            MessageLookupByLibrary.simpleMessage("köpeği gezdirmek"),
         "paWalkingTheDogDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paWallyball": MessageLookupByLibrary.simpleMessage("wallyball"),
         "paWallyballDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paWaterAerobics": MessageLookupByLibrary.simpleMessage("su egzersizi"),
         "paWaterAerobicsDesc":
-            MessageLookupByLibrary.simpleMessage("su aerobiği, su jimnastiği"),
+            MessageLookupByLibrary.simpleMessage("su aerobiği, su kalistenik"),
         "paWaterPolo": MessageLookupByLibrary.simpleMessage("su topu"),
         "paWaterPoloDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "paWaterVolleyball":
@@ -538,23 +562,26 @@ class MessageLookup extends MessageLookupByLibrary {
         "paWateraerobicsCalisthenics":
             MessageLookupByLibrary.simpleMessage("su aerobiği"),
         "paWateraerobicsCalisthenicsDesc":
-            MessageLookupByLibrary.simpleMessage("su aerobiği, su jimnastiği"),
+            MessageLookupByLibrary.simpleMessage("su aerobiği, su kalistenik"),
         "paWrestling": MessageLookupByLibrary.simpleMessage("güreş"),
         "paWrestlingDesc": MessageLookupByLibrary.simpleMessage("genel"),
         "palActiveDescriptionLabel": MessageLookupByLibrary.simpleMessage(
-            "Çoğunlukla işte ayakta durmak veya yürümek ve aktif boş zaman aktiviteleri"),
+            "iş yerinde çoğunlukla ayakta durma veya yürüme ve aktif serbest zaman aktiviteleri"),
         "palActiveLabel": MessageLookupByLibrary.simpleMessage("Aktif"),
         "palLowActiveDescriptionLabel": MessageLookupByLibrary.simpleMessage(
-            "örn. işte oturmak veya ayakta durmak ve hafif boş zaman aktiviteleri"),
-        "palLowLActiveLabel": MessageLookupByLibrary.simpleMessage("Az Aktif"),
+            "ör. iş yerinde oturma veya ayakta durma ve hafif serbest zaman aktiviteleri"),
+        "palLowLActiveLabel":
+            MessageLookupByLibrary.simpleMessage("Düşük Aktif"),
         "palSedentaryDescriptionLabel": MessageLookupByLibrary.simpleMessage(
-            "örn. ofis işi ve çoğunlukla oturarak geçirilen boş zaman aktiviteleri"),
+            "ör. ofis işi ve çoğunlukla oturarak geçirilen serbest zaman aktiviteleri"),
         "palSedentaryLabel": MessageLookupByLibrary.simpleMessage("Hareketsiz"),
         "palVeryActiveDescriptionLabel": MessageLookupByLibrary.simpleMessage(
-            "Çoğunlukla işte yürümek, koşmak veya ağırlık taşımak ve aktif boş zaman aktiviteleri"),
+            "iş yerinde çoğunlukla yürüme, koşma veya ağırlık taşıma ve aktif serbest zaman aktiviteleri"),
         "palVeryActiveLabel": MessageLookupByLibrary.simpleMessage("Çok Aktif"),
         "per100gmlLabel":
             MessageLookupByLibrary.simpleMessage("100g/ml başına"),
+        "perServingLabel":
+            MessageLookupByLibrary.simpleMessage("Porsiyon Başına"),
         "privacyPolicyLabel":
             MessageLookupByLibrary.simpleMessage("Gizlilik politikası"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profil"),
@@ -566,9 +593,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Son Eklenenler"),
         "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
             "Geliştiriciye bir hata bildirmek istiyor musunuz?"),
-        "retryLabel": MessageLookupByLibrary.simpleMessage("Tekrar dene"),
+        "retryLabel": MessageLookupByLibrary.simpleMessage("Tekrar Dene"),
         "saturatedFatLabel": MessageLookupByLibrary.simpleMessage("doymuş yağ"),
-        "scanProductLabel": MessageLookupByLibrary.simpleMessage("Ürün Tara"),
+        "scanProductLabel": MessageLookupByLibrary.simpleMessage("Ürünü Tara"),
         "searchDefaultLabel": MessageLookupByLibrary.simpleMessage(
             "Lütfen bir arama kelimesi girin"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Yiyecek"),
@@ -581,11 +608,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "selectHeightDialogLabel":
             MessageLookupByLibrary.simpleMessage("Boy Seçin"),
         "selectPalCategoryLabel":
-            MessageLookupByLibrary.simpleMessage("Aktivite Seviyesi Seçin"),
+            MessageLookupByLibrary.simpleMessage("Aktivite Seviyesini Seçin"),
         "selectWeightDialogLabel":
             MessageLookupByLibrary.simpleMessage("Kilo Seçin"),
         "sendAnonymousUserData": MessageLookupByLibrary.simpleMessage(
-            "Anonim kullanım verilerini gönder"),
+            "Anonim kullanım verileri gönder"),
+        "servingLabel": MessageLookupByLibrary.simpleMessage("Porsiyon"),
         "servingSizeLabelImperial":
             MessageLookupByLibrary.simpleMessage("Porsiyon boyutu (oz/fl oz)"),
         "servingSizeLabelMetric":
@@ -598,16 +626,21 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Sorumluluk Reddi"),
         "settingsDistanceLabel": MessageLookupByLibrary.simpleMessage("Mesafe"),
+        "settingsImperialLabel":
+            MessageLookupByLibrary.simpleMessage("İmperial (lbs, ft, oz)"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Ayarlar"),
         "settingsLicensesLabel":
             MessageLookupByLibrary.simpleMessage("Lisanslar"),
         "settingsMassLabel": MessageLookupByLibrary.simpleMessage("Kütle"),
+        "settingsMetricLabel":
+            MessageLookupByLibrary.simpleMessage("Metrik (kg, cm, ml)"),
         "settingsPrivacySettings":
             MessageLookupByLibrary.simpleMessage("Gizlilik Ayarları"),
         "settingsReportErrorLabel":
             MessageLookupByLibrary.simpleMessage("Hata Bildir"),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Kaynak Kodu"),
+        "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Sistem"),
         "settingsThemeDarkLabel": MessageLookupByLibrary.simpleMessage("Koyu"),
         "settingsThemeLabel": MessageLookupByLibrary.simpleMessage("Tema"),
         "settingsThemeLightLabel": MessageLookupByLibrary.simpleMessage("Açık"),
@@ -616,10 +649,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsUnitsLabel": MessageLookupByLibrary.simpleMessage("Birimler"),
         "settingsVolumeLabel": MessageLookupByLibrary.simpleMessage("Hacim"),
         "snackExample": MessageLookupByLibrary.simpleMessage(
-            "örn. elma, dondurma, çikolata ..."),
+            "ör. elma, dondurma, çikolata ..."),
         "snackLabel": MessageLookupByLibrary.simpleMessage("Atıştırmalık"),
         "sugarLabel": MessageLookupByLibrary.simpleMessage("şeker"),
-        "suppliedLabel": MessageLookupByLibrary.simpleMessage("alınan"),
+        "suppliedLabel": MessageLookupByLibrary.simpleMessage("tüketilen"),
         "unitLabel": MessageLookupByLibrary.simpleMessage("Birim"),
         "weightLabel": MessageLookupByLibrary.simpleMessage("Kilo"),
         "yearsLabel": m3
