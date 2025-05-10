@@ -15,7 +15,13 @@ class WeightBloc extends Bloc<WeightEvent, WeightState> {
       emit(WeightState(state.weight + weightStep));
     });
     on<WeightDecrement>((event, emit) {
-      emit(WeightState(state.weight - weightStep));
+      final newWeight = state.weight - weightStep;
+      if (newWeight >= 0) {
+        emit(WeightState(newWeight));
+      } else {
+        emit(WeightState(0));
+        log.severe('Weight cannot be negative');
+      }
     });
   }
 }
