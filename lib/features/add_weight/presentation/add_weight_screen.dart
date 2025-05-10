@@ -50,8 +50,7 @@ class _AddWeightScreenState extends State<AddWeightScreen> {
                     bloc: _weightBloc,
                     builder: (context, state) {
                       return Text(
-                        state.weight.toStringAsFixed(
-                            2), // Affiche le poids avec 2 décimales
+                        "${state.weight.toStringAsFixed(2)} kg",
                         style: Theme.of(context).textTheme.headlineMedium,
                       );
                     },
