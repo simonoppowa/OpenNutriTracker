@@ -115,7 +115,7 @@ Future<void> initLocator() async {
       .registerFactory<ProductsBloc>(() => ProductsBloc(locator(), locator()));
   locator.registerFactory<FoodBloc>(() => FoodBloc(locator(), locator()));
   locator.registerFactory(() => RecentMealBloc(locator(), locator()));
-  locator.registerFactory(() => WeightBloc());
+  locator.registerLazySingleton(() => WeightBloc());
 
   // UseCases
   locator.registerLazySingleton<GetConfigUsecase>(

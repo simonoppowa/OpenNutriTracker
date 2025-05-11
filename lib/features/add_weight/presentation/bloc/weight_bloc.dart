@@ -1,27 +1,48 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 
 part 'weight_event.dart';
 
 part 'weight_state.dart';
 
 class WeightBloc extends Bloc<WeightEvent, WeightState> {
+  final GetUserUsecase _getUserUsecase = locator<GetUserUsecase>();
   final log = Logger('WeightBloc');
 
   final double weightStep = 0.1;
 
-  WeightBloc() : super(const WeightState(0)) {
+  double finalWeight = 0.0;
+
+  WeightBloc() : super(WeightState(0.0)) {
+    _loadInitialWeight();
+
     on<WeightIncrement>((event, emit) {
-      emit(WeightState(state.weight + weightStep));
+      finalWeight += weightStep;
+      emit(WeightState(finalWeight));
     });
     on<WeightDecrement>((event, emit) {
-      final newWeight = state.weight - weightStep;
+      final newWeight = finalWeight - weightStep;
       if (newWeight >= 0) {
-        emit(WeightState(newWeight));
+        finalWeight = newWeight;
       } else {
-        emit(WeightState(0));
+        finalWeight = 0;
         log.severe('Weight cannot be negative');
       }
+      emit(WeightState(finalWeight));
     });
+  }
+
+  Future<void> _loadInitialWeight() async {
+    try {
+      final userData = await _getUserUsecase.getUserData();
+      final initialUserWeight = userData.weightKG;
+
+      finalWeight = initialUserWeight;
+      emit(WeightState(finalWeight));
+    } catch (e, stackTrace) {
+      log.severe('Failed to load initial weight', e, stackTrace);
+    }
   }
 }
