@@ -100,6 +100,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             image: _defaultImageWidget,
             bodyWidget: OnboardingIntroPageBody(
               setPageContent: _setIntroPageData,
+              initialAcceptedPolicy: _introPageButtonActive,
+              initialAcceptedDataCollection: _onboardingBloc.userSelection.acceptDataCollection,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonStartLabel,
