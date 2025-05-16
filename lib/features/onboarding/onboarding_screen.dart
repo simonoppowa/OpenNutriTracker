@@ -121,17 +121,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             )),
         PageViewModel(
             titleWidget: const SizedBox(),
-            // empty
             decoration: _pageDecoration,
             image: _defaultImageWidget,
             bodyWidget: OnboardingSecondPageBody(
               setButtonContent: _setSecondPageData,
+              initialHeight: _onboardingBloc.userSelection.height,
+              initialWeight: _onboardingBloc.userSelection.weight,
+              initialUsesImperial: _onboardingBloc.userSelection.usesImperialUnits,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonNextLabel,
               onButtonPressed: () => _scrollToPage(3),
               buttonActive: _secondPageButtonActive,
-            )),
+            ),
+        ),
         PageViewModel(
             titleWidget: const SizedBox(),
             // empty
