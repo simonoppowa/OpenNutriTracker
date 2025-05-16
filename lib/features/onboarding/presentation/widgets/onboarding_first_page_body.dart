@@ -8,7 +8,17 @@ class OnboardingFirstPageBody extends StatefulWidget {
           bool active, UserGenderSelectionEntity? gender, DateTime? birthday)
       setPageContent;
 
-  const OnboardingFirstPageBody({super.key, required this.setPageContent});
+  final DateTime? initiallySelectedDate;
+  final bool initialMaleSelected;
+  final bool initialFemaleSelected;
+
+  const OnboardingFirstPageBody({
+    super.key,
+    required this.setPageContent,
+    this.initiallySelectedDate,
+    this.initialMaleSelected = false,
+    this.initialFemaleSelected = false
+  });
 
   @override
   State<OnboardingFirstPageBody> createState() =>
@@ -21,6 +31,15 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
 
   bool _maleSelected = false;
   bool _femaleSelected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = widget.initiallySelectedDate;
+    _maleSelected = widget.initialMaleSelected;
+    _femaleSelected = widget.initialFemaleSelected;
+    _selectedDate != null ? _dateInput.text = DateFormat('yyyy-MM-dd').format(_selectedDate!) : null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +105,7 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
   void onDateInputClicked() async {
     final pickedDate = await showDatePicker(
         context: context,
-        initialDate: DateTime.now(),
+        initialDate: _selectedDate ?? DateTime.now(),
         firstDate: DateTime(1900),
         lastDate: DateTime(2100));
     if (pickedDate != null) {

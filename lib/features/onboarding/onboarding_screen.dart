@@ -115,6 +115,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             image: _defaultImageWidget,
             bodyWidget: OnboardingFirstPageBody(
               setPageContent: _setFirstPageData,
+              initiallySelectedDate: _onboardingBloc.userSelection.birthday,
+              initialMaleSelected: _onboardingBloc.userSelection.gender == UserGenderSelectionEntity.genderMale,
+              initialFemaleSelected: _onboardingBloc.userSelection.gender == UserGenderSelectionEntity.genderFemale,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonNextLabel,
