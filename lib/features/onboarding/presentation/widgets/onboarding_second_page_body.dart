@@ -7,7 +7,17 @@ class OnboardingSecondPageBody extends StatefulWidget {
   final Function(bool active, double? selectedHeight, double? selectedWeight,
       bool usesImperialUnits) setButtonContent;
 
-  const OnboardingSecondPageBody({super.key, required this.setButtonContent});
+  final double? initialHeight;
+  final double? initialWeight;
+  final bool initialUsesImperial;
+
+  const OnboardingSecondPageBody({
+    super.key,
+    required this.setButtonContent,
+    this.initialHeight,
+    this.initialWeight,
+    this.initialUsesImperial = false,
+  });
 
   @override
   State<OnboardingSecondPageBody> createState() =>
@@ -22,6 +32,20 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
   double? _parsedWeight;
 
   bool get _isImperialSelected => _isUnitSelected[1];
+
+  @override
+  void initState() {
+    super.initState();
+    if(widget.initialUsesImperial){
+      _parsedHeight = UnitCalc.cmToFeet(widget.initialHeight != null ? widget.initialHeight! : 0.0);
+      _parsedWeight = UnitCalc.kgToLbs(widget.initialWeight != null ? widget.initialWeight! : 0.0);
+    }else{
+      _parsedHeight = widget.initialHeight?.round().toDouble();
+      _parsedWeight = widget.initialWeight;
+    }
+    _isUnitSelected[0] = !widget.initialUsesImperial;
+    _isUnitSelected[1] = widget.initialUsesImperial;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +63,7 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
           Form(
             key: _heightFormKey,
             child: TextFormField(
+                initialValue: _isImperialSelected ? _parsedHeight?.toString() : _parsedHeight?.toString().split('.')[0],
                 onChanged: (text) {
                   if (_heightFormKey.currentState!.validate()) {
                     _parsedHeight = double.tryParse(text.replaceAll(',', '.'));
@@ -103,6 +128,7 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
           Form(
             key: _weightFormKey,
             child: TextFormField(
+                initialValue: _parsedWeight?.toString(),
                 onChanged: (text) {
                   if (_weightFormKey.currentState!.validate()) {
                     _parsedWeight = double.tryParse(text);

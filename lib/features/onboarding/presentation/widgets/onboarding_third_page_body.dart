@@ -7,7 +7,19 @@ class OnboardingThirdPageBody extends StatefulWidget {
   final Function(bool active, UserActivitySelectionEntity? selectedActivity)
       setButtonContent;
 
-  const OnboardingThirdPageBody({super.key, required this.setButtonContent});
+  final bool initialSedentarySelected;
+  final bool initialLowActiveSelected;
+  final bool initialActiveSelected;
+  final bool initialVeryActiveSelected;
+
+  const OnboardingThirdPageBody({
+    super.key,
+    required this.setButtonContent,
+    this.initialSedentarySelected = false,
+    this.initialLowActiveSelected = false,
+    this.initialActiveSelected = false,
+    this.initialVeryActiveSelected = false
+  });
 
   @override
   State<OnboardingThirdPageBody> createState() =>
@@ -19,6 +31,15 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
   bool _lowActiveSelected = false;
   bool _activeSelected = false;
   bool _veryActiveSelected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _sedentarySelected = widget.initialSedentarySelected;
+    _lowActiveSelected = widget.initialLowActiveSelected;
+    _activeSelected = widget.initialActiveSelected;
+    _veryActiveSelected = widget.initialVeryActiveSelected;
+  }
 
   @override
   Widget build(BuildContext context) {

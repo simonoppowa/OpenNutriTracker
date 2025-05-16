@@ -6,7 +6,17 @@ class OnboardingFourthPageBody extends StatefulWidget {
   final Function(bool active, UserGoalSelectionEntity? selectedGoal)
       setButtonContent;
 
-  const OnboardingFourthPageBody({super.key, required this.setButtonContent});
+  final bool initiallyLooseWeightSelected;
+  final bool initiallyMaintainWeightSelected;
+  final bool initiallyGainWeightSelected;
+
+  const OnboardingFourthPageBody({
+    super.key,
+    required this.setButtonContent,
+    this.initiallyLooseWeightSelected = false,
+    this.initiallyMaintainWeightSelected = false,
+    this.initiallyGainWeightSelected = false
+  });
 
   @override
   State<OnboardingFourthPageBody> createState() =>
@@ -17,6 +27,14 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
   bool _looseWeightSelected = false;
   bool _maintainWeightSelected = false;
   bool _gainWeightSelected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _looseWeightSelected = widget.initiallyLooseWeightSelected;
+    _maintainWeightSelected = widget.initiallyMaintainWeightSelected;
+    _gainWeightSelected = widget.initiallyGainWeightSelected;
+  }
 
   @override
   Widget build(BuildContext context) {

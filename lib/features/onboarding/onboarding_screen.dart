@@ -100,6 +100,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             image: _defaultImageWidget,
             bodyWidget: OnboardingIntroPageBody(
               setPageContent: _setIntroPageData,
+              initialAcceptedPolicy: _introPageButtonActive,
+              initialAcceptedDataCollection: _onboardingBloc.userSelection.acceptDataCollection,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonStartLabel,
@@ -113,6 +115,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             image: _defaultImageWidget,
             bodyWidget: OnboardingFirstPageBody(
               setPageContent: _setFirstPageData,
+              initiallySelectedDate: _onboardingBloc.userSelection.birthday,
+              initialMaleSelected: _onboardingBloc.userSelection.gender == UserGenderSelectionEntity.genderMale,
+              initialFemaleSelected: _onboardingBloc.userSelection.gender == UserGenderSelectionEntity.genderFemale,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonNextLabel,
@@ -121,17 +126,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             )),
         PageViewModel(
             titleWidget: const SizedBox(),
-            // empty
             decoration: _pageDecoration,
             image: _defaultImageWidget,
             bodyWidget: OnboardingSecondPageBody(
               setButtonContent: _setSecondPageData,
+              initialHeight: _onboardingBloc.userSelection.height,
+              initialWeight: _onboardingBloc.userSelection.weight,
+              initialUsesImperial: _onboardingBloc.userSelection.usesImperialUnits,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonNextLabel,
               onButtonPressed: () => _scrollToPage(3),
               buttonActive: _secondPageButtonActive,
-            )),
+            ),
+        ),
         PageViewModel(
             titleWidget: const SizedBox(),
             // empty
@@ -139,6 +147,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             image: _defaultImageWidget,
             bodyWidget: OnboardingThirdPageBody(
               setButtonContent: _setThirdPageButton,
+              initialSedentarySelected: _onboardingBloc.userSelection.activity == UserActivitySelectionEntity.sedentary,
+              initialLowActiveSelected: _onboardingBloc.userSelection.activity == UserActivitySelectionEntity.lowActive,
+              initialActiveSelected: _onboardingBloc.userSelection.activity == UserActivitySelectionEntity.active,
+              initialVeryActiveSelected: _onboardingBloc.userSelection.activity == UserActivitySelectionEntity.veryActive,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonNextLabel,
@@ -152,6 +164,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             image: _defaultImageWidget,
             bodyWidget: OnboardingFourthPageBody(
               setButtonContent: _setFourthPageButton,
+              initiallyLooseWeightSelected: _onboardingBloc.userSelection.goal == UserGoalSelectionEntity.loseWeight,
+              initiallyMaintainWeightSelected: _onboardingBloc.userSelection.goal == UserGoalSelectionEntity.maintainWeight,
+              initiallyGainWeightSelected: _onboardingBloc.userSelection.goal == UserGoalSelectionEntity.gainWeigh,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonNextLabel,
