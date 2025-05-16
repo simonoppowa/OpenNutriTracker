@@ -4,6 +4,9 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+import 'package:opennutritracker/core/domain/usecase/add_weight_usecase.dart';
+import 'package:opennutritracker/core/domain/entity/user_weight_entity.dart';
+
 class AddWeightScreen extends StatefulWidget {
   const AddWeightScreen({super.key});
 
@@ -13,10 +16,12 @@ class AddWeightScreen extends StatefulWidget {
 
 class _AddWeightScreenState extends State<AddWeightScreen> {
   late WeightBloc _weightBloc;
+  late AddWeightUsecase _addWeightUsecase;
 
   @override
   void initState() {
     _weightBloc = locator<WeightBloc>();
+    _addWeightUsecase = locator<AddWeightUsecase>();
     super.initState();
   }
 
@@ -39,27 +44,46 @@ class _AddWeightScreenState extends State<AddWeightScreen> {
               ),
               shadows: kElevationToShadow[2],
             ),
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.remove),
-                    onPressed: () => _weightBloc.add(WeightDecrement()),
+            child: Column(
+              mainAxisSize: MainAxisSize
+                  .min, // Pour que la colonne ne prenne que la hauteur nécessaire
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove),
+                      onPressed: () => _weightBloc.add(WeightDecrement()),
+                    ),
+                    BlocBuilder<WeightBloc, WeightState>(
+                      bloc: _weightBloc,
+                      builder: (context, state) {
+                        return Text(
+                          "${state.weight.toStringAsFixed(1)} kg",
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () => _weightBloc.add(WeightIncrement()),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => _addWeightUsecase.addUserActivity(
+                        UserWeightEntity(
+                            id: "id",
+                            weight: _weightBloc.finalWeight,
+                            date: DateTime.now())),
+                    child: Text("Save"),
                   ),
-                  BlocBuilder<WeightBloc, WeightState>(
-                    bloc: _weightBloc,
-                    builder: (context, state) {
-                      return Text(
-                        "${state.weight.toStringAsFixed(2)} kg",
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.add),
-                    onPressed: () => _weightBloc.add(WeightIncrement()),
-                  )
-                ]),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -67,6 +91,11 @@ class _AddWeightScreenState extends State<AddWeightScreen> {
   }
 }
 
+// Ajout d'une clé de localisation pour le bouton "Save" si elle n'existe pas.
+// Vous devrez ajouter la traduction correspondante dans vos fichiers .arb.
+// Exemple pour S.of(context).saveButtonLabel
+// Dans intl_en.arb: "saveButtonLabel": "Save"
+// Dans intl_fr.arb: "saveButtonLabel": "Enregistrer"
 class AddWeightScreenArguments {
   final DateTime day;
   final double weight;
