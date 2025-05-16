@@ -147,6 +147,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             image: _defaultImageWidget,
             bodyWidget: OnboardingThirdPageBody(
               setButtonContent: _setThirdPageButton,
+              initialSedentarySelected: _onboardingBloc.userSelection.activity == UserActivitySelectionEntity.sedentary,
+              initialLowActiveSelected: _onboardingBloc.userSelection.activity == UserActivitySelectionEntity.lowActive,
+              initialActiveSelected: _onboardingBloc.userSelection.activity == UserActivitySelectionEntity.active,
+              initialVeryActiveSelected: _onboardingBloc.userSelection.activity == UserActivitySelectionEntity.veryActive,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonNextLabel,
@@ -160,6 +164,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             image: _defaultImageWidget,
             bodyWidget: OnboardingFourthPageBody(
               setButtonContent: _setFourthPageButton,
+              initiallyLooseWeightSelected: _onboardingBloc.userSelection.goal == UserGoalSelectionEntity.loseWeight,
+              initiallyMaintainWeightSelected: _onboardingBloc.userSelection.goal == UserGoalSelectionEntity.maintainWeight,
+              initiallyGainWeightSelected: _onboardingBloc.userSelection.goal == UserGoalSelectionEntity.gainWeigh,
             ),
             footer: HighlightButton(
               buttonLabel: S.of(context).buttonNextLabel,
