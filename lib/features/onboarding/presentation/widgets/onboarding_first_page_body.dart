@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:opennutritracker/core/utils/bounds/validator.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -86,11 +86,12 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
   void onDateInputClicked() async {
     final pickedDate = await showDatePicker(
         context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(1900),
-        lastDate: DateTime(2100));
+        initialDate: DateTime.now().compareTo(ValueValidator.getLastDate()) >= 0 ? ValueValidator.getLastDate() : DateTime.now(), // !!! if merge with #206, use both
+        firstDate: ValueValidator.getFirstDate(),
+        lastDate: ValueValidator.getLastDate());
     if (pickedDate != null) {
-      String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+      final MaterialLocalizations localizations = MaterialLocalizations.of(context);
+      String formattedDate = localizations.formatCompactDate(pickedDate);
       setState(() {
         _selectedDate = pickedDate;
         _dateInput.text = formattedDate;
@@ -106,11 +107,8 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
     } else if (_femaleSelected) {
       selectedGender = UserGenderSelectionEntity.genderFemale;
     }
-
-    if (selectedGender != null && _selectedDate != null) {
-      widget.setPageContent(true, selectedGender, _selectedDate);
-    } else {
-      widget.setPageContent(false, null, null);
-    }
+    selectedGender != null && _selectedDate != null
+        ? widget.setPageContent(true, selectedGender, _selectedDate)
+        : widget.setPageContent(false, null, null);
   }
 }
