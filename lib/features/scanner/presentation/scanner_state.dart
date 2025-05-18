@@ -19,8 +19,10 @@ class ScannerLoadedState extends ScannerState {
   final MealEntity product;
   final bool usesImperialUnits;
 
-  const ScannerLoadedState(
-      {required this.product, this.usesImperialUnits = false});
+  const ScannerLoadedState({
+    required this.product,
+    this.usesImperialUnits = false,
+  });
 
   @override
   List<Object?> get props => [product];

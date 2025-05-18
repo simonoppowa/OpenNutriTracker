@@ -11,14 +11,17 @@ void main() {
   test('IOM TDEE calculation for a male user', () {
     // Mock a male user
     UserEntity user = UserEntity(
-        birthday: DateTime(DateTime.now().year - 25, DateTime.now().month,
-            DateTime.now().day - 1),
-        heightCM: 180.0,
-        weightKG: 80.0,
-        gender: UserGenderEntity.male,
-        goal: UserWeightGoalEntity.maintainWeight,
-        pal: UserPALEntity.sedentary);
-
+      birthday: DateTime(
+        DateTime.now().year - 25,
+        DateTime.now().month,
+        DateTime.now().day - 1,
+      ),
+      heightCM: 180.0,
+      weightKG: 80.0,
+      gender: UserGenderEntity.male,
+      goal: UserWeightGoalEntity.maintainWeight,
+      pal: UserPALEntity.sedentary,
+    );
 
     // Call the TDEE calculation method
     double userTdee = TDEECalc.getTDEEKcalIOM2005(user);
@@ -34,7 +37,8 @@ void main() {
 
   test('IOM TDEE calculation for a female user', () {
     // Mock a female user
-    UserEntity user = UserEntityFixtures.middleAgedActiveFemaleWantingToLoseWeight;
+    UserEntity user =
+        UserEntityFixtures.middleAgedActiveFemaleWantingToLoseWeight;
 
     // Call the TDEE calculation method
     double userTdee = TDEECalc.getTDEEKcalIOM2005(user);

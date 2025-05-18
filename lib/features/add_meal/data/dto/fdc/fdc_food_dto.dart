@@ -18,16 +18,17 @@ class FDCFoodDTO {
 
   final List<FDCFoodNutrimentDTO> foodNutrients;
 
-  FDCFoodDTO(
-      {required this.fdcId,
-      required this.gtinUpc,
-      required this.description,
-      required this.brandOwner,
-      required this.brandName,
-      required this.packageWeight,
-      required this.servingSize,
-      required this.foodNutrients,
-      required this.servingSizeUnit});
+  FDCFoodDTO({
+    required this.fdcId,
+    required this.gtinUpc,
+    required this.description,
+    required this.brandOwner,
+    required this.brandName,
+    required this.packageWeight,
+    required this.servingSize,
+    required this.foodNutrients,
+    required this.servingSizeUnit,
+  });
 
   factory FDCFoodDTO.fromJson(Map<String, dynamic> json) =>
       _$FDCFoodDTOFromJson(json);

@@ -11,7 +11,9 @@ class GetTrackedDayUsecase {
   }
 
   Future<List<TrackedDayEntity>> getTrackedDaysByRange(
-      DateTime start, DateTime end) {
+    DateTime start,
+    DateTime end,
+  ) {
     return _trackedDayRepository.getTrackedDayByRange(start, end);
   }
 }

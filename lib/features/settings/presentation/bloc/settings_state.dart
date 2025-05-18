@@ -20,10 +20,18 @@ class SettingsLoadedState extends SettingsState {
   final AppThemeEntity appTheme;
   final bool usesImperialUnits;
 
-  const SettingsLoadedState(this.versionNumber, this.sendAnonymousData,
-      this.appTheme, this.usesImperialUnits);
+  const SettingsLoadedState(
+    this.versionNumber,
+    this.sendAnonymousData,
+    this.appTheme,
+    this.usesImperialUnits,
+  );
 
   @override
-  List<Object?> get props =>
-      [versionNumber, sendAnonymousData, appTheme, usesImperialUnits];
+  List<Object?> get props => [
+        versionNumber,
+        sendAnonymousData,
+        appTheme,
+        usesImperialUnits,
+      ];
 }

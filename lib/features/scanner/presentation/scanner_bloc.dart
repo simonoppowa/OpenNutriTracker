@@ -20,15 +20,21 @@ class ScannerBloc extends Bloc<ScannerEvent, ScannerState> {
       emit(ScannerLoadingState());
 
       try {
-        final result =
-            await _searchProductUseCase.searchProductByBarcode(event.barcode);
+        final result = await _searchProductUseCase.searchProductByBarcode(
+          event.barcode,
+        );
         final config = await _getConfigUsecase.getConfig();
-        emit(ScannerLoadedState(
-            product: result, usesImperialUnits: config.usesImperialUnits));
+        emit(
+          ScannerLoadedState(
+            product: result,
+            usesImperialUnits: config.usesImperialUnits,
+          ),
+        );
       } catch (exception) {
         if (exception == ProductNotFoundException) {
           emit(
-              const ScannerFailedState(ScannerFailedStateType.productNotFound));
+            const ScannerFailedState(ScannerFailedStateType.productNotFound),
+          );
         } else {
           emit(const ScannerFailedState(ScannerFailedStateType.error));
         }

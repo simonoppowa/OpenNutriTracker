@@ -20,8 +20,14 @@ class PhysicalActivityEntity extends Equatable {
 
   final PhysicalActivityTypeEntity type;
 
-  const PhysicalActivityEntity(this.code, this.specificActivity,
-      this.description, this.mets, this.tags, this.type);
+  const PhysicalActivityEntity(
+    this.code,
+    this.specificActivity,
+    this.description,
+    this.mets,
+    this.tags,
+    this.type,
+  );
 
   @override
   List<Object?> get props => [code, specificActivity, description, mets];
@@ -119,7 +125,7 @@ class PhysicalActivityEntity extends Equatable {
       "18360": S.of(context).paWaterPolo,
       "19030": S.of(context).paIceSkatingGeneral,
       "19075": S.of(context).paSkiingGeneral,
-      "19252": S.of(context).paSnowShovingModerate
+      "19252": S.of(context).paSnowShovingModerate,
     };
     return physicalActivityMap[code] ?? type.getName(context);
   }
@@ -217,7 +223,7 @@ class PhysicalActivityEntity extends Equatable {
       "18360": S.of(context).paWaterPoloDesc,
       "19030": S.of(context).paIceSkatingGeneralDesc,
       "19075": S.of(context).paSkiingGeneralDesc,
-      "19252": S.of(context).paSnowShovingModerateDesc
+      "19252": S.of(context).paSnowShovingModerateDesc,
     };
     return physicalActivityMap[code] ?? type.getName(context);
   }
@@ -481,15 +487,17 @@ class PhysicalActivityEntity extends Equatable {
   }
 
   factory PhysicalActivityEntity.fromPhysicalActivityDBO(
-          PhysicalActivityDBO activityDBO) =>
+    PhysicalActivityDBO activityDBO,
+  ) =>
       PhysicalActivityEntity(
-          activityDBO.code,
-          activityDBO.specificActivity,
-          activityDBO.description,
-          activityDBO.mets,
-          activityDBO.tags,
-          PhysicalActivityTypeEntity.fromPhysicalActivityTypeDBO(
-              activityDBO.type));
+        activityDBO.code,
+        activityDBO.specificActivity,
+        activityDBO.description,
+        activityDBO.mets,
+        activityDBO.tags,
+        PhysicalActivityTypeEntity.fromPhysicalActivityTypeDBO(
+            activityDBO.type),
+      );
 }
 
 extension ActivityIcon on PhysicalActivityTypeEntity {
@@ -560,7 +568,8 @@ enum PhysicalActivityTypeEntity {
   winterActivities;
 
   factory PhysicalActivityTypeEntity.fromPhysicalActivityTypeDBO(
-      PhysicalActivityTypeDBO typeDBO) {
+    PhysicalActivityTypeDBO typeDBO,
+  ) {
     PhysicalActivityTypeEntity typeEntity;
     switch (typeDBO) {
       case PhysicalActivityTypeDBO.bicycling:

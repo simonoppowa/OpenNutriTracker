@@ -4,8 +4,12 @@ import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingSecondPageBody extends StatefulWidget {
-  final Function(bool active, double? selectedHeight, double? selectedWeight,
-      bool usesImperialUnits) setButtonContent;
+  final Function(
+    bool active,
+    double? selectedHeight,
+    double? selectedWeight,
+    bool usesImperialUnits,
+  ) setButtonContent;
 
   const OnboardingSecondPageBody({super.key, required this.setButtonContent});
 
@@ -31,41 +35,47 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(S.of(context).heightLabel,
-              style: Theme.of(context).textTheme.headlineSmall),
-          Text(S.of(context).onboardingHeightQuestionSubtitle,
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            S.of(context).heightLabel,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          Text(
+            S.of(context).onboardingHeightQuestionSubtitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 16.0),
           Form(
             key: _heightFormKey,
             child: TextFormField(
-                onChanged: (text) {
-                  if (_heightFormKey.currentState!.validate()) {
-                    _parsedHeight = double.tryParse(text.replaceAll(',', '.'));
-                    checkCorrectInput();
-                  } else {
-                    _parsedHeight = null;
-                    checkCorrectInput();
-                  }
-                },
-                validator: validateHeight,
-                decoration: InputDecoration(
-                  labelText: _isImperialSelected ? 'ft' : 'cm',
-                  hintText: _isImperialSelected
-                      ? S.of(context).onboardingHeightExampleHintFt
-                      : S.of(context).onboardingHeightExampleHintCm,
-                  filled: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+              onChanged: (text) {
+                if (_heightFormKey.currentState!.validate()) {
+                  _parsedHeight = double.tryParse(text.replaceAll(',', '.'));
+                  checkCorrectInput();
+                } else {
+                  _parsedHeight = null;
+                  checkCorrectInput();
+                }
+              },
+              validator: validateHeight,
+              decoration: InputDecoration(
+                labelText: _isImperialSelected ? 'ft' : 'cm',
+                hintText: _isImperialSelected
+                    ? S.of(context).onboardingHeightExampleHintFt
+                    : S.of(context).onboardingHeightExampleHintCm,
+                filled: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [
-                  !_isImperialSelected
-                      ? FilteringTextInputFormatter.digitsOnly
-                      : FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d+([.,]\d{0,1})?$'))
-                ]),
+              ),
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                !_isImperialSelected
+                    ? FilteringTextInputFormatter.digitsOnly
+                    : FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+([.,]\d{0,1})?$'),
+                      ),
+              ],
+            ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -95,37 +105,42 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
             ),
           ),
           const SizedBox(height: 32.0),
-          Text(S.of(context).weightLabel,
-              style: Theme.of(context).textTheme.headlineSmall),
-          Text(S.of(context).onboardingWeightQuestionSubtitle,
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            S.of(context).weightLabel,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          Text(
+            S.of(context).onboardingWeightQuestionSubtitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 16.0),
           Form(
             key: _weightFormKey,
             child: TextFormField(
-                onChanged: (text) {
-                  if (_weightFormKey.currentState!.validate()) {
-                    _parsedWeight = double.tryParse(text);
-                    checkCorrectInput();
-                  } else {
-                    checkCorrectInput();
-                  }
-                },
-                validator: validateWeight,
-                decoration: InputDecoration(
-                  labelText: _isImperialSelected
-                      ? S.of(context).lbsLabel
-                      : S.of(context).kgLabel,
-                  hintText: _isImperialSelected
-                      ? S.of(context).onboardingWeightExampleHintLbs
-                      : S.of(context).onboardingWeightExampleHintKg,
-                  filled: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+              onChanged: (text) {
+                if (_weightFormKey.currentState!.validate()) {
+                  _parsedWeight = double.tryParse(text);
+                  checkCorrectInput();
+                } else {
+                  checkCorrectInput();
+                }
+              },
+              validator: validateWeight,
+              decoration: InputDecoration(
+                labelText: _isImperialSelected
+                    ? S.of(context).lbsLabel
+                    : S.of(context).kgLabel,
+                hintText: _isImperialSelected
+                    ? S.of(context).onboardingWeightExampleHintLbs
+                    : S.of(context).onboardingWeightExampleHintKg,
+                filled: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly]),
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),

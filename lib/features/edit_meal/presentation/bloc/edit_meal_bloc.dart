@@ -22,17 +22,18 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
   }
 
   MealEntity createNewMealEntity(
-      MealEntity oldMealEntity,
-      String nameText,
-      String brandsText,
-      String mealQuantityText,
-      String servingQuantityText,
-      String baseQuantity,
-      String? unitText,
-      String kcalText,
-      String carbsText,
-      String fatText,
-      String proteinText) {
+    MealEntity oldMealEntity,
+    String nameText,
+    String brandsText,
+    String mealQuantityText,
+    String servingQuantityText,
+    String baseQuantity,
+    String? unitText,
+    String kcalText,
+    String carbsText,
+    String fatText,
+    String proteinText,
+  ) {
     final baseQuantityDouble = double.tryParse(baseQuantity);
 
     final double factorTo100g =
@@ -43,28 +44,31 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
     }
 
     final newMealNutriments = MealNutrimentsEntity(
-        energyKcal100: multiplyIfNotNull(kcalText.toDoubleOrNull()),
-        carbohydrates100: multiplyIfNotNull(carbsText.toDoubleOrNull()),
-        fat100: multiplyIfNotNull(fatText.toDoubleOrNull()),
-        proteins100: multiplyIfNotNull(proteinText.toDoubleOrNull()),
-        sugars100: multiplyIfNotNull(oldMealEntity.nutriments.sugars100),
-        saturatedFat100:
-            multiplyIfNotNull(oldMealEntity.nutriments.saturatedFat100),
-        fiber100: multiplyIfNotNull(oldMealEntity.nutriments.fiber100));
+      energyKcal100: multiplyIfNotNull(kcalText.toDoubleOrNull()),
+      carbohydrates100: multiplyIfNotNull(carbsText.toDoubleOrNull()),
+      fat100: multiplyIfNotNull(fatText.toDoubleOrNull()),
+      proteins100: multiplyIfNotNull(proteinText.toDoubleOrNull()),
+      sugars100: multiplyIfNotNull(oldMealEntity.nutriments.sugars100),
+      saturatedFat100: multiplyIfNotNull(
+        oldMealEntity.nutriments.saturatedFat100,
+      ),
+      fiber100: multiplyIfNotNull(oldMealEntity.nutriments.fiber100),
+    );
 
     return MealEntity(
-        code: oldMealEntity.code,
-        name: nameText.toStringOrNull(),
-        brands: brandsText.toStringOrNull(),
-        url: oldMealEntity.url,
-        thumbnailImageUrl: oldMealEntity.thumbnailImageUrl,
-        mainImageUrl: oldMealEntity.mainImageUrl,
-        mealQuantity: mealQuantityText.toStringOrNull(),
-        mealUnit: unitText,
-        servingQuantity: servingQuantityText.toDoubleOrNull(),
-        servingUnit: servingQuantityText.toStringOrNull(),
-        servingSize: oldMealEntity.servingSize,
-        nutriments: newMealNutriments,
-        source: oldMealEntity.source);
+      code: oldMealEntity.code,
+      name: nameText.toStringOrNull(),
+      brands: brandsText.toStringOrNull(),
+      url: oldMealEntity.url,
+      thumbnailImageUrl: oldMealEntity.thumbnailImageUrl,
+      mainImageUrl: oldMealEntity.mainImageUrl,
+      mealQuantity: mealQuantityText.toStringOrNull(),
+      mealUnit: unitText,
+      servingQuantity: servingQuantityText.toDoubleOrNull(),
+      servingUnit: servingQuantityText.toStringOrNull(),
+      servingSize: oldMealEntity.servingSize,
+      nutriments: newMealNutriments,
+      source: oldMealEntity.source,
+    );
   }
 }

@@ -54,24 +54,25 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           return _getLoadingContent();
         } else if (state is HomeLoadedState) {
           return _getLoadedContent(
-              context,
-              state.showDisclaimerDialog,
-              state.totalKcalDaily,
-              state.totalKcalLeft,
-              state.totalKcalSupplied,
-              state.totalKcalBurned,
-              state.totalCarbsIntake,
-              state.totalFatsIntake,
-              state.totalProteinsIntake,
-              state.totalCarbsGoal,
-              state.totalFatsGoal,
-              state.totalProteinsGoal,
-              state.breakfastIntakeList,
-              state.lunchIntakeList,
-              state.dinnerIntakeList,
-              state.snackIntakeList,
-              state.userActivityList,
-              state.usesImperialUnits);
+            context,
+            state.showDisclaimerDialog,
+            state.totalKcalDaily,
+            state.totalKcalLeft,
+            state.totalKcalSupplied,
+            state.totalKcalBurned,
+            state.totalCarbsIntake,
+            state.totalFatsIntake,
+            state.totalProteinsIntake,
+            state.totalCarbsGoal,
+            state.totalFatsGoal,
+            state.totalProteinsGoal,
+            state.breakfastIntakeList,
+            state.lunchIntakeList,
+            state.dinnerIntakeList,
+            state.snackIntakeList,
+            state.userActivityList,
+            state.usesImperialUnits,
+          );
         } else {
           return _getLoadingContent();
         }
@@ -89,156 +90,171 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Widget _getLoadingContent() {
-    return const Center(
-      child: CircularProgressIndicator(),
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 
   Widget _getLoadedContent(
-      BuildContext context,
-      bool showDisclaimerDialog,
-      double totalKcalDaily,
-      double totalKcalLeft,
-      double totalKcalSupplied,
-      double totalKcalBurned,
-      double totalCarbsIntake,
-      double totalFatsIntake,
-      double totalProteinsIntake,
-      double totalCarbsGoal,
-      double totalFatsGoal,
-      double totalProteinsGoal,
-      List<IntakeEntity> breakfastIntakeList,
-      List<IntakeEntity> lunchIntakeList,
-      List<IntakeEntity> dinnerIntakeList,
-      List<IntakeEntity> snackIntakeList,
-      List<UserActivityEntity> userActivities,
-      bool usesImperialUnits) {
+    BuildContext context,
+    bool showDisclaimerDialog,
+    double totalKcalDaily,
+    double totalKcalLeft,
+    double totalKcalSupplied,
+    double totalKcalBurned,
+    double totalCarbsIntake,
+    double totalFatsIntake,
+    double totalProteinsIntake,
+    double totalCarbsGoal,
+    double totalFatsGoal,
+    double totalProteinsGoal,
+    List<IntakeEntity> breakfastIntakeList,
+    List<IntakeEntity> lunchIntakeList,
+    List<IntakeEntity> dinnerIntakeList,
+    List<IntakeEntity> snackIntakeList,
+    List<UserActivityEntity> userActivities,
+    bool usesImperialUnits,
+  ) {
     if (showDisclaimerDialog) {
       _showDisclaimerDialog(context);
     }
-    return Stack(children: [
-      ListView(children: [
-        DashboardWidget(
-          totalKcalDaily: totalKcalDaily,
-          totalKcalLeft: totalKcalLeft,
-          totalKcalSupplied: totalKcalSupplied,
-          totalKcalBurned: totalKcalBurned,
-          totalCarbsIntake: totalCarbsIntake,
-          totalFatsIntake: totalFatsIntake,
-          totalProteinsIntake: totalProteinsIntake,
-          totalCarbsGoal: totalCarbsGoal,
-          totalFatsGoal: totalFatsGoal,
-          totalProteinsGoal: totalProteinsGoal,
+    return Stack(
+      children: [
+        ListView(
+          children: [
+            DashboardWidget(
+              totalKcalDaily: totalKcalDaily,
+              totalKcalLeft: totalKcalLeft,
+              totalKcalSupplied: totalKcalSupplied,
+              totalKcalBurned: totalKcalBurned,
+              totalCarbsIntake: totalCarbsIntake,
+              totalFatsIntake: totalFatsIntake,
+              totalProteinsIntake: totalProteinsIntake,
+              totalCarbsGoal: totalCarbsGoal,
+              totalFatsGoal: totalFatsGoal,
+              totalProteinsGoal: totalProteinsGoal,
+            ),
+            ActivityVerticalList(
+              day: DateTime.now(),
+              title: S.of(context).activityLabel,
+              userActivityList: userActivities,
+              onItemLongPressedCallback: onActivityItemLongPressed,
+            ),
+            IntakeVerticalList(
+              day: DateTime.now(),
+              title: S.of(context).breakfastLabel,
+              listIcon: IntakeTypeEntity.breakfast.getIconData(),
+              addMealType: AddMealType.breakfastType,
+              intakeList: breakfastIntakeList,
+              onDeleteIntakeCallback: onDeleteIntake,
+              onItemDragCallback: onIntakeItemDrag,
+              onItemTappedCallback: onIntakeItemTapped,
+              usesImperialUnits: usesImperialUnits,
+            ),
+            IntakeVerticalList(
+              day: DateTime.now(),
+              title: S.of(context).lunchLabel,
+              listIcon: IntakeTypeEntity.lunch.getIconData(),
+              addMealType: AddMealType.lunchType,
+              intakeList: lunchIntakeList,
+              onDeleteIntakeCallback: onDeleteIntake,
+              onItemDragCallback: onIntakeItemDrag,
+              onItemTappedCallback: onIntakeItemTapped,
+              usesImperialUnits: usesImperialUnits,
+            ),
+            IntakeVerticalList(
+              day: DateTime.now(),
+              title: S.of(context).dinnerLabel,
+              addMealType: AddMealType.dinnerType,
+              listIcon: IntakeTypeEntity.dinner.getIconData(),
+              intakeList: dinnerIntakeList,
+              onDeleteIntakeCallback: onDeleteIntake,
+              onItemDragCallback: onIntakeItemDrag,
+              onItemTappedCallback: onIntakeItemTapped,
+              usesImperialUnits: usesImperialUnits,
+            ),
+            IntakeVerticalList(
+              day: DateTime.now(),
+              title: S.of(context).snackLabel,
+              listIcon: IntakeTypeEntity.snack.getIconData(),
+              addMealType: AddMealType.snackType,
+              intakeList: snackIntakeList,
+              onDeleteIntakeCallback: onDeleteIntake,
+              onItemDragCallback: onIntakeItemDrag,
+              onItemTappedCallback: onIntakeItemTapped,
+              usesImperialUnits: usesImperialUnits,
+            ),
+            const SizedBox(height: 48.0),
+          ],
         ),
-        ActivityVerticalList(
-          day: DateTime.now(),
-          title: S.of(context).activityLabel,
-          userActivityList: userActivities,
-          onItemLongPressedCallback: onActivityItemLongPressed,
-        ),
-        IntakeVerticalList(
-          day: DateTime.now(),
-          title: S.of(context).breakfastLabel,
-          listIcon: IntakeTypeEntity.breakfast.getIconData(),
-          addMealType: AddMealType.breakfastType,
-          intakeList: breakfastIntakeList,
-          onDeleteIntakeCallback: onDeleteIntake,
-          onItemDragCallback: onIntakeItemDrag,
-          onItemTappedCallback: onIntakeItemTapped,
-          usesImperialUnits: usesImperialUnits,
-        ),
-        IntakeVerticalList(
-          day: DateTime.now(),
-          title: S.of(context).lunchLabel,
-          listIcon: IntakeTypeEntity.lunch.getIconData(),
-          addMealType: AddMealType.lunchType,
-          intakeList: lunchIntakeList,
-          onDeleteIntakeCallback: onDeleteIntake,
-          onItemDragCallback: onIntakeItemDrag,
-          onItemTappedCallback: onIntakeItemTapped,
-          usesImperialUnits: usesImperialUnits,
-        ),
-        IntakeVerticalList(
-          day: DateTime.now(),
-          title: S.of(context).dinnerLabel,
-          addMealType: AddMealType.dinnerType,
-          listIcon: IntakeTypeEntity.dinner.getIconData(),
-          intakeList: dinnerIntakeList,
-          onDeleteIntakeCallback: onDeleteIntake,
-          onItemDragCallback: onIntakeItemDrag,
-          onItemTappedCallback: onIntakeItemTapped,
-          usesImperialUnits: usesImperialUnits,
-        ),
-        IntakeVerticalList(
-          day: DateTime.now(),
-          title: S.of(context).snackLabel,
-          listIcon: IntakeTypeEntity.snack.getIconData(),
-          addMealType: AddMealType.snackType,
-          intakeList: snackIntakeList,
-          onDeleteIntakeCallback: onDeleteIntake,
-          onItemDragCallback: onIntakeItemDrag,
-          onItemTappedCallback: onIntakeItemTapped,
-          usesImperialUnits: usesImperialUnits,
-        ),
-        const SizedBox(height: 48.0)
-      ]),
-      Align(
+        Align(
           alignment: Alignment.bottomCenter,
           child: Visibility(
-              visible: _isDragging,
-              child: Container(
-                height: 70,
-                color: Theme.of(context).colorScheme.error
-                  ..withValues(alpha: 0.3),
-                child: DragTarget<IntakeEntity>(
-                  onAcceptWithDetails: (data) {
-                    _confirmDelete(context, data.data);
-                  },
-                  onLeave: (data) {
-                    setState(() {
-                      _isDragging = false;
-                    });
-                  },
-                  builder: (context, candidateData, rejectedData) {
-                    return const Center(
-                      child: Icon(
-                        Icons.delete_outline,
-                        size: 36,
-                        color: Colors.white,
-                      ),
-                    );
-                  },
-                ),
-              )))
-    ]);
+            visible: _isDragging,
+            child: Container(
+              height: 70,
+              color: Theme.of(context).colorScheme.error
+                ..withValues(alpha: 0.3),
+              child: DragTarget<IntakeEntity>(
+                onAcceptWithDetails: (data) {
+                  _confirmDelete(context, data.data);
+                },
+                onLeave: (data) {
+                  setState(() {
+                    _isDragging = false;
+                  });
+                },
+                builder: (context, candidateData, rejectedData) {
+                  return const Center(
+                    child: Icon(
+                      Icons.delete_outline,
+                      size: 36,
+                      color: Colors.white,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   void onActivityItemLongPressed(
-      BuildContext context, UserActivityEntity activityEntity) async {
+    BuildContext context,
+    UserActivityEntity activityEntity,
+  ) async {
     final deleteIntake = await showDialog<bool>(
-        context: context, builder: (context) => const DeleteDialog());
+      context: context,
+      builder: (context) => const DeleteDialog(),
+    );
 
     if (deleteIntake != null) {
       _homeBloc.deleteUserActivityItem(activityEntity);
       _homeBloc.add(const LoadItemsEvent());
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)),
+        );
       }
     }
   }
 
   void onIntakeItemLongPressed(
-      BuildContext context, IntakeEntity intakeEntity) async {
+    BuildContext context,
+    IntakeEntity intakeEntity,
+  ) async {
     final deleteIntake = await showDialog<bool>(
-        context: context, builder: (context) => const DeleteDialog());
+      context: context,
+      builder: (context) => const DeleteDialog(),
+    );
 
     if (deleteIntake != null) {
       _homeBloc.deleteIntakeItem(intakeEntity);
       _homeBloc.add(const LoadItemsEvent());
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)),
+        );
       }
     }
   }
@@ -251,19 +267,27 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     });
   }
 
-  void onIntakeItemTapped(BuildContext context, IntakeEntity intakeEntity,
-      bool usesImperialUnits) async {
+  void onIntakeItemTapped(
+    BuildContext context,
+    IntakeEntity intakeEntity,
+    bool usesImperialUnits,
+  ) async {
     final changeIntakeAmount = await showDialog<double>(
-        context: context,
-        builder: (context) => EditDialog(
-            intakeEntity: intakeEntity, usesImperialUnits: usesImperialUnits));
+      context: context,
+      builder: (context) => EditDialog(
+        intakeEntity: intakeEntity,
+        usesImperialUnits: usesImperialUnits,
+      ),
+    );
     if (changeIntakeAmount != null) {
-      _homeBloc
-          .updateIntakeItem(intakeEntity.id, {'amount': changeIntakeAmount});
+      _homeBloc.updateIntakeItem(intakeEntity.id, {
+        'amount': changeIntakeAmount,
+      });
       _homeBloc.add(const LoadItemsEvent());
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(S.of(context).itemUpdatedSnackbar)));
+          SnackBar(content: Text(S.of(context).itemUpdatedSnackbar)),
+        );
       }
     }
   }
@@ -275,7 +299,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   void _confirmDelete(BuildContext context, IntakeEntity intake) async {
     bool? delete = await showDialog<bool>(
-        context: context, builder: (context) => const DeleteDialog());
+      context: context,
+      builder: (context) => const DeleteDialog(),
+    );
 
     if (delete == true) {
       onDeleteIntake(intake, null);
@@ -289,10 +315,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void _showDisclaimerDialog(BuildContext context) async {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final dialogConfirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            return const DisclaimerDialog();
-          });
+        context: context,
+        builder: (context) {
+          return const DisclaimerDialog();
+        },
+      );
       if (dialogConfirmed != null) {
         _homeBloc.saveConfigData(dialogConfirmed);
         _homeBloc.add(const LoadItemsEvent());

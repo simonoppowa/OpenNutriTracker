@@ -16,27 +16,28 @@ class ActivityTitleExpanded extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             AutoSizeText.rich(
-                minFontSize: 6,
-                maxFontSize: 16,
-                TextSpan(
-                    text: activity.getName(context),
+              minFontSize: 6,
+              maxFontSize: 16,
+              TextSpan(
+                text: activity.getName(context),
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                children: [
+                  TextSpan(
+                    text: ' ${activity.getDescription(context)} ',
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface),
-                    children: [
-                      TextSpan(
-                        text: ' ${activity.getDescription(context)} ',
-                        style: Theme.of(context)
-                            .textTheme
-                            .displaySmall
-                            ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface.withValues(alpha: 0.7)),
-                      )
-                    ]),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
+                  ),
+                ],
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
             const SizedBox(height: 16),
           ],
         ),

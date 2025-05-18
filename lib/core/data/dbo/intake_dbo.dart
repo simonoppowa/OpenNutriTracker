@@ -24,22 +24,24 @@ class IntakeDBO extends HiveObject {
   @HiveField(5)
   DateTime dateTime;
 
-  IntakeDBO(
-      {required this.id,
-      required this.unit,
-      required this.amount,
-      required this.type,
-      required this.meal,
-      required this.dateTime});
+  IntakeDBO({
+    required this.id,
+    required this.unit,
+    required this.amount,
+    required this.type,
+    required this.meal,
+    required this.dateTime,
+  });
 
   factory IntakeDBO.fromIntakeEntity(IntakeEntity entity) {
     return IntakeDBO(
-        id: entity.id,
-        unit: entity.unit,
-        amount: entity.amount,
-        type: IntakeTypeDBO.fromIntakeTypeEntity(entity.type),
-        meal: MealDBO.fromMealEntity(entity.meal),
-        dateTime: entity.dateTime);
+      id: entity.id,
+      unit: entity.unit,
+      amount: entity.amount,
+      type: IntakeTypeDBO.fromIntakeTypeEntity(entity.type),
+      meal: MealDBO.fromMealEntity(entity.meal),
+      dateTime: entity.dateTime,
+    );
   }
 
   factory IntakeDBO.fromJson(Map<String, dynamic> json) =>

@@ -29,16 +29,20 @@ class TDEECalc {
     if (userEntity.gender == UserGenderEntity.male) {
       tdeeKcal = 864 -
           9.72 * userEntity.age +
-          PalCalc.getPAValueFromPALValue(userEntity,
-                  PalCalc.getPALValueFromActivityCategory(userEntity)) *
+          PalCalc.getPAValueFromPALValue(
+                userEntity,
+                PalCalc.getPALValueFromActivityCategory(userEntity),
+              ) *
               14.2 *
               userEntity.weightKG +
           503 * (userEntity.heightCM / 100);
     } else {
       tdeeKcal = 387 -
           7.31 * userEntity.age +
-          PalCalc.getPAValueFromPALValue(userEntity,
-                  PalCalc.getPALValueFromActivityCategory(userEntity)) *
+          PalCalc.getPAValueFromPALValue(
+                userEntity,
+                PalCalc.getPALValueFromActivityCategory(userEntity),
+              ) *
               10.9 *
               userEntity.weightKG +
           660.7 * (userEntity.heightCM / 100);

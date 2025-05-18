@@ -26,39 +26,56 @@ class ActivityDetailBloc
   final GetMacroGoalUsecase _getMacroGoalUsecase;
 
   ActivityDetailBloc(
-      this._getUserUsecase,
-      this._addUserActivityUsecase,
-      this._addTrackedDayUsecase,
-      this._getKcalGoalUsecase,
-      this._getMacroGoalUsecase)
-      : super(ActivityDetailInitial()) {
+    this._getUserUsecase,
+    this._addUserActivityUsecase,
+    this._addTrackedDayUsecase,
+    this._getKcalGoalUsecase,
+    this._getMacroGoalUsecase,
+  ) : super(ActivityDetailInitial()) {
     on<LoadActivityDetailEvent>((event, emit) async {
       emit(ActivityDetailLoadingState());
       const quantityDefault = 60.0;
       final user = await _getUserUsecase.getUserData();
-      final totalBurnedKcal =
-          getTotalKcalBurned(user, event.physicalActivity, quantityDefault);
+      final totalBurnedKcal = getTotalKcalBurned(
+        user,
+        event.physicalActivity,
+        quantityDefault,
+      );
 
-      emit(ActivityDetailLoadedState(
-          totalBurnedKcal, user, quantityDefault.toInt()));
+      emit(
+        ActivityDetailLoadedState(
+          totalBurnedKcal,
+          user,
+          quantityDefault.toInt(),
+        ),
+      );
     });
   }
 
-  double getTotalKcalBurned(UserEntity user,
-      PhysicalActivityEntity physicalActivity, double duration) {
+  double getTotalKcalBurned(
+    UserEntity user,
+    PhysicalActivityEntity physicalActivity,
+    double duration,
+  ) {
     return METCalc.getTotalBurnedKcal(user, physicalActivity, duration);
   }
 
   void persistActivity(
-      BuildContext context,
-      String durationText,
-      double totalKcalBurned,
-      PhysicalActivityEntity activityEntity,
-      DateTime day) async {
+    BuildContext context,
+    String durationText,
+    double totalKcalBurned,
+    PhysicalActivityEntity activityEntity,
+    DateTime day,
+  ) async {
     final duration = double.parse(durationText);
 
-    final userActivityEntity = UserActivityEntity(IdGenerator.getUniqueID(),
-        duration, totalKcalBurned, day, activityEntity);
+    final userActivityEntity = UserActivityEntity(
+      IdGenerator.getUniqueID(),
+      duration,
+      totalKcalBurned,
+      day,
+      activityEntity,
+    );
 
     await _addUserActivityUsecase.addUserActivity(userActivityEntity);
     _updateTrackedDay(day, totalKcalBurned);
@@ -69,16 +86,25 @@ class ActivityDetailBloc
     if (!hasTrackedDay) {
       // If the tracked day does not exist, create a new one
       final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
-          totalKcalActivitiesParam: 0); // Exclude persisted activities
-      final totalCarbsGoal =
-          await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
-      final totalFatGoal =
-          await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
-      final totalProteinGoal =
-          await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
+        totalKcalActivitiesParam: 0,
+      ); // Exclude persisted activities
+      final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
+        totalKcalGoal,
+      );
+      final totalFatGoal = await _getMacroGoalUsecase.getFatsGoal(
+        totalKcalGoal,
+      );
+      final totalProteinGoal = await _getMacroGoalUsecase.getProteinsGoal(
+        totalKcalGoal,
+      );
 
       await _addTrackedDayUsecase.addNewTrackedDay(
-          day, totalKcalGoal, totalCarbsGoal, totalFatGoal, totalProteinGoal);
+        day,
+        totalKcalGoal,
+        totalCarbsGoal,
+        totalFatGoal,
+        totalProteinGoal,
+      );
     }
 
     final carbsIncrease = MacroCalc.getTotalCarbsGoal(caloriesBurned);
@@ -86,9 +112,11 @@ class ActivityDetailBloc
     final proteinIncrease = MacroCalc.getTotalProteinsGoal(caloriesBurned);
 
     _addTrackedDayUsecase.increaseDayCalorieGoal(day, caloriesBurned);
-    _addTrackedDayUsecase.increaseDayMacroGoals(day,
-        carbsAmount: carbsIncrease,
-        fatAmount: fatIncrease,
-        proteinAmount: proteinIncrease);
+    _addTrackedDayUsecase.increaseDayMacroGoals(
+      day,
+      carbsAmount: carbsIncrease,
+      fatAmount: fatIncrease,
+      proteinAmount: proteinIncrease,
+    );
   }
 }

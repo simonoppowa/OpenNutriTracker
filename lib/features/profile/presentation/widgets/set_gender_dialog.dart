@@ -21,7 +21,7 @@ class SetGenderDialog extends StatelessWidget {
           onPressed: () {
             Navigator.pop(context, UserGenderEntity.female);
           },
-        )
+        ),
       ],
     );
   }

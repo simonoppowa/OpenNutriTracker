@@ -22,10 +22,13 @@ class RecentActivitiesBloc
       try {
         final recentUserActivities =
             await _getUserActivityUsecase.getRecentUserActivity();
-        emit(RecentActivitiesLoadedState(
+        emit(
+          RecentActivitiesLoadedState(
             recentActivities: recentUserActivities
                 .map((activity) => activity.physicalActivityEntity)
-                .toList()));
+                .toList(),
+          ),
+        );
       } catch (error) {
         log.severe(error);
         emit(RecentActivitiesFailedState());

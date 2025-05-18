@@ -12,15 +12,22 @@ class UpdateKcalEvent extends MealDetailEvent {
   final String? totalQuantity;
   final String? selectedUnit;
 
-  const UpdateKcalEvent(
-      {required this.meal,
-      this.totalCarbs,
-      this.totalFat,
-      this.totalProtein,
-      this.totalQuantity,
-      this.selectedUnit});
+  const UpdateKcalEvent({
+    required this.meal,
+    this.totalCarbs,
+    this.totalFat,
+    this.totalProtein,
+    this.totalQuantity,
+    this.selectedUnit,
+  });
 
   @override
-  List<Object?> get props =>
-      [meal, totalCarbs, totalFat, totalProtein, totalQuantity, selectedUnit];
+  List<Object?> get props => [
+        meal,
+        totalCarbs,
+        totalFat,
+        totalProtein,
+        totalQuantity,
+        selectedUnit,
+      ];
 }

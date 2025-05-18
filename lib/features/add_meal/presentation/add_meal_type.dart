@@ -2,12 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-enum AddMealType {
-  breakfastType,
-  lunchType,
-  dinnerType,
-  snackType;
-}
+enum AddMealType { breakfastType, lunchType, dinnerType, snackType }
 
 extension AddMealExtension on AddMealType {
   String getTypeName(BuildContext context) {

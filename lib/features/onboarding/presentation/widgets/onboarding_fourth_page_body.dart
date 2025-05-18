@@ -26,14 +26,20 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(S.of(context).goalLabel,
-              style: Theme.of(context).textTheme.headlineSmall),
-          Text(S.of(context).onboardingGoalQuestionSubtitle,
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            S.of(context).goalLabel,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          Text(
+            S.of(context).onboardingGoalQuestionSubtitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 16.0),
           ChoiceChip(
-            label: Text(S.of(context).goalLoseWeight,
-                style: Theme.of(context).textTheme.titleLarge),
+            label: Text(
+              S.of(context).goalLoseWeight,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             selected: _looseWeightSelected,
             onSelected: (bool selected) {
               setState(() {
@@ -44,8 +50,10 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
           ),
           const SizedBox(height: 8.0),
           ChoiceChip(
-            label: Text(S.of(context).goalMaintainWeight,
-                style: Theme.of(context).textTheme.titleLarge),
+            label: Text(
+              S.of(context).goalMaintainWeight,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             selected: _maintainWeightSelected,
             onSelected: (bool selected) {
               setState(() {
@@ -56,8 +64,10 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
           ),
           const SizedBox(height: 8.0),
           ChoiceChip(
-            label: Text(S.of(context).goalGainWeight,
-                style: Theme.of(context).textTheme.titleLarge),
+            label: Text(
+              S.of(context).goalGainWeight,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             selected: _gainWeightSelected,
             onSelected: (bool selected) {
               setState(() {
@@ -71,8 +81,11 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
     );
   }
 
-  void _setSelectedChoiceChip(
-      {looseWeight = false, maintainWeigh = false, gainWeight = false}) {
+  void _setSelectedChoiceChip({
+    looseWeight = false,
+    maintainWeigh = false,
+    gainWeight = false,
+  }) {
     _looseWeightSelected = looseWeight;
     _maintainWeightSelected = maintainWeigh;
     _gainWeightSelected = gainWeight;

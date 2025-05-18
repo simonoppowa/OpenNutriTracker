@@ -11,10 +11,11 @@ class SpFdcPortionDTO {
   @JsonKey(name: SPConst.fdcPortionsGramWeight)
   final double? gramWeight;
 
-  SpFdcPortionDTO(
-      {required this.amount,
-      required this.measureUnitId,
-      required this.gramWeight});
+  SpFdcPortionDTO({
+    required this.amount,
+    required this.measureUnitId,
+    required this.gramWeight,
+  });
 
   factory SpFdcPortionDTO.fromJson(Map<String, dynamic> json) =>
       _$SpFdcPortionDTOFromJson(json);

@@ -24,12 +24,17 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
         _searchString = event.searchString;
         emit(FoodLoadingState());
         try {
-          final result =
-              await _searchProductUseCase.searchFDCFoodByString(_searchString);
+          final result = await _searchProductUseCase.searchFDCFoodByString(
+            _searchString,
+          );
           final config = await _getConfigUsecase.getConfig();
 
-          emit(FoodLoadedState(
-              food: result, usesImperialUnits: config.usesImperialUnits));
+          emit(
+            FoodLoadedState(
+              food: result,
+              usesImperialUnits: config.usesImperialUnits,
+            ),
+          );
         } catch (error) {
           log.severe(error);
           emit(FoodFailedState());
@@ -39,8 +44,9 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
     on<RefreshFoodEvent>((event, emit) async {
       emit(FoodLoadingState());
       try {
-        final result =
-            await _searchProductUseCase.searchFDCFoodByString(_searchString);
+        final result = await _searchProductUseCase.searchFDCFoodByString(
+          _searchString,
+        );
         emit(FoodLoadedState(food: result));
       } catch (error) {
         log.severe(error);

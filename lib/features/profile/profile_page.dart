@@ -43,8 +43,12 @@ class _ProfilePageState extends State<ProfilePage> {
         } else if (state is ProfileLoadingState) {
           return _getLoadingContent();
         } else if (state is ProfileLoadedState) {
-          return _getLoadedContent(context, state.userBMI, state.userEntity,
-              state.usesImperialUnits);
+          return _getLoadedContent(
+            context,
+            state.userBMI,
+            state.userEntity,
+            state.usesImperialUnits,
+          );
         } else {
           return _getLoadingContent();
         }
@@ -53,13 +57,15 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _getLoadingContent() {
-    return const Center(
-      child: CircularProgressIndicator(),
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 
-  Widget _getLoadedContent(BuildContext context, UserBMIEntity userBMIEntity,
-      UserEntity user, bool usesImperialUnits) {
+  Widget _getLoadedContent(
+    BuildContext context,
+    UserBMIEntity userBMIEntity,
+    UserEntity user,
+    bool usesImperialUnits,
+  ) {
     return ListView(
       children: [
         const SizedBox(height: 32.0),
@@ -171,10 +177,13 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _showSetPALCategoryDialog(
-      BuildContext context, UserEntity userEntity) async {
+    BuildContext context,
+    UserEntity userEntity,
+  ) async {
     final selectedPalCategory = await showDialog<UserPALEntity>(
-        context: context,
-        builder: (BuildContext context) => const SetPALCategoryDialog());
+      context: context,
+      builder: (BuildContext context) => const SetPALCategoryDialog(),
+    );
     if (selectedPalCategory != null) {
       userEntity.pal = selectedPalCategory;
       _profileBloc.updateUser(userEntity);
@@ -182,26 +191,33 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _showSetGoalDialog(
-      BuildContext context, UserEntity userEntity) async {
+    BuildContext context,
+    UserEntity userEntity,
+  ) async {
     final selectedGoal = await showDialog<UserWeightGoalEntity>(
-        context: context,
-        builder: (BuildContext context) => const SetWeightGoalDialog());
+      context: context,
+      builder: (BuildContext context) => const SetWeightGoalDialog(),
+    );
     if (selectedGoal != null) {
       userEntity.goal = selectedGoal;
       _profileBloc.updateUser(userEntity);
     }
   }
 
-  Future<void> _showSetHeightDialog(BuildContext context, UserEntity userEntity,
-      bool usesImperialUnits) async {
+  Future<void> _showSetHeightDialog(
+    BuildContext context,
+    UserEntity userEntity,
+    bool usesImperialUnits,
+  ) async {
     final selectedHeight = await showDialog<double>(
-        context: context,
-        builder: (context) => SetHeightDialog(
-              userHeight: usesImperialUnits
-                  ? UnitCalc.cmToFeet(userEntity.heightCM)
-                  : userEntity.heightCM,
-              usesImperialUnits: usesImperialUnits,
-            ));
+      context: context,
+      builder: (context) => SetHeightDialog(
+        userHeight: usesImperialUnits
+            ? UnitCalc.cmToFeet(userEntity.heightCM)
+            : userEntity.heightCM,
+        usesImperialUnits: usesImperialUnits,
+      ),
+    );
     if (selectedHeight != null) {
       if (usesImperialUnits) {
         userEntity.heightCM = UnitCalc.feetToCm(selectedHeight);
@@ -213,16 +229,20 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _showSetWeightDialog(BuildContext context, UserEntity userEntity,
-      bool usesImperialSystem) async {
+  Future<void> _showSetWeightDialog(
+    BuildContext context,
+    UserEntity userEntity,
+    bool usesImperialSystem,
+  ) async {
     final selectedWeight = await showDialog<double>(
-        context: context,
-        builder: (context) => SetWeightDialog(
-              userWeight: usesImperialSystem
-                  ? UnitCalc.kgToLbs(userEntity.weightKG)
-                  : userEntity.weightKG,
-              usesImperialUnits: usesImperialSystem,
-            ));
+      context: context,
+      builder: (context) => SetWeightDialog(
+        userWeight: usesImperialSystem
+            ? UnitCalc.kgToLbs(userEntity.weightKG)
+            : userEntity.weightKG,
+        usesImperialUnits: usesImperialSystem,
+      ),
+    );
     if (selectedWeight != null) {
       if (usesImperialSystem) {
         userEntity.weightKG = UnitCalc.lbsToKg(selectedWeight);
@@ -234,12 +254,15 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _showSetBirthdayDialog(
-      BuildContext context, UserEntity userEntity) async {
+    BuildContext context,
+    UserEntity userEntity,
+  ) async {
     final selectedDate = await showDatePicker(
-        context: context,
-        initialDate: userEntity.birthday,
-        firstDate: DateTime(1900),
-        lastDate: DateTime(2100));
+      context: context,
+      initialDate: userEntity.birthday,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
     if (selectedDate != null) {
       userEntity.birthday = selectedDate;
       _profileBloc.updateUser(userEntity);
@@ -247,10 +270,13 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _showSetGenderDialog(
-      BuildContext context, UserEntity userEntity) async {
+    BuildContext context,
+    UserEntity userEntity,
+  ) async {
     final selectedGender = await showDialog<UserGenderEntity>(
-        context: context,
-        builder: (BuildContext context) => const SetGenderDialog());
+      context: context,
+      builder: (BuildContext context) => const SetGenderDialog(),
+    );
     if (selectedGender != null) {
       userEntity.gender = selectedGender;
 

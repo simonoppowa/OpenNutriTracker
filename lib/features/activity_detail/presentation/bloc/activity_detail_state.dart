@@ -20,7 +20,10 @@ class ActivityDetailLoadedState extends ActivityDetailState {
   final UserEntity userEntity;
 
   const ActivityDetailLoadedState(
-      this.totalKcalBurned, this.userEntity, this.quantityMin);
+    this.totalKcalBurned,
+    this.userEntity,
+    this.quantityMin,
+  );
 
   @override
   List<Object?> get props => [];

@@ -11,20 +11,29 @@ class GetKcalGoalUsecase {
   final UserActivityRepository _userActivityRepository;
 
   GetKcalGoalUsecase(
-      this._userRepository, this._configRepository, this._userActivityRepository);
+    this._userRepository,
+    this._configRepository,
+    this._userActivityRepository,
+  );
 
-  Future<double> getKcalGoal(
-      {UserEntity? userEntity,
-      double? totalKcalActivitiesParam,
-      double? kcalUserAdjustment}) async {
+  Future<double> getKcalGoal({
+    UserEntity? userEntity,
+    double? totalKcalActivitiesParam,
+    double? kcalUserAdjustment,
+  }) async {
     final user = userEntity ?? await _userRepository.getUserData();
     final config = await _configRepository.getConfig();
     final totalKcalActivities = totalKcalActivitiesParam ??
-        (await _userActivityRepository.getAllUserActivityByDate(DateTime.now()))
+        (await _userActivityRepository.getAllUserActivityByDate(
+          DateTime.now(),
+        ))
             .map((activity) => activity.burnedKcal)
             .toList()
             .sum;
-    return CalorieGoalCalc.getTotalKcalGoal(user, totalKcalActivities,
-        kcalUserAdjustment: config.userKcalAdjustment);
+    return CalorieGoalCalc.getTotalKcalGoal(
+      user,
+      totalKcalActivities,
+      kcalUserAdjustment: config.userKcalAdjustment,
+    );
   }
 }

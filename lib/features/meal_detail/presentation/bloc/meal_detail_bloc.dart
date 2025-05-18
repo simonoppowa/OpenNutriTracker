@@ -24,11 +24,17 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
   final GetKcalGoalUsecase _getKcalGoalUsecase;
   final GetMacroGoalUsecase _getMacroGoalUsecase;
 
-  MealDetailBloc(this._addIntakeUseCase, this._addTrackedDayUsecase,
-      this._getKcalGoalUsecase, this._getMacroGoalUsecase)
-      : super(MealDetailInitial(
+  MealDetailBloc(
+    this._addIntakeUseCase,
+    this._addTrackedDayUsecase,
+    this._getKcalGoalUsecase,
+    this._getMacroGoalUsecase,
+  ) : super(
+          MealDetailInitial(
             totalQuantityConverted: '100',
-            selectedUnit: UnitDropdownItem.gml.toString())) {
+            selectedUnit: UnitDropdownItem.gml.toString(),
+          ),
+        ) {
     on<UpdateKcalEvent>((event, emit) async {
       try {
         final selectedTotalQuantity =
@@ -44,8 +50,9 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         final fatPerUnit = (event.meal.nutriments.fatPerUnit ?? 0);
         final proteinPerUnit = (event.meal.nutriments.proteinsPerUnit ?? 0);
 
-        final quantity =
-            double.parse(selectedTotalQuantity.replaceAll(',', '.'));
+        final quantity = double.parse(
+          selectedTotalQuantity.replaceAll(',', '.'),
+        );
 
         // Convert quantity based on selected unit
         double convertedQuantity = quantity;
@@ -60,13 +67,16 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
           convertedQuantity = UnitCalc.flOzToMl(quantity);
         }
 
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             totalQuantityConverted: convertedQuantity.toString(),
             totalKcal: convertedQuantity * energyPerUnit,
             totalCarbs: convertedQuantity * carbsPerUnit,
             totalFat: convertedQuantity * fatPerUnit,
             totalProtein: convertedQuantity * proteinPerUnit,
-            selectedUnit: selectedUnit));
+            selectedUnit: selectedUnit,
+          ),
+        );
       } catch (e) {
         log.severe('Error calculating kcal: $e');
         Sentry.captureException(e);
@@ -74,42 +84,61 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     });
   }
 
-  void addIntake(BuildContext context, String unit, String amountText,
-      IntakeTypeEntity type, MealEntity meal, DateTime day) async {
+  void addIntake(
+    BuildContext context,
+    String unit,
+    String amountText,
+    IntakeTypeEntity type,
+    MealEntity meal,
+    DateTime day,
+  ) async {
     final quantity = double.parse(amountText.replaceAll(',', '.'));
 
     final intakeEntity = IntakeEntity(
-        id: IdGenerator.getUniqueID(),
-        unit: unit,
-        amount: quantity,
-        type: type,
-        meal: meal,
-        dateTime: day);
+      id: IdGenerator.getUniqueID(),
+      unit: unit,
+      amount: quantity,
+      type: type,
+      meal: meal,
+      dateTime: day,
+    );
     await _addIntakeUseCase.addIntake(intakeEntity);
     _updateTrackedDay(intakeEntity, day);
   }
 
   Future<void> _updateTrackedDay(
-      IntakeEntity intakeEntity, DateTime day) async {
+    IntakeEntity intakeEntity,
+    DateTime day,
+  ) async {
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
     if (!hasTrackedDay) {
       final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
-      final totalCarbsGoal =
-          await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
-      final totalFatGoal =
-          await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
-      final totalProteinGoal =
-          await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
+      final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
+        totalKcalGoal,
+      );
+      final totalFatGoal = await _getMacroGoalUsecase.getFatsGoal(
+        totalKcalGoal,
+      );
+      final totalProteinGoal = await _getMacroGoalUsecase.getProteinsGoal(
+        totalKcalGoal,
+      );
 
       await _addTrackedDayUsecase.addNewTrackedDay(
-          day, totalKcalGoal, totalCarbsGoal, totalFatGoal, totalProteinGoal);
+        day,
+        totalKcalGoal,
+        totalCarbsGoal,
+        totalFatGoal,
+        totalProteinGoal,
+      );
     }
 
     _addTrackedDayUsecase.addDayCaloriesTracked(day, intakeEntity.totalKcal);
-    _addTrackedDayUsecase.addDayMacrosTracked(day,
-        carbsTracked: intakeEntity.totalCarbsGram,
-        fatTracked: intakeEntity.totalFatsGram,
-        proteinTracked: intakeEntity.totalProteinsGram);
+    _addTrackedDayUsecase.addDayMacrosTracked(
+      day,
+      carbsTracked: intakeEntity.totalCarbsGram,
+      fatTracked: intakeEntity.totalFatsGram,
+      proteinTracked: intakeEntity.totalProteinsGram,
+    );
   }
 }
 

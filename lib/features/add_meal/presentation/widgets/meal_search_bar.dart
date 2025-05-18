@@ -9,11 +9,12 @@ class MealSearchBar extends StatelessWidget {
 
   final _searchTextController = TextEditingController();
 
-  MealSearchBar(
-      {super.key,
-      required this.searchStringListener,
-      required this.onSearchSubmit,
-      required this.onBarcodePressed});
+  MealSearchBar({
+    super.key,
+    required this.searchStringListener,
+    required this.onSearchSubmit,
+    required this.onBarcodePressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,26 +23,27 @@ class MealSearchBar extends StatelessWidget {
         Flexible(
           flex: 1,
           child: TextField(
-              controller: _searchTextController,
-              textInputAction: TextInputAction.search,
-              onChanged: (input) {
-                searchStringListener.value = input;
-              },
-              onSubmitted: onSearchSubmit,
-              decoration: InputDecoration(
-                hintText: S.of(context).searchLabel,
-                prefixIcon: const Icon(Icons.search_outlined),
-                suffixIcon: IconButton(
-                  icon: const Icon(CustomIcons.barcode_scan),
-                  onPressed: () {
-                    onBarcodePressed();
-                  },
-                ),
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              )),
+            controller: _searchTextController,
+            textInputAction: TextInputAction.search,
+            onChanged: (input) {
+              searchStringListener.value = input;
+            },
+            onSubmitted: onSearchSubmit,
+            decoration: InputDecoration(
+              hintText: S.of(context).searchLabel,
+              prefixIcon: const Icon(Icons.search_outlined),
+              suffixIcon: IconButton(
+                icon: const Icon(CustomIcons.barcode_scan),
+                onPressed: () {
+                  onBarcodePressed();
+                },
+              ),
+              filled: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
         ),
         const SizedBox(width: 8.0),
         IconButton(
@@ -51,9 +53,10 @@ class MealSearchBar extends StatelessWidget {
           },
           icon: const Icon(Icons.search_outlined),
           style: IconButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              backgroundColor: Theme.of(context).colorScheme.primary),
-        )
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        ),
       ],
     );
   }

@@ -12,8 +12,10 @@ class NoResultsWidget extends StatelessWidget {
         children: [
           const Icon(Icons.search, size: 64),
           const SizedBox(height: 8),
-          Text(S.of(context).noResultsFound,
-              style: Theme.of(context).textTheme.titleMedium)
+          Text(
+            S.of(context).noResultsFound,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
         ],
       ),
     );

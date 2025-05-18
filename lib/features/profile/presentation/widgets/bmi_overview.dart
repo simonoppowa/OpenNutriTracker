@@ -8,8 +8,11 @@ class BMIOverview extends StatelessWidget {
   final double bmiValue;
   final UserNutritionalStatus nutritionalStatus;
 
-  const BMIOverview(
-      {super.key, required this.bmiValue, required this.nutritionalStatus});
+  const BMIOverview({
+    super.key,
+    required this.bmiValue,
+    required this.nutritionalStatus,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,21 +21,27 @@ class BMIOverview extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(36.0),
           decoration: BoxDecoration(
-              shape: BoxShape.circle, color: getContainerColorTheme(context)),
+            shape: BoxShape.circle,
+            color: getContainerColorTheme(context),
+          ),
           child: Column(
             children: [
               Text(
                 '${bmiValue.roundToPrecision(1)}',
                 style: getContainerTextStyle(
-                    context,
-                    Theme.of(context)
-                        .textTheme
-                        .displaySmall
-                        ?.copyWith(fontWeight: FontWeight.w500)),
+                  context,
+                  Theme.of(context).textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
               ),
-              Text(S.of(context).bmiLabel,
-                  style: getContainerTextStyle(
-                      context, Theme.of(context).textTheme.titleLarge))
+              Text(
+                S.of(context).bmiLabel,
+                style: getContainerTextStyle(
+                  context,
+                  Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
             ],
           ),
         ),
@@ -40,30 +49,35 @@ class BMIOverview extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(nutritionalStatus.getName(context),
-                style: Theme.of(context).textTheme.titleLarge,
-                textAlign: TextAlign.center),
+            Text(
+              nutritionalStatus.getName(context),
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
             InkWell(
-                onTap: () {
-                  showDialog(
-                      context: context,
-                      builder: (context) => InfoDialog(
-                            title: S.of(context).bmiLabel,
-                            body: S.of(context).bmiInfo,
-                          ));
-                },
-                child: const Icon(Icons.help_outline_outlined))
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => InfoDialog(
+                    title: S.of(context).bmiLabel,
+                    body: S.of(context).bmiInfo,
+                  ),
+                );
+              },
+              child: const Icon(Icons.help_outline_outlined),
+            ),
           ],
         ),
         Text(
           S.of(context).nutritionalStatusRiskLabel(
-              nutritionalStatus.getRiskStatus(context)),
+                nutritionalStatus.getRiskStatus(context),
+              ),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.7)),
-        )
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+        ),
       ],
     );
   }
@@ -76,22 +90,24 @@ class BMIOverview extends StatelessWidget {
           ..withValues(alpha: 0.1);
         break;
       case UserNutritionalStatus.normalWeight:
-        theme = Theme.of(context)
-            .colorScheme
-            .primaryContainer
-            .withValues(alpha: 0.6);
+        theme = Theme.of(
+          context,
+        ).colorScheme.primaryContainer.withValues(alpha: 0.6);
         break;
       case UserNutritionalStatus.preObesity:
-        theme =
-            Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.2);
+        theme = Theme.of(
+          context,
+        ).colorScheme.errorContainer.withValues(alpha: 0.2);
         break;
       case UserNutritionalStatus.obesityClassI:
-        theme =
-            Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.4);
+        theme = Theme.of(
+          context,
+        ).colorScheme.errorContainer.withValues(alpha: 0.4);
         break;
       case UserNutritionalStatus.obesityClassII:
-        theme =
-            Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.7);
+        theme = Theme.of(
+          context,
+        ).colorScheme.errorContainer.withValues(alpha: 0.7);
         break;
       case UserNutritionalStatus.obesityClassIII:
         theme = Theme.of(context).colorScheme.errorContainer;
@@ -105,27 +121,33 @@ class BMIOverview extends StatelessWidget {
     switch (nutritionalStatus) {
       case UserNutritionalStatus.underWeight:
         textStyle = style?.copyWith(
-            color: Theme.of(context).colorScheme.onErrorContainer);
+          color: Theme.of(context).colorScheme.onErrorContainer,
+        );
         break;
       case UserNutritionalStatus.normalWeight:
         textStyle = style?.copyWith(
-            color: Theme.of(context).colorScheme.onPrimaryContainer);
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
+        );
         break;
       case UserNutritionalStatus.preObesity:
         textStyle = style?.copyWith(
-            color: Theme.of(context).colorScheme.onErrorContainer);
+          color: Theme.of(context).colorScheme.onErrorContainer,
+        );
         break;
       case UserNutritionalStatus.obesityClassI:
         textStyle = style?.copyWith(
-            color: Theme.of(context).colorScheme.onErrorContainer);
+          color: Theme.of(context).colorScheme.onErrorContainer,
+        );
         break;
       case UserNutritionalStatus.obesityClassII:
         textStyle = style?.copyWith(
-            color: Theme.of(context).colorScheme.onErrorContainer);
+          color: Theme.of(context).colorScheme.onErrorContainer,
+        );
         break;
       case UserNutritionalStatus.obesityClassIII:
         textStyle = style?.copyWith(
-            color: Theme.of(context).colorScheme.onErrorContainer);
+          color: Theme.of(context).colorScheme.onErrorContainer,
+        );
         break;
     }
     return textStyle;

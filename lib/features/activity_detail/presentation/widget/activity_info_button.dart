@@ -14,17 +14,18 @@ class ActivityInfoButton extends StatelessWidget {
       onPressed: _launchUrl,
       child: Text(
         S.of(context).additionalInfoLabelCompendium2011,
-        style: Theme.of(context)
-            .textTheme
-            .titleMedium
-            ?.copyWith(decoration: TextDecoration.underline),
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(decoration: TextDecoration.underline),
         textAlign: TextAlign.center,
       ),
     );
   }
 
   Future<void> _launchUrl() async {
-    if (!await launchUrl(Uri.parse(url),
-        mode: LaunchMode.externalApplication)) {}
+    if (!await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    )) {}
   }
 }

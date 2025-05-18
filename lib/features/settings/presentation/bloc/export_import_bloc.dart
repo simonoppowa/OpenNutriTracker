@@ -44,9 +44,10 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         emit(ExportImportLoadingState());
 
         final result = await _importDataUsecase.importData(
-            userActivityJsonFileName,
-            userIntakeJsonFileName,
-            trackedDayJsonFileName);
+          userActivityJsonFileName,
+          userIntakeJsonFileName,
+          trackedDayJsonFileName,
+        );
         if (result) {
           emit(ExportImportSuccess());
         } else {

@@ -11,26 +11,32 @@ class DynamicOntLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String>(
-      future: DefaultAssetBundle.of(context)
-          .loadString('assets/icon/ont_logo_square.svg'),
+      future: DefaultAssetBundle.of(
+        context,
+      ).loadString('assets/icon/ont_logo_square.svg'),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
           String? svgString = snapshot.data!;
 
           // Replace the placeholders with desired colors.
-          svgString = svgString.replaceAll(_circleColor,
-              Theme.of(context).colorScheme.primaryContainer.toHex());
           svgString = svgString.replaceAll(
-              _spoonColor, Theme.of(context).colorScheme.onSurface.toHex());
+            _circleColor,
+            Theme.of(context).colorScheme.primaryContainer.toHex(),
+          );
+          svgString = svgString.replaceAll(
+            _spoonColor,
+            Theme.of(context).colorScheme.onSurface.toHex(),
+          );
           return SvgPicture.string(svgString);
         } else if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox();
         } else {
           return Image.asset(
-              MediaQuery.of(context).platformBrightness == Brightness.light
-                  ? 'assets/icon/ont_logo_square.png'
-                  : 'assets/icon/ont_logo_square_light.png');
+            MediaQuery.of(context).platformBrightness == Brightness.light
+                ? 'assets/icon/ont_logo_square.png'
+                : 'assets/icon/ont_logo_square_light.png',
+          );
         }
       },
     );

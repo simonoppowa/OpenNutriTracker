@@ -6,11 +6,12 @@ class ActivityCard extends StatelessWidget {
   final Function(BuildContext, UserActivityEntity) onItemLongPressed;
   final bool firstListElement;
 
-  const ActivityCard(
-      {super.key,
-      required this.activityEntity,
-      required this.onItemLongPressed,
-      required this.firstListElement});
+  const ActivityCard({
+    super.key,
+    required this.activityEntity,
+    required this.onItemLongPressed,
+    required this.firstListElement,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -38,31 +39,36 @@ class ActivityCard extends StatelessWidget {
                       children: [
                         Container(
                           margin: const EdgeInsets.all(8.0),
-                          padding:
-                              const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
+                          padding: const EdgeInsets.fromLTRB(
+                            8.0,
+                            4.0,
+                            8.0,
+                            4.0,
+                          ),
                           decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .tertiaryContainer
-                                  .withValues(alpha: 0.8),
-                              borderRadius: BorderRadius.circular(12)),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .tertiaryContainer
+                                .withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: Text(
                             "🔥${activityEntity.burnedKcal.toInt()} kcal",
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onTertiaryContainer),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onTertiaryContainer,
+                                ),
                           ),
                         ),
                         Center(
                           child: Icon(
                             activityEntity.physicalActivityEntity.displayIcon,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSecondaryContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSecondaryContainer,
                           ),
                         ),
                       ],
@@ -75,21 +81,24 @@ class ActivityCard extends StatelessWidget {
                 child: Text(
                   activityEntity.physicalActivityEntity.getName(context),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface),
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Text(
-                    '${activityEntity.duration.toInt()} min',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface.withValues(alpha: 0.8)),
-                    maxLines: 1,
-                  ))
+                padding: const EdgeInsets.only(left: 8),
+                child: Text(
+                  '${activityEntity.duration.toInt()} min',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.8),
+                      ),
+                  maxLines: 1,
+                ),
+              ),
             ],
           ),
         ),

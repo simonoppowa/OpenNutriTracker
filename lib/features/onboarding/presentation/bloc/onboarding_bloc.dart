@@ -26,11 +26,16 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     });
   }
 
-  void saveOnboardingData(BuildContext context, UserEntity userEntity,
-      bool hasAcceptedDataCollection, bool usesImperialUnits) async {
+  void saveOnboardingData(
+    BuildContext context,
+    UserEntity userEntity,
+    bool hasAcceptedDataCollection,
+    bool usesImperialUnits,
+  ) async {
     _addUserUsecase.addUser(userEntity);
-    _addConfigUsecase
-        .setConfigHasAcceptedAnonymousData(hasAcceptedDataCollection);
+    _addConfigUsecase.setConfigHasAcceptedAnonymousData(
+      hasAcceptedDataCollection,
+    );
     _addConfigUsecase.setConfigUsesImperialUnits(usesImperialUnits);
   }
 

@@ -5,8 +5,10 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingFirstPageBody extends StatefulWidget {
   final Function(
-          bool active, UserGenderSelectionEntity? gender, DateTime? birthday)
-      setPageContent;
+    bool active,
+    UserGenderSelectionEntity? gender,
+    DateTime? birthday,
+  ) setPageContent;
 
   const OnboardingFirstPageBody({super.key, required this.setPageContent});
 
@@ -30,10 +32,14 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(S.of(context).genderLabel,
-              style: Theme.of(context).textTheme.headlineSmall),
-          Text(S.of(context).onboardingGenderQuestionSubtitle,
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            S.of(context).genderLabel,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          Text(
+            S.of(context).onboardingGenderQuestionSubtitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 16.0),
           ChoiceChip(
             label: Text(S.of(context).genderMaleLabel),
@@ -58,10 +64,14 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
             },
           ),
           const SizedBox(height: 32.0),
-          Text(S.of(context).ageLabel,
-              style: Theme.of(context).textTheme.headlineSmall),
-          Text(S.of(context).onboardingBirthdayQuestionSubtitle,
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            S.of(context).ageLabel,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          Text(
+            S.of(context).onboardingBirthdayQuestionSubtitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 16.0),
           TextFormField(
             controller: _dateInput,
@@ -85,10 +95,11 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
 
   void onDateInputClicked() async {
     final pickedDate = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(1900),
-        lastDate: DateTime(2100));
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
     if (pickedDate != null) {
       String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
       setState(() {

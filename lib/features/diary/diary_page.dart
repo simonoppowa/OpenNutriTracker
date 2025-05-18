@@ -59,7 +59,10 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
           return _getLoadingContent();
         } else if (state is DiaryLoadedState) {
           return _getLoadedContent(
-              context, state.trackedDayMap, state.usesImperialUnits);
+            context,
+            state.trackedDayMap,
+            state.usesImperialUnits,
+          );
         }
         return const SizedBox();
       },
@@ -78,8 +81,11 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   Widget _getLoadingContent() =>
       const Center(child: CircularProgressIndicator());
 
-  Widget _getLoadedContent(BuildContext context,
-      Map<String, TrackedDayEntity> trackedDaysMap, bool usesImperialUnits) {
+  Widget _getLoadedContent(
+    BuildContext context,
+    Map<String, TrackedDayEntity> trackedDaysMap,
+    bool usesImperialUnits,
+  ) {
     return ListView(
       children: [
         DiaryTableCalendar(
@@ -116,39 +122,54 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
             }
             return const SizedBox();
           },
-        )
+        ),
       ],
     );
   }
 
   void _onDeleteIntakeItem(
-      IntakeEntity intakeEntity, TrackedDayEntity? trackedDayEntity) async {
+    IntakeEntity intakeEntity,
+    TrackedDayEntity? trackedDayEntity,
+  ) async {
     await _calendarDayBloc.deleteIntakeItem(
-        context, intakeEntity, trackedDayEntity?.day ?? DateTime.now());
+      context,
+      intakeEntity,
+      trackedDayEntity?.day ?? DateTime.now(),
+    );
     _diaryBloc.add(const LoadDiaryYearEvent());
     _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
     _diaryBloc.updateHomePage();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+        SnackBar(content: Text(S.of(context).itemDeletedSnackbar)),
+      );
     }
   }
 
-  void _onDeleteActivityItem(UserActivityEntity userActivityEntity,
-      TrackedDayEntity? trackedDayEntity) async {
+  void _onDeleteActivityItem(
+    UserActivityEntity userActivityEntity,
+    TrackedDayEntity? trackedDayEntity,
+  ) async {
     await _calendarDayBloc.deleteUserActivityItem(
-        context, userActivityEntity, trackedDayEntity?.day ?? DateTime.now());
+      context,
+      userActivityEntity,
+      trackedDayEntity?.day ?? DateTime.now(),
+    );
     _diaryBloc.add(const LoadDiaryYearEvent());
     _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
     _diaryBloc.updateHomePage();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)));
+        SnackBar(content: Text(S.of(context).itemDeletedSnackbar)),
+      );
     }
   }
 
-  void _onCopyIntakeItem(IntakeEntity intakeEntity,
-      TrackedDayEntity? trackedDayEntity, AddMealType? type) async {
+  void _onCopyIntakeItem(
+    IntakeEntity intakeEntity,
+    TrackedDayEntity? trackedDayEntity,
+    AddMealType? type,
+  ) async {
     IntakeTypeEntity finalType;
     if (type == null) {
       finalType = intakeEntity.type;
@@ -156,22 +177,27 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       finalType = type.getIntakeType();
     }
     _mealDetailBloc.addIntake(
-        context,
-        intakeEntity.unit,
-        intakeEntity.amount.toString(),
-        finalType,
-        intakeEntity.meal,
-        DateTime.now());
+      context,
+      intakeEntity.unit,
+      intakeEntity.amount.toString(),
+      finalType,
+      intakeEntity.meal,
+      DateTime.now(),
+    );
     _diaryBloc.updateHomePage();
   }
 
-  void _onCopyActivityItem(UserActivityEntity userActivityEntity,
-      TrackedDayEntity? trackedDayEntity) async {
+  void _onCopyActivityItem(
+    UserActivityEntity userActivityEntity,
+    TrackedDayEntity? trackedDayEntity,
+  ) async {
     log.info("Should copy activity");
   }
 
   void _onDateSelected(
-      DateTime newDate, Map<String, TrackedDayEntity> trackedDaysMap) {
+    DateTime newDate,
+    Map<String, TrackedDayEntity> trackedDaysMap,
+  ) {
     setState(() {
       _selectedDate = newDate;
       _focusedDate = newDate;

@@ -15,10 +15,11 @@ class InfoDialog extends StatelessWidget {
       content: Text(body),
       actions: [
         TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(true);
-            },
-            child: Text(S.of(context).dialogOKLabel))
+          onPressed: () {
+            Navigator.of(context).pop(true);
+          },
+          child: Text(S.of(context).dialogOKLabel),
+        ),
       ],
     );
   }

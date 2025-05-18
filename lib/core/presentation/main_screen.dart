@@ -22,16 +22,14 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void didChangeDependencies() {
-    _bodyPages = [
-      const HomePage(),
-      const DiaryPage(),
-      const ProfilePage(),
-    ];
+    _bodyPages = [const HomePage(), const DiaryPage(), const ProfilePage()];
     _appbarPages = [
       const HomeAppbar(),
       MainAppbar(title: S.of(context).diaryLabel, iconData: Icons.book),
       MainAppbar(
-          title: S.of(context).profileLabel, iconData: Icons.account_circle)
+        title: S.of(context).profileLabel,
+        iconData: Icons.account_circle,
+      ),
     ];
     super.didChangeDependencies();
   }
@@ -53,20 +51,23 @@ class _MainScreenState extends State<MainScreen> {
         onDestinationSelected: _setPage,
         destinations: [
           NavigationDestination(
-              icon: _selectedPageIndex == 0
-                  ? const Icon(Icons.home)
-                  : const Icon(Icons.home_outlined),
-              label: S.of(context).homeLabel),
+            icon: _selectedPageIndex == 0
+                ? const Icon(Icons.home)
+                : const Icon(Icons.home_outlined),
+            label: S.of(context).homeLabel,
+          ),
           NavigationDestination(
-              icon: _selectedPageIndex == 1
-                  ? const Icon(Icons.book)
-                  : const Icon((Icons.book_outlined)),
-              label: S.of(context).diaryLabel),
+            icon: _selectedPageIndex == 1
+                ? const Icon(Icons.book)
+                : const Icon((Icons.book_outlined)),
+            label: S.of(context).diaryLabel,
+          ),
           NavigationDestination(
-              icon: _selectedPageIndex == 2
-                  ? const Icon(Icons.account_circle)
-                  : const Icon(Icons.account_circle_outlined),
-              label: S.of(context).profileLabel)
+            icon: _selectedPageIndex == 2
+                ? const Icon(Icons.account_circle)
+                : const Icon(Icons.account_circle_outlined),
+            label: S.of(context).profileLabel,
+          ),
         ],
       ),
     );
@@ -80,14 +81,17 @@ class _MainScreenState extends State<MainScreen> {
 
   void _onFabPressed(BuildContext context) async {
     showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16.0),
-                topRight: Radius.circular(16.0))),
-        builder: (BuildContext context) {
-          return AddItemBottomSheet(day: DateTime.now());
-        });
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16.0),
+          topRight: Radius.circular(16.0),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return AddItemBottomSheet(day: DateTime.now());
+      },
+    );
   }
 }

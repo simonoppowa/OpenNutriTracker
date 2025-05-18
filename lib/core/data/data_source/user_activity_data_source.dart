@@ -15,7 +15,8 @@ class UserActivityDataSource {
   }
 
   Future<void> addAllUserActivities(
-      List<UserActivityDBO> userActivityDBOList) async {
+    List<UserActivityDBO> userActivityDBOList,
+  ) async {
     log.fine('Adding new user activities to db');
     _userActivityBox.addAll(userActivityDBOList);
   }
@@ -33,26 +34,31 @@ class UserActivityDataSource {
   Future<List<UserActivityDBO>> getAllUserActivities() async {
     return _userActivityBox.values.toList();
   }
+
   Future<List<UserActivityDBO>> getAllUserActivitiesByDate(
-      DateTime dateTime) async {
+    DateTime dateTime,
+  ) async {
     return _userActivityBox.values
         .where((activity) => DateUtils.isSameDay(dateTime, activity.date))
         .toList();
   }
 
-  Future<List<UserActivityDBO>> getRecentlyAddedUserActivity(
-      {int number = 20}) async {
+  Future<List<UserActivityDBO>> getRecentlyAddedUserActivity({
+    int number = 20,
+  }) async {
     final userActivities = _userActivityBox.values.toList().reversed;
 
     //  sort list by date and filter unique activities
-    userActivities
-        .toList()
-        .sort((a, b) => a.date.toString().compareTo(b.date.toString()));
+    userActivities.toList().sort(
+          (a, b) => a.date.toString().compareTo(b.date.toString()),
+        );
 
     final filterActivityCodes = <String>{};
     final uniqueUserActivities = userActivities
-        .where((activity) =>
-            filterActivityCodes.add(activity.physicalActivityDBO.code))
+        .where(
+          (activity) =>
+              filterActivityCodes.add(activity.physicalActivityDBO.code),
+        )
         .toList();
 
     // return range or full list

@@ -8,7 +8,8 @@ enum UserWeightGoalEntity {
   gainWeight;
 
   factory UserWeightGoalEntity.fromUserWeightGoalDBO(
-      UserWeightGoalDBO weightGoalDBO) {
+    UserWeightGoalDBO weightGoalDBO,
+  ) {
     UserWeightGoalEntity weightGoalEntity;
     switch (weightGoalDBO) {
       case UserWeightGoalDBO.gainWeight:

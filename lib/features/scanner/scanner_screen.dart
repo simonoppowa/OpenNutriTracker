@@ -50,30 +50,36 @@ class _ScannerScreenState extends State<ScannerScreen> {
           return _getScannerContent(context);
         } else if (state is ScannerLoadingState) {
           return Scaffold(
-              appBar: AppBar(),
-              body: const Center(child: CircularProgressIndicator()));
+            appBar: AppBar(),
+            body: const Center(child: CircularProgressIndicator()),
+          );
         } else if (state is ScannerLoadedState) {
           // Push new route after build
           Future.microtask(() {
             if (context.mounted) {
               return Navigator.of(context).pushReplacementNamed(
-                  NavigationOptions.mealDetailRoute,
-                  arguments: MealDetailScreenArguments(state.product,
-                      _intakeTypeEntity, _day, state.usesImperialUnits));
+                NavigationOptions.mealDetailRoute,
+                arguments: MealDetailScreenArguments(
+                  state.product,
+                  _intakeTypeEntity,
+                  _day,
+                  state.usesImperialUnits,
+                ),
+              );
             }
           });
         } else if (state is ScannerFailedState) {
           return Scaffold(
-              appBar: AppBar(),
-              body: Center(
-                child: ErrorDialog(
-                  errorText:
-                      state.type == ScannerFailedStateType.productNotFound
-                          ? S.of(context).errorProductNotFound
-                          : S.of(context).errorFetchingProductData,
-                  onRefreshPressed: _onRefreshButtonPressed,
-                ),
-              ));
+            appBar: AppBar(),
+            body: Center(
+              child: ErrorDialog(
+                errorText: state.type == ScannerFailedStateType.productNotFound
+                    ? S.of(context).errorProductNotFound
+                    : S.of(context).errorFetchingProductData,
+                onRefreshPressed: _onRefreshButtonPressed,
+              ),
+            ),
+          );
         }
         return const SizedBox();
       },
@@ -92,8 +98,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
               builder: (context, state, child) {
                 switch (state.torchState) {
                   case TorchState.off || TorchState.unavailable:
-                    return const Icon(Icons.flash_off_outlined,
-                        color: Colors.grey);
+                    return const Icon(
+                      Icons.flash_off_outlined,
+                      color: Colors.grey,
+                    );
                   case TorchState.on || TorchState.auto:
                     return const Icon(Icons.flash_on_outlined);
                 }
@@ -108,22 +116,24 @@ class _ScannerScreenState extends State<ScannerScreen> {
         ],
       ),
       body: MobileScanner(
-          controller: cameraController,
-          onDetect: (capture) {
-            final List<Barcode> barcodes = capture.barcodes;
-            for (final barcode in barcodes) {
-              if (barcode.rawValue != null &&
-                  barcode.type == BarcodeType.product) {
-                final barcodeResult = barcode.rawValue;
-                if (barcodeResult != null) {
-                  _scannedBarcode = barcodeResult;
-                  log.fine('Barcode found: $barcodeResult');
-                  _scannerBloc
-                      .add(ScannerLoadProductEvent(barcode: barcodeResult));
-                }
+        controller: cameraController,
+        onDetect: (capture) {
+          final List<Barcode> barcodes = capture.barcodes;
+          for (final barcode in barcodes) {
+            if (barcode.rawValue != null &&
+                barcode.type == BarcodeType.product) {
+              final barcodeResult = barcode.rawValue;
+              if (barcodeResult != null) {
+                _scannedBarcode = barcodeResult;
+                log.fine('Barcode found: $barcodeResult');
+                _scannerBloc.add(
+                  ScannerLoadProductEvent(barcode: barcodeResult),
+                );
               }
             }
-          }),
+          }
+        },
+      ),
     );
   }
 
@@ -133,7 +143,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
       _scannerBloc.add(ScannerLoadProductEvent(barcode: barcode));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).errorFetchingProductData)));
+        SnackBar(content: Text(S.of(context).errorFetchingProductData)),
+      );
     }
   }
 }

@@ -23,12 +23,12 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final GetMacroGoalUsecase _getMacroGoalUsecase;
 
   SettingsBloc(
-      this._getConfigUsecase,
-      this._addConfigUsecase,
-      this._addTrackedDayUsecase,
-      this._getKcalGoalUsecase,
-      this._getMacroGoalUsecase)
-      : super(SettingsInitial()) {
+    this._getConfigUsecase,
+    this._addConfigUsecase,
+    this._addTrackedDayUsecase,
+    this._getKcalGoalUsecase,
+    this._getMacroGoalUsecase,
+  ) : super(SettingsInitial()) {
     on<LoadSettingsEvent>((event, emit) async {
       emit(SettingsLoadingState());
 
@@ -36,17 +36,21 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       final appVersion = await AppConst.getVersionNumber();
       final usesImperialUnits = userConfig.usesImperialUnits;
 
-      emit(SettingsLoadedState(
+      emit(
+        SettingsLoadedState(
           appVersion,
           userConfig.hasAcceptedSendAnonymousData,
           userConfig.appTheme,
-          usesImperialUnits));
+          usesImperialUnits,
+        ),
+      );
     });
   }
 
   void setHasAcceptedAnonymousData(bool hasAcceptedAnonymousData) {
-    _addConfigUsecase
-        .setConfigHasAcceptedAnonymousData(hasAcceptedAnonymousData);
+    _addConfigUsecase.setConfigHasAcceptedAnonymousData(
+      hasAcceptedAnonymousData,
+    );
   }
 
   void setAppTheme(AppThemeEntity appTheme) async {
@@ -80,29 +84,40 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   void setKcalAdjustment(double kcalAdjustment) {
     _addConfigUsecase.setConfigKcalAdjustment(kcalAdjustment);
   }
+
   void setMacroGoals(
-      double carbGoalPct, double proteinGoalPct, double fatGoalPct) {
-    _addConfigUsecase.setConfigMacroGoalPct(carbGoalPct.toInt() / 100,
-        proteinGoalPct.toInt() / 100, fatGoalPct.toInt() / 100);
+    double carbGoalPct,
+    double proteinGoalPct,
+    double fatGoalPct,
+  ) {
+    _addConfigUsecase.setConfigMacroGoalPct(
+      carbGoalPct.toInt() / 100,
+      proteinGoalPct.toInt() / 100,
+      fatGoalPct.toInt() / 100,
+    );
   }
 
   void updateTrackedDay(DateTime day) async {
     final day = DateTime.now();
     final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
-    final totalCarbsGoal =
-        await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
+    final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
+      totalKcalGoal,
+    );
     final totalFatGoal = await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
-    final totalProteinGoal =
-        await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
+    final totalProteinGoal = await _getMacroGoalUsecase.getProteinsGoal(
+      totalKcalGoal,
+    );
 
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
 
     if (hasTrackedDay) {
       await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);
-      await _addTrackedDayUsecase.updateDayMacroGoals(day,
-          carbsGoal: totalCarbsGoal,
-          fatGoal: totalFatGoal,
-          proteinGoal: totalProteinGoal);
+      await _addTrackedDayUsecase.updateDayMacroGoals(
+        day,
+        carbsGoal: totalCarbsGoal,
+        fatGoal: totalFatGoal,
+        proteinGoal: totalProteinGoal,
+      );
     }
   }
 }

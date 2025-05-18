@@ -15,21 +15,27 @@ class MacroCalc {
   /// Calculate the total carbs goal based on the total calorie goal
   /// Uses the default percentage if the user has not set a goal
   static double getTotalCarbsGoal(
-          double totalCalorieGoal, {double? userCarbsGoal}) =>
+    double totalCalorieGoal, {
+    double? userCarbsGoal,
+  }) =>
       (totalCalorieGoal * (userCarbsGoal ?? _defaultCarbsPercentageGoal)) /
       _carbsKcalPerGram;
 
   /// Calculate the total fats goal based on the total calorie goal
   /// Uses the default percentage if the user has not set a goal
   static double getTotalFatsGoal(
-          double totalCalorieGoal, {double? userFatsGoal}) =>
+    double totalCalorieGoal, {
+    double? userFatsGoal,
+  }) =>
       (totalCalorieGoal * (userFatsGoal ?? _defaultFatsPercentageGoal)) /
       _fatKcalPerGram;
 
   /// Calculate the total proteins goal based on the total calorie goal
   /// Uses the default percentage if the user has not set a goal
   static double getTotalProteinsGoal(
-          double totalCalorieGoal, {double? userProteinsGoal}) =>
+    double totalCalorieGoal, {
+    double? userProteinsGoal,
+  }) =>
       (totalCalorieGoal *
           (userProteinsGoal ?? _defaultProteinsPercentageGoal)) /
       _proteinKcalPerGram;

@@ -7,8 +7,11 @@ class MealTitleExpanded extends StatelessWidget {
   final MealEntity meal;
   final bool usesImperialUnits;
 
-  const MealTitleExpanded(
-      {super.key, required this.meal, required this.usesImperialUnits});
+  const MealTitleExpanded({
+    super.key,
+    required this.meal,
+    required this.usesImperialUnits,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,42 +22,43 @@ class MealTitleExpanded extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             AutoSizeText.rich(
-                minFontSize: 6,
-                maxFontSize: 16,
-                TextSpan(
-                    text: meal.name ?? '',
+              minFontSize: 6,
+              maxFontSize: 16,
+              TextSpan(
+                text: meal.name ?? '',
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                children: [
+                  TextSpan(
+                    text: ' ${meal.brands ?? ''}',
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface),
-                    children: [
-                      TextSpan(
-                          text: ' ${meal.brands ?? ''}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .displaySmall
-                              ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.7))),
-                    ]),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
+                  ),
+                ],
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
             meal.mealQuantity != null
                 ? Center(
                     child: MealValueUnitText(
-                        value: double.tryParse(meal.mealQuantity ?? '') ?? 0,
-                        meal: meal,
-                        usesImperialUnits: usesImperialUnits,
-                        textStyle: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.8)),
-                        prefix: ''),
+                      value: double.tryParse(meal.mealQuantity ?? '') ?? 0,
+                      meal: meal,
+                      usesImperialUnits: usesImperialUnits,
+                      textStyle: Theme.of(
+                        context,
+                      ).textTheme.headlineSmall?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.8),
+                          ),
+                      prefix: '',
+                    ),
                   )
                 : const SizedBox(),
           ],

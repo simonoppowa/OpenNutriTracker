@@ -1,6 +1,1 @@
-enum UserActivitySelectionEntity {
-  sedentary,
-  lowActive,
-  active,
-  veryActive
-}
+enum UserActivitySelectionEntity { sedentary, lowActive, active, veryActive }

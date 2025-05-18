@@ -59,6 +59,6 @@ class HomeLoadedState extends HomeState {
         lunchIntakeList,
         dinnerIntakeList,
         snackIntakeList,
-        usesImperialUnits
+        usesImperialUnits,
       ];
 }

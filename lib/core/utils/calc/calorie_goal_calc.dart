@@ -8,15 +8,19 @@ class CalorieGoalCalc {
   static const double gainWeightKcalAdjustment = 500;
 
   static double getDailyKcalLeft(
-          double totalKcalGoal, double totalKcalIntake) =>
+    double totalKcalGoal,
+    double totalKcalIntake,
+  ) =>
       totalKcalGoal - totalKcalIntake;
 
   static double getTdee(UserEntity userEntity) =>
       TDEECalc.getTDEEKcalIOM2005(userEntity);
 
   static double getTotalKcalGoal(
-          UserEntity userEntity, double totalKcalActivities,
-          {double? kcalUserAdjustment}) =>
+    UserEntity userEntity,
+    double totalKcalActivities, {
+    double? kcalUserAdjustment,
+  }) =>
       getTdee(userEntity) +
       getKcalGoalAdjustment(userEntity.goal) +
       (kcalUserAdjustment ?? 0) +

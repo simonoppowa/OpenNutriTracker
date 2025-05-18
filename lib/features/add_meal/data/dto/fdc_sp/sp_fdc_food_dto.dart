@@ -33,33 +33,40 @@ class SpFdcFoodDTO {
   }
 
   double? get servingSize => portions
-      .firstWhereOrNull((portion) =>
-          portion.measureUnitId == FDCConst.fdcPortionServingId ||
-          portion.measureUnitId == FDCConst.fdcPortionUnknownId)
+      .firstWhereOrNull(
+        (portion) =>
+            portion.measureUnitId == FDCConst.fdcPortionServingId ||
+            portion.measureUnitId == FDCConst.fdcPortionUnknownId,
+      )
       ?.gramWeight;
 
   String? get servingSizeUnit {
     final id = portions
-            .firstWhereOrNull((portion) =>
-                portion.measureUnitId == FDCConst.fdcPortionServingId ||
-                portion.measureUnitId == FDCConst.fdcPortionUnknownId)
+            .firstWhereOrNull(
+              (portion) =>
+                  portion.measureUnitId == FDCConst.fdcPortionServingId ||
+                  portion.measureUnitId == FDCConst.fdcPortionUnknownId,
+            )
             ?.measureUnitId ??
         FDCConst.fdcPortionUnknownId;
     return FDCConst.measureUnits[id];
   }
 
   double? get servingAmount => portions
-      .firstWhereOrNull((portion) =>
-          portion.measureUnitId == FDCConst.fdcPortionServingId ||
-          portion.measureUnitId == FDCConst.fdcPortionUnknownId)
+      .firstWhereOrNull(
+        (portion) =>
+            portion.measureUnitId == FDCConst.fdcPortionServingId ||
+            portion.measureUnitId == FDCConst.fdcPortionUnknownId,
+      )
       ?.amount;
 
-  SpFdcFoodDTO(
-      {required this.fdcId,
-      required this.descriptionEn,
-      required this.descriptionDe,
-      required this.nutrients,
-      required this.portions});
+  SpFdcFoodDTO({
+    required this.fdcId,
+    required this.descriptionEn,
+    required this.descriptionDe,
+    required this.nutrients,
+    required this.portions,
+  });
 
   factory SpFdcFoodDTO.fromJson(Map<String, dynamic> json) =>
       _$SpFdcFoodDTOFromJson(json);
