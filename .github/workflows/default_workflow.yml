@@ -19,6 +19,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      
       - uses: actions/setup-java@v2
         with:
           distribution: 'zulu'
@@ -49,6 +50,9 @@ jobs:
           SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
           SUPABASE_PROJECT_ANON_KEY: ${{ secrets.SUPABASE_PROJECT_ANON_KEY }}
           SUPABASE_PROJECT_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
+
+      - name: Run Formatter
+        run: dart format --set-exit-if-changed ./lib ./test
 
       - name: Analyze Code
         run: flutter analyze
