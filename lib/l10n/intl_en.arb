@@ -156,7 +156,7 @@
   "mealKcalLabel": "kcal per",
   "mealCarbsLabel": "carbs per",
   "mealFatLabel": "fat per",
-  "mealProteinLabel": "protein per 100 g/ml",
+  "mealProteinLabel": "protein per",
   "errorMealSave": "Error while saving meal. Did you input the correct meal information?",
   "bmiLabel": "BMI",
   "bmiInfo": "Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals.",
