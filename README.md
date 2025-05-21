@@ -58,6 +58,10 @@ See [Data Protection](https://www.iubenda.com/privacy-policy/53501884)
 ## Contribution
 Contributions to OpenNutriTracker are welcome! If you find any issues or have suggestions for new features, please open an issue or submit a pull request. Make sure to follow the project's code style and guidelines.
 
+## Getting Started
+See the [Getting Started](GettingStarted.md) file for more information.
+
+
 ## Disclaimer
 OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.
 
