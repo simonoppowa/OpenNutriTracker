@@ -91,14 +91,8 @@ class _AddWeightScreenState extends State<AddWeightScreen> {
   }
 }
 
-// Ajout d'une clé de localisation pour le bouton "Save" si elle n'existe pas.
-// Vous devrez ajouter la traduction correspondante dans vos fichiers .arb.
-// Exemple pour S.of(context).saveButtonLabel
-// Dans intl_en.arb: "saveButtonLabel": "Save"
-// Dans intl_fr.arb: "saveButtonLabel": "Enregistrer"
 class AddWeightScreenArguments {
   final DateTime day;
-  final double weight;
 
-  AddWeightScreenArguments({required this.day, required this.weight});
+  AddWeightScreenArguments({required this.day});
 }

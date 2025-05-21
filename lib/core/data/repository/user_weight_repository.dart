@@ -12,4 +12,11 @@ class UserWeightRepository {
 
     _userWeightDataSource.addUserWeight(userWeightDbo);
   }
+
+  Future<UserWeightEntity> getUserWeightByDate(DateTime dateTime) async {
+    final UserWeightDbo weightDbo =
+        await _userWeightDataSource.getUserWeightByDate(dateTime);
+
+    return UserWeightEntity.fromUserWeightDbo(weightDbo);
+  }
 }

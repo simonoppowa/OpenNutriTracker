@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:opennutritracker/core/data/data_source/user_weight_dbo.dart';
 
@@ -11,5 +12,10 @@ class UserWeightDataSource {
       await _userWeightBox.clear();
     }
     await _userWeightBox.add(userWeightDbo);
+  }
+
+  Future<UserWeightDbo> getUserWeightByDate(DateTime dateTime) async {
+    return _userWeightBox.values
+        .firstWhere((dbo) => DateUtils.isSameDay(dbo.date, dateTime));
   }
 }
