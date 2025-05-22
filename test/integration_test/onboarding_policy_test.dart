@@ -12,6 +12,9 @@ void main() {
       // Start the app
       app.main();
       await tester.pumpAndSettle();
+      
+      // Add a delay to see the initial screen
+      await Future.delayed(const Duration(seconds: 2));
 
       // Find the "Start" button
       final startButton = find.text('START');
@@ -20,6 +23,9 @@ void main() {
       // Try to tap the start button without accepting policy
       await tester.tap(startButton);
       await tester.pumpAndSettle();
+      
+      // Add a delay to see the result of trying to proceed without accepting
+      await Future.delayed(const Duration(seconds: 2));
 
       // Verify we are still on the first page
       expect(find.text('Welcome to'), findsOneWidget, 
@@ -31,10 +37,16 @@ void main() {
 
       await tester.tap(policyCheckbox);
       await tester.pumpAndSettle();
+      
+      // Add a delay to see the checkbox being checked
+      await Future.delayed(const Duration(seconds: 2));
 
       // Now try to tap the start button again
       await tester.tap(startButton);
       await tester.pumpAndSettle();
+      
+      // Add a delay to see the transition to the next page
+      await Future.delayed(const Duration(seconds: 2));
 
       // Verify we've moved to the next page (gender selection)
       expect(find.text('Gender'), findsOneWidget,
