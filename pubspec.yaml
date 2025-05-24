@@ -34,9 +34,9 @@ dependencies:
 
 
   collection: ^1.19.0
-  intl: ^0.19.0
+  intl: ^0.20.2
   get_it: ^8.0.3
-  provider: ^6.1.2
+  provider: ^6.1.5
   http: ^1.2.2
   uuid: ^4.5.1
   json_annotation: ^4.9.0
@@ -71,6 +71,7 @@ dependencies:
   sentry_flutter: ^8.14.2
 
   supabase_flutter: ^2.8.2
+  go_router: ^15.1.2
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +84,11 @@ dev_dependencies:
   hive_generator: ^2.0.1
   envied_generator: ^1.0.0
   mockito: ^5.4.5
+  integration_test:
+    sdk: flutter
+  flutter_driver:
+    sdk: flutter
+  test: ^1.25.15
 
 flutter:
 
