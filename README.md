@@ -12,8 +12,6 @@
         <img src="https://img.shields.io/github/issues/simonoppowa/OpenNutriTracker.svg" /></a>
   <a href="https://github.com/simonoppowa/OpenNutriTracker/pulls" alt="GitHub Pull Requests">
         <img src="https://img.shields.io/github/issues-pr/simonoppowa/OpenNutriTracker.svg" /></a>
-  <a alt="Version">
-        <img src="https://img.shields.io/badge/version-beta-yellow.svg" /></a>
 </p>
 
 ## Description
@@ -33,7 +31,7 @@ OpenNutriTracker is an open-source mobile application designed to simplify nutri
 </p>
 
 ## Install
-[<img src="fastlane/metadata/android/en-US/images/appstore_banner.png" width="30%">](https://testflight.apple.com/join/j7uKoEDl)
+[<img src="fastlane/metadata/android/en-US/images/appstore_banner.png" width="30%">](https://apps.apple.com/us/app/opennutritracker/id6451490901)
 [<img src="fastlane/metadata/android/en-US/images/playstore_banner.png" width="30%">](https://play.google.com/store/apps/details?id=com.opennutritracker.ont.opennutritracker)
 
 ## Key Features
@@ -51,7 +49,7 @@ See [Data Protection](https://www.iubenda.com/privacy-policy/53501884)
 - **Open-Source**: OpenNutriTracker is an open-source application
 
 ## TODOs
-- Add serving sizes to meals
+- ~~Add serving sizes to meals~~
 - ~~Add Imperial unit support~~
 - Add support for Material You themes
 
