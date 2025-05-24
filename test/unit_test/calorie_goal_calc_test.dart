@@ -17,31 +17,39 @@ void main() {
     });
 
     test(
-        'Total Kcal Goal calculation for a young sedentary male wanting to maintain weight',
-        () {
-      final user = youngSedentaryMaleWantingToMaintainWeight;
+      'Total Kcal Goal calculation for a young sedentary male wanting to maintain weight',
+      () {
+        final user = youngSedentaryMaleWantingToMaintainWeight;
 
-      double resultCalorieGoal = CalorieGoalCalc.getTotalKcalGoal(user, 200.0);
+        double resultCalorieGoal = CalorieGoalCalc.getTotalKcalGoal(
+          user,
+          200.0,
+        );
 
-      // TDEE: 2662, Activities: 200, Adjustment: + 0
-      // 2662 + 200 + 0 = 2862
-      int expectedKcal = 2862;
+        // TDEE: 2662, Activities: 200, Adjustment: + 0
+        // 2662 + 200 + 0 = 2862
+        int expectedKcal = 2862;
 
-      expect(resultCalorieGoal.toInt(), expectedKcal);
-    });
+        expect(resultCalorieGoal.toInt(), expectedKcal);
+      },
+    );
 
     test(
-        'Total Kcal Goal calculation for a middle aged sedentary female wanting to maintain weight',
-        () {
-      final user = middleAgedActiveFemaleWantingToLoseWeight;
+      'Total Kcal Goal calculation for a middle aged sedentary female wanting to maintain weight',
+      () {
+        final user = middleAgedActiveFemaleWantingToLoseWeight;
 
-      double resultCalorieGoal = CalorieGoalCalc.getTotalKcalGoal(user, 550.0);
+        double resultCalorieGoal = CalorieGoalCalc.getTotalKcalGoal(
+          user,
+          550.0,
+        );
 
-      // TDEE: 2087, Activities: 550, Adjustment: -500
-      // 2087 + 550 - 500 = 2137
-      int expectedKcal = 2137;
+        // TDEE: 2087, Activities: 550, Adjustment: -500
+        // 2087 + 550 - 500 = 2137
+        int expectedKcal = 2137;
 
-      expect(resultCalorieGoal.toInt(), expectedKcal);
-    });
+        expect(resultCalorieGoal.toInt(), expectedKcal);
+      },
+    );
   });
 }

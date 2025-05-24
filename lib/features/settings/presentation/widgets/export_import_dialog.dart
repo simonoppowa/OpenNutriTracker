@@ -19,12 +19,16 @@ class ExportImportDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(S.of(context).exportImportLabel,
-          overflow: TextOverflow.ellipsis, maxLines: 2),
-      content: Wrap(children: [
-        Column(
-          children: [
-            BlocBuilder<ExportImportBloc, ExportImportState>(
+      title: Text(
+        S.of(context).exportImportLabel,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
+      ),
+      content: Wrap(
+        children: [
+          Column(
+            children: [
+              BlocBuilder<ExportImportBloc, ExportImportState>(
                 bloc: exportImportBloc,
                 builder: (context, state) {
                   if (state is ExportImportInitial) {
@@ -39,31 +43,33 @@ class ExportImportDialog extends StatelessWidget {
                     refreshScreens();
                     return Row(
                       children: [
-                        Icon(Icons.check_circle,
-                            color: Theme.of(context).colorScheme.primary),
-                        SizedBox(width: 8),
-                        Text(
-                          S.of(context).exportImportSuccessLabel,
+                        Icon(
+                          Icons.check_circle,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
+                        SizedBox(width: 8),
+                        Text(S.of(context).exportImportSuccessLabel),
                       ],
                     );
                   } else if (state is ExportImportError) {
                     return Row(
                       children: [
-                        Icon(Icons.error,
-                            color: Theme.of(context).colorScheme.error),
-                        SizedBox(width: 8),
-                        Text(
-                          S.of(context).exportImportErrorLabel,
+                        Icon(
+                          Icons.error,
+                          color: Theme.of(context).colorScheme.error,
                         ),
+                        SizedBox(width: 8),
+                        Text(S.of(context).exportImportErrorLabel),
                       ],
                     );
                   }
                   return const SizedBox.shrink();
-                }),
-          ],
-        ),
-      ]),
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
       actions: <Widget>[
         TextButton(
           onPressed: () {

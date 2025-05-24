@@ -14,10 +14,11 @@ class MainAppbar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(title),
       actions: [
         IconButton(
-            onPressed: () {
-              Navigator.of(context).pushNamed(NavigationOptions.settingsRoute);
-            },
-            icon: const Icon(Icons.settings_outlined))
+          onPressed: () {
+            Navigator.of(context).pushNamed(NavigationOptions.settingsRoute);
+          },
+          icon: const Icon(Icons.settings_outlined),
+        ),
       ],
     );
   }

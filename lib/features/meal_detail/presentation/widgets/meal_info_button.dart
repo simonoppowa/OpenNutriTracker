@@ -17,10 +17,9 @@ class MealInfoButton extends StatelessWidget {
       onPressed: () => _launchUrl(_getInfoUrl()),
       child: Text(
         _getInfoLabelText(context),
-        style: Theme.of(context)
-            .textTheme
-            .titleMedium
-            ?.copyWith(decoration: TextDecoration.underline),
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(decoration: TextDecoration.underline),
         textAlign: TextAlign.center,
       ),
     );
@@ -64,7 +63,9 @@ class MealInfoButton extends StatelessWidget {
   }
 
   Future<void> _launchUrl(String siteUrl) async {
-    if (!await launchUrl(Uri.parse(siteUrl),
-        mode: LaunchMode.externalApplication)) {}
+    if (!await launchUrl(
+      Uri.parse(siteUrl),
+      mode: LaunchMode.externalApplication,
+    )) {}
   }
 }

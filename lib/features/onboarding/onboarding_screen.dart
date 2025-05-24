@@ -28,7 +28,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _introKey = GlobalKey<IntroductionScreenState>();
 
   final _pageDecoration = const PageDecoration(
-      safeArea: 0, bodyAlignment: Alignment.topCenter, bodyFlex: 6);
+    safeArea: 0,
+    bodyAlignment: Alignment.topCenter,
+    bodyFlex: 6,
+  );
 
   final _defaultImageWidget = null;
 
@@ -73,122 +76,122 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _getLoadedContent(BuildContext context) {
     return IntroductionScreen(
-        key: _introKey,
-        scrollPhysics: const NeverScrollableScrollPhysics(),
-        back: const Icon(Icons.arrow_back_outlined),
-        showBackButton: true,
-        showNextButton: false,
-        showDoneButton: false,
-        isProgressTap: false,
-        dotsFlex: 0,
-        dotsDecorator: DotsDecorator(
-          size: const Size(10.0, 10.0),
-          activeColor: Theme.of(context).colorScheme.primary,
-          activeSize: const Size(22.0, 10.0),
-          activeShape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(25.0)),
-          ),
+      key: _introKey,
+      scrollPhysics: const NeverScrollableScrollPhysics(),
+      back: const Icon(Icons.arrow_back_outlined),
+      showBackButton: true,
+      showNextButton: false,
+      showDoneButton: false,
+      isProgressTap: false,
+      dotsFlex: 0,
+      dotsDecorator: DotsDecorator(
+        size: const Size(10.0, 10.0),
+        activeColor: Theme.of(context).colorScheme.primary,
+        activeSize: const Size(22.0, 10.0),
+        activeShape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25.0)),
         ),
-        onChange: onPageChanged,
-        pages: _getPageViewModels());
+      ),
+      onChange: onPageChanged,
+      pages: _getPageViewModels(),
+    );
   }
 
   List<PageViewModel> _getPageViewModels() => <PageViewModel>[
         PageViewModel(
-            title: S.of(context).onboardingWelcomeLabel,
-            decoration: _pageDecoration,
-            image: _defaultImageWidget,
-            bodyWidget: OnboardingIntroPageBody(
-              setPageContent: _setIntroPageData,
-            ),
-            footer: HighlightButton(
-              buttonLabel: S.of(context).buttonStartLabel,
-              onButtonPressed: () => _scrollToPage(1),
-              buttonActive: _introPageButtonActive,
-            )),
+          title: S.of(context).onboardingWelcomeLabel,
+          decoration: _pageDecoration,
+          image: _defaultImageWidget,
+          bodyWidget:
+              OnboardingIntroPageBody(setPageContent: _setIntroPageData),
+          footer: HighlightButton(
+            buttonLabel: S.of(context).buttonStartLabel,
+            onButtonPressed: () => _scrollToPage(1),
+            buttonActive: _introPageButtonActive,
+          ),
+        ),
         PageViewModel(
-            titleWidget: const SizedBox(),
-            // empty
-            decoration: _pageDecoration,
-            image: _defaultImageWidget,
-            bodyWidget: OnboardingFirstPageBody(
-              setPageContent: _setFirstPageData,
-            ),
-            footer: HighlightButton(
-              buttonLabel: S.of(context).buttonNextLabel,
-              onButtonPressed: () => _scrollToPage(2),
-              buttonActive: _firstPageButtonActive,
-            )),
+          titleWidget: const SizedBox(),
+          // empty
+          decoration: _pageDecoration,
+          image: _defaultImageWidget,
+          bodyWidget:
+              OnboardingFirstPageBody(setPageContent: _setFirstPageData),
+          footer: HighlightButton(
+            buttonLabel: S.of(context).buttonNextLabel,
+            onButtonPressed: () => _scrollToPage(2),
+            buttonActive: _firstPageButtonActive,
+          ),
+        ),
         PageViewModel(
-            titleWidget: const SizedBox(),
-            // empty
-            decoration: _pageDecoration,
-            image: _defaultImageWidget,
-            bodyWidget: OnboardingSecondPageBody(
-              setButtonContent: _setSecondPageData,
-            ),
-            footer: HighlightButton(
-              buttonLabel: S.of(context).buttonNextLabel,
-              onButtonPressed: () => _scrollToPage(3),
-              buttonActive: _secondPageButtonActive,
-            )),
+          titleWidget: const SizedBox(),
+          // empty
+          decoration: _pageDecoration,
+          image: _defaultImageWidget,
+          bodyWidget: OnboardingSecondPageBody(
+            setButtonContent: _setSecondPageData,
+          ),
+          footer: HighlightButton(
+            buttonLabel: S.of(context).buttonNextLabel,
+            onButtonPressed: () => _scrollToPage(3),
+            buttonActive: _secondPageButtonActive,
+          ),
+        ),
         PageViewModel(
-            titleWidget: const SizedBox(),
-            // empty
-            decoration: _pageDecoration,
-            image: _defaultImageWidget,
-            bodyWidget: OnboardingThirdPageBody(
-              setButtonContent: _setThirdPageButton,
-            ),
-            footer: HighlightButton(
-              buttonLabel: S.of(context).buttonNextLabel,
-              onButtonPressed: () => _scrollToPage(4),
-              buttonActive: _thirdPageButtonActive,
-            )),
+          titleWidget: const SizedBox(),
+          // empty
+          decoration: _pageDecoration,
+          image: _defaultImageWidget,
+          bodyWidget: OnboardingThirdPageBody(
+            setButtonContent: _setThirdPageButton,
+          ),
+          footer: HighlightButton(
+            buttonLabel: S.of(context).buttonNextLabel,
+            onButtonPressed: () => _scrollToPage(4),
+            buttonActive: _thirdPageButtonActive,
+          ),
+        ),
         PageViewModel(
-            titleWidget: const SizedBox(),
-            // empty
-            decoration: _pageDecoration,
-            image: _defaultImageWidget,
-            bodyWidget: OnboardingFourthPageBody(
-              setButtonContent: _setFourthPageButton,
-            ),
-            footer: HighlightButton(
-              buttonLabel: S.of(context).buttonNextLabel,
-              onButtonPressed: () => _scrollToPage(5),
-              buttonActive: _fourthPageButtonActive,
-            )),
+          titleWidget: const SizedBox(),
+          // empty
+          decoration: _pageDecoration,
+          image: _defaultImageWidget,
+          bodyWidget: OnboardingFourthPageBody(
+            setButtonContent: _setFourthPageButton,
+          ),
+          footer: HighlightButton(
+            buttonLabel: S.of(context).buttonNextLabel,
+            onButtonPressed: () => _scrollToPage(5),
+            buttonActive: _fourthPageButtonActive,
+          ),
+        ),
         PageViewModel(
-            titleWidget: const SizedBox(),
-            // empty
-            decoration: _pageDecoration,
-            image: _defaultImageWidget,
-            bodyWidget: OnboardingOverviewPageBody(
-              calorieGoalDayString: _onboardingBloc
-                      .getOverviewCalorieGoal()
-                      ?.toInt()
-                      .toString() ??
-                  "?",
-              carbsGoalString:
-                  _onboardingBloc.getOverviewCarbsGoal()?.toInt().toString() ??
-                      "?",
-              fatGoalString:
-                  _onboardingBloc.getOverviewFatGoal()?.toInt().toString() ??
-                      "?",
-              proteinGoalString: _onboardingBloc
-                      .getOverviewProteinGoal()
-                      ?.toInt()
-                      .toString() ??
-                  "?",
-              setButtonActive: _setOverviewPageContent,
-            ),
-            footer: HighlightButton(
-              buttonLabel: S.of(context).buttonStartLabel,
-              onButtonPressed: () {
-                _onOverviewStartButtonPressed(context);
-              },
-              buttonActive: _overviewPageButtonActive,
-            )),
+          titleWidget: const SizedBox(),
+          // empty
+          decoration: _pageDecoration,
+          image: _defaultImageWidget,
+          bodyWidget: OnboardingOverviewPageBody(
+            calorieGoalDayString:
+                _onboardingBloc.getOverviewCalorieGoal()?.toInt().toString() ??
+                    "?",
+            carbsGoalString:
+                _onboardingBloc.getOverviewCarbsGoal()?.toInt().toString() ??
+                    "?",
+            fatGoalString:
+                _onboardingBloc.getOverviewFatGoal()?.toInt().toString() ?? "?",
+            proteinGoalString:
+                _onboardingBloc.getOverviewProteinGoal()?.toInt().toString() ??
+                    "?",
+            setButtonActive: _setOverviewPageContent,
+          ),
+          footer: HighlightButton(
+            buttonLabel: S.of(context).buttonStartLabel,
+            onButtonPressed: () {
+              _onOverviewStartButtonPressed(context);
+            },
+            buttonActive: _overviewPageButtonActive,
+          ),
+        ),
       ];
 
   void _scrollToPage(int page) {
@@ -205,8 +208,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
   }
 
-  void _setFirstPageData(bool active, UserGenderSelectionEntity? selectedGender,
-      DateTime? selectedBirthday) {
+  void _setFirstPageData(
+    bool active,
+    UserGenderSelectionEntity? selectedGender,
+    DateTime? selectedBirthday,
+  ) {
     setState(() {
       _onboardingBloc.userSelection.gender = selectedGender;
       _onboardingBloc.userSelection.birthday = selectedBirthday;
@@ -215,8 +221,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
   }
 
-  void _setSecondPageData(bool active, double? selectedHeight,
-      double? selectedWeight, bool usesImperial) {
+  void _setSecondPageData(
+    bool active,
+    double? selectedHeight,
+    double? selectedWeight,
+    bool usesImperial,
+  ) {
     setState(() {
       _onboardingBloc.userSelection.height = selectedHeight;
       _onboardingBloc.userSelection.weight = selectedWeight;
@@ -227,7 +237,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _setThirdPageButton(
-      bool active, UserActivitySelectionEntity? selectedActivity) {
+    bool active,
+    UserActivitySelectionEntity? selectedActivity,
+  ) {
     setState(() {
       _onboardingBloc.userSelection.activity = selectedActivity;
 
@@ -236,7 +248,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _setFourthPageButton(
-      bool active, UserGoalSelectionEntity? selectedGoal) {
+    bool active,
+    UserGoalSelectionEntity? selectedGoal,
+  ) {
     setState(() {
       _onboardingBloc.userSelection.goal = selectedGoal;
 
@@ -267,12 +281,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final usesImperialUnits = _onboardingBloc.userSelection.usesImperialUnits;
     if (userEntity != null) {
       _onboardingBloc.saveOnboardingData(
-          context, userEntity, hasAcceptedDataCollection, usesImperialUnits);
+        context,
+        userEntity,
+        hasAcceptedDataCollection,
+        usesImperialUnits,
+      );
       Navigator.pushReplacementNamed(context, NavigationOptions.mainRoute);
     } else {
       // Error with user input
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).onboardingSaveUserError)));
+        SnackBar(content: Text(S.of(context).onboardingSaveUserError)),
+      );
       _scrollToPage(1);
     }
   }

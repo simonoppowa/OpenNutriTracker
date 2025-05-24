@@ -19,7 +19,8 @@ class ConfigRepository {
   }
 
   Future<void> setConfigHasAcceptedAnonymousData(
-      bool hasAcceptedAnonymousData) async {
+    bool hasAcceptedAnonymousData,
+  ) async {
     _configDataSource.setConfigAcceptedAnonymousData(hasAcceptedAnonymousData);
   }
 
@@ -33,8 +34,9 @@ class ConfigRepository {
   }
 
   Future<void> setConfigAppTheme(AppThemeEntity appTheme) async {
-    await _configDataSource
-        .setConfigAppTheme(AppThemeDBO.fromAppThemeEntity(appTheme));
+    await _configDataSource.setConfigAppTheme(
+      AppThemeDBO.fromAppThemeEntity(appTheme),
+    );
   }
 
   Future<ConfigEntity> getConfig() async {
@@ -46,6 +48,7 @@ class ConfigRepository {
     final configDBO = await _configDataSource.getConfig();
     return configDBO;
   }
+
   Future<void> setConfigUsesImperialUnits(bool usesImperialUnits) async {
     _configDataSource.setConfigUsesImperialUnits(usesImperialUnits);
   }

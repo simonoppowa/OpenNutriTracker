@@ -12,22 +12,24 @@ class IntakeEntity extends Equatable {
 
   final MealEntity meal;
 
-  const IntakeEntity(
-      {required this.id,
-      required this.unit,
-      required this.amount,
-      required this.type,
-      required this.meal,
-      required this.dateTime});
+  const IntakeEntity({
+    required this.id,
+    required this.unit,
+    required this.amount,
+    required this.type,
+    required this.meal,
+    required this.dateTime,
+  });
 
   factory IntakeEntity.fromIntakeDBO(IntakeDBO intakeDBO) {
     return IntakeEntity(
-        id: intakeDBO.id,
-        unit: intakeDBO.unit,
-        amount: intakeDBO.amount,
-        type: IntakeTypeEntity.fromIntakeTypeDBO(intakeDBO.type),
-        meal: MealEntity.fromMealDBO(intakeDBO.meal),
-        dateTime: intakeDBO.dateTime);
+      id: intakeDBO.id,
+      unit: intakeDBO.unit,
+      amount: intakeDBO.amount,
+      type: IntakeTypeEntity.fromIntakeTypeDBO(intakeDBO.type),
+      meal: MealEntity.fromMealDBO(intakeDBO.meal),
+      dateTime: intakeDBO.dateTime,
+    );
   }
 
   double get totalKcal => amount * (meal.nutriments.energyPerUnit ?? 0);

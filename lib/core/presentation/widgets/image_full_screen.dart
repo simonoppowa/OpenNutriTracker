@@ -5,7 +5,6 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_placeholder.dart';
 
 class ImageFullScreen extends StatefulWidget {
-
   static const fullScreenHeroTag = 'fullScreenTag';
 
   const ImageFullScreen({super.key});
@@ -29,10 +28,7 @@ class _ImageFullScreenState extends State<ImageFullScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
+      appBar: AppBar(elevation: 0, backgroundColor: Colors.transparent),
       body: InteractiveViewer(
         child: Hero(
           tag: ImageFullScreen.fullScreenHeroTag,

@@ -48,7 +48,7 @@ class OFFConst {
     _offQuantityTag,
     _offServingQuantityTag,
     _offServingSizeTag,
-    _offNutrimentsTag
+    _offNutrimentsTag,
   ];
 
   static String _getReturnFields() => _returnFields.join(",");
@@ -66,10 +66,13 @@ class OFFConst {
   static Uri getOffBarcodeSearchUri(String barcode) {
     final queryParameters = {
       _offFieldsTag: _getReturnFields(),
-      _offJsonTag: _offJsonValue
+      _offJsonTag: _offJsonValue,
     };
 
     return Uri.https(
-        _offBaseUrl, '$_offProductSearchTag/$barcode', queryParameters);
+      _offBaseUrl,
+      '$_offProductSearchTag/$barcode',
+      queryParameters,
+    );
   }
 }

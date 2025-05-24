@@ -12,10 +12,11 @@ class OFFProductResponseDTO {
 
   final OFFProductDTO product;
 
-  OFFProductResponseDTO(
-      {required this.status,
-      required this.status_verbose,
-      required this.product});
+  OFFProductResponseDTO({
+    required this.status,
+    required this.status_verbose,
+    required this.product,
+  });
 
   factory OFFProductResponseDTO.fromJson(Map<String, dynamic> json) =>
       _$OFFProductResponseDTOFromJson(json);

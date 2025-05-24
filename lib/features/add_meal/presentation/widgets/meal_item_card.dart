@@ -15,12 +15,13 @@ class MealItemCard extends StatelessWidget {
   final MealEntity mealEntity;
   final bool usesImperialUnits;
 
-  const MealItemCard(
-      {super.key,
-      required this.day,
-      required this.mealEntity,
-      required this.addMealType,
-      required this.usesImperialUnits});
+  const MealItemCard({
+    super.key,
+    required this.day,
+    required this.mealEntity,
+    required this.addMealType,
+    required this.usesImperialUnits,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,59 +35,64 @@ class MealItemCard extends StatelessWidget {
         child: SizedBox(
           height: 100,
           child: Center(
-              child: ListTile(
-            leading: mealEntity.thumbnailImageUrl != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: CachedNetworkImage(
-                      cacheManager: locator<CacheManager>(),
-                      fit: BoxFit.cover,
-                      width: 60,
-                      height: 60,
-                      imageUrl: mealEntity.thumbnailImageUrl ?? "",
-                    ))
-                : ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
+            child: ListTile(
+              leading: mealEntity.thumbnailImageUrl != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: CachedNetworkImage(
+                        cacheManager: locator<CacheManager>(),
+                        fit: BoxFit.cover,
+                        width: 60,
+                        height: 60,
+                        imageUrl: mealEntity.thumbnailImageUrl ?? "",
+                      ),
+                    )
+                  : ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
                         width: 60,
                         height: 60,
                         color: Theme.of(context).colorScheme.secondaryContainer,
-                        child: const Icon(Icons.restaurant_outlined)),
-                  ),
-            title: AutoSizeText.rich(
+                        child: const Icon(Icons.restaurant_outlined),
+                      ),
+                    ),
+              title: AutoSizeText.rich(
                 TextSpan(
-                    text: mealEntity.name ?? "?",
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface),
-                    children: [
-                      TextSpan(
-                          text: ' ${mealEntity.brands ?? ""}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.8))),
-                    ]),
+                  text: mealEntity.name ?? "?",
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                  children: [
+                    TextSpan(
+                      text: ' ${mealEntity.brands ?? ""}',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.8),
+                          ),
+                    ),
+                  ],
+                ),
                 style: Theme.of(context).textTheme.titleLarge,
                 maxLines: 2,
-                overflow: TextOverflow.ellipsis),
-            subtitle: mealEntity.mealQuantity != null
-                ? MealValueUnitText(
-                    value: double.parse(mealEntity.mealQuantity ?? "0"),
-                    meal: mealEntity,
-                    usesImperialUnits: usesImperialUnits)
-                : const SizedBox(),
-            trailing: IconButton(
-              style: IconButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.onSurface,
+                overflow: TextOverflow.ellipsis,
               ),
-              icon: const Icon(Icons.add_outlined),
-              onPressed: () => _onItemPressed(context),
+              subtitle: mealEntity.mealQuantity != null
+                  ? MealValueUnitText(
+                      value: double.parse(mealEntity.mealQuantity ?? "0"),
+                      meal: mealEntity,
+                      usesImperialUnits: usesImperialUnits,
+                    )
+                  : const SizedBox(),
+              trailing: IconButton(
+                style: IconButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                ),
+                icon: const Icon(Icons.add_outlined),
+                onPressed: () => _onItemPressed(context),
+              ),
             ),
-          )),
+          ),
         ),
         onTap: () => _onItemPressed(context),
       ),
@@ -94,8 +100,14 @@ class MealItemCard extends StatelessWidget {
   }
 
   void _onItemPressed(BuildContext context) {
-    Navigator.of(context).pushNamed(NavigationOptions.mealDetailRoute,
-        arguments: MealDetailScreenArguments(
-            mealEntity, addMealType.getIntakeType(), day, usesImperialUnits));
+    Navigator.of(context).pushNamed(
+      NavigationOptions.mealDetailRoute,
+      arguments: MealDetailScreenArguments(
+        mealEntity,
+        addMealType.getIntakeType(),
+        day,
+        usesImperialUnits,
+      ),
+    );
   }
 }

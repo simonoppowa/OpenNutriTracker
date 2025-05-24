@@ -13,13 +13,14 @@ class IntakeCard extends StatelessWidget {
   final bool firstListElement;
   final bool usesImperialUnits;
 
-  const IntakeCard(
-      {required super.key,
-      required this.intake,
-      this.onItemLongPressed,
-      this.onItemTapped,
-      required this.firstListElement,
-      required this.usesImperialUnits});
+  const IntakeCard({
+    required super.key,
+    required this.intake,
+    this.onItemLongPressed,
+    this.onItemTapped,
+    required this.firstListElement,
+    required this.usesImperialUnits,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,74 +52,81 @@ class IntakeCard extends StatelessWidget {
                           imageUrl: intake.meal.mainImageUrl ?? "",
                           imageBuilder: (context, imageProvider) => Container(
                             decoration: BoxDecoration(
-                                image: DecorationImage(
-                              image: imageProvider,
-                              fit: BoxFit.cover,
-                            )),
+                              image: DecorationImage(
+                                image: imageProvider,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
                         )
                       : Center(
-                          child: Icon(Icons.restaurant_outlined,
-                              color: Theme.of(context).colorScheme.secondary)),
+                          child: Icon(
+                            Icons.restaurant_outlined,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
                   Container(
                     // Add color shade
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .secondaryContainer.withValues(alpha: 0.5),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.secondaryContainer.withValues(alpha: 0.5),
                     ),
                   ),
                   Container(
                     margin: const EdgeInsets.all(8.0),
                     padding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
                     decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .tertiaryContainer.withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(20)),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.tertiaryContainer.withValues(alpha: 0.8),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     child: Text(
                       '${intake.totalKcal.toInt()} kcal',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onTertiaryContainer),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onTertiaryContainer,
+                          ),
                     ),
                   ),
                   Container(
-                      padding: const EdgeInsets.all(8.0),
-                      alignment: Alignment.bottomLeft,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          AutoSizeText(
-                            intake.meal.name ?? "?",
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSecondaryContainer),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          MealValueUnitText(
-                            value: intake.amount,
-                            meal: intake.meal,
-                            usesImperialUnits: usesImperialUnits,
-                            textStyle: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSecondaryContainer.withValues(
-                                            alpha: 0.7)),
-                          ),
-                        ],
-                      ))
+                    padding: const EdgeInsets.all(8.0),
+                    alignment: Alignment.bottomLeft,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AutoSizeText(
+                          intake.meal.name ?? "?",
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSecondaryContainer,
+                              ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        MealValueUnitText(
+                          value: intake.amount,
+                          meal: intake.meal,
+                          usesImperialUnits: usesImperialUnits,
+                          textStyle: Theme.of(
+                            context,
+                          ).textTheme.titleSmall?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSecondaryContainer
+                                    .withValues(alpha: 0.7),
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

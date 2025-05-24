@@ -20,36 +20,39 @@ class CopyDialogState extends State<CopyDialog> {
   }
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return AlertDialog(
-        title: Text(S.of(context).copyDialogTitle),
-        content: DropdownButton<AddMealType>(
-            value: _selectedValue,
-            onChanged: (AddMealType? addMealType) {
-              if (addMealType != null) {
-                setState(() {
-                  _selectedValue = addMealType;
-                });
-              }
-            },
-            items: AddMealType.values.map((AddMealType addMealType) {
-              return DropdownMenuItem(
-                  value: addMealType,
-                  child: Text(addMealType.getTypeName(context)));
-            }).toList()),
-        actions: [
-          TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(_selectedValue);
-              },
-              child: Text(S.of(context).dialogOKLabel)),
-          TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(S.of(context).dialogCancelLabel))
-        ]);
+      title: Text(S.of(context).copyDialogTitle),
+      content: DropdownButton<AddMealType>(
+        value: _selectedValue,
+        onChanged: (AddMealType? addMealType) {
+          if (addMealType != null) {
+            setState(() {
+              _selectedValue = addMealType;
+            });
+          }
+        },
+        items: AddMealType.values.map((AddMealType addMealType) {
+          return DropdownMenuItem(
+            value: addMealType,
+            child: Text(addMealType.getTypeName(context)),
+          );
+        }).toList(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(_selectedValue);
+          },
+          child: Text(S.of(context).dialogOKLabel),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text(S.of(context).dialogCancelLabel),
+        ),
+      ],
+    );
   }
 }

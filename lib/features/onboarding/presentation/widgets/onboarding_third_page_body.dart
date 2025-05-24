@@ -28,18 +28,24 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(S.of(context).activityLabel,
-              style: Theme.of(context).textTheme.headlineSmall),
-          Text(S.of(context).onboardingActivityQuestionSubtitle,
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            S.of(context).activityLabel,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          Text(
+            S.of(context).onboardingActivityQuestionSubtitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 16.0),
           SizedBox(
             width: 300,
             child: Row(
               children: [
                 ChoiceChip(
-                  label: Text(S.of(context).palSedentaryLabel,
-                      style: Theme.of(context).textTheme.titleLarge),
+                  label: Text(
+                    S.of(context).palSedentaryLabel,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   selected: _sedentarySelected,
                   onSelected: (bool selected) {
                     setState(() {
@@ -51,17 +57,18 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: InkWell(
-                      onTap: () {
-                        showDialog(
-                            context: context,
-                            builder: (context) => InfoDialog(
-                                title: S.of(context).palSedentaryLabel,
-                                body: S
-                                    .of(context)
-                                    .palSedentaryDescriptionLabel));
-                      },
-                      child: const Icon(Icons.help_outline_outlined)),
-                )
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => InfoDialog(
+                          title: S.of(context).palSedentaryLabel,
+                          body: S.of(context).palSedentaryDescriptionLabel,
+                        ),
+                      );
+                    },
+                    child: const Icon(Icons.help_outline_outlined),
+                  ),
+                ),
               ],
             ),
           ),
@@ -71,8 +78,10 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
             child: Row(
               children: [
                 ChoiceChip(
-                  label: Text(S.of(context).palLowLActiveLabel,
-                      style: Theme.of(context).textTheme.titleLarge),
+                  label: Text(
+                    S.of(context).palLowLActiveLabel,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   selected: _lowActiveSelected,
                   onSelected: (bool selected) {
                     setState(() {
@@ -84,17 +93,18 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: InkWell(
-                      onTap: () {
-                        showDialog(
-                            context: context,
-                            builder: (context) => InfoDialog(
-                                title: S.of(context).palLowLActiveLabel,
-                                body: S
-                                    .of(context)
-                                    .palLowActiveDescriptionLabel));
-                      },
-                      child: const Icon(Icons.help_outline_outlined)),
-                )
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => InfoDialog(
+                          title: S.of(context).palLowLActiveLabel,
+                          body: S.of(context).palLowActiveDescriptionLabel,
+                        ),
+                      );
+                    },
+                    child: const Icon(Icons.help_outline_outlined),
+                  ),
+                ),
               ],
             ),
           ),
@@ -104,8 +114,10 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
             child: Row(
               children: [
                 ChoiceChip(
-                  label: Text(S.of(context).palActiveLabel,
-                      style: Theme.of(context).textTheme.titleLarge),
+                  label: Text(
+                    S.of(context).palActiveLabel,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   selected: _activeSelected,
                   onSelected: (bool selected) {
                     setState(() {
@@ -117,15 +129,18 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: InkWell(
-                      onTap: () {
-                        showDialog(
-                            context: context,
-                            builder: (context) => InfoDialog(
-                                title: S.of(context).palActiveLabel,
-                                body: S.of(context).palActiveDescriptionLabel));
-                      },
-                      child: const Icon(Icons.help_outline_outlined)),
-                )
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => InfoDialog(
+                          title: S.of(context).palActiveLabel,
+                          body: S.of(context).palActiveDescriptionLabel,
+                        ),
+                      );
+                    },
+                    child: const Icon(Icons.help_outline_outlined),
+                  ),
+                ),
               ],
             ),
           ),
@@ -135,8 +150,10 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
             child: Row(
               children: [
                 ChoiceChip(
-                  label: Text(S.of(context).palVeryActiveLabel,
-                      style: Theme.of(context).textTheme.titleLarge),
+                  label: Text(
+                    S.of(context).palVeryActiveLabel,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   selected: _veryActiveSelected,
                   onSelected: (bool selected) {
                     setState(() {
@@ -148,17 +165,18 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: InkWell(
-                      onTap: () {
-                        showDialog(
-                            context: context,
-                            builder: (context) => InfoDialog(
-                                title: S.of(context).palVeryActiveLabel,
-                                body: S
-                                    .of(context)
-                                    .palVeryActiveDescriptionLabel));
-                      },
-                      child: const Icon(Icons.help_outline_outlined)),
-                )
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => InfoDialog(
+                          title: S.of(context).palVeryActiveLabel,
+                          body: S.of(context).palVeryActiveDescriptionLabel,
+                        ),
+                      );
+                    },
+                    child: const Icon(Icons.help_outline_outlined),
+                  ),
+                ),
               ],
             ),
           ),
@@ -167,11 +185,12 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
     );
   }
 
-  void _setSelectedChoiceChip(
-      {sedentary = false,
-      lowActive = false,
-      active = false,
-      veryActive = false}) {
+  void _setSelectedChoiceChip({
+    sedentary = false,
+    lowActive = false,
+    active = false,
+    veryActive = false,
+  }) {
     _sedentarySelected = sedentary;
     _lowActiveSelected = lowActive;
     _activeSelected = active;

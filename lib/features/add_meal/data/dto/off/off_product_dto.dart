@@ -27,7 +27,7 @@ class OFFProductDTO {
   final String? quantity;
   final dynamic product_quantity; // Can either be int or String
   final dynamic serving_quantity; // Can either be int or String
-  final String? serving_size;  // E.g. 2 Tbsp (32 g)
+  final String? serving_size; // E.g. 2 Tbsp (32 g)
 
   final OFFProductNutrimentsDTO nutriments;
 
@@ -40,7 +40,7 @@ class OFFProductDTO {
       case SupportedLanguage.de:
         localeName = product_name_de;
         break;
-      }
+    }
 
     // If local language is not available, return available language
     if (localeName == null || localeName.isEmpty) {
@@ -50,24 +50,25 @@ class OFFProductDTO {
     return localeName;
   }
 
-  OFFProductDTO(
-      {required this.code,
-      required this.product_name,
-      required this.product_name_en,
-      required this.product_name_fr,
-      required this.product_name_de,
-      required this.brands,
-      required this.image_front_thumb_url,
-      required this.image_front_url,
-      required this.image_ingredients_url,
-      required this.image_nutrition_url,
-      required this.image_url,
-      required this.url,
-      required this.quantity,
-      required this.product_quantity,
-      required this.serving_quantity,
-      required this.serving_size,
-      required this.nutriments});
+  OFFProductDTO({
+    required this.code,
+    required this.product_name,
+    required this.product_name_en,
+    required this.product_name_fr,
+    required this.product_name_de,
+    required this.brands,
+    required this.image_front_thumb_url,
+    required this.image_front_url,
+    required this.image_ingredients_url,
+    required this.image_nutrition_url,
+    required this.image_url,
+    required this.url,
+    required this.quantity,
+    required this.product_quantity,
+    required this.serving_quantity,
+    required this.serving_size,
+    required this.nutriments,
+  });
 
   factory OFFProductDTO.fromJson(Map<String, dynamic> json) =>
       _$OFFProductDTOFromJson(json);

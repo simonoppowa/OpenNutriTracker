@@ -5,7 +5,6 @@ abstract class EditMealEvent extends Equatable {
 }
 
 class InitializeEditMealEvent extends EditMealEvent {
-
   const InitializeEditMealEvent();
 
   @override

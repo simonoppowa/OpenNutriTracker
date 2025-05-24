@@ -23,16 +23,19 @@ class ConfigDataSource {
 
   Future<void> setConfigDisclaimer(bool hasAcceptedDisclaimer) async {
     _log.fine(
-        'Updating config hasAcceptedDisclaimer to $hasAcceptedDisclaimer');
+      'Updating config hasAcceptedDisclaimer to $hasAcceptedDisclaimer',
+    );
     final config = _configBox.get(_configKey);
     config?.hasAcceptedDisclaimer = hasAcceptedDisclaimer;
     config?.save();
   }
 
   Future<void> setConfigAcceptedAnonymousData(
-      bool hasAcceptedAnonymousData) async {
+    bool hasAcceptedAnonymousData,
+  ) async {
     _log.fine(
-        'Updating config hasAcceptedAnonymousData to $hasAcceptedAnonymousData');
+      'Updating config hasAcceptedAnonymousData to $hasAcceptedAnonymousData',
+    );
     final config = _configBox.get(_configKey);
     config?.hasAcceptedSendAnonymousData = hasAcceptedAnonymousData;
     config?.save();

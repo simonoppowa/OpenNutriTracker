@@ -49,36 +49,40 @@ class _AddActivityScreenState extends State<AddActivityScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text(S.of(context).activityLabel),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Column(
-            children: [
-              TextField(
-                decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search),
-                    hintText: S.of(context).searchLabel,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    )),
-                onChanged: (String searchString) {
-                  _activitiesBloc.add(SearchActivitiesEvent(
-                      context: context, searchString: searchString));
-                },
+      appBar: AppBar(title: Text(S.of(context).activityLabel)),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Column(
+          children: [
+            TextField(
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                hintText: S.of(context).searchLabel,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-              const SizedBox(height: 16.0),
-              TabBar(
-                  tabs: [
-                    Tab(text: S.of(context).allItemsLabel),
-                    Tab(text: S.of(context).recentlyAddedLabel)
-                  ],
-                  controller: _tabController,
-                  indicatorSize: TabBarIndicatorSize.tab),
-              const SizedBox(height: 16),
-              Expanded(
-                  child: TabBarView(
+              onChanged: (String searchString) {
+                _activitiesBloc.add(
+                  SearchActivitiesEvent(
+                    context: context,
+                    searchString: searchString,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16.0),
+            TabBar(
+              tabs: [
+                Tab(text: S.of(context).allItemsLabel),
+                Tab(text: S.of(context).recentlyAddedLabel),
+              ],
+              controller: _tabController,
+              indicatorSize: TabBarIndicatorSize.tab,
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: TabBarView(
                 controller: _tabController,
                 children: [
                   Column(
@@ -87,8 +91,9 @@ class _AddActivityScreenState extends State<AddActivityScreen>
                         bloc: _activitiesBloc,
                         builder: (context, state) {
                           if (state is ActivitiesInitial) {
-                            _activitiesBloc
-                                .add(LoadActivitiesEvent(context: context));
+                            _activitiesBloc.add(
+                              LoadActivitiesEvent(context: context),
+                            );
                             return const SizedBox();
                           }
                           if (state is ActivitiesLoadingState) {
@@ -101,13 +106,15 @@ class _AddActivityScreenState extends State<AddActivityScreen>
                             final physicalActivities = state.activities;
                             return Flexible(
                               child: ListView.builder(
-                                  itemCount: physicalActivities.length,
-                                  itemBuilder: (context, index) {
-                                    return ActivityItemCard(
-                                        physicalActivityEntity:
-                                            physicalActivities[index],
-                                        day: _day);
-                                  }),
+                                itemCount: physicalActivities.length,
+                                itemBuilder: (context, index) {
+                                  return ActivityItemCard(
+                                    physicalActivityEntity:
+                                        physicalActivities[index],
+                                    day: _day,
+                                  );
+                                },
+                              ),
                             );
                           }
                           if (state is ActivitiesFailedState) {
@@ -129,7 +136,8 @@ class _AddActivityScreenState extends State<AddActivityScreen>
                         builder: (context, state) {
                           if (state is RecentActivitiesInitial) {
                             _recentActivitiesBloc.add(
-                                LoadRecentActivitiesEvent(context: context));
+                              LoadRecentActivitiesEvent(context: context),
+                            );
                             return const SizedBox();
                           }
                           if (state is RecentActivitiesLoadingState) {
@@ -143,14 +151,15 @@ class _AddActivityScreenState extends State<AddActivityScreen>
                             return state.recentActivities.isNotEmpty
                                 ? Flexible(
                                     child: ListView.builder(
-                                        itemCount: recentActivities.length,
-                                        itemBuilder: (context, index) {
-                                          return ActivityItemCard(
-                                            physicalActivityEntity:
-                                                recentActivities[index],
-                                            day: _day,
-                                          );
-                                        }),
+                                      itemCount: recentActivities.length,
+                                      itemBuilder: (context, index) {
+                                        return ActivityItemCard(
+                                          physicalActivityEntity:
+                                              recentActivities[index],
+                                          day: _day,
+                                        );
+                                      },
+                                    ),
                                   )
                                 : const NoResultsWidget();
                           }
@@ -167,10 +176,12 @@ class _AddActivityScreenState extends State<AddActivityScreen>
                     ],
                   ),
                 ],
-              )),
-            ],
-          ),
-        ));
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _onActivitiesRefreshButtonPressed() {

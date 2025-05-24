@@ -49,20 +49,29 @@ Future<void> main() async {
 }
 
 void _runAppWithSentryReporting(
-    bool isUserInitialized, AppThemeEntity savedAppTheme) async {
-  await SentryFlutter.init((options) {
-    options.dsn = Env.sentryDns;
-    options.tracesSampleRate = 1.0;
-  },
-      appRunner: () =>
-          runAppWithChangeNotifiers(isUserInitialized, savedAppTheme));
+  bool isUserInitialized,
+  AppThemeEntity savedAppTheme,
+) async {
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = Env.sentryDns;
+      options.tracesSampleRate = 1.0;
+    },
+    appRunner: () =>
+        runAppWithChangeNotifiers(isUserInitialized, savedAppTheme),
+  );
 }
 
 void runAppWithChangeNotifiers(
-        bool userInitialized, AppThemeEntity savedAppTheme) =>
-    runApp(ChangeNotifierProvider(
+  bool userInitialized,
+  AppThemeEntity savedAppTheme,
+) =>
+    runApp(
+      ChangeNotifierProvider(
         create: (_) => ThemeModeProvider(appTheme: savedAppTheme),
-        child: OpenNutriTrackerApp(userInitialized: userInitialized)));
+        child: OpenNutriTrackerApp(userInitialized: userInitialized),
+      ),
+    );
 
 class OpenNutriTrackerApp extends StatelessWidget {
   final bool userInitialized;
@@ -75,13 +84,15 @@ class OpenNutriTrackerApp extends StatelessWidget {
       onGenerateTitle: (context) => S.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: lightColorScheme,
-          textTheme: appTextTheme),
+        useMaterial3: true,
+        colorScheme: lightColorScheme,
+        textTheme: appTextTheme,
+      ),
       darkTheme: ThemeData(
-          useMaterial3: true,
-          colorScheme: darkColorScheme,
-          textTheme: appTextTheme),
+        useMaterial3: true,
+        colorScheme: darkColorScheme,
+        textTheme: appTextTheme,
+      ),
       themeMode: Provider.of<ThemeModeProvider>(context).themeMode,
       localizationsDelegates: const [
         S.delegate,

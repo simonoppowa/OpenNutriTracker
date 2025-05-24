@@ -18,8 +18,10 @@ class ProductsLoadedState extends ProductsState {
   final List<MealEntity> products;
   final bool usesImperialUnits;
 
-  const ProductsLoadedState(
-      {required this.products, this.usesImperialUnits = false});
+  const ProductsLoadedState({
+    required this.products,
+    this.usesImperialUnits = false,
+  });
 
   @override
   List<Object?> get props => [products];

@@ -48,16 +48,26 @@ class HiveDBProvider extends ChangeNotifier {
     Hive.registerAdapter(PhysicalActivityTypeDBOAdapter());
     Hive.registerAdapter(AppThemeDBOAdapter());
 
-    configBox =
-        await Hive.openBox(configBoxName, encryptionCipher: encryptionCypher);
-    intakeBox =
-        await Hive.openBox(intakeBoxName, encryptionCipher: encryptionCypher);
-    userActivityBox = await Hive.openBox(userActivityBoxName,
-        encryptionCipher: encryptionCypher);
-    userBox =
-        await Hive.openBox(userBoxName, encryptionCipher: encryptionCypher);
-    trackedDayBox = await Hive.openBox(trackedDayBoxName,
-        encryptionCipher: encryptionCypher);
+    configBox = await Hive.openBox(
+      configBoxName,
+      encryptionCipher: encryptionCypher,
+    );
+    intakeBox = await Hive.openBox(
+      intakeBoxName,
+      encryptionCipher: encryptionCypher,
+    );
+    userActivityBox = await Hive.openBox(
+      userActivityBoxName,
+      encryptionCipher: encryptionCypher,
+    );
+    userBox = await Hive.openBox(
+      userBoxName,
+      encryptionCipher: encryptionCypher,
+    );
+    trackedDayBox = await Hive.openBox(
+      trackedDayBoxName,
+      encryptionCipher: encryptionCypher,
+    );
   }
 
   static generateNewHiveEncryptionKey() => Hive.generateSecureKey();

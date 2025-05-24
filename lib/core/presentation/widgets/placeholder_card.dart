@@ -31,11 +31,13 @@ class PlaceholderCard extends StatelessWidget {
               ),
               child: InkWell(
                 onTap: onTap,
-                child: Icon(Icons.add,
-                    size: 36,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface.withValues(alpha: 0.5)),
+                child: Icon(
+                  Icons.add,
+                  size: 36,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.5),
+                ),
               ),
             ),
           ),

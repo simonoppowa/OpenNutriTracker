@@ -10,14 +10,15 @@ class MacroNutrientsView extends StatefulWidget {
   final double totalFatsGoal;
   final double totalProteinsGoal;
 
-  const MacroNutrientsView(
-      {super.key,
-      required this.totalCarbsIntake,
-      required this.totalFatsIntake,
-      required this.totalProteinsIntake,
-      required this.totalCarbsGoal,
-      required this.totalFatsGoal,
-      required this.totalProteinsGoal});
+  const MacroNutrientsView({
+    super.key,
+    required this.totalCarbsIntake,
+    required this.totalFatsIntake,
+    required this.totalProteinsIntake,
+    required this.totalCarbsGoal,
+    required this.totalFatsGoal,
+    required this.totalProteinsGoal,
+  });
 
   @override
   State<MacroNutrientsView> createState() => _MacroNutrientsViewState();
@@ -36,10 +37,13 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
               lineWidth: 6.0,
               animation: true,
               percent: getGoalPercentage(
-                  widget.totalCarbsGoal, widget.totalCarbsIntake),
+                widget.totalCarbsGoal,
+                widget.totalCarbsIntake,
+              ),
               progressColor: Theme.of(context).colorScheme.primary,
-              backgroundColor:
-                  Theme.of(context).colorScheme.primary.withAlpha(50),
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withAlpha(50),
               circularStrokeCap: CircularStrokeCap.round,
             ),
             Padding(
@@ -49,18 +53,18 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
                   Text(
                     '${widget.totalCarbsIntake.toInt()}/${widget.totalCarbsGoal.toInt()} g',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color:
-                            Theme.of(context).colorScheme.onSurface),
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                   ),
                   Text(
                     S.of(context).carbsLabel,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color:
-                            Theme.of(context).colorScheme.onSurface),
-                  )
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                  ),
                 ],
               ),
-            )
+            ),
           ],
         ),
         Row(
@@ -70,10 +74,13 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
               lineWidth: 6.0,
               animation: true,
               percent: getGoalPercentage(
-                  widget.totalFatsGoal, widget.totalFatsIntake),
+                widget.totalFatsGoal,
+                widget.totalFatsIntake,
+              ),
               progressColor: Theme.of(context).colorScheme.primary,
-              backgroundColor:
-                  Theme.of(context).colorScheme.primary.withAlpha(50),
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withAlpha(50),
               circularStrokeCap: CircularStrokeCap.round,
             ),
             Padding(
@@ -83,17 +90,18 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
                   Text(
                     "${widget.totalFatsIntake.toInt()}/${widget.totalFatsGoal.toInt()} g",
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color:
-                            Theme.of(context).colorScheme.onSurface),
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                   ),
-                  Text(S.of(context).fatLabel,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface)),
+                  Text(
+                    S.of(context).fatLabel,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                  ),
                 ],
               ),
-            )
+            ),
           ],
         ),
         Row(
@@ -103,10 +111,13 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
               lineWidth: 6.0,
               animation: true,
               percent: getGoalPercentage(
-                  widget.totalProteinsGoal, widget.totalProteinsIntake),
+                widget.totalProteinsGoal,
+                widget.totalProteinsIntake,
+              ),
               progressColor: Theme.of(context).colorScheme.primary,
-              backgroundColor:
-                  Theme.of(context).colorScheme.primary.withAlpha(50),
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withAlpha(50),
               circularStrokeCap: CircularStrokeCap.round,
             ),
             Padding(
@@ -116,20 +127,20 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
                   Text(
                     "${widget.totalProteinsIntake.toInt()}/${widget.totalProteinsGoal.toInt()} g",
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color:
-                            Theme.of(context).colorScheme.onSurface),
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                   ),
                   Text(
                     S.of(context).proteinLabel,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color:
-                            Theme.of(context).colorScheme.onSurface),
-                  )
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                  ),
                 ],
               ),
-            )
+            ),
           ],
-        )
+        ),
       ],
     );
   }

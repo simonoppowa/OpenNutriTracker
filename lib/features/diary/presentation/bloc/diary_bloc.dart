@@ -29,11 +29,13 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
       const yearDuration = Duration(days: 356);
 
       final trackedDays = await _getDayTrackedUsecase.getTrackedDaysByRange(
-          currentDay.subtract(yearDuration), currentDay.add(yearDuration));
+        currentDay.subtract(yearDuration),
+        currentDay.add(yearDuration),
+      );
 
       final trackedDaysMap = {
         for (var trackedDay in trackedDays)
-          trackedDay.day.toParsedDay(): trackedDay
+          trackedDay.day.toParsedDay(): trackedDay,
       };
 
       emit(DiaryLoadedState(trackedDaysMap, usesImperialUnits));

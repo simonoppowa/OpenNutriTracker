@@ -11,12 +11,13 @@ class ActivityVerticalList extends StatelessWidget {
   final List<UserActivityEntity> userActivityList;
   final Function(BuildContext, UserActivityEntity) onItemLongPressedCallback;
 
-  const ActivityVerticalList(
-      {super.key,
-      required this.day,
-      required this.title,
-      required this.userActivityList,
-      required this.onItemLongPressedCallback});
+  const ActivityVerticalList({
+    super.key,
+    required this.day,
+    required this.title,
+    required this.userActivityList,
+    required this.onItemLongPressedCallback,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,13 +28,17 @@ class ActivityVerticalList extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: Row(
             children: [
-              Icon(UserActivityEntity.getIconData(),
-                  size: 24, color: Theme.of(context).colorScheme.onSurface),
+              Icon(
+                UserActivityEntity.getIconData(),
+                size: 24,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               const SizedBox(width: 4.0),
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface),
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
               ),
             ],
           ),
@@ -48,9 +53,10 @@ class ActivityVerticalList extends StatelessWidget {
               final firstListElement = index == 0 ? true : false;
               if (index == userActivityList.length) {
                 return PlaceholderCard(
-                    day: day,
-                    onTap: () => _onPlaceholderCardTapped(context),
-                    firstListElement: firstListElement);
+                  day: day,
+                  onTap: () => _onPlaceholderCardTapped(context),
+                  firstListElement: firstListElement,
+                );
               } else {
                 final userActivity = userActivityList[index];
                 return ActivityCard(
@@ -61,13 +67,15 @@ class ActivityVerticalList extends StatelessWidget {
               }
             },
           ),
-        )
+        ),
       ],
     );
   }
 
   void _onPlaceholderCardTapped(BuildContext context) {
-    Navigator.of(context).pushNamed(NavigationOptions.addActivityRoute,
-        arguments: AddActivityScreenArguments(day: day));
+    Navigator.of(context).pushNamed(
+      NavigationOptions.addActivityRoute,
+      arguments: AddActivityScreenArguments(day: day),
+    );
   }
 }

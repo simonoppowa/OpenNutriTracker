@@ -7,7 +7,9 @@ class UpdateIntakeUsecase {
   UpdateIntakeUsecase(this._intakeRepository);
 
   Future<IntakeEntity?> updateIntake(
-      String intakeId, Map<String, dynamic> intakeFields) async {
+    String intakeId,
+    Map<String, dynamic> intakeFields,
+  ) async {
     return await _intakeRepository.updateIntake(intakeId, intakeFields);
   }
 }

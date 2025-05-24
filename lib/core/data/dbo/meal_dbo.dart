@@ -42,37 +42,39 @@ class MealDBO extends HiveObject {
   @HiveField(11)
   final MealNutrimentsDBO nutriments;
 
-  MealDBO(
-      {required this.code,
-      required this.name,
-      required this.brands,
-      required this.thumbnailImageUrl,
-      required this.mainImageUrl,
-      required this.url,
-      required this.mealQuantity,
-      required this.mealUnit,
-      required this.servingQuantity,
-      required this.servingUnit,
-      required this.servingSize,
-      required this.nutriments,
-      required this.source});
+  MealDBO({
+    required this.code,
+    required this.name,
+    required this.brands,
+    required this.thumbnailImageUrl,
+    required this.mainImageUrl,
+    required this.url,
+    required this.mealQuantity,
+    required this.mealUnit,
+    required this.servingQuantity,
+    required this.servingUnit,
+    required this.servingSize,
+    required this.nutriments,
+    required this.source,
+  });
 
   factory MealDBO.fromMealEntity(MealEntity mealEntity) => MealDBO(
-      code: mealEntity.code,
-      name: mealEntity.name,
-      brands: mealEntity.brands,
-      thumbnailImageUrl: mealEntity.thumbnailImageUrl,
-      mainImageUrl: mealEntity.mainImageUrl,
-      url: mealEntity.url,
-      mealQuantity: mealEntity.mealQuantity,
-      mealUnit: mealEntity.mealUnit,
-      servingQuantity: mealEntity.servingQuantity,
-      servingUnit: mealEntity.servingUnit,
-      servingSize: mealEntity.servingSize,
-      nutriments:
-          MealNutrimentsDBO.fromProductNutrimentsEntity(mealEntity.nutriments),
-      source: MealSourceDBO.fromMealSourceEntity(mealEntity.source),
-  );
+        code: mealEntity.code,
+        name: mealEntity.name,
+        brands: mealEntity.brands,
+        thumbnailImageUrl: mealEntity.thumbnailImageUrl,
+        mainImageUrl: mealEntity.mainImageUrl,
+        url: mealEntity.url,
+        mealQuantity: mealEntity.mealQuantity,
+        mealUnit: mealEntity.mealUnit,
+        servingQuantity: mealEntity.servingQuantity,
+        servingUnit: mealEntity.servingUnit,
+        servingSize: mealEntity.servingSize,
+        nutriments: MealNutrimentsDBO.fromProductNutrimentsEntity(
+          mealEntity.nutriments,
+        ),
+        source: MealSourceDBO.fromMealSourceEntity(mealEntity.source),
+      );
 
   factory MealDBO.fromJson(Map<String, dynamic> json) =>
       _$MealDBOFromJson(json);

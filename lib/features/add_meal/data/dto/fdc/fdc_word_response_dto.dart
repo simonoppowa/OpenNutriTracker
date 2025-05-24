@@ -10,10 +10,11 @@ class FDCWordResponseDTO {
 
   final List<FDCFoodDTO> foods;
 
-  FDCWordResponseDTO(
-      {required this.totalHits,
-      required this.currentPage,
-      required this.foods});
+  FDCWordResponseDTO({
+    required this.totalHits,
+    required this.currentPage,
+    required this.foods,
+  });
 
   factory FDCWordResponseDTO.fromJson(Map<String, dynamic> json) =>
       _$FDCWordResponseDTOFromJson(json);

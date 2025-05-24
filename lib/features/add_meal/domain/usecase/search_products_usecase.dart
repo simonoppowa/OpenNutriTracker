@@ -7,15 +7,18 @@ class SearchProductsUseCase {
   SearchProductsUseCase(this._productsRepository);
 
   Future<List<MealEntity>> searchOFFProductsByString(
-      String searchString) async {
-    final products =
-        await _productsRepository.getOFFProductsByString(searchString);
+    String searchString,
+  ) async {
+    final products = await _productsRepository.getOFFProductsByString(
+      searchString,
+    );
     return products;
   }
 
   Future<List<MealEntity>> searchFDCFoodByString(String searchString) async {
-    final foods =
-        await _productsRepository.getSupabaseFDCFoodsByString(searchString);
+    final foods = await _productsRepository.getSupabaseFDCFoodsByString(
+      searchString,
+    );
     return foods;
   }
 }

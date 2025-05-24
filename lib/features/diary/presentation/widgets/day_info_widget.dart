@@ -24,12 +24,19 @@ class DayInfoWidget extends StatelessWidget {
   final bool usesImperialUnits;
   final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity)
       onDeleteIntake;
-  final Function(UserActivityEntity userActivityEntity,
-      TrackedDayEntity? trackedDayEntity) onDeleteActivity;
-  final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity,
-      AddMealType? type) onCopyIntake;
-  final Function(UserActivityEntity userActivityEntity,
-      TrackedDayEntity? trackedDayEntity) onCopyActivity;
+  final Function(
+    UserActivityEntity userActivityEntity,
+    TrackedDayEntity? trackedDayEntity,
+  ) onDeleteActivity;
+  final Function(
+    IntakeEntity intake,
+    TrackedDayEntity? trackedDayEntity,
+    AddMealType? type,
+  ) onCopyIntake;
+  final Function(
+    UserActivityEntity userActivityEntity,
+    TrackedDayEntity? trackedDayEntity,
+  ) onCopyActivity;
 
   const DayInfoWidget({
     super.key,
@@ -55,8 +62,10 @@ class DayInfoWidget extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(DateFormat.yMMMMEEEEd().format(selectedDay),
-              style: Theme.of(context).textTheme.headlineSmall),
+          child: Text(
+            DateFormat.yMMMMEEEEd().format(selectedDay),
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
         ),
         const SizedBox(height: 8.0),
         Column(
@@ -65,11 +74,14 @@ class DayInfoWidget extends StatelessWidget {
             trackedDay == null
                 ? Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(S.of(context).nothingAddedLabel,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface.withValues(alpha: 0.7))),
+                    child: Text(
+                      S.of(context).nothingAddedLabel,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
+                          ),
+                    ),
                   )
                 : const SizedBox(),
             trackedDay != null
@@ -85,40 +97,48 @@ class DayInfoWidget extends StatelessWidget {
                               ?.getRatingDayTextBackgroundColor(context),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0, vertical: 8.0),
+                              horizontal: 8.0,
+                              vertical: 8.0,
+                            ),
                             child: Text(
                               _getCaloriesTrackedDisplayString(trackedDay),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
-                                      color: trackedDayEntity
-                                          ?.getRatingDayTextColor(context),
-                                      fontWeight: FontWeight.bold),
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleLarge?.copyWith(
+                                    color:
+                                        trackedDayEntity?.getRatingDayTextColor(
+                                      context,
+                                    ),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ),
                         ),
                         const SizedBox(height: 4.0),
-                        Text(_getMacroTrackedDisplayString(trackedDay),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface.withValues(alpha: 0.7))),
+                        Text(
+                          _getMacroTrackedDisplayString(trackedDay),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
+                              ),
+                        ),
                       ],
                     ),
                   )
                 : const SizedBox(),
             const SizedBox(height: 8.0),
             ActivityVerticalList(
-                day: selectedDay,
-                title: S.of(context).activityLabel,
-                userActivityList: userActivities,
-                onItemLongPressedCallback: onActivityItemLongPressed),
+              day: selectedDay,
+              title: S.of(context).activityLabel,
+              userActivityList: userActivities,
+              onItemLongPressedCallback: onActivityItemLongPressed,
+            ),
             IntakeVerticalList(
               day: selectedDay,
               title: S.of(context).breakfastLabel,
@@ -178,9 +198,9 @@ class DayInfoWidget extends StatelessWidget {
                       : onCopyIntake,
               trackedDayEntity: trackedDay,
             ),
-            const SizedBox(height: 16.0)
+            const SizedBox(height: 16.0),
           ],
-        )
+        ),
       ],
     );
   }
@@ -209,9 +229,13 @@ class DayInfoWidget extends StatelessWidget {
   }
 
   void showCopyOrDeleteIntakeDialog(
-      BuildContext context, IntakeEntity intakeEntity) async {
+    BuildContext context,
+    IntakeEntity intakeEntity,
+  ) async {
     final copyOrDelete = await showDialog<bool>(
-        context: context, builder: (context) => const CopyOrDeleteDialog());
+      context: context,
+      builder: (context) => const CopyOrDeleteDialog(),
+    );
     if (context.mounted) {
       if (copyOrDelete != null && !copyOrDelete) {
         showDeleteIntakeDialog(context, intakeEntity);
@@ -224,23 +248,31 @@ class DayInfoWidget extends StatelessWidget {
   void showCopyDialog(BuildContext context, IntakeEntity intakeEntity) async {
     const copyDialog = CopyDialog();
     final selectedMealType = await showDialog<AddMealType>(
-        context: context, builder: (context) => copyDialog);
+      context: context,
+      builder: (context) => copyDialog,
+    );
     if (selectedMealType != null) {
       onCopyIntake(intakeEntity, null, selectedMealType);
     }
   }
 
   void showDeleteIntakeDialog(
-      BuildContext context, IntakeEntity intakeEntity) async {
+    BuildContext context,
+    IntakeEntity intakeEntity,
+  ) async {
     final shouldDeleteIntake = await showDialog<bool>(
-        context: context, builder: (context) => const DeleteDialog());
+      context: context,
+      builder: (context) => const DeleteDialog(),
+    );
     if (shouldDeleteIntake != null) {
       onDeleteIntake(intakeEntity, trackedDayEntity);
     }
   }
 
   void onIntakeItemLongPressed(
-      BuildContext context, IntakeEntity intakeEntity) async {
+    BuildContext context,
+    IntakeEntity intakeEntity,
+  ) async {
     if (DateUtils.isSameDay(selectedDay, DateTime.now())) {
       showDeleteIntakeDialog(context, intakeEntity);
     } else {
@@ -249,9 +281,13 @@ class DayInfoWidget extends StatelessWidget {
   }
 
   void onActivityItemLongPressed(
-      BuildContext context, UserActivityEntity activityEntity) async {
+    BuildContext context,
+    UserActivityEntity activityEntity,
+  ) async {
     final shouldDeleteActivity = await showDialog<bool>(
-        context: context, builder: (context) => const DeleteDialog());
+      context: context,
+      builder: (context) => const DeleteDialog(),
+    );
 
     if (shouldDeleteActivity != null) {
       onDeleteActivity(activityEntity, trackedDayEntity);

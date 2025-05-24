@@ -21,7 +21,7 @@ class FDCConst {
 
   static const _dataTypeParams = [
     _fdcDataTypeFoundationValue,
-    _fdcDataTypeSRLegacyValue
+    _fdcDataTypeSRLegacyValue,
   ];
 
   static const fdcDefaultUnit = 'g/ml';
@@ -171,7 +171,7 @@ class FDCConst {
       _fdcPageSizeTag: _pageSize,
       _fdcDataTypeTag: _getDataTypeParams(),
       _fdcSortOrderTag: _fdcSortOrderAscValue,
-      _fdcApiKeyTag: apiKey
+      _fdcApiKeyTag: apiKey,
     };
 
     return Uri.https(_fdcBaseUrl, _fdcFoodSearchPath, queryParameters);

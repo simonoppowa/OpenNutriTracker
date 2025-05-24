@@ -7,8 +7,11 @@ class METCalc {
   /// https://pubmed.ncbi.nlm.nih.gov/21681120/
   /// by Ainsworth et al.
   /// kcal = MET x weight in kg x duration in hours
-  static double getTotalBurnedKcal(UserEntity userEntity,
-      PhysicalActivityEntity physicalActivityEntity, double durationMin) {
+  static double getTotalBurnedKcal(
+    UserEntity userEntity,
+    PhysicalActivityEntity physicalActivityEntity,
+    double durationMin,
+  ) {
     return physicalActivityEntity.mets * userEntity.weightKG * durationMin / 60;
   }
 }

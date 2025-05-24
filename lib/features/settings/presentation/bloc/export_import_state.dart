@@ -1,7 +1,7 @@
 part of 'export_import_bloc.dart';
+
 abstract class ExportImportState extends Equatable {
   const ExportImportState();
-
 }
 
 class ExportImportInitial extends ExportImportState {
@@ -15,13 +15,11 @@ class ExportImportLoadingState extends ExportImportState {
 }
 
 class ExportImportSuccess extends ExportImportState {
-
   @override
   List<Object?> get props => [];
 }
 
 class ExportImportError extends ExportImportState {
-
   @override
   List<Object?> get props => [];
 }

@@ -10,12 +10,13 @@ class ActivityDetailBottomSheet extends StatefulWidget {
   final TextEditingController quantityTextController;
   final ActivityDetailBloc activityDetailBloc;
 
-  const ActivityDetailBottomSheet(
-      {super.key,
-      required this.onAddButtonPressed,
-      required this.quantityTextController,
-      required this.activityEntity,
-      required this.activityDetailBloc});
+  const ActivityDetailBottomSheet({
+    super.key,
+    required this.onAddButtonPressed,
+    required this.quantityTextController,
+    required this.activityEntity,
+    required this.activityDetailBloc,
+  });
 
   @override
   State<ActivityDetailBottomSheet> createState() =>
@@ -56,7 +57,8 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                             keyboardType: TextInputType.number,
                             inputFormatters: <TextInputFormatter>[
                               FilteringTextInputFormatter.allow(
-                                  RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
+                                RegExp(r'[0-9]+[,.]{0,1}[0-9]*'),
+                              ),
                               TextInputFormatter.withFunction(
                                 (oldValue, newValue) => newValue.copyWith(
                                   text: newValue.text.replaceAll(',', '.'),
@@ -71,33 +73,34 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                         ),
                         const SizedBox(width: 16.0),
                         Expanded(
-                            child: DropdownButtonFormField(
-                          decoration: InputDecoration(
+                          child: DropdownButtonFormField(
+                            decoration: InputDecoration(
                               border: const OutlineInputBorder(),
-                              labelText: S.of(context).unitLabel),
-                          items: const <DropdownMenuItem<String>>[
-                            DropdownMenuItem(child: Text('min'))
-                          ],
-                          onChanged: (Object? value) {},
-                        ))
+                              labelText: S.of(context).unitLabel,
+                            ),
+                            items: const <DropdownMenuItem<String>>[
+                              DropdownMenuItem(child: Text('min')),
+                            ],
+                            onChanged: (Object? value) {},
+                          ),
+                        ),
                       ],
                     ),
                     SizedBox(
                       width: double.infinity, // Make button full width
                       child: ElevatedButton.icon(
-                          onPressed: () {
-                            widget.onAddButtonPressed(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primaryContainer,
-                          ).copyWith(
-                              elevation: ButtonStyleButton.allOrNull(0.0)),
-                          icon: const Icon(Icons.add_outlined),
-                          label: Text(S.of(context).addLabel)),
+                        onPressed: () {
+                          widget.onAddButtonPressed(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primaryContainer,
+                        ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0)),
+                        icon: const Icon(Icons.add_outlined),
+                        label: Text(S.of(context).addLabel),
+                      ),
                     ),
                   ],
                 ),

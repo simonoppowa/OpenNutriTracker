@@ -28,13 +28,13 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
         if (snapshot.hasData) {
           return Column(
             children: [
-              AppBannerVersion(
-                versionNumber: snapshot.requireData,
-              ),
+              AppBannerVersion(versionNumber: snapshot.requireData),
               const SizedBox(height: 32.0),
-              Text(S.of(context).appDescription,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                  textAlign: TextAlign.center),
+              Text(
+                S.of(context).appDescription,
+                style: Theme.of(context).textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 32.0),
               Text(
                 S.of(context).onboardingIntroDescription,
@@ -45,25 +45,25 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
               ListTile(
                 onTap: () => _togglePolicy(),
                 title: Text.rich(
-                    textAlign: TextAlign.center,
-                    TextSpan(
-                        text: S.of(context).readLabel,
-                        style: Theme.of(context).textTheme.bodySmall,
-                        children: [
-                          TextSpan(
-                              text: ' ${S.of(context).privacyPolicyLabel}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                      decoration: TextDecoration.underline),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  _launchUrl();
-                                }),
-                        ])),
+                  textAlign: TextAlign.center,
+                  TextSpan(
+                    text: S.of(context).readLabel,
+                    style: Theme.of(context).textTheme.bodySmall,
+                    children: [
+                      TextSpan(
+                        text: ' ${S.of(context).privacyPolicyLabel}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              decoration: TextDecoration.underline,
+                            ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            _launchUrl();
+                          },
+                      ),
+                    ],
+                  ),
+                ),
                 leading: Checkbox(
                   value: _acceptedPolicy,
                   onChanged: (value) {
@@ -75,14 +75,16 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
               ),
               ListTile(
                 onTap: () => _toggleDataCollection(),
-                title: Text(S.of(context).dataCollectionLabel,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall),
+                title: Text(
+                  S.of(context).dataCollectionLabel,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
                 leading: Checkbox(
                   value: _acceptedDataCollection,
                   onChanged: (value) => _toggleDataCollection(),
                 ),
-              )
+              ),
             ],
           );
         } else {
@@ -107,7 +109,9 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   }
 
   Future<void> _launchUrl() async {
-    if (!await launchUrl(Uri.parse(URLConst.privacyPolicyURLEn),
-        mode: LaunchMode.externalApplication)) {}
+    if (!await launchUrl(
+      Uri.parse(URLConst.privacyPolicyURLEn),
+      mode: LaunchMode.externalApplication,
+    )) {}
   }
 }

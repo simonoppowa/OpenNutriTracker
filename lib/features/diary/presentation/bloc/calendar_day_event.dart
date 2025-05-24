@@ -14,7 +14,6 @@ class LoadCalendarDayEvent extends CalendarDayEvent {
 }
 
 class RefreshCalendarDayEvent extends CalendarDayEvent {
-
   const RefreshCalendarDayEvent();
 
   @override

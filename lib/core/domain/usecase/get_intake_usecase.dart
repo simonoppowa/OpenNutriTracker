@@ -8,7 +8,9 @@ class GetIntakeUsecase {
   GetIntakeUsecase(this._intakeRepository);
 
   Future<List<IntakeEntity>> _getIntakeByDay(
-      IntakeTypeEntity type, DateTime day) async {
+    IntakeTypeEntity type,
+    DateTime day,
+  ) async {
     return await _intakeRepository.getIntakeByDateAndType(type, day);
   }
 

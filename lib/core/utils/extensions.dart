@@ -68,6 +68,8 @@ extension ColorExtension on Color {
     final green = (g * 255).toInt().toRadixString(16).padLeft(2, '0');
     final blue = (b * 255).toInt().toRadixString(16).padLeft(2, '0');
 
-    return '#' '$red$green$blue'.toUpperCase();
+    return '#'
+            '$red$green$blue'
+        .toUpperCase();
   }
 }

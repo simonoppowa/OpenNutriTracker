@@ -9,13 +9,14 @@ abstract class MealDetailState extends Equatable {
 
   final String selectedUnit;
 
-  const MealDetailState(
-      {required this.totalQuantityConverted,
-      this.totalKcal = 0,
-      this.totalCarbs = 0,
-      this.totalFat = 0,
-      this.totalProtein = 0,
-      required this.selectedUnit});
+  const MealDetailState({
+    required this.totalQuantityConverted,
+    this.totalKcal = 0,
+    this.totalCarbs = 0,
+    this.totalFat = 0,
+    this.totalProtein = 0,
+    required this.selectedUnit,
+  });
 
   @override
   List<Object> get props => [
@@ -24,7 +25,7 @@ abstract class MealDetailState extends Equatable {
         totalCarbs,
         totalFat,
         totalProtein,
-        selectedUnit
+        selectedUnit,
       ];
 
   MealDetailInitial copyWith({
@@ -48,11 +49,12 @@ abstract class MealDetailState extends Equatable {
 }
 
 class MealDetailInitial extends MealDetailState {
-  const MealDetailInitial(
-      {required super.totalQuantityConverted,
-      super.totalKcal,
-      super.totalCarbs,
-      super.totalFat,
-      super.totalProtein,
-      required super.selectedUnit});
+  const MealDetailInitial({
+    required super.totalQuantityConverted,
+    super.totalKcal,
+    super.totalCarbs,
+    super.totalFat,
+    super.totalProtein,
+    required super.selectedUnit,
+  });
 }

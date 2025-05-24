@@ -22,25 +22,28 @@ class MealNutrimentsDBO extends HiveObject {
   @HiveField(6)
   final double? fiber100;
 
-  MealNutrimentsDBO(
-      {required this.energyKcal100,
-      required this.carbohydrates100,
-      required this.fat100,
-      required this.proteins100,
-      required this.sugars100,
-      required this.saturatedFat100,
-      required this.fiber100});
+  MealNutrimentsDBO({
+    required this.energyKcal100,
+    required this.carbohydrates100,
+    required this.fat100,
+    required this.proteins100,
+    required this.sugars100,
+    required this.saturatedFat100,
+    required this.fiber100,
+  });
 
   factory MealNutrimentsDBO.fromProductNutrimentsEntity(
-      MealNutrimentsEntity nutriments) {
+    MealNutrimentsEntity nutriments,
+  ) {
     return MealNutrimentsDBO(
-        energyKcal100: nutriments.energyKcal100,
-        carbohydrates100: nutriments.carbohydrates100,
-        fat100: nutriments.fat100,
-        proteins100: nutriments.proteins100,
-        sugars100: nutriments.sugars100,
-        saturatedFat100: nutriments.saturatedFat100,
-        fiber100: nutriments.fiber100);
+      energyKcal100: nutriments.energyKcal100,
+      carbohydrates100: nutriments.carbohydrates100,
+      fat100: nutriments.fat100,
+      proteins100: nutriments.proteins100,
+      sugars100: nutriments.sugars100,
+      saturatedFat100: nutriments.saturatedFat100,
+      fiber100: nutriments.fiber100,
+    );
   }
 
   factory MealNutrimentsDBO.fromJson(Map<String, dynamic> json) =>

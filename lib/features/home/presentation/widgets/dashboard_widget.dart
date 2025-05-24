@@ -16,18 +16,19 @@ class DashboardWidget extends StatefulWidget {
   final double totalFatsGoal;
   final double totalProteinsGoal;
 
-  const DashboardWidget(
-      {super.key,
-      required this.totalKcalSupplied,
-      required this.totalKcalBurned,
-      required this.totalKcalDaily,
-      required this.totalKcalLeft,
-      required this.totalCarbsIntake,
-      required this.totalFatsIntake,
-      required this.totalProteinsIntake,
-      required this.totalCarbsGoal,
-      required this.totalFatsGoal,
-      required this.totalProteinsGoal});
+  const DashboardWidget({
+    super.key,
+    required this.totalKcalSupplied,
+    required this.totalKcalBurned,
+    required this.totalKcalDaily,
+    required this.totalKcalLeft,
+    required this.totalCarbsIntake,
+    required this.totalFatsIntake,
+    required this.totalProteinsIntake,
+    required this.totalCarbsGoal,
+    required this.totalFatsGoal,
+    required this.totalProteinsGoal,
+  });
 
   @override
   State<DashboardWidget> createState() => _DashboardWidgetState();
@@ -68,20 +69,18 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                         Icons.keyboard_arrow_up_outlined,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      Text('${widget.totalKcalSupplied.toInt()}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface)),
-                      Text(S.of(context).suppliedLabel,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface)),
+                      Text(
+                        '${widget.totalKcalSupplied.toInt()}',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                      ),
+                      Text(
+                        S.of(context).suppliedLabel,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                      ),
                     ],
                   ),
                   CircularPercentIndicator(
@@ -91,63 +90,64 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                     percent: gaugeValue,
                     arcType: ArcType.FULL,
                     progressColor: Theme.of(context).colorScheme.primary,
-                    arcBackgroundColor:
-                        Theme.of(context).colorScheme.primary.withAlpha(50),
+                    arcBackgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withAlpha(50),
                     center: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         AnimatedFlipCounter(
-                            duration: const Duration(milliseconds: 1000),
-                            value: kcalLeftLabel.toInt(),
-                            textStyle: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                    letterSpacing: -1)),
+                          duration: const Duration(milliseconds: 1000),
+                          value: kcalLeftLabel.toInt(),
+                          textStyle: Theme.of(
+                            context,
+                          ).textTheme.headlineMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                letterSpacing: -1,
+                              ),
+                        ),
                         Text(
                           S.of(context).kcalLeftLabel,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface),
-                        )
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                        ),
                       ],
                     ),
                     circularStrokeCap: CircularStrokeCap.round,
                   ),
                   Column(
                     children: [
-                      Icon(Icons.keyboard_arrow_down_outlined,
-                          color: Theme.of(context).colorScheme.onSurface),
-                      Text('${widget.totalKcalBurned.toInt()}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface)),
-                      Text(S.of(context).burnedLabel,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface)),
+                      Icon(
+                        Icons.keyboard_arrow_down_outlined,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      Text(
+                        '${widget.totalKcalBurned.toInt()}',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                      ),
+                      Text(
+                        S.of(context).burnedLabel,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                      ),
                     ],
                   ),
                 ],
               ),
               MacroNutrientsView(
-                  totalCarbsIntake: widget.totalCarbsIntake,
-                  totalFatsIntake: widget.totalFatsIntake,
-                  totalProteinsIntake: widget.totalProteinsIntake,
-                  totalCarbsGoal: widget.totalCarbsGoal,
-                  totalFatsGoal: widget.totalFatsGoal,
-                  totalProteinsGoal: widget.totalProteinsGoal),
+                totalCarbsIntake: widget.totalCarbsIntake,
+                totalFatsIntake: widget.totalFatsIntake,
+                totalProteinsIntake: widget.totalProteinsIntake,
+                totalCarbsGoal: widget.totalCarbsGoal,
+                totalFatsGoal: widget.totalFatsGoal,
+                totalProteinsGoal: widget.totalProteinsGoal,
+              ),
             ],
           ),
         ),

@@ -6,8 +6,10 @@ class UserBMIEntity extends Equatable {
   final double bmiValue;
   final UserNutritionalStatus nutritionalStatus;
 
-  const UserBMIEntity(
-      {required this.bmiValue, required this.nutritionalStatus});
+  const UserBMIEntity({
+    required this.bmiValue,
+    required this.nutritionalStatus,
+  });
 
   @override
   List<Object?> get props => [bmiValue, nutritionalStatus];

@@ -26,18 +26,26 @@ class PhysicalActivityDBO {
   @HiveField(6)
   final PhysicalActivityTypeDBO type;
 
-  PhysicalActivityDBO(this.code, this.specificActivity, this.description,
-      this.mets, this.tags, this.type);
+  PhysicalActivityDBO(
+    this.code,
+    this.specificActivity,
+    this.description,
+    this.mets,
+    this.tags,
+    this.type,
+  );
 
   factory PhysicalActivityDBO.fromPhysicalActivityEntity(
-      PhysicalActivityEntity entity) {
+    PhysicalActivityEntity entity,
+  ) {
     return PhysicalActivityDBO(
-        entity.code,
-        entity.specificActivity,
-        entity.description,
-        entity.mets,
-        entity.tags,
-        PhysicalActivityTypeDBO.fromPhysicalActivityTypeEntity(entity.type));
+      entity.code,
+      entity.specificActivity,
+      entity.description,
+      entity.mets,
+      entity.tags,
+      PhysicalActivityTypeDBO.fromPhysicalActivityTypeEntity(entity.type),
+    );
   }
 
   factory PhysicalActivityDBO.fromJson(Map<String, dynamic> json) =>
@@ -64,7 +72,8 @@ enum PhysicalActivityTypeDBO {
   winterActivities;
 
   factory PhysicalActivityTypeDBO.fromPhysicalActivityTypeEntity(
-      PhysicalActivityTypeEntity entityType) {
+    PhysicalActivityTypeEntity entityType,
+  ) {
     PhysicalActivityTypeDBO typeDBO;
     switch (entityType) {
       case PhysicalActivityTypeEntity.bicycling:

@@ -93,20 +93,22 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       content: Wrap(
         children: [
           DropdownButtonFormField(
-              isExpanded: true,
-              decoration: InputDecoration(
-                enabled: false,
-                filled: false,
-                labelText: S.of(context).calculationsTDEELabel,
-              ),
-              items: [
-                DropdownMenuItem(
-                    child: Text(
+            isExpanded: true,
+            decoration: InputDecoration(
+              enabled: false,
+              filled: false,
+              labelText: S.of(context).calculationsTDEELabel,
+            ),
+            items: [
+              DropdownMenuItem(
+                child: Text(
                   '${S.of(context).calculationsTDEEIOM2006Label} ${S.of(context).calculationsRecommendedLabel}',
                   overflow: TextOverflow.ellipsis,
-                )),
-              ],
-              onChanged: null),
+                ),
+              ),
+            ],
+            onChanged: null,
+          ),
           const SizedBox(height: 64),
           Container(
             alignment: Alignment.centerLeft,
@@ -236,15 +238,17 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       ),
       actions: [
         TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text(S.of(context).dialogCancelLabel)),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text(S.of(context).dialogCancelLabel),
+        ),
         TextButton(
-            onPressed: () {
-              _saveCalculationSettings();
-            },
-            child: Text(S.of(context).dialogOKLabel))
+          onPressed: () {
+            _saveCalculationSettings();
+          },
+          child: Text(S.of(context).dialogOKLabel),
+        ),
       ],
     );
   }
@@ -260,10 +264,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label),
-            Text('${value.round()}%'),
-          ],
+          children: [Text(label), Text('${value.round()}%')],
         ),
         SizedBox(
           width: 280,
@@ -329,17 +330,22 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
 
       // Verify final values
       assert(
-          _carbsPctSelection + _proteinPctSelection + _fatPctSelection == 100,
-          'Macros must total 100%');
+        _carbsPctSelection + _proteinPctSelection + _fatPctSelection == 100,
+        'Macros must total 100%',
+      );
     });
   }
 
   void _saveCalculationSettings() {
     // Save the calorie offset as full number
-    widget.settingsBloc
-        .setKcalAdjustment(_kcalAdjustmentSelection.toInt().toDouble());
+    widget.settingsBloc.setKcalAdjustment(
+      _kcalAdjustmentSelection.toInt().toDouble(),
+    );
     widget.settingsBloc.setMacroGoals(
-        _carbsPctSelection, _proteinPctSelection, _fatPctSelection);
+      _carbsPctSelection,
+      _proteinPctSelection,
+      _fatPctSelection,
+    );
 
     widget.settingsBloc.add(LoadSettingsEvent());
     // Update other blocs that need the new calorie value

@@ -10,23 +10,29 @@ class GetMacroGoalUsecase {
     final config = await _configRepository.getConfig();
     final userCarbGoal = config.userCarbGoalPct;
 
-    return MacroCalc.getTotalCarbsGoal(totalCalorieGoal,
-        userCarbsGoal: userCarbGoal);
+    return MacroCalc.getTotalCarbsGoal(
+      totalCalorieGoal,
+      userCarbsGoal: userCarbGoal,
+    );
   }
 
   Future<double> getFatsGoal(double totalCalorieGoal) async {
     final config = await _configRepository.getConfig();
     final userFatGoal = config.userFatGoalPct;
 
-    return MacroCalc.getTotalFatsGoal(totalCalorieGoal,
-        userFatsGoal: userFatGoal);
+    return MacroCalc.getTotalFatsGoal(
+      totalCalorieGoal,
+      userFatsGoal: userFatGoal,
+    );
   }
 
   Future<double> getProteinsGoal(double totalCalorieGoal) async {
     final config = await _configRepository.getConfig();
     final userProteinGoal = config.userProteinGoalPct;
 
-    return MacroCalc.getTotalProteinsGoal(totalCalorieGoal,
-        userProteinsGoal: userProteinGoal);
+    return MacroCalc.getTotalProteinsGoal(
+      totalCalorieGoal,
+      userProteinsGoal: userProteinGoal,
+    );
   }
 }

@@ -20,8 +20,10 @@ class SearchActivitiesEvent extends ActivitiesEvent {
   final BuildContext context;
   final String searchString;
 
-  const SearchActivitiesEvent(
-      {required this.context, required this.searchString});
+  const SearchActivitiesEvent({
+    required this.context,
+    required this.searchString,
+  });
 
   @override
   List<Object?> get props => [searchString];

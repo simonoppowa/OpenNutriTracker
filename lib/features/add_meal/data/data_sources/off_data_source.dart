@@ -24,8 +24,9 @@ class OFFDataSource {
           await httpClient.get(searchUrlString).timeout(_timeoutDuration);
       log.fine('Fetching OFF results from: $searchUrlString');
       if (response.statusCode == OFFConst.offHttpSuccessCode) {
-        final wordResponse =
-            OFFWordResponseDTO.fromJson(jsonDecode(response.body));
+        final wordResponse = OFFWordResponseDTO.fromJson(
+          jsonDecode(response.body),
+        );
         log.fine('Successful response from OFF');
         return wordResponse;
       } else {
@@ -49,8 +50,9 @@ class OFFDataSource {
           await httpClient.get(searchUrl).timeout(_timeoutDuration);
       log.fine('Fetching OFF result from: $searchUrl');
       if (response.statusCode == OFFConst.offHttpSuccessCode) {
-        final productResponse =
-            OFFProductResponseDTO.fromJson(jsonDecode(response.body));
+        final productResponse = OFFProductResponseDTO.fromJson(
+          jsonDecode(response.body),
+        );
         log.fine('Successful response from OFF');
         return productResponse;
       } else if (response.statusCode == OFFConst.offProductNotFoundCode) {

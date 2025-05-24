@@ -11,15 +11,17 @@ class DeleteDialog extends StatelessWidget {
       content: Text(S.of(context).deleteTimeDialogContent),
       actions: [
         TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(true);
-            },
-            child: Text(S.of(context).dialogOKLabel)),
+          onPressed: () {
+            Navigator.of(context).pop(true);
+          },
+          child: Text(S.of(context).dialogOKLabel),
+        ),
         TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text(S.of(context).dialogCancelLabel))
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text(S.of(context).dialogCancelLabel),
+        ),
       ],
     );
   }

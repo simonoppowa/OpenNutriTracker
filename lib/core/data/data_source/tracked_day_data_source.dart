@@ -18,7 +18,7 @@ class TrackedDayDataSource {
     log.fine('Updating tracked days in db');
     _trackedDayBox.putAll({
       for (var trackedDayDBO in trackedDayDBOList)
-        trackedDayDBO.day.toParsedDay(): trackedDayDBO
+        trackedDayDBO.day.toParsedDay(): trackedDayDBO,
     });
   }
 
@@ -31,10 +31,14 @@ class TrackedDayDataSource {
   }
 
   Future<List<TrackedDayDBO>> getTrackedDaysInRange(
-      DateTime start, DateTime end) async {
+    DateTime start,
+    DateTime end,
+  ) async {
     List<TrackedDayDBO> trackedDays = _trackedDayBox.values
-        .where((trackedDay) =>
-            (trackedDay.day.isAfter(start) && trackedDay.day.isBefore(end)))
+        .where(
+          (trackedDay) =>
+              (trackedDay.day.isAfter(start) && trackedDay.day.isBefore(end)),
+        )
         .toList();
     return trackedDays;
   }
@@ -83,7 +87,9 @@ class TrackedDayDataSource {
   }
 
   Future<void> decreaseDayCaloriesTracked(
-      DateTime day, double addCalories) async {
+    DateTime day,
+    double addCalories,
+  ) async {
     log.fine('Decreasing tracked day calories');
     final updateDay = await getTrackedDay(day);
 
@@ -93,8 +99,12 @@ class TrackedDayDataSource {
     }
   }
 
-  Future<void> updateDayMacroGoals(DateTime day,
-      {double? carbsGoal, double? fatGoal, double? proteinGoal}) async {
+  Future<void> updateDayMacroGoals(
+    DateTime day, {
+    double? carbsGoal,
+    double? fatGoal,
+    double? proteinGoal,
+  }) async {
     log.fine('Updating tracked day macro goals');
 
     final updateDay = await getTrackedDay(day);
@@ -113,8 +123,12 @@ class TrackedDayDataSource {
     }
   }
 
-  Future<void> increaseDayMacroGoal(DateTime day,
-      {double? carbsAmount, double? fatAmount, double? proteinAmount}) async {
+  Future<void> increaseDayMacroGoal(
+    DateTime day, {
+    double? carbsAmount,
+    double? fatAmount,
+    double? proteinAmount,
+  }) async {
     log.fine('Increasing tracked day macro goals');
     final updateDay = await getTrackedDay(day);
 
@@ -132,8 +146,12 @@ class TrackedDayDataSource {
     }
   }
 
-  Future<void> reduceDayMacroGoal(DateTime day,
-      {double? carbsAmount, double? fatAmount, double? proteinAmount}) async {
+  Future<void> reduceDayMacroGoal(
+    DateTime day, {
+    double? carbsAmount,
+    double? fatAmount,
+    double? proteinAmount,
+  }) async {
     log.fine('Reducing tracked day macro goals');
     final updateDay = await getTrackedDay(day);
 
@@ -151,8 +169,12 @@ class TrackedDayDataSource {
     }
   }
 
-  Future<void> addDayMacroTracked(DateTime day,
-      {double? carbsAmount, double? fatAmount, double? proteinAmount}) async {
+  Future<void> addDayMacroTracked(
+    DateTime day, {
+    double? carbsAmount,
+    double? fatAmount,
+    double? proteinAmount,
+  }) async {
     log.fine('Adding new tracked day macro');
     final updateDay = await getTrackedDay(day);
 
@@ -171,8 +193,12 @@ class TrackedDayDataSource {
     }
   }
 
-  Future<void> removeDayMacroTracked(DateTime day,
-      {double? carbsAmount, double? fatAmount, double? proteinAmount}) async {
+  Future<void> removeDayMacroTracked(
+    DateTime day, {
+    double? carbsAmount,
+    double? fatAmount,
+    double? proteinAmount,
+  }) async {
     log.fine('Removing tracked day macro');
     final updateDay = await getTrackedDay(day);
 

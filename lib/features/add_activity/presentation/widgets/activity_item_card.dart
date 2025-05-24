@@ -8,8 +8,11 @@ class ActivityItemCard extends StatelessWidget {
   final PhysicalActivityEntity physicalActivityEntity;
   final DateTime day;
 
-  const ActivityItemCard(
-      {super.key, required this.physicalActivityEntity, required this.day});
+  const ActivityItemCard({
+    super.key,
+    required this.physicalActivityEntity,
+    required this.day,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,26 +31,31 @@ class ActivityItemCard extends StatelessWidget {
                 radius: 40,
                 backgroundColor:
                     Theme.of(context).colorScheme.secondaryContainer,
-                child: Icon(physicalActivityEntity.displayIcon,
-                    color: Theme.of(context).colorScheme.onSecondaryContainer),
+                child: Icon(
+                  physicalActivityEntity.displayIcon,
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
               ),
               title: AutoSizeText(
                 physicalActivityEntity.getName(context),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface),
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               subtitle: AutoSizeText(
                 physicalActivityEntity.getDescription(context),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface),
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
               trailing: IconButton(
                 style: IconButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.onSurface),
+                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                ),
                 icon: const Icon(Icons.add_outlined),
                 onPressed: () => _onItemPressed(context),
               ),
@@ -60,7 +68,9 @@ class ActivityItemCard extends StatelessWidget {
   }
 
   void _onItemPressed(BuildContext context) {
-    Navigator.of(context).pushNamed(NavigationOptions.activityDetailRoute,
-        arguments: ActivityDetailScreenArguments(physicalActivityEntity, day));
+    Navigator.of(context).pushNamed(
+      NavigationOptions.activityDetailRoute,
+      arguments: ActivityDetailScreenArguments(physicalActivityEntity, day),
+    );
   }
 }

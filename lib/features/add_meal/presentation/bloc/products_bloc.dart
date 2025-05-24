@@ -24,12 +24,17 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         _searchString = event.searchString;
         emit(ProductsLoadingState());
         try {
-          final result = await _searchProductUseCase
-              .searchOFFProductsByString(_searchString);
+          final result = await _searchProductUseCase.searchOFFProductsByString(
+            _searchString,
+          );
           final config = await _getConfigUsecase.getConfig();
 
-          emit(ProductsLoadedState(
-              products: result, usesImperialUnits: config.usesImperialUnits));
+          emit(
+            ProductsLoadedState(
+              products: result,
+              usesImperialUnits: config.usesImperialUnits,
+            ),
+          );
         } catch (error) {
           log.severe(error);
           emit(ProductsFailedState());
@@ -39,8 +44,9 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     on<RefreshProductsEvent>((event, emit) async {
       emit(ProductsLoadingState());
       try {
-        final result = await _searchProductUseCase
-            .searchOFFProductsByString(_searchString);
+        final result = await _searchProductUseCase.searchOFFProductsByString(
+          _searchString,
+        );
         emit(ProductsLoadedState(products: result));
       } catch (error) {
         log.severe(error);

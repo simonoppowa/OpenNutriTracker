@@ -12,48 +12,64 @@ class ExportDataUsecase {
   final IntakeRepository _intakeRepository;
   final TrackedDayRepository _trackedDayRepository;
 
-  ExportDataUsecase(this._userActivityRepository, this._intakeRepository,
-      this._trackedDayRepository);
+  ExportDataUsecase(
+    this._userActivityRepository,
+    this._intakeRepository,
+    this._trackedDayRepository,
+  );
 
   /// Exports user activity, intake, and tracked day data to a zip of json
   /// files at a user specified location.
   Future<bool> exportData(
-      String exportZipFileName,
-      String userActivityJsonFileName,
-      String userIntakeJsonFileName,
-      String trackedDayJsonFileName) async {
+    String exportZipFileName,
+    String userActivityJsonFileName,
+    String userIntakeJsonFileName,
+    String trackedDayJsonFileName,
+  ) async {
     // Export user activity data to Json File Bytes
     final fullUserActivity =
         await _userActivityRepository.getAllUserActivityDBO();
     final fullUserActivityJson = jsonEncode(
-        fullUserActivity.map((activity) => activity.toJson()).toList());
+      fullUserActivity.map((activity) => activity.toJson()).toList(),
+    );
     final userActivityJsonBytes = utf8.encode(fullUserActivityJson);
 
     // Export intake data to Json File Bytes
     final fullIntake = await _intakeRepository.getAllIntakesDBO();
-    final fullIntakeJson =
-        jsonEncode(fullIntake.map((intake) => intake.toJson()).toList());
+    final fullIntakeJson = jsonEncode(
+      fullIntake.map((intake) => intake.toJson()).toList(),
+    );
     final intakeJsonBytes = utf8.encode(fullIntakeJson);
 
     // Export tracked day data to Json File Bytes
     final fullTrackedDay = await _trackedDayRepository.getAllTrackedDaysDBO();
     final fullTrackedDayJson = jsonEncode(
-        fullTrackedDay.map((trackedDay) => trackedDay.toJson()).toList());
+      fullTrackedDay.map((trackedDay) => trackedDay.toJson()).toList(),
+    );
     final trackedDayJsonBytes = utf8.encode(fullTrackedDayJson);
 
     // Create a zip file with the exported data
     final archive = Archive();
     archive.addFile(
-      ArchiveFile(userActivityJsonFileName, userActivityJsonBytes.length,
-          userActivityJsonBytes),
+      ArchiveFile(
+        userActivityJsonFileName,
+        userActivityJsonBytes.length,
+        userActivityJsonBytes,
+      ),
     );
     archive.addFile(
       ArchiveFile(
-          userIntakeJsonFileName, intakeJsonBytes.length, intakeJsonBytes),
+        userIntakeJsonFileName,
+        intakeJsonBytes.length,
+        intakeJsonBytes,
+      ),
     );
     archive.addFile(
-      ArchiveFile(trackedDayJsonFileName, trackedDayJsonBytes.length,
-          trackedDayJsonBytes),
+      ArchiveFile(
+        trackedDayJsonFileName,
+        trackedDayJsonBytes.length,
+        trackedDayJsonBytes,
+      ),
     );
 
     // Save the zip file to the user specified location

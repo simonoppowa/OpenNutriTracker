@@ -15,15 +15,21 @@ class ImportDataUsecase {
   final IntakeRepository _intakeRepository;
   final TrackedDayRepository _trackedDayRepository;
 
-  ImportDataUsecase(this._userActivityRepository, this._intakeRepository,
-      this._trackedDayRepository);
+  ImportDataUsecase(
+    this._userActivityRepository,
+    this._intakeRepository,
+    this._trackedDayRepository,
+  );
 
   /// Imports user activity, intake, and tracked day data from a zip file
   /// containing JSON files.
   ///
   /// Returns true if import was successful, false otherwise.
-  Future<bool> importData(String userActivityJsonFileName,
-      String userIntakeJsonFileName, String trackedDayJsonFileName) async {
+  Future<bool> importData(
+    String userActivityJsonFileName,
+    String userIntakeJsonFileName,
+    String trackedDayJsonFileName,
+  ) async {
     // Allow user to pick a zip file
     final result = await FilePicker.platform.pickFiles(
       type: FileType.any,
@@ -42,8 +48,9 @@ class ImportDataUsecase {
     // Extract and process user activity data
     final userActivityFile = archive.findFile(userActivityJsonFileName);
     if (userActivityFile != null) {
-      final userActivityJsonString =
-          utf8.decode(userActivityFile.content as List<int>);
+      final userActivityJsonString = utf8.decode(
+        userActivityFile.content as List<int>,
+      );
       final userActivityList = (jsonDecode(userActivityJsonString) as List)
           .cast<Map<String, dynamic>>();
 
@@ -74,8 +81,9 @@ class ImportDataUsecase {
     // Extract and process tracked day data
     final trackedDayFile = archive.findFile(trackedDayJsonFileName);
     if (trackedDayFile != null) {
-      final trackedDayJsonString =
-          utf8.decode(trackedDayFile.content as List<int>);
+      final trackedDayJsonString = utf8.decode(
+        trackedDayFile.content as List<int>,
+      );
       final trackedDayList = (jsonDecode(trackedDayJsonString) as List)
           .cast<Map<String, dynamic>>();
 

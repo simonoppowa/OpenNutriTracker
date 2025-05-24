@@ -13,12 +13,13 @@ class OFFWordResponseDTO {
 
   final List<OFFProductDTO> products;
 
-  OFFWordResponseDTO(
-      {required this.count,
-      required this.page,
-      required this.page_count,
-      required this.page_size,
-      required this.products});
+  OFFWordResponseDTO({
+    required this.count,
+    required this.page,
+    required this.page_count,
+    required this.page_size,
+    required this.products,
+  });
 
   factory OFFWordResponseDTO.fromJson(Map<String, dynamic> json) =>
       _$OFFWordResponseDTOFromJson(json);

@@ -9,8 +9,11 @@ class SetHeightDialog extends StatelessWidget {
   final double userHeight;
   final bool usesImperialUnits;
 
-  const SetHeightDialog(
-      {super.key, required this.userHeight, required this.usesImperialUnits});
+  const SetHeightDialog({
+    super.key,
+    required this.userHeight,
+    required this.usesImperialUnits,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,37 +25,40 @@ class SetHeightDialog extends StatelessWidget {
           Column(
             children: [
               HorizontalPicker(
-                  height: 100,
-                  backgroundColor: Colors.transparent,
-                  minValue: usesImperialUnits
-                      ? selectedHeight - _heightRangeFt
-                      : selectedHeight - _heightRangeCM,
-                  maxValue: usesImperialUnits
-                      ? selectedHeight + _heightRangeFt
-                      : selectedHeight + _heightRangeCM,
-                  divisions: 400,
-                  suffix: usesImperialUnits
-                      ? S.of(context).ftLabel
-                      : S.of(context).cmLabel,
-                  onChanged: (value) {
-                    selectedHeight = value;
-                  })
+                height: 100,
+                backgroundColor: Colors.transparent,
+                minValue: usesImperialUnits
+                    ? selectedHeight - _heightRangeFt
+                    : selectedHeight - _heightRangeCM,
+                maxValue: usesImperialUnits
+                    ? selectedHeight + _heightRangeFt
+                    : selectedHeight + _heightRangeCM,
+                divisions: 400,
+                suffix: usesImperialUnits
+                    ? S.of(context).ftLabel
+                    : S.of(context).cmLabel,
+                onChanged: (value) {
+                  selectedHeight = value;
+                },
+              ),
             ],
-          )
+          ),
         ],
       ),
       actions: <Widget>[
         TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text(S.of(context).dialogCancelLabel)),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text(S.of(context).dialogCancelLabel),
+        ),
         TextButton(
-            onPressed: () {
-              // TODO validate selected height
-              Navigator.pop(context, selectedHeight);
-            },
-            child: Text(S.of(context).dialogOKLabel))
+          onPressed: () {
+            // TODO validate selected height
+            Navigator.pop(context, selectedHeight);
+          },
+          child: Text(S.of(context).dialogOKLabel),
+        ),
       ],
     );
   }

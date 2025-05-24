@@ -16,14 +16,19 @@ class SpFdcDataSource {
       log.fine('Fetching Supabase FDC results');
       final supaBaseClient = locator<SupabaseClient>();
       final queryDescriptionColumn = SPConst.getFdcFoodDescriptionColumnName(
-          SupportedLanguage.fromCode(Platform.localeName));
+        SupportedLanguage.fromCode(Platform.localeName),
+      );
 
       final response = await supaBaseClient
           .from(SPConst.fdcFoodTableName)
           .select(
-              '''fdc_id, $queryDescriptionColumn, fdc_portions ( measure_unit_id, amount, gram_weight ), fdc_nutrients ( nutrient_id, amount )''')
-          .textSearch(queryDescriptionColumn, searchString,
-              type: TextSearchType.websearch)
+            '''fdc_id, $queryDescriptionColumn, fdc_portions ( measure_unit_id, amount, gram_weight ), fdc_nutrients ( nutrient_id, amount )''',
+          )
+          .textSearch(
+            queryDescriptionColumn,
+            searchString,
+            type: TextSearchType.websearch,
+          )
           .limit(SPConst.maxNumberOfItems);
 
       final fdcFoodItems =

@@ -9,7 +9,8 @@ class MealPlaceholder extends StatelessWidget {
       height: 300,
       width: double.infinity,
       decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.secondaryContainer),
+        color: Theme.of(context).colorScheme.secondaryContainer,
+      ),
       child: Icon(
         Icons.restaurant_outlined,
         size: 48,

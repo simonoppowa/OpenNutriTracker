@@ -38,17 +38,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   DateTime currentDay = DateTime.now();
 
   HomeBloc(
-      this._getConfigUsecase,
-      this._addConfigUsecase,
-      this._getIntakeUsecase,
-      this._deleteIntakeUsecase,
-      this._updateIntakeUsecase,
-      this._getUserActivityUsecase,
-      this._deleteUserActivityUsecase,
-      this._addTrackedDayUseCase,
-      this._getKcalGoalUsecase,
-      this._getMacroGoalUsecase)
-      : super(HomeInitial()) {
+    this._getConfigUsecase,
+    this._addConfigUsecase,
+    this._getIntakeUsecase,
+    this._deleteIntakeUsecase,
+    this._updateIntakeUsecase,
+    this._getUserActivityUsecase,
+    this._deleteUserActivityUsecase,
+    this._addTrackedDayUseCase,
+    this._getKcalGoalUsecase,
+    this._getMacroGoalUsecase,
+  ) : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
 
@@ -105,17 +105,23 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           userActivities.map((activity) => activity.burnedKcal).toList().sum;
 
       final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
-      final totalCarbsGoal =
-          await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
-      final totalFatsGoal =
-          await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
-      final totalProteinsGoal =
-          await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
+      final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
+        totalKcalGoal,
+      );
+      final totalFatsGoal = await _getMacroGoalUsecase.getFatsGoal(
+        totalKcalGoal,
+      );
+      final totalProteinsGoal = await _getMacroGoalUsecase.getProteinsGoal(
+        totalKcalGoal,
+      );
 
-      final totalKcalLeft =
-          CalorieGoalCalc.getDailyKcalLeft(totalKcalGoal, totalKcalIntake);
+      final totalKcalLeft = CalorieGoalCalc.getDailyKcalLeft(
+        totalKcalGoal,
+        totalKcalIntake,
+      );
 
-      emit(HomeLoadedState(
+      emit(
+        HomeLoadedState(
           showDisclaimerDialog: showDisclaimerDialog,
           totalKcalDaily: totalKcalGoal,
           totalKcalLeft: totalKcalLeft,
@@ -132,7 +138,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           dinnerIntakeList: dinnerIntakeList,
           snackIntakeList: snackIntakeList,
           userActivityList: userActivities,
-          usesImperialUnits: usesImperialUnits));
+          usesImperialUnits: usesImperialUnits,
+        ),
+      );
     });
   }
 
@@ -153,36 +161,48 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<void> updateIntakeItem(
-      String intakeId, Map<String, dynamic> fields) async {
+    String intakeId,
+    Map<String, dynamic> fields,
+  ) async {
     final dateTime = DateTime.now();
     // Get old intake values
     final oldIntakeObject = await _getIntakeUsecase.getIntakeById(intakeId);
     assert(oldIntakeObject != null);
-    final newIntakeObject =
-        await _updateIntakeUsecase.updateIntake(intakeId, fields);
+    final newIntakeObject = await _updateIntakeUsecase.updateIntake(
+      intakeId,
+      fields,
+    );
     assert(newIntakeObject != null);
     if (oldIntakeObject!.amount > newIntakeObject!.amount) {
       // Amounts shrunk
       await _addTrackedDayUseCase.removeDayCaloriesTracked(
-          dateTime, oldIntakeObject.totalKcal - newIntakeObject.totalKcal);
-      await _addTrackedDayUseCase.removeDayMacrosTracked(dateTime,
-          carbsTracked:
-              oldIntakeObject.totalCarbsGram - newIntakeObject.totalCarbsGram,
-          fatTracked:
-              oldIntakeObject.totalFatsGram - newIntakeObject.totalFatsGram,
-          proteinTracked: oldIntakeObject.totalProteinsGram -
-              newIntakeObject.totalProteinsGram);
+        dateTime,
+        oldIntakeObject.totalKcal - newIntakeObject.totalKcal,
+      );
+      await _addTrackedDayUseCase.removeDayMacrosTracked(
+        dateTime,
+        carbsTracked:
+            oldIntakeObject.totalCarbsGram - newIntakeObject.totalCarbsGram,
+        fatTracked:
+            oldIntakeObject.totalFatsGram - newIntakeObject.totalFatsGram,
+        proteinTracked: oldIntakeObject.totalProteinsGram -
+            newIntakeObject.totalProteinsGram,
+      );
     } else if (newIntakeObject.amount > oldIntakeObject.amount) {
       // Amounts gained
       await _addTrackedDayUseCase.addDayCaloriesTracked(
-          dateTime, newIntakeObject.totalKcal - oldIntakeObject.totalKcal);
-      await _addTrackedDayUseCase.addDayMacrosTracked(dateTime,
-          carbsTracked:
-              newIntakeObject.totalCarbsGram - oldIntakeObject.totalCarbsGram,
-          fatTracked:
-              newIntakeObject.totalFatsGram - oldIntakeObject.totalFatsGram,
-          proteinTracked: newIntakeObject.totalProteinsGram -
-              oldIntakeObject.totalProteinsGram);
+        dateTime,
+        newIntakeObject.totalKcal - oldIntakeObject.totalKcal,
+      );
+      await _addTrackedDayUseCase.addDayMacrosTracked(
+        dateTime,
+        carbsTracked:
+            newIntakeObject.totalCarbsGram - oldIntakeObject.totalCarbsGram,
+        fatTracked:
+            newIntakeObject.totalFatsGram - oldIntakeObject.totalFatsGram,
+        proteinTracked: newIntakeObject.totalProteinsGram -
+            oldIntakeObject.totalProteinsGram,
+      );
     }
     _updateDiaryPage(dateTime);
   }
@@ -191,11 +211,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final dateTime = DateTime.now();
     await _deleteIntakeUsecase.deleteIntake(intakeEntity);
     await _addTrackedDayUseCase.removeDayCaloriesTracked(
-        dateTime, intakeEntity.totalKcal);
-    await _addTrackedDayUseCase.removeDayMacrosTracked(dateTime,
-        carbsTracked: intakeEntity.totalCarbsGram,
-        fatTracked: intakeEntity.totalFatsGram,
-        proteinTracked: intakeEntity.totalProteinsGram);
+      dateTime,
+      intakeEntity.totalKcal,
+    );
+    await _addTrackedDayUseCase.removeDayMacrosTracked(
+      dateTime,
+      carbsTracked: intakeEntity.totalCarbsGram,
+      fatTracked: intakeEntity.totalFatsGram,
+      proteinTracked: intakeEntity.totalProteinsGram,
+    );
 
     _updateDiaryPage(dateTime);
   }
@@ -204,17 +228,22 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final dateTime = DateTime.now();
     await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
     _addTrackedDayUseCase.reduceDayCalorieGoal(
-        dateTime, activityEntity.burnedKcal);
+      dateTime,
+      activityEntity.burnedKcal,
+    );
 
     final carbsAmount = MacroCalc.getTotalCarbsGoal(activityEntity.burnedKcal);
     final fatAmount = MacroCalc.getTotalFatsGoal(activityEntity.burnedKcal);
-    final proteinAmount =
-        MacroCalc.getTotalProteinsGoal(activityEntity.burnedKcal);
+    final proteinAmount = MacroCalc.getTotalProteinsGoal(
+      activityEntity.burnedKcal,
+    );
 
-    _addTrackedDayUseCase.reduceDayMacroGoals(dateTime,
-        carbsAmount: carbsAmount,
-        fatAmount: fatAmount,
-        proteinAmount: proteinAmount);
+    _addTrackedDayUseCase.reduceDayMacroGoals(
+      dateTime,
+      carbsAmount: carbsAmount,
+      fatAmount: fatAmount,
+      proteinAmount: proteinAmount,
+    );
     _updateDiaryPage(dateTime);
   }
 

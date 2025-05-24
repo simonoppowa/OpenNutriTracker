@@ -13,13 +13,17 @@ class ConfigEntity extends Equatable {
   final double? userProteinGoalPct;
   final double? userFatGoalPct;
 
-  const ConfigEntity(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
-      this.hasAcceptedSendAnonymousData, this.appTheme,
-      {this.usesImperialUnits = false,
-      this.userKcalAdjustment,
-      this.userCarbGoalPct,
-      this.userProteinGoalPct,
-      this.userFatGoalPct});
+  const ConfigEntity(
+    this.hasAcceptedDisclaimer,
+    this.hasAcceptedPolicy,
+    this.hasAcceptedSendAnonymousData,
+    this.appTheme, {
+    this.usesImperialUnits = false,
+    this.userKcalAdjustment,
+    this.userCarbGoalPct,
+    this.userProteinGoalPct,
+    this.userFatGoalPct,
+  });
 
   factory ConfigEntity.fromConfigDBO(ConfigDBO dbo) => ConfigEntity(
         dbo.hasAcceptedDisclaimer,
