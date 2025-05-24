@@ -50,7 +50,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
 
   // TODO: Add base quantity and unit
   String baseQuantity = "100";
-  String baseQuantityUnit = " g/ml";
+  String baseQuantityUnit = "g/ml";
 
   @override
   void initState() {
@@ -231,7 +231,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
           inputFormatters: CustomTextInputFormatter.doubleOnly(),
           decoration: InputDecoration(
               labelText:
-                  S.of(context).mealKcalLabel + baseQuantity + baseQuantityUnit,
+                  "${S.of(context).mealKcalLabel} $baseQuantity $baseQuantityUnit",
               border: const OutlineInputBorder()),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
@@ -240,9 +240,8 @@ class _EditMealScreenState extends State<EditMealScreen> {
           controller: _carbsTextController,
           inputFormatters: CustomTextInputFormatter.doubleOnly(),
           decoration: InputDecoration(
-              labelText: S.of(context).mealCarbsLabel +
-                  baseQuantity +
-                  baseQuantityUnit,
+              labelText:
+                  "${S.of(context).mealCarbsLabel} $baseQuantity $baseQuantityUnit",
               border: const OutlineInputBorder()),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
@@ -252,7 +251,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
           inputFormatters: CustomTextInputFormatter.doubleOnly(),
           decoration: InputDecoration(
               labelText:
-                  S.of(context).mealFatLabel + baseQuantity + baseQuantityUnit,
+                  "${S.of(context).mealFatLabel} $baseQuantity $baseQuantityUnit",
               border: const OutlineInputBorder()),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
@@ -261,9 +260,8 @@ class _EditMealScreenState extends State<EditMealScreen> {
           controller: _proteinTextController,
           inputFormatters: CustomTextInputFormatter.doubleOnly(),
           decoration: InputDecoration(
-              labelText: S.of(context).mealProteinLabel +
-                  baseQuantity +
-                  baseQuantityUnit,
+              labelText:
+                  "${S.of(context).mealProteinLabel} $baseQuantity $baseQuantityUnit",
               border: const OutlineInputBorder()),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
