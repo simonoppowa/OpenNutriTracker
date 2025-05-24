@@ -68,7 +68,7 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
 
-  sentry_flutter: ^8.11.2
+  sentry_flutter: ^8.14.2
 
   supabase_flutter: ^2.8.2
 
