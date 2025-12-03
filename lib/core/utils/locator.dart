@@ -1,4 +1,5 @@
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/selected_meals_cubit.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
@@ -114,6 +115,8 @@ Future<void> initLocator() async {
       .registerFactory<ProductsBloc>(() => ProductsBloc(locator(), locator()));
   locator.registerFactory<FoodBloc>(() => FoodBloc(locator(), locator()));
   locator.registerFactory(() => RecentMealBloc(locator(), locator()));
+locator.registerLazySingleton<SelectedMealsCubit>(() => SelectedMealsCubit());
+
 
   // UseCases
   locator.registerLazySingleton<GetConfigUsecase>(
