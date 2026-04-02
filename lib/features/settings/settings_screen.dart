@@ -81,6 +81,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () => _showExportImportDialog(context),
                 ),
                 ListTile(
+                  leading: const Icon(Icons.source),
+                  title: Text("Data Sources"),
+                  onTap: () => _showDataSourcesDialog(context, state.useLocalDataBase),
+                ),
+                ListTile(
                   leading: const Icon(Icons.description_outlined),
                   title: Text(S.of(context).settingsDisclaimerLabel),
                   onTap: () => _showDisclaimerDialog(context),
@@ -259,6 +264,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     listen: false,
                   ).updateTheme(selectedTheme);
                 });
+                Navigator.of(context).pop();
+              },
+              child: Text(S.of(context).dialogOKLabel),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDataSourcesDialog(
+    BuildContext context,
+    bool useLocalDataBase,
+  ) async {
+    bool switchActive = useLocalDataBase;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Data Sources"),
+          content: StatefulBuilder(
+            builder: (
+              BuildContext context,
+              void Function(void Function()) setState,
+            ) {
+              return SwitchListTile(
+                title: Text("Use local database"),
+                value: switchActive,
+                onChanged: (bool value) {
+                  setState(() {
+                    switchActive = value;
+                  });
+                },
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(S.of(context).dialogCancelLabel),
+            ),
+            TextButton(
+              onPressed: () async {
+                _settingsBloc.setUseLocalDatabase(switchActive);
+                if (!switchActive) Sentry.close();
+                _settingsBloc.add(LoadSettingsEvent());
                 Navigator.of(context).pop();
               },
               child: Text(S.of(context).dialogOKLabel),

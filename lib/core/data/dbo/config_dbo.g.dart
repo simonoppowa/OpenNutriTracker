@@ -26,13 +26,14 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
     )
       ..userCarbGoalPct = fields[6] as double?
       ..userProteinGoalPct = fields[7] as double?
-      ..userFatGoalPct = fields[8] as double?;
+      ..userFatGoalPct = fields[8] as double?
+      ..useLocalDataBase = fields[9] as bool?;
   }
 
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(7)
       ..write(obj.userProteinGoalPct)
       ..writeByte(8)
-      ..write(obj.userFatGoalPct);
+      ..write(obj.userFatGoalPct)
+      ..writeByte(9)
+      ..write(obj.useLocalDataBase);
   }
 
   @override
@@ -75,6 +78,7 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
       $enumDecode(_$AppThemeDBOEnumMap, json['selectedAppTheme']),
       usesImperialUnits: json['usesImperialUnits'] as bool? ?? false,
       userKcalAdjustment: (json['userKcalAdjustment'] as num?)?.toDouble(),
+      useLocalDataBase: json['useLocalDataBase'] as bool
     )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -84,6 +88,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'hasAcceptedDisclaimer': instance.hasAcceptedDisclaimer,
       'hasAcceptedPolicy': instance.hasAcceptedPolicy,
       'hasAcceptedSendAnonymousData': instance.hasAcceptedSendAnonymousData,
+      'useLocalDataBase': instance.useLocalDataBase,
       'selectedAppTheme': _$AppThemeDBOEnumMap[instance.selectedAppTheme]!,
       'usesImperialUnits': instance.usesImperialUnits,
       'userKcalAdjustment': instance.userKcalAdjustment,

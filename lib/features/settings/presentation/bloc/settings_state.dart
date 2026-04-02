@@ -19,12 +19,14 @@ class SettingsLoadedState extends SettingsState {
   final bool sendAnonymousData;
   final AppThemeEntity appTheme;
   final bool usesImperialUnits;
+  final bool useLocalDataBase;
 
   const SettingsLoadedState(
     this.versionNumber,
     this.sendAnonymousData,
     this.appTheme,
     this.usesImperialUnits,
+    this.useLocalDataBase
   );
 
   @override
@@ -33,5 +35,6 @@ class SettingsLoadedState extends SettingsState {
         sendAnonymousData,
         appTheme,
         usesImperialUnits,
+        useLocalDataBase
       ];
 }

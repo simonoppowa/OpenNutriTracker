@@ -41,6 +41,16 @@ class ConfigDataSource {
     config?.save();
   }
 
+  Future<void> setConfigUseLocalDatabase(bool useLocalDataBase) async {
+    _log.fine(
+      'Updating config useLocalDataBase to $useLocalDataBase',
+    );
+    final config = _configBox.get(_configKey);
+    config?.useLocalDataBase = useLocalDataBase;
+    config?.save();
+  }
+
+
   Future<AppThemeDBO> getAppTheme() async {
     final config = _configBox.get(_configKey);
     return config?.selectedAppTheme ?? AppThemeDBO.defaultTheme;

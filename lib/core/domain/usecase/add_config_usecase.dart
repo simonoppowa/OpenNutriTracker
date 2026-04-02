@@ -23,6 +23,15 @@ class AddConfigUsecase {
     );
   }
 
+  Future<void> setConfigUseLocalDatabase(
+    bool useLocalDataBase,
+  ) async {
+    _configRepository.setConfigUseLocalDatabase(
+      useLocalDataBase,
+    );
+  }
+  
+
   Future<void> setConfigAppTheme(AppThemeEntity appTheme) async {
     await _configRepository.setConfigAppTheme(appTheme);
   }

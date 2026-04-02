@@ -35,6 +35,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       final userConfig = await _getConfigUsecase.getConfig();
       final appVersion = await AppConst.getVersionNumber();
       final usesImperialUnits = userConfig.usesImperialUnits;
+      final useLocalDataBase = userConfig.useLocalDataBase;
 
       emit(
         SettingsLoadedState(
@@ -42,6 +43,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           userConfig.hasAcceptedSendAnonymousData,
           userConfig.appTheme,
           usesImperialUnits,
+          useLocalDataBase
         ),
       );
     });
@@ -50,6 +52,12 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   void setHasAcceptedAnonymousData(bool hasAcceptedAnonymousData) {
     _addConfigUsecase.setConfigHasAcceptedAnonymousData(
       hasAcceptedAnonymousData,
+    );
+  }
+
+  void setUseLocalDatabase(bool useLocalDataBase) {
+    _addConfigUsecase.setConfigUseLocalDatabase(
+      useLocalDataBase,
     );
   }
 

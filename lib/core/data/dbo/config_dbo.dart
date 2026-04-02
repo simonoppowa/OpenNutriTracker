@@ -26,6 +26,8 @@ class ConfigDBO extends HiveObject {
   double? userProteinGoalPct;
   @HiveField(8)
   double? userFatGoalPct;
+  @HiveField(9)
+  bool? useLocalDataBase;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -34,6 +36,7 @@ class ConfigDBO extends HiveObject {
     this.selectedAppTheme, {
     this.usesImperialUnits = false,
     this.userKcalAdjustment,
+    this.useLocalDataBase = false
   });
 
   factory ConfigDBO.empty() =>
@@ -45,6 +48,7 @@ class ConfigDBO extends HiveObject {
         entity.hasAcceptedSendAnonymousData,
         AppThemeDBO.fromAppThemeEntity(entity.appTheme),
         usesImperialUnits: entity.usesImperialUnits,
+        useLocalDataBase: entity.useLocalDataBase
       );
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>

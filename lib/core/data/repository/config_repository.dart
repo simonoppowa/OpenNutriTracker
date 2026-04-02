@@ -24,6 +24,12 @@ class ConfigRepository {
     _configDataSource.setConfigAcceptedAnonymousData(hasAcceptedAnonymousData);
   }
 
+  Future<void> setConfigUseLocalDatabase(
+    bool useLocalDataBase,
+  ) async {
+    _configDataSource.setConfigUseLocalDatabase(useLocalDataBase);
+  }
+
   Future<bool> getConfigHasAcceptedAnonymousData() async {
     return await _configDataSource.getHasAcceptedAnonymousData();
   }
