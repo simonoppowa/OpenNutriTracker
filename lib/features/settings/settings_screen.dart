@@ -12,6 +12,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dar
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/datasources_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -83,7 +84,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.source),
                   title: Text("Data Sources"),
-                  onTap: () => _showDataSourcesDialog(context, state.useLocalDataBase),
+                  onTap: () => _showDataSourcesDialog(context),
                 ),
                 ListTile(
                   leading: const Icon(Icons.description_outlined),
@@ -274,6 +275,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  void _showDataSourcesDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => DataSourcesDialog(
+        settingsBloc: _settingsBloc,
+      ),
+    );
+  }
+
+/*
   void _showDataSourcesDialog(
     BuildContext context,
     bool useLocalDataBase,
@@ -282,6 +293,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) {
+        String statusText = "No database selected";
+        var statusTextWidget = Text(statusText);
+        
+
         return AlertDialog(
           title: Text("Data Sources"),
           content: StatefulBuilder(
@@ -289,16 +304,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
               BuildContext context,
               void Function(void Function()) setState,
             ) {
-              return SwitchListTile(
-                title: Text("Use local database"),
-                value: switchActive,
-                onChanged: (bool value) {
-                  setState(() {
-                    switchActive = value;
-                  });
-                },
+              return Column(
+                children: [
+                  SwitchListTile(
+                    title: Text("Use local database"),
+                    value: switchActive,
+                    onChanged: (bool value) {
+                      setState(() {
+                        switchActive = value;
+                      });
+                    },
+                  ),
+                  statusTextWidget,
+                  TextButton(
+                    onPressed: () async {
+                      final result = await FilePicker.platform.pickFiles(
+                        type: FileType.any,
+                      );
+                      if (result == null || result.files.single.path == null) {
+                        statusText = "Error";
+                        /// TODO: handle error
+                      } else {
+                        statusText = "yay";
+                        /// TODO: validate, store to settings
+                      }
+                    },
+                    child: Text("Select database"),
+                  ),
+                ]
               );
-            },
+            }
           ),
           actions: [
             TextButton(
@@ -310,7 +345,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextButton(
               onPressed: () async {
                 _settingsBloc.setUseLocalDatabase(switchActive);
-                if (!switchActive) Sentry.close();
                 _settingsBloc.add(LoadSettingsEvent());
                 Navigator.of(context).pop();
               },
@@ -321,7 +355,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
   }
-
+*/
   void _showDisclaimerDialog(BuildContext context) {
     showDialog(
       context: context,
