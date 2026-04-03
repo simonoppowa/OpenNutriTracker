@@ -4,6 +4,7 @@ import 'package:opennutritracker/features/settings/presentation/bloc/settings_bl
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DataSourcesDialog extends StatefulWidget {
   final SettingsBloc settingsBloc;
@@ -115,6 +116,19 @@ class _DataSourcesDialogState extends State<DataSourcesDialog> {
     });
   }
 
+  void _launchUrl(BuildContext context, Uri url) async {
+    if (await canLaunchUrl(url)) {
+      launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      // Cannot open browser app, show error snackbar
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).errorOpeningBrowser)),
+        );
+      }
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -128,7 +142,7 @@ class _DataSourcesDialogState extends State<DataSourcesDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               SwitchListTile(
-                title: Text("Use local database"),
+                title: Text("Use local OpenFoodFacts database"),
                 value: _useLocalDataBase,
                 onChanged: (bool value) {
                   setState(() {
@@ -153,6 +167,11 @@ class _DataSourcesDialogState extends State<DataSourcesDialog> {
                 },
                 child: Text("Select database"),
               ),
+              TextButton(
+                /// TODO: docu
+                onPressed: () async { _launchUrl(context, Uri.parse("https://todo.com"));},
+                child: Text("Help"),
+              )
             ]
           );
         }
