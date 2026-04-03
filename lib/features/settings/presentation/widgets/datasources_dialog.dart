@@ -45,6 +45,7 @@ class _DataSourcesDialogState extends State<DataSourcesDialog> {
           void Function(void Function()) setState,
         ) {
           return Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               SwitchListTile(
                 title: Text("Use local database"),
