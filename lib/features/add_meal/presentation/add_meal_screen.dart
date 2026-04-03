@@ -14,6 +14,7 @@ import 'package:opennutritracker/features/add_meal/presentation/widgets/no_resul
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -141,7 +142,8 @@ class _AddMealScreenState extends State<AddMealScreen>
                                           mealEntity: state.products[index],
                                           addMealType: _mealType,
                                           usesImperialUnits:
-                                              state.usesImperialUnits,
+                                          state.usesImperialUnits,
+                                          searchProductByBarcodeUseCase: locator<SearchProductByBarcodeUseCase>()
                                         );
                                       },
                                     ),

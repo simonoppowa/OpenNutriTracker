@@ -6,8 +6,23 @@ part of 'off_product_dto.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-OFFProductDTO _$OFFProductDTOFromJson(Map<String, dynamic> json) =>
-    OFFProductDTO(
+OFFProductDTO _$OFFProductDTOFromJson(Map<String, dynamic> json) {
+    OFFProductNutrimentsDTO nutriments = OFFProductNutrimentsDTO(
+      energy_kcal_100g: null,
+      carbohydrates_100g: null,
+      fat_100g: null,
+      proteins_100g: null,
+      sugars_100g: null,
+      saturated_fat_100g: null,
+      fiber_100g: null
+    );
+
+    // this is not available in all products
+    if(json.containsKey("nutriments")) {
+      nutriments = OFFProductNutrimentsDTO.fromJson(json['nutriments'] as Map<String, dynamic>);
+    }
+
+    return OFFProductDTO(
       code: json['code'] as String?,
       product_name: json['product_name'] as String?,
       product_name_en: json['product_name_en'] as String?,
@@ -24,9 +39,9 @@ OFFProductDTO _$OFFProductDTOFromJson(Map<String, dynamic> json) =>
       product_quantity: json['product_quantity'],
       serving_quantity: json['serving_quantity'],
       serving_size: json['serving_size'] as String?,
-      nutriments: OFFProductNutrimentsDTO.fromJson(
-          json['nutriments'] as Map<String, dynamic>),
+      nutriments: nutriments
     );
+}
 
 Map<String, dynamic> _$OFFProductDTOToJson(OFFProductDTO instance) =>
     <String, dynamic>{

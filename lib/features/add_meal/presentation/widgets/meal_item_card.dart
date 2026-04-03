@@ -1,26 +1,33 @@
+import 'dart:io';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 
 class MealItemCard extends StatelessWidget {
   final DateTime day;
   final AddMealType addMealType;
   final MealEntity mealEntity;
   final bool usesImperialUnits;
+  final SearchProductByBarcodeUseCase? searchProductByBarcodeUseCase;
+  final _log = Logger('MealItemCard');
 
-  const MealItemCard({
+  MealItemCard({
     super.key,
     required this.day,
     required this.mealEntity,
     required this.addMealType,
     required this.usesImperialUnits,
+    this.searchProductByBarcodeUseCase
   });
 
   @override
@@ -99,15 +106,46 @@ class MealItemCard extends StatelessWidget {
     );
   }
 
-  void _onItemPressed(BuildContext context) {
-    Navigator.of(context).pushNamed(
-      NavigationOptions.mealDetailRoute,
-      arguments: MealDetailScreenArguments(
-        mealEntity,
-        addMealType.getIntakeType(),
-        day,
-        usesImperialUnits,
-      ),
-    );
+  void _onItemPressed(BuildContext context) async {
+
+    MealEntity entity = mealEntity;
+    if((searchProductByBarcodeUseCase != null) && (entity.code != null) ) {
+      try {
+        entity = await searchProductByBarcodeUseCase!.searchProductByBarcode(entity.code!);
+
+        Navigator.of(context).pushNamed(
+          NavigationOptions.mealDetailRoute,
+          arguments: MealDetailScreenArguments(
+            entity,
+            addMealType.getIntakeType(),
+            day,
+            usesImperialUnits,
+          ),
+        );
+      } catch (e, s) {
+        _log.severe("Exception while fetching product details");
+        _log.severe(e.toString());
+        _log.severe(s.toString());
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Failed to get product details"),
+              content: Text("There was an error fetching the complete product details. Try again later. Details: ${e.toString()}"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("Ok"),
+                ),
+              ]
+            );
+          }
+        );
+      }
+    }
+
+
   }
 }

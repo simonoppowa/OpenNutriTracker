@@ -57,13 +57,18 @@
     
     a. enable "local Database"
     
-    b. select the file
+    b. select the database file
 
+    c. click ok
 
-When searching for products, the local database will now be queried.
+5. When searching for products, the local database will now be queried.
+6. When opening the meal details page, it will not have any content due to the reduced database. Click the refresh button in the top right to fetch the remaining data from OpenFoodFacts.
+
 
 
 ## TODO
+- Smoother handling of product detail fetch
+- filter products with missing nutrients from the local db (can't be used in the app anyways)
 - support full local database so that OpenFoodFacts is not queried for product details
 - better/fuzzy search
 
