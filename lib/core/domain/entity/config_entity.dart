@@ -13,6 +13,7 @@ class ConfigEntity extends Equatable {
   final double? userProteinGoalPct;
   final double? userFatGoalPct;
   final bool useLocalDataBase;
+  final String? localDatabaseFile;
 
   const ConfigEntity(
     this.hasAcceptedDisclaimer,
@@ -24,7 +25,8 @@ class ConfigEntity extends Equatable {
     this.userCarbGoalPct,
     this.userProteinGoalPct,
     this.userFatGoalPct,
-    this.useLocalDataBase = false
+    this.useLocalDataBase = false,
+    this.localDatabaseFile
   });
 
   factory ConfigEntity.fromConfigDBO(ConfigDBO dbo) => ConfigEntity(
@@ -38,6 +40,7 @@ class ConfigEntity extends Equatable {
         userProteinGoalPct: dbo.userProteinGoalPct,
         userFatGoalPct: dbo.userFatGoalPct,
         useLocalDataBase: dbo.useLocalDataBase ?? false,
+        localDatabaseFile: dbo.localDatabaseFile
       );
 
   @override
@@ -51,5 +54,6 @@ class ConfigEntity extends Equatable {
         userProteinGoalPct,
         userFatGoalPct,
         useLocalDataBase,
+        localDatabaseFile
       ];
 }

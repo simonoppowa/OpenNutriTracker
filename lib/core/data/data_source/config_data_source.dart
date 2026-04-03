@@ -50,6 +50,14 @@ class ConfigDataSource {
     config?.save();
   }
 
+  Future<void> setConfigDatabaseFile(String? localDatabaseFile) async {
+    _log.fine(
+      'Updating config localDatabaseFile to $localDatabaseFile',
+    );
+    final config = _configBox.get(_configKey);
+    config?.localDatabaseFile = localDatabaseFile;
+    config?.save();
+  }
 
   Future<AppThemeDBO> getAppTheme() async {
     final config = _configBox.get(_configKey);

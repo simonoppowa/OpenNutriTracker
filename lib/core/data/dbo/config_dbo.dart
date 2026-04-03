@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
@@ -28,6 +30,8 @@ class ConfigDBO extends HiveObject {
   double? userFatGoalPct;
   @HiveField(9)
   bool? useLocalDataBase;
+  @HiveField(10)
+  String? localDatabaseFile;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -36,7 +40,8 @@ class ConfigDBO extends HiveObject {
     this.selectedAppTheme, {
     this.usesImperialUnits = false,
     this.userKcalAdjustment,
-    this.useLocalDataBase = false
+    this.useLocalDataBase = false,
+    this.localDatabaseFile
   });
 
   factory ConfigDBO.empty() =>
@@ -48,7 +53,8 @@ class ConfigDBO extends HiveObject {
         entity.hasAcceptedSendAnonymousData,
         AppThemeDBO.fromAppThemeEntity(entity.appTheme),
         usesImperialUnits: entity.usesImperialUnits,
-        useLocalDataBase: entity.useLocalDataBase
+        useLocalDataBase: entity.useLocalDataBase,
+        localDatabaseFile: entity.localDatabaseFile
       );
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>

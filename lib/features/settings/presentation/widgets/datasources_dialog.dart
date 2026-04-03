@@ -19,19 +19,39 @@ class DataSourcesDialog extends StatefulWidget {
 class _DataSourcesDialogState extends State<DataSourcesDialog> {
   bool _useLocalDataBase = false;
   String? _databaseFile;
-  String _infoText = "No database selected";
+  String _infoText = "";
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _initializeKcalAdjustment();
+    _initializeLocalDataSources();
   }
 
-  void _initializeKcalAdjustment() async {
+  void _updateSelectedDatabaseFile(String? filePath) {
+    String newText = "";
+    if (filePath == null) {
+      newText = "No database selected";
+      _databaseFile = null;
+    } else {
+      newText = filePath;
+      _databaseFile = filePath;
+      /// TODO: validate file length for config store and file content?
+    }
+
+    setState(() {
+      _infoText = newText;
+    });
+  }
+
+  void _initializeLocalDataSources() async {
     final useLocalDataBase = await widget.settingsBloc.getUseLocalDatabase();
+    final String? localdbFile = await widget.settingsBloc.getUseLocalDatabaseFile();
 
     setState(() {
       _useLocalDataBase = useLocalDataBase;
+      _databaseFile = localdbFile;
+
+      _updateSelectedDatabaseFile(_databaseFile);
     });
   }
 
@@ -62,18 +82,11 @@ class _DataSourcesDialogState extends State<DataSourcesDialog> {
                   final result = await FilePicker.platform.pickFiles(
                     type: FileType.any,
                   );
-                  String newText = "";
-                  if (result == null || result.files.single.path == null) {
-                    newText = "Error";
-                    /// TODO: handle error
-                  } else {
-                    newText = "yay";
-                    /// TODO: validate, store to settings
+
+                  if(result != null) {
+                    _updateSelectedDatabaseFile(result.files.single.path);
                   }
 
-                  setState(() {
-                    _infoText = newText;
-                  });
                 },
                 child: Text("Select database"),
               ),
@@ -100,6 +113,7 @@ class _DataSourcesDialogState extends State<DataSourcesDialog> {
 
   void _saveDataSourcesSettings() {
     widget.settingsBloc.setUseLocalDatabase(_useLocalDataBase);
+    widget.settingsBloc.setLocalDatabaseFile(_databaseFile);
     widget.settingsBloc.add(LoadSettingsEvent());
 
     Navigator.of(context).pop();

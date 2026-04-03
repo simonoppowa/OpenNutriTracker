@@ -66,6 +66,18 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return config.useLocalDataBase;
   }
 
+
+  void setLocalDatabaseFile(String? databaseFile) {
+    _addConfigUsecase.setConfigDatabaseFile(
+      databaseFile,
+    );
+  }
+
+  Future<String?> getUseLocalDatabaseFile() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.localDatabaseFile;
+  }
+
   void setAppTheme(AppThemeEntity appTheme) async {
     await _addConfigUsecase.setConfigAppTheme(appTheme);
   }
