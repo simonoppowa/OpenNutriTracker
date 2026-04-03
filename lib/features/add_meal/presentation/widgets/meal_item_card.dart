@@ -5,6 +5,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -18,6 +20,7 @@ class MealItemCard extends StatelessWidget {
   final AddMealType addMealType;
   final MealEntity mealEntity;
   final bool usesImperialUnits;
+  final GetConfigUsecase? getConfigUsecase;
   final SearchProductByBarcodeUseCase? searchProductByBarcodeUseCase;
   final _log = Logger('MealItemCard');
 
@@ -27,6 +30,7 @@ class MealItemCard extends StatelessWidget {
     required this.mealEntity,
     required this.addMealType,
     required this.usesImperialUnits,
+    this.getConfigUsecase,
     this.searchProductByBarcodeUseCase
   });
 
@@ -106,22 +110,22 @@ class MealItemCard extends StatelessWidget {
     );
   }
 
+
+
   void _onItemPressed(BuildContext context) async {
 
     MealEntity entity = mealEntity;
-    if((searchProductByBarcodeUseCase != null) && (entity.code != null) ) {
+
+    bool realoadData = false;
+  
+    if(getConfigUsecase != null) {
+      ConfigEntity config = await getConfigUsecase!.getConfig();
+      realoadData = (config.useLocalDataBase) && (searchProductByBarcodeUseCase != null) && (entity.code != null);
+    }
+
+    if(realoadData){
       try {
         entity = await searchProductByBarcodeUseCase!.searchProductByBarcode(entity.code!);
-
-        Navigator.of(context).pushNamed(
-          NavigationOptions.mealDetailRoute,
-          arguments: MealDetailScreenArguments(
-            entity,
-            addMealType.getIntakeType(),
-            day,
-            usesImperialUnits,
-          ),
-        );
       } catch (e, s) {
         _log.severe("Exception while fetching product details");
         _log.severe(e.toString());
@@ -143,9 +147,19 @@ class MealItemCard extends StatelessWidget {
             );
           }
         );
+        return;
       }
+      
+      Navigator.of(context).pushNamed(
+        NavigationOptions.mealDetailRoute,
+        arguments: MealDetailScreenArguments(
+          entity,
+          addMealType.getIntakeType(),
+          day,
+          usesImperialUnits,
+        ),
+      );
+
     }
-
-
   }
 }

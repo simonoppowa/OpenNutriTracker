@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -143,6 +144,7 @@ class _AddMealScreenState extends State<AddMealScreen>
                                           addMealType: _mealType,
                                           usesImperialUnits:
                                           state.usesImperialUnits,
+                                          getConfigUsecase: locator<GetConfigUsecase>(),
                                           searchProductByBarcodeUseCase: locator<SearchProductByBarcodeUseCase>()
                                         );
                                       },
