@@ -72,6 +72,7 @@ dependencies:
 
   supabase_flutter: ^2.8.2
   intl_translation: ^0.20.1
+  sqflite: ^2.4.1
 
 dev_dependencies:
   flutter_test:

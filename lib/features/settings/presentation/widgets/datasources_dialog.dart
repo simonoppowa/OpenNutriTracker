@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:file_picker/file_picker.dart';
-
+import 'package:sqflite/sqflite.dart';
 
 class DataSourcesDialog extends StatefulWidget {
   final SettingsBloc settingsBloc;
@@ -19,7 +20,9 @@ class DataSourcesDialog extends StatefulWidget {
 class _DataSourcesDialogState extends State<DataSourcesDialog> {
   bool _useLocalDataBase = false;
   String? _databaseFile;
-  String _infoText = "";
+  String _infoText = "validating...";
+
+  final _log = Logger('DataSourcesDialogState');
 
   @override
   void didChangeDependencies() {
@@ -27,15 +30,65 @@ class _DataSourcesDialogState extends State<DataSourcesDialog> {
     _initializeLocalDataSources();
   }
 
-  void _updateSelectedDatabaseFile(String? filePath) {
+  Future<List<String>> getColumnNames(Database db, String table) async {
+    final result = await db.rawQuery('PRAGMA table_info($table)');
+    // result rows have a 'name' column
+    return result.map((r) => r['name'] as String).toList();
+  }
+
+  Future<bool> validateDatabase(String filePath) async {
+    try {
+      /// TOOD: for some reason this handles DatabaseException internally and does not 
+      /// throw it. Why?
+      final Database db = await openDatabase(filePath);
+
+      /// TODO: validate file content? check for columns instead!
+    
+      String testQuery = "SELECT * from food WHERE product_name LIKE '%Cider%'";
+
+      List<Map<String, Object?>> result = await db.rawQuery(testQuery);
+
+      if(result.isEmpty) {
+        _log.warning("Test query did not produce any results");
+        _log.fine(testQuery);
+        return false;
+      }
+
+      _log.fine("Database looks good: ${result.length} results for test query");
+
+    } on DatabaseException catch (e) {
+      _log.warning("File is not a database");
+      _log.warning(e.toString());
+      return false;
+    } catch (e) {
+      _log.warning("Error while opening database file");
+      _log.warning(e.toString());
+      return false;
+    }
+    
+    
+   
+
+    return true;
+  }
+
+  void _updateSelectedDatabaseFile(String? filePath) async {
     String newText = "";
     if (filePath == null) {
       newText = "No database selected";
       _databaseFile = null;
     } else {
-      newText = filePath;
-      _databaseFile = filePath;
-      /// TODO: validate file length for config store and file content?
+      setState(() {
+        _infoText = "validating...";
+      });
+      bool valid = await validateDatabase(filePath);
+      if(valid) {
+        newText = filePath;
+        _databaseFile = filePath;
+      } else {
+        newText = "Selected file is not a valid database";
+        _databaseFile = null;
+      }
     }
 
     setState(() {
@@ -79,6 +132,9 @@ class _DataSourcesDialogState extends State<DataSourcesDialog> {
               Text(_infoText),
               TextButton(
                 onPressed: () async {
+                  setState(() {
+                    _infoText = "loading...";
+                  });
                   final result = await FilePicker.platform.pickFiles(
                     type: FileType.any,
                   );

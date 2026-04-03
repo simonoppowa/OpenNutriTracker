@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
