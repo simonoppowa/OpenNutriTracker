@@ -42,19 +42,26 @@ class _DataSourcesDialogState extends State<DataSourcesDialog> {
       /// throw it. Why?
       final Database db = await openDatabase(filePath);
 
-      /// TODO: validate file content? check for columns instead!
-    
-      String testQuery = "SELECT * from food WHERE product_name LIKE '%Cider%'";
 
-      List<Map<String, Object?>> result = await db.rawQuery(testQuery);
+      List<String> cols = await getColumnNames(db, "food");
 
-      if(result.isEmpty) {
-        _log.warning("Test query did not produce any results");
-        _log.fine(testQuery);
+
+      if(cols.isEmpty) {
+        _log.warning("No columns not found in database");
         return false;
       }
 
-      _log.fine("Database looks good: ${result.length} results for test query");
+      List<String> requiredCols = ["code", "product_name"];
+
+      for(String col in requiredCols) {
+        if(!cols.contains(col)) {
+          _log.warning("Required column is missing in db: $col}");
+          _log.fine("Available columns: $cols");
+          return false;
+        }
+      }
+
+      _log.fine("Database looks good");
 
     } on DatabaseException catch (e) {
       _log.warning("File is not a database");
