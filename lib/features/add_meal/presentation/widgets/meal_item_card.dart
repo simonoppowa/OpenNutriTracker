@@ -149,17 +149,16 @@ class MealItemCard extends StatelessWidget {
         );
         return;
       }
-      
-      Navigator.of(context).pushNamed(
-        NavigationOptions.mealDetailRoute,
-        arguments: MealDetailScreenArguments(
-          entity,
-          addMealType.getIntakeType(),
-          day,
-          usesImperialUnits,
-        ),
-      );
-
     }
+
+    Navigator.of(context).pushNamed(
+      NavigationOptions.mealDetailRoute,
+      arguments: MealDetailScreenArguments(
+        entity,
+        addMealType.getIntakeType(),
+        day,
+        usesImperialUnits,
+      ),
+    );
   }
 }
