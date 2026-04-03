@@ -6,11 +6,20 @@ class SearchProductsUseCase {
 
   SearchProductsUseCase(this._productsRepository);
 
-  Future<List<MealEntity>> searchOFFProductsByString(
-    String searchString,
+  Future<List<MealEntity>> searchOFFProductsByString(String searchString
   ) async {
     final products = await _productsRepository.getOFFProductsByString(
+      searchString
+    );
+    return products;
+  }
+  Future<List<MealEntity>> searchLocalOFFProductsByString(
+    String searchString,
+    String localDatabaseFile
+  ) async {
+    final products = await _productsRepository.getLocalOFFProductsByString(
       searchString,
+      localDatabaseFile
     );
     return products;
   }

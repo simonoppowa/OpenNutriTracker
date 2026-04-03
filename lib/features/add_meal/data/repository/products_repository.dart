@@ -1,22 +1,43 @@
 import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/local_off_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_fdc_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off/off_word_response_dto.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 class ProductsRepository {
   final OFFDataSource _offDataSource;
+  final LocalOFFDataSource _localOFFDataSource;
   final FDCDataSource _fdcDataSource;
   final SpFdcDataSource _spBackendDataSource;
 
   ProductsRepository(
     this._offDataSource,
+    this._localOFFDataSource,
     this._fdcDataSource,
     this._spBackendDataSource,
   );
 
   Future<List<MealEntity>> getOFFProductsByString(String searchString) async {
-    final offWordResponse = await _offDataSource.fetchSearchWordResults(
+    OFFWordResponseDTO offWordResponse;
+  
+    offWordResponse = await _offDataSource.fetchSearchWordResults(
       searchString,
+    );
+
+    final products = offWordResponse.products
+        .map((offProduct) => MealEntity.fromOFFProduct(offProduct))
+        .toList();
+
+    return products;
+  }
+
+  Future<List<MealEntity>> getLocalOFFProductsByString(String searchString, String localDatabaseFile) async {
+    OFFWordResponseDTO offWordResponse;
+  
+    offWordResponse = await _localOFFDataSource.fetchSearchWordResults(
+      searchString,
+      localDatabaseFile
     );
 
     final products = offWordResponse.products
