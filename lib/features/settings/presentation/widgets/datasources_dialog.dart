@@ -169,7 +169,7 @@ class _DataSourcesDialogState extends State<DataSourcesDialog> {
               ),
               TextButton(
                 /// TODO: docu
-                onPressed: () async { _launchUrl(context, Uri.parse("https://todo.com"));},
+                onPressed: () async { _launchUrl(context, Uri.parse("https://github.com/manum45/OpenNutriTracker/blob/off_local_db/Local_OpenFoodFacts_Database.md"));},
                 child: Text("Help"),
               )
             ]
