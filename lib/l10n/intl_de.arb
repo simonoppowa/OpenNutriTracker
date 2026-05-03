@@ -60,6 +60,7 @@
   "settingFeedbackLabel": "Feedback",
   "settingAboutLabel": "Über",
   "settingsMassLabel": "Masse",
+  "settingsMetricLabel": "Metrisch (kg, cm, ml)",
   "settingsDistanceLabel": "Entfernung",
   "settingsVolumeLabel": "Volumen",
   "disclaimerText": "OpenNutriTracker ist keine medizinische Anwendung. Alle bereitgestellten Daten sind nicht validiert und sollten mit Vorsicht verwendet werden. Bitte pflegen Sie einen gesunden Lebensstil und konsultieren Sie einen Fachmann, wenn Sie Probleme haben. Die Verwendung während einer Krankheit, Schwangerschaft oder Stillzeit wird nicht empfohlen.\n\n\nDie Anwendung befindet sich noch in der Entwicklung. Fehler, Bugs und Abstürze können auftreten.",
@@ -104,9 +105,38 @@
   "dialogDeleteLabel": "LÖSCHEN",
   "deleteAllLabel": "Alle löschen",
 
+  "shareMealLabel": "Mahlzeit teilen",
+  "importMealLabel": "Geteilte Mahlzeit importieren",
+  "importMealConfirmTitle": "{count} Einträge importieren?",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "importMealConfirmContent": "Diese Einträge werden zu {mealType} hinzugefügt.",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": { "type": "String" }
+    }
+  },
+  "importMealSuccessLabel": "Mahlzeit importiert",
+  "importMealErrorLabel": "Ungültiger QR-Code",
+  "importOffFetchFailedLabel": "{count} Einträge konnten nicht von OpenFoodFacts abgerufen werden.",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "copyCodeLabel": "Code kopieren",
+  "shareCodeLabel": "Code teilen",
+  "codeCopiedLabel": "Code kopiert",
+  "pasteCodeLabel": "Code einfügen",
+  "pasteCodeHint": "Füge hier den geteilten Mahlzeitencode ein",
+
   "suppliedLabel": "zugeführt",
   "burnedLabel": "verbrannt",
   "kcalLeftLabel": "kcal übrig",
+  "kcalTooMuchLabel": "kcal zu viel",
   "nutritionInfoLabel": "Nährwertangaben",
   "kcalLabel": "kcal",
   "carbsLabel": "Kohlenhydrate",

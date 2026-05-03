@@ -29,6 +29,14 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m3(age) => "${age} Jahre";
 
+  static String m4(mealType) =>
+      "Diese Einträge werden zu ${mealType} hinzugefügt.";
+
+  static String m5(count) => "${count} Einträge importieren?";
+
+  static String m6(count) =>
+      "${count} Einträge konnten nicht von OpenFoodFacts abgerufen werden.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -86,6 +94,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "chooseWeightGoalLabel":
             MessageLookupByLibrary.simpleMessage("Gewichtsziel wählen"),
         "cmLabel": MessageLookupByLibrary.simpleMessage("cm"),
+        "codeCopiedLabel": MessageLookupByLibrary.simpleMessage("Code kopiert"),
+        "copyCodeLabel":
+            MessageLookupByLibrary.simpleMessage("Code kopieren"),
         "copyDialogTitle": MessageLookupByLibrary.simpleMessage(
             "Zu welcher Mahlzeit hinzufügen?"),
         "copyOrDeleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
@@ -164,6 +175,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "heightLabel": MessageLookupByLibrary.simpleMessage("Größe"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Startseite"),
         "importAction": MessageLookupByLibrary.simpleMessage("Importieren"),
+        "importMealConfirmContent": m4,
+        "importMealConfirmTitle": m5,
+        "importMealErrorLabel":
+            MessageLookupByLibrary.simpleMessage("Ungültiger QR-Code"),
+        "importMealLabel": MessageLookupByLibrary.simpleMessage(
+            "Geteilte Mahlzeit importieren"),
+        "importMealSuccessLabel":
+            MessageLookupByLibrary.simpleMessage("Mahlzeit importiert"),
+        "importOffFetchFailedLabel": m6,
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Neue Aktivität hinzugefügt"),
         "infoAddedIntakeLabel":
@@ -174,6 +194,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Eintrag aktualisiert"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal übrig"),
+        "kcalTooMuchLabel":
+            MessageLookupByLibrary.simpleMessage("kcal zu viel"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("kg"),
         "lunchExample": MessageLookupByLibrary.simpleMessage(
             "z. B. Pizza, Salat, Reis ..."),
@@ -393,6 +415,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "paHeadingDancing": MessageLookupByLibrary.simpleMessage("Tanzen"),
         "paHeadingRunning": MessageLookupByLibrary.simpleMessage("Laufen"),
         "paHeadingSports": MessageLookupByLibrary.simpleMessage("Sport"),
+        "pasteCodeHint": MessageLookupByLibrary.simpleMessage(
+            "Füge hier den geteilten Mahlzeitencode ein"),
+        "pasteCodeLabel":
+            MessageLookupByLibrary.simpleMessage("Code einfügen"),
         "paHeadingWalking": MessageLookupByLibrary.simpleMessage("Gehen"),
         "paHeadingWaterActivities":
             MessageLookupByLibrary.simpleMessage("Wassersport"),
@@ -654,6 +680,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsLicensesLabel":
             MessageLookupByLibrary.simpleMessage("Lizenzen"),
         "settingsMassLabel": MessageLookupByLibrary.simpleMessage("Masse"),
+        "settingsMetricLabel":
+            MessageLookupByLibrary.simpleMessage("Metrisch (kg, cm, ml)"),
         "settingsPrivacySettings":
             MessageLookupByLibrary.simpleMessage("Datenschutzeinstellungen"),
         "settingsReportErrorLabel":
@@ -668,6 +696,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Systemstandard"),
         "settingsUnitsLabel": MessageLookupByLibrary.simpleMessage("Einheiten"),
         "settingsVolumeLabel": MessageLookupByLibrary.simpleMessage("Volumen"),
+        "shareCodeLabel": MessageLookupByLibrary.simpleMessage("Code teilen"),
+        "shareMealLabel":
+            MessageLookupByLibrary.simpleMessage("Mahlzeit teilen"),
         "snackExample": MessageLookupByLibrary.simpleMessage(
             "z. B. Apfel, Eiscreme, Schokolade ..."),
         "snackLabel": MessageLookupByLibrary.simpleMessage("Snack"),

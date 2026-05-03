@@ -29,6 +29,14 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m3(age) => "${age} years";
 
+  static String m4(mealType) =>
+      "These items will be added to your ${mealType}.";
+
+  static String m5(count) => "Import ${count} items?";
+
+  static String m6(count) =>
+      "${count} item(s) could not be fetched from OpenFoodFacts.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -85,6 +93,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "chooseWeightGoalLabel":
             MessageLookupByLibrary.simpleMessage("Choose Weight Goal"),
         "cmLabel": MessageLookupByLibrary.simpleMessage("cm"),
+        "codeCopiedLabel": MessageLookupByLibrary.simpleMessage("Code copied"),
+        "copyCodeLabel": MessageLookupByLibrary.simpleMessage("Copy code"),
         "copyDialogTitle": MessageLookupByLibrary.simpleMessage(
             "Which meal type do you want to copy to?"),
         "copyOrDeleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
@@ -161,6 +171,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "heightLabel": MessageLookupByLibrary.simpleMessage("Height"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
         "importAction": MessageLookupByLibrary.simpleMessage("Import"),
+        "importMealConfirmContent": m4,
+        "importMealConfirmTitle": m5,
+        "importMealErrorLabel":
+            MessageLookupByLibrary.simpleMessage("Invalid QR code"),
+        "importMealLabel":
+            MessageLookupByLibrary.simpleMessage("Import shared meal"),
+        "importMealSuccessLabel":
+            MessageLookupByLibrary.simpleMessage("Meal imported"),
+        "importOffFetchFailedLabel": m6,
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Added new activity"),
         "infoAddedIntakeLabel":
@@ -171,6 +190,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Item updated"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal left"),
+        "kcalTooMuchLabel":
+            MessageLookupByLibrary.simpleMessage("kcal too much"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("kg"),
         "lbsLabel": MessageLookupByLibrary.simpleMessage("lbs"),
         "lunchExample":
@@ -386,6 +407,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "paHeadingDancing": MessageLookupByLibrary.simpleMessage("dancing"),
         "paHeadingRunning": MessageLookupByLibrary.simpleMessage("running"),
         "paHeadingSports": MessageLookupByLibrary.simpleMessage("sports"),
+        "pasteCodeHint": MessageLookupByLibrary.simpleMessage(
+            "Paste the shared meal code here"),
+        "pasteCodeLabel": MessageLookupByLibrary.simpleMessage("Paste code"),
         "paHeadingWalking": MessageLookupByLibrary.simpleMessage("walking"),
         "paHeadingWaterActivities":
             MessageLookupByLibrary.simpleMessage("water activities"),
@@ -660,6 +684,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("System default"),
         "settingsUnitsLabel": MessageLookupByLibrary.simpleMessage("Units"),
         "settingsVolumeLabel": MessageLookupByLibrary.simpleMessage("Volume"),
+        "shareCodeLabel": MessageLookupByLibrary.simpleMessage("Share code"),
+        "shareMealLabel": MessageLookupByLibrary.simpleMessage("Share meal"),
         "snackExample": MessageLookupByLibrary.simpleMessage(
             "e.g. apple, ice cream, chocolate ..."),
         "snackLabel": MessageLookupByLibrary.simpleMessage("Snack"),

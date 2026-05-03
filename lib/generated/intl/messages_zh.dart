@@ -29,6 +29,12 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m3(age) => "${age} 岁";
 
+  static String m4(count) => "导入 ${count} 个项目？";
+
+  static String m5(mealType) => "这些项目将添加到：${mealType}。";
+
+  static String m6(count) => "无法从OpenFoodFacts获取 ${count} 个项目。";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample":
@@ -82,6 +88,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "carbsLabel": MessageLookupByLibrary.simpleMessage("碳水"),
         "chooseWeightGoalLabel": MessageLookupByLibrary.simpleMessage("选择体重目标"),
         "cmLabel": MessageLookupByLibrary.simpleMessage("厘米"),
+        "codeCopiedLabel": MessageLookupByLibrary.simpleMessage("代码已复制"),
+        "copyCodeLabel": MessageLookupByLibrary.simpleMessage("复制代码"),
         "copyDialogTitle": MessageLookupByLibrary.simpleMessage("您想复制到哪种餐食类型？"),
         "copyOrDeleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "使用\"复制到今天\"可以将餐食复制到今天。使用\"删除\"可以删除餐食。"),
@@ -149,6 +157,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "heightLabel": MessageLookupByLibrary.simpleMessage("身高"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("主页"),
         "importAction": MessageLookupByLibrary.simpleMessage("导入"),
+        "importMealConfirmContent": m5,
+        "importMealConfirmTitle": m4,
+        "importMealErrorLabel": MessageLookupByLibrary.simpleMessage("无效的二维码"),
+        "importMealLabel": MessageLookupByLibrary.simpleMessage("导入分享的餐食"),
+        "importMealSuccessLabel": MessageLookupByLibrary.simpleMessage("餐食已导入"),
+        "importOffFetchFailedLabel": m6,
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("添加了新活动"),
         "infoAddedIntakeLabel": MessageLookupByLibrary.simpleMessage("添加了新摄入"),
@@ -156,6 +170,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "itemUpdatedSnackbar": MessageLookupByLibrary.simpleMessage("项目已更新"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("卡路里"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("剩余卡路里"),
+        "kcalTooMuchLabel": MessageLookupByLibrary.simpleMessage("卡路里过多"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("千克"),
         "lbsLabel": MessageLookupByLibrary.simpleMessage("磅"),
         "lunchExample": MessageLookupByLibrary.simpleMessage("例如：披萨、沙拉、米饭..."),
@@ -322,6 +337,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("跳板或跳台"),
         "paFencing": MessageLookupByLibrary.simpleMessage("击剑"),
         "paFencingDesc": MessageLookupByLibrary.simpleMessage("一般"),
+        "paAmericanFootballGeneral": MessageLookupByLibrary.simpleMessage("美式橄榄球"),
+        "paAmericanFootballGeneralDesc": MessageLookupByLibrary.simpleMessage("触身赛、旗式足球，一般"),
         "paFrisbee": MessageLookupByLibrary.simpleMessage("飞盘"),
         "paFrisbeeDesc": MessageLookupByLibrary.simpleMessage("一般"),
         "paGeneralDesc": MessageLookupByLibrary.simpleMessage("一般"),
@@ -503,6 +520,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "palVeryActiveDescriptionLabel":
             MessageLookupByLibrary.simpleMessage("工作中大部分时间行走、跑步或负重，空闲时间活动活跃"),
         "palVeryActiveLabel": MessageLookupByLibrary.simpleMessage("非常活跃"),
+        "pasteCodeHint": MessageLookupByLibrary.simpleMessage("在此粘贴分享的餐食代码"),
+        "pasteCodeLabel": MessageLookupByLibrary.simpleMessage("粘贴代码"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("每 100克/毫升"),
         "perServingLabel": MessageLookupByLibrary.simpleMessage("每份量"),
         "privacyPolicyLabel": MessageLookupByLibrary.simpleMessage("隐私政策"),
@@ -557,6 +576,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("系统默认"),
         "settingsUnitsLabel": MessageLookupByLibrary.simpleMessage("单位"),
         "settingsVolumeLabel": MessageLookupByLibrary.simpleMessage("体积"),
+        "shareCodeLabel": MessageLookupByLibrary.simpleMessage("分享代码"),
+        "shareMealLabel": MessageLookupByLibrary.simpleMessage("分享餐食"),
         "snackExample":
             MessageLookupByLibrary.simpleMessage("例如：苹果、冰淇淋、巧克力..."),
         "snackLabel": MessageLookupByLibrary.simpleMessage("零食"),

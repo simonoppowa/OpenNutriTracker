@@ -29,6 +29,14 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m3(age) => "${age} yıl";
 
+  static String m4(mealType) =>
+      "These items will be added to your ${mealType}.";
+
+  static String m5(count) => "Import ${count} items?";
+
+  static String m6(count) =>
+      "${count} öğe OpenFoodFacts'ten alınamadı.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -85,6 +93,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "chooseWeightGoalLabel":
             MessageLookupByLibrary.simpleMessage("Kilo Hedefini Seçin"),
         "cmLabel": MessageLookupByLibrary.simpleMessage("cm"),
+        "codeCopiedLabel":
+            MessageLookupByLibrary.simpleMessage("Kod kopyalandı"),
+        "copyCodeLabel":
+            MessageLookupByLibrary.simpleMessage("Kodu kopyala"),
         "copyDialogTitle": MessageLookupByLibrary.simpleMessage(
             "Hangi yemek türüne kopyalamak istiyorsunuz?"),
         "copyOrDeleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
@@ -159,6 +171,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "heightLabel": MessageLookupByLibrary.simpleMessage("Boy"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Ana Sayfa"),
         "importAction": MessageLookupByLibrary.simpleMessage("İçe Aktar"),
+        "importMealConfirmContent": m4,
+        "importMealConfirmTitle": m5,
+        "importMealErrorLabel":
+            MessageLookupByLibrary.simpleMessage("Invalid QR code"),
+        "importMealLabel":
+            MessageLookupByLibrary.simpleMessage("Import shared meal"),
+        "importMealSuccessLabel":
+            MessageLookupByLibrary.simpleMessage("Meal imported"),
+        "importOffFetchFailedLabel": m6,
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Yeni aktivite eklendi"),
         "infoAddedIntakeLabel":
@@ -386,6 +407,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "paHeadingDancing": MessageLookupByLibrary.simpleMessage("dans"),
         "paHeadingRunning": MessageLookupByLibrary.simpleMessage("koşu"),
         "paHeadingSports": MessageLookupByLibrary.simpleMessage("spor"),
+        "pasteCodeHint": MessageLookupByLibrary.simpleMessage(
+            "Paylaşılan yemek kodunu buraya yapıştırın"),
+        "pasteCodeLabel":
+            MessageLookupByLibrary.simpleMessage("Kodu yapıştır"),
         "paHeadingWalking": MessageLookupByLibrary.simpleMessage("yürüyüş"),
         "paHeadingWaterActivities":
             MessageLookupByLibrary.simpleMessage("su aktiviteleri"),
@@ -652,6 +677,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Sistem varsayılanı"),
         "settingsUnitsLabel": MessageLookupByLibrary.simpleMessage("Birimler"),
         "settingsVolumeLabel": MessageLookupByLibrary.simpleMessage("Hacim"),
+        "shareCodeLabel": MessageLookupByLibrary.simpleMessage("Kodu paylaş"),
+        "shareMealLabel": MessageLookupByLibrary.simpleMessage("Share meal"),
         "snackExample": MessageLookupByLibrary.simpleMessage(
             "ör. elma, dondurma, çikolata ..."),
         "snackLabel": MessageLookupByLibrary.simpleMessage("Atıştırmalık"),

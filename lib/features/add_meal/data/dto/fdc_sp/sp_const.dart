@@ -26,7 +26,10 @@ class SPConst {
         return fdcFoodDescriptionEn;
       case SupportedLanguage.de:
         return fdcFoodDescriptionDe;
-      }
+      case SupportedLanguage.pl:
+        return fdcFoodDescriptionEn;
+      case SupportedLanguage.zh:
+        return fdcFoodDescriptionEn;
+    }
   }
-
 }

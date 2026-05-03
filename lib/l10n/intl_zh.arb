@@ -109,9 +109,43 @@
   "dialogCopyLabel": "复制到今天",
   "dialogDeleteLabel": "删除",
   "deleteAllLabel": "删除全部",
+  "shareMealLabel": "分享餐食",
+  "importMealLabel": "导入分享的餐食",
+  "importMealConfirmTitle": "导入 {count} 个项目？",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importMealConfirmContent": "这些项目将添加到：{mealType}。",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "importMealSuccessLabel": "餐食已导入",
+  "importMealErrorLabel": "无效的二维码",
+  "importOffFetchFailedLabel": "无法从OpenFoodFacts获取 {count} 个项目。",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copyCodeLabel": "复制代码",
+  "shareCodeLabel": "分享代码",
+  "codeCopiedLabel": "代码已复制",
+  "pasteCodeLabel": "粘贴代码",
+  "pasteCodeHint": "在此粘贴分享的餐食代码",
   "suppliedLabel": "提供",
   "burnedLabel": "消耗",
   "kcalLeftLabel": "剩余卡路里",
+  "kcalTooMuchLabel": "卡路里过多",
   "nutritionInfoLabel": "营养信息",
   "kcalLabel": "卡路里",
   "carbsLabel": "碳水",
@@ -284,6 +318,8 @@
   "paDivingSpringboardPlatformDesc": "跳板或跳台",
   "paFencing": "击剑",
   "paFencingDesc": "一般",
+  "paAmericanFootballGeneral": "美式橄榄球",
+  "paAmericanFootballGeneralDesc": "触身赛、旗式足球，一般",
   "paFrisbee": "飞盘",
   "paFrisbeeDesc": "一般",
   "paGolfGeneral": "高尔夫",

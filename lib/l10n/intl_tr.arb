@@ -107,6 +107,35 @@
   "copyOrDeleteTimeDialogContent": "\"Bugüne Kopyala\" ile yemeği bugüne kopyalayabilirsiniz. \"Sil\" ile yemeği silebilirsiniz.",
   "dialogCopyLabel": "BUGÜNE KOPYALA",
   "dialogDeleteLabel": "SİL",
+
+  "shareMealLabel": "Share meal",
+  "importMealLabel": "Import shared meal",
+  "importMealConfirmTitle": "Import {count} items?",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "importMealConfirmContent": "These items will be added to your {mealType}.",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": { "type": "String" }
+    }
+  },
+  "importMealSuccessLabel": "Meal imported",
+  "importMealErrorLabel": "Invalid QR code",
+  "importOffFetchFailedLabel": "{count} öğe OpenFoodFacts'ten alınamadı.",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "copyCodeLabel": "Kodu kopyala",
+  "shareCodeLabel": "Kodu paylaş",
+  "codeCopiedLabel": "Kod kopyalandı",
+  "pasteCodeLabel": "Kodu yapıştır",
+  "pasteCodeHint": "Paylaşılan yemek kodunu buraya yapıştırın",
+
   "suppliedLabel": "tüketilen",
   "burnedLabel": "yakılan",
   "kcalLeftLabel": "kalan kcal",
