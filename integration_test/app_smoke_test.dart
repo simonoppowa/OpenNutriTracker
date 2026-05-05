@@ -13,12 +13,21 @@ import 'package:opennutritracker/main.dart' as app;
 /// to navigate past onboarding here — driving inputs requires platform-
 /// specific keyboard / picker handling that is out of scope for a basic
 /// boot-smoke.
+///
+/// `[smoke]`-prefixed prints below are intentional progress markers — there
+/// is otherwise a long silent gap between "Xcode build done" and the first
+/// assertion result, which makes CI runs hard to follow.
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
     'app boots, reaches a MaterialApp screen, no uncaught exceptions',
     (WidgetTester tester) async {
+      final stopwatch = Stopwatch()..start();
+      void mark(String step) =>
+          debugPrint('[smoke] +${stopwatch.elapsed.inMilliseconds}ms $step');
+
+      mark('test entered, installing FlutterError.onError sink');
       final caughtErrors = <FlutterErrorDetails>[];
       final originalOnError = FlutterError.onError;
       FlutterError.onError = (details) {
@@ -26,15 +35,28 @@ void main() {
         originalOnError?.call(details);
       };
 
+      mark('calling app.main() — runs initLocator, Hive, Supabase init, etc.');
       await app.main();
+
+      mark('app.main() returned, calling pumpAndSettle (≤30s)');
       await tester.pumpAndSettle(const Duration(seconds: 30));
 
-      expect(find.byType(MaterialApp), findsOneWidget,
-          reason: 'app should reach a MaterialApp');
-      expect(caughtErrors, isEmpty,
-          reason: 'no Flutter errors should fire during boot, got: '
-              '${caughtErrors.map((e) => e.exception).toList()}');
+      mark('pumpAndSettle complete, asserting MaterialApp on screen');
+      expect(
+        find.byType(MaterialApp),
+        findsOneWidget,
+        reason: 'app should reach a MaterialApp',
+      );
 
+      mark('MaterialApp found, asserting no Flutter errors fired');
+      expect(
+        caughtErrors,
+        isEmpty,
+        reason: 'no Flutter errors should fire during boot, got: '
+            '${caughtErrors.map((e) => e.exception).toList()}',
+      );
+
+      mark('all assertions passed, teardown');
       FlutterError.onError = originalOnError;
     },
   );

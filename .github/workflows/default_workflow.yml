@@ -237,7 +237,10 @@ jobs:
           echo "DEVICE_UDID=$DEVICE_UDID" >> $GITHUB_ENV
 
       - name: Run integration tests
-        run: flutter test integration_test/ -d "$DEVICE_UDID" --reporter expanded
+        # --verbose surfaces flutter_tools' install / launch / VM-service-attach
+        # phases. Without it, there's a long silent gap between "Xcode build
+        # done" and the first test result that makes CI runs hard to follow.
+        run: flutter test integration_test/ -d "$DEVICE_UDID" --reporter expanded --verbose
 
   android-build:
     runs-on: ubuntu-latest
@@ -396,7 +399,8 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: flutter test integration_test/ --reporter expanded
+          # --verbose: see comment on the iOS counterpart above
+          script: flutter test integration_test/ --reporter expanded --verbose
 
 # Historical reference — the original single-step `just ci` invocation that
 # was used before this workflow was split into linux-checks + ios-build.
