@@ -136,17 +136,16 @@ jobs:
       # re-resolve. So if the lockfile pins a transitive subdep version
       # that's been bumped in pubspec.yaml (e.g. sentry_flutter 9.19
       # now wants Sentry/HybridSDK 8.58 but the lock still pins 8.46),
-      # `pod install` fails. The fallback `pod update` re-resolves and
-      # writes a fresh lockfile. The auto-commit step below pushes the
-      # refreshed lockfile back to the PR branch so future runs hit the
-      # deterministic `install` path.
+      # `pod install` fails. The script's fallback re-resolves only the
+      # pod(s) named in the CocoaPods error output (full `pod update`
+      # only as a last resort), and the auto-commit step below pushes
+      # the refreshed lockfile back to the PR branch so future runs hit
+      # the deterministic `install` path. See #369 for the rationale
+      # behind targeting specific pods rather than re-resolving all.
       - name: Pod install (regenerate lockfile if constraints have shifted)
         run: |
           cd ios
-          if ! pod install --repo-update; then
-            echo "::warning::Podfile.lock has stale constraints; regenerating via pod update"
-            pod update
-          fi
+          ../.github/scripts/pod_install_with_targeted_fallback.sh
 
       # Same-repo PRs only — fork PRs run with a read-only token so this
       # step would fail to push. Fork contributors get the lockfile via
@@ -219,10 +218,7 @@ jobs:
       - name: Pod install (regenerate lockfile if constraints have shifted)
         run: |
           cd ios
-          if ! pod install --repo-update; then
-            echo "::warning::Podfile.lock has stale constraints; regenerating via pod update"
-            pod update
-          fi
+          ../.github/scripts/pod_install_with_targeted_fallback.sh
 
       # Pick any available iPhone simulator on the runner. macos-latest
       # ships several preinstalled; we don't care which exact model — the
