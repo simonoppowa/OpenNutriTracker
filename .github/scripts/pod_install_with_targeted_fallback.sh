@@ -9,9 +9,20 @@
 # pods up to new minor versions and ride those into the next release
 # without anyone having intentionally changed them. Tracked in #369.
 #
-# Expected to be run from inside the `ios/` directory.
+# The script self-locates so it works no matter where it's invoked
+# from: `cd "$(dirname "$0")/../../ios"` puts us in the iOS project
+# directory before anything else runs.
+#
+# Adding a new error pattern: extend the `extract_pods` function below
+# and add a matching test case to test_pod_install_with_targeted_fallback.sh.
+# The test script runs in CI on linux-checks so a regression in the
+# parser surfaces on the next PR rather than the next constraint drift.
 
 set -uo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ios_dir="$(cd "$script_dir/../../ios" && pwd)"
+cd "$ios_dir"
 
 log_file=$(mktemp)
 trap 'rm -f "$log_file"' EXIT
@@ -27,23 +38,30 @@ if [ "$install_status" -eq 0 ]; then
   exit 0
 fi
 
-# CocoaPods prints a few different error shapes when constraints drift.
-# These two cover the common cases we've seen on this project:
+# CocoaPods has a few different error shapes when constraints drift.
+# These three cover the cases this project has actually hit:
+#
 #   [!] CocoaPods could not find compatible versions for pod "FooName":
 #   [!] Unable to find a specification for `FooName`
+#   None of your spec sources contain a spec satisfying the dependency: `FooName (= 1.2.3)`.
+#
 # Either form may name a subspec like `Sentry/HybridSDK`; `pod update`
 # operates on root pods, so we strip the subspec suffix below.
-parsed_pods=()
-while IFS= read -r line; do
-  [ -n "$line" ] && parsed_pods+=("$line")
-done < <(
+extract_pods() {
   {
     grep -oE 'compatible versions for pod "[^"]+"' "$log_file" \
       | sed -E 's/.*"([^"]+)".*/\1/'
     grep -oE "Unable to find a specification for [\`'][^\`']+" "$log_file" \
       | sed -E "s/.*specification for [\`']//"
+    grep -oE "satisfying the dependency: \`[^[:space:]\`]+" "$log_file" \
+      | sed -E "s/^satisfying the dependency: \`//"
   } || true
-)
+}
+
+parsed_pods=()
+while IFS= read -r line; do
+  [ -n "$line" ] && parsed_pods+=("$line")
+done < <(extract_pods)
 
 declare -A seen=()
 root_pods=()

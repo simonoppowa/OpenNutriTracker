@@ -79,6 +79,16 @@ jobs:
       - name: Run tests
         run: just test
 
+      # The iOS pod-install fallback parser is the only piece of the iOS
+      # CI flow that decides which pods to update when Podfile.lock
+      # drifts. A regression in its regexes would silently degrade the
+      # targeted-update path back to a full `pod update`, which is
+      # exactly the behaviour #369 was filed to avoid. The test runs on
+      # ubuntu — it stubs out CocoaPods entirely with a shell mock — so
+      # we don't pay for it on the macOS runners.
+      - name: Test the iOS pod-install fallback parser
+        run: .github/scripts/test_pod_install_with_targeted_fallback.sh
+
   ios-build:
     runs-on: macos-latest
     timeout-minutes: 45
@@ -142,10 +152,10 @@ jobs:
       # the refreshed lockfile back to the PR branch so future runs hit
       # the deterministic `install` path. See #369 for the rationale
       # behind targeting specific pods rather than re-resolving all.
+      # The script self-locates the iOS dir, so the caller doesn't need
+      # to cd first.
       - name: Pod install (regenerate lockfile if constraints have shifted)
-        run: |
-          cd ios
-          ../.github/scripts/pod_install_with_targeted_fallback.sh
+        run: .github/scripts/pod_install_with_targeted_fallback.sh
 
       # Same-repo PRs only — fork PRs run with a read-only token so this
       # step would fail to push. Fork contributors get the lockfile via
@@ -216,9 +226,7 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Pod install (regenerate lockfile if constraints have shifted)
-        run: |
-          cd ios
-          ../.github/scripts/pod_install_with_targeted_fallback.sh
+        run: .github/scripts/pod_install_with_targeted_fallback.sh
 
       # Pick any available iPhone simulator on the runner. macos-latest
       # ships several preinstalled; we don't care which exact model — the
