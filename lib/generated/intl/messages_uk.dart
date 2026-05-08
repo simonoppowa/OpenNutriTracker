@@ -119,15 +119,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("Розрахунок TDEE"),
         "caloriesProfileAveragedLabel": MessageLookupByLibrary.simpleMessage(
-            "Усереднена референція (за замовчуванням)"),
+            "Середнє (за замовчуванням)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Естрогенова референція"),
+            MessageLookupByLibrary.simpleMessage("Естрогеновий тип (жіноча формула)"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
-            "Для небінарних користувачів ми за замовчуванням використовуємо усереднену калорійну референцію. Якщо ви проходите ГЗТ або хочете точнішу початкову точку, тут можна обрати свій гормональний профіль. Цей вибір впливає лише на розрахунок калорій — він ніде не передається й не показується в інших частинах застосунку."),
+            "Опублікованої калорійної основи для небінарних людей не існує — рівняння-зразки побудовані на чоловічих і жіночих вибірках. За замовчуванням ми використовуємо середнє двох — нейтральну відправну точку, яка не вимагає від вас розкривати більше про ваше тіло. Повзунок ккал у Налаштуваннях завжди доступний для тонкого налаштування; це відправна точка, а не точна оцінка."),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("Калорійна референція"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Тестостеронова референція"),
+            MessageLookupByLibrary.simpleMessage("Тестостероновий тип (чоловіча формула)"),
         "carbohydrateLabel": MessageLookupByLibrary.simpleMessage("вуглеводи"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("вуглеводи"),
         "carbsLabelShort": MessageLookupByLibrary.simpleMessage("в"),
@@ -407,7 +407,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("ккал на день"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(
-            "Ми оцінюємо твоє денне споживання калорій як середнє значення між чоловічою та жіночою референтними формулами. Ти можеш скоригувати це у Налаштування → Розрахунки."),
+            "Опублікованої калорійної основи для небінарних людей не існує, тож за замовчуванням ми використовуємо середнє чоловічої та жіночої формул — це відправна точка, а не точна оцінка. Ти можеш скоригувати це у Налаштування → Розрахунки в будь-який час."),
         "onboardingOverviewLabel":
             MessageLookupByLibrary.simpleMessage("Огляд"),
         "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
@@ -918,6 +918,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsNotificationsLabel":
             MessageLookupByLibrary.simpleMessage("Щоденне нагадування"),
         "settingsNotificationsTimeLabel": m11,
+        "notificationsPermissionDeniedSnack":
+            MessageLookupByLibrary.simpleMessage("У дозволі на сповіщення відмовлено."),
+        "notificationsDailyReminderTitle":
+            MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
+        "notificationsDailyReminderBody":
+            MessageLookupByLibrary.simpleMessage("Не забудьте сьогодні записати свої страви!"),
         "settingsPrivacySettings": MessageLookupByLibrary.simpleMessage(
             "Налаштування конфіденційності"),
         "settingsReportErrorLabel":

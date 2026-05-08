@@ -114,15 +114,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("TDEE方程式"),
         "caloriesProfileAveragedLabel":
-            MessageLookupByLibrary.simpleMessage("平均参考(默认)"),
+            MessageLookupByLibrary.simpleMessage("平均值（默认）"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("雌激素型参考"),
+            MessageLookupByLibrary.simpleMessage("雌激素型（女性公式）"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
-            "对于非二元性别用户,我们默认使用平均的热量参考值。如果你正在接受激素治疗(HRT)或希望获得更准确的起点,可以在此设置你的激素特征。此选项仅影响热量计算,不会被分享或在应用其他位置显示。"),
+            "目前没有公开的非二元性别热量基准——参考方程是基于男性和女性样本建立的。我们默认使用两者的平均值作为中性起点，不会要求您透露更多关于您身体的信息。设置中的千卡滑块始终可用于精细调整；这只是一个起点，并非精确估算。"),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("热量参考"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("睾酮型参考"),
+            MessageLookupByLibrary.simpleMessage("睾酮型（男性公式）"),
         "carbohydrateLabel": MessageLookupByLibrary.simpleMessage("碳水化合物"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("碳水"),
         "carbsLabelShort": MessageLookupByLibrary.simpleMessage("碳"),
@@ -370,7 +370,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("每日卡路里"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(
-            "我们使用男性和女性参考公式的平均值来估算你的每日热量。你可以随时在 设置 → 计算 中进行调整。"),
+            "目前没有公开的非二元性别热量基准，所以我们默认使用男性和女性公式的平均值——这是一个起点，并非精确估算。你可以随时在 设置 → 计算 中进行调整。"),
         "onboardingOverviewLabel": MessageLookupByLibrary.simpleMessage("概览"),
         "onboardingSaveUserError":
             MessageLookupByLibrary.simpleMessage("输入错误，请重试"),
@@ -777,6 +777,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsNotificationsLabel":
             MessageLookupByLibrary.simpleMessage("每日提醒"),
         "settingsNotificationsTimeLabel": m11,
+        "notificationsPermissionDeniedSnack":
+            MessageLookupByLibrary.simpleMessage("通知权限被拒绝。"),
+        "notificationsDailyReminderTitle":
+            MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
+        "notificationsDailyReminderBody":
+            MessageLookupByLibrary.simpleMessage("别忘了记录您今天的饮食！"),
         "settingsPrivacySettings": MessageLookupByLibrary.simpleMessage("隐私设置"),
         "settingsReportErrorLabel":
             MessageLookupByLibrary.simpleMessage("报告错误"),

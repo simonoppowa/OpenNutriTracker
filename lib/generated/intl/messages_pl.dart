@@ -119,15 +119,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("Równanie TDEE"),
         "caloriesProfileAveragedLabel": MessageLookupByLibrary.simpleMessage(
-            "Uśrednione odniesienie (domyślne)"),
+            "Średnia (domyślnie)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Odniesienie estrogenowe"),
+            MessageLookupByLibrary.simpleMessage("Typ estrogenowy (formuła żeńska)"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
-            "Dla osób niebinarnych domyślnie stosujemy uśrednioną wartość kaloryczną. Jeśli przyjmujesz HRT lub chcesz dokładniejszy punkt wyjścia, możesz tutaj ustawić swój profil hormonalny. To ustawienie wpływa tylko na obliczenia kalorii — nie jest nigdzie udostępniane ani pokazywane w aplikacji."),
+            "Nie istnieje opublikowana kaloryczna wartość bazowa dla osób niebinarnych — równania referencyjne opierają się na próbach męskich i żeńskich. Domyślnie używamy średniej z obu, neutralnego punktu wyjścia, który nie wymaga ujawniania niczego więcej o twoim ciele. Suwak kcal w Ustawieniach jest zawsze dostępny do dokładnej regulacji; to punkt wyjścia, a nie precyzyjne oszacowanie."),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("Odniesienie kaloryczne"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Odniesienie testosteronowe"),
+            MessageLookupByLibrary.simpleMessage("Typ testosteronowy (formuła męska)"),
         "carbohydrateLabel":
             MessageLookupByLibrary.simpleMessage("węglowodany"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("węglowodany"),
@@ -409,7 +409,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("kcal dziennie"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(
-            "Twoje dzienne zapotrzebowanie kaloryczne szacujemy jako średnią ze wzorów referencyjnych dla mężczyzn i kobiet. Możesz to skorygować w każdej chwili w Ustawieniach → Obliczenia."),
+            "Nie istnieje opublikowana kaloryczna wartość bazowa dla osób niebinarnych, więc domyślnie używamy średniej z formuł męskiej i żeńskiej — to punkt wyjścia, a nie precyzyjne oszacowanie. Możesz to skorygować w każdej chwili w Ustawieniach → Obliczenia."),
         "onboardingOverviewLabel":
             MessageLookupByLibrary.simpleMessage("Przegląd"),
         "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
@@ -915,6 +915,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsNotificationsLabel":
             MessageLookupByLibrary.simpleMessage("Codzienne przypomnienie"),
         "settingsNotificationsTimeLabel": m11,
+        "notificationsPermissionDeniedSnack":
+            MessageLookupByLibrary.simpleMessage("Odmówiono dostępu do powiadomień."),
+        "notificationsDailyReminderTitle":
+            MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
+        "notificationsDailyReminderBody":
+            MessageLookupByLibrary.simpleMessage("Nie zapomnij dziś zapisać swoich posiłków!"),
         "settingsPrivacySettings":
             MessageLookupByLibrary.simpleMessage("Ustawienia prywatności"),
         "settingsReportErrorLabel":

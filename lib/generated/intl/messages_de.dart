@@ -124,15 +124,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("TDEE-Gleichung"),
         "caloriesProfileAveragedLabel":
-            MessageLookupByLibrary.simpleMessage("Gemittelte Referenz (Standard)"),
+            MessageLookupByLibrary.simpleMessage("Mittelwert (Standard)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Östrogen-typische Referenz"),
+            MessageLookupByLibrary.simpleMessage("Östrogen-typisch (weibliche Formel)"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
-            "Für nicht-binäre Nutzer:innen verwenden wir standardmäßig einen gemittelten Kalorienwert. Wenn du eine HRT machst oder einen genaueren Ausgangswert möchtest, kannst du hier dein Hormonprofil festlegen. Diese Angabe wirkt sich nur auf die Kalorienberechnung aus – sie wird nirgendwo geteilt oder anderswo in der App angezeigt."),
+            "Es gibt keine veröffentlichte Kalorien-Grundlage für nicht-binäre Personen — die Referenzgleichungen basieren auf männlichen und weiblichen Stichproben. Wir verwenden standardmäßig den Mittelwert beider, einen neutralen Ausgangspunkt, der nichts Genaueres über deinen Körper verlangt. Der kcal-Schieberegler in den Einstellungen steht jederzeit zur Feinabstimmung zur Verfügung; dies ist ein Ausgangspunkt, keine genaue Schätzung."),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("Kalorienreferenz"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Testosteron-typische Referenz"),
+            MessageLookupByLibrary.simpleMessage("Testosteron-typisch (männliche Formel)"),
         "carbohydrateLabel":
             MessageLookupByLibrary.simpleMessage("Kohlenhydrate"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("Kohlenhydrate"),
@@ -419,7 +419,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("kcal pro Tag"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(
-            "Wir schätzen deine täglichen Kalorien als Durchschnitt der männlichen und weiblichen Referenzformeln. Du kannst dies jederzeit unter Einstellungen → Berechnungen anpassen."),
+            "Es gibt keine veröffentlichte Kalorien-Grundlage für nicht-binäre Personen. Wir verwenden standardmäßig einen Mittelwert der männlichen und weiblichen Formeln — ein Ausgangspunkt, keine genaue Schätzung. Du kannst dies jederzeit unter Einstellungen → Berechnungen anpassen."),
         "onboardingOverviewLabel":
             MessageLookupByLibrary.simpleMessage("Übersicht"),
         "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
@@ -930,6 +930,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsNotificationsLabel":
             MessageLookupByLibrary.simpleMessage("Tägliche Erinnerung"),
         "settingsNotificationsTimeLabel": m11,
+        "notificationsPermissionDeniedSnack":
+            MessageLookupByLibrary.simpleMessage("Benachrichtigungsberechtigung verweigert."),
+        "notificationsDailyReminderTitle":
+            MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
+        "notificationsDailyReminderBody":
+            MessageLookupByLibrary.simpleMessage("Vergiss nicht, heute deine Mahlzeiten zu protokollieren!"),
         "settingsPrivacySettings":
             MessageLookupByLibrary.simpleMessage("Datenschutzeinstellungen"),
         "settingsReportErrorLabel":

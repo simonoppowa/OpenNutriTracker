@@ -119,15 +119,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("Výpočet TDEE"),
         "caloriesProfileAveragedLabel": MessageLookupByLibrary.simpleMessage(
-            "Zprůměrovaná reference (výchozí)"),
+            "Průměr (výchozí)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Estrogenní reference"),
+            MessageLookupByLibrary.simpleMessage("Estrogenový typ (ženská formule)"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
-            "Pro nebinární uživatele používáme ve výchozím nastavení zprůměrovanou kalorickou referenci. Pokud užíváte HRT nebo chcete přesnější výchozí hodnotu, můžete zde nastavit svůj hormonální profil. Tato volba ovlivňuje pouze výpočet kalorií – nikde se nesdílí ani jinde v aplikaci nezobrazuje."),
+            "Pro nebinární osoby neexistuje publikovaná kalorická základní hodnota — referenční rovnice vycházejí z mužských a ženských vzorků. Standardně používáme průměr obou, neutrální výchozí bod, který od vás nevyžaduje nic dalšího sdělovat o vašem těle. Posuvník kcal v Nastavení je vždy k dispozici pro doladění; toto je výchozí bod, nikoli přesný odhad."),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("Kalorická reference"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Testosteronová reference"),
+            MessageLookupByLibrary.simpleMessage("Testosteronový typ (mužská formule)"),
         "carbohydrateLabel": MessageLookupByLibrary.simpleMessage("sacharidy"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("sacharidy"),
         "carbsLabelShort": MessageLookupByLibrary.simpleMessage("s"),
@@ -402,7 +402,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("kcal denně"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(
-            "Tvůj denní kalorický příjem odhadujeme jako průměr mužského a ženského referenčního vzorce. Kdykoli to můžeš upravit v Nastavení → Výpočty."),
+            "Pro nebinární osoby neexistuje publikovaná kalorická základní hodnota, proto standardně používáme průměr mužských a ženských vzorců — výchozí bod, nikoli přesný odhad. Kdykoli to můžeš upravit v Nastavení → Výpočty."),
         "onboardingOverviewLabel":
             MessageLookupByLibrary.simpleMessage("Přehled"),
         "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
@@ -910,6 +910,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsNotificationsLabel":
             MessageLookupByLibrary.simpleMessage("Denní připomínka"),
         "settingsNotificationsTimeLabel": m11,
+        "notificationsPermissionDeniedSnack":
+            MessageLookupByLibrary.simpleMessage("Oprávnění k upozorněním bylo odepřeno."),
+        "notificationsDailyReminderTitle":
+            MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
+        "notificationsDailyReminderBody":
+            MessageLookupByLibrary.simpleMessage("Nezapomeňte si dnes zaznamenat svá jídla!"),
         "settingsPrivacySettings":
             MessageLookupByLibrary.simpleMessage("Nastavení soukromí"),
         "settingsReportErrorLabel":

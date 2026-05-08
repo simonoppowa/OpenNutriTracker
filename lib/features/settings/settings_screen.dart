@@ -214,6 +214,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _onNotificationToggled(
       BuildContext context, bool enabled, SettingsLoadedState state) async {
+    final l10n = S.of(context);
     final notificationService = locator<NotificationService>();
     await notificationService.initialize();
     if (enabled) {
@@ -221,8 +222,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!granted) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Notification permission denied.')),
+            SnackBar(content: Text(l10n.notificationsPermissionDeniedSnack)),
           );
         }
         return;
@@ -230,8 +230,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await notificationService.scheduleDailyReminder(
         hour: state.notificationHour,
         minute: state.notificationMinute,
-        title: 'OpenNutriTracker',
-        body: 'Don\'t forget to log your meals today!',
+        title: l10n.notificationsDailyReminderTitle,
+        body: l10n.notificationsDailyReminderBody,
       );
     } else {
       await notificationService.cancelDailyReminder();
@@ -242,6 +242,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _pickNotificationTime(
       BuildContext context, TimeOfDay current) async {
+    final l10n = S.of(context);
     final picked = await showTimePicker(
       context: context,
       initialTime: current,
@@ -252,8 +253,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await notificationService.scheduleDailyReminder(
       hour: picked.hour,
       minute: picked.minute,
-      title: 'OpenNutriTracker',
-      body: 'Don\'t forget to log your meals today!',
+      title: l10n.notificationsDailyReminderTitle,
+      body: l10n.notificationsDailyReminderBody,
     );
     _settingsBloc.add(LoadSettingsEvent());
   }

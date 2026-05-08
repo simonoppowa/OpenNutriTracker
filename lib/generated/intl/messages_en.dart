@@ -118,15 +118,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("TDEE equation"),
         "caloriesProfileAveragedLabel":
-            MessageLookupByLibrary.simpleMessage("Averaged reference (default)"),
+            MessageLookupByLibrary.simpleMessage("Averaged (default)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Estrogen-typical reference"),
+            MessageLookupByLibrary.simpleMessage("Estrogen-typical (female formula)"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
-            "We use an averaged calorie reference for non-binary users by default. If you're on HRT or want a more accurate starting point, you can set your hormone profile here. This affects only the calorie calculation — it isn't shared anywhere or shown elsewhere in the app."),
+            "There isn\'t a published non-binary calorie baseline — the reference equations are built around male and female samples. We use an average of the two by default, a neutral starting point that doesn\'t ask you to disclose more about your body. The kcal slider in Settings is always available to fine-tune; this is a starting point, not a precise estimate."),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("Calorie reference"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Testosterone-typical reference"),
+            MessageLookupByLibrary.simpleMessage("Testosterone-typical (male formula)"),
         "carbohydrateLabel":
             MessageLookupByLibrary.simpleMessage("carbohydrate"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("carbs"),
@@ -384,7 +384,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("kcal per day"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(
-            "We estimate your daily calories using an average of the male and female reference formulas. You can fine-tune this anytime in Settings → Calculations."),
+            "There\'s no published non-binary calorie baseline, so by default we use an average of the male and female formulas — a starting point, not a precise estimate. You can fine-tune anytime in Settings → Calculations."),
         "onboardingOverviewLabel":
             MessageLookupByLibrary.simpleMessage("Overview"),
         "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
@@ -904,6 +904,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsNotificationsLabel":
             MessageLookupByLibrary.simpleMessage("Daily Reminder"),
         "settingsNotificationsTimeLabel": m11,
+        "notificationsPermissionDeniedSnack":
+            MessageLookupByLibrary.simpleMessage("Notification permission denied."),
+        "notificationsDailyReminderTitle":
+            MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
+        "notificationsDailyReminderBody":
+            MessageLookupByLibrary.simpleMessage("Don\'t forget to log your meals today!"),
         "settingsReportErrorLabel":
             MessageLookupByLibrary.simpleMessage("Report Error"),
         "settingsShowActivityTracking":

@@ -120,15 +120,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("TDEE denklemi"),
         "caloriesProfileAveragedLabel":
-            MessageLookupByLibrary.simpleMessage("Ortalanmış referans (varsayılan)"),
+            MessageLookupByLibrary.simpleMessage("Ortalama (varsayılan)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Östrojen tipi referans"),
+            MessageLookupByLibrary.simpleMessage("Östrojen-tipi (kadın formülü)"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
-            "İkili olmayan kullanıcılar için varsayılan olarak ortalanmış bir kalori referansı kullanırız. HRT alıyorsanız veya daha doğru bir başlangıç noktası istiyorsanız hormon profilinizi buradan ayarlayabilirsiniz. Bu seçim yalnızca kalori hesaplamasını etkiler — uygulamada başka bir yerde paylaşılmaz veya gösterilmez."),
+            "Non-binary bireyler için yayımlanmış bir kalori temeli bulunmuyor — referans denklemler erkek ve kadın örneklerine dayanır. Varsayılan olarak ikisinin ortalamasını kullanıyoruz; vücudunuz hakkında daha fazlasını açıklamanızı istemeyen tarafsız bir başlangıç noktası. Ayarlar\'daki kcal kaydırıcısı ince ayar için her zaman kullanılabilir; bu kesin bir tahmin değil, bir başlangıç noktasıdır."),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("Kalori referansı"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Testosteron tipi referans"),
+            MessageLookupByLibrary.simpleMessage("Testosteron-tipi (erkek formülü)"),
         "carbohydrateLabel":
             MessageLookupByLibrary.simpleMessage("karbonhidrat"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("karbonhidrat"),
@@ -408,7 +408,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("günlük kcal"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(
-            "Günlük kalori ihtiyacını erkek ve kadın referans formüllerinin ortalaması olarak hesaplıyoruz. Ayarlar → Hesaplamalar bölümünden istediğin zaman ince ayar yapabilirsin."),
+            "Non-binary bireyler için yayımlanmış bir kalori temeli bulunmuyor, bu nedenle varsayılan olarak erkek ve kadın formüllerinin ortalamasını kullanıyoruz — bir başlangıç noktası, kesin bir tahmin değil. Ayarlar → Hesaplamalar bölümünden istediğin zaman ince ayar yapabilirsin."),
         "onboardingOverviewLabel":
             MessageLookupByLibrary.simpleMessage("Genel Bakış"),
         "onboardingSaveUserError": MessageLookupByLibrary.simpleMessage(
@@ -898,6 +898,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsNotificationsLabel":
             MessageLookupByLibrary.simpleMessage("Günlük Hatırlatıcı"),
         "settingsNotificationsTimeLabel": m11,
+        "notificationsPermissionDeniedSnack":
+            MessageLookupByLibrary.simpleMessage("Bildirim izni reddedildi."),
+        "notificationsDailyReminderTitle":
+            MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
+        "notificationsDailyReminderBody":
+            MessageLookupByLibrary.simpleMessage("Bugün öğünlerinizi kaydetmeyi unutmayın!"),
         "settingsPrivacySettings":
             MessageLookupByLibrary.simpleMessage("Gizlilik Ayarları"),
         "settingsReportErrorLabel":
