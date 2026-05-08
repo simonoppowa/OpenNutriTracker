@@ -119,15 +119,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("Równanie TDEE"),
         "caloriesProfileAveragedLabel": MessageLookupByLibrary.simpleMessage(
-            "Średnia (domyślnie)"),
+            "Uśrednione odniesienie (domyślne)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Typ estrogenowy (formuła żeńska)"),
+            MessageLookupByLibrary.simpleMessage("Odniesienie estrogenowe"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
             "Nie istnieje opublikowana kaloryczna wartość bazowa dla osób niebinarnych — równania referencyjne opierają się na próbach męskich i żeńskich. Domyślnie używamy średniej z obu, neutralnego punktu wyjścia, który nie wymaga ujawniania niczego więcej o twoim ciele. Suwak kcal w Ustawieniach jest zawsze dostępny do dokładnej regulacji; to punkt wyjścia, a nie precyzyjne oszacowanie."),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("Odniesienie kaloryczne"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Typ testosteronowy (formuła męska)"),
+            MessageLookupByLibrary.simpleMessage("Odniesienie testosteronowe"),
         "carbohydrateLabel":
             MessageLookupByLibrary.simpleMessage("węglowodany"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("węglowodany"),

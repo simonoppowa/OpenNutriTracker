@@ -3203,30 +3203,30 @@ class S {
     );
   }
 
-  /// `Averaged (default)`
+  /// `Averaged reference (default)`
   String get caloriesProfileAveragedLabel {
     return Intl.message(
-      'Averaged (default)',
+      'Averaged reference (default)',
       name: 'caloriesProfileAveragedLabel',
       desc: '',
       args: [],
     );
   }
 
-  /// `Estrogen-typical (female formula)`
+  /// `Estrogen-typical reference`
   String get caloriesProfileEstrogenTypicalLabel {
     return Intl.message(
-      'Estrogen-typical (female formula)',
+      'Estrogen-typical reference',
       name: 'caloriesProfileEstrogenTypicalLabel',
       desc: '',
       args: [],
     );
   }
 
-  /// `Testosterone-typical (male formula)`
+  /// `Testosterone-typical reference`
   String get caloriesProfileTestosteroneTypicalLabel {
     return Intl.message(
-      'Testosterone-typical (male formula)',
+      'Testosterone-typical reference',
       name: 'caloriesProfileTestosteroneTypicalLabel',
       desc: '',
       args: [],

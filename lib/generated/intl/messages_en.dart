@@ -118,15 +118,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("TDEE equation"),
         "caloriesProfileAveragedLabel":
-            MessageLookupByLibrary.simpleMessage("Averaged (default)"),
+            MessageLookupByLibrary.simpleMessage("Averaged reference (default)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Estrogen-typical (female formula)"),
+            MessageLookupByLibrary.simpleMessage("Estrogen-typical reference"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
             "There isn\'t a published non-binary calorie baseline — the reference equations are built around male and female samples. We use an average of the two by default, a neutral starting point that doesn\'t ask you to disclose more about your body. The kcal slider in Settings is always available to fine-tune; this is a starting point, not a precise estimate."),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("Calorie reference"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Testosterone-typical (male formula)"),
+            MessageLookupByLibrary.simpleMessage("Testosterone-typical reference"),
         "carbohydrateLabel":
             MessageLookupByLibrary.simpleMessage("carbohydrate"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("carbs"),

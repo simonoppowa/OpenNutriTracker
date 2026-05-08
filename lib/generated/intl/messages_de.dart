@@ -124,15 +124,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("TDEE-Gleichung"),
         "caloriesProfileAveragedLabel":
-            MessageLookupByLibrary.simpleMessage("Mittelwert (Standard)"),
+            MessageLookupByLibrary.simpleMessage("Gemittelte Referenz (Standard)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Östrogen-typisch (weibliche Formel)"),
+            MessageLookupByLibrary.simpleMessage("Östrogen-typische Referenz"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
             "Es gibt keine veröffentlichte Kalorien-Grundlage für nicht-binäre Personen — die Referenzgleichungen basieren auf männlichen und weiblichen Stichproben. Wir verwenden standardmäßig den Mittelwert beider, einen neutralen Ausgangspunkt, der nichts Genaueres über deinen Körper verlangt. Der kcal-Schieberegler in den Einstellungen steht jederzeit zur Feinabstimmung zur Verfügung; dies ist ein Ausgangspunkt, keine genaue Schätzung."),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("Kalorienreferenz"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Testosteron-typisch (männliche Formel)"),
+            MessageLookupByLibrary.simpleMessage("Testosteron-typische Referenz"),
         "carbohydrateLabel":
             MessageLookupByLibrary.simpleMessage("Kohlenhydrate"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("Kohlenhydrate"),

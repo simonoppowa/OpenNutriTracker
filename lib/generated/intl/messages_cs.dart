@@ -119,15 +119,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("Výpočet TDEE"),
         "caloriesProfileAveragedLabel": MessageLookupByLibrary.simpleMessage(
-            "Průměr (výchozí)"),
+            "Zprůměrovaná reference (výchozí)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Estrogenový typ (ženská formule)"),
+            MessageLookupByLibrary.simpleMessage("Estrogenní reference"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
             "Pro nebinární osoby neexistuje publikovaná kalorická základní hodnota — referenční rovnice vycházejí z mužských a ženských vzorků. Standardně používáme průměr obou, neutrální výchozí bod, který od vás nevyžaduje nic dalšího sdělovat o vašem těle. Posuvník kcal v Nastavení je vždy k dispozici pro doladění; toto je výchozí bod, nikoli přesný odhad."),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("Kalorická reference"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Testosteronový typ (mužská formule)"),
+            MessageLookupByLibrary.simpleMessage("Testosteronová reference"),
         "carbohydrateLabel": MessageLookupByLibrary.simpleMessage("sacharidy"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("sacharidy"),
         "carbsLabelShort": MessageLookupByLibrary.simpleMessage("s"),

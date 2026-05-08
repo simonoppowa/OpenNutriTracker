@@ -120,15 +120,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("Equazione TDEE"),
         "caloriesProfileAveragedLabel":
-            MessageLookupByLibrary.simpleMessage("Media (predefinito)"),
+            MessageLookupByLibrary.simpleMessage("Riferimento medio (predefinito)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Tipico estrogeno (formula femminile)"),
+            MessageLookupByLibrary.simpleMessage("Riferimento di tipo estrogenico"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
             "Non esiste una base calorica pubblicata per persone non binarie — le equazioni di riferimento si basano su campioni maschili e femminili. Per impostazione predefinita usiamo la media delle due, un punto di partenza neutrale che non ti chiede di rivelare nulla in più sul tuo corpo. Il cursore kcal in Impostazioni è sempre disponibile per la regolazione fine; questo è un punto di partenza, non una stima precisa."),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("Riferimento calorie"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Tipico testosterone (formula maschile)"),
+            MessageLookupByLibrary.simpleMessage("Riferimento di tipo testosteronico"),
         "carbohydrateLabel":
             MessageLookupByLibrary.simpleMessage("carboidrati"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("carboidrati"),

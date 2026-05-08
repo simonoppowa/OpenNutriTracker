@@ -120,15 +120,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("TDEE denklemi"),
         "caloriesProfileAveragedLabel":
-            MessageLookupByLibrary.simpleMessage("Ortalama (varsayılan)"),
+            MessageLookupByLibrary.simpleMessage("Ortalanmış referans (varsayılan)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Östrojen-tipi (kadın formülü)"),
+            MessageLookupByLibrary.simpleMessage("Östrojen tipi referans"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
             "Non-binary bireyler için yayımlanmış bir kalori temeli bulunmuyor — referans denklemler erkek ve kadın örneklerine dayanır. Varsayılan olarak ikisinin ortalamasını kullanıyoruz; vücudunuz hakkında daha fazlasını açıklamanızı istemeyen tarafsız bir başlangıç noktası. Ayarlar\'daki kcal kaydırıcısı ince ayar için her zaman kullanılabilir; bu kesin bir tahmin değil, bir başlangıç noktasıdır."),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("Kalori referansı"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Testosteron-tipi (erkek formülü)"),
+            MessageLookupByLibrary.simpleMessage("Testosteron tipi referans"),
         "carbohydrateLabel":
             MessageLookupByLibrary.simpleMessage("karbonhidrat"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("karbonhidrat"),

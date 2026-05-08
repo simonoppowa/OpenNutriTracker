@@ -119,15 +119,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("Розрахунок TDEE"),
         "caloriesProfileAveragedLabel": MessageLookupByLibrary.simpleMessage(
-            "Середнє (за замовчуванням)"),
+            "Усереднена референція (за замовчуванням)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Естрогеновий тип (жіноча формула)"),
+            MessageLookupByLibrary.simpleMessage("Естрогенова референція"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
             "Опублікованої калорійної основи для небінарних людей не існує — рівняння-зразки побудовані на чоловічих і жіночих вибірках. За замовчуванням ми використовуємо середнє двох — нейтральну відправну точку, яка не вимагає від вас розкривати більше про ваше тіло. Повзунок ккал у Налаштуваннях завжди доступний для тонкого налаштування; це відправна точка, а не точна оцінка."),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("Калорійна референція"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("Тестостероновий тип (чоловіча формула)"),
+            MessageLookupByLibrary.simpleMessage("Тестостеронова референція"),
         "carbohydrateLabel": MessageLookupByLibrary.simpleMessage("вуглеводи"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("вуглеводи"),
         "carbsLabelShort": MessageLookupByLibrary.simpleMessage("в"),

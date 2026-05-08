@@ -114,15 +114,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("TDEE方程式"),
         "caloriesProfileAveragedLabel":
-            MessageLookupByLibrary.simpleMessage("平均值（默认）"),
+            MessageLookupByLibrary.simpleMessage("平均参考(默认)"),
         "caloriesProfileEstrogenTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("雌激素型（女性公式）"),
+            MessageLookupByLibrary.simpleMessage("雌激素型参考"),
         "caloriesProfileInfoBody": MessageLookupByLibrary.simpleMessage(
             "目前没有公开的非二元性别热量基准——参考方程是基于男性和女性样本建立的。我们默认使用两者的平均值作为中性起点，不会要求您透露更多关于您身体的信息。设置中的千卡滑块始终可用于精细调整；这只是一个起点，并非精确估算。"),
         "caloriesProfileInfoTitle":
             MessageLookupByLibrary.simpleMessage("热量参考"),
         "caloriesProfileTestosteroneTypicalLabel":
-            MessageLookupByLibrary.simpleMessage("睾酮型（男性公式）"),
+            MessageLookupByLibrary.simpleMessage("睾酮型参考"),
         "carbohydrateLabel": MessageLookupByLibrary.simpleMessage("碳水化合物"),
         "carbsLabel": MessageLookupByLibrary.simpleMessage("碳水"),
         "carbsLabelShort": MessageLookupByLibrary.simpleMessage("碳"),
