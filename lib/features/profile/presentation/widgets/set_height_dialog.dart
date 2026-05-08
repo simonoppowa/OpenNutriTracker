@@ -68,7 +68,7 @@ class _SetHeightDialogState extends State<SetHeightDialog> {
         ),
         TextButton(
           onPressed: () {
-            final hardMax = widget.usesImperialUnits ? 15.0 : 457.0;
+            final hardMax = absoluteMaxHeight(widget.usesImperialUnits);
             Navigator.pop(context, selectedHeight.clamp(minHeight, hardMax));
           },
           child: Text(S.of(context).dialogOKLabel),

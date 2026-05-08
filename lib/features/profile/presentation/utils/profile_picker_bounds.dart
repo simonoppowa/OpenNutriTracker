@@ -6,6 +6,11 @@ const _weightRangeKg = 50.0;
 const _weightRangeLbs = 100.0;
 const _minHeight = 1.0;
 const _minWeight = 1.0;
+const _maxHeightCm = 457.0; // ~15 ft, well above any recorded human height
+const _maxHeightFt = 15.0;
+
+double absoluteMaxHeight(bool usesImperialUnits) =>
+    usesImperialUnits ? _maxHeightFt : _maxHeightCm;
 
 double minSelectableHeight(double userHeight, bool usesImperialUnits) {
   final range = usesImperialUnits ? _heightRangeFt : _heightRangeCm;
