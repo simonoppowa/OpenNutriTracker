@@ -5,9 +5,9 @@ import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// A physical activity with it's measured MET value by the
-/// '2024 Compendium of Physical Activities'
-/// https://doi.org/10.1249/MSS.0000000000003624
-/// by Strath et al. / Ainsworth et al.
+/// '2024 Adult Compendium of Physical Activities'
+/// https://pubmed.ncbi.nlm.nih.gov/38242596/
+/// by Herrmann et al.
 class PhysicalActivityEntity extends Equatable {
   final String code;
   final String specificActivity;

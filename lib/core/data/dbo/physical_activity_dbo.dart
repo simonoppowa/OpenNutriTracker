@@ -5,9 +5,9 @@ import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dar
 part 'physical_activity_dbo.g.dart';
 
 /// A physical activity with it's measured MET value by the
-/// '2011 Compendium of Physical Activities'
-/// https://pubmed.ncbi.nlm.nih.gov/21681120/
-/// by Ainsworth et al.
+/// '2024 Adult Compendium of Physical Activities'
+/// https://pubmed.ncbi.nlm.nih.gov/38242596/
+/// by Herrmann et al.
 @HiveType(typeId: 11)
 @JsonSerializable()
 class PhysicalActivityDBO {
