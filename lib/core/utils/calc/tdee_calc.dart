@@ -27,10 +27,19 @@ class TDEECalc {
   /// https://nap.nationalacademies.org/catalog/10490/dietary-reference-intakes-for-energy-carbohydrate-fiber-fat-fatty-acids-cholesterol-protein-and-amino-acids
   ///
   /// For non-binary users without an explicit hormone profile, the result is
-  /// the mean of the male / female reference outputs. Users on HRT (or who
-  /// otherwise want a more accurate starting point) can opt into the
-  /// estrogen-typical or testosterone-typical reference via the calorie-profile
-  /// setting; either choice routes through the existing male/female formula.
+  /// the mean of the male / female reference outputs. This is a comfort and
+  /// privacy choice rather than a statistical claim. The IOM 2005 equations
+  /// are sex-stratified and there isn't a published non-binary baseline; any
+  /// single default we picked would be making a claim the source data doesn't
+  /// support. Averaging produces a neutral midpoint bounded by the two
+  /// reference outputs, and lets a non-binary user use the app without having
+  /// to disclose whether their profile is estrogen- or testosterone-dominant.
+  ///
+  /// Users who want a closer estimate can opt into the estrogenTypical or
+  /// testosteroneTypical reference via the calorie-profile setting; either
+  /// choice routes through the existing male / female formula. The kcal offset
+  /// slider in Settings is available for further fine-tuning regardless of
+  /// which profile is selected.
   static double getTDEEKcalIOM2005(UserEntity userEntity) {
     final palValue = PalCalc.getPALValueFromActivityCategory(userEntity);
     switch (userEntity.gender) {
