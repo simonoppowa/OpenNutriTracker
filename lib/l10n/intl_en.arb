@@ -665,5 +665,11 @@
   "paCrossCountrySkiing": "cross-country skiing",
   "paCrossCountrySkiingDesc": "cross-country, general",
   "paSnowshoeing": "snowshoeing",
-  "settingsLanguageLabel": "Language"
+  "settingsLanguageLabel": "Language",
+  "diarySortByLabel": "Sort by",
+  "diarySortByTime": "Time added",
+  "diarySortByKcal": "Calories (high to low)",
+  "diarySortByProtein": "Protein (high to low)",
+  "diarySortByCarbs": "Carbs (high to low)",
+  "diarySortByFat": "Fat (high to low)"
 }

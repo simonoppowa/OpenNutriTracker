@@ -10,10 +10,11 @@ import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-class DayInfoWidget extends StatelessWidget {
+class DayInfoWidget extends StatefulWidget {
   final DateTime selectedDay;
   final TrackedDayEntity? trackedDayEntity;
   final List<UserActivityEntity> userActivities;
@@ -64,15 +65,37 @@ class DayInfoWidget extends StatelessWidget {
   });
 
   @override
+  State<DayInfoWidget> createState() => _DayInfoWidgetState();
+}
+
+class _DayInfoWidgetState extends State<DayInfoWidget> {
+  // Per-meal sort selection. Lives in widget state — resets when the user
+  // navigates away from the diary, which is documented behaviour for now.
+  // If we hear that people want this remembered across sessions we can lift
+  // it onto ConfigDBO behind a single new field.
+  final Map<IntakeTypeEntity, DiarySortType> _sortByMeal = {
+    IntakeTypeEntity.breakfast: DiarySortType.timeAdded,
+    IntakeTypeEntity.lunch: DiarySortType.timeAdded,
+    IntakeTypeEntity.dinner: DiarySortType.timeAdded,
+    IntakeTypeEntity.snack: DiarySortType.timeAdded,
+  };
+
+  void _setSortFor(IntakeTypeEntity mealType, DiarySortType sortType) {
+    setState(() {
+      _sortByMeal[mealType] = sortType;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final trackedDay = trackedDayEntity;
+    final trackedDay = widget.trackedDayEntity;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
-            DateFormat.yMMMMEEEEd().format(selectedDay),
+            DateFormat.yMMMMEEEEd().format(widget.selectedDay),
             style: Theme.of(context).textTheme.headlineSmall,
           ),
         ),
@@ -102,7 +125,7 @@ class DayInfoWidget extends StatelessWidget {
                         Card(
                           elevation: 0.0,
                           margin: const EdgeInsets.all(0.0),
-                          color: trackedDayEntity
+                          color: widget.trackedDayEntity
                               ?.getRatingDayTextBackgroundColor(context),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -114,10 +137,8 @@ class DayInfoWidget extends StatelessWidget {
                               style: Theme.of(
                                 context,
                               ).textTheme.titleLarge?.copyWith(
-                                    color:
-                                        trackedDayEntity?.getRatingDayTextColor(
-                                      context,
-                                    ),
+                                    color: widget.trackedDayEntity
+                                        ?.getRatingDayTextColor(context),
                                     fontWeight: FontWeight.bold,
                                   ),
                             ),
@@ -143,83 +164,99 @@ class DayInfoWidget extends StatelessWidget {
                 : const SizedBox(),
             const SizedBox(height: 8.0),
             ActivityVerticalList(
-              day: selectedDay,
+              day: widget.selectedDay,
               title: S.of(context).activityLabel,
-              userActivityList: userActivities,
+              userActivityList: widget.userActivities,
               onItemLongPressedCallback: onActivityItemLongPressed,
-              onItemTappedCallback: onEditActivity,
+              onItemTappedCallback: widget.onEditActivity,
               onCopyActivityCallback:
-                  DateUtils.isSameDay(selectedDay, DateTime.now())
+                  DateUtils.isSameDay(widget.selectedDay, DateTime.now())
                       ? null
                       : (activity) =>
-                          onCopyActivity(activity, trackedDayEntity),
+                          widget.onCopyActivity(activity, widget.trackedDayEntity),
             ),
             IntakeVerticalList(
-              day: selectedDay,
+              day: widget.selectedDay,
               title: S.of(context).breakfastLabel,
               listIcon: Icons.bakery_dining_outlined,
               addMealType: AddMealType.breakfastType,
-              intakeList: breakfastIntake,
-              onDeleteIntakeCallback: onDeleteIntake,
+              intakeList: _sortByMeal[IntakeTypeEntity.breakfast]!
+                  .apply(widget.breakfastIntake),
+              onDeleteIntakeCallback: widget.onDeleteIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
-              onItemTappedCallback: onEditIntake,
+              onItemTappedCallback: widget.onEditIntake,
               onCopyIntakeCallback:
-                  DateUtils.isSameDay(selectedDay, DateTime.now())
+                  DateUtils.isSameDay(widget.selectedDay, DateTime.now())
                       ? null
-                      : onCopyIntake,
-              usesImperialUnits: usesImperialUnits,
-              showMealMacros: showMealMacros,
+                      : widget.onCopyIntake,
+              usesImperialUnits: widget.usesImperialUnits,
+              showMealMacros: widget.showMealMacros,
               trackedDayEntity: trackedDay,
+              sortType: _sortByMeal[IntakeTypeEntity.breakfast],
+              onSortTypeChanged: (sort) =>
+                  _setSortFor(IntakeTypeEntity.breakfast, sort),
             ),
             IntakeVerticalList(
-              day: selectedDay,
+              day: widget.selectedDay,
               title: S.of(context).lunchLabel,
               listIcon: Icons.lunch_dining_outlined,
               addMealType: AddMealType.lunchType,
-              intakeList: lunchIntake,
-              onDeleteIntakeCallback: onDeleteIntake,
+              intakeList: _sortByMeal[IntakeTypeEntity.lunch]!
+                  .apply(widget.lunchIntake),
+              onDeleteIntakeCallback: widget.onDeleteIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
-              onItemTappedCallback: onEditIntake,
-              usesImperialUnits: usesImperialUnits,
-              showMealMacros: showMealMacros,
+              onItemTappedCallback: widget.onEditIntake,
+              usesImperialUnits: widget.usesImperialUnits,
+              showMealMacros: widget.showMealMacros,
               onCopyIntakeCallback:
-                  DateUtils.isSameDay(selectedDay, DateTime.now())
+                  DateUtils.isSameDay(widget.selectedDay, DateTime.now())
                       ? null
-                      : onCopyIntake,
+                      : widget.onCopyIntake,
               trackedDayEntity: trackedDay,
+              sortType: _sortByMeal[IntakeTypeEntity.lunch],
+              onSortTypeChanged: (sort) =>
+                  _setSortFor(IntakeTypeEntity.lunch, sort),
             ),
             IntakeVerticalList(
-              day: selectedDay,
+              day: widget.selectedDay,
               title: S.of(context).dinnerLabel,
               listIcon: Icons.dinner_dining_outlined,
               addMealType: AddMealType.dinnerType,
-              intakeList: dinnerIntake,
-              onDeleteIntakeCallback: onDeleteIntake,
+              intakeList: _sortByMeal[IntakeTypeEntity.dinner]!
+                  .apply(widget.dinnerIntake),
+              onDeleteIntakeCallback: widget.onDeleteIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
-              onItemTappedCallback: onEditIntake,
+              onItemTappedCallback: widget.onEditIntake,
               onCopyIntakeCallback:
-                  DateUtils.isSameDay(selectedDay, DateTime.now())
+                  DateUtils.isSameDay(widget.selectedDay, DateTime.now())
                       ? null
-                      : onCopyIntake,
-              usesImperialUnits: usesImperialUnits,
-              showMealMacros: showMealMacros,
+                      : widget.onCopyIntake,
+              usesImperialUnits: widget.usesImperialUnits,
+              showMealMacros: widget.showMealMacros,
+              sortType: _sortByMeal[IntakeTypeEntity.dinner],
+              onSortTypeChanged: (sort) =>
+                  _setSortFor(IntakeTypeEntity.dinner, sort),
             ),
             IntakeVerticalList(
-              day: selectedDay,
+              day: widget.selectedDay,
               title: S.of(context).snackLabel,
               listIcon: CustomIcons.food_apple_outline,
               addMealType: AddMealType.snackType,
-              intakeList: snackIntake,
-              onDeleteIntakeCallback: onDeleteIntake,
+              intakeList: _sortByMeal[IntakeTypeEntity.snack]!
+                  .apply(widget.snackIntake),
+              onDeleteIntakeCallback: widget.onDeleteIntake,
               onItemLongPressedCallback: onIntakeItemLongPressed,
-              onItemTappedCallback: onEditIntake,
-              usesImperialUnits: usesImperialUnits,
-              showMealMacros: showMealMacros,
+              onItemTappedCallback: widget.onEditIntake,
+              usesImperialUnits: widget.usesImperialUnits,
+              showMealMacros: widget.showMealMacros,
               onCopyIntakeCallback:
-                  DateUtils.isSameDay(selectedDay, DateTime.now())
+                  DateUtils.isSameDay(widget.selectedDay, DateTime.now())
                       ? null
-                      : onCopyIntake,
+                      : widget.onCopyIntake,
               trackedDayEntity: trackedDay,
+              sortType: _sortByMeal[IntakeTypeEntity.snack],
+              onSortTypeChanged: (sort) =>
+                  _setSortFor(IntakeTypeEntity.snack, sort),
             ),
             const SizedBox(height: 16.0),
           ],
@@ -229,8 +266,12 @@ class DayInfoWidget extends StatelessWidget {
   }
 
   // #182: Compute from actual intakes instead of stale cached values
-  List<IntakeEntity> get _allIntakes =>
-      [...breakfastIntake, ...lunchIntake, ...dinnerIntake, ...snackIntake];
+  List<IntakeEntity> get _allIntakes => [
+        ...widget.breakfastIntake,
+        ...widget.lunchIntake,
+        ...widget.dinnerIntake,
+        ...widget.snackIntake,
+      ];
 
   String _getCaloriesTrackedDisplayString(TrackedDayEntity trackedDay) {
     final actualKcal = _allIntakes.fold(0.0, (sum, i) => sum + i.totalKcal);
@@ -286,7 +327,7 @@ class DayInfoWidget extends StatelessWidget {
       builder: (context) => copyDialog,
     );
     if (selectedMealType != null) {
-      onCopyIntake(intakeEntity, null, selectedMealType);
+      widget.onCopyIntake(intakeEntity, null, selectedMealType);
     }
   }
 
@@ -299,7 +340,7 @@ class DayInfoWidget extends StatelessWidget {
       builder: (context) => const DeleteDialog(),
     );
     if (shouldDeleteIntake != null) {
-      onDeleteIntake(intakeEntity, trackedDayEntity);
+      widget.onDeleteIntake(intakeEntity, widget.trackedDayEntity);
     }
   }
 
@@ -307,7 +348,7 @@ class DayInfoWidget extends StatelessWidget {
     BuildContext context,
     IntakeEntity intakeEntity,
   ) async {
-    if (DateUtils.isSameDay(selectedDay, DateTime.now())) {
+    if (DateUtils.isSameDay(widget.selectedDay, DateTime.now())) {
       showDeleteIntakeDialog(context, intakeEntity);
     } else {
       showCopyOrDeleteIntakeDialog(context, intakeEntity);
@@ -318,13 +359,13 @@ class DayInfoWidget extends StatelessWidget {
     BuildContext context,
     UserActivityEntity activityEntity,
   ) async {
-    if (DateUtils.isSameDay(selectedDay, DateTime.now())) {
+    if (DateUtils.isSameDay(widget.selectedDay, DateTime.now())) {
       final shouldDelete = await showDialog<bool>(
         context: context,
         builder: (context) => const DeleteDialog(),
       );
       if (shouldDelete != null) {
-        onDeleteActivity(activityEntity, trackedDayEntity);
+        widget.onDeleteActivity(activityEntity, widget.trackedDayEntity);
       }
     } else {
       final copyOrDelete = await showDialog<bool>(
@@ -333,9 +374,9 @@ class DayInfoWidget extends StatelessWidget {
       );
       if (context.mounted) {
         if (copyOrDelete == false) {
-          onDeleteActivity(activityEntity, trackedDayEntity);
+          widget.onDeleteActivity(activityEntity, widget.trackedDayEntity);
         } else if (copyOrDelete == true) {
-          onCopyActivity(activityEntity, trackedDayEntity);
+          widget.onCopyActivity(activityEntity, widget.trackedDayEntity);
         }
       }
     }

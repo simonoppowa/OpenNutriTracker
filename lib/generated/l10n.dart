@@ -2023,6 +2023,66 @@ class S {
     );
   }
 
+  /// `Sort by`
+  String get diarySortByLabel {
+    return Intl.message(
+      'Sort by',
+      name: 'diarySortByLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Time added`
+  String get diarySortByTime {
+    return Intl.message(
+      'Time added',
+      name: 'diarySortByTime',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Calories (high to low)`
+  String get diarySortByKcal {
+    return Intl.message(
+      'Calories (high to low)',
+      name: 'diarySortByKcal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Protein (high to low)`
+  String get diarySortByProtein {
+    return Intl.message(
+      'Protein (high to low)',
+      name: 'diarySortByProtein',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Carbs (high to low)`
+  String get diarySortByCarbs {
+    return Intl.message(
+      'Carbs (high to low)',
+      name: 'diarySortByCarbs',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fat (high to low)`
+  String get diarySortByFat {
+    return Intl.message(
+      'Fat (high to low)',
+      name: 'diarySortByFat',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Delete Item?`
   String get deleteTimeDialogTitle {
     return Intl.message(

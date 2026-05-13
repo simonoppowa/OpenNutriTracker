@@ -198,6 +198,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Ви редагуєте майбутню дату"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Щоденник"),
+        "diarySortByCarbs":
+            MessageLookupByLibrary.simpleMessage("Вуглеводи (за спаданням)"),
+        "diarySortByFat":
+            MessageLookupByLibrary.simpleMessage("Жири (за спаданням)"),
+        "diarySortByKcal":
+            MessageLookupByLibrary.simpleMessage("Калорії (за спаданням)"),
+        "diarySortByLabel":
+            MessageLookupByLibrary.simpleMessage("Сортувати за"),
+        "diarySortByProtein":
+            MessageLookupByLibrary.simpleMessage("Білки (за спаданням)"),
+        "diarySortByTime":
+            MessageLookupByLibrary.simpleMessage("Часом додавання"),
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
             "наприклад, суп, курка, вино ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Вечеря"),

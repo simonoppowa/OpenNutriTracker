@@ -197,6 +197,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Upravujete datum v budoucnosti"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diář"),
+        "diarySortByCarbs":
+            MessageLookupByLibrary.simpleMessage("Sacharidy (sestupně)"),
+        "diarySortByFat":
+            MessageLookupByLibrary.simpleMessage("Tuky (sestupně)"),
+        "diarySortByKcal":
+            MessageLookupByLibrary.simpleMessage("Kalorie (sestupně)"),
+        "diarySortByLabel":
+            MessageLookupByLibrary.simpleMessage("Řadit podle"),
+        "diarySortByProtein":
+            MessageLookupByLibrary.simpleMessage("Bílkoviny (sestupně)"),
+        "diarySortByTime":
+            MessageLookupByLibrary.simpleMessage("Času přidání"),
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
             "např. polévka, kuřecí maso, víno..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Večeře"),

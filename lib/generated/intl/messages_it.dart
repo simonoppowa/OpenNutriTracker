@@ -199,6 +199,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Stai modificando una data futura"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diario"),
+        "diarySortByCarbs": MessageLookupByLibrary.simpleMessage(
+            "Carboidrati (dal più alto al più basso)"),
+        "diarySortByFat": MessageLookupByLibrary.simpleMessage(
+            "Grassi (dal più alto al più basso)"),
+        "diarySortByKcal": MessageLookupByLibrary.simpleMessage(
+            "Calorie (dal più alto al più basso)"),
+        "diarySortByLabel": MessageLookupByLibrary.simpleMessage("Ordina per"),
+        "diarySortByProtein": MessageLookupByLibrary.simpleMessage(
+            "Proteine (dal più alto al più basso)"),
+        "diarySortByTime":
+            MessageLookupByLibrary.simpleMessage("Ora di aggiunta"),
         "dinnerExample":
             MessageLookupByLibrary.simpleMessage("es. zuppa, pollo, vino ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Cena"),
