@@ -53,6 +53,24 @@ See [Data Protection](https://www.iubenda.com/privacy-policy/53501884)
 - ~~Add Imperial unit support~~
 - Add support for Material You themes
 
+## Verifying APK signatures
+
+If you are side-loading an OpenNutriTracker APK from GitHub Releases — or from F-Droid, once the app is published there — you may reasonably want to confirm that the file you downloaded was signed by the same key the maintainer uses for every release, rather than by someone who intercepted the download or repackaged the app. The check below is for anyone who would like that extra reassurance before installing.
+
+The official SHA256 fingerprint of the Android release signing certificate is:
+
+```
+TODO(simon): paste fingerprint from release keystore — see "Generating the SHA256 fingerprint" in RELEASE.md
+```
+
+To verify a downloaded APK against that fingerprint, run:
+
+```sh
+apksigner verify --print-certs /path/to/opennutritracker.apk
+```
+
+The `SHA-256` line in the output should match the value above exactly.
+
 ## Contribution
 Contributions to OpenNutriTracker are welcome! If you find any issues or have suggestions for new features, please open an issue or submit a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) for the project's conventions — including the requirement to target the `develop` branch and the steps for adding localized strings.
 
