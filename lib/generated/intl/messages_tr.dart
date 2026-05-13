@@ -172,6 +172,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "CSV dosyası okunamadı. Biçimi kontrol edin ve tekrar deneyin."),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "customActivityName":
+            MessageLookupByLibrary.simpleMessage("Özel etkinlik"),
+        "customActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "Listede olmayan antrenmanlar veya bir fitness takip cihazından okumalar için yakılan kaloriyi doğrudan girin"),
+        "customActivityKcalLabel":
+            MessageLookupByLibrary.simpleMessage("Yakılan kalori"),
+        "customActivityKcalHint":
+            MessageLookupByLibrary.simpleMessage("örn. 250"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Bu yemeği kullanan tüm günlük girişleri de kaldırılacak."),
         "customMealsDeleteConfirmTitle":

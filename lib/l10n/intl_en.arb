@@ -665,5 +665,9 @@
   "paCrossCountrySkiing": "cross-country skiing",
   "paCrossCountrySkiingDesc": "cross-country, general",
   "paSnowshoeing": "snowshoeing",
+  "customActivityName": "Custom activity",
+  "customActivityDescription": "Enter calories burned directly, for workouts that aren't in the list or readings from a fitness tracker",
+  "customActivityKcalLabel": "Calories burned",
+  "customActivityKcalHint": "e.g. 250",
   "settingsLanguageLabel": "Language"
 }

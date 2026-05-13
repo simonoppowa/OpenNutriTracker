@@ -12,19 +12,28 @@ class EditActivityDialog extends StatefulWidget {
 }
 
 class _EditActivityDialogState extends State<EditActivityDialog> {
-  late TextEditingController _durationController;
+  late TextEditingController _quantityController;
+
+  bool get _isCustom => widget.activityEntity.physicalActivityEntity.isCustom;
 
   @override
   void initState() {
     super.initState();
-    _durationController = TextEditingController(
-      text: widget.activityEntity.duration.toInt().toString(),
-    );
+    // For Custom activities the editable quantity is kcal — and we prefer
+    // the user's originally-entered figure (userKcal) when it's available
+    // so a re-edit shows the exact number they typed last time, not a
+    // rounded computed figure.
+    final initialValue = _isCustom
+        ? (widget.activityEntity.userKcal ?? widget.activityEntity.burnedKcal)
+            .toInt()
+            .toString()
+        : widget.activityEntity.duration.toInt().toString();
+    _quantityController = TextEditingController(text: initialValue);
   }
 
   @override
   void dispose() {
-    _durationController.dispose();
+    _quantityController.dispose();
     super.dispose();
   }
 
@@ -36,11 +45,13 @@ class _EditActivityDialogState extends State<EditActivityDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           TextFormField(
-            controller: _durationController,
+            controller: _quantityController,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              labelText: S.of(context).quantityLabel,
-              suffixText: 'min',
+              labelText: _isCustom
+                  ? S.of(context).customActivityKcalLabel
+                  : S.of(context).quantityLabel,
+              suffixText: _isCustom ? 'kcal' : 'min',
             ),
           ),
         ],
@@ -48,7 +59,7 @@ class _EditActivityDialogState extends State<EditActivityDialog> {
       actions: [
         TextButton(
           onPressed: () {
-            final parsed = double.tryParse(_durationController.text);
+            final parsed = double.tryParse(_quantityController.text);
             if (parsed != null && parsed > 0) {
               Navigator.of(context).pop(parsed);
             }

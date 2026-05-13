@@ -904,5 +904,20 @@ class PhysicalActivityDataSource {
           [],
           PhysicalActivityTypeDBO.winterActivities,
         ),
+
+        // ── Custom ────────────────────────────────────────────────────────────
+        // #70: Generic activity for workouts the compendium doesn't cover, or
+        // when the user wants to log the kcal reading from a fitness tracker
+        // directly. The MET value is intentionally 0 — calorie totals come
+        // from the user-entered kcal stored on UserActivityDBO.userKcal
+        // rather than from the MET formula.
+        PhysicalActivityDBO(
+          "99999",
+          "custom",
+          "user-entered kcal",
+          0.0,
+          [],
+          PhysicalActivityTypeDBO.conditioningExercise,
+        ),
       ];
 }

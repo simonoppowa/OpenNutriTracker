@@ -169,6 +169,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "Nelze přečíst CSV soubor. Zkontrolujte formát a zkuste znovu."),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "customActivityName":
+            MessageLookupByLibrary.simpleMessage("Vlastní aktivita"),
+        "customActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "Zadejte spálené kalorie přímo, pro tréninky, které nejsou na seznamu, nebo hodnoty z fitness náramku"),
+        "customActivityKcalLabel":
+            MessageLookupByLibrary.simpleMessage("Spálené kalorie"),
+        "customActivityKcalHint":
+            MessageLookupByLibrary.simpleMessage("např. 250"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Všechny záznamy v deníku používající toto jídlo budou také odstraněny."),
         "customMealsDeleteConfirmTitle":

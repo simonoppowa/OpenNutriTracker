@@ -654,5 +654,9 @@
   "weeklyWeightGoalNoneLabel": "Не встановлено",
   "weightLabel": "Вага",
   "yearsLabel": "{age} років",
-  "zincLabel": "цинк"
+  "zincLabel": "цинк",
+  "customActivityName": "Власна активність",
+  "customActivityDescription": "Введіть спалені калорії безпосередньо — для тренувань, яких немає у списку, або показників із фітнес-трекера",
+  "customActivityKcalLabel": "Спалені калорії",
+  "customActivityKcalHint": "напр. 250"
 }

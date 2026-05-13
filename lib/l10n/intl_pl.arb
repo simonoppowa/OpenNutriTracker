@@ -654,5 +654,9 @@
   "weeklyWeightGoalNoneLabel": "Nie ustawiono",
   "weightLabel": "Waga",
   "yearsLabel": "{age} lat",
-  "zincLabel": "cynk"
+  "zincLabel": "cynk",
+  "customActivityName": "Aktywność niestandardowa",
+  "customActivityDescription": "Wprowadź spalone kalorie bezpośrednio – dla treningów spoza listy lub odczytów z opaski fitness",
+  "customActivityKcalLabel": "Spalone kalorie",
+  "customActivityKcalHint": "np. 250"
 }

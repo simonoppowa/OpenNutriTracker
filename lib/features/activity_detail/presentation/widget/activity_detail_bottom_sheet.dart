@@ -26,6 +26,7 @@ class ActivityDetailBottomSheet extends StatefulWidget {
 class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
   @override
   Widget build(BuildContext context) {
+    final isCustom = widget.activityEntity.isCustom;
     return BottomSheet(
       elevation: 10,
       onClosing: () {},
@@ -67,7 +68,12 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                             ],
                             decoration: InputDecoration(
                               border: const OutlineInputBorder(),
-                              labelText: S.of(context).quantityLabel,
+                              labelText: isCustom
+                                  ? S.of(context).customActivityKcalLabel
+                                  : S.of(context).quantityLabel,
+                              hintText: isCustom
+                                  ? S.of(context).customActivityKcalHint
+                                  : null,
                             ),
                           ),
                         ),
@@ -78,8 +84,10 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                               border: const OutlineInputBorder(),
                               labelText: S.of(context).unitLabel,
                             ),
-                            items: const <DropdownMenuItem<String>>[
-                              DropdownMenuItem(child: Text('min')),
+                            items: <DropdownMenuItem<String>>[
+                              DropdownMenuItem(
+                                child: Text(isCustom ? 'kcal' : 'min'),
+                              ),
                             ],
                             onChanged: (Object? value) {},
                           ),

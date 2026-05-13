@@ -160,6 +160,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "无法读取 CSV 文件。请检查格式后重试。"),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "customActivityName":
+            MessageLookupByLibrary.simpleMessage("自定义活动"),
+        "customActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "直接输入消耗的卡路里，适用于列表中没有的训练或来自健身追踪器的读数"),
+        "customActivityKcalLabel":
+            MessageLookupByLibrary.simpleMessage("消耗的卡路里"),
+        "customActivityKcalHint":
+            MessageLookupByLibrary.simpleMessage("例如 250"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "所有使用此餐食的日记条目也将被删除。"),
         "customMealsDeleteConfirmTitle":

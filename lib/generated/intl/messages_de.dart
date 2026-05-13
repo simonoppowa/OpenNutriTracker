@@ -175,6 +175,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "CSV-Datei konnte nicht gelesen werden. Format prüfen und erneut versuchen."),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "customActivityName":
+            MessageLookupByLibrary.simpleMessage("Eigene Aktivität"),
+        "customActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "Trage verbrannte Kalorien direkt ein – für Trainings, die nicht in der Liste sind, oder Werte aus einem Fitnesstracker"),
+        "customActivityKcalLabel":
+            MessageLookupByLibrary.simpleMessage("Verbrannte Kalorien"),
+        "customActivityKcalHint":
+            MessageLookupByLibrary.simpleMessage("z. B. 250"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Alle Tagebucheinträge, die diese Mahlzeit verwenden, werden ebenfalls entfernt."),
         "customMealsDeleteConfirmTitle":

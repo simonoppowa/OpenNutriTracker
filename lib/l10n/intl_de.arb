@@ -685,5 +685,9 @@
   "weeklyWeightGoalNoneLabel": "Nicht festgelegt",
   "weightLabel": "Gewicht",
   "yearsLabel": "{age} Jahre",
-  "zincLabel": "Zink"
+  "zincLabel": "Zink",
+  "customActivityName": "Eigene Aktivität",
+  "customActivityDescription": "Trage verbrannte Kalorien direkt ein – für Trainings, die nicht in der Liste sind, oder Werte aus einem Fitnesstracker",
+  "customActivityKcalLabel": "Verbrannte Kalorien",
+  "customActivityKcalHint": "z. B. 250"
 }

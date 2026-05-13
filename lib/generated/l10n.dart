@@ -5762,6 +5762,46 @@ class S {
       args: [],
     );
   }
+
+  /// `Custom activity`
+  String get customActivityName {
+    return Intl.message(
+      'Custom activity',
+      name: 'customActivityName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter calories burned directly, for workouts that aren't in the list or readings from a fitness tracker`
+  String get customActivityDescription {
+    return Intl.message(
+      'Enter calories burned directly, for workouts that aren\'t in the list or readings from a fitness tracker',
+      name: 'customActivityDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Calories burned`
+  String get customActivityKcalLabel {
+    return Intl.message(
+      'Calories burned',
+      name: 'customActivityKcalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. 250`
+  String get customActivityKcalHint {
+    return Intl.message(
+      'e.g. 250',
+      name: 'customActivityKcalHint',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

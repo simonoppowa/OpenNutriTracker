@@ -217,6 +217,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "importMealsCsvAction":
             MessageLookupByLibrary.simpleMessage("Import meals (csv)"),
         "exportAction": MessageLookupByLibrary.simpleMessage("Export"),
+        "customActivityName":
+            MessageLookupByLibrary.simpleMessage("Custom activity"),
+        "customActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "Enter calories burned directly, for workouts that aren\'t in the list or readings from a fitness tracker"),
+        "customActivityKcalLabel":
+            MessageLookupByLibrary.simpleMessage("Calories burned"),
+        "customActivityKcalHint":
+            MessageLookupByLibrary.simpleMessage("e.g. 250"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "All diary entries using this meal will also be removed."),
         "customMealsDeleteConfirmTitle":

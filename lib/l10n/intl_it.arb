@@ -654,5 +654,9 @@
   "weeklyWeightGoalNoneLabel": "Non impostato",
   "weightLabel": "Peso",
   "yearsLabel": "{age} anni",
-  "zincLabel": "zinco"
+  "zincLabel": "zinco",
+  "customActivityName": "Attività personalizzata",
+  "customActivityDescription": "Inserisci direttamente le calorie bruciate, per allenamenti non in elenco o letture da un fitness tracker",
+  "customActivityKcalLabel": "Calorie bruciate",
+  "customActivityKcalHint": "es. 250"
 }

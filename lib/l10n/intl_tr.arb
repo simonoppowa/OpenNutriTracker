@@ -685,5 +685,9 @@
   "weeklyWeightGoalNoneLabel": "Ayarlanmadı",
   "weightLabel": "Kilo",
   "yearsLabel": "{age} yıl",
-  "zincLabel": "çinko"
+  "zincLabel": "çinko",
+  "customActivityName": "Özel etkinlik",
+  "customActivityDescription": "Listede olmayan antrenmanlar veya bir fitness takip cihazından okumalar için yakılan kaloriyi doğrudan girin",
+  "customActivityKcalLabel": "Yakılan kalori",
+  "customActivityKcalHint": "örn. 250"
 }

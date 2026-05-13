@@ -655,5 +655,9 @@
   "weeklyWeightGoalNoneLabel": "未设置",
   "weightLabel": "体重",
   "yearsLabel": "{age} 岁",
-  "zincLabel": "锌"
+  "zincLabel": "锌",
+  "customActivityName": "自定义活动",
+  "customActivityDescription": "直接输入消耗的卡路里，适用于列表中没有的训练或来自健身追踪器的读数",
+  "customActivityKcalLabel": "消耗的卡路里",
+  "customActivityKcalHint": "例如 250"
 }

@@ -654,5 +654,9 @@
   "weeklyWeightGoalNoneLabel": "Nenastaveno",
   "weightLabel": "Hmotnost",
   "yearsLabel": "{age} let",
-  "zincLabel": "zinek"
+  "zincLabel": "zinek",
+  "customActivityName": "Vlastní aktivita",
+  "customActivityDescription": "Zadejte spálené kalorie přímo, pro tréninky, které nejsou na seznamu, nebo hodnoty z fitness náramku",
+  "customActivityKcalLabel": "Spálené kalorie",
+  "customActivityKcalHint": "např. 250"
 }

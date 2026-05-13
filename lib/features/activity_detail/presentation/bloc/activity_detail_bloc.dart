@@ -33,13 +33,20 @@ class ActivityDetailBloc
   ) : super(ActivityDetailInitial()) {
     on<LoadActivityDetailEvent>((event, emit) async {
       emit(ActivityDetailLoadingState());
-      const quantityDefault = 60.0;
+      // For Custom activities (#70), the quantity entered by the user is
+      // kcal — not minutes — so we start the form blank rather than at a
+      // 60-minute prefilled default that wouldn't make sense as a kcal
+      // figure.
+      final isCustom = event.physicalActivity.isCustom;
+      final quantityDefault = isCustom ? 0.0 : 60.0;
       final user = await _getUserUsecase.getUserData();
-      final totalBurnedKcal = getTotalKcalBurned(
-        user,
-        event.physicalActivity,
-        quantityDefault,
-      );
+      final totalBurnedKcal = isCustom
+          ? 0.0
+          : getTotalKcalBurned(
+              user,
+              event.physicalActivity,
+              quantityDefault,
+            );
 
       emit(
         ActivityDetailLoadedState(
@@ -56,27 +63,39 @@ class ActivityDetailBloc
     PhysicalActivityEntity physicalActivity,
     double duration,
   ) {
+    // Custom activities (#70) don't compute via MET — the user enters
+    // the kcal directly, and that figure is returned untouched.
+    if (physicalActivity.isCustom) {
+      return duration;
+    }
     return METCalc.getTotalBurnedKcal(user, physicalActivity, duration);
   }
 
   void persistActivity(
-    String durationText,
+    String quantityText,
     double totalKcalBurned,
     PhysicalActivityEntity activityEntity,
     DateTime day,
   ) async {
-    final duration = double.parse(durationText);
+    final parsedQuantity = double.parse(quantityText);
+    // Custom activities log the kcal directly: duration is meaningless, so
+    // we store 0 there, and `userKcal` records the user's entered value so
+    // the edit dialog can prefill it later.
+    final isCustom = activityEntity.isCustom;
+    final duration = isCustom ? 0.0 : parsedQuantity;
+    final burnedKcal = isCustom ? parsedQuantity : totalKcalBurned;
 
     final userActivityEntity = UserActivityEntity(
       IdGenerator.getUniqueID(),
       duration,
-      totalKcalBurned,
+      burnedKcal,
       day,
       activityEntity,
+      userKcal: isCustom ? parsedQuantity : null,
     );
 
     await _addUserActivityUsecase.addUserActivity(userActivityEntity);
-    _updateTrackedDay(day, totalKcalBurned);
+    _updateTrackedDay(day, burnedKcal);
   }
 
   void _updateTrackedDay(DateTime day, double caloriesBurned) async {

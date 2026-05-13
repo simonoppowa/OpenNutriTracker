@@ -157,10 +157,20 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                     children: [
                       // set Focus
                       Text(
-                        '~${totalKcal.toInt()} ${S.of(context).kcalLabel}',
+                        // For Custom activities the user enters kcal directly,
+                        // so the leading tilde (which implies an estimate) is
+                        // dropped: the figure on screen is exactly what they
+                        // typed in.
+                        activityEntity.isCustom
+                            ? '${totalKcal.toInt()} ${S.of(context).kcalLabel}'
+                            : '~${totalKcal.toInt()} ${S.of(context).kcalLabel}',
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
-                      Text(' / ${totalQuantity.toInt()} min'),
+                      // For Custom activities the duration line would just
+                      // mirror the kcal figure, which is confusing — so we
+                      // hide it.
+                      if (!activityEntity.isCustom)
+                        Text(' / ${totalQuantity.toInt()} min'),
                     ],
                   ),
                   const SizedBox(height: 8.0),

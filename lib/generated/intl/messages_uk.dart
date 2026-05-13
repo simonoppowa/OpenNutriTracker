@@ -170,6 +170,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "Не вдалося прочитати CSV файл. Перевірте формат і спробуйте знову."),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "customActivityName":
+            MessageLookupByLibrary.simpleMessage("Власна активність"),
+        "customActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "Введіть спалені калорії безпосередньо — для тренувань, яких немає у списку, або показників із фітнес-трекера"),
+        "customActivityKcalLabel":
+            MessageLookupByLibrary.simpleMessage("Спалені калорії"),
+        "customActivityKcalHint":
+            MessageLookupByLibrary.simpleMessage("напр. 250"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Усі записи в щоденнику, що використовують цю страву, також буде видалено."),
         "customMealsDeleteConfirmTitle":
