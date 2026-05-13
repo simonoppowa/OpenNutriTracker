@@ -64,6 +64,10 @@ Thanks to all the contributors:
 ### Getting Started With Development
 See the [Getting Started](GettingStarted.md) file for more information.
 
+The data export bundle (Settings → Export / Import App Data → Export) is
+documented at [`docs/export-format.md`](docs/export-format.md) — both the
+JSON schema and the CSV companion the import / export round-trip uses.
+
 ## Disclaimer
 OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.
 
