@@ -829,6 +829,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeTagsLabel": MessageLookupByLibrary.simpleMessage("Tags"),
         "recipeTagsHelper": MessageLookupByLibrary.simpleMessage(
             "Comma-separated, e.g. \"breakfast, vegan\""),
+        "customMealImageLabel":
+            MessageLookupByLibrary.simpleMessage("Add a photo"),
+        "customMealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Choose from gallery"),
+        "customMealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Take photo"),
+        "customMealImageRemove":
+            MessageLookupByLibrary.simpleMessage("Remove photo"),
+        "customMealImageReplace":
+            MessageLookupByLibrary.simpleMessage("Replace photo"),
         "recipesFilterAllLabel":
             MessageLookupByLibrary.simpleMessage("All"),
         "importRecipesCsvAction":

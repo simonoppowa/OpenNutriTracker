@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/recipe_image_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_builder_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/food_search_tab_view.dart';
@@ -134,6 +138,19 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              _RecipeImagePickerTile(
+                imagePath: state.imagePath,
+                onPickFromGallery: () => _onPickImage(
+                  context,
+                  source: ImageSource.gallery,
+                ),
+                onTakePhoto: () => _onPickImage(
+                  context,
+                  source: ImageSource.camera,
+                ),
+                onRemove: () => _onRemoveImage(context),
+              ),
+              const SizedBox(height: 16),
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -266,7 +283,8 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
         (state.description?.trim().isNotEmpty ?? false) ||
         state.ingredients.isNotEmpty ||
         state.servingsCount != null ||
-        state.tags.isNotEmpty;
+        state.tags.isNotEmpty ||
+        state.imagePath != null;
   }
 
   Future<bool?> _confirmDiscard(BuildContext context) {
@@ -336,6 +354,48 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
     );
   }
 
+  Future<void> _onPickImage(
+    BuildContext context, {
+    required ImageSource source,
+  }) async {
+    final recipeId = _bloc.state.id;
+    if (recipeId == null) return;
+    try {
+      final picker = ImagePicker();
+      // Cap the longest edge at ~1024px and use mid-tier JPEG quality so
+      // the on-disk footprint stays well under a megabyte even for high
+      // resolution camera shots.
+      final picked = await picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+      final relative = await RecipeImageStorage.importFrom(
+        recipeId: recipeId,
+        sourcePath: picked.path,
+      );
+      // Bust the in-memory Image.file cache so the new picture shows up
+      // immediately instead of redrawing the previous bytes for this path.
+      FileImage(File(await RecipeImageStorage.absolutePath(relative)))
+          .evict();
+      _bloc.add(UpdateImagePathEvent(relative));
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).recipeSaveErrorLabel)),
+      );
+    }
+  }
+
+  Future<void> _onRemoveImage(BuildContext context) async {
+    final current = _bloc.state.imagePath;
+    if (current == null) return;
+    await RecipeImageStorage.delete(current);
+    _bloc.add(const UpdateImagePathEvent(null));
+  }
+
   void _showSaveError(BuildContext context, SaveError error) {
     final s = S.of(context);
     final message = switch (error) {
@@ -346,6 +406,139 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
     };
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
+    );
+  }
+}
+
+class _RecipeImagePickerTile extends StatelessWidget {
+  final String? imagePath;
+  final Future<void> Function() onPickFromGallery;
+  final Future<void> Function() onTakePhoto;
+  final Future<void> Function() onRemove;
+
+  const _RecipeImagePickerTile({
+    required this.imagePath,
+    required this.onPickFromGallery,
+    required this.onTakePhoto,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasImage = imagePath != null;
+    return InkWell(
+      borderRadius: BorderRadius.circular(64),
+      onTap: () => _showActionSheet(context, hasImage: hasImage),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          children: [
+            Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                ClipOval(
+                  child: SizedBox(
+                    width: 96,
+                    height: 96,
+                    child: hasImage
+                        ? FutureBuilder<String>(
+                            future:
+                                RecipeImageStorage.absolutePath(imagePath!),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return Container(
+                                  color: theme.colorScheme.primaryContainer,
+                                );
+                              }
+                              return Image.file(
+                                File(snapshot.data!),
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, error, stack) => Container(
+                                  color: theme.colorScheme.primaryContainer,
+                                  child: Icon(
+                                    Icons.menu_book,
+                                    color: theme
+                                        .colorScheme.onPrimaryContainer,
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                        : Container(
+                            color: theme.colorScheme.primaryContainer,
+                            child: Icon(
+                              Icons.restaurant_menu,
+                              size: 36,
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                  ),
+                ),
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: theme.colorScheme.primary,
+                  child: Icon(
+                    hasImage ? Icons.edit : Icons.camera_alt,
+                    size: 18,
+                    color: theme.colorScheme.onPrimary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              hasImage
+                  ? S.of(context).customMealImageReplace
+                  : S.of(context).customMealImageLabel,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showActionSheet(
+    BuildContext context, {
+    required bool hasImage,
+  }) async {
+    final s = S.of(context);
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: Text(s.customMealImageTakePhoto),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  onTakePhoto();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: Text(s.customMealImagePickFromGallery),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  onPickFromGallery();
+                },
+              ),
+              if (hasImage)
+                ListTile(
+                  leading: const Icon(Icons.delete_outline),
+                  title: Text(s.customMealImageRemove),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    onRemove();
+                  },
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

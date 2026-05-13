@@ -851,6 +851,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeTagsHelper": MessageLookupByLibrary.simpleMessage(
             "Через кому, напр. \"сніданок, веганське\""),
         "recipeTagsLabel": MessageLookupByLibrary.simpleMessage("Теги"),
+        "customMealImageLabel":
+            MessageLookupByLibrary.simpleMessage("Додати фото"),
+        "customMealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Вибрати з галереї"),
+        "customMealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Зробити фото"),
+        "customMealImageRemove":
+            MessageLookupByLibrary.simpleMessage("Видалити фото"),
+        "customMealImageReplace":
+            MessageLookupByLibrary.simpleMessage("Замінити фото"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "За замовчуванням сума інгредієнтів. Рідини приблизно як 1 мл ≈ 1 г."),
         "recipeTotalWeightLabel":

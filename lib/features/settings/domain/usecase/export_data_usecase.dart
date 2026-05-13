@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
@@ -7,6 +8,7 @@ import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/core/utils/recipe_image_storage.dart';
 
 class ExportDataUsecase {
   final UserActivityRepository _userActivityRepository;
@@ -89,6 +91,22 @@ class ExportDataUsecase {
         recipeJsonBytes,
       ),
     );
+
+    // Include any user-attached recipe photos under their relative slug
+    // (e.g. `recipe_images/<id>.jpg`). The slug matches what we persist on
+    // RecipeDBO.imagePath, so import can drop the bytes back into place
+    // without translating filenames.
+    for (final recipe in fullRecipes) {
+      final imagePath = recipe.imagePath;
+      if (imagePath == null) continue;
+      final sanitized = RecipeImageStorage.sanitizeRelative(imagePath);
+      if (sanitized == null) continue;
+      final absolute = await RecipeImageStorage.absolutePath(sanitized);
+      final file = File(absolute);
+      if (!await file.exists()) continue;
+      final bytes = await file.readAsBytes();
+      archive.addFile(ArchiveFile(sanitized, bytes.length, bytes));
+    }
 
     // Save the zip file to the user specified location
     final zipBytes = ZipEncoder().encode(archive);

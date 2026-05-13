@@ -835,6 +835,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeTagsHelper": MessageLookupByLibrary.simpleMessage(
             "Virgülle ayırın, örn. \"kahvaltı, vegan\""),
         "recipeTagsLabel": MessageLookupByLibrary.simpleMessage("Etiketler"),
+        "customMealImageLabel":
+            MessageLookupByLibrary.simpleMessage("Fotoğraf ekle"),
+        "customMealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Galeriden seç"),
+        "customMealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Fotoğraf çek"),
+        "customMealImageRemove":
+            MessageLookupByLibrary.simpleMessage("Fotoğrafı kaldır"),
+        "customMealImageReplace":
+            MessageLookupByLibrary.simpleMessage("Fotoğrafı değiştir"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "Varsayılan olarak malzemelerin toplamı. Sıvılar yaklaşık 1 ml ≈ 1 g olarak hesaplanır."),
         "recipeTotalWeightLabel":

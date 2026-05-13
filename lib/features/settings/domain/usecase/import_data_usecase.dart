@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/core/utils/recipe_image_storage.dart';
 
 class ImportDataUsecase {
   final UserActivityRepository _userActivityRepository;
@@ -110,6 +111,22 @@ class ImportDataUsecase {
       final recipeDBOs =
           recipeList.map((json) => RecipeDBO.fromJson(json)).toList();
       await _recipeRepository.addAllRecipeDBOs(recipeDBOs);
+    }
+
+    // Restore any recipe photos packaged under `recipe_images/`. Each
+    // archive entry's name already matches the relative slug we stored on
+    // the DBO, so we don't need to translate anything — just write the
+    // bytes back into the app's private documents directory.
+    final imagesDir = await RecipeImageStorage.ensureDirectory();
+    for (final entry in archive.files) {
+      if (!entry.isFile) continue;
+      final name = entry.name;
+      final sanitized = RecipeImageStorage.sanitizeRelative(name);
+      if (sanitized == null) continue;
+      final destPath =
+          '${imagesDir.path}/${sanitized.split('/').last}';
+      final destFile = File(destPath);
+      await destFile.writeAsBytes(entry.content as List<int>, flush: true);
     }
 
     return true;

@@ -510,6 +510,56 @@ class S {
     );
   }
 
+  /// `Add a photo`
+  String get customMealImageLabel {
+    return Intl.message(
+      'Add a photo',
+      name: 'customMealImageLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose from gallery`
+  String get customMealImagePickFromGallery {
+    return Intl.message(
+      'Choose from gallery',
+      name: 'customMealImagePickFromGallery',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Take photo`
+  String get customMealImageTakePhoto {
+    return Intl.message(
+      'Take photo',
+      name: 'customMealImageTakePhoto',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remove photo`
+  String get customMealImageRemove {
+    return Intl.message(
+      'Remove photo',
+      name: 'customMealImageRemove',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Replace photo`
+  String get customMealImageReplace {
+    return Intl.message(
+      'Replace photo',
+      name: 'customMealImageReplace',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `All`
   String get recipesFilterAllLabel {
     return Intl.message(

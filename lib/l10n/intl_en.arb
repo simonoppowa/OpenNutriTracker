@@ -45,6 +45,11 @@
   "duplicateRecipeNameSuffix": "(copy)",
   "recipeTagsLabel": "Tags",
   "recipeTagsHelper": "Comma-separated, e.g. \"breakfast, vegan\"",
+  "customMealImageLabel": "Add a photo",
+  "customMealImagePickFromGallery": "Choose from gallery",
+  "customMealImageTakePhoto": "Take photo",
+  "customMealImageRemove": "Remove photo",
+  "customMealImageReplace": "Replace photo",
   "recipesFilterAllLabel": "All",
   "selectionCountLabel": "{count} selected",
   "@selectionCountLabel": {

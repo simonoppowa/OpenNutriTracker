@@ -12,6 +12,7 @@ class RecipeBuilderState extends Equatable {
   final bool totalWeightOverridden;
   final MealNutrimentsEntity aggregatedNutrimentsPer100;
   final List<String> tags;
+  final String? imagePath;
   final bool isExistingRecipe;
   final bool isSaving;
   final bool didSave;
@@ -28,6 +29,7 @@ class RecipeBuilderState extends Equatable {
     required this.totalWeightOverridden,
     required this.aggregatedNutrimentsPer100,
     required this.tags,
+    required this.imagePath,
     required this.isExistingRecipe,
     required this.isSaving,
     required this.didSave,
@@ -45,6 +47,7 @@ class RecipeBuilderState extends Equatable {
         totalWeightOverridden: false,
         aggregatedNutrimentsPer100: MealNutrimentsEntity.empty(),
         tags: const [],
+        imagePath: null,
         isExistingRecipe: false,
         isSaving: false,
         didSave: false,
@@ -62,6 +65,7 @@ class RecipeBuilderState extends Equatable {
     bool? totalWeightOverridden,
     MealNutrimentsEntity? aggregatedNutrimentsPer100,
     List<String>? tags,
+    String? imagePath,
     bool? isExistingRecipe,
     bool? isSaving,
     bool? didSave,
@@ -69,6 +73,7 @@ class RecipeBuilderState extends Equatable {
     String? errorMessage,
     bool clearServingsCount = false,
     bool clearSaveError = false,
+    bool clearImagePath = false,
   }) {
     return RecipeBuilderState(
       id: id ?? this.id,
@@ -83,6 +88,7 @@ class RecipeBuilderState extends Equatable {
       aggregatedNutrimentsPer100:
           aggregatedNutrimentsPer100 ?? this.aggregatedNutrimentsPer100,
       tags: tags ?? this.tags,
+      imagePath: clearImagePath ? null : (imagePath ?? this.imagePath),
       isExistingRecipe: isExistingRecipe ?? this.isExistingRecipe,
       isSaving: isSaving ?? this.isSaving,
       didSave: didSave ?? this.didSave,
@@ -102,6 +108,7 @@ class RecipeBuilderState extends Equatable {
         totalWeightOverridden,
         aggregatedNutrimentsPer100,
         tags,
+        imagePath,
         isExistingRecipe,
         isSaving,
         didSave,

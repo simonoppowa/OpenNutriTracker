@@ -843,6 +843,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeTagsHelper": MessageLookupByLibrary.simpleMessage(
             "Oddělené čárkou, např. \"snídaně, veganské\""),
         "recipeTagsLabel": MessageLookupByLibrary.simpleMessage("Štítky"),
+        "customMealImageLabel":
+            MessageLookupByLibrary.simpleMessage("Přidat fotku"),
+        "customMealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Vybrat z galerie"),
+        "customMealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Pořídit fotku"),
+        "customMealImageRemove":
+            MessageLookupByLibrary.simpleMessage("Odebrat fotku"),
+        "customMealImageReplace":
+            MessageLookupByLibrary.simpleMessage("Nahradit fotku"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "Výchozí hodnotou je součet ingrediencí. Tekutiny jsou přibližně 1 ml ≈ 1 g."),
         "recipeTotalWeightLabel":

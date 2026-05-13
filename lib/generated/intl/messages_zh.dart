@@ -724,6 +724,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeTagsHelper":
             MessageLookupByLibrary.simpleMessage("用逗号分隔，例如\"早餐，素食\""),
         "recipeTagsLabel": MessageLookupByLibrary.simpleMessage("标签"),
+        "customMealImageLabel":
+            MessageLookupByLibrary.simpleMessage("添加照片"),
+        "customMealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("从相册选择"),
+        "customMealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("拍照"),
+        "customMealImageRemove":
+            MessageLookupByLibrary.simpleMessage("移除照片"),
+        "customMealImageReplace":
+            MessageLookupByLibrary.simpleMessage("更换照片"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "默认值为食材之和。液体按 1 毫升 ≈ 1 克近似计算。"),
         "recipeTotalWeightLabel":

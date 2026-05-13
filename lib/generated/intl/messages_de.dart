@@ -863,6 +863,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeTagsHelper": MessageLookupByLibrary.simpleMessage(
             "Kommagetrennt, z. B. \"Frühstück, vegan\""),
         "recipeTagsLabel": MessageLookupByLibrary.simpleMessage("Tags"),
+        "customMealImageLabel":
+            MessageLookupByLibrary.simpleMessage("Foto hinzufügen"),
+        "customMealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Aus Galerie wählen"),
+        "customMealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Foto aufnehmen"),
+        "customMealImageRemove":
+            MessageLookupByLibrary.simpleMessage("Foto entfernen"),
+        "customMealImageReplace":
+            MessageLookupByLibrary.simpleMessage("Foto ersetzen"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "Standardmäßig die Summe der Zutaten. Flüssigkeiten werden mit 1 ml ≈ 1 g angenähert."),
         "recipeTotalWeightLabel":
