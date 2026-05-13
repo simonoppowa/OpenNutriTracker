@@ -925,7 +925,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
             "Obliczanie kalorii dla osób niebinarnych"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
-            "Badania nad wydatkiem energetycznym historycznie korzystały wyłącznie z binarnych kategorii płci, dlatego nie istnieje jeden zwalidowany wzór TDEE dla osób niebinarnych. OpenNutriTracker oferuje więc w Ustawienia → Obliczenia wybór między uśrednioną referencją, referencją typową dla estrogenu oraz referencją typową dla testosteronu. Jeśli dokładna wartość jest dla ciebie naprawdę istotna, skonsultuj się z lekarzem znającym twój profil hormonalny. Źródło: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6."),
+            "Badania nad wydatkiem energetycznym historycznie korzystały wyłącznie z binarnych kategorii płci, dlatego nie istnieje jeden zwalidowany wzór TDEE dla osób niebinarnych. OpenNutriTracker oferuje więc w Ustawienia → Obliczenia wybór między uśrednioną referencją, referencją typową dla estrogenu oraz referencją typową dla testosteronu. Jeśli dokładna wartość jest dla ciebie naprawdę istotna, skonsultuj się z lekarzem znającym twój profil hormonalny."),
         "sourcesOpenSourceLabel":
             MessageLookupByLibrary.simpleMessage("Otwórz źródło"),
         "settingsDistanceLabel":

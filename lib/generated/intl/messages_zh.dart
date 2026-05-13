@@ -790,7 +790,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "sourcesNonBinaryTitle":
             MessageLookupByLibrary.simpleMessage("非二元性别人士的卡路里估算"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
-            "能量消耗的研究历史上一直只采用二元性别分类，因此目前并不存在一条经过验证的、适用于非二元性别人士的 TDEE 公式。OpenNutriTracker 因此在 设置 → 计算 中提供平均参考、雌激素型参考、睾酮型参考三种选项供你选择。如果精确数值对你确实重要，请咨询了解你激素状况的临床医师。来源：Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6。"),
+            "能量消耗的研究历史上一直只采用二元性别分类，因此目前并不存在一条经过验证的、适用于非二元性别人士的 TDEE 公式。OpenNutriTracker 因此在 设置 → 计算 中提供平均参考、雌激素型参考、睾酮型参考三种选项供你选择。如果精确数值对你确实重要，请咨询了解你激素状况的临床医师。"),
         "sourcesOpenSourceLabel":
             MessageLookupByLibrary.simpleMessage("打开来源"),
         "settingsDistanceLabel": MessageLookupByLibrary.simpleMessage("距离"),

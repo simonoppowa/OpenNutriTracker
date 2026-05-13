@@ -928,7 +928,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "sourcesNonBinaryTitle":
             MessageLookupByLibrary.simpleMessage("Stima calorica per persone non binarie"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
-            "La ricerca sul dispendio energetico ha storicamente usato solo categorie binarie di sesso, quindi non esiste una formula TDEE validata per le persone non binarie. OpenNutriTracker permette quindi di scegliere tra un riferimento medio, un riferimento di tipo estrogenico e uno di tipo testosteronico in Impostazioni → Calcoli. Se per te è davvero importante un valore accurato, ti consigliamo di parlarne con un medico che conosca il tuo profilo ormonale. Fonte: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6."),
+            "La ricerca sul dispendio energetico ha storicamente usato solo categorie binarie di sesso, quindi non esiste una formula TDEE validata per le persone non binarie. OpenNutriTracker permette quindi di scegliere tra un riferimento medio, un riferimento di tipo estrogenico e uno di tipo testosteronico in Impostazioni → Calcoli. Se per te è davvero importante un valore accurato, ti consigliamo di parlarne con un medico che conosca il tuo profilo ormonale."),
         "sourcesOpenSourceLabel":
             MessageLookupByLibrary.simpleMessage("Apri la fonte"),
         "settingsDistanceLabel":

@@ -920,7 +920,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
             "Výpočet kalorií pro non-binární osoby"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
-            "Výzkum energetického výdeje historicky používal pouze binární pohlavní kategorie, takže pro non-binární osoby neexistuje jediný validovaný vzorec TDEE. OpenNutriTracker proto v Nastavení → Výpočty nabízí volbu mezi zprůměrovanou referencí, estrogen-typickou referencí a testosteron-typickou referencí. Pokud na přesné hodnotě skutečně záleží, prosím poraď se s lékařem, který zná tvůj hormonální stav. Zdroj: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6."),
+            "Výzkum energetického výdeje historicky používal pouze binární pohlavní kategorie, takže pro non-binární osoby neexistuje jediný validovaný vzorec TDEE. OpenNutriTracker proto v Nastavení → Výpočty nabízí volbu mezi zprůměrovanou referencí, estrogen-typickou referencí a testosteron-typickou referencí. Pokud na přesné hodnotě skutečně záleží, prosím poraď se s lékařem, který zná tvůj hormonální stav."),
         "sourcesOpenSourceLabel":
             MessageLookupByLibrary.simpleMessage("Otevřít zdroj"),
         "settingsDistanceLabel":

@@ -604,7 +604,7 @@
   "sourcesActivityTitle": "Calorie dall'attività (valori MET)",
   "sourcesActivityDescription": "Le calorie bruciate durante un'attività si stimano come MET × peso corporeo (kg) × durata (ore), usando i valori dell'Adult Compendium of Physical Activities.",
   "sourcesNonBinaryTitle": "Stima calorica per persone non binarie",
-  "sourcesNonBinaryDescription": "La ricerca sul dispendio energetico ha storicamente usato solo categorie binarie di sesso, quindi non esiste una formula TDEE validata per le persone non binarie. OpenNutriTracker permette quindi di scegliere tra un riferimento medio, un riferimento di tipo estrogenico e uno di tipo testosteronico in Impostazioni → Calcoli. Se per te è davvero importante un valore accurato, ti consigliamo di parlarne con un medico che conosca il tuo profilo ormonale. Fonte: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6.",
+  "sourcesNonBinaryDescription": "La ricerca sul dispendio energetico ha storicamente usato solo categorie binarie di sesso, quindi non esiste una formula TDEE validata per le persone non binarie. OpenNutriTracker permette quindi di scegliere tra un riferimento medio, un riferimento di tipo estrogenico e uno di tipo testosteronico in Impostazioni → Calcoli. Se per te è davvero importante un valore accurato, ti consigliamo di parlarne con un medico che conosca il tuo profilo ormonale.",
   "sourcesOpenSourceLabel": "Apri la fonte",
   "settingsDistanceLabel": "Distanza",
   "settingsImperialLabel": "Imperiale (lbs, ft, oz)",

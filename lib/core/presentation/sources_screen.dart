@@ -5,8 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// Surfaces the peer-reviewed sources behind every health/medical
 /// calculation OpenNutriTracker shows. Reachable from the Home dashboard,
-/// the BMI overview on the Profile tab, the disclaimer dialog, and a
-/// dedicated tile in Settings — so anyone scanning the app for citations
+/// the BMI overview on the Profile tab, both gender-selection screens,
+/// and the disclaimer dialog — so anyone scanning the app for citations
 /// (Apple's reviewers included) can find them within one tap.
 class SourcesScreen extends StatelessWidget {
   const SourcesScreen({super.key});
@@ -18,27 +18,82 @@ class SourcesScreen extends StatelessWidget {
       _SourceEntry(
         title: l10n.sourcesEnergyTitle,
         description: l10n.sourcesEnergyDescription,
-        url: URLConst.sourceEnergyIomDriURL,
+        sources: const [
+          _SourceLink(
+            citation:
+                'Institute of Medicine (2005). Dietary Reference Intakes for '
+                'Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, '
+                'Protein, and Amino Acids. National Academies Press.',
+            url: URLConst.sourceEnergyIomDriURL,
+          ),
+        ],
       ),
       _SourceEntry(
         title: l10n.sourcesBmiTitle,
         description: l10n.sourcesBmiDescription,
-        url: URLConst.sourceBmiWhoURL,
+        sources: const [
+          _SourceLink(
+            citation:
+                'World Health Organization. Body mass index (BMI), adult '
+                'classification. WHO Global Health Observatory.',
+            url: URLConst.sourceBmiWhoURL,
+          ),
+        ],
       ),
       _SourceEntry(
         title: l10n.sourcesMacrosTitle,
         description: l10n.sourcesMacrosDescription,
-        url: URLConst.sourceMacrosWhoTrs916URL,
+        sources: const [
+          _SourceLink(
+            citation:
+                'World Health Organization (2003). Diet, Nutrition and the '
+                'Prevention of Chronic Diseases. WHO Technical Report '
+                'Series 916.',
+            url: URLConst.sourceMacrosWhoTrs916URL,
+          ),
+        ],
       ),
       _SourceEntry(
         title: l10n.sourcesActivityTitle,
         description: l10n.sourcesActivityDescription,
-        url: URLConst.sourceActivityCompendium2024URL,
+        sources: const [
+          _SourceLink(
+            citation:
+                'Herrmann SD, et al. (2024). 2024 Adult Compendium of '
+                'Physical Activities. Journal of Sport and Health Science.',
+            url: URLConst.sourceActivityCompendium2024URL,
+          ),
+        ],
       ),
       _SourceEntry(
         title: l10n.sourcesNonBinaryTitle,
         description: l10n.sourcesNonBinaryDescription,
-        url: URLConst.sourceInclusiveDesignLinsenmeyer2021URL,
+        sources: const [
+          _SourceLink(
+            citation:
+                'Linsenmeyer W, Waters J (2021). Sex and gender differences '
+                'in nutrition research: considerations with the transgender '
+                'and gender nonconforming population. Nutrition Journal, '
+                '20:6.',
+            url: URLConst.sourceInclusiveDesignLinsenmeyer2021URL,
+          ),
+          _SourceLink(
+            citation:
+                'Wiik A, et al. (2018). Metabolic and functional changes in '
+                'transgender individuals following cross-sex hormone '
+                'treatment: Design and methods of the GETS study. '
+                'Contemporary Clinical Trials Communications, 10:148–153.',
+            url: URLConst.sourceTransMetabolismWiik2018URL,
+          ),
+          _SourceLink(
+            citation:
+                'Linsenmeyer W, Drallmeier T, Thomure M (2020). Towards '
+                'gender-affirming nutrition assessment: a case series of '
+                'adult transgender men with distinct nutrition '
+                'considerations. Nutrition Journal, 19:74.',
+            url: URLConst.sourceTransNutritionLinsenmeyer2020URL,
+          ),
+        ],
       ),
     ];
 
@@ -52,16 +107,39 @@ class SourcesScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
-          ...entries.map(
-            (entry) => _SourceCard(
-              entry: entry,
-              onOpen: () => _launch(context, entry.url),
-            ),
-          ),
+          ...entries.map((entry) => _SourceCard(entry: entry)),
         ],
       ),
     );
   }
+}
+
+class _SourceEntry {
+  final String title;
+  final String description;
+  final List<_SourceLink> sources;
+
+  const _SourceEntry({
+    required this.title,
+    required this.description,
+    required this.sources,
+  });
+}
+
+class _SourceLink {
+  // Paper citations stay in English by academic convention — the journal,
+  // authors, and title are the canonical record regardless of the user's
+  // app language.
+  final String citation;
+  final String url;
+
+  const _SourceLink({required this.citation, required this.url});
+}
+
+class _SourceCard extends StatelessWidget {
+  final _SourceEntry entry;
+
+  const _SourceCard({required this.entry});
 
   Future<void> _launch(BuildContext context, String url) async {
     final uri = Uri.parse(url);
@@ -74,28 +152,10 @@ class SourcesScreen extends StatelessWidget {
       );
     }
   }
-}
-
-class _SourceEntry {
-  final String title;
-  final String description;
-  final String url;
-
-  const _SourceEntry({
-    required this.title,
-    required this.description,
-    required this.url,
-  });
-}
-
-class _SourceCard extends StatelessWidget {
-  final _SourceEntry entry;
-  final VoidCallback onOpen;
-
-  const _SourceCard({required this.entry, required this.onOpen});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 12),
@@ -106,22 +166,43 @@ class _SourceCard extends StatelessWidget {
           children: [
             Text(
               entry.title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               entry.description,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton.icon(
-                onPressed: onOpen,
-                icon: const Icon(Icons.open_in_new_outlined),
-                label: Text(S.of(context).sourcesOpenSourceLabel),
+            ...entry.sources.map(
+              (source) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      source.citation,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton.icon(
+                        onPressed: () => _launch(context, source.url),
+                        icon: const Icon(Icons.open_in_new_outlined, size: 18),
+                        label: Text(S.of(context).sourcesOpenSourceLabel),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          minimumSize: const Size(0, 32),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
