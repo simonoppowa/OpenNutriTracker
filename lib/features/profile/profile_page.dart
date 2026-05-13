@@ -128,9 +128,24 @@ class _ProfilePageState extends State<ProfilePage> {
             S.of(context).weightLabel,
             style: Theme.of(context).textTheme.titleLarge,
           ),
-          subtitle: Text(
-            '${_profileBloc.getDisplayWeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}',
-            style: Theme.of(context).textTheme.titleMedium,
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${_profileBloc.getDisplayWeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              // #119: When the user has set a concrete target weight, surface
+              // the distance to it directly below the current weight. The
+              // delta is signed-agnostic — the message holds whether the
+              // target is above or below current (cut or gain).
+              if (user.targetWeightKg != null)
+                Text(
+                  _targetWeightSubLabel(context, user, usesImperialUnits),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+            ],
           ),
           leading: const SizedBox(
             height: double.infinity,
@@ -240,6 +255,29 @@ class _ProfilePageState extends State<ProfilePage> {
     return usesImperialUnits
         ? S.of(context).weeklyWeightGoalLbsPerWeek(formatted)
         : S.of(context).weeklyWeightGoalKgPerWeek(formatted);
+  }
+
+  /// #119: Sub-label rendered under the current weight when the user has
+  /// set a concrete target. The kind framing is intentional — reaching the
+  /// target should feel celebrated, not retired into silence — and the
+  /// remaining-distance form holds whether the user is cutting or bulking
+  /// because we always show the absolute delta.
+  String _targetWeightSubLabel(
+      BuildContext context, UserEntity user, bool usesImperialUnits) {
+    final target = user.targetWeightKg;
+    if (target == null) return '';
+    final deltaKg = (target - user.weightKG).abs();
+    // Treat "close enough" as reached — under 0.1 kg the noise in body
+    // weight measurements outweighs the difference and a "you've reached
+    // your target" message lands better than "0.0 kg to go".
+    if (deltaKg < 0.1) {
+      return S.of(context).profileTargetWeightReached;
+    }
+    final displayDelta =
+        usesImperialUnits ? deltaKg * 2.20462 : deltaKg;
+    final formatted =
+        '${displayDelta.toStringAsFixed(1)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}';
+    return S.of(context).profileTargetWeightToGo(formatted);
   }
 
   Future<void> _showSetWeeklyWeightGoalDialog(BuildContext context,

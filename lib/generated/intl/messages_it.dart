@@ -64,6 +64,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "Importare ${count} attività?";
 
+  static String m20(value) => "${value} al tuo obiettivo";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1001,6 +1003,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "weeklyWeightGoalNoneLabel":
             MessageLookupByLibrary.simpleMessage("Non impostato"),
         "weightLabel": MessageLookupByLibrary.simpleMessage("Peso"),
+        "settingsTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Peso obiettivo"),
+        "profileTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Peso obiettivo"),
+        "profileTargetWeightToGo": m20,
+        "profileTargetWeightReached": MessageLookupByLibrary.simpleMessage(
+            "Hai raggiunto il tuo obiettivo"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("zinco"),
       };

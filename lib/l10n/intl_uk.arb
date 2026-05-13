@@ -653,6 +653,17 @@
   "weeklyWeightGoalLbsPerWeek": "{rate} фунт/тиждень",
   "weeklyWeightGoalNoneLabel": "Не встановлено",
   "weightLabel": "Вага",
+  "settingsTargetWeightLabel": "Цільова вага",
+  "profileTargetWeightLabel": "Цільова вага",
+  "profileTargetWeightToGo": "Залишилось {value} до цілі",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTargetWeightReached": "Ви досягли своєї цілі",
   "yearsLabel": "{age} років",
   "zincLabel": "цинк"
 }

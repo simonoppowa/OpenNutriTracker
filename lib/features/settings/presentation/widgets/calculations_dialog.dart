@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/calories_profile_info_dialog.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -50,8 +51,13 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
   late TextEditingController _carbsController;
   late TextEditingController _proteinController;
   late TextEditingController _fatController;
+  // #119: Target weight is editable as a free-text numeric field. We
+  // keep the value as a nullable double on the user entity; an empty
+  // input clears the stored target.
+  late TextEditingController _targetWeightController;
 
   UserEntity? _user;
+  bool _usesImperialUnits = false;
 
   @override
   void initState() {
@@ -64,6 +70,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
         TextEditingController(text: _proteinPctSelection.round().toString());
     _fatController =
         TextEditingController(text: _fatPctSelection.round().toString());
+    _targetWeightController = TextEditingController();
   }
 
   @override
@@ -72,6 +79,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     _carbsController.dispose();
     _proteinController.dispose();
     _fatController.dispose();
+    _targetWeightController.dispose();
     super.dispose();
   }
 
@@ -87,6 +95,13 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     final userProteinPct = await widget.settingsBloc.getUserProteinGoalPct();
     final userFatPct = await widget.settingsBloc.getUserFatGoalPct();
     final user = await widget.profileBloc.getUser();
+    // #119: Read the unit preference once, on dialog open. The settings
+    // screen has already loaded its state by the time this dialog can be
+    // pushed, so reading from the bloc's state avoids a second async hop.
+    final settingsState = widget.settingsBloc.state;
+    final usesImperialUnits = settingsState is SettingsLoadedState
+        ? settingsState.usesImperialUnits
+        : false;
 
     setState(() {
       _kcalAdjustmentSelection = kcalAdjustment;
@@ -95,12 +110,23 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
           (userProteinPct ?? _defaultProteinPctSelection) * 100;
       _fatPctSelection = (userFatPct ?? _defaultFatPctSelection) * 100;
       _user = user;
+      _usesImperialUnits = usesImperialUnits;
     });
     _kcalAdjustmentController.text =
         _kcalAdjustmentSelection.round().toString();
     _carbsController.text = _carbsPctSelection.round().toString();
     _proteinController.text = _proteinPctSelection.round().toString();
     _fatController.text = _fatPctSelection.round().toString();
+    // #119: Seed the target weight field from the user's stored value,
+    // converted to the active unit. An empty field means "not set".
+    final storedTargetKg = user.targetWeightKg;
+    if (storedTargetKg != null) {
+      final displayValue =
+          usesImperialUnits ? UnitCalc.kgToLbs(storedTargetKg) : storedTargetKg;
+      _targetWeightController.text = displayValue.toStringAsFixed(1);
+    } else {
+      _targetWeightController.text = '';
+    }
   }
 
   void _syncControllersToState() {
@@ -227,6 +253,42 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 setState(() => _kcalAdjustmentSelection = value);
                 _kcalAdjustmentController.text = value.round().toString();
               },
+            ),
+            const SizedBox(height: 16),
+            // ── Target weight (#119) ────────────────────────────────────────
+            // A concrete target weight, paired with the existing weekly-rate
+            // goal so users can see how far they are from where they want to
+            // be. Calorie computation is deliberately unchanged for now — a
+            // tapering adjustment as the target nears is a separate scope
+            // question and would conflict with other in-flight calc work.
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    S.of(context).settingsTargetWeightLabel,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                SizedBox(
+                  width: 90,
+                  child: TextField(
+                    controller: _targetWeightController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                        signed: false, decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*[.,]?\d{0,2}')),
+                    ],
+                    textAlign: TextAlign.right,
+                    decoration: InputDecoration(
+                      suffixText: _usesImperialUnits
+                          ? S.of(context).lbsLabel
+                          : S.of(context).kgLabel,
+                      isDense: true,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             // ── Macro distribution ───────────────────────────────────────────
@@ -453,6 +515,13 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       _fatPctSelection,
     );
 
+    // #119: Persist target weight on the user entity. Empty/blank input
+    // clears the stored value, matching the "Not set" framing on the
+    // profile screen. The value is stored in kg regardless of the
+    // user's display unit, so the data shape stays stable if they later
+    // toggle units.
+    _persistTargetWeight();
+
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.profileBloc.add(LoadProfileEvent());
     widget.homeBloc.add(LoadItemsEvent());
@@ -461,6 +530,33 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     widget.calendarDayBloc.add(RefreshCalendarDayEvent());
 
     Navigator.of(context).pop();
+  }
+
+  /// #119: Parse the target-weight text field and write to the user
+  /// entity. Tolerates both `.` and `,` as decimal separators since the
+  /// numeric keyboard varies by locale. An invalid or empty value
+  /// clears the stored target — that's intentional so users can opt out
+  /// after setting one.
+  void _persistTargetWeight() {
+    final user = _user;
+    if (user == null) return;
+    final raw = _targetWeightController.text.trim().replaceAll(',', '.');
+    if (raw.isEmpty) {
+      if (user.targetWeightKg != null) {
+        user.targetWeightKg = null;
+        widget.profileBloc.updateUser(user);
+      }
+      return;
+    }
+    final parsed = double.tryParse(raw);
+    if (parsed == null || parsed <= 0) {
+      return;
+    }
+    final kg = _usesImperialUnits ? UnitCalc.lbsToKg(parsed) : parsed;
+    if (user.targetWeightKg != kg) {
+      user.targetWeightKg = kg;
+      widget.profileBloc.updateUser(user);
+    }
   }
 
   Future<void> _openCaloriesProfileDialog() async {

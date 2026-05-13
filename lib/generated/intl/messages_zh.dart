@@ -61,6 +61,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "导入 ${count} 项活动？";
 
+  static String m20(value) => "距离目标还差 ${value}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample":
@@ -853,6 +855,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "weeklyWeightGoalNoneLabel":
             MessageLookupByLibrary.simpleMessage("未设置"),
         "weightLabel": MessageLookupByLibrary.simpleMessage("体重"),
+        "settingsTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("目标体重"),
+        "profileTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("目标体重"),
+        "profileTargetWeightToGo": m20,
+        "profileTargetWeightReached":
+            MessageLookupByLibrary.simpleMessage("你已达到目标"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("锌"),
       };

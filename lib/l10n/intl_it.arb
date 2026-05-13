@@ -653,6 +653,17 @@
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/settimana",
   "weeklyWeightGoalNoneLabel": "Non impostato",
   "weightLabel": "Peso",
+  "settingsTargetWeightLabel": "Peso obiettivo",
+  "profileTargetWeightLabel": "Peso obiettivo",
+  "profileTargetWeightToGo": "{value} al tuo obiettivo",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTargetWeightReached": "Hai raggiunto il tuo obiettivo",
   "yearsLabel": "{age} anni",
   "zincLabel": "zinco"
 }

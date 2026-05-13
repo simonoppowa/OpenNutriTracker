@@ -653,6 +653,17 @@
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/týden",
   "weeklyWeightGoalNoneLabel": "Nenastaveno",
   "weightLabel": "Hmotnost",
+  "settingsTargetWeightLabel": "Cílová hmotnost",
+  "profileTargetWeightLabel": "Cílová hmotnost",
+  "profileTargetWeightToGo": "Zbývá {value} do cíle",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTargetWeightReached": "Dosáhli jste svého cíle",
   "yearsLabel": "{age} let",
   "zincLabel": "zinek"
 }

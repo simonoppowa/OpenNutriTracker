@@ -684,6 +684,17 @@
   },
   "weeklyWeightGoalNoneLabel": "Nicht festgelegt",
   "weightLabel": "Gewicht",
+  "settingsTargetWeightLabel": "Zielgewicht",
+  "profileTargetWeightLabel": "Zielgewicht",
+  "profileTargetWeightToGo": "Noch {value} bis zum Ziel",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTargetWeightReached": "Du hast dein Ziel erreicht",
   "yearsLabel": "{age} Jahre",
   "zincLabel": "Zink"
 }

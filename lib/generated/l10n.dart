@@ -5762,6 +5762,46 @@ class S {
       args: [],
     );
   }
+
+  /// `Target weight`
+  String get settingsTargetWeightLabel {
+    return Intl.message(
+      'Target weight',
+      name: 'settingsTargetWeightLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Target weight`
+  String get profileTargetWeightLabel {
+    return Intl.message(
+      'Target weight',
+      name: 'profileTargetWeightLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{value} to your target`
+  String profileTargetWeightToGo(String value) {
+    return Intl.message(
+      '$value to your target',
+      name: 'profileTargetWeightToGo',
+      desc: '',
+      args: [value],
+    );
+  }
+
+  /// `You've reached your target`
+  String get profileTargetWeightReached {
+    return Intl.message(
+      'You\'ve reached your target',
+      name: 'profileTargetWeightReached',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

@@ -665,5 +665,16 @@
   "paCrossCountrySkiing": "cross-country skiing",
   "paCrossCountrySkiingDesc": "cross-country, general",
   "paSnowshoeing": "snowshoeing",
-  "settingsLanguageLabel": "Language"
+  "settingsLanguageLabel": "Language",
+  "settingsTargetWeightLabel": "Target weight",
+  "profileTargetWeightLabel": "Target weight",
+  "profileTargetWeightToGo": "{value} to your target",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTargetWeightReached": "You've reached your target"
 }

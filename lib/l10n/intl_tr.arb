@@ -684,6 +684,17 @@
   },
   "weeklyWeightGoalNoneLabel": "Ayarlanmadı",
   "weightLabel": "Kilo",
+  "settingsTargetWeightLabel": "Hedef kilo",
+  "profileTargetWeightLabel": "Hedef kilo",
+  "profileTargetWeightToGo": "Hedefine {value} kaldı",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTargetWeightReached": "Hedefine ulaştın",
   "yearsLabel": "{age} yıl",
   "zincLabel": "çinko"
 }

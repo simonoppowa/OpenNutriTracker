@@ -654,6 +654,17 @@
   "weeklyWeightGoalLbsPerWeek": "{rate} 磅/周",
   "weeklyWeightGoalNoneLabel": "未设置",
   "weightLabel": "体重",
+  "settingsTargetWeightLabel": "目标体重",
+  "profileTargetWeightLabel": "目标体重",
+  "profileTargetWeightToGo": "距离目标还差 {value}",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTargetWeightReached": "你已达到目标",
   "yearsLabel": "{age} 岁",
   "zincLabel": "锌"
 }
