@@ -696,6 +696,16 @@
   "settingsCaloriesTaperDescription": "Riduce gradualmente il deficit giornaliero così gli ultimi chili non sembrano un muro.",
   "settingsCaloriesTaperLabel": "Adatta l'obiettivo calorico mentre ti avvicini al tuo peso obiettivo",
   "settingsCustomMealsLabel": "Pasti personalizzati",
+  "settingsDayStartLabel": "Il giorno inizia alle",
+  "settingsDayStartDescription": "Scegli l'ora in cui inizia la tua giornata. I pasti e le attività registrati prima di questa ora verranno conteggiati nel giorno precedente — utile per chi lavora di notte o mangia tardi.",
+  "settingsDayStartHourLabel": "{hour}:00",
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Disclaimer",
   "settingsDistanceLabel": "Distanza",
   "settingsEnergyUnitLabel": "Unità di energia",

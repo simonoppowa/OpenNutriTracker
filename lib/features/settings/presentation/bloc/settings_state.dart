@@ -30,6 +30,7 @@ class SettingsLoadedState extends SettingsState {
   final bool showMicronutrients; // #237
   final bool usesKilojoules; // #177
   final bool caloriesTaperEnabled; // #119 follow-up
+  final int dayStartOffsetHours; // #139
 
   const SettingsLoadedState(
     this.versionNumber,
@@ -47,6 +48,7 @@ class SettingsLoadedState extends SettingsState {
     this.showMicronutrients = false,
     this.usesKilojoules = false,
     this.caloriesTaperEnabled = false,
+    this.dayStartOffsetHours = 0,
   });
 
   @override
@@ -66,5 +68,6 @@ class SettingsLoadedState extends SettingsState {
         showMicronutrients,
         usesKilojoules,
         caloriesTaperEnabled,
+        dayStartOffsetHours,
       ];
 }

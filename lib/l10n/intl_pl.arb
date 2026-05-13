@@ -696,6 +696,16 @@
   "settingsCaloriesTaperDescription": "Stopniowo zmniejsza dzienny deficyt, aby ostatnie kilogramy nie wydawały się ścianą.",
   "settingsCaloriesTaperLabel": "Dostosuj cel kaloryczny w miarę zbliżania się do celu",
   "settingsCustomMealsLabel": "Własne posiłki",
+  "settingsDayStartLabel": "Dzień zaczyna się o",
+  "settingsDayStartDescription": "Wybierz godzinę, o której zaczyna się Twój dzień. Posiłki i aktywności zarejestrowane przed tą godziną zaliczają się do poprzedniego dnia — przydatne przy pracy nocnej lub późnym jedzeniu.",
+  "settingsDayStartHourLabel": "{hour}:00",
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Zastrzeżenie",
   "settingsDistanceLabel": "Odległość",
   "settingsEnergyUnitLabel": "Jednostka energii",

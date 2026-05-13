@@ -148,6 +148,9 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       (ConfigEntity.defaultMealKcalSharesPct[ConfigEntity.mealKeySnack]!)
           .toDouble();
 
+  // #139: day-start offset (0-23). 0 = wall-clock midnight rollover.
+  int _dayStartOffsetHours = 0;
+
   UserEntity? _user;
   bool _usesImperialUnits = false;
   // #119 follow-up: opt-in taper that scales the daily kcal deficit
@@ -289,6 +292,9 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     // every time the dialog opens.
     final today =
         await widget.settingsBloc.getTodayTrackedDay(DateTime.now());
+    // #139: pre-fill the diary day-start hour slider.
+    final dayStartOffsetHours =
+        await widget.settingsBloc.getDayStartOffsetHours();
 
     setState(() {
       _kcalAdjustmentSelection = kcalAdjustment;
@@ -317,6 +323,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       _user = user;
       _usesImperialUnits = usesImperialUnits;
       _caloriesTaperEnabled = caloriesTaperEnabled;
+      _dayStartOffsetHours = dayStartOffsetHours;
     });
     // Seed the controller in whichever unit the user is reading.
     // `mounted` is true here because _initData is awaited inside the
@@ -443,6 +450,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 _magnesiumGoalMg = null;
                 _vitaminDGoalUg = null;
                 _vitaminB12GoalUg = null;
+                _dayStartOffsetHours = 0; // #139
               });
               _kcalAdjustmentController.text = '0';
               _syncControllersToState();
@@ -1023,6 +1031,45 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 decimalStep: true,
               ),
             ),
+            // ── #139: Day-start offset ───────────────────────────────────────
+            const SizedBox(height: 16),
+            Text(
+              S.of(context).settingsDayStartLabel,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              S.of(context).settingsDayStartDescription,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Slider(
+                    min: 0,
+                    max: 23,
+                    divisions: 23,
+                    value: _dayStartOffsetHours.toDouble(),
+                    label: S
+                        .of(context)
+                        .settingsDayStartHourLabel(_dayStartOffsetHours),
+                    onChanged: (value) {
+                      setState(() => _dayStartOffsetHours = value.round());
+                    },
+                  ),
+                ),
+                SizedBox(
+                  width: 56,
+                  child: Text(
+                    S
+                        .of(context)
+                        .settingsDayStartHourLabel(_dayStartOffsetHours),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -1454,6 +1501,8 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       _proteinPctSelection,
       _fatPctSelection,
     );
+    // #139: persist the chosen day-start offset.
+    widget.settingsBloc.setDayStartOffsetHours(_dayStartOffsetHours);
 
     // #150: persist the four meal-share percentages alongside macro goals.
     widget.settingsBloc.setMealKcalSharesPct({

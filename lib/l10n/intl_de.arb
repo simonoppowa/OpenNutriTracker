@@ -727,6 +727,16 @@
   "settingsCaloriesTaperDescription": "Reduziert das tägliche Defizit allmählich, damit die letzten Kilos nicht wie eine Wand wirken.",
   "settingsCaloriesTaperLabel": "Kalorienziel anpassen, wenn du dich dem Ziel näherst",
   "settingsCustomMealsLabel": "Eigene Mahlzeiten",
+  "settingsDayStartLabel": "Tag beginnt um",
+  "settingsDayStartDescription": "Wähle die Stunde, zu der dein Tag beginnt. Mahlzeiten und Aktivitäten, die vor dieser Uhrzeit erfasst werden, zählen zum Vortag — hilfreich bei Nachtschicht oder spätem Essen.",
+  "settingsDayStartHourLabel": "{hour}:00",
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Hinweis",
   "settingsDistanceLabel": "Entfernung",
   "settingsEnergyUnitLabel": "Energieeinheit",

@@ -438,9 +438,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   /// Refresh page when day changes
+  ///
+  /// #139: HomeBloc.currentDay is the logical "today" (midnight of the
+  /// configured day boundary). Comparing against a fresh logical "today"
+  /// from the same wall clock requires knowing the offset, which we'd
+  /// have to fetch from config asynchronously. Letting LoadItemsEvent
+  /// re-resolve the offset and reload unconditionally on resume is the
+  /// honest cheap path: it costs one config read plus a few Hive scans,
+  /// and it is correct under any boundary setting.
   void _refreshPageOnDayChange() {
-    if (!DateUtils.isSameDay(_homeBloc.currentDay, DateTime.now())) {
-      _homeBloc.add(const LoadItemsEvent());
-    }
+    _homeBloc.add(const LoadItemsEvent());
   }
 }

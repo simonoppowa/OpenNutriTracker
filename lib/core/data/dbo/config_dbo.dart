@@ -48,6 +48,8 @@ class ConfigDBO extends HiveObject {
   Map<String, int>? mealKcalSharesPct;
   @HiveField(18)
   String? customMealFormMode; // #232: 'simple' or 'advanced'; null means default (simple)
+  @HiveField(19)
+  int? dayStartOffsetHours; // #139: 0-23, null means default (0 = wall-clock midnight)
   @HiveField(20)
   bool caloriesTaperEnabled;
   // #160 follow-up: per-nutrient show/hide map for the daily nutrient panel.
@@ -83,6 +85,7 @@ class ConfigDBO extends HiveObject {
     this.usesKilojoules,
     this.mealKcalSharesPct,
     this.customMealFormMode,
+    this.dayStartOffsetHours,
     this.caloriesTaperEnabled = false,
     this.diarySortPreferences,
     this.nutrientPanelVisibility,

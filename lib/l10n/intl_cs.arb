@@ -696,6 +696,16 @@
   "settingsCaloriesTaperDescription": "Postupně zmenšuje denní deficit, aby posledních pár kilogramů nepůsobilo jako zeď.",
   "settingsCaloriesTaperLabel": "Upravovat kalorický cíl, jak se blížíte k cílové váze",
   "settingsCustomMealsLabel": "Vlastní jídla",
+  "settingsDayStartLabel": "Den začíná v",
+  "settingsDayStartDescription": "Zvol hodinu, ve které začíná tvůj den. Jídla a aktivity zaznamenané před touto hodinou se počítají k předchozímu dni — hodí se při nočních směnách nebo pozdním jídle.",
+  "settingsDayStartHourLabel": "{hour}:00",
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Vzdání se nároku",
   "settingsDistanceLabel": "Vzdálenost",
   "settingsEnergyUnitLabel": "Jednotka energie",

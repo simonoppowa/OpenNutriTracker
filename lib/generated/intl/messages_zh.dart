@@ -72,6 +72,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m24(unit) => "每份 ${unit}";
 
+  static String m25(hour) => "${hour}:00";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample":
@@ -953,6 +955,11 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("选择在日记面板中显示哪些营养素"),
         "settingsNutrientsHelp":
             MessageLookupByLibrary.simpleMessage("选择每日面板中显示哪些营养素。隐藏的可以随时重新开启。"),
+        "settingsDayStartLabel":
+            MessageLookupByLibrary.simpleMessage("一天开始于"),
+        "settingsDayStartDescription": MessageLookupByLibrary.simpleMessage(
+            "选择一天开始的时刻。在这个时刻之前记录的餐食和活动将计入前一天 —— 适合上夜班或晚餐较晚的用户。"),
+        "settingsDayStartHourLabel": m25,
         "settingsSourceCodeLabel": MessageLookupByLibrary.simpleMessage("源代码"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("系统"),
         "settingsThemeDarkLabel": MessageLookupByLibrary.simpleMessage("深色"),

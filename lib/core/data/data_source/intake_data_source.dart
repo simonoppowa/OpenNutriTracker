@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 
 class IntakeDataSource {
   final log = Logger('IntakeDataSource');
@@ -62,12 +63,29 @@ class IntakeDataSource {
 
   Future<List<IntakeDBO>> getAllIntakesByDate(
     IntakeTypeDBO intakeType,
-    DateTime dateTime,
-  ) async {
+    DateTime dateTime, {
+    int dayStartOffsetHours = 0,
+  }) async {
+    // #139: when a non-zero day-start offset is configured, an entry
+    // logged before that hour rolls into the previous wall-clock day.
+    // dayStartOffsetHours = 0 preserves the original wall-clock behaviour.
+    if (dayStartOffsetHours == 0) {
+      return _intakeBox.values
+          .where(
+            (intake) =>
+                DateUtils.isSameDay(dateTime, intake.dateTime) &&
+                intake.type == intakeType,
+          )
+          .toList();
+    }
     return _intakeBox.values
         .where(
           (intake) =>
-              DateUtils.isSameDay(dateTime, intake.dateTime) &&
+              DayBoundaryCalc.isSameLogicalDay(
+                dateTime,
+                intake.dateTime,
+                dayStartOffsetHours,
+              ) &&
               intake.type == intakeType,
         )
         .toList();

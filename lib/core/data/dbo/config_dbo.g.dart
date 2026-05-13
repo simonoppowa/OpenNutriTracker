@@ -33,6 +33,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         usesKilojoules: fields[16] as bool?,
         mealKcalSharesPct: (fields[17] as Map?)?.cast<String, int>(),
         customMealFormMode: fields[18] as String?,
+        dayStartOffsetHours: (fields[19] as num?)?.toInt(),
         caloriesTaperEnabled: fields[20] == null ? false : fields[20] as bool,
         diarySortPreferences: (fields[21] as Map?)?.cast<String, int>(),
         nutrientPanelVisibility: (fields[22] as Map?)?.cast<String, bool>(),
@@ -45,7 +46,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(22)
+      ..writeByte(23)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -84,6 +85,8 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..write(obj.mealKcalSharesPct)
       ..writeByte(18)
       ..write(obj.customMealFormMode)
+      ..writeByte(19)
+      ..write(obj.dayStartOffsetHours)
       ..writeByte(20)
       ..write(obj.caloriesTaperEnabled)
       ..writeByte(21)
@@ -126,6 +129,7 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
         mealKcalSharesPct: (json['mealKcalSharesPct'] as Map<String, dynamic>?)
             ?.map((k, e) => MapEntry(k, (e as num).toInt())),
         customMealFormMode: json['customMealFormMode'] as String?,
+        dayStartOffsetHours: (json['dayStartOffsetHours'] as num?)?.toInt(),
         caloriesTaperEnabled: json['caloriesTaperEnabled'] as bool? ?? false,
         diarySortPreferences:
             (json['diarySortPreferences'] as Map<String, dynamic>?)?.map(
@@ -160,6 +164,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'usesKilojoules': instance.usesKilojoules,
   'mealKcalSharesPct': instance.mealKcalSharesPct,
   'customMealFormMode': instance.customMealFormMode,
+  'dayStartOffsetHours': instance.dayStartOffsetHours,
   'caloriesTaperEnabled': instance.caloriesTaperEnabled,
   'nutrientPanelVisibility': instance.nutrientPanelVisibility,
   'diarySortPreferences': instance.diarySortPreferences,

@@ -75,6 +75,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m23(unit) => "${unit} in one serving";
 
+  static String m24(hour) => "${hour}:00";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1085,6 +1087,11 @@ class MessageLookup extends MessageLookupByLibrary {
             "Pick which nutrients appear on the diary panel"),
         "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
             "Choose which nutrients are visible on the daily panel. Hidden ones can be turned back on at any time."),
+        "settingsDayStartLabel":
+            MessageLookupByLibrary.simpleMessage("Day starts at"),
+        "settingsDayStartDescription": MessageLookupByLibrary.simpleMessage(
+            "Choose the hour at which your day begins. Meals and activities logged before this hour count toward the previous day — useful if you work nights or eat late."),
+        "settingsDayStartHourLabel": m24,
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Source Code"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("System"),

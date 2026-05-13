@@ -47,6 +47,7 @@ class ConfigEntity extends Equatable {
   // falls back to the default, which is currently "visible" for every
   // nutrient — see [isNutrientVisible].
   final Map<String, bool> nutrientPanelVisibility;
+  final int dayStartOffsetHours; // #139: 0-23, default 0 (wall-clock midnight)
 
   const ConfigEntity(
     this.hasAcceptedDisclaimer,
@@ -70,6 +71,7 @@ class ConfigEntity extends Equatable {
     this.caloriesTaperEnabled = false,
     this.diarySortPreferences,
     this.nutrientPanelVisibility = const <String, bool>{},
+    this.dayStartOffsetHours = 0,
   });
 
   /// Whether a particular nutrient on the daily panel should be rendered.
@@ -101,6 +103,7 @@ class ConfigEntity extends Equatable {
         diarySortPreferences: dbo.diarySortPreferences,
         nutrientPanelVisibility:
             dbo.nutrientPanelVisibility ?? const <String, bool>{},
+        dayStartOffsetHours: _normaliseOffset(dbo.dayStartOffsetHours),
       );
 
   /// Returns the recommended kcal target for [mealKey] given a daily goal.
@@ -117,6 +120,12 @@ class ConfigEntity extends Equatable {
     final keys = [mealKeyBreakfast, mealKeyLunch, mealKeyDinner, mealKeySnack];
     if (!keys.every(raw.containsKey)) return null;
     return {for (final k in keys) k: raw[k] ?? 0};
+  }
+
+  static int _normaliseOffset(int? raw) {
+    if (raw == null) return 0;
+    if (raw < 0 || raw > 23) return 0;
+    return raw;
   }
 
   @override
@@ -141,5 +150,6 @@ class ConfigEntity extends Equatable {
         caloriesTaperEnabled,
         diarySortPreferences,
         nutrientPanelVisibility,
+        dayStartOffsetHours,
       ];
 }

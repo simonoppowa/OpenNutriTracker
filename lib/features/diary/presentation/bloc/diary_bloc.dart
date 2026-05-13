@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -26,7 +27,9 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
       final usesImperialUnits = config.usesImperialUnits;
       final showMealMacros = config.showMealMacros;
 
-      currentDay = DateTime.now();
+      // #139: pin currentDay to the user's logical "today" so the
+      // diary calendar's today-marker shifts with the configured boundary.
+      currentDay = DayBoundaryCalc.currentLogicalDay(config.dayStartOffsetHours);
       // #292: Extended to match calendar range (5 years back)
       const yearDuration = Duration(days: 365 * 5);
 

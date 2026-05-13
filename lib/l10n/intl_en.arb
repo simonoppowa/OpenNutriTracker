@@ -110,6 +110,13 @@
       }
     }
   },
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
   "@settingsNotificationsTimeLabel": {
     "placeholders": {
       "time": {
@@ -727,6 +734,9 @@
   "settingsCaloriesTaperDescription": "Reduces the daily deficit gradually so the last few kg don't feel like a wall.",
   "settingsCaloriesTaperLabel": "Adjust calorie goal as you approach target",
   "settingsCustomMealsLabel": "Custom Meals",
+  "settingsDayStartDescription": "Choose the hour at which your day begins. Meals and activities logged before this hour count toward the previous day — useful if you work nights or eat late.",
+  "settingsDayStartHourLabel": "{hour}:00",
+  "settingsDayStartLabel": "Day starts at",
   "settingsDisclaimerLabel": "Disclaimer",
   "settingsDistanceLabel": "Distance",
   "settingsEnergyUnitLabel": "Energy unit",

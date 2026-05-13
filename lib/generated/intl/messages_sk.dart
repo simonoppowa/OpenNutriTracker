@@ -75,6 +75,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m24(unit) => "${unit} v jednej porcii";
 
+  static String m25(hour) => "${hour}:00";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1013,6 +1015,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Zobraziť makroživiny jedla"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Zobraziť mikroživiny"),
+        "settingsDayStartLabel":
+            MessageLookupByLibrary.simpleMessage("Deň začína o"),
+        "settingsDayStartDescription": MessageLookupByLibrary.simpleMessage(
+            "Vyber hodinu, kedy sa začína tvoj deň. Jedlá a aktivity zaznamenané pred touto hodinou sa počítajú do predchádzajúceho dňa — hodí sa pri nočných smenách alebo neskorom jedle."),
+        "settingsDayStartHourLabel": m25,
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Zdrojový kód"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Systém"),

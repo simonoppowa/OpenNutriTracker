@@ -109,6 +109,13 @@
       }
     }
   },
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
   "@settingsNotificationsTimeLabel": {
     "placeholders": {
       "time": {
@@ -726,6 +733,9 @@
   "settingsCaloriesTaperDescription": "Postupne znižuje denný kalorický deficit, aby posledné kilá nepôsobili ako stena.",
   "settingsCaloriesTaperLabel": "Upraviť kalorický cieľ s blížením k cieľovej hmotnosti",
   "settingsCustomMealsLabel": "Vlastné jedlá",
+  "settingsDayStartDescription": "Vyber hodinu, kedy sa začína tvoj deň. Jedlá a aktivity zaznamenané pred touto hodinou sa počítajú do predchádzajúceho dňa — hodí sa pri nočných smenách alebo neskorom jedle.",
+  "settingsDayStartHourLabel": "{hour}:00",
+  "settingsDayStartLabel": "Deň začína o",
   "settingsDisclaimerLabel": "Upozornenie",
   "settingsDistanceLabel": "Vzdialenosť",
   "settingsEnergyUnitLabel": "Jednotka energie",

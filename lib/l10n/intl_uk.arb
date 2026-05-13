@@ -696,6 +696,16 @@
   "settingsCaloriesTaperDescription": "Поступово зменшує щоденний дефіцит, щоб останні кілограми не здавалися стіною.",
   "settingsCaloriesTaperLabel": "Коригувати калорійну ціль у міру наближення до цілі",
   "settingsCustomMealsLabel": "Власні страви",
+  "settingsDayStartLabel": "День починається о",
+  "settingsDayStartDescription": "Обери годину, з якої починається твій день. Прийоми їжі та активності, записані до цієї години, зараховуються до попереднього дня — зручно, якщо ти працюєш у нічну зміну або пізно вечеряєш.",
+  "settingsDayStartHourLabel": "{hour}:00",
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Відмова від відповідальності",
   "settingsDistanceLabel": "Відстань",
   "settingsEnergyUnitLabel": "Одиниця енергії",

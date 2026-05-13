@@ -727,6 +727,16 @@
   "settingsCaloriesTaperDescription": "Günlük açığı kademeli olarak azaltır, böylece son birkaç kilo bir duvar gibi hissettirmez.",
   "settingsCaloriesTaperLabel": "Hedefine yaklaştıkça kalori hedefini ayarla",
   "settingsCustomMealsLabel": "Özel Yemekler",
+  "settingsDayStartLabel": "Gün başlangıcı",
+  "settingsDayStartDescription": "Gününün başladığı saati seç. Bu saatten önce kaydedilen öğünler ve aktiviteler önceki güne sayılır — gece çalışanlar veya geç yemek yiyenler için kullanışlıdır.",
+  "settingsDayStartHourLabel": "{hour}:00",
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Sorumluluk Reddi",
   "settingsDistanceLabel": "Mesafe",
   "settingsEnergyUnitLabel": "Enerji birimi",

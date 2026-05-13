@@ -697,6 +697,16 @@
   "settingsCaloriesTaperDescription": "逐渐减小每日热量缺口，让最后几公斤不再像一堵墙。",
   "settingsCaloriesTaperLabel": "接近目标时调整卡路里目标",
   "settingsCustomMealsLabel": "自定义餐食",
+  "settingsDayStartLabel": "一天开始于",
+  "settingsDayStartDescription": "选择一天开始的时刻。在这个时刻之前记录的餐食和活动将计入前一天 —— 适合上夜班或晚餐较晚的用户。",
+  "settingsDayStartHourLabel": "{hour}:00",
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "免责声明",
   "settingsDistanceLabel": "距离",
   "settingsEnergyUnitLabel": "能量单位",

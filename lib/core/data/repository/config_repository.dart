@@ -134,4 +134,8 @@ class ConfigRepository {
   ) async {
     await _configDataSource.setConfigNutrientPanelVisibility(visibility);
   }
+
+  Future<void> setConfigDayStartOffsetHours(int hours) async {
+    await _configDataSource.setConfigDayStartOffsetHours(hours);
+  }
 }

@@ -315,9 +315,12 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   }
 
   void _refreshPageOnDayChange() {
-    if (DateUtils.isSameDay(_selectedDate, DateTime.now())) {
-      _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
-      _diaryBloc.add(const LoadDiaryYearEvent());
-    }
+    // #139: refresh unconditionally on resume so any day-boundary
+    // setting change while the app was backgrounded is picked up.
+    // The cost is one extra LoadDiaryYearEvent (already cheap) plus a
+    // single CalendarDay refresh; keeping the original isSameDay check
+    // would miss the offset case entirely.
+    _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
+    _diaryBloc.add(const LoadDiaryYearEvent());
   }
 }
