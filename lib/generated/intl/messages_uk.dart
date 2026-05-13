@@ -115,7 +115,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsRecommendedLabel":
             MessageLookupByLibrary.simpleMessage("(рекомендовано)"),
         "calculationsTDEEIOM2006Label": MessageLookupByLibrary.simpleMessage(
-            "Розрахунок Інституту Медицини"),
+            "Розрахунок Інституту Медицини (2005)"),
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("Розрахунок TDEE"),
         "caloriesProfileAveragedLabel": MessageLookupByLibrary.simpleMessage(
@@ -208,7 +208,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "discardChangesTitle":
             MessageLookupByLibrary.simpleMessage("Скасувати зміни?"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
-            "OpenNutriTracker не є медичним додатком. Всі надані дані не перевіряються і повинні використовуватися з обережністю. Будь ласка, ведіть здоровий спосіб життя і консультуйтеся з фахівцем, якщо у вас виникли проблеми. Використання під час хвороби, вагітності або лактації не рекомендується."),
+            "OpenNutriTracker не є медичним додатком. Всі надані дані не перевіряються і повинні використовуватися з обережністю. Будь ласка, ведіть здоровий спосіб життя і консультуйтеся з фахівцем, якщо у вас виникли проблеми. Використання під час хвороби, вагітності або лактації не рекомендується. Рецензовані джерела для кожного розрахунку відкриваються через піктограму інформації на екрані Головна або Профіль."),
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Зразкові страви (csv)"),
         "downloadSampleRecipesCsvAction":
@@ -903,6 +903,34 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Власні страви"),
         "settingsDisclaimerLabel": MessageLookupByLibrary.simpleMessage(
             "Відмова від відповідальності"),
+        "settingsSourcesLabel":
+            MessageLookupByLibrary.simpleMessage("Джерела та посилання"),
+        "sourcesIconTooltip":
+            MessageLookupByLibrary.simpleMessage("Переглянути джерела"),
+        "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(
+            "OpenNutriTracker використовує для кожного розрахунку усталені, рецензовані методики. Наведені нижче посилання ведуть до оригінальних джерел, щоб ти могла самостійно перевірити будь-яке число."),
+        "sourcesEnergyTitle": MessageLookupByLibrary.simpleMessage(
+            "Енергетичні потреби (TDEE, BMR та рівень активності)"),
+        "sourcesEnergyDescription": MessageLookupByLibrary.simpleMessage(
+            "Денні цілі за калоріями, основний обмін та коефіцієнти фізичної активності базуються на рівняннях Institute of Medicine. Джерело: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, розділ 5 і таблиця 5-5."),
+        "sourcesBmiTitle":
+            MessageLookupByLibrary.simpleMessage("Індекс маси тіла (ІМТ)"),
+        "sourcesBmiDescription": MessageLookupByLibrary.simpleMessage(
+            "ІМТ обчислюється як маса (кг), поділена на квадрат зросту (м²). Категорії здоров\'я (недостатня вага, нормальна вага, передожиріння, ожиріння I–III ступеня) відповідають класифікації ІМТ для дорослих Всесвітньої організації охорони здоров\'я."),
+        "sourcesMacrosTitle":
+            MessageLookupByLibrary.simpleMessage("Розподіл макроелементів"),
+        "sourcesMacrosDescription": MessageLookupByLibrary.simpleMessage(
+            "Стандартний розподіл 60% вуглеводів, 25% жирів і 15% білків входить у діапазони споживання поживних речовин, рекомендовані ВООЗ. Ти можеш змінити його в Налаштування → Розрахунки. Джерело: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases."),
+        "sourcesActivityTitle":
+            MessageLookupByLibrary.simpleMessage("Калорії від активності (значення MET)"),
+        "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "Калорії, спалені під час активності, оцінюються як MET × маса тіла (кг) × тривалість (години) на основі значень з Adult Compendium of Physical Activities."),
+        "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
+            "Розрахунок калорій для небінарних осіб"),
+        "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
+            "Дослідження енергетичних витрат історично використовували лише бінарні категорії статі, тому для небінарних осіб не існує єдиної підтвердженої формули TDEE. Тому OpenNutriTracker у Налаштування → Розрахунки пропонує вибір між усередненим орієнтиром, орієнтиром, типовим для естрогену, та орієнтиром, типовим для тестостерону. Якщо точне значення є дійсно важливим для тебе, будь ласка, поговори з лікарем, який знає твій гормональний стан. Джерело: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6."),
+        "sourcesOpenSourceLabel":
+            MessageLookupByLibrary.simpleMessage("Відкрити джерело"),
         "settingsDistanceLabel":
             MessageLookupByLibrary.simpleMessage("Відстань"),
         "settingsImperialLabel": MessageLookupByLibrary.simpleMessage(

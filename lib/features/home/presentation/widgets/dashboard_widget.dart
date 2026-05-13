@@ -1,6 +1,7 @@
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/macro_nutriments_widget.dart';
+import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -63,6 +64,27 @@ class _DashboardWidgetState extends State<DashboardWidget> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: S.of(context).sourcesIconTooltip,
+                  icon: Icon(
+                    Icons.info_outline,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.6),
+                  ),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const SourcesScreen(),
+                    ),
+                  ),
+                ),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [

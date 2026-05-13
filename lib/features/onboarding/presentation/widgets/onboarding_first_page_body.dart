@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
+import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/calories_profile_info_dialog.dart';
 import 'package:opennutritracker/core/utils/bounds/validator.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
@@ -101,9 +102,21 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            S.of(context).genderLabel,
-            style: Theme.of(context).textTheme.headlineSmall,
+          Row(
+            children: [
+              Text(
+                S.of(context).genderLabel,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                tooltip: S.of(context).sourcesIconTooltip,
+                icon: const Icon(Icons.info_outline),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SourcesScreen()),
+                ),
+              ),
+            ],
           ),
           Text(
             S.of(context).onboardingGenderQuestionSubtitle,

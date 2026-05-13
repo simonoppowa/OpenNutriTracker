@@ -1099,6 +1099,146 @@ class S {
     );
   }
 
+  /// `Sources & References`
+  String get settingsSourcesLabel {
+    return Intl.message(
+      'Sources & References',
+      name: 'settingsSourcesLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `View sources`
+  String get sourcesIconTooltip {
+    return Intl.message(
+      'View sources',
+      name: 'sourcesIconTooltip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `OpenNutriTracker uses well-established, peer-reviewed methodologies for every calculation it shows. The citations below link to the original sources so you can verify any number yourself.`
+  String get sourcesScreenIntro {
+    return Intl.message(
+      'OpenNutriTracker uses well-established, peer-reviewed methodologies for every calculation it shows. The citations below link to the original sources so you can verify any number yourself.',
+      name: 'sourcesScreenIntro',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Energy needs (TDEE, BMR & activity level)`
+  String get sourcesEnergyTitle {
+    return Intl.message(
+      'Energy needs (TDEE, BMR & activity level)',
+      name: 'sourcesEnergyTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily calorie targets, basal metabolic rate, and physical activity coefficients use the equations from the Institute of Medicine. Source: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, Chapter 5 and Table 5-5.`
+  String get sourcesEnergyDescription {
+    return Intl.message(
+      'Daily calorie targets, basal metabolic rate, and physical activity coefficients use the equations from the Institute of Medicine. Source: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, Chapter 5 and Table 5-5.',
+      name: 'sourcesEnergyDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Body Mass Index (BMI)`
+  String get sourcesBmiTitle {
+    return Intl.message(
+      'Body Mass Index (BMI)',
+      name: 'sourcesBmiTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `BMI is computed as weight (kg) divided by height squared (m²). The health categories (underweight, normal, pre-obesity, obesity class I–III) follow the World Health Organization's adult BMI classification.`
+  String get sourcesBmiDescription {
+    return Intl.message(
+      'BMI is computed as weight (kg) divided by height squared (m²). The health categories (underweight, normal, pre-obesity, obesity class I–III) follow the World Health Organization\'s adult BMI classification.',
+      name: 'sourcesBmiDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Macronutrient distribution`
+  String get sourcesMacrosTitle {
+    return Intl.message(
+      'Macronutrient distribution',
+      name: 'sourcesMacrosTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The default split of 60% carbohydrates, 25% fat, and 15% protein falls within the population nutrient intake ranges published by the WHO. You can adjust this in Settings → Calculations. Source: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.`
+  String get sourcesMacrosDescription {
+    return Intl.message(
+      'The default split of 60% carbohydrates, 25% fat, and 15% protein falls within the population nutrient intake ranges published by the WHO. You can adjust this in Settings → Calculations. Source: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.',
+      name: 'sourcesMacrosDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Activity calories (MET values)`
+  String get sourcesActivityTitle {
+    return Intl.message(
+      'Activity calories (MET values)',
+      name: 'sourcesActivityTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Calories burned during an activity are estimated as MET × body weight (kg) × duration (hours), using values from the Adult Compendium of Physical Activities.`
+  String get sourcesActivityDescription {
+    return Intl.message(
+      'Calories burned during an activity are estimated as MET × body weight (kg) × duration (hours), using values from the Adult Compendium of Physical Activities.',
+      name: 'sourcesActivityDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Non-binary calorie estimation`
+  String get sourcesNonBinaryTitle {
+    return Intl.message(
+      'Non-binary calorie estimation',
+      name: 'sourcesNonBinaryTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Energy-expenditure research has historically used binary sex categories, so there is no single validated TDEE formula for non-binary people. OpenNutriTracker therefore lets you choose between an averaged reference, an estrogen-typical reference, or a testosterone-typical reference under Settings → Calculations. If an accurate number genuinely matters for your care, please speak to a clinician familiar with your hormone status. Source: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6.`
+  String get sourcesNonBinaryDescription {
+    return Intl.message(
+      'Energy-expenditure research has historically used binary sex categories, so there is no single validated TDEE formula for non-binary people. OpenNutriTracker therefore lets you choose between an averaged reference, an estrogen-typical reference, or a testosterone-typical reference under Settings → Calculations. If an accurate number genuinely matters for your care, please speak to a clinician familiar with your hormone status. Source: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6.',
+      name: 'sourcesNonBinaryDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `View source`
+  String get sourcesOpenSourceLabel {
+    return Intl.message(
+      'View source',
+      name: 'sourcesOpenSourceLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Report Error`
   String get settingsReportErrorLabel {
     return Intl.message(
@@ -1288,10 +1428,10 @@ class S {
     );
   }
 
-  /// `OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.`
+  /// `OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended. For the peer-reviewed sources behind each calculation, tap the info icon on the Home or Profile screen.`
   String get disclaimerText {
     return Intl.message(
-      'OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.',
+      'OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended. For the peer-reviewed sources behind each calculation, tap the info icon on the Home or Profile screen.',
       name: 'disclaimerText',
       desc: '',
       args: [],
@@ -1338,10 +1478,10 @@ class S {
     );
   }
 
-  /// `Institute of Medicine Equation`
+  /// `Institute of Medicine Equation (2005)`
   String get calculationsTDEEIOM2006Label {
     return Intl.message(
-      'Institute of Medicine Equation',
+      'Institute of Medicine Equation (2005)',
       name: 'calculationsTDEEIOM2006Label',
       desc: '',
       args: [],

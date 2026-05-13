@@ -115,7 +115,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsRecommendedLabel":
             MessageLookupByLibrary.simpleMessage("(zalecane)"),
         "calculationsTDEEIOM2006Label": MessageLookupByLibrary.simpleMessage(
-            "Równanie Institute of Medicine"),
+            "Równanie Institute of Medicine (2005)"),
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("Równanie TDEE"),
         "caloriesProfileAveragedLabel": MessageLookupByLibrary.simpleMessage(
@@ -208,7 +208,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "discardChangesTitle":
             MessageLookupByLibrary.simpleMessage("Odrzucić zmiany?"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
-            "OpenNutriTracker nie jest aplikacją medyczną. Wszystkie dostarczone dane nie są zweryfikowane i należy ich używać z ostrożnością. Prosimy o prowadzenie zdrowego stylu życia i skonsultowanie się z profesjonalistą w przypadku jakichkolwiek problemów. Używanie podczas choroby, ciąży lub karmienia piersią nie jest zalecane."),
+            "OpenNutriTracker nie jest aplikacją medyczną. Wszystkie dostarczone dane nie są zweryfikowane i należy ich używać z ostrożnością. Prosimy o prowadzenie zdrowego stylu życia i skonsultowanie się z profesjonalistą w przypadku jakichkolwiek problemów. Używanie podczas choroby, ciąży lub karmienia piersią nie jest zalecane. Recenzowane źródła dla każdego obliczenia znajdziesz po dotknięciu ikony informacji na ekranie głównym lub w Profilu."),
         "downloadSampleCsvAction": MessageLookupByLibrary.simpleMessage(
             "Przykładowe posiłki (csv)"),
         "downloadSampleRecipesCsvAction": MessageLookupByLibrary.simpleMessage(
@@ -900,6 +900,34 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Własne posiłki"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Zastrzeżenie"),
+        "settingsSourcesLabel":
+            MessageLookupByLibrary.simpleMessage("Źródła i odniesienia"),
+        "sourcesIconTooltip":
+            MessageLookupByLibrary.simpleMessage("Zobacz źródła"),
+        "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(
+            "OpenNutriTracker stosuje dla każdego obliczenia uznane, recenzowane metody. Poniższe odnośniki prowadzą do oryginalnych źródeł, dzięki czemu możesz samodzielnie zweryfikować dowolną wartość."),
+        "sourcesEnergyTitle": MessageLookupByLibrary.simpleMessage(
+            "Zapotrzebowanie energetyczne (TDEE, BMR i poziom aktywności)"),
+        "sourcesEnergyDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienne cele kaloryczne, podstawowa przemiana materii oraz współczynniki aktywności fizycznej opierają się na równaniach Institute of Medicine. Źródło: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, rozdział 5 i tabela 5-5."),
+        "sourcesBmiTitle":
+            MessageLookupByLibrary.simpleMessage("Wskaźnik masy ciała (BMI)"),
+        "sourcesBmiDescription": MessageLookupByLibrary.simpleMessage(
+            "BMI oblicza się jako masę ciała (kg) podzieloną przez kwadrat wzrostu (m²). Kategorie zdrowotne (niedowaga, waga prawidłowa, nadwaga, otyłość I–III stopnia) są zgodne z klasyfikacją BMI dla osób dorosłych Światowej Organizacji Zdrowia."),
+        "sourcesMacrosTitle":
+            MessageLookupByLibrary.simpleMessage("Rozkład makroskładników"),
+        "sourcesMacrosDescription": MessageLookupByLibrary.simpleMessage(
+            "Domyślny podział 60% węglowodanów, 25% tłuszczu i 15% białka mieści się w zakresach spożycia rekomendowanych przez WHO. Możesz go zmienić w Ustawienia → Obliczenia. Źródło: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases."),
+        "sourcesActivityTitle":
+            MessageLookupByLibrary.simpleMessage("Kalorie z aktywności (wartości MET)"),
+        "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "Kalorie spalone podczas aktywności są szacowane jako MET × masa ciała (kg) × czas trwania (godziny), na podstawie wartości z Adult Compendium of Physical Activities."),
+        "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
+            "Obliczanie kalorii dla osób niebinarnych"),
+        "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
+            "Badania nad wydatkiem energetycznym historycznie korzystały wyłącznie z binarnych kategorii płci, dlatego nie istnieje jeden zwalidowany wzór TDEE dla osób niebinarnych. OpenNutriTracker oferuje więc w Ustawienia → Obliczenia wybór między uśrednioną referencją, referencją typową dla estrogenu oraz referencją typową dla testosteronu. Jeśli dokładna wartość jest dla ciebie naprawdę istotna, skonsultuj się z lekarzem znającym twój profil hormonalny. Źródło: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6."),
+        "sourcesOpenSourceLabel":
+            MessageLookupByLibrary.simpleMessage("Otwórz źródło"),
         "settingsDistanceLabel":
             MessageLookupByLibrary.simpleMessage("Odległość"),
         "settingsImperialLabel":

@@ -114,7 +114,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsRecommendedLabel":
             MessageLookupByLibrary.simpleMessage("(recommended)"),
         "calculationsTDEEIOM2006Label": MessageLookupByLibrary.simpleMessage(
-            "Institute of Medicine Equation"),
+            "Institute of Medicine Equation (2005)"),
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("TDEE equation"),
         "caloriesProfileAveragedLabel":
@@ -174,7 +174,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "e.g. soup, chicken, wine ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Dinner"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
-            "OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended."),
+            "OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended. For the peer-reviewed sources behind each calculation, tap the info icon on the Home or Profile screen."),
         "duplicateMealDialogContent": MessageLookupByLibrary.simpleMessage(
             "This food has already been added to this meal today. Add it again?"),
         "editItemDialogTitle":
@@ -887,6 +887,34 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Calculations"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Disclaimer"),
+        "settingsSourcesLabel":
+            MessageLookupByLibrary.simpleMessage("Sources & References"),
+        "sourcesIconTooltip":
+            MessageLookupByLibrary.simpleMessage("View sources"),
+        "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(
+            "OpenNutriTracker uses well-established, peer-reviewed methodologies for every calculation it shows. The citations below link to the original sources so you can verify any number yourself."),
+        "sourcesEnergyTitle": MessageLookupByLibrary.simpleMessage(
+            "Energy needs (TDEE, BMR & activity level)"),
+        "sourcesEnergyDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily calorie targets, basal metabolic rate, and physical activity coefficients use the equations from the Institute of Medicine. Source: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, Chapter 5 and Table 5-5."),
+        "sourcesBmiTitle":
+            MessageLookupByLibrary.simpleMessage("Body Mass Index (BMI)"),
+        "sourcesBmiDescription": MessageLookupByLibrary.simpleMessage(
+            "BMI is computed as weight (kg) divided by height squared (m²). The health categories (underweight, normal, pre-obesity, obesity class I–III) follow the World Health Organization\'s adult BMI classification."),
+        "sourcesMacrosTitle":
+            MessageLookupByLibrary.simpleMessage("Macronutrient distribution"),
+        "sourcesMacrosDescription": MessageLookupByLibrary.simpleMessage(
+            "The default split of 60% carbohydrates, 25% fat, and 15% protein falls within the population nutrient intake ranges published by the WHO. You can adjust this in Settings → Calculations. Source: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases."),
+        "sourcesActivityTitle":
+            MessageLookupByLibrary.simpleMessage("Activity calories (MET values)"),
+        "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "Calories burned during an activity are estimated as MET × body weight (kg) × duration (hours), using values from the Adult Compendium of Physical Activities."),
+        "sourcesNonBinaryTitle":
+            MessageLookupByLibrary.simpleMessage("Non-binary calorie estimation"),
+        "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
+            "Energy-expenditure research has historically used binary sex categories, so there is no single validated TDEE formula for non-binary people. OpenNutriTracker therefore lets you choose between an averaged reference, an estrogen-typical reference, or a testosterone-typical reference under Settings → Calculations. If an accurate number genuinely matters for your care, please speak to a clinician familiar with your hormone status. Source: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6."),
+        "sourcesOpenSourceLabel":
+            MessageLookupByLibrary.simpleMessage("View source"),
         "settingsDistanceLabel":
             MessageLookupByLibrary.simpleMessage("Distance"),
         "settingsImperialLabel":

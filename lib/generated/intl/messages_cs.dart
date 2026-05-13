@@ -115,7 +115,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsRecommendedLabel":
             MessageLookupByLibrary.simpleMessage("(doporučeno)"),
         "calculationsTDEEIOM2006Label": MessageLookupByLibrary.simpleMessage(
-            "Výpočet Institute of Medicine"),
+            "Výpočet Institute of Medicine (2005)"),
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("Výpočet TDEE"),
         "caloriesProfileAveragedLabel": MessageLookupByLibrary.simpleMessage(
@@ -207,7 +207,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "discardChangesTitle":
             MessageLookupByLibrary.simpleMessage("Zahodit změny?"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
-            "OpenNutriTracker není aplikace pro lékařské účely. Doporučené hodnoty nejsou validovány a měly by být použity opatrně za použití selského rozumu. Dodržujte prosím obecné zásady zdravého životního stylu a kontaktujte lékaře v případě zdravotních problémů. Používání aplikace se nedoporučuje během nemoci, těhotenství či kojení."),
+            "OpenNutriTracker není aplikace pro lékařské účely. Doporučené hodnoty nejsou validovány a měly by být použity opatrně za použití selského rozumu. Dodržujte prosím obecné zásady zdravého životního stylu a kontaktujte lékaře v případě zdravotních problémů. Používání aplikace se nedoporučuje během nemoci, těhotenství či kojení. Recenzované zdroje ke každému výpočtu najdete přes ikonu informací na obrazovce Domů nebo Profil."),
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Vzorová jídla (csv)"),
         "downloadSampleRecipesCsvAction":
@@ -895,6 +895,34 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Vlastní jídla"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Vzdání se nároku"),
+        "settingsSourcesLabel":
+            MessageLookupByLibrary.simpleMessage("Zdroje a reference"),
+        "sourcesIconTooltip":
+            MessageLookupByLibrary.simpleMessage("Zobrazit zdroje"),
+        "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(
+            "OpenNutriTracker používá pro každý zobrazený výpočet zavedené, recenzované metody. Následující odkazy vedou na původní zdroje, takže si můžeš každé číslo sám ověřit."),
+        "sourcesEnergyTitle": MessageLookupByLibrary.simpleMessage(
+            "Energetická potřeba (TDEE, BMR a úroveň aktivity)"),
+        "sourcesEnergyDescription": MessageLookupByLibrary.simpleMessage(
+            "Denní kalorické cíle, bazální metabolismus a koeficienty fyzické aktivity vycházejí z rovnic Institute of Medicine. Zdroj: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, kapitola 5 a tabulka 5-5."),
+        "sourcesBmiTitle": MessageLookupByLibrary.simpleMessage(
+            "Index tělesné hmotnosti (BMI)"),
+        "sourcesBmiDescription": MessageLookupByLibrary.simpleMessage(
+            "BMI se počítá jako hmotnost (kg) dělená druhou mocninou výšky (m²). Kategorie (podváha, normální váha, nadváha, obezita I.–III. stupně) odpovídají klasifikaci BMI pro dospělé podle Světové zdravotnické organizace."),
+        "sourcesMacrosTitle":
+            MessageLookupByLibrary.simpleMessage("Rozložení makroživin"),
+        "sourcesMacrosDescription": MessageLookupByLibrary.simpleMessage(
+            "Výchozí rozložení 60 % sacharidů, 25 % tuků a 15 % bílkovin spadá do doporučených rozsahů příjmu živin podle WHO. V Nastavení → Výpočty si je můžeš upravit. Zdroj: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases."),
+        "sourcesActivityTitle":
+            MessageLookupByLibrary.simpleMessage("Kalorie z aktivity (hodnoty MET)"),
+        "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "Kalorie spálené při aktivitě se odhadují jako MET × tělesná hmotnost (kg) × doba (hodiny) podle hodnot z Adult Compendium of Physical Activities."),
+        "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
+            "Výpočet kalorií pro non-binární osoby"),
+        "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
+            "Výzkum energetického výdeje historicky používal pouze binární pohlavní kategorie, takže pro non-binární osoby neexistuje jediný validovaný vzorec TDEE. OpenNutriTracker proto v Nastavení → Výpočty nabízí volbu mezi zprůměrovanou referencí, estrogen-typickou referencí a testosteron-typickou referencí. Pokud na přesné hodnotě skutečně záleží, prosím poraď se s lékařem, který zná tvůj hormonální stav. Zdroj: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6."),
+        "sourcesOpenSourceLabel":
+            MessageLookupByLibrary.simpleMessage("Otevřít zdroj"),
         "settingsDistanceLabel":
             MessageLookupByLibrary.simpleMessage("Vzdálenost"),
         "settingsImperialLabel":

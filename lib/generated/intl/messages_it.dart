@@ -116,7 +116,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsRecommendedLabel":
             MessageLookupByLibrary.simpleMessage("(consigliato)"),
         "calculationsTDEEIOM2006Label": MessageLookupByLibrary.simpleMessage(
-            "Equazione dell\'Istituto di Medicina"),
+            "Equazione dell\'Istituto di Medicina (2005)"),
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("Equazione TDEE"),
         "caloriesProfileAveragedLabel":
@@ -209,7 +209,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "discardChangesTitle":
             MessageLookupByLibrary.simpleMessage("Annullare le modifiche?"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
-            "OpenNutriTracker non è un\'applicazione medica. Tutti i dati forniti non sono validati e dovrebbero essere utilizzati con cautela. Mantieni uno stile di vita sano e consulta un professionista se hai problemi. L\'uso durante malattie, gravidanza o allattamento non è raccomandato."),
+            "OpenNutriTracker non è un\'applicazione medica. Tutti i dati forniti non sono validati e dovrebbero essere utilizzati con cautela. Mantieni uno stile di vita sano e consulta un professionista se hai problemi. L\'uso durante malattie, gravidanza o allattamento non è raccomandato. Per le fonti sottoposte a peer review di ogni calcolo, tocca l\'icona informativa nella schermata Home o Profilo."),
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Pasti di esempio (csv)"),
         "downloadSampleRecipesCsvAction": MessageLookupByLibrary.simpleMessage(
@@ -903,6 +903,34 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Pasti personalizzati"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Disclaimer"),
+        "settingsSourcesLabel":
+            MessageLookupByLibrary.simpleMessage("Fonti e riferimenti"),
+        "sourcesIconTooltip":
+            MessageLookupByLibrary.simpleMessage("Vedi le fonti"),
+        "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(
+            "OpenNutriTracker utilizza per ogni calcolo metodologie consolidate e sottoposte a peer review. I riferimenti seguenti rimandano alle fonti originali, così puoi verificare ogni numero in autonomia."),
+        "sourcesEnergyTitle": MessageLookupByLibrary.simpleMessage(
+            "Fabbisogno energetico (TDEE, BMR e livello di attività)"),
+        "sourcesEnergyDescription": MessageLookupByLibrary.simpleMessage(
+            "Gli obiettivi calorici giornalieri, il metabolismo basale e i coefficienti di attività fisica si basano sulle equazioni dell\'Institute of Medicine. Fonte: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, capitolo 5 e tabella 5-5."),
+        "sourcesBmiTitle":
+            MessageLookupByLibrary.simpleMessage("Indice di Massa Corporea (BMI)"),
+        "sourcesBmiDescription": MessageLookupByLibrary.simpleMessage(
+            "Il BMI si calcola come peso (kg) diviso il quadrato dell\'altezza (m²). Le categorie di salute (sottopeso, normopeso, pre-obesità, obesità di classe I–III) seguono la classificazione del BMI per adulti dell\'Organizzazione Mondiale della Sanità."),
+        "sourcesMacrosTitle":
+            MessageLookupByLibrary.simpleMessage("Distribuzione dei macronutrienti"),
+        "sourcesMacrosDescription": MessageLookupByLibrary.simpleMessage(
+            "La distribuzione predefinita di 60% carboidrati, 25% grassi e 15% proteine rientra negli intervalli raccomandati dall\'OMS. Puoi modificarla in Impostazioni → Calcoli. Fonte: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases."),
+        "sourcesActivityTitle":
+            MessageLookupByLibrary.simpleMessage("Calorie dall\'attività (valori MET)"),
+        "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "Le calorie bruciate durante un\'attività si stimano come MET × peso corporeo (kg) × durata (ore), usando i valori dell\'Adult Compendium of Physical Activities."),
+        "sourcesNonBinaryTitle":
+            MessageLookupByLibrary.simpleMessage("Stima calorica per persone non binarie"),
+        "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
+            "La ricerca sul dispendio energetico ha storicamente usato solo categorie binarie di sesso, quindi non esiste una formula TDEE validata per le persone non binarie. OpenNutriTracker permette quindi di scegliere tra un riferimento medio, un riferimento di tipo estrogenico e uno di tipo testosteronico in Impostazioni → Calcoli. Se per te è davvero importante un valore accurato, ti consigliamo di parlarne con un medico che conosca il tuo profilo ormonale. Fonte: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6."),
+        "sourcesOpenSourceLabel":
+            MessageLookupByLibrary.simpleMessage("Apri la fonte"),
         "settingsDistanceLabel":
             MessageLookupByLibrary.simpleMessage("Distanza"),
         "settingsImperialLabel":

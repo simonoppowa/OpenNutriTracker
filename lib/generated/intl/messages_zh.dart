@@ -110,7 +110,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsRecommendedLabel":
             MessageLookupByLibrary.simpleMessage("（推荐）"),
         "calculationsTDEEIOM2006Label":
-            MessageLookupByLibrary.simpleMessage("医学研究所方程式"),
+            MessageLookupByLibrary.simpleMessage("医学研究所方程式 (2005)"),
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("TDEE方程式"),
         "caloriesProfileAveragedLabel":
@@ -195,7 +195,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "discardChangesTitle":
             MessageLookupByLibrary.simpleMessage("放弃更改？"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
-            "OpenNutriTracker不是医疗应用程序。提供的所有数据均未经验证，应谨慎使用。请保持健康的生活方式，如有任何问题请咨询专业人士。不建议在患病、怀孕或哺乳期使用。"),
+            "OpenNutriTracker不是医疗应用程序。提供的所有数据均未经验证，应谨慎使用。请保持健康的生活方式，如有任何问题请咨询专业人士。不建议在患病、怀孕或哺乳期使用。每一项计算所依据的同行评审来源，请点击「首页」或「个人资料」页面的信息图标查看。"),
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("示例餐食 (csv)"),
         "downloadSampleRecipesCsvAction":
@@ -765,6 +765,34 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsCustomMealsLabel":
             MessageLookupByLibrary.simpleMessage("自定义餐食"),
         "settingsDisclaimerLabel": MessageLookupByLibrary.simpleMessage("免责声明"),
+        "settingsSourcesLabel":
+            MessageLookupByLibrary.simpleMessage("来源与参考"),
+        "sourcesIconTooltip":
+            MessageLookupByLibrary.simpleMessage("查看来源"),
+        "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(
+            "OpenNutriTracker 的每一项计算都采用成熟的、经同行评审的方法。以下引用直接链接到原始文献，你可以自行核对其中的每一个数值。"),
+        "sourcesEnergyTitle":
+            MessageLookupByLibrary.simpleMessage("能量需求 (TDEE、基础代谢与活动水平)"),
+        "sourcesEnergyDescription": MessageLookupByLibrary.simpleMessage(
+            "每日卡路里目标、基础代谢率以及身体活动系数均采用美国医学研究所 (Institute of Medicine) 的方程。来源：Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids，第 5 章及表 5-5。"),
+        "sourcesBmiTitle":
+            MessageLookupByLibrary.simpleMessage("身体质量指数 (BMI)"),
+        "sourcesBmiDescription": MessageLookupByLibrary.simpleMessage(
+            "BMI 等于体重（千克）除以身高（米）的平方。健康分类（偏瘦、正常、偏胖前期、I–III 级肥胖）遵循世界卫生组织成人 BMI 分类标准。"),
+        "sourcesMacrosTitle":
+            MessageLookupByLibrary.simpleMessage("宏量营养素分配"),
+        "sourcesMacrosDescription": MessageLookupByLibrary.simpleMessage(
+            "默认的 60% 碳水化合物、25% 脂肪、15% 蛋白质比例落在 WHO 推荐的人群营养摄入范围内。你可以在 设置 → 计算 中调整。来源：WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases。"),
+        "sourcesActivityTitle":
+            MessageLookupByLibrary.simpleMessage("活动消耗的卡路里 (MET 数值)"),
+        "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "活动中消耗的卡路里按 MET × 体重（千克）× 时长（小时）估算，所用数值来自 Adult Compendium of Physical Activities。"),
+        "sourcesNonBinaryTitle":
+            MessageLookupByLibrary.simpleMessage("非二元性别人士的卡路里估算"),
+        "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
+            "能量消耗的研究历史上一直只采用二元性别分类，因此目前并不存在一条经过验证的、适用于非二元性别人士的 TDEE 公式。OpenNutriTracker 因此在 设置 → 计算 中提供平均参考、雌激素型参考、睾酮型参考三种选项供你选择。如果精确数值对你确实重要，请咨询了解你激素状况的临床医师。来源：Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6。"),
+        "sourcesOpenSourceLabel":
+            MessageLookupByLibrary.simpleMessage("打开来源"),
         "settingsDistanceLabel": MessageLookupByLibrary.simpleMessage("距离"),
         "settingsImperialLabel":
             MessageLookupByLibrary.simpleMessage("英制（磅、英尺、盎司）"),

@@ -116,7 +116,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "calculationsRecommendedLabel":
             MessageLookupByLibrary.simpleMessage("(önerilen)"),
         "calculationsTDEEIOM2006Label":
-            MessageLookupByLibrary.simpleMessage("Tıp Enstitüsü Denklemi"),
+            MessageLookupByLibrary.simpleMessage("Tıp Enstitüsü Denklemi (2005)"),
         "calculationsTDEELabel":
             MessageLookupByLibrary.simpleMessage("TDEE denklemi"),
         "caloriesProfileAveragedLabel":
@@ -210,7 +210,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "discardChangesTitle": MessageLookupByLibrary.simpleMessage(
             "Değişiklikler iptal edilsin mi?"),
         "disclaimerText": MessageLookupByLibrary.simpleMessage(
-            "OpenNutriTracker bir tıbbi uygulama değildir. Sağlanan tüm veriler doğrulanmamıştır ve dikkatle kullanılmalıdır. Lütfen sağlıklı bir yaşam tarzı sürdürün ve herhangi bir sorununuz varsa bir profesyonele danışın. Hastalık, hamilelik veya emzirme döneminde kullanımı önerilmez.\n\n\nUygulama hala geliştirme aşamasındadır. Hatalar, aksaklıklar ve çökmeler meydana gelebilir."),
+            "OpenNutriTracker bir tıbbi uygulama değildir. Sağlanan tüm veriler doğrulanmamıştır ve dikkatle kullanılmalıdır. Lütfen sağlıklı bir yaşam tarzı sürdürün ve herhangi bir sorununuz varsa bir profesyonele danışın. Hastalık, hamilelik veya emzirme döneminde kullanımı önerilmez.\n\n\nUygulama hala geliştirme aşamasındadır. Hatalar, aksaklıklar ve çökmeler meydana gelebilir.\n\nHer hesaplamanın hakemli kaynaklarına Ana Sayfa veya Profil ekranındaki bilgi simgesine dokunarak ulaşabilirsin."),
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Örnek yemekler (csv)"),
         "downloadSampleRecipesCsvAction":
@@ -885,6 +885,34 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Özel Yemekler"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Sorumluluk Reddi"),
+        "settingsSourcesLabel":
+            MessageLookupByLibrary.simpleMessage("Kaynaklar ve Referanslar"),
+        "sourcesIconTooltip":
+            MessageLookupByLibrary.simpleMessage("Kaynakları görüntüle"),
+        "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(
+            "OpenNutriTracker, gösterdiği her hesaplama için yerleşik ve hakemli yöntemler kullanır. Aşağıdaki kaynaklar orijinal yayınlara bağlanır, böylece her değeri kendin doğrulayabilirsin."),
+        "sourcesEnergyTitle": MessageLookupByLibrary.simpleMessage(
+            "Enerji ihtiyacı (TDEE, BMR ve aktivite düzeyi)"),
+        "sourcesEnergyDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük kalori hedefleri, bazal metabolizma hızı ve fiziksel aktivite katsayıları Institute of Medicine denklemlerine dayanır. Kaynak: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, Bölüm 5 ve Tablo 5-5."),
+        "sourcesBmiTitle":
+            MessageLookupByLibrary.simpleMessage("Vücut Kitle İndeksi (BMI)"),
+        "sourcesBmiDescription": MessageLookupByLibrary.simpleMessage(
+            "BMI, kilogram cinsinden vücut ağırlığının metre cinsinden boyun karesine (m²) bölünmesiyle hesaplanır. Sağlık kategorileri (zayıf, normal, fazla kilolu, sınıf I–III obezite) Dünya Sağlık Örgütü\'nün yetişkin BMI sınıflandırmasına uyar."),
+        "sourcesMacrosTitle":
+            MessageLookupByLibrary.simpleMessage("Makro besin dağılımı"),
+        "sourcesMacrosDescription": MessageLookupByLibrary.simpleMessage(
+            "%60 karbonhidrat, %25 yağ ve %15 protein şeklindeki varsayılan dağılım, DSÖ\'nün önerdiği nüfus besin alımı aralıkları içinde kalır. Ayarlar → Hesaplamalar bölümünden değiştirebilirsin. Kaynak: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases."),
+        "sourcesActivityTitle":
+            MessageLookupByLibrary.simpleMessage("Aktivite kalorileri (MET değerleri)"),
+        "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "Bir aktivite sırasında yakılan kaloriler, Adult Compendium of Physical Activities\'teki değerler kullanılarak MET × vücut ağırlığı (kg) × süre (saat) olarak tahmin edilir."),
+        "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
+            "Non-binary kişiler için kalori tahmini"),
+        "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
+            "Enerji harcaması üzerine yapılan araştırmalar tarihsel olarak yalnızca ikili cinsiyet kategorilerini kullanmıştır; bu nedenle non-binary kişiler için doğrulanmış tek bir TDEE formülü yoktur. Bu yüzden OpenNutriTracker, Ayarlar → Hesaplamalar bölümünde ortalanmış bir referans, östrojen-tipik bir referans ve testosteron-tipik bir referans arasında seçim yapmanı sağlar. Bakımın için kesin bir değer gerçekten önemliyse lütfen hormon durumunu bilen bir klinisyenle görüş. Kaynak: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6."),
+        "sourcesOpenSourceLabel":
+            MessageLookupByLibrary.simpleMessage("Kaynağı aç"),
         "settingsDistanceLabel": MessageLookupByLibrary.simpleMessage("Mesafe"),
         "settingsImperialLabel":
             MessageLookupByLibrary.simpleMessage("İmperial (lbs, ft, oz)"),
