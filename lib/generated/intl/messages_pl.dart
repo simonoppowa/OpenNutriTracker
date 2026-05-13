@@ -839,6 +839,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Wartości odżywcze (suma)"),
         "recipeSaveErrorLabel": MessageLookupByLibrary.simpleMessage(
             "Nie udało się zapisać przepisu."),
+        "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
+            "Pozostaw włączone, aby zachować ten posiłek na liście zapisanych. Wyłącz dla jednorazowego posiłku, którego już nie zjesz."),
+        "recipeSaveForLaterLabel":
+            MessageLookupByLibrary.simpleMessage("Zapisz na później"),
         "recipeSaveLabel":
             MessageLookupByLibrary.simpleMessage("Zapisz przepis"),
         "recipeServingsCountHelper": MessageLookupByLibrary.simpleMessage(

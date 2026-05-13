@@ -854,6 +854,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Nährwerte (gesamt)"),
         "recipeSaveErrorLabel": MessageLookupByLibrary.simpleMessage(
             "Rezept konnte nicht gespeichert werden."),
+        "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
+            "Lass dies aktiviert, um diese Mahlzeit in deiner gespeicherten Liste zu behalten. Schalte es aus für eine einmalige Mahlzeit, die du nicht noch einmal essen wirst."),
+        "recipeSaveForLaterLabel":
+            MessageLookupByLibrary.simpleMessage("Für später speichern"),
         "recipeSaveLabel":
             MessageLookupByLibrary.simpleMessage("Rezept speichern"),
         "recipeServingsCountHelper": MessageLookupByLibrary.simpleMessage(

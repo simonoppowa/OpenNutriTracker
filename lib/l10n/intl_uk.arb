@@ -550,6 +550,8 @@
   "recipeNutritionPer100Label": "На 100 г",
   "recipeNutritionPreviewLabel": "Поживність (загалом)",
   "recipeSaveErrorLabel": "Не вдалося зберегти рецепт.",
+  "recipeSaveForLaterLabel": "Зберегти на потім",
+  "recipeSaveForLaterDescription": "Залиште увімкненим, щоб ця страва залишилася у вашому збереженому списку. Вимкніть для одноразової страви, яку ви більше не їстимете.",
   "recipeSaveLabel": "Зберегти рецепт",
   "recipeServingsCountHelper": "Дозволяє реєструвати цей рецепт у порціях замість грамів.",
   "recipeServingsCountLabel": "Порції (необов'язково)",
