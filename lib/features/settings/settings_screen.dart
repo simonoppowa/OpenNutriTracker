@@ -91,6 +91,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 ListTile(
+                  leading: const Icon(Icons.local_fire_department_outlined),
+                  title: Text(S.of(context).settingsEnergyUnitLabel),
+                  subtitle: Text(state.usesKilojoules
+                      ? S.of(context).energyUnitKjLabel
+                      : S.of(context).energyUnitKcalLabel),
+                  onTap: () =>
+                      _showEnergyUnitDialog(context, state.usesKilojoules),
+                ),
+                ListTile(
                   leading: const Icon(Icons.calculate_outlined),
                   title: Text(S.of(context).settingsCalculationsLabel),
                   onTap: () => _showCalculationsDialog(context),
