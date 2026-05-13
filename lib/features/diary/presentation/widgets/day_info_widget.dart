@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_or_delete_dialog.dart';
+import 'package:opennutritracker/core/presentation/widgets/macro_nutriments_widget.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
@@ -122,6 +123,18 @@ class DayInfoWidget extends StatelessWidget {
                                   ),
                             ),
                           ),
+                        ),
+                        const SizedBox(height: 12.0),
+                        MacroNutrientsView(
+                          totalCarbsIntake: _allIntakes
+                              .fold(0.0, (sum, i) => sum + i.totalCarbsGram),
+                          totalFatsIntake: _allIntakes
+                              .fold(0.0, (sum, i) => sum + i.totalFatsGram),
+                          totalProteinsIntake: _allIntakes
+                              .fold(0.0, (sum, i) => sum + i.totalProteinsGram),
+                          totalCarbsGoal: trackedDay.carbsGoal ?? 0.0,
+                          totalFatsGoal: trackedDay.fatGoal ?? 0.0,
+                          totalProteinsGoal: trackedDay.proteinGoal ?? 0.0,
                         ),
                         const SizedBox(height: 4.0),
                         Text(
