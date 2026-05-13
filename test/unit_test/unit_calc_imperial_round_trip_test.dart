@@ -111,6 +111,30 @@ void main() {
     });
   });
 
+  group('UnitCalc.kcalToKj / kjToKcal (#177)', () {
+    test('1 kcal converts to 4.184 kJ exactly', () {
+      expect(UnitCalc.kcalToKj(1), equals(4.184));
+    });
+
+    test('round-trip kcal → kJ → kcal is exact for whole-kcal values', () {
+      for (final kcal in const [100.0, 250.0, 500.0, 2000.0]) {
+        final kj = UnitCalc.kcalToKj(kcal);
+        final back = UnitCalc.kjToKcal(kj);
+        expect(back, closeTo(kcal, 1e-9),
+            reason: '$kcal kcal -> $kj kJ -> $back kcal lost precision');
+      }
+    });
+
+    test('zero passes through unchanged', () {
+      expect(UnitCalc.kcalToKj(0), equals(0));
+      expect(UnitCalc.kjToKcal(0), equals(0));
+    });
+
+    test('2000 kcal rounds to 8368 kJ (typical daily-goal sanity check)', () {
+      expect(UnitCalc.kcalToKj(2000).round(), equals(8368));
+    });
+  });
+
   group('UnitCalc.imperialToMetricValue', () {
     test('converts ounces to grams', () {
       expect(UnitCalc.imperialToMetricValue(2, 'oz'),

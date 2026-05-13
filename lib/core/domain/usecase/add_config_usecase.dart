@@ -71,4 +71,8 @@ class AddConfigUsecase {
   Future<void> setConfigShowMicronutrients(bool show) async {
     _configRepository.setConfigShowMicronutrients(show);
   }
+
+  Future<void> setConfigUsesKilojoules(bool usesKilojoules) async {
+    await _configRepository.setConfigUsesKilojoules(usesKilojoules);
+  }
 }

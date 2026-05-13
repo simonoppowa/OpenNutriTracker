@@ -96,4 +96,8 @@ class ConfigRepository {
   Future<void> setConfigShowMicronutrients(bool show) async {
     await _configDataSource.setConfigShowMicronutrients(show);
   }
+
+  Future<void> setConfigUsesKilojoules(bool usesKilojoules) async {
+    await _configDataSource.setConfigUsesKilojoules(usesKilojoules);
+  }
 }

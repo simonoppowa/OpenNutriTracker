@@ -308,10 +308,22 @@ class MessageLookup extends MessageLookupByLibrary {
         "itemUpdatedSnackbar":
             MessageLookupByLibrary.simpleMessage("Елемент оновлено"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("ккал"),
+        "kjLabel": MessageLookupByLibrary.simpleMessage("кДж"),
         "kcalLeftLabel":
             MessageLookupByLibrary.simpleMessage("залишилось ккал"),
         "kcalTooMuchLabel":
             MessageLookupByLibrary.simpleMessage("ккал понад норму"),
+        "energyLeftLabel": MessageLookupByLibrary.simpleMessage("залишилось"),
+        "energyTooMuchLabel":
+            MessageLookupByLibrary.simpleMessage("понад норму"),
+        "settingsEnergyUnitLabel":
+            MessageLookupByLibrary.simpleMessage("Одиниця енергії"),
+        "energyUnitKcalLabel":
+            MessageLookupByLibrary.simpleMessage("Кілокалорії (ккал)"),
+        "energyUnitKjLabel":
+            MessageLookupByLibrary.simpleMessage("Кілоджоулі (кДж)"),
+        "onboardingKjPerDayLabel":
+            MessageLookupByLibrary.simpleMessage("кДж на день"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("кг"),
         "lbsLabel": MessageLookupByLibrary.simpleMessage("фунт"),
         "lunchExample": MessageLookupByLibrary.simpleMessage(

@@ -40,6 +40,8 @@ class ConfigDBO extends HiveObject {
   bool? showMealMacros;
   @HiveField(15)
   bool? showMicronutrients; // #237: null means default (false)
+  @HiveField(16)
+  bool? usesKilojoules; // #177: null means default (false → kcal)
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -55,6 +57,7 @@ class ConfigDBO extends HiveObject {
     this.notificationMinute,
     this.selectedLocale,
     this.showMicronutrients,
+    this.usesKilojoules,
   });
 
   factory ConfigDBO.empty() =>

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
@@ -157,7 +158,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                     children: [
                       // set Focus
                       Text(
-                        '~${totalKcal.toInt()} ${S.of(context).kcalLabel}',
+                        '~${EnergyDisplay.formatWithUnit(context, totalKcal)}',
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       Text(' / ${totalQuantity.toInt()} min'),

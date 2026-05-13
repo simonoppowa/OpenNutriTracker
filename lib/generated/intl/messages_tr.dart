@@ -309,8 +309,19 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Öğe güncellendi"),
         "kcalExceededLabel": MessageLookupByLibrary.simpleMessage("kcal aşıldı"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
+        "kjLabel": MessageLookupByLibrary.simpleMessage("kJ"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kalan kcal"),
         "kcalTooMuchLabel": MessageLookupByLibrary.simpleMessage("fazla kcal"),
+        "energyLeftLabel": MessageLookupByLibrary.simpleMessage("kalan"),
+        "energyTooMuchLabel": MessageLookupByLibrary.simpleMessage("fazla"),
+        "settingsEnergyUnitLabel":
+            MessageLookupByLibrary.simpleMessage("Enerji birimi"),
+        "energyUnitKcalLabel":
+            MessageLookupByLibrary.simpleMessage("Kilokalori (kcal)"),
+        "energyUnitKjLabel":
+            MessageLookupByLibrary.simpleMessage("Kilojul (kJ)"),
+        "onboardingKjPerDayLabel":
+            MessageLookupByLibrary.simpleMessage("günlük kJ"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("kg"),
         "lbsLabel": MessageLookupByLibrary.simpleMessage("lbs"),
         "lunchExample": MessageLookupByLibrary.simpleMessage(

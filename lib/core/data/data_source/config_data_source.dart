@@ -147,6 +147,12 @@ class ConfigDataSource {
     await config?.save();
   }
 
+  Future<void> setConfigUsesKilojoules(bool usesKilojoules) async {
+    _log.fine('Updating config usesKilojoules to $usesKilojoules');
+    final config = _configBox.get(_configKey);
+    config?.usesKilojoules = usesKilojoules;
+    await config?.save();
+  }
 
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();

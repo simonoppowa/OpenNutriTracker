@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
 class OnboardingOverviewPageBody extends StatelessWidget {
   final String calorieGoalDayString;
@@ -21,6 +24,16 @@ class OnboardingOverviewPageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // #177: Stored calorie goal is always in kcal; only the displayed
+    // number and unit-suffix change when the user prefers kJ.
+    final usesKilojoules = context.watch<EnergyUnitProvider>().usesKilojoules;
+    final parsedKcalGoal = double.tryParse(calorieGoalDayString) ?? 0;
+    final displayGoalString = usesKilojoules
+        ? UnitCalc.kcalToKj(parsedKcalGoal).toInt().toString()
+        : calorieGoalDayString;
+    final perDayLabel = usesKilojoules
+        ? S.of(context).onboardingKjPerDayLabel
+        : S.of(context).onboardingKcalPerDayLabel;
     return SizedBox(
       width: double.infinity,
       child: Column(
@@ -43,13 +56,13 @@ class OnboardingOverviewPageBody extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  calorieGoalDayString,
+                  displayGoalString,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                       ),
                 ),
                 Text(
-                  S.of(context).onboardingKcalPerDayLabel,
+                  perDayLabel,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(
                           context,

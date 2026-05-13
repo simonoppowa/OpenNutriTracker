@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_all_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_card.dart';
+import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/vertical_list_popup_menu_selections.dart';
@@ -110,9 +111,9 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
               if (totalKcal > 0)
                 Text(
                   widget.showMealMacros
-                      ? '${totalKcal.toInt()} ${S.of(context).kcalLabel}\n'
+                      ? '${EnergyDisplay.formatWithUnit(context, totalKcal)}\n'
                           '${totalCarbsGram.toInt()} ${S.of(context).carbsLabelShort}  ${totalFatsGram.toInt()} ${S.of(context).fatLabelShort}  ${totalProteinsGram.toInt()} ${S.of(context).proteinLabelShort}'
-                      : '${totalKcal.toInt()} ${S.of(context).kcalLabel}',
+                      : EnergyDisplay.formatWithUnit(context, totalKcal),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: Theme.of(context)
                           .colorScheme

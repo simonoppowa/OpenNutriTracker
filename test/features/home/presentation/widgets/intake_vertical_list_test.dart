@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/core/utils/vertical_list_popup_menu_selections.dart';
@@ -11,6 +12,7 @@ import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart'
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
 class _FakeMealDetailBloc extends Fake implements MealDetailBloc {}
 
@@ -53,10 +55,13 @@ IntakeEntity _buildIntake({
 }
 
 Widget _wrapWithMaterial(Widget child) {
-  return MaterialApp(
-    localizationsDelegates: const [S.delegate],
-    supportedLocales: S.delegate.supportedLocales,
-    home: Scaffold(body: child),
+  return ChangeNotifierProvider<EnergyUnitProvider>(
+    create: (_) => EnergyUnitProvider(),
+    child: MaterialApp(
+      localizationsDelegates: const [S.delegate],
+      supportedLocales: S.delegate.supportedLocales,
+      home: Scaffold(body: child),
+    ),
   );
 }
 

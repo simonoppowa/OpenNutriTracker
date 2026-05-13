@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_ingredient_entity.dart';
+import 'package:opennutritracker/core/utils/energy_display.dart';
 
 class IngredientListItem extends StatelessWidget {
   final RecipeIngredientEntity ingredient;
@@ -32,7 +33,7 @@ class IngredientListItem extends StatelessWidget {
       ),
       subtitle: Text(
         '$amountStr ${ingredient.unit} · '
-        '${contributionKcal.toStringAsFixed(0)} kcal',
+        '${EnergyDisplay.formatWithUnit(context, contributionKcal)}',
       ),
       onTap: onEdit,
       trailing: IconButton(

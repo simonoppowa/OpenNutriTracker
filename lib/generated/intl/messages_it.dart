@@ -309,9 +309,21 @@ class MessageLookup extends MessageLookupByLibrary {
         "itemUpdatedSnackbar":
             MessageLookupByLibrary.simpleMessage("Alimento aggiornato"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
+        "kjLabel": MessageLookupByLibrary.simpleMessage("kJ"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal rimanenti"),
         "kcalTooMuchLabel":
             MessageLookupByLibrary.simpleMessage("kcal in eccesso"),
+        "energyLeftLabel": MessageLookupByLibrary.simpleMessage("rimanenti"),
+        "energyTooMuchLabel":
+            MessageLookupByLibrary.simpleMessage("in eccesso"),
+        "settingsEnergyUnitLabel":
+            MessageLookupByLibrary.simpleMessage("Unità di energia"),
+        "energyUnitKcalLabel":
+            MessageLookupByLibrary.simpleMessage("Kilocalorie (kcal)"),
+        "energyUnitKjLabel":
+            MessageLookupByLibrary.simpleMessage("Kilojoule (kJ)"),
+        "onboardingKjPerDayLabel":
+            MessageLookupByLibrary.simpleMessage("kJ al giorno"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("kg"),
         "lbsLabel": MessageLookupByLibrary.simpleMessage("lbs"),
         "lunchExample": MessageLookupByLibrary.simpleMessage(

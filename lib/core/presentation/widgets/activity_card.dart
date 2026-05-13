@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/utils/energy_display.dart';
 
 class ActivityCard extends StatelessWidget {
   final UserActivityEntity activityEntity;
@@ -55,7 +56,7 @@ class ActivityCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            "🔥${activityEntity.burnedKcal.toInt()} kcal",
+                            "🔥${EnergyDisplay.formatWithUnit(context, activityEntity.burnedKcal)}",
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: Theme.of(context)
                                       .colorScheme

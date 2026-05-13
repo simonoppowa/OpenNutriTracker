@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -55,7 +56,8 @@ class MealDetailNutrimentsTable extends StatelessWidget {
             _getNutrimentsTableRow("", headerText, textStyleBold),
             _getNutrimentsTableRow(
               S.of(context).energyLabel,
-              "${_adjustValueForServing(n.energyKcal100?.toDouble() ?? 0).toInt()} ${S.of(context).kcalLabel}",
+              EnergyDisplay.formatWithUnit(context,
+                  _adjustValueForServing(n.energyKcal100?.toDouble() ?? 0)),
               textStyleNormal,
             ),
             _getNutrimentsTableRow(

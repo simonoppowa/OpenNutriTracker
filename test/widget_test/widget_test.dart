@@ -2,8 +2,10 @@ import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   testWidgets('DashboardWidget displays correct data', (
@@ -11,25 +13,28 @@ void main() {
   ) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: const [
-          S.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: S.delegate.supportedLocales,
-        home: const DashboardWidget(
-          totalKcalSupplied: 1500,
-          totalKcalBurned: 500,
-          totalKcalDaily: 2000,
-          totalKcalLeft: 1000,
-          totalCarbsIntake: 200,
-          totalFatsIntake: 50,
-          totalProteinsIntake: 100,
-          totalCarbsGoal: 250,
-          totalFatsGoal: 60,
-          totalProteinsGoal: 120,
+      ChangeNotifierProvider<EnergyUnitProvider>(
+        create: (_) => EnergyUnitProvider(),
+        child: MaterialApp(
+          localizationsDelegates: const [
+            S.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: S.delegate.supportedLocales,
+          home: const DashboardWidget(
+            totalKcalSupplied: 1500,
+            totalKcalBurned: 500,
+            totalKcalDaily: 2000,
+            totalKcalLeft: 1000,
+            totalCarbsIntake: 200,
+            totalFatsIntake: 50,
+            totalProteinsIntake: 100,
+            totalCarbsGoal: 250,
+            totalFatsGoal: 60,
+            totalProteinsGoal: 120,
+          ),
         ),
       ),
     );

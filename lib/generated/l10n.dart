@@ -2253,6 +2253,76 @@ class S {
     );
   }
 
+  /// `kJ`
+  String get kjLabel {
+    return Intl.message(
+      'kJ',
+      name: 'kjLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `left`
+  String get energyLeftLabel {
+    return Intl.message(
+      'left',
+      name: 'energyLeftLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `too much`
+  String get energyTooMuchLabel {
+    return Intl.message(
+      'too much',
+      name: 'energyTooMuchLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Energy unit`
+  String get settingsEnergyUnitLabel {
+    return Intl.message(
+      'Energy unit',
+      name: 'settingsEnergyUnitLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Kilocalories (kcal)`
+  String get energyUnitKcalLabel {
+    return Intl.message(
+      'Kilocalories (kcal)',
+      name: 'energyUnitKcalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Kilojoules (kJ)`
+  String get energyUnitKjLabel {
+    return Intl.message(
+      'Kilojoules (kJ)',
+      name: 'energyUnitKjLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `kJ per day`
+  String get onboardingKjPerDayLabel {
+    return Intl.message(
+      'kJ per day',
+      name: 'onboardingKjPerDayLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `carbs`
   String get carbsLabel {
     return Intl.message(

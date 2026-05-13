@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
 import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -249,7 +250,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   Row(
                     children: [
                       Text(
-                        '${totalKcal.toInt()} ${S.of(context).kcalLabel}',
+                        EnergyDisplay.formatWithUnit(context, totalKcal),
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       MealValueUnitText(
