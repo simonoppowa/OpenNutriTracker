@@ -5774,6 +5774,7 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
       Locale.fromSubtags(languageCode: 'de'),
       Locale.fromSubtags(languageCode: 'it'),
       Locale.fromSubtags(languageCode: 'pl'),
+      Locale.fromSubtags(languageCode: 'sk'),
       Locale.fromSubtags(languageCode: 'tr'),
       Locale.fromSubtags(languageCode: 'uk'),
       Locale.fromSubtags(languageCode: 'zh'),
