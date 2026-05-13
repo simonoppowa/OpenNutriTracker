@@ -64,6 +64,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m18(count) => "Delete ${count} recipe(s)?";
 
+  static String m19(detail) => "Couldn\'t parse: ${detail}";
+
+  static String m20(count) => "Logged ${count} entries from JSON";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -528,6 +532,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "pasteCodeHint": MessageLookupByLibrary.simpleMessage(
             "Paste the shared meal code here"),
         "pasteCodeLabel": MessageLookupByLibrary.simpleMessage("Paste code"),
+        "pasteJsonSheetCancelButton":
+            MessageLookupByLibrary.simpleMessage("Cancel"),
+        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
+            "Paste a single object or an array of objects. Required: name, kcal, protein, carbs, fat. Optional: mealType (breakfast/lunch/dinner/snack), amount, unit, date (e.g. 2026-05-13)."),
+        "pasteJsonSheetParseButton":
+            MessageLookupByLibrary.simpleMessage("Parse & log"),
+        "pasteJsonSheetParseError": m19,
+        "pasteJsonSheetParseSuccess": m20,
+        "pasteJsonSheetTitle":
+            MessageLookupByLibrary.simpleMessage("Paste meal JSON"),
+        "settingsImportPasteJsonButton":
+            MessageLookupByLibrary.simpleMessage("Paste JSON"),
         "paHeadingWalking": MessageLookupByLibrary.simpleMessage("walking"),
         "paHeadingWaterActivities":
             MessageLookupByLibrary.simpleMessage("water activities"),

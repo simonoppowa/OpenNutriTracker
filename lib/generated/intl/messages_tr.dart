@@ -66,6 +66,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "${count} aktivite içe aktarılsın mı?";
 
+  static String m20(detail) => "Çözümlenemedi: ${detail}";
+
+  static String m21(count) => "JSON\'dan ${count} kayıt eklendi";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -776,6 +780,18 @@ class MessageLookup extends MessageLookupByLibrary {
             "Paylaşılan yemek kodunu buraya yapıştırın"),
         "pasteCodeLabel":
             MessageLookupByLibrary.simpleMessage("Kodu yapıştır"),
+        "pasteJsonSheetCancelButton":
+            MessageLookupByLibrary.simpleMessage("İptal"),
+        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
+            "Tek bir nesne veya nesne dizisi yapıştırın. Zorunlu: name, kcal, protein, carbs, fat. İsteğe bağlı: mealType (breakfast/lunch/dinner/snack), amount, unit, date (örn. 2026-05-13)."),
+        "pasteJsonSheetParseButton":
+            MessageLookupByLibrary.simpleMessage("Çözümle ve kaydet"),
+        "pasteJsonSheetParseError": m20,
+        "pasteJsonSheetParseSuccess": m21,
+        "pasteJsonSheetTitle": MessageLookupByLibrary.simpleMessage(
+            "Yemeği JSON olarak yapıştır"),
+        "settingsImportPasteJsonButton":
+            MessageLookupByLibrary.simpleMessage("JSON yapıştır"),
         "per100gmlLabel":
             MessageLookupByLibrary.simpleMessage("100g/ml başına"),
         "perServingLabel":

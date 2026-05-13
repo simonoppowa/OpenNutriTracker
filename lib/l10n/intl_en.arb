@@ -215,6 +215,23 @@
   "csvImportContributeOffPrefix": "Have a barcode? Help everyone by contributing the product to Open Food Facts:",
   "csvImportContributeOffAndroidLink": "Android",
   "csvImportContributeOffIosLink": "iOS",
+  "settingsImportPasteJsonButton": "Paste JSON",
+  "pasteJsonSheetTitle": "Paste meal JSON",
+  "pasteJsonSheetHelp": "Paste a single object or an array of objects. Required: name, kcal, protein, carbs, fat. Optional: mealType (breakfast/lunch/dinner/snack), amount, unit, date (e.g. 2026-05-13).",
+  "pasteJsonSheetParseButton": "Parse & log",
+  "pasteJsonSheetCancelButton": "Cancel",
+  "pasteJsonSheetParseError": "Couldn't parse: {detail}",
+  "@pasteJsonSheetParseError": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "pasteJsonSheetParseSuccess": "Logged {count} entries from JSON",
+  "@pasteJsonSheetParseSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "addItemLabel": "Add new Item:",
   "activityLabel": "Activity",
   "activityExample": "e.g. running, biking, yoga ...",

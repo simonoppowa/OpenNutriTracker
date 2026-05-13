@@ -4,6 +4,7 @@ import 'package:opennutritracker/features/settings/domain/usecase/download_sampl
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_data_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_meals_csv_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/import_meals_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_csv_usecase.dart';
 
 part 'export_import_event.dart';
@@ -22,6 +23,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
   final ImportMealsCsvUsecase _importMealsCsvUsecase;
   final ImportRecipesCsvUsecase _importRecipesCsvUsecase;
   final DownloadSampleCsvUsecase _downloadSampleCsvUsecase;
+  final ImportMealsJsonUsecase _importMealsJsonUsecase;
 
   ExportImportBloc(
     this._exportDataUsecase,
@@ -29,6 +31,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
     this._importMealsCsvUsecase,
     this._importRecipesCsvUsecase,
     this._downloadSampleCsvUsecase,
+    this._importMealsJsonUsecase,
   ) : super(ExportImportInitial()) {
     on<ExportDataEvent>((event, emit) async {
       try {
@@ -127,6 +130,28 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
       } catch (e) {
         emit(ExportImportError());
       }
+    });
+
+    on<PasteJsonMealsEvent>((event, emit) async {
+      try {
+        emit(ExportImportLoadingState());
+        final result =
+            await _importMealsJsonUsecase.importFromJsonString(event.jsonContent);
+        if (result.imported == 0) {
+          emit(JsonImportErrorState(result.errorMessages));
+        } else {
+          emit(JsonImportResultState(
+            imported: result.imported,
+            errorMessages: result.errorMessages,
+          ));
+        }
+      } catch (e) {
+        emit(JsonImportErrorState([e.toString()]));
+      }
+    });
+
+    on<ResetExportImportStateEvent>((event, emit) {
+      emit(ExportImportInitial());
     });
   }
 }

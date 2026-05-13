@@ -514,6 +514,22 @@
   "palVeryActiveLabel": "Velmi aktivní životní styl",
   "pasteCodeHint": "Vložte sem sdílený kód jídla",
   "pasteCodeLabel": "Vložit kód",
+  "pasteJsonSheetCancelButton": "Zrušit",
+  "pasteJsonSheetHelp": "Vložte jeden objekt nebo pole objektů. Povinné: name, kcal, protein, carbs, fat. Volitelné: mealType (breakfast/lunch/dinner/snack), amount, unit, date (např. 2026-05-13).",
+  "pasteJsonSheetParseButton": "Zpracovat a zaznamenat",
+  "pasteJsonSheetParseError": "Nelze zpracovat: {detail}",
+  "@pasteJsonSheetParseError": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "pasteJsonSheetParseSuccess": "Zaznamenáno {count} položek z JSON",
+  "@pasteJsonSheetParseSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "pasteJsonSheetTitle": "Vložit jídlo jako JSON",
   "per100gmlLabel": "Na 100g/ml",
   "perServingLabel": "Na porci",
   "phosphorusLabel": "fosfor",
@@ -608,6 +624,7 @@
   "sourcesOpenSourceLabel": "Otevřít zdroj",
   "settingsDistanceLabel": "Vzdálenost",
   "settingsImperialLabel": "Imperiální (lbs, ft, oz)",
+  "settingsImportPasteJsonButton": "Vložit JSON",
   "settingsLabel": "Nastavení",
   "settingsLanguageLabel": "Jazyk",
   "settingsLicensesLabel": "Licence",

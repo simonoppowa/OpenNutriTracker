@@ -514,6 +514,22 @@
   "palVeryActiveLabel": "Дуже активний",
   "pasteCodeHint": "Вставте сюди код спільного прийому їжі",
   "pasteCodeLabel": "Вставити код",
+  "pasteJsonSheetCancelButton": "Скасувати",
+  "pasteJsonSheetHelp": "Вставте один об'єкт або масив об'єктів. Обов'язкові: name, kcal, protein, carbs, fat. Необов'язкові: mealType (breakfast/lunch/dinner/snack), amount, unit, date (напр. 2026-05-13).",
+  "pasteJsonSheetParseButton": "Розпарсити та записати",
+  "pasteJsonSheetParseError": "Не вдалося розпарсити: {detail}",
+  "@pasteJsonSheetParseError": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "pasteJsonSheetParseSuccess": "Записано {count} записів з JSON",
+  "@pasteJsonSheetParseSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "pasteJsonSheetTitle": "Вставити страву як JSON",
   "per100gmlLabel": "На 100 г/мл",
   "perServingLabel": "На порцію",
   "phosphorusLabel": "фосфор",
@@ -608,6 +624,7 @@
   "sourcesOpenSourceLabel": "Відкрити джерело",
   "settingsDistanceLabel": "Відстань",
   "settingsImperialLabel": "Імперська (фунти, фут, унції)",
+  "settingsImportPasteJsonButton": "Вставити JSON",
   "settingsLabel": "Налаштування",
   "settingsLanguageLabel": "Мова",
   "settingsLicensesLabel": "Ліцензії",

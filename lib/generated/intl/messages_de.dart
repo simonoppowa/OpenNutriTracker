@@ -67,6 +67,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "${count} Aktivitäten importieren?";
 
+  static String m20(detail) => "Konnte nicht geparst werden: ${detail}";
+
+  static String m21(count) => "${count} Einträge aus JSON eingetragen";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -807,6 +811,18 @@ class MessageLookup extends MessageLookupByLibrary {
             "Füge hier den geteilten Mahlzeitencode ein"),
         "pasteCodeLabel":
             MessageLookupByLibrary.simpleMessage("Code einfügen"),
+        "pasteJsonSheetCancelButton":
+            MessageLookupByLibrary.simpleMessage("Abbrechen"),
+        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
+            "Füge ein einzelnes Objekt oder ein Array von Objekten ein. Erforderlich: name, kcal, protein, carbs, fat. Optional: mealType (breakfast/lunch/dinner/snack), amount, unit, date (z. B. 2026-05-13)."),
+        "pasteJsonSheetParseButton":
+            MessageLookupByLibrary.simpleMessage("Parsen & eintragen"),
+        "pasteJsonSheetParseError": m20,
+        "pasteJsonSheetParseSuccess": m21,
+        "pasteJsonSheetTitle":
+            MessageLookupByLibrary.simpleMessage("Mahlzeit als JSON einfügen"),
+        "settingsImportPasteJsonButton":
+            MessageLookupByLibrary.simpleMessage("JSON einfügen"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("Pro 100 g/ml"),
         "perServingLabel": MessageLookupByLibrary.simpleMessage("Pro Portion"),
         "phosphorusLabel": MessageLookupByLibrary.simpleMessage("Phosphor"),

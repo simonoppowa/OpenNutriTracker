@@ -66,3 +66,31 @@ class RecipeCsvImportResultState extends ExportImportState {
   @override
   List<Object?> get props => [imported, skipped];
 }
+
+/// JSON-paste import finished with at least one entry written (#181).
+/// [imported] is the number of intakes saved; [errorMessages] is the per-
+/// entry parse problems the user should see (may be empty).
+class JsonImportResultState extends ExportImportState {
+  final int imported;
+  final List<String> errorMessages;
+
+  const JsonImportResultState({
+    required this.imported,
+    required this.errorMessages,
+  });
+
+  @override
+  List<Object?> get props => [imported, errorMessages];
+}
+
+/// JSON-paste import produced no successful entries — every entry failed
+/// validation or the JSON itself was malformed. The sheet stays open so
+/// the user can edit and retry.
+class JsonImportErrorState extends ExportImportState {
+  final List<String> errorMessages;
+
+  const JsonImportErrorState(this.errorMessages);
+
+  @override
+  List<Object?> get props => [errorMessages];
+}

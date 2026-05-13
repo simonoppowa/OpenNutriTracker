@@ -61,6 +61,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "导入 ${count} 项活动？";
 
+  static String m20(detail) => "无法解析：${detail}";
+
+  static String m21(count) => "已从 JSON 记录 ${count} 条";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample":
@@ -674,6 +678,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "palVeryActiveLabel": MessageLookupByLibrary.simpleMessage("非常活跃"),
         "pasteCodeHint": MessageLookupByLibrary.simpleMessage("在此粘贴分享的餐食代码"),
         "pasteCodeLabel": MessageLookupByLibrary.simpleMessage("粘贴代码"),
+        "pasteJsonSheetCancelButton":
+            MessageLookupByLibrary.simpleMessage("取消"),
+        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
+            "粘贴单个对象或对象数组。必填：name、kcal、protein、carbs、fat。可选：mealType（breakfast/lunch/dinner/snack）、amount、unit、date（例如 2026-05-13）。"),
+        "pasteJsonSheetParseButton":
+            MessageLookupByLibrary.simpleMessage("解析并记录"),
+        "pasteJsonSheetParseError": m20,
+        "pasteJsonSheetParseSuccess": m21,
+        "pasteJsonSheetTitle":
+            MessageLookupByLibrary.simpleMessage("以 JSON 粘贴餐食"),
+        "settingsImportPasteJsonButton":
+            MessageLookupByLibrary.simpleMessage("粘贴 JSON"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("每 100克/毫升"),
         "perServingLabel": MessageLookupByLibrary.simpleMessage("每份量"),
         "phosphorusLabel": MessageLookupByLibrary.simpleMessage("磷"),

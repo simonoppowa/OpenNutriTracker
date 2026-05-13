@@ -524,6 +524,22 @@
   "palVeryActiveLabel": "Sehr aktiv",
   "pasteCodeHint": "Füge hier den geteilten Mahlzeitencode ein",
   "pasteCodeLabel": "Code einfügen",
+  "pasteJsonSheetCancelButton": "Abbrechen",
+  "pasteJsonSheetHelp": "Füge ein einzelnes Objekt oder ein Array von Objekten ein. Erforderlich: name, kcal, protein, carbs, fat. Optional: mealType (breakfast/lunch/dinner/snack), amount, unit, date (z. B. 2026-05-13).",
+  "pasteJsonSheetParseButton": "Parsen & eintragen",
+  "pasteJsonSheetParseError": "Konnte nicht geparst werden: {detail}",
+  "@pasteJsonSheetParseError": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "pasteJsonSheetParseSuccess": "{count} Einträge aus JSON eingetragen",
+  "@pasteJsonSheetParseSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "pasteJsonSheetTitle": "Mahlzeit als JSON einfügen",
   "per100gmlLabel": "Pro 100 g/ml",
   "perServingLabel": "Pro Portion",
   "phosphorusLabel": "Phosphor",
@@ -618,6 +634,7 @@
   "sourcesOpenSourceLabel": "Quelle öffnen",
   "settingsDistanceLabel": "Entfernung",
   "settingsImperialLabel": "Imperial (lbs, ft, oz)",
+  "settingsImportPasteJsonButton": "JSON einfügen",
   "settingsLabel": "Einstellungen",
   "settingsLanguageLabel": "Sprache",
   "settingsLicensesLabel": "Lizenzen",

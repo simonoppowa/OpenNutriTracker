@@ -16,6 +16,7 @@ import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/import_custom_food_data_dialog.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/paste_json_meals_sheet.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -156,6 +157,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: const Icon(Icons.restaurant_menu_outlined),
                   title: Text(S.of(context).importCustomFoodDataLabel),
                   onTap: () => _showImportCustomFoodDataDialog(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.content_paste_outlined),
+                  title: Text(S.of(context).settingsImportPasteJsonButton),
+                  onTap: () => PasteJsonMealsSheet.show(context),
                 ),
                 ListTile(
                   leading: const Icon(Icons.import_export),

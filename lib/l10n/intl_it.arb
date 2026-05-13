@@ -514,6 +514,22 @@
   "palVeryActiveLabel": "Molto attivo",
   "pasteCodeHint": "Incolla qui il codice del pasto condiviso",
   "pasteCodeLabel": "Incolla codice",
+  "pasteJsonSheetCancelButton": "Annulla",
+  "pasteJsonSheetHelp": "Incolla un singolo oggetto o un array di oggetti. Obbligatori: name, kcal, protein, carbs, fat. Facoltativi: mealType (breakfast/lunch/dinner/snack), amount, unit, date (per es. 2026-05-13).",
+  "pasteJsonSheetParseButton": "Analizza e registra",
+  "pasteJsonSheetParseError": "Impossibile analizzare: {detail}",
+  "@pasteJsonSheetParseError": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "pasteJsonSheetParseSuccess": "Registrate {count} voci dal JSON",
+  "@pasteJsonSheetParseSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "pasteJsonSheetTitle": "Incolla pasto come JSON",
   "per100gmlLabel": "Per 100g/ml",
   "perServingLabel": "Per porzione",
   "phosphorusLabel": "fosforo",
@@ -608,6 +624,7 @@
   "sourcesOpenSourceLabel": "Apri la fonte",
   "settingsDistanceLabel": "Distanza",
   "settingsImperialLabel": "Imperiale (lbs, ft, oz)",
+  "settingsImportPasteJsonButton": "Incolla JSON",
   "settingsLabel": "Impostazioni",
   "settingsLanguageLabel": "Lingua",
   "settingsLicensesLabel": "Licenze",

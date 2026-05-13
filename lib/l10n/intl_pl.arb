@@ -514,6 +514,22 @@
   "palVeryActiveLabel": "Bardzo aktywny",
   "pasteCodeHint": "Wklej tutaj kod udostępnionego posiłku",
   "pasteCodeLabel": "Wklej kod",
+  "pasteJsonSheetCancelButton": "Anuluj",
+  "pasteJsonSheetHelp": "Wklej pojedynczy obiekt lub tablicę obiektów. Wymagane: name, kcal, protein, carbs, fat. Opcjonalne: mealType (breakfast/lunch/dinner/snack), amount, unit, date (np. 2026-05-13).",
+  "pasteJsonSheetParseButton": "Przetwórz i zapisz",
+  "pasteJsonSheetParseError": "Nie udało się przetworzyć: {detail}",
+  "@pasteJsonSheetParseError": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "pasteJsonSheetParseSuccess": "Zapisano {count} pozycji z JSON",
+  "@pasteJsonSheetParseSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "pasteJsonSheetTitle": "Wklej posiłek jako JSON",
   "per100gmlLabel": "Na 100g/ml",
   "perServingLabel": "Na porcję",
   "phosphorusLabel": "fosfor",
@@ -608,6 +624,7 @@
   "sourcesOpenSourceLabel": "Otwórz źródło",
   "settingsDistanceLabel": "Odległość",
   "settingsImperialLabel": "Imperialny (lbs, ft, oz)",
+  "settingsImportPasteJsonButton": "Wklej JSON",
   "settingsLabel": "Ustawienia",
   "settingsLanguageLabel": "Język",
   "settingsLicensesLabel": "Licencje",

@@ -64,6 +64,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "Імпортувати ${count} активностей?";
 
+  static String m20(detail) => "Не вдалося розпарсити: ${detail}";
+
+  static String m21(count) => "Записано ${count} записів з JSON";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -795,6 +799,18 @@ class MessageLookup extends MessageLookupByLibrary {
             "Вставте сюди код спільного прийому їжі"),
         "pasteCodeLabel":
             MessageLookupByLibrary.simpleMessage("Вставити код"),
+        "pasteJsonSheetCancelButton":
+            MessageLookupByLibrary.simpleMessage("Скасувати"),
+        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
+            "Вставте один об\'єкт або масив об\'єктів. Обов\'язкові: name, kcal, protein, carbs, fat. Необов\'язкові: mealType (breakfast/lunch/dinner/snack), amount, unit, date (напр. 2026-05-13)."),
+        "pasteJsonSheetParseButton": MessageLookupByLibrary.simpleMessage(
+            "Розпарсити та записати"),
+        "pasteJsonSheetParseError": m20,
+        "pasteJsonSheetParseSuccess": m21,
+        "pasteJsonSheetTitle":
+            MessageLookupByLibrary.simpleMessage("Вставити страву як JSON"),
+        "settingsImportPasteJsonButton":
+            MessageLookupByLibrary.simpleMessage("Вставити JSON"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("На 100 г/мл"),
         "perServingLabel": MessageLookupByLibrary.simpleMessage("На порцію"),
         "phosphorusLabel": MessageLookupByLibrary.simpleMessage("фосфор"),

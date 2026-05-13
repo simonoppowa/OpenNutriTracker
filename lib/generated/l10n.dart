@@ -1773,6 +1773,76 @@ class S {
     );
   }
 
+  /// `Paste JSON`
+  String get settingsImportPasteJsonButton {
+    return Intl.message(
+      'Paste JSON',
+      name: 'settingsImportPasteJsonButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Paste meal JSON`
+  String get pasteJsonSheetTitle {
+    return Intl.message(
+      'Paste meal JSON',
+      name: 'pasteJsonSheetTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// Short help line explaining the accepted shape of the pasted JSON.
+  String get pasteJsonSheetHelp {
+    return Intl.message(
+      'Paste a single object or an array of objects. Required: name, kcal, protein, carbs, fat. Optional: mealType (breakfast/lunch/dinner/snack), amount, unit, date (e.g. 2026-05-13).',
+      name: 'pasteJsonSheetHelp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Parse & log`
+  String get pasteJsonSheetParseButton {
+    return Intl.message(
+      'Parse & log',
+      name: 'pasteJsonSheetParseButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel`
+  String get pasteJsonSheetCancelButton {
+    return Intl.message(
+      'Cancel',
+      name: 'pasteJsonSheetCancelButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Couldn't parse: {detail}`
+  String pasteJsonSheetParseError(String detail) {
+    return Intl.message(
+      'Couldn\'t parse: $detail',
+      name: 'pasteJsonSheetParseError',
+      desc: '',
+      args: [detail],
+    );
+  }
+
+  /// `Logged {count} entries from JSON`
+  String pasteJsonSheetParseSuccess(int count) {
+    return Intl.message(
+      'Logged $count entries from JSON',
+      name: 'pasteJsonSheetParseSuccess',
+      desc: '',
+      args: [count],
+    );
+  }
+
   /// `Import shared meal`
   String get importMealLabel {
     return Intl.message(

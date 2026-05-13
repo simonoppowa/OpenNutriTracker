@@ -515,6 +515,22 @@
   "palVeryActiveLabel": "非常活跃",
   "pasteCodeHint": "在此粘贴分享的餐食代码",
   "pasteCodeLabel": "粘贴代码",
+  "pasteJsonSheetCancelButton": "取消",
+  "pasteJsonSheetHelp": "粘贴单个对象或对象数组。必填：name、kcal、protein、carbs、fat。可选：mealType（breakfast/lunch/dinner/snack）、amount、unit、date（例如 2026-05-13）。",
+  "pasteJsonSheetParseButton": "解析并记录",
+  "pasteJsonSheetParseError": "无法解析：{detail}",
+  "@pasteJsonSheetParseError": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "pasteJsonSheetParseSuccess": "已从 JSON 记录 {count} 条",
+  "@pasteJsonSheetParseSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "pasteJsonSheetTitle": "以 JSON 粘贴餐食",
   "per100gmlLabel": "每 100克/毫升",
   "perServingLabel": "每份量",
   "phosphorusLabel": "磷",
@@ -609,6 +625,7 @@
   "sourcesOpenSourceLabel": "打开来源",
   "settingsDistanceLabel": "距离",
   "settingsImperialLabel": "英制（磅、英尺、盎司）",
+  "settingsImportPasteJsonButton": "粘贴 JSON",
   "settingsLabel": "设置",
   "settingsLanguageLabel": "语言",
   "settingsLicensesLabel": "许可证",

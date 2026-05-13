@@ -524,6 +524,22 @@
   "palVeryActiveLabel": "Çok Aktif",
   "pasteCodeHint": "Paylaşılan yemek kodunu buraya yapıştırın",
   "pasteCodeLabel": "Kodu yapıştır",
+  "pasteJsonSheetCancelButton": "İptal",
+  "pasteJsonSheetHelp": "Tek bir nesne veya nesne dizisi yapıştırın. Zorunlu: name, kcal, protein, carbs, fat. İsteğe bağlı: mealType (breakfast/lunch/dinner/snack), amount, unit, date (örn. 2026-05-13).",
+  "pasteJsonSheetParseButton": "Çözümle ve kaydet",
+  "pasteJsonSheetParseError": "Çözümlenemedi: {detail}",
+  "@pasteJsonSheetParseError": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "pasteJsonSheetParseSuccess": "JSON'dan {count} kayıt eklendi",
+  "@pasteJsonSheetParseSuccess": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "pasteJsonSheetTitle": "Yemeği JSON olarak yapıştır",
   "per100gmlLabel": "100g/ml başına",
   "perServingLabel": "Porsiyon Başına",
   "phosphorusLabel": "fosfor",
@@ -618,6 +634,7 @@
   "sourcesOpenSourceLabel": "Kaynağı aç",
   "settingsDistanceLabel": "Mesafe",
   "settingsImperialLabel": "İmperial (lbs, ft, oz)",
+  "settingsImportPasteJsonButton": "JSON yapıştır",
   "settingsLabel": "Ayarlar",
   "settingsLanguageLabel": "Dil",
   "settingsLicensesLabel": "Lisanslar",

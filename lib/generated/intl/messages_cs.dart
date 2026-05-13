@@ -64,6 +64,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "Importovat ${count} aktivit?";
 
+  static String m20(detail) => "Nelze zpracovat: ${detail}";
+
+  static String m21(count) => "Zaznamenáno ${count} položek z JSON";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -787,6 +791,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "pasteCodeHint": MessageLookupByLibrary.simpleMessage(
             "Vložte sem sdílený kód jídla"),
         "pasteCodeLabel": MessageLookupByLibrary.simpleMessage("Vložit kód"),
+        "pasteJsonSheetCancelButton":
+            MessageLookupByLibrary.simpleMessage("Zrušit"),
+        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
+            "Vložte jeden objekt nebo pole objektů. Povinné: name, kcal, protein, carbs, fat. Volitelné: mealType (breakfast/lunch/dinner/snack), amount, unit, date (např. 2026-05-13)."),
+        "pasteJsonSheetParseButton":
+            MessageLookupByLibrary.simpleMessage("Zpracovat a zaznamenat"),
+        "pasteJsonSheetParseError": m20,
+        "pasteJsonSheetParseSuccess": m21,
+        "pasteJsonSheetTitle":
+            MessageLookupByLibrary.simpleMessage("Vložit jídlo jako JSON"),
+        "settingsImportPasteJsonButton":
+            MessageLookupByLibrary.simpleMessage("Vložit JSON"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("Na 100g/ml"),
         "perServingLabel": MessageLookupByLibrary.simpleMessage("Na porci"),
         "phosphorusLabel": MessageLookupByLibrary.simpleMessage("fosfor"),
