@@ -26,6 +26,17 @@ class TrackedDayDBO extends HiveObject {
   @HiveField(8)
   double? proteinTracked;
 
+  // #173: user-configurable per-nutrient goals for the three "extras"
+  // people kept asking to plan against. Null means "use the default
+  // reference value"; a non-null value means the user has set their own
+  // target via Settings → Calculations.
+  @HiveField(9)
+  double? fibreGoal;
+  @HiveField(10)
+  double? satFatGoal;
+  @HiveField(11)
+  double? sugarsGoal;
+
   TrackedDayDBO({
     required this.day,
     required this.calorieGoal,
@@ -36,6 +47,9 @@ class TrackedDayDBO extends HiveObject {
     this.fatTracked,
     this.proteinGoal,
     this.proteinTracked,
+    this.fibreGoal,
+    this.satFatGoal,
+    this.sugarsGoal,
   });
 
   factory TrackedDayDBO.fromTrackedDayEntity(TrackedDayEntity entity) {
@@ -49,6 +63,9 @@ class TrackedDayDBO extends HiveObject {
       fatTracked: entity.fatTracked,
       proteinGoal: entity.proteinGoal,
       proteinTracked: entity.proteinTracked,
+      fibreGoal: entity.fibreGoal,
+      satFatGoal: entity.satFatGoal,
+      sugarsGoal: entity.sugarsGoal,
     );
   }
 

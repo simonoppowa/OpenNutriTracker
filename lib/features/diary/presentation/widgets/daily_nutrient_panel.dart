@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
@@ -20,10 +21,46 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// Computation is on the fly from [intakes] — no DBO migration, no extra
 /// persistence. PR #314 added the per-meal micronutrient fields on
 /// [MealNutrimentsDBO]; this widget simply sums them.
+///
+/// #173: fibre / saturated fat / sugar references can be overridden per
+/// day via [trackedDay]. When [trackedDay] carries a non-null
+/// `fibreGoal`, `satFatGoal`, or `sugarsGoal`, the panel uses the user's
+/// configured target instead of the built-in default. Iron / calcium /
+/// potassium / sodium continue to use the built-in DRIs — they were
+/// outside the planning ask in #173 and have well-established
+/// references that aren't really about personal preference.
 class DailyNutrientPanel extends StatelessWidget {
-  final List<IntakeEntity> intakes;
+  // Default reference values exposed as static so the test (and future
+  // callers) can assert the fallback without re-declaring magic numbers.
+  static const double defaultFibreRefG = 30.0;
+  static const double defaultSaturatedFatRefG = 20.0;
+  static const double defaultSugarRefG = 50.0;
+  static const double defaultSodiumRefMg = 2300.0;
+  static const double defaultCalciumRefMg = 1000.0;
+  static const double defaultPotassiumRefMg = 3500.0;
 
-  const DailyNutrientPanel({super.key, required this.intakes});
+  final List<IntakeEntity> intakes;
+  final TrackedDayEntity? trackedDay;
+
+  const DailyNutrientPanel({
+    super.key,
+    required this.intakes,
+    this.trackedDay,
+  });
+
+  /// #173: resolve the reference value for fibre, taking the user's
+  /// per-day override into account when present. Exposed as a static so
+  /// the test can drive it without spinning up a widget.
+  static double resolveFibreReference(TrackedDayEntity? trackedDay) =>
+      trackedDay?.fibreGoal ?? defaultFibreRefG;
+
+  /// #173: resolve the reference value for saturated fat.
+  static double resolveSatFatReference(TrackedDayEntity? trackedDay) =>
+      trackedDay?.satFatGoal ?? defaultSaturatedFatRefG;
+
+  /// #173: resolve the reference value for sugars.
+  static double resolveSugarsReference(TrackedDayEntity? trackedDay) =>
+      trackedDay?.sugarsGoal ?? defaultSugarRefG;
 
   @override
   Widget build(BuildContext context) {
@@ -57,17 +94,15 @@ class DailyNutrientPanel extends StatelessWidget {
     final ironMg = _sum((n) => n.iron100, intakes);
     final potassiumMg = _sum((n) => n.potassium100, intakes);
 
-    // Reference values are sensible adult DRIs / FDA Daily Values. Iron's
-    // reference uses UserEntity.gender so women see 18mg and men see 8mg;
-    // non-binary users get a midpoint of 14mg, in line with the app's
-    // existing averaged-reference convention for non-binary calculations.
-    const fiberRefG = 30.0;
-    const sodiumRefMg = 2300.0;
-    const saturatedFatRefG = 20.0;
-    const sugarRefG = 50.0;
-    const calciumRefMg = 1000.0;
+    // #173: fibre / saturated fat / sugar pick up the per-day override
+    // when one is set; everything else stays on the built-in references.
+    final fiberRefG = resolveFibreReference(trackedDay);
+    final saturatedFatRefG = resolveSatFatReference(trackedDay);
+    final sugarRefG = resolveSugarsReference(trackedDay);
+    const sodiumRefMg = defaultSodiumRefMg;
+    const calciumRefMg = defaultCalciumRefMg;
     final ironRefMg = _ironRefForGender(user?.gender);
-    const potassiumRefMg = 3500.0;
+    const potassiumRefMg = defaultPotassiumRefMg;
 
     final s = S.of(context);
     final rows = <Widget>[

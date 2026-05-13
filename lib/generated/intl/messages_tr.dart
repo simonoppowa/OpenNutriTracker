@@ -887,8 +887,25 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Özel Yemekler"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Sorumluluk Reddi"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük lif hedefi (gram). Varsayılan referans 30 g."),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Lif hedefi"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "Lif, doymuş yağ ve şeker için kişisel hedefler. Günlük paneli varsayılan günlük referans yerine bu değerleri kullanır."),
+        "settingsNutrientGoalsLabel":
+            MessageLookupByLibrary.simpleMessage("Besin hedefleri"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "Günlük doymuş yağ üst sınırı (gram). Varsayılan referans 20 g."),
+        "settingsSaturatedFatGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Doymuş yağ hedefi"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("Kaynaklar ve Referanslar"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük şeker üst sınırı (gram). Varsayılan referans 50 g."),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Şeker hedefi"),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("Kaynakları görüntüle"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(

@@ -766,8 +766,25 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsCustomMealsLabel":
             MessageLookupByLibrary.simpleMessage("自定义餐食"),
         "settingsDisclaimerLabel": MessageLookupByLibrary.simpleMessage("免责声明"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日纤维目标（克）。默认参考值为 30 克。"),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("纤维目标"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "针对纤维、饱和脂肪和糖的个人目标。日记面板将使用这些值代替默认的每日参考值。"),
+        "settingsNutrientGoalsLabel":
+            MessageLookupByLibrary.simpleMessage("营养目标"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "每日饱和脂肪上限（克）。默认参考值为 20 克。"),
+        "settingsSaturatedFatGoalLabel":
+            MessageLookupByLibrary.simpleMessage("饱和脂肪目标"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("来源与参考"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日糖摄入上限（克）。默认参考值为 50 克。"),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("糖目标"),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("查看来源"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(

@@ -905,8 +905,25 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Pasti personalizzati"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Disclaimer"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Obiettivo giornaliero di fibre in grammi. Il valore di riferimento predefinito è 30 g."),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Obiettivo fibre"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "Obiettivi personali per fibre, grassi saturi e zuccheri. Il diario li utilizza al posto dei valori di riferimento giornalieri predefiniti."),
+        "settingsNutrientGoalsLabel":
+            MessageLookupByLibrary.simpleMessage("Obiettivi nutrizionali"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "Limite giornaliero di grassi saturi in grammi. Il valore di riferimento predefinito è 20 g."),
+        "settingsSaturatedFatGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Obiettivo grassi saturi"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("Fonti e riferimenti"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Limite giornaliero di zuccheri in grammi. Il valore di riferimento predefinito è 50 g."),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Obiettivo zuccheri"),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("Vedi le fonti"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(

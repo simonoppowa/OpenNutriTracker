@@ -166,6 +166,22 @@ class TrackedDayRepository {
     );
   }
 
+  // #173: persist user-set per-nutrient goals (fibre, sat fat, sugars)
+  // for the given day. Mirrors the macro-goal write path.
+  Future<void> updateDayNutrientGoals(
+    DateTime day, {
+    double? fibreGoal,
+    double? satFatGoal,
+    double? sugarsGoal,
+  }) async {
+    await _trackedDayDataSource.updateDayNutrientGoals(
+      day,
+      fibreGoal: fibreGoal,
+      satFatGoal: satFatGoal,
+      sugarsGoal: sugarsGoal,
+    );
+  }
+
   Future<void> reconcileDayTracked(DateTime day,
       double calories, double carbs, double fat, double protein) async {
     await _trackedDayDataSource.reconcileCaloriesAndMacrosTracked(

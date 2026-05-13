@@ -145,8 +145,14 @@ class DayInfoWidget extends StatelessWidget {
             // #160: Daily micronutrient panel — aggregates fibre, sodium,
             // saturated fat, sugar, calcium, iron, and potassium across the
             // day's intake list. No-op when there's nothing logged yet.
+            // #173: forward the day's tracked entity so the panel can use
+            // the user's configured fibre / sat-fat / sugars targets when
+            // they've set them in Settings → Calculations.
             if (_allIntakes.isNotEmpty)
-              DailyNutrientPanel(intakes: _allIntakes),
+              DailyNutrientPanel(
+                intakes: _allIntakes,
+                trackedDay: trackedDayEntity,
+              ),
             const SizedBox(height: 8.0),
             ActivityVerticalList(
               day: selectedDay,

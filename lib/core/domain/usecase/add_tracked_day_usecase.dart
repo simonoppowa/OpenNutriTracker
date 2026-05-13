@@ -121,6 +121,23 @@ class AddTrackedDayUsecase {
     );
   }
 
+  /// #173: persist user-configured per-nutrient goals for the day. Each
+  /// argument is optional; passing null leaves that nutrient's stored
+  /// goal alone. Null on disk means "use the default reference".
+  Future<void> updateDayNutrientGoals(
+    DateTime day, {
+    double? fibreGoal,
+    double? satFatGoal,
+    double? sugarsGoal,
+  }) async {
+    await _trackedDayRepository.updateDayNutrientGoals(
+      day,
+      fibreGoal: fibreGoal,
+      satFatGoal: satFatGoal,
+      sugarsGoal: sugarsGoal,
+    );
+  }
+
   /// Overwrite cached tracked values with actual sums to fix stale data (#182)
   Future<void> reconcileDayTracked(DateTime day,
       double calories, double carbs, double fat, double protein) async {

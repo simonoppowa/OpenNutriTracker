@@ -889,8 +889,25 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Calculations"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Disclaimer"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily fibre target in grams. Default reference is 30g."),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Fibre goal"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "Personal targets for fibre, saturated fat, and sugars. The diary panel uses these in place of the default daily references."),
+        "settingsNutrientGoalsLabel":
+            MessageLookupByLibrary.simpleMessage("Nutrient goals"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "Daily saturated fat cap in grams. Default reference is 20g."),
+        "settingsSaturatedFatGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Saturated fat goal"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("Sources & References"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily sugars cap in grams. Default reference is 50g."),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Sugars goal"),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("View sources"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(

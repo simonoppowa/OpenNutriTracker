@@ -917,8 +917,25 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Eigene Mahlzeiten"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Hinweis"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Ballaststoffziel in Gramm. Standardreferenz: 30 g."),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ballaststoffziel"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "Persönliche Zielwerte für Ballaststoffe, gesättigte Fette und Zucker. Das Tagebuch nutzt diese Werte anstelle der Standardreferenzen."),
+        "settingsNutrientGoalsLabel":
+            MessageLookupByLibrary.simpleMessage("Nährstoffziele"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "Tägliche Obergrenze für gesättigte Fette in Gramm. Standardreferenz: 20 g."),
+        "settingsSaturatedFatGoalLabel": MessageLookupByLibrary.simpleMessage(
+            "Ziel für gesättigte Fette"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("Quellen & Referenzen"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliche Zuckerobergrenze in Gramm. Standardreferenz: 50 g."),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Zuckerziel"),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("Quellen anzeigen"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(

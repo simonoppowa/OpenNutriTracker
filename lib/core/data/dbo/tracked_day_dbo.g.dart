@@ -26,13 +26,16 @@ class TrackedDayDBOAdapter extends TypeAdapter<TrackedDayDBO> {
       fatTracked: (fields[6] as num?)?.toDouble(),
       proteinGoal: (fields[7] as num?)?.toDouble(),
       proteinTracked: (fields[8] as num?)?.toDouble(),
+      fibreGoal: (fields[9] as num?)?.toDouble(),
+      satFatGoal: (fields[10] as num?)?.toDouble(),
+      sugarsGoal: (fields[11] as num?)?.toDouble(),
     );
   }
 
   @override
   void write(BinaryWriter writer, TrackedDayDBO obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.day)
       ..writeByte(1)
@@ -50,7 +53,13 @@ class TrackedDayDBOAdapter extends TypeAdapter<TrackedDayDBO> {
       ..writeByte(7)
       ..write(obj.proteinGoal)
       ..writeByte(8)
-      ..write(obj.proteinTracked);
+      ..write(obj.proteinTracked)
+      ..writeByte(9)
+      ..write(obj.fibreGoal)
+      ..writeByte(10)
+      ..write(obj.satFatGoal)
+      ..writeByte(11)
+      ..write(obj.sugarsGoal);
   }
 
   @override
@@ -79,6 +88,9 @@ TrackedDayDBO _$TrackedDayDBOFromJson(Map<String, dynamic> json) =>
       fatTracked: (json['fatTracked'] as num?)?.toDouble(),
       proteinGoal: (json['proteinGoal'] as num?)?.toDouble(),
       proteinTracked: (json['proteinTracked'] as num?)?.toDouble(),
+      fibreGoal: (json['fibreGoal'] as num?)?.toDouble(),
+      satFatGoal: (json['satFatGoal'] as num?)?.toDouble(),
+      sugarsGoal: (json['sugarsGoal'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$TrackedDayDBOToJson(TrackedDayDBO instance) =>
@@ -92,4 +104,7 @@ Map<String, dynamic> _$TrackedDayDBOToJson(TrackedDayDBO instance) =>
       'fatTracked': instance.fatTracked,
       'proteinGoal': instance.proteinGoal,
       'proteinTracked': instance.proteinTracked,
+      'fibreGoal': instance.fibreGoal,
+      'satFatGoal': instance.satFatGoal,
+      'sugarsGoal': instance.sugarsGoal,
     };

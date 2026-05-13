@@ -897,8 +897,25 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Vlastní jídla"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Vzdání se nároku"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Denní cíl vlákniny v gramech. Výchozí reference je 30 g."),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cíl vlákniny"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "Osobní cíle pro vlákninu, nasycené tuky a cukry. Deník používá tyto hodnoty namísto výchozích denních referencí."),
+        "settingsNutrientGoalsLabel":
+            MessageLookupByLibrary.simpleMessage("Cíle živin"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "Denní limit nasycených tuků v gramech. Výchozí reference je 20 g."),
+        "settingsSaturatedFatGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cíl nasycených tuků"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("Zdroje a reference"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Denní limit cukrů v gramech. Výchozí reference je 50 g."),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cíl cukrů"),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("Zobrazit zdroje"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(

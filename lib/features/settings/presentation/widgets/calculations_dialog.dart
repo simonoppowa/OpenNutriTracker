@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/calories_profile_info_dialog.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -45,11 +46,37 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
   double _proteinPctSelection = _defaultProteinPctSelection * 100;
   double _fatPctSelection = _defaultFatPctSelection * 100;
 
+  // #173: per-nutrient absolute goals in grams. Stored on TrackedDayDBO,
+  // not ConfigDBO — see CLAUDE.md note in the issue triage. Slider
+  // ranges are picked to bracket the FDA Daily Value the panel uses as
+  // its default: fibre 0–80g (DV 28g), sat fat 0–60g (DV 20g),
+  // sugars 0–150g (DV 50g, with headroom for "treat" days).
+  static const double _fibreMin = 0;
+  static const double _fibreMax = 80;
+  static const int _fibreDivisions = 80;
+  static const double _satFatMin = 0;
+  static const double _satFatMax = 60;
+  static const int _satFatDivisions = 60;
+  static const double _sugarsMin = 0;
+  static const double _sugarsMax = 150;
+  static const int _sugarsDivisions = 150;
+
+  // Loaded from today's TrackedDayDBO when the dialog opens. Null means
+  // "no override" — the user hasn't set a goal yet, so the slider sits
+  // at the default reference and is treated as un-set when saving.
+  double? _fibreGoalGrams;
+  double? _satFatGoalGrams;
+  double? _sugarsGoalGrams;
+
   // #297: Text controllers for direct input
   late TextEditingController _kcalAdjustmentController;
   late TextEditingController _carbsController;
   late TextEditingController _proteinController;
   late TextEditingController _fatController;
+  // #173: text controllers for the new gram-target inputs
+  late TextEditingController _fibreController;
+  late TextEditingController _satFatController;
+  late TextEditingController _sugarsController;
 
   UserEntity? _user;
 
@@ -64,6 +91,17 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
         TextEditingController(text: _proteinPctSelection.round().toString());
     _fatController =
         TextEditingController(text: _fatPctSelection.round().toString());
+    // #173: nutrient-goal controllers start at the default reference so
+    // the user sees a sensible value before they touch anything.
+    _fibreController = TextEditingController(
+      text: DailyNutrientPanel.defaultFibreRefG.round().toString(),
+    );
+    _satFatController = TextEditingController(
+      text: DailyNutrientPanel.defaultSaturatedFatRefG.round().toString(),
+    );
+    _sugarsController = TextEditingController(
+      text: DailyNutrientPanel.defaultSugarRefG.round().toString(),
+    );
   }
 
   @override
@@ -72,6 +110,9 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     _carbsController.dispose();
     _proteinController.dispose();
     _fatController.dispose();
+    _fibreController.dispose();
+    _satFatController.dispose();
+    _sugarsController.dispose();
     super.dispose();
   }
 
@@ -87,6 +128,11 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     final userProteinPct = await widget.settingsBloc.getUserProteinGoalPct();
     final userFatPct = await widget.settingsBloc.getUserFatGoalPct();
     final user = await widget.profileBloc.getUser();
+    // #173: pre-fill the new sliders from today's TrackedDayDBO so the
+    // user picks up where they left off rather than seeing defaults
+    // every time the dialog opens.
+    final today =
+        await widget.settingsBloc.getTodayTrackedDay(DateTime.now());
 
     setState(() {
       _kcalAdjustmentSelection = kcalAdjustment;
@@ -94,6 +140,9 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       _proteinPctSelection =
           (userProteinPct ?? _defaultProteinPctSelection) * 100;
       _fatPctSelection = (userFatPct ?? _defaultFatPctSelection) * 100;
+      _fibreGoalGrams = today?.fibreGoal;
+      _satFatGoalGrams = today?.satFatGoal;
+      _sugarsGoalGrams = today?.sugarsGoal;
       _user = user;
     });
     _kcalAdjustmentController.text =
@@ -101,6 +150,18 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     _carbsController.text = _carbsPctSelection.round().toString();
     _proteinController.text = _proteinPctSelection.round().toString();
     _fatController.text = _fatPctSelection.round().toString();
+    _fibreController.text =
+        (_fibreGoalGrams ?? DailyNutrientPanel.defaultFibreRefG)
+            .round()
+            .toString();
+    _satFatController.text =
+        (_satFatGoalGrams ?? DailyNutrientPanel.defaultSaturatedFatRefG)
+            .round()
+            .toString();
+    _sugarsController.text =
+        (_sugarsGoalGrams ?? DailyNutrientPanel.defaultSugarRefG)
+            .round()
+            .toString();
   }
 
   void _syncControllersToState() {
@@ -143,9 +204,21 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 _carbsPctSelection = _defaultCarbsPctSelection * 100;
                 _proteinPctSelection = _defaultProteinPctSelection * 100;
                 _fatPctSelection = _defaultFatPctSelection * 100;
+                // #173: reset clears any nutrient overrides so the
+                // panel goes back to the built-in default references.
+                _fibreGoalGrams = null;
+                _satFatGoalGrams = null;
+                _sugarsGoalGrams = null;
               });
               _kcalAdjustmentController.text = '0';
               _syncControllersToState();
+              _fibreController.text =
+                  DailyNutrientPanel.defaultFibreRefG.round().toString();
+              _satFatController.text = DailyNutrientPanel.defaultSaturatedFatRefG
+                  .round()
+                  .toString();
+              _sugarsController.text =
+                  DailyNutrientPanel.defaultSugarRefG.round().toString();
             },
           ),
         ],
@@ -328,6 +401,69 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               onTextSubmitted: () => _applyDirectMacroInput(
                   _fatController, (v) => _fatPctSelection = v),
             ),
+            // #173: per-nutrient gram targets. These persist on today's
+            // TrackedDayDBO row (fibre / sat-fat / sugars columns) and
+            // the diary panel uses them as reference values when set.
+            const SizedBox(height: 16),
+            Text(
+              S.of(context).settingsNutrientGoalsLabel,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              S.of(context).settingsNutrientGoalsHint,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            _buildNutrientRow(
+              label: S.of(context).settingsFibreGoalLabel,
+              description: S.of(context).settingsFibreGoalDescription,
+              value: _fibreGoalGrams ?? DailyNutrientPanel.defaultFibreRefG,
+              min: _fibreMin,
+              max: _fibreMax,
+              divisions: _fibreDivisions,
+              controller: _fibreController,
+              onSliderChanged: (v) => setState(() => _fibreGoalGrams = v),
+              onTextSubmitted: () => _applyDirectNutrientInput(
+                _fibreController,
+                _fibreMin,
+                _fibreMax,
+                (v) => _fibreGoalGrams = v,
+              ),
+            ),
+            _buildNutrientRow(
+              label: S.of(context).settingsSaturatedFatGoalLabel,
+              description: S.of(context).settingsSaturatedFatGoalDescription,
+              value: _satFatGoalGrams ??
+                  DailyNutrientPanel.defaultSaturatedFatRefG,
+              min: _satFatMin,
+              max: _satFatMax,
+              divisions: _satFatDivisions,
+              controller: _satFatController,
+              onSliderChanged: (v) => setState(() => _satFatGoalGrams = v),
+              onTextSubmitted: () => _applyDirectNutrientInput(
+                _satFatController,
+                _satFatMin,
+                _satFatMax,
+                (v) => _satFatGoalGrams = v,
+              ),
+            ),
+            _buildNutrientRow(
+              label: S.of(context).settingsSugarsGoalLabel,
+              description: S.of(context).settingsSugarsGoalDescription,
+              value: _sugarsGoalGrams ?? DailyNutrientPanel.defaultSugarRefG,
+              min: _sugarsMin,
+              max: _sugarsMax,
+              divisions: _sugarsDivisions,
+              controller: _sugarsController,
+              onSliderChanged: (v) => setState(() => _sugarsGoalGrams = v),
+              onTextSubmitted: () => _applyDirectNutrientInput(
+                _sugarsController,
+                _sugarsMin,
+                _sugarsMax,
+                (v) => _sugarsGoalGrams = v,
+              ),
+            ),
           ],
         ),
       ),
@@ -414,6 +550,95 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     );
   }
 
+  /// #173: render a single fibre / sat-fat / sugars row. Mirrors the
+  /// macro row layout — a label, an editable text field for direct
+  /// entry, and a slider underneath — but operates in grams and writes
+  /// to a nullable goal value rather than redistributing percentages.
+  Widget _buildNutrientRow({
+    required String label,
+    required String description,
+    required double value,
+    required double min,
+    required double max,
+    required int divisions,
+    required TextEditingController controller,
+    required ValueChanged<double> onSliderChanged,
+    required VoidCallback onTextSubmitted,
+  }) {
+    final clamped = value.clamp(min, max);
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(label)),
+              SizedBox(
+                width: 70,
+                child: TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  textAlign: TextAlign.right,
+                  decoration: const InputDecoration(
+                    suffixText: 'g',
+                    isDense: true,
+                  ),
+                  onSubmitted: (_) => onTextSubmitted(),
+                  onEditingComplete: onTextSubmitted,
+                ),
+              ),
+            ],
+          ),
+          if (description.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 2.0),
+              child: Text(
+                description,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.7),
+                    ),
+              ),
+            ),
+          Slider(
+            min: min,
+            max: max,
+            value: clamped,
+            divisions: divisions,
+            onChanged: (v) {
+              final rounded = v.roundToDouble();
+              controller.text = rounded.round().toString();
+              onSliderChanged(rounded);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// #173: apply a directly typed gram value for a nutrient goal,
+  /// clamping into the slider's valid range. Invalid input reverts to
+  /// the previously stored value (or the default if none).
+  void _applyDirectNutrientInput(
+    TextEditingController controller,
+    double min,
+    double max,
+    void Function(double) setter,
+  ) {
+    final parsed = int.tryParse(controller.text);
+    if (parsed == null) {
+      // Revert to current state; setter remains untouched.
+      return;
+    }
+    final clamped = parsed.clamp(min.toInt(), max.toInt()).toDouble();
+    setState(() => setter(clamped));
+    controller.text = clamped.round().toString();
+  }
+
   void _normalizeMacros() {
     _carbsPctSelection = _carbsPctSelection.roundToDouble();
     _proteinPctSelection = _proteinPctSelection.roundToDouble();
@@ -438,13 +663,33 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     }
   }
 
-  void _saveCalculationSettings() {
+  void _saveCalculationSettings() async {
     // Flush any pending text input before saving
     _applyKcalInput();
     _applyDirectMacroInput(_carbsController, (v) => _carbsPctSelection = v);
     _applyDirectMacroInput(_proteinController, (v) => _proteinPctSelection = v);
     _applyDirectMacroInput(_fatController, (v) => _fatPctSelection = v);
     _normalizeMacros();
+    // #173: flush nutrient inputs too. These are independent of the
+    // macro normalization above — they're gram values, not percentages.
+    _applyDirectNutrientInput(
+      _fibreController,
+      _fibreMin,
+      _fibreMax,
+      (v) => _fibreGoalGrams = v,
+    );
+    _applyDirectNutrientInput(
+      _satFatController,
+      _satFatMin,
+      _satFatMax,
+      (v) => _satFatGoalGrams = v,
+    );
+    _applyDirectNutrientInput(
+      _sugarsController,
+      _sugarsMin,
+      _sugarsMax,
+      (v) => _sugarsGoalGrams = v,
+    );
 
     widget.settingsBloc.setKcalAdjustment(_kcalAdjustmentSelection.toInt().toDouble());
     widget.settingsBloc.setMacroGoals(
@@ -456,11 +701,23 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.profileBloc.add(LoadProfileEvent());
     widget.homeBloc.add(LoadItemsEvent());
-    widget.settingsBloc.updateTrackedDay(DateTime.now());
+    // updateTrackedDay either creates today's row from current goals or
+    // refreshes the macro columns on the existing one. Either way the
+    // row exists by the time we write the nutrient goals against it.
+    await widget.settingsBloc.updateTrackedDay(DateTime.now());
+    // #173: persist the nutrient goals onto today's TrackedDayDBO row.
+    await widget.settingsBloc.setTodayNutrientGoals(
+      DateTime.now(),
+      fibreGoal: _fibreGoalGrams,
+      satFatGoal: _satFatGoalGrams,
+      sugarsGoal: _sugarsGoalGrams,
+    );
     widget.diaryBloc.add(LoadDiaryYearEvent());
     widget.calendarDayBloc.add(RefreshCalendarDayEvent());
 
-    Navigator.of(context).pop();
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   Future<void> _openCaloriesProfileDialog() async {

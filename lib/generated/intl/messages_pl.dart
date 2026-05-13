@@ -902,8 +902,25 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Własne posiłki"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Zastrzeżenie"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel błonnika w gramach. Wartość referencyjna to 30 g."),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel błonnika"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "Osobiste cele dla błonnika, tłuszczów nasyconych i cukrów. Dziennik używa tych wartości zamiast domyślnych wartości referencyjnych."),
+        "settingsNutrientGoalsLabel": MessageLookupByLibrary.simpleMessage(
+            "Cele składników odżywczych"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "Dzienny limit tłuszczów nasyconych w gramach. Wartość referencyjna to 20 g."),
+        "settingsSaturatedFatGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel tłuszczów nasyconych"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("Źródła i odniesienia"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny limit cukrów w gramach. Wartość referencyjna to 50 g."),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel cukrów"),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("Zobacz źródła"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(

@@ -16,6 +16,13 @@ class TrackedDayEntity extends Equatable {
   final double? proteinGoal;
   final double? proteinTracked;
 
+  // #173: user-set targets for fibre, saturated fat, and sugars. Null
+  // means "fall back to the default reference"; non-null means the user
+  // has set their own goal in Settings → Calculations.
+  final double? fibreGoal;
+  final double? satFatGoal;
+  final double? sugarsGoal;
+
   const TrackedDayEntity({
     required this.day,
     required this.calorieGoal,
@@ -26,6 +33,9 @@ class TrackedDayEntity extends Equatable {
     this.fatTracked,
     this.proteinGoal,
     this.proteinTracked,
+    this.fibreGoal,
+    this.satFatGoal,
+    this.sugarsGoal,
   });
 
   factory TrackedDayEntity.fromTrackedDayDBO(TrackedDayDBO trackedDayDBO) {
@@ -39,6 +49,9 @@ class TrackedDayEntity extends Equatable {
       fatTracked: trackedDayDBO.fatTracked,
       proteinGoal: trackedDayDBO.proteinGoal,
       proteinTracked: trackedDayDBO.proteinTracked,
+      fibreGoal: trackedDayDBO.fibreGoal,
+      satFatGoal: trackedDayDBO.satFatGoal,
+      sugarsGoal: trackedDayDBO.sugarsGoal,
     );
   }
 
@@ -88,5 +101,8 @@ class TrackedDayEntity extends Equatable {
         fatTracked,
         proteinGoal,
         proteinTracked,
+        fibreGoal,
+        satFatGoal,
+        sugarsGoal,
       ];
 }

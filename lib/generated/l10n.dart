@@ -1030,6 +1030,86 @@ class S {
     );
   }
 
+  /// `Nutrient goals`
+  String get settingsNutrientGoalsLabel {
+    return Intl.message(
+      'Nutrient goals',
+      name: 'settingsNutrientGoalsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Personal targets for fibre, saturated fat, and sugars. The diary panel uses these in place of the default daily references.`
+  String get settingsNutrientGoalsHint {
+    return Intl.message(
+      'Personal targets for fibre, saturated fat, and sugars. The diary panel uses these in place of the default daily references.',
+      name: 'settingsNutrientGoalsHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fibre goal`
+  String get settingsFibreGoalLabel {
+    return Intl.message(
+      'Fibre goal',
+      name: 'settingsFibreGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily fibre target in grams. Default reference is 30g.`
+  String get settingsFibreGoalDescription {
+    return Intl.message(
+      'Daily fibre target in grams. Default reference is 30g.',
+      name: 'settingsFibreGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Saturated fat goal`
+  String get settingsSaturatedFatGoalLabel {
+    return Intl.message(
+      'Saturated fat goal',
+      name: 'settingsSaturatedFatGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily saturated fat cap in grams. Default reference is 20g.`
+  String get settingsSaturatedFatGoalDescription {
+    return Intl.message(
+      'Daily saturated fat cap in grams. Default reference is 20g.',
+      name: 'settingsSaturatedFatGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sugars goal`
+  String get settingsSugarsGoalLabel {
+    return Intl.message(
+      'Sugars goal',
+      name: 'settingsSugarsGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily sugars cap in grams. Default reference is 50g.`
+  String get settingsSugarsGoalDescription {
+    return Intl.message(
+      'Daily sugars cap in grams. Default reference is 50g.',
+      name: 'settingsSugarsGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Theme`
   String get settingsThemeLabel {
     return Intl.message(

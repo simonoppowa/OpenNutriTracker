@@ -905,8 +905,25 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Власні страви"),
         "settingsDisclaimerLabel": MessageLookupByLibrary.simpleMessage(
             "Відмова від відповідальності"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Денна ціль клітковини в грамах. Стандартне значення — 30 г."),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ціль клітковини"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "Особисті цілі для клітковини, насичених жирів і цукрів. Щоденник використовує ці значення замість стандартних добових норм."),
+        "settingsNutrientGoalsLabel":
+            MessageLookupByLibrary.simpleMessage("Цілі поживних речовин"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "Денний ліміт насичених жирів у грамах. Стандартне значення — 20 г."),
+        "settingsSaturatedFatGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ціль насичених жирів"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("Джерела та посилання"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Денний ліміт цукрів у грамах. Стандартне значення — 50 г."),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ціль цукрів"),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("Переглянути джерела"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(

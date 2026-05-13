@@ -217,6 +217,32 @@ class TrackedDayDataSource {
     }
   }
 
+  // #173: update the user-configured per-nutrient goal columns for the
+  // given day. Each value is optional — pass null to leave the column
+  // untouched. The receiving columns themselves remain nullable on
+  // disk, with null meaning "no override, use the default reference".
+  Future<void> updateDayNutrientGoals(
+    DateTime day, {
+    double? fibreGoal,
+    double? satFatGoal,
+    double? sugarsGoal,
+  }) async {
+    log.fine('Updating tracked day nutrient goals');
+    final updateDay = await getTrackedDay(day);
+    if (updateDay != null) {
+      if (fibreGoal != null) {
+        updateDay.fibreGoal = fibreGoal;
+      }
+      if (satFatGoal != null) {
+        updateDay.satFatGoal = satFatGoal;
+      }
+      if (sugarsGoal != null) {
+        updateDay.sugarsGoal = sugarsGoal;
+      }
+      await updateDay.save();
+    }
+  }
+
   Future<void> reconcileCaloriesAndMacrosTracked(
     DateTime day,
     double calories,
