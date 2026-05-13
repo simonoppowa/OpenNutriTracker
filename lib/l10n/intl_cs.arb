@@ -91,6 +91,10 @@
       }
     }
   },
+  "customMealBarcodeHint": "Naskenuj nebo zadej čárový kód, aby ses k jídlu mohl/a později vrátit",
+  "customMealBarcodeInvalid": "Čárový kód musí mít 8 až 14 číslic",
+  "customMealBarcodeLabel": "Čárový kód",
+  "customMealBarcodeScanButton": "Naskenovat čárový kód",
   "customMealsDeleteConfirmContent": "Všechny záznamy v deníku používající toto jídlo budou také odstraněny.",
   "customMealsDeleteConfirmTitle": "Smazat vlastní jídlo?",
   "customMealsEmptyLabel": "Zatím žádná vlastní jídla uložena.",

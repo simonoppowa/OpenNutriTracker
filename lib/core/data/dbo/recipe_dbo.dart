@@ -44,6 +44,14 @@ class RecipeDBO extends HiveObject {
   @HiveField(9)
   final List<String>? tags;
 
+  // Optional barcode (EAN-13 / UPC-A, 8 to 14 digits). When set, scanning
+  // this code resolves to the recipe before the scanner falls through to
+  // Open Food Facts — useful for repackaged store-brand items where the OFF
+  // entry is wrong or missing. Nullable for backward-compat with recipes
+  // saved before the field existed.
+  @HiveField(10)
+  final String? barcode;
+
   RecipeDBO({
     required this.id,
     required this.name,
@@ -55,6 +63,7 @@ class RecipeDBO extends HiveObject {
     required this.updatedAt,
     required this.servingsCount,
     required this.tags,
+    this.barcode,
   });
 
   factory RecipeDBO.fromJson(Map<String, dynamic> json) =>

@@ -829,6 +829,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeTagsLabel": MessageLookupByLibrary.simpleMessage("Tags"),
         "recipeTagsHelper": MessageLookupByLibrary.simpleMessage(
             "Comma-separated, e.g. \"breakfast, vegan\""),
+        "customMealBarcodeLabel":
+            MessageLookupByLibrary.simpleMessage("Barcode"),
+        "customMealBarcodeHint": MessageLookupByLibrary.simpleMessage(
+            "Scan or type a barcode to recall this meal later"),
+        "customMealBarcodeScanButton":
+            MessageLookupByLibrary.simpleMessage("Scan barcode"),
+        "customMealBarcodeInvalid": MessageLookupByLibrary.simpleMessage(
+            "Barcode must be 8 to 14 digits"),
         "recipesFilterAllLabel":
             MessageLookupByLibrary.simpleMessage("All"),
         "importRecipesCsvAction":

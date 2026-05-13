@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -30,6 +31,7 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
   late TextEditingController _servingsController;
   late TextEditingController _totalWeightController;
   late TextEditingController _tagsController;
+  late TextEditingController _barcodeController;
 
   bool _initialized = false;
 
@@ -42,6 +44,7 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
     _servingsController = TextEditingController();
     _totalWeightController = TextEditingController();
     _tagsController = TextEditingController();
+    _barcodeController = TextEditingController();
   }
 
   @override
@@ -59,6 +62,7 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
         _servingsController.text = r.servingsCount?.toString() ?? '';
         _totalWeightController.text = r.totalWeightG.toStringAsFixed(0);
         _tagsController.text = r.tags.join(', ');
+        _barcodeController.text = r.barcode ?? '';
       }
     }
   }
@@ -70,6 +74,7 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
     _servingsController.dispose();
     _totalWeightController.dispose();
     _tagsController.dispose();
+    _barcodeController.dispose();
     super.dispose();
   }
 
@@ -188,6 +193,27 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
                   _bloc.add(UpdateTagsEvent(parsed));
                 },
               ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _barcodeController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(14),
+                ],
+                decoration: InputDecoration(
+                  labelText: S.of(context).customMealBarcodeLabel,
+                  helperText: S.of(context).customMealBarcodeHint,
+                  helperMaxLines: 2,
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.qr_code_scanner_outlined),
+                    tooltip: S.of(context).customMealBarcodeScanButton,
+                    onPressed: () => _onScanBarcodePressed(context),
+                  ),
+                ),
+                onChanged: (v) => _bloc.add(UpdateBarcodeEvent(v)),
+              ),
               const SizedBox(height: 24),
               Text(
                 S.of(context).recipeIngredientsLabel,
@@ -266,7 +292,8 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
         (state.description?.trim().isNotEmpty ?? false) ||
         state.ingredients.isNotEmpty ||
         state.servingsCount != null ||
-        state.tags.isNotEmpty;
+        state.tags.isNotEmpty ||
+        (state.barcode?.trim().isNotEmpty ?? false);
   }
 
   Future<bool?> _confirmDiscard(BuildContext context) {
@@ -342,10 +369,59 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
       SaveError.nameRequired => s.recipeNameRequiredLabel,
       SaveError.needsIngredients => s.recipeNeedsIngredientsLabel,
       SaveError.invalidTotalWeight => s.recipeInvalidTotalWeightLabel,
+      SaveError.invalidBarcode => s.customMealBarcodeInvalid,
       SaveError.unknown => s.recipeSaveErrorLabel,
     };
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _onScanBarcodePressed(BuildContext context) async {
+    final scanned = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => const _RecipeBarcodeScanPage(),
+      ),
+    );
+    if (scanned == null || !context.mounted) return;
+    _barcodeController.text = scanned;
+    _bloc.add(UpdateBarcodeEvent(scanned));
+  }
+}
+
+// Lightweight scanner that pops with the first product barcode it sees, so
+// the recipe builder can prefill its barcode field without dragging in the
+// full ScannerScreen pipeline (which is wired to push the user straight
+// into MealDetail).
+class _RecipeBarcodeScanPage extends StatefulWidget {
+  const _RecipeBarcodeScanPage();
+
+  @override
+  State<_RecipeBarcodeScanPage> createState() => _RecipeBarcodeScanPageState();
+}
+
+class _RecipeBarcodeScanPageState extends State<_RecipeBarcodeScanPage> {
+  bool _popped = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(S.of(context).customMealBarcodeScanButton),
+      ),
+      body: MobileScanner(
+        onDetect: (capture) {
+          if (_popped) return;
+          for (final barcode in capture.barcodes) {
+            final raw = barcode.rawValue;
+            if (raw != null && barcode.type == BarcodeType.product) {
+              _popped = true;
+              Navigator.of(context).pop(raw);
+              return;
+            }
+          }
+        },
+      ),
     );
   }
 }

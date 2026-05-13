@@ -91,6 +91,10 @@
       }
     }
   },
+  "customMealBarcodeHint": "Zeskanuj lub wpisz kod kreskowy, aby później przywołać ten posiłek",
+  "customMealBarcodeInvalid": "Kod kreskowy musi mieć od 8 do 14 cyfr",
+  "customMealBarcodeLabel": "Kod kreskowy",
+  "customMealBarcodeScanButton": "Skanuj kod kreskowy",
   "customMealsDeleteConfirmContent": "Wszystkie wpisy w dzienniku używające tego posiłku zostaną również usunięte.",
   "customMealsDeleteConfirmTitle": "Usunąć własny posiłek?",
   "customMealsEmptyLabel": "Brak zapisanych własnych posiłków.",

@@ -91,6 +91,10 @@
       }
     }
   },
+  "customMealBarcodeHint": "Scansiona o digita un codice a barre per richiamare questo pasto in seguito",
+  "customMealBarcodeInvalid": "Il codice a barre deve avere da 8 a 14 cifre",
+  "customMealBarcodeLabel": "Codice a barre",
+  "customMealBarcodeScanButton": "Scansiona codice a barre",
   "customMealsDeleteConfirmContent": "Tutte le voci del diario che utilizzano questo pasto verranno rimosse.",
   "customMealsDeleteConfirmTitle": "Eliminare il pasto personalizzato?",
   "customMealsEmptyLabel": "Nessun pasto personalizzato salvato.",

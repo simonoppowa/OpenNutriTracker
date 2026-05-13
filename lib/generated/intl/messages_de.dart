@@ -175,6 +175,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "CSV-Datei konnte nicht gelesen werden. Format prüfen und erneut versuchen."),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "customMealBarcodeHint": MessageLookupByLibrary.simpleMessage(
+            "Scanne oder gib einen Barcode ein, um diese Mahlzeit später wiederzufinden"),
+        "customMealBarcodeInvalid": MessageLookupByLibrary.simpleMessage(
+            "Der Barcode muss 8 bis 14 Ziffern haben"),
+        "customMealBarcodeLabel":
+            MessageLookupByLibrary.simpleMessage("Barcode"),
+        "customMealBarcodeScanButton":
+            MessageLookupByLibrary.simpleMessage("Barcode scannen"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Alle Tagebucheinträge, die diese Mahlzeit verwenden, werden ebenfalls entfernt."),
         "customMealsDeleteConfirmTitle":

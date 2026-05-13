@@ -29,8 +29,24 @@ class RecipeBuilderBloc
     on<UpdateIngredientEvent>(_onUpdateIngredient);
     on<RemoveIngredientEvent>(_onRemoveIngredient);
     on<UpdateTotalWeightEvent>(_onUpdateTotalWeight);
+    on<UpdateBarcodeEvent>((event, emit) {
+      final trimmed = event.barcode?.trim();
+      final normalized = (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+      emit(
+        state.copyWith(
+          barcode: normalized,
+          clearBarcode: normalized == null,
+        ),
+      );
+    });
     on<SaveRecipeEvent>(_onSave);
   }
+
+  // Lenient EAN-13 / UPC-A check — accept any 8-to-14 digit run. The longer
+  // bound covers GTIN-14 case packaging, the shorter covers EAN-8.
+  static final _barcodeFormat = RegExp(r'^\d{8,14}$');
+
+  static bool _isBarcodeValid(String value) => _barcodeFormat.hasMatch(value);
 
   void _onInitialize(
     InitializeBuilderEvent event,
@@ -56,6 +72,8 @@ class RecipeBuilderBloc
           aggregatedNutrimentsPer100: r.aggregatedNutrimentsPer100,
           isExistingRecipe: !isDuplicate,
           tags: r.tags,
+          barcode: r.barcode,
+          clearBarcode: r.barcode == null,
         ),
       );
       _recompute(emit);
@@ -188,6 +206,15 @@ class RecipeBuilderBloc
       emit(state.copyWith(saveError: SaveError.invalidTotalWeight));
       return;
     }
+    final trimmedBarcode = state.barcode?.trim();
+    final normalizedBarcode =
+        (trimmedBarcode == null || trimmedBarcode.isEmpty)
+            ? null
+            : trimmedBarcode;
+    if (normalizedBarcode != null && !_isBarcodeValid(normalizedBarcode)) {
+      emit(state.copyWith(saveError: SaveError.invalidBarcode));
+      return;
+    }
 
     emit(state.copyWith(isSaving: true, clearSaveError: true));
     try {
@@ -205,6 +232,7 @@ class RecipeBuilderBloc
         updatedAt: now,
         servingsCount: state.servingsCount,
         tags: state.tags,
+        barcode: normalizedBarcode,
       );
       await _saveUseCase.save(
         recipe,

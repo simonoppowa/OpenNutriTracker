@@ -91,6 +91,10 @@
       }
     }
   },
+  "customMealBarcodeHint": "Скануй або введи штрих-код, щоб згодом знайти цю страву",
+  "customMealBarcodeInvalid": "Штрих-код має містити від 8 до 14 цифр",
+  "customMealBarcodeLabel": "Штрих-код",
+  "customMealBarcodeScanButton": "Сканувати штрих-код",
   "customMealsDeleteConfirmContent": "Усі записи в щоденнику, що використовують цю страву, також буде видалено.",
   "customMealsDeleteConfirmTitle": "Видалити власну страву?",
   "customMealsEmptyLabel": "Ще немає збережених власних страв.",

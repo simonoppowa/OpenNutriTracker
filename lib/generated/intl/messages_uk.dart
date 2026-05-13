@@ -170,6 +170,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "Не вдалося прочитати CSV файл. Перевірте формат і спробуйте знову."),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "customMealBarcodeHint": MessageLookupByLibrary.simpleMessage(
+            "Скануй або введи штрих-код, щоб згодом знайти цю страву"),
+        "customMealBarcodeInvalid": MessageLookupByLibrary.simpleMessage(
+            "Штрих-код має містити від 8 до 14 цифр"),
+        "customMealBarcodeLabel":
+            MessageLookupByLibrary.simpleMessage("Штрих-код"),
+        "customMealBarcodeScanButton":
+            MessageLookupByLibrary.simpleMessage("Сканувати штрих-код"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Усі записи в щоденнику, що використовують цю страву, також буде видалено."),
         "customMealsDeleteConfirmTitle":

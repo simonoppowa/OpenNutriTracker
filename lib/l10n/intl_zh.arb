@@ -92,6 +92,10 @@
       }
     }
   },
+  "customMealBarcodeHint": "扫描或输入条形码，以便日后调用此餐食",
+  "customMealBarcodeInvalid": "条形码必须为 8 到 14 位数字",
+  "customMealBarcodeLabel": "条形码",
+  "customMealBarcodeScanButton": "扫描条形码",
   "customMealsDeleteConfirmContent": "所有使用此餐食的日记条目也将被删除。",
   "customMealsDeleteConfirmTitle": "删除自定义餐食？",
   "customMealsEmptyLabel": "尚未保存自定义餐食。",

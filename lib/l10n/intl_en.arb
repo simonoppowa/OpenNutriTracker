@@ -45,6 +45,10 @@
   "duplicateRecipeNameSuffix": "(copy)",
   "recipeTagsLabel": "Tags",
   "recipeTagsHelper": "Comma-separated, e.g. \"breakfast, vegan\"",
+  "customMealBarcodeLabel": "Barcode",
+  "customMealBarcodeHint": "Scan or type a barcode to recall this meal later",
+  "customMealBarcodeScanButton": "Scan barcode",
+  "customMealBarcodeInvalid": "Barcode must be 8 to 14 digits",
   "recipesFilterAllLabel": "All",
   "selectionCountLabel": "{count} selected",
   "@selectionCountLabel": {

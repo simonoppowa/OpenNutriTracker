@@ -160,6 +160,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "无法读取 CSV 文件。请检查格式后重试。"),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "customMealBarcodeHint": MessageLookupByLibrary.simpleMessage(
+            "扫描或输入条形码，以便日后调用此餐食"),
+        "customMealBarcodeInvalid": MessageLookupByLibrary.simpleMessage(
+            "条形码必须为 8 到 14 位数字"),
+        "customMealBarcodeLabel":
+            MessageLookupByLibrary.simpleMessage("条形码"),
+        "customMealBarcodeScanButton":
+            MessageLookupByLibrary.simpleMessage("扫描条形码"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "所有使用此餐食的日记条目也将被删除。"),
         "customMealsDeleteConfirmTitle":

@@ -510,6 +510,46 @@ class S {
     );
   }
 
+  /// `Barcode`
+  String get customMealBarcodeLabel {
+    return Intl.message(
+      'Barcode',
+      name: 'customMealBarcodeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Scan or type a barcode to recall this meal later`
+  String get customMealBarcodeHint {
+    return Intl.message(
+      'Scan or type a barcode to recall this meal later',
+      name: 'customMealBarcodeHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Scan barcode`
+  String get customMealBarcodeScanButton {
+    return Intl.message(
+      'Scan barcode',
+      name: 'customMealBarcodeScanButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Barcode must be 8 to 14 digits`
+  String get customMealBarcodeInvalid {
+    return Intl.message(
+      'Barcode must be 8 to 14 digits',
+      name: 'customMealBarcodeInvalid',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `All`
   String get recipesFilterAllLabel {
     return Intl.message(
