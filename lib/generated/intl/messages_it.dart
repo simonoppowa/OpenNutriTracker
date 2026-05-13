@@ -299,6 +299,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Ricetta importata"),
         "importRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Importa ricette (csv)"),
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "Questi valori non sembrano tornare — le calorie inserite non corrispondono all'energia di carboidrati, grassi e proteine. Salvare comunque o controllare di nuovo?"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("Controlla di nuovo"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("Salva comunque"),
+        "inconsistentNutritionWarningTitle":
+            MessageLookupByLibrary.simpleMessage("I numeri non tornano"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Nuova attività aggiunta"),
         "infoAddedIntakeLabel":

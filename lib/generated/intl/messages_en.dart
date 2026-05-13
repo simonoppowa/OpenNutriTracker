@@ -281,6 +281,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "importMealSuccessLabel":
             MessageLookupByLibrary.simpleMessage("Meal imported"),
         "importOffFetchFailedLabel": m6,
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "These values don't quite line up — the calories you've entered don't match the energy in the carbs, fat and protein below. Save anyway, or take a second look?"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("Take another look"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("Save anyway"),
+        "inconsistentNutritionWarningTitle": MessageLookupByLibrary.simpleMessage(
+            "Numbers don't quite line up"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Added new activity"),
         "infoAddedIntakeLabel":

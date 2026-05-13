@@ -232,6 +232,10 @@
   "mealKcalLabel": "kcal",
   "mealNameLabel": "Mahlzeitenname",
   "mealNameValidationError": "Mahlzeitenname muss mindestens einen Buchstaben enthalten",
+  "inconsistentNutritionWarningTitle": "Die Zahlen passen nicht ganz zusammen",
+  "inconsistentNutritionWarningBody": "Diese Werte passen nicht ganz zusammen — die eingegebenen Kalorien stimmen nicht mit der Energie aus Kohlenhydraten, Fett und Eiweiß überein. Trotzdem speichern oder noch einmal nachsehen?",
+  "inconsistentNutritionWarningSaveAnyway": "Trotzdem speichern",
+  "inconsistentNutritionWarningEdit": "Noch einmal nachsehen",
   "mealNutrientsPerQtyLabel": "Pro {qty} {unit}",
   "@mealNutrientsPerQtyLabel": {
     "placeholders": {

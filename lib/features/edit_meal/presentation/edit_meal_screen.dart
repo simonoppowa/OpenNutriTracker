@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -380,6 +382,27 @@ class _EditMealScreenState extends State<EditMealScreen> {
         return;
       }
 
+      // Atwater consistency check (#213): warn if entered kcal disagrees with
+      // 4·carbs + 4·protein + 9·fat by more than 20%. Non-blocking — the
+      // reporter explicitly asked that the user still be able to save if they
+      // are sure of the numbers they typed.
+      if (enteredKcal != null &&
+          enteredCarbs != null &&
+          enteredFat != null &&
+          enteredProtein != null) {
+        final expectedKcal =
+            4 * enteredCarbs + 4 * enteredProtein + 9 * enteredFat;
+        final delta = (enteredKcal - expectedKcal).abs();
+        final ceiling = math.max(enteredKcal.abs(), expectedKcal.abs());
+        if (ceiling > 0 && delta > 0.2 * ceiling) {
+          final shouldSaveAnyway = await _showAtwaterWarningDialog();
+          if (!mounted) return;
+          if (shouldSaveAnyway != true) {
+            return;
+          }
+        }
+      }
+
       // Convert meal size back to metric units if necessary
       final mealUnitForConversion = selectedUnit ?? _mealEntity.mealUnit ?? '0';
       final mealQuantity = usesImperialUnits
@@ -452,6 +475,30 @@ class _EditMealScreenState extends State<EditMealScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(S.of(context).errorMealSave)));
     }
+  }
+
+  Future<bool?> _showAtwaterWarningDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(S.of(dialogContext).inconsistentNutritionWarningTitle),
+          content: Text(S.of(dialogContext).inconsistentNutritionWarningBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(S.of(dialogContext).inconsistentNutritionWarningEdit),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(
+                S.of(dialogContext).inconsistentNutritionWarningSaveAnyway,
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   String? _switchButtonUnit(String? unit) {

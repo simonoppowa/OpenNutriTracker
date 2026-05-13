@@ -305,6 +305,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Rezept importiert"),
         "importRecipesCsvAction": MessageLookupByLibrary.simpleMessage(
             "Rezepte importieren (csv)"),
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "Diese Werte passen nicht ganz zusammen — die eingegebenen Kalorien stimmen nicht mit der Energie aus Kohlenhydraten, Fett und Eiweiß überein. Trotzdem speichern oder noch einmal nachsehen?"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("Noch einmal nachsehen"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("Trotzdem speichern"),
+        "inconsistentNutritionWarningTitle": MessageLookupByLibrary.simpleMessage(
+            "Die Zahlen passen nicht ganz zusammen"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Neue Aktivität hinzugefügt"),
         "infoAddedIntakeLabel":

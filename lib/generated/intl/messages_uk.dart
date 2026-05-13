@@ -298,6 +298,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Рецепт імпортовано"),
         "importRecipesCsvAction": MessageLookupByLibrary.simpleMessage(
             "Імпортувати рецепти (csv)"),
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "Ці значення не зовсім сходяться — введені калорії не відповідають енергії з вуглеводів, жирів і білків. Зберегти все одно чи переглянути ще раз?"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("Переглянути ще раз"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("Зберегти все одно"),
+        "inconsistentNutritionWarningTitle":
+            MessageLookupByLibrary.simpleMessage("Числа не зовсім сходяться"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Додано нову активність"),
         "infoAddedIntakeLabel":

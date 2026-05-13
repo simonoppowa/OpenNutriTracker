@@ -2783,6 +2783,46 @@ class S {
     );
   }
 
+  /// `Numbers don't quite line up`
+  String get inconsistentNutritionWarningTitle {
+    return Intl.message(
+      'Numbers don\'t quite line up',
+      name: 'inconsistentNutritionWarningTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `These values don't quite line up — the calories you've entered don't match the energy in the carbs, fat and protein below. Save anyway, or take a second look?`
+  String get inconsistentNutritionWarningBody {
+    return Intl.message(
+      'These values don\'t quite line up — the calories you\'ve entered don\'t match the energy in the carbs, fat and protein below. Save anyway, or take a second look?',
+      name: 'inconsistentNutritionWarningBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save anyway`
+  String get inconsistentNutritionWarningSaveAnyway {
+    return Intl.message(
+      'Save anyway',
+      name: 'inconsistentNutritionWarningSaveAnyway',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Take another look`
+  String get inconsistentNutritionWarningEdit {
+    return Intl.message(
+      'Take another look',
+      name: 'inconsistentNutritionWarningEdit',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Brands`
   String get mealBrandsLabel {
     return Intl.message(

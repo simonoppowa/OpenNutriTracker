@@ -232,6 +232,10 @@
   "mealKcalLabel": "kcal",
   "mealNameLabel": "Yemek adı",
   "mealNameValidationError": "Yemek adı en az bir harf içermelidir",
+  "inconsistentNutritionWarningTitle": "Sayılar pek uyuşmuyor",
+  "inconsistentNutritionWarningBody": "Bu değerler tam olarak uyuşmuyor — girdiğiniz kalori, karbonhidrat, yağ ve proteinin enerjisiyle örtüşmüyor. Yine de kaydedilsin mi, yoksa tekrar göz atmak ister misiniz?",
+  "inconsistentNutritionWarningSaveAnyway": "Yine de kaydet",
+  "inconsistentNutritionWarningEdit": "Tekrar bakayım",
   "mealNutrientsPerQtyLabel": "{qty} {unit} başına",
   "@mealNutrientsPerQtyLabel": {
     "placeholders": {

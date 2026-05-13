@@ -298,6 +298,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Tarif içe aktarıldı"),
         "importRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Tarifleri içe aktar (csv)"),
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "Bu değerler tam olarak uyuşmuyor — girdiğiniz kalori, karbonhidrat, yağ ve proteinin enerjisiyle örtüşmüyor. Yine de kaydedilsin mi, yoksa tekrar göz atmak ister misiniz?"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("Tekrar bakayım"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("Yine de kaydet"),
+        "inconsistentNutritionWarningTitle":
+            MessageLookupByLibrary.simpleMessage("Sayılar pek uyuşmuyor"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Yeni aktivite eklendi"),
         "infoAddedIntakeLabel":

@@ -273,6 +273,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("食谱已导入"),
         "importRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("导入食谱 (csv)"),
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "这些数值对不太上 — 您输入的卡路里与碳水、脂肪和蛋白质所含的能量不一致。仍要保存，还是再看一下？"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("再看一下"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("仍要保存"),
+        "inconsistentNutritionWarningTitle":
+            MessageLookupByLibrary.simpleMessage("数字对不太上"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("添加了新活动"),
         "infoAddedIntakeLabel": MessageLookupByLibrary.simpleMessage("添加了新摄入"),
