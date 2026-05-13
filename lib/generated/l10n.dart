@@ -2160,6 +2160,56 @@ class S {
     );
   }
 
+  /// `Form view`
+  String get customMealFormModeLabel {
+    return Intl.message(
+      'Form view',
+      name: 'customMealFormModeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Simple`
+  String get customMealFormSimple {
+    return Intl.message(
+      'Simple',
+      name: 'customMealFormSimple',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Advanced`
+  String get customMealFormAdvanced {
+    return Intl.message(
+      'Advanced',
+      name: 'customMealFormAdvanced',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Type the totals for one serving.`
+  String get customMealFormSimpleHelp {
+    return Intl.message(
+      'Type the totals for one serving.',
+      name: 'customMealFormSimpleHelp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Set base quantity and per-100 values for precise scaling.`
+  String get customMealFormAdvancedHelp {
+    return Intl.message(
+      'Set base quantity and per-100 values for precise scaling.',
+      name: 'customMealFormAdvancedHelp',
+      desc: '',
+      args: [],
+    );
+  }
+
   String get exportImportAppDataLabel {
     return Intl.message(
       'Export / Import App Data',

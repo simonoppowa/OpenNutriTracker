@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -11,17 +12,46 @@ part 'edit_meal_state.dart';
 
 part 'edit_meal_event.dart';
 
+/// Custom meal form view mode (#232). Persisted on ConfigDBO so the form
+/// remembers which view the user prefers between sessions.
+enum CustomMealFormMode {
+  simple,
+  advanced;
+
+  static CustomMealFormMode fromString(String? value) {
+    if (value == advanced.name) return advanced;
+    // Simple is the default for new users and for any unrecognised value:
+    // it removes the per-100g cognitive load and matches the most common
+    // request from the people who filed #232.
+    return simple;
+  }
+}
+
 class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
   final GetConfigUsecase _getConfigUsecase;
   final CustomMealDataSource _customMealDataSource; // #267
+  final ConfigRepository _configRepository;
 
-  EditMealBloc(this._getConfigUsecase, this._customMealDataSource) : super(EditMealInitial()) {
+  EditMealBloc(this._getConfigUsecase, this._customMealDataSource, this._configRepository)
+      : super(EditMealInitial()) {
     on<InitializeEditMealEvent>((event, emit) async {
       emit(EditMealLoadingState());
 
       final config = await _getConfigUsecase.getConfig();
-      emit(EditMealLoadedState(usesImperialUnits: config.usesImperialUnits));
+      final mode = CustomMealFormMode.fromString(
+        await _configRepository.getCustomMealFormMode(),
+      );
+      emit(EditMealLoadedState(
+        usesImperialUnits: config.usesImperialUnits,
+        formMode: mode,
+      ));
     });
+  }
+
+  /// Persist the user's form view preference so the next custom-meal entry
+  /// opens in the same mode they last used (#232).
+  Future<void> setFormMode(CustomMealFormMode mode) async {
+    await _configRepository.setCustomMealFormMode(mode.name);
   }
 
   MealEntity createNewMealEntity(
