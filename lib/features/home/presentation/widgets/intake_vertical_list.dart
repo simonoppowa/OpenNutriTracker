@@ -35,6 +35,11 @@ class IntakeVerticalList extends StatefulWidget {
   final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity,
       AddMealType? type)? onCopyIntakeCallback;
   final TrackedDayEntity? trackedDayEntity;
+  // #150: optional recommended kcal target for this meal section. When
+  // supplied and > 0, the section header shows "consumed / target kcal" so
+  // someone scanning the day can see at a glance whether breakfast (or any
+  // other meal) sat inside the share they had planned for it.
+  final double? mealKcalTarget;
 
   const IntakeVerticalList({
     super.key,
@@ -51,6 +56,7 @@ class IntakeVerticalList extends StatefulWidget {
     this.onItemTappedCallback,
     this.onCopyIntakeCallback,
     this.trackedDayEntity,
+    this.mealKcalTarget,
   });
 
   @override
@@ -88,6 +94,31 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
         .fold(0, (previousValue, element) => previousValue + element.totalProteinsGram);
   }
 
+  // #150: only show a header when we have something to say — either some
+  // food was logged, or a recommended target exists so the section can read
+  // "0 / 600 kcal" before anything is logged.
+  bool get _hasMealKcalTarget =>
+      widget.mealKcalTarget != null && widget.mealKcalTarget! > 0;
+
+  bool get _shouldShowHeaderSummary => totalKcal > 0 || _hasMealKcalTarget;
+
+  String _buildHeaderSummary(BuildContext context) {
+    final consumed = EnergyDisplay.formatValue(context, totalKcal);
+    final kcalLine = _hasMealKcalTarget
+        ? S.of(context).diaryMealKcalConsumedOfTarget(
+              consumed,
+              EnergyDisplay.formatValue(context, widget.mealKcalTarget!),
+            )
+        : EnergyDisplay.formatWithUnit(context, totalKcal);
+    if (widget.showMealMacros && totalKcal > 0) {
+      return '$kcalLine\n'
+          '${totalCarbsGram.toInt()} ${S.of(context).carbsLabelShort}  '
+          '${totalFatsGram.toInt()} ${S.of(context).fatLabelShort}  '
+          '${totalProteinsGram.toInt()} ${S.of(context).proteinLabelShort}';
+    }
+    return kcalLine;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -108,12 +139,9 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                     ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
               ),
               const Spacer(),
-              if (totalKcal > 0)
+              if (_shouldShowHeaderSummary)
                 Text(
-                  widget.showMealMacros
-                      ? '${EnergyDisplay.formatWithUnit(context, totalKcal)}\n'
-                          '${totalCarbsGram.toInt()} ${S.of(context).carbsLabelShort}  ${totalFatsGram.toInt()} ${S.of(context).fatLabelShort}  ${totalProteinsGram.toInt()} ${S.of(context).proteinLabelShort}'
-                      : EnergyDisplay.formatWithUnit(context, totalKcal),
+                  _buildHeaderSummary(context),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: Theme.of(context)
                           .colorScheme

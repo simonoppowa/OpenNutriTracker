@@ -644,6 +644,23 @@
   "settingsShowActivityTracking": "Aktivitätstracking anzeigen",
   "settingsShowMealMacros": "Makros je Mahlzeit anzeigen",
   "settingsShowMicronutrientsLabel": "Mikronährstoffe anzeigen",
+  "settingsPerMealKcalShareLabel": "kcal-Anteil je Mahlzeit",
+  "settingsPerMealKcalShareDescription": "Verteile dein tägliches kcal-Ziel auf Frühstück, Mittagessen, Abendessen und Snacks. Die Anteile müssen zusammen 100 % ergeben.",
+  "settingsPerMealKcalShareBreakfast": "Frühstück",
+  "settingsPerMealKcalShareLunch": "Mittagessen",
+  "settingsPerMealKcalShareDinner": "Abendessen",
+  "settingsPerMealKcalShareSnack": "Snack",
+  "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "settingsSourceCodeLabel": "Quellcode",
   "settingsSystemLabel": "System",
   "settingsThemeDarkLabel": "Dunkel",

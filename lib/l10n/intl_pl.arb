@@ -627,6 +627,23 @@
   "settingsShowActivityTracking": "Pokaż śledzenie aktywności",
   "settingsShowMealMacros": "Pokaż makro posiłku",
   "settingsShowMicronutrientsLabel": "Pokaż mikroskładniki",
+  "settingsPerMealKcalShareLabel": "Udział kcal na posiłek",
+  "settingsPerMealKcalShareDescription": "Rozłóż dzienny cel kcal na śniadanie, obiad, kolację i przekąski. Udziały muszą sumować się do 100%.",
+  "settingsPerMealKcalShareBreakfast": "Śniadanie",
+  "settingsPerMealKcalShareLunch": "Obiad",
+  "settingsPerMealKcalShareDinner": "Kolacja",
+  "settingsPerMealKcalShareSnack": "Przekąska",
+  "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "settingsSourceCodeLabel": "Kod źródłowy",
   "settingsSystemLabel": "System",
   "settingsThemeDarkLabel": "Ciemny",

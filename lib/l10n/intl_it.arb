@@ -627,6 +627,23 @@
   "settingsShowActivityTracking": "Mostra tracciamento attività",
   "settingsShowMealMacros": "Mostra macro pasto",
   "settingsShowMicronutrientsLabel": "Mostra micronutrienti",
+  "settingsPerMealKcalShareLabel": "Quota kcal per pasto",
+  "settingsPerMealKcalShareDescription": "Distribuisci il tuo obiettivo giornaliero di kcal tra colazione, pranzo, cena e spuntini. Le quote devono sommare al 100%.",
+  "settingsPerMealKcalShareBreakfast": "Colazione",
+  "settingsPerMealKcalShareLunch": "Pranzo",
+  "settingsPerMealKcalShareDinner": "Cena",
+  "settingsPerMealKcalShareSnack": "Spuntino",
+  "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "settingsSourceCodeLabel": "Codice sorgente",
   "settingsSystemLabel": "Sistema",
   "settingsThemeDarkLabel": "Scuro",

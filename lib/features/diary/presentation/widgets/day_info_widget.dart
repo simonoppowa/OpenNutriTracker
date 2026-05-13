@@ -24,6 +24,13 @@ class DayInfoWidget extends StatelessWidget {
   final List<IntakeEntity> lunchIntake;
   final List<IntakeEntity> dinnerIntake;
   final List<IntakeEntity> snackIntake;
+  // #150: per-meal recommended kcal targets for the selected calendar day.
+  // 0 means no target should be shown for that section (e.g. days with no
+  // tracked daily goal).
+  final double breakfastKcalTarget;
+  final double lunchKcalTarget;
+  final double dinnerKcalTarget;
+  final double snackKcalTarget;
 
   final bool usesImperialUnits;
   final bool showMealMacros;
@@ -64,6 +71,10 @@ class DayInfoWidget extends StatelessWidget {
     required this.onCopyActivity,
     this.onEditIntake,
     this.onEditActivity,
+    this.breakfastKcalTarget = 0,
+    this.lunchKcalTarget = 0,
+    this.dinnerKcalTarget = 0,
+    this.snackKcalTarget = 0,
   });
 
   @override
@@ -174,6 +185,7 @@ class DayInfoWidget extends StatelessWidget {
               usesImperialUnits: usesImperialUnits,
               showMealMacros: showMealMacros,
               trackedDayEntity: trackedDay,
+              mealKcalTarget: breakfastKcalTarget,
             ),
             IntakeVerticalList(
               day: selectedDay,
@@ -191,6 +203,7 @@ class DayInfoWidget extends StatelessWidget {
                       ? null
                       : onCopyIntake,
               trackedDayEntity: trackedDay,
+              mealKcalTarget: lunchKcalTarget,
             ),
             IntakeVerticalList(
               day: selectedDay,
@@ -207,6 +220,7 @@ class DayInfoWidget extends StatelessWidget {
                       : onCopyIntake,
               usesImperialUnits: usesImperialUnits,
               showMealMacros: showMealMacros,
+              mealKcalTarget: dinnerKcalTarget,
             ),
             IntakeVerticalList(
               day: selectedDay,
@@ -224,6 +238,7 @@ class DayInfoWidget extends StatelessWidget {
                       ? null
                       : onCopyIntake,
               trackedDayEntity: trackedDay,
+              mealKcalTarget: snackKcalTarget,
             ),
             const SizedBox(height: 16.0),
           ],

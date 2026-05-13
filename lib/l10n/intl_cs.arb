@@ -627,6 +627,23 @@
   "settingsShowActivityTracking": "Zobrazit sledování aktivity",
   "settingsShowMealMacros": "Zobrazit makra jídla",
   "settingsShowMicronutrientsLabel": "Zobrazit mikroživiny",
+  "settingsPerMealKcalShareLabel": "Podíl kcal na jídlo",
+  "settingsPerMealKcalShareDescription": "Rozdělte denní cíl kcal mezi snídani, oběd, večeři a svačiny. Součet podílů musí být 100 %.",
+  "settingsPerMealKcalShareBreakfast": "Snídaně",
+  "settingsPerMealKcalShareLunch": "Oběd",
+  "settingsPerMealKcalShareDinner": "Večeře",
+  "settingsPerMealKcalShareSnack": "Svačina",
+  "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "settingsSourceCodeLabel": "Zdrojový kód",
   "settingsSystemLabel": "Systém",
   "settingsThemeDarkLabel": "Tmavý",

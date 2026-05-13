@@ -61,6 +61,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "导入 ${count} 项活动？";
 
+  static String m20(consumed, target) => "${consumed} / ${target} 千卡";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample":
@@ -186,6 +188,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryFutureDateWarning":
             MessageLookupByLibrary.simpleMessage("您正在编辑未来的日期"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("日记"),
+        "diaryMealKcalConsumedOfTarget": m20,
         "dinnerExample": MessageLookupByLibrary.simpleMessage("例如：汤、鸡肉、葡萄酒..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("晚餐"),
         "discardChangesConfirmLabel":
@@ -826,6 +829,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("显示餐食宏量"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("显示微量营养素"),
+        "settingsPerMealKcalShareLabel":
+            MessageLookupByLibrary.simpleMessage("每餐千卡占比"),
+        "settingsPerMealKcalShareDescription": MessageLookupByLibrary.simpleMessage(
+            "将每日千卡目标分配到早餐、午餐、晚餐和零食。各占比之和必须为 100%。"),
+        "settingsPerMealKcalShareBreakfast":
+            MessageLookupByLibrary.simpleMessage("早餐"),
+        "settingsPerMealKcalShareLunch":
+            MessageLookupByLibrary.simpleMessage("午餐"),
+        "settingsPerMealKcalShareDinner":
+            MessageLookupByLibrary.simpleMessage("晚餐"),
+        "settingsPerMealKcalShareSnack":
+            MessageLookupByLibrary.simpleMessage("零食"),
         "settingsSourceCodeLabel": MessageLookupByLibrary.simpleMessage("源代码"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("系统"),
         "settingsThemeDarkLabel": MessageLookupByLibrary.simpleMessage("深色"),

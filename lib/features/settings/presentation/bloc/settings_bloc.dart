@@ -147,6 +147,16 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     );
   }
 
+  // #150: per-meal kcal share configuration
+  Future<Map<String, int>> getMealKcalSharesPct() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.mealKcalSharesPct;
+  }
+
+  Future<void> setMealKcalSharesPct(Map<String, int> shares) async {
+    await _addConfigUsecase.setConfigMealKcalSharesPct(shares);
+  }
+
   void updateTrackedDay(DateTime day) async {
     final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
     final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(

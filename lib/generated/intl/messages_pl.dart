@@ -64,6 +64,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "Zaimportować ${count} aktywności?";
 
+  static String m20(consumed, target) => "${consumed} / ${target} kcal";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -198,6 +200,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryFutureDateWarning":
             MessageLookupByLibrary.simpleMessage("Edytujesz przyszłą datę"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Dziennik"),
+        "diaryMealKcalConsumedOfTarget": m20,
         "dinnerExample":
             MessageLookupByLibrary.simpleMessage("np. zupa, kurczak, wino ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Kolacja"),
@@ -969,6 +972,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Pokaż makro posiłku"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Pokaż mikroskładniki"),
+        "settingsPerMealKcalShareLabel":
+            MessageLookupByLibrary.simpleMessage("Udział kcal na posiłek"),
+        "settingsPerMealKcalShareDescription": MessageLookupByLibrary.simpleMessage(
+            "Rozłóż dzienny cel kcal na śniadanie, obiad, kolację i przekąski. Udziały muszą sumować się do 100%."),
+        "settingsPerMealKcalShareBreakfast":
+            MessageLookupByLibrary.simpleMessage("Śniadanie"),
+        "settingsPerMealKcalShareLunch":
+            MessageLookupByLibrary.simpleMessage("Obiad"),
+        "settingsPerMealKcalShareDinner":
+            MessageLookupByLibrary.simpleMessage("Kolacja"),
+        "settingsPerMealKcalShareSnack":
+            MessageLookupByLibrary.simpleMessage("Przekąska"),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Kod źródłowy"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("System"),

@@ -627,6 +627,23 @@
   "settingsShowActivityTracking": "Показати відстеження активності",
   "settingsShowMealMacros": "Показати макроси страви",
   "settingsShowMicronutrientsLabel": "Показувати мікроелементи",
+  "settingsPerMealKcalShareLabel": "Частка ккал на прийом їжі",
+  "settingsPerMealKcalShareDescription": "Розподіліть денну ціль у ккал між сніданком, обідом, вечерею та перекусами. Частки мають у сумі давати 100 %.",
+  "settingsPerMealKcalShareBreakfast": "Сніданок",
+  "settingsPerMealKcalShareLunch": "Обід",
+  "settingsPerMealKcalShareDinner": "Вечеря",
+  "settingsPerMealKcalShareSnack": "Перекус",
+  "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "settingsSourceCodeLabel": "Вихідний код",
   "settingsSystemLabel": "Система",
   "settingsThemeDarkLabel": "Темна",

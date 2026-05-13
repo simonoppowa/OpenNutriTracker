@@ -66,6 +66,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "${count} aktivite içe aktarılsın mı?";
 
+  static String m20(consumed, target) => "${consumed} / ${target} kcal";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -200,6 +202,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Gelecekteki bir tarihi düzenliyorsunuz"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Günlük"),
+        "diaryMealKcalConsumedOfTarget": m20,
         "dinnerExample":
             MessageLookupByLibrary.simpleMessage("ör. çorba, tavuk, şarap ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Akşam Yemeği"),
@@ -952,6 +955,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Öğün makrolarını göster"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Mikro besinleri göster"),
+        "settingsPerMealKcalShareLabel":
+            MessageLookupByLibrary.simpleMessage("Öğün başına kcal payı"),
+        "settingsPerMealKcalShareDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük kcal hedefini kahvaltı, öğle yemeği, akşam yemeği ve atıştırmalıklara bölün. Paylar toplam %100 olmalıdır."),
+        "settingsPerMealKcalShareBreakfast":
+            MessageLookupByLibrary.simpleMessage("Kahvaltı"),
+        "settingsPerMealKcalShareLunch":
+            MessageLookupByLibrary.simpleMessage("Öğle Yemeği"),
+        "settingsPerMealKcalShareDinner":
+            MessageLookupByLibrary.simpleMessage("Akşam Yemeği"),
+        "settingsPerMealKcalShareSnack":
+            MessageLookupByLibrary.simpleMessage("Atıştırmalık"),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Kaynak Kodu"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Sistem"),

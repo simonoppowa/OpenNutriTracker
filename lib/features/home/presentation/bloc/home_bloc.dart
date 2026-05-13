@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
@@ -129,6 +130,24 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         totalKcalIntake,
       );
 
+      // #150: derive recommended per-meal kcal targets from the saved share.
+      final breakfastKcalTarget = configData.targetKcalForMeal(
+        ConfigEntity.mealKeyBreakfast,
+        totalKcalGoal,
+      );
+      final lunchKcalTarget = configData.targetKcalForMeal(
+        ConfigEntity.mealKeyLunch,
+        totalKcalGoal,
+      );
+      final dinnerKcalTarget = configData.targetKcalForMeal(
+        ConfigEntity.mealKeyDinner,
+        totalKcalGoal,
+      );
+      final snackKcalTarget = configData.targetKcalForMeal(
+        ConfigEntity.mealKeySnack,
+        totalKcalGoal,
+      );
+
       emit(
         HomeLoadedState(
           showDisclaimerDialog: showDisclaimerDialog,
@@ -150,6 +169,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           usesImperialUnits: usesImperialUnits,
           showMealMacros: showMealMacros,
           userWeightKg: user.weightKG,
+          breakfastKcalTarget: breakfastKcalTarget,
+          lunchKcalTarget: lunchKcalTarget,
+          dinnerKcalTarget: dinnerKcalTarget,
+          snackKcalTarget: snackKcalTarget,
         ),
       );
     });

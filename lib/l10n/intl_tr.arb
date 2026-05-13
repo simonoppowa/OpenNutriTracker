@@ -644,6 +644,23 @@
   "settingsShowActivityTracking": "Aktivite takibini göster",
   "settingsShowMealMacros": "Öğün makrolarını göster",
   "settingsShowMicronutrientsLabel": "Mikro besinleri göster",
+  "settingsPerMealKcalShareLabel": "Öğün başına kcal payı",
+  "settingsPerMealKcalShareDescription": "Günlük kcal hedefini kahvaltı, öğle yemeği, akşam yemeği ve atıştırmalıklara bölün. Paylar toplam %100 olmalıdır.",
+  "settingsPerMealKcalShareBreakfast": "Kahvaltı",
+  "settingsPerMealKcalShareLunch": "Öğle Yemeği",
+  "settingsPerMealKcalShareDinner": "Akşam Yemeği",
+  "settingsPerMealKcalShareSnack": "Atıştırmalık",
+  "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "settingsSourceCodeLabel": "Kaynak Kodu",
   "settingsSystemLabel": "Sistem",
   "settingsThemeDarkLabel": "Koyu",

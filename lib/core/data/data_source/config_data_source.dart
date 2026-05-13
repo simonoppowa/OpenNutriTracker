@@ -154,6 +154,14 @@ class ConfigDataSource {
     await config?.save();
   }
 
+  Future<void> setConfigMealKcalSharesPct(Map<String, int> shares) async {
+    _log.fine('Updating config mealKcalSharesPct to $shares');
+    final config = _configBox.get(_configKey);
+    // Copy into a fresh map so Hive sees a distinct object reference on save.
+    config?.mealKcalSharesPct = Map<String, int>.from(shares);
+    await config?.save();
+  }
+
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();
   }

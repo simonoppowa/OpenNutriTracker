@@ -78,6 +78,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             state.usesImperialUnits,
             state.showMealMacros,
             state.userWeightKg,
+            state.breakfastKcalTarget,
+            state.lunchKcalTarget,
+            state.dinnerKcalTarget,
+            state.snackKcalTarget,
           );
         } else {
           return _getLoadingContent();
@@ -120,6 +124,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     bool usesImperialUnits,
     bool showMealMacros,
     double userWeightKg,
+    double breakfastKcalTarget,
+    double lunchKcalTarget,
+    double dinnerKcalTarget,
+    double snackKcalTarget,
   ) {
     if (showDisclaimerDialog) {
       _showDisclaimerDialog(context);
@@ -164,6 +172,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               onItemTappedCallback: onIntakeItemTapped,
               usesImperialUnits: usesImperialUnits,
               showMealMacros: showMealMacros,
+              mealKcalTarget: breakfastKcalTarget,
             ),
             IntakeVerticalList(
               day: DateTime.now(),
@@ -176,6 +185,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               onItemTappedCallback: onIntakeItemTapped,
               usesImperialUnits: usesImperialUnits,
               showMealMacros: showMealMacros,
+              mealKcalTarget: lunchKcalTarget,
             ),
             IntakeVerticalList(
               day: DateTime.now(),
@@ -188,6 +198,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               onItemTappedCallback: onIntakeItemTapped,
               usesImperialUnits: usesImperialUnits,
               showMealMacros: showMealMacros,
+              mealKcalTarget: dinnerKcalTarget,
             ),
             IntakeVerticalList(
               day: DateTime.now(),
@@ -200,6 +211,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               onItemTappedCallback: onIntakeItemTapped,
               usesImperialUnits: usesImperialUnits,
               showMealMacros: showMealMacros,
+              mealKcalTarget: snackKcalTarget,
             ),
             const SizedBox(height: 48.0),
           ],

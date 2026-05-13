@@ -100,4 +100,8 @@ class ConfigRepository {
   Future<void> setConfigUsesKilojoules(bool usesKilojoules) async {
     await _configDataSource.setConfigUsesKilojoules(usesKilojoules);
   }
+
+  Future<void> setConfigMealKcalSharesPct(Map<String, int> shares) async {
+    await _configDataSource.setConfigMealKcalSharesPct(shares);
+  }
 }

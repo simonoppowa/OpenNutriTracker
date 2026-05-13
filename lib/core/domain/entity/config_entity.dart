@@ -3,6 +3,24 @@ import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 
 class ConfigEntity extends Equatable {
+  // #150: keys for the per-meal kcal share map. Kept as plain strings rather
+  // than tied to IntakeTypeEntity so the persisted value stays stable across
+  // any future enum renames.
+  static const mealKeyBreakfast = 'breakfast';
+  static const mealKeyLunch = 'lunch';
+  static const mealKeyDinner = 'dinner';
+  static const mealKeySnack = 'snack';
+
+  /// Default share across breakfast / lunch / dinner / snack used when the
+  /// user has never tuned the values themselves. Sums to 100; sensible
+  /// without claiming to be medically prescriptive.
+  static const Map<String, int> defaultMealKcalSharesPct = {
+    mealKeyBreakfast: 30,
+    mealKeyLunch: 40,
+    mealKeyDinner: 20,
+    mealKeySnack: 10,
+  };
+
   final bool hasAcceptedDisclaimer;
   final bool hasAcceptedPolicy;
   final bool hasAcceptedSendAnonymousData;
@@ -20,6 +38,7 @@ class ConfigEntity extends Equatable {
   final String? selectedLocale;
   final bool showMicronutrients; // #237
   final bool usesKilojoules; // #177
+  final Map<String, int> mealKcalSharesPct; // #150
 
   const ConfigEntity(
     this.hasAcceptedDisclaimer,
@@ -39,6 +58,7 @@ class ConfigEntity extends Equatable {
     this.selectedLocale,
     this.showMicronutrients = false,
     this.usesKilojoules = false,
+    this.mealKcalSharesPct = defaultMealKcalSharesPct,
   });
 
   factory ConfigEntity.fromConfigDBO(ConfigDBO dbo) => ConfigEntity(
@@ -59,7 +79,25 @@ class ConfigEntity extends Equatable {
         selectedLocale: dbo.selectedLocale,
         showMicronutrients: dbo.showMicronutrients ?? false,
         usesKilojoules: dbo.usesKilojoules ?? false,
+        mealKcalSharesPct:
+            _sanitiseShares(dbo.mealKcalSharesPct) ?? defaultMealKcalSharesPct,
       );
+
+  /// Returns the recommended kcal target for [mealKey] given a daily goal.
+  double targetKcalForMeal(String mealKey, double dailyKcalGoal) {
+    final pct = mealKcalSharesPct[mealKey] ?? 0;
+    return (dailyKcalGoal * pct) / 100;
+  }
+
+  /// Drops any keys outside the known set and only returns a map if all four
+  /// expected meals are present. Defensive in case the stored map was written
+  /// by an older or partially-broken build.
+  static Map<String, int>? _sanitiseShares(Map<String, int>? raw) {
+    if (raw == null) return null;
+    final keys = [mealKeyBreakfast, mealKeyLunch, mealKeyDinner, mealKeySnack];
+    if (!keys.every(raw.containsKey)) return null;
+    return {for (final k in keys) k: raw[k] ?? 0};
+  }
 
   @override
   List<Object?> get props => [
@@ -79,5 +117,6 @@ class ConfigEntity extends Equatable {
         selectedLocale,
         showMicronutrients,
         usesKilojoules,
+        mealKcalSharesPct,
       ];
 }

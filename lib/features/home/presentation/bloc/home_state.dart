@@ -35,6 +35,12 @@ class HomeLoadedState extends HomeState {
   final bool showActivityTracking; // #277
   final bool showMealMacros;
   final double userWeightKg;
+  // #150: recommended kcal target for each meal section, derived from the
+  // daily goal and the share configured under Settings → Calculations.
+  final double breakfastKcalTarget;
+  final double lunchKcalTarget;
+  final double dinnerKcalTarget;
+  final double snackKcalTarget;
 
   const HomeLoadedState({
     required this.showDisclaimerDialog,
@@ -55,6 +61,10 @@ class HomeLoadedState extends HomeState {
     required this.snackIntakeList,
     required this.usesImperialUnits,
     required this.userWeightKg,
+    required this.breakfastKcalTarget,
+    required this.lunchKcalTarget,
+    required this.dinnerKcalTarget,
+    required this.snackKcalTarget,
     this.showActivityTracking = true,
     this.showMealMacros = true,
   });

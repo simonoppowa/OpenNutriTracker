@@ -1408,6 +1408,76 @@ class S {
     );
   }
 
+  /// `Per-meal kcal share`
+  String get settingsPerMealKcalShareLabel {
+    return Intl.message(
+      'Per-meal kcal share',
+      name: 'settingsPerMealKcalShareLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Split your daily kcal goal across breakfast, lunch, dinner, and snacks. The shares must add up to 100%.`
+  String get settingsPerMealKcalShareDescription {
+    return Intl.message(
+      'Split your daily kcal goal across breakfast, lunch, dinner, and snacks. The shares must add up to 100%.',
+      name: 'settingsPerMealKcalShareDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Breakfast`
+  String get settingsPerMealKcalShareBreakfast {
+    return Intl.message(
+      'Breakfast',
+      name: 'settingsPerMealKcalShareBreakfast',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Lunch`
+  String get settingsPerMealKcalShareLunch {
+    return Intl.message(
+      'Lunch',
+      name: 'settingsPerMealKcalShareLunch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Dinner`
+  String get settingsPerMealKcalShareDinner {
+    return Intl.message(
+      'Dinner',
+      name: 'settingsPerMealKcalShareDinner',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Snack`
+  String get settingsPerMealKcalShareSnack {
+    return Intl.message(
+      'Snack',
+      name: 'settingsPerMealKcalShareSnack',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{consumed} / {target} kcal`
+  String diaryMealKcalConsumedOfTarget(String consumed, String target) {
+    return Intl.message(
+      '$consumed / $target kcal',
+      name: 'diaryMealKcalConsumedOfTarget',
+      desc: '',
+      args: [consumed, target],
+    );
+  }
+
   /// `Distance`
   String get settingsDistanceLabel {
     return Intl.message(

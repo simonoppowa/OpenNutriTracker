@@ -21,6 +21,13 @@ class CalendarDayLoaded extends CalendarDayState {
   final List<IntakeEntity> lunchIntakeList;
   final List<IntakeEntity> dinnerIntakeList;
   final List<IntakeEntity> snackIntakeList;
+  // #150: per-meal recommended kcal targets for this calendar day.
+  // 0 means no daily goal exists for this day, in which case the diary
+  // view simply omits the target portion of the section header.
+  final double breakfastKcalTarget;
+  final double lunchKcalTarget;
+  final double dinnerKcalTarget;
+  final double snackKcalTarget;
 
   const CalendarDayLoaded(
     this.trackedDayEntity,
@@ -29,8 +36,18 @@ class CalendarDayLoaded extends CalendarDayState {
     this.lunchIntakeList,
     this.dinnerIntakeList,
     this.snackIntakeList,
+    this.breakfastKcalTarget,
+    this.lunchKcalTarget,
+    this.dinnerKcalTarget,
+    this.snackKcalTarget,
   );
 
   @override
-  List<Object?> get props => [trackedDayEntity];
+  List<Object?> get props => [
+        trackedDayEntity,
+        breakfastKcalTarget,
+        lunchKcalTarget,
+        dinnerKcalTarget,
+        snackKcalTarget,
+      ];
 }

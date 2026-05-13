@@ -42,6 +42,10 @@ class ConfigDBO extends HiveObject {
   bool? showMicronutrients; // #237: null means default (false)
   @HiveField(16)
   bool? usesKilojoules; // #177: null means default (false → kcal)
+  // #150: per-meal kcal share, percent values keyed by meal type
+  // ("breakfast" / "lunch" / "dinner" / "snack"). Null means use defaults.
+  @HiveField(17)
+  Map<String, int>? mealKcalSharesPct;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -58,6 +62,7 @@ class ConfigDBO extends HiveObject {
     this.selectedLocale,
     this.showMicronutrients,
     this.usesKilojoules,
+    this.mealKcalSharesPct,
   });
 
   factory ConfigDBO.empty() =>

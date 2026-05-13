@@ -628,6 +628,23 @@
   "settingsShowActivityTracking": "显示活动追踪",
   "settingsShowMealMacros": "显示餐食宏量",
   "settingsShowMicronutrientsLabel": "显示微量营养素",
+  "settingsPerMealKcalShareLabel": "每餐千卡占比",
+  "settingsPerMealKcalShareDescription": "将每日千卡目标分配到早餐、午餐、晚餐和零食。各占比之和必须为 100%。",
+  "settingsPerMealKcalShareBreakfast": "早餐",
+  "settingsPerMealKcalShareLunch": "午餐",
+  "settingsPerMealKcalShareDinner": "晚餐",
+  "settingsPerMealKcalShareSnack": "零食",
+  "diaryMealKcalConsumedOfTarget": "{consumed} / {target} 千卡",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "settingsSourceCodeLabel": "源代码",
   "settingsSystemLabel": "系统",
   "settingsThemeDarkLabel": "深色",
