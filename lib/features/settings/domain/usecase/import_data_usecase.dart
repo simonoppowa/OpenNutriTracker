@@ -7,27 +7,32 @@ import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 
 class ImportDataUsecase {
   final UserActivityRepository _userActivityRepository;
   final IntakeRepository _intakeRepository;
   final TrackedDayRepository _trackedDayRepository;
   final RecipeRepository _recipeRepository;
+  final WeightLogRepository _weightLogRepository;
 
   ImportDataUsecase(
     this._userActivityRepository,
     this._intakeRepository,
     this._trackedDayRepository,
     this._recipeRepository,
+    this._weightLogRepository,
   );
 
   /// Imports user activity, intake, tracked day, and (optionally) recipe
-  /// data from a zip file containing JSON files. Recipe file is treated as
-  /// optional so zips exported by older versions still import.
+  /// or weight log data from a zip file containing JSON files. Recipe and
+  /// weight log files are treated as optional so zips exported by older
+  /// versions still import.
   ///
   /// Returns true if import was successful, false otherwise.
   Future<bool> importData(
@@ -35,6 +40,7 @@ class ImportDataUsecase {
     String userIntakeJsonFileName,
     String trackedDayJsonFileName,
     String recipeJsonFileName,
+    String weightLogJsonFileName,
   ) async {
     // Allow user to pick a zip file
     final result = await FilePicker.pickFiles(
@@ -110,6 +116,18 @@ class ImportDataUsecase {
       final recipeDBOs =
           recipeList.map((json) => RecipeDBO.fromJson(json)).toList();
       await _recipeRepository.addAllRecipeDBOs(recipeDBOs);
+    }
+
+    // Extract and process weight log data — optional so older zips still import.
+    final weightLogFile = archive.findFile(weightLogJsonFileName);
+    if (weightLogFile != null) {
+      final weightLogJsonString =
+          utf8.decode(weightLogFile.content as List<int>);
+      final weightLogList = (jsonDecode(weightLogJsonString) as List)
+          .cast<Map<String, dynamic>>();
+      final weightLogDBOs =
+          weightLogList.map((json) => WeightLogDBO.fromJson(json)).toList();
+      await _weightLogRepository.addAllEntries(weightLogDBOs);
     }
 
     return true;

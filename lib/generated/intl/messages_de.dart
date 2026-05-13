@@ -1015,5 +1015,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Gewicht"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("Zink"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("Gewichtsverlauf"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("Eintrag hinzufügen"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "Noch keine Gewichtseinträge. Füge deinen ersten Eintrag hinzu, um einen Verlauf zu sehen."),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("Datum"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Gewicht"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("Notiz (optional)"),
       };
 }

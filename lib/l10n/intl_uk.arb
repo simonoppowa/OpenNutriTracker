@@ -654,5 +654,11 @@
   "weeklyWeightGoalNoneLabel": "Не встановлено",
   "weightLabel": "Вага",
   "yearsLabel": "{age} років",
-  "zincLabel": "цинк"
+  "zincLabel": "цинк",
+  "profileWeightHistoryTitle": "Історія ваги",
+  "weightHistoryAddEntry": "Додати запис",
+  "weightHistoryNoEntries": "Поки немає записів ваги. Додай перший, щоб бачити динаміку.",
+  "weightHistoryDateLabel": "Дата",
+  "weightHistoryWeightLabel": "Вага",
+  "weightHistoryNoteLabel": "Нотатка (необов'язково)"
 }

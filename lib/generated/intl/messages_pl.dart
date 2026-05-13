@@ -1001,5 +1001,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Waga"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("cynk"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("Historia wagi"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("Dodaj wpis"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "Brak zapisów wagi. Dodaj pierwszy, aby śledzić zmiany."),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("Data"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Waga"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("Notatka (opcjonalna)"),
       };
 }

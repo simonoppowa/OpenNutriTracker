@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart
 import 'package:opennutritracker/core/presentation/widgets/calories_profile_info_dialog.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/bmi_overview.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_gender_dialog.dart';
@@ -139,6 +140,19 @@ class _ProfilePageState extends State<ProfilePage> {
           onTap: () {
             _showSetWeightDialog(context, user, usesImperialUnits);
           },
+        ),
+        ListTile(
+          title: Text(
+            S.of(context).profileWeightHistoryTitle,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          leading: const SizedBox(
+            height: double.infinity,
+            child: Icon(Icons.show_chart_outlined),
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context)
+              .pushNamed(NavigationOptions.weightHistoryRoute),
         ),
         ListTile(
           title: Text(

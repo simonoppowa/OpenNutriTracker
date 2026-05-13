@@ -654,5 +654,11 @@
   "weeklyWeightGoalNoneLabel": "Nie ustawiono",
   "weightLabel": "Waga",
   "yearsLabel": "{age} lat",
-  "zincLabel": "cynk"
+  "zincLabel": "cynk",
+  "profileWeightHistoryTitle": "Historia wagi",
+  "weightHistoryAddEntry": "Dodaj wpis",
+  "weightHistoryNoEntries": "Brak zapisów wagi. Dodaj pierwszy, aby śledzić zmiany.",
+  "weightHistoryDateLabel": "Data",
+  "weightHistoryWeightLabel": "Waga",
+  "weightHistoryNoteLabel": "Notatka (opcjonalna)"
 }

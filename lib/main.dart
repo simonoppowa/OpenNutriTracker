@@ -24,6 +24,7 @@ import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/onboarding/onboarding_screen.dart';
+import 'package:opennutritracker/features/profile/presentation/weight_history_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/import_recipe_scanner_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/recipe_builder_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/recipe_detail_screen.dart';
@@ -175,6 +176,8 @@ class OpenNutriTrackerApp extends StatelessWidget {
             const RecipeDetailScreen(),
         NavigationOptions.importRecipeScannerRoute: (context) =>
             const ImportRecipeScannerScreen(),
+        NavigationOptions.weightHistoryRoute: (context) =>
+            const WeightHistoryScreen(),
       },
     );
   }

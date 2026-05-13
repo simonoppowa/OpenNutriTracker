@@ -655,5 +655,11 @@
   "weeklyWeightGoalNoneLabel": "未设置",
   "weightLabel": "体重",
   "yearsLabel": "{age} 岁",
-  "zincLabel": "锌"
+  "zincLabel": "锌",
+  "profileWeightHistoryTitle": "体重历史",
+  "weightHistoryAddEntry": "添加记录",
+  "weightHistoryNoEntries": "暂无体重记录。添加第一条以开始记录变化趋势。",
+  "weightHistoryDateLabel": "日期",
+  "weightHistoryWeightLabel": "体重",
+  "weightHistoryNoteLabel": "备注（可选）"
 }

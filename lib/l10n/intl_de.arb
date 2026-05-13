@@ -685,5 +685,11 @@
   "weeklyWeightGoalNoneLabel": "Nicht festgelegt",
   "weightLabel": "Gewicht",
   "yearsLabel": "{age} Jahre",
-  "zincLabel": "Zink"
+  "zincLabel": "Zink",
+  "profileWeightHistoryTitle": "Gewichtsverlauf",
+  "weightHistoryAddEntry": "Eintrag hinzufügen",
+  "weightHistoryNoEntries": "Noch keine Gewichtseinträge. Füge deinen ersten Eintrag hinzu, um einen Verlauf zu sehen.",
+  "weightHistoryDateLabel": "Datum",
+  "weightHistoryWeightLabel": "Gewicht",
+  "weightHistoryNoteLabel": "Notiz (optional)"
 }

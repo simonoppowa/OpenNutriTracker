@@ -855,5 +855,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("体重"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("锌"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("体重历史"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("添加记录"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "暂无体重记录。添加第一条以开始记录变化趋势。"),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("日期"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("体重"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("备注（可选）"),
       };
 }

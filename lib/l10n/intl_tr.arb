@@ -685,5 +685,11 @@
   "weeklyWeightGoalNoneLabel": "Ayarlanmadı",
   "weightLabel": "Kilo",
   "yearsLabel": "{age} yıl",
-  "zincLabel": "çinko"
+  "zincLabel": "çinko",
+  "profileWeightHistoryTitle": "Kilo geçmişi",
+  "weightHistoryAddEntry": "Kayıt ekle",
+  "weightHistoryNoEntries": "Henüz kilo kaydı yok. Eğilimi izlemek için ilk kaydını ekle.",
+  "weightHistoryDateLabel": "Tarih",
+  "weightHistoryWeightLabel": "Kilo",
+  "weightHistoryNoteLabel": "Not (isteğe bağlı)"
 }

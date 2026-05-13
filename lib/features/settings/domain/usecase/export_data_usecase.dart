@@ -7,28 +7,32 @@ import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 
 class ExportDataUsecase {
   final UserActivityRepository _userActivityRepository;
   final IntakeRepository _intakeRepository;
   final TrackedDayRepository _trackedDayRepository;
   final RecipeRepository _recipeRepository;
+  final WeightLogRepository _weightLogRepository;
 
   ExportDataUsecase(
     this._userActivityRepository,
     this._intakeRepository,
     this._trackedDayRepository,
     this._recipeRepository,
+    this._weightLogRepository,
   );
 
-  /// Exports user activity, intake, tracked day, and recipe data to a zip
-  /// of json files at a user specified location.
+  /// Exports user activity, intake, tracked day, recipe, and weight log
+  /// data to a zip of json files at a user specified location.
   Future<bool> exportData(
     String exportZipFileName,
     String userActivityJsonFileName,
     String userIntakeJsonFileName,
     String trackedDayJsonFileName,
     String recipeJsonFileName,
+    String weightLogJsonFileName,
   ) async {
     // Export user activity data to Json File Bytes
     final fullUserActivity =
@@ -59,6 +63,13 @@ class ExportDataUsecase {
     );
     final recipeJsonBytes = utf8.encode(fullRecipesJson);
 
+    // Export weight log data to Json File Bytes
+    final fullWeightLog = await _weightLogRepository.getAllEntriesDBO();
+    final fullWeightLogJson = jsonEncode(
+      fullWeightLog.map((entry) => entry.toJson()).toList(),
+    );
+    final weightLogJsonBytes = utf8.encode(fullWeightLogJson);
+
     // Create a zip file with the exported data
     final archive = Archive();
     archive.addFile(
@@ -87,6 +98,13 @@ class ExportDataUsecase {
         recipeJsonFileName,
         recipeJsonBytes.length,
         recipeJsonBytes,
+      ),
+    );
+    archive.addFile(
+      ArchiveFile(
+        weightLogJsonFileName,
+        weightLogJsonBytes.length,
+        weightLogJsonBytes,
       ),
     );
 

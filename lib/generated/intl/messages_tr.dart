@@ -980,5 +980,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Kilo"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("çinko"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("Kilo geçmişi"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("Kayıt ekle"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "Henüz kilo kaydı yok. Eğilimi izlemek için ilk kaydını ekle."),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("Tarih"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Kilo"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("Not (isteğe bağlı)"),
       };
 }

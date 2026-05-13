@@ -665,5 +665,11 @@
   "paCrossCountrySkiing": "cross-country skiing",
   "paCrossCountrySkiingDesc": "cross-country, general",
   "paSnowshoeing": "snowshoeing",
-  "settingsLanguageLabel": "Language"
+  "settingsLanguageLabel": "Language",
+  "profileWeightHistoryTitle": "Weight history",
+  "weightHistoryAddEntry": "Add entry",
+  "weightHistoryNoEntries": "No weight readings yet. Add your first one to start tracking a trend.",
+  "weightHistoryDateLabel": "Date",
+  "weightHistoryWeightLabel": "Weight",
+  "weightHistoryNoteLabel": "Note (optional)"
 }

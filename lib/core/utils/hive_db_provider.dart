@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/hive_registrar.g.dart';
 
 class HiveDBProvider extends ChangeNotifier {
@@ -24,6 +25,7 @@ class HiveDBProvider extends ChangeNotifier {
   // last "touch" (creation or user re-select). Used by the TTL sweep so
   // unused cache entries age out after 90 days.
   static const cachedOffMealTimestampsBoxName = 'CachedOffMealTimestampsBox';
+  static const weightLogBoxName = 'WeightLogBox';
 
   late Box<ConfigDBO> configBox;
   late Box<IntakeDBO> intakeBox;
@@ -34,6 +36,7 @@ class HiveDBProvider extends ChangeNotifier {
   late Box<RecipeDBO> recipeBox;
   late Box<MealDBO> cachedOffMealBox;
   late Box<int> cachedOffMealTimestampsBox;
+  late Box<WeightLogDBO> weightLogBox;
 
   Future<void> initHiveDB(Uint8List encryptionKey) async {
     final encryptionCypher = HiveAesCipher(encryptionKey);
@@ -80,6 +83,10 @@ class HiveDBProvider extends ChangeNotifier {
     );
     cachedOffMealTimestampsBox = await Hive.openBox(
       cachedOffMealTimestampsBoxName,
+      encryptionCipher: encryptionCypher,
+    );
+    weightLogBox = await Hive.openBox(
+      weightLogBoxName,
       encryptionCipher: encryptionCypher,
     );
   }

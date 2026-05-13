@@ -1003,5 +1003,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Вага"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("цинк"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("Історія ваги"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("Додати запис"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "Поки немає записів ваги. Додай перший, щоб бачити динаміку."),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("Дата"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Вага"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("Нотатка (необов\'язково)"),
       };
 }

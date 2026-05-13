@@ -654,5 +654,11 @@
   "weeklyWeightGoalNoneLabel": "Nenastaveno",
   "weightLabel": "Hmotnost",
   "yearsLabel": "{age} let",
-  "zincLabel": "zinek"
+  "zincLabel": "zinek",
+  "profileWeightHistoryTitle": "Historie hmotnosti",
+  "weightHistoryAddEntry": "Přidat záznam",
+  "weightHistoryNoEntries": "Zatím žádné záznamy hmotnosti. Přidejte první, abyste mohli sledovat vývoj.",
+  "weightHistoryDateLabel": "Datum",
+  "weightHistoryWeightLabel": "Hmotnost",
+  "weightHistoryNoteLabel": "Poznámka (volitelná)"
 }

@@ -5762,6 +5762,66 @@ class S {
       args: [],
     );
   }
+
+  /// `Weight history`
+  String get profileWeightHistoryTitle {
+    return Intl.message(
+      'Weight history',
+      name: 'profileWeightHistoryTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add entry`
+  String get weightHistoryAddEntry {
+    return Intl.message(
+      'Add entry',
+      name: 'weightHistoryAddEntry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No weight readings yet. Add your first one to start tracking a trend.`
+  String get weightHistoryNoEntries {
+    return Intl.message(
+      'No weight readings yet. Add your first one to start tracking a trend.',
+      name: 'weightHistoryNoEntries',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Date`
+  String get weightHistoryDateLabel {
+    return Intl.message(
+      'Date',
+      name: 'weightHistoryDateLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight`
+  String get weightHistoryWeightLabel {
+    return Intl.message(
+      'Weight',
+      name: 'weightHistoryWeightLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Note (optional)`
+  String get weightHistoryNoteLabel {
+    return Intl.message(
+      'Note (optional)',
+      name: 'weightHistoryNoteLabel',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
