@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -141,6 +142,11 @@ class DayInfoWidget extends StatelessWidget {
                     ),
                   )
                 : const SizedBox(),
+            // #160: Daily micronutrient panel — aggregates fibre, sodium,
+            // saturated fat, sugar, calcium, iron, and potassium across the
+            // day's intake list. No-op when there's nothing logged yet.
+            if (_allIntakes.isNotEmpty)
+              DailyNutrientPanel(intakes: _allIntakes),
             const SizedBox(height: 8.0),
             ActivityVerticalList(
               day: selectedDay,

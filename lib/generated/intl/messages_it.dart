@@ -199,6 +199,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Stai modificando una data futura"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diario"),
+        "diaryNutrientPanelTitle":
+            MessageLookupByLibrary.simpleMessage("Nutrienti di oggi"),
         "dinnerExample":
             MessageLookupByLibrary.simpleMessage("es. zuppa, pollo, vino ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Cena"),

@@ -198,6 +198,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Ви редагуєте майбутню дату"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Щоденник"),
+        "diaryNutrientPanelTitle": MessageLookupByLibrary.simpleMessage(
+            "Поживні речовини за сьогодні"),
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
             "наприклад, суп, курка, вино ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Вечеря"),

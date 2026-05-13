@@ -186,6 +186,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryFutureDateWarning":
             MessageLookupByLibrary.simpleMessage("您正在编辑未来的日期"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("日记"),
+        "diaryNutrientPanelTitle": MessageLookupByLibrary.simpleMessage("今日营养素"),
         "dinnerExample": MessageLookupByLibrary.simpleMessage("例如：汤、鸡肉、葡萄酒..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("晚餐"),
         "discardChangesConfirmLabel":

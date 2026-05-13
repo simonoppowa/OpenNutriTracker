@@ -13,6 +13,7 @@
   "homeLabel": "Home",
   "diaryLabel": "Diary",
   "diaryFutureDateWarning": "You are editing a future date",
+  "diaryNutrientPanelTitle": "Today's nutrients",
   "recipesLabel": "Recipes",
   "recipesEmptyLabel": "No recipes yet",
   "recipesEmptyHint": "Build a meal from multiple ingredients and reuse it like any other food.",

@@ -2023,6 +2023,16 @@ class S {
     );
   }
 
+  /// `Today's nutrients`
+  String get diaryNutrientPanelTitle {
+    return Intl.message(
+      "Today's nutrients",
+      name: 'diaryNutrientPanelTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Delete Item?`
   String get deleteTimeDialogTitle {
     return Intl.message(
