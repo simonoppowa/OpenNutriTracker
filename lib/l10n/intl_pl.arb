@@ -1,4 +1,87 @@
 {
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "activityExample": "np. bieganie, rower, joga ...",
   "activityLabel": "Aktywność",
   "addItemLabel": "Dodaj nową pozycję:",
@@ -49,16 +132,6 @@
   "clearOffCacheConfirmTitle": "Wyczyścić pamięć podręczną?",
   "clearOffCacheLabel": "Wyczyść pamięć podręczną",
   "clearOffCacheSubtitle": "{count} pozycji · {size}",
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
   "cmLabel": "cm",
   "codeCopiedLabel": "Kod skopiowany",
   "copyCodeLabel": "Kopiuj kod",
@@ -73,24 +146,7 @@
   "csvImportContributeOffPrefix": "Masz kod kreskowy? Dodaj produkt do Open Food Facts:",
   "csvImportErrorLabel": "Nie można odczytać pliku CSV. Sprawdź format i spróbuj ponownie.",
   "csvImportPartialLabel": "Zaimportowano {imported} posiłk(ów); pominięto {skipped} wiersz(y) z powodu nieprawidłowych danych.",
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
   "csvImportSuccessLabel": "Zaimportowano {count} posiłk(ów) z pliku CSV.",
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "customMealsDeleteConfirmContent": "Wszystkie wpisy w dzienniku używające tego posiłku zostaną również usunięte.",
   "customMealsDeleteConfirmTitle": "Usunąć własny posiłek?",
   "customMealsEmptyLabel": "Brak zapisanych własnych posiłków.",
@@ -98,13 +154,6 @@
   "dataCollectionLabel": "Wspieraj rozwój, dostarczając anonimowe dane użytkowania",
   "deleteAllLabel": "Usuń wszystko",
   "deleteSelectedRecipesConfirmTitle": "Usunąć {count} przepis(ów)?",
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "deleteTimeDialogContent": "Czy chcesz usunąć wybraną pozycję?",
   "deleteTimeDialogPluralContent": "Czy chcesz usunąć wszystkie pozycje tego posiłku?",
   "deleteTimeDialogPluralTitle": "Usunąć pozycje?",
@@ -122,7 +171,9 @@
   "discardChangesTitle": "Odrzucić zmiany?",
   "disclaimerText": "OpenNutriTracker nie jest aplikacją medyczną. Wszystkie dostarczone dane nie są zweryfikowane i należy ich używać z ostrożnością. Prosimy o prowadzenie zdrowego stylu życia i skonsultowanie się z profesjonalistą w przypadku jakichkolwiek problemów. Używanie podczas choroby, ciąży lub karmienia piersią nie jest zalecane. Recenzowane źródła dla każdego obliczenia znajdziesz po dotknięciu ikony informacji na ekranie głównym lub w Profilu.",
   "downloadSampleCsvAction": "Przykładowe posiłki (csv)",
+  "downloadSampleJsonAction": "Przykładowe posiłki (json)",
   "downloadSampleRecipesCsvAction": "Przykładowe przepisy (csv)",
+  "downloadSampleRecipesJsonAction": "Przykładowe przepisy (json)",
   "duplicateMealDialogContent": "Ten produkt został już dziś dodany do tego posiłku. Dodać ponownie?",
   "duplicateRecipeLabel": "Duplikuj",
   "duplicateRecipeNameSuffix": "(kopia)",
@@ -161,57 +212,24 @@
   "importAction": "Importuj",
   "importActivityConfirmContent": "Te aktywności zostaną dodane do dzisiaj.",
   "importActivityConfirmTitle": "Zaimportować {count} aktywności?",
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importActivityLabel": "Importuj udostępniony trening",
   "importActivitySuccessLabel": "Trening zaimportowany",
-  "importCustomFoodDataDescription": "Importuj własne posiłki z pliku CSV. Pobierz przykład, aby zobaczyć oczekiwany format kolumn i wymagane pola.",
+  "importCustomFoodDataDescription": "Zaimportuj własne posiłki z pliku CSV lub wklejając JSON. Pobierz przykład, aby zobaczyć oczekiwany kształt i wymagane pola.",
   "importCustomFoodDataLabel": "Importuj własne dane żywności",
   "importMealConfirmContent": "Te elementy zostaną dodane do: {mealType}.",
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
   "importMealConfirmTitle": "Zaimportować {count} elementów?",
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importMealErrorLabel": "Nieprawidłowy kod QR",
   "importMealLabel": "Importuj udostępniony posiłek",
   "importMealSuccessLabel": "Posiłek zaimportowany",
   "importMealsCsvAction": "Importuj posiłki (csv)",
+  "importMealsJsonAction": "Importuj posiłki (json)",
   "importOffFetchFailedLabel": "Nie udało się pobrać {count} pozycji z OpenFoodFacts.",
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importRecipeConfirmContent": "Zaimportować ten przepis z {count} składnik(ami)?",
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importRecipeErrorLabel": "Nie udało się odczytać kodu przepisu",
   "importRecipeLabel": "Importuj przepis",
   "importRecipeSuccessLabel": "Przepis zaimportowany",
   "importRecipesCsvAction": "Importuj przepisy (csv)",
+  "importRecipesJsonAction": "Importuj przepisy (json)",
   "infoAddedActivityLabel": "Dodano nową aktywność",
   "infoAddedIntakeLabel": "Dodano nowe spożycie",
   "ironLabel": "żelazo",
@@ -236,6 +254,10 @@
   "mealEnergyLabel": "Energia",
   "mealNameLabel": "Nazwa posiłku",
   "mealNameValidationError": "Nazwa posiłku musi zawierać co najmniej jedną literę",
+  "inconsistentNutritionWarningTitle": "Liczby do siebie nie pasują",
+  "inconsistentNutritionWarningBody": "Te wartości nie do końca się zgadzają — wpisane kalorie nie odpowiadają energii z węglowodanów, tłuszczu i białka. Zapisać mimo to czy sprawdzić jeszcze raz?",
+  "inconsistentNutritionWarningSaveAnyway": "Zapisz mimo to",
+  "inconsistentNutritionWarningEdit": "Sprawdź jeszcze raz",
   "mealNutrientsPerQtyLabel": "Na {qty} {unit}",
   "mealNutrientsTotalLabel": "Łączna ilość",
   "mealProteinLabel": "białko na 100 g/ml",
@@ -253,6 +275,9 @@
   "noResultsFound": "Nie znaleziono wyników",
   "notAvailableLabel": "N/D",
   "nothingAddedLabel": "Nic nie dodano",
+  "notificationsDailyReminderBody": "Nie zapomnij dziś zapisać swoich posiłków!",
+  "notificationsDailyReminderTitle": "OpenNutriTracker",
+  "notificationsPermissionDeniedSnack": "Odmówiono dostępu do powiadomień.",
   "nutritionInfoLabel": "Informacje odżywcze",
   "nutritionalStatusNormalWeight": "Prawidłowa waga",
   "nutritionalStatusObeseClassI": "Otyłość I stopnia",
@@ -537,13 +562,6 @@
   "recipeDescriptionLabel": "Opis (opcjonalnie)",
   "recipeIngredientAmountLabel": "Ilość",
   "recipeIngredientCountLabel": "{count} składnik(ów)",
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "recipeIngredientUnitLabel": "Jednostka",
   "recipeIngredientsLabel": "Składniki",
   "recipeInvalidTotalWeightLabel": "Waga całkowita musi być większa od zera",
@@ -555,6 +573,8 @@
   "recipeNutritionPer100Label": "Na 100 g",
   "recipeNutritionPreviewLabel": "Wartości odżywcze (suma)",
   "recipeSaveErrorLabel": "Nie udało się zapisać przepisu.",
+  "recipeSaveForLaterDescription": "Włącz, aby zachować ten posiłek na liście zapisanych na później. Pozostaw wyłączone dla jednorazowego posiłku, którego już nie zjesz.",
+  "recipeSaveForLaterLabel": "Zapisz na później",
   "recipeSaveLabel": "Zapisz przepis",
   "recipeServingsCountHelper": "Pozwala rejestrować ten przepis na porcje zamiast w gramach.",
   "recipeServingsCountLabel": "Porcje (opcjonalnie)",
@@ -581,13 +601,6 @@
   "selectPalCategoryLabel": "Wybierz poziom aktywności",
   "selectWeightDialogLabel": "Wybierz wagę",
   "selectionCountLabel": "Wybrano: {count}",
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "sendAnonymousUserData": "Wyślij anonimowe dane użytkowania",
   "servingLabel": "Porcja",
   "servingSizeLabelImperial": "Rozmiar porcji (oz/fl oz)",
@@ -597,20 +610,6 @@
   "settingsCalculationsLabel": "Obliczenia",
   "settingsCustomMealsLabel": "Własne posiłki",
   "settingsDisclaimerLabel": "Zastrzeżenie",
-  "settingsSourcesLabel": "Źródła i odniesienia",
-  "sourcesIconTooltip": "Zobacz źródła",
-  "sourcesScreenIntro": "OpenNutriTracker stosuje dla każdego obliczenia uznane, recenzowane metody. Poniższe odnośniki prowadzą do oryginalnych źródeł, dzięki czemu możesz samodzielnie zweryfikować dowolną wartość.",
-  "sourcesEnergyTitle": "Zapotrzebowanie energetyczne (TDEE, BMR i poziom aktywności)",
-  "sourcesEnergyDescription": "Dzienne cele kaloryczne, podstawowa przemiana materii oraz współczynniki aktywności fizycznej opierają się na równaniach Institute of Medicine. Źródło: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, rozdział 5 i tabela 5-5.",
-  "sourcesBmiTitle": "Wskaźnik masy ciała (BMI)",
-  "sourcesBmiDescription": "BMI oblicza się jako masę ciała (kg) podzieloną przez kwadrat wzrostu (m²). Kategorie zdrowotne (niedowaga, waga prawidłowa, nadwaga, otyłość I–III stopnia) są zgodne z klasyfikacją BMI dla osób dorosłych Światowej Organizacji Zdrowia.",
-  "sourcesMacrosTitle": "Rozkład makroskładników",
-  "sourcesMacrosDescription": "Domyślny podział 60% węglowodanów, 25% tłuszczu i 15% białka mieści się w zakresach spożycia rekomendowanych przez WHO. Możesz go zmienić w Ustawienia → Obliczenia. Źródło: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
-  "sourcesActivityTitle": "Kalorie z aktywności (wartości MET)",
-  "sourcesActivityDescription": "Kalorie spalone podczas aktywności są szacowane jako MET × masa ciała (kg) × czas trwania (godziny), na podstawie wartości z Adult Compendium of Physical Activities.",
-  "sourcesNonBinaryTitle": "Obliczanie kalorii dla osób niebinarnych",
-  "sourcesNonBinaryDescription": "Badania nad wydatkiem energetycznym historycznie korzystały wyłącznie z binarnych kategorii płci, dlatego nie istnieje jeden zwalidowany wzór TDEE dla osób niebinarnych. OpenNutriTracker oferuje więc w Ustawienia → Obliczenia wybór między uśrednioną referencją, referencją typową dla estrogenu oraz referencją typową dla testosteronu. Jeśli dokładna wartość jest dla ciebie naprawdę istotna, skonsultuj się z lekarzem znającym twój profil hormonalny.",
-  "sourcesOpenSourceLabel": "Otwórz źródło",
   "settingsDistanceLabel": "Odległość",
   "settingsImperialLabel": "Imperialny (lbs, ft, oz)",
   "settingsLabel": "Ustawienia",
@@ -620,15 +619,13 @@
   "settingsMetricLabel": "Metryczny (kg, cm, ml)",
   "settingsNotificationsLabel": "Codzienne przypomnienie",
   "settingsNotificationsTimeLabel": "Czas przypomnienia: {time}",
-  "notificationsPermissionDeniedSnack": "Odmówiono dostępu do powiadomień.",
-  "notificationsDailyReminderTitle": "OpenNutriTracker",
-  "notificationsDailyReminderBody": "Nie zapomnij dziś zapisać swoich posiłków!",
   "settingsPrivacySettings": "Ustawienia prywatności",
   "settingsReportErrorLabel": "Zgłoś błąd",
   "settingsShowActivityTracking": "Pokaż śledzenie aktywności",
   "settingsShowMealMacros": "Pokaż makro posiłku",
   "settingsShowMicronutrientsLabel": "Pokaż mikroskładniki",
   "settingsSourceCodeLabel": "Kod źródłowy",
+  "settingsSourcesLabel": "Źródła i odniesienia",
   "settingsSystemLabel": "System",
   "settingsThemeDarkLabel": "Ciemny",
   "settingsThemeLabel": "Motyw",
@@ -646,6 +643,19 @@
   "snackExample": "np. jabłko, lody, czekolada ...",
   "snackLabel": "Przekąska",
   "sodiumLabel": "sód",
+  "sourcesActivityDescription": "Kalorie spalone podczas aktywności są szacowane jako MET × masa ciała (kg) × czas trwania (godziny), na podstawie wartości z Adult Compendium of Physical Activities.",
+  "sourcesActivityTitle": "Kalorie z aktywności (wartości MET)",
+  "sourcesBmiDescription": "BMI oblicza się jako masę ciała (kg) podzieloną przez kwadrat wzrostu (m²). Kategorie zdrowotne (niedowaga, waga prawidłowa, nadwaga, otyłość I–III stopnia) są zgodne z klasyfikacją BMI dla osób dorosłych Światowej Organizacji Zdrowia.",
+  "sourcesBmiTitle": "Wskaźnik masy ciała (BMI)",
+  "sourcesEnergyDescription": "Dzienne cele kaloryczne, podstawowa przemiana materii oraz współczynniki aktywności fizycznej opierają się na równaniach Institute of Medicine. Źródło: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, rozdział 5 i tabela 5-5.",
+  "sourcesEnergyTitle": "Zapotrzebowanie energetyczne (TDEE, BMR i poziom aktywności)",
+  "sourcesIconTooltip": "Zobacz źródła",
+  "sourcesMacrosDescription": "Domyślny podział 60% węglowodanów, 25% tłuszczu i 15% białka mieści się w zakresach spożycia rekomendowanych przez WHO. Możesz go zmienić w Ustawienia → Obliczenia. Źródło: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
+  "sourcesMacrosTitle": "Rozkład makroskładników",
+  "sourcesNonBinaryDescription": "Badania nad wydatkiem energetycznym historycznie korzystały wyłącznie z binarnych kategorii płci, dlatego nie istnieje jeden zwalidowany wzór TDEE dla osób niebinarnych. OpenNutriTracker oferuje więc w Ustawienia → Obliczenia wybór między uśrednioną referencją, referencją typową dla estrogenu oraz referencją typową dla testosteronu. Jeśli dokładna wartość jest dla ciebie naprawdę istotna, skonsultuj się z lekarzem znającym twój profil hormonalny.",
+  "sourcesNonBinaryTitle": "Obliczanie kalorii dla osób niebinarnych",
+  "sourcesOpenSourceLabel": "Otwórz źródło",
+  "sourcesScreenIntro": "OpenNutriTracker stosuje dla każdego obliczenia uznane, recenzowane metody. Poniższe odnośniki prowadzą do oryginalnych źródeł, dzięki czemu możesz samodzielnie zweryfikować dowolną wartość.",
   "sugarLabel": "cukier",
   "suppliedLabel": "dostarczone",
   "transFatLabel": "tłuszcze trans",

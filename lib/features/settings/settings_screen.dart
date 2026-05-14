@@ -165,10 +165,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 const Divider(),
                 // Data
-                ListTile(
-                  leading: const Icon(Icons.restaurant_menu_outlined),
-                  title: Text(S.of(context).importCustomFoodDataLabel),
-                  onTap: () => _showImportCustomFoodDataDialog(context),
+                Semantics(
+                  identifier: 'settings-import-custom-food',
+                  child: ListTile(
+                    leading: const Icon(Icons.restaurant_menu_outlined),
+                    title: Text(S.of(context).importCustomFoodDataLabel),
+                    onTap: () => _showImportCustomFoodDataDialog(context),
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.import_export),
@@ -528,6 +531,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     'uk': 'Українська',
     'zh': '中文',
     'pl': 'Polski',
+    'sk': 'Slovenčina',
   };
 
   String? _localeDisplayName(String? code) => _supportedLocales[code];
