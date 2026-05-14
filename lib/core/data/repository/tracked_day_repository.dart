@@ -166,6 +166,38 @@ class TrackedDayRepository {
     );
   }
 
+  // #173 (+follow-up): persist user-set per-nutrient goals for the
+  // given day. Mirrors the macro-goal write path. Pass null for any
+  // nutrient you don't want to touch; the on-disk column keeps its
+  // current value in that case.
+  Future<void> updateDayNutrientGoals(
+    DateTime day, {
+    double? fibreGoal,
+    double? satFatGoal,
+    double? sugarsGoal,
+    double? sodiumGoal,
+    double? calciumGoal,
+    double? ironGoal,
+    double? potassiumGoal,
+    double? vitaminDGoal,
+    double? vitaminB12Goal,
+    double? magnesiumGoal,
+  }) async {
+    await _trackedDayDataSource.updateDayNutrientGoals(
+      day,
+      fibreGoal: fibreGoal,
+      satFatGoal: satFatGoal,
+      sugarsGoal: sugarsGoal,
+      sodiumGoal: sodiumGoal,
+      calciumGoal: calciumGoal,
+      ironGoal: ironGoal,
+      potassiumGoal: potassiumGoal,
+      vitaminDGoal: vitaminDGoal,
+      vitaminB12Goal: vitaminB12Goal,
+      magnesiumGoal: magnesiumGoal,
+    );
+  }
+
   Future<void> reconcileDayTracked(DateTime day,
       double calories, double carbs, double fat, double protein) async {
     await _trackedDayDataSource.reconcileCaloriesAndMacrosTracked(

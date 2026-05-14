@@ -16,6 +16,7 @@ import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/import_custom_food_data_dialog.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_visibility_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -109,6 +110,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _settingsBloc.setShowMicronutrients(value);
                     _settingsBloc.add(LoadSettingsEvent());
                   },
+                ),
+                // #160 follow-up: lets the user pick which nutrients show on
+                // the diary's daily nutrient panel. Lives next to the meal-
+                // detail micronutrient toggle above; both shape what the
+                // user sees from the same underlying nutrient data.
+                Semantics(
+                  identifier: 'settings-nutrient-visibility',
+                  child: ListTile(
+                    leading: const Icon(Icons.tune_outlined),
+                    title: Text(S.of(context).settingsNutrientsLabel),
+                    subtitle: Text(S.of(context).settingsNutrientsSubtitle),
+                    onTap: () => _openNutrientVisibilityScreen(context),
+                  ),
                 ),
                 const Divider(),
                 // App
@@ -346,6 +360,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => ImportCustomFoodDataDialog(),
+    );
+  }
+
+  void _openNutrientVisibilityScreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const NutrientVisibilityScreen(),
+      ),
     );
   }
 

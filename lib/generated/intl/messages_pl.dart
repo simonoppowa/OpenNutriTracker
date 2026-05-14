@@ -202,9 +202,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Skopiuj na dziś"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("USUŃ"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Sumowane są tylko składniki odżywcze zapisane na zalogowanych posiłkach. Posiłek bez wartości nie wnosi nic do danego składnika — sumy mogą być więc zaniżone."),
         "diaryFutureDateWarning":
             MessageLookupByLibrary.simpleMessage("Edytujesz przyszłą datę"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Dziennik"),
+        "diaryNutrientPanelTitle": MessageLookupByLibrary.simpleMessage(
+            "Dzisiejsze składniki odżywcze"),
         "dinnerExample":
             MessageLookupByLibrary.simpleMessage("np. zupa, kurczak, wino ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Kolacja"),
@@ -255,6 +259,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("Eksportuj"),
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "Eksportuj / Importuj dane aplikacji"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("Przepisy są zachowywane tylko przy eksporcie i imporcie JSON. Przełącz na JSON, aby uwzględnić je w kopii zapasowej."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Możesz wyeksportować dane aplikacji do pliku zip i zaimportować je później. Jest to przydatne, jeśli chcesz wykonać kopię zapasową danych lub przenieść je na inne urządzenie.\n\nAplikacja nie korzysta z żadnej usługi chmurowej do przechowywania danych."),
         "exportImportErrorLabel":
@@ -378,6 +384,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("N/D"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Nic nie dodano"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Dzień"),
+        "nutrientPanelWeekLabel":
+            MessageLookupByLibrary.simpleMessage("Tydzień"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Wszystkie składniki ukryte — włącz wybrane w Ustawienia → Składniki odżywcze."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Informacje odżywcze"),
         "nutritionalStatusNormalWeight":
@@ -927,8 +938,53 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Własne posiłki"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Zastrzeżenie"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel błonnika w gramach. Wartość referencyjna to 30 g."),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel błonnika"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "Osobiste cele dla każdego składnika odżywczego w panelu dziennym. Dziennik używa ich zamiast domyślnych wartości referencyjnych za każdym razem, gdy któryś ustawisz."),
+        "settingsNutrientGoalsLabel": MessageLookupByLibrary.simpleMessage(
+            "Cele składników odżywczych"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "Dzienny limit tłuszczów nasyconych w gramach. Wartość referencyjna to 20 g."),
+        "settingsSaturatedFatGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel tłuszczów nasyconych"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("Źródła i odniesienia"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny limit cukrów w gramach. Wartość referencyjna to 50 g."),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel cukrów"),
+        "settingsSodiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel sodu"),
+        "settingsSodiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny limit sodu w miligramach. Wartość referencyjna to 2300 mg."),
+        "settingsCalciumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel wapnia"),
+        "settingsCalciumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel wapnia w miligramach. Wartość referencyjna to 1000 mg."),
+        "settingsIronGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel żelaza"),
+        "settingsIronGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel żelaza w miligramach. Wartość domyślna zależy od płci (8 mg mężczyzna, 18 mg kobieta, 14 mg w pozostałych przypadkach)."),
+        "settingsPotassiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel potasu"),
+        "settingsPotassiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel potasu w miligramach. Wartość referencyjna to 3500 mg."),
+        "settingsMagnesiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel magnezu"),
+        "settingsMagnesiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel magnezu w miligramach. Wartość domyślna zależy od płci (400 mg mężczyzna, 310 mg kobieta, 355 mg w pozostałych przypadkach)."),
+        "settingsVitaminDGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel witaminy D"),
+        "settingsVitaminDGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel witaminy D w mikrogramach. Wartość referencyjna to 15 µg."),
+        "settingsVitaminB12GoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel witaminy B12"),
+        "settingsVitaminB12GoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel witaminy B12 w mikrogramach. Wartość referencyjna to 2,4 µg."),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("Zobacz źródła"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(
@@ -985,6 +1041,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Pokaż makro posiłku"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Pokaż mikroskładniki"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Składniki odżywcze"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Wybierz, które składniki pojawiają się w panelu dziennika"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Wybierz, które składniki są widoczne w panelu dziennym. Ukryte możesz w każdej chwili włączyć ponownie."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Kod źródłowy"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("System"),
@@ -1028,6 +1090,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Waga"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("cynk"),
+        "diarySortByCarbs":
+            MessageLookupByLibrary.simpleMessage("Węglowodany (malejąco)"),
+        "diarySortByFat":
+            MessageLookupByLibrary.simpleMessage("Tłuszcze (malejąco)"),
+        "diarySortByKcal":
+            MessageLookupByLibrary.simpleMessage("Kalorie (malejąco)"),
+        "diarySortByLabel":
+            MessageLookupByLibrary.simpleMessage("Sortuj według"),
+        "diarySortByProtein":
+            MessageLookupByLibrary.simpleMessage("Białko (malejąco)"),
+        "diarySortByTime":
+            MessageLookupByLibrary.simpleMessage("Czasu dodania"),
         "profileTargetWeightLabel":
             MessageLookupByLibrary.simpleMessage("Docelowa waga"),
         "profileTargetWeightReached":
