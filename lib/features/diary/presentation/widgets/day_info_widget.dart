@@ -137,20 +137,6 @@ class DayInfoWidget extends StatelessWidget {
                           totalFatsGoal: trackedDay.fatGoal ?? 0.0,
                           totalProteinsGoal: trackedDay.proteinGoal ?? 0.0,
                         ),
-                        const SizedBox(height: 4.0),
-                        Text(
-                          _getMacroTrackedDisplayString(trackedDay),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.7),
-                              ),
-                        ),
                       ],
                     ),
                   )
@@ -261,21 +247,6 @@ class DayInfoWidget extends StatelessWidget {
     final actualKcal = _allIntakes.fold(0.0, (sum, i) => sum + i.totalKcal);
     final caloriesTracked = actualKcal < 0 ? 0 : actualKcal.toInt();
     return '$caloriesTracked/${trackedDay.calorieGoal.toInt()} kcal';
-  }
-
-  String _getMacroTrackedDisplayString(TrackedDayEntity trackedDay) {
-    final carbsTracked =
-        _allIntakes.fold(0.0, (sum, i) => sum + i.totalCarbsGram).floor();
-    final fatTracked =
-        _allIntakes.fold(0.0, (sum, i) => sum + i.totalFatsGram).floor();
-    final proteinTracked =
-        _allIntakes.fold(0.0, (sum, i) => sum + i.totalProteinsGram).floor();
-
-    final carbsGoal = trackedDay.carbsGoal?.floor().toString() ?? '?';
-    final fatGoal = trackedDay.fatGoal?.floor().toString() ?? '?';
-    final proteinGoal = trackedDay.proteinGoal?.floor().toString() ?? '?';
-
-    return 'Carbs: $carbsTracked/${carbsGoal}g, Fat: $fatTracked/${fatGoal}g, Protein: $proteinTracked/${proteinGoal}g';
   }
 
   void showCopyOrDeleteIntakeDialog(
