@@ -43,46 +43,55 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 16.0),
-          ChoiceChip(
-            label: Text(
-              S.of(context).goalLoseWeight,
-              style: Theme.of(context).textTheme.titleLarge,
+          Semantics(
+            identifier: 'onboarding-goal-lose',
+            child: ChoiceChip(
+              label: Text(
+                S.of(context).goalLoseWeight,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              selected: _looseWeightSelected,
+              onSelected: (bool selected) {
+                setState(() {
+                  _setSelectedChoiceChip(looseWeight: true);
+                  _checkCorrectInput();
+                });
+              },
             ),
-            selected: _looseWeightSelected,
-            onSelected: (bool selected) {
-              setState(() {
-                _setSelectedChoiceChip(looseWeight: true);
-                _checkCorrectInput();
-              });
-            },
           ),
           const SizedBox(height: 8.0),
-          ChoiceChip(
-            label: Text(
-              S.of(context).goalMaintainWeight,
-              style: Theme.of(context).textTheme.titleLarge,
+          Semantics(
+            identifier: 'onboarding-goal-maintain',
+            child: ChoiceChip(
+              label: Text(
+                S.of(context).goalMaintainWeight,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              selected: _maintainWeightSelected,
+              onSelected: (bool selected) {
+                setState(() {
+                  _setSelectedChoiceChip(maintainWeigh: true);
+                  _checkCorrectInput();
+                });
+              },
             ),
-            selected: _maintainWeightSelected,
-            onSelected: (bool selected) {
-              setState(() {
-                _setSelectedChoiceChip(maintainWeigh: true);
-                _checkCorrectInput();
-              });
-            },
           ),
           const SizedBox(height: 8.0),
-          ChoiceChip(
-            label: Text(
-              S.of(context).goalGainWeight,
-              style: Theme.of(context).textTheme.titleLarge,
+          Semantics(
+            identifier: 'onboarding-goal-gain',
+            child: ChoiceChip(
+              label: Text(
+                S.of(context).goalGainWeight,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              selected: _gainWeightSelected,
+              onSelected: (bool selected) {
+                setState(() {
+                  _setSelectedChoiceChip(gainWeight: true);
+                  _checkCorrectInput();
+                });
+              },
             ),
-            selected: _gainWeightSelected,
-            onSelected: (bool selected) {
-              setState(() {
-                _setSelectedChoiceChip(gainWeight: true);
-                _checkCorrectInput();
-              });
-            },
           ),
         ],
       ),
