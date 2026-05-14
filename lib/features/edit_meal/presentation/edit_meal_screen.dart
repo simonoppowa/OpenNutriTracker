@@ -48,11 +48,10 @@ class _EditMealScreenState extends State<EditMealScreen> {
   final _units = ['g', 'ml', 'g/ml'];
   String? selectedUnit;
   bool _isTotal = false;
-  // Default off (#249 follow-up): most casual custom-meal logging is one-off,
-  // and defaulting to on bloated the saved-meals list with entries people
-  // never reused. The intake is still logged either way; the user opts in
-  // here to keep the meal as a reusable template.
-  bool _saveForLater = false;
+  // Default on so behaviour matches what existing users are used to — the
+  // meal is saved to their custom list unless they actively untick the box.
+  // #249 adds the *option* to skip the save; it does not change the default.
+  bool _saveForLater = true;
 
   late List<ButtonSegment<String>> _mealUnitButtonSegment;
 
