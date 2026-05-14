@@ -77,14 +77,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () =>
                       _showUnitsDialog(context, state.usesImperialUnits),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.local_fire_department_outlined),
-                  title: Text(S.of(context).settingsEnergyUnitLabel),
-                  subtitle: Text(state.usesKilojoules
-                      ? S.of(context).energyUnitKjLabel
-                      : S.of(context).energyUnitKcalLabel),
-                  onTap: () =>
-                      _showEnergyUnitDialog(context, state.usesKilojoules),
+                Semantics(
+                  identifier: 'settings-energy-unit',
+                  child: ListTile(
+                    leading: const Icon(Icons.local_fire_department_outlined),
+                    title: Text(S.of(context).settingsEnergyUnitLabel),
+                    subtitle: Text(state.usesKilojoules
+                        ? S.of(context).energyUnitKjLabel
+                        : S.of(context).energyUnitKcalLabel),
+                    onTap: () =>
+                        _showEnergyUnitDialog(context, state.usesKilojoules),
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.calculate_outlined),
