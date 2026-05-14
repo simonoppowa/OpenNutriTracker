@@ -433,20 +433,23 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 // #297: Direct text input for kcal adjustment
                 SizedBox(
                   width: 80,
-                  child: TextField(
-                    controller: _kcalAdjustmentController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                        signed: true, decimal: false),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^-?\d*')),
-                    ],
-                    textAlign: TextAlign.right,
-                    decoration: InputDecoration(
-                      suffixText: S.of(context).kcalLabel,
-                      isDense: true,
+                  child: Semantics(
+                    identifier: 'calculations-kcal-input',
+                    child: TextField(
+                      controller: _kcalAdjustmentController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                          signed: true, decimal: false),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^-?\d*')),
+                      ],
+                      textAlign: TextAlign.right,
+                      decoration: InputDecoration(
+                        suffixText: S.of(context).kcalLabel,
+                        isDense: true,
+                      ),
+                      onSubmitted: (_) => _applyKcalInput(),
+                      onEditingComplete: _applyKcalInput,
                     ),
-                    onSubmitted: (_) => _applyKcalInput(),
-                    onEditingComplete: _applyKcalInput,
                   ),
                 ),
               ],
@@ -584,6 +587,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               max: _fibreMax,
               divisions: _fibreDivisions,
               controller: _fibreController,
+              identifier: 'calculations-fibre-slider',
               onSliderChanged: (v) => setState(() => _fibreGoalGrams = v),
               onTextSubmitted: () => _applyDirectNutrientInput(
                 _fibreController,
@@ -601,6 +605,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               max: _satFatMax,
               divisions: _satFatDivisions,
               controller: _satFatController,
+              identifier: 'calculations-sat-fat-slider',
               onSliderChanged: (v) => setState(() => _satFatGoalGrams = v),
               onTextSubmitted: () => _applyDirectNutrientInput(
                 _satFatController,
@@ -617,6 +622,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               max: _sugarsMax,
               divisions: _sugarsDivisions,
               controller: _sugarsController,
+              identifier: 'calculations-sugars-slider',
               onSliderChanged: (v) => setState(() => _sugarsGoalGrams = v),
               onTextSubmitted: () => _applyDirectNutrientInput(
                 _sugarsController,
@@ -641,6 +647,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               divisions: _sodiumDivisions,
               controller: _sodiumController,
               unit: 'mg',
+              identifier: 'calculations-sodium-slider',
               onSliderChanged: (v) => setState(() => _sodiumGoalMg = v),
               onTextSubmitted: () => _applyDirectNutrientInput(
                 _sodiumController,
@@ -658,6 +665,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               divisions: _calciumDivisions,
               controller: _calciumController,
               unit: 'mg',
+              identifier: 'calculations-calcium-slider',
               onSliderChanged: (v) => setState(() => _calciumGoalMg = v),
               onTextSubmitted: () => _applyDirectNutrientInput(
                 _calciumController,
@@ -676,6 +684,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               controller: _ironController,
               unit: 'mg',
               decimalStep: true,
+              identifier: 'calculations-iron-slider',
               onSliderChanged: (v) => setState(() => _ironGoalMg = v),
               onTextSubmitted: () => _applyDirectNutrientInput(
                 _ironController,
@@ -695,6 +704,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               divisions: _potassiumDivisions,
               controller: _potassiumController,
               unit: 'mg',
+              identifier: 'calculations-potassium-slider',
               onSliderChanged: (v) => setState(() => _potassiumGoalMg = v),
               onTextSubmitted: () => _applyDirectNutrientInput(
                 _potassiumController,
@@ -712,6 +722,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               divisions: _magnesiumDivisions,
               controller: _magnesiumController,
               unit: 'mg',
+              identifier: 'calculations-magnesium-slider',
               onSliderChanged: (v) => setState(() => _magnesiumGoalMg = v),
               onTextSubmitted: () => _applyDirectNutrientInput(
                 _magnesiumController,
@@ -731,6 +742,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               controller: _vitaminDController,
               unit: 'µg',
               decimalStep: true,
+              identifier: 'calculations-vitamin-d-slider',
               onSliderChanged: (v) => setState(() => _vitaminDGoalUg = v),
               onTextSubmitted: () => _applyDirectNutrientInput(
                 _vitaminDController,
@@ -751,6 +763,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               controller: _vitaminB12Controller,
               unit: 'µg',
               decimalStep: true,
+              identifier: 'calculations-vitamin-b12-slider',
               onSliderChanged: (v) => setState(() => _vitaminB12GoalUg = v),
               onTextSubmitted: () => _applyDirectNutrientInput(
                 _vitaminB12Controller,
@@ -853,6 +866,9 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
   /// redistributing percentages. `decimalStep` lets the row work for
   /// fractional values like B12 (0.1µg steps) where rounding to whole
   /// numbers would lose the entire useful range.
+  ///
+  /// Pass [identifier] to give the slider a stable `Semantics.identifier`
+  /// handle so ADB uiautomator can locate it by resource-id.
   Widget _buildNutrientRow({
     required String label,
     required String description,
@@ -865,8 +881,24 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     required VoidCallback onTextSubmitted,
     String unit = 'g',
     bool decimalStep = false,
+    String? identifier,
   }) {
     final clamped = value.clamp(min, max).toDouble();
+    final slider = Slider(
+      min: min,
+      max: max,
+      value: clamped,
+      divisions: divisions,
+      onChanged: (v) {
+        // Snap to the slider's division grid so the controller
+        // text matches what the slider actually represents.
+        final step = (max - min) / divisions;
+        final snapped = (((v - min) / step).round() * step + min);
+        controller.text =
+            decimalStep ? snapped.toStringAsFixed(1) : snapped.round().toString();
+        onSliderChanged(snapped);
+      },
+    );
     return Padding(
       padding: const EdgeInsets.only(top: 4.0),
       child: Column(
@@ -912,21 +944,10 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                     ),
               ),
             ),
-          Slider(
-            min: min,
-            max: max,
-            value: clamped,
-            divisions: divisions,
-            onChanged: (v) {
-              // Snap to the slider's division grid so the controller
-              // text matches what the slider actually represents.
-              final step = (max - min) / divisions;
-              final snapped = (((v - min) / step).round() * step + min);
-              controller.text =
-                  decimalStep ? snapped.toStringAsFixed(1) : snapped.round().toString();
-              onSliderChanged(snapped);
-            },
-          ),
+          if (identifier != null && identifier.isNotEmpty)
+            Semantics(identifier: identifier, child: slider)
+          else
+            slider,
         ],
       ),
     );
