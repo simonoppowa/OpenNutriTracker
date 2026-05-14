@@ -287,38 +287,41 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
 
   Widget _buildSortMenu(BuildContext context) {
     final current = widget.sortType ?? DiarySortType.timeAdded;
-    return PopupMenuButton<DiarySortType>(
-      tooltip: S.of(context).diarySortByLabel,
-      icon: const Icon(Icons.sort),
-      initialValue: current,
-      onSelected: (sort) => widget.onSortTypeChanged?.call(sort),
-      itemBuilder: (context) => <PopupMenuEntry<DiarySortType>>[
-        CheckedPopupMenuItem<DiarySortType>(
-          value: DiarySortType.timeAdded,
-          checked: current == DiarySortType.timeAdded,
-          child: Text(S.of(context).diarySortByTime),
-        ),
-        CheckedPopupMenuItem<DiarySortType>(
-          value: DiarySortType.kcal,
-          checked: current == DiarySortType.kcal,
-          child: Text(S.of(context).diarySortByKcal),
-        ),
-        CheckedPopupMenuItem<DiarySortType>(
-          value: DiarySortType.protein,
-          checked: current == DiarySortType.protein,
-          child: Text(S.of(context).diarySortByProtein),
-        ),
-        CheckedPopupMenuItem<DiarySortType>(
-          value: DiarySortType.carbs,
-          checked: current == DiarySortType.carbs,
-          child: Text(S.of(context).diarySortByCarbs),
-        ),
-        CheckedPopupMenuItem<DiarySortType>(
-          value: DiarySortType.fat,
-          checked: current == DiarySortType.fat,
-          child: Text(S.of(context).diarySortByFat),
-        ),
-      ],
+    return Semantics(
+      identifier: 'diary-section-sort-menu',
+      child: PopupMenuButton<DiarySortType>(
+        tooltip: S.of(context).diarySortByLabel,
+        icon: const Icon(Icons.sort),
+        initialValue: current,
+        onSelected: (sort) => widget.onSortTypeChanged?.call(sort),
+        itemBuilder: (context) => <PopupMenuEntry<DiarySortType>>[
+          CheckedPopupMenuItem<DiarySortType>(
+            value: DiarySortType.timeAdded,
+            checked: current == DiarySortType.timeAdded,
+            child: Text(S.of(context).diarySortByTime),
+          ),
+          CheckedPopupMenuItem<DiarySortType>(
+            value: DiarySortType.kcal,
+            checked: current == DiarySortType.kcal,
+            child: Text(S.of(context).diarySortByKcal),
+          ),
+          CheckedPopupMenuItem<DiarySortType>(
+            value: DiarySortType.protein,
+            checked: current == DiarySortType.protein,
+            child: Text(S.of(context).diarySortByProtein),
+          ),
+          CheckedPopupMenuItem<DiarySortType>(
+            value: DiarySortType.carbs,
+            checked: current == DiarySortType.carbs,
+            child: Text(S.of(context).diarySortByCarbs),
+          ),
+          CheckedPopupMenuItem<DiarySortType>(
+            value: DiarySortType.fat,
+            checked: current == DiarySortType.fat,
+            child: Text(S.of(context).diarySortByFat),
+          ),
+        ],
+      ),
     );
   }
 
