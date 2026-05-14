@@ -19,6 +19,13 @@ class UserEntity {
   /// users, the calc layer treats it as [CaloriesProfileEntity.averaged].
   CaloriesProfileEntity? caloriesProfile;
 
+  /// #119: Optional concrete target weight in kg. Stored alongside the
+  /// existing [weeklyWeightGoalKg] rate so the Profile screen can surface
+  /// a "X kg to your target" line. Calorie computation deliberately does
+  /// not consume this field yet — a tapering adjustment as the target
+  /// nears is a separate scope question.
+  double? targetWeightKg;
+
   UserEntity({
     required this.birthday,
     required this.heightCM,
@@ -28,6 +35,7 @@ class UserEntity {
     required this.pal,
     this.weeklyWeightGoalKg,
     this.caloriesProfile,
+    this.targetWeightKg,
   });
 
   factory UserEntity.fromUserDBO(UserDBO userDBO) {
@@ -42,6 +50,7 @@ class UserEntity {
       caloriesProfile: userDBO.caloriesProfile == null
           ? null
           : CaloriesProfileEntity.fromDBO(userDBO.caloriesProfile!),
+      targetWeightKg: userDBO.targetWeightKg,
     );
   }
 

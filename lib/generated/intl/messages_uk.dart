@@ -69,6 +69,8 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m21(count, customCount) =>
       "Записано ${count} з JSON, ${customCount} збережено як власні страви";
 
+  static String m22(value) => "Залишилось ${value} до цілі";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -214,9 +216,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Скопіювати на сьогодні"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("ВИДАЛИТИ"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("ОК"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Тут підсумовуються лише ті поживні речовини, які записані для зареєстрованих страв. Страва без значення не додає нічого до відповідного показника — тож суми можуть бути занижені."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Ви редагуєте майбутню дату"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Щоденник"),
+        "diaryNutrientPanelTitle": MessageLookupByLibrary.simpleMessage(
+            "Поживні речовини за сьогодні"),
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
             "наприклад, суп, курка, вино ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Вечеря"),
@@ -268,6 +274,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("Експортувати"),
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "Експортувати / Імпортувати дані застосунку"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("Рецепти зберігаються лише при експорті й імпорті у форматі JSON. Перемкніть на JSON, щоб включити їх до резервної копії."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Ви можете експортувати дані додатка у zip-файл і імпортувати їх пізніше. Це корисно, якщо ви хочете зробити резервну копію або перенести дані на інший пристрій. Додаток не використовує жодних хмарних сервісів для зберігання ваших даних."),
         "exportImportErrorLabel":
@@ -389,6 +397,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("Н/Д"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Нічого не додано"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("День"),
+        "nutrientPanelWeekLabel":
+            MessageLookupByLibrary.simpleMessage("Тиждень"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Усі поживні речовини приховано — увімкни деякі в Налаштування → Поживні речовини."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Інформація про харчування"),
         "nutritionalStatusNormalWeight":
@@ -942,8 +955,53 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Власні страви"),
         "settingsDisclaimerLabel": MessageLookupByLibrary.simpleMessage(
             "Відмова від відповідальності"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Денна ціль клітковини в грамах. Стандартне значення — 30 г."),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ціль клітковини"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "Особисті цілі для кожної поживної речовини в щоденній панелі. Щоденник використовує їх замість стандартних добових норм щоразу, коли ти задаєш будь-яку з них."),
+        "settingsNutrientGoalsLabel":
+            MessageLookupByLibrary.simpleMessage("Цілі поживних речовин"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "Денний ліміт насичених жирів у грамах. Стандартне значення — 20 г."),
+        "settingsSaturatedFatGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ціль насичених жирів"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("Джерела та посилання"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Денний ліміт цукрів у грамах. Стандартне значення — 50 г."),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ціль цукрів"),
+        "settingsSodiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ціль натрію"),
+        "settingsSodiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Денний ліміт натрію в міліграмах. Стандартне значення — 2300 мг."),
+        "settingsCalciumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ціль кальцію"),
+        "settingsCalciumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Денна ціль кальцію в міліграмах. Стандартне значення — 1000 мг."),
+        "settingsIronGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ціль заліза"),
+        "settingsIronGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Денна ціль заліза в міліграмах. Стандартне значення залежить від статі (8 мг чоловік, 18 мг жінка, інакше 14 мг)."),
+        "settingsPotassiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ціль калію"),
+        "settingsPotassiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Денна ціль калію в міліграмах. Стандартне значення — 3500 мг."),
+        "settingsMagnesiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ціль магнію"),
+        "settingsMagnesiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Денна ціль магнію в міліграмах. Стандартне значення залежить від статі (400 мг чоловік, 310 мг жінка, інакше 355 мг)."),
+        "settingsVitaminDGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ціль вітаміну D"),
+        "settingsVitaminDGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Денна ціль вітаміну D в мікрограмах. Стандартне значення — 15 мкг."),
+        "settingsVitaminB12GoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ціль вітаміну B12"),
+        "settingsVitaminB12GoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Денна ціль вітаміну B12 в мікрограмах. Стандартне значення — 2,4 мкг."),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("Переглянути джерела"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(
@@ -1000,6 +1058,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Показати макроси страви"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Показувати мікроелементи"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Поживні речовини"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Обери, які поживні речовини показувати на панелі щоденника"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Обери, які поживні речовини видимі на щоденній панелі. Приховані можна знову увімкнути будь-коли."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Вихідний код"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Система"),
@@ -1042,5 +1106,32 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Вага"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("цинк"),
+        "diarySortByCarbs":
+            MessageLookupByLibrary.simpleMessage("Вуглеводи (за спаданням)"),
+        "diarySortByFat":
+            MessageLookupByLibrary.simpleMessage("Жири (за спаданням)"),
+        "diarySortByKcal":
+            MessageLookupByLibrary.simpleMessage("Калорії (за спаданням)"),
+        "diarySortByLabel":
+            MessageLookupByLibrary.simpleMessage("Сортувати за"),
+        "diarySortByProtein":
+            MessageLookupByLibrary.simpleMessage("Білки (за спаданням)"),
+        "diarySortByTime":
+            MessageLookupByLibrary.simpleMessage("Часом додавання"),
+        "profileTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Цільова вага"),
+        "profileTargetWeightNotSetLabel":
+            MessageLookupByLibrary.simpleMessage("Не задано"),
+        "profileTargetWeightClearAction":
+            MessageLookupByLibrary.simpleMessage("Очистити"),
+        "profileTargetWeightReached":
+            MessageLookupByLibrary.simpleMessage("Ви досягли своєї цілі"),
+        "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(
+            "Поступово зменшує щоденний дефіцит, щоб останні кілограми не здавалися стіною."),
+        "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
+            "Коригувати калорійну ціль у міру наближення до цілі"),
+        "settingsTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Цільова вага"),
+        "profileTargetWeightToGo": m22,
       };
 }

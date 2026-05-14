@@ -12,6 +12,7 @@ import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/screens/import_meal_scanner_screen.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/share_meal_qr_dialog.dart';
@@ -35,6 +36,17 @@ class IntakeVerticalList extends StatefulWidget {
       AddMealType? type)? onCopyIntakeCallback;
   final TrackedDayEntity? trackedDayEntity;
 
+  /// Current sort applied to [intakeList]. When non-null (and
+  /// [onSortTypeChanged] is also provided), a small sort menu is rendered in
+  /// the section header. Callers are responsible for sorting [intakeList]
+  /// before it reaches the widget — this field only drives the menu's
+  /// highlighted selection.
+  final DiarySortType? sortType;
+
+  /// Called when the user picks a new sort option from the section header.
+  /// When null, the sort menu is hidden.
+  final ValueChanged<DiarySortType>? onSortTypeChanged;
+
   const IntakeVerticalList({
     super.key,
     required this.day,
@@ -50,6 +62,8 @@ class IntakeVerticalList extends StatefulWidget {
     this.onItemTappedCallback,
     this.onCopyIntakeCallback,
     this.trackedDayEntity,
+    this.sortType,
+    this.onSortTypeChanged,
   });
 
   @override
@@ -120,6 +134,8 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                           .withValues(alpha: 0.7)),
                   textAlign: TextAlign.center,
                 ),
+              if (widget.onSortTypeChanged != null && totalKcal > 0)
+                _buildSortMenu(context),
               PopupMenuButton<VerticalListPopupMenuSelections>(
                     onSelected:
                         (VerticalListPopupMenuSelections selection) async {
@@ -266,6 +282,46 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildSortMenu(BuildContext context) {
+    final current = widget.sortType ?? DiarySortType.timeAdded;
+    return Semantics(
+      identifier: 'diary-section-sort-menu',
+      child: PopupMenuButton<DiarySortType>(
+        tooltip: S.of(context).diarySortByLabel,
+        icon: const Icon(Icons.sort),
+        initialValue: current,
+        onSelected: (sort) => widget.onSortTypeChanged?.call(sort),
+        itemBuilder: (context) => <PopupMenuEntry<DiarySortType>>[
+          CheckedPopupMenuItem<DiarySortType>(
+            value: DiarySortType.timeAdded,
+            checked: current == DiarySortType.timeAdded,
+            child: Text(S.of(context).diarySortByTime),
+          ),
+          CheckedPopupMenuItem<DiarySortType>(
+            value: DiarySortType.kcal,
+            checked: current == DiarySortType.kcal,
+            child: Text(S.of(context).diarySortByKcal),
+          ),
+          CheckedPopupMenuItem<DiarySortType>(
+            value: DiarySortType.protein,
+            checked: current == DiarySortType.protein,
+            child: Text(S.of(context).diarySortByProtein),
+          ),
+          CheckedPopupMenuItem<DiarySortType>(
+            value: DiarySortType.carbs,
+            checked: current == DiarySortType.carbs,
+            child: Text(S.of(context).diarySortByCarbs),
+          ),
+          CheckedPopupMenuItem<DiarySortType>(
+            value: DiarySortType.fat,
+            checked: current == DiarySortType.fat,
+            child: Text(S.of(context).diarySortByFat),
+          ),
+        ],
+      ),
     );
   }
 

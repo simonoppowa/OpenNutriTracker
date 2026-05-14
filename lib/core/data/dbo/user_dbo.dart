@@ -25,6 +25,8 @@ class UserDBO extends HiveObject {
   double? weeklyWeightGoalKg;
   @HiveField(7)
   CaloriesProfileDBO? caloriesProfile;
+  @HiveField(8)
+  double? targetWeightKg;
 
   UserDBO({
     required this.birthday,
@@ -35,6 +37,7 @@ class UserDBO extends HiveObject {
     required this.pal,
     this.weeklyWeightGoalKg,
     this.caloriesProfile,
+    this.targetWeightKg,
   });
 
   factory UserDBO.fromUserEntity(UserEntity entity) {
@@ -49,6 +52,7 @@ class UserDBO extends HiveObject {
       caloriesProfile: entity.caloriesProfile == null
           ? null
           : CaloriesProfileDBO.fromEntity(entity.caloriesProfile!),
+      targetWeightKg: entity.targetWeightKg,
     );
   }
 }
