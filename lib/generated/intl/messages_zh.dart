@@ -61,6 +61,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "导入 ${count} 项活动？";
 
+  static String m20(detail) => "无法解析：${detail}";
+
+  static String m21(count, customCount) =>
+      "已从 JSON 记录 ${count} 条，其中 ${customCount} 条保存为自定义餐食";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample":
@@ -212,6 +217,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "OpenNutriTracker不是医疗应用程序。提供的所有数据均未经验证，应谨慎使用。请保持健康的生活方式，如有任何问题请咨询专业人士。不建议在患病、怀孕或哺乳期使用。每一项计算所依据的同行评审来源，请点击「首页」或「个人资料」页面的信息图标查看。"),
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("示例餐食 (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("示例餐食 (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("导入餐食 (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("示例食谱 (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("导入食谱 (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("示例食谱 (csv)"),
         "duplicateMealDialogContent":
@@ -268,7 +281,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("运动已导入"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "从 CSV 文件导入您自己的餐食。下载示例查看所需的列格式和必填字段。"),
+            "从 CSV 文件或粘贴 JSON 导入自己的餐食。下载示例以查看预期格式和必填字段。"),
         "importCustomFoodDataLabel":
             MessageLookupByLibrary.simpleMessage("导入自定义食品数据"),
         "importMealConfirmContent": m5,
@@ -287,6 +300,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("食谱已导入"),
         "importRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("导入食谱 (csv)"),
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "这些数值对不太上 — 您输入的卡路里与碳水、脂肪和蛋白质所含的能量不一致。仍要保存，还是再看一下？"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("再看一下"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("仍要保存"),
+        "inconsistentNutritionWarningTitle":
+            MessageLookupByLibrary.simpleMessage("数字对不太上"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("添加了新活动"),
         "infoAddedIntakeLabel": MessageLookupByLibrary.simpleMessage("添加了新摄入"),
@@ -730,6 +751,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("营养（总计）"),
         "recipeSaveErrorLabel":
             MessageLookupByLibrary.simpleMessage("无法保存食谱。"),
+        "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
+            "开启以将此餐食保留在已保存的列表中，以备下次使用。如果是不会再吃的一次性餐食，请保持关闭。"),
+        "recipeSaveForLaterLabel":
+            MessageLookupByLibrary.simpleMessage("保存以备下次"),
         "recipeSaveLabel": MessageLookupByLibrary.simpleMessage("保存食谱"),
         "recipeServingsCountHelper":
             MessageLookupByLibrary.simpleMessage("允许按份记录此食谱，而非按克。"),
