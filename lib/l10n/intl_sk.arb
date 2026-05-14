@@ -121,6 +121,7 @@
   "discardChangesTitle": "Zahodiť zmeny?",
   "disclaimerText": "OpenNutriTracker nie je zdravotnícka aplikácia. Všetky poskytnuté údaje nie sú validované a mali by sa používať s opatrnosťou. Dodržiavajte zdravý životný štýl a v prípade ťažkostí sa poraďte s odborníkom. Používanie počas choroby, tehotenstva alebo dojčenia sa neodporúča. Recenzované zdroje za každým výpočtom nájdete cez ikonu informácií na obrazovke Domov alebo Profil.",
   "downloadSampleCsvAction": "Vzorové jedlá (csv)",
+  "downloadSampleJsonAction": "Vzorový JSON",
   "downloadSampleRecipesCsvAction": "Vzorové recepty (csv)",
   "duplicateMealDialogContent": "Toto jedlo už bolo dnes pridané. Pridať ho znova?",
   "duplicateRecipeLabel": "Duplikovať",

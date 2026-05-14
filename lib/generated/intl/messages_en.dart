@@ -217,6 +217,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "csvImportSuccessLabel": m12,
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Sample meals (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("Sample JSON"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Sample recipes (csv)"),
         "importMealsCsvAction":

@@ -122,6 +122,7 @@
   "discardChangesTitle": "Değişiklikler iptal edilsin mi?",
   "disclaimerText": "OpenNutriTracker bir tıbbi uygulama değildir. Sağlanan tüm veriler doğrulanmamıştır ve dikkatle kullanılmalıdır. Lütfen sağlıklı bir yaşam tarzı sürdürün ve herhangi bir sorununuz varsa bir profesyonele danışın. Hastalık, hamilelik veya emzirme döneminde kullanımı önerilmez.\n\n\nUygulama hala geliştirme aşamasındadır. Hatalar, aksaklıklar ve çökmeler meydana gelebilir.\n\nHer hesaplamanın hakemli kaynaklarına Ana Sayfa veya Profil ekranındaki bilgi simgesine dokunarak ulaşabilirsin.",
   "downloadSampleCsvAction": "Örnek yemekler (csv)",
+  "downloadSampleJsonAction": "Örnek JSON",
   "downloadSampleRecipesCsvAction": "Örnek tarifler (csv)",
   "duplicateMealDialogContent": "Bu yiyecek bugün bu öğüne zaten eklenmiş. Tekrar eklensin mi?",
   "duplicateRecipeLabel": "Çoğalt",

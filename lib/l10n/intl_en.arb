@@ -198,6 +198,7 @@
   "exportAction": "Export",
   "importAction": "Import",
   "downloadSampleCsvAction": "Sample meals (csv)",
+  "downloadSampleJsonAction": "Sample JSON",
   "downloadSampleRecipesCsvAction": "Sample recipes (csv)",
   "importMealsCsvAction": "Import meals (csv)",
   "csvImportSuccessLabel": "Imported {count} meal(s) from the CSV file.",

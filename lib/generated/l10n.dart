@@ -1721,6 +1721,15 @@ class S {
     );
   }
 
+  String get downloadSampleJsonAction {
+    return Intl.message(
+      'Sample JSON',
+      name: 'downloadSampleJsonAction',
+      desc: '',
+      args: [],
+    );
+  }
+
   String get downloadSampleRecipesCsvAction {
     return Intl.message(
       'Sample recipes (csv)',

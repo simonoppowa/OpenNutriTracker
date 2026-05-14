@@ -151,8 +151,18 @@ class _PasteJsonMealsSheetState extends State<PasteJsonMealsSheet> {
                 ],
                 const SizedBox(height: 12),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    Semantics(
+                      identifier: 'paste-json-sample',
+                      child: TextButton.icon(
+                        icon: const Icon(Icons.download_outlined, size: 18),
+                        label: Text(S.of(context).downloadSampleJsonAction),
+                        onPressed: isLoading
+                            ? null
+                            : () => _bloc.add(DownloadSampleJsonEvent()),
+                      ),
+                    ),
+                    const Spacer(),
                     TextButton(
                       onPressed: isLoading
                           ? null

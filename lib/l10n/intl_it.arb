@@ -122,6 +122,7 @@
   "discardChangesTitle": "Annullare le modifiche?",
   "disclaimerText": "OpenNutriTracker non è un'applicazione medica. Tutti i dati forniti non sono validati e dovrebbero essere utilizzati con cautela. Mantieni uno stile di vita sano e consulta un professionista se hai problemi. L'uso durante malattie, gravidanza o allattamento non è raccomandato. Per le fonti sottoposte a peer review di ogni calcolo, tocca l'icona informativa nella schermata Home o Profilo.",
   "downloadSampleCsvAction": "Pasti di esempio (csv)",
+  "downloadSampleJsonAction": "JSON di esempio",
   "downloadSampleRecipesCsvAction": "Ricette di esempio (csv)",
   "duplicateMealDialogContent": "Questo alimento è già stato aggiunto a questo pasto oggi. Aggiungerlo di nuovo?",
   "duplicateRecipeLabel": "Duplica",

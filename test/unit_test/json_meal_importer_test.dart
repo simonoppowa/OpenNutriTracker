@@ -148,4 +148,21 @@ void main() {
       expect(intake.totalProteinsGram, closeTo(10, 0.001));
     });
   });
+
+  group('JsonMealImporter.sampleJson', () {
+    test('parses cleanly with no errors and produces real intakes', () {
+      final result = JsonMealImporter.parse(
+        JsonMealImporter.sampleJson(),
+        now: DateTime(2026, 5, 13),
+      );
+      expect(result.errors, isEmpty,
+          reason: 'the bundled sample must always be parseable');
+      expect(result.intakes, isNotEmpty);
+      // Each entry's stored MealEntity should at least have a name.
+      for (final intake in result.intakes) {
+        expect(intake.meal.name, isNotNull);
+        expect(intake.meal.name, isNotEmpty);
+      }
+    });
+  });
 }

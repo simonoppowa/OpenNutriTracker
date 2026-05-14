@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_csv_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/download_sample_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_data_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_meals_csv_usecase.dart';
@@ -23,6 +24,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
   final ImportMealsCsvUsecase _importMealsCsvUsecase;
   final ImportRecipesCsvUsecase _importRecipesCsvUsecase;
   final DownloadSampleCsvUsecase _downloadSampleCsvUsecase;
+  final DownloadSampleJsonUsecase _downloadSampleJsonUsecase;
   final ImportMealsJsonUsecase _importMealsJsonUsecase;
 
   ExportImportBloc(
@@ -31,6 +33,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
     this._importMealsCsvUsecase,
     this._importRecipesCsvUsecase,
     this._downloadSampleCsvUsecase,
+    this._downloadSampleJsonUsecase,
     this._importMealsJsonUsecase,
   ) : super(ExportImportInitial()) {
     on<ExportDataEvent>((event, emit) async {
@@ -126,6 +129,16 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         emit(ExportImportLoadingState());
         final saved =
             await _downloadSampleCsvUsecase.downloadRecipeSample();
+        emit(saved ? ExportImportSuccess() : ExportImportInitial());
+      } catch (e) {
+        emit(ExportImportError());
+      }
+    });
+
+    on<DownloadSampleJsonEvent>((event, emit) async {
+      try {
+        emit(ExportImportLoadingState());
+        final saved = await _downloadSampleJsonUsecase.downloadSample();
         emit(saved ? ExportImportSuccess() : ExportImportInitial());
       } catch (e) {
         emit(ExportImportError());

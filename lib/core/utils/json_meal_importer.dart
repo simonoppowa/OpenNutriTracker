@@ -69,6 +69,45 @@ class JsonMealImporter {
       '{ "name": "Apple", "kcal": 95, "protein": 0.5, "carbs": 25, "fat": 0.3, '
       '"mealType": "snack", "amount": 100, "unit": "g", "date": "2026-05-13" }';
 
+  /// Pretty-printed JSON the "Sample JSON" button hands to the user. Three
+  /// entries that between them show every supported field, including the
+  /// optional ones (mealType, amount, unit, date). The shape mirrors the
+  /// CSV sample so a user familiar with one path can read the other.
+  static String sampleJson() {
+    return '''[
+  {
+    "name": "Banana",
+    "kcal": 89,
+    "protein": 1.1,
+    "carbs": 22.8,
+    "fat": 0.3,
+    "mealType": "snack",
+    "amount": 100,
+    "unit": "g"
+  },
+  {
+    "name": "Porridge with milk",
+    "kcal": 145,
+    "protein": 6.5,
+    "carbs": 17.2,
+    "fat": 5.6,
+    "mealType": "breakfast",
+    "amount": 250,
+    "unit": "g",
+    "date": "2026-05-13"
+  },
+  {
+    "name": "Greek salad",
+    "kcal": 220,
+    "protein": 7.0,
+    "carbs": 12.0,
+    "fat": 16.0,
+    "mealType": "lunch"
+  }
+]
+''';
+  }
+
   /// Parse [jsonContent]. [now] is injectable for tests so we don't have
   /// to freeze time globally; production callers should leave it null and
   /// the importer uses [DateTime.now].

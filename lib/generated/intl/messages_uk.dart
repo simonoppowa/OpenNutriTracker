@@ -216,6 +216,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "OpenNutriTracker не є медичним додатком. Всі надані дані не перевіряються і повинні використовуватися з обережністю. Будь ласка, ведіть здоровий спосіб життя і консультуйтеся з фахівцем, якщо у вас виникли проблеми. Використання під час хвороби, вагітності або лактації не рекомендується. Рецензовані джерела для кожного розрахунку відкриваються через піктограму інформації на екрані Головна або Профіль."),
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Зразкові страви (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("Зразок JSON"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Зразкові рецепти (csv)"),
         "duplicateMealDialogContent":

@@ -38,6 +38,12 @@ class DownloadSampleRecipesCsvEvent extends ExportImportEvent {
   List<Object?> get props => [];
 }
 
+/// User asked for a JSON template to fill in for the paste-JSON flow.
+class DownloadSampleJsonEvent extends ExportImportEvent {
+  @override
+  List<Object?> get props => [];
+}
+
 /// User pasted a JSON blob to log as one or more intakes (#181).
 class PasteJsonMealsEvent extends ExportImportEvent {
   final String jsonContent;
