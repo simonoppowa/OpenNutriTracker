@@ -151,7 +151,33 @@ Always verify with `adb shell uiautomator dump /sdcard/d.xml && adb pull /sdcard
 
 ### Flutter widgets on Android use `content-desc`, not `text`
 
-When inspecting the uiautomator dump, the visible text of Flutter widgets is reported under `content-desc`, not `text`. System dialogs (DatePicker, AlertDialog) use `text`. Test drivers that find widgets by visible label must check both. The reference implementation lives in `.claude/scripts/adb-driver.sh` (locally-excluded tooling).
+When inspecting the uiautomator dump, the visible text of Flutter widgets is reported under `content-desc`, not `text`. System dialogs (DatePicker, AlertDialog) use `text`. Test drivers that find widgets by visible label must check both.
+
+### ADB test tooling
+
+Reusable ADB scripts live in `tools/adb/`:
+
+| Script | Purpose |
+|--------|---------|
+| `adb-driver.sh` | Core driver library: `tap_id`, `wait_for_id`, `enter_text_at`, `_tap_text`, `screenshot`, `list_ids`, etc. Source from any test script. |
+| `walk-onboarding.sh` | Walks the 6-page onboarding flow, lands the app on the main screen. Exports `walk_onboarding()`. Run standalone or source it. |
+| `run-branch-tests.sh` | Sequential smoke-test runner for all triage branches: builds a debug APK, installs it, walks onboarding, and runs a branch-specific probe. Produces a pass/fail summary and per-branch screenshots. |
+
+Usage:
+
+```bash
+# Source the driver in a one-off script
+source tools/adb/adb-driver.sh
+wait_for_id 'nav-home' 15 && echo "on main screen"
+
+# Walk onboarding standalone (clears app data first)
+DEVICE=1C151FDEE003YJ bash tools/adb/walk-onboarding.sh
+
+# Run the full branch test pass (unattended, ~90 min)
+DEVICE=1C151FDEE003YJ bash tools/adb/run-branch-tests.sh
+```
+
+`DEVICE` defaults to the first device returned by `adb devices` when not set.
 
 ### Enforcement
 
