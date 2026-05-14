@@ -188,6 +188,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "dialogCopyLabel": MessageLookupByLibrary.simpleMessage("复制到今天"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("删除"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("确定"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("此处仅汇总你已记录餐食中已追踪的营养素。如果某餐缺少某项数值,它就不会计入该营养素的总和,因此总量可能偏低。"),
         "diaryFutureDateWarning":
             MessageLookupByLibrary.simpleMessage("您正在编辑未来的日期"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("日记"),

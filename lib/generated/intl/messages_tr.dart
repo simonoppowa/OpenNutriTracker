@@ -202,6 +202,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("BUGÜNE KOPYALA"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("SİL"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("TAMAM"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Yalnızca kaydettiğin öğünlerde takip edilen besinler burada toplanır. Bir değeri eksik olan öğün o besine katkıda bulunmaz — bu nedenle toplamlar olduğundan az görünebilir."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Gelecekteki bir tarihi düzenliyorsunuz"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Günlük"),

@@ -197,6 +197,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Kopírovať na dnes"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("ZMAZAŤ"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Sčítavajú sa iba živiny zaznamenané pri zalogovaných jedlách. Jedlo bez hodnoty k danej živine neprispeje — súčty preto môžu byť podhodnotené."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Upravujete dátum v budúcnosti"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Denník"),

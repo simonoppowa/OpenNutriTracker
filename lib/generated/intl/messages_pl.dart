@@ -200,6 +200,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Skopiuj na dziś"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("USUŃ"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Sumowane są tylko składniki odżywcze zapisane na zalogowanych posiłkach. Posiłek bez wartości nie wnosi nic do danego składnika — sumy mogą być więc zaniżone."),
         "diaryFutureDateWarning":
             MessageLookupByLibrary.simpleMessage("Edytujesz przyszłą datę"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Dziennik"),

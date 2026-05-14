@@ -195,6 +195,7 @@
   "dialogOKLabel": "OK",
   "diaryFutureDateWarning": "You are editing a future date",
   "diaryLabel": "Diary",
+  "diaryNutrientPanelDataDisclaimer": "Only nutrients tracked on the meals you logged are summed here. A meal missing a value contributes nothing to that nutrient — so these totals may underreport.",
   "diaryNutrientPanelTitle": "Today's nutrients",
   "dinnerExample": "e.g. soup, chicken, wine ...",
   "dinnerLabel": "Dinner",

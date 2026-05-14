@@ -2122,6 +2122,16 @@ class S {
     );
   }
 
+  /// `Only nutrients tracked on the meals you logged are summed here. A meal missing a value contributes nothing to that nutrient — so these totals may underreport.`
+  String get diaryNutrientPanelDataDisclaimer {
+    return Intl.message(
+      'Only nutrients tracked on the meals you logged are summed here. A meal missing a value contributes nothing to that nutrient — so these totals may underreport.',
+      name: 'diaryNutrientPanelDataDisclaimer',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Today's nutrients`
   String get diaryNutrientPanelTitle {
     return Intl.message(

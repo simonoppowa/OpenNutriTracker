@@ -48,6 +48,10 @@ class DailyNutrientPanel extends StatefulWidget {
 
 class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
   _NutrientView _view = _NutrientView.day;
+  // Collapsed by default — see the build method's note on visual weight.
+  // Persists for the lifetime of the screen; revisiting the day view
+  // resets it, which feels right given how secondary the detail is.
+  bool _expanded = false;
 
   Future<_PanelData>? _panelDataFuture;
 
@@ -266,13 +270,22 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
         )
         .toList();
 
+    // Collapsed by default: the diary day view already carries a lot of
+    // visual weight (kcal summary, macro circles, sortable meal sections),
+    // so the nutrient detail sits inside an ExpansionTile and only reveals
+    // itself when the user explicitly opens it. The header still shows
+    // "Today's nutrients" so the affordance is discoverable.
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Theme(
+        // Strips the dividers ExpansionTile would otherwise draw above and
+        // below itself — they fight with the dividers the diary day view
+        // already places between sections.
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 8.0),
+          childrenPadding: const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 8.0),
+          title: Row(
             children: [
               Expanded(
                 child: Text(
@@ -280,7 +293,33 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
-              SegmentedButton<_NutrientView>(
+              // Inline info icon. Tapping it pops the data-disclaimer
+              // dialog without expanding the panel — IconButton's own
+              // InkResponse consumes the pointer event, so the
+              // surrounding ExpansionTile doesn't toggle.
+              IconButton(
+                tooltip: s.diaryNutrientPanelDataDisclaimer,
+                icon: Icon(
+                  Icons.info_outline,
+                  size: 20,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.7),
+                ),
+                visualDensity: VisualDensity.compact,
+                constraints: const BoxConstraints(),
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                onPressed: () => _showDataDisclaimer(context, s),
+              ),
+            ],
+          ),
+          initiallyExpanded: _expanded,
+          onExpansionChanged: (open) => setState(() => _expanded = open),
+          children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: SegmentedButton<_NutrientView>(
                 style: const ButtonStyle(
                   visualDensity: VisualDensity.compact,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -301,26 +340,45 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
                   setState(() => _view = selection.first);
                 },
               ),
-            ],
-          ),
-          const SizedBox(height: 8.0),
-          if (visibleRows.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Text(
-                s.nutrientPanelAllHiddenLabel,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.7),
-                    ),
-              ),
-            )
-          else
-            ...visibleRows,
-        ],
+            ),
+            const SizedBox(height: 8.0),
+            if (visibleRows.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Text(
+                  s.nutrientPanelAllHiddenLabel,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.7),
+                      ),
+                ),
+              )
+            else
+              ...visibleRows,
+          ],
+        ),
       ),
+    );
+  }
+
+  void _showDataDisclaimer(BuildContext context, S s) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          icon: const Icon(Icons.info_outline),
+          title: Text(s.diaryNutrientPanelTitle),
+          content: Text(s.diaryNutrientPanelDataDisclaimer),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(s.dialogOKLabel),
+            ),
+          ],
+        );
+      },
     );
   }
 

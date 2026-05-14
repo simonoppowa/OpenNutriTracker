@@ -194,6 +194,7 @@
   "dialogOKLabel": "OK",
   "diaryFutureDateWarning": "Upravujete dátum v budúcnosti",
   "diaryLabel": "Denník",
+  "diaryNutrientPanelDataDisclaimer": "Sčítavajú sa iba živiny zaznamenané pri zalogovaných jedlách. Jedlo bez hodnoty k danej živine neprispeje — súčty preto môžu byť podhodnotené.",
   "diaryNutrientPanelTitle": "Dnešné živiny",
   "dinnerExample": "napr. polievka, kuracie mäso, víno ...",
   "dinnerLabel": "Večera",

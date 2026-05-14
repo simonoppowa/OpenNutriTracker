@@ -205,6 +205,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Nach heute kopieren"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("LÖSCHEN"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Hier werden nur Nährstoffe summiert, die auf deinen protokollierten Mahlzeiten erfasst sind. Eine Mahlzeit ohne einen Wert trägt nichts zu diesem Nährstoff bei — die Summen können also zu niedrig sein."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Du bearbeitest ein zukünftiges Datum"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Tagebuch"),
