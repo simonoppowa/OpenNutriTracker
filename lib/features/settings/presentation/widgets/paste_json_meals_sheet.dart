@@ -105,15 +105,18 @@ class _PasteJsonMealsSheetState extends State<PasteJsonMealsSheet> {
                   style: theme.textTheme.bodySmall,
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: _controller,
-                  minLines: 6,
-                  maxLines: 12,
-                  keyboardType: TextInputType.multiline,
-                  enabled: !isLoading,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    isDense: true,
+                Semantics(
+                  identifier: 'paste-json-input',
+                  child: TextField(
+                    controller: _controller,
+                    minLines: 6,
+                    maxLines: 12,
+                    keyboardType: TextInputType.multiline,
+                    enabled: !isLoading,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
                   ),
                 ),
                 if (isLoading) ...[
@@ -157,12 +160,15 @@ class _PasteJsonMealsSheetState extends State<PasteJsonMealsSheet> {
                       child: Text(S.of(context).pasteJsonSheetCancelButton),
                     ),
                     const SizedBox(width: 8),
-                    FilledButton(
-                      onPressed: isLoading
-                          ? null
-                          : () => _bloc.add(
-                              PasteJsonMealsEvent(_controller.text)),
-                      child: Text(S.of(context).pasteJsonSheetParseButton),
+                    Semantics(
+                      identifier: 'paste-json-submit',
+                      child: FilledButton(
+                        onPressed: isLoading
+                            ? null
+                            : () => _bloc.add(
+                                PasteJsonMealsEvent(_controller.text)),
+                        child: Text(S.of(context).pasteJsonSheetParseButton),
+                      ),
                     ),
                   ],
                 ),

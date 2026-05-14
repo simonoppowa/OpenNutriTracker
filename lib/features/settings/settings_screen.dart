@@ -158,10 +158,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: Text(S.of(context).importCustomFoodDataLabel),
                   onTap: () => _showImportCustomFoodDataDialog(context),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.content_paste_outlined),
-                  title: Text(S.of(context).settingsImportPasteJsonButton),
-                  onTap: () => PasteJsonMealsSheet.show(context),
+                Semantics(
+                  identifier: 'settings-paste-json',
+                  child: ListTile(
+                    leading: const Icon(Icons.content_paste_outlined),
+                    title: Text(S.of(context).settingsImportPasteJsonButton),
+                    onTap: () => PasteJsonMealsSheet.show(context),
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.import_export),
