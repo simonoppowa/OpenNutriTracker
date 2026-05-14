@@ -233,6 +233,7 @@
   "mealCarbsLabel": "carboidrati per",
   "mealFatLabel": "grassi per",
   "mealKcalLabel": "kcal per",
+  "mealEnergyLabel": "Energia",
   "mealNameLabel": "Nome pasto",
   "mealNameValidationError": "Il nome del pasto deve contenere almeno una lettera",
   "mealNutrientsPerQtyLabel": "Per {qty} {unit}",

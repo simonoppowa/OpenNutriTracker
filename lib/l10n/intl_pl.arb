@@ -233,6 +233,7 @@
   "mealCarbsLabel": "węglowodany na",
   "mealFatLabel": "tłuszcze na",
   "mealKcalLabel": "kcal na",
+  "mealEnergyLabel": "Energia",
   "mealNameLabel": "Nazwa posiłku",
   "mealNameValidationError": "Nazwa posiłku musi zawierać co najmniej jedną literę",
   "mealNutrientsPerQtyLabel": "Na {qty} {unit}",

@@ -233,6 +233,7 @@
   "mealCarbsLabel": "вуглеводи на",
   "mealFatLabel": "жири на",
   "mealKcalLabel": "ккал на",
+  "mealEnergyLabel": "Енергія",
   "mealNameLabel": "Назва страви",
   "mealNameValidationError": "Назва страви повинна містити принаймні одну літеру",
   "mealNutrientsPerQtyLabel": "На {qty} {unit}",

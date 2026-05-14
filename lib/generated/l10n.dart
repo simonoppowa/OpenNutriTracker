@@ -2943,6 +2943,16 @@ class S {
     );
   }
 
+  /// `Energy`
+  String get mealEnergyLabel {
+    return Intl.message(
+      'Energy',
+      name: 'mealEnergyLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Carbohydrates (g)`
   String get mealCarbsLabel {
     return Intl.message(

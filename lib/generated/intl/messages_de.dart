@@ -346,6 +346,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Fett pro 100 g/ml"),
         "mealKcalLabel":
             MessageLookupByLibrary.simpleMessage("kcal pro 100 g/ml"),
+        "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("Energie"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("Mahlzeitenname"),
         "mealNameValidationError": MessageLookupByLibrary.simpleMessage(
             "Mahlzeitenname muss mindestens einen Buchstaben enthalten"),

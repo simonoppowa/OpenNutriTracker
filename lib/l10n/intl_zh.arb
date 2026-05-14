@@ -234,6 +234,7 @@
   "mealCarbsLabel": "碳水每",
   "mealFatLabel": "脂肪每",
   "mealKcalLabel": "卡路里每",
+  "mealEnergyLabel": "能量",
   "mealNameLabel": "餐食名称",
   "mealNameValidationError": "餐食名称必须至少包含一个字母",
   "mealNutrientsPerQtyLabel": "每 {qty} {unit}",

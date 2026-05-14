@@ -233,6 +233,7 @@
   "mealCarbsLabel": "sacharidů na",
   "mealFatLabel": "tuků na",
   "mealKcalLabel": "kcal na",
+  "mealEnergyLabel": "Energie",
   "mealNameLabel": "Název jídla",
   "mealNameValidationError": "Název jídla musí obsahovat alespoň jedno písmeno",
   "mealNutrientsPerQtyLabel": "Na {qty} {unit}",

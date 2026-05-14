@@ -358,6 +358,7 @@
   "servingSizeLabelImperial": "Serving size (oz/fl oz)",
   "mealUnitLabel": "Meal unit",
   "mealKcalLabel": "kcal",
+  "mealEnergyLabel": "Energy",
   "mealCarbsLabel": "Carbohydrates (g)",
   "mealFatLabel": "Fat (g)",
   "mealProteinLabel": "Protein (g)",

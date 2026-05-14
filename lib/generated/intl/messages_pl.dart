@@ -335,6 +335,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("węglowodany na"),
         "mealFatLabel": MessageLookupByLibrary.simpleMessage("tłuszcze na"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("kcal na"),
+        "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("Energia"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("Nazwa posiłku"),
         "mealNameValidationError": MessageLookupByLibrary.simpleMessage(
             "Nazwa posiłku musi zawierać co najmniej jedną literę"),

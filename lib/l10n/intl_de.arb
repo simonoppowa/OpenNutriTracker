@@ -233,6 +233,7 @@
   "mealCarbsLabel": "Kohlenhydrate (g)",
   "mealFatLabel": "Fett (g)",
   "mealKcalLabel": "kcal",
+  "mealEnergyLabel": "Energie",
   "mealNameLabel": "Mahlzeitenname",
   "mealNameValidationError": "Mahlzeitenname muss mindestens einen Buchstaben enthalten",
   "mealNutrientsPerQtyLabel": "Pro {qty} {unit}",

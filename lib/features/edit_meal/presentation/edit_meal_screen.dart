@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/food_name_validator.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -15,6 +16,7 @@ import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_
 import 'package:opennutritracker/features/edit_meal/presentation/widgets/default_meal_image.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class EditMealScreen extends StatefulWidget {
@@ -54,6 +56,12 @@ class _EditMealScreenState extends State<EditMealScreen> {
   String baseQuantity = "100";
   String baseQuantityUnit = " g/ml";
 
+  /// Tracks the unit the energy field was last rendered in, so that when
+  /// the user flips between kcal and kJ in Settings mid-edit we can
+  /// re-display the same underlying energy in the new unit. `null` until
+  /// the first build seeds the field.
+  bool? _lastRenderedUsesKj;
+
   @override
   void initState() {
     super.initState();
@@ -77,8 +85,15 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _mealQuantityTextController.text = _mealEntity.mealQuantity ?? "";
     _servingQuantityTextController.text =
         _mealEntity.servingQuantity.toStringOrEmpty();
-    _kcalTextController.text =
-        _mealEntity.nutriments.energyKcal100.toStringOrEmpty();
+    // Seed the energy field in the user's currently-selected unit (#177
+    // follow-up). Storage stays kcal — we only translate at the edges.
+    final usesKjOnLoad =
+        Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
+    _kcalTextController.text = _formatStoredKcalForDisplay(
+      _mealEntity.nutriments.energyKcal100,
+      usesKjOnLoad,
+    );
+    _lastRenderedUsesKj = usesKjOnLoad;
     _carbsTextController.text =
         _mealEntity.nutriments.carbohydrates100.toStringOrEmpty();
     _fatTextController.text = _mealEntity.nutriments.fat100.toStringOrEmpty();
@@ -139,6 +154,10 @@ class _EditMealScreenState extends State<EditMealScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch the energy-unit provider so the form reacts when the user
+    // flips between kcal and kJ in Settings while this screen is open.
+    final usesKj = context.watch<EnergyUnitProvider>().usesKilojoules;
+    _maybeReinterpretKcalField(usesKj);
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -159,7 +178,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
             if (state is EditMealLoadingState) {
               return _getLoadingContent();
             } else if (state is EditMealLoadedState) {
-              return _getLoadedContent(state.usesImperialUnits);
+              return _getLoadedContent(state.usesImperialUnits, usesKj);
             }
             return const SizedBox.shrink();
           },
@@ -168,11 +187,43 @@ class _EditMealScreenState extends State<EditMealScreen> {
     );
   }
 
+  /// Re-interpret whatever the user has typed in the energy field when
+  /// the active energy unit changes mid-edit. The current text is
+  /// interpreted as the previously-rendered unit, converted to the new
+  /// unit, and written back so the displayed quantity matches the new
+  /// unit suffix. We round to one decimal place to keep the field tidy.
+  void _maybeReinterpretKcalField(bool usesKj) {
+    if (_lastRenderedUsesKj == null || _lastRenderedUsesKj == usesKj) {
+      _lastRenderedUsesKj = usesKj;
+      return;
+    }
+    final current = double.tryParse(_kcalTextController.text);
+    if (current != null) {
+      final converted = usesKj
+          ? UnitCalc.kcalToKj(current)
+          : UnitCalc.kjToKcal(current);
+      _kcalTextController.text =
+          double.parse(converted.toStringAsFixed(1)).toStringOrEmpty();
+    }
+    _lastRenderedUsesKj = usesKj;
+  }
+
+  /// Convert a stored kcal value into the string the user should see in
+  /// the energy field, given the active unit. One decimal place is
+  /// plenty for an input field; saving rounds back to kcal anyway.
+  String _formatStoredKcalForDisplay(double? storedKcal, bool usesKj) {
+    if (storedKcal == null) return "";
+    final display = usesKj ? UnitCalc.kcalToKj(storedKcal) : storedKcal;
+    return double.parse(display.toStringAsFixed(1)).toStringOrEmpty();
+  }
+
   Widget _getLoadingContent() {
     return const Center(child: CircularProgressIndicator());
   }
 
-  Widget _getLoadedContent(bool usesImperialUnits) {
+  Widget _getLoadedContent(bool usesImperialUnits, bool usesKj) {
+    final energyUnitSuffix =
+        usesKj ? S.of(context).kjLabel : S.of(context).kcalLabel;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -275,7 +326,8 @@ class _EditMealScreenState extends State<EditMealScreen> {
           controller: _kcalTextController,
           inputFormatters: CustomTextInputFormatter.doubleOnly(),
           decoration: InputDecoration(
-              labelText: S.of(context).mealKcalLabel,
+              labelText:
+                  '${S.of(context).mealEnergyLabel} ($energyUnitSuffix)',
               helperText: _isTotal
                   ? S.of(context).mealNutrientsTotalLabel
                   : S.of(context).mealNutrientsPerQtyLabel(
@@ -343,7 +395,21 @@ class _EditMealScreenState extends State<EditMealScreen> {
       // Validate nutritional consistency (#213)
       final baseQty =
           double.tryParse(_baseQuantityTextController.text) ?? 100.0;
-      final enteredKcal = double.tryParse(_kcalTextController.text);
+      // The energy field is rendered in the user's active unit (#177
+      // follow-up). Parse it as that unit and immediately fold it back
+      // to kcal — every downstream check, every persisted value, and
+      // every comparison expects kcal. We round to one decimal so the
+      // stored value stays tidy without losing meaningful precision.
+      final usesKjOnSave =
+          Provider.of<EnergyUnitProvider>(context, listen: false)
+              .usesKilojoules;
+      final enteredEnergyRaw = double.tryParse(_kcalTextController.text);
+      final enteredKcal = enteredEnergyRaw == null
+          ? null
+          : (usesKjOnSave
+              ? double.parse(
+                  UnitCalc.kjToKcal(enteredEnergyRaw).toStringAsFixed(1))
+              : enteredEnergyRaw);
       final enteredCarbs = double.tryParse(_carbsTextController.text);
       final enteredFat = double.tryParse(_fatTextController.text);
       final enteredProtein = double.tryParse(_proteinTextController.text);
@@ -387,8 +453,13 @@ class _EditMealScreenState extends State<EditMealScreen> {
               _mealQuantityTextController.text, mealUnitForConversion)
           : _mealQuantityTextController.text;
 
-      // Convert total → per-base-qty if in total input mode
-      String kcalText = _kcalTextController.text;
+      // Convert total → per-base-qty if in total input mode. `kcalText`
+      // is sourced from the kcal-folded value above, not from the raw
+      // controller text — by this point in the function, everything is
+      // expressed in kcal regardless of what the user typed.
+      String kcalText = enteredKcal == null
+          ? _kcalTextController.text
+          : enteredKcal.toStringOrEmpty();
       String carbsText = _carbsTextController.text;
       String fatText = _fatTextController.text;
       String proteinText = _proteinTextController.text;

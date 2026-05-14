@@ -233,6 +233,7 @@
   "mealCarbsLabel": "Karbonhidrat (g)",
   "mealFatLabel": "Yağ (g)",
   "mealKcalLabel": "kcal",
+  "mealEnergyLabel": "Enerji",
   "mealNameLabel": "Yemek adı",
   "mealNameValidationError": "Yemek adı en az bir harf içermelidir",
   "mealNutrientsPerQtyLabel": "{qty} {unit} başına",
