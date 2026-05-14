@@ -200,6 +200,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Скопіювати на сьогодні"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("ВИДАЛИТИ"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("ОК"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Тут підсумовуються лише ті поживні речовини, які записані для зареєстрованих страв. Страва без значення не додає нічого до відповідного показника — тож суми можуть бути занижені."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Ви редагуєте майбутню дату"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Щоденник"),
@@ -256,6 +258,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("Експортувати"),
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "Експортувати / Імпортувати дані застосунку"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("Рецепти зберігаються лише при експорті й імпорті у форматі JSON. Перемкніть на JSON, щоб включити їх до резервної копії."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Ви можете експортувати дані додатка у zip-файл і імпортувати їх пізніше. Це корисно, якщо ви хочете зробити резервну копію або перенести дані на інший пристрій. Додаток не використовує жодних хмарних сервісів для зберігання ваших даних."),
         "exportImportErrorLabel":
@@ -377,6 +381,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("Н/Д"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Нічого не додано"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("День"),
+        "nutrientPanelWeekLabel":
+            MessageLookupByLibrary.simpleMessage("Тиждень"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Усі поживні речовини приховано — увімкни деякі в Налаштування → Поживні речовини."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Інформація про харчування"),
         "nutritionalStatusNormalWeight":
@@ -1033,6 +1042,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Показати макроси страви"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Показувати мікроелементи"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Поживні речовини"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Обери, які поживні речовини показувати на панелі щоденника"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Обери, які поживні речовини видимі на щоденній панелі. Приховані можна знову увімкнути будь-коли."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Вихідний код"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Система"),

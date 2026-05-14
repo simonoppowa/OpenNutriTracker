@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_or_delete_dialog.dart';
+import 'package:opennutritracker/core/presentation/widgets/macro_nutriments_widget.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
@@ -124,33 +125,35 @@ class DayInfoWidget extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 4.0),
-                        Text(
-                          _getMacroTrackedDisplayString(trackedDay),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.7),
-                              ),
+                        const SizedBox(height: 12.0),
+                        MacroNutrientsView(
+                          totalCarbsIntake: _allIntakes
+                              .fold(0.0, (sum, i) => sum + i.totalCarbsGram),
+                          totalFatsIntake: _allIntakes
+                              .fold(0.0, (sum, i) => sum + i.totalFatsGram),
+                          totalProteinsIntake: _allIntakes
+                              .fold(0.0, (sum, i) => sum + i.totalProteinsGram),
+                          totalCarbsGoal: trackedDay.carbsGoal ?? 0.0,
+                          totalFatsGoal: trackedDay.fatGoal ?? 0.0,
+                          totalProteinsGoal: trackedDay.proteinGoal ?? 0.0,
                         ),
                       ],
                     ),
                   )
                 : const SizedBox(),
-            // #160: Daily micronutrient panel — aggregates fibre, sodium,
-            // saturated fat, sugar, calcium, iron, and potassium across the
-            // day's intake list. No-op when there's nothing logged yet.
-            // #173: forward the day's tracked entity so the panel can use
-            // the user's configured fibre / sat-fat / sugars targets when
-            // they've set them in Settings → Calculations.
+            // #160 + #173 + #404: Daily micronutrient panel — aggregates
+            // ten nutrients (fibre, sodium, saturated fat, sugar, calcium,
+            // iron, potassium, vitamin D, vitamin B12, magnesium) across
+            // the day's intake list, with a Day/Week toggle that pulls the
+            // previous six days' intakes itself via the locator. The
+            // tracked-day entity is forwarded so the panel can prefer the
+            // user's per-nutrient targets from Settings → Nutrient goals
+            // when they've configured any (#173). No-op when there's
+            // nothing logged for the current day yet.
             if (_allIntakes.isNotEmpty)
               DailyNutrientPanel(
                 intakes: _allIntakes,
+                selectedDay: selectedDay,
                 trackedDay: trackedDayEntity,
               ),
             const SizedBox(height: 8.0),
@@ -248,21 +251,6 @@ class DayInfoWidget extends StatelessWidget {
     final actualKcal = _allIntakes.fold(0.0, (sum, i) => sum + i.totalKcal);
     final caloriesTracked = actualKcal < 0 ? 0 : actualKcal.toInt();
     return '$caloriesTracked/${trackedDay.calorieGoal.toInt()} kcal';
-  }
-
-  String _getMacroTrackedDisplayString(TrackedDayEntity trackedDay) {
-    final carbsTracked =
-        _allIntakes.fold(0.0, (sum, i) => sum + i.totalCarbsGram).floor();
-    final fatTracked =
-        _allIntakes.fold(0.0, (sum, i) => sum + i.totalFatsGram).floor();
-    final proteinTracked =
-        _allIntakes.fold(0.0, (sum, i) => sum + i.totalProteinsGram).floor();
-
-    final carbsGoal = trackedDay.carbsGoal?.floor().toString() ?? '?';
-    final fatGoal = trackedDay.fatGoal?.floor().toString() ?? '?';
-    final proteinGoal = trackedDay.proteinGoal?.floor().toString() ?? '?';
-
-    return 'Carbs: $carbsTracked/${carbsGoal}g, Fat: $fatTracked/${fatGoal}g, Protein: $proteinTracked/${proteinGoal}g';
   }
 
   void showCopyOrDeleteIntakeDialog(

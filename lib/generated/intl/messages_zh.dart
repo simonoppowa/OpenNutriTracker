@@ -188,6 +188,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "dialogCopyLabel": MessageLookupByLibrary.simpleMessage("复制到今天"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("删除"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("确定"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("此处仅汇总你已记录餐食中已追踪的营养素。如果某餐缺少某项数值,它就不会计入该营养素的总和,因此总量可能偏低。"),
         "diaryFutureDateWarning":
             MessageLookupByLibrary.simpleMessage("您正在编辑未来的日期"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("日记"),
@@ -237,6 +239,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("导出"),
         "exportImportAppDataLabel":
             MessageLookupByLibrary.simpleMessage("导出 / 导入应用数据"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("食谱仅在 JSON 导出和导入中保留。切换到 JSON 即可将其包含在备份中。"),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "您可以将应用数据导出到zip文件并稍后导入。这在您想要备份数据或传输到另一台设备时很有用。\n\n应用不会使用任何云服务存储您的数据。"),
         "exportImportErrorLabel":
@@ -342,6 +346,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "noResultsFound": MessageLookupByLibrary.simpleMessage("未找到结果"),
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("不可用"),
         "nothingAddedLabel": MessageLookupByLibrary.simpleMessage("未添加任何内容"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("日"),
+        "nutrientPanelWeekLabel": MessageLookupByLibrary.simpleMessage("周"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "所有营养素都已隐藏 — 请到设置 → 营养素中打开。"),
         "nutritionInfoLabel": MessageLookupByLibrary.simpleMessage("营养信息"),
         "nutritionalStatusNormalWeight":
             MessageLookupByLibrary.simpleMessage("正常体重"),
@@ -890,6 +898,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("显示餐食宏量"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("显示微量营养素"),
+        "settingsNutrientsLabel": MessageLookupByLibrary.simpleMessage("营养素"),
+        "settingsNutrientsSubtitle":
+            MessageLookupByLibrary.simpleMessage("选择在日记面板中显示哪些营养素"),
+        "settingsNutrientsHelp":
+            MessageLookupByLibrary.simpleMessage("选择每日面板中显示哪些营养素。隐藏的可以随时重新开启。"),
         "settingsSourceCodeLabel": MessageLookupByLibrary.simpleMessage("源代码"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("系统"),
         "settingsThemeDarkLabel": MessageLookupByLibrary.simpleMessage("深色"),

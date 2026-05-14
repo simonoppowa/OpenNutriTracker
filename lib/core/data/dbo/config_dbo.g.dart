@@ -30,6 +30,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         notificationMinute: (fields[12] as num?)?.toInt(),
         selectedLocale: fields[13] as String?,
         showMicronutrients: fields[15] as bool?,
+        nutrientPanelVisibility: (fields[22] as Map?)?.cast<String, bool>(),
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -39,7 +40,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(16)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -71,7 +72,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(14)
       ..write(obj.showMealMacros)
       ..writeByte(15)
-      ..write(obj.showMicronutrients);
+      ..write(obj.showMicronutrients)
+      ..writeByte(22)
+      ..write(obj.nutrientPanelVisibility);
   }
 
   @override
@@ -104,6 +107,10 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
         notificationMinute: (json['notificationMinute'] as num?)?.toInt(),
         selectedLocale: json['selectedLocale'] as String?,
         showMicronutrients: json['showMicronutrients'] as bool?,
+        nutrientPanelVisibility:
+            (json['nutrientPanelVisibility'] as Map<String, dynamic>?)?.map(
+              (k, e) => MapEntry(k, e as bool),
+            ),
       )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -126,6 +133,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'selectedLocale': instance.selectedLocale,
   'showMealMacros': instance.showMealMacros,
   'showMicronutrients': instance.showMicronutrients,
+  'nutrientPanelVisibility': instance.nutrientPanelVisibility,
 };
 
 const _$AppThemeDBOEnumMap = {

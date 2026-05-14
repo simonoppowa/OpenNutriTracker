@@ -199,6 +199,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Kopírovat pro dnešek"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("SMAZAT"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Sčítají se zde pouze živiny, které jsou u zaznamenaných jídel zachyceny. Jídlo bez hodnoty k dané živině nepřispěje — součty proto mohou být podhodnocené."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Upravujete datum v budoucnosti"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diář"),
@@ -254,6 +256,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("Export"),
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "Export / Import dat aplikace"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("Recepty se zachovávají pouze při exportu a importu ve formátu JSON. Přepněte na JSON, pokud je chcete zahrnout do zálohy."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Můžete uložit data z aplikace do .zip archívu a později je znovu importovat. To je užitečné, pokud potřebujete data zálohovat, nebo přenést na jiné zařízení.\n\nAplikace pro ukládání dat nepoužívá žádné cloudové služby."),
         "exportImportErrorLabel":
@@ -373,6 +377,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Nenalezeny žádné výsledky"),
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("neuvedeno"),
         "nothingAddedLabel": MessageLookupByLibrary.simpleMessage("Nezadáno"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Den"),
+        "nutrientPanelWeekLabel": MessageLookupByLibrary.simpleMessage("Týden"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Všechny živiny skryté — zapni některé v Nastavení → Živiny."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Nutriční hodnoty"),
         "nutritionalStatusNormalWeight":
@@ -1025,6 +1033,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Zobrazit makra jídla"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Zobrazit mikroživiny"),
+        "settingsNutrientsLabel": MessageLookupByLibrary.simpleMessage("Živiny"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Vyber, které živiny se zobrazí v panelu deníku"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Zvol, které živiny jsou v denním panelu vidět. Skryté lze kdykoli znovu zapnout."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Zdrojový kód"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Systém"),

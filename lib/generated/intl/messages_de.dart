@@ -205,6 +205,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Nach heute kopieren"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("LÖSCHEN"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Hier werden nur Nährstoffe summiert, die auf deinen protokollierten Mahlzeiten erfasst sind. Eine Mahlzeit ohne einen Wert trägt nichts zu diesem Nährstoff bei — die Summen können also zu niedrig sein."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Du bearbeitest ein zukünftiges Datum"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Tagebuch"),
@@ -261,6 +263,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("Exportieren"),
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "App-Daten exportieren / importieren"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("Rezepte werden nur mit JSON-Export und -Import beibehalten. Wechsle zu JSON, um sie in dein Backup einzuschließen."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Sie können die App-Daten in eine Zip-Datei exportieren und später importieren. Dies ist nützlich, wenn Sie Ihre Daten sichern oder auf ein anderes Gerät übertragen möchten.\n\nDie App nutzt keinen Cloud-Dienst, um Ihre Daten zu speichern."),
         "exportImportErrorLabel":
@@ -389,6 +393,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("N/A"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Nichts hinzugefügt"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Tag"),
+        "nutrientPanelWeekLabel": MessageLookupByLibrary.simpleMessage("Woche"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Alle Nährstoffe ausgeblendet — schalte einige unter Einstellungen → Nährstoffe ein."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Nährwertangaben"),
         "nutritionalStatusNormalWeight":
@@ -1045,6 +1053,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Makros je Mahlzeit anzeigen"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Mikronährstoffe anzeigen"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Nährstoffe"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Wähle, welche Nährstoffe im Tagebuch erscheinen"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Wähle, welche Nährstoffe im Tagespanel sichtbar sind. Ausgeblendete kannst du jederzeit wieder einschalten."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Quellcode"),
         "settingsSystemLabel":

@@ -200,6 +200,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Skopiuj na dziś"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("USUŃ"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Sumowane są tylko składniki odżywcze zapisane na zalogowanych posiłkach. Posiłek bez wartości nie wnosi nic do danego składnika — sumy mogą być więc zaniżone."),
         "diaryFutureDateWarning":
             MessageLookupByLibrary.simpleMessage("Edytujesz przyszłą datę"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Dziennik"),
@@ -255,6 +257,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("Eksportuj"),
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "Eksportuj / Importuj dane aplikacji"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("Przepisy są zachowywane tylko przy eksporcie i imporcie JSON. Przełącz na JSON, aby uwzględnić je w kopii zapasowej."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Możesz wyeksportować dane aplikacji do pliku zip i zaimportować je później. Jest to przydatne, jeśli chcesz wykonać kopię zapasową danych lub przenieść je na inne urządzenie.\n\nAplikacja nie korzysta z żadnej usługi chmurowej do przechowywania danych."),
         "exportImportErrorLabel":
@@ -378,6 +382,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("N/D"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Nic nie dodano"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Dzień"),
+        "nutrientPanelWeekLabel":
+            MessageLookupByLibrary.simpleMessage("Tydzień"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Wszystkie składniki ukryte — włącz wybrane w Ustawienia → Składniki odżywcze."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Informacje odżywcze"),
         "nutritionalStatusNormalWeight":
@@ -1030,6 +1039,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Pokaż makro posiłku"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Pokaż mikroskładniki"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Składniki odżywcze"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Wybierz, które składniki pojawiają się w panelu dziennika"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Wybierz, które składniki są widoczne w panelu dziennym. Ukryte możesz w każdej chwili włączyć ponownie."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Kod źródłowy"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("System"),
