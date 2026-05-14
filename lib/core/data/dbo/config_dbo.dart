@@ -40,6 +40,26 @@ class ConfigDBO extends HiveObject {
   bool? showMealMacros;
   @HiveField(15)
   bool? showMicronutrients; // #237: null means default (false)
+  // Fields 16-19 are reserved for the pre-rebased ConfigDBO chain on
+  // adjacent in-flight branches. Keep this index at 20 so the follow-up
+  // taper toggle does not collide when those branches land.
+  @HiveField(20)
+  bool caloriesTaperEnabled;
+  // #160 follow-up: per-nutrient show/hide map for the daily nutrient panel.
+  // Keys are nutrient identifiers from [DailyNutrientPanel]; values are
+  // explicit user overrides. A nutrient not present in the map (or a null
+  // map altogether) means "use the default visibility", which is currently
+  // visible for every nutrient — see [ConfigEntity.isNutrientVisible].
+  @HiveField(22)
+  Map<String, bool>? nutrientPanelVisibility;
+
+  /// Per-meal sort preference for the diary day view. Keys are meal type
+  /// strings (`breakfast` / `lunch` / `dinner` / `snack`) and values are the
+  /// `DiarySortType` enum index. Nullable so existing configs without a
+  /// persisted preference keep falling back to the widget-state default
+  /// (`DiarySortType.timeAdded`) until the user picks a sort.
+  @HiveField(21)
+  Map<String, int>? diarySortPreferences;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -55,6 +75,9 @@ class ConfigDBO extends HiveObject {
     this.notificationMinute,
     this.selectedLocale,
     this.showMicronutrients,
+    this.caloriesTaperEnabled = false,
+    this.diarySortPreferences,
+    this.nutrientPanelVisibility,
   });
 
   factory ConfigDBO.empty() =>
@@ -66,6 +89,7 @@ class ConfigDBO extends HiveObject {
         entity.hasAcceptedSendAnonymousData,
         AppThemeDBO.fromAppThemeEntity(entity.appTheme),
         usesImperialUnits: entity.usesImperialUnits,
+        caloriesTaperEnabled: entity.caloriesTaperEnabled,
       );
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>

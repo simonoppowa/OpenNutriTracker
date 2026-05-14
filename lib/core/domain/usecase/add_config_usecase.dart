@@ -71,4 +71,18 @@ class AddConfigUsecase {
   Future<void> setConfigShowMicronutrients(bool show) async {
     _configRepository.setConfigShowMicronutrients(show);
   }
+
+  Future<void> setConfigCaloriesTaperEnabled(bool enabled) async {
+    await _configRepository.setConfigCaloriesTaperEnabled(enabled);
+  }
+
+  Future<void> setDiarySortPreference(String mealKey, int sortIndex) async {
+    await _configRepository.setDiarySortPreference(mealKey, sortIndex);
+  }
+
+  Future<void> setConfigNutrientPanelVisibility(
+    Map<String, bool> visibility,
+  ) async {
+    await _configRepository.setConfigNutrientPanelVisibility(visibility);
+  }
 }

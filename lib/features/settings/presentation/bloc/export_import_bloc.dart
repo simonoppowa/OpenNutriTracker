@@ -19,6 +19,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
   static const userIntakeJsonFileName = 'user_intake.json';
   static const trackedDayJsonFileName = 'user_tracked_day.json';
   static const recipeJsonFileName = 'user_recipes.json';
+  static const weightLogJsonFileName = 'weight_log.json';
   // #70 follow-up: saved Custom activity templates (name + typical kcal).
   static const customActivityTemplateJsonFileName =
       'custom_activity_templates.json';
@@ -52,7 +53,9 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
           userIntakeJsonFileName,
           trackedDayJsonFileName,
           recipeJsonFileName,
+          weightLogJsonFileName,
           customActivityTemplateJsonFileName,
+          format: event.format,
         );
 
         if (result) {
@@ -69,13 +72,16 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
       try {
         emit(ExportImportLoadingState());
 
-        final result = await _importDataUsecase.importData(
-          userActivityJsonFileName,
-          userIntakeJsonFileName,
-          trackedDayJsonFileName,
-          recipeJsonFileName,
-          customActivityTemplateJsonFileName,
-        );
+        final result = event.format == ExportFormat.csv
+            ? await _importDataUsecase.importDataCsv()
+            : await _importDataUsecase.importData(
+                userActivityJsonFileName,
+                userIntakeJsonFileName,
+                trackedDayJsonFileName,
+                recipeJsonFileName,
+                weightLogJsonFileName,
+                customActivityTemplateJsonFileName,
+              );
         if (result) {
           emit(ExportImportSuccess());
         } else {

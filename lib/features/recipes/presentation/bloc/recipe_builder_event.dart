@@ -94,3 +94,12 @@ class UpdateTotalWeightEvent extends RecipeBuilderEvent {
 class SaveRecipeEvent extends RecipeBuilderEvent {
   const SaveRecipeEvent();
 }
+
+class UpdateImagePathEvent extends RecipeBuilderEvent {
+  // Relative slug under the app documents directory, or null to clear.
+  final String? imagePath;
+  const UpdateImagePathEvent(this.imagePath);
+
+  @override
+  List<Object?> get props => [imagePath];
+}

@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/user_image_picker_tile.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_builder_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/food_search_tab_view.dart';
@@ -124,16 +129,33 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
                   ),
                 )
               else
-                TextButton.icon(
-                  onPressed: () => _bloc.add(const SaveRecipeEvent()),
-                  icon: const Icon(Icons.save_outlined),
-                  label: Text(S.of(context).recipeSaveLabel),
+                Semantics(
+                  identifier: 'recipe-builder-save',
+                  child: TextButton.icon(
+                    onPressed: () => _bloc.add(const SaveRecipeEvent()),
+                    icon: const Icon(Icons.save_outlined),
+                    label: Text(S.of(context).recipeSaveLabel),
+                  ),
                 ),
             ],
           ),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              UserImagePickerTile(
+                kind: UserImageKind.recipe,
+                imagePath: state.imagePath,
+                onPickFromGallery: () => _onPickImage(
+                  context,
+                  source: ImageSource.gallery,
+                ),
+                onTakePhoto: () => _onPickImage(
+                  context,
+                  source: ImageSource.camera,
+                ),
+                onRemove: () => _onRemoveImage(context),
+              ),
+              const SizedBox(height: 16),
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -266,7 +288,8 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
         (state.description?.trim().isNotEmpty ?? false) ||
         state.ingredients.isNotEmpty ||
         state.servingsCount != null ||
-        state.tags.isNotEmpty;
+        state.tags.isNotEmpty ||
+        state.imagePath != null;
   }
 
   Future<bool?> _confirmDiscard(BuildContext context) {
@@ -336,6 +359,46 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
     );
   }
 
+  Future<void> _onPickImage(
+    BuildContext context, {
+    required ImageSource source,
+  }) async {
+    final recipeId = _bloc.state.id;
+    if (recipeId == null) return;
+    try {
+      final picker = ImagePicker();
+      // Pick at full resolution — `UserImageStorage.importFrom` re-encodes
+      // to WebP at quality 80 with a 1024px longest-edge cap, so we don't
+      // need image_picker's own JPEG compression on top. Doing it in one
+      // place keeps the on-disk footprint consistent regardless of which
+      // source (camera / gallery) the photo came from.
+      final picked = await picker.pickImage(source: source);
+      if (picked == null) return;
+      final relative = await UserImageStorage.importFrom(
+        kind: UserImageKind.recipe,
+        ownerId: recipeId,
+        sourcePath: picked.path,
+      );
+      // Bust the in-memory Image.file cache so the new picture shows up
+      // immediately instead of redrawing the previous bytes for this path.
+      FileImage(File(await UserImageStorage.absolutePath(relative)))
+          .evict();
+      _bloc.add(UpdateImagePathEvent(relative));
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).recipeSaveErrorLabel)),
+      );
+    }
+  }
+
+  Future<void> _onRemoveImage(BuildContext context) async {
+    final current = _bloc.state.imagePath;
+    if (current == null) return;
+    await UserImageStorage.delete(current);
+    _bloc.add(const UpdateImagePathEvent(null));
+  }
+
   void _showSaveError(BuildContext context, SaveError error) {
     final s = S.of(context);
     final message = switch (error) {
@@ -348,4 +411,5 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
       SnackBar(content: Text(message)),
     );
   }
+
 }

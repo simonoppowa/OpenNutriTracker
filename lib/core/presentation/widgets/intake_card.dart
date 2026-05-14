@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/user_image_storage.dart';
 
 class IntakeCard extends StatelessWidget {
   final IntakeEntity intake;
@@ -46,25 +49,33 @@ class IntakeCard extends StatelessWidget {
                   : null,
               child: Stack(
                 children: [
-                  intake.meal.mainImageUrl != null
-                      ? CachedNetworkImage(
-                          cacheManager: locator<CacheManager>(),
-                          imageUrl: intake.meal.mainImageUrl ?? "",
-                          imageBuilder: (context, imageProvider) => Container(
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: imageProvider,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        )
-                      : Center(
-                          child: Icon(
-                            Icons.restaurant_outlined,
-                            color: Theme.of(context).colorScheme.secondary,
+                  // Prefer the user-attached local photo for custom meals
+                  // (#64 follow-up). Falls through to the OFF / FDC remote
+                  // image when the user hasn't picked one, and finally to
+                  // the placeholder icon for entries that have neither.
+                  if (intake.meal.localImagePath != null)
+                    _LocalMealBackground(
+                        relativePath: intake.meal.localImagePath!)
+                  else if (intake.meal.mainImageUrl != null)
+                    CachedNetworkImage(
+                      cacheManager: locator<CacheManager>(),
+                      imageUrl: intake.meal.mainImageUrl ?? "",
+                      imageBuilder: (context, imageProvider) => Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: imageProvider,
+                            fit: BoxFit.cover,
                           ),
                         ),
+                      ),
+                    )
+                  else
+                    Center(
+                      child: Icon(
+                        Icons.restaurant_outlined,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
                   Container(
                     // Add color shade
                     decoration: BoxDecoration(
@@ -142,5 +153,34 @@ class IntakeCard extends StatelessWidget {
 
   void onTappedItem(BuildContext context, bool usesImperialUnits) {
     onItemTapped?.call(context, intake, usesImperialUnits);
+  }
+}
+
+/// Renders a user-attached meal photo behind the intake-card overlay.
+/// Mirrors the `CachedNetworkImage` branch's BoxFit / decoration so the
+/// card's gradient + kcal pill sit on top exactly as they did before.
+class _LocalMealBackground extends StatelessWidget {
+  final String relativePath;
+
+  const _LocalMealBackground({required this.relativePath});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: UserImageStorage.absolutePath(relativePath),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox.shrink();
+        final file = File(snapshot.data!);
+        if (!file.existsSync()) return const SizedBox.shrink();
+        return Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: FileImage(file),
+              fit: BoxFit.cover,
+            ),
+          ),
+        );
+      },
+    );
   }
 }
