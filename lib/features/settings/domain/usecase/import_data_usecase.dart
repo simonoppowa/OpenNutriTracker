@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
 
 class ImportDataUsecase {
   final UserActivityRepository _userActivityRepository;
@@ -110,6 +111,58 @@ class ImportDataUsecase {
       final recipeDBOs =
           recipeList.map((json) => RecipeDBO.fromJson(json)).toList();
       await _recipeRepository.addAllRecipeDBOs(recipeDBOs);
+    }
+
+    return true;
+  }
+
+  /// Symmetric CSV counterpart to [importData]. Reads a zip produced by
+  /// `ExportDataUsecase.exportData(format: ExportFormat.csv)` and feeds
+  /// each CSV through the matching `parse...FromCsv` helper on
+  /// [CsvDataExporter]. Recipes are intentionally not handled here — CSV
+  /// export omits them by design (the nested-ingredient shape doesn't
+  /// flatten cleanly), so a CSV-only round trip does not restore
+  /// recipes. A user who needs recipes in their backup should choose
+  /// the JSON format instead.
+  Future<bool> importDataCsv({
+    String userActivityCsvFileName = 'user_activity.csv',
+    String userIntakeCsvFileName = 'user_intake.csv',
+    String trackedDayCsvFileName = 'user_tracked_day.csv',
+  }) async {
+    final result = await FilePicker.pickFiles(type: FileType.any);
+    if (result == null || result.files.single.path == null) {
+      throw Exception('No file selected');
+    }
+
+    final file = File(result.files.single.path!);
+    final zipBytes = await file.readAsBytes();
+    final archive = ZipDecoder().decodeBytes(zipBytes);
+
+    final activityFile = archive.findFile(userActivityCsvFileName);
+    if (activityFile != null) {
+      final csv = utf8.decode(activityFile.content as List<int>);
+      final dbos = CsvDataExporter.parseUserActivitiesFromCsv(csv);
+      await _userActivityRepository.addAllUserActivityDBOs(dbos);
+    } else {
+      throw Exception('User activity CSV not found in the archive');
+    }
+
+    final intakeFile = archive.findFile(userIntakeCsvFileName);
+    if (intakeFile != null) {
+      final csv = utf8.decode(intakeFile.content as List<int>);
+      final dbos = CsvDataExporter.parseIntakesFromCsv(csv);
+      await _intakeRepository.addAllIntakeDBOs(dbos);
+    } else {
+      throw Exception('Intake CSV not found in the archive');
+    }
+
+    final trackedDayFile = archive.findFile(trackedDayCsvFileName);
+    if (trackedDayFile != null) {
+      final csv = utf8.decode(trackedDayFile.content as List<int>);
+      final dbos = CsvDataExporter.parseTrackedDaysFromCsv(csv);
+      await _trackedDayRepository.addAllTrackedDays(dbos);
+    } else {
+      throw Exception('Tracked day CSV not found in the archive');
     }
 
     return true;
