@@ -465,6 +465,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage(
                 "Jaka jest Twoja aktualna waga?"),
+        "onboardingTargetWeightSubtitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Czy masz wagę, do której dążysz? Możesz zostawić to pole puste lub zmienić je później w Profilu."),
+        "onboardingTargetWeightHintOptional":
+            MessageLookupByLibrary.simpleMessage("Opcjonalnie"),
         "onboardingWelcomeLabel":
             MessageLookupByLibrary.simpleMessage("Witaj w"),
         "onboardingWrongHeightLabel":

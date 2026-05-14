@@ -331,6 +331,8 @@
   "onboardingWeightExampleHintKg": "例如：60",
   "onboardingWeightExampleHintLbs": "例如：132",
   "onboardingWeightQuestionSubtitle": "您当前的体重是多少？",
+  "onboardingTargetWeightSubtitle": "你有想要达到的目标体重吗？可以留空，也可以稍后在“个人资料”中修改。",
+  "onboardingTargetWeightHintOptional": "可选",
   "onboardingWelcomeLabel": "欢迎使用",
   "onboardingWrongHeightLabel": "请输入正确的身高",
   "onboardingWrongWeightLabel": "请输入正确的体重",

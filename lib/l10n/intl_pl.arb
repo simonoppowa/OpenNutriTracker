@@ -330,6 +330,8 @@
   "onboardingWeightExampleHintKg": "np. 60",
   "onboardingWeightExampleHintLbs": "np. 132",
   "onboardingWeightQuestionSubtitle": "Jaka jest Twoja aktualna waga?",
+  "onboardingTargetWeightSubtitle": "Czy masz wagę, do której dążysz? Możesz zostawić to pole puste lub zmienić je później w Profilu.",
+  "onboardingTargetWeightHintOptional": "Opcjonalnie",
   "onboardingWelcomeLabel": "Witaj w",
   "onboardingWrongHeightLabel": "Wprowadź poprawny wzrost",
   "onboardingWrongWeightLabel": "Wprowadź poprawną wagę",

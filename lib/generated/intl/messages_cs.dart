@@ -456,6 +456,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("např. 132"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Jaká je Vaše hmotnost?"),
+        "onboardingTargetWeightSubtitle":
+            MessageLookupByLibrary.simpleMessage("Máš hmotnost, ke které směřuješ? Pole můžeš nechat prázdné nebo ho později změnit v Profilu."),
+        "onboardingTargetWeightHintOptional":
+            MessageLookupByLibrary.simpleMessage("Volitelné"),
         "onboardingWelcomeLabel":
             MessageLookupByLibrary.simpleMessage("Vítejte v"),
         "onboardingWrongHeightLabel":

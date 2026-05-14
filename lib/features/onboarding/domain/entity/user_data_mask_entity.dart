@@ -16,6 +16,12 @@ class UserDataMaskEntity {
   UserActivitySelectionEntity? activity;
   UserGoalSelectionEntity? goal;
 
+  /// Optional weight the user is working towards. Captured on the same
+  /// onboarding screen as the current weight so new users don't have to
+  /// dig into Profile after first-run to set it. Stored in kilograms
+  /// regardless of the display unit the user picked.
+  double? targetWeight;
+
   bool acceptDataCollection = false;
 
   bool usesImperialUnits = false;
@@ -28,6 +34,7 @@ class UserDataMaskEntity {
     this.weight,
     this.activity,
     this.goal,
+    this.targetWeight,
     this.acceptDataCollection = false,
     this.usesImperialUnits = false,
   });
@@ -108,6 +115,7 @@ class UserDataMaskEntity {
       pal: userPal,
       caloriesProfile:
           userGender == UserGenderEntity.nonBinary ? caloriesProfile : null,
+      targetWeightKg: targetWeight,
     );
   }
 }

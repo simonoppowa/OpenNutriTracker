@@ -330,6 +330,8 @@
   "onboardingWeightExampleHintKg": "es. 60",
   "onboardingWeightExampleHintLbs": "es. 132",
   "onboardingWeightQuestionSubtitle": "Qual è il tuo peso attuale?",
+  "onboardingTargetWeightSubtitle": "C'è un peso che vuoi raggiungere? Puoi lasciare vuoto o modificarlo più tardi dal Profilo.",
+  "onboardingTargetWeightHintOptional": "Facoltativo",
   "onboardingWelcomeLabel": "Benvenuto in",
   "onboardingWrongHeightLabel": "Inserisci un'altezza corretta",
   "onboardingWrongWeightLabel": "Inserisci un peso corretto",

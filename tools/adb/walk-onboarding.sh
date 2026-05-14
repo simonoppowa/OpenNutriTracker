@@ -36,10 +36,18 @@ walk_onboarding() {
   _tap_text 'OK' || _tap_text 'Ok' || _tap_text 'ok' || return 1; sleep 0.8
   tap_id 'onboarding-button' || return 1; sleep 1
 
-  echo "  page 2 — height + weight"
+  echo "  page 2 — height + weight + optional target weight"
   wait_for_id 'onboarding-height-field' 10 || return 1
   enter_text_at 'onboarding-height-field' '170' || return 1; sleep 0.3
   enter_text_at 'onboarding-weight-field' '65'  || return 1; sleep 0.3
+  press_back; sleep 0.5  # dismiss keyboard before scrolling
+  # Target weight (#119) sits below the fold on shorter devices because
+  # the page now scrolls. Swipe the content up so the field is visible
+  # before tapping into it. The walker types an example value so the
+  # verifier exercises the full happy path; leaving the field blank is
+  # also a valid path through onboarding.
+  adb -s "$DEVICE" shell input swipe 540 1600 540 800 300; sleep 0.4
+  enter_text_at 'onboarding-target-weight-field' '63' || return 1; sleep 0.3
   press_back; sleep 0.5  # dismiss keyboard so NEXT button is reachable
   tap_id 'onboarding-button' || return 1; sleep 1
 
