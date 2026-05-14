@@ -892,6 +892,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Fotoğrafı kaldır"),
         "recipeImageReplace":
             MessageLookupByLibrary.simpleMessage("Fotoğrafı değiştir"),
+        "mealImageLabel":
+            MessageLookupByLibrary.simpleMessage("Fotoğraf ekle"),
+        "mealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Galeriden seç"),
+        "mealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Fotoğraf çek"),
+        "mealImageRemove":
+            MessageLookupByLibrary.simpleMessage("Fotoğrafı kaldır"),
+        "mealImageReplace":
+            MessageLookupByLibrary.simpleMessage("Fotoğrafı değiştir"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "Varsayılan olarak malzemelerin toplamı. Sıvılar yaklaşık 1 ml ≈ 1 g olarak hesaplanır."),
         "recipeTotalWeightLabel":

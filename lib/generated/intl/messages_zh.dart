@@ -780,6 +780,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("移除照片"),
         "recipeImageReplace":
             MessageLookupByLibrary.simpleMessage("更换照片"),
+        "mealImageLabel":
+            MessageLookupByLibrary.simpleMessage("添加照片"),
+        "mealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("从相册选择"),
+        "mealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("拍照"),
+        "mealImageRemove":
+            MessageLookupByLibrary.simpleMessage("移除照片"),
+        "mealImageReplace":
+            MessageLookupByLibrary.simpleMessage("更换照片"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "默认值为食材之和。液体按 1 毫升 ≈ 1 克近似计算。"),
         "recipeTotalWeightLabel":

@@ -182,6 +182,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Odstrániť fotografiu"),
         "recipeImageReplace":
             MessageLookupByLibrary.simpleMessage("Nahradiť fotografiu"),
+        "mealImageLabel":
+            MessageLookupByLibrary.simpleMessage("Pridať fotku"),
+        "mealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Vybrať z galérie"),
+        "mealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Odfotiť"),
+        "mealImageRemove":
+            MessageLookupByLibrary.simpleMessage("Odstrániť fotku"),
+        "mealImageReplace":
+            MessageLookupByLibrary.simpleMessage("Nahradiť fotku"),
         "recipeImageTakePhoto":
             MessageLookupByLibrary.simpleMessage("Odfotiť"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/recipe_image_storage.dart';
+import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class RecipeListItem extends StatelessWidget {
@@ -102,7 +102,7 @@ class _UserImageThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String>(
-      future: RecipeImageStorage.absolutePath(relativePath),
+      future: UserImageStorage.absolutePath(relativePath),
       builder: (context, snapshot) {
         final fallback = CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,

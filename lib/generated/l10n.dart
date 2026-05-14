@@ -620,6 +620,56 @@ class S {
     );
   }
 
+  /// `Add a photo`
+  String get mealImageLabel {
+    return Intl.message(
+      'Add a photo',
+      name: 'mealImageLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose from gallery`
+  String get mealImagePickFromGallery {
+    return Intl.message(
+      'Choose from gallery',
+      name: 'mealImagePickFromGallery',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Take photo`
+  String get mealImageTakePhoto {
+    return Intl.message(
+      'Take photo',
+      name: 'mealImageTakePhoto',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remove photo`
+  String get mealImageRemove {
+    return Intl.message(
+      'Remove photo',
+      name: 'mealImageRemove',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Replace photo`
+  String get mealImageReplace {
+    return Intl.message(
+      'Replace photo',
+      name: 'mealImageReplace',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `This 13-digit barcode looks miskeyed: its last digit doesn't match the rest`
   String get barcodeInvalidEan13CheckDigit {
     return Intl.message(

@@ -900,6 +900,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Odebrat fotku"),
         "recipeImageReplace":
             MessageLookupByLibrary.simpleMessage("Nahradit fotku"),
+        "mealImageLabel":
+            MessageLookupByLibrary.simpleMessage("Přidat fotku"),
+        "mealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Vybrat z galerie"),
+        "mealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Pořídit fotku"),
+        "mealImageRemove":
+            MessageLookupByLibrary.simpleMessage("Odebrat fotku"),
+        "mealImageReplace":
+            MessageLookupByLibrary.simpleMessage("Nahradit fotku"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "Výchozí hodnotou je součet ingrediencí. Tekutiny jsou přibližně 1 ml ≈ 1 g."),
         "recipeTotalWeightLabel":

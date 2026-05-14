@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/recipe_image_storage.dart';
+import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_builder_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/food_search_tab_view.dart';
@@ -365,20 +365,21 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
     if (recipeId == null) return;
     try {
       final picker = ImagePicker();
-      // Pick at full resolution — `RecipeImageStorage.importFrom` re-encodes
+      // Pick at full resolution — `UserImageStorage.importFrom` re-encodes
       // to WebP at quality 80 with a 1024px longest-edge cap, so we don't
       // need image_picker's own JPEG compression on top. Doing it in one
       // place keeps the on-disk footprint consistent regardless of which
       // source (camera / gallery) the photo came from.
       final picked = await picker.pickImage(source: source);
       if (picked == null) return;
-      final relative = await RecipeImageStorage.importFrom(
-        recipeId: recipeId,
+      final relative = await UserImageStorage.importFrom(
+        kind: UserImageKind.recipe,
+        ownerId: recipeId,
         sourcePath: picked.path,
       );
       // Bust the in-memory Image.file cache so the new picture shows up
       // immediately instead of redrawing the previous bytes for this path.
-      FileImage(File(await RecipeImageStorage.absolutePath(relative)))
+      FileImage(File(await UserImageStorage.absolutePath(relative)))
           .evict();
       _bloc.add(UpdateImagePathEvent(relative));
     } catch (_) {
@@ -392,7 +393,7 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
   Future<void> _onRemoveImage(BuildContext context) async {
     final current = _bloc.state.imagePath;
     if (current == null) return;
-    await RecipeImageStorage.delete(current);
+    await UserImageStorage.delete(current);
     _bloc.add(const UpdateImagePathEvent(null));
   }
 
@@ -447,7 +448,7 @@ class _RecipeImagePickerTile extends StatelessWidget {
                     child: hasImage
                         ? FutureBuilder<String>(
                             future:
-                                RecipeImageStorage.absolutePath(imagePath!),
+                                UserImageStorage.absolutePath(imagePath!),
                             builder: (context, snapshot) {
                               if (!snapshot.hasData) {
                                 return Container(

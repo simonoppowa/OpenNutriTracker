@@ -37,6 +37,8 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
     String fatText,
     String proteinText, {
     String? barcodeOverride,
+    String? localImagePathOverride,
+    bool clearLocalImagePath = false,
   }) {
     final baseQuantityDouble = double.tryParse(baseQuantity);
 
@@ -77,6 +79,12 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       servingSize: oldMealEntity.servingSize,
       nutriments: newMealNutriments,
       source: oldMealEntity.source,
+      // #64 follow-up: a freshly-picked local photo wins over what was
+      // on the old entity; a clear flag means the user removed the
+      // photo and the slug should be wiped from the saved meal.
+      localImagePath: clearLocalImagePath
+          ? null
+          : (localImagePathOverride ?? oldMealEntity.localImagePath),
     );
   }
 

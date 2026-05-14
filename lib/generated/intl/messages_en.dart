@@ -1112,6 +1112,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Remove photo"),
         "recipeImageReplace":
             MessageLookupByLibrary.simpleMessage("Replace photo"),
+        "mealImageLabel":
+            MessageLookupByLibrary.simpleMessage("Add a photo"),
+        "mealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Choose from gallery"),
+        "mealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Take photo"),
+        "mealImageRemove":
+            MessageLookupByLibrary.simpleMessage("Remove photo"),
+        "mealImageReplace":
+            MessageLookupByLibrary.simpleMessage("Replace photo"),
         "recipeImageTakePhoto":
             MessageLookupByLibrary.simpleMessage("Take photo"),
       };

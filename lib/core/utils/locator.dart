@@ -271,7 +271,8 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton(() => GetMacroGoalUsecase(locator()));
   locator.registerLazySingleton(
-    () => ExportDataUsecase(locator(), locator(), locator(), locator()),
+    () => ExportDataUsecase(
+        locator(), locator(), locator(), locator(), locator()),
   );
   locator.registerLazySingleton(
     () => ImportDataUsecase(locator(), locator(), locator(), locator()),

@@ -920,6 +920,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Foto entfernen"),
         "recipeImageReplace":
             MessageLookupByLibrary.simpleMessage("Foto ersetzen"),
+        "mealImageLabel":
+            MessageLookupByLibrary.simpleMessage("Foto hinzufügen"),
+        "mealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Aus Galerie wählen"),
+        "mealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Foto aufnehmen"),
+        "mealImageRemove":
+            MessageLookupByLibrary.simpleMessage("Foto entfernen"),
+        "mealImageReplace":
+            MessageLookupByLibrary.simpleMessage("Foto ersetzen"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "Standardmäßig die Summe der Zutaten. Flüssigkeiten werden mit 1 ml ≈ 1 g angenähert."),
         "recipeTotalWeightLabel":

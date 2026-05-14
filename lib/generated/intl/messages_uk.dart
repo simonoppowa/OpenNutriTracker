@@ -909,6 +909,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Видалити фото"),
         "recipeImageReplace":
             MessageLookupByLibrary.simpleMessage("Замінити фото"),
+        "mealImageLabel":
+            MessageLookupByLibrary.simpleMessage("Додати фото"),
+        "mealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Вибрати з галереї"),
+        "mealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Зробити фото"),
+        "mealImageRemove":
+            MessageLookupByLibrary.simpleMessage("Видалити фото"),
+        "mealImageReplace":
+            MessageLookupByLibrary.simpleMessage("Замінити фото"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "За замовчуванням сума інгредієнтів. Рідини приблизно як 1 мл ≈ 1 г."),
         "recipeTotalWeightLabel":
