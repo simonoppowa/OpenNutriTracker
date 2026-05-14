@@ -440,10 +440,10 @@ class S {
     );
   }
 
-  /// `Leave this on to keep this meal in your saved list. Turn it off for a one-off you won't eat again.`
+  /// `Turn this on to keep this meal in your saved list for next time. Leave it off for a one-off you won't eat again.`
   String get recipeSaveForLaterDescription {
     return Intl.message(
-      'Leave this on to keep this meal in your saved list. Turn it off for a one-off you won\'t eat again.',
+      'Turn this on to keep this meal in your saved list for next time. Leave it off for a one-off you won\'t eat again.',
       name: 'recipeSaveForLaterDescription',
       desc: '',
       args: [],

@@ -48,10 +48,11 @@ class _EditMealScreenState extends State<EditMealScreen> {
   final _units = ['g', 'ml', 'g/ml'];
   String? selectedUnit;
   bool _isTotal = false;
-  // Default on (#249): keep current behaviour for everyone who isn't
-  // intentionally logging a one-off. When false, the intake is still logged
-  // for today but no custom-meal template is persisted.
-  bool _saveForLater = true;
+  // Default off (#249 follow-up): most casual custom-meal logging is one-off,
+  // and defaulting to on bloated the saved-meals list with entries people
+  // never reused. The intake is still logged either way; the user opts in
+  // here to keep the meal as a reusable template.
+  bool _saveForLater = false;
 
   late List<ButtonSegment<String>> _mealUnitButtonSegment;
 
@@ -522,10 +523,10 @@ class EditMealScreenArguments {
 }
 
 /// "Save for next time" toggle shown on the create-and-log path (#249).
-/// When the value is true (the default), the saved meal is added to the
-/// user's custom-meal list. When false, the intake is still logged but
-/// no template is persisted — useful for a friend's homemade dish or a
-/// restaurant meal the user knows they won't eat again.
+/// Defaults to off: the intake is logged today, and the user opts in here
+/// to also keep the meal as a reusable template in the custom-meal list.
+/// Leaving it off is the right call for one-off entries like a friend's
+/// homemade dish or a restaurant meal that won't come back round.
 class _SaveForLaterField extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;

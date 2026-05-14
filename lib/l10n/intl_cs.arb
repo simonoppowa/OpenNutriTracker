@@ -551,7 +551,7 @@
   "recipeNutritionPreviewLabel": "Výživa (celkem)",
   "recipeSaveErrorLabel": "Recept se nepodařilo uložit.",
   "recipeSaveForLaterLabel": "Uložit pro příště",
-  "recipeSaveForLaterDescription": "Nechte zapnuté, aby toto jídlo zůstalo v seznamu uložených. Vypněte u jednorázového jídla, které už nebudete jíst.",
+  "recipeSaveForLaterDescription": "Zapněte, aby toto jídlo zůstalo v seznamu uložených pro příště. Nechte vypnuté u jednorázového jídla, které už nebudete jíst.",
   "recipeSaveLabel": "Uložit recept",
   "recipeServingsCountHelper": "Umožňuje zaznamenávat tento recept po porcích místo gramů.",
   "recipeServingsCountLabel": "Porce (volitelné)",

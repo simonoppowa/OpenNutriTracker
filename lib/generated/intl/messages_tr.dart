@@ -827,7 +827,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeSaveErrorLabel":
             MessageLookupByLibrary.simpleMessage("Tarif kaydedilemedi."),
         "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
-            "Bu yemeği kaydedilenler listesinde tutmak için açık bırakın. Bir daha yemeyeceğiniz tek seferlik bir yemek için kapatın."),
+            "Bu yemeği bir dahaki sefere kaydedilenler listesinde tutmak için açın. Bir daha yemeyeceğiniz tek seferlik bir yemek için kapalı bırakın."),
         "recipeSaveForLaterLabel":
             MessageLookupByLibrary.simpleMessage("Sonraki için kaydet"),
         "recipeSaveLabel":

@@ -855,7 +855,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeSaveErrorLabel": MessageLookupByLibrary.simpleMessage(
             "Rezept konnte nicht gespeichert werden."),
         "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
-            "Lass dies aktiviert, um diese Mahlzeit in deiner gespeicherten Liste zu behalten. Schalte es aus für eine einmalige Mahlzeit, die du nicht noch einmal essen wirst."),
+            "Aktiviere dies, um diese Mahlzeit für das nächste Mal in deiner gespeicherten Liste zu behalten. Lass es aus für eine einmalige Mahlzeit, die du nicht noch einmal essen wirst."),
         "recipeSaveForLaterLabel":
             MessageLookupByLibrary.simpleMessage("Für später speichern"),
         "recipeSaveLabel":

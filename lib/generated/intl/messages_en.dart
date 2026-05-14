@@ -817,7 +817,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeSaveForLaterLabel":
             MessageLookupByLibrary.simpleMessage("Save for next time"),
         "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
-            "Leave this on to keep this meal in your saved list. Turn it off for a one-off you won\'t eat again."),
+            "Turn this on to keep this meal in your saved list for next time. Leave it off for a one-off you won\'t eat again."),
         "recipeNameRequiredLabel":
             MessageLookupByLibrary.simpleMessage("Recipe needs a name"),
         "recipeNeedsIngredientsLabel": MessageLookupByLibrary.simpleMessage(

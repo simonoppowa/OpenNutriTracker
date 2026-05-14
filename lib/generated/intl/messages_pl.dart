@@ -840,7 +840,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeSaveErrorLabel": MessageLookupByLibrary.simpleMessage(
             "Nie udało się zapisać przepisu."),
         "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
-            "Pozostaw włączone, aby zachować ten posiłek na liście zapisanych. Wyłącz dla jednorazowego posiłku, którego już nie zjesz."),
+            "Włącz, aby zachować ten posiłek na liście zapisanych na później. Pozostaw wyłączone dla jednorazowego posiłku, którego już nie zjesz."),
         "recipeSaveForLaterLabel":
             MessageLookupByLibrary.simpleMessage("Zapisz na później"),
         "recipeSaveLabel":

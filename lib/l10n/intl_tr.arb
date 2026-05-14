@@ -561,7 +561,7 @@
   "recipeNutritionPreviewLabel": "Beslenme (toplam)",
   "recipeSaveErrorLabel": "Tarif kaydedilemedi.",
   "recipeSaveForLaterLabel": "Sonraki için kaydet",
-  "recipeSaveForLaterDescription": "Bu yemeği kaydedilenler listesinde tutmak için açık bırakın. Bir daha yemeyeceğiniz tek seferlik bir yemek için kapatın.",
+  "recipeSaveForLaterDescription": "Bu yemeği bir dahaki sefere kaydedilenler listesinde tutmak için açın. Bir daha yemeyeceğiniz tek seferlik bir yemek için kapalı bırakın.",
   "recipeSaveLabel": "Tarifi Kaydet",
   "recipeServingsCountHelper": "Bu tarifi gram yerine porsiyon olarak kaydetmenize olanak tanır.",
   "recipeServingsCountLabel": "Porsiyonlar (isteğe bağlı)",

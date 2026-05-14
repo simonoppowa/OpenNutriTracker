@@ -717,7 +717,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeSaveErrorLabel":
             MessageLookupByLibrary.simpleMessage("无法保存食谱。"),
         "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
-            "保持开启以将此餐食保留在已保存的列表中。如果是不会再吃的一次性餐食，请关闭。"),
+            "开启以将此餐食保留在已保存的列表中，以备下次使用。如果是不会再吃的一次性餐食，请保持关闭。"),
         "recipeSaveForLaterLabel":
             MessageLookupByLibrary.simpleMessage("保存以备下次"),
         "recipeSaveLabel": MessageLookupByLibrary.simpleMessage("保存食谱"),
