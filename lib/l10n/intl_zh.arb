@@ -1,5 +1,88 @@
 {
   "@@locale": "zh",
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "activityExample": "例如：跑步、骑车、瑜伽...",
   "activityLabel": "活动",
   "addItemLabel": "添加新项目：",
@@ -50,16 +133,6 @@
   "clearOffCacheConfirmTitle": "清除缓存？",
   "clearOffCacheLabel": "清除缓存",
   "clearOffCacheSubtitle": "{count} 项 · {size}",
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
   "cmLabel": "厘米",
   "codeCopiedLabel": "代码已复制",
   "copyCodeLabel": "复制代码",
@@ -74,24 +147,7 @@
   "csvImportContributeOffPrefix": "有条形码？请把产品贡献到 Open Food Facts：",
   "csvImportErrorLabel": "无法读取 CSV 文件。请检查格式后重试。",
   "csvImportPartialLabel": "已导入 {imported} 项餐食；因数据无效跳过 {skipped} 行。",
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
   "csvImportSuccessLabel": "已从 CSV 文件导入 {count} 项餐食。",
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "customMealsDeleteConfirmContent": "所有使用此餐食的日记条目也将被删除。",
   "customMealsDeleteConfirmTitle": "删除自定义餐食？",
   "customMealsEmptyLabel": "尚未保存自定义餐食。",
@@ -99,13 +155,6 @@
   "dataCollectionLabel": "通过提供匿名使用数据支持开发",
   "deleteAllLabel": "删除全部",
   "deleteSelectedRecipesConfirmTitle": "删除 {count} 个食谱？",
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "deleteTimeDialogContent": "您想删除选定的项目吗？",
   "deleteTimeDialogPluralContent": "您想删除此餐食的所有项目吗？",
   "deleteTimeDialogPluralTitle": "删除项目？",
@@ -123,7 +172,9 @@
   "discardChangesTitle": "放弃更改？",
   "disclaimerText": "OpenNutriTracker不是医疗应用程序。提供的所有数据均未经验证，应谨慎使用。请保持健康的生活方式，如有任何问题请咨询专业人士。不建议在患病、怀孕或哺乳期使用。每一项计算所依据的同行评审来源，请点击「首页」或「个人资料」页面的信息图标查看。",
   "downloadSampleCsvAction": "示例餐食 (csv)",
+  "downloadSampleJsonAction": "示例餐食 (json)",
   "downloadSampleRecipesCsvAction": "示例食谱 (csv)",
+  "downloadSampleRecipesJsonAction": "示例食谱 (json)",
   "duplicateMealDialogContent": "此食物今天已添加到此餐次。再次添加？",
   "duplicateRecipeLabel": "复制",
   "duplicateRecipeNameSuffix": "（副本）",
@@ -162,57 +213,24 @@
   "importAction": "导入",
   "importActivityConfirmContent": "这些活动将被添加到今天。",
   "importActivityConfirmTitle": "导入 {count} 项活动？",
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importActivityLabel": "导入共享运动",
   "importActivitySuccessLabel": "运动已导入",
-  "importCustomFoodDataDescription": "从 CSV 文件导入您自己的餐食。下载示例查看所需的列格式和必填字段。",
+  "importCustomFoodDataDescription": "从 CSV 文件或粘贴 JSON 导入自己的餐食。下载示例以查看预期格式和必填字段。",
   "importCustomFoodDataLabel": "导入自定义食品数据",
   "importMealConfirmContent": "这些项目将添加到：{mealType}。",
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
   "importMealConfirmTitle": "导入 {count} 个项目？",
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importMealErrorLabel": "无效的二维码",
   "importMealLabel": "导入分享的餐食",
   "importMealSuccessLabel": "餐食已导入",
   "importMealsCsvAction": "导入餐食 (csv)",
+  "importMealsJsonAction": "导入餐食 (json)",
   "importOffFetchFailedLabel": "无法从OpenFoodFacts获取 {count} 个项目。",
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importRecipeConfirmContent": "导入这道含有 {count} 种食材的食谱？",
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importRecipeErrorLabel": "无法解析食谱代码",
   "importRecipeLabel": "导入食谱",
   "importRecipeSuccessLabel": "食谱已导入",
   "importRecipesCsvAction": "导入食谱 (csv)",
+  "importRecipesJsonAction": "导入食谱 (json)",
   "infoAddedActivityLabel": "添加了新活动",
   "infoAddedIntakeLabel": "添加了新摄入",
   "ironLabel": "铁",
@@ -236,6 +254,10 @@
   "mealKcalLabel": "卡路里每",
   "mealNameLabel": "餐食名称",
   "mealNameValidationError": "餐食名称必须至少包含一个字母",
+  "inconsistentNutritionWarningTitle": "数字对不太上",
+  "inconsistentNutritionWarningBody": "这些数值对不太上 — 您输入的卡路里与碳水、脂肪和蛋白质所含的能量不一致。仍要保存，还是再看一下？",
+  "inconsistentNutritionWarningSaveAnyway": "仍要保存",
+  "inconsistentNutritionWarningEdit": "再看一下",
   "mealNutrientsPerQtyLabel": "每 {qty} {unit}",
   "mealNutrientsTotalLabel": "总量",
   "mealProteinLabel": "蛋白质每 100 克/毫升",
@@ -253,6 +275,9 @@
   "noResultsFound": "未找到结果",
   "notAvailableLabel": "不可用",
   "nothingAddedLabel": "未添加任何内容",
+  "notificationsDailyReminderBody": "别忘了记录您今天的饮食！",
+  "notificationsDailyReminderTitle": "OpenNutriTracker",
+  "notificationsPermissionDeniedSnack": "通知权限被拒绝。",
   "nutritionInfoLabel": "营养信息",
   "nutritionalStatusNormalWeight": "正常体重",
   "nutritionalStatusObeseClassI": "肥胖 I 级",
@@ -537,13 +562,6 @@
   "recipeDescriptionLabel": "描述（可选）",
   "recipeIngredientAmountLabel": "数量",
   "recipeIngredientCountLabel": "{count} 种食材",
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "recipeIngredientUnitLabel": "单位",
   "recipeIngredientsLabel": "食材",
   "recipeInvalidTotalWeightLabel": "总重量必须大于零",
@@ -555,6 +573,8 @@
   "recipeNutritionPer100Label": "每 100 克",
   "recipeNutritionPreviewLabel": "营养（总计）",
   "recipeSaveErrorLabel": "无法保存食谱。",
+  "recipeSaveForLaterDescription": "开启以将此餐食保留在已保存的列表中，以备下次使用。如果是不会再吃的一次性餐食，请保持关闭。",
+  "recipeSaveForLaterLabel": "保存以备下次",
   "recipeSaveLabel": "保存食谱",
   "recipeServingsCountHelper": "允许按份记录此食谱，而非按克。",
   "recipeServingsCountLabel": "份数（可选）",
@@ -581,13 +601,6 @@
   "selectPalCategoryLabel": "选择活动水平",
   "selectWeightDialogLabel": "选择体重",
   "selectionCountLabel": "已选 {count} 项",
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "sendAnonymousUserData": "发送匿名使用数据",
   "servingLabel": "份量",
   "servingSizeLabelImperial": "份量大小 (盎司/液量盎司)",
@@ -597,20 +610,6 @@
   "settingsCalculationsLabel": "计算",
   "settingsCustomMealsLabel": "自定义餐食",
   "settingsDisclaimerLabel": "免责声明",
-  "settingsSourcesLabel": "来源与参考",
-  "sourcesIconTooltip": "查看来源",
-  "sourcesScreenIntro": "OpenNutriTracker 的每一项计算都采用成熟的、经同行评审的方法。以下引用直接链接到原始文献，你可以自行核对其中的每一个数值。",
-  "sourcesEnergyTitle": "能量需求 (TDEE、基础代谢与活动水平)",
-  "sourcesEnergyDescription": "每日卡路里目标、基础代谢率以及身体活动系数均采用美国医学研究所 (Institute of Medicine) 的方程。来源：Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids，第 5 章及表 5-5。",
-  "sourcesBmiTitle": "身体质量指数 (BMI)",
-  "sourcesBmiDescription": "BMI 等于体重（千克）除以身高（米）的平方。健康分类（偏瘦、正常、偏胖前期、I–III 级肥胖）遵循世界卫生组织成人 BMI 分类标准。",
-  "sourcesMacrosTitle": "宏量营养素分配",
-  "sourcesMacrosDescription": "默认的 60% 碳水化合物、25% 脂肪、15% 蛋白质比例落在 WHO 推荐的人群营养摄入范围内。你可以在 设置 → 计算 中调整。来源：WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases。",
-  "sourcesActivityTitle": "活动消耗的卡路里 (MET 数值)",
-  "sourcesActivityDescription": "活动中消耗的卡路里按 MET × 体重（千克）× 时长（小时）估算，所用数值来自 Adult Compendium of Physical Activities。",
-  "sourcesNonBinaryTitle": "非二元性别人士的卡路里估算",
-  "sourcesNonBinaryDescription": "能量消耗的研究历史上一直只采用二元性别分类，因此目前并不存在一条经过验证的、适用于非二元性别人士的 TDEE 公式。OpenNutriTracker 因此在 设置 → 计算 中提供平均参考、雌激素型参考、睾酮型参考三种选项供你选择。如果精确数值对你确实重要，请咨询了解你激素状况的临床医师。",
-  "sourcesOpenSourceLabel": "打开来源",
   "settingsDistanceLabel": "距离",
   "settingsImperialLabel": "英制（磅、英尺、盎司）",
   "settingsLabel": "设置",
@@ -620,9 +619,6 @@
   "settingsMetricLabel": "公制（千克、厘米、毫升）",
   "settingsNotificationsLabel": "每日提醒",
   "settingsNotificationsTimeLabel": "提醒时间：{time}",
-  "notificationsPermissionDeniedSnack": "通知权限被拒绝。",
-  "notificationsDailyReminderTitle": "OpenNutriTracker",
-  "notificationsDailyReminderBody": "别忘了记录您今天的饮食！",
   "settingsPrivacySettings": "隐私设置",
   "settingsReportErrorLabel": "报告错误",
   "settingsShowActivityTracking": "显示活动追踪",
@@ -652,6 +648,7 @@
     }
   },
   "settingsSourceCodeLabel": "源代码",
+  "settingsSourcesLabel": "来源与参考",
   "settingsSystemLabel": "系统",
   "settingsThemeDarkLabel": "深色",
   "settingsThemeLabel": "主题",
@@ -669,6 +666,19 @@
   "snackExample": "例如：苹果、冰淇淋、巧克力...",
   "snackLabel": "零食",
   "sodiumLabel": "钠",
+  "sourcesActivityDescription": "活动中消耗的卡路里按 MET × 体重（千克）× 时长（小时）估算，所用数值来自 Adult Compendium of Physical Activities。",
+  "sourcesActivityTitle": "活动消耗的卡路里 (MET 数值)",
+  "sourcesBmiDescription": "BMI 等于体重（千克）除以身高（米）的平方。健康分类（偏瘦、正常、偏胖前期、I–III 级肥胖）遵循世界卫生组织成人 BMI 分类标准。",
+  "sourcesBmiTitle": "身体质量指数 (BMI)",
+  "sourcesEnergyDescription": "每日卡路里目标、基础代谢率以及身体活动系数均采用美国医学研究所 (Institute of Medicine) 的方程。来源：Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids，第 5 章及表 5-5。",
+  "sourcesEnergyTitle": "能量需求 (TDEE、基础代谢与活动水平)",
+  "sourcesIconTooltip": "查看来源",
+  "sourcesMacrosDescription": "默认的 60% 碳水化合物、25% 脂肪、15% 蛋白质比例落在 WHO 推荐的人群营养摄入范围内。你可以在 设置 → 计算 中调整。来源：WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases。",
+  "sourcesMacrosTitle": "宏量营养素分配",
+  "sourcesNonBinaryDescription": "能量消耗的研究历史上一直只采用二元性别分类，因此目前并不存在一条经过验证的、适用于非二元性别人士的 TDEE 公式。OpenNutriTracker 因此在 设置 → 计算 中提供平均参考、雌激素型参考、睾酮型参考三种选项供你选择。如果精确数值对你确实重要，请咨询了解你激素状况的临床医师。",
+  "sourcesNonBinaryTitle": "非二元性别人士的卡路里估算",
+  "sourcesOpenSourceLabel": "打开来源",
+  "sourcesScreenIntro": "OpenNutriTracker 的每一项计算都采用成熟的、经同行评审的方法。以下引用直接链接到原始文献，你可以自行核对其中的每一个数值。",
   "sugarLabel": "糖",
   "suppliedLabel": "提供",
   "transFatLabel": "反式脂肪",

@@ -64,7 +64,12 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "Importovat ${count} aktivit?";
 
-  static String m20(consumed, target) => "${consumed} / ${target} kcal";
+  static String m20(detail) => "Nelze zpracovat: ${detail}";
+
+  static String m21(count, customCount) =>
+      "Zaznamenáno ${count} z JSON, ${customCount} uloženo jako vlastní jídla";
+
+  static String m22(consumed, target) => "${consumed} / ${target} kcal";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -199,7 +204,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Upravujete datum v budoucnosti"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diář"),
-        "diaryMealKcalConsumedOfTarget": m20,
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
             "např. polévka, kuřecí maso, víno..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Večeře"),
@@ -213,6 +217,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "OpenNutriTracker není aplikace pro lékařské účely. Doporučené hodnoty nejsou validovány a měly by být použity opatrně za použití selského rozumu. Dodržujte prosím obecné zásady zdravého životního stylu a kontaktujte lékaře v případě zdravotních problémů. Používání aplikace se nedoporučuje během nemoci, těhotenství či kojení. Recenzované zdroje ke každému výpočtu najdete přes ikonu informací na obrazovce Domů nebo Profil."),
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Vzorová jídla (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("Vzorová jídla (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importovat jídla (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Vzorové recepty (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importovat recepty (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Vzorové recepty (csv)"),
         "duplicateMealDialogContent":
@@ -276,7 +288,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Trénink importován"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Importujte vlastní jídla ze souboru CSV. Stáhněte si vzor, abyste viděli očekávaný formát sloupců a povinná pole."),
+            "Importujte vlastní jídla z CSV souboru nebo vložením JSON. Stáhněte si ukázku, abyste viděli očekávaný tvar a povinná pole."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Importovat vlastní data potravin"),
         "importMealConfirmContent": m4,
@@ -299,6 +311,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Recept importován"),
         "importRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Importovat recepty (csv)"),
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "Tyto hodnoty si úplně neodpovídají — zadané kalorie neodpovídají energii ze sacharidů, tuků a bílkovin. Uložit i tak, nebo se podívat ještě jednou?"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("Podívat se ještě jednou"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("Uložit i tak"),
+        "inconsistentNutritionWarningTitle":
+            MessageLookupByLibrary.simpleMessage("Čísla nesedí"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Vložena nová aktivita"),
         "infoAddedIntakeLabel":
@@ -309,19 +329,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "itemUpdatedSnackbar":
             MessageLookupByLibrary.simpleMessage("Záznam upraven"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
-        "kjLabel": MessageLookupByLibrary.simpleMessage("kJ"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal zbývá"),
         "kcalTooMuchLabel": MessageLookupByLibrary.simpleMessage("kcal navíc"),
-        "energyLeftLabel": MessageLookupByLibrary.simpleMessage("zbývá"),
-        "energyTooMuchLabel": MessageLookupByLibrary.simpleMessage("navíc"),
-        "settingsEnergyUnitLabel":
-            MessageLookupByLibrary.simpleMessage("Jednotka energie"),
-        "energyUnitKcalLabel":
-            MessageLookupByLibrary.simpleMessage("Kilokalorie (kcal)"),
-        "energyUnitKjLabel":
-            MessageLookupByLibrary.simpleMessage("Kilojouly (kJ)"),
-        "onboardingKjPerDayLabel":
-            MessageLookupByLibrary.simpleMessage("kJ denně"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("kg"),
         "lbsLabel": MessageLookupByLibrary.simpleMessage("lbs"),
         "lunchExample":
@@ -341,18 +350,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsPerQtyLabel": m10,
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Celkové množství"),
-        "mealPatternFiveSmall":
-            MessageLookupByLibrary.simpleMessage("5 malých"),
-        "mealPatternMediterranean":
-            MessageLookupByLibrary.simpleMessage("Středomořský"),
-        "mealPatternOmad":
-            MessageLookupByLibrary.simpleMessage("1 jídlo"),
-        "mealPatternPresetsLabel":
-            MessageLookupByLibrary.simpleMessage("Rychlé předvolby"),
-        "mealPatternStandard":
-            MessageLookupByLibrary.simpleMessage("Standardní"),
-        "mealPatternTwoMeal":
-            MessageLookupByLibrary.simpleMessage("2 jídla"),
         "mealProteinLabel":
             MessageLookupByLibrary.simpleMessage("bílkovin na 100 g/ml"),
         "mealSizeLabel":
@@ -860,6 +857,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Výživa (celkem)"),
         "recipeSaveErrorLabel": MessageLookupByLibrary.simpleMessage(
             "Recept se nepodařilo uložit."),
+        "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
+            "Zapněte, aby toto jídlo zůstalo v seznamu uložených pro příště. Nechte vypnuté u jednorázového jídla, které už nebudete jíst."),
+        "recipeSaveForLaterLabel":
+            MessageLookupByLibrary.simpleMessage("Uložit pro příště"),
         "recipeSaveLabel":
             MessageLookupByLibrary.simpleMessage("Uložit recept"),
         "recipeServingsCountHelper": MessageLookupByLibrary.simpleMessage(
@@ -979,18 +980,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Zobrazit makra jídla"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Zobrazit mikroživiny"),
-        "settingsPerMealKcalShareLabel":
-            MessageLookupByLibrary.simpleMessage("Podíl kcal na jídlo"),
-        "settingsPerMealKcalShareDescription": MessageLookupByLibrary.simpleMessage(
-            "Rozdělte denní cíl kcal mezi snídani, oběd, večeři a svačiny. Součet podílů musí být 100 %."),
-        "settingsPerMealKcalShareBreakfast":
-            MessageLookupByLibrary.simpleMessage("Snídaně"),
-        "settingsPerMealKcalShareLunch":
-            MessageLookupByLibrary.simpleMessage("Oběd"),
-        "settingsPerMealKcalShareDinner":
-            MessageLookupByLibrary.simpleMessage("Večeře"),
-        "settingsPerMealKcalShareSnack":
-            MessageLookupByLibrary.simpleMessage("Svačina"),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Zdrojový kód"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Systém"),
@@ -1031,5 +1020,41 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Hmotnost"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("zinek"),
+        "energyLeftLabel": MessageLookupByLibrary.simpleMessage("zbývá"),
+        "energyTooMuchLabel": MessageLookupByLibrary.simpleMessage("navíc"),
+        "energyUnitKcalLabel":
+            MessageLookupByLibrary.simpleMessage("Kilokalorie (kcal)"),
+        "energyUnitKjLabel":
+            MessageLookupByLibrary.simpleMessage("Kilojouly (kJ)"),
+        "kjLabel": MessageLookupByLibrary.simpleMessage("kJ"),
+        "mealPatternFiveSmall":
+            MessageLookupByLibrary.simpleMessage("5 malých"),
+        "mealPatternMediterranean":
+            MessageLookupByLibrary.simpleMessage("Středomořský"),
+        "mealPatternOmad":
+            MessageLookupByLibrary.simpleMessage("1 jídlo"),
+        "mealPatternPresetsLabel":
+            MessageLookupByLibrary.simpleMessage("Rychlé předvolby"),
+        "mealPatternStandard":
+            MessageLookupByLibrary.simpleMessage("Standardní"),
+        "mealPatternTwoMeal":
+            MessageLookupByLibrary.simpleMessage("2 jídla"),
+        "onboardingKjPerDayLabel":
+            MessageLookupByLibrary.simpleMessage("kJ denně"),
+        "settingsEnergyUnitLabel":
+            MessageLookupByLibrary.simpleMessage("Jednotka energie"),
+        "settingsPerMealKcalShareBreakfast":
+            MessageLookupByLibrary.simpleMessage("Snídaně"),
+        "settingsPerMealKcalShareDescription": MessageLookupByLibrary.simpleMessage(
+            "Rozdělte denní cíl kcal mezi snídani, oběd, večeři a svačiny. Součet podílů musí být 100 %."),
+        "settingsPerMealKcalShareDinner":
+            MessageLookupByLibrary.simpleMessage("Večeře"),
+        "settingsPerMealKcalShareLabel":
+            MessageLookupByLibrary.simpleMessage("Podíl kcal na jídlo"),
+        "settingsPerMealKcalShareLunch":
+            MessageLookupByLibrary.simpleMessage("Oběd"),
+        "settingsPerMealKcalShareSnack":
+            MessageLookupByLibrary.simpleMessage("Svačina"),
+        "diaryMealKcalConsumedOfTarget": m22,
       };
 }

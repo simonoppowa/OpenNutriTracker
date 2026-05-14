@@ -64,7 +64,12 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m18(count) => "Delete ${count} recipe(s)?";
 
-  static String m19(consumed, target) => "${consumed} / ${target} kcal";
+  static String m19(detail) => "Couldn\'t parse: ${detail}";
+
+  static String m20(count, customCount) =>
+      "Logged ${count} from JSON, ${customCount} saved as custom meals";
+
+  static String m21(consumed, target) => "${consumed} / ${target} kcal";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -172,7 +177,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),
         "diaryFutureDateWarning":
             MessageLookupByLibrary.simpleMessage("You are editing a future date"),
-        "diaryMealKcalConsumedOfTarget": m19,
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
             "e.g. soup, chicken, wine ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Dinner"),
@@ -215,6 +219,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "csvImportSuccessLabel": m12,
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Sample meals (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("Sample meals (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Import meals (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Sample recipes (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Import recipes (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Sample recipes (csv)"),
         "importMealsCsvAction":
@@ -245,7 +257,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Import Custom Food Data"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Import your own meals from a CSV file. Download a sample to see the expected column shape and required fields."),
+            "Import your own meals from a CSV file or by pasting JSON. Download a sample to see the expected shape and required fields."),
         "exportImportSuccessLabel":
             MessageLookupByLibrary.simpleMessage("Export / Import successful"),
         "fatLabel": MessageLookupByLibrary.simpleMessage("fat"),
@@ -284,6 +296,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "importMealSuccessLabel":
             MessageLookupByLibrary.simpleMessage("Meal imported"),
         "importOffFetchFailedLabel": m6,
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "These values don't quite line up — the calories you've entered don't match the energy in the carbs, fat and protein below. Save anyway, or take a second look?"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("Take another look"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("Save anyway"),
+        "inconsistentNutritionWarningTitle": MessageLookupByLibrary.simpleMessage(
+            "Numbers don't quite line up"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Added new activity"),
         "infoAddedIntakeLabel":
@@ -295,20 +315,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "kcalExceededLabel":
             MessageLookupByLibrary.simpleMessage("kcal exceeded"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
-        "kjLabel": MessageLookupByLibrary.simpleMessage("kJ"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal left"),
         "kcalTooMuchLabel":
             MessageLookupByLibrary.simpleMessage("kcal too much"),
-        "energyLeftLabel": MessageLookupByLibrary.simpleMessage("left"),
-        "energyTooMuchLabel": MessageLookupByLibrary.simpleMessage("too much"),
-        "settingsEnergyUnitLabel":
-            MessageLookupByLibrary.simpleMessage("Energy unit"),
-        "energyUnitKcalLabel":
-            MessageLookupByLibrary.simpleMessage("Kilocalories (kcal)"),
-        "energyUnitKjLabel":
-            MessageLookupByLibrary.simpleMessage("Kilojoules (kJ)"),
-        "onboardingKjPerDayLabel":
-            MessageLookupByLibrary.simpleMessage("kJ per day"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("kg"),
         "lbsLabel": MessageLookupByLibrary.simpleMessage("lbs"),
         "lunchExample":
@@ -326,17 +335,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsPerQtyLabel": m10,
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Total amount"),
-        "mealPatternFiveSmall":
-            MessageLookupByLibrary.simpleMessage("Five-small"),
-        "mealPatternMediterranean":
-            MessageLookupByLibrary.simpleMessage("Mediterranean"),
-        "mealPatternOmad": MessageLookupByLibrary.simpleMessage("OMAD"),
-        "mealPatternPresetsLabel":
-            MessageLookupByLibrary.simpleMessage("Quick presets"),
-        "mealPatternStandard":
-            MessageLookupByLibrary.simpleMessage("Standard"),
-        "mealPatternTwoMeal":
-            MessageLookupByLibrary.simpleMessage("Two-meal"),
         "mealProteinLabel":
             MessageLookupByLibrary.simpleMessage("protein per 100 g/ml"),
         "mealSizeLabel":
@@ -839,6 +837,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Save Recipe"),
         "recipeSaveErrorLabel":
             MessageLookupByLibrary.simpleMessage("Could not save recipe."),
+        "recipeSaveForLaterLabel":
+            MessageLookupByLibrary.simpleMessage("Save for next time"),
+        "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
+            "Turn this on to keep this meal in your saved list for next time. Leave it off for a one-off you won\'t eat again."),
         "recipeNameRequiredLabel":
             MessageLookupByLibrary.simpleMessage("Recipe needs a name"),
         "recipeNeedsIngredientsLabel": MessageLookupByLibrary.simpleMessage(
@@ -970,18 +972,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Show Meal Macros"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Show Micronutrients"),
-        "settingsPerMealKcalShareLabel":
-            MessageLookupByLibrary.simpleMessage("Per-meal kcal share"),
-        "settingsPerMealKcalShareDescription": MessageLookupByLibrary.simpleMessage(
-            "Split your daily kcal goal across breakfast, lunch, dinner, and snacks. The shares must add up to 100%."),
-        "settingsPerMealKcalShareBreakfast":
-            MessageLookupByLibrary.simpleMessage("Breakfast"),
-        "settingsPerMealKcalShareLunch":
-            MessageLookupByLibrary.simpleMessage("Lunch"),
-        "settingsPerMealKcalShareDinner":
-            MessageLookupByLibrary.simpleMessage("Dinner"),
-        "settingsPerMealKcalShareSnack":
-            MessageLookupByLibrary.simpleMessage("Snack"),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Source Code"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("System"),
@@ -1018,5 +1008,40 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Weight"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("zinc"),
+        "energyLeftLabel": MessageLookupByLibrary.simpleMessage("left"),
+        "energyTooMuchLabel": MessageLookupByLibrary.simpleMessage("too much"),
+        "energyUnitKcalLabel":
+            MessageLookupByLibrary.simpleMessage("Kilocalories (kcal)"),
+        "energyUnitKjLabel":
+            MessageLookupByLibrary.simpleMessage("Kilojoules (kJ)"),
+        "kjLabel": MessageLookupByLibrary.simpleMessage("kJ"),
+        "mealPatternFiveSmall":
+            MessageLookupByLibrary.simpleMessage("Five-small"),
+        "mealPatternMediterranean":
+            MessageLookupByLibrary.simpleMessage("Mediterranean"),
+        "mealPatternOmad": MessageLookupByLibrary.simpleMessage("OMAD"),
+        "mealPatternPresetsLabel":
+            MessageLookupByLibrary.simpleMessage("Quick presets"),
+        "mealPatternStandard":
+            MessageLookupByLibrary.simpleMessage("Standard"),
+        "mealPatternTwoMeal":
+            MessageLookupByLibrary.simpleMessage("Two-meal"),
+        "onboardingKjPerDayLabel":
+            MessageLookupByLibrary.simpleMessage("kJ per day"),
+        "settingsEnergyUnitLabel":
+            MessageLookupByLibrary.simpleMessage("Energy unit"),
+        "settingsPerMealKcalShareBreakfast":
+            MessageLookupByLibrary.simpleMessage("Breakfast"),
+        "settingsPerMealKcalShareDescription": MessageLookupByLibrary.simpleMessage(
+            "Split your daily kcal goal across breakfast, lunch, dinner, and snacks. The shares must add up to 100%."),
+        "settingsPerMealKcalShareDinner":
+            MessageLookupByLibrary.simpleMessage("Dinner"),
+        "settingsPerMealKcalShareLabel":
+            MessageLookupByLibrary.simpleMessage("Per-meal kcal share"),
+        "settingsPerMealKcalShareLunch":
+            MessageLookupByLibrary.simpleMessage("Lunch"),
+        "settingsPerMealKcalShareSnack":
+            MessageLookupByLibrary.simpleMessage("Snack"),
+        "diaryMealKcalConsumedOfTarget": m21,
       };
 }

@@ -64,7 +64,12 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "Zaimportować ${count} aktywności?";
 
-  static String m20(consumed, target) => "${consumed} / ${target} kcal";
+  static String m20(detail) => "Nie udało się przetworzyć: ${detail}";
+
+  static String m21(count, customCount) =>
+      "Zapisano ${count} z JSON, ${customCount} dodano do własnych posiłków";
+
+  static String m22(consumed, target) => "${consumed} / ${target} kcal";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -200,7 +205,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryFutureDateWarning":
             MessageLookupByLibrary.simpleMessage("Edytujesz przyszłą datę"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Dziennik"),
-        "diaryMealKcalConsumedOfTarget": m20,
         "dinnerExample":
             MessageLookupByLibrary.simpleMessage("np. zupa, kurczak, wino ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Kolacja"),
@@ -214,6 +218,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "OpenNutriTracker nie jest aplikacją medyczną. Wszystkie dostarczone dane nie są zweryfikowane i należy ich używać z ostrożnością. Prosimy o prowadzenie zdrowego stylu życia i skonsultowanie się z profesjonalistą w przypadku jakichkolwiek problemów. Używanie podczas choroby, ciąży lub karmienia piersią nie jest zalecane. Recenzowane źródła dla każdego obliczenia znajdziesz po dotknięciu ikony informacji na ekranie głównym lub w Profilu."),
         "downloadSampleCsvAction": MessageLookupByLibrary.simpleMessage(
             "Przykładowe posiłki (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("Przykładowe posiłki (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importuj posiłki (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Przykładowe przepisy (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importuj przepisy (json)"),
         "downloadSampleRecipesCsvAction": MessageLookupByLibrary.simpleMessage(
             "Przykładowe przepisy (csv)"),
         "duplicateMealDialogContent":
@@ -278,7 +290,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Trening zaimportowany"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Importuj własne posiłki z pliku CSV. Pobierz przykład, aby zobaczyć oczekiwany format kolumn i wymagane pola."),
+            "Zaimportuj własne posiłki z pliku CSV lub wklejając JSON. Pobierz przykład, aby zobaczyć oczekiwany kształt i wymagane pola."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Importuj własne dane żywności"),
         "importMealConfirmContent": m5,
@@ -301,6 +313,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Przepis zaimportowany"),
         "importRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Importuj przepisy (csv)"),
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "Te wartości nie do końca się zgadzają — wpisane kalorie nie odpowiadają energii z węglowodanów, tłuszczu i białka. Zapisać mimo to czy sprawdzić jeszcze raz?"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("Sprawdź jeszcze raz"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("Zapisz mimo to"),
+        "inconsistentNutritionWarningTitle":
+            MessageLookupByLibrary.simpleMessage("Liczby do siebie nie pasują"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Dodano nową aktywność"),
         "infoAddedIntakeLabel":
@@ -311,20 +331,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "itemUpdatedSnackbar":
             MessageLookupByLibrary.simpleMessage("Pozycja zaktualizowana"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
-        "kjLabel": MessageLookupByLibrary.simpleMessage("kJ"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal pozostało"),
         "kcalTooMuchLabel":
             MessageLookupByLibrary.simpleMessage("kcal za dużo"),
-        "energyLeftLabel": MessageLookupByLibrary.simpleMessage("pozostało"),
-        "energyTooMuchLabel": MessageLookupByLibrary.simpleMessage("za dużo"),
-        "settingsEnergyUnitLabel":
-            MessageLookupByLibrary.simpleMessage("Jednostka energii"),
-        "energyUnitKcalLabel":
-            MessageLookupByLibrary.simpleMessage("Kilokalorie (kcal)"),
-        "energyUnitKjLabel":
-            MessageLookupByLibrary.simpleMessage("Kilodżule (kJ)"),
-        "onboardingKjPerDayLabel":
-            MessageLookupByLibrary.simpleMessage("kJ dziennie"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("kg"),
         "lbsLabel": MessageLookupByLibrary.simpleMessage("lbs"),
         "lunchExample":
@@ -344,18 +353,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsPerQtyLabel": m10,
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Łączna ilość"),
-        "mealPatternFiveSmall":
-            MessageLookupByLibrary.simpleMessage("5 małych"),
-        "mealPatternMediterranean":
-            MessageLookupByLibrary.simpleMessage("Śródziemnomorski"),
-        "mealPatternOmad":
-            MessageLookupByLibrary.simpleMessage("1 posiłek"),
-        "mealPatternPresetsLabel":
-            MessageLookupByLibrary.simpleMessage("Szybkie ustawienia"),
-        "mealPatternStandard":
-            MessageLookupByLibrary.simpleMessage("Standardowy"),
-        "mealPatternTwoMeal":
-            MessageLookupByLibrary.simpleMessage("2 posiłki"),
         "mealProteinLabel":
             MessageLookupByLibrary.simpleMessage("białko na 100 g/ml"),
         "mealSizeLabel":
@@ -865,6 +862,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Wartości odżywcze (suma)"),
         "recipeSaveErrorLabel": MessageLookupByLibrary.simpleMessage(
             "Nie udało się zapisać przepisu."),
+        "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
+            "Włącz, aby zachować ten posiłek na liście zapisanych na później. Pozostaw wyłączone dla jednorazowego posiłku, którego już nie zjesz."),
+        "recipeSaveForLaterLabel":
+            MessageLookupByLibrary.simpleMessage("Zapisz na później"),
         "recipeSaveLabel":
             MessageLookupByLibrary.simpleMessage("Zapisz przepis"),
         "recipeServingsCountHelper": MessageLookupByLibrary.simpleMessage(
@@ -984,18 +985,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Pokaż makro posiłku"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Pokaż mikroskładniki"),
-        "settingsPerMealKcalShareLabel":
-            MessageLookupByLibrary.simpleMessage("Udział kcal na posiłek"),
-        "settingsPerMealKcalShareDescription": MessageLookupByLibrary.simpleMessage(
-            "Rozłóż dzienny cel kcal na śniadanie, obiad, kolację i przekąski. Udziały muszą sumować się do 100%."),
-        "settingsPerMealKcalShareBreakfast":
-            MessageLookupByLibrary.simpleMessage("Śniadanie"),
-        "settingsPerMealKcalShareLunch":
-            MessageLookupByLibrary.simpleMessage("Obiad"),
-        "settingsPerMealKcalShareDinner":
-            MessageLookupByLibrary.simpleMessage("Kolacja"),
-        "settingsPerMealKcalShareSnack":
-            MessageLookupByLibrary.simpleMessage("Przekąska"),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Kod źródłowy"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("System"),
@@ -1039,5 +1028,41 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Waga"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("cynk"),
+        "energyLeftLabel": MessageLookupByLibrary.simpleMessage("pozostało"),
+        "energyTooMuchLabel": MessageLookupByLibrary.simpleMessage("za dużo"),
+        "energyUnitKcalLabel":
+            MessageLookupByLibrary.simpleMessage("Kilokalorie (kcal)"),
+        "energyUnitKjLabel":
+            MessageLookupByLibrary.simpleMessage("Kilodżule (kJ)"),
+        "kjLabel": MessageLookupByLibrary.simpleMessage("kJ"),
+        "mealPatternFiveSmall":
+            MessageLookupByLibrary.simpleMessage("5 małych"),
+        "mealPatternMediterranean":
+            MessageLookupByLibrary.simpleMessage("Śródziemnomorski"),
+        "mealPatternOmad":
+            MessageLookupByLibrary.simpleMessage("1 posiłek"),
+        "mealPatternPresetsLabel":
+            MessageLookupByLibrary.simpleMessage("Szybkie ustawienia"),
+        "mealPatternStandard":
+            MessageLookupByLibrary.simpleMessage("Standardowy"),
+        "mealPatternTwoMeal":
+            MessageLookupByLibrary.simpleMessage("2 posiłki"),
+        "onboardingKjPerDayLabel":
+            MessageLookupByLibrary.simpleMessage("kJ dziennie"),
+        "settingsEnergyUnitLabel":
+            MessageLookupByLibrary.simpleMessage("Jednostka energii"),
+        "settingsPerMealKcalShareBreakfast":
+            MessageLookupByLibrary.simpleMessage("Śniadanie"),
+        "settingsPerMealKcalShareDescription": MessageLookupByLibrary.simpleMessage(
+            "Rozłóż dzienny cel kcal na śniadanie, obiad, kolację i przekąski. Udziały muszą sumować się do 100%."),
+        "settingsPerMealKcalShareDinner":
+            MessageLookupByLibrary.simpleMessage("Kolacja"),
+        "settingsPerMealKcalShareLabel":
+            MessageLookupByLibrary.simpleMessage("Udział kcal na posiłek"),
+        "settingsPerMealKcalShareLunch":
+            MessageLookupByLibrary.simpleMessage("Obiad"),
+        "settingsPerMealKcalShareSnack":
+            MessageLookupByLibrary.simpleMessage("Przekąska"),
+        "diaryMealKcalConsumedOfTarget": m22,
       };
 }
