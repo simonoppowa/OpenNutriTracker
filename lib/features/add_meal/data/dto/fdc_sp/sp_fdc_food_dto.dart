@@ -30,16 +30,17 @@ class SpFdcFoodDTO {
       case SupportedLanguage.de:
         return descriptionDe;
       // The Supabase view backing FDC only has `description_en` and
-      // `description_de` columns today. cs / it / pl / tr / uk / zh
+      // `description_de` columns today. cs / it / pl / sk / tr / uk / zh
       // users get the English description until the view picks up
       // matching columns; OFF data still resolves in those locales
       // through OFFProductDTO.getLocaleName.
-      // TODO(@simonoppowa): add description_cs/_it/_pl/_tr/_uk/_zh
+      // TODO(@simonoppowa): add description_cs/_it/_pl/_sk/_tr/_uk/_zh
       // to the Supabase fdc_food view, then split these cases out.
       case SupportedLanguage.pl:
       case SupportedLanguage.zh:
       case SupportedLanguage.cs:
       case SupportedLanguage.it:
+      case SupportedLanguage.sk:
       case SupportedLanguage.tr:
       case SupportedLanguage.uk:
         return descriptionEn;

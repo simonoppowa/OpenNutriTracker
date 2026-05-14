@@ -1,4 +1,87 @@
 {
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "activityExample": "наприклад, біг, їзда на велосипеді, йога ...",
   "activityLabel": "Активність",
   "addItemLabel": "Додати новий елемент:",
@@ -49,16 +132,6 @@
   "clearOffCacheConfirmTitle": "Очистити кеш?",
   "clearOffCacheLabel": "Очистити кеш",
   "clearOffCacheSubtitle": "{count} елементів · {size}",
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
   "cmLabel": "см",
   "codeCopiedLabel": "Код скопійовано",
   "copyCodeLabel": "Копіювати код",
@@ -73,24 +146,7 @@
   "csvImportContributeOffPrefix": "Маєте штрих-код? Додайте продукт до Open Food Facts:",
   "csvImportErrorLabel": "Не вдалося прочитати CSV файл. Перевірте формат і спробуйте знову.",
   "csvImportPartialLabel": "Імпортовано {imported} страв; {skipped} рядків пропущено через неправильні дані.",
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
   "csvImportSuccessLabel": "З CSV файлу імпортовано {count} страв.",
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "customMealsDeleteConfirmContent": "Усі записи в щоденнику, що використовують цю страву, також буде видалено.",
   "customMealsDeleteConfirmTitle": "Видалити власну страву?",
   "customMealsEmptyLabel": "Ще немає збережених власних страв.",
@@ -98,13 +154,6 @@
   "dataCollectionLabel": "Підтримайте розробку, надаючи анонімні дані про використання",
   "deleteAllLabel": "Видалити все",
   "deleteSelectedRecipesConfirmTitle": "Видалити {count} рецепт(ів)?",
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "deleteTimeDialogContent": "Ви хочете видалити вибраний елемент?",
   "deleteTimeDialogPluralContent": "Ви хочете видалити всі елементи цієї страви?",
   "deleteTimeDialogPluralTitle": "Видалити елементи?",
@@ -122,7 +171,9 @@
   "discardChangesTitle": "Скасувати зміни?",
   "disclaimerText": "OpenNutriTracker не є медичним додатком. Всі надані дані не перевіряються і повинні використовуватися з обережністю. Будь ласка, ведіть здоровий спосіб життя і консультуйтеся з фахівцем, якщо у вас виникли проблеми. Використання під час хвороби, вагітності або лактації не рекомендується. Рецензовані джерела для кожного розрахунку відкриваються через піктограму інформації на екрані Головна або Профіль.",
   "downloadSampleCsvAction": "Зразкові страви (csv)",
+  "downloadSampleJsonAction": "Зразкові страви (json)",
   "downloadSampleRecipesCsvAction": "Зразкові рецепти (csv)",
+  "downloadSampleRecipesJsonAction": "Зразкові рецепти (json)",
   "duplicateMealDialogContent": "Цю їжу вже додано до цього прийому їжі сьогодні. Додати ще раз?",
   "duplicateRecipeLabel": "Дублювати",
   "duplicateRecipeNameSuffix": "(копія)",
@@ -161,57 +212,24 @@
   "importAction": "Імпортувати",
   "importActivityConfirmContent": "Ці активності буде додано на сьогодні.",
   "importActivityConfirmTitle": "Імпортувати {count} активностей?",
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importActivityLabel": "Імпортувати спільне тренування",
   "importActivitySuccessLabel": "Тренування імпортовано",
-  "importCustomFoodDataDescription": "Імпортуйте власні страви з CSV файлу. Завантажте зразок, щоб побачити очікуваний формат стовпців та обов'язкові поля.",
+  "importCustomFoodDataDescription": "Імпортуйте власні страви з CSV-файлу або вставивши JSON. Завантажте зразок, щоб побачити очікувану форму та обовʼязкові поля.",
   "importCustomFoodDataLabel": "Імпортувати власні дані про їжу",
   "importMealConfirmContent": "These items will be added to your {mealType}.",
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
   "importMealConfirmTitle": "Import {count} items?",
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importMealErrorLabel": "Invalid QR code",
   "importMealLabel": "Import shared meal",
   "importMealSuccessLabel": "Meal imported",
   "importMealsCsvAction": "Імпортувати страви (csv)",
+  "importMealsJsonAction": "Імпортувати страви (json)",
   "importOffFetchFailedLabel": "{count} елемент(ів) не вдалося отримати з OpenFoodFacts.",
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importRecipeConfirmContent": "Імпортувати цей рецепт з {count} інгредієнт(ами)?",
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importRecipeErrorLabel": "Не вдалося розпізнати код рецепта",
   "importRecipeLabel": "Імпортувати рецепт",
   "importRecipeSuccessLabel": "Рецепт імпортовано",
   "importRecipesCsvAction": "Імпортувати рецепти (csv)",
+  "importRecipesJsonAction": "Імпортувати рецепти (json)",
   "infoAddedActivityLabel": "Додано нову активність",
   "infoAddedIntakeLabel": "Додано новий прийом їжі",
   "ironLabel": "залізо",
@@ -232,6 +250,10 @@
   "mealKcalLabel": "ккал на",
   "mealNameLabel": "Назва страви",
   "mealNameValidationError": "Назва страви повинна містити принаймні одну літеру",
+  "inconsistentNutritionWarningTitle": "Числа не зовсім сходяться",
+  "inconsistentNutritionWarningBody": "Ці значення не зовсім сходяться — введені калорії не відповідають енергії з вуглеводів, жирів і білків. Зберегти все одно чи переглянути ще раз?",
+  "inconsistentNutritionWarningSaveAnyway": "Зберегти все одно",
+  "inconsistentNutritionWarningEdit": "Переглянути ще раз",
   "mealNutrientsPerQtyLabel": "На {qty} {unit}",
   "mealNutrientsTotalLabel": "Загальна кількість",
   "mealProteinLabel": "білки на 100 г/мл",
@@ -249,6 +271,9 @@
   "noResultsFound": "Нічого не знайдено",
   "notAvailableLabel": "Н/Д",
   "nothingAddedLabel": "Нічого не додано",
+  "notificationsDailyReminderBody": "Не забудьте сьогодні записати свої страви!",
+  "notificationsDailyReminderTitle": "OpenNutriTracker",
+  "notificationsPermissionDeniedSnack": "У дозволі на сповіщення відмовлено.",
   "nutritionInfoLabel": "Інформація про харчування",
   "nutritionalStatusNormalWeight": "Нормальна вага",
   "nutritionalStatusObeseClassI": "Ожиріння I класу",
@@ -532,13 +557,6 @@
   "recipeDescriptionLabel": "Опис (необов'язково)",
   "recipeIngredientAmountLabel": "Кількість",
   "recipeIngredientCountLabel": "{count} інгредієнт(ів)",
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "recipeIngredientUnitLabel": "Одиниця",
   "recipeIngredientsLabel": "Інгредієнти",
   "recipeInvalidTotalWeightLabel": "Загальна вага має бути більшою за нуль",
@@ -550,6 +568,8 @@
   "recipeNutritionPer100Label": "На 100 г",
   "recipeNutritionPreviewLabel": "Поживність (загалом)",
   "recipeSaveErrorLabel": "Не вдалося зберегти рецепт.",
+  "recipeSaveForLaterDescription": "Увімкніть, щоб ця страва залишилася у вашому збереженому списку на наступний раз. Залиште вимкненим для одноразової страви, яку ви більше не їстимете.",
+  "recipeSaveForLaterLabel": "Зберегти на потім",
   "recipeSaveLabel": "Зберегти рецепт",
   "recipeServingsCountHelper": "Дозволяє реєструвати цей рецепт у порціях замість грамів.",
   "recipeServingsCountLabel": "Порції (необов'язково)",
@@ -576,13 +596,6 @@
   "selectPalCategoryLabel": "Виберіть рівень активності",
   "selectWeightDialogLabel": "Виберіть вагу",
   "selectionCountLabel": "Вибрано: {count}",
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "sendAnonymousUserData": "Надсилати анонімні дані про використання",
   "servingLabel": "Порція",
   "servingSizeLabelImperial": "Розмір порції (унція/рідка унція)",
@@ -592,20 +605,6 @@
   "settingsCalculationsLabel": "Розрахунки",
   "settingsCustomMealsLabel": "Власні страви",
   "settingsDisclaimerLabel": "Відмова від відповідальності",
-  "settingsSourcesLabel": "Джерела та посилання",
-  "sourcesIconTooltip": "Переглянути джерела",
-  "sourcesScreenIntro": "OpenNutriTracker використовує для кожного розрахунку усталені, рецензовані методики. Наведені нижче посилання ведуть до оригінальних джерел, щоб ти могла самостійно перевірити будь-яке число.",
-  "sourcesEnergyTitle": "Енергетичні потреби (TDEE, BMR та рівень активності)",
-  "sourcesEnergyDescription": "Денні цілі за калоріями, основний обмін та коефіцієнти фізичної активності базуються на рівняннях Institute of Medicine. Джерело: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, розділ 5 і таблиця 5-5.",
-  "sourcesBmiTitle": "Індекс маси тіла (ІМТ)",
-  "sourcesBmiDescription": "ІМТ обчислюється як маса (кг), поділена на квадрат зросту (м²). Категорії здоров'я (недостатня вага, нормальна вага, передожиріння, ожиріння I–III ступеня) відповідають класифікації ІМТ для дорослих Всесвітньої організації охорони здоров'я.",
-  "sourcesMacrosTitle": "Розподіл макроелементів",
-  "sourcesMacrosDescription": "Стандартний розподіл 60% вуглеводів, 25% жирів і 15% білків входить у діапазони споживання поживних речовин, рекомендовані ВООЗ. Ти можеш змінити його в Налаштування → Розрахунки. Джерело: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
-  "sourcesActivityTitle": "Калорії від активності (значення MET)",
-  "sourcesActivityDescription": "Калорії, спалені під час активності, оцінюються як MET × маса тіла (кг) × тривалість (години) на основі значень з Adult Compendium of Physical Activities.",
-  "sourcesNonBinaryTitle": "Розрахунок калорій для небінарних осіб",
-  "sourcesNonBinaryDescription": "Дослідження енергетичних витрат історично використовували лише бінарні категорії статі, тому для небінарних осіб не існує єдиної підтвердженої формули TDEE. Тому OpenNutriTracker у Налаштування → Розрахунки пропонує вибір між усередненим орієнтиром, орієнтиром, типовим для естрогену, та орієнтиром, типовим для тестостерону. Якщо точне значення є дійсно важливим для тебе, будь ласка, поговори з лікарем, який знає твій гормональний стан.",
-  "sourcesOpenSourceLabel": "Відкрити джерело",
   "settingsDistanceLabel": "Відстань",
   "settingsImperialLabel": "Імперська (фунти, фут, унції)",
   "settingsLabel": "Налаштування",
@@ -615,15 +614,13 @@
   "settingsMetricLabel": "Метрична (кг, см, мл)",
   "settingsNotificationsLabel": "Щоденне нагадування",
   "settingsNotificationsTimeLabel": "Час нагадування: {time}",
-  "notificationsPermissionDeniedSnack": "У дозволі на сповіщення відмовлено.",
-  "notificationsDailyReminderTitle": "OpenNutriTracker",
-  "notificationsDailyReminderBody": "Не забудьте сьогодні записати свої страви!",
   "settingsPrivacySettings": "Налаштування конфіденційності",
   "settingsReportErrorLabel": "Повідомити про помилку",
   "settingsShowActivityTracking": "Показати відстеження активності",
   "settingsShowMealMacros": "Показати макроси страви",
   "settingsShowMicronutrientsLabel": "Показувати мікроелементи",
   "settingsSourceCodeLabel": "Вихідний код",
+  "settingsSourcesLabel": "Джерела та посилання",
   "settingsSystemLabel": "Система",
   "settingsThemeDarkLabel": "Темна",
   "settingsThemeLabel": "Тема",
@@ -638,6 +635,19 @@
   "snackExample": "наприклад, яблуко, морозиво, шоколад ...",
   "snackLabel": "Перекус",
   "sodiumLabel": "натрій",
+  "sourcesActivityDescription": "Калорії, спалені під час активності, оцінюються як MET × маса тіла (кг) × тривалість (години) на основі значень з Adult Compendium of Physical Activities.",
+  "sourcesActivityTitle": "Калорії від активності (значення MET)",
+  "sourcesBmiDescription": "ІМТ обчислюється як маса (кг), поділена на квадрат зросту (м²). Категорії здоров'я (недостатня вага, нормальна вага, передожиріння, ожиріння I–III ступеня) відповідають класифікації ІМТ для дорослих Всесвітньої організації охорони здоров'я.",
+  "sourcesBmiTitle": "Індекс маси тіла (ІМТ)",
+  "sourcesEnergyDescription": "Денні цілі за калоріями, основний обмін та коефіцієнти фізичної активності базуються на рівняннях Institute of Medicine. Джерело: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, розділ 5 і таблиця 5-5.",
+  "sourcesEnergyTitle": "Енергетичні потреби (TDEE, BMR та рівень активності)",
+  "sourcesIconTooltip": "Переглянути джерела",
+  "sourcesMacrosDescription": "Стандартний розподіл 60% вуглеводів, 25% жирів і 15% білків входить у діапазони споживання поживних речовин, рекомендовані ВООЗ. Ти можеш змінити його в Налаштування → Розрахунки. Джерело: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
+  "sourcesMacrosTitle": "Розподіл макроелементів",
+  "sourcesNonBinaryDescription": "Дослідження енергетичних витрат історично використовували лише бінарні категорії статі, тому для небінарних осіб не існує єдиної підтвердженої формули TDEE. Тому OpenNutriTracker у Налаштування → Розрахунки пропонує вибір між усередненим орієнтиром, орієнтиром, типовим для естрогену, та орієнтиром, типовим для тестостерону. Якщо точне значення є дійсно важливим для тебе, будь ласка, поговори з лікарем, який знає твій гормональний стан.",
+  "sourcesNonBinaryTitle": "Розрахунок калорій для небінарних осіб",
+  "sourcesOpenSourceLabel": "Відкрити джерело",
+  "sourcesScreenIntro": "OpenNutriTracker використовує для кожного розрахунку усталені, рецензовані методики. Наведені нижче посилання ведуть до оригінальних джерел, щоб ти могла самостійно перевірити будь-яке число.",
   "sugarLabel": "цукор",
   "suppliedLabel": "спожито",
   "transFatLabel": "трансжири",

@@ -49,8 +49,9 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
   @override
   void didChangeDependencies() {
-    final args = ModalRoute.of(context)?.settings.arguments
-        as ActivityDetailScreenArguments;
+    final args =
+        ModalRoute.of(context)?.settings.arguments
+            as ActivityDetailScreenArguments;
     activityEntity = args.activityEntity;
     _day = args.day;
     super.didChangeDependencies();
@@ -65,29 +66,29 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocBuilder<ActivityDetailBloc, ActivityDetailState>(
-        bloc: _activityDetailBloc,
-        builder: (context, state) {
-          if (state is ActivityDetailInitial) {
-            _activityDetailBloc.add(
-              LoadActivityDetailEvent(activityEntity),
-            );
-            return getLoadingContent();
-          } else if (state is ActivityDetailLoadingState) {
-            return getLoadingContent();
-          } else if (state is ActivityDetailLoadedState) {
-            return getLoadedContent(state.totalKcalBurned, state.userEntity);
-          } else {
-            return const SizedBox();
-          }
-        },
-      ),
-      bottomSheet: ActivityDetailBottomSheet(
-        onAddButtonPressed: onAddButtonPressed,
-        quantityTextController: quantityTextController,
-        activityEntity: activityEntity,
-        activityDetailBloc: _activityDetailBloc,
+    return SafeArea(
+      child: Scaffold(
+        body: BlocBuilder<ActivityDetailBloc, ActivityDetailState>(
+          bloc: _activityDetailBloc,
+          builder: (context, state) {
+            if (state is ActivityDetailInitial) {
+              _activityDetailBloc.add(LoadActivityDetailEvent(activityEntity));
+              return getLoadingContent();
+            } else if (state is ActivityDetailLoadingState) {
+              return getLoadingContent();
+            } else if (state is ActivityDetailLoadedState) {
+              return getLoadedContent(state.totalKcalBurned, state.userEntity);
+            } else {
+              return const SizedBox();
+            }
+          },
+        ),
+        bottomSheet: ActivityDetailBottomSheet(
+          onAddButtonPressed: onAddButtonPressed,
+          quantityTextController: quantityTextController,
+          activityEntity: activityEntity,
+          activityDetailBloc: _activityDetailBloc,
+        ),
       ),
     );
   }
@@ -118,9 +119,8 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                   child: top > barsHeight - offset && top < barsHeight + offset
                       ? Text(
                           activityEntity.getName(context),
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleLarge?.copyWith(
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurface,
                               ),
                         )

@@ -1,4 +1,118 @@
 {
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@settingsNotificationsTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@weeklyWeightGoalKgPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "@weeklyWeightGoalLbsPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "activityExample": "ör. koşu, bisiklet, yoga ...",
   "activityLabel": "Aktivite",
   "addItemLabel": "Yeni Öğe Ekle:",
@@ -49,16 +163,6 @@
   "clearOffCacheConfirmTitle": "Önbelleği temizle?",
   "clearOffCacheLabel": "Önbelleği temizle",
   "clearOffCacheSubtitle": "{count} öğe · {size}",
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
   "cmLabel": "cm",
   "codeCopiedLabel": "Kod kopyalandı",
   "copyCodeLabel": "Kodu kopyala",
@@ -73,24 +177,7 @@
   "csvImportContributeOffPrefix": "Barkod var mı? Ürünü Open Food Facts'e katkıda bulunun:",
   "csvImportErrorLabel": "CSV dosyası okunamadı. Biçimi kontrol edin ve tekrar deneyin.",
   "csvImportPartialLabel": "{imported} öğün içe aktarıldı; geçersiz veri nedeniyle {skipped} satır atlandı.",
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
   "csvImportSuccessLabel": "CSV dosyasından {count} öğün içe aktarıldı.",
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "customMealsDeleteConfirmContent": "Bu yemeği kullanan tüm günlük girişleri de kaldırılacak.",
   "customMealsDeleteConfirmTitle": "Özel yemek silinsin mi?",
   "customMealsEmptyLabel": "Henüz özel yemek kaydedilmedi.",
@@ -98,13 +185,6 @@
   "dataCollectionLabel": "Anonim kullanım verileri sağlayarak geliştirmeyi destekleyin",
   "deleteAllLabel": "Tümünü sil",
   "deleteSelectedRecipesConfirmTitle": "{count} tarif silinsin mi?",
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "deleteTimeDialogContent": "Seçilen öğeyi silmek istiyor musunuz?",
   "deleteTimeDialogPluralContent": "Bu öğüne ait tüm girdileri silmek istiyor musunuz?",
   "deleteTimeDialogPluralTitle": "Girdiler silinsin mi?",
@@ -122,7 +202,9 @@
   "discardChangesTitle": "Değişiklikler iptal edilsin mi?",
   "disclaimerText": "OpenNutriTracker bir tıbbi uygulama değildir. Sağlanan tüm veriler doğrulanmamıştır ve dikkatle kullanılmalıdır. Lütfen sağlıklı bir yaşam tarzı sürdürün ve herhangi bir sorununuz varsa bir profesyonele danışın. Hastalık, hamilelik veya emzirme döneminde kullanımı önerilmez.\n\n\nUygulama hala geliştirme aşamasındadır. Hatalar, aksaklıklar ve çökmeler meydana gelebilir.\n\nHer hesaplamanın hakemli kaynaklarına Ana Sayfa veya Profil ekranındaki bilgi simgesine dokunarak ulaşabilirsin.",
   "downloadSampleCsvAction": "Örnek yemekler (csv)",
+  "downloadSampleJsonAction": "Örnek yemekler (json)",
   "downloadSampleRecipesCsvAction": "Örnek tarifler (csv)",
+  "downloadSampleRecipesJsonAction": "Örnek tarifler (json)",
   "duplicateMealDialogContent": "Bu yiyecek bugün bu öğüne zaten eklenmiş. Tekrar eklensin mi?",
   "duplicateRecipeLabel": "Çoğalt",
   "duplicateRecipeNameSuffix": "(kopya)",
@@ -161,57 +243,24 @@
   "importAction": "İçe Aktar",
   "importActivityConfirmContent": "Bu aktiviteler bugüne eklenecek.",
   "importActivityConfirmTitle": "{count} aktivite içe aktarılsın mı?",
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importActivityLabel": "Paylaşılan antrenmanı içe aktar",
   "importActivitySuccessLabel": "Antrenman içe aktarıldı",
-  "importCustomFoodDataDescription": "Kendi öğünlerinizi bir CSV dosyasından içe aktarın. Beklenen sütun yapısını ve zorunlu alanları görmek için örneği indirin.",
+  "importCustomFoodDataDescription": "Kendi yemeklerinizi bir CSV dosyasından veya JSON yapıştırarak içe aktarın. Beklenen şekli ve zorunlu alanları görmek için bir örnek indirin.",
   "importCustomFoodDataLabel": "Özel Gıda Verilerini İçe Aktar",
   "importMealConfirmContent": "These items will be added to your {mealType}.",
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
   "importMealConfirmTitle": "Import {count} items?",
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importMealErrorLabel": "Invalid QR code",
   "importMealLabel": "Import shared meal",
   "importMealSuccessLabel": "Meal imported",
   "importMealsCsvAction": "Yemekleri içe aktar (csv)",
+  "importMealsJsonAction": "Yemekleri içe aktar (json)",
   "importOffFetchFailedLabel": "{count} öğe OpenFoodFacts'ten alınamadı.",
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importRecipeConfirmContent": "{count} malzeme içeren bu tarif içe aktarılsın mı?",
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importRecipeErrorLabel": "Tarif kodu çözümlenemedi",
   "importRecipeLabel": "Tarifi içe aktar",
   "importRecipeSuccessLabel": "Tarif içe aktarıldı",
   "importRecipesCsvAction": "Tarifleri içe aktar (csv)",
+  "importRecipesJsonAction": "Tarifleri içe aktar (json)",
   "infoAddedActivityLabel": "Yeni aktivite eklendi",
   "infoAddedIntakeLabel": "Yeni alım eklendi",
   "ironLabel": "demir",
@@ -232,17 +281,11 @@
   "mealKcalLabel": "kcal",
   "mealNameLabel": "Yemek adı",
   "mealNameValidationError": "Yemek adı en az bir harf içermelidir",
+  "inconsistentNutritionWarningTitle": "Sayılar pek uyuşmuyor",
+  "inconsistentNutritionWarningBody": "Bu değerler tam olarak uyuşmuyor — girdiğiniz kalori, karbonhidrat, yağ ve proteinin enerjisiyle örtüşmüyor. Yine de kaydedilsin mi, yoksa tekrar göz atmak ister misiniz?",
+  "inconsistentNutritionWarningSaveAnyway": "Yine de kaydet",
+  "inconsistentNutritionWarningEdit": "Tekrar bakayım",
   "mealNutrientsPerQtyLabel": "{qty} {unit} başına",
-  "@mealNutrientsPerQtyLabel": {
-    "placeholders": {
-      "qty": {
-        "type": "String"
-      },
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
   "mealNutrientsTotalLabel": "Toplam miktar",
   "mealProteinLabel": "Protein (g)",
   "mealSizeLabel": "Yemek boyutu (g/ml)",
@@ -259,6 +302,9 @@
   "noResultsFound": "Sonuç bulunamadı",
   "notAvailableLabel": "Mevcut Değil",
   "nothingAddedLabel": "Hiçbir şey eklenmedi",
+  "notificationsDailyReminderBody": "Bugün öğünlerinizi kaydetmeyi unutmayın!",
+  "notificationsDailyReminderTitle": "OpenNutriTracker",
+  "notificationsPermissionDeniedSnack": "Bildirim izni reddedildi.",
   "nutritionInfoLabel": "Beslenme Bilgileri",
   "nutritionalStatusNormalWeight": "Normal Kilo",
   "nutritionalStatusObeseClassI": "Obezite Sınıf I",
@@ -542,13 +588,6 @@
   "recipeDescriptionLabel": "Açıklama (isteğe bağlı)",
   "recipeIngredientAmountLabel": "Miktar",
   "recipeIngredientCountLabel": "{count} malzeme",
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "recipeIngredientUnitLabel": "Birim",
   "recipeIngredientsLabel": "Malzemeler",
   "recipeInvalidTotalWeightLabel": "Toplam ağırlık sıfırdan büyük olmalı",
@@ -560,6 +599,8 @@
   "recipeNutritionPer100Label": "100 g başına",
   "recipeNutritionPreviewLabel": "Beslenme (toplam)",
   "recipeSaveErrorLabel": "Tarif kaydedilemedi.",
+  "recipeSaveForLaterDescription": "Bu yemeği bir dahaki sefere kaydedilenler listesinde tutmak için açın. Bir daha yemeyeceğiniz tek seferlik bir yemek için kapalı bırakın.",
+  "recipeSaveForLaterLabel": "Sonraki için kaydet",
   "recipeSaveLabel": "Tarifi Kaydet",
   "recipeServingsCountHelper": "Bu tarifi gram yerine porsiyon olarak kaydetmenize olanak tanır.",
   "recipeServingsCountLabel": "Porsiyonlar (isteğe bağlı)",
@@ -586,13 +627,6 @@
   "selectPalCategoryLabel": "Aktivite Seviyesini Seçin",
   "selectWeightDialogLabel": "Kilo Seçin",
   "selectionCountLabel": "{count} seçildi",
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "sendAnonymousUserData": "Anonim kullanım verileri gönder",
   "servingLabel": "Porsiyon",
   "servingSizeLabelImperial": "Porsiyon boyutu (oz/fl oz)",
@@ -602,20 +636,6 @@
   "settingsCalculationsLabel": "Hesaplamalar",
   "settingsCustomMealsLabel": "Özel Yemekler",
   "settingsDisclaimerLabel": "Sorumluluk Reddi",
-  "settingsSourcesLabel": "Kaynaklar ve Referanslar",
-  "sourcesIconTooltip": "Kaynakları görüntüle",
-  "sourcesScreenIntro": "OpenNutriTracker, gösterdiği her hesaplama için yerleşik ve hakemli yöntemler kullanır. Aşağıdaki kaynaklar orijinal yayınlara bağlanır, böylece her değeri kendin doğrulayabilirsin.",
-  "sourcesEnergyTitle": "Enerji ihtiyacı (TDEE, BMR ve aktivite düzeyi)",
-  "sourcesEnergyDescription": "Günlük kalori hedefleri, bazal metabolizma hızı ve fiziksel aktivite katsayıları Institute of Medicine denklemlerine dayanır. Kaynak: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, Bölüm 5 ve Tablo 5-5.",
-  "sourcesBmiTitle": "Vücut Kitle İndeksi (BMI)",
-  "sourcesBmiDescription": "BMI, kilogram cinsinden vücut ağırlığının metre cinsinden boyun karesine (m²) bölünmesiyle hesaplanır. Sağlık kategorileri (zayıf, normal, fazla kilolu, sınıf I–III obezite) Dünya Sağlık Örgütü'nün yetişkin BMI sınıflandırmasına uyar.",
-  "sourcesMacrosTitle": "Makro besin dağılımı",
-  "sourcesMacrosDescription": "%60 karbonhidrat, %25 yağ ve %15 protein şeklindeki varsayılan dağılım, DSÖ'nün önerdiği nüfus besin alımı aralıkları içinde kalır. Ayarlar → Hesaplamalar bölümünden değiştirebilirsin. Kaynak: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
-  "sourcesActivityTitle": "Aktivite kalorileri (MET değerleri)",
-  "sourcesActivityDescription": "Bir aktivite sırasında yakılan kaloriler, Adult Compendium of Physical Activities'teki değerler kullanılarak MET × vücut ağırlığı (kg) × süre (saat) olarak tahmin edilir.",
-  "sourcesNonBinaryTitle": "Non-binary kişiler için kalori tahmini",
-  "sourcesNonBinaryDescription": "Enerji harcaması üzerine yapılan araştırmalar tarihsel olarak yalnızca ikili cinsiyet kategorilerini kullanmıştır; bu nedenle non-binary kişiler için doğrulanmış tek bir TDEE formülü yoktur. Bu yüzden OpenNutriTracker, Ayarlar → Hesaplamalar bölümünde ortalanmış bir referans, östrojen-tipik bir referans ve testosteron-tipik bir referans arasında seçim yapmanı sağlar. Bakımın için kesin bir değer gerçekten önemliyse lütfen hormon durumunu bilen bir klinisyenle görüş.",
-  "sourcesOpenSourceLabel": "Kaynağı aç",
   "settingsDistanceLabel": "Mesafe",
   "settingsImperialLabel": "İmperial (lbs, ft, oz)",
   "settingsLabel": "Ayarlar",
@@ -625,22 +645,13 @@
   "settingsMetricLabel": "Metrik (kg, cm, ml)",
   "settingsNotificationsLabel": "Günlük Hatırlatıcı",
   "settingsNotificationsTimeLabel": "Hatırlatma zamanı: {time}",
-  "@settingsNotificationsTimeLabel": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "notificationsPermissionDeniedSnack": "Bildirim izni reddedildi.",
-  "notificationsDailyReminderTitle": "OpenNutriTracker",
-  "notificationsDailyReminderBody": "Bugün öğünlerinizi kaydetmeyi unutmayın!",
   "settingsPrivacySettings": "Gizlilik Ayarları",
   "settingsReportErrorLabel": "Hata Bildir",
   "settingsShowActivityTracking": "Aktivite takibini göster",
   "settingsShowMealMacros": "Öğün makrolarını göster",
   "settingsShowMicronutrientsLabel": "Mikro besinleri göster",
   "settingsSourceCodeLabel": "Kaynak Kodu",
+  "settingsSourcesLabel": "Kaynaklar ve Referanslar",
   "settingsSystemLabel": "Sistem",
   "settingsThemeDarkLabel": "Koyu",
   "settingsThemeLabel": "Tema",
@@ -655,6 +666,19 @@
   "snackExample": "ör. elma, dondurma, çikolata ...",
   "snackLabel": "Atıştırmalık",
   "sodiumLabel": "sodyum",
+  "sourcesActivityDescription": "Bir aktivite sırasında yakılan kaloriler, Adult Compendium of Physical Activities'teki değerler kullanılarak MET × vücut ağırlığı (kg) × süre (saat) olarak tahmin edilir.",
+  "sourcesActivityTitle": "Aktivite kalorileri (MET değerleri)",
+  "sourcesBmiDescription": "BMI, kilogram cinsinden vücut ağırlığının metre cinsinden boyun karesine (m²) bölünmesiyle hesaplanır. Sağlık kategorileri (zayıf, normal, fazla kilolu, sınıf I–III obezite) Dünya Sağlık Örgütü'nün yetişkin BMI sınıflandırmasına uyar.",
+  "sourcesBmiTitle": "Vücut Kitle İndeksi (BMI)",
+  "sourcesEnergyDescription": "Günlük kalori hedefleri, bazal metabolizma hızı ve fiziksel aktivite katsayıları Institute of Medicine denklemlerine dayanır. Kaynak: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, Bölüm 5 ve Tablo 5-5.",
+  "sourcesEnergyTitle": "Enerji ihtiyacı (TDEE, BMR ve aktivite düzeyi)",
+  "sourcesIconTooltip": "Kaynakları görüntüle",
+  "sourcesMacrosDescription": "%60 karbonhidrat, %25 yağ ve %15 protein şeklindeki varsayılan dağılım, DSÖ'nün önerdiği nüfus besin alımı aralıkları içinde kalır. Ayarlar → Hesaplamalar bölümünden değiştirebilirsin. Kaynak: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
+  "sourcesMacrosTitle": "Makro besin dağılımı",
+  "sourcesNonBinaryDescription": "Enerji harcaması üzerine yapılan araştırmalar tarihsel olarak yalnızca ikili cinsiyet kategorilerini kullanmıştır; bu nedenle non-binary kişiler için doğrulanmış tek bir TDEE formülü yoktur. Bu yüzden OpenNutriTracker, Ayarlar → Hesaplamalar bölümünde ortalanmış bir referans, östrojen-tipik bir referans ve testosteron-tipik bir referans arasında seçim yapmanı sağlar. Bakımın için kesin bir değer gerçekten önemliyse lütfen hormon durumunu bilen bir klinisyenle görüş.",
+  "sourcesNonBinaryTitle": "Non-binary kişiler için kalori tahmini",
+  "sourcesOpenSourceLabel": "Kaynağı aç",
+  "sourcesScreenIntro": "OpenNutriTracker, gösterdiği her hesaplama için yerleşik ve hakemli yöntemler kullanır. Aşağıdaki kaynaklar orijinal yayınlara bağlanır, böylece her değeri kendin doğrulayabilirsin.",
   "sugarLabel": "şeker",
   "suppliedLabel": "tüketilen",
   "transFatLabel": "trans yağ",
@@ -666,22 +690,8 @@
   "vitaminDLabel": "D vitamini",
   "warningLabel": "Uyarı",
   "weeklyWeightGoalKgPerWeek": "{rate} kg/hafta",
-  "@weeklyWeightGoalKgPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "weeklyWeightGoalLabel": "Haftalık oran",
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/hafta",
-  "@weeklyWeightGoalLbsPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "weeklyWeightGoalNoneLabel": "Ayarlanmadı",
   "weightLabel": "Kilo",
   "yearsLabel": "{age} yıl",

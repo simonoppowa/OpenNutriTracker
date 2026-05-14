@@ -1,0 +1,177 @@
+# Update docs/site/release-info.json whenever a new GitHub Release is published.
+#
+# The workflow downloads the newly-released APK and iOS IPA, extracts the
+# Android signing certificate SHA-256 from the APK using `apksigner`, computes
+# the SHA-256 of each asset, and opens a small PR against `develop` with the
+# updated values. The PR keeps the project website's "Verify your download"
+# section in step with whatever the current release actually is, without
+# anyone having to do it by hand.
+#
+# Triggered automatically on release:published. Can also be run manually
+# against any existing tag via workflow_dispatch.
+
+name: Update release fingerprint
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to refresh release-info.json against (defaults to latest)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-release-info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          # Use a token that can push a branch and open a PR; GITHUB_TOKEN is
+          # sufficient for both with the `permissions:` block above.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve release tag
+        id: tag
+        run: |
+          if [[ -n "${{ github.event.inputs.tag }}" ]]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${{ github.event.release.tag_name }}" ]]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          else
+            TAG=$(gh release view --json tagName --jq .tagName)
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch release metadata
+        id: meta
+        run: |
+          gh release view "${{ steps.tag.outputs.tag }}" --json tagName,publishedAt,url,assets > /tmp/release.json
+          cat /tmp/release.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download release assets
+        run: |
+          mkdir -p /tmp/release-assets
+          cd /tmp/release-assets
+          gh release download "${{ steps.tag.outputs.tag }}" \
+            --pattern 'app-release.apk' \
+            --pattern 'opennutritracker.ipa' \
+            --skip-existing
+          ls -lh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Android build tools (for apksigner)
+        uses: android-actions/setup-android@v3
+
+      - name: Extract signing certificate SHA-256
+        id: cert
+        run: |
+          APK=/tmp/release-assets/app-release.apk
+          if [[ ! -f "$APK" ]]; then
+            echo "::error::APK not found at $APK"; exit 1
+          fi
+          OUT=$(apksigner verify --print-certs "$APK")
+          echo "$OUT"
+          SHA=$(echo "$OUT" | grep -oP 'Signer #1 certificate SHA-256 digest:\s*\K[0-9a-f]+' | head -1)
+          CN=$(echo "$OUT"  | grep -oP 'Signer #1 certificate DN:.*?CN=\K[^,]+' | head -1)
+          if [[ -z "$SHA" ]]; then
+            echo "::error::Could not parse SHA-256 fingerprint from apksigner output"; exit 1
+          fi
+          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          echo "cn=${CN:-Simon Oppowa}" >> "$GITHUB_OUTPUT"
+
+      - name: Compose new release-info.json
+        run: |
+          python3 - <<'PY'
+          import json, os, hashlib, pathlib
+
+          with open('/tmp/release.json') as f:
+              meta = json.load(f)
+
+          tag = meta['tagName']
+          published = meta['publishedAt']
+          url = meta['url']
+
+          def sha256_of(path):
+              h = hashlib.sha256()
+              with open(path, 'rb') as fp:
+                  for chunk in iter(lambda: fp.read(1 << 20), b''):
+                      h.update(chunk)
+              return h.hexdigest()
+
+          asset_map = {
+              'app-release.apk':       ('Android', '/tmp/release-assets/app-release.apk'),
+              'opennutritracker.ipa':  ('iOS',     '/tmp/release-assets/opennutritracker.ipa'),
+          }
+          assets = []
+          for name, (platform, path) in asset_map.items():
+              if not pathlib.Path(path).exists():
+                  continue
+              assets.append({
+                  'name': name,
+                  'platform': platform,
+                  'size_bytes': pathlib.Path(path).stat().st_size,
+                  'sha256': sha256_of(path),
+              })
+
+          out = {
+              'release': {
+                  'tag': tag,
+                  'published': published,
+                  'url': url,
+              },
+              'signing_certificate': {
+                  'sha256': os.environ['CERT_SHA'],
+                  'common_name': os.environ['CERT_CN'],
+                  'note': 'Stable across releases; only changes if the signing keystore is '
+                          'rotated, which would also force a fresh install on every device.',
+              },
+              'assets': assets,
+              '_updated_by': '.github/workflows/update-release-fingerprint.yml',
+          }
+
+          path = pathlib.Path('docs/site/release-info.json')
+          path.parent.mkdir(parents=True, exist_ok=True)
+          with path.open('w') as f:
+              json.dump(out, f, indent=2)
+              f.write('\n')
+          PY
+        env:
+          CERT_SHA: ${{ steps.cert.outputs.sha256 }}
+          CERT_CN:  ${{ steps.cert.outputs.cn }}
+
+      - name: Open PR if release-info changed
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chore/update-release-fingerprint-${{ steps.tag.outputs.tag }}
+          base: develop
+          commit-message: |
+            chore(site): refresh release fingerprint for ${{ steps.tag.outputs.tag }}
+          title: "chore(site): refresh release fingerprint for ${{ steps.tag.outputs.tag }}"
+          body: |
+            Automated update of `docs/site/release-info.json` after the
+            **${{ steps.tag.outputs.tag }}** release was published.
+
+            The signing-certificate SHA-256 and per-asset SHA-256 values are
+            extracted from the released artefacts and written to the JSON file
+            that the project landing page reads on load. Nothing else in the
+            repository changes.
+
+            If the signing certificate value is unchanged from the previous
+            release, only the per-release asset hashes have moved.
+          add-paths: |
+            docs/site/release-info.json
+          delete-branch: true
