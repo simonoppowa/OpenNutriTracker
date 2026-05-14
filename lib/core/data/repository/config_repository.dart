@@ -96,4 +96,12 @@ class ConfigRepository {
   Future<void> setConfigShowMicronutrients(bool show) async {
     await _configDataSource.setConfigShowMicronutrients(show);
   }
+
+  Future<bool> getCaloriesTaperEnabled() async {
+    return await _configDataSource.getCaloriesTaperEnabled();
+  }
+
+  Future<void> setConfigCaloriesTaperEnabled(bool enabled) async {
+    await _configDataSource.setConfigCaloriesTaperEnabled(enabled);
+  }
 }

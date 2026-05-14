@@ -987,6 +987,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "profileTargetWeightToGo": m20,
         "profileTargetWeightReached":
             MessageLookupByLibrary.simpleMessage("Hedefine ulaştın"),
+        "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
+            "Hedefine yaklaştıkça kalori hedefini ayarla"),
+        "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük açığı kademeli olarak azaltır, böylece son birkaç kilo bir duvar gibi hissettirmez."),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("çinko"),
       };

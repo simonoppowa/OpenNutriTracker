@@ -695,6 +695,8 @@
     }
   },
   "profileTargetWeightReached": "Hedefine ulaştın",
+  "settingsCaloriesTaperLabel": "Hedefine yaklaştıkça kalori hedefini ayarla",
+  "settingsCaloriesTaperDescription": "Günlük açığı kademeli olarak azaltır, böylece son birkaç kilo bir duvar gibi hissettirmez.",
   "yearsLabel": "{age} yıl",
   "zincLabel": "çinko"
 }

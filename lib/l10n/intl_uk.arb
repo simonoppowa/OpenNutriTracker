@@ -664,6 +664,8 @@
     }
   },
   "profileTargetWeightReached": "Ви досягли своєї цілі",
+  "settingsCaloriesTaperLabel": "Коригувати калорійну ціль у міру наближення до цілі",
+  "settingsCaloriesTaperDescription": "Поступово зменшує щоденний дефіцит, щоб останні кілограми не здавалися стіною.",
   "yearsLabel": "{age} років",
   "zincLabel": "цинк"
 }

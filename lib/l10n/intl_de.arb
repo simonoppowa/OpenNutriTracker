@@ -695,6 +695,8 @@
     }
   },
   "profileTargetWeightReached": "Du hast dein Ziel erreicht",
+  "settingsCaloriesTaperLabel": "Kalorienziel anpassen, wenn du dich dem Ziel näherst",
+  "settingsCaloriesTaperDescription": "Reduziert das tägliche Defizit allmählich, damit die letzten Kilos nicht wie eine Wand wirken.",
   "yearsLabel": "{age} Jahre",
   "zincLabel": "Zink"
 }

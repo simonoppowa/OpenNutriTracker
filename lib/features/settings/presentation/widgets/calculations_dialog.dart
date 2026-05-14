@@ -58,6 +58,9 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
 
   UserEntity? _user;
   bool _usesImperialUnits = false;
+  // #119 follow-up: opt-in taper that scales the daily kcal deficit
+  // down as current weight approaches the target. Defaults to off.
+  bool _caloriesTaperEnabled = false;
 
   @override
   void initState() {
@@ -102,6 +105,9 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     final usesImperialUnits = settingsState is SettingsLoadedState
         ? settingsState.usesImperialUnits
         : false;
+    final caloriesTaperEnabled = settingsState is SettingsLoadedState
+        ? settingsState.caloriesTaperEnabled
+        : false;
 
     setState(() {
       _kcalAdjustmentSelection = kcalAdjustment;
@@ -111,6 +117,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       _fatPctSelection = (userFatPct ?? _defaultFatPctSelection) * 100;
       _user = user;
       _usesImperialUnits = usesImperialUnits;
+      _caloriesTaperEnabled = caloriesTaperEnabled;
     });
     _kcalAdjustmentController.text =
         _kcalAdjustmentSelection.round().toString();
@@ -290,6 +297,23 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 ),
               ],
             ),
+            // #119 follow-up: opt-in linear taper. We only surface it when
+            // a target weight is set, since without one the toggle has
+            // nothing to scale against. The helper line spells out the
+            // shape of the curve plainly so users aren't left guessing.
+            if (_user?.targetWeightKg != null) ...[
+              const SizedBox(height: 8),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(S.of(context).settingsCaloriesTaperLabel),
+                subtitle: Text(
+                  S.of(context).settingsCaloriesTaperDescription,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                value: _caloriesTaperEnabled,
+                onChanged: (v) => setState(() => _caloriesTaperEnabled = v),
+              ),
+            ],
             const SizedBox(height: 16),
             // ── Macro distribution ───────────────────────────────────────────
             Text(
@@ -521,6 +545,9 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     // user's display unit, so the data shape stays stable if they later
     // toggle units.
     _persistTargetWeight();
+
+    // #119 follow-up: persist the taper toggle alongside the rest.
+    widget.settingsBloc.setCaloriesTaperEnabled(_caloriesTaperEnabled);
 
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.profileBloc.add(LoadProfileEvent());

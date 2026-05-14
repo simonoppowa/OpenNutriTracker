@@ -5802,6 +5802,26 @@ class S {
       args: [],
     );
   }
+
+  /// `Adjust calorie goal as you approach target`
+  String get settingsCaloriesTaperLabel {
+    return Intl.message(
+      'Adjust calorie goal as you approach target',
+      name: 'settingsCaloriesTaperLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reduces the daily deficit gradually so the last few kg don't feel like a wall.`
+  String get settingsCaloriesTaperDescription {
+    return Intl.message(
+      'Reduces the daily deficit gradually so the last few kg don\'t feel like a wall.',
+      name: 'settingsCaloriesTaperDescription',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

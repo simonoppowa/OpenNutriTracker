@@ -1022,6 +1022,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "profileTargetWeightToGo": m20,
         "profileTargetWeightReached":
             MessageLookupByLibrary.simpleMessage("Du hast dein Ziel erreicht"),
+        "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
+            "Kalorienziel anpassen, wenn du dich dem Ziel näherst"),
+        "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(
+            "Reduziert das tägliche Defizit allmählich, damit die letzten Kilos nicht wie eine Wand wirken."),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("Zink"),
       };

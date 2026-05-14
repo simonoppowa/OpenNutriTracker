@@ -664,6 +664,8 @@
     }
   },
   "profileTargetWeightReached": "Hai raggiunto il tuo obiettivo",
+  "settingsCaloriesTaperLabel": "Adatta l'obiettivo calorico mentre ti avvicini al tuo peso obiettivo",
+  "settingsCaloriesTaperDescription": "Riduce gradualmente il deficit giornaliero così gli ultimi chili non sembrano un muro.",
   "yearsLabel": "{age} anni",
   "zincLabel": "zinco"
 }

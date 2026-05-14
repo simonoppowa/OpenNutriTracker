@@ -664,6 +664,8 @@
     }
   },
   "profileTargetWeightReached": "Dosáhli jste svého cíle",
+  "settingsCaloriesTaperLabel": "Upravovat kalorický cíl, jak se blížíte k cílové váze",
+  "settingsCaloriesTaperDescription": "Postupně zmenšuje denní deficit, aby posledních pár kilogramů nepůsobilo jako zeď.",
   "yearsLabel": "{age} let",
   "zincLabel": "zinek"
 }

@@ -1000,6 +1000,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "profileTargetWeightToGo": m20,
         "profileTargetWeightReached":
             MessageLookupByLibrary.simpleMessage("Dosáhli jste svého cíle"),
+        "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
+            "Upravovat kalorický cíl, jak se blížíte k cílové váze"),
+        "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(
+            "Postupně zmenšuje denní deficit, aby posledních pár kilogramů nepůsobilo jako zeď."),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("zinek"),
       };

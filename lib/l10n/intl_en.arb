@@ -676,5 +676,7 @@
       }
     }
   },
-  "profileTargetWeightReached": "You've reached your target"
+  "profileTargetWeightReached": "You've reached your target",
+  "settingsCaloriesTaperLabel": "Adjust calorie goal as you approach target",
+  "settingsCaloriesTaperDescription": "Reduces the daily deficit gradually so the last few kg don't feel like a wall."
 }

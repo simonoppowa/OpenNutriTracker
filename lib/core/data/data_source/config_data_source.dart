@@ -147,6 +147,18 @@ class ConfigDataSource {
     await config?.save();
   }
 
+  Future<bool> getCaloriesTaperEnabled() async {
+    final config = _configBox.get(_configKey);
+    return config?.caloriesTaperEnabled ?? false;
+  }
+
+  Future<void> setConfigCaloriesTaperEnabled(bool enabled) async {
+    _log.fine('Updating config caloriesTaperEnabled to $enabled');
+    final config = _configBox.get(_configKey);
+    config?.caloriesTaperEnabled = enabled;
+    await config?.save();
+  }
+
 
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();

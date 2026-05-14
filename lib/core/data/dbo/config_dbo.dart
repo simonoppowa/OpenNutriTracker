@@ -40,6 +40,11 @@ class ConfigDBO extends HiveObject {
   bool? showMealMacros;
   @HiveField(15)
   bool? showMicronutrients; // #237: null means default (false)
+  // Fields 16-19 are reserved for the pre-rebased ConfigDBO chain on
+  // adjacent in-flight branches. Keep this index at 20 so the follow-up
+  // taper toggle does not collide when those branches land.
+  @HiveField(20)
+  bool caloriesTaperEnabled;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -55,6 +60,7 @@ class ConfigDBO extends HiveObject {
     this.notificationMinute,
     this.selectedLocale,
     this.showMicronutrients,
+    this.caloriesTaperEnabled = false,
   });
 
   factory ConfigDBO.empty() =>
@@ -66,6 +72,7 @@ class ConfigDBO extends HiveObject {
         entity.hasAcceptedSendAnonymousData,
         AppThemeDBO.fromAppThemeEntity(entity.appTheme),
         usesImperialUnits: entity.usesImperialUnits,
+        caloriesTaperEnabled: entity.caloriesTaperEnabled,
       );
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>

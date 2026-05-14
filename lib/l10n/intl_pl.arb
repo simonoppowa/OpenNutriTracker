@@ -664,6 +664,8 @@
     }
   },
   "profileTargetWeightReached": "Osiągnięto wagę docelową",
+  "settingsCaloriesTaperLabel": "Dostosuj cel kaloryczny w miarę zbliżania się do celu",
+  "settingsCaloriesTaperDescription": "Stopniowo zmniejsza dzienny deficyt, aby ostatnie kilogramy nie wydawały się ścianą.",
   "yearsLabel": "{age} lat",
   "zincLabel": "cynk"
 }
