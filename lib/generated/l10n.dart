@@ -1090,6 +1090,26 @@ class S {
     );
   }
 
+  /// `Is there a weight you're working towards? You can leave this blank or change it later in Profile.`
+  String get onboardingTargetWeightSubtitle {
+    return Intl.message(
+      'Is there a weight you\'re working towards? You can leave this blank or change it later in Profile.',
+      name: 'onboardingTargetWeightSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Optional`
+  String get onboardingTargetWeightHintOptional {
+    return Intl.message(
+      'Optional',
+      name: 'onboardingTargetWeightHintOptional',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Enter correct height`
   String get onboardingWrongHeightLabel {
     return Intl.message(

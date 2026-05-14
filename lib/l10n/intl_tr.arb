@@ -361,6 +361,8 @@
   "onboardingWeightExampleHintKg": "ör. 60",
   "onboardingWeightExampleHintLbs": "ör. 132",
   "onboardingWeightQuestionSubtitle": "Mevcut kilonuz nedir?",
+  "onboardingTargetWeightSubtitle": "Ulaşmak istediğin bir kilo var mı? Bu alanı boş bırakabilir veya daha sonra Profil'den değiştirebilirsin.",
+  "onboardingTargetWeightHintOptional": "İsteğe bağlı",
   "onboardingWelcomeLabel": "Hoş geldiniz",
   "onboardingWrongHeightLabel": "Doğru boy girin",
   "onboardingWrongWeightLabel": "Doğru kilo girin",

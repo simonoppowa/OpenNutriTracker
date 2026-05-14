@@ -330,6 +330,8 @@
   "onboardingWeightExampleHintKg": "např. 60",
   "onboardingWeightExampleHintLbs": "např. 132",
   "onboardingWeightQuestionSubtitle": "Jaká je Vaše hmotnost?",
+  "onboardingTargetWeightSubtitle": "Máš hmotnost, ke které směřuješ? Pole můžeš nechat prázdné nebo ho později změnit v Profilu.",
+  "onboardingTargetWeightHintOptional": "Volitelné",
   "onboardingWelcomeLabel": "Vítejte v",
   "onboardingWrongHeightLabel": "Zadejte správnou výšku",
   "onboardingWrongWeightLabel": "Zadejte správnou hmotnost",

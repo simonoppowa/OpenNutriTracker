@@ -330,6 +330,8 @@
   "onboardingWeightExampleHintKg": "наприклад, 60",
   "onboardingWeightExampleHintLbs": "наприклад, 132",
   "onboardingWeightQuestionSubtitle": "Яка ваша поточна вага?",
+  "onboardingTargetWeightSubtitle": "Чи є вага, до якої ти прагнеш? Це поле можна залишити порожнім або змінити пізніше у Профілі.",
+  "onboardingTargetWeightHintOptional": "Необов'язково",
   "onboardingWelcomeLabel": "Ласкаво просимо до",
   "onboardingWrongHeightLabel": "Введіть коректний зріст",
   "onboardingWrongWeightLabel": "Введіть коректну вагу",

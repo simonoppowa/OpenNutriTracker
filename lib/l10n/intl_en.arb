@@ -371,6 +371,8 @@
   "onboardingWeightExampleHintKg": "e.g. 60",
   "onboardingWeightExampleHintLbs": "e.g. 132",
   "onboardingWeightQuestionSubtitle": "Whats your current weight?",
+  "onboardingTargetWeightSubtitle": "Is there a weight you're working towards? You can leave this blank or change it later in Profile.",
+  "onboardingTargetWeightHintOptional": "Optional",
   "onboardingWelcomeLabel": "Welcome to",
   "onboardingWrongHeightLabel": "Enter correct height",
   "onboardingWrongWeightLabel": "Enter correct weight",
