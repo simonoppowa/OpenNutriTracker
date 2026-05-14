@@ -272,7 +272,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "Uygulama Verilerini Dışa / İçe Aktar"),
         "exportImportCsvRecipesNote":
-            MessageLookupByLibrary.simpleMessage("Tarifler yalnızca JSON dışa ve içe aktarımıyla korunur. Yedeklemenize dahil etmek için JSON'a geçin."),
+            MessageLookupByLibrary.simpleMessage("CSV; etkinliklerinizi, öğün günlüğünüzü ve takip edilen günleri saklar. Tarifler ve eklediğiniz fotoğraflar yalnızca JSON'da yer alır — yedeklemenizde olmalarını isterseniz JSON'a geçin."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Uygulama verilerini bir zip dosyasına dışa aktarabilir ve daha sonra içe aktarabilirsiniz. Bu, verilerinizi yedeklemek veya başka bir cihaza aktarmak istiyorsanız kullanışlıdır.\n\nUygulama, verilerinizi saklamak için herhangi bir bulut hizmeti kullanmaz."),
         "exportImportErrorLabel": MessageLookupByLibrary.simpleMessage(

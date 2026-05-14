@@ -209,7 +209,7 @@
   "errorProductNotFound": "Prodotto non trovato",
   "exportAction": "Esporta",
   "exportImportAppDataLabel": "Esporta / Importa dati app",
-  "exportImportCsvRecipesNote": "Le ricette vengono mantenute solo con esportazione e importazione JSON. Passa a JSON per includerle nel backup.",
+  "exportImportCsvRecipesNote": "Il CSV conserva attività, registro pasti e giorni tracciati. Le ricette e le foto allegate restano solo nel JSON — passa a JSON se vuoi includerle nel backup.",
   "exportImportDescription": "Puoi esportare i dati dell'app in un file zip e importarli successivamente. Utile per backup o trasferimento su un altro dispositivo.\n\nL'app non utilizza servizi cloud per memorizzare i tuoi dati.",
   "exportImportErrorLabel": "Errore di esportazione / importazione",
   "exportImportSuccessLabel": "Esportazione / Importazione riuscita",

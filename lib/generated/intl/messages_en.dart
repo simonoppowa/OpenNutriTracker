@@ -253,7 +253,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsCustomMealsLabel":
             MessageLookupByLibrary.simpleMessage("Custom Meals"),
         "exportImportCsvRecipesNote":
-            MessageLookupByLibrary.simpleMessage("Recipes are kept only with JSON exports and imports. Switch to JSON to include them in your backup."),
+            MessageLookupByLibrary.simpleMessage("CSV keeps your activity, meal log and tracked days. Recipes and any photos you've attached are JSON-only — switch to JSON if you want them in your backup."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "You can export the app data to a zip file and import it later. This is useful if you want to backup your data or transfer it to another device.\n\nThe app does not use any cloud service to store your data."),
         "exportImportErrorLabel":

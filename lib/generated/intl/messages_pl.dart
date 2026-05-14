@@ -270,7 +270,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "Eksportuj / Importuj dane aplikacji"),
         "exportImportCsvRecipesNote":
-            MessageLookupByLibrary.simpleMessage("Przepisy są zachowywane tylko przy eksporcie i imporcie JSON. Przełącz na JSON, aby uwzględnić je w kopii zapasowej."),
+            MessageLookupByLibrary.simpleMessage("CSV przechowuje aktywność, dziennik posiłków i śledzone dni. Przepisy i dodane zdjęcia są zapisywane tylko w JSON — przełącz się na JSON, jeśli chcesz mieć je w kopii zapasowej."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Możesz wyeksportować dane aplikacji do pliku zip i zaimportować je później. Jest to przydatne, jeśli chcesz wykonać kopię zapasową danych lub przenieść je na inne urządzenie.\n\nAplikacja nie korzysta z żadnej usługi chmurowej do przechowywania danych."),
         "exportImportErrorLabel":

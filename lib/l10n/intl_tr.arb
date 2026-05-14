@@ -240,7 +240,7 @@
   "errorProductNotFound": "Ürün bulunamadı",
   "exportAction": "Dışa Aktar",
   "exportImportAppDataLabel": "Uygulama Verilerini Dışa / İçe Aktar",
-  "exportImportCsvRecipesNote": "Tarifler yalnızca JSON dışa ve içe aktarımıyla korunur. Yedeklemenize dahil etmek için JSON'a geçin.",
+  "exportImportCsvRecipesNote": "CSV; etkinliklerinizi, öğün günlüğünüzü ve takip edilen günleri saklar. Tarifler ve eklediğiniz fotoğraflar yalnızca JSON'da yer alır — yedeklemenizde olmalarını isterseniz JSON'a geçin.",
   "exportImportDescription": "Uygulama verilerini bir zip dosyasına dışa aktarabilir ve daha sonra içe aktarabilirsiniz. Bu, verilerinizi yedeklemek veya başka bir cihaza aktarmak istiyorsanız kullanışlıdır.\n\nUygulama, verilerinizi saklamak için herhangi bir bulut hizmeti kullanmaz.",
   "exportImportErrorLabel": "Dışa Aktarma / İçe Aktarma hatası",
   "exportImportSuccessLabel": "Dışa Aktarma / İçe Aktarma başarılı",

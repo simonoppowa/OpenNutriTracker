@@ -252,7 +252,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportImportAppDataLabel":
             MessageLookupByLibrary.simpleMessage("导出 / 导入应用数据"),
         "exportImportCsvRecipesNote":
-            MessageLookupByLibrary.simpleMessage("食谱仅在 JSON 导出和导入中保留。切换到 JSON 即可将其包含在备份中。"),
+            MessageLookupByLibrary.simpleMessage("CSV 会保存活动、饮食日志和已记录的日期。食谱和添加的照片仅保存在 JSON 中——如果想纳入备份，请切换到 JSON。"),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "您可以将应用数据导出到zip文件并稍后导入。这在您想要备份数据或传输到另一台设备时很有用。\n\n应用不会使用任何云服务存储您的数据。"),
         "exportImportErrorLabel":

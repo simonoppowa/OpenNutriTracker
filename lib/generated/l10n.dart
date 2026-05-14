@@ -2062,10 +2062,10 @@ class S {
     );
   }
 
-  /// `Recipes are kept only with JSON exports and imports. Switch to JSON to include them in your backup.`
+  /// `CSV keeps your activity, meal log and tracked days. Recipes and any photos you've attached are JSON-only — switch to JSON if you want them in your backup.`
   String get exportImportCsvRecipesNote {
     return Intl.message(
-      'Recipes are kept only with JSON exports and imports. Switch to JSON to include them in your backup.',
+      'CSV keeps your activity, meal log and tracked days. Recipes and any photos you\'ve attached are JSON-only — switch to JSON if you want them in your backup.',
       name: 'exportImportCsvRecipesNote',
       desc: '',
       args: [],
