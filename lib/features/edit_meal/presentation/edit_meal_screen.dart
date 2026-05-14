@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,6 +50,10 @@ class _EditMealScreenState extends State<EditMealScreen> {
   final _units = ['g', 'ml', 'g/ml'];
   String? selectedUnit;
   bool _isTotal = false;
+  // Default on so behaviour matches what existing users are used to — the
+  // meal is saved to their custom list unless they actively untick the box.
+  // #249 adds the *option* to skip the save; it does not change the default.
+  bool _saveForLater = true;
 
   late List<ButtonSegment<String>> _mealUnitButtonSegment;
 
@@ -322,6 +328,17 @@ class _EditMealScreenState extends State<EditMealScreen> {
               border: const OutlineInputBorder()),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
+        if (!_editOnly) ...[
+          const SizedBox(height: 24),
+          _SaveForLaterField(
+            value: _saveForLater,
+            onChanged: (newValue) {
+              setState(() {
+                _saveForLater = newValue;
+              });
+            },
+          ),
+        ],
       ],
     );
   }
@@ -380,6 +397,30 @@ class _EditMealScreenState extends State<EditMealScreen> {
         return;
       }
 
+      // Atwater consistency check (#213): warn if entered kcal disagrees with
+      // 4·carbs + 4·protein + 9·fat by more than 5%. Non-blocking — the
+      // reporter explicitly asked that the user still be able to save if they
+      // are sure of the numbers they typed. The 5% window is tight enough to
+      // catch the reporter's example (kcal=0, protein=50g) and the common
+      // typo class of "one macro forgotten by a factor of ten", while staying
+      // above USDA rounding noise which in practice lives well under 5%.
+      if (enteredKcal != null &&
+          enteredCarbs != null &&
+          enteredFat != null &&
+          enteredProtein != null) {
+        final expectedKcal =
+            4 * enteredCarbs + 4 * enteredProtein + 9 * enteredFat;
+        final delta = (enteredKcal - expectedKcal).abs();
+        final ceiling = math.max(enteredKcal.abs(), expectedKcal.abs());
+        if (ceiling > 0 && delta > 0.05 * ceiling) {
+          final shouldSaveAnyway = await _showAtwaterWarningDialog();
+          if (!mounted) return;
+          if (shouldSaveAnyway != true) {
+            return;
+          }
+        }
+      }
+
       // Convert meal size back to metric units if necessary
       final mealUnitForConversion = selectedUnit ?? _mealEntity.mealUnit ?? '0';
       final mealQuantity = usesImperialUnits
@@ -424,8 +465,12 @@ class _EditMealScreenState extends State<EditMealScreen> {
         proteinText,
       );
 
-      // Persist custom meal template (#267)
-      if (newMealEntity.source == MealSourceEntity.custom) {
+      // Persist custom meal template (#267). Skipped for one-off entries
+      // (#249) when the user has turned off "Save for next time" — the
+      // intake itself is still logged below, but no template is kept.
+      final shouldPersistTemplate = _editOnly || _saveForLater;
+      if (newMealEntity.source == MealSourceEntity.custom &&
+          shouldPersistTemplate) {
         await _editMealBloc.saveCustomMeal(newMealEntity);
       }
 
@@ -452,6 +497,30 @@ class _EditMealScreenState extends State<EditMealScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(S.of(context).errorMealSave)));
     }
+  }
+
+  Future<bool?> _showAtwaterWarningDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(S.of(dialogContext).inconsistentNutritionWarningTitle),
+          content: Text(S.of(dialogContext).inconsistentNutritionWarningBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(S.of(dialogContext).inconsistentNutritionWarningEdit),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(
+                S.of(dialogContext).inconsistentNutritionWarningSaveAnyway,
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   String? _switchButtonUnit(String? unit) {
@@ -500,4 +569,62 @@ class EditMealScreenArguments {
     this.usesImperialUnits, {
     this.editOnly = false,
   });
+}
+
+/// "Save for next time" toggle shown on the create-and-log path (#249).
+/// Defaults to off: the intake is logged today, and the user opts in here
+/// to also keep the meal as a reusable template in the custom-meal list.
+/// Leaving it off is the right call for one-off entries like a friend's
+/// homemade dish or a restaurant meal that won't come back round.
+class _SaveForLaterField extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _SaveForLaterField({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    return InkWell(
+      onTap: () => onChanged(!value),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Semantics(
+              identifier: 'edit-meal-save-for-later',
+              child: Checkbox(
+                value: value,
+                onChanged: (newValue) => onChanged(newValue ?? false),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      s.recipeSaveForLaterLabel,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      s.recipeSaveForLaterDescription,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

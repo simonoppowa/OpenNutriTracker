@@ -67,6 +67,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "${count} Aktivitäten importieren?";
 
+  static String m20(detail) => "Konnte nicht geparst werden: ${detail}";
+
+  static String m21(count, customCount) =>
+      "${count} aus JSON eingetragen, ${customCount} als eigene Mahlzeit gespeichert";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -234,6 +239,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "OpenNutriTracker ist keine medizinische Anwendung. Alle bereitgestellten Daten sind nicht validiert und sollten mit Vorsicht verwendet werden. Bitte pflegen Sie einen gesunden Lebensstil und konsultieren Sie einen Fachmann, wenn Sie Probleme haben. Die Verwendung während einer Krankheit, Schwangerschaft oder Stillzeit wird nicht empfohlen.\n\n\nDie Anwendung befindet sich noch in der Entwicklung. Fehler, Bugs und Abstürze können auftreten.\n\nDie peer-reviewed Quellen zu jeder Berechnung findest du über das Info-Symbol auf der Start- oder Profilseite."),
         "downloadSampleCsvAction": MessageLookupByLibrary.simpleMessage(
             "Beispiel-Mahlzeiten (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("Beispiel-Mahlzeiten (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Mahlzeiten importieren (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Beispiel-Rezepte (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Rezepte importieren (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Beispiel-Rezepte (csv)"),
         "duplicateMealDialogContent": MessageLookupByLibrary.simpleMessage(
@@ -300,7 +313,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Training importiert"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Eigene Mahlzeiten aus einer CSV-Datei importieren. Beispiel herunterladen, um das erwartete Format und die Pflichtfelder zu sehen."),
+            "Importiere eigene Mahlzeiten aus einer CSV-Datei oder durch Einfügen von JSON. Lade eine Beispieldatei herunter, um die erwartete Form und Pflichtfelder zu sehen."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Eigene Lebensmittel-Daten importieren"),
         "importMealConfirmContent": m4,
@@ -323,6 +336,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Rezept importiert"),
         "importRecipesCsvAction": MessageLookupByLibrary.simpleMessage(
             "Rezepte importieren (csv)"),
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "Diese Werte passen nicht ganz zusammen — die eingegebenen Kalorien stimmen nicht mit der Energie aus Kohlenhydraten, Fett und Eiweiß überein. Trotzdem speichern oder noch einmal nachsehen?"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("Noch einmal nachsehen"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("Trotzdem speichern"),
+        "inconsistentNutritionWarningTitle": MessageLookupByLibrary.simpleMessage(
+            "Die Zahlen passen nicht ganz zusammen"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Neue Aktivität hinzugefügt"),
         "infoAddedIntakeLabel":
@@ -872,6 +893,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Nährwerte (gesamt)"),
         "recipeSaveErrorLabel": MessageLookupByLibrary.simpleMessage(
             "Rezept konnte nicht gespeichert werden."),
+        "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
+            "Aktiviere dies, um diese Mahlzeit für das nächste Mal in deiner gespeicherten Liste zu behalten. Lass es aus für eine einmalige Mahlzeit, die du nicht noch einmal essen wirst."),
+        "recipeSaveForLaterLabel":
+            MessageLookupByLibrary.simpleMessage("Für später speichern"),
         "recipeSaveLabel":
             MessageLookupByLibrary.simpleMessage("Rezept speichern"),
         "recipeServingsCountHelper": MessageLookupByLibrary.simpleMessage(

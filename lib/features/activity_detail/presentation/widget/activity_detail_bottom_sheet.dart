@@ -114,145 +114,155 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
               topRight: Radius.circular(32),
             ),
           ),
-          child: Wrap(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
-                child: Column(
-                  children: [
-                    if (isCustom) ...[
+          // SafeArea(top: false) — keeps the sticky bottom Add button above
+          // the gesture-nav strip on devices that don't reserve insets
+          // (#156). top:false because the curved top edge handles that side.
+          child: SafeArea(
+            top: false,
+            child: Wrap(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16.0, 32.0, 16.0, 8.0),
+                  child: Column(
+                    children: [
+                      if (isCustom) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Semantics(
+                                identifier: 'activity-detail-template-name-input',
+                                container: true,
+                                child: TextFormField(
+                                  controller: _nameController,
+                                  decoration: InputDecoration(
+                                    border: const OutlineInputBorder(),
+                                    labelText: S
+                                        .of(context)
+                                        .customActivityNameFieldLabel,
+                                    hintText: S
+                                        .of(context)
+                                        .customActivityNameFieldHint,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8.0),
+                            Semantics(
+                              identifier: 'activity-detail-pick-template',
+                              child: IconButton(
+                                tooltip: S
+                                    .of(context)
+                                    .customActivityPickFromTemplate,
+                                icon: const Icon(Icons.bookmark_outline),
+                                onPressed: _openTemplatePicker,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8.0),
+                      ],
                       Row(
                         children: [
                           Expanded(
                             child: Semantics(
-                              identifier: 'activity-detail-template-name-input',
+                              identifier: 'activity-detail-quantity-input',
                               container: true,
                               child: TextFormField(
-                                controller: _nameController,
+                                controller: widget.quantityTextController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: <TextInputFormatter>[
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'[0-9]+[,.]{0,1}[0-9]*'),
+                                  ),
+                                  TextInputFormatter.withFunction(
+                                    (oldValue, newValue) => newValue.copyWith(
+                                      text: newValue.text.replaceAll(',', '.'),
+                                    ),
+                                  ),
+                                ],
                                 decoration: InputDecoration(
                                   border: const OutlineInputBorder(),
-                                  labelText: S
-                                      .of(context)
-                                      .customActivityNameFieldLabel,
-                                  hintText: S
-                                      .of(context)
-                                      .customActivityNameFieldHint,
+                                  labelText: isCustom
+                                      ? S.of(context).customActivityKcalLabel
+                                      : S.of(context).quantityLabel,
+                                  hintText: isCustom
+                                      ? S.of(context).customActivityKcalHint
+                                      : null,
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8.0),
-                          Semantics(
-                            identifier: 'activity-detail-pick-template',
-                            child: IconButton(
-                              tooltip: S
-                                  .of(context)
-                                  .customActivityPickFromTemplate,
-                              icon: const Icon(Icons.bookmark_outline),
-                              onPressed: _openTemplatePicker,
+                          const SizedBox(width: 16.0),
+                          Expanded(
+                            child: DropdownButtonFormField(
+                              decoration: InputDecoration(
+                                border: const OutlineInputBorder(),
+                                labelText: S.of(context).unitLabel,
+                              ),
+                              items: <DropdownMenuItem<String>>[
+                                DropdownMenuItem(
+                                  child: Text(isCustom ? 'kcal' : 'min'),
+                                ),
+                              ],
+                              onChanged: (Object? value) {},
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8.0),
+                      if (isCustom)
+                        // Off by default: people who only ever log one-off
+                        // entries shouldn't accumulate template clutter.
+                        Semantics(
+                          identifier: 'activity-detail-save-as-template',
+                          child: CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            value: _saveAsTemplate,
+                            onChanged: (value) {
+                              setState(() {
+                                _saveAsTemplate = value ?? false;
+                              });
+                            },
+                            title: Text(
+                              S.of(context).customActivitySaveAsTemplate,
+                            ),
+                          ),
+                        ),
+                      SizedBox(
+                        width: double.infinity, // Make button full width
+                        child: Semantics(
+                          identifier: 'activity-detail-add-button',
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              final trimmedName = _nameController.text.trim();
+                              widget.onAddButtonPressed(
+                                context,
+                                templateName: trimmedName.isEmpty
+                                    ? null
+                                    : trimmedName,
+                                saveAsTemplate: _saveAsTemplate,
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer,
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer,
+                            ).copyWith(
+                              elevation: ButtonStyleButton.allOrNull(0.0),
+                            ),
+                            icon: const Icon(Icons.add_outlined),
+                            label: Text(S.of(context).addLabel),
+                          ),
+                        ),
+                      ),
                     ],
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Semantics(
-                            identifier: 'activity-detail-quantity-input',
-                            container: true,
-                            child: TextFormField(
-                              controller: widget.quantityTextController,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: <TextInputFormatter>[
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'[0-9]+[,.]{0,1}[0-9]*'),
-                                ),
-                                TextInputFormatter.withFunction(
-                                  (oldValue, newValue) => newValue.copyWith(
-                                    text: newValue.text.replaceAll(',', '.'),
-                                  ),
-                                ),
-                              ],
-                              decoration: InputDecoration(
-                                border: const OutlineInputBorder(),
-                                labelText: isCustom
-                                    ? S.of(context).customActivityKcalLabel
-                                    : S.of(context).quantityLabel,
-                                hintText: isCustom
-                                    ? S.of(context).customActivityKcalHint
-                                    : null,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16.0),
-                        Expanded(
-                          child: DropdownButtonFormField(
-                            decoration: InputDecoration(
-                              border: const OutlineInputBorder(),
-                              labelText: S.of(context).unitLabel,
-                            ),
-                            items: <DropdownMenuItem<String>>[
-                              DropdownMenuItem(
-                                child: Text(isCustom ? 'kcal' : 'min'),
-                              ),
-                            ],
-                            onChanged: (Object? value) {},
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (isCustom)
-                      // Off by default: people who only ever log one-off
-                      // entries shouldn't accumulate template clutter.
-                      Semantics(
-                        identifier: 'activity-detail-save-as-template',
-                        child: CheckboxListTile(
-                          contentPadding: EdgeInsets.zero,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          value: _saveAsTemplate,
-                          onChanged: (value) {
-                            setState(() {
-                              _saveAsTemplate = value ?? false;
-                            });
-                          },
-                          title: Text(
-                            S.of(context).customActivitySaveAsTemplate,
-                          ),
-                        ),
-                      ),
-                    SizedBox(
-                      width: double.infinity, // Make button full width
-                      child: Semantics(
-                        identifier: 'activity-detail-add-button',
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            final trimmedName = _nameController.text.trim();
-                            widget.onAddButtonPressed(
-                              context,
-                              templateName: trimmedName.isEmpty
-                                  ? null
-                                  : trimmedName,
-                              saveAsTemplate: _saveAsTemplate,
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor:
-                                Theme.of(context).colorScheme.onPrimaryContainer,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primaryContainer,
-                          ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0)),
-                          icon: const Icon(Icons.add_outlined),
-                          label: Text(S.of(context).addLabel),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

@@ -430,6 +430,26 @@ class S {
     );
   }
 
+  /// `Save for next time`
+  String get recipeSaveForLaterLabel {
+    return Intl.message(
+      'Save for next time',
+      name: 'recipeSaveForLaterLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Turn this on to keep this meal in your saved list for next time. Leave it off for a one-off you won't eat again.`
+  String get recipeSaveForLaterDescription {
+    return Intl.message(
+      'Turn this on to keep this meal in your saved list for next time. Leave it off for a one-off you won\'t eat again.',
+      name: 'recipeSaveForLaterDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Recipe needs a name`
   String get recipeNameRequiredLabel {
     return Intl.message(
@@ -1701,6 +1721,15 @@ class S {
     );
   }
 
+  String get downloadSampleJsonAction {
+    return Intl.message(
+      'Sample meals (json)',
+      name: 'downloadSampleJsonAction',
+      desc: '',
+      args: [],
+    );
+  }
+
   String get downloadSampleRecipesCsvAction {
     return Intl.message(
       'Sample recipes (csv)',
@@ -1768,6 +1797,36 @@ class S {
     return Intl.message(
       'iOS',
       name: 'csvImportContributeOffIosLink',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import meals (json)`
+  String get importMealsJsonAction {
+    return Intl.message(
+      'Import meals (json)',
+      name: 'importMealsJsonAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sample recipes (json)`
+  String get downloadSampleRecipesJsonAction {
+    return Intl.message(
+      'Sample recipes (json)',
+      name: 'downloadSampleRecipesJsonAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import recipes (json)`
+  String get importRecipesJsonAction {
+    return Intl.message(
+      'Import recipes (json)',
+      name: 'importRecipesJsonAction',
       desc: '',
       args: [],
     );
@@ -2778,6 +2837,46 @@ class S {
     return Intl.message(
       'Meal name must contain at least one letter',
       name: 'mealNameValidationError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Numbers don't quite line up`
+  String get inconsistentNutritionWarningTitle {
+    return Intl.message(
+      'Numbers don\'t quite line up',
+      name: 'inconsistentNutritionWarningTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `These values don't quite line up — the calories you've entered don't match the energy in the carbs, fat and protein below. Save anyway, or take a second look?`
+  String get inconsistentNutritionWarningBody {
+    return Intl.message(
+      'These values don\'t quite line up — the calories you\'ve entered don\'t match the energy in the carbs, fat and protein below. Save anyway, or take a second look?',
+      name: 'inconsistentNutritionWarningBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save anyway`
+  String get inconsistentNutritionWarningSaveAnyway {
+    return Intl.message(
+      'Save anyway',
+      name: 'inconsistentNutritionWarningSaveAnyway',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Take another look`
+  String get inconsistentNutritionWarningEdit {
+    return Intl.message(
+      'Take another look',
+      name: 'inconsistentNutritionWarningEdit',
       desc: '',
       args: [],
     );
@@ -5864,6 +5963,7 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
       Locale.fromSubtags(languageCode: 'de'),
       Locale.fromSubtags(languageCode: 'it'),
       Locale.fromSubtags(languageCode: 'pl'),
+      Locale.fromSubtags(languageCode: 'sk'),
       Locale.fromSubtags(languageCode: 'tr'),
       Locale.fromSubtags(languageCode: 'uk'),
       Locale.fromSubtags(languageCode: 'zh'),
