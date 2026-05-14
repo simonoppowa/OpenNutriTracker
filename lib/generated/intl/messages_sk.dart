@@ -294,6 +294,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Recept importovaný"),
         "importRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Importovať recepty (csv)"),
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "Tieto hodnoty úplne nesedia — kalórie, ktoré ste zadali, nezodpovedajú energii zo sacharidov, tukov a bielkovín nižšie. Uložiť aj tak, alebo to ešte raz prejsť?"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("Ešte raz prejsť"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("Uložiť aj tak"),
+        "inconsistentNutritionWarningTitle":
+            MessageLookupByLibrary.simpleMessage("Čísla úplne nesedia"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Pridaná nová aktivita"),
         "infoAddedIntakeLabel":
