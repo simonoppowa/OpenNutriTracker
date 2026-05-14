@@ -894,7 +894,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsFibreGoalLabel":
             MessageLookupByLibrary.simpleMessage("Fibre goal"),
         "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
-            "Personal targets for fibre, saturated fat, and sugars. The diary panel uses these in place of the default daily references."),
+            "Personal targets for every nutrient on the daily panel. The diary uses these in place of the default daily references whenever you set one."),
         "settingsNutrientGoalsLabel":
             MessageLookupByLibrary.simpleMessage("Nutrient goals"),
         "settingsSaturatedFatGoalDescription":
@@ -908,6 +908,34 @@ class MessageLookup extends MessageLookupByLibrary {
             "Daily sugars cap in grams. Default reference is 50g."),
         "settingsSugarsGoalLabel":
             MessageLookupByLibrary.simpleMessage("Sugars goal"),
+        "settingsSodiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Sodium goal"),
+        "settingsSodiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily sodium cap in milligrams. Default reference is 2300mg."),
+        "settingsCalciumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Calcium goal"),
+        "settingsCalciumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily calcium target in milligrams. Default reference is 1000mg."),
+        "settingsIronGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Iron goal"),
+        "settingsIronGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily iron target in milligrams. Default varies by gender (8mg male, 18mg female, 14mg otherwise)."),
+        "settingsPotassiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Potassium goal"),
+        "settingsPotassiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily potassium target in milligrams. Default reference is 3500mg."),
+        "settingsMagnesiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Magnesium goal"),
+        "settingsMagnesiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily magnesium target in milligrams. Default varies by gender (400mg male, 310mg female, 355mg otherwise)."),
+        "settingsVitaminDGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Vitamin D goal"),
+        "settingsVitaminDGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily vitamin D target in micrograms. Default reference is 15µg."),
+        "settingsVitaminB12GoalLabel":
+            MessageLookupByLibrary.simpleMessage("Vitamin B12 goal"),
+        "settingsVitaminB12GoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily vitamin B12 target in micrograms. Default reference is 2.4µg."),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("View sources"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(

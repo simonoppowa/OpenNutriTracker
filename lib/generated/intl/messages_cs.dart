@@ -902,7 +902,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsFibreGoalLabel":
             MessageLookupByLibrary.simpleMessage("Cíl vlákniny"),
         "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
-            "Osobní cíle pro vlákninu, nasycené tuky a cukry. Deník používá tyto hodnoty namísto výchozích denních referencí."),
+            "Osobní cíle pro každou živinu v denním panelu. Deník je použije místo výchozích denních referencí, kdykoli některý nastavíš."),
         "settingsNutrientGoalsLabel":
             MessageLookupByLibrary.simpleMessage("Cíle živin"),
         "settingsSaturatedFatGoalDescription":
@@ -916,6 +916,34 @@ class MessageLookup extends MessageLookupByLibrary {
             "Denní limit cukrů v gramech. Výchozí reference je 50 g."),
         "settingsSugarsGoalLabel":
             MessageLookupByLibrary.simpleMessage("Cíl cukrů"),
+        "settingsSodiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cíl sodíku"),
+        "settingsSodiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Denní limit sodíku v miligramech. Výchozí reference je 2300 mg."),
+        "settingsCalciumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cíl vápníku"),
+        "settingsCalciumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Denní cíl vápníku v miligramech. Výchozí reference je 1000 mg."),
+        "settingsIronGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cíl železa"),
+        "settingsIronGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Denní cíl železa v miligramech. Výchozí podle pohlaví (8 mg muž, 18 mg žena, 14 mg jinak)."),
+        "settingsPotassiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cíl draslíku"),
+        "settingsPotassiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Denní cíl draslíku v miligramech. Výchozí reference je 3500 mg."),
+        "settingsMagnesiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cíl hořčíku"),
+        "settingsMagnesiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Denní cíl hořčíku v miligramech. Výchozí podle pohlaví (400 mg muž, 310 mg žena, 355 mg jinak)."),
+        "settingsVitaminDGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cíl vitaminu D"),
+        "settingsVitaminDGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Denní cíl vitaminu D v mikrogramech. Výchozí reference je 15 µg."),
+        "settingsVitaminB12GoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cíl vitaminu B12"),
+        "settingsVitaminB12GoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Denní cíl vitaminu B12 v mikrogramech. Výchozí reference je 2,4 µg."),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("Zobrazit zdroje"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(

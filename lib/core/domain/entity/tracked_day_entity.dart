@@ -16,12 +16,28 @@ class TrackedDayEntity extends Equatable {
   final double? proteinGoal;
   final double? proteinTracked;
 
-  // #173: user-set targets for fibre, saturated fat, and sugars. Null
-  // means "fall back to the default reference"; non-null means the user
-  // has set their own goal in Settings → Calculations.
+  // #173: user-set per-nutrient targets. Null means "fall back to the
+  // default reference"; non-null means the user has set their own goal
+  // in Settings → Calculations.
+  //
+  // Unit convention (mirrors TrackedDayDBO):
+  //   fibreGoal, satFatGoal, sugarsGoal               — grams
+  //   sodiumGoal, calciumGoal, ironGoal,
+  //   potassiumGoal, magnesiumGoal, vitaminB12Goal    — milligrams
+  //   vitaminDGoal                                    — micrograms
   final double? fibreGoal;
   final double? satFatGoal;
   final double? sugarsGoal;
+  // Follow-up to #173: the remaining seven panel nutrients. The three
+  // D / B12 / Mg fields are wired here too even though their panel rows
+  // only land when #160's expansion follow-up rebases through.
+  final double? sodiumGoal;
+  final double? calciumGoal;
+  final double? ironGoal;
+  final double? potassiumGoal;
+  final double? vitaminDGoal;
+  final double? vitaminB12Goal;
+  final double? magnesiumGoal;
 
   const TrackedDayEntity({
     required this.day,
@@ -36,6 +52,13 @@ class TrackedDayEntity extends Equatable {
     this.fibreGoal,
     this.satFatGoal,
     this.sugarsGoal,
+    this.sodiumGoal,
+    this.calciumGoal,
+    this.ironGoal,
+    this.potassiumGoal,
+    this.vitaminDGoal,
+    this.vitaminB12Goal,
+    this.magnesiumGoal,
   });
 
   factory TrackedDayEntity.fromTrackedDayDBO(TrackedDayDBO trackedDayDBO) {
@@ -52,6 +75,13 @@ class TrackedDayEntity extends Equatable {
       fibreGoal: trackedDayDBO.fibreGoal,
       satFatGoal: trackedDayDBO.satFatGoal,
       sugarsGoal: trackedDayDBO.sugarsGoal,
+      sodiumGoal: trackedDayDBO.sodiumGoal,
+      calciumGoal: trackedDayDBO.calciumGoal,
+      ironGoal: trackedDayDBO.ironGoal,
+      potassiumGoal: trackedDayDBO.potassiumGoal,
+      vitaminDGoal: trackedDayDBO.vitaminDGoal,
+      vitaminB12Goal: trackedDayDBO.vitaminB12Goal,
+      magnesiumGoal: trackedDayDBO.magnesiumGoal,
     );
   }
 
@@ -104,5 +134,12 @@ class TrackedDayEntity extends Equatable {
         fibreGoal,
         satFatGoal,
         sugarsGoal,
+        sodiumGoal,
+        calciumGoal,
+        ironGoal,
+        potassiumGoal,
+        vitaminDGoal,
+        vitaminB12Goal,
+        magnesiumGoal,
       ];
 }

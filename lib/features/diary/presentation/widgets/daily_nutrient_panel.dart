@@ -22,13 +22,15 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// persistence. PR #314 added the per-meal micronutrient fields on
 /// [MealNutrimentsDBO]; this widget simply sums them.
 ///
-/// #173: fibre / saturated fat / sugar references can be overridden per
-/// day via [trackedDay]. When [trackedDay] carries a non-null
-/// `fibreGoal`, `satFatGoal`, or `sugarsGoal`, the panel uses the user's
-/// configured target instead of the built-in default. Iron / calcium /
-/// potassium / sodium continue to use the built-in DRIs — they were
-/// outside the planning ask in #173 and have well-established
-/// references that aren't really about personal preference.
+/// #173 (+follow-up): every nutrient reference on the panel can be
+/// overridden per day via [trackedDay]. When the entity carries a
+/// non-null goal field, the panel uses the user's configured target
+/// instead of the built-in default. The first commit covered fibre /
+/// saturated fat / sugars; the follow-up extends the same pattern to
+/// sodium, calcium, iron, potassium, vitamin D, vitamin B12, and
+/// magnesium. The vitamin D / B12 / magnesium rows themselves only
+/// appear once #160's expansion follow-up rebases through, but the
+/// resolver helpers and constants are wired here ready for that.
 class DailyNutrientPanel extends StatelessWidget {
   // Default reference values exposed as static so the test (and future
   // callers) can assert the fallback without re-declaring magic numbers.
@@ -38,6 +40,12 @@ class DailyNutrientPanel extends StatelessWidget {
   static const double defaultSodiumRefMg = 2300.0;
   static const double defaultCalciumRefMg = 1000.0;
   static const double defaultPotassiumRefMg = 3500.0;
+  // Vitamin D, B12, magnesium — defaults chosen to align with the
+  // expansion follow-up so the rows render consistently once that
+  // branch rebases through.
+  static const double defaultVitaminDRefUg = 15.0;
+  static const double defaultVitaminB12RefUg = 2.4;
+  static const double defaultMagnesiumRefMg = 400.0;
 
   final List<IntakeEntity> intakes;
   final TrackedDayEntity? trackedDay;
@@ -61,6 +69,40 @@ class DailyNutrientPanel extends StatelessWidget {
   /// #173: resolve the reference value for sugars.
   static double resolveSugarsReference(TrackedDayEntity? trackedDay) =>
       trackedDay?.sugarsGoal ?? defaultSugarRefG;
+
+  /// Follow-up to #173: resolve sodium reference (mg).
+  static double resolveSodiumReference(TrackedDayEntity? trackedDay) =>
+      trackedDay?.sodiumGoal ?? defaultSodiumRefMg;
+
+  /// Follow-up to #173: resolve calcium reference (mg).
+  static double resolveCalciumReference(TrackedDayEntity? trackedDay) =>
+      trackedDay?.calciumGoal ?? defaultCalciumRefMg;
+
+  /// Follow-up to #173: resolve iron reference (mg). Falls back to the
+  /// gender-aware DRI when no override is set; the caller passes the
+  /// gender-based default in so the helper itself stays pure.
+  static double resolveIronReference(
+    TrackedDayEntity? trackedDay,
+    double genderDefault,
+  ) =>
+      trackedDay?.ironGoal ?? genderDefault;
+
+  /// Follow-up to #173: resolve potassium reference (mg).
+  static double resolvePotassiumReference(TrackedDayEntity? trackedDay) =>
+      trackedDay?.potassiumGoal ?? defaultPotassiumRefMg;
+
+  /// Follow-up to #173: resolve vitamin D reference (µg). Only renders
+  /// once the panel expansion follow-up adds the row.
+  static double resolveVitaminDReference(TrackedDayEntity? trackedDay) =>
+      trackedDay?.vitaminDGoal ?? defaultVitaminDRefUg;
+
+  /// Follow-up to #173: resolve vitamin B12 reference (µg).
+  static double resolveVitaminB12Reference(TrackedDayEntity? trackedDay) =>
+      trackedDay?.vitaminB12Goal ?? defaultVitaminB12RefUg;
+
+  /// Follow-up to #173: resolve magnesium reference (mg).
+  static double resolveMagnesiumReference(TrackedDayEntity? trackedDay) =>
+      trackedDay?.magnesiumGoal ?? defaultMagnesiumRefMg;
 
   @override
   Widget build(BuildContext context) {
@@ -94,15 +136,18 @@ class DailyNutrientPanel extends StatelessWidget {
     final ironMg = _sum((n) => n.iron100, intakes);
     final potassiumMg = _sum((n) => n.potassium100, intakes);
 
-    // #173: fibre / saturated fat / sugar pick up the per-day override
-    // when one is set; everything else stays on the built-in references.
+    // #173 (+follow-up): every nutrient reference picks up the per-day
+    // override when one is set; otherwise it falls back to the built-in
+    // default. Iron's fallback stays gender-aware — the user can still
+    // override that explicitly via the slider.
     final fiberRefG = resolveFibreReference(trackedDay);
     final saturatedFatRefG = resolveSatFatReference(trackedDay);
     final sugarRefG = resolveSugarsReference(trackedDay);
-    const sodiumRefMg = defaultSodiumRefMg;
-    const calciumRefMg = defaultCalciumRefMg;
-    final ironRefMg = _ironRefForGender(user?.gender);
-    const potassiumRefMg = defaultPotassiumRefMg;
+    final sodiumRefMg = resolveSodiumReference(trackedDay);
+    final calciumRefMg = resolveCalciumReference(trackedDay);
+    final ironRefMg =
+        resolveIronReference(trackedDay, _ironRefForGender(user?.gender));
+    final potassiumRefMg = resolvePotassiumReference(trackedDay);
 
     final s = S.of(context);
     final rows = <Widget>[

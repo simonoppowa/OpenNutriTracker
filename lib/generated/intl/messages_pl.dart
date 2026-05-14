@@ -907,7 +907,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsFibreGoalLabel":
             MessageLookupByLibrary.simpleMessage("Cel błonnika"),
         "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
-            "Osobiste cele dla błonnika, tłuszczów nasyconych i cukrów. Dziennik używa tych wartości zamiast domyślnych wartości referencyjnych."),
+            "Osobiste cele dla każdego składnika odżywczego w panelu dziennym. Dziennik używa ich zamiast domyślnych wartości referencyjnych za każdym razem, gdy któryś ustawisz."),
         "settingsNutrientGoalsLabel": MessageLookupByLibrary.simpleMessage(
             "Cele składników odżywczych"),
         "settingsSaturatedFatGoalDescription":
@@ -921,6 +921,34 @@ class MessageLookup extends MessageLookupByLibrary {
             "Dzienny limit cukrów w gramach. Wartość referencyjna to 50 g."),
         "settingsSugarsGoalLabel":
             MessageLookupByLibrary.simpleMessage("Cel cukrów"),
+        "settingsSodiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel sodu"),
+        "settingsSodiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny limit sodu w miligramach. Wartość referencyjna to 2300 mg."),
+        "settingsCalciumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel wapnia"),
+        "settingsCalciumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel wapnia w miligramach. Wartość referencyjna to 1000 mg."),
+        "settingsIronGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel żelaza"),
+        "settingsIronGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel żelaza w miligramach. Wartość domyślna zależy od płci (8 mg mężczyzna, 18 mg kobieta, 14 mg w pozostałych przypadkach)."),
+        "settingsPotassiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel potasu"),
+        "settingsPotassiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel potasu w miligramach. Wartość referencyjna to 3500 mg."),
+        "settingsMagnesiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel magnezu"),
+        "settingsMagnesiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel magnezu w miligramach. Wartość domyślna zależy od płci (400 mg mężczyzna, 310 mg kobieta, 355 mg w pozostałych przypadkach)."),
+        "settingsVitaminDGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel witaminy D"),
+        "settingsVitaminDGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel witaminy D w mikrogramach. Wartość referencyjna to 15 µg."),
+        "settingsVitaminB12GoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cel witaminy B12"),
+        "settingsVitaminB12GoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Dzienny cel witaminy B12 w mikrogramach. Wartość referencyjna to 2,4 µg."),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("Zobacz źródła"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(

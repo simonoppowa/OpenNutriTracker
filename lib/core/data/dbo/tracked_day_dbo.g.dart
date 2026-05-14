@@ -29,13 +29,20 @@ class TrackedDayDBOAdapter extends TypeAdapter<TrackedDayDBO> {
       fibreGoal: (fields[9] as num?)?.toDouble(),
       satFatGoal: (fields[10] as num?)?.toDouble(),
       sugarsGoal: (fields[11] as num?)?.toDouble(),
+      sodiumGoal: (fields[12] as num?)?.toDouble(),
+      calciumGoal: (fields[13] as num?)?.toDouble(),
+      ironGoal: (fields[14] as num?)?.toDouble(),
+      potassiumGoal: (fields[15] as num?)?.toDouble(),
+      vitaminDGoal: (fields[16] as num?)?.toDouble(),
+      vitaminB12Goal: (fields[17] as num?)?.toDouble(),
+      magnesiumGoal: (fields[18] as num?)?.toDouble(),
     );
   }
 
   @override
   void write(BinaryWriter writer, TrackedDayDBO obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(19)
       ..writeByte(0)
       ..write(obj.day)
       ..writeByte(1)
@@ -59,7 +66,21 @@ class TrackedDayDBOAdapter extends TypeAdapter<TrackedDayDBO> {
       ..writeByte(10)
       ..write(obj.satFatGoal)
       ..writeByte(11)
-      ..write(obj.sugarsGoal);
+      ..write(obj.sugarsGoal)
+      ..writeByte(12)
+      ..write(obj.sodiumGoal)
+      ..writeByte(13)
+      ..write(obj.calciumGoal)
+      ..writeByte(14)
+      ..write(obj.ironGoal)
+      ..writeByte(15)
+      ..write(obj.potassiumGoal)
+      ..writeByte(16)
+      ..write(obj.vitaminDGoal)
+      ..writeByte(17)
+      ..write(obj.vitaminB12Goal)
+      ..writeByte(18)
+      ..write(obj.magnesiumGoal);
   }
 
   @override
@@ -91,6 +112,13 @@ TrackedDayDBO _$TrackedDayDBOFromJson(Map<String, dynamic> json) =>
       fibreGoal: (json['fibreGoal'] as num?)?.toDouble(),
       satFatGoal: (json['satFatGoal'] as num?)?.toDouble(),
       sugarsGoal: (json['sugarsGoal'] as num?)?.toDouble(),
+      sodiumGoal: (json['sodiumGoal'] as num?)?.toDouble(),
+      calciumGoal: (json['calciumGoal'] as num?)?.toDouble(),
+      ironGoal: (json['ironGoal'] as num?)?.toDouble(),
+      potassiumGoal: (json['potassiumGoal'] as num?)?.toDouble(),
+      vitaminDGoal: (json['vitaminDGoal'] as num?)?.toDouble(),
+      vitaminB12Goal: (json['vitaminB12Goal'] as num?)?.toDouble(),
+      magnesiumGoal: (json['magnesiumGoal'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$TrackedDayDBOToJson(TrackedDayDBO instance) =>
@@ -107,4 +135,11 @@ Map<String, dynamic> _$TrackedDayDBOToJson(TrackedDayDBO instance) =>
       'fibreGoal': instance.fibreGoal,
       'satFatGoal': instance.satFatGoal,
       'sugarsGoal': instance.sugarsGoal,
+      'sodiumGoal': instance.sodiumGoal,
+      'calciumGoal': instance.calciumGoal,
+      'ironGoal': instance.ironGoal,
+      'potassiumGoal': instance.potassiumGoal,
+      'vitaminDGoal': instance.vitaminDGoal,
+      'vitaminB12Goal': instance.vitaminB12Goal,
+      'magnesiumGoal': instance.magnesiumGoal,
     };

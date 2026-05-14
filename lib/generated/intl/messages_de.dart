@@ -922,7 +922,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsFibreGoalLabel":
             MessageLookupByLibrary.simpleMessage("Ballaststoffziel"),
         "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
-            "Persönliche Zielwerte für Ballaststoffe, gesättigte Fette und Zucker. Das Tagebuch nutzt diese Werte anstelle der Standardreferenzen."),
+            "Persönliche Zielwerte für jeden Nährstoff im täglichen Panel. Das Tagebuch verwendet diese Werte anstelle der Standardreferenzen, sobald du einen festlegst."),
         "settingsNutrientGoalsLabel":
             MessageLookupByLibrary.simpleMessage("Nährstoffziele"),
         "settingsSaturatedFatGoalDescription":
@@ -936,6 +936,34 @@ class MessageLookup extends MessageLookupByLibrary {
             "Tägliche Zuckerobergrenze in Gramm. Standardreferenz: 50 g."),
         "settingsSugarsGoalLabel":
             MessageLookupByLibrary.simpleMessage("Zuckerziel"),
+        "settingsSodiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Natriumziel"),
+        "settingsSodiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliche Natriumobergrenze in Milligramm. Standardreferenz: 2300 mg."),
+        "settingsCalciumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Calciumziel"),
+        "settingsCalciumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Calciumziel in Milligramm. Standardreferenz: 1000 mg."),
+        "settingsIronGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Eisenziel"),
+        "settingsIronGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Eisenziel in Milligramm. Standard nach Geschlecht (8 mg männlich, 18 mg weiblich, 14 mg sonst)."),
+        "settingsPotassiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Kaliumziel"),
+        "settingsPotassiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Kaliumziel in Milligramm. Standardreferenz: 3500 mg."),
+        "settingsMagnesiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Magnesiumziel"),
+        "settingsMagnesiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Magnesiumziel in Milligramm. Standard nach Geschlecht (400 mg männlich, 310 mg weiblich, 355 mg sonst)."),
+        "settingsVitaminDGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Vitamin-D-Ziel"),
+        "settingsVitaminDGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Vitamin-D-Ziel in Mikrogramm. Standardreferenz: 15 µg."),
+        "settingsVitaminB12GoalLabel":
+            MessageLookupByLibrary.simpleMessage("Vitamin-B12-Ziel"),
+        "settingsVitaminB12GoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Vitamin-B12-Ziel in Mikrogramm. Standardreferenz: 2,4 µg."),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("Quellen anzeigen"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(

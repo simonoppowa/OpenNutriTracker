@@ -1040,10 +1040,10 @@ class S {
     );
   }
 
-  /// `Personal targets for fibre, saturated fat, and sugars. The diary panel uses these in place of the default daily references.`
+  /// `Personal targets for every nutrient on the daily panel. The diary uses these in place of the default daily references whenever you set one.`
   String get settingsNutrientGoalsHint {
     return Intl.message(
-      'Personal targets for fibre, saturated fat, and sugars. The diary panel uses these in place of the default daily references.',
+      'Personal targets for every nutrient on the daily panel. The diary uses these in place of the default daily references whenever you set one.',
       name: 'settingsNutrientGoalsHint',
       desc: '',
       args: [],
@@ -1105,6 +1105,146 @@ class S {
     return Intl.message(
       'Daily sugars cap in grams. Default reference is 50g.',
       name: 'settingsSugarsGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sodium goal`
+  String get settingsSodiumGoalLabel {
+    return Intl.message(
+      'Sodium goal',
+      name: 'settingsSodiumGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily sodium cap in milligrams. Default reference is 2300mg.`
+  String get settingsSodiumGoalDescription {
+    return Intl.message(
+      'Daily sodium cap in milligrams. Default reference is 2300mg.',
+      name: 'settingsSodiumGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Calcium goal`
+  String get settingsCalciumGoalLabel {
+    return Intl.message(
+      'Calcium goal',
+      name: 'settingsCalciumGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily calcium target in milligrams. Default reference is 1000mg.`
+  String get settingsCalciumGoalDescription {
+    return Intl.message(
+      'Daily calcium target in milligrams. Default reference is 1000mg.',
+      name: 'settingsCalciumGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Iron goal`
+  String get settingsIronGoalLabel {
+    return Intl.message(
+      'Iron goal',
+      name: 'settingsIronGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily iron target in milligrams. Default varies by gender (8mg male, 18mg female, 14mg otherwise).`
+  String get settingsIronGoalDescription {
+    return Intl.message(
+      'Daily iron target in milligrams. Default varies by gender (8mg male, 18mg female, 14mg otherwise).',
+      name: 'settingsIronGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Potassium goal`
+  String get settingsPotassiumGoalLabel {
+    return Intl.message(
+      'Potassium goal',
+      name: 'settingsPotassiumGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily potassium target in milligrams. Default reference is 3500mg.`
+  String get settingsPotassiumGoalDescription {
+    return Intl.message(
+      'Daily potassium target in milligrams. Default reference is 3500mg.',
+      name: 'settingsPotassiumGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Magnesium goal`
+  String get settingsMagnesiumGoalLabel {
+    return Intl.message(
+      'Magnesium goal',
+      name: 'settingsMagnesiumGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily magnesium target in milligrams. Default varies by gender (400mg male, 310mg female, 355mg otherwise).`
+  String get settingsMagnesiumGoalDescription {
+    return Intl.message(
+      'Daily magnesium target in milligrams. Default varies by gender (400mg male, 310mg female, 355mg otherwise).',
+      name: 'settingsMagnesiumGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Vitamin D goal`
+  String get settingsVitaminDGoalLabel {
+    return Intl.message(
+      'Vitamin D goal',
+      name: 'settingsVitaminDGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily vitamin D target in micrograms. Default reference is 15µg.`
+  String get settingsVitaminDGoalDescription {
+    return Intl.message(
+      'Daily vitamin D target in micrograms. Default reference is 15µg.',
+      name: 'settingsVitaminDGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Vitamin B12 goal`
+  String get settingsVitaminB12GoalLabel {
+    return Intl.message(
+      'Vitamin B12 goal',
+      name: 'settingsVitaminB12GoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily vitamin B12 target in micrograms. Default reference is 2.4µg.`
+  String get settingsVitaminB12GoalDescription {
+    return Intl.message(
+      'Daily vitamin B12 target in micrograms. Default reference is 2.4µg.',
+      name: 'settingsVitaminB12GoalDescription',
       desc: '',
       args: [],
     );

@@ -46,11 +46,16 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
   double _proteinPctSelection = _defaultProteinPctSelection * 100;
   double _fatPctSelection = _defaultFatPctSelection * 100;
 
-  // #173: per-nutrient absolute goals in grams. Stored on TrackedDayDBO,
-  // not ConfigDBO — see CLAUDE.md note in the issue triage. Slider
-  // ranges are picked to bracket the FDA Daily Value the panel uses as
-  // its default: fibre 0–80g (DV 28g), sat fat 0–60g (DV 20g),
-  // sugars 0–150g (DV 50g, with headroom for "treat" days).
+  // #173: per-nutrient absolute goals. Stored on TrackedDayDBO, not
+  // ConfigDBO — see CLAUDE.md note in the issue triage. Slider ranges
+  // are picked to bracket the FDA Daily Value the panel uses as its
+  // default. Units match the DBO convention: g for the first three;
+  // mg for sodium/calcium/iron/potassium/magnesium/B12; µg for D.
+  //
+  // (B12 is conventionally reported in µg too; both B12 and D use µg
+  // here even though they live alongside mg fields on the DBO. The
+  // DBO comment is the source of truth for storage units; this UI is
+  // free to use whichever unit makes sense for each row.)
   static const double _fibreMin = 0;
   static const double _fibreMax = 80;
   static const int _fibreDivisions = 80;
@@ -60,6 +65,28 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
   static const double _sugarsMin = 0;
   static const double _sugarsMax = 150;
   static const int _sugarsDivisions = 150;
+  // Follow-up to #173: ranges for the remaining seven panel nutrients.
+  static const double _sodiumMin = 0;
+  static const double _sodiumMax = 3000;
+  static const int _sodiumDivisions = 60; // 50mg steps
+  static const double _calciumMin = 0;
+  static const double _calciumMax = 1500;
+  static const int _calciumDivisions = 60; // 25mg steps
+  static const double _ironMin = 0;
+  static const double _ironMax = 30;
+  static const int _ironDivisions = 60; // 0.5mg steps
+  static const double _potassiumMin = 0;
+  static const double _potassiumMax = 5000;
+  static const int _potassiumDivisions = 100; // 50mg steps
+  static const double _magnesiumMin = 0;
+  static const double _magnesiumMax = 600;
+  static const int _magnesiumDivisions = 60; // 10mg steps
+  static const double _vitaminDMin = 0;
+  static const double _vitaminDMax = 50;
+  static const int _vitaminDDivisions = 100; // 0.5µg steps
+  static const double _vitaminB12Min = 0;
+  static const double _vitaminB12Max = 10;
+  static const int _vitaminB12Divisions = 100; // 0.1µg steps
 
   // Loaded from today's TrackedDayDBO when the dialog opens. Null means
   // "no override" — the user hasn't set a goal yet, so the slider sits
@@ -67,6 +94,14 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
   double? _fibreGoalGrams;
   double? _satFatGoalGrams;
   double? _sugarsGoalGrams;
+  // Follow-up to #173: per-nutrient targets in the unit declared above.
+  double? _sodiumGoalMg;
+  double? _calciumGoalMg;
+  double? _ironGoalMg;
+  double? _potassiumGoalMg;
+  double? _magnesiumGoalMg;
+  double? _vitaminDGoalUg;
+  double? _vitaminB12GoalUg;
 
   // #297: Text controllers for direct input
   late TextEditingController _kcalAdjustmentController;
@@ -77,8 +112,54 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
   late TextEditingController _fibreController;
   late TextEditingController _satFatController;
   late TextEditingController _sugarsController;
+  // Follow-up to #173: text controllers for the seven additional
+  // nutrient inputs (sodium, calcium, iron, potassium, magnesium,
+  // vitamin D, vitamin B12).
+  late TextEditingController _sodiumController;
+  late TextEditingController _calciumController;
+  late TextEditingController _ironController;
+  late TextEditingController _potassiumController;
+  late TextEditingController _magnesiumController;
+  late TextEditingController _vitaminDController;
+  late TextEditingController _vitaminB12Controller;
 
   UserEntity? _user;
+
+  /// Follow-up to #173: iron's DRI splits female 18 / male 8 (mg).
+  /// We pick 14 as a gender-neutral midpoint for non-binary / unknown
+  /// users — matches the panel's existing `_ironRefForGender` fallback.
+  double _ironDefaultForGender() {
+    switch (_user?.gender) {
+      case UserGenderEntity.female:
+        return 18.0;
+      case UserGenderEntity.male:
+        return 8.0;
+      case UserGenderEntity.nonBinary:
+      case null:
+        return 14.0;
+    }
+  }
+
+  /// Follow-up to #173: magnesium DRI is gender-aware too — 400mg for
+  /// adult males, 310mg for adult females. Non-binary / unknown picks
+  /// the midpoint at 355mg so neither group is misled.
+  double _magnesiumDefaultForGender() {
+    switch (_user?.gender) {
+      case UserGenderEntity.female:
+        return 310.0;
+      case UserGenderEntity.male:
+        return 400.0;
+      case UserGenderEntity.nonBinary:
+      case null:
+        return 355.0;
+    }
+  }
+
+  String _formatGoal(double value) {
+    // Show integer for values >= 10, one decimal otherwise — matches
+    // the panel's own formatting so the dialog and panel agree.
+    return value >= 10 ? value.round().toString() : value.toStringAsFixed(1);
+  }
 
   @override
   void initState() {
@@ -102,6 +183,30 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     _sugarsController = TextEditingController(
       text: DailyNutrientPanel.defaultSugarRefG.round().toString(),
     );
+    // Follow-up to #173: prime the new controllers with the same
+    // default references the panel uses so the slider position and
+    // the text input agree before the user types anything.
+    _sodiumController = TextEditingController(
+      text: DailyNutrientPanel.defaultSodiumRefMg.round().toString(),
+    );
+    _calciumController = TextEditingController(
+      text: DailyNutrientPanel.defaultCalciumRefMg.round().toString(),
+    );
+    _ironController = TextEditingController(
+      text: _formatGoal(_ironDefaultForGender()),
+    );
+    _potassiumController = TextEditingController(
+      text: DailyNutrientPanel.defaultPotassiumRefMg.round().toString(),
+    );
+    _magnesiumController = TextEditingController(
+      text: _formatGoal(_magnesiumDefaultForGender()),
+    );
+    _vitaminDController = TextEditingController(
+      text: _formatGoal(DailyNutrientPanel.defaultVitaminDRefUg),
+    );
+    _vitaminB12Controller = TextEditingController(
+      text: _formatGoal(DailyNutrientPanel.defaultVitaminB12RefUg),
+    );
   }
 
   @override
@@ -113,6 +218,13 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     _fibreController.dispose();
     _satFatController.dispose();
     _sugarsController.dispose();
+    _sodiumController.dispose();
+    _calciumController.dispose();
+    _ironController.dispose();
+    _potassiumController.dispose();
+    _magnesiumController.dispose();
+    _vitaminDController.dispose();
+    _vitaminB12Controller.dispose();
     super.dispose();
   }
 
@@ -143,6 +255,13 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       _fibreGoalGrams = today?.fibreGoal;
       _satFatGoalGrams = today?.satFatGoal;
       _sugarsGoalGrams = today?.sugarsGoal;
+      _sodiumGoalMg = today?.sodiumGoal;
+      _calciumGoalMg = today?.calciumGoal;
+      _ironGoalMg = today?.ironGoal;
+      _potassiumGoalMg = today?.potassiumGoal;
+      _magnesiumGoalMg = today?.magnesiumGoal;
+      _vitaminDGoalUg = today?.vitaminDGoal;
+      _vitaminB12GoalUg = today?.vitaminB12Goal;
       _user = user;
     });
     _kcalAdjustmentController.text =
@@ -162,6 +281,27 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
         (_sugarsGoalGrams ?? DailyNutrientPanel.defaultSugarRefG)
             .round()
             .toString();
+    _sodiumController.text =
+        (_sodiumGoalMg ?? DailyNutrientPanel.defaultSodiumRefMg)
+            .round()
+            .toString();
+    _calciumController.text =
+        (_calciumGoalMg ?? DailyNutrientPanel.defaultCalciumRefMg)
+            .round()
+            .toString();
+    _ironController.text =
+        _formatGoal(_ironGoalMg ?? _ironDefaultForGender());
+    _potassiumController.text =
+        (_potassiumGoalMg ?? DailyNutrientPanel.defaultPotassiumRefMg)
+            .round()
+            .toString();
+    _magnesiumController.text =
+        _formatGoal(_magnesiumGoalMg ?? _magnesiumDefaultForGender());
+    _vitaminDController.text =
+        _formatGoal(_vitaminDGoalUg ?? DailyNutrientPanel.defaultVitaminDRefUg);
+    _vitaminB12Controller.text = _formatGoal(
+      _vitaminB12GoalUg ?? DailyNutrientPanel.defaultVitaminB12RefUg,
+    );
   }
 
   void _syncControllersToState() {
@@ -204,11 +344,19 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 _carbsPctSelection = _defaultCarbsPctSelection * 100;
                 _proteinPctSelection = _defaultProteinPctSelection * 100;
                 _fatPctSelection = _defaultFatPctSelection * 100;
-                // #173: reset clears any nutrient overrides so the
-                // panel goes back to the built-in default references.
+                // #173 (+follow-up): reset clears every nutrient
+                // override so the panel goes back to the built-in
+                // default references across the board.
                 _fibreGoalGrams = null;
                 _satFatGoalGrams = null;
                 _sugarsGoalGrams = null;
+                _sodiumGoalMg = null;
+                _calciumGoalMg = null;
+                _ironGoalMg = null;
+                _potassiumGoalMg = null;
+                _magnesiumGoalMg = null;
+                _vitaminDGoalUg = null;
+                _vitaminB12GoalUg = null;
               });
               _kcalAdjustmentController.text = '0';
               _syncControllersToState();
@@ -219,6 +367,19 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                   .toString();
               _sugarsController.text =
                   DailyNutrientPanel.defaultSugarRefG.round().toString();
+              _sodiumController.text =
+                  DailyNutrientPanel.defaultSodiumRefMg.round().toString();
+              _calciumController.text =
+                  DailyNutrientPanel.defaultCalciumRefMg.round().toString();
+              _ironController.text = _formatGoal(_ironDefaultForGender());
+              _potassiumController.text =
+                  DailyNutrientPanel.defaultPotassiumRefMg.round().toString();
+              _magnesiumController.text =
+                  _formatGoal(_magnesiumDefaultForGender());
+              _vitaminDController.text =
+                  _formatGoal(DailyNutrientPanel.defaultVitaminDRefUg);
+              _vitaminB12Controller.text =
+                  _formatGoal(DailyNutrientPanel.defaultVitaminB12RefUg);
             },
           ),
         ],
@@ -464,6 +625,141 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 (v) => _sugarsGoalGrams = v,
               ),
             ),
+            // Follow-up to #173: the remaining seven panel nutrients
+            // (sodium, calcium, iron, potassium, magnesium, vitamin D,
+            // vitamin B12). Each one is independent of the others, so
+            // setting a goal for sodium doesn't affect calcium and so
+            // on. The D / B12 / Mg rows will only show up in the diary
+            // panel once the #160 expansion follow-up rebases through,
+            // but the values land cleanly either way.
+            _buildNutrientRow(
+              label: S.of(context).settingsSodiumGoalLabel,
+              description: S.of(context).settingsSodiumGoalDescription,
+              value: _sodiumGoalMg ?? DailyNutrientPanel.defaultSodiumRefMg,
+              min: _sodiumMin,
+              max: _sodiumMax,
+              divisions: _sodiumDivisions,
+              controller: _sodiumController,
+              unit: 'mg',
+              onSliderChanged: (v) => setState(() => _sodiumGoalMg = v),
+              onTextSubmitted: () => _applyDirectNutrientInput(
+                _sodiumController,
+                _sodiumMin,
+                _sodiumMax,
+                (v) => _sodiumGoalMg = v,
+              ),
+            ),
+            _buildNutrientRow(
+              label: S.of(context).settingsCalciumGoalLabel,
+              description: S.of(context).settingsCalciumGoalDescription,
+              value: _calciumGoalMg ?? DailyNutrientPanel.defaultCalciumRefMg,
+              min: _calciumMin,
+              max: _calciumMax,
+              divisions: _calciumDivisions,
+              controller: _calciumController,
+              unit: 'mg',
+              onSliderChanged: (v) => setState(() => _calciumGoalMg = v),
+              onTextSubmitted: () => _applyDirectNutrientInput(
+                _calciumController,
+                _calciumMin,
+                _calciumMax,
+                (v) => _calciumGoalMg = v,
+              ),
+            ),
+            _buildNutrientRow(
+              label: S.of(context).settingsIronGoalLabel,
+              description: S.of(context).settingsIronGoalDescription,
+              value: _ironGoalMg ?? _ironDefaultForGender(),
+              min: _ironMin,
+              max: _ironMax,
+              divisions: _ironDivisions,
+              controller: _ironController,
+              unit: 'mg',
+              decimalStep: true,
+              onSliderChanged: (v) => setState(() => _ironGoalMg = v),
+              onTextSubmitted: () => _applyDirectNutrientInput(
+                _ironController,
+                _ironMin,
+                _ironMax,
+                (v) => _ironGoalMg = v,
+                decimalStep: true,
+              ),
+            ),
+            _buildNutrientRow(
+              label: S.of(context).settingsPotassiumGoalLabel,
+              description: S.of(context).settingsPotassiumGoalDescription,
+              value:
+                  _potassiumGoalMg ?? DailyNutrientPanel.defaultPotassiumRefMg,
+              min: _potassiumMin,
+              max: _potassiumMax,
+              divisions: _potassiumDivisions,
+              controller: _potassiumController,
+              unit: 'mg',
+              onSliderChanged: (v) => setState(() => _potassiumGoalMg = v),
+              onTextSubmitted: () => _applyDirectNutrientInput(
+                _potassiumController,
+                _potassiumMin,
+                _potassiumMax,
+                (v) => _potassiumGoalMg = v,
+              ),
+            ),
+            _buildNutrientRow(
+              label: S.of(context).settingsMagnesiumGoalLabel,
+              description: S.of(context).settingsMagnesiumGoalDescription,
+              value: _magnesiumGoalMg ?? _magnesiumDefaultForGender(),
+              min: _magnesiumMin,
+              max: _magnesiumMax,
+              divisions: _magnesiumDivisions,
+              controller: _magnesiumController,
+              unit: 'mg',
+              onSliderChanged: (v) => setState(() => _magnesiumGoalMg = v),
+              onTextSubmitted: () => _applyDirectNutrientInput(
+                _magnesiumController,
+                _magnesiumMin,
+                _magnesiumMax,
+                (v) => _magnesiumGoalMg = v,
+              ),
+            ),
+            _buildNutrientRow(
+              label: S.of(context).settingsVitaminDGoalLabel,
+              description: S.of(context).settingsVitaminDGoalDescription,
+              value:
+                  _vitaminDGoalUg ?? DailyNutrientPanel.defaultVitaminDRefUg,
+              min: _vitaminDMin,
+              max: _vitaminDMax,
+              divisions: _vitaminDDivisions,
+              controller: _vitaminDController,
+              unit: 'µg',
+              decimalStep: true,
+              onSliderChanged: (v) => setState(() => _vitaminDGoalUg = v),
+              onTextSubmitted: () => _applyDirectNutrientInput(
+                _vitaminDController,
+                _vitaminDMin,
+                _vitaminDMax,
+                (v) => _vitaminDGoalUg = v,
+                decimalStep: true,
+              ),
+            ),
+            _buildNutrientRow(
+              label: S.of(context).settingsVitaminB12GoalLabel,
+              description: S.of(context).settingsVitaminB12GoalDescription,
+              value: _vitaminB12GoalUg ??
+                  DailyNutrientPanel.defaultVitaminB12RefUg,
+              min: _vitaminB12Min,
+              max: _vitaminB12Max,
+              divisions: _vitaminB12Divisions,
+              controller: _vitaminB12Controller,
+              unit: 'µg',
+              decimalStep: true,
+              onSliderChanged: (v) => setState(() => _vitaminB12GoalUg = v),
+              onTextSubmitted: () => _applyDirectNutrientInput(
+                _vitaminB12Controller,
+                _vitaminB12Min,
+                _vitaminB12Max,
+                (v) => _vitaminB12GoalUg = v,
+                decimalStep: true,
+              ),
+            ),
           ],
         ),
       ),
@@ -550,10 +846,13 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     );
   }
 
-  /// #173: render a single fibre / sat-fat / sugars row. Mirrors the
+  /// #173 (+follow-up): render a single nutrient-goal row. Mirrors the
   /// macro row layout — a label, an editable text field for direct
-  /// entry, and a slider underneath — but operates in grams and writes
-  /// to a nullable goal value rather than redistributing percentages.
+  /// entry, and a slider underneath — but operates in a fixed unit (g,
+  /// mg, or µg) and writes to a nullable goal value rather than
+  /// redistributing percentages. `decimalStep` lets the row work for
+  /// fractional values like B12 (0.1µg steps) where rounding to whole
+  /// numbers would lose the entire useful range.
   Widget _buildNutrientRow({
     required String label,
     required String description,
@@ -564,8 +863,10 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     required TextEditingController controller,
     required ValueChanged<double> onSliderChanged,
     required VoidCallback onTextSubmitted,
+    String unit = 'g',
+    bool decimalStep = false,
   }) {
-    final clamped = value.clamp(min, max);
+    final clamped = value.clamp(min, max).toDouble();
     return Padding(
       padding: const EdgeInsets.only(top: 4.0),
       child: Column(
@@ -575,14 +876,21 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
             children: [
               Expanded(child: Text(label)),
               SizedBox(
-                width: 70,
+                width: 80,
                 child: TextField(
                   controller: controller,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  keyboardType: TextInputType.numberWithOptions(
+                    decimal: decimalStep,
+                  ),
+                  inputFormatters: decimalStep
+                      ? [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d*')),
+                        ]
+                      : [FilteringTextInputFormatter.digitsOnly],
                   textAlign: TextAlign.right,
-                  decoration: const InputDecoration(
-                    suffixText: 'g',
+                  decoration: InputDecoration(
+                    suffixText: unit,
                     isDense: true,
                   ),
                   onSubmitted: (_) => onTextSubmitted(),
@@ -610,9 +918,13 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
             value: clamped,
             divisions: divisions,
             onChanged: (v) {
-              final rounded = v.roundToDouble();
-              controller.text = rounded.round().toString();
-              onSliderChanged(rounded);
+              // Snap to the slider's division grid so the controller
+              // text matches what the slider actually represents.
+              final step = (max - min) / divisions;
+              final snapped = (((v - min) / step).round() * step + min);
+              controller.text =
+                  decimalStep ? snapped.toStringAsFixed(1) : snapped.round().toString();
+              onSliderChanged(snapped);
             },
           ),
         ],
@@ -620,23 +932,27 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     );
   }
 
-  /// #173: apply a directly typed gram value for a nutrient goal,
-  /// clamping into the slider's valid range. Invalid input reverts to
-  /// the previously stored value (or the default if none).
+  /// #173 (+follow-up): apply a directly typed value for a nutrient
+  /// goal, clamping into the slider's valid range. Invalid input
+  /// reverts to the previously stored value (or the default if none).
+  /// `decimalStep` keeps fractional precision for B12 / vitamin D where
+  /// rounding to whole numbers would erase the useful range.
   void _applyDirectNutrientInput(
     TextEditingController controller,
     double min,
     double max,
-    void Function(double) setter,
-  ) {
-    final parsed = int.tryParse(controller.text);
+    void Function(double) setter, {
+    bool decimalStep = false,
+  }) {
+    final parsed = double.tryParse(controller.text);
     if (parsed == null) {
       // Revert to current state; setter remains untouched.
       return;
     }
-    final clamped = parsed.clamp(min.toInt(), max.toInt()).toDouble();
+    final clamped = parsed.clamp(min, max).toDouble();
     setState(() => setter(clamped));
-    controller.text = clamped.round().toString();
+    controller.text =
+        decimalStep ? clamped.toStringAsFixed(1) : clamped.round().toString();
   }
 
   void _normalizeMacros() {
@@ -690,6 +1006,52 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       _sugarsMax,
       (v) => _sugarsGoalGrams = v,
     );
+    // Follow-up to #173: flush the seven additional nutrient inputs.
+    _applyDirectNutrientInput(
+      _sodiumController,
+      _sodiumMin,
+      _sodiumMax,
+      (v) => _sodiumGoalMg = v,
+    );
+    _applyDirectNutrientInput(
+      _calciumController,
+      _calciumMin,
+      _calciumMax,
+      (v) => _calciumGoalMg = v,
+    );
+    _applyDirectNutrientInput(
+      _ironController,
+      _ironMin,
+      _ironMax,
+      (v) => _ironGoalMg = v,
+      decimalStep: true,
+    );
+    _applyDirectNutrientInput(
+      _potassiumController,
+      _potassiumMin,
+      _potassiumMax,
+      (v) => _potassiumGoalMg = v,
+    );
+    _applyDirectNutrientInput(
+      _magnesiumController,
+      _magnesiumMin,
+      _magnesiumMax,
+      (v) => _magnesiumGoalMg = v,
+    );
+    _applyDirectNutrientInput(
+      _vitaminDController,
+      _vitaminDMin,
+      _vitaminDMax,
+      (v) => _vitaminDGoalUg = v,
+      decimalStep: true,
+    );
+    _applyDirectNutrientInput(
+      _vitaminB12Controller,
+      _vitaminB12Min,
+      _vitaminB12Max,
+      (v) => _vitaminB12GoalUg = v,
+      decimalStep: true,
+    );
 
     widget.settingsBloc.setKcalAdjustment(_kcalAdjustmentSelection.toInt().toDouble());
     widget.settingsBloc.setMacroGoals(
@@ -705,12 +1067,22 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     // refreshes the macro columns on the existing one. Either way the
     // row exists by the time we write the nutrient goals against it.
     await widget.settingsBloc.updateTrackedDay(DateTime.now());
-    // #173: persist the nutrient goals onto today's TrackedDayDBO row.
+    // #173 (+follow-up): persist every per-nutrient goal onto today's
+    // TrackedDayDBO row. Each field is sent unconditionally — passing
+    // a non-null value updates the column; the data source skips any
+    // value that's still null (i.e. the user never touched that row).
     await widget.settingsBloc.setTodayNutrientGoals(
       DateTime.now(),
       fibreGoal: _fibreGoalGrams,
       satFatGoal: _satFatGoalGrams,
       sugarsGoal: _sugarsGoalGrams,
+      sodiumGoal: _sodiumGoalMg,
+      calciumGoal: _calciumGoalMg,
+      ironGoal: _ironGoalMg,
+      potassiumGoal: _potassiumGoalMg,
+      vitaminDGoal: _vitaminDGoalUg,
+      vitaminB12Goal: _vitaminB12GoalUg,
+      magnesiumGoal: _magnesiumGoalMg,
     );
     widget.diaryBloc.add(LoadDiaryYearEvent());
     widget.calendarDayBloc.add(RefreshCalendarDayEvent());

@@ -771,7 +771,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsFibreGoalLabel":
             MessageLookupByLibrary.simpleMessage("纤维目标"),
         "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
-            "针对纤维、饱和脂肪和糖的个人目标。日记面板将使用这些值代替默认的每日参考值。"),
+            "每日面板中每种营养素的个人目标。一旦设置，日记将使用这些值代替默认的每日参考值。"),
         "settingsNutrientGoalsLabel":
             MessageLookupByLibrary.simpleMessage("营养目标"),
         "settingsSaturatedFatGoalDescription":
@@ -785,6 +785,34 @@ class MessageLookup extends MessageLookupByLibrary {
             "每日糖摄入上限（克）。默认参考值为 50 克。"),
         "settingsSugarsGoalLabel":
             MessageLookupByLibrary.simpleMessage("糖目标"),
+        "settingsSodiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("钠目标"),
+        "settingsSodiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日钠摄入上限（毫克）。默认参考值为 2300 毫克。"),
+        "settingsCalciumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("钙目标"),
+        "settingsCalciumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日钙目标（毫克）。默认参考值为 1000 毫克。"),
+        "settingsIronGoalLabel":
+            MessageLookupByLibrary.simpleMessage("铁目标"),
+        "settingsIronGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日铁目标（毫克）。默认值因性别而异（男性 8 毫克，女性 18 毫克，其他 14 毫克）。"),
+        "settingsPotassiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("钾目标"),
+        "settingsPotassiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日钾目标（毫克）。默认参考值为 3500 毫克。"),
+        "settingsMagnesiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("镁目标"),
+        "settingsMagnesiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日镁目标（毫克）。默认值因性别而异（男性 400 毫克，女性 310 毫克，其他 355 毫克）。"),
+        "settingsVitaminDGoalLabel":
+            MessageLookupByLibrary.simpleMessage("维生素 D 目标"),
+        "settingsVitaminDGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日维生素 D 目标（微克）。默认参考值为 15 微克。"),
+        "settingsVitaminB12GoalLabel":
+            MessageLookupByLibrary.simpleMessage("维生素 B12 目标"),
+        "settingsVitaminB12GoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日维生素 B12 目标（微克）。默认参考值为 2.4 微克。"),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("查看来源"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(

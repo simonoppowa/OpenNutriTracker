@@ -158,20 +158,35 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return await _getTrackedDayUsecase.getTrackedDay(day);
   }
 
-  /// #173: persist user-set per-nutrient goals to today's tracked-day
-  /// row. Must be called after ensuring the row exists (the macro
-  /// updateTrackedDay flow takes care of creating it).
+  /// #173 (+follow-up): persist user-set per-nutrient goals to today's
+  /// tracked-day row. Must be called after ensuring the row exists (the
+  /// macro updateTrackedDay flow takes care of creating it). Accepts
+  /// the original three nutrients plus the seven from the follow-up.
   Future<void> setTodayNutrientGoals(
     DateTime day, {
     double? fibreGoal,
     double? satFatGoal,
     double? sugarsGoal,
+    double? sodiumGoal,
+    double? calciumGoal,
+    double? ironGoal,
+    double? potassiumGoal,
+    double? vitaminDGoal,
+    double? vitaminB12Goal,
+    double? magnesiumGoal,
   }) async {
     await _addTrackedDayUsecase.updateDayNutrientGoals(
       day,
       fibreGoal: fibreGoal,
       satFatGoal: satFatGoal,
       sugarsGoal: sugarsGoal,
+      sodiumGoal: sodiumGoal,
+      calciumGoal: calciumGoal,
+      ironGoal: ironGoal,
+      potassiumGoal: potassiumGoal,
+      vitaminDGoal: vitaminDGoal,
+      vitaminB12Goal: vitaminB12Goal,
+      magnesiumGoal: magnesiumGoal,
     );
   }
 
