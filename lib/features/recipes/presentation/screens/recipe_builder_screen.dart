@@ -128,10 +128,13 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
                   ),
                 )
               else
-                TextButton.icon(
-                  onPressed: () => _bloc.add(const SaveRecipeEvent()),
-                  icon: const Icon(Icons.save_outlined),
-                  label: Text(S.of(context).recipeSaveLabel),
+                Semantics(
+                  identifier: 'recipe-builder-save',
+                  child: TextButton.icon(
+                    onPressed: () => _bloc.add(const SaveRecipeEvent()),
+                    icon: const Icon(Icons.save_outlined),
+                    label: Text(S.of(context).recipeSaveLabel),
+                  ),
                 ),
             ],
           ),
@@ -424,9 +427,11 @@ class _RecipeImagePickerTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasImage = imagePath != null;
-    return InkWell(
-      borderRadius: BorderRadius.circular(64),
-      onTap: () => _showActionSheet(context, hasImage: hasImage),
+    return Semantics(
+      identifier: 'recipe-builder-image-picker',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(64),
+        onTap: () => _showActionSheet(context, hasImage: hasImage),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
@@ -493,6 +498,7 @@ class _RecipeImagePickerTile extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 
