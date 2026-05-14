@@ -4,9 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
@@ -29,6 +31,8 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   final AddTrackedDayUsecase _addTrackedDayUsecase;
   final UpdateIntakeUsecase _updateIntakeUsecase;
   final UpdateUserActivityUsecase _updateUserActivityUsecase;
+  final GetConfigUsecase _getConfigUsecase;
+  final AddConfigUsecase _addConfigUsecase;
 
   DateTime? _currentDay;
 
@@ -41,6 +45,8 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     this._addTrackedDayUsecase,
     this._updateIntakeUsecase,
     this._updateUserActivityUsecase,
+    this._getConfigUsecase,
+    this._addConfigUsecase,
   ) : super(CalendarDayInitial()) {
     on<LoadCalendarDayEvent>((event, emit) async {
       emit(CalendarDayLoading());
@@ -74,6 +80,8 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
 
     final trackedDayEntity = await _getTrackedDayUsecase.getTrackedDay(day);
 
+    final config = await _getConfigUsecase.getConfig();
+
     emit(
       CalendarDayLoaded(
         trackedDayEntity,
@@ -82,8 +90,18 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
         lunchIntakeList,
         dinnerIntakeList,
         snackIntakeList,
+        diarySortPreferences: config.diarySortPreferences,
       ),
     );
+  }
+
+  /// Persist the user's sort choice for a single meal section. The diary
+  /// reads the updated map back on the next `LoadCalendarDayEvent` (which
+  /// fires after the user navigates away and returns), so we don't need to
+  /// re-emit here — the widget keeps its own optimistic copy in the
+  /// meantime.
+  Future<void> setDiarySortPreference(String mealKey, int sortIndex) async {
+    await _addConfigUsecase.setDiarySortPreference(mealKey, sortIndex);
   }
 
   Future<void> deleteIntakeItem(

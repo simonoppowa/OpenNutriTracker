@@ -7,6 +7,14 @@ class CalorieGoalCalc {
   static const double maintainWeightKcalAdjustment = 0;
   static const double gainWeightKcalAdjustment = 500;
 
+  /// Distance from target (kg) at which the taper begins easing the
+  /// adjustment down from full strength.
+  static const double taperStartDistanceKg = 5.0;
+
+  /// Distance from target (kg) at which the taper has fully collapsed
+  /// the weight-goal adjustment to zero (maintenance).
+  static const double taperEndDistanceKg = 1.0;
+
   static double getDailyKcalLeft(
     double totalKcalGoal,
     double totalKcalIntake,
@@ -23,12 +31,24 @@ class CalorieGoalCalc {
     UserEntity userEntity,
     double totalKcalActivities, {
     double? kcalUserAdjustment,
-  }) =>
-      getTdee(userEntity) +
-      getKcalGoalAdjustment(userEntity.goal,
-          weeklyWeightGoalKg: userEntity.weeklyWeightGoalKg) +
-      (kcalUserAdjustment ?? 0) +
-      totalKcalActivities;
+    bool caloriesTaperEnabled = false,
+  }) {
+    final baseAdjustment = getKcalGoalAdjustment(
+      userEntity.goal,
+      weeklyWeightGoalKg: userEntity.weeklyWeightGoalKg,
+    );
+    final adjustment = applyTargetWeightTaper(
+      baseAdjustment: baseAdjustment,
+      currentWeightKg: userEntity.weightKG,
+      targetWeightKg: userEntity.targetWeightKg,
+      goal: userEntity.goal,
+      taperEnabled: caloriesTaperEnabled,
+    );
+    return getTdee(userEntity) +
+        adjustment +
+        (kcalUserAdjustment ?? 0) +
+        totalKcalActivities;
+  }
 
   static double getKcalGoalAdjustment(UserWeightGoalEntity goal,
       {double? weeklyWeightGoalKg}) {
@@ -44,5 +64,49 @@ class CalorieGoalCalc {
       kcalAdjustment = maintainWeightKcalAdjustment;
     }
     return kcalAdjustment;
+  }
+
+  /// Scales the daily weight-goal kcal adjustment as the user nears
+  /// their target weight, so the last stretch becomes maintenance
+  /// instead of an ever-thinner slice.
+  ///
+  /// Returns the raw [baseAdjustment] when the taper is off, when no
+  /// [targetWeightKg] is set, or when the goal is maintenance. When the
+  /// taper is on:
+  ///
+  /// - Past the target (already reached or overshot, judged by the
+  ///   direction of [goal]): zero adjustment.
+  /// - Within [taperEndDistanceKg] of target: zero adjustment.
+  /// - Beyond [taperStartDistanceKg]: full [baseAdjustment].
+  /// - In between: linearly interpolated from full → zero.
+  static double applyTargetWeightTaper({
+    required double baseAdjustment,
+    required double currentWeightKg,
+    required double? targetWeightKg,
+    required UserWeightGoalEntity goal,
+    required bool taperEnabled,
+  }) {
+    if (!taperEnabled) return baseAdjustment;
+    if (targetWeightKg == null) return baseAdjustment;
+    if (goal == UserWeightGoalEntity.maintainWeight) return baseAdjustment;
+    if (baseAdjustment == 0) return baseAdjustment;
+
+    final signedDistance = targetWeightKg - currentWeightKg;
+    // Direction-aware "past target" check: a user losing weight has
+    // reached the target once current ≤ target (signedDistance ≥ 0
+    // there means they still have weight to lose, ≤ 0 means done).
+    // For gainers it is the mirror image.
+    final reachedOrOvershot = goal == UserWeightGoalEntity.loseWeight
+        ? signedDistance >= 0
+        : signedDistance <= 0;
+    if (reachedOrOvershot) return 0;
+
+    final distance = signedDistance.abs();
+    if (distance <= taperEndDistanceKg) return 0;
+    if (distance >= taperStartDistanceKg) return baseAdjustment;
+
+    final span = taperStartDistanceKg - taperEndDistanceKg;
+    final progress = (distance - taperEndDistanceKg) / span;
+    return baseAdjustment * progress;
   }
 }

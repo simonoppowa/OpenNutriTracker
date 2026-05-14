@@ -4,17 +4,33 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-class ExportImportDialog extends StatelessWidget {
-  final exportImportBloc = locator<ExportImportBloc>();
+/// Export / Import App Data dialog. A SegmentedButton at the top picks
+/// which format the user is working with — JSON (the canonical
+/// backup-and-restore format the app round-trips through) or CSV (a
+/// spreadsheet-friendly view).
+///
+/// Both segments support Export and Import. The asymmetry is that CSV
+/// export omits recipes (the nested-ingredient shape doesn't flatten
+/// cleanly) and CSV import therefore doesn't restore recipes either —
+/// a user who wants their recipes in a backup should pick JSON.
+class ExportImportDialog extends StatefulWidget {
+  const ExportImportDialog({super.key});
 
+  @override
+  State<ExportImportDialog> createState() => _ExportImportDialogState();
+}
+
+class _ExportImportDialogState extends State<ExportImportDialog> {
+  final _exportImportBloc = locator<ExportImportBloc>();
   final _homeBloc = locator<HomeBloc>();
   final _diaryBloc = locator<DiaryBloc>();
   final _calendarDayBloc = locator<CalendarDayBloc>();
 
-  ExportImportDialog({super.key});
+  ExportFormat _exportFormat = ExportFormat.json;
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +43,53 @@ class ExportImportDialog extends StatelessWidget {
       content: Wrap(
         children: [
           Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              SegmentedButton<ExportFormat>(
+                segments: const [
+                  ButtonSegment(
+                    value: ExportFormat.json,
+                    label: Text('JSON'),
+                  ),
+                  ButtonSegment(
+                    value: ExportFormat.csv,
+                    label: Text('CSV'),
+                  ),
+                ],
+                selected: {_exportFormat},
+                onSelectionChanged: (next) {
+                  setState(() => _exportFormat = next.first);
+                  // Clear any success/error chrome left over from a
+                  // previous export so the description re-appears under
+                  // the new format selection.
+                  _exportImportBloc.add(ResetExportImportStateEvent());
+                },
+              ),
+              if (_exportFormat == ExportFormat.csv) ...[
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        S.of(context).exportImportCsvRecipesNote,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 12),
               BlocBuilder<ExportImportBloc, ExportImportState>(
-                bloc: exportImportBloc,
+                bloc: _exportImportBloc,
                 builder: (context, state) {
                   if (state is ExportImportInitial) {
                     return Text(
@@ -72,11 +132,15 @@ class ExportImportDialog extends StatelessWidget {
       ),
       actions: <Widget>[
         TextButton(
-          onPressed: () => exportImportBloc.add(ExportDataEvent()),
+          onPressed: () => _exportImportBloc.add(
+            ExportDataEvent(format: _exportFormat),
+          ),
           child: Text(S.of(context).exportAction),
         ),
         TextButton(
-          onPressed: () => exportImportBloc.add(ImportDataEvent()),
+          onPressed: () => _exportImportBloc.add(
+            ImportDataEvent(format: _exportFormat),
+          ),
           child: Text(S.of(context).importAction),
         ),
       ],

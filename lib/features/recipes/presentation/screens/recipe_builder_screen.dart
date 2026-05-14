@@ -408,6 +408,7 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
       SnackBar(content: Text(message)),
     );
   }
+
 }
 
 class _RecipeImagePickerTile extends StatelessWidget {

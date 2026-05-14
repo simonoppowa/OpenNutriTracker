@@ -1,6 +1,11 @@
 part of 'recipe_builder_bloc.dart';
 
-enum SaveError { nameRequired, needsIngredients, invalidTotalWeight, unknown }
+enum SaveError {
+  nameRequired,
+  needsIngredients,
+  invalidTotalWeight,
+  unknown,
+}
 
 class RecipeBuilderState extends Equatable {
   final String? id;

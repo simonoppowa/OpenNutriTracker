@@ -28,6 +28,7 @@ class SettingsLoadedState extends SettingsState {
   final int offCacheCount;
   final int offCacheSizeBytes;
   final bool showMicronutrients; // #237
+  final bool caloriesTaperEnabled; // #119 follow-up
 
   const SettingsLoadedState(
     this.versionNumber,
@@ -43,6 +44,7 @@ class SettingsLoadedState extends SettingsState {
     this.offCacheCount = 0,
     this.offCacheSizeBytes = 0,
     this.showMicronutrients = false,
+    this.caloriesTaperEnabled = false,
   });
 
   @override
@@ -60,5 +62,6 @@ class SettingsLoadedState extends SettingsState {
         offCacheCount,
         offCacheSizeBytes,
         showMicronutrients,
+        caloriesTaperEnabled,
       ];
 }

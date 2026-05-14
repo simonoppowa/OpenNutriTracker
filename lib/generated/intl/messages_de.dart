@@ -72,6 +72,8 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m21(count, customCount) =>
       "${count} aus JSON eingetragen, ${customCount} als eigene Mahlzeit gespeichert";
 
+  static String m22(value) => "Noch ${value} bis zum Ziel";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -180,6 +182,16 @@ class MessageLookup extends MessageLookupByLibrary {
             "CSV-Datei konnte nicht gelesen werden. Format prüfen und erneut versuchen."),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "barcodeInvalidEan13CheckDigit": MessageLookupByLibrary.simpleMessage(
+            "Dieser 13-stellige Barcode scheint einen Tippfehler zu haben: die letzte Ziffer passt nicht zu den übrigen"),
+        "customMealBarcodeHint": MessageLookupByLibrary.simpleMessage(
+            "Scanne oder gib einen Barcode ein, um diese Mahlzeit später wiederzufinden"),
+        "customMealBarcodeInvalid": MessageLookupByLibrary.simpleMessage(
+            "Der Barcode muss 8 bis 14 Ziffern haben"),
+        "customMealBarcodeLabel":
+            MessageLookupByLibrary.simpleMessage("Barcode"),
+        "customMealBarcodeScanButton":
+            MessageLookupByLibrary.simpleMessage("Barcode scannen"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Alle Tagebucheinträge, die diese Mahlzeit verwenden, werden ebenfalls entfernt."),
         "customMealsDeleteConfirmTitle":
@@ -205,9 +217,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Nach heute kopieren"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("LÖSCHEN"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Hier werden nur Nährstoffe summiert, die auf deinen protokollierten Mahlzeiten erfasst sind. Eine Mahlzeit ohne einen Wert trägt nichts zu diesem Nährstoff bei — die Summen können also zu niedrig sein."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Du bearbeitest ein zukünftiges Datum"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Tagebuch"),
+        "diaryNutrientPanelTitle":
+            MessageLookupByLibrary.simpleMessage("Heutige Nährstoffe"),
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
             "z. B. Suppe, Hähnchen, Wein ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Abendessen"),
@@ -259,6 +275,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("Exportieren"),
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "App-Daten exportieren / importieren"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("Rezepte werden nur mit JSON-Export und -Import beibehalten. Wechsle zu JSON, um sie in dein Backup einzuschließen."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Sie können die App-Daten in eine Zip-Datei exportieren und später importieren. Dies ist nützlich, wenn Sie Ihre Daten sichern oder auf ein anderes Gerät übertragen möchten.\n\nDie App nutzt keinen Cloud-Dienst, um Ihre Daten zu speichern."),
         "exportImportErrorLabel":
@@ -387,6 +405,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("N/A"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Nichts hinzugefügt"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Tag"),
+        "nutrientPanelWeekLabel": MessageLookupByLibrary.simpleMessage("Woche"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Alle Nährstoffe ausgeblendet — schalte einige unter Einstellungen → Nährstoffe ein."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Nährwertangaben"),
         "nutritionalStatusNormalWeight":
@@ -950,8 +972,53 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Eigene Mahlzeiten"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Hinweis"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Ballaststoffziel in Gramm. Standardreferenz: 30 g."),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Ballaststoffziel"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "Persönliche Zielwerte für jeden Nährstoff im täglichen Panel. Das Tagebuch verwendet diese Werte anstelle der Standardreferenzen, sobald du einen festlegst."),
+        "settingsNutrientGoalsLabel":
+            MessageLookupByLibrary.simpleMessage("Nährstoffziele"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "Tägliche Obergrenze für gesättigte Fette in Gramm. Standardreferenz: 20 g."),
+        "settingsSaturatedFatGoalLabel": MessageLookupByLibrary.simpleMessage(
+            "Ziel für gesättigte Fette"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("Quellen & Referenzen"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliche Zuckerobergrenze in Gramm. Standardreferenz: 50 g."),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Zuckerziel"),
+        "settingsSodiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Natriumziel"),
+        "settingsSodiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliche Natriumobergrenze in Milligramm. Standardreferenz: 2300 mg."),
+        "settingsCalciumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Calciumziel"),
+        "settingsCalciumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Calciumziel in Milligramm. Standardreferenz: 1000 mg."),
+        "settingsIronGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Eisenziel"),
+        "settingsIronGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Eisenziel in Milligramm. Standard nach Geschlecht (8 mg männlich, 18 mg weiblich, 14 mg sonst)."),
+        "settingsPotassiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Kaliumziel"),
+        "settingsPotassiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Kaliumziel in Milligramm. Standardreferenz: 3500 mg."),
+        "settingsMagnesiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Magnesiumziel"),
+        "settingsMagnesiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Magnesiumziel in Milligramm. Standard nach Geschlecht (400 mg männlich, 310 mg weiblich, 355 mg sonst)."),
+        "settingsVitaminDGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Vitamin-D-Ziel"),
+        "settingsVitaminDGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Vitamin-D-Ziel in Mikrogramm. Standardreferenz: 15 µg."),
+        "settingsVitaminB12GoalLabel":
+            MessageLookupByLibrary.simpleMessage("Vitamin-B12-Ziel"),
+        "settingsVitaminB12GoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Tägliches Vitamin-B12-Ziel in Mikrogramm. Standardreferenz: 2,4 µg."),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("Quellen anzeigen"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(
@@ -1008,6 +1075,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Makros je Mahlzeit anzeigen"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Mikronährstoffe anzeigen"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Nährstoffe"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Wähle, welche Nährstoffe im Tagebuch erscheinen"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Wähle, welche Nährstoffe im Tagespanel sichtbar sind. Ausgeblendete kannst du jederzeit wieder einschalten."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Quellcode"),
         "settingsSystemLabel":
@@ -1050,5 +1123,32 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Gewicht"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("Zink"),
+        "diarySortByCarbs":
+            MessageLookupByLibrary.simpleMessage("Kohlenhydrate (absteigend)"),
+        "diarySortByFat":
+            MessageLookupByLibrary.simpleMessage("Fett (absteigend)"),
+        "diarySortByKcal":
+            MessageLookupByLibrary.simpleMessage("Kalorien (absteigend)"),
+        "diarySortByLabel":
+            MessageLookupByLibrary.simpleMessage("Sortieren nach"),
+        "diarySortByProtein":
+            MessageLookupByLibrary.simpleMessage("Protein (absteigend)"),
+        "diarySortByTime":
+            MessageLookupByLibrary.simpleMessage("Hinzugefügt am"),
+        "profileTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Zielgewicht"),
+        "profileTargetWeightNotSetLabel":
+            MessageLookupByLibrary.simpleMessage("Nicht festgelegt"),
+        "profileTargetWeightClearAction":
+            MessageLookupByLibrary.simpleMessage("Löschen"),
+        "profileTargetWeightReached":
+            MessageLookupByLibrary.simpleMessage("Du hast dein Ziel erreicht"),
+        "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(
+            "Reduziert das tägliche Defizit allmählich, damit die letzten Kilos nicht wie eine Wand wirken."),
+        "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
+            "Kalorienziel anpassen, wenn du dich dem Ziel näherst"),
+        "settingsTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Zielgewicht"),
+        "profileTargetWeightToGo": m22,
       };
 }

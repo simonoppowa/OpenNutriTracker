@@ -4,6 +4,22 @@ import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
+/// Looks up the meal corresponding to a scanned barcode. Resolution order:
+///
+///   1. **User's own custom meals** — a custom meal the user has saved
+///      with a barcode (#167) wins over remote data, because the user
+///      explicitly created the entry and a matching scan should pull
+///      that exact saved record back.
+///   2. **Cached OFF lookup** — makes repeat scans instant and works
+///      offline.
+///   3. **Live OFF API** — only when nothing local matches. The
+///      successful result is then written to the cache for next time.
+///
+/// Recipes do not participate in this lookup. Recipes are compositions
+/// of meals, not single scannable products, so attaching a barcode to a
+/// recipe was a model error in the first cut of #167 — corrected here.
+/// A user who wants a scan to recall a saved meal should set the
+/// barcode on the meal itself via Edit Meal.
 class SearchProductByBarcodeUseCase {
   final ProductsRepository _productsRepository;
   final CustomMealDataSource _customMealDataSource;
@@ -15,13 +31,6 @@ class SearchProductByBarcodeUseCase {
     this._cachedOffMealDataSource,
   );
 
-  /// Resolution order:
-  ///   1. User's own custom meals — they take priority over remote data
-  ///      because the user explicitly created/imported them
-  ///   2. Cached OFF lookup from a previous successful network hit —
-  ///      makes repeat scans instant and works offline
-  ///   3. Live OFF API call — only when nothing local matches; the
-  ///      successful result is then written to the cache for next time
   Future<MealEntity> searchProductByBarcode(String barcode) async {
     final customMatch = _customMealDataSource
         .getAllCustomMeals()

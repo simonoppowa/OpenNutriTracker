@@ -3,11 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
 
 part 'settings_event.dart';
@@ -23,6 +25,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final GetKcalGoalUsecase _getKcalGoalUsecase;
   final GetMacroGoalUsecase _getMacroGoalUsecase;
   final RemoteSearchCacheDataSource _cachedOffMealDataSource;
+  // #173: needed so the Calculations dialog can pre-fill its
+  // fibre / sat-fat / sugar sliders with the user's existing per-day
+  // overrides rather than always starting from defaults.
+  final GetTrackedDayUsecase _getTrackedDayUsecase;
 
   SettingsBloc(
     this._getConfigUsecase,
@@ -31,6 +37,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     this._getKcalGoalUsecase,
     this._getMacroGoalUsecase,
     this._cachedOffMealDataSource,
+    this._getTrackedDayUsecase,
   ) : super(SettingsInitial()) {
     on<LoadSettingsEvent>((event, emit) async {
       emit(SettingsLoadingState());
@@ -57,6 +64,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           offCacheCount: offCacheCount,
           offCacheSizeBytes: offCacheSizeBytes,
           showMicronutrients: userConfig.showMicronutrients,
+          caloriesTaperEnabled: userConfig.caloriesTaperEnabled,
         ),
       );
     });
@@ -105,6 +113,19 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     _addConfigUsecase.setConfigShowMicronutrients(show);
   }
 
+  void setCaloriesTaperEnabled(bool enabled) {
+    _addConfigUsecase.setConfigCaloriesTaperEnabled(enabled);
+  }
+
+  Future<Map<String, int>?> getDiarySortPreferences() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.diarySortPreferences;
+  }
+
+  Future<void> setDiarySortPreference(String mealKey, int sortIndex) async {
+    await _addConfigUsecase.setDiarySortPreference(mealKey, sortIndex);
+  }
+
 
   Future<double> getKcalAdjustment() async {
     final config = await _getConfigUsecase.getConfig();
@@ -142,7 +163,48 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     );
   }
 
-  void updateTrackedDay(DateTime day) async {
+  /// #173: read today's per-nutrient goal overrides from the stored
+  /// TrackedDayDBO row. The dialog uses these to pre-fill the sliders
+  /// so users see their previously-saved targets rather than defaults.
+  /// Returns nulls (and a null entity) when nothing has been logged
+  /// for the day yet.
+  Future<TrackedDayEntity?> getTodayTrackedDay(DateTime day) async {
+    return await _getTrackedDayUsecase.getTrackedDay(day);
+  }
+
+  /// #173 (+follow-up): persist user-set per-nutrient goals to today's
+  /// tracked-day row. Must be called after ensuring the row exists (the
+  /// macro updateTrackedDay flow takes care of creating it). Accepts
+  /// the original three nutrients plus the seven from the follow-up.
+  Future<void> setTodayNutrientGoals(
+    DateTime day, {
+    double? fibreGoal,
+    double? satFatGoal,
+    double? sugarsGoal,
+    double? sodiumGoal,
+    double? calciumGoal,
+    double? ironGoal,
+    double? potassiumGoal,
+    double? vitaminDGoal,
+    double? vitaminB12Goal,
+    double? magnesiumGoal,
+  }) async {
+    await _addTrackedDayUsecase.updateDayNutrientGoals(
+      day,
+      fibreGoal: fibreGoal,
+      satFatGoal: satFatGoal,
+      sugarsGoal: sugarsGoal,
+      sodiumGoal: sodiumGoal,
+      calciumGoal: calciumGoal,
+      ironGoal: ironGoal,
+      potassiumGoal: potassiumGoal,
+      vitaminDGoal: vitaminDGoal,
+      vitaminB12Goal: vitaminB12Goal,
+      magnesiumGoal: magnesiumGoal,
+    );
+  }
+
+  Future<void> updateTrackedDay(DateTime day) async {
     final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
     final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
       totalKcalGoal,

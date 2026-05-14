@@ -20,13 +20,13 @@ class ScannerBloc extends Bloc<ScannerEvent, ScannerState> {
       emit(ScannerLoadingState());
 
       try {
-        final result = await _searchProductUseCase.searchProductByBarcode(
+        final meal = await _searchProductUseCase.searchProductByBarcode(
           event.barcode,
         );
         final config = await _getConfigUsecase.getConfig();
         emit(
           ScannerLoadedState(
-            product: result,
+            product: meal,
             usesImperialUnits: config.usesImperialUnits,
           ),
         );
