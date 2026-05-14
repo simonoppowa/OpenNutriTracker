@@ -17,7 +17,7 @@
 ## Description
 OpenNutriTracker is an open-source mobile application designed to simplify nutritional tracking and management. Whether you are looking to improve your health, lose weight, or simply maintain a balanced diet, OpenNutriTracker provides a minimalistic interface to easily track and analyze your daily nutrition.
 
-[Website](https://simonoppowa.github.io/OpenNutriTracker-Website/)
+[Website](https://simonoppowa.github.io/OpenNutriTracker/)
 
 ## Screenshots
 <p align="center">
@@ -53,6 +53,24 @@ See [Data Protection](https://www.iubenda.com/privacy-policy/53501884)
 - ~~Add Imperial unit support~~
 - Add support for Material You themes
 
+## Verifying APK signatures
+
+If you are side-loading an OpenNutriTracker APK from GitHub Releases — or from F-Droid, once the app is published there — you may reasonably want to confirm that the file you downloaded was signed by the same key the maintainer uses for every release, rather than by someone who intercepted the download or repackaged the app. The check below is for anyone who would like that extra reassurance before installing.
+
+The official SHA256 fingerprint of the Android release signing certificate is:
+
+```
+TODO(simon): paste fingerprint from release keystore — see "Generating the SHA256 fingerprint" in RELEASE.md
+```
+
+To verify a downloaded APK against that fingerprint, run:
+
+```sh
+apksigner verify --print-certs /path/to/opennutritracker.apk
+```
+
+The `SHA-256` line in the output should match the value above exactly.
+
 ## Contribution
 Contributions to OpenNutriTracker are welcome! If you find any issues or have suggestions for new features, please open an issue or submit a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) for the project's conventions — including the requirement to target the `develop` branch and the steps for adding localized strings.
 
@@ -67,6 +85,8 @@ See the [Getting Started](GettingStarted.md) file for more information.
 The data export bundle (Settings → Export / Import App Data → Export) is
 documented at [`docs/export-format.md`](docs/export-format.md) — both the
 JSON schema and the CSV companion the import / export round-trip uses.
+
+Self-hosting the Supabase FDC database for local development is documented at [`docs/supabase-fdc-self-hosting.md`](docs/supabase-fdc-self-hosting.md).
 
 ## Disclaimer
 OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.
