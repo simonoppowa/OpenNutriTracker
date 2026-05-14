@@ -544,9 +544,12 @@ class _SaveForLaterField extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Checkbox(
-              value: value,
-              onChanged: (newValue) => onChanged(newValue ?? false),
+            Semantics(
+              identifier: 'edit-meal-save-for-later',
+              child: Checkbox(
+                value: value,
+                onChanged: (newValue) => onChanged(newValue ?? false),
+              ),
             ),
             const SizedBox(width: 4),
             Expanded(
