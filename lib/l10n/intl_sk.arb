@@ -526,6 +526,29 @@
   "palVeryActiveLabel": "Veľmi aktívny",
   "pasteCodeHint": "Sem prilepte zdieľaný kód jedla",
   "pasteCodeLabel": "Prilepiť kód",
+  "pasteJsonSheetCancelButton": "Zrušiť",
+  "pasteJsonSheetHelp": "Vložte jeden objekt alebo pole objektov. Povinné: name, kcal, protein, carbs, fat. Voliteľné: mealType (breakfast/lunch/dinner/snack), amount, unit, date (napr. 2026-05-13).",
+  "pasteJsonSheetParseButton": "Spracovať a zaznamenať",
+  "pasteJsonSheetParseError": "Spracovanie zlyhalo: {detail}",
+  "@pasteJsonSheetParseError": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "pasteJsonSheetParseSuccess": "Zaznamenaných {count} z JSON, {customCount} uložených ako vlastné jedlá",
+  "@pasteJsonSheetParseSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "customCount": {
+        "type": "int"
+      }
+    }
+  },
+  "pasteJsonSheetTitle": "Vložiť JSON jedla",
   "per100gmlLabel": "Na 100 g/ml",
   "perServingLabel": "Na porciu",
   "phosphorusLabel": "fosfor",
@@ -608,6 +631,7 @@
   "settingsDisclaimerLabel": "Upozornenie",
   "settingsDistanceLabel": "Vzdialenosť",
   "settingsImperialLabel": "Imperiálne (lbs, ft, oz)",
+  "settingsImportPasteJsonButton": "Vložiť JSON",
   "settingsLabel": "Nastavenia",
   "settingsLanguageLabel": "Jazyk",
   "settingsLicensesLabel": "Licencie",

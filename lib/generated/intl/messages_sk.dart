@@ -64,6 +64,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "Importovať ${count} aktivít?";
 
+  static String m20(detail) => "Spracovanie zlyhalo: ${detail}";
+
+  static String m21(count, customCount) =>
+      "Zaznamenaných ${count} z JSON, ${customCount} uložených ako vlastné jedlá";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -784,6 +789,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "pasteCodeHint": MessageLookupByLibrary.simpleMessage(
             "Sem prilepte zdieľaný kód jedla"),
         "pasteCodeLabel": MessageLookupByLibrary.simpleMessage("Prilepiť kód"),
+        "pasteJsonSheetCancelButton":
+            MessageLookupByLibrary.simpleMessage("Zrušiť"),
+        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
+            "Vložte jeden objekt alebo pole objektov. Povinné: name, kcal, protein, carbs, fat. Voliteľné: mealType (breakfast/lunch/dinner/snack), amount, unit, date (napr. 2026-05-13)."),
+        "pasteJsonSheetParseButton":
+            MessageLookupByLibrary.simpleMessage("Spracovať a zaznamenať"),
+        "pasteJsonSheetParseError": m20,
+        "pasteJsonSheetParseSuccess": m21,
+        "pasteJsonSheetTitle":
+            MessageLookupByLibrary.simpleMessage("Vložiť JSON jedla"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("Na 100 g/ml"),
         "perServingLabel": MessageLookupByLibrary.simpleMessage("Na porciu"),
         "phosphorusLabel": MessageLookupByLibrary.simpleMessage("fosfor"),
@@ -928,6 +943,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Vzdialenosť"),
         "settingsImperialLabel":
             MessageLookupByLibrary.simpleMessage("Imperiálne (lbs, ft, oz)"),
+        "settingsImportPasteJsonButton":
+            MessageLookupByLibrary.simpleMessage("Vložiť JSON"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Nastavenia"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Jazyk"),
