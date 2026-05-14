@@ -1,0 +1,27 @@
+{
+  "release": {
+    "tag": "v.1.3.1",
+    "published": "2026-05-14T09:00:06Z",
+    "url": "https://github.com/simonoppowa/OpenNutriTracker/releases/tag/v.1.3.1"
+  },
+  "signing_certificate": {
+    "sha256": "84e86074ec7edabb10f2017986ddf09e531caf7a73080ac1172b80c49c620827",
+    "common_name": "Simon Oppowa",
+    "note": "Stable across releases; only changes if the signing keystore is rotated, which would also force a fresh install on every device."
+  },
+  "assets": [
+    {
+      "name": "app-release.apk",
+      "platform": "Android",
+      "size_bytes": 93398466,
+      "sha256": "3e59751741cef3a0c978b77a00f0fc073a221ebcb8fe7cf71ed234d0fd725ca4"
+    },
+    {
+      "name": "opennutritracker.ipa",
+      "platform": "iOS",
+      "size_bytes": 29625151,
+      "sha256": "1f11453a0db89697a9fb5f543e4cb8cb2b3ea15a4596de02c84724d7890fd663"
+    }
+  ],
+  "_updated_by": ".github/workflows/update-release-fingerprint.yml"
+}

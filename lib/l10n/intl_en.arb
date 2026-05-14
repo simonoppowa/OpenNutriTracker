@@ -37,6 +37,8 @@
   "recipeIngredientUnitLabel": "Unit",
   "recipeSaveLabel": "Save Recipe",
   "recipeSaveErrorLabel": "Could not save recipe.",
+  "recipeSaveForLaterLabel": "Save for next time",
+  "recipeSaveForLaterDescription": "Turn this on to keep this meal in your saved list for next time. Leave it off for a one-off you won't eat again.",
   "recipeNameRequiredLabel": "Recipe needs a name",
   "recipeNeedsIngredientsLabel": "Add at least one ingredient",
   "recipeInvalidTotalWeightLabel": "Total weight must be greater than zero",

@@ -454,6 +454,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     'uk': 'Українська',
     'zh': '中文',
     'pl': 'Polski',
+    'sk': 'Slovenčina',
   };
 
   String? _localeDisplayName(String? code) => _supportedLocales[code];
