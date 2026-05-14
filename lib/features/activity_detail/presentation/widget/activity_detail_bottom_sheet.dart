@@ -124,26 +124,33 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                       Row(
                         children: [
                           Expanded(
-                            child: TextFormField(
-                              controller: _nameController,
-                              decoration: InputDecoration(
-                                border: const OutlineInputBorder(),
-                                labelText: S
-                                    .of(context)
-                                    .customActivityNameFieldLabel,
-                                hintText: S
-                                    .of(context)
-                                    .customActivityNameFieldHint,
+                            child: Semantics(
+                              identifier: 'activity-detail-template-name-input',
+                              container: true,
+                              child: TextFormField(
+                                controller: _nameController,
+                                decoration: InputDecoration(
+                                  border: const OutlineInputBorder(),
+                                  labelText: S
+                                      .of(context)
+                                      .customActivityNameFieldLabel,
+                                  hintText: S
+                                      .of(context)
+                                      .customActivityNameFieldHint,
+                                ),
                               ),
                             ),
                           ),
                           const SizedBox(width: 8.0),
-                          IconButton(
-                            tooltip: S
-                                .of(context)
-                                .customActivityPickFromTemplate,
-                            icon: const Icon(Icons.bookmark_outline),
-                            onPressed: _openTemplatePicker,
+                          Semantics(
+                            identifier: 'activity-detail-pick-template',
+                            child: IconButton(
+                              tooltip: S
+                                  .of(context)
+                                  .customActivityPickFromTemplate,
+                              icon: const Icon(Icons.bookmark_outline),
+                              onPressed: _openTemplatePicker,
+                            ),
                           ),
                         ],
                       ),
@@ -152,27 +159,31 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                     Row(
                       children: [
                         Expanded(
-                          child: TextFormField(
-                            controller: widget.quantityTextController,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: <TextInputFormatter>[
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'[0-9]+[,.]{0,1}[0-9]*'),
-                              ),
-                              TextInputFormatter.withFunction(
-                                (oldValue, newValue) => newValue.copyWith(
-                                  text: newValue.text.replaceAll(',', '.'),
+                          child: Semantics(
+                            identifier: 'activity-detail-quantity-input',
+                            container: true,
+                            child: TextFormField(
+                              controller: widget.quantityTextController,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'[0-9]+[,.]{0,1}[0-9]*'),
                                 ),
+                                TextInputFormatter.withFunction(
+                                  (oldValue, newValue) => newValue.copyWith(
+                                    text: newValue.text.replaceAll(',', '.'),
+                                  ),
+                                ),
+                              ],
+                              decoration: InputDecoration(
+                                border: const OutlineInputBorder(),
+                                labelText: isCustom
+                                    ? S.of(context).customActivityKcalLabel
+                                    : S.of(context).quantityLabel,
+                                hintText: isCustom
+                                    ? S.of(context).customActivityKcalHint
+                                    : null,
                               ),
-                            ],
-                            decoration: InputDecoration(
-                              border: const OutlineInputBorder(),
-                              labelText: isCustom
-                                  ? S.of(context).customActivityKcalLabel
-                                  : S.of(context).quantityLabel,
-                              hintText: isCustom
-                                  ? S.of(context).customActivityKcalHint
-                                  : null,
                             ),
                           ),
                         ),
@@ -196,40 +207,46 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                     if (isCustom)
                       // Off by default: people who only ever log one-off
                       // entries shouldn't accumulate template clutter.
-                      CheckboxListTile(
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        value: _saveAsTemplate,
-                        onChanged: (value) {
-                          setState(() {
-                            _saveAsTemplate = value ?? false;
-                          });
-                        },
-                        title: Text(
-                          S.of(context).customActivitySaveAsTemplate,
+                      Semantics(
+                        identifier: 'activity-detail-save-as-template',
+                        child: CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          value: _saveAsTemplate,
+                          onChanged: (value) {
+                            setState(() {
+                              _saveAsTemplate = value ?? false;
+                            });
+                          },
+                          title: Text(
+                            S.of(context).customActivitySaveAsTemplate,
+                          ),
                         ),
                       ),
                     SizedBox(
                       width: double.infinity, // Make button full width
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          final trimmedName = _nameController.text.trim();
-                          widget.onAddButtonPressed(
-                            context,
-                            templateName: trimmedName.isEmpty
-                                ? null
-                                : trimmedName,
-                            saveAsTemplate: _saveAsTemplate,
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primaryContainer,
-                        ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0)),
-                        icon: const Icon(Icons.add_outlined),
-                        label: Text(S.of(context).addLabel),
+                      child: Semantics(
+                        identifier: 'activity-detail-add-button',
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            final trimmedName = _nameController.text.trim();
+                            widget.onAddButtonPressed(
+                              context,
+                              templateName: trimmedName.isEmpty
+                                  ? null
+                                  : trimmedName,
+                              saveAsTemplate: _saveAsTemplate,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor:
+                                Theme.of(context).colorScheme.onPrimaryContainer,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primaryContainer,
+                          ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0)),
+                          icon: const Icon(Icons.add_outlined),
+                          label: Text(S.of(context).addLabel),
+                        ),
                       ),
                     ),
                   ],

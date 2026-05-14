@@ -44,14 +44,17 @@ class _EditActivityDialogState extends State<EditActivityDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          TextFormField(
-            controller: _quantityController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: _isCustom
-                  ? S.of(context).customActivityKcalLabel
-                  : S.of(context).quantityLabel,
-              suffixText: _isCustom ? 'kcal' : 'min',
+          Semantics(
+            identifier: 'edit-activity-quantity-input',
+            child: TextFormField(
+              controller: _quantityController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: _isCustom
+                    ? S.of(context).customActivityKcalLabel
+                    : S.of(context).quantityLabel,
+                suffixText: _isCustom ? 'kcal' : 'min',
+              ),
             ),
           ),
         ],
