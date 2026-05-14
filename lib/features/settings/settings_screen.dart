@@ -115,11 +115,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // the diary's daily nutrient panel. Lives next to the meal-
                 // detail micronutrient toggle above; both shape what the
                 // user sees from the same underlying nutrient data.
-                ListTile(
-                  leading: const Icon(Icons.tune_outlined),
-                  title: Text(S.of(context).settingsNutrientsLabel),
-                  subtitle: Text(S.of(context).settingsNutrientsSubtitle),
-                  onTap: () => _openNutrientVisibilityScreen(context),
+                Semantics(
+                  identifier: 'settings-nutrient-visibility',
+                  child: ListTile(
+                    leading: const Icon(Icons.tune_outlined),
+                    title: Text(S.of(context).settingsNutrientsLabel),
+                    subtitle: Text(S.of(context).settingsNutrientsSubtitle),
+                    onTap: () => _openNutrientVisibilityScreen(context),
+                  ),
                 ),
                 const Divider(),
                 // App
