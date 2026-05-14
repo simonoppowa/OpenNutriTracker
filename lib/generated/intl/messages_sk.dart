@@ -174,15 +174,15 @@ class MessageLookup extends MessageLookupByLibrary {
             "CSV súbor sa nepodarilo prečítať. Skontrolujte formát a skúste to znova."),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
-        "customMealImageLabel":
+        "recipeImageLabel":
             MessageLookupByLibrary.simpleMessage("Pridať fotografiu"),
-        "customMealImagePickFromGallery":
+        "recipeImagePickFromGallery":
             MessageLookupByLibrary.simpleMessage("Vybrať z galérie"),
-        "customMealImageRemove":
+        "recipeImageRemove":
             MessageLookupByLibrary.simpleMessage("Odstrániť fotografiu"),
-        "customMealImageReplace":
+        "recipeImageReplace":
             MessageLookupByLibrary.simpleMessage("Nahradiť fotografiu"),
-        "customMealImageTakePhoto":
+        "recipeImageTakePhoto":
             MessageLookupByLibrary.simpleMessage("Odfotiť"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Všetky záznamy v denníku, ktoré používajú toto jedlo, budú tiež odstránené."),

@@ -1104,15 +1104,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsTargetWeightLabel":
             MessageLookupByLibrary.simpleMessage("Target weight"),
         "profileTargetWeightToGo": m21,
-        "customMealImageLabel":
+        "recipeImageLabel":
             MessageLookupByLibrary.simpleMessage("Add a photo"),
-        "customMealImagePickFromGallery":
+        "recipeImagePickFromGallery":
             MessageLookupByLibrary.simpleMessage("Choose from gallery"),
-        "customMealImageRemove":
+        "recipeImageRemove":
             MessageLookupByLibrary.simpleMessage("Remove photo"),
-        "customMealImageReplace":
+        "recipeImageReplace":
             MessageLookupByLibrary.simpleMessage("Replace photo"),
-        "customMealImageTakePhoto":
+        "recipeImageTakePhoto":
             MessageLookupByLibrary.simpleMessage("Take photo"),
       };
 }

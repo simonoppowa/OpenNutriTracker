@@ -882,15 +882,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeTagsHelper": MessageLookupByLibrary.simpleMessage(
             "Virgülle ayırın, örn. \"kahvaltı, vegan\""),
         "recipeTagsLabel": MessageLookupByLibrary.simpleMessage("Etiketler"),
-        "customMealImageLabel":
+        "recipeImageLabel":
             MessageLookupByLibrary.simpleMessage("Fotoğraf ekle"),
-        "customMealImagePickFromGallery":
+        "recipeImagePickFromGallery":
             MessageLookupByLibrary.simpleMessage("Galeriden seç"),
-        "customMealImageTakePhoto":
+        "recipeImageTakePhoto":
             MessageLookupByLibrary.simpleMessage("Fotoğraf çek"),
-        "customMealImageRemove":
+        "recipeImageRemove":
             MessageLookupByLibrary.simpleMessage("Fotoğrafı kaldır"),
-        "customMealImageReplace":
+        "recipeImageReplace":
             MessageLookupByLibrary.simpleMessage("Fotoğrafı değiştir"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "Varsayılan olarak malzemelerin toplamı. Sıvılar yaklaşık 1 ml ≈ 1 g olarak hesaplanır."),

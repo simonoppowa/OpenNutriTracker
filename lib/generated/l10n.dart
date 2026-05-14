@@ -531,10 +531,10 @@ class S {
   }
 
   /// `Add a photo`
-  String get customMealImageLabel {
+  String get recipeImageLabel {
     return Intl.message(
       'Add a photo',
-      name: 'customMealImageLabel',
+      name: 'recipeImageLabel',
       desc: '',
       args: [],
     );
@@ -551,10 +551,10 @@ class S {
   }
 
   /// `Choose from gallery`
-  String get customMealImagePickFromGallery {
+  String get recipeImagePickFromGallery {
     return Intl.message(
       'Choose from gallery',
-      name: 'customMealImagePickFromGallery',
+      name: 'recipeImagePickFromGallery',
       desc: '',
       args: [],
     );
@@ -571,10 +571,10 @@ class S {
   }
 
   /// `Take photo`
-  String get customMealImageTakePhoto {
+  String get recipeImageTakePhoto {
     return Intl.message(
       'Take photo',
-      name: 'customMealImageTakePhoto',
+      name: 'recipeImageTakePhoto',
       desc: '',
       args: [],
     );
@@ -591,10 +591,10 @@ class S {
   }
 
   /// `Remove photo`
-  String get customMealImageRemove {
+  String get recipeImageRemove {
     return Intl.message(
       'Remove photo',
-      name: 'customMealImageRemove',
+      name: 'recipeImageRemove',
       desc: '',
       args: [],
     );
@@ -611,10 +611,10 @@ class S {
   }
 
   /// `Replace photo`
-  String get customMealImageReplace {
+  String get recipeImageReplace {
     return Intl.message(
       'Replace photo',
-      name: 'customMealImageReplace',
+      name: 'recipeImageReplace',
       desc: '',
       args: [],
     );

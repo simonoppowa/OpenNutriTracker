@@ -492,8 +492,8 @@ class _RecipeImagePickerTile extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               hasImage
-                  ? S.of(context).customMealImageReplace
-                  : S.of(context).customMealImageLabel,
+                  ? S.of(context).recipeImageReplace
+                  : S.of(context).recipeImageLabel,
               style: theme.textTheme.bodyMedium,
             ),
           ],
@@ -516,7 +516,7 @@ class _RecipeImagePickerTile extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.photo_camera_outlined),
-                title: Text(s.customMealImageTakePhoto),
+                title: Text(s.recipeImageTakePhoto),
                 onTap: () {
                   Navigator.of(ctx).pop();
                   onTakePhoto();
@@ -524,7 +524,7 @@ class _RecipeImagePickerTile extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library_outlined),
-                title: Text(s.customMealImagePickFromGallery),
+                title: Text(s.recipeImagePickFromGallery),
                 onTap: () {
                   Navigator.of(ctx).pop();
                   onPickFromGallery();
@@ -533,7 +533,7 @@ class _RecipeImagePickerTile extends StatelessWidget {
               if (hasImage)
                 ListTile(
                   leading: const Icon(Icons.delete_outline),
-                  title: Text(s.customMealImageRemove),
+                  title: Text(s.recipeImageRemove),
                   onTap: () {
                     Navigator.of(ctx).pop();
                     onRemove();

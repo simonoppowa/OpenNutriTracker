@@ -910,15 +910,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeTagsHelper": MessageLookupByLibrary.simpleMessage(
             "Kommagetrennt, z. B. \"Frühstück, vegan\""),
         "recipeTagsLabel": MessageLookupByLibrary.simpleMessage("Tags"),
-        "customMealImageLabel":
+        "recipeImageLabel":
             MessageLookupByLibrary.simpleMessage("Foto hinzufügen"),
-        "customMealImagePickFromGallery":
+        "recipeImagePickFromGallery":
             MessageLookupByLibrary.simpleMessage("Aus Galerie wählen"),
-        "customMealImageTakePhoto":
+        "recipeImageTakePhoto":
             MessageLookupByLibrary.simpleMessage("Foto aufnehmen"),
-        "customMealImageRemove":
+        "recipeImageRemove":
             MessageLookupByLibrary.simpleMessage("Foto entfernen"),
-        "customMealImageReplace":
+        "recipeImageReplace":
             MessageLookupByLibrary.simpleMessage("Foto ersetzen"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "Standardmäßig die Summe der Zutaten. Flüssigkeiten werden mit 1 ml ≈ 1 g angenähert."),

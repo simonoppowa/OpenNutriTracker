@@ -896,15 +896,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeTagsHelper": MessageLookupByLibrary.simpleMessage(
             "Oddzielone przecinkami, np. \"śniadanie, wegańskie\""),
         "recipeTagsLabel": MessageLookupByLibrary.simpleMessage("Tagi"),
-        "customMealImageLabel":
+        "recipeImageLabel":
             MessageLookupByLibrary.simpleMessage("Dodaj zdjęcie"),
-        "customMealImagePickFromGallery":
+        "recipeImagePickFromGallery":
             MessageLookupByLibrary.simpleMessage("Wybierz z galerii"),
-        "customMealImageTakePhoto":
+        "recipeImageTakePhoto":
             MessageLookupByLibrary.simpleMessage("Zrób zdjęcie"),
-        "customMealImageRemove":
+        "recipeImageRemove":
             MessageLookupByLibrary.simpleMessage("Usuń zdjęcie"),
-        "customMealImageReplace":
+        "recipeImageReplace":
             MessageLookupByLibrary.simpleMessage("Zmień zdjęcie"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "Domyślnie suma składników. Płyny przybliżone jako 1 ml ≈ 1 g."),

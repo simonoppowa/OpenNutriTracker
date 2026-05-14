@@ -898,15 +898,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeTagsHelper": MessageLookupByLibrary.simpleMessage(
             "Separati da virgola, es. \"colazione, vegano\""),
         "recipeTagsLabel": MessageLookupByLibrary.simpleMessage("Tag"),
-        "customMealImageLabel":
+        "recipeImageLabel":
             MessageLookupByLibrary.simpleMessage("Aggiungi una foto"),
-        "customMealImagePickFromGallery":
+        "recipeImagePickFromGallery":
             MessageLookupByLibrary.simpleMessage("Scegli dalla galleria"),
-        "customMealImageTakePhoto":
+        "recipeImageTakePhoto":
             MessageLookupByLibrary.simpleMessage("Scatta una foto"),
-        "customMealImageRemove":
+        "recipeImageRemove":
             MessageLookupByLibrary.simpleMessage("Rimuovi foto"),
-        "customMealImageReplace":
+        "recipeImageReplace":
             MessageLookupByLibrary.simpleMessage("Sostituisci foto"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "Predefinito come somma degli ingredienti. I liquidi sono approssimati a 1 ml ≈ 1 g."),
