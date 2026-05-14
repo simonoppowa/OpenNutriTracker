@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:opennutritracker/core/presentation/widgets/user_image_picker_tile.dart';
 import 'package:opennutritracker/core/utils/barcode_validator.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
@@ -217,27 +218,24 @@ class _EditMealScreenState extends State<EditMealScreen> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Center(child: _buildMealImagePreview()),
-        if (_mealEntity.source == MealSourceEntity.custom) ...[
-          const SizedBox(height: 12),
+        // Custom meals get the same picker tile recipes use — a single
+        // tappable circle with an overlay camera icon, "Add a photo"
+        // text beneath, and a bottom-sheet for the action choice.
+        // OFF / FDC entries keep the existing remote-image avatar:
+        // they cannot have a user-attached photo, so showing the
+        // picker affordance would be misleading.
+        if (_mealEntity.source == MealSourceEntity.custom)
           Center(
-            child: Semantics(
-              identifier: 'edit-meal-image-picker',
-              container: true,
-              child: TextButton.icon(
-                onPressed: _showImagePickerSheet,
-                icon: Icon(
-                  _localImagePath == null
-                      ? Icons.add_a_photo_outlined
-                      : Icons.edit_outlined,
-                ),
-                label: Text(_localImagePath == null
-                    ? S.of(context).mealImageLabel
-                    : S.of(context).mealImageReplace),
-              ),
+            child: UserImagePickerTile(
+              kind: UserImageKind.meal,
+              imagePath: _localImagePath,
+              onPickFromGallery: () => _onPickMealImage(ImageSource.gallery),
+              onTakePhoto: () => _onPickMealImage(ImageSource.camera),
+              onRemove: _onRemoveMealImage,
             ),
-          ),
-        ],
+          )
+        else
+          Center(child: _buildRemoteMealImage()),
         const SizedBox(height: 32),
         TextFormField(
           controller: _nameTextController,
@@ -613,101 +611,18 @@ class _EditMealScreenState extends State<EditMealScreen> {
     log.fine('Barcode text controller after set: ${_barcodeTextController.text}');
   }
 
-  Widget _buildMealImagePreview() {
-    final width = 120.0;
-    final height = 120.0;
-    final localPath = _localImagePath;
-    if (localPath != null) {
-      return ClipOval(
-        child: FutureBuilder<String>(
-          future: UserImageStorage.absolutePath(localPath),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return SizedBox(
-                width: width,
-                height: height,
-                child: const DefaultMealImage(),
-              );
-            }
-            final file = File(snapshot.data!);
-            if (!file.existsSync()) {
-              return SizedBox(
-                width: width,
-                height: height,
-                child: const DefaultMealImage(),
-              );
-            }
-            return Image.file(
-              file,
-              width: width,
-              height: height,
-              fit: BoxFit.cover,
-            );
-          },
-        ),
-      );
-    }
+  Widget _buildRemoteMealImage() {
     return ClipOval(
       child: CachedNetworkImage(
         cacheManager: locator<CacheManager>(),
-        width: width,
-        height: height,
+        width: 120,
+        height: 120,
         placeholder: (context, string) => const DefaultMealImage(),
         errorWidget: (context, exception, stacktrace) =>
             const DefaultMealImage(),
         fit: BoxFit.cover,
         imageUrl: _mealEntity.mainImageUrl ?? "",
       ),
-    );
-  }
-
-  void _showImagePickerSheet() {
-    final s = S.of(context);
-    final hasImage = _localImagePath != null;
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              Semantics(
-                identifier: 'edit-meal-image-take-photo',
-                child: ListTile(
-                  leading: const Icon(Icons.photo_camera_outlined),
-                  title: Text(s.mealImageTakePhoto),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    _onPickMealImage(ImageSource.camera);
-                  },
-                ),
-              ),
-              Semantics(
-                identifier: 'edit-meal-image-pick-gallery',
-                child: ListTile(
-                  leading: const Icon(Icons.photo_library_outlined),
-                  title: Text(s.mealImagePickFromGallery),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    _onPickMealImage(ImageSource.gallery);
-                  },
-                ),
-              ),
-              if (hasImage)
-                Semantics(
-                  identifier: 'edit-meal-image-remove',
-                  child: ListTile(
-                    leading: const Icon(Icons.delete_outline),
-                    title: Text(s.mealImageRemove),
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      _onRemoveMealImage();
-                    },
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
     );
   }
 

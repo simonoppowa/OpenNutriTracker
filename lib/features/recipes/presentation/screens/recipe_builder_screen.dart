@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/user_image_picker_tile.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -141,7 +142,8 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _RecipeImagePickerTile(
+              UserImagePickerTile(
+                kind: UserImageKind.recipe,
                 imagePath: state.imagePath,
                 onPickFromGallery: () => _onPickImage(
                   context,
@@ -410,140 +412,4 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
     );
   }
 
-}
-
-class _RecipeImagePickerTile extends StatelessWidget {
-  final String? imagePath;
-  final Future<void> Function() onPickFromGallery;
-  final Future<void> Function() onTakePhoto;
-  final Future<void> Function() onRemove;
-
-  const _RecipeImagePickerTile({
-    required this.imagePath,
-    required this.onPickFromGallery,
-    required this.onTakePhoto,
-    required this.onRemove,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final hasImage = imagePath != null;
-    return Semantics(
-      identifier: 'recipe-builder-image-picker',
-      child: InkWell(
-        borderRadius: BorderRadius.circular(64),
-        onTap: () => _showActionSheet(context, hasImage: hasImage),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          children: [
-            Stack(
-              alignment: Alignment.bottomRight,
-              children: [
-                ClipOval(
-                  child: SizedBox(
-                    width: 96,
-                    height: 96,
-                    child: hasImage
-                        ? FutureBuilder<String>(
-                            future:
-                                UserImageStorage.absolutePath(imagePath!),
-                            builder: (context, snapshot) {
-                              if (!snapshot.hasData) {
-                                return Container(
-                                  color: theme.colorScheme.primaryContainer,
-                                );
-                              }
-                              return Image.file(
-                                File(snapshot.data!),
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, error, stack) => Container(
-                                  color: theme.colorScheme.primaryContainer,
-                                  child: Icon(
-                                    Icons.menu_book,
-                                    color: theme
-                                        .colorScheme.onPrimaryContainer,
-                                  ),
-                                ),
-                              );
-                            },
-                          )
-                        : Container(
-                            color: theme.colorScheme.primaryContainer,
-                            child: Icon(
-                              Icons.restaurant_menu,
-                              size: 36,
-                              color: theme.colorScheme.onPrimaryContainer,
-                            ),
-                          ),
-                  ),
-                ),
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor: theme.colorScheme.primary,
-                  child: Icon(
-                    hasImage ? Icons.edit : Icons.camera_alt,
-                    size: 18,
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              hasImage
-                  ? S.of(context).recipeImageReplace
-                  : S.of(context).recipeImageLabel,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ],
-        ),
-      ),
-    ),
-    );
-  }
-
-  Future<void> _showActionSheet(
-    BuildContext context, {
-    required bool hasImage,
-  }) async {
-    final s = S.of(context);
-    await showModalBottomSheet<void>(
-      context: context,
-      builder: (ctx) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.photo_camera_outlined),
-                title: Text(s.recipeImageTakePhoto),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  onTakePhoto();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library_outlined),
-                title: Text(s.recipeImagePickFromGallery),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  onPickFromGallery();
-                },
-              ),
-              if (hasImage)
-                ListTile(
-                  leading: const Icon(Icons.delete_outline),
-                  title: Text(s.recipeImageRemove),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    onRemove();
-                  },
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 }
