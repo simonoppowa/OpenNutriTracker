@@ -633,6 +633,12 @@
   "settingsPerMealKcalShareLunch": "Обід",
   "settingsPerMealKcalShareDinner": "Вечеря",
   "settingsPerMealKcalShareSnack": "Перекус",
+  "mealPatternPresetsLabel": "Швидкі шаблони",
+  "mealPatternStandard": "Стандарт",
+  "mealPatternMediterranean": "Середземноморський",
+  "mealPatternTwoMeal": "2 прийоми",
+  "mealPatternOmad": "1 прийом",
+  "mealPatternFiveSmall": "5 малих",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {

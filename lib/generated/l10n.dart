@@ -1468,6 +1468,66 @@ class S {
     );
   }
 
+  /// `Quick presets`
+  String get mealPatternPresetsLabel {
+    return Intl.message(
+      'Quick presets',
+      name: 'mealPatternPresetsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Standard`
+  String get mealPatternStandard {
+    return Intl.message(
+      'Standard',
+      name: 'mealPatternStandard',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mediterranean`
+  String get mealPatternMediterranean {
+    return Intl.message(
+      'Mediterranean',
+      name: 'mealPatternMediterranean',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Two-meal`
+  String get mealPatternTwoMeal {
+    return Intl.message(
+      'Two-meal',
+      name: 'mealPatternTwoMeal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `OMAD`
+  String get mealPatternOmad {
+    return Intl.message(
+      'OMAD',
+      name: 'mealPatternOmad',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Five-small`
+  String get mealPatternFiveSmall {
+    return Intl.message(
+      'Five-small',
+      name: 'mealPatternFiveSmall',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `{consumed} / {target} kcal`
   String diaryMealKcalConsumedOfTarget(String consumed, String target) {
     return Intl.message(

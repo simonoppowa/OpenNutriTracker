@@ -344,6 +344,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsPerQtyLabel": m10,
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Toplam miktar"),
+        "mealPatternFiveSmall":
+            MessageLookupByLibrary.simpleMessage("Beş küçük"),
+        "mealPatternMediterranean":
+            MessageLookupByLibrary.simpleMessage("Akdeniz"),
+        "mealPatternOmad":
+            MessageLookupByLibrary.simpleMessage("Tek öğün"),
+        "mealPatternPresetsLabel":
+            MessageLookupByLibrary.simpleMessage("Hızlı önayarlar"),
+        "mealPatternStandard":
+            MessageLookupByLibrary.simpleMessage("Standart"),
+        "mealPatternTwoMeal":
+            MessageLookupByLibrary.simpleMessage("İki öğün"),
         "mealProteinLabel":
             MessageLookupByLibrary.simpleMessage("protein başına 100 g/ml"),
         "mealSizeLabel":

@@ -28,6 +28,13 @@ class CalendarDayLoaded extends CalendarDayState {
   final double lunchKcalTarget;
   final double dinnerKcalTarget;
   final double snackKcalTarget;
+  // #150 follow-up: per-meal share percentages. A 0% share hides the section
+  // entirely so OMAD / two-meal users don't see meal slots they've explicitly
+  // opted out of.
+  final int breakfastSharePct;
+  final int lunchSharePct;
+  final int dinnerSharePct;
+  final int snackSharePct;
 
   const CalendarDayLoaded(
     this.trackedDayEntity,
@@ -40,6 +47,10 @@ class CalendarDayLoaded extends CalendarDayState {
     this.lunchKcalTarget,
     this.dinnerKcalTarget,
     this.snackKcalTarget,
+    this.breakfastSharePct,
+    this.lunchSharePct,
+    this.dinnerSharePct,
+    this.snackSharePct,
   );
 
   @override
@@ -49,5 +60,9 @@ class CalendarDayLoaded extends CalendarDayState {
         lunchKcalTarget,
         dinnerKcalTarget,
         snackKcalTarget,
+        breakfastSharePct,
+        lunchSharePct,
+        dinnerSharePct,
+        snackSharePct,
       ];
 }

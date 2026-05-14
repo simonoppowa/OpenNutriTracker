@@ -110,6 +110,10 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
         lunchKcalTarget,
         dinnerKcalTarget,
         snackKcalTarget,
+        configData.mealKcalSharesPct[ConfigEntity.mealKeyBreakfast] ?? 0,
+        configData.mealKcalSharesPct[ConfigEntity.mealKeyLunch] ?? 0,
+        configData.mealKcalSharesPct[ConfigEntity.mealKeyDinner] ?? 0,
+        configData.mealKcalSharesPct[ConfigEntity.mealKeySnack] ?? 0,
       ),
     );
   }

@@ -309,6 +309,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsPerQtyLabel": m10,
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("总量"),
+        "mealPatternFiveSmall":
+            MessageLookupByLibrary.simpleMessage("五餐"),
+        "mealPatternMediterranean":
+            MessageLookupByLibrary.simpleMessage("地中海"),
+        "mealPatternOmad":
+            MessageLookupByLibrary.simpleMessage("一日一餐"),
+        "mealPatternPresetsLabel":
+            MessageLookupByLibrary.simpleMessage("快速预设"),
+        "mealPatternStandard":
+            MessageLookupByLibrary.simpleMessage("标准"),
+        "mealPatternTwoMeal":
+            MessageLookupByLibrary.simpleMessage("两餐"),
         "mealProteinLabel":
             MessageLookupByLibrary.simpleMessage("蛋白质每 100 克/毫升"),
         "mealSizeLabel": MessageLookupByLibrary.simpleMessage("餐食大小 (克/毫升)"),

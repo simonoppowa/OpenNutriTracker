@@ -31,6 +31,13 @@ class DayInfoWidget extends StatelessWidget {
   final double lunchKcalTarget;
   final double dinnerKcalTarget;
   final double snackKcalTarget;
+  // #150 follow-up: per-meal share percentages. A 0% share hides the section
+  // entirely — useful for OMAD / two-meal users who don't want an empty meal
+  // slot they've explicitly opted out of staring back at them.
+  final int breakfastSharePct;
+  final int lunchSharePct;
+  final int dinnerSharePct;
+  final int snackSharePct;
 
   final bool usesImperialUnits;
   final bool showMealMacros;
@@ -75,6 +82,10 @@ class DayInfoWidget extends StatelessWidget {
     this.lunchKcalTarget = 0,
     this.dinnerKcalTarget = 0,
     this.snackKcalTarget = 0,
+    this.breakfastSharePct = 30,
+    this.lunchSharePct = 40,
+    this.dinnerSharePct = 20,
+    this.snackSharePct = 10,
   });
 
   @override
@@ -169,77 +180,85 @@ class DayInfoWidget extends StatelessWidget {
                       : (activity) =>
                           onCopyActivity(activity, trackedDayEntity),
             ),
-            IntakeVerticalList(
-              day: selectedDay,
-              title: S.of(context).breakfastLabel,
-              listIcon: Icons.bakery_dining_outlined,
-              addMealType: AddMealType.breakfastType,
-              intakeList: breakfastIntake,
-              onDeleteIntakeCallback: onDeleteIntake,
-              onItemLongPressedCallback: onIntakeItemLongPressed,
-              onItemTappedCallback: onEditIntake,
-              onCopyIntakeCallback:
-                  DateUtils.isSameDay(selectedDay, DateTime.now())
-                      ? null
-                      : onCopyIntake,
-              usesImperialUnits: usesImperialUnits,
-              showMealMacros: showMealMacros,
-              trackedDayEntity: trackedDay,
-              mealKcalTarget: breakfastKcalTarget,
-            ),
-            IntakeVerticalList(
-              day: selectedDay,
-              title: S.of(context).lunchLabel,
-              listIcon: Icons.lunch_dining_outlined,
-              addMealType: AddMealType.lunchType,
-              intakeList: lunchIntake,
-              onDeleteIntakeCallback: onDeleteIntake,
-              onItemLongPressedCallback: onIntakeItemLongPressed,
-              onItemTappedCallback: onEditIntake,
-              usesImperialUnits: usesImperialUnits,
-              showMealMacros: showMealMacros,
-              onCopyIntakeCallback:
-                  DateUtils.isSameDay(selectedDay, DateTime.now())
-                      ? null
-                      : onCopyIntake,
-              trackedDayEntity: trackedDay,
-              mealKcalTarget: lunchKcalTarget,
-            ),
-            IntakeVerticalList(
-              day: selectedDay,
-              title: S.of(context).dinnerLabel,
-              listIcon: Icons.dinner_dining_outlined,
-              addMealType: AddMealType.dinnerType,
-              intakeList: dinnerIntake,
-              onDeleteIntakeCallback: onDeleteIntake,
-              onItemLongPressedCallback: onIntakeItemLongPressed,
-              onItemTappedCallback: onEditIntake,
-              onCopyIntakeCallback:
-                  DateUtils.isSameDay(selectedDay, DateTime.now())
-                      ? null
-                      : onCopyIntake,
-              usesImperialUnits: usesImperialUnits,
-              showMealMacros: showMealMacros,
-              mealKcalTarget: dinnerKcalTarget,
-            ),
-            IntakeVerticalList(
-              day: selectedDay,
-              title: S.of(context).snackLabel,
-              listIcon: CustomIcons.food_apple_outline,
-              addMealType: AddMealType.snackType,
-              intakeList: snackIntake,
-              onDeleteIntakeCallback: onDeleteIntake,
-              onItemLongPressedCallback: onIntakeItemLongPressed,
-              onItemTappedCallback: onEditIntake,
-              usesImperialUnits: usesImperialUnits,
-              showMealMacros: showMealMacros,
-              onCopyIntakeCallback:
-                  DateUtils.isSameDay(selectedDay, DateTime.now())
-                      ? null
-                      : onCopyIntake,
-              trackedDayEntity: trackedDay,
-              mealKcalTarget: snackKcalTarget,
-            ),
+            // #150 follow-up: a 0% share hides the section entirely so OMAD
+            // users (and anyone else who's set a meal slot to 0%) don't see
+            // a meal type they explicitly opted out of. Logged intakes for a
+            // hidden section still count toward the day's totals.
+            if (breakfastSharePct > 0)
+              IntakeVerticalList(
+                day: selectedDay,
+                title: S.of(context).breakfastLabel,
+                listIcon: Icons.bakery_dining_outlined,
+                addMealType: AddMealType.breakfastType,
+                intakeList: breakfastIntake,
+                onDeleteIntakeCallback: onDeleteIntake,
+                onItemLongPressedCallback: onIntakeItemLongPressed,
+                onItemTappedCallback: onEditIntake,
+                onCopyIntakeCallback:
+                    DateUtils.isSameDay(selectedDay, DateTime.now())
+                        ? null
+                        : onCopyIntake,
+                usesImperialUnits: usesImperialUnits,
+                showMealMacros: showMealMacros,
+                trackedDayEntity: trackedDay,
+                mealKcalTarget: breakfastKcalTarget,
+              ),
+            if (lunchSharePct > 0)
+              IntakeVerticalList(
+                day: selectedDay,
+                title: S.of(context).lunchLabel,
+                listIcon: Icons.lunch_dining_outlined,
+                addMealType: AddMealType.lunchType,
+                intakeList: lunchIntake,
+                onDeleteIntakeCallback: onDeleteIntake,
+                onItemLongPressedCallback: onIntakeItemLongPressed,
+                onItemTappedCallback: onEditIntake,
+                usesImperialUnits: usesImperialUnits,
+                showMealMacros: showMealMacros,
+                onCopyIntakeCallback:
+                    DateUtils.isSameDay(selectedDay, DateTime.now())
+                        ? null
+                        : onCopyIntake,
+                trackedDayEntity: trackedDay,
+                mealKcalTarget: lunchKcalTarget,
+              ),
+            if (dinnerSharePct > 0)
+              IntakeVerticalList(
+                day: selectedDay,
+                title: S.of(context).dinnerLabel,
+                listIcon: Icons.dinner_dining_outlined,
+                addMealType: AddMealType.dinnerType,
+                intakeList: dinnerIntake,
+                onDeleteIntakeCallback: onDeleteIntake,
+                onItemLongPressedCallback: onIntakeItemLongPressed,
+                onItemTappedCallback: onEditIntake,
+                onCopyIntakeCallback:
+                    DateUtils.isSameDay(selectedDay, DateTime.now())
+                        ? null
+                        : onCopyIntake,
+                usesImperialUnits: usesImperialUnits,
+                showMealMacros: showMealMacros,
+                mealKcalTarget: dinnerKcalTarget,
+              ),
+            if (snackSharePct > 0)
+              IntakeVerticalList(
+                day: selectedDay,
+                title: S.of(context).snackLabel,
+                listIcon: CustomIcons.food_apple_outline,
+                addMealType: AddMealType.snackType,
+                intakeList: snackIntake,
+                onDeleteIntakeCallback: onDeleteIntake,
+                onItemLongPressedCallback: onIntakeItemLongPressed,
+                onItemTappedCallback: onEditIntake,
+                usesImperialUnits: usesImperialUnits,
+                showMealMacros: showMealMacros,
+                onCopyIntakeCallback:
+                    DateUtils.isSameDay(selectedDay, DateTime.now())
+                        ? null
+                        : onCopyIntake,
+                trackedDayEntity: trackedDay,
+                mealKcalTarget: snackKcalTarget,
+              ),
             const SizedBox(height: 16.0),
           ],
         ),

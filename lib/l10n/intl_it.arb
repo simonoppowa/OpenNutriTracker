@@ -633,6 +633,12 @@
   "settingsPerMealKcalShareLunch": "Pranzo",
   "settingsPerMealKcalShareDinner": "Cena",
   "settingsPerMealKcalShareSnack": "Spuntino",
+  "mealPatternPresetsLabel": "Preset rapidi",
+  "mealPatternStandard": "Standard",
+  "mealPatternMediterranean": "Mediterranea",
+  "mealPatternTwoMeal": "Due pasti",
+  "mealPatternOmad": "Un pasto",
+  "mealPatternFiveSmall": "Cinque piccoli",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {

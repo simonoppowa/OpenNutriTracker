@@ -326,6 +326,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsPerQtyLabel": m10,
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Total amount"),
+        "mealPatternFiveSmall":
+            MessageLookupByLibrary.simpleMessage("Five-small"),
+        "mealPatternMediterranean":
+            MessageLookupByLibrary.simpleMessage("Mediterranean"),
+        "mealPatternOmad": MessageLookupByLibrary.simpleMessage("OMAD"),
+        "mealPatternPresetsLabel":
+            MessageLookupByLibrary.simpleMessage("Quick presets"),
+        "mealPatternStandard":
+            MessageLookupByLibrary.simpleMessage("Standard"),
+        "mealPatternTwoMeal":
+            MessageLookupByLibrary.simpleMessage("Two-meal"),
         "mealProteinLabel":
             MessageLookupByLibrary.simpleMessage("protein per 100 g/ml"),
         "mealSizeLabel":

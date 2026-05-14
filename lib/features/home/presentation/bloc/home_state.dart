@@ -41,6 +41,14 @@ class HomeLoadedState extends HomeState {
   final double lunchKcalTarget;
   final double dinnerKcalTarget;
   final double snackKcalTarget;
+  // #150 follow-up: per-meal share percentages. A 0% share signals that the
+  // user has explicitly opted out of seeing that meal section (e.g. OMAD has
+  // 0% snack), so the section is hidden entirely rather than showing an empty
+  // header with a 0-kcal target.
+  final int breakfastSharePct;
+  final int lunchSharePct;
+  final int dinnerSharePct;
+  final int snackSharePct;
 
   const HomeLoadedState({
     required this.showDisclaimerDialog,
@@ -65,6 +73,10 @@ class HomeLoadedState extends HomeState {
     required this.lunchKcalTarget,
     required this.dinnerKcalTarget,
     required this.snackKcalTarget,
+    required this.breakfastSharePct,
+    required this.lunchSharePct,
+    required this.dinnerSharePct,
+    required this.snackSharePct,
     this.showActivityTracking = true,
     this.showMealMacros = true,
   });

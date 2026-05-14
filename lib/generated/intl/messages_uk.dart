@@ -345,6 +345,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsPerQtyLabel": m10,
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Загальна кількість"),
+        "mealPatternFiveSmall":
+            MessageLookupByLibrary.simpleMessage("5 малих"),
+        "mealPatternMediterranean":
+            MessageLookupByLibrary.simpleMessage("Середземноморський"),
+        "mealPatternOmad":
+            MessageLookupByLibrary.simpleMessage("1 прийом"),
+        "mealPatternPresetsLabel":
+            MessageLookupByLibrary.simpleMessage("Швидкі шаблони"),
+        "mealPatternStandard":
+            MessageLookupByLibrary.simpleMessage("Стандарт"),
+        "mealPatternTwoMeal":
+            MessageLookupByLibrary.simpleMessage("2 прийоми"),
         "mealProteinLabel":
             MessageLookupByLibrary.simpleMessage("білки на 100 г/мл"),
         "mealSizeLabel":

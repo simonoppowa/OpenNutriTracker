@@ -173,6 +173,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           lunchKcalTarget: lunchKcalTarget,
           dinnerKcalTarget: dinnerKcalTarget,
           snackKcalTarget: snackKcalTarget,
+          breakfastSharePct:
+              configData.mealKcalSharesPct[ConfigEntity.mealKeyBreakfast] ?? 0,
+          lunchSharePct:
+              configData.mealKcalSharesPct[ConfigEntity.mealKeyLunch] ?? 0,
+          dinnerSharePct:
+              configData.mealKcalSharesPct[ConfigEntity.mealKeyDinner] ?? 0,
+          snackSharePct:
+              configData.mealKcalSharesPct[ConfigEntity.mealKeySnack] ?? 0,
         ),
       );
     });

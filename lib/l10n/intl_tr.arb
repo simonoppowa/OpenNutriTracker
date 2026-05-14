@@ -650,6 +650,12 @@
   "settingsPerMealKcalShareLunch": "Öğle Yemeği",
   "settingsPerMealKcalShareDinner": "Akşam Yemeği",
   "settingsPerMealKcalShareSnack": "Atıştırmalık",
+  "mealPatternPresetsLabel": "Hızlı önayarlar",
+  "mealPatternStandard": "Standart",
+  "mealPatternMediterranean": "Akdeniz",
+  "mealPatternTwoMeal": "İki öğün",
+  "mealPatternOmad": "Tek öğün",
+  "mealPatternFiveSmall": "Beş küçük",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {

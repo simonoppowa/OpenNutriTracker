@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/domain/entity/meal_pattern_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/calories_profile_info_dialog.dart';
@@ -381,6 +382,26 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 8),
+            // #150 follow-up: preset chips. One tap fills the four sliders;
+            // users can still nudge things afterward. Useful for IF/OMAD
+            // routines that don't fit the four-meal frame.
+            Text(
+              S.of(context).mealPatternPresetsLabel,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                for (final pattern in MealPatternEntity.values)
+                  OutlinedButton(
+                    onPressed: () => _applyMealPattern(pattern),
+                    child: Text(_mealPatternLabel(context, pattern)),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
             Text(
               '${_breakfastSharePct.round() + _lunchSharePct.round() + _dinnerSharePct.round() + _snackSharePct.round()}% total',
               style: Theme.of(context).textTheme.bodySmall,
@@ -583,6 +604,32 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       _dinnerSharePct = rounded[ConfigEntity.mealKeyDinner]!.toDouble();
       _snackSharePct = rounded[ConfigEntity.mealKeySnack]!.toDouble();
     });
+  }
+
+  /// #150 follow-up: drop the preset's percentages straight into the four
+  /// sliders. No rebalancing — every preset is already authored to sum to 100.
+  void _applyMealPattern(MealPatternEntity pattern) {
+    setState(() {
+      _breakfastSharePct = pattern.breakfastPct.toDouble();
+      _lunchSharePct = pattern.lunchPct.toDouble();
+      _dinnerSharePct = pattern.dinnerPct.toDouble();
+      _snackSharePct = pattern.snackPct.toDouble();
+    });
+  }
+
+  String _mealPatternLabel(BuildContext context, MealPatternEntity pattern) {
+    switch (pattern) {
+      case MealPatternEntity.standard:
+        return S.of(context).mealPatternStandard;
+      case MealPatternEntity.mediterranean:
+        return S.of(context).mealPatternMediterranean;
+      case MealPatternEntity.twoMeal:
+        return S.of(context).mealPatternTwoMeal;
+      case MealPatternEntity.omad:
+        return S.of(context).mealPatternOmad;
+      case MealPatternEntity.fiveSmall:
+        return S.of(context).mealPatternFiveSmall;
+    }
   }
 
   void _normalizeMacros() {

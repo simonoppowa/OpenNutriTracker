@@ -634,6 +634,12 @@
   "settingsPerMealKcalShareLunch": "午餐",
   "settingsPerMealKcalShareDinner": "晚餐",
   "settingsPerMealKcalShareSnack": "零食",
+  "mealPatternPresetsLabel": "快速预设",
+  "mealPatternStandard": "标准",
+  "mealPatternMediterranean": "地中海",
+  "mealPatternTwoMeal": "两餐",
+  "mealPatternOmad": "一日一餐",
+  "mealPatternFiveSmall": "五餐",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} 千卡",
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {

@@ -633,6 +633,12 @@
   "settingsPerMealKcalShareLunch": "Obiad",
   "settingsPerMealKcalShareDinner": "Kolacja",
   "settingsPerMealKcalShareSnack": "Przekąska",
+  "mealPatternPresetsLabel": "Szybkie ustawienia",
+  "mealPatternStandard": "Standardowy",
+  "mealPatternMediterranean": "Śródziemnomorski",
+  "mealPatternTwoMeal": "2 posiłki",
+  "mealPatternOmad": "1 posiłek",
+  "mealPatternFiveSmall": "5 małych",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {

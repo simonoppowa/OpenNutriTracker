@@ -341,6 +341,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsPerQtyLabel": m10,
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Celkové množství"),
+        "mealPatternFiveSmall":
+            MessageLookupByLibrary.simpleMessage("5 malých"),
+        "mealPatternMediterranean":
+            MessageLookupByLibrary.simpleMessage("Středomořský"),
+        "mealPatternOmad":
+            MessageLookupByLibrary.simpleMessage("1 jídlo"),
+        "mealPatternPresetsLabel":
+            MessageLookupByLibrary.simpleMessage("Rychlé předvolby"),
+        "mealPatternStandard":
+            MessageLookupByLibrary.simpleMessage("Standardní"),
+        "mealPatternTwoMeal":
+            MessageLookupByLibrary.simpleMessage("2 jídla"),
         "mealProteinLabel":
             MessageLookupByLibrary.simpleMessage("bílkovin na 100 g/ml"),
         "mealSizeLabel":

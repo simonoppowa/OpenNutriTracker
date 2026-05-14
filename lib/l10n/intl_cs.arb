@@ -633,6 +633,12 @@
   "settingsPerMealKcalShareLunch": "Oběd",
   "settingsPerMealKcalShareDinner": "Večeře",
   "settingsPerMealKcalShareSnack": "Svačina",
+  "mealPatternPresetsLabel": "Rychlé předvolby",
+  "mealPatternStandard": "Standardní",
+  "mealPatternMediterranean": "Středomořský",
+  "mealPatternTwoMeal": "2 jídla",
+  "mealPatternOmad": "1 jídlo",
+  "mealPatternFiveSmall": "5 malých",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {

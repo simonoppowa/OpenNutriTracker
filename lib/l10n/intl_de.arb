@@ -650,6 +650,12 @@
   "settingsPerMealKcalShareLunch": "Mittagessen",
   "settingsPerMealKcalShareDinner": "Abendessen",
   "settingsPerMealKcalShareSnack": "Snack",
+  "mealPatternPresetsLabel": "Voreinstellungen",
+  "mealPatternStandard": "Standard",
+  "mealPatternMediterranean": "Mediterran",
+  "mealPatternTwoMeal": "Zwei Mahlzeiten",
+  "mealPatternOmad": "1 Mahlzeit",
+  "mealPatternFiveSmall": "5 kleine",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {

@@ -170,6 +170,12 @@
   "settingsPerMealKcalShareLunch": "Lunch",
   "settingsPerMealKcalShareDinner": "Dinner",
   "settingsPerMealKcalShareSnack": "Snack",
+  "mealPatternPresetsLabel": "Quick presets",
+  "mealPatternStandard": "Standard",
+  "mealPatternMediterranean": "Mediterranean",
+  "mealPatternTwoMeal": "Two-meal",
+  "mealPatternOmad": "OMAD",
+  "mealPatternFiveSmall": "Five-small",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {
