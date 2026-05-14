@@ -383,7 +383,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
       }
 
       // Atwater consistency check (#213): warn if entered kcal disagrees with
-      // 4·carbs + 4·protein + 9·fat by more than 20%. Non-blocking — the
+      // 4·carbs + 4·protein + 9·fat by more than 10%. Non-blocking — the
       // reporter explicitly asked that the user still be able to save if they
       // are sure of the numbers they typed.
       if (enteredKcal != null &&
@@ -394,7 +394,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
             4 * enteredCarbs + 4 * enteredProtein + 9 * enteredFat;
         final delta = (enteredKcal - expectedKcal).abs();
         final ceiling = math.max(enteredKcal.abs(), expectedKcal.abs());
-        if (ceiling > 0 && delta > 0.2 * ceiling) {
+        if (ceiling > 0 && delta > 0.1 * ceiling) {
           final shouldSaveAnyway = await _showAtwaterWarningDialog();
           if (!mounted) return;
           if (shouldSaveAnyway != true) {
