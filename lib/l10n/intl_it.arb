@@ -658,5 +658,10 @@
   "customActivityName": "Attività personalizzata",
   "customActivityDescription": "Inserisci direttamente le calorie bruciate, per allenamenti non in elenco o letture da un fitness tracker",
   "customActivityKcalLabel": "Calorie bruciate",
-  "customActivityKcalHint": "es. 250"
+  "customActivityKcalHint": "es. 250",
+  "customActivityNameFieldLabel": "Nome (facoltativo)",
+  "customActivityNameFieldHint": "es. Tragitto serale in bici",
+  "customActivitySaveAsTemplate": "Salva come modello per la prossima volta",
+  "customActivityPickFromTemplate": "Scegli da modelli salvati",
+  "customActivityTemplatesEmpty": "Non hai ancora salvato modelli. Spunta «Salva come modello per la prossima volta» per ricordare un'attività personalizzata da riutilizzare."
 }

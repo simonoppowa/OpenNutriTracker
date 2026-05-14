@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
@@ -13,22 +14,28 @@ class ExportDataUsecase {
   final IntakeRepository _intakeRepository;
   final TrackedDayRepository _trackedDayRepository;
   final RecipeRepository _recipeRepository;
+  final CustomActivityTemplateRepository _customActivityTemplateRepository;
 
   ExportDataUsecase(
     this._userActivityRepository,
     this._intakeRepository,
     this._trackedDayRepository,
     this._recipeRepository,
+    this._customActivityTemplateRepository,
   );
 
-  /// Exports user activity, intake, tracked day, and recipe data to a zip
-  /// of json files at a user specified location.
+  /// Exports user activity, intake, tracked day, recipe, and Custom
+  /// activity template data to a zip of json files at a user specified
+  /// location. The templates file is added alongside the existing
+  /// exports so a user who relies on saved Custom activity templates
+  /// (#70 follow-up) can carry them between devices.
   Future<bool> exportData(
     String exportZipFileName,
     String userActivityJsonFileName,
     String userIntakeJsonFileName,
     String trackedDayJsonFileName,
     String recipeJsonFileName,
+    String customActivityTemplateJsonFileName,
   ) async {
     // Export user activity data to Json File Bytes
     final fullUserActivity =
@@ -59,6 +66,14 @@ class ExportDataUsecase {
     );
     final recipeJsonBytes = utf8.encode(fullRecipesJson);
 
+    // Export Custom activity templates to Json File Bytes (#70 follow-up).
+    final fullTemplates =
+        await _customActivityTemplateRepository.allTemplateDBOs();
+    final fullTemplatesJson = jsonEncode(
+      fullTemplates.map((template) => template.toJson()).toList(),
+    );
+    final templatesJsonBytes = utf8.encode(fullTemplatesJson);
+
     // Create a zip file with the exported data
     final archive = Archive();
     archive.addFile(
@@ -87,6 +102,13 @@ class ExportDataUsecase {
         recipeJsonFileName,
         recipeJsonBytes.length,
         recipeJsonBytes,
+      ),
+    );
+    archive.addFile(
+      ArchiveFile(
+        customActivityTemplateJsonFileName,
+        templatesJsonBytes.length,
+        templatesJsonBytes,
       ),
     );
 

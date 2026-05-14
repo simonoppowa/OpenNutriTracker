@@ -177,6 +177,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Spálené kalorie"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("např. 250"),
+        "customActivityNameFieldLabel":
+            MessageLookupByLibrary.simpleMessage("Název (nepovinné)"),
+        "customActivityNameFieldHint": MessageLookupByLibrary.simpleMessage(
+            "např. Večerní jízda do práce"),
+        "customActivitySaveAsTemplate": MessageLookupByLibrary.simpleMessage(
+            "Uložit jako šablonu pro příště"),
+        "customActivityPickFromTemplate": MessageLookupByLibrary.simpleMessage(
+            "Vybrat z uložených šablon"),
+        "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
+            "Zatím nemáte uložené žádné šablony. Zaškrtněte „Uložit jako šablonu pro příště“, abyste si vlastní aktivitu zapamatovali na později."),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Všechny záznamy v deníku používající toto jídlo budou také odstraněny."),
         "customMealsDeleteConfirmTitle":

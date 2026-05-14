@@ -178,6 +178,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Spalone kalorie"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("np. 250"),
+        "customActivityNameFieldLabel":
+            MessageLookupByLibrary.simpleMessage("Nazwa (opcjonalnie)"),
+        "customActivityNameFieldHint": MessageLookupByLibrary.simpleMessage(
+            "np. Wieczorny dojazd rowerem"),
+        "customActivitySaveAsTemplate": MessageLookupByLibrary.simpleMessage(
+            "Zapisz jako szablon na później"),
+        "customActivityPickFromTemplate": MessageLookupByLibrary.simpleMessage(
+            "Wybierz z zapisanych szablonów"),
+        "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
+            "Nie masz jeszcze zapisanych szablonów. Zaznacz „Zapisz jako szablon na później”, aby zapamiętać aktywność niestandardową na przyszłość."),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Wszystkie wpisy w dzienniku używające tego posiłku zostaną również usunięte."),
         "customMealsDeleteConfirmTitle":

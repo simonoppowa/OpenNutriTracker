@@ -1,10 +1,13 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/domain/entity/custom_activity_template_entity.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_custom_activity_template_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_custom_activity_templates_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
@@ -23,6 +26,8 @@ class ActivityDetailBloc
   final AddTrackedDayUsecase _addTrackedDayUsecase;
   final GetKcalGoalUsecase _getKcalGoalUsecase;
   final GetMacroGoalUsecase _getMacroGoalUsecase;
+  final AddCustomActivityTemplateUsecase _addCustomActivityTemplateUsecase;
+  final GetCustomActivityTemplatesUsecase _getCustomActivityTemplatesUsecase;
 
   ActivityDetailBloc(
     this._getUserUsecase,
@@ -30,6 +35,8 @@ class ActivityDetailBloc
     this._addTrackedDayUsecase,
     this._getKcalGoalUsecase,
     this._getMacroGoalUsecase,
+    this._addCustomActivityTemplateUsecase,
+    this._getCustomActivityTemplatesUsecase,
   ) : super(ActivityDetailInitial()) {
     on<LoadActivityDetailEvent>((event, emit) async {
       emit(ActivityDetailLoadingState());
@@ -69,6 +76,28 @@ class ActivityDetailBloc
       return duration;
     }
     return METCalc.getTotalBurnedKcal(user, physicalActivity, duration);
+  }
+
+  /// Loads the user's saved Custom activity templates (#70 follow-up).
+  ///
+  /// Only meaningful when [PhysicalActivityEntity.isCustom] is true on
+  /// the current activity — callers should branch on that before
+  /// surfacing the picker UI. Returns the alphabetised list straight
+  /// from the repository so the bottom sheet doesn't have to do its own
+  /// sort.
+  Future<List<CustomActivityTemplateEntity>> loadCustomActivityTemplates() {
+    return _getCustomActivityTemplatesUsecase.getAllTemplates();
+  }
+
+  /// Persists a new Custom activity template (#70 follow-up).
+  ///
+  /// Called from the bottom sheet when the user ticks "Save as
+  /// template" and presses Add. A blank [name] is rejected at the call
+  /// site, so by the time this is reached the entity is safe to write.
+  Future<void> saveCustomActivityTemplate(
+    CustomActivityTemplateEntity entity,
+  ) async {
+    await _addCustomActivityTemplateUsecase.addTemplate(entity);
   }
 
   void persistActivity(

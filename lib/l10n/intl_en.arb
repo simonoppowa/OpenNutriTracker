@@ -669,5 +669,10 @@
   "customActivityDescription": "Enter calories burned directly, for workouts that aren't in the list or readings from a fitness tracker",
   "customActivityKcalLabel": "Calories burned",
   "customActivityKcalHint": "e.g. 250",
+  "customActivityNameFieldLabel": "Name (optional)",
+  "customActivityNameFieldHint": "e.g. Evening bike commute",
+  "customActivitySaveAsTemplate": "Save as template for next time",
+  "customActivityPickFromTemplate": "Pick from saved templates",
+  "customActivityTemplatesEmpty": "You haven't saved any templates yet. Tick \"Save as template for next time\" to remember a Custom activity for later.",
   "settingsLanguageLabel": "Language"
 }

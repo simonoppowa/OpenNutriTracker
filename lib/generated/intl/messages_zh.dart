@@ -168,6 +168,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("消耗的卡路里"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("例如 250"),
+        "customActivityNameFieldLabel":
+            MessageLookupByLibrary.simpleMessage("名称（可选）"),
+        "customActivityNameFieldHint":
+            MessageLookupByLibrary.simpleMessage("例如 晚间骑行通勤"),
+        "customActivitySaveAsTemplate":
+            MessageLookupByLibrary.simpleMessage("保存为模板以便下次使用"),
+        "customActivityPickFromTemplate":
+            MessageLookupByLibrary.simpleMessage("从已保存的模板中选择"),
+        "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
+            "你还没有保存任何模板。勾选「保存为模板以便下次使用」以便日后记住自定义活动。"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "所有使用此餐食的日记条目也将被删除。"),
         "customMealsDeleteConfirmTitle":

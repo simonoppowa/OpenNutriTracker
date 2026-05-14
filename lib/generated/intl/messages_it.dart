@@ -180,6 +180,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Calorie bruciate"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("es. 250"),
+        "customActivityNameFieldLabel":
+            MessageLookupByLibrary.simpleMessage("Nome (facoltativo)"),
+        "customActivityNameFieldHint": MessageLookupByLibrary.simpleMessage(
+            "es. Tragitto serale in bici"),
+        "customActivitySaveAsTemplate": MessageLookupByLibrary.simpleMessage(
+            "Salva come modello per la prossima volta"),
+        "customActivityPickFromTemplate": MessageLookupByLibrary.simpleMessage(
+            "Scegli da modelli salvati"),
+        "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
+            "Non hai ancora salvato modelli. Spunta «Salva come modello per la prossima volta» per ricordare un\'attività personalizzata da riutilizzare."),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Tutte le voci del diario che utilizzano questo pasto verranno rimosse."),
         "customMealsDeleteConfirmTitle": MessageLookupByLibrary.simpleMessage(

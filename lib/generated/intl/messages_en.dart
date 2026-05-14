@@ -225,6 +225,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Calories burned"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("e.g. 250"),
+        "customActivityNameFieldLabel":
+            MessageLookupByLibrary.simpleMessage("Name (optional)"),
+        "customActivityNameFieldHint":
+            MessageLookupByLibrary.simpleMessage("e.g. Evening bike commute"),
+        "customActivitySaveAsTemplate": MessageLookupByLibrary.simpleMessage(
+            "Save as template for next time"),
+        "customActivityPickFromTemplate":
+            MessageLookupByLibrary.simpleMessage("Pick from saved templates"),
+        "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
+            "You haven\'t saved any templates yet. Tick \"Save as template for next time\" to remember a Custom activity for later."),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "All diary entries using this meal will also be removed."),
         "customMealsDeleteConfirmTitle":

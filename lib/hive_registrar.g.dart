@@ -3,6 +3,7 @@
 // Check in to version control
 
 import 'package:hive_ce/hive_ce.dart';
+import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/calories_profile_dbo.dart';
@@ -25,6 +26,7 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(AppThemeDBOAdapter());
     registerAdapter(CaloriesProfileDBOAdapter());
     registerAdapter(ConfigDBOAdapter());
+    registerAdapter(CustomActivityTemplateDBOAdapter());
     registerAdapter(IntakeDBOAdapter());
     registerAdapter(IntakeTypeDBOAdapter());
     registerAdapter(MealDBOAdapter());
@@ -48,6 +50,7 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(AppThemeDBOAdapter());
     registerAdapter(CaloriesProfileDBOAdapter());
     registerAdapter(ConfigDBOAdapter());
+    registerAdapter(CustomActivityTemplateDBOAdapter());
     registerAdapter(IntakeDBOAdapter());
     registerAdapter(IntakeTypeDBOAdapter());
     registerAdapter(MealDBOAdapter());

@@ -658,5 +658,10 @@
   "customActivityName": "Власна активність",
   "customActivityDescription": "Введіть спалені калорії безпосередньо — для тренувань, яких немає у списку, або показників із фітнес-трекера",
   "customActivityKcalLabel": "Спалені калорії",
-  "customActivityKcalHint": "напр. 250"
+  "customActivityKcalHint": "напр. 250",
+  "customActivityNameFieldLabel": "Назва (необов'язково)",
+  "customActivityNameFieldHint": "напр. Вечірня поїздка на велосипеді",
+  "customActivitySaveAsTemplate": "Зберегти як шаблон на майбутнє",
+  "customActivityPickFromTemplate": "Вибрати зі збережених шаблонів",
+  "customActivityTemplatesEmpty": "Ви ще не зберегли жодного шаблону. Поставте позначку «Зберегти як шаблон на майбутнє», щоб запам'ятати власну активність для пізнішого використання."
 }

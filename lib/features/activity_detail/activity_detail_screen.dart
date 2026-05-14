@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/domain/entity/custom_activity_template_entity.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -215,13 +216,33 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     );
   }
 
-  void onAddButtonPressed(BuildContext context) {
+  void onAddButtonPressed(
+    BuildContext context, {
+    String? templateName,
+    bool saveAsTemplate = false,
+  }) {
     _activityDetailBloc.persistActivity(
       quantityTextController.text,
       totalKcal,
       activityEntity,
       _day,
     );
+
+    // #70 follow-up: optionally remember the Custom activity as a
+    // template the user can recall next time. The checkbox is off by
+    // default so we only persist when the user has explicitly opted in
+    // and provided a name to find it by later.
+    if (saveAsTemplate &&
+        activityEntity.isCustom &&
+        templateName != null &&
+        templateName.isNotEmpty) {
+      _activityDetailBloc.saveCustomActivityTemplate(
+        CustomActivityTemplateEntity(
+          name: templateName,
+          typicalKcal: totalKcal,
+        ),
+      );
+    }
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());

@@ -689,5 +689,10 @@
   "customActivityName": "Özel etkinlik",
   "customActivityDescription": "Listede olmayan antrenmanlar veya bir fitness takip cihazından okumalar için yakılan kaloriyi doğrudan girin",
   "customActivityKcalLabel": "Yakılan kalori",
-  "customActivityKcalHint": "örn. 250"
+  "customActivityKcalHint": "örn. 250",
+  "customActivityNameFieldLabel": "Ad (isteğe bağlı)",
+  "customActivityNameFieldHint": "örn. Akşam bisiklet yolculuğu",
+  "customActivitySaveAsTemplate": "Bir sonraki sefer için şablon olarak kaydet",
+  "customActivityPickFromTemplate": "Kaydedilmiş şablonlardan seç",
+  "customActivityTemplatesEmpty": "Henüz kaydedilmiş bir şablonun yok. Bir özel etkinliği sonradan hatırlamak için „Bir sonraki sefer için şablon olarak kaydet“ kutusunu işaretle."
 }

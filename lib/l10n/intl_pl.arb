@@ -658,5 +658,10 @@
   "customActivityName": "Aktywność niestandardowa",
   "customActivityDescription": "Wprowadź spalone kalorie bezpośrednio – dla treningów spoza listy lub odczytów z opaski fitness",
   "customActivityKcalLabel": "Spalone kalorie",
-  "customActivityKcalHint": "np. 250"
+  "customActivityKcalHint": "np. 250",
+  "customActivityNameFieldLabel": "Nazwa (opcjonalnie)",
+  "customActivityNameFieldHint": "np. Wieczorny dojazd rowerem",
+  "customActivitySaveAsTemplate": "Zapisz jako szablon na później",
+  "customActivityPickFromTemplate": "Wybierz z zapisanych szablonów",
+  "customActivityTemplatesEmpty": "Nie masz jeszcze zapisanych szablonów. Zaznacz „Zapisz jako szablon na później”, aby zapamiętać aktywność niestandardową na przyszłość."
 }

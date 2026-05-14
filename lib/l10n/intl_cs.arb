@@ -658,5 +658,10 @@
   "customActivityName": "Vlastní aktivita",
   "customActivityDescription": "Zadejte spálené kalorie přímo, pro tréninky, které nejsou na seznamu, nebo hodnoty z fitness náramku",
   "customActivityKcalLabel": "Spálené kalorie",
-  "customActivityKcalHint": "např. 250"
+  "customActivityKcalHint": "např. 250",
+  "customActivityNameFieldLabel": "Název (nepovinné)",
+  "customActivityNameFieldHint": "např. Večerní jízda do práce",
+  "customActivitySaveAsTemplate": "Uložit jako šablonu pro příště",
+  "customActivityPickFromTemplate": "Vybrat z uložených šablon",
+  "customActivityTemplatesEmpty": "Zatím nemáte uložené žádné šablony. Zaškrtněte „Uložit jako šablonu pro příště“, abyste si vlastní aktivitu zapamatovali na později."
 }

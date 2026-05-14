@@ -183,6 +183,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Verbrannte Kalorien"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("z. B. 250"),
+        "customActivityNameFieldLabel":
+            MessageLookupByLibrary.simpleMessage("Name (optional)"),
+        "customActivityNameFieldHint":
+            MessageLookupByLibrary.simpleMessage("z. B. Fahrt nach Hause"),
+        "customActivitySaveAsTemplate": MessageLookupByLibrary.simpleMessage(
+            "Als Vorlage für später speichern"),
+        "customActivityPickFromTemplate": MessageLookupByLibrary.simpleMessage(
+            "Aus gespeicherten Vorlagen wählen"),
+        "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
+            "Du hast noch keine Vorlagen gespeichert. Setze das Häkchen bei „Als Vorlage für später speichern“, um eine eigene Aktivität für die Zukunft zu merken."),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Alle Tagebucheinträge, die diese Mahlzeit verwenden, werden ebenfalls entfernt."),
         "customMealsDeleteConfirmTitle":

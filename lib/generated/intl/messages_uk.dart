@@ -178,6 +178,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Спалені калорії"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("напр. 250"),
+        "customActivityNameFieldLabel": MessageLookupByLibrary.simpleMessage(
+            "Назва (необов\'язково)"),
+        "customActivityNameFieldHint": MessageLookupByLibrary.simpleMessage(
+            "напр. Вечірня поїздка на велосипеді"),
+        "customActivitySaveAsTemplate": MessageLookupByLibrary.simpleMessage(
+            "Зберегти як шаблон на майбутнє"),
+        "customActivityPickFromTemplate": MessageLookupByLibrary.simpleMessage(
+            "Вибрати зі збережених шаблонів"),
+        "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
+            "Ви ще не зберегли жодного шаблону. Поставте позначку «Зберегти як шаблон на майбутнє», щоб запам\'ятати власну активність для пізнішого використання."),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Усі записи в щоденнику, що використовують цю страву, також буде видалено."),
         "customMealsDeleteConfirmTitle":

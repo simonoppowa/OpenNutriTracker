@@ -180,6 +180,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Yakılan kalori"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("örn. 250"),
+        "customActivityNameFieldLabel":
+            MessageLookupByLibrary.simpleMessage("Ad (isteğe bağlı)"),
+        "customActivityNameFieldHint": MessageLookupByLibrary.simpleMessage(
+            "örn. Akşam bisiklet yolculuğu"),
+        "customActivitySaveAsTemplate": MessageLookupByLibrary.simpleMessage(
+            "Bir sonraki sefer için şablon olarak kaydet"),
+        "customActivityPickFromTemplate": MessageLookupByLibrary.simpleMessage(
+            "Kaydedilmiş şablonlardan seç"),
+        "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
+            "Henüz kaydedilmiş bir şablonun yok. Bir özel etkinliği sonradan hatırlamak için „Bir sonraki sefer için şablon olarak kaydet“ kutusunu işaretle."),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Bu yemeği kullanan tüm günlük girişleri de kaldırılacak."),
         "customMealsDeleteConfirmTitle":

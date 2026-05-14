@@ -689,5 +689,10 @@
   "customActivityName": "Eigene Aktivität",
   "customActivityDescription": "Trage verbrannte Kalorien direkt ein – für Trainings, die nicht in der Liste sind, oder Werte aus einem Fitnesstracker",
   "customActivityKcalLabel": "Verbrannte Kalorien",
-  "customActivityKcalHint": "z. B. 250"
+  "customActivityKcalHint": "z. B. 250",
+  "customActivityNameFieldLabel": "Name (optional)",
+  "customActivityNameFieldHint": "z. B. Fahrt nach Hause",
+  "customActivitySaveAsTemplate": "Als Vorlage für später speichern",
+  "customActivityPickFromTemplate": "Aus gespeicherten Vorlagen wählen",
+  "customActivityTemplatesEmpty": "Du hast noch keine Vorlagen gespeichert. Setze das Häkchen bei „Als Vorlage für später speichern“, um eine eigene Aktivität für die Zukunft zu merken."
 }
