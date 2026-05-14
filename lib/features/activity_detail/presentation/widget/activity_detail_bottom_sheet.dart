@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/custom_activity_template_entity.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
 /// Bottom sheet for the Activity Detail screen.
 ///
@@ -68,13 +71,20 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                     itemCount: templates.length,
                     itemBuilder: (listContext, index) {
                       final template = templates[index];
+                      final tileUsesKj = Provider.of<EnergyUnitProvider>(
+                        listContext,
+                        listen: false,
+                      ).usesKilojoules;
+                      final tileValue = tileUsesKj
+                          ? UnitCalc.kcalToKj(template.typicalKcal)
+                          : template.typicalKcal;
+                      final tileUnit = tileUsesKj
+                          ? S.of(listContext).kjLabel
+                          : S.of(listContext).kcalLabel;
                       return ListTile(
                         leading: const Icon(Icons.bookmark_outline),
                         title: Text(template.name),
-                        subtitle: Text(
-                          '${template.typicalKcal.toInt()} '
-                          '${S.of(listContext).kcalLabel}',
-                        ),
+                        subtitle: Text('${tileValue.toInt()} $tileUnit'),
                         onTap: () =>
                             Navigator.of(listContext).pop(template),
                       );
@@ -86,10 +96,14 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
     );
 
     if (picked != null && mounted) {
+      final usesKj =
+          Provider.of<EnergyUnitProvider>(context, listen: false)
+              .usesKilojoules;
+      final displayValue =
+          usesKj ? UnitCalc.kcalToKj(picked.typicalKcal) : picked.typicalKcal;
       setState(() {
         _nameController.text = picked.name;
-        widget.quantityTextController.text =
-            picked.typicalKcal.toInt().toString();
+        widget.quantityTextController.text = displayValue.toInt().toString();
       });
     }
   }
@@ -97,6 +111,14 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final isCustom = widget.activityEntity.isCustom;
+    // For Custom activities the input field follows the user's Energy
+    // unit setting — typing happens in the same unit the rest of the
+    // app is showing, with conversion back to the stored kcal handled
+    // at save time. For compendium activities the field stays in
+    // minutes regardless of the energy unit.
+    final usesKj = context.watch<EnergyUnitProvider>().usesKilojoules;
+    final customUnitSuffix =
+        usesKj ? S.of(context).kjLabel : S.of(context).kcalLabel;
     return BottomSheet(
       elevation: 10,
       onClosing: () {},
@@ -201,7 +223,9 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                               ),
                               items: <DropdownMenuItem<String>>[
                                 DropdownMenuItem(
-                                  child: Text(isCustom ? 'kcal' : 'min'),
+                                  child: Text(
+                                    isCustom ? customUnitSuffix : 'min',
+                                  ),
                                 ),
                               ],
                               onChanged: (Object? value) {},
