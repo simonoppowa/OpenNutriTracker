@@ -48,6 +48,10 @@ class _EditMealScreenState extends State<EditMealScreen> {
   final _units = ['g', 'ml', 'g/ml'];
   String? selectedUnit;
   bool _isTotal = false;
+  // Default on so behaviour matches what existing users are used to — the
+  // meal is saved to their custom list unless they actively untick the box.
+  // #249 adds the *option* to skip the save; it does not change the default.
+  bool _saveForLater = true;
 
   late List<ButtonSegment<String>> _mealUnitButtonSegment;
 
@@ -322,6 +326,17 @@ class _EditMealScreenState extends State<EditMealScreen> {
               border: const OutlineInputBorder()),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
+        if (!_editOnly) ...[
+          const SizedBox(height: 24),
+          _SaveForLaterField(
+            value: _saveForLater,
+            onChanged: (newValue) {
+              setState(() {
+                _saveForLater = newValue;
+              });
+            },
+          ),
+        ],
       ],
     );
   }
@@ -424,8 +439,12 @@ class _EditMealScreenState extends State<EditMealScreen> {
         proteinText,
       );
 
-      // Persist custom meal template (#267)
-      if (newMealEntity.source == MealSourceEntity.custom) {
+      // Persist custom meal template (#267). Skipped for one-off entries
+      // (#249) when the user has turned off "Save for next time" — the
+      // intake itself is still logged below, but no template is kept.
+      final shouldPersistTemplate = _editOnly || _saveForLater;
+      if (newMealEntity.source == MealSourceEntity.custom &&
+          shouldPersistTemplate) {
         await _editMealBloc.saveCustomMeal(newMealEntity);
       }
 
@@ -500,4 +519,62 @@ class EditMealScreenArguments {
     this.usesImperialUnits, {
     this.editOnly = false,
   });
+}
+
+/// "Save for next time" toggle shown on the create-and-log path (#249).
+/// Defaults to off: the intake is logged today, and the user opts in here
+/// to also keep the meal as a reusable template in the custom-meal list.
+/// Leaving it off is the right call for one-off entries like a friend's
+/// homemade dish or a restaurant meal that won't come back round.
+class _SaveForLaterField extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _SaveForLaterField({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    return InkWell(
+      onTap: () => onChanged(!value),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Semantics(
+              identifier: 'edit-meal-save-for-later',
+              child: Checkbox(
+                value: value,
+                onChanged: (newValue) => onChanged(newValue ?? false),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      s.recipeSaveForLaterLabel,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      s.recipeSaveForLaterDescription,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

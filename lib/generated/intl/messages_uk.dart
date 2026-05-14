@@ -842,6 +842,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Поживність (загалом)"),
         "recipeSaveErrorLabel":
             MessageLookupByLibrary.simpleMessage("Не вдалося зберегти рецепт."),
+        "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
+            "Увімкніть, щоб ця страва залишилася у вашому збереженому списку на наступний раз. Залиште вимкненим для одноразової страви, яку ви більше не їстимете."),
+        "recipeSaveForLaterLabel":
+            MessageLookupByLibrary.simpleMessage("Зберегти на потім"),
         "recipeSaveLabel":
             MessageLookupByLibrary.simpleMessage("Зберегти рецепт"),
         "recipeServingsCountHelper": MessageLookupByLibrary.simpleMessage(

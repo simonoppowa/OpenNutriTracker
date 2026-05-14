@@ -560,6 +560,8 @@
   "recipeNutritionPer100Label": "Pro 100 g",
   "recipeNutritionPreviewLabel": "Nährwerte (gesamt)",
   "recipeSaveErrorLabel": "Rezept konnte nicht gespeichert werden.",
+  "recipeSaveForLaterLabel": "Für später speichern",
+  "recipeSaveForLaterDescription": "Aktiviere dies, um diese Mahlzeit für das nächste Mal in deiner gespeicherten Liste zu behalten. Lass es aus für eine einmalige Mahlzeit, die du nicht noch einmal essen wirst.",
   "recipeSaveLabel": "Rezept speichern",
   "recipeServingsCountHelper": "Ermöglicht das Loggen dieses Rezepts in Portionen statt in Gramm.",
   "recipeServingsCountLabel": "Portionen (optional)",

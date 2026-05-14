@@ -430,6 +430,26 @@ class S {
     );
   }
 
+  /// `Save for next time`
+  String get recipeSaveForLaterLabel {
+    return Intl.message(
+      'Save for next time',
+      name: 'recipeSaveForLaterLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Turn this on to keep this meal in your saved list for next time. Leave it off for a one-off you won't eat again.`
+  String get recipeSaveForLaterDescription {
+    return Intl.message(
+      'Turn this on to keep this meal in your saved list for next time. Leave it off for a one-off you won\'t eat again.',
+      name: 'recipeSaveForLaterDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Recipe needs a name`
   String get recipeNameRequiredLabel {
     return Intl.message(
