@@ -66,7 +66,12 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "${count} aktivite içe aktarılsın mı?";
 
-  static String m20(value) => "Hedefine ${value} kaldı";
+  static String m20(detail) => "Çözümlenemedi: ${detail}";
+
+  static String m21(count, customCount) =>
+      "JSON\'dan ${count} kayıt eklendi, ${customCount} özel öğün olarak kaydedildi";
+
+  static String m22(value) => "Hedefine ${value} kaldı";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -215,6 +220,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "OpenNutriTracker bir tıbbi uygulama değildir. Sağlanan tüm veriler doğrulanmamıştır ve dikkatle kullanılmalıdır. Lütfen sağlıklı bir yaşam tarzı sürdürün ve herhangi bir sorununuz varsa bir profesyonele danışın. Hastalık, hamilelik veya emzirme döneminde kullanımı önerilmez.\n\n\nUygulama hala geliştirme aşamasındadır. Hatalar, aksaklıklar ve çökmeler meydana gelebilir.\n\nHer hesaplamanın hakemli kaynaklarına Ana Sayfa veya Profil ekranındaki bilgi simgesine dokunarak ulaşabilirsin."),
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Örnek yemekler (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("Örnek yemekler (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Yemekleri içe aktar (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Örnek tarifler (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Tarifleri içe aktar (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Örnek tarifler (csv)"),
         "duplicateMealDialogContent": MessageLookupByLibrary.simpleMessage(
@@ -277,7 +290,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Antrenman içe aktarıldı"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Kendi öğünlerinizi bir CSV dosyasından içe aktarın. Beklenen sütun yapısını ve zorunlu alanları görmek için örneği indirin."),
+            "Kendi yemeklerinizi bir CSV dosyasından veya JSON yapıştırarak içe aktarın. Beklenen şekli ve zorunlu alanları görmek için bir örnek indirin."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Özel Gıda Verilerini İçe Aktar"),
         "importMealConfirmContent": m4,
@@ -300,6 +313,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Tarif içe aktarıldı"),
         "importRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Tarifleri içe aktar (csv)"),
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "Bu değerler tam olarak uyuşmuyor — girdiğiniz kalori, karbonhidrat, yağ ve proteinin enerjisiyle örtüşmüyor. Yine de kaydedilsin mi, yoksa tekrar göz atmak ister misiniz?"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("Tekrar bakayım"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("Yine de kaydet"),
+        "inconsistentNutritionWarningTitle":
+            MessageLookupByLibrary.simpleMessage("Sayılar pek uyuşmuyor"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Yeni aktivite eklendi"),
         "infoAddedIntakeLabel":
@@ -828,6 +849,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Beslenme (toplam)"),
         "recipeSaveErrorLabel":
             MessageLookupByLibrary.simpleMessage("Tarif kaydedilemedi."),
+        "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
+            "Bu yemeği bir dahaki sefere kaydedilenler listesinde tutmak için açın. Bir daha yemeyeceğiniz tek seferlik bir yemek için kapalı bırakın."),
+        "recipeSaveForLaterLabel":
+            MessageLookupByLibrary.simpleMessage("Sonraki için kaydet"),
         "recipeSaveLabel":
             MessageLookupByLibrary.simpleMessage("Tarifi Kaydet"),
         "recipeServingsCountHelper": MessageLookupByLibrary.simpleMessage(
@@ -980,18 +1005,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "weeklyWeightGoalNoneLabel":
             MessageLookupByLibrary.simpleMessage("Ayarlanmadı"),
         "weightLabel": MessageLookupByLibrary.simpleMessage("Kilo"),
-        "settingsTargetWeightLabel":
-            MessageLookupByLibrary.simpleMessage("Hedef kilo"),
-        "profileTargetWeightLabel":
-            MessageLookupByLibrary.simpleMessage("Hedef kilo"),
-        "profileTargetWeightToGo": m20,
-        "profileTargetWeightReached":
-            MessageLookupByLibrary.simpleMessage("Hedefine ulaştın"),
-        "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
-            "Hedefine yaklaştıkça kalori hedefini ayarla"),
-        "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(
-            "Günlük açığı kademeli olarak azaltır, böylece son birkaç kilo bir duvar gibi hissettirmez."),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("çinko"),
+        "profileTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Hedef kilo"),
+        "profileTargetWeightReached":
+            MessageLookupByLibrary.simpleMessage("Hedefine ulaştın"),
+        "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük açığı kademeli olarak azaltır, böylece son birkaç kilo bir duvar gibi hissettirmez."),
+        "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
+            "Hedefine yaklaştıkça kalori hedefini ayarla"),
+        "settingsTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Hedef kilo"),
+        "profileTargetWeightToGo": m22,
       };
 }
