@@ -79,10 +79,13 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
       appBar: AppBar(
         title: Text(S.of(context).profileWeightHistoryTitle),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _onAddEntry,
-        icon: const Icon(Icons.add),
-        label: Text(S.of(context).weightHistoryAddEntry),
+      floatingActionButton: Semantics(
+        identifier: 'weight-history-add',
+        child: FloatingActionButton.extended(
+          onPressed: _onAddEntry,
+          icon: const Icon(Icons.add),
+          label: Text(S.of(context).weightHistoryAddEntry),
+        ),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -414,13 +417,16 @@ class _AddWeightEntryDialogState extends State<_AddWeightEntryDialog> {
               subtitle: Text(dateLabel),
               onTap: _pickDate,
             ),
-            TextField(
-              controller: _weightController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                labelText:
-                    '${S.of(context).weightHistoryWeightLabel} ($unit)',
+            Semantics(
+              identifier: 'weight-history-weight-input',
+              child: TextField(
+                controller: _weightController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText:
+                      '${S.of(context).weightHistoryWeightLabel} ($unit)',
+                ),
               ),
             ),
             const SizedBox(height: 8),
