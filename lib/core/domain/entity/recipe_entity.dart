@@ -19,7 +19,7 @@ class RecipeEntity extends Equatable {
   // entity as non-nullable for ergonomics; the DBO carries a nullable list
   // for backwards compat with older saved records.
   final List<String> tags;
-  // Relative slug (e.g. `recipe_images/<id>.jpg`) under the app's private
+  // Relative slug (e.g. `recipe_images/<id>.webp`) under the app's private
   // documents directory. Null when no photo has been attached. Callers
   // resolve the absolute path via `path_provider` at read/write time so
   // we never persist a stale sandbox-specific prefix.

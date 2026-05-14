@@ -34,34 +34,39 @@ void main() {
   });
 
   group('RecipeImageStorage', () {
-    test('relativePathFor builds a slug under recipe_images/', () {
+    test('relativePathFor builds a slug under recipe_images/ with .webp', () {
       expect(RecipeImageStorage.relativePathFor('abc'),
-          'recipe_images/abc.jpg');
+          'recipe_images/abc.webp');
     });
 
     test('sanitizeRelative accepts the canonical form and rejects others',
         () {
-      expect(RecipeImageStorage.sanitizeRelative('recipe_images/x.jpg'),
-          'recipe_images/x.jpg');
+      expect(RecipeImageStorage.sanitizeRelative('recipe_images/x.webp'),
+          'recipe_images/x.webp');
       // Nested or empty paths must not slip through — the entire point of
       // the sanitiser is to keep imported zips from escaping the images
       // directory via `..` or absolute prefixes.
-      expect(RecipeImageStorage.sanitizeRelative('recipe_images/../x.jpg'),
+      expect(RecipeImageStorage.sanitizeRelative('recipe_images/../x.webp'),
           isNull);
-      expect(RecipeImageStorage.sanitizeRelative('elsewhere/x.jpg'), isNull);
-      expect(RecipeImageStorage.sanitizeRelative('x.jpg'), isNull);
+      expect(RecipeImageStorage.sanitizeRelative('elsewhere/x.webp'), isNull);
+      expect(RecipeImageStorage.sanitizeRelative('x.webp'), isNull);
       expect(RecipeImageStorage.sanitizeRelative('recipe_images/'), isNull);
     });
 
     test('absolutePath composes against the documents directory', () async {
       final abs =
-          await RecipeImageStorage.absolutePath('recipe_images/r1.jpg');
-      expect(abs, '${tempRoot.path}/recipe_images/r1.jpg');
+          await RecipeImageStorage.absolutePath('recipe_images/r1.webp');
+      expect(abs, '${tempRoot.path}/recipe_images/r1.webp');
     });
 
-    test('importFrom copies the source into the images dir and returns the '
+    test(
+        'importFrom writes a .webp file into the images dir and returns the '
         'persisted relative slug', () async {
-      final source = File('${tempRoot.path}/incoming.jpg');
+      // Use a non-image payload — the WebP encoder will reject it and the
+      // storage layer falls back to copying the bytes verbatim, which is
+      // exactly the behaviour we want to exercise in a host-platform test
+      // where there's no real image codec available.
+      final source = File('${tempRoot.path}/incoming.bin');
       await source.writeAsBytes([1, 2, 3, 4]);
 
       final relative = await RecipeImageStorage.importFrom(
@@ -69,7 +74,7 @@ void main() {
         sourcePath: source.path,
       );
 
-      expect(relative, 'recipe_images/recipe-42.jpg');
+      expect(relative, 'recipe_images/recipe-42.webp');
       final absolute = await RecipeImageStorage.absolutePath(relative);
       final destBytes = await File(absolute).readAsBytes();
       expect(destBytes, [1, 2, 3, 4]);
@@ -79,7 +84,7 @@ void main() {
 
     test('delete removes the file at the relative slug and tolerates '
         'a missing file', () async {
-      final source = File('${tempRoot.path}/incoming.jpg');
+      final source = File('${tempRoot.path}/incoming.bin');
       await source.writeAsBytes([9, 9, 9]);
       final relative = await RecipeImageStorage.importFrom(
         recipeId: 'r',
@@ -99,12 +104,12 @@ void main() {
       // A traversal attempt should be ignored rather than throwing or
       // touching anything outside the recipe_images directory.
       await RecipeImageStorage.delete('../etc/passwd');
-      await RecipeImageStorage.delete('recipe_images/../foo.jpg');
+      await RecipeImageStorage.delete('recipe_images/../foo.webp');
       // Reaching this point without an exception is the assertion.
     });
 
     test('full round-trip: store, resolve, delete', () async {
-      final source = File('${tempRoot.path}/round-trip.jpg');
+      final source = File('${tempRoot.path}/round-trip.bin');
       await source.writeAsBytes([42]);
 
       final relative = await RecipeImageStorage.importFrom(
@@ -116,6 +121,7 @@ void main() {
       // app reinstall (which would shift the documents-dir prefix on iOS)
       // can still resolve it against the new prefix.
       expect(relative.startsWith('recipe_images/'), isTrue);
+      expect(relative.endsWith('.webp'), isTrue);
       expect(relative.contains(tempRoot.path), isFalse);
 
       final absolute = await RecipeImageStorage.absolutePath(relative);

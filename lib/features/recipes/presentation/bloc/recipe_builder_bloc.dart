@@ -45,7 +45,7 @@ class RecipeBuilderBloc
     if (event.existing == null) {
       // Generate the recipe id eagerly so any photo the user attaches
       // before they hit save can be filed under the correct filename
-      // (recipe_images/<id>.jpg). The id is still kept on save below.
+      // (recipe_images/<id>.webp). The id is still kept on save below.
       emit(RecipeBuilderState.initial().copyWith(
         id: IdGenerator.getUniqueID(),
       ));

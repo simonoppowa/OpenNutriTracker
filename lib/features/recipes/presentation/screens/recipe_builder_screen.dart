@@ -362,15 +362,12 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
     if (recipeId == null) return;
     try {
       final picker = ImagePicker();
-      // Cap the longest edge at ~1024px and use mid-tier JPEG quality so
-      // the on-disk footprint stays well under a megabyte even for high
-      // resolution camera shots.
-      final picked = await picker.pickImage(
-        source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
-      );
+      // Pick at full resolution — `RecipeImageStorage.importFrom` re-encodes
+      // to WebP at quality 80 with a 1024px longest-edge cap, so we don't
+      // need image_picker's own JPEG compression on top. Doing it in one
+      // place keeps the on-disk footprint consistent regardless of which
+      // source (camera / gallery) the photo came from.
+      final picked = await picker.pickImage(source: source);
       if (picked == null) return;
       final relative = await RecipeImageStorage.importFrom(
         recipeId: recipeId,

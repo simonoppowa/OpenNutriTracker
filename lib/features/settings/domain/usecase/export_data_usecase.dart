@@ -93,7 +93,7 @@ class ExportDataUsecase {
     );
 
     // Include any user-attached recipe photos under their relative slug
-    // (e.g. `recipe_images/<id>.jpg`). The slug matches what we persist on
+    // (e.g. `recipe_images/<id>.webp`). The slug matches what we persist on
     // RecipeDBO.imagePath, so import can drop the bytes back into place
     // without translating filenames.
     for (final recipe in fullRecipes) {
