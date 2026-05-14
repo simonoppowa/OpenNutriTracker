@@ -6242,6 +6242,26 @@ class S {
     );
   }
 
+  /// `Not set`
+  String get profileTargetWeightNotSetLabel {
+    return Intl.message(
+      'Not set',
+      name: 'profileTargetWeightNotSetLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clear`
+  String get profileTargetWeightClearAction {
+    return Intl.message(
+      'Clear',
+      name: 'profileTargetWeightClearAction',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Target weight`
   String get profileTargetWeightLabel {
     return Intl.message(

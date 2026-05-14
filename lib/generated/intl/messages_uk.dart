@@ -1106,6 +1106,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Часом додавання"),
         "profileTargetWeightLabel":
             MessageLookupByLibrary.simpleMessage("Цільова вага"),
+        "profileTargetWeightNotSetLabel":
+            MessageLookupByLibrary.simpleMessage("Не задано"),
+        "profileTargetWeightClearAction":
+            MessageLookupByLibrary.simpleMessage("Очистити"),
         "profileTargetWeightReached":
             MessageLookupByLibrary.simpleMessage("Ви досягли своєї цілі"),
         "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(

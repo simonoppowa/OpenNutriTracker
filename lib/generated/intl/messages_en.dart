@@ -1081,6 +1081,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "diarySortByTime": MessageLookupByLibrary.simpleMessage("Time added"),
         "profileTargetWeightLabel":
             MessageLookupByLibrary.simpleMessage("Target weight"),
+        "profileTargetWeightNotSetLabel":
+            MessageLookupByLibrary.simpleMessage("Not set"),
+        "profileTargetWeightClearAction":
+            MessageLookupByLibrary.simpleMessage("Clear"),
         "profileTargetWeightReached": MessageLookupByLibrary.simpleMessage(
             "You\'ve reached your target"),
         "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(

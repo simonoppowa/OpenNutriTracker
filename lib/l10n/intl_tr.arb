@@ -78,6 +78,13 @@
       }
     }
   },
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@recipeIngredientCountLabel": {
     "placeholders": {
       "count": {
@@ -589,6 +596,11 @@
   "potassiumLabel": "potasyum",
   "privacyPolicyLabel": "Gizlilik politikası",
   "profileLabel": "Profil",
+  "profileTargetWeightClearAction": "Temizle",
+  "profileTargetWeightLabel": "Hedef kilo",
+  "profileTargetWeightNotSetLabel": "Ayarlanmadı",
+  "profileTargetWeightReached": "Hedefine ulaştın",
+  "profileTargetWeightToGo": "Hedefine {value} kaldı",
   "proteinLabel": "protein",
   "proteinLabelShort": "p",
   "quantityLabel": "Miktar",
@@ -648,6 +660,8 @@
   "settingsCalciumGoalDescription": "Günlük kalsiyum hedefi (miligram). Varsayılan referans 1000 mg.",
   "settingsCalciumGoalLabel": "Kalsiyum hedefi",
   "settingsCalculationsLabel": "Hesaplamalar",
+  "settingsCaloriesTaperDescription": "Günlük açığı kademeli olarak azaltır, böylece son birkaç kilo bir duvar gibi hissettirmez.",
+  "settingsCaloriesTaperLabel": "Hedefine yaklaştıkça kalori hedefini ayarla",
   "settingsCustomMealsLabel": "Özel Yemekler",
   "settingsDisclaimerLabel": "Sorumluluk Reddi",
   "settingsDistanceLabel": "Mesafe",
@@ -686,6 +700,7 @@
   "settingsSugarsGoalDescription": "Günlük şeker üst sınırı (gram). Varsayılan referans 50 g.",
   "settingsSugarsGoalLabel": "Şeker hedefi",
   "settingsSystemLabel": "Sistem",
+  "settingsTargetWeightLabel": "Hedef kilo",
   "settingsThemeDarkLabel": "Koyu",
   "settingsThemeLabel": "Tema",
   "settingsThemeLightLabel": "Açık",
@@ -731,19 +746,6 @@
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/hafta",
   "weeklyWeightGoalNoneLabel": "Ayarlanmadı",
   "weightLabel": "Kilo",
-  "settingsTargetWeightLabel": "Hedef kilo",
-  "profileTargetWeightLabel": "Hedef kilo",
-  "profileTargetWeightToGo": "Hedefine {value} kaldı",
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "profileTargetWeightReached": "Hedefine ulaştın",
-  "settingsCaloriesTaperLabel": "Hedefine yaklaştıkça kalori hedefini ayarla",
-  "settingsCaloriesTaperDescription": "Günlük açığı kademeli olarak azaltır, böylece son birkaç kilo bir duvar gibi hissettirmez.",
   "yearsLabel": "{age} yıl",
   "zincLabel": "çinko"
 }

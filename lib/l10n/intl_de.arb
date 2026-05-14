@@ -78,6 +78,13 @@
       }
     }
   },
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@recipeIngredientCountLabel": {
     "placeholders": {
       "count": {
@@ -589,6 +596,11 @@
   "potassiumLabel": "Kalium",
   "privacyPolicyLabel": "Datenschutzrichtlinie",
   "profileLabel": "Profil",
+  "profileTargetWeightClearAction": "Löschen",
+  "profileTargetWeightLabel": "Zielgewicht",
+  "profileTargetWeightNotSetLabel": "Nicht festgelegt",
+  "profileTargetWeightReached": "Du hast dein Ziel erreicht",
+  "profileTargetWeightToGo": "Noch {value} bis zum Ziel",
   "proteinLabel": "Protein",
   "proteinLabelShort": "p",
   "quantityLabel": "Menge",
@@ -648,6 +660,8 @@
   "settingsCalciumGoalDescription": "Tägliches Calciumziel in Milligramm. Standardreferenz: 1000 mg.",
   "settingsCalciumGoalLabel": "Calciumziel",
   "settingsCalculationsLabel": "Berechnungen",
+  "settingsCaloriesTaperDescription": "Reduziert das tägliche Defizit allmählich, damit die letzten Kilos nicht wie eine Wand wirken.",
+  "settingsCaloriesTaperLabel": "Kalorienziel anpassen, wenn du dich dem Ziel näherst",
   "settingsCustomMealsLabel": "Eigene Mahlzeiten",
   "settingsDisclaimerLabel": "Hinweis",
   "settingsDistanceLabel": "Entfernung",
@@ -686,6 +700,7 @@
   "settingsSugarsGoalDescription": "Tägliche Zuckerobergrenze in Gramm. Standardreferenz: 50 g.",
   "settingsSugarsGoalLabel": "Zuckerziel",
   "settingsSystemLabel": "System",
+  "settingsTargetWeightLabel": "Zielgewicht",
   "settingsThemeDarkLabel": "Dunkel",
   "settingsThemeLabel": "Thema",
   "settingsThemeLightLabel": "Hell",
@@ -731,19 +746,6 @@
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/Woche",
   "weeklyWeightGoalNoneLabel": "Nicht festgelegt",
   "weightLabel": "Gewicht",
-  "settingsTargetWeightLabel": "Zielgewicht",
-  "profileTargetWeightLabel": "Zielgewicht",
-  "profileTargetWeightToGo": "Noch {value} bis zum Ziel",
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "profileTargetWeightReached": "Du hast dein Ziel erreicht",
-  "settingsCaloriesTaperLabel": "Kalorienziel anpassen, wenn du dich dem Ziel näherst",
-  "settingsCaloriesTaperDescription": "Reduziert das tägliche Defizit allmählich, damit die letzten Kilos nicht wie eine Wand wirken.",
   "yearsLabel": "{age} Jahre",
   "zincLabel": "Zink"
 }

@@ -68,6 +68,13 @@
       }
     }
   },
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@recipeIngredientCountLabel": {
     "placeholders": {
       "count": {
@@ -558,6 +565,11 @@
   "potassiumLabel": "potas",
   "privacyPolicyLabel": "Polityka prywatności",
   "profileLabel": "Profil",
+  "profileTargetWeightClearAction": "Wyczyść",
+  "profileTargetWeightLabel": "Docelowa waga",
+  "profileTargetWeightNotSetLabel": "Nieustawiony",
+  "profileTargetWeightReached": "Osiągnięto wagę docelową",
+  "profileTargetWeightToGo": "{value} do celu",
   "proteinLabel": "białko",
   "proteinLabelShort": "b",
   "quantityLabel": "Ilość",
@@ -617,6 +629,8 @@
   "settingsCalciumGoalDescription": "Dzienny cel wapnia w miligramach. Wartość referencyjna to 1000 mg.",
   "settingsCalciumGoalLabel": "Cel wapnia",
   "settingsCalculationsLabel": "Obliczenia",
+  "settingsCaloriesTaperDescription": "Stopniowo zmniejsza dzienny deficyt, aby ostatnie kilogramy nie wydawały się ścianą.",
+  "settingsCaloriesTaperLabel": "Dostosuj cel kaloryczny w miarę zbliżania się do celu",
   "settingsCustomMealsLabel": "Własne posiłki",
   "settingsDisclaimerLabel": "Zastrzeżenie",
   "settingsDistanceLabel": "Odległość",
@@ -655,6 +669,7 @@
   "settingsSugarsGoalDescription": "Dzienny limit cukrów w gramach. Wartość referencyjna to 50 g.",
   "settingsSugarsGoalLabel": "Cel cukrów",
   "settingsSystemLabel": "System",
+  "settingsTargetWeightLabel": "Docelowa waga",
   "settingsThemeDarkLabel": "Ciemny",
   "settingsThemeLabel": "Motyw",
   "settingsThemeLightLabel": "Jasny",
@@ -700,19 +715,6 @@
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/tydzień",
   "weeklyWeightGoalNoneLabel": "Nie ustawiono",
   "weightLabel": "Waga",
-  "settingsTargetWeightLabel": "Docelowa waga",
-  "profileTargetWeightLabel": "Docelowa waga",
-  "profileTargetWeightToGo": "{value} do celu",
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "profileTargetWeightReached": "Osiągnięto wagę docelową",
-  "settingsCaloriesTaperLabel": "Dostosuj cel kaloryczny w miarę zbliżania się do celu",
-  "settingsCaloriesTaperDescription": "Stopniowo zmniejsza dzienny deficyt, aby ostatnie kilogramy nie wydawały się ścianą.",
   "yearsLabel": "{age} lat",
   "zincLabel": "cynk"
 }

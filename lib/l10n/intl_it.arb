@@ -68,6 +68,13 @@
       }
     }
   },
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@recipeIngredientCountLabel": {
     "placeholders": {
       "count": {
@@ -558,6 +565,11 @@
   "potassiumLabel": "potassio",
   "privacyPolicyLabel": "Privacy policy",
   "profileLabel": "Profilo",
+  "profileTargetWeightClearAction": "Cancella",
+  "profileTargetWeightLabel": "Peso obiettivo",
+  "profileTargetWeightNotSetLabel": "Non impostato",
+  "profileTargetWeightReached": "Hai raggiunto il tuo obiettivo",
+  "profileTargetWeightToGo": "{value} al tuo obiettivo",
   "proteinLabel": "proteine",
   "proteinLabelShort": "p",
   "quantityLabel": "Quantità",
@@ -617,6 +629,8 @@
   "settingsCalciumGoalDescription": "Obiettivo giornaliero di calcio in milligrammi. Il valore di riferimento predefinito è 1000 mg.",
   "settingsCalciumGoalLabel": "Obiettivo calcio",
   "settingsCalculationsLabel": "Calcoli",
+  "settingsCaloriesTaperDescription": "Riduce gradualmente il deficit giornaliero così gli ultimi chili non sembrano un muro.",
+  "settingsCaloriesTaperLabel": "Adatta l'obiettivo calorico mentre ti avvicini al tuo peso obiettivo",
   "settingsCustomMealsLabel": "Pasti personalizzati",
   "settingsDisclaimerLabel": "Disclaimer",
   "settingsDistanceLabel": "Distanza",
@@ -655,6 +669,7 @@
   "settingsSugarsGoalDescription": "Limite giornaliero di zuccheri in grammi. Il valore di riferimento predefinito è 50 g.",
   "settingsSugarsGoalLabel": "Obiettivo zuccheri",
   "settingsSystemLabel": "Sistema",
+  "settingsTargetWeightLabel": "Peso obiettivo",
   "settingsThemeDarkLabel": "Scuro",
   "settingsThemeLabel": "Tema",
   "settingsThemeLightLabel": "Chiaro",
@@ -700,19 +715,6 @@
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/settimana",
   "weeklyWeightGoalNoneLabel": "Non impostato",
   "weightLabel": "Peso",
-  "settingsTargetWeightLabel": "Peso obiettivo",
-  "profileTargetWeightLabel": "Peso obiettivo",
-  "profileTargetWeightToGo": "{value} al tuo obiettivo",
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "profileTargetWeightReached": "Hai raggiunto il tuo obiettivo",
-  "settingsCaloriesTaperLabel": "Adatta l'obiettivo calorico mentre ti avvicini al tuo peso obiettivo",
-  "settingsCaloriesTaperDescription": "Riduce gradualmente il deficit giornaliero così gli ultimi chili non sembrano un muro.",
   "yearsLabel": "{age} anni",
   "zincLabel": "zinco"
 }

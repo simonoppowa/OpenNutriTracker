@@ -69,6 +69,13 @@
       }
     }
   },
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@recipeIngredientCountLabel": {
     "placeholders": {
       "count": {
@@ -559,6 +566,11 @@
   "potassiumLabel": "钾",
   "privacyPolicyLabel": "隐私政策",
   "profileLabel": "个人资料",
+  "profileTargetWeightClearAction": "清除",
+  "profileTargetWeightLabel": "目标体重",
+  "profileTargetWeightNotSetLabel": "未设置",
+  "profileTargetWeightReached": "你已达到目标",
+  "profileTargetWeightToGo": "距离目标还差 {value}",
   "proteinLabel": "蛋白质",
   "proteinLabelShort": "蛋",
   "quantityLabel": "数量",
@@ -618,6 +630,8 @@
   "settingsCalciumGoalDescription": "每日钙目标（毫克）。默认参考值为 1000 毫克。",
   "settingsCalciumGoalLabel": "钙目标",
   "settingsCalculationsLabel": "计算",
+  "settingsCaloriesTaperDescription": "逐渐减小每日热量缺口，让最后几公斤不再像一堵墙。",
+  "settingsCaloriesTaperLabel": "接近目标时调整卡路里目标",
   "settingsCustomMealsLabel": "自定义餐食",
   "settingsDisclaimerLabel": "免责声明",
   "settingsDistanceLabel": "距离",
@@ -656,6 +670,7 @@
   "settingsSugarsGoalDescription": "每日糖摄入上限（克）。默认参考值为 50 克。",
   "settingsSugarsGoalLabel": "糖目标",
   "settingsSystemLabel": "系统",
+  "settingsTargetWeightLabel": "目标体重",
   "settingsThemeDarkLabel": "深色",
   "settingsThemeLabel": "主题",
   "settingsThemeLightLabel": "浅色",
@@ -701,19 +716,6 @@
   "weeklyWeightGoalLbsPerWeek": "{rate} 磅/周",
   "weeklyWeightGoalNoneLabel": "未设置",
   "weightLabel": "体重",
-  "settingsTargetWeightLabel": "目标体重",
-  "profileTargetWeightLabel": "目标体重",
-  "profileTargetWeightToGo": "距离目标还差 {value}",
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "profileTargetWeightReached": "你已达到目标",
-  "settingsCaloriesTaperLabel": "接近目标时调整卡路里目标",
-  "settingsCaloriesTaperDescription": "逐渐减小每日热量缺口，让最后几公斤不再像一堵墙。",
   "yearsLabel": "{age} 岁",
   "zincLabel": "锌"
 }

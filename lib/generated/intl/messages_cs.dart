@@ -1094,6 +1094,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Času přidání"),
         "profileTargetWeightLabel":
             MessageLookupByLibrary.simpleMessage("Cílová hmotnost"),
+        "profileTargetWeightNotSetLabel":
+            MessageLookupByLibrary.simpleMessage("Nenastaveno"),
+        "profileTargetWeightClearAction":
+            MessageLookupByLibrary.simpleMessage("Vymazat"),
         "profileTargetWeightReached":
             MessageLookupByLibrary.simpleMessage("Dosáhli jste svého cíle"),
         "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(

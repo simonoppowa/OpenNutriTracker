@@ -68,6 +68,13 @@
       }
     }
   },
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@recipeIngredientCountLabel": {
     "placeholders": {
       "count": {
@@ -558,6 +565,11 @@
   "potassiumLabel": "draslík",
   "privacyPolicyLabel": "Pravidla týkající se soukromí",
   "profileLabel": "Profil",
+  "profileTargetWeightClearAction": "Vymazat",
+  "profileTargetWeightLabel": "Cílová hmotnost",
+  "profileTargetWeightNotSetLabel": "Nenastaveno",
+  "profileTargetWeightReached": "Dosáhli jste svého cíle",
+  "profileTargetWeightToGo": "Zbývá {value} do cíle",
   "proteinLabel": "bílkoviny",
   "proteinLabelShort": "b",
   "quantityLabel": "Množství",
@@ -617,6 +629,8 @@
   "settingsCalciumGoalDescription": "Denní cíl vápníku v miligramech. Výchozí reference je 1000 mg.",
   "settingsCalciumGoalLabel": "Cíl vápníku",
   "settingsCalculationsLabel": "Vypočtené hodnoty",
+  "settingsCaloriesTaperDescription": "Postupně zmenšuje denní deficit, aby posledních pár kilogramů nepůsobilo jako zeď.",
+  "settingsCaloriesTaperLabel": "Upravovat kalorický cíl, jak se blížíte k cílové váze",
   "settingsCustomMealsLabel": "Vlastní jídla",
   "settingsDisclaimerLabel": "Vzdání se nároku",
   "settingsDistanceLabel": "Vzdálenost",
@@ -655,6 +669,7 @@
   "settingsSugarsGoalDescription": "Denní limit cukrů v gramech. Výchozí reference je 50 g.",
   "settingsSugarsGoalLabel": "Cíl cukrů",
   "settingsSystemLabel": "Systém",
+  "settingsTargetWeightLabel": "Cílová hmotnost",
   "settingsThemeDarkLabel": "Tmavý",
   "settingsThemeLabel": "Vzhled",
   "settingsThemeLightLabel": "Světlý",
@@ -700,19 +715,6 @@
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/týden",
   "weeklyWeightGoalNoneLabel": "Nenastaveno",
   "weightLabel": "Hmotnost",
-  "settingsTargetWeightLabel": "Cílová hmotnost",
-  "profileTargetWeightLabel": "Cílová hmotnost",
-  "profileTargetWeightToGo": "Zbývá {value} do cíle",
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "profileTargetWeightReached": "Dosáhli jste svého cíle",
-  "settingsCaloriesTaperLabel": "Upravovat kalorický cíl, jak se blížíte k cílové váze",
-  "settingsCaloriesTaperDescription": "Postupně zmenšuje denní deficit, aby posledních pár kilogramů nepůsobilo jako zeď.",
   "yearsLabel": "{age} let",
   "zincLabel": "zinek"
 }

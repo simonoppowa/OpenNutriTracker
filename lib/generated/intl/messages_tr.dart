@@ -1081,6 +1081,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Eklenme zamanı"),
         "profileTargetWeightLabel":
             MessageLookupByLibrary.simpleMessage("Hedef kilo"),
+        "profileTargetWeightNotSetLabel":
+            MessageLookupByLibrary.simpleMessage("Ayarlanmadı"),
+        "profileTargetWeightClearAction":
+            MessageLookupByLibrary.simpleMessage("Temizle"),
         "profileTargetWeightReached":
             MessageLookupByLibrary.simpleMessage("Hedefine ulaştın"),
         "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(

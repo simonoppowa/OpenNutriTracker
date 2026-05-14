@@ -1117,6 +1117,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Hinzugefügt am"),
         "profileTargetWeightLabel":
             MessageLookupByLibrary.simpleMessage("Zielgewicht"),
+        "profileTargetWeightNotSetLabel":
+            MessageLookupByLibrary.simpleMessage("Nicht festgelegt"),
+        "profileTargetWeightClearAction":
+            MessageLookupByLibrary.simpleMessage("Löschen"),
         "profileTargetWeightReached":
             MessageLookupByLibrary.simpleMessage("Du hast dein Ziel erreicht"),
         "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(

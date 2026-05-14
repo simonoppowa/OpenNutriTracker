@@ -16,6 +16,7 @@ import 'package:opennutritracker/features/profile/presentation/widgets/set_goal_
 import 'package:opennutritracker/features/profile/presentation/widgets/set_height_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_weekly_weight_goal_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_pal_category_dialog.dart';
+import 'package:opennutritracker/features/profile/presentation/widgets/set_target_weight_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_weight_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -165,6 +166,28 @@ class _ProfilePageState extends State<ProfilePage> {
             onTap: () {
               _showSetWeightDialog(context, user, usesImperialUnits);
             },
+          ),
+        ),
+        Semantics(
+          identifier: 'profile-target-weight',
+          child: ListTile(
+            title: Text(
+              S.of(context).profileTargetWeightLabel,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            subtitle: Text(
+              user.targetWeightKg == null
+                  ? S.of(context).profileTargetWeightNotSetLabel
+                  : '${_formatTargetWeightDisplay(user.targetWeightKg!, usesImperialUnits)} '
+                      '${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            leading: const SizedBox(
+              height: double.infinity,
+              child: Icon(Icons.flag_outlined),
+            ),
+            onTap: () =>
+                _showSetTargetWeightDialog(context, user, usesImperialUnits),
           ),
         ),
         Semantics(
@@ -365,6 +388,46 @@ class _ProfilePageState extends State<ProfilePage> {
       }
       _profileBloc.updateUser(userEntity);
     }
+  }
+
+  Future<void> _showSetTargetWeightDialog(
+    BuildContext context,
+    UserEntity userEntity,
+    bool usesImperialSystem,
+  ) async {
+    // Seed the picker from the existing target if set, otherwise from the
+    // user's current weight so the wheel doesn't snap to a wildly different
+    // value on first use. The dialog returns a TargetWeightDialogResult so
+    // we can distinguish "user cancelled" (null) from "user picked a value"
+    // (set) and from "user explicitly cleared the target" (clear flag).
+    final seedKg = userEntity.targetWeightKg ?? userEntity.weightKG;
+    final seedDisplay =
+        usesImperialSystem ? UnitCalc.kgToLbs(seedKg) : seedKg;
+    final result = await showDialog<TargetWeightDialogResult>(
+      context: context,
+      builder: (context) => SetTargetWeightDialog(
+        initialTargetWeight: seedDisplay,
+        hasExistingTarget: userEntity.targetWeightKg != null,
+        usesImperialUnits: usesImperialSystem,
+      ),
+    );
+    if (result == null) return;
+    if (result.clear) {
+      userEntity.targetWeightKg = null;
+    } else if (result.value != null) {
+      userEntity.targetWeightKg = usesImperialSystem
+          ? UnitCalc.lbsToKg(result.value!)
+          : result.value;
+    }
+    _profileBloc.updateUser(userEntity);
+  }
+
+  String _formatTargetWeightDisplay(double kg, bool usesImperialUnits) {
+    final display = usesImperialUnits ? UnitCalc.kgToLbs(kg) : kg;
+    // One decimal is enough — the picker grain is 0.1 — but trim trailing
+    // .0 so a whole-number target reads as "75 kg" rather than "75.0 kg".
+    final s = display.toStringAsFixed(1);
+    return s.endsWith('.0') ? s.substring(0, s.length - 2) : s;
   }
 
   Future<void> _showSetBirthdayDialog(

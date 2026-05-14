@@ -68,6 +68,13 @@
       }
     }
   },
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@recipeIngredientCountLabel": {
     "placeholders": {
       "count": {
@@ -558,6 +565,11 @@
   "potassiumLabel": "калій",
   "privacyPolicyLabel": "Політика конфіденційності",
   "profileLabel": "Профіль",
+  "profileTargetWeightClearAction": "Очистити",
+  "profileTargetWeightLabel": "Цільова вага",
+  "profileTargetWeightNotSetLabel": "Не задано",
+  "profileTargetWeightReached": "Ви досягли своєї цілі",
+  "profileTargetWeightToGo": "Залишилось {value} до цілі",
   "proteinLabel": "білки",
   "proteinLabelShort": "б",
   "quantityLabel": "Кількість",
@@ -617,6 +629,8 @@
   "settingsCalciumGoalDescription": "Денна ціль кальцію в міліграмах. Стандартне значення — 1000 мг.",
   "settingsCalciumGoalLabel": "Ціль кальцію",
   "settingsCalculationsLabel": "Розрахунки",
+  "settingsCaloriesTaperDescription": "Поступово зменшує щоденний дефіцит, щоб останні кілограми не здавалися стіною.",
+  "settingsCaloriesTaperLabel": "Коригувати калорійну ціль у міру наближення до цілі",
   "settingsCustomMealsLabel": "Власні страви",
   "settingsDisclaimerLabel": "Відмова від відповідальності",
   "settingsDistanceLabel": "Відстань",
@@ -655,6 +669,7 @@
   "settingsSugarsGoalDescription": "Денний ліміт цукрів у грамах. Стандартне значення — 50 г.",
   "settingsSugarsGoalLabel": "Ціль цукрів",
   "settingsSystemLabel": "Система",
+  "settingsTargetWeightLabel": "Цільова вага",
   "settingsThemeDarkLabel": "Темна",
   "settingsThemeLabel": "Тема",
   "settingsThemeLightLabel": "Світла",
@@ -700,19 +715,6 @@
   "weeklyWeightGoalLbsPerWeek": "{rate} фунт/тиждень",
   "weeklyWeightGoalNoneLabel": "Не встановлено",
   "weightLabel": "Вага",
-  "settingsTargetWeightLabel": "Цільова вага",
-  "profileTargetWeightLabel": "Цільова вага",
-  "profileTargetWeightToGo": "Залишилось {value} до цілі",
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "profileTargetWeightReached": "Ви досягли своєї цілі",
-  "settingsCaloriesTaperLabel": "Коригувати калорійну ціль у міру наближення до цілі",
-  "settingsCaloriesTaperDescription": "Поступово зменшує щоденний дефіцит, щоб останні кілограми не здавалися стіною.",
   "yearsLabel": "{age} років",
   "zincLabel": "цинк"
 }

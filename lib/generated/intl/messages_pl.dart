@@ -1104,6 +1104,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Czasu dodania"),
         "profileTargetWeightLabel":
             MessageLookupByLibrary.simpleMessage("Docelowa waga"),
+        "profileTargetWeightNotSetLabel":
+            MessageLookupByLibrary.simpleMessage("Nieustawiony"),
+        "profileTargetWeightClearAction":
+            MessageLookupByLibrary.simpleMessage("Wyczyść"),
         "profileTargetWeightReached":
             MessageLookupByLibrary.simpleMessage("Osiągnięto wagę docelową"),
         "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(
