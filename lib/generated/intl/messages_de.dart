@@ -368,6 +368,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("N/A"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Nichts hinzugefügt"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Tag"),
+        "nutrientPanelWeekLabel": MessageLookupByLibrary.simpleMessage("Woche"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Alle Nährstoffe ausgeblendet — schalte einige unter Einstellungen → Nährstoffe ein."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Nährwertangaben"),
         "nutritionalStatusNormalWeight":
@@ -975,6 +979,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Makros je Mahlzeit anzeigen"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Mikronährstoffe anzeigen"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Nährstoffe"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Wähle, welche Nährstoffe im Tagebuch erscheinen"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Wähle, welche Nährstoffe im Tagespanel sichtbar sind. Ausgeblendete kannst du jederzeit wieder einschalten."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Quellcode"),
         "settingsSystemLabel":

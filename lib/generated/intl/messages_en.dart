@@ -333,6 +333,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("N/A"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Nothing added"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Day"),
+        "nutrientPanelWeekLabel": MessageLookupByLibrary.simpleMessage("Week"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "All nutrients hidden — turn some on in Settings → Nutrients."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Nutrition Information"),
         "nutritionalStatusNormalWeight":
@@ -947,6 +951,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Show Meal Macros"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Show Micronutrients"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Nutrients"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Pick which nutrients appear on the diary panel"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Choose which nutrients are visible on the daily panel. Hidden ones can be turned back on at any time."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Source Code"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("System"),

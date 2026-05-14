@@ -71,4 +71,10 @@ class AddConfigUsecase {
   Future<void> setConfigShowMicronutrients(bool show) async {
     _configRepository.setConfigShowMicronutrients(show);
   }
+
+  Future<void> setConfigNutrientPanelVisibility(
+    Map<String, bool> visibility,
+  ) async {
+    await _configRepository.setConfigNutrientPanelVisibility(visibility);
+  }
 }

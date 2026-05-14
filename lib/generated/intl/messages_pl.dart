@@ -357,6 +357,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("N/D"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Nic nie dodano"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Dzień"),
+        "nutrientPanelWeekLabel":
+            MessageLookupByLibrary.simpleMessage("Tydzień"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Wszystkie składniki ukryte — włącz wybrane w Ustawienia → Składniki odżywcze."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Informacje odżywcze"),
         "nutritionalStatusNormalWeight":
@@ -960,6 +965,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Pokaż makro posiłku"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Pokaż mikroskładniki"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Składniki odżywcze"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Wybierz, które składniki pojawiają się w panelu dziennika"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Wybierz, które składniki są widoczne w panelu dziennym. Ukryte możesz w każdej chwili włączyć ponownie."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Kod źródłowy"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("System"),

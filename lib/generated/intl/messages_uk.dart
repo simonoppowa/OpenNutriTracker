@@ -356,6 +356,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("Н/Д"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Нічого не додано"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("День"),
+        "nutrientPanelWeekLabel":
+            MessageLookupByLibrary.simpleMessage("Тиждень"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Усі поживні речовини приховано — увімкни деякі в Налаштування → Поживні речовини."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Інформація про харчування"),
         "nutritionalStatusNormalWeight":
@@ -963,6 +968,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Показати макроси страви"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Показувати мікроелементи"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Поживні речовини"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Обери, які поживні речовини показувати на панелі щоденника"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Обери, які поживні речовини видимі на щоденній панелі. Приховані можна знову увімкнути будь-коли."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Вихідний код"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Система"),

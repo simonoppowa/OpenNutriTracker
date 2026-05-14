@@ -147,6 +147,16 @@ class ConfigDataSource {
     await config?.save();
   }
 
+  Future<void> setConfigNutrientPanelVisibility(
+    Map<String, bool> visibility,
+  ) async {
+    _log.fine('Updating nutrientPanelVisibility to $visibility');
+    final config = _configBox.get(_configKey);
+    // Persist a defensive copy — Hive serialises whatever we hand it, and a
+    // caller-owned map mutating later would silently change the saved value.
+    config?.nutrientPanelVisibility = Map<String, bool>.from(visibility);
+    await config?.save();
+  }
 
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();

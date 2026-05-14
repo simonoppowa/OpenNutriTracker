@@ -321,6 +321,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "noResultsFound": MessageLookupByLibrary.simpleMessage("未找到结果"),
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("不可用"),
         "nothingAddedLabel": MessageLookupByLibrary.simpleMessage("未添加任何内容"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("日"),
+        "nutrientPanelWeekLabel": MessageLookupByLibrary.simpleMessage("周"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "所有营养素都已隐藏 — 请到设置 → 营养素中打开。"),
         "nutritionInfoLabel": MessageLookupByLibrary.simpleMessage("营养信息"),
         "nutritionalStatusNormalWeight":
             MessageLookupByLibrary.simpleMessage("正常体重"),
@@ -820,6 +824,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("显示餐食宏量"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("显示微量营养素"),
+        "settingsNutrientsLabel": MessageLookupByLibrary.simpleMessage("营养素"),
+        "settingsNutrientsSubtitle":
+            MessageLookupByLibrary.simpleMessage("选择在日记面板中显示哪些营养素"),
+        "settingsNutrientsHelp":
+            MessageLookupByLibrary.simpleMessage("选择每日面板中显示哪些营养素。隐藏的可以随时重新开启。"),
         "settingsSourceCodeLabel": MessageLookupByLibrary.simpleMessage("源代码"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("系统"),
         "settingsThemeDarkLabel": MessageLookupByLibrary.simpleMessage("深色"),

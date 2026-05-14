@@ -40,6 +40,13 @@ class ConfigDBO extends HiveObject {
   bool? showMealMacros;
   @HiveField(15)
   bool? showMicronutrients; // #237: null means default (false)
+  // #160 follow-up: per-nutrient show/hide map for the daily nutrient panel.
+  // Keys are nutrient identifiers from [DailyNutrientPanel]; values are
+  // explicit user overrides. A nutrient not present in the map (or a null
+  // map altogether) means "use the default visibility", which is currently
+  // visible for every nutrient — see [ConfigEntity.isNutrientVisible].
+  @HiveField(22)
+  Map<String, bool>? nutrientPanelVisibility;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -55,6 +62,7 @@ class ConfigDBO extends HiveObject {
     this.notificationMinute,
     this.selectedLocale,
     this.showMicronutrients,
+    this.nutrientPanelVisibility,
   });
 
   factory ConfigDBO.empty() =>

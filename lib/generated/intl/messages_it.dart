@@ -357,6 +357,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("N/D"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Niente aggiunto"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Giorno"),
+        "nutrientPanelWeekLabel":
+            MessageLookupByLibrary.simpleMessage("Settimana"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Tutti i nutrienti nascosti — attivane alcuni in Impostazioni → Nutrienti."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Informazioni nutrizionali"),
         "nutritionalStatusNormalWeight":
@@ -963,6 +968,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Mostra macro pasto"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Mostra micronutrienti"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Nutrienti"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Scegli quali nutrienti compaiono nel pannello del diario"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Scegli quali nutrienti sono visibili nel pannello giornaliero. Quelli nascosti possono essere riattivati in qualsiasi momento."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Codice sorgente"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Sistema"),

@@ -1,66 +1,161 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-/// Daily micronutrient summary that aggregates the seven nutrients reporters
-/// keep asking for — fibre, sodium, saturated fat, sugar, calcium, iron,
-/// potassium — across the day's intake list and renders each as a
-/// "value / reference" row with a small progress bar.
+/// Daily micronutrient summary that aggregates the nutrients reporters keep
+/// asking for — fibre, sodium, saturated fat, sugar, calcium, iron, potassium,
+/// vitamin D, vitamin B12, and magnesium — across the day's intake list and
+/// renders each as a "value / reference" row with a small progress bar.
 ///
 /// The references are sensible DRIs for an average adult (FDA Daily Values
-/// where applicable). Iron's reference is gender-aware because the gap
-/// between female (18mg) and male (8mg) DRIs is large enough that a single
-/// number would mislead one group or the other.
+/// where applicable). Iron and magnesium are gender-aware because the gap
+/// between female and male DRIs is large enough that a single number would
+/// mislead one group or the other.
 ///
-/// Computation is on the fly from [intakes] — no DBO migration, no extra
-/// persistence. PR #314 added the per-meal micronutrient fields on
-/// [MealNutrimentsDBO]; this widget simply sums them.
-class DailyNutrientPanel extends StatelessWidget {
+/// As a follow-up to #160 the panel now supports two extra dimensions:
+///   * a Day / Week SegmentedButton toggle. "Week" computes a 7-day rolling
+///     average (today + the previous 6 days) so the user can see whether a
+///     single low-iron day was actually an outlier; references stay the
+///     same. The previous days' intakes are fetched via [GetIntakeUsecase]
+///     in [didChangeDependencies] and again whenever [selectedDay] changes.
+///   * a per-nutrient show/hide map persisted on [ConfigEntity]. Defaults to
+///     "everything visible"; the user can hide individual nutrients from
+///     Settings → Nutrients (see [NutrientPanelKeys]).
+///
+/// Computation is on the fly from [intakes] (plus the fetched week window
+/// when Week is selected). PR #314 added the per-meal micronutrient fields
+/// on [MealNutrimentsDBO]; this widget simply sums them.
+class DailyNutrientPanel extends StatefulWidget {
   final List<IntakeEntity> intakes;
 
-  const DailyNutrientPanel({super.key, required this.intakes});
+  /// The day the panel is summarising. Used as the anchor for the weekly
+  /// rolling average (today + the previous 6 days). Defaults to "today".
+  final DateTime? selectedDay;
+
+  const DailyNutrientPanel({super.key, required this.intakes, this.selectedDay});
+
+  @override
+  State<DailyNutrientPanel> createState() => _DailyNutrientPanelState();
+}
+
+class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
+  _NutrientView _view = _NutrientView.day;
+
+  Future<_PanelData>? _panelDataFuture;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _panelDataFuture ??= _loadPanelData();
+  }
+
+  @override
+  void didUpdateWidget(covariant DailyNutrientPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The parent passes a fresh intake list whenever the day changes or an
+    // intake is added/removed. Refetch so the weekly average stays accurate
+    // and the visibility map picks up any Settings edits.
+    if (oldWidget.intakes != widget.intakes ||
+        oldWidget.selectedDay != widget.selectedDay) {
+      _panelDataFuture = _loadPanelData();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<UserEntity?>(
-      future: _maybeGetUser(),
+    return FutureBuilder<_PanelData>(
+      future: _panelDataFuture,
       builder: (context, snapshot) {
-        final user = snapshot.data;
-        return _buildPanel(context, user);
+        final data = snapshot.data;
+        // Render the daily view (no weekly history yet) while the future
+        // resolves — keeps the panel from blank-flashing on every rebuild.
+        return _buildPanel(context, data);
       },
     );
   }
 
-  Future<UserEntity?> _maybeGetUser() async {
+  Future<_PanelData> _loadPanelData() async {
+    UserEntity? user;
     try {
-      return await locator<GetUserUsecase>().getUserData();
+      user = await locator<GetUserUsecase>().getUserData();
     } catch (_) {
-      // If the user data isn't available (e.g. in tests or pre-onboarding),
-      // fall back to the gender-neutral defaults below.
-      return null;
+      // Pre-onboarding / tests: fall back to gender-neutral defaults.
+      user = null;
     }
+
+    Map<String, bool> visibility = const <String, bool>{};
+    try {
+      final config = await locator<GetConfigUsecase>().getConfig();
+      visibility = config.nutrientPanelVisibility;
+    } catch (_) {
+      // Tests without the locator wired up — default to "all visible".
+    }
+
+    List<IntakeEntity> weekIntakes = widget.intakes;
+    try {
+      final anchor = widget.selectedDay ?? DateTime.now();
+      weekIntakes = await _fetchLastSevenDaysIntakes(anchor);
+    } catch (_) {
+      // If the intake use case isn't registered (tests), the daily view
+      // still works fine — fall back to whatever the parent gave us.
+      weekIntakes = widget.intakes;
+    }
+
+    return _PanelData(
+      user: user,
+      visibility: visibility,
+      weekIntakes: weekIntakes,
+    );
   }
 
-  Widget _buildPanel(BuildContext context, UserEntity? user) {
-    // Aggregate per-100g values into totals using the same pattern the rest of
-    // the app uses: amount × (value100 / 100).
-    final fiberG = _sum((n) => n.fiber100, intakes);
-    final sodiumMg = _sum((n) => n.sodium100, intakes);
-    final saturatedFatG = _sum((n) => n.saturatedFat100, intakes);
-    final sugarG = _sum((n) => n.sugars100, intakes);
-    final calciumMg = _sum((n) => n.calcium100, intakes);
-    final ironMg = _sum((n) => n.iron100, intakes);
-    final potassiumMg = _sum((n) => n.potassium100, intakes);
+  Future<List<IntakeEntity>> _fetchLastSevenDaysIntakes(DateTime anchor) async {
+    final getIntakeUsecase = locator<GetIntakeUsecase>();
+    final all = <IntakeEntity>[];
+    for (int dayOffset = 0; dayOffset < 7; dayOffset++) {
+      final day = DateTime(anchor.year, anchor.month, anchor.day)
+          .subtract(Duration(days: dayOffset));
+      all
+        ..addAll(await getIntakeUsecase.getBreakfastIntakeByDay(day))
+        ..addAll(await getIntakeUsecase.getLunchIntakeByDay(day))
+        ..addAll(await getIntakeUsecase.getDinnerIntakeByDay(day))
+        ..addAll(await getIntakeUsecase.getSnackIntakeByDay(day));
+    }
+    return all;
+  }
+
+  Widget _buildPanel(BuildContext context, _PanelData? data) {
+    final user = data?.user;
+    final visibility = data?.visibility ?? const <String, bool>{};
+    // Pick the right source for totals. Daily view sums today's intakes;
+    // weekly view sums the seven-day window and then divides each total by
+    // seven to get an average daily intake.
+    final isWeekly = _view == _NutrientView.week;
+    final source = isWeekly ? (data?.weekIntakes ?? widget.intakes) : widget.intakes;
+    final totals = NutrientPanelTotals.fromIntakes(source, weekly: isWeekly);
+    final fiberG = totals.fiberG;
+    final sodiumMg = totals.sodiumMg;
+    final saturatedFatG = totals.saturatedFatG;
+    final sugarG = totals.sugarG;
+    final calciumMg = totals.calciumMg;
+    final ironMg = totals.ironMg;
+    final potassiumMg = totals.potassiumMg;
+    final vitaminDMcg = totals.vitaminDMcg;
+    final vitaminB12Mcg = totals.vitaminB12Mcg;
+    final magnesiumMg = totals.magnesiumMg;
 
     // Reference values are sensible adult DRIs / FDA Daily Values. Iron's
     // reference uses UserEntity.gender so women see 18mg and men see 8mg;
-    // non-binary users get a midpoint of 14mg, in line with the app's
-    // existing averaged-reference convention for non-binary calculations.
+    // magnesium follows the same gender-aware pattern (400/310). Non-binary
+    // users get a midpoint, in line with the app's existing averaged-
+    // reference convention for non-binary calculations.
     const fiberRefG = 30.0;
     const sodiumRefMg = 2300.0;
     const saturatedFatRefG = 20.0;
@@ -68,85 +163,165 @@ class DailyNutrientPanel extends StatelessWidget {
     const calciumRefMg = 1000.0;
     final ironRefMg = _ironRefForGender(user?.gender);
     const potassiumRefMg = 3500.0;
+    const vitaminDRefMcg = 15.0;
+    const vitaminB12RefMcg = 2.4;
+    final magnesiumRefMg = _magnesiumRefForGender(user?.gender);
 
     final s = S.of(context);
-    final rows = <Widget>[
-      _NutrientRow(
+    final allRows = <_PanelRow>[
+      _PanelRow(
+        key: NutrientPanelKeys.fiber,
         label: s.fiberLabel,
         value: fiberG,
         reference: fiberRefG,
         unit: 'g',
         excessMatters: false,
       ),
-      _NutrientRow(
+      _PanelRow(
+        key: NutrientPanelKeys.sodium,
         label: s.sodiumLabel,
         value: sodiumMg,
         reference: sodiumRefMg,
         unit: 'mg',
         excessMatters: true,
       ),
-      _NutrientRow(
+      _PanelRow(
+        key: NutrientPanelKeys.saturatedFat,
         label: s.saturatedFatLabel,
         value: saturatedFatG,
         reference: saturatedFatRefG,
         unit: 'g',
         excessMatters: true,
       ),
-      _NutrientRow(
+      _PanelRow(
+        key: NutrientPanelKeys.sugar,
         label: s.sugarLabel,
         value: sugarG,
         reference: sugarRefG,
         unit: 'g',
         excessMatters: true,
       ),
-      _NutrientRow(
+      _PanelRow(
+        key: NutrientPanelKeys.calcium,
         label: s.calciumLabel,
         value: calciumMg,
         reference: calciumRefMg,
         unit: 'mg',
         excessMatters: false,
       ),
-      _NutrientRow(
+      _PanelRow(
+        key: NutrientPanelKeys.iron,
         label: s.ironLabel,
         value: ironMg,
         reference: ironRefMg,
         unit: 'mg',
         excessMatters: false,
       ),
-      _NutrientRow(
+      _PanelRow(
+        key: NutrientPanelKeys.potassium,
         label: s.potassiumLabel,
         value: potassiumMg,
         reference: potassiumRefMg,
         unit: 'mg',
         excessMatters: false,
       ),
+      _PanelRow(
+        key: NutrientPanelKeys.vitaminD,
+        label: s.vitaminDLabel,
+        value: vitaminDMcg,
+        reference: vitaminDRefMcg,
+        unit: 'µg',
+        excessMatters: false,
+      ),
+      _PanelRow(
+        key: NutrientPanelKeys.vitaminB12,
+        label: s.vitaminB12Label,
+        value: vitaminB12Mcg,
+        reference: vitaminB12RefMcg,
+        unit: 'µg',
+        excessMatters: false,
+      ),
+      _PanelRow(
+        key: NutrientPanelKeys.magnesium,
+        label: s.magnesiumLabel,
+        value: magnesiumMg,
+        reference: magnesiumRefMg,
+        unit: 'mg',
+        excessMatters: false,
+      ),
     ];
+
+    // Filter by the user's per-nutrient visibility setting. Anything not
+    // mentioned in the map defaults to visible.
+    final visibleRows = allRows
+        .where((row) => visibility[row.key] ?? true)
+        .map(
+          (row) => _NutrientRow(
+            label: row.label,
+            value: row.value,
+            reference: row.reference,
+            unit: row.unit,
+            excessMatters: row.excessMatters,
+          ),
+        )
+        .toList();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            s.diaryNutrientPanelTitle,
-            style: Theme.of(context).textTheme.titleSmall,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  s.diaryNutrientPanelTitle,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              SegmentedButton<_NutrientView>(
+                style: const ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                showSelectedIcon: false,
+                segments: <ButtonSegment<_NutrientView>>[
+                  ButtonSegment(
+                    value: _NutrientView.day,
+                    label: Text(s.nutrientPanelDayLabel),
+                  ),
+                  ButtonSegment(
+                    value: _NutrientView.week,
+                    label: Text(s.nutrientPanelWeekLabel),
+                  ),
+                ],
+                selected: <_NutrientView>{_view},
+                onSelectionChanged: (selection) {
+                  setState(() => _view = selection.first);
+                },
+              ),
+            ],
           ),
           const SizedBox(height: 8.0),
-          ...rows,
+          if (visibleRows.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Text(
+                s.nutrientPanelAllHiddenLabel,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.7),
+                    ),
+              ),
+            )
+          else
+            ...visibleRows,
         ],
       ),
     );
-  }
-
-  static double _sum(
-    double? Function(MealNutrimentsEntity n) selector,
-    List<IntakeEntity> list,
-  ) {
-    return list.fold<double>(0, (running, intake) {
-      final per100 = selector(intake.meal.nutriments);
-      if (per100 == null) return running;
-      return running + intake.amount * per100 / 100.0;
-    });
   }
 
   static double _ironRefForGender(UserGenderEntity? gender) {
@@ -160,6 +335,140 @@ class DailyNutrientPanel extends StatelessWidget {
         return 14.0;
     }
   }
+
+  static double _magnesiumRefForGender(UserGenderEntity? gender) {
+    switch (gender) {
+      case UserGenderEntity.female:
+        return 310.0;
+      case UserGenderEntity.male:
+        return 400.0;
+      case UserGenderEntity.nonBinary:
+      case null:
+        return 355.0;
+    }
+  }
+}
+
+enum _NutrientView { day, week }
+
+/// Pure-function helper that aggregates a list of intakes into per-nutrient
+/// totals. Pulled out of the widget so unit tests can exercise it directly
+/// without spinning up a Flutter binding. `weekly: true` divides every total
+/// by 7 to convert a seven-day window into an average daily intake.
+class NutrientPanelTotals {
+  final double fiberG;
+  final double sodiumMg;
+  final double saturatedFatG;
+  final double sugarG;
+  final double calciumMg;
+  final double ironMg;
+  final double potassiumMg;
+  final double vitaminDMcg;
+  final double vitaminB12Mcg;
+  final double magnesiumMg;
+
+  const NutrientPanelTotals({
+    required this.fiberG,
+    required this.sodiumMg,
+    required this.saturatedFatG,
+    required this.sugarG,
+    required this.calciumMg,
+    required this.ironMg,
+    required this.potassiumMg,
+    required this.vitaminDMcg,
+    required this.vitaminB12Mcg,
+    required this.magnesiumMg,
+  });
+
+  factory NutrientPanelTotals.fromIntakes(
+    List<IntakeEntity> intakes, {
+    bool weekly = false,
+  }) {
+    final divisor = weekly ? 7.0 : 1.0;
+    double sum(double? Function(MealNutrimentsEntity n) pick) {
+      return intakes.fold<double>(0, (running, intake) {
+            final per100 = pick(intake.meal.nutriments);
+            if (per100 == null) return running;
+            return running + intake.amount * per100 / 100.0;
+          }) /
+          divisor;
+    }
+
+    return NutrientPanelTotals(
+      fiberG: sum((n) => n.fiber100),
+      sodiumMg: sum((n) => n.sodium100),
+      saturatedFatG: sum((n) => n.saturatedFat100),
+      sugarG: sum((n) => n.sugars100),
+      calciumMg: sum((n) => n.calcium100),
+      ironMg: sum((n) => n.iron100),
+      potassiumMg: sum((n) => n.potassium100),
+      vitaminDMcg: sum((n) => n.vitaminD100),
+      vitaminB12Mcg: sum((n) => n.vitaminB12100),
+      magnesiumMg: sum((n) => n.magnesium100),
+    );
+  }
+}
+
+/// Stable identifiers for the panel's nutrient rows. These are the keys the
+/// per-nutrient visibility map uses on [ConfigEntity], so renaming any of
+/// them is a backward-incompatible change: existing visibility overrides
+/// would silently lose their associations.
+class NutrientPanelKeys {
+  NutrientPanelKeys._();
+
+  static const String fiber = 'fiber';
+  static const String sodium = 'sodium';
+  static const String saturatedFat = 'saturated_fat';
+  static const String sugar = 'sugar';
+  static const String calcium = 'calcium';
+  static const String iron = 'iron';
+  static const String potassium = 'potassium';
+  static const String vitaminD = 'vitamin_d';
+  static const String vitaminB12 = 'vitamin_b12';
+  static const String magnesium = 'magnesium';
+
+  static const List<String> all = <String>[
+    fiber,
+    sodium,
+    saturatedFat,
+    sugar,
+    calcium,
+    iron,
+    potassium,
+    vitaminD,
+    vitaminB12,
+    magnesium,
+  ];
+}
+
+class _PanelData {
+  final UserEntity? user;
+  final Map<String, bool> visibility;
+  final List<IntakeEntity> weekIntakes;
+
+  _PanelData({
+    required this.user,
+    required this.visibility,
+    required this.weekIntakes,
+  });
+}
+
+class _PanelRow {
+  final String key;
+  final String label;
+  final double value;
+  final double reference;
+  final String unit;
+  final bool excessMatters;
+
+  _PanelRow({
+    required this.key,
+    required this.label,
+    required this.value,
+    required this.reference,
+    required this.unit,
+    required this.excessMatters,
+  });
 }
 
 class _NutrientRow extends StatelessWidget {
@@ -170,7 +479,8 @@ class _NutrientRow extends StatelessWidget {
 
   /// Whether going over the reference is a problem (sodium, saturated fat,
   /// sugar) versus simply not meeting a target (fibre, calcium, iron,
-  /// potassium). Affects the colour the bar turns when the user goes over.
+  /// potassium, vitamin D, vitamin B12, magnesium). Affects the colour the
+  /// bar turns when the user goes over.
   final bool excessMatters;
 
   const _NutrientRow({
@@ -239,9 +549,10 @@ class _NutrientRow extends StatelessWidget {
       if (ratio >= 0.8) return Colors.amber.shade700;
       return scheme.primary;
     } else {
-      // Fibre / calcium / iron / potassium: amber while still well short of
-      // the reference, primary green once you reach it. Going over isn't a
-      // concern at these values from food alone.
+      // Fibre / calcium / iron / potassium / vitamin D / B12 / magnesium:
+      // amber while still well short of the reference, primary green once
+      // you reach it. Going over isn't a concern at these values from food
+      // alone.
       if (ratio >= 1.0) return scheme.primary;
       if (ratio >= 0.5) return Colors.amber.shade700;
       return scheme.primary.withValues(alpha: 0.6);
