@@ -395,9 +395,12 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               runSpacing: 4,
               children: [
                 for (final pattern in MealPatternEntity.values)
-                  OutlinedButton(
-                    onPressed: () => _applyMealPattern(pattern),
-                    child: Text(_mealPatternLabel(context, pattern)),
+                  Semantics(
+                    identifier: 'calculations-meal-pattern-${pattern.id}',
+                    child: OutlinedButton(
+                      onPressed: () => _applyMealPattern(pattern),
+                      child: Text(_mealPatternLabel(context, pattern)),
+                    ),
                   ),
               ],
             ),
@@ -414,6 +417,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 changedMeal: ConfigEntity.mealKeyBreakfast,
                 newValue: value,
               ),
+              identifier: 'calculations-meal-share-breakfast',
             ),
             _buildMealShareRow(
               S.of(context).settingsPerMealKcalShareLunch,
@@ -422,6 +426,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 changedMeal: ConfigEntity.mealKeyLunch,
                 newValue: value,
               ),
+              identifier: 'calculations-meal-share-lunch',
             ),
             _buildMealShareRow(
               S.of(context).settingsPerMealKcalShareDinner,
@@ -430,6 +435,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 changedMeal: ConfigEntity.mealKeyDinner,
                 newValue: value,
               ),
+              identifier: 'calculations-meal-share-dinner',
             ),
             _buildMealShareRow(
               S.of(context).settingsPerMealKcalShareSnack,
@@ -438,6 +444,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 changedMeal: ConfigEntity.mealKeySnack,
                 newValue: value,
               ),
+              identifier: 'calculations-meal-share-snack',
             ),
           ],
         ),
@@ -531,8 +538,9 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
   Widget _buildMealShareRow(
     String label,
     double value,
-    ValueChanged<double> onSliderChanged,
-  ) {
+    ValueChanged<double> onSliderChanged, {
+    required String identifier,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -542,12 +550,15 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
             Text('${value.round()}%'),
           ],
         ),
-        Slider(
-          min: 0,
-          max: 100,
-          value: value.clamp(0, 100),
-          divisions: 100,
-          onChanged: (v) => onSliderChanged(v.roundToDouble()),
+        Semantics(
+          identifier: identifier,
+          child: Slider(
+            min: 0,
+            max: 100,
+            value: value.clamp(0, 100),
+            divisions: 100,
+            onChanged: (v) => onSliderChanged(v.roundToDouble()),
+          ),
         ),
       ],
     );
