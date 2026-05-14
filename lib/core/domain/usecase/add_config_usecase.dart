@@ -71,4 +71,8 @@ class AddConfigUsecase {
   Future<void> setConfigShowMicronutrients(bool show) async {
     _configRepository.setConfigShowMicronutrients(show);
   }
+
+  Future<void> setDiarySortPreference(String mealKey, int sortIndex) async {
+    await _configRepository.setDiarySortPreference(mealKey, sortIndex);
+  }
 }

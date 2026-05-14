@@ -105,6 +105,15 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     _addConfigUsecase.setConfigShowMicronutrients(show);
   }
 
+  Future<Map<String, int>?> getDiarySortPreferences() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.diarySortPreferences;
+  }
+
+  Future<void> setDiarySortPreference(String mealKey, int sortIndex) async {
+    await _addConfigUsecase.setDiarySortPreference(mealKey, sortIndex);
+  }
+
 
   Future<double> getKcalAdjustment() async {
     final config = await _getConfigUsecase.getConfig();

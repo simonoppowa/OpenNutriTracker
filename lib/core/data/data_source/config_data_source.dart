@@ -147,6 +147,33 @@ class ConfigDataSource {
     await config?.save();
   }
 
+  Future<Map<String, int>?> getDiarySortPreferences() async {
+    final config = _configBox.get(_configKey);
+    final stored = config?.diarySortPreferences;
+    if (stored == null) return null;
+    // The Hive-generated adapter hands us a Map<dynamic, dynamic>.cast<String,
+    // int>() view; eagerly copy into a concrete map so callers see a real
+    // Map<String, int> rather than a lazy cast view that throws on access if
+    // anything unexpected ever lands in the box.
+    return Map<String, int>.from(stored);
+  }
+
+  Future<void> setDiarySortPreference(String mealKey, int sortIndex) async {
+    _log.fine('Updating config diarySortPreferences[$mealKey] = $sortIndex');
+    final config = _configBox.get(_configKey);
+    if (config == null) return;
+    final current = config.diarySortPreferences;
+    // Build a fresh Map<String, int> so the write doesn't share storage with
+    // whatever map type Hive handed back, and so the cast lands eagerly
+    // rather than lazily at read time.
+    final next = <String, int>{
+      if (current != null) ...Map<String, int>.from(current),
+      mealKey: sortIndex,
+    };
+    config.diarySortPreferences = next;
+    await config.save();
+  }
+
 
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();

@@ -9,7 +9,9 @@ import 'package:opennutritracker/core/presentation/widgets/copy_or_delete_dialog
 import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -25,6 +27,11 @@ class DayInfoWidget extends StatefulWidget {
 
   final bool usesImperialUnits;
   final bool showMealMacros;
+  // Persisted per-meal sort preference loaded by [CalendarDayBloc]. Keys are
+  // meal-type strings (breakfast / lunch / dinner / snack) and values are
+  // [DiarySortType] enum indices. Null when the user has never picked a
+  // sort, in which case every section starts on [DiarySortType.timeAdded].
+  final Map<String, int>? diarySortPreferences;
   final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity)
       onDeleteIntake;
   final Function(
@@ -56,6 +63,7 @@ class DayInfoWidget extends StatefulWidget {
     required this.snackIntake,
     required this.usesImperialUnits,
     this.showMealMacros = true,
+    this.diarySortPreferences,
     required this.onDeleteIntake,
     required this.onDeleteActivity,
     required this.onCopyIntake,
@@ -69,21 +77,67 @@ class DayInfoWidget extends StatefulWidget {
 }
 
 class _DayInfoWidgetState extends State<DayInfoWidget> {
-  // Per-meal sort selection. Lives in widget state — resets when the user
-  // navigates away from the diary, which is documented behaviour for now.
-  // If we hear that people want this remembered across sessions we can lift
-  // it onto ConfigDBO behind a single new field.
-  final Map<IntakeTypeEntity, DiarySortType> _sortByMeal = {
-    IntakeTypeEntity.breakfast: DiarySortType.timeAdded,
-    IntakeTypeEntity.lunch: DiarySortType.timeAdded,
-    IntakeTypeEntity.dinner: DiarySortType.timeAdded,
-    IntakeTypeEntity.snack: DiarySortType.timeAdded,
-  };
+  // Per-meal sort selection. Seeded from the persisted preferences on
+  // [ConfigDBO] (via [CalendarDayBloc]) so the choice survives navigation
+  // and app restart, and falls back to [DiarySortType.timeAdded] for any
+  // meal type the user has not yet customised. We keep a local widget-state
+  // copy so the picker updates optimistically without waiting for the next
+  // calendar-day reload.
+  late Map<IntakeTypeEntity, DiarySortType> _sortByMeal;
+
+  @override
+  void initState() {
+    super.initState();
+    _sortByMeal = _seedFromPreferences(widget.diarySortPreferences);
+  }
+
+  @override
+  void didUpdateWidget(covariant DayInfoWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If the bloc emits an updated preference map (for example because the
+    // user switched days and the freshly loaded config has a different
+    // breakfast sort), reseed so the picker reflects what's persisted.
+    if (oldWidget.diarySortPreferences != widget.diarySortPreferences) {
+      _sortByMeal = _seedFromPreferences(widget.diarySortPreferences);
+    }
+  }
+
+  Map<IntakeTypeEntity, DiarySortType> _seedFromPreferences(
+    Map<String, int>? persisted,
+  ) {
+    Map<IntakeTypeEntity, DiarySortType> defaults() => {
+          IntakeTypeEntity.breakfast: DiarySortType.timeAdded,
+          IntakeTypeEntity.lunch: DiarySortType.timeAdded,
+          IntakeTypeEntity.dinner: DiarySortType.timeAdded,
+          IntakeTypeEntity.snack: DiarySortType.timeAdded,
+        };
+
+    if (persisted == null) return defaults();
+
+    final seeded = defaults();
+    for (final mealType in IntakeTypeEntity.values) {
+      final storedIndex = persisted[mealType.name];
+      if (storedIndex == null) continue;
+      // Defensive bound check — if a future build ever removes a sort
+      // option, an older index might land here. Falling back to the default
+      // keeps the diary from crashing on stale data.
+      if (storedIndex < 0 || storedIndex >= DiarySortType.values.length) {
+        continue;
+      }
+      seeded[mealType] = DiarySortType.values[storedIndex];
+    }
+    return seeded;
+  }
 
   void _setSortFor(IntakeTypeEntity mealType, DiarySortType sortType) {
     setState(() {
       _sortByMeal[mealType] = sortType;
     });
+    // Persist asynchronously — we don't block the UI on the write. The
+    // optimistic widget-state update above means the picker reflects the
+    // user's choice immediately even if the disk write is still in flight.
+    locator<CalendarDayBloc>()
+        .setDiarySortPreference(mealType.name, sortType.index);
   }
 
   @override

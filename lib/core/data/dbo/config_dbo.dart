@@ -41,6 +41,14 @@ class ConfigDBO extends HiveObject {
   @HiveField(15)
   bool? showMicronutrients; // #237: null means default (false)
 
+  /// Per-meal sort preference for the diary day view. Keys are meal type
+  /// strings (`breakfast` / `lunch` / `dinner` / `snack`) and values are the
+  /// `DiarySortType` enum index. Nullable so existing configs without a
+  /// persisted preference keep falling back to the widget-state default
+  /// (`DiarySortType.timeAdded`) until the user picks a sort.
+  @HiveField(21)
+  Map<String, int>? diarySortPreferences;
+
   ConfigDBO(
     this.hasAcceptedDisclaimer,
     this.hasAcceptedPolicy,
@@ -55,6 +63,7 @@ class ConfigDBO extends HiveObject {
     this.notificationMinute,
     this.selectedLocale,
     this.showMicronutrients,
+    this.diarySortPreferences,
   });
 
   factory ConfigDBO.empty() =>
