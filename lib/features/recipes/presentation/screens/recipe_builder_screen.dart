@@ -370,6 +370,7 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
       SaveError.needsIngredients => s.recipeNeedsIngredientsLabel,
       SaveError.invalidTotalWeight => s.recipeInvalidTotalWeightLabel,
       SaveError.invalidBarcode => s.customMealBarcodeInvalid,
+      SaveError.invalidEan13CheckDigit => s.barcodeInvalidEan13CheckDigit,
       SaveError.unknown => s.recipeSaveErrorLabel,
     };
     ScaffoldMessenger.of(context).showSnackBar(

@@ -49,6 +49,9 @@
   "customMealBarcodeHint": "Scan or type a barcode to recall this meal later",
   "customMealBarcodeScanButton": "Scan barcode",
   "customMealBarcodeInvalid": "Barcode must be 8 to 14 digits",
+  "barcodeInvalidEan13CheckDigit": "This 13-digit barcode looks miskeyed: its last digit doesn't match the rest",
+  "barcodeMultipleMatchesTitle": "More than one recipe matches",
+  "barcodeMultipleMatchesBody": "You've attached this barcode to several recipes. Pick the one you'd like to log.",
   "recipesFilterAllLabel": "All",
   "selectionCountLabel": "{count} selected",
   "@selectionCountLabel": {

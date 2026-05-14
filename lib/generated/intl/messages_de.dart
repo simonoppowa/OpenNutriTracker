@@ -175,6 +175,12 @@ class MessageLookup extends MessageLookupByLibrary {
             "CSV-Datei konnte nicht gelesen werden. Format prüfen und erneut versuchen."),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "barcodeInvalidEan13CheckDigit": MessageLookupByLibrary.simpleMessage(
+            "Dieser 13-stellige Barcode scheint einen Tippfehler zu haben: die letzte Ziffer passt nicht zu den übrigen"),
+        "barcodeMultipleMatchesBody": MessageLookupByLibrary.simpleMessage(
+            "Du hast diesen Barcode mehreren Rezepten zugewiesen. Wähle aus, welches du eintragen möchtest."),
+        "barcodeMultipleMatchesTitle":
+            MessageLookupByLibrary.simpleMessage("Mehrere Rezepte gefunden"),
         "customMealBarcodeHint": MessageLookupByLibrary.simpleMessage(
             "Scanne oder gib einen Barcode ein, um diese Mahlzeit später wiederzufinden"),
         "customMealBarcodeInvalid": MessageLookupByLibrary.simpleMessage(

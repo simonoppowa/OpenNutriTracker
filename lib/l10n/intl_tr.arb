@@ -91,6 +91,9 @@
       }
     }
   },
+  "barcodeInvalidEan13CheckDigit": "Bu 13 haneli barkod yanlış girilmiş gibi: son hane diğerleriyle uyuşmuyor",
+  "barcodeMultipleMatchesBody": "Bu barkodu birden fazla tarife atadın. Kaydetmek istediğini seç.",
+  "barcodeMultipleMatchesTitle": "Birden fazla tarif eşleşti",
   "customMealBarcodeHint": "Bu yemeği daha sonra hatırlamak için barkodu tarat veya yaz",
   "customMealBarcodeInvalid": "Barkod 8 ile 14 hane arasında olmalı",
   "customMealBarcodeLabel": "Barkod",

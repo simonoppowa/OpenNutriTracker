@@ -91,6 +91,9 @@
       }
     }
   },
+  "barcodeInvalidEan13CheckDigit": "Dieser 13-stellige Barcode scheint einen Tippfehler zu haben: die letzte Ziffer passt nicht zu den übrigen",
+  "barcodeMultipleMatchesBody": "Du hast diesen Barcode mehreren Rezepten zugewiesen. Wähle aus, welches du eintragen möchtest.",
+  "barcodeMultipleMatchesTitle": "Mehrere Rezepte gefunden",
   "customMealBarcodeHint": "Scanne oder gib einen Barcode ein, um diese Mahlzeit später wiederzufinden",
   "customMealBarcodeInvalid": "Der Barcode muss 8 bis 14 Ziffern haben",
   "customMealBarcodeLabel": "Barcode",

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_ingredient_entity.dart';
@@ -47,6 +48,39 @@ class RecipeBuilderBloc
   static final _barcodeFormat = RegExp(r'^\d{8,14}$');
 
   static bool _isBarcodeValid(String value) => _barcodeFormat.hasMatch(value);
+
+  // EAN-13 specific check-digit validation. For a 13-digit code the final
+  // digit must match the value computed from the first twelve, otherwise
+  // the user has miskeyed somewhere. 8 / 12 / 14-digit codes use different
+  // algorithms (EAN-8, UPC-A, GTIN-14) and are accepted at face value by
+  // the lenient regex above — we don't validate those here because real
+  // products on those formats may have been entered correctly without
+  // matching the EAN-13 weighting.
+  //
+  // Algorithm: sum the odd-positioned digits (1, 3, 5, 7, 9, 11), sum the
+  // even-positioned digits (2, 4, 6, 8, 10, 12) and weight that by three,
+  // take modulo ten, subtract from ten, modulo ten again — that's the
+  // expected 13th digit.
+  @visibleForTesting
+  static bool isEan13CheckDigitValid(String value) =>
+      _isEan13CheckDigitValid(value);
+
+  static bool _isEan13CheckDigitValid(String value) {
+    if (value.length != 13) return true;
+    var sumOdd = 0;
+    var sumEven = 0;
+    for (var i = 0; i < 12; i++) {
+      final digit = int.parse(value[i]);
+      // i is 0-indexed; position 1 (odd) corresponds to i == 0, etc.
+      if (i.isEven) {
+        sumOdd += digit;
+      } else {
+        sumEven += digit;
+      }
+    }
+    final check = (10 - ((sumOdd + 3 * sumEven) % 10)) % 10;
+    return int.parse(value[12]) == check;
+  }
 
   void _onInitialize(
     InitializeBuilderEvent event,
@@ -213,6 +247,11 @@ class RecipeBuilderBloc
             : trimmedBarcode;
     if (normalizedBarcode != null && !_isBarcodeValid(normalizedBarcode)) {
       emit(state.copyWith(saveError: SaveError.invalidBarcode));
+      return;
+    }
+    if (normalizedBarcode != null &&
+        !_isEan13CheckDigitValid(normalizedBarcode)) {
+      emit(state.copyWith(saveError: SaveError.invalidEan13CheckDigit));
       return;
     }
 

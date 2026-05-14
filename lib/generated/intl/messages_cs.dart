@@ -169,6 +169,12 @@ class MessageLookup extends MessageLookupByLibrary {
             "Nelze přečíst CSV soubor. Zkontrolujte formát a zkuste znovu."),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "barcodeInvalidEan13CheckDigit": MessageLookupByLibrary.simpleMessage(
+            "Tento 13místný čárový kód vypadá překlepnutě: poslední číslice nesouhlasí s ostatními"),
+        "barcodeMultipleMatchesBody": MessageLookupByLibrary.simpleMessage(
+            "K tomuto čárovému kódu máš přiřazeno více receptů. Vyber ten, který chceš zapsat."),
+        "barcodeMultipleMatchesTitle":
+            MessageLookupByLibrary.simpleMessage("Více odpovídajících receptů"),
         "customMealBarcodeHint": MessageLookupByLibrary.simpleMessage(
             "Naskenuj nebo zadej čárový kód, aby ses k jídlu mohl/a později vrátit"),
         "customMealBarcodeInvalid": MessageLookupByLibrary.simpleMessage(

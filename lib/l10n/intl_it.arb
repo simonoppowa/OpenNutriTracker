@@ -91,6 +91,9 @@
       }
     }
   },
+  "barcodeInvalidEan13CheckDigit": "Questo codice a barre a 13 cifre sembra digitato male, l'ultima cifra non corrisponde alle altre",
+  "barcodeMultipleMatchesBody": "Hai associato questo codice a barre a più ricette. Scegli quella che vuoi registrare.",
+  "barcodeMultipleMatchesTitle": "Più ricette corrispondono",
   "customMealBarcodeHint": "Scansiona o digita un codice a barre per richiamare questo pasto in seguito",
   "customMealBarcodeInvalid": "Il codice a barre deve avere da 8 a 14 cifre",
   "customMealBarcodeLabel": "Codice a barre",

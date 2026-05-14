@@ -91,6 +91,9 @@
       }
     }
   },
+  "barcodeInvalidEan13CheckDigit": "Tento 13místný čárový kód vypadá překlepnutě: poslední číslice nesouhlasí s ostatními",
+  "barcodeMultipleMatchesBody": "K tomuto čárovému kódu máš přiřazeno více receptů. Vyber ten, který chceš zapsat.",
+  "barcodeMultipleMatchesTitle": "Více odpovídajících receptů",
   "customMealBarcodeHint": "Naskenuj nebo zadej čárový kód, aby ses k jídlu mohl/a později vrátit",
   "customMealBarcodeInvalid": "Čárový kód musí mít 8 až 14 číslic",
   "customMealBarcodeLabel": "Čárový kód",

@@ -92,6 +92,9 @@
       }
     }
   },
+  "barcodeInvalidEan13CheckDigit": "这个 13 位条形码看起来输入有误：最后一位与前面的数字不匹配",
+  "barcodeMultipleMatchesBody": "你已将该条形码关联到多个食谱，请选择想要记录的那一个。",
+  "barcodeMultipleMatchesTitle": "匹配到多个食谱",
   "customMealBarcodeHint": "扫描或输入条形码，以便日后调用此餐食",
   "customMealBarcodeInvalid": "条形码必须为 8 到 14 位数字",
   "customMealBarcodeLabel": "条形码",

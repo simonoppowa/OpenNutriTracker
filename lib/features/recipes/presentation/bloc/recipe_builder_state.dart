@@ -5,6 +5,7 @@ enum SaveError {
   needsIngredients,
   invalidTotalWeight,
   invalidBarcode,
+  invalidEan13CheckDigit,
   unknown,
 }
 

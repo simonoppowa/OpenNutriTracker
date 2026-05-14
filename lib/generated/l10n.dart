@@ -550,6 +550,36 @@ class S {
     );
   }
 
+  /// `This 13-digit barcode looks miskeyed: its last digit doesn't match the rest`
+  String get barcodeInvalidEan13CheckDigit {
+    return Intl.message(
+      'This 13-digit barcode looks miskeyed: its last digit doesn\'t match the rest',
+      name: 'barcodeInvalidEan13CheckDigit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `More than one recipe matches`
+  String get barcodeMultipleMatchesTitle {
+    return Intl.message(
+      'More than one recipe matches',
+      name: 'barcodeMultipleMatchesTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You've attached this barcode to several recipes. Pick the one you'd like to log.`
+  String get barcodeMultipleMatchesBody {
+    return Intl.message(
+      'You\'ve attached this barcode to several recipes. Pick the one you\'d like to log.',
+      name: 'barcodeMultipleMatchesBody',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `All`
   String get recipesFilterAllLabel {
     return Intl.message(

@@ -170,6 +170,12 @@ class MessageLookup extends MessageLookupByLibrary {
             "Не вдалося прочитати CSV файл. Перевірте формат і спробуйте знову."),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "barcodeInvalidEan13CheckDigit": MessageLookupByLibrary.simpleMessage(
+            "Цей 13-значний штрих-код, схоже, введено з помилкою: остання цифра не збігається з рештою"),
+        "barcodeMultipleMatchesBody": MessageLookupByLibrary.simpleMessage(
+            "Ти прив\'язав(-ла) цей штрих-код до кількох рецептів. Обери той, який хочеш записати."),
+        "barcodeMultipleMatchesTitle":
+            MessageLookupByLibrary.simpleMessage("Збіглося кілька рецептів"),
         "customMealBarcodeHint": MessageLookupByLibrary.simpleMessage(
             "Скануй або введи штрих-код, щоб згодом знайти цю страву"),
         "customMealBarcodeInvalid": MessageLookupByLibrary.simpleMessage(

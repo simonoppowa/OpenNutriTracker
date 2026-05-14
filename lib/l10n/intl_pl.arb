@@ -91,6 +91,9 @@
       }
     }
   },
+  "barcodeInvalidEan13CheckDigit": "Ten 13-cyfrowy kod kreskowy wygląda na błędnie wpisany: ostatnia cyfra nie pasuje do pozostałych",
+  "barcodeMultipleMatchesBody": "Przypisałeś/-aś ten kod kreskowy do kilku przepisów. Wybierz, który chcesz zarejestrować.",
+  "barcodeMultipleMatchesTitle": "Pasuje więcej niż jeden przepis",
   "customMealBarcodeHint": "Zeskanuj lub wpisz kod kreskowy, aby później przywołać ten posiłek",
   "customMealBarcodeInvalid": "Kod kreskowy musi mieć od 8 do 14 cyfr",
   "customMealBarcodeLabel": "Kod kreskowy",
