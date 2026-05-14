@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!--
+    This file is the project landing page for OpenNutriTracker, served via
+    GitHub Pages and deployed from this directory by the
+    `.github/workflows/deploy-site.yml` workflow on each push to main.
+
+    To enable Pages for the first time:
+      Settings -> Pages -> Source: "GitHub Actions"
+    Once configured the page is reachable at
+    https://simonoppowa.github.io/OpenNutriTracker/
+  -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenNutriTracker — a quiet, private nutrition tracker</title>
+  <meta name="description" content="OpenNutriTracker is an open-source nutrition tracking app for iOS and Android. No account, no ads, no subscription. All your data stays encrypted on your device." />
+  <meta property="og:title" content="OpenNutriTracker" />
+  <meta property="og:description" content="A quiet, private nutrition tracker for iOS and Android. Open source. No account required. Your data stays on your device." />
+  <meta property="og:image" content="screenshots/logo.png" />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/png" href="screenshots/logo.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <img class="logo" src="screenshots/logo.png" alt="OpenNutriTracker logo" width="96" height="96" />
+      <h1>OpenNutriTracker</h1>
+      <p class="tagline">
+        A quiet, private nutrition tracker for the people in your life who would rather log a meal
+        than sign up for another service. Simon Oppowa built and maintains it as open source,
+        and it has slowly grown into something a small community now looks after together.
+      </p>
+      <p class="elevator">
+        You log what you eat, the app keeps the numbers, and that is essentially the deal.
+        There is no account to make, no newsletter to dodge, and no ads waiting to load.
+        Everything you record is AES-encrypted and stored locally on your phone, so the
+        history of what you have eaten this month belongs to you and only you. Food data
+        comes from <a href="https://world.openfoodfacts.org/">Open Food Facts</a> and the
+        USDA <a href="https://fdc.nal.usda.gov/">Food Data Central</a> catalog, both of
+        which are themselves open and community-maintained.
+      </p>
+
+      <div class="cta-row">
+        <a class="store-badge" href="https://apps.apple.com/us/app/opennutritracker/id6451490901" aria-label="Download on the App Store">
+          <img src="screenshots/appstore_banner.png" alt="Download on the App Store" />
+        </a>
+        <a class="store-badge" href="https://play.google.com/store/apps/details?id=com.opennutritracker.ont.opennutritracker" aria-label="Get it on Google Play">
+          <img src="screenshots/playstore_banner.png" alt="Get it on Google Play" />
+        </a>
+        <a class="github-link" href="https://github.com/simonoppowa/OpenNutriTracker">View on GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="screenshots" aria-label="Screenshots of the app">
+      <div class="screenshot-grid">
+        <figure>
+          <img src="screenshots/1_en-US.png" alt="Daily summary screen showing calories and macronutrients" loading="lazy" />
+        </figure>
+        <figure>
+          <img src="screenshots/2_en-US.png" alt="Adding a meal from the food search" loading="lazy" />
+        </figure>
+        <figure>
+          <img src="screenshots/3_en-US.png" alt="Food diary view across recent days" loading="lazy" />
+        </figure>
+        <figure>
+          <img src="screenshots/4_en-US.png" alt="Profile screen with goals and statistics" loading="lazy" />
+        </figure>
+      </div>
+    </section>
+
+    <section class="features">
+      <h2>What you can actually do with it</h2>
+      <ul>
+        <li>
+          <strong>Log meals and snacks</strong> across breakfast, lunch, dinner, and the small
+          unaccounted-for moments in between, and see how the day adds up at a glance.
+        </li>
+        <li>
+          <strong>Search a large food database</strong> backed by Open Food Facts and USDA Food
+          Data Central, so most of the things in your kitchen are already there.
+        </li>
+        <li>
+          <strong>Scan barcodes</strong> on packaged food, which is sometimes the difference
+          between logging the snack and forgetting about it.
+        </li>
+        <li>
+          <strong>Keep a food diary</strong> by date, so you can look back at what a week of
+          eating actually looked like rather than what you think it looked like.
+        </li>
+        <li>
+          <strong>Track activity</strong> alongside intake, with MET-based estimates of the
+          calories spent on walks, runs, rides, and the rest.
+        </li>
+        <li>
+          <strong>Stay private</strong>. Your data is encrypted on-device. No account is
+          required to use the app, and nothing is shared without your consent.
+        </li>
+      </ul>
+    </section>
+
+    <section class="privacy">
+      <h2>About privacy</h2>
+      <p>
+        OpenNutriTracker treats your nutrition history as the personal information it is.
+        Everything you log lives in a local <a href="https://github.com/IO-Design-Team/hive_ce">Hive</a>
+        database on your device, encrypted with a key kept in your platform's secure storage.
+        There is no cloud sync, because there is no cloud account. If you want to move your data
+        to another phone, you can export it from the Settings screen as a plain zip and bring
+        it across yourself. The full data-protection statement lives at
+        <a href="https://www.iubenda.com/privacy-policy/53501884">iubenda</a>.
+      </p>
+    </section>
+
+    <section class="verify" id="verify">
+      <h2>Verify your download</h2>
+      <p>
+        If you side-load the Android APK from
+        <a href="https://github.com/simonoppowa/OpenNutriTracker/releases">GitHub Releases</a>
+        rather than installing through the Play Store, you may want to confirm that the file
+        on your disk is the one we signed. There are two values you can check against — both
+        are read automatically from the latest release and updated whenever a new one is cut.
+      </p>
+
+      <div class="verify-grid">
+        <div class="verify-card">
+          <h3>Signing certificate</h3>
+          <p class="verify-card-note">
+            The fingerprint of the certificate the APK was signed with. This value is the
+            cryptographically meaningful one — anyone with the matching private key could
+            produce a matching signature, and nobody else can. It stays the same across
+            every release.
+          </p>
+          <code class="verify-hash" data-field="signing-cert">loading…</code>
+          <p class="verify-card-note verify-card-note-small">
+            SHA-256, lower-case hex, no separators.
+            Issued to <span data-field="signing-cn">Simon Oppowa</span>.
+          </p>
+        </div>
+
+        <div class="verify-card">
+          <h3>Latest APK file</h3>
+          <p class="verify-card-note">
+            The SHA-256 of the APK bytes published for the latest release.
+            This changes every release, and lets you confirm the binary you downloaded
+            matches the one we published, with no in-flight tampering.
+          </p>
+          <code class="verify-hash" data-field="apk-hash">loading…</code>
+          <p class="verify-card-note verify-card-note-small">
+            Release <span data-field="release-tag">…</span>,
+            published <span data-field="release-date">…</span>.
+            <a data-field="release-link" href="https://github.com/simonoppowa/OpenNutriTracker/releases">View release →</a>
+          </p>
+        </div>
+      </div>
+
+      <p>
+        To verify the signing certificate yourself, run
+        <code>apksigner verify --print-certs /path/to/app-release.apk</code> against the
+        downloaded file. The <code>Signer #1 certificate SHA-256 digest</code> line in the
+        output should match the value above, byte for byte.
+      </p>
+      <p>
+        To verify the file hash, run <code>sha256sum app-release.apk</code> (Linux) or
+        <code>shasum -a 256 app-release.apk</code> (macOS) on the downloaded file. The
+        printed value should match the latest-APK value above.
+      </p>
+      <noscript>
+        <p>
+          JavaScript is disabled, so the values above are not loading. The canonical hashes
+          live in
+          <a href="https://github.com/simonoppowa/OpenNutriTracker/blob/main/docs/site/release-info.json">docs/site/release-info.json</a>
+          in the repository, and the
+          <a href="https://github.com/simonoppowa/OpenNutriTracker/blob/main/README.md">README</a>
+          has the verification instructions in text form.
+        </p>
+      </noscript>
+    </section>
+
+    <section class="contribute">
+      <h2>Contributing</h2>
+      <p>
+        OpenNutriTracker is open source under the GPLv3 license, and contributions are warmly
+        welcomed. If you have spotted a bug, would like to translate the app into another
+        language, or want to propose a feature, the
+        <a href="https://github.com/simonoppowa/OpenNutriTracker/issues">issue tracker</a>
+        is the place to start. The
+        <a href="https://github.com/simonoppowa/OpenNutriTracker/blob/main/CONTRIBUTING.md">CONTRIBUTING guide</a>
+        in the repository covers the conventions, including the requirement to target the
+        <code>develop</code> branch and the steps for adding localized strings.
+      </p>
+    </section>
+
+    <section class="disclaimer">
+      <h2>A note before you rely on it</h2>
+      <p>
+        OpenNutriTracker is not a medical application, and the nutritional values it shows
+        are estimates rather than clinical measurements. Please be gentle with yourself when
+        you use it, and if you have specific dietary needs, talk to a professional who can
+        meet you with the context you are in. Use during illness, pregnancy, or lactation
+        is not recommended.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      Maintained by <a href="https://github.com/simonoppowa">Simon Oppowa</a> with the
+      help of contributors over on
+      <a href="https://github.com/simonoppowa/OpenNutriTracker/graphs/contributors">GitHub</a>.
+      Licensed under
+      <a href="https://github.com/simonoppowa/OpenNutriTracker/blob/main/LICENSE">GPLv3</a>.
+    </p>
+  </footer>
+
+  <script>
+    (async () => {
+      try {
+        const res = await fetch('release-info.json', { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const set = (field, value) => {
+          document.querySelectorAll(`[data-field="${field}"]`).forEach(el => {
+            if (el.tagName === 'A') {
+              el.href = value;
+            } else {
+              el.textContent = value;
+            }
+          });
+        };
+
+        const cert = data.signing_certificate || {};
+        if (cert.sha256) set('signing-cert', cert.sha256);
+        if (cert.common_name) set('signing-cn', cert.common_name);
+
+        const release = data.release || {};
+        if (release.tag) set('release-tag', release.tag);
+        if (release.url) set('release-link', release.url);
+        if (release.published) {
+          const d = new Date(release.published);
+          if (!isNaN(d)) {
+            set('release-date', d.toLocaleDateString(undefined, {
+              year: 'numeric', month: 'long', day: 'numeric'
+            }));
+          }
+        }
+
+        const apk = (data.assets || []).find(a => a.platform === 'Android');
+        if (apk && apk.sha256) set('apk-hash', apk.sha256);
+      } catch (e) {
+        // graceful degrade — the <noscript> block already covers the no-JS case
+      }
+    })();
+  </script>
+</body>
+</html>

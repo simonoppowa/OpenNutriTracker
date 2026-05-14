@@ -78,95 +78,104 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
               topRight: Radius.circular(32),
             ),
           ),
-          child: Wrap(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 32.0, 16.0, 8.0),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            enabled: !productMissingRequiredInfo,
-                            controller: widget.quantityTextController,
-                            keyboardType: TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d+([.,]\d{0,2})?$'),
+          child: SafeArea(
+            top: false,
+            child: Wrap(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16.0, 32.0, 16.0, 8.0),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              enabled: !productMissingRequiredInfo,
+                              controller: widget.quantityTextController,
+                              keyboardType: TextInputType.numberWithOptions(
+                                decimal: true,
                               ),
-                            ],
-                            decoration: InputDecoration(
-                              border: const OutlineInputBorder(),
-                              labelText: S.of(context).quantityLabel,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16.0),
-                        Expanded(
-                          child: DropdownButtonFormField(
-                            isExpanded: true,
-                            initialValue: widget.selectedUnit,
-                            key: ValueKey(widget.selectedUnit),
-                            decoration: InputDecoration(
-                              border: const OutlineInputBorder(),
-                              labelText: S.of(context).unitLabel,
-                            ),
-                            items: <DropdownMenuItem<String>>[
-                              if (widget.product.hasServingValues)
-                                _getServingDropdownItem(context),
-                              if (widget.product.isSolid ||
-                                  !widget.product.isLiquid && !widget.product.isSolid)
-                                ..._getSolidUnitDropdownItems(context),
-                              if (widget.product.isLiquid ||
-                                  !widget.product.isLiquid && !widget.product.isSolid)
-                                ..._getLiquidUnitDropdownItems(context),
-                              ..._getOtherDropdownItems(context),
-                            ],
-                            onChanged: (value) {
-                              widget.onQuantityOrUnitChanged(
-                                widget.quantityTextController.text,
-                                value,
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      width: double.infinity, // Make button full width
-                      child: ElevatedButton.icon(
-                        onPressed: !productMissingRequiredInfo
-                            ? () {
-                                onAddButtonPressed(context);
-                              }
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primaryContainer,
-                        ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0)),
-                        icon: const Icon(Icons.add_outlined),
-                        label: Text(S.of(context).addLabel),
-                      ),
-                    ),
-                    productMissingRequiredInfo
-                        ? Text(
-                            S.of(context).missingProductInfo,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.error,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'^\d+([.,]\d{0,2})?$'),
                                 ),
-                          )
-                        : const SizedBox(),
-                  ],
+                              ],
+                              decoration: InputDecoration(
+                                border: const OutlineInputBorder(),
+                                labelText: S.of(context).quantityLabel,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16.0),
+                          Expanded(
+                            child: DropdownButtonFormField(
+                              isExpanded: true,
+                              initialValue: widget.selectedUnit,
+                              key: ValueKey(widget.selectedUnit),
+                              decoration: InputDecoration(
+                                border: const OutlineInputBorder(),
+                                labelText: S.of(context).unitLabel,
+                              ),
+                              items: <DropdownMenuItem<String>>[
+                                if (widget.product.hasServingValues)
+                                  _getServingDropdownItem(context),
+                                if (widget.product.isSolid ||
+                                    !widget.product.isLiquid &&
+                                        !widget.product.isSolid)
+                                  ..._getSolidUnitDropdownItems(context),
+                                if (widget.product.isLiquid ||
+                                    !widget.product.isLiquid &&
+                                        !widget.product.isSolid)
+                                  ..._getLiquidUnitDropdownItems(context),
+                                ..._getOtherDropdownItems(context),
+                              ],
+                              onChanged: (value) {
+                                widget.onQuantityOrUnitChanged(
+                                  widget.quantityTextController.text,
+                                  value,
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        width: double.infinity, // Make button full width
+                        child: ElevatedButton.icon(
+                          onPressed: !productMissingRequiredInfo
+                              ? () {
+                                  onAddButtonPressed(context);
+                                }
+                              : null,
+                          style:
+                              ElevatedButton.styleFrom(
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primaryContainer,
+                              ).copyWith(
+                                elevation: ButtonStyleButton.allOrNull(0.0),
+                              ),
+                          icon: const Icon(Icons.add_outlined),
+                          label: Text(S.of(context).addLabel),
+                        ),
+                      ),
+                      productMissingRequiredInfo
+                          ? Text(
+                              S.of(context).missingProductInfo,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                            )
+                          : const SizedBox(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -187,12 +196,19 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
 
   Future<void> onAddButtonPressed(BuildContext context) async {
     // Validate quantity (#209, #210)
-    final quantityText = widget.quantityTextController.text.replaceAll(',', '.');
+    final quantityText = widget.quantityTextController.text.replaceAll(
+      ',',
+      '.',
+    );
     final quantity = double.tryParse(quantityText);
 
     if (quantity == null || quantity <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${S.of(context).quantityLabel} must be greater than 0')),
+        SnackBar(
+          content: Text(
+            '${S.of(context).quantityLabel} must be greater than 0',
+          ),
+        ),
       );
       return;
     }
@@ -200,7 +216,11 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     // Reasonable maximum limit per meal (#210)
     if (quantity > 10000) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${S.of(context).quantityLabel} seems unrealistically high')),
+        SnackBar(
+          content: Text(
+            '${S.of(context).quantityLabel} seems unrealistically high',
+          ),
+        ),
       );
       return;
     }
@@ -243,10 +263,12 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   Future<bool> _checkForDuplicate(BuildContext context) async {
     final getIntakeUsecase = locator<GetIntakeUsecase>();
     final List<IntakeEntity> todayIntakes;
-    
+
     switch (widget.intakeTypeEntity) {
       case IntakeTypeEntity.breakfast:
-        todayIntakes = await getIntakeUsecase.getBreakfastIntakeByDay(widget.day);
+        todayIntakes = await getIntakeUsecase.getBreakfastIntakeByDay(
+          widget.day,
+        );
         break;
       case IntakeTypeEntity.lunch:
         todayIntakes = await getIntakeUsecase.getLunchIntakeByDay(widget.day);
@@ -260,9 +282,13 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     }
 
     // Check if meal with same code or name already exists
-    return todayIntakes.any((intake) =>
-        (widget.product.code != null && intake.meal.code == widget.product.code) ||
-        (widget.product.name != null && intake.meal.name == widget.product.name));
+    return todayIntakes.any(
+      (intake) =>
+          (widget.product.code != null &&
+              intake.meal.code == widget.product.code) ||
+          (widget.product.name != null &&
+              intake.meal.name == widget.product.name),
+    );
   }
 
   // #212: Show confirmation dialog for duplicate meals
