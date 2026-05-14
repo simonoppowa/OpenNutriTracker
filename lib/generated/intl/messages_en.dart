@@ -218,7 +218,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Sample meals (csv)"),
         "downloadSampleJsonAction":
-            MessageLookupByLibrary.simpleMessage("Sample JSON"),
+            MessageLookupByLibrary.simpleMessage("Sample meals (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Import meals (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Sample recipes (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Import recipes (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Sample recipes (csv)"),
         "importMealsCsvAction":
@@ -249,7 +255,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Import Custom Food Data"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Import your own meals from a CSV file. Download a sample to see the expected column shape and required fields."),
+            "Import your own meals from a CSV file or by pasting JSON. Download a sample to see the expected shape and required fields."),
         "exportImportSuccessLabel":
             MessageLookupByLibrary.simpleMessage("Export / Import successful"),
         "fatLabel": MessageLookupByLibrary.simpleMessage("fat"),
@@ -535,18 +541,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "pasteCodeHint": MessageLookupByLibrary.simpleMessage(
             "Paste the shared meal code here"),
         "pasteCodeLabel": MessageLookupByLibrary.simpleMessage("Paste code"),
-        "pasteJsonSheetCancelButton":
-            MessageLookupByLibrary.simpleMessage("Cancel"),
-        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
-            "Paste a single object or an array of objects. Required: name, kcal, protein, carbs, fat. Optional: mealType (breakfast/lunch/dinner/snack), amount, unit, date (e.g. 2026-05-13)."),
-        "pasteJsonSheetParseButton":
-            MessageLookupByLibrary.simpleMessage("Parse & log"),
-        "pasteJsonSheetParseError": m19,
-        "pasteJsonSheetParseSuccess": m20,
-        "pasteJsonSheetTitle":
-            MessageLookupByLibrary.simpleMessage("Paste meal JSON"),
-        "settingsImportPasteJsonButton":
-            MessageLookupByLibrary.simpleMessage("Paste JSON"),
         "paHeadingWalking": MessageLookupByLibrary.simpleMessage("walking"),
         "paHeadingWaterActivities":
             MessageLookupByLibrary.simpleMessage("water activities"),

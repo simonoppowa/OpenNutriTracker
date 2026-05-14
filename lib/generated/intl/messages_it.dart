@@ -218,7 +218,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Pasti di esempio (csv)"),
         "downloadSampleJsonAction":
-            MessageLookupByLibrary.simpleMessage("JSON di esempio"),
+            MessageLookupByLibrary.simpleMessage("Pasti di esempio (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importa pasti (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Ricette di esempio (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importa ricette (json)"),
         "downloadSampleRecipesCsvAction": MessageLookupByLibrary.simpleMessage(
             "Ricette di esempio (csv)"),
         "duplicateMealDialogContent":
@@ -283,7 +289,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Allenamento importato"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Importa i tuoi pasti da un file CSV. Scarica un esempio per vedere il formato delle colonne e i campi obbligatori."),
+            "Importa i tuoi pasti da un file CSV o incollando JSON. Scarica un esempio per vedere la forma attesa e i campi obbligatori."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Importa dati alimentari personalizzati"),
         "importMealConfirmContent": m4,
@@ -801,18 +807,6 @@ class MessageLookup extends MessageLookupByLibrary {
             "Incolla qui il codice del pasto condiviso"),
         "pasteCodeLabel":
             MessageLookupByLibrary.simpleMessage("Incolla codice"),
-        "pasteJsonSheetCancelButton":
-            MessageLookupByLibrary.simpleMessage("Annulla"),
-        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
-            "Incolla un singolo oggetto o un array di oggetti. Obbligatori: name, kcal, protein, carbs, fat. Facoltativi: mealType (breakfast/lunch/dinner/snack), amount, unit, date (per es. 2026-05-13)."),
-        "pasteJsonSheetParseButton":
-            MessageLookupByLibrary.simpleMessage("Analizza e registra"),
-        "pasteJsonSheetParseError": m20,
-        "pasteJsonSheetParseSuccess": m21,
-        "pasteJsonSheetTitle":
-            MessageLookupByLibrary.simpleMessage("Incolla pasto come JSON"),
-        "settingsImportPasteJsonButton":
-            MessageLookupByLibrary.simpleMessage("Incolla JSON"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("Per 100g/ml"),
         "perServingLabel": MessageLookupByLibrary.simpleMessage("Per porzione"),
         "phosphorusLabel": MessageLookupByLibrary.simpleMessage("fosforo"),

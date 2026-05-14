@@ -217,7 +217,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "downloadSampleCsvAction": MessageLookupByLibrary.simpleMessage(
             "Przykładowe posiłki (csv)"),
         "downloadSampleJsonAction":
-            MessageLookupByLibrary.simpleMessage("Przykładowy JSON"),
+            MessageLookupByLibrary.simpleMessage("Przykładowe posiłki (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importuj posiłki (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Przykładowe przepisy (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importuj przepisy (json)"),
         "downloadSampleRecipesCsvAction": MessageLookupByLibrary.simpleMessage(
             "Przykładowe przepisy (csv)"),
         "duplicateMealDialogContent":
@@ -282,7 +288,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Trening zaimportowany"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Importuj własne posiłki z pliku CSV. Pobierz przykład, aby zobaczyć oczekiwany format kolumn i wymagane pola."),
+            "Zaimportuj własne posiłki z pliku CSV lub wklejając JSON. Pobierz przykład, aby zobaczyć oczekiwany kształt i wymagane pola."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Importuj własne dane żywności"),
         "importMealConfirmContent": m5,
@@ -799,18 +805,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "pasteCodeHint": MessageLookupByLibrary.simpleMessage(
             "Wklej tutaj kod udostępnionego posiłku"),
         "pasteCodeLabel": MessageLookupByLibrary.simpleMessage("Wklej kod"),
-        "pasteJsonSheetCancelButton":
-            MessageLookupByLibrary.simpleMessage("Anuluj"),
-        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
-            "Wklej pojedynczy obiekt lub tablicę obiektów. Wymagane: name, kcal, protein, carbs, fat. Opcjonalne: mealType (breakfast/lunch/dinner/snack), amount, unit, date (np. 2026-05-13)."),
-        "pasteJsonSheetParseButton":
-            MessageLookupByLibrary.simpleMessage("Przetwórz i zapisz"),
-        "pasteJsonSheetParseError": m20,
-        "pasteJsonSheetParseSuccess": m21,
-        "pasteJsonSheetTitle":
-            MessageLookupByLibrary.simpleMessage("Wklej posiłek jako JSON"),
-        "settingsImportPasteJsonButton":
-            MessageLookupByLibrary.simpleMessage("Wklej JSON"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("Na 100g/ml"),
         "perServingLabel": MessageLookupByLibrary.simpleMessage("Na porcję"),
         "phosphorusLabel": MessageLookupByLibrary.simpleMessage("fosfor"),

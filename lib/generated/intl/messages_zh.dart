@@ -204,7 +204,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("示例餐食 (csv)"),
         "downloadSampleJsonAction":
-            MessageLookupByLibrary.simpleMessage("示例 JSON"),
+            MessageLookupByLibrary.simpleMessage("示例餐食 (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("导入餐食 (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("示例食谱 (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("导入食谱 (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("示例食谱 (csv)"),
         "duplicateMealDialogContent":
@@ -261,7 +267,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("运动已导入"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "从 CSV 文件导入您自己的餐食。下载示例查看所需的列格式和必填字段。"),
+            "从 CSV 文件或粘贴 JSON 导入自己的餐食。下载示例以查看预期格式和必填字段。"),
         "importCustomFoodDataLabel":
             MessageLookupByLibrary.simpleMessage("导入自定义食品数据"),
         "importMealConfirmContent": m5,
@@ -681,18 +687,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "palVeryActiveLabel": MessageLookupByLibrary.simpleMessage("非常活跃"),
         "pasteCodeHint": MessageLookupByLibrary.simpleMessage("在此粘贴分享的餐食代码"),
         "pasteCodeLabel": MessageLookupByLibrary.simpleMessage("粘贴代码"),
-        "pasteJsonSheetCancelButton":
-            MessageLookupByLibrary.simpleMessage("取消"),
-        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
-            "粘贴单个对象或对象数组。必填：name、kcal、protein、carbs、fat。可选：mealType（breakfast/lunch/dinner/snack）、amount、unit、date（例如 2026-05-13）。"),
-        "pasteJsonSheetParseButton":
-            MessageLookupByLibrary.simpleMessage("解析并记录"),
-        "pasteJsonSheetParseError": m20,
-        "pasteJsonSheetParseSuccess": m21,
-        "pasteJsonSheetTitle":
-            MessageLookupByLibrary.simpleMessage("以 JSON 粘贴餐食"),
-        "settingsImportPasteJsonButton":
-            MessageLookupByLibrary.simpleMessage("粘贴 JSON"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("每 100克/毫升"),
         "perServingLabel": MessageLookupByLibrary.simpleMessage("每份量"),
         "phosphorusLabel": MessageLookupByLibrary.simpleMessage("磷"),

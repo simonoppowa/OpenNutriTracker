@@ -217,7 +217,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Зразкові страви (csv)"),
         "downloadSampleJsonAction":
-            MessageLookupByLibrary.simpleMessage("Зразок JSON"),
+            MessageLookupByLibrary.simpleMessage("Зразкові страви (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Імпортувати страви (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Зразкові рецепти (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Імпортувати рецепти (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Зразкові рецепти (csv)"),
         "duplicateMealDialogContent":
@@ -282,7 +288,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Тренування імпортовано"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Імпортуйте власні страви з CSV файлу. Завантажте зразок, щоб побачити очікуваний формат стовпців та обов'язкові поля."),
+            "Імпортуйте власні страви з CSV-файлу або вставивши JSON. Завантажте зразок, щоб побачити очікувану форму та обовʼязкові поля."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Імпортувати власні дані про їжу"),
         "importMealConfirmContent": m4,
@@ -802,18 +808,6 @@ class MessageLookup extends MessageLookupByLibrary {
             "Вставте сюди код спільного прийому їжі"),
         "pasteCodeLabel":
             MessageLookupByLibrary.simpleMessage("Вставити код"),
-        "pasteJsonSheetCancelButton":
-            MessageLookupByLibrary.simpleMessage("Скасувати"),
-        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
-            "Вставте один об\'єкт або масив об\'єктів. Обов\'язкові: name, kcal, protein, carbs, fat. Необов\'язкові: mealType (breakfast/lunch/dinner/snack), amount, unit, date (напр. 2026-05-13)."),
-        "pasteJsonSheetParseButton": MessageLookupByLibrary.simpleMessage(
-            "Розпарсити та записати"),
-        "pasteJsonSheetParseError": m20,
-        "pasteJsonSheetParseSuccess": m21,
-        "pasteJsonSheetTitle":
-            MessageLookupByLibrary.simpleMessage("Вставити страву як JSON"),
-        "settingsImportPasteJsonButton":
-            MessageLookupByLibrary.simpleMessage("Вставити JSON"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("На 100 г/мл"),
         "perServingLabel": MessageLookupByLibrary.simpleMessage("На порцію"),
         "phosphorusLabel": MessageLookupByLibrary.simpleMessage("фосфор"),

@@ -219,7 +219,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Örnek yemekler (csv)"),
         "downloadSampleJsonAction":
-            MessageLookupByLibrary.simpleMessage("Örnek JSON"),
+            MessageLookupByLibrary.simpleMessage("Örnek yemekler (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Yemekleri içe aktar (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Örnek tarifler (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Tarifleri içe aktar (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Örnek tarifler (csv)"),
         "duplicateMealDialogContent": MessageLookupByLibrary.simpleMessage(
@@ -282,7 +288,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Antrenman içe aktarıldı"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Kendi öğünlerinizi bir CSV dosyasından içe aktarın. Beklenen sütun yapısını ve zorunlu alanları görmek için örneği indirin."),
+            "Kendi yemeklerinizi bir CSV dosyasından veya JSON yapıştırarak içe aktarın. Beklenen şekli ve zorunlu alanları görmek için bir örnek indirin."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Özel Gıda Verilerini İçe Aktar"),
         "importMealConfirmContent": m4,
@@ -783,18 +789,6 @@ class MessageLookup extends MessageLookupByLibrary {
             "Paylaşılan yemek kodunu buraya yapıştırın"),
         "pasteCodeLabel":
             MessageLookupByLibrary.simpleMessage("Kodu yapıştır"),
-        "pasteJsonSheetCancelButton":
-            MessageLookupByLibrary.simpleMessage("İptal"),
-        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
-            "Tek bir nesne veya nesne dizisi yapıştırın. Zorunlu: name, kcal, protein, carbs, fat. İsteğe bağlı: mealType (breakfast/lunch/dinner/snack), amount, unit, date (örn. 2026-05-13)."),
-        "pasteJsonSheetParseButton":
-            MessageLookupByLibrary.simpleMessage("Çözümle ve kaydet"),
-        "pasteJsonSheetParseError": m20,
-        "pasteJsonSheetParseSuccess": m21,
-        "pasteJsonSheetTitle": MessageLookupByLibrary.simpleMessage(
-            "Yemeği JSON olarak yapıştır"),
-        "settingsImportPasteJsonButton":
-            MessageLookupByLibrary.simpleMessage("JSON yapıştır"),
         "per100gmlLabel":
             MessageLookupByLibrary.simpleMessage("100g/ml başına"),
         "perServingLabel":

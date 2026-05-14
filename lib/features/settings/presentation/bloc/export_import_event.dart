@@ -38,24 +38,32 @@ class DownloadSampleRecipesCsvEvent extends ExportImportEvent {
   List<Object?> get props => [];
 }
 
-/// User asked for a JSON template to fill in for the paste-JSON flow.
+/// User asked for a custom-meals JSON template to fill in.
 class DownloadSampleJsonEvent extends ExportImportEvent {
   @override
   List<Object?> get props => [];
 }
 
-/// User pasted a JSON blob to log as one or more intakes (#181).
-class PasteJsonMealsEvent extends ExportImportEvent {
-  final String jsonContent;
-
-  const PasteJsonMealsEvent(this.jsonContent);
-
+/// User asked for a recipe JSON template to fill in.
+class DownloadSampleRecipesJsonEvent extends ExportImportEvent {
   @override
-  List<Object?> get props => [jsonContent];
+  List<Object?> get props => [];
 }
 
-/// Reset the bloc state — used when the paste-JSON sheet is reopened so
-/// stale success/error chrome from a previous attempt doesn't bleed in.
+/// User picked a JSON file to import as custom meals (#181).
+class ImportMealsJsonEvent extends ExportImportEvent {
+  @override
+  List<Object?> get props => [];
+}
+
+/// User picked a JSON file to import as recipes.
+class ImportRecipesJsonEvent extends ExportImportEvent {
+  @override
+  List<Object?> get props => [];
+}
+
+/// Reset the bloc state — used when the Import dialog flips between CSV
+/// and JSON segments so stale success/error chrome doesn't bleed across.
 class ResetExportImportStateEvent extends ExportImportEvent {
   @override
   List<Object?> get props => [];

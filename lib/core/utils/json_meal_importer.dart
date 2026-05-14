@@ -12,7 +12,8 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments
 /// returns a result with an empty [intakes] list and a single entry in
 /// [errors] describing the malformed JSON.
 ///
-/// The JSON shape is documented on [JsonMealImporter.expectedSchemaHint].
+/// The JSON shape mirrors the CSV importer — see the doc comment on
+/// [JsonMealImporter] for the accepted field set.
 class JsonImportResult {
   final List<IntakeEntity> intakes;
   final List<String> errors;
@@ -63,13 +64,7 @@ class JsonMealImporter {
 
   static const _requiredKeys = <String>[_kName, _kKcal, _kProtein, _kCarbs, _kFat];
 
-  /// Short, human-readable description of the accepted shape. Used by the
-  /// sheet's help text and the README of the export format.
-  static const expectedSchemaHint =
-      '{ "name": "Apple", "kcal": 95, "protein": 0.5, "carbs": 25, "fat": 0.3, '
-      '"mealType": "snack", "amount": 100, "unit": "g", "date": "2026-05-13" }';
-
-  /// Pretty-printed JSON the "Sample JSON" button hands to the user. Three
+  /// Pretty-printed JSON the "Sample meals (json)" button hands to the user. Three
   /// entries that between them show every supported field, including the
   /// optional ones (mealType, amount, unit, date). The shape mirrors the
   /// CSV sample so a user familiar with one path can read the other.

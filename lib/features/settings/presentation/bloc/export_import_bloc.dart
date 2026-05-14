@@ -7,6 +7,7 @@ import 'package:opennutritracker/features/settings/domain/usecase/import_data_us
 import 'package:opennutritracker/features/settings/domain/usecase/import_meals_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_meals_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_csv_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
 
 part 'export_import_event.dart';
 
@@ -26,6 +27,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
   final DownloadSampleCsvUsecase _downloadSampleCsvUsecase;
   final DownloadSampleJsonUsecase _downloadSampleJsonUsecase;
   final ImportMealsJsonUsecase _importMealsJsonUsecase;
+  final ImportRecipesJsonUsecase _importRecipesJsonUsecase;
 
   ExportImportBloc(
     this._exportDataUsecase,
@@ -35,6 +37,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
     this._downloadSampleCsvUsecase,
     this._downloadSampleJsonUsecase,
     this._importMealsJsonUsecase,
+    this._importRecipesJsonUsecase,
   ) : super(ExportImportInitial()) {
     on<ExportDataEvent>((event, emit) async {
       try {
@@ -145,12 +148,14 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
       }
     });
 
-    on<PasteJsonMealsEvent>((event, emit) async {
+    on<ImportMealsJsonEvent>((event, emit) async {
       try {
         emit(ExportImportLoadingState());
-        final result =
-            await _importMealsJsonUsecase.importFromJsonString(event.jsonContent);
-        if (result.imported == 0) {
+        final result = await _importMealsJsonUsecase.importFromPickedFile();
+        if (result == null) {
+          // User cancelled the file picker.
+          emit(ExportImportInitial());
+        } else if (result.imported == 0) {
           emit(JsonImportErrorState(result.errorMessages));
         } else {
           emit(JsonImportResultState(
@@ -161,6 +166,39 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         }
       } catch (e) {
         emit(JsonImportErrorState([e.toString()]));
+      }
+    });
+
+    on<ImportRecipesJsonEvent>((event, emit) async {
+      try {
+        emit(ExportImportLoadingState());
+        final result = await _importRecipesJsonUsecase.importFromPickedFile();
+        if (result == null) {
+          emit(ExportImportInitial());
+        } else if (result.imported == 0) {
+          emit(RecipeJsonImportErrorState(result.errorMessages));
+        } else {
+          emit(RecipeJsonImportResultState(
+            imported: result.imported,
+            skipped: result.skippedRecipes,
+            errorMessages: result.errorMessages,
+          ));
+        }
+      } catch (e) {
+        emit(RecipeJsonImportErrorState([e.toString()]));
+      }
+    });
+
+    on<DownloadSampleRecipesJsonEvent>((event, emit) async {
+      try {
+        emit(ExportImportLoadingState());
+        // Reuses the meals download usecase shape — recipes share the
+        // same single-file save flow.
+        final saved =
+            await _downloadSampleJsonUsecase.downloadRecipeSample();
+        emit(saved ? ExportImportSuccess() : ExportImportInitial());
+      } catch (e) {
+        emit(ExportImportError());
       }
     });
 

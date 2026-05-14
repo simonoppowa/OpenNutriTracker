@@ -216,7 +216,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Vzorová jídla (csv)"),
         "downloadSampleJsonAction":
-            MessageLookupByLibrary.simpleMessage("Vzorový JSON"),
+            MessageLookupByLibrary.simpleMessage("Vzorová jídla (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importovat jídla (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Vzorové recepty (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importovat recepty (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Vzorové recepty (csv)"),
         "duplicateMealDialogContent":
@@ -280,7 +286,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Trénink importován"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Importujte vlastní jídla ze souboru CSV. Stáhněte si vzor, abyste viděli očekávaný formát sloupců a povinná pole."),
+            "Importujte vlastní jídla z CSV souboru nebo vložením JSON. Stáhněte si ukázku, abyste viděli očekávaný tvar a povinná pole."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Importovat vlastní data potravin"),
         "importMealConfirmContent": m4,
@@ -794,18 +800,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "pasteCodeHint": MessageLookupByLibrary.simpleMessage(
             "Vložte sem sdílený kód jídla"),
         "pasteCodeLabel": MessageLookupByLibrary.simpleMessage("Vložit kód"),
-        "pasteJsonSheetCancelButton":
-            MessageLookupByLibrary.simpleMessage("Zrušit"),
-        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
-            "Vložte jeden objekt nebo pole objektů. Povinné: name, kcal, protein, carbs, fat. Volitelné: mealType (breakfast/lunch/dinner/snack), amount, unit, date (např. 2026-05-13)."),
-        "pasteJsonSheetParseButton":
-            MessageLookupByLibrary.simpleMessage("Zpracovat a zaznamenat"),
-        "pasteJsonSheetParseError": m20,
-        "pasteJsonSheetParseSuccess": m21,
-        "pasteJsonSheetTitle":
-            MessageLookupByLibrary.simpleMessage("Vložit jídlo jako JSON"),
-        "settingsImportPasteJsonButton":
-            MessageLookupByLibrary.simpleMessage("Vložit JSON"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("Na 100g/ml"),
         "perServingLabel": MessageLookupByLibrary.simpleMessage("Na porci"),
         "phosphorusLabel": MessageLookupByLibrary.simpleMessage("fosfor"),

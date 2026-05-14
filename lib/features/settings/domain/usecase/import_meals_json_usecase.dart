@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
@@ -53,6 +57,23 @@ class ImportMealsJsonUsecase {
     this._getMacroGoalUsecase,
     this._customMealDataSource,
   );
+
+  /// Picks a `.json` file from disk, validates the content as JSON via
+  /// [JsonMealImporter.parse], and writes any successfully-parsed entries.
+  /// Returns null when the user cancelled the file picker (mirroring the
+  /// CSV importer contract).
+  Future<ImportMealsJsonResult?> importFromPickedFile() async {
+    final picked = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+    if (picked == null || picked.files.single.path == null) {
+      return null;
+    }
+    final file = File(picked.files.single.path!);
+    final content = await file.readAsString(encoding: utf8);
+    return importFromJsonString(content);
+  }
 
   /// Parse [jsonContent] and write any successfully-parsed entries. The
   /// return value is null only when [jsonContent] is empty/whitespace.

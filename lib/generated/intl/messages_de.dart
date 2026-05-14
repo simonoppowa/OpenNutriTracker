@@ -222,7 +222,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "downloadSampleCsvAction": MessageLookupByLibrary.simpleMessage(
             "Beispiel-Mahlzeiten (csv)"),
         "downloadSampleJsonAction":
-            MessageLookupByLibrary.simpleMessage("Beispiel-JSON"),
+            MessageLookupByLibrary.simpleMessage("Beispiel-Mahlzeiten (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Mahlzeiten importieren (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Beispiel-Rezepte (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Rezepte importieren (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Beispiel-Rezepte (csv)"),
         "duplicateMealDialogContent": MessageLookupByLibrary.simpleMessage(
@@ -289,7 +295,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Training importiert"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Eigene Mahlzeiten aus einer CSV-Datei importieren. Beispiel herunterladen, um das erwartete Format und die Pflichtfelder zu sehen."),
+            "Importiere eigene Mahlzeiten aus einer CSV-Datei oder durch Einfügen von JSON. Lade eine Beispieldatei herunter, um die erwartete Form und Pflichtfelder zu sehen."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Eigene Lebensmittel-Daten importieren"),
         "importMealConfirmContent": m4,
@@ -814,18 +820,6 @@ class MessageLookup extends MessageLookupByLibrary {
             "Füge hier den geteilten Mahlzeitencode ein"),
         "pasteCodeLabel":
             MessageLookupByLibrary.simpleMessage("Code einfügen"),
-        "pasteJsonSheetCancelButton":
-            MessageLookupByLibrary.simpleMessage("Abbrechen"),
-        "pasteJsonSheetHelp": MessageLookupByLibrary.simpleMessage(
-            "Füge ein einzelnes Objekt oder ein Array von Objekten ein. Erforderlich: name, kcal, protein, carbs, fat. Optional: mealType (breakfast/lunch/dinner/snack), amount, unit, date (z. B. 2026-05-13)."),
-        "pasteJsonSheetParseButton":
-            MessageLookupByLibrary.simpleMessage("Parsen & eintragen"),
-        "pasteJsonSheetParseError": m20,
-        "pasteJsonSheetParseSuccess": m21,
-        "pasteJsonSheetTitle":
-            MessageLookupByLibrary.simpleMessage("Mahlzeit als JSON einfügen"),
-        "settingsImportPasteJsonButton":
-            MessageLookupByLibrary.simpleMessage("JSON einfügen"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("Pro 100 g/ml"),
         "perServingLabel": MessageLookupByLibrary.simpleMessage("Pro Portion"),
         "phosphorusLabel": MessageLookupByLibrary.simpleMessage("Phosphor"),
