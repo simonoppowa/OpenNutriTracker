@@ -104,4 +104,10 @@ class ConfigRepository {
   Future<void> setDiarySortPreference(String mealKey, int sortIndex) async {
     await _configDataSource.setDiarySortPreference(mealKey, sortIndex);
   }
+
+  Future<void> setConfigNutrientPanelVisibility(
+    Map<String, bool> visibility,
+  ) async {
+    await _configDataSource.setConfigNutrientPanelVisibility(visibility);
+  }
 }

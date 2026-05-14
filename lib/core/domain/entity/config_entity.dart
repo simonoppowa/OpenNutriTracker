@@ -20,6 +20,12 @@ class ConfigEntity extends Equatable {
   final String? selectedLocale;
   final bool showMicronutrients; // #237
   final Map<String, int>? diarySortPreferences;
+  // #160 follow-up: per-nutrient show/hide overrides for the daily panel.
+  // Keys are nutrient identifiers (see `DailyNutrientPanel.nutrientKeys`),
+  // values are explicit user overrides. A nutrient not present in this map
+  // falls back to the default, which is currently "visible" for every
+  // nutrient — see [isNutrientVisible].
+  final Map<String, bool> nutrientPanelVisibility;
 
   const ConfigEntity(
     this.hasAcceptedDisclaimer,
@@ -39,7 +45,13 @@ class ConfigEntity extends Equatable {
     this.selectedLocale,
     this.showMicronutrients = false,
     this.diarySortPreferences,
+    this.nutrientPanelVisibility = const <String, bool>{},
   });
+
+  /// Whether a particular nutrient on the daily panel should be rendered.
+  /// All nutrients default to visible; the user can hide individual ones
+  /// from Settings → Nutrients.
+  bool isNutrientVisible(String key) => nutrientPanelVisibility[key] ?? true;
 
   factory ConfigEntity.fromConfigDBO(ConfigDBO dbo) => ConfigEntity(
         dbo.hasAcceptedDisclaimer,
@@ -59,6 +71,8 @@ class ConfigEntity extends Equatable {
         selectedLocale: dbo.selectedLocale,
         showMicronutrients: dbo.showMicronutrients ?? false,
         diarySortPreferences: dbo.diarySortPreferences,
+        nutrientPanelVisibility:
+            dbo.nutrientPanelVisibility ?? const <String, bool>{},
       );
 
   @override
@@ -79,5 +93,6 @@ class ConfigEntity extends Equatable {
         selectedLocale,
         showMicronutrients,
         diarySortPreferences,
+        nutrientPanelVisibility,
       ];
 }

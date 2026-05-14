@@ -49,6 +49,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
           userIntakeJsonFileName,
           trackedDayJsonFileName,
           recipeJsonFileName,
+          format: event.format,
         );
 
         if (result) {
@@ -65,12 +66,14 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
       try {
         emit(ExportImportLoadingState());
 
-        final result = await _importDataUsecase.importData(
-          userActivityJsonFileName,
-          userIntakeJsonFileName,
-          trackedDayJsonFileName,
-          recipeJsonFileName,
-        );
+        final result = event.format == ExportFormat.csv
+            ? await _importDataUsecase.importDataCsv()
+            : await _importDataUsecase.importData(
+                userActivityJsonFileName,
+                userIntakeJsonFileName,
+                trackedDayJsonFileName,
+                recipeJsonFileName,
+              );
         if (result) {
           emit(ExportImportSuccess());
         } else {

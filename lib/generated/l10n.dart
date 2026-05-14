@@ -1050,6 +1050,226 @@ class S {
     );
   }
 
+  /// `Nutrient goals`
+  String get settingsNutrientGoalsLabel {
+    return Intl.message(
+      'Nutrient goals',
+      name: 'settingsNutrientGoalsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Personal targets for every nutrient on the daily panel. The diary uses these in place of the default daily references whenever you set one.`
+  String get settingsNutrientGoalsHint {
+    return Intl.message(
+      'Personal targets for every nutrient on the daily panel. The diary uses these in place of the default daily references whenever you set one.',
+      name: 'settingsNutrientGoalsHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fibre goal`
+  String get settingsFibreGoalLabel {
+    return Intl.message(
+      'Fibre goal',
+      name: 'settingsFibreGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily fibre target in grams. Default reference is 30g.`
+  String get settingsFibreGoalDescription {
+    return Intl.message(
+      'Daily fibre target in grams. Default reference is 30g.',
+      name: 'settingsFibreGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Saturated fat goal`
+  String get settingsSaturatedFatGoalLabel {
+    return Intl.message(
+      'Saturated fat goal',
+      name: 'settingsSaturatedFatGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily saturated fat cap in grams. Default reference is 20g.`
+  String get settingsSaturatedFatGoalDescription {
+    return Intl.message(
+      'Daily saturated fat cap in grams. Default reference is 20g.',
+      name: 'settingsSaturatedFatGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sugars goal`
+  String get settingsSugarsGoalLabel {
+    return Intl.message(
+      'Sugars goal',
+      name: 'settingsSugarsGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily sugars cap in grams. Default reference is 50g.`
+  String get settingsSugarsGoalDescription {
+    return Intl.message(
+      'Daily sugars cap in grams. Default reference is 50g.',
+      name: 'settingsSugarsGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sodium goal`
+  String get settingsSodiumGoalLabel {
+    return Intl.message(
+      'Sodium goal',
+      name: 'settingsSodiumGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily sodium cap in milligrams. Default reference is 2300mg.`
+  String get settingsSodiumGoalDescription {
+    return Intl.message(
+      'Daily sodium cap in milligrams. Default reference is 2300mg.',
+      name: 'settingsSodiumGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Calcium goal`
+  String get settingsCalciumGoalLabel {
+    return Intl.message(
+      'Calcium goal',
+      name: 'settingsCalciumGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily calcium target in milligrams. Default reference is 1000mg.`
+  String get settingsCalciumGoalDescription {
+    return Intl.message(
+      'Daily calcium target in milligrams. Default reference is 1000mg.',
+      name: 'settingsCalciumGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Iron goal`
+  String get settingsIronGoalLabel {
+    return Intl.message(
+      'Iron goal',
+      name: 'settingsIronGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily iron target in milligrams. Default varies by gender (8mg male, 18mg female, 14mg otherwise).`
+  String get settingsIronGoalDescription {
+    return Intl.message(
+      'Daily iron target in milligrams. Default varies by gender (8mg male, 18mg female, 14mg otherwise).',
+      name: 'settingsIronGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Potassium goal`
+  String get settingsPotassiumGoalLabel {
+    return Intl.message(
+      'Potassium goal',
+      name: 'settingsPotassiumGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily potassium target in milligrams. Default reference is 3500mg.`
+  String get settingsPotassiumGoalDescription {
+    return Intl.message(
+      'Daily potassium target in milligrams. Default reference is 3500mg.',
+      name: 'settingsPotassiumGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Magnesium goal`
+  String get settingsMagnesiumGoalLabel {
+    return Intl.message(
+      'Magnesium goal',
+      name: 'settingsMagnesiumGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily magnesium target in milligrams. Default varies by gender (400mg male, 310mg female, 355mg otherwise).`
+  String get settingsMagnesiumGoalDescription {
+    return Intl.message(
+      'Daily magnesium target in milligrams. Default varies by gender (400mg male, 310mg female, 355mg otherwise).',
+      name: 'settingsMagnesiumGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Vitamin D goal`
+  String get settingsVitaminDGoalLabel {
+    return Intl.message(
+      'Vitamin D goal',
+      name: 'settingsVitaminDGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily vitamin D target in micrograms. Default reference is 15µg.`
+  String get settingsVitaminDGoalDescription {
+    return Intl.message(
+      'Daily vitamin D target in micrograms. Default reference is 15µg.',
+      name: 'settingsVitaminDGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Vitamin B12 goal`
+  String get settingsVitaminB12GoalLabel {
+    return Intl.message(
+      'Vitamin B12 goal',
+      name: 'settingsVitaminB12GoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily vitamin B12 target in micrograms. Default reference is 2.4µg.`
+  String get settingsVitaminB12GoalDescription {
+    return Intl.message(
+      'Daily vitamin B12 target in micrograms. Default reference is 2.4µg.',
+      name: 'settingsVitaminB12GoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Theme`
   String get settingsThemeLabel {
     return Intl.message(
@@ -1428,6 +1648,36 @@ class S {
     );
   }
 
+  /// `Nutrients`
+  String get settingsNutrientsLabel {
+    return Intl.message(
+      'Nutrients',
+      name: 'settingsNutrientsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pick which nutrients appear on the diary panel`
+  String get settingsNutrientsSubtitle {
+    return Intl.message(
+      'Pick which nutrients appear on the diary panel',
+      name: 'settingsNutrientsSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose which nutrients are visible on the daily panel. Hidden ones can be turned back on at any time.`
+  String get settingsNutrientsHelp {
+    return Intl.message(
+      'Choose which nutrients are visible on the daily panel. Hidden ones can be turned back on at any time.',
+      name: 'settingsNutrientsHelp',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Distance`
   String get settingsDistanceLabel {
     return Intl.message(
@@ -1657,6 +1907,16 @@ class S {
     return Intl.message(
       'Removes the locally cached search and scan results from Open Food Facts and FDC. The cache rebuilds automatically as you search and scan products. Your custom meals are not affected.',
       name: 'clearOffCacheConfirmContent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recipes are kept only with JSON exports and imports. Switch to JSON to include them in your backup.`
+  String get exportImportCsvRecipesNote {
+    return Intl.message(
+      'Recipes are kept only with JSON exports and imports. Switch to JSON to include them in your backup.',
+      name: 'exportImportCsvRecipesNote',
       desc: '',
       args: [],
     );
@@ -2092,11 +2352,31 @@ class S {
     );
   }
 
+  /// `Only nutrients tracked on the meals you logged are summed here. A meal missing a value contributes nothing to that nutrient — so these totals may underreport.`
+  String get diaryNutrientPanelDataDisclaimer {
+    return Intl.message(
+      'Only nutrients tracked on the meals you logged are summed here. A meal missing a value contributes nothing to that nutrient — so these totals may underreport.',
+      name: 'diaryNutrientPanelDataDisclaimer',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Time added`
   String get diarySortByTime {
     return Intl.message(
       'Time added',
       name: 'diarySortByTime',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today's nutrients`
+  String get diaryNutrientPanelTitle {
+    return Intl.message(
+      "Today's nutrients",
+      name: 'diaryNutrientPanelTitle',
       desc: '',
       args: [],
     );
@@ -2112,11 +2392,31 @@ class S {
     );
   }
 
+  /// `Day`
+  String get nutrientPanelDayLabel {
+    return Intl.message(
+      'Day',
+      name: 'nutrientPanelDayLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Protein (high to low)`
   String get diarySortByProtein {
     return Intl.message(
       'Protein (high to low)',
       name: 'diarySortByProtein',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Week`
+  String get nutrientPanelWeekLabel {
+    return Intl.message(
+      'Week',
+      name: 'nutrientPanelWeekLabel',
       desc: '',
       args: [],
     );
@@ -2137,6 +2437,16 @@ class S {
     return Intl.message(
       'Fat (high to low)',
       name: 'diarySortByFat',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All nutrients hidden — turn some on in Settings → Nutrients.`
+  String get nutrientPanelAllHiddenLabel {
+    return Intl.message(
+      'All nutrients hidden — turn some on in Settings → Nutrients.',
+      name: 'nutrientPanelAllHiddenLabel',
       desc: '',
       args: [],
     );

@@ -173,18 +173,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("DELETE"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diary"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Only nutrients tracked on the meals you logged are summed here. A meal missing a value contributes nothing to that nutrient — so these totals may underreport."),
         "diaryFutureDateWarning":
             MessageLookupByLibrary.simpleMessage("You are editing a future date"),
-        "diarySortByCarbs":
-            MessageLookupByLibrary.simpleMessage("Carbs (high to low)"),
-        "diarySortByFat":
-            MessageLookupByLibrary.simpleMessage("Fat (high to low)"),
-        "diarySortByKcal":
-            MessageLookupByLibrary.simpleMessage("Calories (high to low)"),
-        "diarySortByLabel": MessageLookupByLibrary.simpleMessage("Sort by"),
-        "diarySortByProtein":
-            MessageLookupByLibrary.simpleMessage("Protein (high to low)"),
-        "diarySortByTime": MessageLookupByLibrary.simpleMessage("Time added"),
+        "diaryNutrientPanelTitle":
+            MessageLookupByLibrary.simpleMessage("Today\'s nutrients"),
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
             "e.g. soup, chicken, wine ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Dinner"),
@@ -256,6 +250,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "potassiumLabel": MessageLookupByLibrary.simpleMessage("potassium"),
         "settingsCustomMealsLabel":
             MessageLookupByLibrary.simpleMessage("Custom Meals"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("Recipes are kept only with JSON exports and imports. Switch to JSON to include them in your backup."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "You can export the app data to a zip file and import it later. This is useful if you want to backup your data or transfer it to another device.\n\nThe app does not use any cloud service to store your data."),
         "exportImportErrorLabel":
@@ -362,6 +358,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("N/A"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Nothing added"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Day"),
+        "nutrientPanelWeekLabel": MessageLookupByLibrary.simpleMessage("Week"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "All nutrients hidden — turn some on in Settings → Nutrients."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Nutrition Information"),
         "nutritionalStatusNormalWeight":
@@ -922,8 +922,53 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Calculations"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Disclaimer"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily fibre target in grams. Default reference is 30g."),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Fibre goal"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "Personal targets for every nutrient on the daily panel. The diary uses these in place of the default daily references whenever you set one."),
+        "settingsNutrientGoalsLabel":
+            MessageLookupByLibrary.simpleMessage("Nutrient goals"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "Daily saturated fat cap in grams. Default reference is 20g."),
+        "settingsSaturatedFatGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Saturated fat goal"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("Sources & References"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily sugars cap in grams. Default reference is 50g."),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Sugars goal"),
+        "settingsSodiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Sodium goal"),
+        "settingsSodiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily sodium cap in milligrams. Default reference is 2300mg."),
+        "settingsCalciumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Calcium goal"),
+        "settingsCalciumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily calcium target in milligrams. Default reference is 1000mg."),
+        "settingsIronGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Iron goal"),
+        "settingsIronGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily iron target in milligrams. Default varies by gender (8mg male, 18mg female, 14mg otherwise)."),
+        "settingsPotassiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Potassium goal"),
+        "settingsPotassiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily potassium target in milligrams. Default reference is 3500mg."),
+        "settingsMagnesiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Magnesium goal"),
+        "settingsMagnesiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily magnesium target in milligrams. Default varies by gender (400mg male, 310mg female, 355mg otherwise)."),
+        "settingsVitaminDGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Vitamin D goal"),
+        "settingsVitaminDGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily vitamin D target in micrograms. Default reference is 15µg."),
+        "settingsVitaminB12GoalLabel":
+            MessageLookupByLibrary.simpleMessage("Vitamin B12 goal"),
+        "settingsVitaminB12GoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Daily vitamin B12 target in micrograms. Default reference is 2.4µg."),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("View sources"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(
@@ -980,6 +1025,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Show Meal Macros"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Show Micronutrients"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Nutrients"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Pick which nutrients appear on the diary panel"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Choose which nutrients are visible on the daily panel. Hidden ones can be turned back on at any time."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Source Code"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("System"),
@@ -1016,5 +1067,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Weight"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("zinc"),
+        "diarySortByCarbs":
+            MessageLookupByLibrary.simpleMessage("Carbs (high to low)"),
+        "diarySortByFat":
+            MessageLookupByLibrary.simpleMessage("Fat (high to low)"),
+        "diarySortByKcal":
+            MessageLookupByLibrary.simpleMessage("Calories (high to low)"),
+        "diarySortByLabel": MessageLookupByLibrary.simpleMessage("Sort by"),
+        "diarySortByProtein":
+            MessageLookupByLibrary.simpleMessage("Protein (high to low)"),
+        "diarySortByTime": MessageLookupByLibrary.simpleMessage("Time added"),
       };
 }
