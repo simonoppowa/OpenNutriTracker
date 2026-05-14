@@ -107,8 +107,6 @@
   "appTitle": "OpenNutriTracker",
   "appVersionName": "Verze {versionNumber}",
   "barcodeInvalidEan13CheckDigit": "Tento 13místný čárový kód vypadá překlepnutě: poslední číslice nesouhlasí s ostatními",
-  "barcodeMultipleMatchesBody": "K tomuto čárovému kódu máš přiřazeno více receptů. Vyber ten, který chceš zapsat.",
-  "barcodeMultipleMatchesTitle": "Více odpovídajících receptů",
   "baseQuantityLabel": "Základní množství (g/ml)",
   "betaVersionName": "[Beta]",
   "bmiInfo": "Body Mass Index (BMI) je výpočet pro klasifikaci nadváhy a obezity u dospělých. Je definován jako hmotnost v kilogramech vydělená druhou mocninou výšky v metrech (kg/m²).\n\nBMI nerozlišuje mezi tukovou tkání a svalovou hmotou a může být chybně interpretován u některých jedinců.",

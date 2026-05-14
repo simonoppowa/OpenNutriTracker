@@ -876,10 +876,6 @@ class MessageLookup extends MessageLookupByLibrary {
             "Barcode must be 8 to 14 digits"),
         "barcodeInvalidEan13CheckDigit": MessageLookupByLibrary.simpleMessage(
             "This 13-digit barcode looks miskeyed: its last digit doesn\'t match the rest"),
-        "barcodeMultipleMatchesTitle": MessageLookupByLibrary.simpleMessage(
-            "More than one recipe matches"),
-        "barcodeMultipleMatchesBody": MessageLookupByLibrary.simpleMessage(
-            "You\'ve attached this barcode to several recipes. Pick the one you\'d like to log."),
         "recipesFilterAllLabel":
             MessageLookupByLibrary.simpleMessage("All"),
         "importRecipesCsvAction":

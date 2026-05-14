@@ -137,8 +137,6 @@
   "appTitle": "OpenNutriTracker",
   "appVersionName": "Verzia {versionNumber}",
   "barcodeInvalidEan13CheckDigit": "Tento 13-miestny čiarový kód vyzerá ako preklep: posledná číslica nesedí so zvyškom",
-  "barcodeMultipleMatchesBody": "Tento čiarový kód ste priradili viacerým receptom. Vyberte ten, ktorý chcete zaznamenať.",
-  "barcodeMultipleMatchesTitle": "Zhoduje sa viac receptov",
   "baseQuantityLabel": "Základné množstvo (g/ml)",
   "betaVersionName": "[Beta]",
   "bmiInfo": "Index telesnej hmotnosti (BMI) je ukazovateľ na klasifikáciu nadváhy a obezity u dospelých. Vypočíta sa ako hmotnosť v kilogramoch delená druhou mocninou výšky v metroch (kg/m²).\n\nBMI nerozlišuje medzi tukovou a svalovou hmotou a u niektorých jednotlivcov môže byť zavádzajúci.",

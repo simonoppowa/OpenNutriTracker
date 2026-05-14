@@ -19,10 +19,6 @@ class RecipeEntity extends Equatable {
   // entity as non-nullable for ergonomics; the DBO carries a nullable list
   // for backwards compat with older saved records.
   final List<String> tags;
-  // Optional EAN-13 / UPC-A barcode the user has attached to this recipe.
-  // When set, a scan of this code resolves to the recipe before the
-  // scanner falls through to OFF. Null means no barcode attached.
-  final String? barcode;
 
   const RecipeEntity({
     required this.id,
@@ -35,7 +31,6 @@ class RecipeEntity extends Equatable {
     required this.updatedAt,
     required this.servingsCount,
     this.tags = const [],
-    this.barcode,
   });
 
   factory RecipeEntity.fromDBO(RecipeDBO dbo) {
@@ -53,7 +48,6 @@ class RecipeEntity extends Equatable {
       updatedAt: dbo.updatedAt,
       servingsCount: dbo.servingsCount,
       tags: dbo.tags ?? const [],
-      barcode: dbo.barcode,
     );
   }
 
@@ -72,7 +66,6 @@ class RecipeEntity extends Equatable {
       updatedAt: updatedAt,
       servingsCount: servingsCount,
       tags: tags.isEmpty ? null : tags,
-      barcode: barcode,
     );
   }
 
@@ -111,10 +104,8 @@ class RecipeEntity extends Equatable {
     DateTime? updatedAt,
     int? servingsCount,
     List<String>? tags,
-    String? barcode,
     bool clearServingsCount = false,
     bool clearDescription = false,
-    bool clearBarcode = false,
   }) {
     return RecipeEntity(
       id: id ?? this.id,
@@ -129,7 +120,6 @@ class RecipeEntity extends Equatable {
       servingsCount:
           clearServingsCount ? null : (servingsCount ?? this.servingsCount),
       tags: tags ?? this.tags,
-      barcode: clearBarcode ? null : (barcode ?? this.barcode),
     );
   }
 
@@ -145,6 +135,5 @@ class RecipeEntity extends Equatable {
         updatedAt,
         servingsCount,
         tags,
-        barcode,
       ];
 }

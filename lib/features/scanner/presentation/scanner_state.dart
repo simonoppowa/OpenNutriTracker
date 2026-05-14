@@ -28,22 +28,6 @@ class ScannerLoadedState extends ScannerState {
   List<Object?> get props => [product];
 }
 
-/// More than one custom recipe matched the scanned barcode. The scanner
-/// screen renders a chooser sheet from this state so the user can pick
-/// which recipe they meant before the meal-detail flow continues.
-class ScannerMultipleRecipesState extends ScannerState {
-  final List<RecipeEntity> recipes;
-  final bool usesImperialUnits;
-
-  const ScannerMultipleRecipesState({
-    required this.recipes,
-    this.usesImperialUnits = false,
-  });
-
-  @override
-  List<Object?> get props => [recipes, usesImperialUnits];
-}
-
 class ScannerFailedState extends ScannerState {
   final ScannerFailedStateType type;
 

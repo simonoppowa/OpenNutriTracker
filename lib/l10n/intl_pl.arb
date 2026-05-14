@@ -107,8 +107,6 @@
   "appTitle": "OpenNutriTracker",
   "appVersionName": "Wersja {versionNumber}",
   "barcodeInvalidEan13CheckDigit": "Ten 13-cyfrowy kod kreskowy wygląda na błędnie wpisany: ostatnia cyfra nie pasuje do pozostałych",
-  "barcodeMultipleMatchesBody": "Przypisałeś/-aś ten kod kreskowy do kilku przepisów. Wybierz, który chcesz zarejestrować.",
-  "barcodeMultipleMatchesTitle": "Pasuje więcej niż jeden przepis",
   "baseQuantityLabel": "Podstawowa ilość (g/ml)",
   "betaVersionName": "[Beta]",
   "bmiInfo": "Wskaźnik Masy Ciała (BMI) to wskaźnik służący do klasyfikacji nadwagi i otyłości u dorosłych. Jest definiowany jako waga w kilogramach podzielona przez kwadrat wzrostu w metrach (kg/m²).\n\nBMI nie rozróżnia między tkanką tłuszczową a mięśniową i może być mylący dla niektórych osób.",

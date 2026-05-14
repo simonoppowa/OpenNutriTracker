@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
-import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -24,7 +23,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
   String? _scannedBarcode;
   late IntakeTypeEntity _intakeTypeEntity;
   late DateTime _day;
-  bool _chooserShown = false;
 
   late ScannerBloc _scannerBloc;
 
@@ -70,15 +68,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
               );
             }
           });
-        } else if (state is ScannerMultipleRecipesState) {
-          if (!_chooserShown) {
-            _chooserShown = true;
-            Future.microtask(() => _showRecipeChooser(context, state.recipes));
-          }
-          return Scaffold(
-            appBar: AppBar(),
-            body: const Center(child: CircularProgressIndicator()),
-          );
         } else if (state is ScannerFailedState) {
           return Scaffold(
             appBar: AppBar(),
@@ -159,72 +148,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  Future<void> _showRecipeChooser(
-    BuildContext context,
-    List<RecipeEntity> recipes,
-  ) async {
-    // Cache the navigator up front: the user closing the sheet without
-    // picking spins through an async gap before we want to pop the
-    // scanner, and accessing context after the await is what the
-    // use_build_context_synchronously lint is warning about.
-    final navigator = Navigator.of(context);
-    final chosen = await showModalBottomSheet<RecipeEntity>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Text(
-                    S.of(sheetContext).barcodeMultipleMatchesTitle,
-                    style: Theme.of(sheetContext).textTheme.titleMedium,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Text(
-                    S.of(sheetContext).barcodeMultipleMatchesBody,
-                    style: Theme.of(sheetContext).textTheme.bodyMedium,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Flexible(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: recipes.length,
-                    itemBuilder: (itemContext, index) {
-                      final recipe = recipes[index];
-                      return ListTile(
-                        title: Text(recipe.name),
-                        onTap: () =>
-                            Navigator.of(itemContext).pop(recipe),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-    if (!mounted) return;
-    if (chosen == null) {
-      // User dismissed without picking; bounce back to the camera so
-      // they can try again rather than leaving them stuck on a spinner.
-      _chooserShown = false;
-      navigator.pop();
-      return;
-    }
-    _scannerBloc.add(ScannerRecipeChosenEvent(chosen));
-  }
 }
 
 class ScannerScreenArguments {

@@ -1108,10 +1108,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "profileTargetWeightToGo": m22,
         "barcodeInvalidEan13CheckDigit":
             MessageLookupByLibrary.simpleMessage("Tento 13-miestny čiarový kód vyzerá ako preklep: posledná číslica nesedí so zvyškom"),
-        "barcodeMultipleMatchesBody":
-            MessageLookupByLibrary.simpleMessage("Tento čiarový kód ste priradili viacerým receptom. Vyberte ten, ktorý chcete zaznamenať."),
-        "barcodeMultipleMatchesTitle":
-            MessageLookupByLibrary.simpleMessage("Zhoduje sa viac receptov"),
         "customMealBarcodeHint":
             MessageLookupByLibrary.simpleMessage("Naskenujte alebo zadajte čiarový kód, aby ste si toto jedlo neskôr ľahko vyvolali"),
         "customMealBarcodeInvalid":

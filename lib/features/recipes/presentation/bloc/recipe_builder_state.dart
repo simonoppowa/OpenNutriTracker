@@ -4,8 +4,6 @@ enum SaveError {
   nameRequired,
   needsIngredients,
   invalidTotalWeight,
-  invalidBarcode,
-  invalidEan13CheckDigit,
   unknown,
 }
 
@@ -19,10 +17,6 @@ class RecipeBuilderState extends Equatable {
   final bool totalWeightOverridden;
   final MealNutrimentsEntity aggregatedNutrimentsPer100;
   final List<String> tags;
-  // Optional barcode the user attached to this recipe so a future scan
-  // resolves here instead of falling through to OFF (#167). Empty string
-  // is normalized to null at save time.
-  final String? barcode;
   final bool isExistingRecipe;
   final bool isSaving;
   final bool didSave;
@@ -39,7 +33,6 @@ class RecipeBuilderState extends Equatable {
     required this.totalWeightOverridden,
     required this.aggregatedNutrimentsPer100,
     required this.tags,
-    required this.barcode,
     required this.isExistingRecipe,
     required this.isSaving,
     required this.didSave,
@@ -57,7 +50,6 @@ class RecipeBuilderState extends Equatable {
         totalWeightOverridden: false,
         aggregatedNutrimentsPer100: MealNutrimentsEntity.empty(),
         tags: const [],
-        barcode: null,
         isExistingRecipe: false,
         isSaving: false,
         didSave: false,
@@ -75,7 +67,6 @@ class RecipeBuilderState extends Equatable {
     bool? totalWeightOverridden,
     MealNutrimentsEntity? aggregatedNutrimentsPer100,
     List<String>? tags,
-    String? barcode,
     bool? isExistingRecipe,
     bool? isSaving,
     bool? didSave,
@@ -83,7 +74,6 @@ class RecipeBuilderState extends Equatable {
     String? errorMessage,
     bool clearServingsCount = false,
     bool clearSaveError = false,
-    bool clearBarcode = false,
   }) {
     return RecipeBuilderState(
       id: id ?? this.id,
@@ -98,7 +88,6 @@ class RecipeBuilderState extends Equatable {
       aggregatedNutrimentsPer100:
           aggregatedNutrimentsPer100 ?? this.aggregatedNutrimentsPer100,
       tags: tags ?? this.tags,
-      barcode: clearBarcode ? null : (barcode ?? this.barcode),
       isExistingRecipe: isExistingRecipe ?? this.isExistingRecipe,
       isSaving: isSaving ?? this.isSaving,
       didSave: didSave ?? this.didSave,
@@ -118,7 +107,6 @@ class RecipeBuilderState extends Equatable {
         totalWeightOverridden,
         aggregatedNutrimentsPer100,
         tags,
-        barcode,
         isExistingRecipe,
         isSaving,
         didSave,

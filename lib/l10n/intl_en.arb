@@ -138,8 +138,6 @@
   "appTitle": "OpenNutriTracker",
   "appVersionName": "Version {versionNumber}",
   "barcodeInvalidEan13CheckDigit": "This 13-digit barcode looks miskeyed: its last digit doesn't match the rest",
-  "barcodeMultipleMatchesBody": "You've attached this barcode to several recipes. Pick the one you'd like to log.",
-  "barcodeMultipleMatchesTitle": "More than one recipe matches",
   "baseQuantityLabel": "Base quantity (g/ml)",
   "betaVersionName": "[Beta]",
   "bmiInfo": "Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals.",

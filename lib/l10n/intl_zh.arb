@@ -108,8 +108,6 @@
   "appTitle": "OpenNutriTracker",
   "appVersionName": "版本 {versionNumber}",
   "barcodeInvalidEan13CheckDigit": "这个 13 位条形码看起来输入有误：最后一位与前面的数字不匹配",
-  "barcodeMultipleMatchesBody": "你已将该条形码关联到多个食谱，请选择想要记录的那一个。",
-  "barcodeMultipleMatchesTitle": "匹配到多个食谱",
   "baseQuantityLabel": "基础数量 (克/毫升)",
   "betaVersionName": "[Beta]",
   "bmiInfo": "体重指数（BMI）是用于分类成人超重和肥胖的指标。它定义为体重（千克）除以身高（米）的平方（kg/m²）。\n\nBMI不区分脂肪和肌肉质量，对某些人可能有误导性。",

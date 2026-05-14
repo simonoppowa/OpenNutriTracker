@@ -1,51 +1,40 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_builder_bloc.dart';
+import 'package:opennutritracker/core/utils/barcode_validator.dart';
 
 void main() {
-  group('EAN-13 check digit validation', () {
-    // Faber-Castell pencil pack — a real, in-the-wild EAN-13 that scans
-    // cleanly off a physical product. Provides a known-good baseline
-    // before we start poking at the algorithm with adversarial inputs.
-    test('accepts the canonical Faber-Castell EAN', () {
-      expect(
-        RecipeBuilderBloc.isEan13CheckDigitValid('4006381333931'),
-        isTrue,
-      );
+  group('isEan13CheckDigitValid', () {
+    // Real-world EAN-13 codes (sampled from common products). All have valid
+    // check digits and should pass.
+    test('accepts valid EAN-13 codes', () {
+      expect(isEan13CheckDigitValid('5012345678900'), isTrue);
+      expect(isEan13CheckDigitValid('4006381333931'), isTrue);
+      expect(isEan13CheckDigitValid('8718265591714'), isTrue);
     });
 
-    // The most likely real-world miskey: someone reads the last digit off
-    // a small printed barcode and gets it wrong by one. The check should
-    // refuse that, otherwise the user happily attaches a junk code to
-    // their recipe and a future scan of the genuine product fails to
-    // resolve.
-    test('rejects the same EAN with the last digit flipped', () {
-      expect(
-        RecipeBuilderBloc.isEan13CheckDigitValid('4006381333930'),
-        isFalse,
-      );
+    // A single-digit mutation of a known-good code should fail the check —
+    // this is exactly the typo class the validator is meant to catch.
+    test('rejects a single mis-keyed digit', () {
+      // 5012345678900 with the final digit changed to 1.
+      expect(isEan13CheckDigitValid('5012345678901'), isFalse);
+      // 4006381333931 with the seventh digit changed.
+      expect(isEan13CheckDigitValid('4006381338931'), isFalse);
     });
 
-    // Non-13-digit codes use different algorithms (EAN-8 / UPC-A /
-    // GTIN-14). We don't validate those here — the lenient regex in the
-    // builder already covers length, and we trust the longer/shorter
-    // formats at face value rather than rejecting valid codes that
-    // happen not to satisfy the EAN-13 weighting.
-    test('passes through 8-digit codes without check', () {
-      expect(RecipeBuilderBloc.isEan13CheckDigitValid('12345678'), isTrue);
+    // Lengths other than 13 are not EAN-13 and are accepted at face value —
+    // see the doc comment on the validator for why.
+    test('non-13-digit codes pass without validation', () {
+      expect(isEan13CheckDigitValid('12345678'), isTrue); // EAN-8
+      expect(isEan13CheckDigitValid('012345678905'), isTrue); // UPC-A 12-digit
+      expect(isEan13CheckDigitValid('40063813339311'), isTrue); // GTIN-14
     });
 
-    test('passes through 12-digit UPC-A codes without check', () {
-      expect(
-        RecipeBuilderBloc.isEan13CheckDigitValid('123456789012'),
-        isTrue,
-      );
-    });
-
-    test('passes through 14-digit GTIN-14 codes without check', () {
-      expect(
-        RecipeBuilderBloc.isEan13CheckDigitValid('12345678901231'),
-        isTrue,
-      );
+    test('isBarcodeFormatValid accepts 8..14 digit runs', () {
+      expect(isBarcodeFormatValid('12345678'), isTrue);
+      expect(isBarcodeFormatValid('40063813339311'), isTrue);
+      expect(isBarcodeFormatValid('1234567'), isFalse); // too short
+      expect(isBarcodeFormatValid('123456789012345'), isFalse); // too long
+      expect(isBarcodeFormatValid('1234-5678'), isFalse); // non-digits
+      expect(isBarcodeFormatValid(''), isFalse);
     });
   });
 }

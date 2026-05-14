@@ -35,8 +35,9 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
     String kcalText,
     String carbsText,
     String fatText,
-    String proteinText,
-  ) {
+    String proteinText, {
+    String? barcodeOverride,
+  }) {
     final baseQuantityDouble = double.tryParse(baseQuantity);
 
     final double factorTo100g =
@@ -59,7 +60,11 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
     );
 
     return MealEntity(
-      code: oldMealEntity.code,
+      // #167: a user-typed or scanned barcode wins over whatever came
+      // from the originating OFF/FDC record, but only when the override
+      // was actually supplied. Empty-string is treated as "clear" so a
+      // user can erase a stored code by blanking the field.
+      code: barcodeOverride ?? oldMealEntity.code,
       name: nameText.toStringOrNull(),
       brands: brandsText.toStringOrNull(),
       url: oldMealEntity.url,

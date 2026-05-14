@@ -580,26 +580,6 @@ class S {
     );
   }
 
-  /// `More than one recipe matches`
-  String get barcodeMultipleMatchesTitle {
-    return Intl.message(
-      'More than one recipe matches',
-      name: 'barcodeMultipleMatchesTitle',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `You've attached this barcode to several recipes. Pick the one you'd like to log.`
-  String get barcodeMultipleMatchesBody {
-    return Intl.message(
-      'You\'ve attached this barcode to several recipes. Pick the one you\'d like to log.',
-      name: 'barcodeMultipleMatchesBody',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `All`
   String get recipesFilterAllLabel {
     return Intl.message(

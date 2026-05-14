@@ -91,16 +91,6 @@ class UpdateTotalWeightEvent extends RecipeBuilderEvent {
   List<Object?> get props => [totalWeightG];
 }
 
-class UpdateBarcodeEvent extends RecipeBuilderEvent {
-  /// Null or empty string clears the barcode. Non-null trimmed value is
-  /// stored verbatim; format validation happens at save time.
-  final String? barcode;
-  const UpdateBarcodeEvent(this.barcode);
-
-  @override
-  List<Object?> get props => [barcode];
-}
-
 class SaveRecipeEvent extends RecipeBuilderEvent {
   const SaveRecipeEvent();
 }

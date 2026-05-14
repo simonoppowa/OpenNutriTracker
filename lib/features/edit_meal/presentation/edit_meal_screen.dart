@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:opennutritracker/core/utils/barcode_validator.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
@@ -39,6 +41,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
 
   final _nameTextController = TextEditingController();
   final _brandsTextController = TextEditingController();
+  final _barcodeTextController = TextEditingController();
   final _mealQuantityTextController = TextEditingController();
   final _servingQuantityTextController = TextEditingController();
   final _baseQuantityTextController = TextEditingController();
@@ -57,6 +60,13 @@ class _EditMealScreenState extends State<EditMealScreen> {
 
   late List<ButtonSegment<String>> _mealUnitButtonSegment;
 
+  // didChangeDependencies is called on every dependency change, including
+  // ones triggered by Navigator pops returning from sub-pages (the barcode
+  // scanner among them). Without this guard the controllers would get
+  // re-seeded from _mealEntity.code on every return, wiping a value the
+  // user just scanned into the field.
+  bool _initialised = false;
+
   String baseQuantity = "100";
   String baseQuantityUnit = " g/ml";
 
@@ -70,6 +80,10 @@ class _EditMealScreenState extends State<EditMealScreen> {
 
   @override
   void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialised) return;
+    _initialised = true;
+
     final args =
         ModalRoute.of(context)?.settings.arguments as EditMealScreenArguments;
     _mealEntity = args.mealEntity;
@@ -80,6 +94,16 @@ class _EditMealScreenState extends State<EditMealScreen> {
 
     _nameTextController.text = _mealEntity.name ?? "";
     _brandsTextController.text = _mealEntity.brands ?? "";
+    // MealEntity.code is dual-purpose: it carries a real product barcode for
+    // OFF / FDC scans, but for custom meals MealEntity.empty() seeds it with
+    // an internal UUID that the user should never see in the Barcode input.
+    // Only show codes that actually look like a retail barcode (8–14 digits);
+    // anything else means there isn't a user-visible barcode yet.
+    final existingCode = _mealEntity.code;
+    _barcodeTextController.text =
+        (existingCode != null && isBarcodeFormatValid(existingCode))
+            ? existingCode
+            : "";
     _mealQuantityTextController.text = _mealEntity.mealQuantity ?? "";
     _servingQuantityTextController.text =
         _mealEntity.servingQuantity.toStringOrEmpty();
@@ -124,14 +148,13 @@ class _EditMealScreenState extends State<EditMealScreen> {
         label: Text(S.of(context).gramMilliliterUnit),
       ),
     ];
-
-    super.didChangeDependencies();
   }
 
   @override
   void dispose() {
     _nameTextController.dispose();
     _brandsTextController.dispose();
+    _barcodeTextController.dispose();
     _mealQuantityTextController.dispose();
     _servingQuantityTextController.dispose();
     _baseQuantityTextController.dispose();
@@ -213,6 +236,32 @@ class _EditMealScreenState extends State<EditMealScreen> {
             border: const OutlineInputBorder(),
           ),
           keyboardType: TextInputType.text,
+        ),
+        const SizedBox(height: 16),
+        // Optional barcode (#167). Lets the user attach a code to a custom
+        // meal so a future scan recalls the saved version directly without
+        // round-tripping through Open Food Facts. The scan icon launches
+        // the in-app camera; the result is validated by [BarcodeValidator]
+        // before save (see _onSavePressed).
+        Semantics(
+          identifier: 'edit-meal-barcode-input',
+          child: TextFormField(
+            controller: _barcodeTextController,
+            decoration: InputDecoration(
+              labelText: S.of(context).customMealBarcodeLabel,
+              hintText: S.of(context).customMealBarcodeHint,
+              border: const OutlineInputBorder(),
+              suffixIcon: Semantics(
+                identifier: 'edit-meal-barcode-scan',
+                child: IconButton(
+                  tooltip: S.of(context).customMealBarcodeScanButton,
+                  icon: const Icon(Icons.barcode_reader),
+                  onPressed: _scanBarcodeIntoField,
+                ),
+              ),
+            ),
+            keyboardType: TextInputType.number,
+          ),
         ),
         const SizedBox(height: 32),
         TextFormField(
@@ -357,6 +406,23 @@ class _EditMealScreenState extends State<EditMealScreen> {
         return;
       }
 
+      // Validate barcode shape if the user typed or scanned one (#167).
+      // Empty is fine — the field is optional. 8-14 digits required;
+      // EAN-13 check digit must verify for codes of that exact length.
+      final rawBarcode = _barcodeTextController.text.trim();
+      if (rawBarcode.isNotEmpty) {
+        if (!isBarcodeFormatValid(rawBarcode)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(S.of(context).customMealBarcodeInvalid)));
+          return;
+        }
+        if (!isEan13CheckDigitValid(rawBarcode)) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(S.of(context).barcodeInvalidEan13CheckDigit)));
+          return;
+        }
+      }
+
       // Validate nutritional consistency (#213)
       final baseQty =
           double.tryParse(_baseQuantityTextController.text) ?? 100.0;
@@ -463,6 +529,9 @@ class _EditMealScreenState extends State<EditMealScreen> {
         carbsText,
         fatText,
         proteinText,
+        // Empty-string clears the barcode; whitespace was already trimmed
+        // during validation above so we can pass the raw value through.
+        barcodeOverride: rawBarcode.isEmpty ? null : rawBarcode,
       );
 
       // Persist custom meal template (#267). Skipped for one-off entries
@@ -497,6 +566,26 @@ class _EditMealScreenState extends State<EditMealScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(S.of(context).errorMealSave)));
     }
+  }
+
+  /// Push a lightweight `MobileScanner` page that returns the first product
+  /// barcode it sees, then drop the value into the barcode TextField. The
+  /// scan-time validator on the field handles bad codes (8–14 digits,
+  /// EAN-13 check digit) — we don't double-validate here so the user can
+  /// see and edit the raw scanned value before saving.
+  Future<void> _scanBarcodeIntoField() async {
+    log.fine('Opening edit-meal barcode scanner');
+    final navigator = Navigator.of(context);
+    final result = await navigator.push<String?>(
+      MaterialPageRoute(builder: (_) => const _EditMealBarcodeScanPage()),
+    );
+    log.fine('Edit-meal barcode scanner returned: $result');
+    if (result == null) return;
+    if (!mounted) return;
+    setState(() {
+      _barcodeTextController.text = result;
+    });
+    log.fine('Barcode text controller after set: ${_barcodeTextController.text}');
   }
 
   Future<bool?> _showAtwaterWarningDialog() {
@@ -625,6 +714,62 @@ class _SaveForLaterField extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Minimal camera page used by [_EditMealScreenState._scanBarcodeIntoField].
+/// Pops itself with the first product barcode it detects, or returns null
+/// when the user taps the back button. We keep this private to the edit-meal
+/// flow rather than reusing the full ScannerScreen because that screen runs
+/// its own lookup-and-route logic that wouldn't fit a "give me the raw
+/// string" use case.
+class _EditMealBarcodeScanPage extends StatefulWidget {
+  const _EditMealBarcodeScanPage();
+
+  @override
+  State<_EditMealBarcodeScanPage> createState() =>
+      _EditMealBarcodeScanPageState();
+}
+
+class _EditMealBarcodeScanPageState extends State<_EditMealBarcodeScanPage> {
+  static final _log = Logger('EditMealBarcodeScan');
+  final MobileScannerController _controller = MobileScannerController();
+  bool _done = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    _log.fine('onDetect: ${capture.barcodes.length} barcodes; '
+        'types=${capture.barcodes.map((b) => b.type.name).toList()}; '
+        'rawValues=${capture.barcodes.map((b) => b.rawValue).toList()}');
+    if (_done) return;
+    for (final b in capture.barcodes) {
+      // Accept any non-null raw value. ML Kit's type classifier is reliable
+      // for QR / data-matrix but sometimes labels a valid retail barcode as
+      // `BarcodeType.unknown` depending on print quality and camera angle —
+      // filtering strictly by `BarcodeType.product` was silently dropping
+      // those. The save-time validator on the edit-meal screen does the
+      // real "is this a valid barcode" check.
+      final raw = b.rawValue;
+      if (raw != null && raw.isNotEmpty) {
+        _log.fine('Popping with rawValue=$raw (type=${b.type.name})');
+        _done = true;
+        Navigator.of(context).pop(raw);
+        return;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(S.of(context).customMealBarcodeScanButton)),
+      body: MobileScanner(controller: _controller, onDetect: _onDetect),
     );
   }
 }

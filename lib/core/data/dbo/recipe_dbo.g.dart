@@ -27,14 +27,13 @@ class RecipeDBOAdapter extends TypeAdapter<RecipeDBO> {
       updatedAt: fields[7] as DateTime,
       servingsCount: (fields[8] as num?)?.toInt(),
       tags: (fields[9] as List?)?.cast<String>(),
-      barcode: fields[10] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, RecipeDBO obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -54,9 +53,7 @@ class RecipeDBOAdapter extends TypeAdapter<RecipeDBO> {
       ..writeByte(8)
       ..write(obj.servingsCount)
       ..writeByte(9)
-      ..write(obj.tags)
-      ..writeByte(10)
-      ..write(obj.barcode);
+      ..write(obj.tags);
   }
 
   @override
@@ -89,7 +86,6 @@ RecipeDBO _$RecipeDBOFromJson(Map<String, dynamic> json) => RecipeDBO(
   updatedAt: DateTime.parse(json['updatedAt'] as String),
   servingsCount: (json['servingsCount'] as num?)?.toInt(),
   tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-  barcode: json['barcode'] as String?,
 );
 
 Map<String, dynamic> _$RecipeDBOToJson(RecipeDBO instance) => <String, dynamic>{
@@ -103,5 +99,4 @@ Map<String, dynamic> _$RecipeDBOToJson(RecipeDBO instance) => <String, dynamic>{
   'updatedAt': instance.updatedAt.toIso8601String(),
   'servingsCount': instance.servingsCount,
   'tags': instance.tags,
-  'barcode': instance.barcode,
 };

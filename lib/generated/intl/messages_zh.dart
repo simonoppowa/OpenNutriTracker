@@ -169,10 +169,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "csvImportSuccessLabel": m12,
         "barcodeInvalidEan13CheckDigit": MessageLookupByLibrary.simpleMessage(
             "这个 13 位条形码看起来输入有误：最后一位与前面的数字不匹配"),
-        "barcodeMultipleMatchesBody": MessageLookupByLibrary.simpleMessage(
-            "你已将该条形码关联到多个食谱，请选择想要记录的那一个。"),
-        "barcodeMultipleMatchesTitle":
-            MessageLookupByLibrary.simpleMessage("匹配到多个食谱"),
         "customMealBarcodeHint": MessageLookupByLibrary.simpleMessage(
             "扫描或输入条形码，以便日后调用此餐食"),
         "customMealBarcodeInvalid": MessageLookupByLibrary.simpleMessage(
