@@ -1015,5 +1015,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Вага"),
         "weightHistoryNoteLabel":
             MessageLookupByLibrary.simpleMessage("Нотатка (необов\'язково)"),
+        "weightHistoryChartEmptyState": MessageLookupByLibrary.simpleMessage(
+            "Запиши вагу принаймні за два дні, щоб побачити динаміку."),
       };
 }

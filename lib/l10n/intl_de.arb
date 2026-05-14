@@ -691,5 +691,6 @@
   "weightHistoryNoEntries": "Noch keine Gewichtseinträge. Füge deinen ersten Eintrag hinzu, um einen Verlauf zu sehen.",
   "weightHistoryDateLabel": "Datum",
   "weightHistoryWeightLabel": "Gewicht",
-  "weightHistoryNoteLabel": "Notiz (optional)"
+  "weightHistoryNoteLabel": "Notiz (optional)",
+  "weightHistoryChartEmptyState": "Trage mindestens zwei Tage ein, um deinen Verlauf zu sehen."
 }

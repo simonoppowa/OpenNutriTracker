@@ -1015,5 +1015,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Peso"),
         "weightHistoryNoteLabel":
             MessageLookupByLibrary.simpleMessage("Nota (facoltativa)"),
+        "weightHistoryChartEmptyState": MessageLookupByLibrary.simpleMessage(
+            "Registra almeno due giorni per vedere l\'andamento."),
       };
 }

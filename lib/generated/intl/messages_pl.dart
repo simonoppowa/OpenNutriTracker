@@ -1013,5 +1013,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Waga"),
         "weightHistoryNoteLabel":
             MessageLookupByLibrary.simpleMessage("Notatka (opcjonalna)"),
+        "weightHistoryChartEmptyState": MessageLookupByLibrary.simpleMessage(
+            "Zapisz wagę z co najmniej dwóch dni, aby zobaczyć trend."),
       };
 }

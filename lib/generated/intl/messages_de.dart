@@ -1027,5 +1027,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Gewicht"),
         "weightHistoryNoteLabel":
             MessageLookupByLibrary.simpleMessage("Notiz (optional)"),
+        "weightHistoryChartEmptyState": MessageLookupByLibrary.simpleMessage(
+            "Trage mindestens zwei Tage ein, um deinen Verlauf zu sehen."),
       };
 }

@@ -1005,5 +1005,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Hmotnost"),
         "weightHistoryNoteLabel":
             MessageLookupByLibrary.simpleMessage("Poznámka (volitelná)"),
+        "weightHistoryChartEmptyState": MessageLookupByLibrary.simpleMessage(
+            "Zaznamenejte alespoň dva dny, abyste viděli vývoj."),
       };
 }

@@ -660,5 +660,6 @@
   "weightHistoryNoEntries": "Zatím žádné záznamy hmotnosti. Přidejte první, abyste mohli sledovat vývoj.",
   "weightHistoryDateLabel": "Datum",
   "weightHistoryWeightLabel": "Hmotnost",
-  "weightHistoryNoteLabel": "Poznámka (volitelná)"
+  "weightHistoryNoteLabel": "Poznámka (volitelná)",
+  "weightHistoryChartEmptyState": "Zaznamenejte alespoň dva dny, abyste viděli vývoj."
 }

@@ -660,5 +660,6 @@
   "weightHistoryNoEntries": "Nessuna registrazione del peso. Aggiungi la prima per iniziare a seguire l'andamento.",
   "weightHistoryDateLabel": "Data",
   "weightHistoryWeightLabel": "Peso",
-  "weightHistoryNoteLabel": "Nota (facoltativa)"
+  "weightHistoryNoteLabel": "Nota (facoltativa)",
+  "weightHistoryChartEmptyState": "Registra almeno due giorni per vedere l'andamento."
 }

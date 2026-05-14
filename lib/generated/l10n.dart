@@ -5822,6 +5822,16 @@ class S {
       args: [],
     );
   }
+
+  /// `Log at least two days to see your trend.`
+  String get weightHistoryChartEmptyState {
+    return Intl.message(
+      'Log at least two days to see your trend.',
+      name: 'weightHistoryChartEmptyState',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

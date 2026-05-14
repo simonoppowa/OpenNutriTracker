@@ -867,5 +867,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("体重"),
         "weightHistoryNoteLabel":
             MessageLookupByLibrary.simpleMessage("备注（可选）"),
+        "weightHistoryChartEmptyState":
+            MessageLookupByLibrary.simpleMessage("至少记录两天的数据才能查看变化趋势。"),
       };
 }

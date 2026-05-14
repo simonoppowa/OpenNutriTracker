@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
@@ -11,23 +12,42 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 /// Screen for browsing and adding weight log entries.
 ///
-/// We deliberately render a simple list view rather than a chart: the
-/// project has no chart dependency in `pubspec.yaml`, and the issue
-/// reporters in #38 were happy with "see my weight history" as a first
-/// step. A trend chart can land later without touching this data
-/// pipeline.
+/// Renders a 30-day trend chart above the date-sorted list of readings.
+/// The list remains the source of truth — the chart is a complementary
+/// visualisation. When the user has logged fewer than two days the chart
+/// area gives way to a gentle nudge to log more data, because a single
+/// point doesn't yet describe a trend.
+///
+/// Dependencies are resolved from the locator by default; the optional
+/// constructor parameters exist so widget tests can inject fakes without
+/// standing up the whole DI graph.
 class WeightHistoryScreen extends StatefulWidget {
-  const WeightHistoryScreen({super.key});
+  final GetWeightLogUsecase? getUsecase;
+  final AddWeightLogUsecase? addUsecase;
+  final DeleteWeightLogUsecase? deleteUsecase;
+  final ConfigRepository? configRepository;
+
+  const WeightHistoryScreen({
+    super.key,
+    this.getUsecase,
+    this.addUsecase,
+    this.deleteUsecase,
+    this.configRepository,
+  });
 
   @override
   State<WeightHistoryScreen> createState() => _WeightHistoryScreenState();
 }
 
 class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
-  final _getUsecase = locator<GetWeightLogUsecase>();
-  final _addUsecase = locator<AddWeightLogUsecase>();
-  final _deleteUsecase = locator<DeleteWeightLogUsecase>();
-  final _configRepository = locator<ConfigRepository>();
+  late final GetWeightLogUsecase _getUsecase =
+      widget.getUsecase ?? locator<GetWeightLogUsecase>();
+  late final AddWeightLogUsecase _addUsecase =
+      widget.addUsecase ?? locator<AddWeightLogUsecase>();
+  late final DeleteWeightLogUsecase _deleteUsecase =
+      widget.deleteUsecase ?? locator<DeleteWeightLogUsecase>();
+  late final ConfigRepository _configRepository =
+      widget.configRepository ?? locator<ConfigRepository>();
 
   bool _loading = true;
   bool _usesImperialUnits = false;
@@ -79,9 +99,21 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
                 )
               : ListView.separated(
                   padding: const EdgeInsets.only(top: 8, bottom: 96),
-                  itemCount: _entries.length,
-                  separatorBuilder: (_, _) => const Divider(height: 1),
-                  itemBuilder: (context, index) => _buildEntryTile(_entries[index]),
+                  itemCount: _entries.length + 1,
+                  separatorBuilder: (context, index) {
+                    // No divider between the chart card and the first list tile.
+                    if (index == 0) return const SizedBox.shrink();
+                    return const Divider(height: 1);
+                  },
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return _WeightTrendChart(
+                        entries: _entries,
+                        usesImperialUnits: _usesImperialUnits,
+                      );
+                    }
+                    return _buildEntryTile(_entries[index - 1]);
+                  },
                 ),
     );
   }
@@ -134,6 +166,152 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   Future<void> _onDelete(WeightLogEntity entry) async {
     await _deleteUsecase.deleteEntry(entry.date);
     await _load();
+  }
+}
+
+/// 30-day line chart of weight readings, or a friendly nudge to log more
+/// data when there's nothing to plot yet.
+///
+/// Entries are passed in newest-first (the order the list view uses); the
+/// chart re-sorts oldest-first internally so the x-axis reads left-to-right
+/// from earliest to most recent. Weights are displayed in the user's
+/// chosen unit but stored in kg, so we convert on the fly.
+class _WeightTrendChart extends StatelessWidget {
+  static const int _windowDays = 30;
+  static const double _chartHeight = 220;
+
+  final List<WeightLogEntity> entries;
+  final bool usesImperialUnits;
+
+  const _WeightTrendChart({
+    required this.entries,
+    required this.usesImperialUnits,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lineColor = theme.colorScheme.primary;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final windowStart = today.subtract(const Duration(days: _windowDays));
+
+    final inWindow = entries
+        .where((e) => !e.date.isBefore(windowStart) && !e.date.isAfter(today))
+        .toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    if (inWindow.length < 2) {
+      return Padding(
+        key: const Key('weightHistoryChartEmptyState'),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        child: SizedBox(
+          height: _chartHeight,
+          child: Center(
+            child: Text(
+              S.of(context).weightHistoryChartEmptyState,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final spots = <FlSpot>[
+      for (final entry in inWindow)
+        FlSpot(
+          // x = days since the window start, so today is at x = 30.
+          entry.date.difference(windowStart).inDays.toDouble(),
+          usesImperialUnits ? UnitCalc.kgToLbs(entry.weightKg) : entry.weightKg,
+        ),
+    ];
+
+    final minY = spots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
+    final maxY = spots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+    // Add a small padding so points don't sit on the chart edges. When all
+    // weights are identical we still need a non-zero range or fl_chart will
+    // throw.
+    final yPadding = ((maxY - minY) * 0.15).clamp(0.5, 5.0);
+
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    final dateFormat = DateFormat.MMMd(localeTag);
+
+    return Padding(
+      key: const Key('weightHistoryChart'),
+      padding: const EdgeInsets.fromLTRB(16, 16, 24, 16),
+      child: SizedBox(
+        height: _chartHeight,
+        child: LineChart(
+          LineChartData(
+            minX: 0,
+            maxX: _windowDays.toDouble(),
+            minY: minY - yPadding,
+            maxY: maxY + yPadding,
+            gridData: const FlGridData(show: false),
+            borderData: FlBorderData(show: false),
+            titlesData: FlTitlesData(
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 40,
+                  getTitlesWidget: (value, meta) => Text(
+                    value.toStringAsFixed(0),
+                    style: theme.textTheme.labelSmall,
+                  ),
+                ),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 28,
+                  // ~5 evenly spaced labels: today, -7, -14, -21, -30.
+                  interval: 7,
+                  getTitlesWidget: (value, meta) {
+                    final day =
+                        windowStart.add(Duration(days: value.toInt()));
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        dateFormat.format(day),
+                        style: theme.textTheme.labelSmall,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            lineBarsData: [
+              LineChartBarData(
+                spots: spots,
+                isCurved: true,
+                preventCurveOverShooting: true,
+                color: lineColor,
+                barWidth: 2.5,
+                dotData: FlDotData(
+                  show: true,
+                  getDotPainter: (spot, percent, bar, index) =>
+                      FlDotCirclePainter(
+                    radius: 3,
+                    color: lineColor,
+                    strokeWidth: 0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

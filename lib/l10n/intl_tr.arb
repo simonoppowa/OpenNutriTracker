@@ -691,5 +691,6 @@
   "weightHistoryNoEntries": "Henüz kilo kaydı yok. Eğilimi izlemek için ilk kaydını ekle.",
   "weightHistoryDateLabel": "Tarih",
   "weightHistoryWeightLabel": "Kilo",
-  "weightHistoryNoteLabel": "Not (isteğe bağlı)"
+  "weightHistoryNoteLabel": "Not (isteğe bağlı)",
+  "weightHistoryChartEmptyState": "Eğilimini görmek için en az iki gün kaydet."
 }

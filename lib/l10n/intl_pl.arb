@@ -660,5 +660,6 @@
   "weightHistoryNoEntries": "Brak zapisów wagi. Dodaj pierwszy, aby śledzić zmiany.",
   "weightHistoryDateLabel": "Data",
   "weightHistoryWeightLabel": "Waga",
-  "weightHistoryNoteLabel": "Notatka (opcjonalna)"
+  "weightHistoryNoteLabel": "Notatka (opcjonalna)",
+  "weightHistoryChartEmptyState": "Zapisz wagę z co najmniej dwóch dni, aby zobaczyć trend."
 }

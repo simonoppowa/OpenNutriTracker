@@ -661,5 +661,6 @@
   "weightHistoryNoEntries": "暂无体重记录。添加第一条以开始记录变化趋势。",
   "weightHistoryDateLabel": "日期",
   "weightHistoryWeightLabel": "体重",
-  "weightHistoryNoteLabel": "备注（可选）"
+  "weightHistoryNoteLabel": "备注（可选）",
+  "weightHistoryChartEmptyState": "至少记录两天的数据才能查看变化趋势。"
 }

@@ -992,5 +992,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Kilo"),
         "weightHistoryNoteLabel":
             MessageLookupByLibrary.simpleMessage("Not (isteğe bağlı)"),
+        "weightHistoryChartEmptyState": MessageLookupByLibrary.simpleMessage(
+            "Eğilimini görmek için en az iki gün kaydet."),
       };
 }

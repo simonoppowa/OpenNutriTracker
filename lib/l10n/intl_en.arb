@@ -671,5 +671,6 @@
   "weightHistoryNoEntries": "No weight readings yet. Add your first one to start tracking a trend.",
   "weightHistoryDateLabel": "Date",
   "weightHistoryWeightLabel": "Weight",
-  "weightHistoryNoteLabel": "Note (optional)"
+  "weightHistoryNoteLabel": "Note (optional)",
+  "weightHistoryChartEmptyState": "Log at least two days to see your trend."
 }

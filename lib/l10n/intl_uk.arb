@@ -660,5 +660,6 @@
   "weightHistoryNoEntries": "Поки немає записів ваги. Додай перший, щоб бачити динаміку.",
   "weightHistoryDateLabel": "Дата",
   "weightHistoryWeightLabel": "Вага",
-  "weightHistoryNoteLabel": "Нотатка (необов'язково)"
+  "weightHistoryNoteLabel": "Нотатка (необов'язково)",
+  "weightHistoryChartEmptyState": "Запиши вагу принаймні за два дні, щоб побачити динаміку."
 }

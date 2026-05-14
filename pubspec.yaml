@@ -62,6 +62,7 @@ dependencies:
   introduction_screen: ^4.0.0
   auto_size_text: ^3.0.0
   animated_flip_counter: ^0.3.4
+  fl_chart: ^1.2.0
 
   mobile_scanner: ^7.2.0
   qr_flutter: ^4.1.0
