@@ -64,6 +64,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "Importovat ${count} aktivit?";
 
+  static String m20(detail) => "Nelze zpracovat: ${detail}";
+
+  static String m21(count, customCount) =>
+      "Zaznamenáno ${count} z JSON, ${customCount} uloženo jako vlastní jídla";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -212,6 +217,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "OpenNutriTracker není aplikace pro lékařské účely. Doporučené hodnoty nejsou validovány a měly by být použity opatrně za použití selského rozumu. Dodržujte prosím obecné zásady zdravého životního stylu a kontaktujte lékaře v případě zdravotních problémů. Používání aplikace se nedoporučuje během nemoci, těhotenství či kojení. Recenzované zdroje ke každému výpočtu najdete přes ikonu informací na obrazovce Domů nebo Profil."),
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Vzorová jídla (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("Vzorová jídla (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importovat jídla (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Vzorové recepty (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importovat recepty (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Vzorové recepty (csv)"),
         "duplicateMealDialogContent":
@@ -275,7 +288,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Trénink importován"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Importujte vlastní jídla ze souboru CSV. Stáhněte si vzor, abyste viděli očekávaný formát sloupců a povinná pole."),
+            "Importujte vlastní jídla z CSV souboru nebo vložením JSON. Stáhněte si ukázku, abyste viděli očekávaný tvar a povinná pole."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Importovat vlastní data potravin"),
         "importMealConfirmContent": m4,
@@ -298,6 +311,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Recept importován"),
         "importRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Importovat recepty (csv)"),
+        "inconsistentNutritionWarningBody": MessageLookupByLibrary.simpleMessage(
+            "Tyto hodnoty si úplně neodpovídají — zadané kalorie neodpovídají energii ze sacharidů, tuků a bílkovin. Uložit i tak, nebo se podívat ještě jednou?"),
+        "inconsistentNutritionWarningEdit":
+            MessageLookupByLibrary.simpleMessage("Podívat se ještě jednou"),
+        "inconsistentNutritionWarningSaveAnyway":
+            MessageLookupByLibrary.simpleMessage("Uložit i tak"),
+        "inconsistentNutritionWarningTitle":
+            MessageLookupByLibrary.simpleMessage("Čísla nesedí"),
         "infoAddedActivityLabel":
             MessageLookupByLibrary.simpleMessage("Vložena nová aktivita"),
         "infoAddedIntakeLabel":
@@ -840,6 +861,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Výživa (celkem)"),
         "recipeSaveErrorLabel": MessageLookupByLibrary.simpleMessage(
             "Recept se nepodařilo uložit."),
+        "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
+            "Zapněte, aby toto jídlo zůstalo v seznamu uložených pro příště. Nechte vypnuté u jednorázového jídla, které už nebudete jíst."),
+        "recipeSaveForLaterLabel":
+            MessageLookupByLibrary.simpleMessage("Uložit pro příště"),
         "recipeSaveLabel":
             MessageLookupByLibrary.simpleMessage("Uložit recept"),
         "recipeServingsCountHelper": MessageLookupByLibrary.simpleMessage(
