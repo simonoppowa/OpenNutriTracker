@@ -68,9 +68,12 @@ import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc
 import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_csv_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/download_sample_json_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_data_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_meals_csv_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/import_meals_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/custom_meals_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
@@ -156,8 +159,8 @@ Future<void> initLocator() async {
     ),
   );
   locator.registerFactory(
-    () => ExportImportBloc(
-        locator(), locator(), locator(), locator(), locator()),
+    () => ExportImportBloc(locator(), locator(), locator(), locator(),
+        locator(), locator(), locator(), locator()),
   );
   // Lazy singleton: shared between RecipesPage's Custom Meals tab and the
   // create-from-popup flow on the same tab — both must mutate / observe the
@@ -269,6 +272,19 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => ImportMealsCsvUsecase(locator()));
   locator.registerLazySingleton(() => ImportRecipesCsvUsecase(locator()));
   locator.registerLazySingleton(() => DownloadSampleCsvUsecase());
+  locator.registerLazySingleton(() => DownloadSampleJsonUsecase());
+  locator.registerLazySingleton(
+    () => ImportMealsJsonUsecase(
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+    ),
+  );
+  locator.registerLazySingleton(
+    () => ImportRecipesJsonUsecase(locator()),
+  );
 
   // Recipe use cases
   locator.registerLazySingleton(() => ComputeRecipeNutritionUseCase());
