@@ -77,153 +77,177 @@ class _ProfilePageState extends State<ProfilePage> {
           nutritionalStatus: userBMIEntity.nutritionalStatus,
         ),
         const SizedBox(height: 32.0),
-        ListTile(
-          title: Text(
-            S.of(context).activityLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Text(
-            user.pal.getName(context),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          leading: const SizedBox(
-            height: double.infinity,
-            child: Icon(Icons.directions_walk_outlined),
-          ),
-          onTap: () => _showSetPALCategoryDialog(context, user),
-        ),
-        ListTile(
-          title: Text(
-            S.of(context).goalLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Text(
-            user.goal.getName(context),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          leading: const SizedBox(
-            height: double.infinity,
-            child: Icon(Icons.flag_outlined),
-          ),
-          onTap: () => _showSetGoalDialog(context, user),
-        ),
-        ListTile(
-          title: Text(
-            S.of(context).weeklyWeightGoalLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Text(
-            _weeklyGoalSubtitle(context, user, usesImperialUnits),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          leading: const SizedBox(
-            height: double.infinity,
-            child: Icon(Icons.trending_down_outlined),
-          ),
-          onTap: () =>
-              _showSetWeeklyWeightGoalDialog(context, user, usesImperialUnits),
-        ),
-        ListTile(
-          title: Text(
-            S.of(context).weightLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${_profileBloc.getDisplayWeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              // #119: When the user has set a concrete target weight, surface
-              // the distance to it directly below the current weight. The
-              // delta is signed-agnostic — the message holds whether the
-              // target is above or below current (cut or gain).
-              if (user.targetWeightKg != null)
-                Text(
-                  _targetWeightSubLabel(context, user, usesImperialUnits),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-            ],
-          ),
-          leading: const SizedBox(
-            height: double.infinity,
-            child: Icon(Icons.monitor_weight_outlined),
-          ),
-          onTap: () {
-            _showSetWeightDialog(context, user, usesImperialUnits);
-          },
-        ),
-        ListTile(
-          title: Text(
-            S.of(context).heightLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Text(
-            '${_profileBloc.getDisplayHeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).ftLabel : S.of(context).cmLabel}',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          leading: const SizedBox(
-            height: double.infinity,
-            child: Icon(Icons.height_outlined),
-          ),
-          onTap: () {
-            _showSetHeightDialog(context, user, usesImperialUnits);
-          },
-        ),
-        ListTile(
-          title: Text(
-            S.of(context).ageLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Text(
-            S.of(context).yearsLabel(user.age),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          leading: const SizedBox(
-            height: double.infinity,
-            child: Icon(Icons.cake_outlined),
-          ),
-          onTap: () {
-            _showSetBirthdayDialog(context, user);
-          },
-        ),
-        ListTile(
-          title: Text(
-            S.of(context).genderLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Text(
-            user.gender.getName(context),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          leading: SizedBox(
-            height: double.infinity,
-            child: user.gender.getIcon(),
-          ),
-          onTap: () {
-            _showSetGenderDialog(context, user);
-          },
-        ),
-        if (user.gender == UserGenderEntity.nonBinary)
-          ListTile(
+        Semantics(
+          identifier: 'profile-activity',
+          child: ListTile(
             title: Text(
-              S.of(context).caloriesProfileInfoTitle,
+              S.of(context).activityLabel,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             subtitle: Text(
-              (user.caloriesProfile ?? CaloriesProfileEntity.averaged)
-                  .getName(context),
+              user.pal.getName(context),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             leading: const SizedBox(
               height: double.infinity,
-              child: Icon(Icons.tune_outlined),
+              child: Icon(Icons.directions_walk_outlined),
+            ),
+            onTap: () => _showSetPALCategoryDialog(context, user),
+          ),
+        ),
+        Semantics(
+          identifier: 'profile-goal',
+          child: ListTile(
+            title: Text(
+              S.of(context).goalLabel,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            subtitle: Text(
+              user.goal.getName(context),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            leading: const SizedBox(
+              height: double.infinity,
+              child: Icon(Icons.flag_outlined),
+            ),
+            onTap: () => _showSetGoalDialog(context, user),
+          ),
+        ),
+        Semantics(
+          identifier: 'profile-weekly-goal',
+          child: ListTile(
+            title: Text(
+              S.of(context).weeklyWeightGoalLabel,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            subtitle: Text(
+              _weeklyGoalSubtitle(context, user, usesImperialUnits),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            leading: const SizedBox(
+              height: double.infinity,
+              child: Icon(Icons.trending_down_outlined),
+            ),
+            onTap: () => _showSetWeeklyWeightGoalDialog(
+                context, user, usesImperialUnits),
+          ),
+        ),
+        Semantics(
+          identifier: 'profile-weight',
+          child: ListTile(
+            title: Text(
+              S.of(context).weightLabel,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${_profileBloc.getDisplayWeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                // #119: When the user has set a concrete target weight, surface
+                // the distance to it directly below the current weight. The
+                // delta is signed-agnostic — the message holds whether the
+                // target is above or below current (cut or gain).
+                if (user.targetWeightKg != null)
+                  Text(
+                    _targetWeightSubLabel(context, user, usesImperialUnits),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+              ],
+            ),
+            leading: const SizedBox(
+              height: double.infinity,
+              child: Icon(Icons.monitor_weight_outlined),
             ),
             onTap: () {
-              _showCaloriesProfileDialog(context, user);
+              _showSetWeightDialog(context, user, usesImperialUnits);
             },
+          ),
+        ),
+        Semantics(
+          identifier: 'profile-height',
+          child: ListTile(
+            title: Text(
+              S.of(context).heightLabel,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            subtitle: Text(
+              '${_profileBloc.getDisplayHeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).ftLabel : S.of(context).cmLabel}',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            leading: const SizedBox(
+              height: double.infinity,
+              child: Icon(Icons.height_outlined),
+            ),
+            onTap: () {
+              _showSetHeightDialog(context, user, usesImperialUnits);
+            },
+          ),
+        ),
+        Semantics(
+          identifier: 'profile-age',
+          child: ListTile(
+            title: Text(
+              S.of(context).ageLabel,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            subtitle: Text(
+              S.of(context).yearsLabel(user.age),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            leading: const SizedBox(
+              height: double.infinity,
+              child: Icon(Icons.cake_outlined),
+            ),
+            onTap: () {
+              _showSetBirthdayDialog(context, user);
+            },
+          ),
+        ),
+        Semantics(
+          identifier: 'profile-gender',
+          child: ListTile(
+            title: Text(
+              S.of(context).genderLabel,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            subtitle: Text(
+              user.gender.getName(context),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            leading: SizedBox(
+              height: double.infinity,
+              child: user.gender.getIcon(),
+            ),
+            onTap: () {
+              _showSetGenderDialog(context, user);
+            },
+          ),
+        ),
+        if (user.gender == UserGenderEntity.nonBinary)
+          Semantics(
+            identifier: 'profile-calories-profile',
+            child: ListTile(
+              title: Text(
+                S.of(context).caloriesProfileInfoTitle,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              subtitle: Text(
+                (user.caloriesProfile ?? CaloriesProfileEntity.averaged)
+                    .getName(context),
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              leading: const SizedBox(
+                height: double.infinity,
+                child: Icon(Icons.tune_outlined),
+              ),
+              onTap: () {
+                _showCaloriesProfileDialog(context, user);
+              },
+            ),
           ),
       ],
     );
@@ -255,29 +279,6 @@ class _ProfilePageState extends State<ProfilePage> {
     return usesImperialUnits
         ? S.of(context).weeklyWeightGoalLbsPerWeek(formatted)
         : S.of(context).weeklyWeightGoalKgPerWeek(formatted);
-  }
-
-  /// #119: Sub-label rendered under the current weight when the user has
-  /// set a concrete target. The kind framing is intentional — reaching the
-  /// target should feel celebrated, not retired into silence — and the
-  /// remaining-distance form holds whether the user is cutting or bulking
-  /// because we always show the absolute delta.
-  String _targetWeightSubLabel(
-      BuildContext context, UserEntity user, bool usesImperialUnits) {
-    final target = user.targetWeightKg;
-    if (target == null) return '';
-    final deltaKg = (target - user.weightKG).abs();
-    // Treat "close enough" as reached — under 0.1 kg the noise in body
-    // weight measurements outweighs the difference and a "you've reached
-    // your target" message lands better than "0.0 kg to go".
-    if (deltaKg < 0.1) {
-      return S.of(context).profileTargetWeightReached;
-    }
-    final displayDelta =
-        usesImperialUnits ? deltaKg * 2.20462 : deltaKg;
-    final formatted =
-        '${displayDelta.toStringAsFixed(1)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}';
-    return S.of(context).profileTargetWeightToGo(formatted);
   }
 
   Future<void> _showSetWeeklyWeightGoalDialog(BuildContext context,
@@ -438,5 +439,23 @@ class _ProfilePageState extends State<ProfilePage> {
     if (selected == null) return;
     userEntity.caloriesProfile = selected;
     await _profileBloc.updateUser(userEntity);
+  }
+
+  String _targetWeightSubLabel(
+      BuildContext context, UserEntity user, bool usesImperialUnits) {
+    final target = user.targetWeightKg;
+    if (target == null) return '';
+    final deltaKg = (target - user.weightKG).abs();
+    // Treat "close enough" as reached — under 0.1 kg the noise in body
+    // weight measurements outweighs the difference and a "you've reached
+    // your target" message lands better than "0.0 kg to go".
+    if (deltaKg < 0.1) {
+      return S.of(context).profileTargetWeightReached;
+    }
+    final displayDelta =
+        usesImperialUnits ? deltaKg * 2.20462 : deltaKg;
+    final formatted =
+        '${displayDelta.toStringAsFixed(1)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}';
+    return S.of(context).profileTargetWeightToGo(formatted);
   }
 }
