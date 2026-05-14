@@ -254,6 +254,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("Експортувати"),
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "Експортувати / Імпортувати дані застосунку"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("Рецепти зберігаються лише при експорті й імпорті у форматі JSON. Перемкніть на JSON, щоб включити їх до резервної копії."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Ви можете експортувати дані додатка у zip-файл і імпортувати їх пізніше. Це корисно, якщо ви хочете зробити резервну копію або перенести дані на інший пристрій. Додаток не використовує жодних хмарних сервісів для зберігання ваших даних."),
         "exportImportErrorLabel":

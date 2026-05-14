@@ -250,6 +250,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("Exportovať"),
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "Exportovať / Importovať údaje aplikácie"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("Recepty sa zachovávajú iba pri JSON exporte a importe. Prepnite na JSON, ak ich chcete zahrnúť do zálohy."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Údaje aplikácie môžete exportovať do zip súboru a neskôr ich importovať. Hodí sa to, keď si chcete údaje zálohovať alebo preniesť do iného zariadenia.\n\nAplikácia nepoužíva na ukladanie vašich údajov žiadnu cloudovú službu."),
         "exportImportErrorLabel":

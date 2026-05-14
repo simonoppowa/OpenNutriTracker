@@ -1662,6 +1662,16 @@ class S {
     );
   }
 
+  /// `Recipes are kept only with JSON exports and imports. Switch to JSON to include them in your backup.`
+  String get exportImportCsvRecipesNote {
+    return Intl.message(
+      'Recipes are kept only with JSON exports and imports. Switch to JSON to include them in your backup.',
+      name: 'exportImportCsvRecipesNote',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `You can export the app data to a zip file and import it later. This is useful if you want to backup your data or transfer it to another device.\n\nThe app does not use any cloud service to store your data.`
   String get exportImportDescription {
     return Intl.message(

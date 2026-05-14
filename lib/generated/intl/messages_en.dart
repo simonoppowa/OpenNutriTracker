@@ -246,6 +246,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "potassiumLabel": MessageLookupByLibrary.simpleMessage("potassium"),
         "settingsCustomMealsLabel":
             MessageLookupByLibrary.simpleMessage("Custom Meals"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("Recipes are kept only with JSON exports and imports. Switch to JSON to include them in your backup."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "You can export the app data to a zip file and import it later. This is useful if you want to backup your data or transfer it to another device.\n\nThe app does not use any cloud service to store your data."),
         "exportImportErrorLabel":

@@ -254,6 +254,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("Esporta"),
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "Esporta / Importa dati app"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("Le ricette vengono mantenute solo con esportazione e importazione JSON. Passa a JSON per includerle nel backup."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Puoi esportare i dati dell\'app in un file zip e importarli successivamente. Utile per backup o trasferimento su un altro dispositivo.\n\nL\'app non utilizza servizi cloud per memorizzare i tuoi dati."),
         "exportImportErrorLabel": MessageLookupByLibrary.simpleMessage(

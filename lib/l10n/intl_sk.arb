@@ -219,6 +219,7 @@
   "errorProductNotFound": "Produkt sa nenašiel",
   "exportAction": "Exportovať",
   "exportImportAppDataLabel": "Exportovať / Importovať údaje aplikácie",
+  "exportImportCsvRecipesNote": "Recepty sa zachovávajú iba pri JSON exporte a importe. Prepnite na JSON, ak ich chcete zahrnúť do zálohy.",
   "exportImportDescription": "Údaje aplikácie môžete exportovať do zip súboru a neskôr ich importovať. Hodí sa to, keď si chcete údaje zálohovať alebo preniesť do iného zariadenia.\n\nAplikácia nepoužíva na ukladanie vašich údajov žiadnu cloudovú službu.",
   "exportImportErrorLabel": "Chyba exportu / importu",
   "exportImportSuccessLabel": "Export / Import bol úspešný",
