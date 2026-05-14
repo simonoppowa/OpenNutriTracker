@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -26,6 +27,7 @@ class WeightHistoryScreen extends StatefulWidget {
   final AddWeightLogUsecase? addUsecase;
   final DeleteWeightLogUsecase? deleteUsecase;
   final ConfigRepository? configRepository;
+  final GetUserUsecase? getUserUsecase;
 
   const WeightHistoryScreen({
     super.key,
@@ -33,6 +35,7 @@ class WeightHistoryScreen extends StatefulWidget {
     this.addUsecase,
     this.deleteUsecase,
     this.configRepository,
+    this.getUserUsecase,
   });
 
   @override
@@ -48,10 +51,19 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
       widget.deleteUsecase ?? locator<DeleteWeightLogUsecase>();
   late final ConfigRepository _configRepository =
       widget.configRepository ?? locator<ConfigRepository>();
+  // Optional in tests so the harness doesn't need to register the
+  // user usecase in the locator just to render the chart.
+  late final GetUserUsecase? _getUserUsecase = widget.getUserUsecase ??
+      (locator.isRegistered<GetUserUsecase>()
+          ? locator<GetUserUsecase>()
+          : null);
 
   bool _loading = true;
   bool _usesImperialUnits = false;
   List<WeightLogEntity> _entries = const [];
+  // Loaded once at mount time so the chart can draw a dashed reference
+  // line for the user's #119 target weight. Null when unset.
+  double? _targetWeightKg;
 
   @override
   void initState() {
@@ -65,10 +77,12 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
     final entries = await _getUsecase.getAllEntries();
     // Newest first so the most recent reading sits at the top.
     entries.sort((a, b) => b.date.compareTo(a.date));
+    final user = await _getUserUsecase?.getUserData();
     if (!mounted) return;
     setState(() {
       _usesImperialUnits = imperial;
       _entries = entries;
+      _targetWeightKg = user?.targetWeightKg;
       _loading = false;
     });
   }
@@ -113,6 +127,7 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
                       return _WeightTrendChart(
                         entries: _entries,
                         usesImperialUnits: _usesImperialUnits,
+                        targetWeightKg: _targetWeightKg,
                       );
                     }
                     return _buildEntryTile(_entries[index - 1]);
@@ -185,10 +200,17 @@ class _WeightTrendChart extends StatelessWidget {
 
   final List<WeightLogEntity> entries;
   final bool usesImperialUnits;
+  // Target weight in kg as stored on UserEntity. Null when the user
+  // hasn't set one; otherwise drawn as a dashed reference line so
+  // the user can see how close they are. The y-range is still
+  // computed from the recorded weights so a far-away target doesn't
+  // squash the trend visually.
+  final double? targetWeightKg;
 
   const _WeightTrendChart({
     required this.entries,
     required this.usesImperialUnits,
+    required this.targetWeightKg,
   });
 
   @override
@@ -239,6 +261,21 @@ class _WeightTrendChart extends StatelessWidget {
     // weights are identical we still need a non-zero range or fl_chart will
     // throw.
     final yPadding = ((maxY - minY) * 0.15).clamp(0.5, 5.0);
+
+    final targetY = targetWeightKg == null
+        ? null
+        : (usesImperialUnits
+            ? UnitCalc.kgToLbs(targetWeightKg!)
+            : targetWeightKg!);
+    // Only draw the dashed reference line when the target sits inside
+    // (or just adjacent to) the chart's auto y-range, so a wildly
+    // off-screen target doesn't force the chart to autoscale away
+    // from the recorded weights. A small fudge-factor lets the line
+    // sit just at the edge of the chart, which is when users care
+    // about it most ("nearly there").
+    final showTargetLine = targetY != null &&
+        targetY >= (minY - yPadding) &&
+        targetY <= (maxY + yPadding);
 
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     final dateFormat = DateFormat.MMMd(localeTag);
@@ -292,6 +329,17 @@ class _WeightTrendChart extends StatelessWidget {
                   },
                 ),
               ),
+            ),
+            extraLinesData: ExtraLinesData(
+              horizontalLines: [
+                if (showTargetLine)
+                  HorizontalLine(
+                    y: targetY,
+                    color: theme.colorScheme.outline,
+                    strokeWidth: 1.2,
+                    dashArray: const [6, 4],
+                  ),
+              ],
             ),
             lineBarsData: [
               LineChartBarData(
