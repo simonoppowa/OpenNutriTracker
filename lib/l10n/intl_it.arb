@@ -550,6 +550,8 @@
   "recipeNutritionPer100Label": "Per 100 g",
   "recipeNutritionPreviewLabel": "Nutrizione (totale)",
   "recipeSaveErrorLabel": "Impossibile salvare la ricetta.",
+  "recipeSaveForLaterLabel": "Salva per la prossima volta",
+  "recipeSaveForLaterDescription": "Attiva questa opzione per mantenere il pasto nella tua lista salvata per la prossima volta. Lasciala disattivata per un pasto occasionale che non mangerai più.",
   "recipeSaveLabel": "Salva ricetta",
   "recipeServingsCountHelper": "Permette di registrare questa ricetta per porzioni invece che in grammi.",
   "recipeServingsCountLabel": "Porzioni (opzionale)",

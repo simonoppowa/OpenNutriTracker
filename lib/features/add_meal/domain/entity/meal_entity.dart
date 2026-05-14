@@ -30,7 +30,13 @@ class MealEntity extends Equatable {
   final String? servingUnit;
   final String? servingSize;
 
-  bool get hasServingValues => servingQuantity != null && servingUnit != null;
+  // Issue #158: many OFF products carry serving data (servingQuantity or
+  // servingSize) but no overall package `quantity`, which left `servingUnit`
+  // null and made the meal-detail dropdown default to 100 g/ml on every
+  // scan. Treat a product as having serving values when either side of the
+  // OFF data is present — the dropdown text in `_getServingDropdownItem`
+  // already falls back to `servingSize` when `servingUnit` is missing.
+  bool get hasServingValues => servingQuantity != null || servingSize != null;
 
   final MealSourceEntity source;
 
