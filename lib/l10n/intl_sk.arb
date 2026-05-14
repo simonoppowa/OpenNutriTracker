@@ -562,6 +562,8 @@
   "recipeNutritionPer100Label": "Na 100 g",
   "recipeNutritionPreviewLabel": "Výživa (celkom)",
   "recipeSaveErrorLabel": "Recept sa nepodarilo uložiť.",
+  "recipeSaveForLaterDescription": "Zapnite, ak si chcete toto jedlo ponechať v uloženom zozname na nabudúce. Nechajte vypnuté pri jednorazovom jedle, ktoré už opäť nezjete.",
+  "recipeSaveForLaterLabel": "Uložiť na nabudúce",
   "recipeSaveLabel": "Uložiť recept",
   "recipeServingsCountHelper": "Umožní vám zaznamenať tento recept po porciách namiesto gramov.",
   "recipeServingsCountLabel": "Porcie (voliteľné)",
