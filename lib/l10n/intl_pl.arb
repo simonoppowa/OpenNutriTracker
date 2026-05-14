@@ -550,6 +550,8 @@
   "recipeNutritionPer100Label": "Na 100 g",
   "recipeNutritionPreviewLabel": "Wartości odżywcze (suma)",
   "recipeSaveErrorLabel": "Nie udało się zapisać przepisu.",
+  "recipeSaveForLaterLabel": "Zapisz na później",
+  "recipeSaveForLaterDescription": "Włącz, aby zachować ten posiłek na liście zapisanych na później. Pozostaw wyłączone dla jednorazowego posiłku, którego już nie zjesz.",
   "recipeSaveLabel": "Zapisz przepis",
   "recipeServingsCountHelper": "Pozwala rejestrować ten przepis na porcje zamiast w gramach.",
   "recipeServingsCountLabel": "Porcje (opcjonalnie)",

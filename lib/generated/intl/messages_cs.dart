@@ -834,6 +834,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Výživa (celkem)"),
         "recipeSaveErrorLabel": MessageLookupByLibrary.simpleMessage(
             "Recept se nepodařilo uložit."),
+        "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
+            "Zapněte, aby toto jídlo zůstalo v seznamu uložených pro příště. Nechte vypnuté u jednorázového jídla, které už nebudete jíst."),
+        "recipeSaveForLaterLabel":
+            MessageLookupByLibrary.simpleMessage("Uložit pro příště"),
         "recipeSaveLabel":
             MessageLookupByLibrary.simpleMessage("Uložit recept"),
         "recipeServingsCountHelper": MessageLookupByLibrary.simpleMessage(

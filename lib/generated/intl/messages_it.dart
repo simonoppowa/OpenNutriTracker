@@ -841,6 +841,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Nutrizione (totale)"),
         "recipeSaveErrorLabel": MessageLookupByLibrary.simpleMessage(
             "Impossibile salvare la ricetta."),
+        "recipeSaveForLaterDescription": MessageLookupByLibrary.simpleMessage(
+            "Attiva questa opzione per mantenere il pasto nella tua lista salvata per la prossima volta. Lasciala disattivata per un pasto occasionale che non mangerai più."),
+        "recipeSaveForLaterLabel": MessageLookupByLibrary.simpleMessage(
+            "Salva per la prossima volta"),
         "recipeSaveLabel":
             MessageLookupByLibrary.simpleMessage("Salva ricetta"),
         "recipeServingsCountHelper": MessageLookupByLibrary.simpleMessage(
