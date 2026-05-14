@@ -706,6 +706,19 @@
       }
     }
   },
+  "settingsDayStartHoursPickerLabel": "Години",
+  "settingsDayStartMinutesPickerLabel": "Хвилини",
+  "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Відмова від відповідальності",
   "settingsDistanceLabel": "Відстань",
   "settingsEnergyUnitLabel": "Одиниця енергії",

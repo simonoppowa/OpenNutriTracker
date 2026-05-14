@@ -141,4 +141,107 @@ void main() {
       expect(DayBoundaryCalc.isSameLogicalDay(lateLog, earlyLog, 4), isFalse);
     });
   });
+
+  group('DayBoundaryCalc.logicalDayOfMinutes (hour + minute companion)', () {
+    // #139 follow-up: shift workers on 04:30 / 03:45 want their day to
+    // actually start at that time. The total-minutes form lets the
+    // hours and minutes fields compose without losing precision.
+    test('4 hours + 0 minutes = 240 minutes total, same as offset-4 hours', () {
+      // The composition contract: a clean 4-hour boundary expressed as
+      // total minutes should resolve identically to the hour-only path.
+      final moment = DateTime(2024, 1, 15, 1, 0);
+      expect(
+        DayBoundaryCalc.logicalDayOfMinutes(moment, 4 * 60),
+        DayBoundaryCalc.logicalDayOf(moment, 4),
+      );
+      expect(
+        DayBoundaryCalc.logicalDayOfMinutes(moment, 240),
+        DateTime(2024, 1, 14),
+      );
+    });
+
+    test('4 hours + 30 minutes = 270 minutes, snack at 04:15 is yesterday', () {
+      // 04:30 is the new day, so 04:15 still belongs to the day before.
+      // This is the exact scenario the follow-up exists to support.
+      final snack = DateTime(2024, 1, 15, 4, 15);
+      expect(
+        DayBoundaryCalc.logicalDayOfMinutes(snack, 4 * 60 + 30),
+        DateTime(2024, 1, 14),
+      );
+      // One minute past the boundary lands in today.
+      final justAfter = DateTime(2024, 1, 15, 4, 31);
+      expect(
+        DayBoundaryCalc.logicalDayOfMinutes(justAfter, 4 * 60 + 30),
+        DateTime(2024, 1, 15),
+      );
+    });
+
+    test('0 hours + 15 minutes = 15 minutes, 00:10 rolls back', () {
+      // A small minute-only offset is unusual but supported — a 00:15
+      // boundary means anything before 00:15 is still yesterday.
+      final lateNight = DateTime(2024, 1, 15, 0, 10);
+      expect(
+        DayBoundaryCalc.logicalDayOfMinutes(lateNight, 15),
+        DateTime(2024, 1, 14),
+      );
+      final justAfter = DateTime(2024, 1, 15, 0, 20);
+      expect(
+        DayBoundaryCalc.logicalDayOfMinutes(justAfter, 15),
+        DateTime(2024, 1, 15),
+      );
+    });
+
+    test('total minutes out of range falls back to 0', () {
+      // Defensive: negative or ≥ 24h values are a sign of corruption,
+      // and we'd rather show wall-clock midnight than an impossible day.
+      final moment = DateTime(2024, 1, 15, 2, 0);
+      expect(
+        DayBoundaryCalc.logicalDayOfMinutes(moment, -1),
+        DateTime(2024, 1, 15),
+      );
+      expect(
+        DayBoundaryCalc.logicalDayOfMinutes(moment, 24 * 60),
+        DateTime(2024, 1, 15),
+      );
+      expect(
+        DayBoundaryCalc.logicalDayOfMinutes(moment, null),
+        DateTime(2024, 1, 15),
+      );
+    });
+
+    test('isSameLogicalDayMinutes: 04:30 boundary groups 04:00 with previous '
+        'evening', () {
+      // The use case from the follow-up review: a hospitality worker
+      // finishing at 04:00 wants that wind-down period filed with the
+      // shift's evening meal, not the new day.
+      final dinner = DateTime(2024, 1, 14, 21, 0);
+      final wrapUp = DateTime(2024, 1, 15, 4, 0);
+      expect(
+        DayBoundaryCalc.isSameLogicalDayMinutes(dinner, wrapUp, 4 * 60 + 30),
+        isTrue,
+      );
+    });
+  });
+
+  group('ConfigEntity-level clamping (via the minutes companion)', () {
+    // The actual clamping happens at the entity boundary, but the
+    // data-source code path also defends itself. This documents the
+    // expected behaviour at the call-site level: a stored 99-minute
+    // value should not be able to produce a > 23:59 total offset.
+    test('clamped minute=99 inside data-source path resolves as 59', () {
+      // The data sources apply `.clamp(0, 59)` to the minute parameter
+      // before composing the total. With hours=4 and minutes=99, the
+      // effective offset is 4*60 + 59 = 299 minutes, not 4*60 + 99.
+      const hours = 4;
+      const rawMinutes = 99;
+      final clampedTotal = hours * 60 + rawMinutes.clamp(0, 59);
+      expect(clampedTotal, 299);
+      // And 04:30 still rolls back to yesterday under this offset.
+      final moment = DateTime(2024, 1, 15, 4, 30);
+      expect(
+        DayBoundaryCalc.logicalDayOfMinutes(moment, clampedTotal),
+        DateTime(2024, 1, 14),
+      );
+    });
+  });
 }

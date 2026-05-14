@@ -39,11 +39,13 @@ class IntakeRepository {
     IntakeTypeEntity intakeType,
     DateTime date, {
     int dayStartOffsetHours = 0,
+    int dayStartOffsetMinutes = 0,
   }) async {
     final intakeDBOList = await _intakeDataSource.getAllIntakesByDate(
       IntakeTypeDBO.fromIntakeTypeEntity(intakeType),
       date,
       dayStartOffsetHours: dayStartOffsetHours,
+      dayStartOffsetMinutes: dayStartOffsetMinutes,
     );
 
     return intakeDBOList

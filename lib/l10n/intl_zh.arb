@@ -707,6 +707,19 @@
       }
     }
   },
+  "settingsDayStartHoursPickerLabel": "小时",
+  "settingsDayStartMinutesPickerLabel": "分钟",
+  "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "免责声明",
   "settingsDistanceLabel": "距离",
   "settingsEnergyUnitLabel": "能量单位",

@@ -74,6 +74,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m25(hour) => "${hour}:00";
 
+  static String m26(hour, minute) => "${hour}:${minute}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample":
@@ -960,6 +962,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsDayStartDescription": MessageLookupByLibrary.simpleMessage(
             "选择一天开始的时刻。在这个时刻之前记录的餐食和活动将计入前一天 —— 适合上夜班或晚餐较晚的用户。"),
         "settingsDayStartHourLabel": m25,
+        "settingsDayStartHoursPickerLabel":
+            MessageLookupByLibrary.simpleMessage("小时"),
+        "settingsDayStartMinutesPickerLabel":
+            MessageLookupByLibrary.simpleMessage("分钟"),        "settingsDayStartTimeLabel": m26,
         "settingsSourceCodeLabel": MessageLookupByLibrary.simpleMessage("源代码"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("系统"),
         "settingsThemeDarkLabel": MessageLookupByLibrary.simpleMessage("深色"),

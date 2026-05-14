@@ -97,4 +97,8 @@ class AddConfigUsecase {
   Future<void> setConfigDayStartOffsetHours(int hours) async {
     await _configRepository.setConfigDayStartOffsetHours(hours);
   }
+
+  Future<void> setConfigDayStartOffsetMinutes(int minutes) async {
+    _configRepository.setConfigDayStartOffsetMinutes(minutes);
+  }
 }

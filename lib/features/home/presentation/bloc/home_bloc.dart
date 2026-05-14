@@ -62,36 +62,50 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       final configData = await _getConfigUsecase.getConfig();
       final dayStartOffsetHours = configData.dayStartOffsetHours;
+      final dayStartOffsetMinutes = configData.dayStartOffsetMinutes;
       // #139: the bloc's "current day" is the logical day, so day-change
       // detection on app resume respects the user's configured boundary.
-      currentDay = DayBoundaryCalc.currentLogicalDay(dayStartOffsetHours);
+      // The follow-up to #139 routes the boundary through total minutes
+      // so a 04:30 setting is honoured exactly.
+      currentDay = DayBoundaryCalc.currentLogicalDayMinutes(
+        configData.dayStartOffsetTotalMinutes,
+      );
       final usesImperialUnits = configData.usesImperialUnits;
       final showDisclaimerDialog = !configData.hasAcceptedDisclaimer;
       final showMealMacros = configData.showMealMacros;
 
-      final breakfastIntakeList = await _getIntakeUsecase
-          .getTodayBreakfastIntake(dayStartOffsetHours: dayStartOffsetHours);
+      final breakfastIntakeList =
+          await _getIntakeUsecase.getTodayBreakfastIntake(
+        dayStartOffsetHours: dayStartOffsetHours,
+        dayStartOffsetMinutes: dayStartOffsetMinutes,
+      );
       final totalBreakfastKcal = getTotalKcal(breakfastIntakeList);
       final totalBreakfastCarbs = getTotalCarbs(breakfastIntakeList);
       final totalBreakfastFats = getTotalFats(breakfastIntakeList);
       final totalBreakfastProteins = getTotalProteins(breakfastIntakeList);
 
-      final lunchIntakeList = await _getIntakeUsecase
-          .getTodayLunchIntake(dayStartOffsetHours: dayStartOffsetHours);
+      final lunchIntakeList = await _getIntakeUsecase.getTodayLunchIntake(
+        dayStartOffsetHours: dayStartOffsetHours,
+        dayStartOffsetMinutes: dayStartOffsetMinutes,
+      );
       final totalLunchKcal = getTotalKcal(lunchIntakeList);
       final totalLunchCarbs = getTotalCarbs(lunchIntakeList);
       final totalLunchFats = getTotalFats(lunchIntakeList);
       final totalLunchProteins = getTotalProteins(lunchIntakeList);
 
-      final dinnerIntakeList = await _getIntakeUsecase
-          .getTodayDinnerIntake(dayStartOffsetHours: dayStartOffsetHours);
+      final dinnerIntakeList = await _getIntakeUsecase.getTodayDinnerIntake(
+        dayStartOffsetHours: dayStartOffsetHours,
+        dayStartOffsetMinutes: dayStartOffsetMinutes,
+      );
       final totalDinnerKcal = getTotalKcal(dinnerIntakeList);
       final totalDinnerCarbs = getTotalCarbs(dinnerIntakeList);
       final totalDinnerFats = getTotalFats(dinnerIntakeList);
       final totalDinnerProteins = getTotalProteins(dinnerIntakeList);
 
-      final snackIntakeList = await _getIntakeUsecase
-          .getTodaySnackIntake(dayStartOffsetHours: dayStartOffsetHours);
+      final snackIntakeList = await _getIntakeUsecase.getTodaySnackIntake(
+        dayStartOffsetHours: dayStartOffsetHours,
+        dayStartOffsetMinutes: dayStartOffsetMinutes,
+      );
       final totalSnackKcal = getTotalKcal(snackIntakeList);
       final totalSnackCarbs = getTotalCarbs(snackIntakeList);
       final totalSnackFats = getTotalFats(snackIntakeList);
@@ -114,8 +128,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           totalDinnerProteins +
           totalSnackProteins;
 
-      final userActivities = await _getUserActivityUsecase
-          .getTodayUserActivity(dayStartOffsetHours: dayStartOffsetHours);
+      final userActivities = await _getUserActivityUsecase.getTodayUserActivity(
+        dayStartOffsetHours: dayStartOffsetHours,
+        dayStartOffsetMinutes: dayStartOffsetMinutes,
+      );
       final totalKcalActivities =
           userActivities.map((activity) => activity.burnedKcal).toList().sum;
 
@@ -332,12 +348,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   /// #139: tracked-day deltas (calories, macros) must land on the
-  /// user's logical "today" — for someone on a 04:00 boundary, a 02:00
+  /// user's logical "today" — for someone on a 04:30 boundary, a 02:00
   /// edit still updates yesterday's totals. We resolve the offset on
   /// each call so the most recent setting wins without needing the
-  /// bloc to cache it explicitly.
+  /// bloc to cache it explicitly. The follow-up to #139 reads the
+  /// total-minutes value so the minute component (0-59) is honoured.
   Future<DateTime> _currentLogicalDay() async {
     final config = await _getConfigUsecase.getConfig();
-    return DayBoundaryCalc.currentLogicalDay(config.dayStartOffsetHours);
+    return DayBoundaryCalc.currentLogicalDayMinutes(
+      config.dayStartOffsetTotalMinutes,
+    );
   }
 }

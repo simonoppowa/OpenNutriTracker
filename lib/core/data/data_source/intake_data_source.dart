@@ -65,11 +65,16 @@ class IntakeDataSource {
     IntakeTypeDBO intakeType,
     DateTime dateTime, {
     int dayStartOffsetHours = 0,
+    int dayStartOffsetMinutes = 0,
   }) async {
     // #139: when a non-zero day-start offset is configured, an entry
     // logged before that hour rolls into the previous wall-clock day.
-    // dayStartOffsetHours = 0 preserves the original wall-clock behaviour.
-    if (dayStartOffsetHours == 0) {
+    // A zero total offset preserves the original wall-clock behaviour.
+    // The follow-up to #139 adds a minutes companion; both compose
+    // additively into a single total-minutes value here.
+    final totalMinutes = dayStartOffsetHours * 60 +
+        dayStartOffsetMinutes.clamp(0, 59);
+    if (totalMinutes == 0) {
       return _intakeBox.values
           .where(
             (intake) =>
@@ -81,10 +86,10 @@ class IntakeDataSource {
     return _intakeBox.values
         .where(
           (intake) =>
-              DayBoundaryCalc.isSameLogicalDay(
+              DayBoundaryCalc.isSameLogicalDayMinutes(
                 dateTime,
                 intake.dateTime,
-                dayStartOffsetHours,
+                totalMinutes,
               ) &&
               intake.type == intakeType,
         )

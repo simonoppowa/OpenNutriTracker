@@ -737,6 +737,19 @@
       }
     }
   },
+  "settingsDayStartHoursPickerLabel": "Stunden",
+  "settingsDayStartMinutesPickerLabel": "Minuten",
+  "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Hinweis",
   "settingsDistanceLabel": "Entfernung",
   "settingsEnergyUnitLabel": "Energieeinheit",

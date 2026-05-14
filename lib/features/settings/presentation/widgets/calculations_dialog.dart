@@ -148,8 +148,11 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       (ConfigEntity.defaultMealKcalSharesPct[ConfigEntity.mealKeySnack]!)
           .toDouble();
 
-  // #139: day-start offset (0-23). 0 = wall-clock midnight rollover.
+  // #139: day-start offset. Hours (0-23) and minutes (0-59) compose
+  // additively. (0, 0) = wall-clock midnight rollover (the original
+  // behaviour), preserved for everyone who has not touched the setting.
   int _dayStartOffsetHours = 0;
+  int _dayStartOffsetMinutes = 0;
 
   UserEntity? _user;
   bool _usesImperialUnits = false;
@@ -295,6 +298,8 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     // #139: pre-fill the diary day-start hour slider.
     final dayStartOffsetHours =
         await widget.settingsBloc.getDayStartOffsetHours();
+    final dayStartOffsetMinutes =
+        await widget.settingsBloc.getDayStartOffsetMinutes();
 
     setState(() {
       _kcalAdjustmentSelection = kcalAdjustment;
@@ -324,6 +329,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       _usesImperialUnits = usesImperialUnits;
       _caloriesTaperEnabled = caloriesTaperEnabled;
       _dayStartOffsetHours = dayStartOffsetHours;
+      _dayStartOffsetMinutes = dayStartOffsetMinutes;
     });
     // Seed the controller in whichever unit the user is reading.
     // `mounted` is true here because _initData is awaited inside the
@@ -451,6 +457,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 _vitaminDGoalUg = null;
                 _vitaminB12GoalUg = null;
                 _dayStartOffsetHours = 0; // #139
+                _dayStartOffsetMinutes = 0; // #139 follow-up
               });
               _kcalAdjustmentController.text = '0';
               _syncControllersToState();
@@ -1043,28 +1050,66 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 8),
+            // #139 follow-up: hours slider sits beside a minutes slider so
+            // shift workers on 04:30 / 03:45 can land on the exact boundary
+            // their day actually starts at. A combined HH:MM readout to the
+            // right keeps the pair feeling like one setting rather than two.
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Slider(
-                    min: 0,
-                    max: 23,
-                    divisions: 23,
-                    value: _dayStartOffsetHours.toDouble(),
-                    label: S
-                        .of(context)
-                        .settingsDayStartHourLabel(_dayStartOffsetHours),
-                    onChanged: (value) {
-                      setState(() => _dayStartOffsetHours = value.round());
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        S.of(context).settingsDayStartHoursPickerLabel,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      Slider(
+                        min: 0,
+                        max: 23,
+                        divisions: 23,
+                        value: _dayStartOffsetHours.toDouble(),
+                        label: '$_dayStartOffsetHours',
+                        onChanged: (value) {
+                          setState(() => _dayStartOffsetHours = value.round());
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        S.of(context).settingsDayStartMinutesPickerLabel,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      Slider(
+                        min: 0,
+                        max: 59,
+                        divisions: 59,
+                        value: _dayStartOffsetMinutes.toDouble(),
+                        label: _dayStartOffsetMinutes
+                            .toString()
+                            .padLeft(2, '0'),
+                        onChanged: (value) {
+                          setState(
+                              () => _dayStartOffsetMinutes = value.round());
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 SizedBox(
-                  width: 56,
+                  width: 64,
                   child: Text(
-                    S
-                        .of(context)
-                        .settingsDayStartHourLabel(_dayStartOffsetHours),
+                    S.of(context).settingsDayStartTimeLabel(
+                          _dayStartOffsetHours,
+                          _dayStartOffsetMinutes.toString().padLeft(2, '0'),
+                        ),
                     textAlign: TextAlign.right,
                   ),
                 ),
@@ -1501,8 +1546,9 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       _proteinPctSelection,
       _fatPctSelection,
     );
-    // #139: persist the chosen day-start offset.
+    // #139: persist the chosen day-start offset (hours + minutes).
     widget.settingsBloc.setDayStartOffsetHours(_dayStartOffsetHours);
+    widget.settingsBloc.setDayStartOffsetMinutes(_dayStartOffsetMinutes);
 
     // #150: persist the four meal-share percentages alongside macro goals.
     widget.settingsBloc.setMealKcalSharesPct({

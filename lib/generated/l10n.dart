@@ -2008,6 +2008,36 @@ class S {
     );
   }
 
+  /// `Hours`
+  String get settingsDayStartHoursPickerLabel {
+    return Intl.message(
+      'Hours',
+      name: 'settingsDayStartHoursPickerLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Minutes`
+  String get settingsDayStartMinutesPickerLabel {
+    return Intl.message(
+      'Minutes',
+      name: 'settingsDayStartMinutesPickerLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{hour}:{minute}`
+  String settingsDayStartTimeLabel(int hour, String minute) {
+    return Intl.message(
+      '$hour:$minute',
+      name: 'settingsDayStartTimeLabel',
+      desc: '',
+      args: [hour, minute],
+    );
+  }
+
   /// `Distance`
   String get settingsDistanceLabel {
     return Intl.message(

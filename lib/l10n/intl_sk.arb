@@ -116,6 +116,16 @@
       }
     }
   },
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
   "@settingsNotificationsTimeLabel": {
     "placeholders": {
       "time": {
@@ -735,7 +745,10 @@
   "settingsCustomMealsLabel": "Vlastné jedlá",
   "settingsDayStartDescription": "Vyber hodinu, kedy sa začína tvoj deň. Jedlá a aktivity zaznamenané pred touto hodinou sa počítajú do predchádzajúceho dňa — hodí sa pri nočných smenách alebo neskorom jedle.",
   "settingsDayStartHourLabel": "{hour}:00",
+  "settingsDayStartHoursPickerLabel": "Hodiny",
   "settingsDayStartLabel": "Deň začína o",
+  "settingsDayStartMinutesPickerLabel": "Minúty",
+  "settingsDayStartTimeLabel": "{hour}:{minute}",
   "settingsDisclaimerLabel": "Upozornenie",
   "settingsDistanceLabel": "Vzdialenosť",
   "settingsEnergyUnitLabel": "Jednotka energie",

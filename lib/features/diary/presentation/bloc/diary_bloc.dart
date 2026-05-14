@@ -29,7 +29,10 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
 
       // #139: pin currentDay to the user's logical "today" so the
       // diary calendar's today-marker shifts with the configured boundary.
-      currentDay = DayBoundaryCalc.currentLogicalDay(config.dayStartOffsetHours);
+      // Follow-up: total minutes lets a 04:30 boundary land precisely.
+      currentDay = DayBoundaryCalc.currentLogicalDayMinutes(
+        config.dayStartOffsetTotalMinutes,
+      );
       // #292: Extended to match calendar range (5 years back)
       const yearDuration = Duration(days: 365 * 5);
 

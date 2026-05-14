@@ -77,6 +77,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m25(hour) => "${hour}:00";
 
+  static String m26(hour, minute) => "${hour}:${minute}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1099,6 +1101,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsDayStartDescription": MessageLookupByLibrary.simpleMessage(
             "Zvol hodinu, ve které začíná tvůj den. Jídla a aktivity zaznamenané před touto hodinou se počítají k předchozímu dni — hodí se při nočních směnách nebo pozdním jídle."),
         "settingsDayStartHourLabel": m25,
+        "settingsDayStartHoursPickerLabel":
+            MessageLookupByLibrary.simpleMessage("Hodiny"),
+        "settingsDayStartMinutesPickerLabel":
+            MessageLookupByLibrary.simpleMessage("Minuty"),        "settingsDayStartTimeLabel": m26,
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Zdrojový kód"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Systém"),

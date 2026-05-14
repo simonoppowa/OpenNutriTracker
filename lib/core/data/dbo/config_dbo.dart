@@ -67,6 +67,11 @@ class ConfigDBO extends HiveObject {
   /// (`DiarySortType.timeAdded`) until the user picks a sort.
   @HiveField(21)
   Map<String, int>? diarySortPreferences;
+  // #139 follow-up: 0-59 minute companion. Composes additively with
+  // dayStartOffsetHours so existing users with hours=4 and a null minutes
+  // value see a 4:00 boundary, unchanged.
+  @HiveField(23)
+  int? dayStartOffsetMinutes;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -89,6 +94,7 @@ class ConfigDBO extends HiveObject {
     this.caloriesTaperEnabled = false,
     this.diarySortPreferences,
     this.nutrientPanelVisibility,
+    this.dayStartOffsetMinutes,
   });
 
   factory ConfigDBO.empty() =>

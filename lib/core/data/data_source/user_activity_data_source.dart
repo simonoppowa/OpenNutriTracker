@@ -63,20 +63,24 @@ class UserActivityDataSource {
   Future<List<UserActivityDBO>> getAllUserActivitiesByDate(
     DateTime dateTime, {
     int dayStartOffsetHours = 0,
+    int dayStartOffsetMinutes = 0,
   }) async {
-    // #139: see IntakeDataSource for the rationale — 0 preserves the
-    // original wall-clock day behaviour.
-    if (dayStartOffsetHours == 0) {
+    // #139: see IntakeDataSource for the rationale — a zero total offset
+    // preserves the original wall-clock day behaviour. The follow-up to
+    // #139 adds the minutes companion which composes additively here.
+    final totalMinutes = dayStartOffsetHours * 60 +
+        dayStartOffsetMinutes.clamp(0, 59);
+    if (totalMinutes == 0) {
       return _userActivityBox.values
           .where((activity) => DateUtils.isSameDay(dateTime, activity.date))
           .toList();
     }
     return _userActivityBox.values
         .where(
-          (activity) => DayBoundaryCalc.isSameLogicalDay(
+          (activity) => DayBoundaryCalc.isSameLogicalDayMinutes(
             dateTime,
             activity.date,
-            dayStartOffsetHours,
+            totalMinutes,
           ),
         )
         .toList();

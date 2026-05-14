@@ -706,6 +706,19 @@
       }
     }
   },
+  "settingsDayStartHoursPickerLabel": "Hodiny",
+  "settingsDayStartMinutesPickerLabel": "Minuty",
+  "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Vzdání se nároku",
   "settingsDistanceLabel": "Vzdálenost",
   "settingsEnergyUnitLabel": "Jednotka energie",

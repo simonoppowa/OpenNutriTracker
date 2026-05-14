@@ -45,11 +45,13 @@ class UserActivityRepository {
   Future<List<UserActivityEntity>> getAllUserActivityByDate(
     DateTime dateTime, {
     int dayStartOffsetHours = 0,
+    int dayStartOffsetMinutes = 0,
   }) async {
     final userActivityDBOList =
         await _userActivityDataSource.getAllUserActivitiesByDate(
       dateTime,
       dayStartOffsetHours: dayStartOffsetHours,
+      dayStartOffsetMinutes: dayStartOffsetMinutes,
     );
 
     return userActivityDBOList

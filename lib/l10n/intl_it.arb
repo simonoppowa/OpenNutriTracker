@@ -706,6 +706,19 @@
       }
     }
   },
+  "settingsDayStartHoursPickerLabel": "Ore",
+  "settingsDayStartMinutesPickerLabel": "Minuti",
+  "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Disclaimer",
   "settingsDistanceLabel": "Distanza",
   "settingsEnergyUnitLabel": "Unità di energia",

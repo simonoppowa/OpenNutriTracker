@@ -737,6 +737,19 @@
       }
     }
   },
+  "settingsDayStartHoursPickerLabel": "Saat",
+  "settingsDayStartMinutesPickerLabel": "Dakika",
+  "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Sorumluluk Reddi",
   "settingsDistanceLabel": "Mesafe",
   "settingsEnergyUnitLabel": "Enerji birimi",

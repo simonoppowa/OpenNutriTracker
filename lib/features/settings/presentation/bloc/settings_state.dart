@@ -31,6 +31,7 @@ class SettingsLoadedState extends SettingsState {
   final bool usesKilojoules; // #177
   final bool caloriesTaperEnabled; // #119 follow-up
   final int dayStartOffsetHours; // #139
+  final int dayStartOffsetMinutes; // #139 follow-up
 
   const SettingsLoadedState(
     this.versionNumber,
@@ -49,6 +50,7 @@ class SettingsLoadedState extends SettingsState {
     this.usesKilojoules = false,
     this.caloriesTaperEnabled = false,
     this.dayStartOffsetHours = 0,
+    this.dayStartOffsetMinutes = 0,
   });
 
   @override
@@ -69,5 +71,6 @@ class SettingsLoadedState extends SettingsState {
         usesKilojoules,
         caloriesTaperEnabled,
         dayStartOffsetHours,
+        dayStartOffsetMinutes,
       ];
 }

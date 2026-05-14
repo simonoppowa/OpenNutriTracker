@@ -231,6 +231,13 @@ class ConfigDataSource {
     await config?.save();
   }
 
+  Future<void> setConfigDayStartOffsetMinutes(int minutes) async {
+    _log.fine('Updating config dayStartOffsetMinutes to $minutes');
+    final config = _configBox.get(_configKey);
+    config?.dayStartOffsetMinutes = minutes;
+    await config?.save();
+  }
+
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();
   }
