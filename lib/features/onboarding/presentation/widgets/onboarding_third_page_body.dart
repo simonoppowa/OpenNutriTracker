@@ -50,18 +50,21 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
             width: 300,
             child: Row(
               children: [
-                ChoiceChip(
-                  label: Text(
-                    S.of(context).palSedentaryLabel,
-                    style: Theme.of(context).textTheme.titleLarge,
+                Semantics(
+                  identifier: 'onboarding-activity-sedentary',
+                  child: ChoiceChip(
+                    label: Text(
+                      S.of(context).palSedentaryLabel,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    selected: _sedentarySelected,
+                    onSelected: (bool selected) {
+                      setState(() {
+                        _setSelectedChoiceChip(sedentary: true);
+                        checkCorrectInput();
+                      });
+                    },
                   ),
-                  selected: _sedentarySelected,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _setSelectedChoiceChip(sedentary: true);
-                      checkCorrectInput();
-                    });
-                  },
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -86,18 +89,21 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
             width: 400,
             child: Row(
               children: [
-                ChoiceChip(
-                  label: Text(
-                    S.of(context).palLowLActiveLabel,
-                    style: Theme.of(context).textTheme.titleLarge,
+                Semantics(
+                  identifier: 'onboarding-activity-low',
+                  child: ChoiceChip(
+                    label: Text(
+                      S.of(context).palLowLActiveLabel,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    selected: _lowActiveSelected,
+                    onSelected: (bool selected) {
+                      setState(() {
+                        _setSelectedChoiceChip(lowActive: true);
+                        checkCorrectInput();
+                      });
+                    },
                   ),
-                  selected: _lowActiveSelected,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _setSelectedChoiceChip(lowActive: true);
-                      checkCorrectInput();
-                    });
-                  },
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -122,18 +128,21 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
             width: 400,
             child: Row(
               children: [
-                ChoiceChip(
-                  label: Text(
-                    S.of(context).palActiveLabel,
-                    style: Theme.of(context).textTheme.titleLarge,
+                Semantics(
+                  identifier: 'onboarding-activity-active',
+                  child: ChoiceChip(
+                    label: Text(
+                      S.of(context).palActiveLabel,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    selected: _activeSelected,
+                    onSelected: (bool selected) {
+                      setState(() {
+                        _setSelectedChoiceChip(active: true);
+                        checkCorrectInput();
+                      });
+                    },
                   ),
-                  selected: _activeSelected,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _setSelectedChoiceChip(active: true);
-                      checkCorrectInput();
-                    });
-                  },
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -158,18 +167,21 @@ class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
             width: 400,
             child: Row(
               children: [
-                ChoiceChip(
-                  label: Text(
-                    S.of(context).palVeryActiveLabel,
-                    style: Theme.of(context).textTheme.titleLarge,
+                Semantics(
+                  identifier: 'onboarding-activity-very',
+                  child: ChoiceChip(
+                    label: Text(
+                      S.of(context).palVeryActiveLabel,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    selected: _veryActiveSelected,
+                    onSelected: (bool selected) {
+                      setState(() {
+                        _setSelectedChoiceChip(veryActive: true);
+                        checkCorrectInput();
+                      });
+                    },
                   ),
-                  selected: _veryActiveSelected,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _setSelectedChoiceChip(veryActive: true);
-                      checkCorrectInput();
-                    });
-                  },
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
