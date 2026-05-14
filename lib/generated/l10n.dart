@@ -530,6 +530,156 @@ class S {
     );
   }
 
+  /// `Add a photo`
+  String get recipeImageLabel {
+    return Intl.message(
+      'Add a photo',
+      name: 'recipeImageLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Barcode`
+  String get customMealBarcodeLabel {
+    return Intl.message(
+      'Barcode',
+      name: 'customMealBarcodeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose from gallery`
+  String get recipeImagePickFromGallery {
+    return Intl.message(
+      'Choose from gallery',
+      name: 'recipeImagePickFromGallery',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Scan or type a barcode to recall this meal later`
+  String get customMealBarcodeHint {
+    return Intl.message(
+      'Scan or type a barcode to recall this meal later',
+      name: 'customMealBarcodeHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Take photo`
+  String get recipeImageTakePhoto {
+    return Intl.message(
+      'Take photo',
+      name: 'recipeImageTakePhoto',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Scan barcode`
+  String get customMealBarcodeScanButton {
+    return Intl.message(
+      'Scan barcode',
+      name: 'customMealBarcodeScanButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remove photo`
+  String get recipeImageRemove {
+    return Intl.message(
+      'Remove photo',
+      name: 'recipeImageRemove',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Barcode must be 8 to 14 digits`
+  String get customMealBarcodeInvalid {
+    return Intl.message(
+      'Barcode must be 8 to 14 digits',
+      name: 'customMealBarcodeInvalid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Replace photo`
+  String get recipeImageReplace {
+    return Intl.message(
+      'Replace photo',
+      name: 'recipeImageReplace',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add a photo`
+  String get mealImageLabel {
+    return Intl.message(
+      'Add a photo',
+      name: 'mealImageLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose from gallery`
+  String get mealImagePickFromGallery {
+    return Intl.message(
+      'Choose from gallery',
+      name: 'mealImagePickFromGallery',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Take photo`
+  String get mealImageTakePhoto {
+    return Intl.message(
+      'Take photo',
+      name: 'mealImageTakePhoto',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remove photo`
+  String get mealImageRemove {
+    return Intl.message(
+      'Remove photo',
+      name: 'mealImageRemove',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Replace photo`
+  String get mealImageReplace {
+    return Intl.message(
+      'Replace photo',
+      name: 'mealImageReplace',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This 13-digit barcode looks miskeyed: its last digit doesn't match the rest`
+  String get barcodeInvalidEan13CheckDigit {
+    return Intl.message(
+      'This 13-digit barcode looks miskeyed: its last digit doesn\'t match the rest',
+      name: 'barcodeInvalidEan13CheckDigit',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `All`
   String get recipesFilterAllLabel {
     return Intl.message(
@@ -1050,6 +1200,226 @@ class S {
     );
   }
 
+  /// `Nutrient goals`
+  String get settingsNutrientGoalsLabel {
+    return Intl.message(
+      'Nutrient goals',
+      name: 'settingsNutrientGoalsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Personal targets for every nutrient on the daily panel. The diary uses these in place of the default daily references whenever you set one.`
+  String get settingsNutrientGoalsHint {
+    return Intl.message(
+      'Personal targets for every nutrient on the daily panel. The diary uses these in place of the default daily references whenever you set one.',
+      name: 'settingsNutrientGoalsHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fibre goal`
+  String get settingsFibreGoalLabel {
+    return Intl.message(
+      'Fibre goal',
+      name: 'settingsFibreGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily fibre target in grams. Default reference is 30g.`
+  String get settingsFibreGoalDescription {
+    return Intl.message(
+      'Daily fibre target in grams. Default reference is 30g.',
+      name: 'settingsFibreGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Saturated fat goal`
+  String get settingsSaturatedFatGoalLabel {
+    return Intl.message(
+      'Saturated fat goal',
+      name: 'settingsSaturatedFatGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily saturated fat cap in grams. Default reference is 20g.`
+  String get settingsSaturatedFatGoalDescription {
+    return Intl.message(
+      'Daily saturated fat cap in grams. Default reference is 20g.',
+      name: 'settingsSaturatedFatGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sugars goal`
+  String get settingsSugarsGoalLabel {
+    return Intl.message(
+      'Sugars goal',
+      name: 'settingsSugarsGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily sugars cap in grams. Default reference is 50g.`
+  String get settingsSugarsGoalDescription {
+    return Intl.message(
+      'Daily sugars cap in grams. Default reference is 50g.',
+      name: 'settingsSugarsGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sodium goal`
+  String get settingsSodiumGoalLabel {
+    return Intl.message(
+      'Sodium goal',
+      name: 'settingsSodiumGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily sodium cap in milligrams. Default reference is 2300mg.`
+  String get settingsSodiumGoalDescription {
+    return Intl.message(
+      'Daily sodium cap in milligrams. Default reference is 2300mg.',
+      name: 'settingsSodiumGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Calcium goal`
+  String get settingsCalciumGoalLabel {
+    return Intl.message(
+      'Calcium goal',
+      name: 'settingsCalciumGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily calcium target in milligrams. Default reference is 1000mg.`
+  String get settingsCalciumGoalDescription {
+    return Intl.message(
+      'Daily calcium target in milligrams. Default reference is 1000mg.',
+      name: 'settingsCalciumGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Iron goal`
+  String get settingsIronGoalLabel {
+    return Intl.message(
+      'Iron goal',
+      name: 'settingsIronGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily iron target in milligrams. Default varies by gender (8mg male, 18mg female, 14mg otherwise).`
+  String get settingsIronGoalDescription {
+    return Intl.message(
+      'Daily iron target in milligrams. Default varies by gender (8mg male, 18mg female, 14mg otherwise).',
+      name: 'settingsIronGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Potassium goal`
+  String get settingsPotassiumGoalLabel {
+    return Intl.message(
+      'Potassium goal',
+      name: 'settingsPotassiumGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily potassium target in milligrams. Default reference is 3500mg.`
+  String get settingsPotassiumGoalDescription {
+    return Intl.message(
+      'Daily potassium target in milligrams. Default reference is 3500mg.',
+      name: 'settingsPotassiumGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Magnesium goal`
+  String get settingsMagnesiumGoalLabel {
+    return Intl.message(
+      'Magnesium goal',
+      name: 'settingsMagnesiumGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily magnesium target in milligrams. Default varies by gender (400mg male, 310mg female, 355mg otherwise).`
+  String get settingsMagnesiumGoalDescription {
+    return Intl.message(
+      'Daily magnesium target in milligrams. Default varies by gender (400mg male, 310mg female, 355mg otherwise).',
+      name: 'settingsMagnesiumGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Vitamin D goal`
+  String get settingsVitaminDGoalLabel {
+    return Intl.message(
+      'Vitamin D goal',
+      name: 'settingsVitaminDGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily vitamin D target in micrograms. Default reference is 15µg.`
+  String get settingsVitaminDGoalDescription {
+    return Intl.message(
+      'Daily vitamin D target in micrograms. Default reference is 15µg.',
+      name: 'settingsVitaminDGoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Vitamin B12 goal`
+  String get settingsVitaminB12GoalLabel {
+    return Intl.message(
+      'Vitamin B12 goal',
+      name: 'settingsVitaminB12GoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily vitamin B12 target in micrograms. Default reference is 2.4µg.`
+  String get settingsVitaminB12GoalDescription {
+    return Intl.message(
+      'Daily vitamin B12 target in micrograms. Default reference is 2.4µg.',
+      name: 'settingsVitaminB12GoalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Theme`
   String get settingsThemeLabel {
     return Intl.message(
@@ -1428,6 +1798,36 @@ class S {
     );
   }
 
+  /// `Nutrients`
+  String get settingsNutrientsLabel {
+    return Intl.message(
+      'Nutrients',
+      name: 'settingsNutrientsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pick which nutrients appear on the diary panel`
+  String get settingsNutrientsSubtitle {
+    return Intl.message(
+      'Pick which nutrients appear on the diary panel',
+      name: 'settingsNutrientsSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose which nutrients are visible on the daily panel. Hidden ones can be turned back on at any time.`
+  String get settingsNutrientsHelp {
+    return Intl.message(
+      'Choose which nutrients are visible on the daily panel. Hidden ones can be turned back on at any time.',
+      name: 'settingsNutrientsHelp',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Distance`
   String get settingsDistanceLabel {
     return Intl.message(
@@ -1657,6 +2057,16 @@ class S {
     return Intl.message(
       'Removes the locally cached search and scan results from Open Food Facts and FDC. The cache rebuilds automatically as you search and scan products. Your custom meals are not affected.',
       name: 'clearOffCacheConfirmContent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CSV keeps your activity, meal log and tracked days. Recipes and any photos you've attached are JSON-only — switch to JSON if you want them in your backup.`
+  String get exportImportCsvRecipesNote {
+    return Intl.message(
+      'CSV keeps your activity, meal log and tracked days. Recipes and any photos you\'ve attached are JSON-only — switch to JSON if you want them in your backup.',
+      name: 'exportImportCsvRecipesNote',
       desc: '',
       args: [],
     );
@@ -2077,6 +2487,116 @@ class S {
     return Intl.message(
       'You are editing a future date',
       name: 'diaryFutureDateWarning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sort by`
+  String get diarySortByLabel {
+    return Intl.message(
+      'Sort by',
+      name: 'diarySortByLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Only nutrients tracked on the meals you logged are summed here. A meal missing a value contributes nothing to that nutrient — so these totals may underreport.`
+  String get diaryNutrientPanelDataDisclaimer {
+    return Intl.message(
+      'Only nutrients tracked on the meals you logged are summed here. A meal missing a value contributes nothing to that nutrient — so these totals may underreport.',
+      name: 'diaryNutrientPanelDataDisclaimer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Time added`
+  String get diarySortByTime {
+    return Intl.message(
+      'Time added',
+      name: 'diarySortByTime',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today's nutrients`
+  String get diaryNutrientPanelTitle {
+    return Intl.message(
+      "Today's nutrients",
+      name: 'diaryNutrientPanelTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Calories (high to low)`
+  String get diarySortByKcal {
+    return Intl.message(
+      'Calories (high to low)',
+      name: 'diarySortByKcal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Day`
+  String get nutrientPanelDayLabel {
+    return Intl.message(
+      'Day',
+      name: 'nutrientPanelDayLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Protein (high to low)`
+  String get diarySortByProtein {
+    return Intl.message(
+      'Protein (high to low)',
+      name: 'diarySortByProtein',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Week`
+  String get nutrientPanelWeekLabel {
+    return Intl.message(
+      'Week',
+      name: 'nutrientPanelWeekLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Carbs (high to low)`
+  String get diarySortByCarbs {
+    return Intl.message(
+      'Carbs (high to low)',
+      name: 'diarySortByCarbs',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fat (high to low)`
+  String get diarySortByFat {
+    return Intl.message(
+      'Fat (high to low)',
+      name: 'diarySortByFat',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All nutrients hidden — turn some on in Settings → Nutrients.`
+  String get nutrientPanelAllHiddenLabel {
+    return Intl.message(
+      'All nutrients hidden — turn some on in Settings → Nutrients.',
+      name: 'nutrientPanelAllHiddenLabel',
       desc: '',
       args: [],
     );
@@ -5857,6 +6377,86 @@ class S {
     return Intl.message(
       'snowshoeing',
       name: 'paSnowshoeing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Target weight`
+  String get settingsTargetWeightLabel {
+    return Intl.message(
+      'Target weight',
+      name: 'settingsTargetWeightLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not set`
+  String get profileTargetWeightNotSetLabel {
+    return Intl.message(
+      'Not set',
+      name: 'profileTargetWeightNotSetLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clear`
+  String get profileTargetWeightClearAction {
+    return Intl.message(
+      'Clear',
+      name: 'profileTargetWeightClearAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Target weight`
+  String get profileTargetWeightLabel {
+    return Intl.message(
+      'Target weight',
+      name: 'profileTargetWeightLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{value} to your target`
+  String profileTargetWeightToGo(String value) {
+    return Intl.message(
+      '$value to your target',
+      name: 'profileTargetWeightToGo',
+      desc: '',
+      args: [value],
+    );
+  }
+
+  /// `You've reached your target`
+  String get profileTargetWeightReached {
+    return Intl.message(
+      'You\'ve reached your target',
+      name: 'profileTargetWeightReached',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Adjust calorie goal as you approach target`
+  String get settingsCaloriesTaperLabel {
+    return Intl.message(
+      'Adjust calorie goal as you approach target',
+      name: 'settingsCaloriesTaperLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reduces the daily deficit gradually so the last few kg don't feel like a wall.`
+  String get settingsCaloriesTaperDescription {
+    return Intl.message(
+      'Reduces the daily deficit gradually so the last few kg don\'t feel like a wall.',
+      name: 'settingsCaloriesTaperDescription',
       desc: '',
       args: [],
     );

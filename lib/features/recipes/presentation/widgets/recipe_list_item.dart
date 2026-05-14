@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class RecipeListItem extends StatelessWidget {
@@ -47,7 +50,9 @@ class RecipeListItem extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onPrimary,
                 ),
               )
-            : thumbnailUrl != null
+            : recipe.imagePath != null
+                ? _UserImageThumbnail(relativePath: recipe.imagePath!)
+                : thumbnailUrl != null
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: CachedNetworkImage(
@@ -85,6 +90,39 @@ class RecipeListItem extends StatelessWidget {
         trailing: isSelected ? null : const Icon(Icons.chevron_right),
         onTap: onTap,
       ),
+    );
+  }
+}
+
+class _UserImageThumbnail extends StatelessWidget {
+  final String relativePath;
+
+  const _UserImageThumbnail({required this.relativePath});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: UserImageStorage.absolutePath(relativePath),
+      builder: (context, snapshot) {
+        final fallback = CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          child: Icon(
+            Icons.menu_book,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+        );
+        if (!snapshot.hasData) return fallback;
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Image.file(
+            File(snapshot.data!),
+            fit: BoxFit.cover,
+            width: 40,
+            height: 40,
+            errorBuilder: (_, error, stack) => fallback,
+          ),
+        );
+      },
     );
   }
 }

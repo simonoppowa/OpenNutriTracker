@@ -96,4 +96,26 @@ class ConfigRepository {
   Future<void> setConfigShowMicronutrients(bool show) async {
     await _configDataSource.setConfigShowMicronutrients(show);
   }
+
+  Future<bool> getCaloriesTaperEnabled() async {
+    return await _configDataSource.getCaloriesTaperEnabled();
+  }
+
+  Future<void> setConfigCaloriesTaperEnabled(bool enabled) async {
+    await _configDataSource.setConfigCaloriesTaperEnabled(enabled);
+  }
+
+  Future<Map<String, int>?> getDiarySortPreferences() async {
+    return await _configDataSource.getDiarySortPreferences();
+  }
+
+  Future<void> setDiarySortPreference(String mealKey, int sortIndex) async {
+    await _configDataSource.setDiarySortPreference(mealKey, sortIndex);
+  }
+
+  Future<void> setConfigNutrientPanelVisibility(
+    Map<String, bool> visibility,
+  ) async {
+    await _configDataSource.setConfigNutrientPanelVisibility(visibility);
+  }
 }

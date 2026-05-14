@@ -13,6 +13,8 @@ import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
+import 'package:opennutritracker/core/utils/user_image_storage.dart';
 
 class ImportDataUsecase {
   final UserActivityRepository _userActivityRepository;
@@ -128,6 +130,80 @@ class ImportDataUsecase {
       final weightLogDBOs =
           weightLogList.map((json) => WeightLogDBO.fromJson(json)).toList();
       await _weightLogRepository.addAllEntries(weightLogDBOs);
+    }
+
+    // Restore any user-attached photos — recipes under `recipe_images/`
+    // and custom meals under `meal_images/`. Each archive entry's name
+    // already matches the relative slug we stored on the matching DBO,
+    // so we just write the bytes back into the right private documents
+    // subdirectory. Anything outside those known prefixes is skipped by
+    // the sanitiser, so a hostile zip can't escape into other folders.
+    final recipeDir =
+        await UserImageStorage.ensureDirectory(UserImageKind.recipe);
+    final mealDir =
+        await UserImageStorage.ensureDirectory(UserImageKind.meal);
+    for (final entry in archive.files) {
+      if (!entry.isFile) continue;
+      final sanitized = UserImageStorage.sanitizeRelative(entry.name);
+      if (sanitized == null) continue;
+      final parts = sanitized.split('/');
+      final targetDir =
+          parts[0] == UserImageKind.recipe.subdir ? recipeDir : mealDir;
+      final destPath = '${targetDir.path}/${parts[1]}';
+      final destFile = File(destPath);
+      await destFile.writeAsBytes(entry.content as List<int>, flush: true);
+    }
+
+    return true;
+  }
+
+  /// Symmetric CSV counterpart to [importData]. Reads a zip produced by
+  /// `ExportDataUsecase.exportData(format: ExportFormat.csv)` and feeds
+  /// each CSV through the matching `parse...FromCsv` helper on
+  /// [CsvDataExporter]. Recipes, photos and the weight log are
+  /// intentionally not handled here — CSV export omits them by design
+  /// (nested or binary shapes don't flatten cleanly), so a CSV-only
+  /// round trip does not restore them. A user who needs them in their
+  /// backup should choose the JSON format instead.
+  Future<bool> importDataCsv({
+    String userActivityCsvFileName = 'user_activity.csv',
+    String userIntakeCsvFileName = 'user_intake.csv',
+    String trackedDayCsvFileName = 'user_tracked_day.csv',
+  }) async {
+    final result = await FilePicker.pickFiles(type: FileType.any);
+    if (result == null || result.files.single.path == null) {
+      throw Exception('No file selected');
+    }
+
+    final file = File(result.files.single.path!);
+    final zipBytes = await file.readAsBytes();
+    final archive = ZipDecoder().decodeBytes(zipBytes);
+
+    final activityFile = archive.findFile(userActivityCsvFileName);
+    if (activityFile != null) {
+      final csv = utf8.decode(activityFile.content as List<int>);
+      final dbos = CsvDataExporter.parseUserActivitiesFromCsv(csv);
+      await _userActivityRepository.addAllUserActivityDBOs(dbos);
+    } else {
+      throw Exception('User activity CSV not found in the archive');
+    }
+
+    final intakeFile = archive.findFile(userIntakeCsvFileName);
+    if (intakeFile != null) {
+      final csv = utf8.decode(intakeFile.content as List<int>);
+      final dbos = CsvDataExporter.parseIntakesFromCsv(csv);
+      await _intakeRepository.addAllIntakeDBOs(dbos);
+    } else {
+      throw Exception('Intake CSV not found in the archive');
+    }
+
+    final trackedDayFile = archive.findFile(trackedDayCsvFileName);
+    if (trackedDayFile != null) {
+      final csv = utf8.decode(trackedDayFile.content as List<int>);
+      final dbos = CsvDataExporter.parseTrackedDaysFromCsv(csv);
+      await _trackedDayRepository.addAllTrackedDays(dbos);
+    } else {
+      throw Exception('Tracked day CSV not found in the archive');
     }
 
     return true;

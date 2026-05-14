@@ -42,6 +42,14 @@ class MealDBO extends HiveObject {
   @HiveField(11)
   final MealNutrimentsDBO nutriments;
 
+  /// Relative slug (e.g. `meal_images/<code>.webp`) of a user-attached
+  /// photo for this meal. Only ever populated for custom meals — OFF and
+  /// FDC entries carry their thumbnails as remote URLs via
+  /// [thumbnailImageUrl] / [mainImageUrl] instead. Stored relative so the
+  /// data survives reinstalls and iOS sandbox refreshes.
+  @HiveField(13)
+  final String? localImagePath;
+
   MealDBO({
     required this.code,
     required this.name,
@@ -56,6 +64,7 @@ class MealDBO extends HiveObject {
     required this.servingSize,
     required this.nutriments,
     required this.source,
+    this.localImagePath,
   });
 
   factory MealDBO.fromMealEntity(MealEntity mealEntity) => MealDBO(
@@ -74,6 +83,7 @@ class MealDBO extends HiveObject {
           mealEntity.nutriments,
         ),
         source: MealSourceDBO.fromMealSourceEntity(mealEntity.source),
+        localImagePath: mealEntity.localImagePath,
       );
 
   factory MealDBO.fromJson(Map<String, dynamic> json) =>

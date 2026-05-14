@@ -131,6 +131,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
                 onEditActivity: _onEditActivityItem,
                 usesImperialUnits: usesImperialUnits,
                 showMealMacros: showMealMacros,
+                diarySortPreferences: state.diarySortPreferences,
               );
             }
             return const SizedBox();

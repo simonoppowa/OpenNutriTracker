@@ -19,6 +19,11 @@ class RecipeEntity extends Equatable {
   // entity as non-nullable for ergonomics; the DBO carries a nullable list
   // for backwards compat with older saved records.
   final List<String> tags;
+  // Relative slug (e.g. `recipe_images/<id>.webp`) under the app's private
+  // documents directory. Null when no photo has been attached. Callers
+  // resolve the absolute path via `path_provider` at read/write time so
+  // we never persist a stale sandbox-specific prefix.
+  final String? imagePath;
 
   const RecipeEntity({
     required this.id,
@@ -31,6 +36,7 @@ class RecipeEntity extends Equatable {
     required this.updatedAt,
     required this.servingsCount,
     this.tags = const [],
+    this.imagePath,
   });
 
   factory RecipeEntity.fromDBO(RecipeDBO dbo) {
@@ -48,6 +54,7 @@ class RecipeEntity extends Equatable {
       updatedAt: dbo.updatedAt,
       servingsCount: dbo.servingsCount,
       tags: dbo.tags ?? const [],
+      imagePath: dbo.imagePath,
     );
   }
 
@@ -66,6 +73,7 @@ class RecipeEntity extends Equatable {
       updatedAt: updatedAt,
       servingsCount: servingsCount,
       tags: tags.isEmpty ? null : tags,
+      imagePath: imagePath,
     );
   }
 
@@ -104,8 +112,10 @@ class RecipeEntity extends Equatable {
     DateTime? updatedAt,
     int? servingsCount,
     List<String>? tags,
+    String? imagePath,
     bool clearServingsCount = false,
     bool clearDescription = false,
+    bool clearImagePath = false,
   }) {
     return RecipeEntity(
       id: id ?? this.id,
@@ -120,6 +130,7 @@ class RecipeEntity extends Equatable {
       servingsCount:
           clearServingsCount ? null : (servingsCount ?? this.servingsCount),
       tags: tags ?? this.tags,
+      imagePath: clearImagePath ? null : (imagePath ?? this.imagePath),
     );
   }
 
@@ -135,5 +146,6 @@ class RecipeEntity extends Equatable {
         updatedAt,
         servingsCount,
         tags,
+        imagePath,
       ];
 }

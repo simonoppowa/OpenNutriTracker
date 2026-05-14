@@ -35,8 +35,11 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
     String kcalText,
     String carbsText,
     String fatText,
-    String proteinText,
-  ) {
+    String proteinText, {
+    String? barcodeOverride,
+    String? localImagePathOverride,
+    bool clearLocalImagePath = false,
+  }) {
     final baseQuantityDouble = double.tryParse(baseQuantity);
 
     final double factorTo100g =
@@ -59,7 +62,11 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
     );
 
     return MealEntity(
-      code: oldMealEntity.code,
+      // #167: a user-typed or scanned barcode wins over whatever came
+      // from the originating OFF/FDC record, but only when the override
+      // was actually supplied. Empty-string is treated as "clear" so a
+      // user can erase a stored code by blanking the field.
+      code: barcodeOverride ?? oldMealEntity.code,
       name: nameText.toStringOrNull(),
       brands: brandsText.toStringOrNull(),
       url: oldMealEntity.url,
@@ -72,6 +79,12 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       servingSize: oldMealEntity.servingSize,
       nutriments: newMealNutriments,
       source: oldMealEntity.source,
+      // #64 follow-up: a freshly-picked local photo wins over what was
+      // on the old entity; a clear flag means the user removed the
+      // photo and the slug should be wiped from the saved meal.
+      localImagePath: clearLocalImagePath
+          ? null
+          : (localImagePathOverride ?? oldMealEntity.localImagePath),
     );
   }
 

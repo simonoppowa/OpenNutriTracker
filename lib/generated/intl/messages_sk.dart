@@ -69,6 +69,8 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m21(count, customCount) =>
       "Zaznamenaných ${count} z JSON, ${customCount} uložených ako vlastné jedlá";
 
+  static String m22(value) => "${value} do cieľa";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -172,6 +174,26 @@ class MessageLookup extends MessageLookupByLibrary {
             "CSV súbor sa nepodarilo prečítať. Skontrolujte formát a skúste to znova."),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "recipeImageLabel":
+            MessageLookupByLibrary.simpleMessage("Pridať fotografiu"),
+        "recipeImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Vybrať z galérie"),
+        "recipeImageRemove":
+            MessageLookupByLibrary.simpleMessage("Odstrániť fotografiu"),
+        "recipeImageReplace":
+            MessageLookupByLibrary.simpleMessage("Nahradiť fotografiu"),
+        "mealImageLabel":
+            MessageLookupByLibrary.simpleMessage("Pridať fotku"),
+        "mealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Vybrať z galérie"),
+        "mealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Odfotiť"),
+        "mealImageRemove":
+            MessageLookupByLibrary.simpleMessage("Odstrániť fotku"),
+        "mealImageReplace":
+            MessageLookupByLibrary.simpleMessage("Nahradiť fotku"),
+        "recipeImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Odfotiť"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Všetky záznamy v denníku, ktoré používajú toto jedlo, budú tiež odstránené."),
         "customMealsDeleteConfirmTitle":
@@ -197,6 +219,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Kopírovať na dnes"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("ZMAZAŤ"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Sčítavajú sa iba živiny zaznamenané pri zalogovaných jedlách. Jedlo bez hodnoty k danej živine neprispeje — súčty preto môžu byť podhodnotené."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Upravujete dátum v budúcnosti"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Denník"),
@@ -250,6 +274,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("Exportovať"),
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "Exportovať / Importovať údaje aplikácie"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("CSV obsahuje aktivitu, denník jedál a zaznamenané dni. Recepty a pripojené fotky sa ukladajú len do JSON — prepni na JSON, ak ich chceš mať v zálohe."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Údaje aplikácie môžete exportovať do zip súboru a neskôr ich importovať. Hodí sa to, keď si chcete údaje zálohovať alebo preniesť do iného zariadenia.\n\nAplikácia nepoužíva na ukladanie vašich údajov žiadnu cloudovú službu."),
         "exportImportErrorLabel":
@@ -1029,5 +1055,100 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Hmotnosť"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("zinok"),
+        "diaryNutrientPanelTitle":
+            MessageLookupByLibrary.simpleMessage("Dnešné živiny"),
+        "nutrientPanelAllHiddenLabel":
+            MessageLookupByLibrary.simpleMessage("Všetky živiny sú skryté — zapnite niektoré v Nastavenia → Živiny."),
+        "nutrientPanelDayLabel":
+            MessageLookupByLibrary.simpleMessage("Deň"),
+        "nutrientPanelWeekLabel":
+            MessageLookupByLibrary.simpleMessage("Týždeň"),
+        "settingsNutrientsHelp":
+            MessageLookupByLibrary.simpleMessage("Vyberte, ktoré živiny sa zobrazujú v dennom paneli. Skryté sa kedykoľvek dajú zapnúť späť."),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Živiny"),
+        "settingsNutrientsSubtitle":
+            MessageLookupByLibrary.simpleMessage("Vyberte, ktoré živiny sa objavia v paneli denníka"),
+        "settingsCalciumGoalDescription":
+            MessageLookupByLibrary.simpleMessage("Denný cieľ vápnika v miligramoch. Predvolená referencia je 1000 mg."),
+        "settingsCalciumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cieľ vápnika"),
+        "settingsFibreGoalDescription":
+            MessageLookupByLibrary.simpleMessage("Denný cieľ vlákniny v gramoch. Predvolená referencia je 30 g."),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cieľ vlákniny"),
+        "settingsIronGoalDescription":
+            MessageLookupByLibrary.simpleMessage("Denný cieľ železa v miligramoch. Predvolená referencia sa líši podľa pohlavia (8 mg muž, 18 mg žena, 14 mg inak)."),
+        "settingsIronGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cieľ železa"),
+        "settingsMagnesiumGoalDescription":
+            MessageLookupByLibrary.simpleMessage("Denný cieľ horčíka v miligramoch. Predvolená referencia sa líši podľa pohlavia (400 mg muž, 310 mg žena, 355 mg inak)."),
+        "settingsMagnesiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cieľ horčíka"),
+        "settingsNutrientGoalsHint":
+            MessageLookupByLibrary.simpleMessage("Osobné ciele pre každú živinu v dennom paneli. Denník ich použije namiesto predvolených denných referencií vždy, keď jednu nastavíte."),
+        "settingsNutrientGoalsLabel":
+            MessageLookupByLibrary.simpleMessage("Ciele živín"),
+        "settingsPotassiumGoalDescription":
+            MessageLookupByLibrary.simpleMessage("Denný cieľ draslíka v miligramoch. Predvolená referencia je 3500 mg."),
+        "settingsPotassiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cieľ draslíka"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage("Denný limit nasýtených tukov v gramoch. Predvolená referencia je 20 g."),
+        "settingsSaturatedFatGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cieľ nasýtených tukov"),
+        "settingsSodiumGoalDescription":
+            MessageLookupByLibrary.simpleMessage("Denný limit sodíka v miligramoch. Predvolená referencia je 2300 mg."),
+        "settingsSodiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cieľ sodíka"),
+        "settingsSugarsGoalDescription":
+            MessageLookupByLibrary.simpleMessage("Denný limit cukrov v gramoch. Predvolená referencia je 50 g."),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cieľ cukrov"),
+        "settingsVitaminB12GoalDescription":
+            MessageLookupByLibrary.simpleMessage("Denný cieľ vitamínu B12 v mikrogramoch. Predvolená referencia je 2,4 µg."),
+        "settingsVitaminB12GoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cieľ vitamínu B12"),
+        "settingsVitaminDGoalDescription":
+            MessageLookupByLibrary.simpleMessage("Denný cieľ vitamínu D v mikrogramoch. Predvolená referencia je 15 µg."),
+        "settingsVitaminDGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Cieľ vitamínu D"),
+        "diarySortByCarbs":
+            MessageLookupByLibrary.simpleMessage("Sacharidy (od najvyšších)"),
+        "diarySortByFat":
+            MessageLookupByLibrary.simpleMessage("Tuky (od najvyšších)"),
+        "diarySortByKcal":
+            MessageLookupByLibrary.simpleMessage("Kalórie (od najvyšších)"),
+        "diarySortByLabel":
+            MessageLookupByLibrary.simpleMessage("Zoradiť podľa"),
+        "diarySortByProtein":
+            MessageLookupByLibrary.simpleMessage("Bielkoviny (od najvyšších)"),
+        "diarySortByTime":
+            MessageLookupByLibrary.simpleMessage("Času pridania"),
+        "profileTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Cieľová hmotnosť"),
+        "profileTargetWeightNotSetLabel":
+            MessageLookupByLibrary.simpleMessage("Nenastavené"),
+        "profileTargetWeightClearAction":
+            MessageLookupByLibrary.simpleMessage("Vymazať"),
+        "profileTargetWeightReached":
+            MessageLookupByLibrary.simpleMessage("Dosiahli ste svoj cieľ"),
+        "settingsCaloriesTaperDescription":
+            MessageLookupByLibrary.simpleMessage("Postupne znižuje denný kalorický deficit, aby posledné kilá nepôsobili ako stena."),
+        "settingsCaloriesTaperLabel":
+            MessageLookupByLibrary.simpleMessage("Upraviť kalorický cieľ s blížením k cieľovej hmotnosti"),
+        "settingsTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Cieľová hmotnosť"),
+        "profileTargetWeightToGo": m22,
+        "barcodeInvalidEan13CheckDigit":
+            MessageLookupByLibrary.simpleMessage("Tento 13-miestny čiarový kód vyzerá ako preklep: posledná číslica nesedí so zvyškom"),
+        "customMealBarcodeHint":
+            MessageLookupByLibrary.simpleMessage("Naskenujte alebo zadajte čiarový kód, aby ste si toto jedlo neskôr ľahko vyvolali"),
+        "customMealBarcodeInvalid":
+            MessageLookupByLibrary.simpleMessage("Čiarový kód musí mať 8 až 14 číslic"),
+        "customMealBarcodeLabel":
+            MessageLookupByLibrary.simpleMessage("Čiarový kód"),
+        "customMealBarcodeScanButton":
+            MessageLookupByLibrary.simpleMessage("Naskenovať kód"),
       };
 }
