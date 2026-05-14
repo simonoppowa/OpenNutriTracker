@@ -186,19 +186,22 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 16.0),
-          TextFormField(
-            controller: _dateInput,
-            readOnly: true,
-            decoration: InputDecoration(
-              hintText: S.of(context).onboardingEnterBirthdayLabel,
-              labelText: S.of(context).onboardingEnterBirthdayLabel,
-              prefixIcon: const Icon(Icons.calendar_month_outlined),
-              filled: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+          Semantics(
+            identifier: 'onboarding-birthday-field',
+            child: TextFormField(
+              controller: _dateInput,
+              readOnly: true,
+              decoration: InputDecoration(
+                hintText: S.of(context).onboardingEnterBirthdayLabel,
+                labelText: S.of(context).onboardingEnterBirthdayLabel,
+                prefixIcon: const Icon(Icons.calendar_month_outlined),
+                filled: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
+              onTap: onDateInputClicked,
             ),
-            onTap: onDateInputClicked,
           ),
         ],
       ),
@@ -207,11 +210,14 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
 
   Widget _buildGenderChip(UserGenderSelectionEntity selection) {
     final entity = _toEntity(selection);
-    return ChoiceChip(
-      label: Text(entity.getName(context)),
-      avatar: entity.getIcon(size: 18),
-      selected: _selectedGender == selection,
-      onSelected: (_) => _onGenderSelected(selection),
+    return Semantics(
+      identifier: 'onboarding-gender-${selection.name}',
+      child: ChoiceChip(
+        label: Text(entity.getName(context)),
+        avatar: entity.getIcon(size: 18),
+        selected: _selectedGender == selection,
+        onSelected: (_) => _onGenderSelected(selection),
+      ),
     );
   }
 
