@@ -82,6 +82,8 @@ Thanks to all the contributors:
 ### Getting Started With Development
 See the [Getting Started](GettingStarted.md) file for more information.
 
+Self-hosting the Supabase FDC database for local development is documented at [`docs/supabase-fdc-self-hosting.md`](docs/supabase-fdc-self-hosting.md).
+
 ## Disclaimer
 OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.
 

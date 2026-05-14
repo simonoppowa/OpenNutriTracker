@@ -64,6 +64,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "Importare ${count} attività?";
 
+  static String m20(detail) => "Impossibile analizzare: ${detail}";
+
+  static String m21(count, customCount) =>
+      "Registrate ${count} dal JSON, ${customCount} salvate come pasti personalizzati";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -212,6 +217,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "OpenNutriTracker non è un\'applicazione medica. Tutti i dati forniti non sono validati e dovrebbero essere utilizzati con cautela. Mantieni uno stile di vita sano e consulta un professionista se hai problemi. L\'uso durante malattie, gravidanza o allattamento non è raccomandato. Per le fonti sottoposte a peer review di ogni calcolo, tocca l\'icona informativa nella schermata Home o Profilo."),
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Pasti di esempio (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("Pasti di esempio (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importa pasti (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Ricette di esempio (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importa ricette (json)"),
         "downloadSampleRecipesCsvAction": MessageLookupByLibrary.simpleMessage(
             "Ricette di esempio (csv)"),
         "duplicateMealDialogContent":
@@ -276,7 +289,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Allenamento importato"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Importa i tuoi pasti da un file CSV. Scarica un esempio per vedere il formato delle colonne e i campi obbligatori."),
+            "Importa i tuoi pasti da un file CSV o incollando JSON. Scarica un esempio per vedere la forma attesa e i campi obbligatori."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Importa dati alimentari personalizzati"),
         "importMealConfirmContent": m4,

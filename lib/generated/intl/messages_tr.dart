@@ -66,6 +66,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "${count} aktivite içe aktarılsın mı?";
 
+  static String m20(detail) => "Çözümlenemedi: ${detail}";
+
+  static String m21(count, customCount) =>
+      "JSON\'dan ${count} kayıt eklendi, ${customCount} özel öğün olarak kaydedildi";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -213,6 +218,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "OpenNutriTracker bir tıbbi uygulama değildir. Sağlanan tüm veriler doğrulanmamıştır ve dikkatle kullanılmalıdır. Lütfen sağlıklı bir yaşam tarzı sürdürün ve herhangi bir sorununuz varsa bir profesyonele danışın. Hastalık, hamilelik veya emzirme döneminde kullanımı önerilmez.\n\n\nUygulama hala geliştirme aşamasındadır. Hatalar, aksaklıklar ve çökmeler meydana gelebilir.\n\nHer hesaplamanın hakemli kaynaklarına Ana Sayfa veya Profil ekranındaki bilgi simgesine dokunarak ulaşabilirsin."),
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Örnek yemekler (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("Örnek yemekler (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Yemekleri içe aktar (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Örnek tarifler (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Tarifleri içe aktar (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Örnek tarifler (csv)"),
         "duplicateMealDialogContent": MessageLookupByLibrary.simpleMessage(
@@ -275,7 +288,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Antrenman içe aktarıldı"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Kendi öğünlerinizi bir CSV dosyasından içe aktarın. Beklenen sütun yapısını ve zorunlu alanları görmek için örneği indirin."),
+            "Kendi yemeklerinizi bir CSV dosyasından veya JSON yapıştırarak içe aktarın. Beklenen şekli ve zorunlu alanları görmek için bir örnek indirin."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Özel Gıda Verilerini İçe Aktar"),
         "importMealConfirmContent": m4,

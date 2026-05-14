@@ -64,6 +64,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "Zaimportować ${count} aktywności?";
 
+  static String m20(detail) => "Nie udało się przetworzyć: ${detail}";
+
+  static String m21(count, customCount) =>
+      "Zapisano ${count} z JSON, ${customCount} dodano do własnych posiłków";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -211,6 +216,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "OpenNutriTracker nie jest aplikacją medyczną. Wszystkie dostarczone dane nie są zweryfikowane i należy ich używać z ostrożnością. Prosimy o prowadzenie zdrowego stylu życia i skonsultowanie się z profesjonalistą w przypadku jakichkolwiek problemów. Używanie podczas choroby, ciąży lub karmienia piersią nie jest zalecane. Recenzowane źródła dla każdego obliczenia znajdziesz po dotknięciu ikony informacji na ekranie głównym lub w Profilu."),
         "downloadSampleCsvAction": MessageLookupByLibrary.simpleMessage(
             "Przykładowe posiłki (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("Przykładowe posiłki (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importuj posiłki (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Przykładowe przepisy (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importuj przepisy (json)"),
         "downloadSampleRecipesCsvAction": MessageLookupByLibrary.simpleMessage(
             "Przykładowe przepisy (csv)"),
         "duplicateMealDialogContent":
@@ -275,7 +288,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Trening zaimportowany"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Importuj własne posiłki z pliku CSV. Pobierz przykład, aby zobaczyć oczekiwany format kolumn i wymagane pola."),
+            "Zaimportuj własne posiłki z pliku CSV lub wklejając JSON. Pobierz przykład, aby zobaczyć oczekiwany kształt i wymagane pola."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Importuj własne dane żywności"),
         "importMealConfirmContent": m5,

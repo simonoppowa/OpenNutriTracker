@@ -1721,6 +1721,15 @@ class S {
     );
   }
 
+  String get downloadSampleJsonAction {
+    return Intl.message(
+      'Sample meals (json)',
+      name: 'downloadSampleJsonAction',
+      desc: '',
+      args: [],
+    );
+  }
+
   String get downloadSampleRecipesCsvAction {
     return Intl.message(
       'Sample recipes (csv)',
@@ -1788,6 +1797,36 @@ class S {
     return Intl.message(
       'iOS',
       name: 'csvImportContributeOffIosLink',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import meals (json)`
+  String get importMealsJsonAction {
+    return Intl.message(
+      'Import meals (json)',
+      name: 'importMealsJsonAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sample recipes (json)`
+  String get downloadSampleRecipesJsonAction {
+    return Intl.message(
+      'Sample recipes (json)',
+      name: 'downloadSampleRecipesJsonAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import recipes (json)`
+  String get importRecipesJsonAction {
+    return Intl.message(
+      'Import recipes (json)',
+      name: 'importRecipesJsonAction',
       desc: '',
       args: [],
     );

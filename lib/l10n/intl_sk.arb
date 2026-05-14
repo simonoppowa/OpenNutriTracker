@@ -1,4 +1,118 @@
 {
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@settingsNotificationsTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@weeklyWeightGoalKgPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "@weeklyWeightGoalLbsPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "activityExample": "napr. beh, cyklistika, joga ...",
   "activityLabel": "Aktivita",
   "addItemLabel": "Pridať novú položku:",
@@ -48,16 +162,6 @@
   "clearOffCacheConfirmTitle": "Vymazať uložené položky?",
   "clearOffCacheLabel": "Vymazať uložené položky",
   "clearOffCacheSubtitle": "{count} položiek · {size}",
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
   "cmLabel": "cm",
   "codeCopiedLabel": "Kód skopírovaný",
   "copyCodeLabel": "Kopírovať kód",
@@ -72,24 +176,7 @@
   "csvImportContributeOffPrefix": "Máte čiarový kód? Pomôžte všetkým a prispejte produktom do Open Food Facts:",
   "csvImportErrorLabel": "CSV súbor sa nepodarilo prečítať. Skontrolujte formát a skúste to znova.",
   "csvImportPartialLabel": "Importovaných {imported} jedál; {skipped} riadkov bolo preskočených pre neplatné údaje.",
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
   "csvImportSuccessLabel": "Z CSV súboru bolo importovaných {count} jedál.",
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "customMealsDeleteConfirmContent": "Všetky záznamy v denníku, ktoré používajú toto jedlo, budú tiež odstránené.",
   "customMealsDeleteConfirmTitle": "Zmazať vlastné jedlo?",
   "customMealsEmptyLabel": "Zatiaľ nie sú uložené žiadne vlastné jedlá.",
@@ -97,13 +184,6 @@
   "dataCollectionLabel": "Podporte vývoj poskytnutím anonymných údajov o používaní",
   "deleteAllLabel": "Zmazať všetko",
   "deleteSelectedRecipesConfirmTitle": "Zmazať {count} recept(ov)?",
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "deleteTimeDialogContent": "Naozaj chcete zmazať vybranú položku?",
   "deleteTimeDialogPluralContent": "Naozaj chcete zmazať všetky položky tohto jedla?",
   "deleteTimeDialogPluralTitle": "Zmazať položky?",
@@ -121,7 +201,9 @@
   "discardChangesTitle": "Zahodiť zmeny?",
   "disclaimerText": "OpenNutriTracker nie je zdravotnícka aplikácia. Všetky poskytnuté údaje nie sú validované a mali by sa používať s opatrnosťou. Dodržiavajte zdravý životný štýl a v prípade ťažkostí sa poraďte s odborníkom. Používanie počas choroby, tehotenstva alebo dojčenia sa neodporúča. Recenzované zdroje za každým výpočtom nájdete cez ikonu informácií na obrazovke Domov alebo Profil.",
   "downloadSampleCsvAction": "Vzorové jedlá (csv)",
+  "downloadSampleJsonAction": "Vzorové jedlá (json)",
   "downloadSampleRecipesCsvAction": "Vzorové recepty (csv)",
+  "downloadSampleRecipesJsonAction": "Vzorové recepty (json)",
   "duplicateMealDialogContent": "Toto jedlo už bolo dnes pridané. Pridať ho znova?",
   "duplicateRecipeLabel": "Duplikovať",
   "duplicateRecipeNameSuffix": "(kópia)",
@@ -160,57 +242,24 @@
   "importAction": "Importovať",
   "importActivityConfirmContent": "Tieto aktivity budú pridané k dnešku.",
   "importActivityConfirmTitle": "Importovať {count} aktivít?",
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importActivityLabel": "Importovať zdieľaný tréning",
   "importActivitySuccessLabel": "Tréning importovaný",
-  "importCustomFoodDataDescription": "Importujte vlastné jedlá zo súboru CSV. Stiahnite si vzor, aby ste videli očakávaný tvar stĺpcov a povinné polia.",
+  "importCustomFoodDataDescription": "Importujte vlastné jedlá zo súboru CSV alebo vložením JSON. Stiahnite si vzor, aby ste videli očakávaný tvar a povinné polia.",
   "importCustomFoodDataLabel": "Importovať vlastné údaje o jedle",
   "importMealConfirmContent": "Tieto položky budú pridané do vašich {mealType}.",
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
   "importMealConfirmTitle": "Importovať {count} položiek?",
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importMealErrorLabel": "Neplatný QR kód",
   "importMealLabel": "Importovať zdieľané jedlo",
   "importMealSuccessLabel": "Jedlo importované",
   "importMealsCsvAction": "Importovať jedlá (csv)",
+  "importMealsJsonAction": "Importovať jedlá (json)",
   "importOffFetchFailedLabel": "{count} položiek sa nepodarilo načítať z OpenFoodFacts.",
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importRecipeConfirmContent": "Importovať tento recept s {count} ingredienciou(ami)?",
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "importRecipeErrorLabel": "Kód receptu sa nepodarilo spracovať",
   "importRecipeLabel": "Importovať recept",
   "importRecipeSuccessLabel": "Recept importovaný",
   "importRecipesCsvAction": "Importovať recepty (csv)",
+  "importRecipesJsonAction": "Importovať recepty (json)",
   "inconsistentNutritionWarningBody": "Tieto hodnoty úplne nesedia — kalórie, ktoré ste zadali, nezodpovedajú energii zo sacharidov, tukov a bielkovín nižšie. Uložiť aj tak, alebo to ešte raz prejsť?",
   "inconsistentNutritionWarningEdit": "Ešte raz prejsť",
   "inconsistentNutritionWarningSaveAnyway": "Uložiť aj tak",
@@ -236,16 +285,6 @@
   "mealNameLabel": "Názov jedla",
   "mealNameValidationError": "Názov jedla musí obsahovať aspoň jedno písmeno",
   "mealNutrientsPerQtyLabel": "Na {qty} {unit}",
-  "@mealNutrientsPerQtyLabel": {
-    "placeholders": {
-      "qty": {
-        "type": "String"
-      },
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
   "mealNutrientsTotalLabel": "Celkové množstvo",
   "mealProteinLabel": "Bielkoviny (g)",
   "mealSizeLabel": "Veľkosť jedla (g/ml)",
@@ -548,13 +587,6 @@
   "recipeDescriptionLabel": "Popis (voliteľný)",
   "recipeIngredientAmountLabel": "Množstvo",
   "recipeIngredientCountLabel": "{count} ingrediencií",
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "recipeIngredientUnitLabel": "Jednotka",
   "recipeIngredientsLabel": "Ingrediencie",
   "recipeInvalidTotalWeightLabel": "Celková hmotnosť musí byť väčšia ako nula",
@@ -594,13 +626,6 @@
   "selectPalCategoryLabel": "Vyberte úroveň aktivity",
   "selectWeightDialogLabel": "Vyberte hmotnosť",
   "selectionCountLabel": "Vybrané: {count}",
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "sendAnonymousUserData": "Odosielať anonymné údaje o používaní",
   "servingLabel": "Porcia",
   "servingSizeLabelImperial": "Veľkosť porcie (oz/fl oz)",
@@ -619,13 +644,6 @@
   "settingsMetricLabel": "Metrické (kg, cm, ml)",
   "settingsNotificationsLabel": "Denná pripomienka",
   "settingsNotificationsTimeLabel": "Čas pripomienky: {time}",
-  "@settingsNotificationsTimeLabel": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
   "settingsPrivacySettings": "Nastavenia súkromia",
   "settingsReportErrorLabel": "Nahlásiť chybu",
   "settingsShowActivityTracking": "Zobraziť sledovanie aktivity",
@@ -653,12 +671,12 @@
   "sourcesBmiTitle": "Index telesnej hmotnosti (BMI)",
   "sourcesEnergyDescription": "Denné kalorické ciele, bazálny metabolizmus a koeficienty fyzickej aktivity používajú rovnice Institute of Medicine. Zdroj: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, kapitola 5 a tabuľka 5-5.",
   "sourcesEnergyTitle": "Energetická potreba (TDEE, BMR a úroveň aktivity)",
+  "sourcesIconTooltip": "Zobraziť zdroje",
   "sourcesMacrosDescription": "Predvolené rozdelenie 60 % sacharidov, 25 % tukov a 15 % bielkovín spadá do odporúčaných rozsahov príjmu živín podľa WHO. V Nastavenia → Výpočty si ho môžete upraviť. Zdroj: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
   "sourcesMacrosTitle": "Rozdelenie makroživín",
   "sourcesNonBinaryDescription": "Výskum energetického výdaja historicky používal binárne pohlavné kategórie, takže pre nebinárne osoby neexistuje jediný validovaný vzorec TDEE. OpenNutriTracker vám preto v Nastavenia → Výpočty ponúka voľbu medzi spriemerovanou referenciou, estrogénovo-typickou referenciou a testosterónovo-typickou referenciou. Ak na presnom čísle pre vašu starostlivosť skutočne záleží, prosím poraďte sa s klinikom, ktorý pozná váš hormonálny stav.",
   "sourcesNonBinaryTitle": "Odhad kalórií pre nebinárne osoby",
   "sourcesOpenSourceLabel": "Zobraziť zdroj",
-  "sourcesIconTooltip": "Zobraziť zdroje",
   "sourcesScreenIntro": "OpenNutriTracker používa pre každý zobrazený výpočet zavedené, recenzované metódy. Nasledujúce odkazy vedú na pôvodné zdroje, takže si každé číslo môžete sami overiť.",
   "sugarLabel": "cukor",
   "suppliedLabel": "prijaté",
@@ -671,22 +689,8 @@
   "vitaminDLabel": "vitamín D",
   "warningLabel": "Upozornenie",
   "weeklyWeightGoalKgPerWeek": "{rate} kg/týždeň",
-  "@weeklyWeightGoalKgPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "weeklyWeightGoalLabel": "Týždenné tempo",
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/týždeň",
-  "@weeklyWeightGoalLbsPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "weeklyWeightGoalNoneLabel": "Nenastavené",
   "weightLabel": "Hmotnosť",
   "yearsLabel": "{age} rokov",

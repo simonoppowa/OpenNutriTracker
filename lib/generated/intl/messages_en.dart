@@ -64,6 +64,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m18(count) => "Delete ${count} recipe(s)?";
 
+  static String m19(detail) => "Couldn\'t parse: ${detail}";
+
+  static String m20(count, customCount) =>
+      "Logged ${count} from JSON, ${customCount} saved as custom meals";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -212,6 +217,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "csvImportSuccessLabel": m12,
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Sample meals (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("Sample meals (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Import meals (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Sample recipes (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Import recipes (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Sample recipes (csv)"),
         "importMealsCsvAction":
@@ -242,7 +255,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Import Custom Food Data"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Import your own meals from a CSV file. Download a sample to see the expected column shape and required fields."),
+            "Import your own meals from a CSV file or by pasting JSON. Download a sample to see the expected shape and required fields."),
         "exportImportSuccessLabel":
             MessageLookupByLibrary.simpleMessage("Export / Import successful"),
         "fatLabel": MessageLookupByLibrary.simpleMessage("fat"),

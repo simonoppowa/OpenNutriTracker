@@ -64,6 +64,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(count) => "Importovať ${count} aktivít?";
 
+  static String m20(detail) => "Spracovanie zlyhalo: ${detail}";
+
+  static String m21(count, customCount) =>
+      "Zaznamenaných ${count} z JSON, ${customCount} uložených ako vlastné jedlá";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -208,6 +213,14 @@ class MessageLookup extends MessageLookupByLibrary {
             "OpenNutriTracker nie je zdravotnícka aplikácia. Všetky poskytnuté údaje nie sú validované a mali by sa používať s opatrnosťou. Dodržiavajte zdravý životný štýl a v prípade ťažkostí sa poraďte s odborníkom. Používanie počas choroby, tehotenstva alebo dojčenia sa neodporúča. Recenzované zdroje za každým výpočtom nájdete cez ikonu informácií na obrazovke Domov alebo Profil."),
         "downloadSampleCsvAction":
             MessageLookupByLibrary.simpleMessage("Vzorové jedlá (csv)"),
+        "downloadSampleJsonAction":
+            MessageLookupByLibrary.simpleMessage("Vzorové jedlá (json)"),
+        "importMealsJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importovať jedlá (json)"),
+        "downloadSampleRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Vzorové recepty (json)"),
+        "importRecipesJsonAction":
+            MessageLookupByLibrary.simpleMessage("Importovať recepty (json)"),
         "downloadSampleRecipesCsvAction":
             MessageLookupByLibrary.simpleMessage("Vzorové recepty (csv)"),
         "duplicateMealDialogContent":
@@ -271,7 +284,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "importActivitySuccessLabel":
             MessageLookupByLibrary.simpleMessage("Tréning importovaný"),
         "importCustomFoodDataDescription": MessageLookupByLibrary.simpleMessage(
-            "Importujte vlastné jedlá zo súboru CSV. Stiahnite si vzor, aby ste videli očakávaný tvar stĺpcov a povinné polia."),
+            "Importujte vlastné jedlá zo súboru CSV alebo vložením JSON. Stiahnite si vzor, aby ste videli očakávaný tvar a povinné polia."),
         "importCustomFoodDataLabel": MessageLookupByLibrary.simpleMessage(
             "Importovať vlastné údaje o jedle"),
         "importMealConfirmContent": m4,
