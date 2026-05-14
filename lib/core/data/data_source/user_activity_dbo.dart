@@ -20,13 +20,23 @@ class UserActivityDBO extends HiveObject {
   @HiveField(4)
   final PhysicalActivityDBO physicalActivityDBO;
 
+  /// Direct kcal value entered by the user for a Custom-type activity.
+  /// When non-null this takes precedence over the MET-computed value: the
+  /// aggregation layer keeps reading [burnedKcal], which is set to match
+  /// [userKcal] at save time so existing daily totals stay consistent.
+  /// Older diary entries written before this field existed simply carry
+  /// `null` here and behave exactly as they did before.
+  @HiveField(5)
+  final double? userKcal;
+
   UserActivityDBO(
     this.id,
     this.duration,
     this.burnedKcal,
     this.date,
-    this.physicalActivityDBO,
-  );
+    this.physicalActivityDBO, {
+    this.userKcal,
+  });
 
   factory UserActivityDBO.fromUserActivityEntity(
     UserActivityEntity userActivityEntity,
@@ -39,6 +49,7 @@ class UserActivityDBO extends HiveObject {
       PhysicalActivityDBO.fromPhysicalActivityEntity(
         userActivityEntity.physicalActivityEntity,
       ),
+      userKcal: userActivityEntity.userKcal,
     );
   }
 

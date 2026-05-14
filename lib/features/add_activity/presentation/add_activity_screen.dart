@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/features/activity_detail/activity_detail_screen.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/activities_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_activities_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/widgets/activity_item_card.dart';
@@ -49,7 +52,19 @@ class _AddActivityScreenState extends State<AddActivityScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(S.of(context).activityLabel)),
+      appBar: AppBar(
+        title: Text(S.of(context).activityLabel),
+        actions: [
+          Semantics(
+            identifier: 'add-activity-custom',
+            child: IconButton(
+              tooltip: S.of(context).customActivityName,
+              onPressed: _onCustomActivityPressed,
+              icon: const Icon(Icons.add_circle_outline),
+            ),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Column(
@@ -180,6 +195,16 @@ class _AddActivityScreenState extends State<AddActivityScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _onCustomActivityPressed() {
+    Navigator.of(context).pushNamed(
+      NavigationOptions.activityDetailRoute,
+      arguments: ActivityDetailScreenArguments(
+        PhysicalActivityEntity.custom,
+        _day,
       ),
     );
   }

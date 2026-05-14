@@ -25,6 +25,12 @@ class RecipeBuilderBloc
     on<UpdateTagsEvent>((event, emit) {
       emit(state.copyWith(tags: event.tags));
     });
+    on<UpdateImagePathEvent>((event, emit) {
+      emit(state.copyWith(
+        imagePath: event.imagePath,
+        clearImagePath: event.imagePath == null,
+      ));
+    });
     on<AddIngredientEvent>(_onAddIngredient);
     on<UpdateIngredientEvent>(_onUpdateIngredient);
     on<RemoveIngredientEvent>(_onRemoveIngredient);
@@ -32,12 +38,18 @@ class RecipeBuilderBloc
     on<SaveRecipeEvent>(_onSave);
   }
 
+
   void _onInitialize(
     InitializeBuilderEvent event,
     Emitter<RecipeBuilderState> emit,
   ) {
     if (event.existing == null) {
-      emit(RecipeBuilderState.initial());
+      // Generate the recipe id eagerly so any photo the user attaches
+      // before they hit save can be filed under the correct filename
+      // (recipe_images/<id>.webp). The id is still kept on save below.
+      emit(RecipeBuilderState.initial().copyWith(
+        id: IdGenerator.getUniqueID(),
+      ));
     } else {
       final r = event.existing!;
       // Empty id is the sentinel used by the duplicate-recipe action: keep
@@ -56,6 +68,11 @@ class RecipeBuilderBloc
           aggregatedNutrimentsPer100: r.aggregatedNutrimentsPer100,
           isExistingRecipe: !isDuplicate,
           tags: r.tags,
+          // Duplicates start without an image — the photo is tied to the
+          // original recipe id and copying it isn't worth the disk churn
+          // here. The user can attach a fresh photo to the new recipe.
+          imagePath: isDuplicate ? null : r.imagePath,
+          clearImagePath: isDuplicate ? true : (r.imagePath == null),
         ),
       );
       _recompute(emit);
@@ -205,6 +222,7 @@ class RecipeBuilderBloc
         updatedAt: now,
         servingsCount: state.servingsCount,
         tags: state.tags,
+        imagePath: state.imagePath,
       );
       await _saveUseCase.save(
         recipe,

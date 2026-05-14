@@ -11,7 +11,7 @@ void main() {
       ],
       home: Scaffold(
         body: OnboardingSecondPageBody(
-          setButtonContent: (_, _, _, _) {},
+          setButtonContent: (_, _, _, _, _) {},
         ),
       ),
     ));
@@ -31,7 +31,7 @@ void main() {
       ],
       home: Scaffold(
         body: OnboardingSecondPageBody(
-          setButtonContent: (_, _, _, _) {},
+          setButtonContent: (_, _, _, _, _) {},
         ),
       ),
     ));
@@ -62,7 +62,7 @@ void main() {
       ],
       home: Scaffold(
         body: OnboardingSecondPageBody(
-          setButtonContent: (_, _, _, _) {},
+          setButtonContent: (_, _, _, _, _) {},
         ),
       ),
     ));
@@ -93,7 +93,7 @@ void main() {
       ],
       home: Scaffold(
         body: OnboardingSecondPageBody(
-          setButtonContent: (_, _, _, _) {},
+          setButtonContent: (_, _, _, _, _) {},
         ),
       ),
     ));
@@ -127,7 +127,7 @@ void main() {
       ],
       home: Scaffold(
         body: OnboardingSecondPageBody(
-          setButtonContent: (_, _, _, _) {},
+          setButtonContent: (_, _, _, _, _) {},
         ),
       ),
     ));
@@ -158,7 +158,7 @@ void main() {
       ],
       home: Scaffold(
         body: OnboardingSecondPageBody(
-          setButtonContent: (_, _, _, _) {},
+          setButtonContent: (_, _, _, _, _) {},
         ),
       ),
     ));
@@ -174,7 +174,7 @@ void main() {
     await tester.enterText(heightField, '6.7');
     await tester.pump();
 
-    final weightField = find.byType(TextFormField).last;
+    final weightField = find.byType(TextFormField).at(1);
     await tester.enterText(weightField, '150');
     await tester.pump();
 
@@ -194,7 +194,7 @@ void main() {
       ],
       home: Scaffold(
         body: OnboardingSecondPageBody(
-          setButtonContent: (_, _, _, _) {},
+          setButtonContent: (_, _, _, _, _) {},
         ),
       ),
     ));
@@ -210,7 +210,7 @@ void main() {
     await tester.enterText(heightField, '6.7');
     await tester.pump();
 
-    final weightField = find.byType(TextFormField).last;
+    final weightField = find.byType(TextFormField).at(1);
     await tester.enterText(weightField, '150');
     await tester.pump();
 
@@ -233,16 +233,16 @@ void main() {
       localizationsDelegates: const [S.delegate],
       home: Scaffold(
         body: OnboardingSecondPageBody(
-          setButtonContent: (_, _, _, _) {},
+          setButtonContent: (_, _, _, _, _) {},
         ),
       ),
     ));
 
-    final weightField = find.byType(TextFormField).last;
+    final weightField = find.byType(TextFormField).at(1);
     await tester.enterText(weightField, '65.5');
     await tester.pump();
 
-    final weightForm = find.byType(Form).last;
+    final weightForm = find.byType(Form).at(1);
     final isValid = tester.state<FormState>(weightForm).validate();
     await tester.pump();
 
@@ -259,16 +259,16 @@ void main() {
       localizationsDelegates: const [S.delegate],
       home: Scaffold(
         body: OnboardingSecondPageBody(
-          setButtonContent: (_, _, _, _) {},
+          setButtonContent: (_, _, _, _, _) {},
         ),
       ),
     ));
 
-    final weightField = find.byType(TextFormField).last;
+    final weightField = find.byType(TextFormField).at(1);
     await tester.enterText(weightField, '65,5');
     await tester.pump();
 
-    final weightForm = find.byType(Form).last;
+    final weightForm = find.byType(Form).at(1);
     final isValid = tester.state<FormState>(weightForm).validate();
     await tester.pump();
 
@@ -283,16 +283,16 @@ void main() {
       localizationsDelegates: const [S.delegate],
       home: Scaffold(
         body: OnboardingSecondPageBody(
-          setButtonContent: (_, _, _, _) {},
+          setButtonContent: (_, _, _, _, _) {},
         ),
       ),
     ));
 
-    final weightField = find.byType(TextFormField).last;
+    final weightField = find.byType(TextFormField).at(1);
     await tester.enterText(weightField, '0');
     await tester.pump();
 
-    final weightForm = find.byType(Form).last;
+    final weightForm = find.byType(Form).at(1);
     tester.state<FormState>(weightForm).validate();
     await tester.pump();
 

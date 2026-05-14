@@ -301,5 +301,78 @@ void main() {
       expect(result.caloriesTracked, equals(800));
       expect((await ds.getAllTrackedDays()).length, equals(1));
     });
+
+    // #173 (+follow-up): the dialog wires every nutrient goal through
+    // `updateDayNutrientGoals`. These tests pin the persistence
+    // contract — that each named field lands on the column it should,
+    // and that omitted fields stay untouched.
+    test(
+        'updateDayNutrientGoals persists every nutrient goal independently',
+        () async {
+      await ds.saveTrackedDay(seed());
+      await ds.updateDayNutrientGoals(
+        day,
+        fibreGoal: 35,
+        satFatGoal: 18,
+        sugarsGoal: 40,
+        sodiumGoal: 1500,
+        calciumGoal: 1200,
+        ironGoal: 14,
+        potassiumGoal: 4700,
+        vitaminDGoal: 20,
+        vitaminB12Goal: 5,
+        magnesiumGoal: 420,
+      );
+
+      final result = await ds.getTrackedDay(day);
+      expect(result, isNotNull);
+      expect(result!.fibreGoal, equals(35));
+      expect(result.satFatGoal, equals(18));
+      expect(result.sugarsGoal, equals(40));
+      expect(result.sodiumGoal, equals(1500));
+      expect(result.calciumGoal, equals(1200));
+      expect(result.ironGoal, equals(14));
+      expect(result.potassiumGoal, equals(4700));
+      expect(result.vitaminDGoal, equals(20));
+      expect(result.vitaminB12Goal, equals(5));
+      expect(result.magnesiumGoal, equals(420));
+    });
+
+    test('updateDayNutrientGoals leaves omitted fields untouched', () async {
+      await ds.saveTrackedDay(seed());
+      // First pass sets every column.
+      await ds.updateDayNutrientGoals(
+        day,
+        fibreGoal: 30,
+        sodiumGoal: 2000,
+        ironGoal: 8,
+      );
+      // Second pass only updates fibre — sodium and iron must stay.
+      await ds.updateDayNutrientGoals(day, fibreGoal: 40);
+
+      final result = await ds.getTrackedDay(day);
+      expect(result!.fibreGoal, equals(40), reason: 'fibre updated');
+      expect(result.sodiumGoal, equals(2000), reason: 'sodium preserved');
+      expect(result.ironGoal, equals(8), reason: 'iron preserved');
+      // Untouched columns stay null.
+      expect(result.calciumGoal, isNull);
+      expect(result.potassiumGoal, isNull);
+      expect(result.magnesiumGoal, isNull);
+      expect(result.vitaminDGoal, isNull);
+      expect(result.vitaminB12Goal, isNull);
+    });
+
+    test(
+        'updateDayNutrientGoals is a no-op when the day has no tracked record',
+        () async {
+      await ds.updateDayNutrientGoals(
+        day,
+        fibreGoal: 30,
+        sodiumGoal: 1500,
+        ironGoal: 14,
+      );
+
+      expect(await ds.getTrackedDay(day), isNull);
+    });
   });
 }

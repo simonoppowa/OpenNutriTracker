@@ -44,6 +44,17 @@ class RecipeDBO extends HiveObject {
   @HiveField(9)
   final List<String>? tags;
 
+  // HiveField(10) is reserved for an unrelated in-flight change (#167).
+  // Do not reuse it here.
+
+  // Relative path to a user-attached photo, under the app's private
+  // documents directory (e.g. `recipe_images/<id>.webp`). Storing the
+  // relative slug — not the absolute path — keeps the value stable across
+  // iOS sandbox refreshes and Android app reinstalls, where the documents
+  // directory's parent path can change.
+  @HiveField(11)
+  final String? imagePath;
+
   RecipeDBO({
     required this.id,
     required this.name,
@@ -55,6 +66,7 @@ class RecipeDBO extends HiveObject {
     required this.updatedAt,
     required this.servingsCount,
     required this.tags,
+    required this.imagePath,
   });
 
   factory RecipeDBO.fromJson(Map<String, dynamic> json) =>

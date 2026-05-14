@@ -25,8 +25,9 @@ class UserActivityDataSource {
   Future<UserActivityDBO?> updateUserActivity(
     String id,
     double newDuration,
-    double newBurnedKcal,
-  ) async {
+    double newBurnedKcal, {
+    double? userKcal,
+  }) async {
     log.fine('Updating user activity in db');
     final existing =
         _userActivityBox.values.firstWhereOrNull((dbo) => dbo.id == id);
@@ -37,6 +38,7 @@ class UserActivityDataSource {
       newBurnedKcal,
       existing.date,
       existing.physicalActivityDBO,
+      userKcal: userKcal ?? existing.userKcal,
     );
     await existing.delete();
     await _userActivityBox.add(updated);

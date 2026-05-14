@@ -40,6 +40,13 @@ class MealEntity extends Equatable {
 
   final MealSourceEntity source;
 
+  /// Relative path (`meal_images/<code>.webp`) to a user-attached photo
+  /// for a custom meal, or null if none is set. Resolved to an absolute
+  /// path at render time via `MealImageStorage.absolutePath`. Always
+  /// null for OFF / FDC / recipe-derived meals — those carry remote URLs
+  /// in `thumbnailImageUrl` / `mainImageUrl` instead.
+  final String? localImagePath;
+
   final MealNutrimentsEntity nutriments;
 
   bool get isLiquid => liquidUnits.contains(mealUnit);
@@ -60,6 +67,7 @@ class MealEntity extends Equatable {
     required this.servingSize,
     required this.nutriments,
     required this.source,
+    this.localImagePath,
   });
 
   factory MealEntity.empty() => MealEntity(
@@ -90,6 +98,7 @@ class MealEntity extends Equatable {
         nutriments:
             MealNutrimentsEntity.fromMealNutrimentsDBO(mealDBO.nutriments),
         source: MealSourceEntity.fromMealSourceDBO(mealDBO.source),
+        localImagePath: mealDBO.localImagePath,
       );
 
   factory MealEntity.fromOFFProduct(OFFProductDTO offProduct) {

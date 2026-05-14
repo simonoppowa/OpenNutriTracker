@@ -12,19 +12,33 @@ class UpdateUserActivityUsecase {
     this._getUserUsecase,
   );
 
+  /// Updates a logged activity. For most activities [newValue] is the new
+  /// duration in minutes, and burned kcal is recomputed via MET. For the
+  /// Custom activity type (#70) [newValue] is the new kcal figure the user
+  /// entered directly — duration stays at 0 and the kcal is stored on both
+  /// [burnedKcal] (so daily aggregation keeps working unchanged) and
+  /// [userKcal] (so the next edit prefills the exact value they typed).
   Future<UserActivityEntity?> updateUserActivity(
     UserActivityEntity activity,
-    double newDuration,
+    double newValue,
   ) async {
+    if (activity.physicalActivityEntity.isCustom) {
+      return _userActivityRepository.updateUserActivity(
+        activity.id,
+        0.0,
+        newValue,
+        userKcal: newValue,
+      );
+    }
     final user = await _getUserUsecase.getUserData();
     final newBurnedKcal = METCalc.getTotalBurnedKcal(
       user,
       activity.physicalActivityEntity,
-      newDuration,
+      newValue,
     );
     return _userActivityRepository.updateUserActivity(
       activity.id,
-      newDuration,
+      newValue,
       newBurnedKcal,
     );
   }
