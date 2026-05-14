@@ -194,25 +194,31 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
                 },
               ),
               const SizedBox(height: 12),
-              TextField(
-                controller: _barcodeController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(14),
-                ],
-                decoration: InputDecoration(
-                  labelText: S.of(context).customMealBarcodeLabel,
-                  helperText: S.of(context).customMealBarcodeHint,
-                  helperMaxLines: 2,
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.qr_code_scanner_outlined),
-                    tooltip: S.of(context).customMealBarcodeScanButton,
-                    onPressed: () => _onScanBarcodePressed(context),
+              Semantics(
+                identifier: 'recipe-builder-barcode-input',
+                child: TextField(
+                  controller: _barcodeController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(14),
+                  ],
+                  decoration: InputDecoration(
+                    labelText: S.of(context).customMealBarcodeLabel,
+                    helperText: S.of(context).customMealBarcodeHint,
+                    helperMaxLines: 2,
+                    border: const OutlineInputBorder(),
+                    suffixIcon: Semantics(
+                      identifier: 'recipe-builder-barcode-scan',
+                      child: IconButton(
+                        icon: const Icon(Icons.qr_code_scanner_outlined),
+                        tooltip: S.of(context).customMealBarcodeScanButton,
+                        onPressed: () => _onScanBarcodePressed(context),
+                      ),
+                    ),
                   ),
+                  onChanged: (v) => _bloc.add(UpdateBarcodeEvent(v)),
                 ),
-                onChanged: (v) => _bloc.add(UpdateBarcodeEvent(v)),
               ),
               const SizedBox(height: 24),
               Text(
