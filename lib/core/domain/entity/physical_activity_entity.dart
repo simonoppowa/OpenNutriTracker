@@ -38,6 +38,21 @@ class PhysicalActivityEntity extends Equatable {
     this.type,
   );
 
+  /// The synthetic Custom activity entity (#70). Constructed in code
+  /// rather than loaded from the compendium data source, because it is
+  /// not a real workout — it is the "log kcal directly" escape hatch
+  /// the AppBar "+" button opens. The localised name and description
+  /// continue to come from `getName` / `getDescription` via the
+  /// `customCode` lookup.
+  static const PhysicalActivityEntity custom = PhysicalActivityEntity(
+    customCode,
+    'custom',
+    'user-entered kcal',
+    0.0,
+    <String>[],
+    PhysicalActivityTypeEntity.conditioningExercise,
+  );
+
   @override
   List<Object?> get props => [code, specificActivity, description, mets];
 
