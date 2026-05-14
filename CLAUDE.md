@@ -86,6 +86,77 @@ Note: `SupportedLanguage` enum (used internally for Supabase FDC column selectio
 
 The project uses a **120-character line width** (configured in `analysis_options.yaml`). The `just format` command targets only `./lib/core ./lib/features ./lib/l10n ./test` — it deliberately excludes `lib/generated/`. Do not run `dart format` on `lib/generated/` files.
 
+## Accessibility identifiers for interactive widgets
+
+Every new interactive widget gets a `Semantics(identifier: 'kebab-case-id')` wrapper so that automated UI drivers (ADB uiautomator on Android, Appium / XCUITest on iOS) can find it by a stable handle and tap by coordinate. The `identifier` parameter is never spoken by TalkBack or VoiceOver — it carries no user-facing label, only a test handle — and on iOS it maps to `accessibilityIdentifier`, so this works cross-platform.
+
+The minimal pattern:
+
+```dart
+Semantics(
+  identifier: 'feature-action',
+  child: <interactive widget>,
+)
+```
+
+### What's in scope
+
+| In scope (must label) | Out of scope (don't bother) |
+|---|---|
+| `ListTile` / `InkWell` / `GestureDetector` with an `onTap` | Pure display — `Text`, `Icon`, `Image`, `Divider`, charts |
+| Buttons — `ElevatedButton`, `TextButton`, `IconButton`, `FloatingActionButton`, `FilledButton` (when they have `onPressed`) | Layout — `Container` without `onTap`, `Padding`, `SizedBox`, `Row`, `Column` |
+| Input — `TextField`, `TextFormField`, `Slider`, `Switch`, `SwitchListTile`, `Checkbox` (the actual checkbox, not its label) | Generated code (`*.g.dart`, `messages_*.dart`, `l10n.dart`) |
+| Selection — `ChoiceChip`, `FilterChip`, `RadioListTile`, `SegmentedButton`, `DropdownButton` | Theming, transitions, decorative wrappers |
+| Bottom sheets, dialog action buttons (Save/Cancel/OK) | Items inside `ListView.builder` / `GridView.builder` (see below) |
+
+### Naming convention
+
+- `<surface>-<element>` for static screen widgets — `profile-weight`, `nav-home`, `settings-units`, `onboarding-button`.
+- `<feature>-<action>` for feature-specific actions — `weight-history-add`, `paste-json-submit`, `recipe-builder-save`.
+- `<surface>-<element>-<variant>` for variants — `onboarding-gender-female`, `onboarding-activity-active`, `onboarding-goal-maintain`.
+
+Keep the identifier locale-independent — never include translatable strings in the id.
+
+### Dynamic lists
+
+For widgets built inside a `ListView.builder` / `GridView.builder` (intake cards, meal results, weight log entries, etc.), label the **parent surface** (e.g. `home-meals-breakfast-list`) — not every child. Verifiers scope into the list via the parent identifier, then find the specific item by visible text or `content-desc` via the `_tap_text` helper. This avoids identifier churn when item counts change.
+
+### Dialog action buttons inside system dialogs
+
+Material's `DatePicker`, `AlertDialog`, etc. expose their OK / Cancel buttons via the platform's own accessibility tree — those buttons do not need `Semantics(identifier:)` wrappers. Find them with the existing `_tap_text` helper which checks both `text` and `content-desc` attributes.
+
+### Don't double-up roles
+
+Skip `button: true`, `textField: true`, etc. when the child widget already publishes that role. `ChoiceChip`, `FloatingActionButton`, `TextFormField`, `ElevatedButton`, and `SegmentedButton` all provide their own role semantics — stacking the flag risks TalkBack announcing the role twice ("button, button"). The rule is: `Semantics(identifier: '...', child: widget)` and nothing else, unless one specific gotcha applies (see below).
+
+### The `container: true` gotcha
+
+When the immediate parent of `Semantics(identifier:)` is `Expanded`, a flexible `Container` filling its parent, or any other layout-greedy widget, the Semantics node inherits the parent's bounds rather than the child's render box. `adb shell uiautomator dump` will then report the widget at the entire parent area, and coordinate-based taps land mid-screen instead of on the button.
+
+Symptom: a button you can clearly see at the bottom of the screen reports `bounds=[0,145][1440,3036]` (full screen) in uiautomator. Tapping its computed centre lands in the body of the screen.
+
+Fix:
+
+```dart
+Semantics(
+  identifier: 'foo',
+  container: true,  // <- creates a separate semantic node with tight bounds
+  child: widget,
+),
+```
+
+Or — if `container: true` causes other TalkBack issues — restructure the layout so the Semantics descendant has tight constraints (e.g. wrap the child in `Align(alignment: ...)`).
+
+Always verify with `adb shell uiautomator dump /sdcard/d.xml && adb pull /sdcard/d.xml /tmp/d.xml && grep your-id /tmp/d.xml` after adding a label inside a flex container. Reasonable bounds are tens to a few hundred pixels on each side, not screen-sized.
+
+### Flutter widgets on Android use `content-desc`, not `text`
+
+When inspecting the uiautomator dump, the visible text of Flutter widgets is reported under `content-desc`, not `text`. System dialogs (DatePicker, AlertDialog) use `text`. Test drivers that find widgets by visible label must check both. The reference implementation lives in `.claude/scripts/adb-driver.sh` (locally-excluded tooling).
+
+### Enforcement
+
+Convention, not lint. Reviewers call it out on PRs that touch interactive widgets. New widgets without identifiers aren't a merge blocker — but the per-branch feature verifier that lives alongside each branch's work won't be able to drive them, so the forcing function is downstream rather than upstream.
+
 ## Architecture
 
 The project follows **Clean Architecture** with a feature-based module structure.
