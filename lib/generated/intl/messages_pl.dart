@@ -66,7 +66,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m20(detail) => "Nie udało się przetworzyć: ${detail}";
 
-  static String m21(count) => "Zapisano ${count} pozycji z JSON";
+  static String m21(count, customCount) =>
+      "Zapisano ${count} z JSON, ${customCount} dodano do własnych posiłków";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{

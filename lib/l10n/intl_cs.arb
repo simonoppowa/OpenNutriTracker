@@ -523,10 +523,11 @@
       "detail": {"type": "String"}
     }
   },
-  "pasteJsonSheetParseSuccess": "Zaznamenáno {count} položek z JSON",
+  "pasteJsonSheetParseSuccess": "Zaznamenáno {count} z JSON, {customCount} uloženo jako vlastní jídla",
   "@pasteJsonSheetParseSuccess": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {"type": "int"},
+      "customCount": {"type": "int"}
     }
   },
   "pasteJsonSheetTitle": "Vložit jídlo jako JSON",

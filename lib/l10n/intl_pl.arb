@@ -523,10 +523,11 @@
       "detail": {"type": "String"}
     }
   },
-  "pasteJsonSheetParseSuccess": "Zapisano {count} pozycji z JSON",
+  "pasteJsonSheetParseSuccess": "Zapisano {count} z JSON, {customCount} dodano do własnych posiłków",
   "@pasteJsonSheetParseSuccess": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {"type": "int"},
+      "customCount": {"type": "int"}
     }
   },
   "pasteJsonSheetTitle": "Wklej posiłek jako JSON",

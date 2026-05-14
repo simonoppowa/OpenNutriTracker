@@ -66,7 +66,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(detail) => "Couldn\'t parse: ${detail}";
 
-  static String m20(count) => "Logged ${count} entries from JSON";
+  static String m20(count, customCount) =>
+      "Logged ${count} from JSON, ${customCount} saved as custom meals";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{

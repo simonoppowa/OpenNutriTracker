@@ -271,7 +271,13 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => ImportRecipesCsvUsecase(locator()));
   locator.registerLazySingleton(() => DownloadSampleCsvUsecase());
   locator.registerLazySingleton(
-    () => ImportMealsJsonUsecase(locator(), locator(), locator(), locator()),
+    () => ImportMealsJsonUsecase(
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+    ),
   );
 
   // Recipe use cases

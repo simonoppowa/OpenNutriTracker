@@ -533,10 +533,11 @@
       "detail": {"type": "String"}
     }
   },
-  "pasteJsonSheetParseSuccess": "{count} Einträge aus JSON eingetragen",
+  "pasteJsonSheetParseSuccess": "{count} aus JSON eingetragen, {customCount} als eigene Mahlzeit gespeichert",
   "@pasteJsonSheetParseSuccess": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {"type": "int"},
+      "customCount": {"type": "int"}
     }
   },
   "pasteJsonSheetTitle": "Mahlzeit als JSON einfügen",

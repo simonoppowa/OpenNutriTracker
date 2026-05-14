@@ -523,10 +523,11 @@
       "detail": {"type": "String"}
     }
   },
-  "pasteJsonSheetParseSuccess": "Registrate {count} voci dal JSON",
+  "pasteJsonSheetParseSuccess": "Registrate {count} dal JSON, {customCount} salvate come pasti personalizzati",
   "@pasteJsonSheetParseSuccess": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {"type": "int"},
+      "customCount": {"type": "int"}
     }
   },
   "pasteJsonSheetTitle": "Incolla pasto come JSON",

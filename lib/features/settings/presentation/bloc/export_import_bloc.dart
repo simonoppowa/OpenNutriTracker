@@ -142,6 +142,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         } else {
           emit(JsonImportResultState(
             imported: result.imported,
+            savedAsCustomMeals: result.savedAsCustomMeals,
             errorMessages: result.errorMessages,
           ));
         }

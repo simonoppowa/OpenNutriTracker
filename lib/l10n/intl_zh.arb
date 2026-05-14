@@ -524,10 +524,11 @@
       "detail": {"type": "String"}
     }
   },
-  "pasteJsonSheetParseSuccess": "已从 JSON 记录 {count} 条",
+  "pasteJsonSheetParseSuccess": "已从 JSON 记录 {count} 条，其中 {customCount} 条保存为自定义餐食",
   "@pasteJsonSheetParseSuccess": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {"type": "int"},
+      "customCount": {"type": "int"}
     }
   },
   "pasteJsonSheetTitle": "以 JSON 粘贴餐食",

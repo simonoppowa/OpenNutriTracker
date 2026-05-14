@@ -523,10 +523,11 @@
       "detail": {"type": "String"}
     }
   },
-  "pasteJsonSheetParseSuccess": "Записано {count} записів з JSON",
+  "pasteJsonSheetParseSuccess": "Записано {count} з JSON, {customCount} збережено як власні страви",
   "@pasteJsonSheetParseSuccess": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {"type": "int"},
+      "customCount": {"type": "int"}
     }
   },
   "pasteJsonSheetTitle": "Вставити страву як JSON",

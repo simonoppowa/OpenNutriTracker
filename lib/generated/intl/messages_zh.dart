@@ -63,7 +63,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m20(detail) => "无法解析：${detail}";
 
-  static String m21(count) => "已从 JSON 记录 ${count} 条";
+  static String m21(count, customCount) =>
+      "已从 JSON 记录 ${count} 条，其中 ${customCount} 条保存为自定义餐食";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{

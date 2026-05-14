@@ -66,7 +66,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m20(detail) => "Не вдалося розпарсити: ${detail}";
 
-  static String m21(count) => "Записано ${count} записів з JSON";
+  static String m21(count, customCount) =>
+      "Записано ${count} з JSON, ${customCount} збережено як власні страви";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{

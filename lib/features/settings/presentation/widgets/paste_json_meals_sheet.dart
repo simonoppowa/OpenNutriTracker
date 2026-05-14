@@ -77,9 +77,10 @@ class _PasteJsonMealsSheetState extends State<PasteJsonMealsSheet> {
               messenger.showSnackBar(
                 SnackBar(
                   content: Text(
-                    S
-                        .of(context)
-                        .pasteJsonSheetParseSuccess(state.imported),
+                    S.of(context).pasteJsonSheetParseSuccess(
+                          state.imported,
+                          state.savedAsCustomMeals,
+                        ),
                   ),
                 ),
               );

@@ -1833,13 +1833,13 @@ class S {
     );
   }
 
-  /// `Logged {count} entries from JSON`
-  String pasteJsonSheetParseSuccess(int count) {
+  /// `Logged {count} from JSON, {customCount} saved as custom meals`
+  String pasteJsonSheetParseSuccess(int count, int customCount) {
     return Intl.message(
-      'Logged $count entries from JSON',
+      'Logged $count from JSON, $customCount saved as custom meals',
       name: 'pasteJsonSheetParseSuccess',
       desc: '',
-      args: [count],
+      args: [count, customCount],
     );
   }
 

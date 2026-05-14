@@ -533,10 +533,11 @@
       "detail": {"type": "String"}
     }
   },
-  "pasteJsonSheetParseSuccess": "JSON'dan {count} kayıt eklendi",
+  "pasteJsonSheetParseSuccess": "JSON'dan {count} kayıt eklendi, {customCount} özel öğün olarak kaydedildi",
   "@pasteJsonSheetParseSuccess": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {"type": "int"},
+      "customCount": {"type": "int"}
     }
   },
   "pasteJsonSheetTitle": "Yemeği JSON olarak yapıştır",

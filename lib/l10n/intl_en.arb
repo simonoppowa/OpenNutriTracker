@@ -226,10 +226,11 @@
       "detail": {"type": "String"}
     }
   },
-  "pasteJsonSheetParseSuccess": "Logged {count} entries from JSON",
+  "pasteJsonSheetParseSuccess": "Logged {count} from JSON, {customCount} saved as custom meals",
   "@pasteJsonSheetParseSuccess": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {"type": "int"},
+      "customCount": {"type": "int"}
     }
   },
   "addItemLabel": "Add new Item:",

@@ -69,7 +69,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m20(detail) => "Konnte nicht geparst werden: ${detail}";
 
-  static String m21(count) => "${count} Einträge aus JSON eingetragen";
+  static String m21(count, customCount) =>
+      "${count} aus JSON eingetragen, ${customCount} als eigene Mahlzeit gespeichert";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{

@@ -66,7 +66,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m20(detail) => "Impossibile analizzare: ${detail}";
 
-  static String m21(count) => "Registrate ${count} voci dal JSON";
+  static String m21(count, customCount) =>
+      "Registrate ${count} dal JSON, ${customCount} salvate come pasti personalizzati";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
