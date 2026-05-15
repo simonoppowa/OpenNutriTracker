@@ -204,7 +204,7 @@ probe_ephemeral_249() {
 
 probe_simplify_custom_232() {
   # "New Custom Food" pushes EditMealScreen with an empty MealEntity,
-  # which shows the Simple / Advanced mode toggle.
+  # which starts in Simple mode and shows the Simple / Advanced toggle.
   walk_onboarding || return 1
   tap_id 'nav-recipes' || return 1; sleep 1.5
   _tap_text 'Add' || { _log "  ✗ Add menu not found on Recipes tab"; return 1; }
@@ -213,6 +213,28 @@ probe_simplify_custom_232() {
   sleep 2
   wait_for_id 'edit-meal-mode-toggle' 8 || { _log "  ✗ edit-meal-mode-toggle not found"; return 1; }
   _log "  ✓ edit-meal-mode-toggle visible"
+
+  # In Simple mode the unit selector is hidden — confirm it is absent.
+  if id_exists 'edit-meal-unit-selector'; then
+    _log "  ✗ edit-meal-unit-selector visible in Simple mode (should be hidden)"
+    return 1
+  fi
+  _log "  ✓ unit selector absent in Simple mode"
+
+  # Tap "Advanced" and wait for the unit selector to appear.
+  _tap_text 'Advanced' || { _log "  ✗ Advanced segment not found"; return 1; }
+  sleep 1.5
+  wait_for_id 'edit-meal-unit-selector' 8 || { _log "  ✗ edit-meal-unit-selector not visible after switching to Advanced"; return 1; }
+  _log "  ✓ unit selector visible in Advanced mode"
+
+  # Tap "Simple" — unit selector should disappear again.
+  _tap_text 'Simple' || { _log "  ✗ Simple segment not found"; return 1; }
+  sleep 1.5
+  if id_exists 'edit-meal-unit-selector'; then
+    _log "  ✗ edit-meal-unit-selector still visible after returning to Simple mode"
+    return 1
+  fi
+  _log "  ✓ unit selector hidden again after returning to Simple mode"
 }
 
 probe_per_nutrient_173() {
