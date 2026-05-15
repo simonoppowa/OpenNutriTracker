@@ -187,6 +187,7 @@
   "csvImportPartialLabel": "{imported} öğün içe aktarıldı; geçersiz veri nedeniyle {skipped} satır atlandı.",
   "csvImportSuccessLabel": "CSV dosyasından {count} öğün içe aktarıldı.",
   "customActivityDescription": "Listede olmayan antrenmanlar veya bir fitness takip cihazından okumalar için yakılan kaloriyi doğrudan girin",
+  "customActivityDescriptionKj": "Listede olmayan antrenmanlar veya bir fitness takip cihazından okumalar için yakılan kilojulleri doğrudan girin",
   "customActivityKcalHint": "örn. 250",
   "customActivityKcalLabel": "Yakılan kalori",
   "customActivityName": "Özel etkinlik",

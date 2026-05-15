@@ -242,6 +242,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Custom activity"),
         "customActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Enter calories burned directly, for workouts that aren\'t in the list or readings from a fitness tracker"),
+        "customActivityDescriptionKj":
+            MessageLookupByLibrary.simpleMessage("Enter kilojoules burned directly, for workouts that aren't in the list or readings from a fitness tracker"),
         "customActivityKcalLabel":
             MessageLookupByLibrary.simpleMessage("Calories burned"),
         "customActivityKcalHint":

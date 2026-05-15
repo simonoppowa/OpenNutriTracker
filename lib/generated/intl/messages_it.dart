@@ -1183,6 +1183,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "profileTargetWeightToGo": m22,
         "customActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Inserisci direttamente le calorie bruciate, per allenamenti non in elenco o letture da un fitness tracker"),
+        "customActivityDescriptionKj":
+            MessageLookupByLibrary.simpleMessage("Inserisci direttamente i kilojoule bruciati, per allenamenti non in elenco o letture da un fitness tracker"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("es. 250"),
         "customActivityKcalLabel":

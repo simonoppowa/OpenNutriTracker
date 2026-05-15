@@ -156,6 +156,7 @@
   "csvImportPartialLabel": "Importati {imported} pasti; {skipped} righe ignorate per dati non validi.",
   "csvImportSuccessLabel": "Importati {count} pasti dal file CSV.",
   "customActivityDescription": "Inserisci direttamente le calorie bruciate, per allenamenti non in elenco o letture da un fitness tracker",
+  "customActivityDescriptionKj": "Inserisci direttamente i kilojoule bruciati, per allenamenti non in elenco o letture da un fitness tracker",
   "customActivityKcalHint": "es. 250",
   "customActivityKcalLabel": "Calorie bruciate",
   "customActivityName": "Attività personalizzata",

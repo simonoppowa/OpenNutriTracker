@@ -156,6 +156,7 @@
   "csvImportPartialLabel": "Імпортовано {imported} страв; {skipped} рядків пропущено через неправильні дані.",
   "csvImportSuccessLabel": "З CSV файлу імпортовано {count} страв.",
   "customActivityDescription": "Введіть спалені калорії безпосередньо — для тренувань, яких немає у списку, або показників із фітнес-трекера",
+  "customActivityDescriptionKj": "Введіть спалені кілоджоулі безпосередньо — для тренувань, яких немає у списку, або показників із фітнес-трекера",
   "customActivityKcalHint": "напр. 250",
   "customActivityKcalLabel": "Спалені калорії",
   "customActivityName": "Власна активність",

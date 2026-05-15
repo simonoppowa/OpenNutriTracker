@@ -1182,6 +1182,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "profileTargetWeightToGo": m22,
         "customActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Wprowadź spalone kalorie bezpośrednio – dla treningów spoza listy lub odczytów z opaski fitness"),
+        "customActivityDescriptionKj":
+            MessageLookupByLibrary.simpleMessage("Wprowadź spalone kilodżule bezpośrednio – dla treningów spoza listy lub odczytów z opaski fitness"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("np. 250"),
         "customActivityKcalLabel":

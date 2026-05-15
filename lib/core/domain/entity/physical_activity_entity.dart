@@ -2,7 +2,9 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
 /// A physical activity with it's measured MET value by the
 /// '2024 Adult Compendium of Physical Activities'
@@ -271,9 +273,20 @@ class PhysicalActivityEntity extends Equatable {
       "19252": S.of(context).paSnowShovingModerateDesc,
       "19080": S.of(context).paCrossCountrySkiingDesc,
       "19260": S.of(context).paGeneralDesc,
-      "99999": S.of(context).customActivityDescription,
+      "99999": _customActivityDescription(context),
     };
     return physicalActivityMap[code] ?? type.getName(context);
+  }
+
+  /// The Custom activity's description mentions the energy unit by name,
+  /// so when the user reads in kJ (#177) we swap in the kJ-phrased
+  /// variant. Everywhere else the description is unit-agnostic.
+  String _customActivityDescription(BuildContext context) {
+    final usesKj =
+        Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
+    return usesKj
+        ? S.of(context).customActivityDescriptionKj
+        : S.of(context).customActivityDescription;
   }
 
   IconData getDisplayIcon() {

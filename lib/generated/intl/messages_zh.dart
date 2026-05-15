@@ -1025,6 +1025,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "profileTargetWeightToGo": m22,
         "customActivityDescription": MessageLookupByLibrary.simpleMessage(
             "直接输入消耗的卡路里，适用于列表中没有的训练或来自健身追踪器的读数"),
+        "customActivityDescriptionKj":
+            MessageLookupByLibrary.simpleMessage("直接输入消耗的千焦，适用于列表中没有的训练或来自健身追踪器的读数"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("例如 250"),
         "customActivityKcalLabel":

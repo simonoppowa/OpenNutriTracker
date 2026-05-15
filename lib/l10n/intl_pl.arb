@@ -156,6 +156,7 @@
   "csvImportPartialLabel": "Zaimportowano {imported} posiłk(ów); pominięto {skipped} wiersz(y) z powodu nieprawidłowych danych.",
   "csvImportSuccessLabel": "Zaimportowano {count} posiłk(ów) z pliku CSV.",
   "customActivityDescription": "Wprowadź spalone kalorie bezpośrednio – dla treningów spoza listy lub odczytów z opaski fitness",
+  "customActivityDescriptionKj": "Wprowadź spalone kilodżule bezpośrednio – dla treningów spoza listy lub odczytów z opaski fitness",
   "customActivityKcalHint": "np. 250",
   "customActivityKcalLabel": "Spalone kalorie",
   "customActivityName": "Aktywność niestandardowa",

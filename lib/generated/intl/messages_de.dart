@@ -1195,6 +1195,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "profileTargetWeightToGo": m22,
         "customActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Trage verbrannte Kalorien direkt ein – für Trainings, die nicht in der Liste sind, oder Werte aus einem Fitnesstracker"),
+        "customActivityDescriptionKj":
+            MessageLookupByLibrary.simpleMessage("Trage verbrannte Kilojoule direkt ein – für Trainings, die nicht in der Liste sind, oder Werte aus einem Fitnesstracker"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("z. B. 250"),
         "customActivityKcalLabel":

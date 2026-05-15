@@ -1158,6 +1158,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "profileTargetWeightToGo": m22,
         "customActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Listede olmayan antrenmanlar veya bir fitness takip cihazından okumalar için yakılan kaloriyi doğrudan girin"),
+        "customActivityDescriptionKj":
+            MessageLookupByLibrary.simpleMessage("Listede olmayan antrenmanlar veya bir fitness takip cihazından okumalar için yakılan kilojulleri doğrudan girin"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("örn. 250"),
         "customActivityKcalLabel":

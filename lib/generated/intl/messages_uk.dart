@@ -1184,6 +1184,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "profileTargetWeightToGo": m22,
         "customActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Введіть спалені калорії безпосередньо — для тренувань, яких немає у списку, або показників із фітнес-трекера"),
+        "customActivityDescriptionKj":
+            MessageLookupByLibrary.simpleMessage("Введіть спалені кілоджоулі безпосередньо — для тренувань, яких немає у списку, або показників із фітнес-трекера"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("напр. 250"),
         "customActivityKcalLabel":

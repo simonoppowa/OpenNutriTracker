@@ -6662,6 +6662,16 @@ class S {
     );
   }
 
+  /// `Enter kilojoules burned directly, for workouts that aren't in the list or readings from a fitness tracker`
+  String get customActivityDescriptionKj {
+    return Intl.message(
+      'Enter kilojoules burned directly, for workouts that aren\'t in the list or readings from a fitness tracker',
+      name: 'customActivityDescriptionKj',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Calories burned`
   String get customActivityKcalLabel {
     return Intl.message(

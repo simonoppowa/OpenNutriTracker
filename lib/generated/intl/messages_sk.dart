@@ -1158,6 +1158,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Naskenovať kód"),
         "customActivityDescription":
             MessageLookupByLibrary.simpleMessage("Zadajte spálené kalórie priamo, pre tréningy ktoré nie sú v zozname, alebo údaje z fitness náramku"),
+        "customActivityDescriptionKj":
+            MessageLookupByLibrary.simpleMessage("Zadajte spálené kilojouly priamo, pre tréningy ktoré nie sú v zozname, alebo údaje z fitness náramku"),
         "customActivityKcalHint":
             MessageLookupByLibrary.simpleMessage("napr. 250"),
         "customActivityKcalLabel":
