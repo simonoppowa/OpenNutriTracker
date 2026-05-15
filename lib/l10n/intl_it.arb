@@ -172,6 +172,7 @@
   "customMealsDeleteConfirmTitle": "Eliminare il pasto personalizzato?",
   "customMealsEmptyLabel": "Nessun pasto personalizzato salvato.",
   "dailyKcalAdjustmentLabel": "Regolazione kcal giornaliere:",
+  "dailyKjAdjustmentLabel": "Regolazione kJ giornalieri:",
   "dataCollectionLabel": "Supporta lo sviluppo inviando dati di utilizzo anonimi",
   "deleteAllLabel": "Elimina tutto",
   "deleteSelectedRecipesConfirmTitle": "Eliminare {count} ricetta/e?",

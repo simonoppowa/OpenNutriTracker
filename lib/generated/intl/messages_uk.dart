@@ -195,6 +195,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Ще немає збережених власних страв."),
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Щоденна корекція калорій:"),
+        "dailyKjAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("Щоденна корекція кДж:"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Підтримайте розробку, надаючи анонімні дані про використання"),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Видалити все"),

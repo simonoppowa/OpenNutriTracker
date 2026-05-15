@@ -197,6 +197,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Henüz özel yemek kaydedilmedi."),
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Günlük Kcal ayarı:"),
+        "dailyKjAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("Günlük kJ ayarı:"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Anonim kullanım verileri sağlayarak geliştirmeyi destekleyin"),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Tümünü sil"),

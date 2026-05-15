@@ -172,6 +172,7 @@
   "customMealsDeleteConfirmTitle": "Видалити власну страву?",
   "customMealsEmptyLabel": "Ще немає збережених власних страв.",
   "dailyKcalAdjustmentLabel": "Щоденна корекція калорій:",
+  "dailyKjAdjustmentLabel": "Щоденна корекція кДж:",
   "dataCollectionLabel": "Підтримайте розробку, надаючи анонімні дані про використання",
   "deleteAllLabel": "Видалити все",
   "deleteSelectedRecipesConfirmTitle": "Видалити {count} рецепт(ів)?",

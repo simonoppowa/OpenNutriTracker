@@ -202,6 +202,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Zatiaľ nie sú uložené žiadne vlastné jedlá."),
         "dailyKcalAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
             "Denná úprava kcal:"),
+        "dailyKjAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("Denná úprava kJ:"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Podporte vývoj poskytnutím anonymných údajov o používaní"),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Zmazať všetko"),

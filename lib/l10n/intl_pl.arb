@@ -172,6 +172,7 @@
   "customMealsDeleteConfirmTitle": "Usunąć własny posiłek?",
   "customMealsEmptyLabel": "Brak zapisanych własnych posiłków.",
   "dailyKcalAdjustmentLabel": "Dzienna korekta Kcal:",
+  "dailyKjAdjustmentLabel": "Dzienna korekta kJ:",
   "dataCollectionLabel": "Wspieraj rozwój, dostarczając anonimowe dane użytkowania",
   "deleteAllLabel": "Usuń wszystko",
   "deleteSelectedRecipesConfirmTitle": "Usunąć {count} przepis(ów)?",

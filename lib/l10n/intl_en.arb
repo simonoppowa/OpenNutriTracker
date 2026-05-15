@@ -203,6 +203,7 @@
   "customMealsDeleteConfirmTitle": "Delete custom meal?",
   "customMealsEmptyLabel": "No custom meals saved yet.",
   "dailyKcalAdjustmentLabel": "Daily Kcal adjustment:",
+  "dailyKjAdjustmentLabel": "Daily kJ adjustment:",
   "dataCollectionLabel": "Support development by providing anonymous usage data",
   "deleteAllLabel": "Delete all",
   "deleteSelectedRecipesConfirmTitle": "Delete {count} recipe(s)?",

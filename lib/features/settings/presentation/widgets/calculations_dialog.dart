@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/calories_profile_info_dialog.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
@@ -12,6 +13,7 @@ import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart'
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
 class CalculationsDialog extends StatefulWidget {
   final SettingsBloc settingsBloc;
@@ -287,8 +289,17 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       _usesImperialUnits = usesImperialUnits;
       _caloriesTaperEnabled = caloriesTaperEnabled;
     });
-    _kcalAdjustmentController.text =
-        _kcalAdjustmentSelection.round().toString();
+    // Seed the controller in whichever unit the user is reading.
+    // `mounted` is true here because _initData is awaited inside the
+    // dialog's first frame.
+    final usesKj = mounted
+        ? Provider.of<EnergyUnitProvider>(context, listen: false)
+            .usesKilojoules
+        : false;
+    final displaySelection = usesKj
+        ? UnitCalc.kcalToKj(_kcalAdjustmentSelection)
+        : _kcalAdjustmentSelection;
+    _kcalAdjustmentController.text = displaySelection.round().toString();
     _carbsController.text = _carbsPctSelection.round().toString();
     _proteinController.text = _proteinPctSelection.round().toString();
     _fatController.text = _fatPctSelection.round().toString();
@@ -454,50 +465,85 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               ),
               const SizedBox(height: 8),
             ],
-            // ── Kcal adjustment ──────────────────────────────────────────────
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    S.of(context).dailyKcalAdjustmentLabel,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                // #297: Direct text input for kcal adjustment
-                SizedBox(
-                  width: 80,
-                  child: Semantics(
-                    identifier: 'calculations-kcal-input',
-                    child: TextField(
-                      controller: _kcalAdjustmentController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                          signed: true, decimal: false),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'^-?\d*')),
-                      ],
-                      textAlign: TextAlign.right,
-                      decoration: InputDecoration(
-                        suffixText: S.of(context).kcalLabel,
-                        isDense: true,
+            // ── Energy adjustment ──────────────────────────────────────────
+            // The persisted value is always a kcal offset on ConfigEntity;
+            // when the user prefers kJ (#177) we render the slider, the
+            // tooltip, and the suffix in kJ, with conversion at the edges.
+            Builder(builder: (context) {
+              final usesKj =
+                  context.watch<EnergyUnitProvider>().usesKilojoules;
+              final unitLabel = usesKj
+                  ? S.of(context).kjLabel
+                  : S.of(context).kcalLabel;
+              final headingLabel = usesKj
+                  ? S.of(context).dailyKjAdjustmentLabel
+                  : S.of(context).dailyKcalAdjustmentLabel;
+              final displaySelection = usesKj
+                  ? UnitCalc.kcalToKj(_kcalAdjustmentSelection)
+                  : _kcalAdjustmentSelection;
+              final displayMin = usesKj
+                  ? UnitCalc.kcalToKj(_minKcalAdjustment)
+                  : _minKcalAdjustment;
+              final displayMax = usesKj
+                  ? UnitCalc.kcalToKj(_maxKcalAdjustment)
+                  : _maxKcalAdjustment;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          headingLabel,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                       ),
-                      onSubmitted: (_) => _applyKcalInput(),
-                      onEditingComplete: _applyKcalInput,
-                    ),
+                      // #297: Direct text input for the adjustment.
+                      SizedBox(
+                        width: 80,
+                        child: Semantics(
+                          identifier: 'calculations-kcal-input',
+                          child: TextField(
+                            controller: _kcalAdjustmentController,
+                            keyboardType:
+                                const TextInputType.numberWithOptions(
+                              signed: true,
+                              decimal: false,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'^-?\d*'),
+                              ),
+                            ],
+                            textAlign: TextAlign.right,
+                            decoration: InputDecoration(
+                              suffixText: unitLabel,
+                              isDense: true,
+                            ),
+                            onSubmitted: (_) => _applyKcalInput(),
+                            onEditingComplete: _applyKcalInput,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            Slider(
-              min: _minKcalAdjustment,
-              max: _maxKcalAdjustment,
-              divisions: _kcalDivisions,
-              value: _kcalAdjustmentSelection,
-              label: '${_kcalAdjustmentSelection.round()} ${S.of(context).kcalLabel}',
-              onChanged: (value) {
-                setState(() => _kcalAdjustmentSelection = value);
-                _kcalAdjustmentController.text = value.round().toString();
-              },
-            ),
+                  Slider(
+                    min: displayMin,
+                    max: displayMax,
+                    divisions: _kcalDivisions,
+                    value: displaySelection.clamp(displayMin, displayMax),
+                    label: '${displaySelection.round()} $unitLabel',
+                    onChanged: (value) {
+                      final kcalValue =
+                          usesKj ? UnitCalc.kjToKcal(value) : value;
+                      setState(() => _kcalAdjustmentSelection = kcalValue);
+                      _kcalAdjustmentController.text =
+                          value.round().toString();
+                    },
+                  ),
+                ],
+              );
+            }),
             const SizedBox(height: 16),
             // ── Target weight (#119) ────────────────────────────────────────
             // A concrete target weight, paired with the existing weekly-rate
@@ -878,16 +924,29 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
   }
 
   void _applyKcalInput() {
+    // The controller text is always in the user's currently-selected
+    // unit (kcal or kJ). Convert to kcal before clamping/storing so
+    // ConfigEntity.userKcalAdjustment continues to live in kcal.
+    final usesKj =
+        Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
     final parsed = int.tryParse(_kcalAdjustmentController.text);
     if (parsed == null) {
-      _kcalAdjustmentController.text =
-          _kcalAdjustmentSelection.round().toString();
+      final displaySelection = usesKj
+          ? UnitCalc.kcalToKj(_kcalAdjustmentSelection)
+          : _kcalAdjustmentSelection;
+      _kcalAdjustmentController.text = displaySelection.round().toString();
       return;
     }
-    final clamped =
-        parsed.clamp(_minKcalAdjustment.toInt(), _maxKcalAdjustment.toInt());
-    setState(() => _kcalAdjustmentSelection = clamped.toDouble());
-    _kcalAdjustmentController.text = clamped.toString();
+    final parsedKcal =
+        usesKj ? UnitCalc.kjToKcal(parsed.toDouble()) : parsed.toDouble();
+    final clampedKcal = parsedKcal.clamp(
+      _minKcalAdjustment,
+      _maxKcalAdjustment,
+    );
+    final displayValue =
+        usesKj ? UnitCalc.kcalToKj(clampedKcal) : clampedKcal;
+    setState(() => _kcalAdjustmentSelection = clampedKcal);
+    _kcalAdjustmentController.text = displayValue.round().toString();
   }
 
   Widget _buildMacroRow(

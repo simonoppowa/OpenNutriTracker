@@ -172,6 +172,7 @@
   "customMealsDeleteConfirmTitle": "Smazat vlastní jídlo?",
   "customMealsEmptyLabel": "Zatím žádná vlastní jídla uložena.",
   "dailyKcalAdjustmentLabel": "Úprava denního kalorického příjmu:",
+  "dailyKjAdjustmentLabel": "Úprava denního příjmu (kJ):",
   "dataCollectionLabel": "Poskytněte anonymní data týkající se používání aplikace pro pomoc s jejím vývojem",
   "deleteAllLabel": "Smazat vše",
   "deleteSelectedRecipesConfirmTitle": "Smazat {count} recept(ů)?",

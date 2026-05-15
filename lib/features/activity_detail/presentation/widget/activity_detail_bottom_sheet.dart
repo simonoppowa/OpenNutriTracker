@@ -205,7 +205,11 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                                 decoration: InputDecoration(
                                   border: const OutlineInputBorder(),
                                   labelText: isCustom
-                                      ? S.of(context).customActivityKcalLabel
+                                      ? (usesKj
+                                          ? S.of(context).mealEnergyLabel
+                                          : S
+                                              .of(context)
+                                              .customActivityKcalLabel)
                                       : S.of(context).quantityLabel,
                                   hintText: isCustom
                                       ? S.of(context).customActivityKcalHint

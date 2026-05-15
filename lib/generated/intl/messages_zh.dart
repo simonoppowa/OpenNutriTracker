@@ -185,6 +185,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("尚未保存自定义餐食。"),
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("每日卡路里调整："),
+        "dailyKjAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("每日千焦调整："),
         "dataCollectionLabel":
             MessageLookupByLibrary.simpleMessage("通过提供匿名使用数据支持开发"),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("删除全部"),

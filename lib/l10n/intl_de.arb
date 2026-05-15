@@ -203,6 +203,7 @@
   "customMealsDeleteConfirmTitle": "Eigene Mahlzeit löschen?",
   "customMealsEmptyLabel": "Noch keine eigenen Mahlzeiten gespeichert.",
   "dailyKcalAdjustmentLabel": "Tägliche kcal-Anpassung:",
+  "dailyKjAdjustmentLabel": "Tägliche kJ-Anpassung:",
   "dataCollectionLabel": "Unterstützen der Entwicklung durch Bereitstellung anonymer Nutzungsdaten",
   "deleteAllLabel": "Alle löschen",
   "deleteSelectedRecipesConfirmTitle": "{count} Rezept(e) löschen?",

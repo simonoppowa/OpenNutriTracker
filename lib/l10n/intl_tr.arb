@@ -203,6 +203,7 @@
   "customMealsDeleteConfirmTitle": "Özel yemek silinsin mi?",
   "customMealsEmptyLabel": "Henüz özel yemek kaydedilmedi.",
   "dailyKcalAdjustmentLabel": "Günlük Kcal ayarı:",
+  "dailyKjAdjustmentLabel": "Günlük kJ ayarı:",
   "dataCollectionLabel": "Anonim kullanım verileri sağlayarak geliştirmeyi destekleyin",
   "deleteAllLabel": "Tümünü sil",
   "deleteSelectedRecipesConfirmTitle": "{count} tarif silinsin mi?",

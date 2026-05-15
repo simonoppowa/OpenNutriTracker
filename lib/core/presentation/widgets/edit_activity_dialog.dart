@@ -67,7 +67,9 @@ class _EditActivityDialogState extends State<EditActivityDialog> {
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: _isCustom
-                    ? S.of(context).customActivityKcalLabel
+                    ? (usesKj
+                        ? S.of(context).mealEnergyLabel
+                        : S.of(context).customActivityKcalLabel)
                     : S.of(context).quantityLabel,
                 suffixText: suffix,
               ),

@@ -1969,6 +1969,16 @@ class S {
     );
   }
 
+  /// `Daily kJ adjustment:`
+  String get dailyKjAdjustmentLabel {
+    return Intl.message(
+      'Daily kJ adjustment:',
+      name: 'dailyKjAdjustmentLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Macronutrient Distribution:`
   String get macroDistributionLabel {
     return Intl.message(

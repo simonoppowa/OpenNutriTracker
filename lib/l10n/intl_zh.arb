@@ -173,6 +173,7 @@
   "customMealsDeleteConfirmTitle": "删除自定义餐食？",
   "customMealsEmptyLabel": "尚未保存自定义餐食。",
   "dailyKcalAdjustmentLabel": "每日卡路里调整：",
+  "dailyKjAdjustmentLabel": "每日千焦调整：",
   "dataCollectionLabel": "通过提供匿名使用数据支持开发",
   "deleteAllLabel": "删除全部",
   "deleteSelectedRecipesConfirmTitle": "删除 {count} 个食谱？",
