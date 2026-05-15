@@ -49,6 +49,8 @@ class HomeLoadedState extends HomeState {
   final int lunchSharePct;
   final int dinnerSharePct;
   final int snackSharePct;
+  final UserGenderEntity userGender;
+  final CaloriesProfileEntity? userCaloriesProfile;
 
   const HomeLoadedState({
     required this.showDisclaimerDialog,
@@ -77,6 +79,8 @@ class HomeLoadedState extends HomeState {
     required this.lunchSharePct,
     required this.dinnerSharePct,
     required this.snackSharePct,
+    required this.userGender,
+    required this.userCaloriesProfile,
     this.showActivityTracking = true,
     this.showMealMacros = true,
   });

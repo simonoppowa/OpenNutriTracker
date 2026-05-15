@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:opennutritracker/core/utils/bounds/ranges_const.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_data_mask_entity.dart';
@@ -74,5 +75,32 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       proteinGoal = MacroCalc.getTotalProteinsGoal(calorieGoal);
     }
     return proteinGoal;
+  }
+
+  /// Whether the calorie goal computed for the current onboarding
+  /// selection has dropped below the research-backed floor for the user's
+  /// hormonal profile. Used by the overview page to decide whether to
+  /// surface the soft low-kcal warning.
+  bool isOverviewBelowRecommendedKcalFloor() {
+    final userEntity = userSelection.toUserEntity();
+    final calorieGoal = getOverviewCalorieGoal();
+    if (userEntity == null || calorieGoal == null) return false;
+    return CalorieGoalCalc.isBelowRecommendedDailyKcalFloor(
+      goalKcal: calorieGoal,
+      gender: userEntity.gender,
+      caloriesProfile: userEntity.caloriesProfile,
+    );
+  }
+
+  /// The kcal floor the overview warning quotes back to the user. Falls
+  /// back to the lower (female-typical) bound when the selection isn't
+  /// resolvable yet, so the displayed number is always a sensible default.
+  double getOverviewRecommendedKcalFloor() {
+    final userEntity = userSelection.toUserEntity();
+    if (userEntity == null) return Ranges.minRecommendedDailyKcalFemale;
+    return CalorieGoalCalc.recommendedDailyKcalFloor(
+      gender: userEntity.gender,
+      caloriesProfile: userEntity.caloriesProfile,
+    );
   }
 }

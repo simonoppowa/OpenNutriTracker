@@ -1,8 +1,10 @@
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
@@ -204,6 +206,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
               configData.mealKcalSharesPct[ConfigEntity.mealKeyDinner] ?? 0,
           snackSharePct:
               configData.mealKcalSharesPct[ConfigEntity.mealKeySnack] ?? 0,
+          userGender: user.gender,
+          userCaloriesProfile: user.caloriesProfile,
         ),
       );
     });

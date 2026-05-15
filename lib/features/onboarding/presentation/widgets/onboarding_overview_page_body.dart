@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/presentation/widgets/low_kcal_warning_card.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -11,6 +12,8 @@ class OnboardingOverviewPageBody extends StatelessWidget {
   final String proteinGoalString;
   final Function(bool active) setButtonActive;
   final double? totalKcalCalculated;
+  final bool showLowKcalWarning;
+  final double lowKcalWarningThreshold;
 
   const OnboardingOverviewPageBody({
     super.key,
@@ -20,6 +23,8 @@ class OnboardingOverviewPageBody extends StatelessWidget {
     required this.carbsGoalString,
     required this.fatGoalString,
     required this.proteinGoalString,
+    this.showLowKcalWarning = false,
+    this.lowKcalWarningThreshold = 0,
   });
 
   @override
@@ -72,6 +77,13 @@ class OnboardingOverviewPageBody extends StatelessWidget {
               ],
             ),
           ),
+          if (showLowKcalWarning) ...[
+            const SizedBox(height: 24.0),
+            LowKcalWarningCard(
+              thresholdKcal: lowKcalWarningThreshold,
+              margin: EdgeInsets.zero,
+            ),
+          ],
           const SizedBox(height: 32.0),
           Text(
             S.of(context).onboardingYourMacrosGoalLabel,

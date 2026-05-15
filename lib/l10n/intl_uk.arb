@@ -202,6 +202,16 @@
   "settingsDeleteAllDataConfirmTitle": "Видалити всі ваші дані?",
   "settingsDeleteAllDataConfirmContent": "Це остаточно видалить з цього пристрою ваш профіль, прийоми їжі, активності, історію ваги та всі власні рецепти. Бази Open Food Facts та USDA Food Data Central залишаться без змін. Цю дію не можна скасувати.",
   "settingsDeleteAllDataConfirmAction": "Видалити все",
+  "lowKcalWarningTitle": "Ця денна ціль доволі низька",
+  "lowKcalWarningBody": "Дорослим без медичного нагляду не варто тривало споживати менше ніж {threshold} ккал на день. Будь ласка, перш ніж залишати такий низький рівень, проконсультуйтеся з лікарем.",
+  "@lowKcalWarningBody": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "lowKcalWarningViewDisclaimer": "Переглянути застереження",
   "deleteSelectedRecipesConfirmTitle": "Видалити {count} рецепт(ів)?",
   "deleteTimeDialogContent": "Ви хочете видалити вибраний елемент?",
   "deleteTimeDialogPluralContent": "Ви хочете видалити всі елементи цієї страви?",

@@ -76,6 +76,9 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m26(hour, minute) => "${hour}:${minute}";
 
+  static String mLowKcal(threshold) =>
+      "在没有医疗指导的情况下，成年人不宜长期每天摄入低于 ${threshold} 千卡的热量。在维持这么低的目标之前，请考虑咨询医疗专业人员。";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample":
@@ -208,6 +211,11 @@ class MessageLookup extends MessageLookupByLibrary {
             "此操作将永久从此设备移除您的个人资料、饮食记录、活动记录、体重历史以及所有自定义食谱。Open Food Facts 与 USDA Food Data Central 数据库不受影响。此操作无法撤销。"),
         "settingsDeleteAllDataConfirmAction":
             MessageLookupByLibrary.simpleMessage("全部删除"),
+        "lowKcalWarningTitle":
+            MessageLookupByLibrary.simpleMessage("此每日目标偏低"),
+        "lowKcalWarningBody": mLowKcal,
+        "lowKcalWarningViewDisclaimer":
+            MessageLookupByLibrary.simpleMessage("查看免责声明"),
         "deleteSelectedRecipesConfirmTitle": m18,
         "deleteTimeDialogContent":
             MessageLookupByLibrary.simpleMessage("您想删除选定的项目吗？"),

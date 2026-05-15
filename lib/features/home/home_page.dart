@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/low_kcal_warning_card.dart';
+import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
@@ -61,6 +65,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             context,
             state.showDisclaimerDialog,
             state.totalKcalDaily,
+            state.userGender,
+            state.userCaloriesProfile,
             state.totalKcalLeft,
             state.totalKcalSupplied,
             state.totalKcalBurned,
@@ -111,6 +117,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     BuildContext context,
     bool showDisclaimerDialog,
     double totalKcalDaily,
+    UserGenderEntity userGender,
+    CaloriesProfileEntity? userCaloriesProfile,
     double totalKcalLeft,
     double totalKcalSupplied,
     double totalKcalBurned,
@@ -161,6 +169,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               totalFatsGoal: totalFatsGoal,
               totalProteinsGoal: totalProteinsGoal,
             ),
+            if (CalorieGoalCalc.isBelowRecommendedDailyKcalFloor(
+              goalKcal: totalKcalDaily,
+              gender: userGender,
+              caloriesProfile: userCaloriesProfile,
+            ))
+              LowKcalWarningCard(
+                thresholdKcal: CalorieGoalCalc.recommendedDailyKcalFloor(
+                  gender: userGender,
+                  caloriesProfile: userCaloriesProfile,
+                ),
+              ),
             ActivityVerticalList(
               day: DateTime.now(),
               title: S.of(context).activityLabel,

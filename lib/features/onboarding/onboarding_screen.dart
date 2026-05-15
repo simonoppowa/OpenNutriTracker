@@ -199,6 +199,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 _onboardingBloc.getOverviewProteinGoal()?.toInt().toString() ??
                     "?",
             setButtonActive: _setOverviewPageContent,
+            showLowKcalWarning:
+                _onboardingBloc.isOverviewBelowRecommendedKcalFloor(),
+            lowKcalWarningThreshold:
+                _onboardingBloc.getOverviewRecommendedKcalFloor(),
           ),
           footer: HighlightButton(
             buttonLabel: S.of(context).buttonStartLabel,

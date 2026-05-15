@@ -250,6 +250,16 @@
   "settingsDeleteAllDataConfirmTitle": "Delete all your data?",
   "settingsDeleteAllDataConfirmContent": "This permanently removes your profile, meals, activities, weight history and any custom recipes from this device. The Open Food Facts and USDA Food Data Central catalogues are not affected. This cannot be undone.",
   "settingsDeleteAllDataConfirmAction": "Delete everything",
+  "lowKcalWarningTitle": "This daily target is on the low side",
+  "lowKcalWarningBody": "Most adults shouldn't eat fewer than {threshold} kcal a day for any length of time without medical guidance. Please consider speaking with a healthcare professional before sticking with a target this low.",
+  "@lowKcalWarningBody": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "lowKcalWarningViewDisclaimer": "View disclaimer",
   "deleteSelectedRecipesConfirmTitle": "Delete {count} recipe(s)?",
   "deleteTimeDialogContent": "Do want to delete the selected item?",
   "deleteTimeDialogPluralContent": "Do want to delete all items of this meal?",

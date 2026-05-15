@@ -79,6 +79,9 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m26(hour, minute) => "${hour}:${minute}";
 
+  static String mLowKcal(threshold) =>
+      "Osoby dorosłe nie powinny przez dłuższy czas spożywać mniej niż ${threshold} kcal dziennie bez nadzoru lekarza. Zanim utrzymasz tak niski cel, rozważ konsultację ze specjalistą.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -218,6 +221,11 @@ class MessageLookup extends MessageLookupByLibrary {
             "Spowoduje to trwałe usunięcie z tego urządzenia Twojego profilu, posiłków, aktywności, historii wagi oraz wszystkich własnych przepisów. Bazy danych Open Food Facts i USDA Food Data Central pozostają nienaruszone. Tej operacji nie można cofnąć."),
         "settingsDeleteAllDataConfirmAction":
             MessageLookupByLibrary.simpleMessage("Usuń wszystko"),
+        "lowKcalWarningTitle": MessageLookupByLibrary.simpleMessage(
+            "Ten dzienny cel jest dość niski"),
+        "lowKcalWarningBody": mLowKcal,
+        "lowKcalWarningViewDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Pokaż zastrzeżenie"),
         "deleteSelectedRecipesConfirmTitle": m18,
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Czy chcesz usunąć wybraną pozycję?"),

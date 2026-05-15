@@ -202,6 +202,16 @@
   "settingsDeleteAllDataConfirmTitle": "Smazat všechna vaše data?",
   "settingsDeleteAllDataConfirmContent": "Tato akce trvale odstraní z tohoto zařízení váš profil, jídla, aktivity, historii hmotnosti a všechny vlastní recepty. Databáze Open Food Facts a USDA Food Data Central tím nejsou dotčeny. Akci nelze vrátit zpět.",
   "settingsDeleteAllDataConfirmAction": "Smazat vše",
+  "lowKcalWarningTitle": "Tento denní cíl je poměrně nízký",
+  "lowKcalWarningBody": "Dospělí by bez lékařského dohledu neměli dlouhodobě přijímat méně než {threshold} kcal denně. Zvažte, prosím, konzultaci se zdravotníkem, než u tak nízkého cíle zůstanete.",
+  "@lowKcalWarningBody": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "lowKcalWarningViewDisclaimer": "Zobrazit upozornění",
   "deleteSelectedRecipesConfirmTitle": "Smazat {count} recept(ů)?",
   "deleteTimeDialogContent": "Přejete si vymazat označený záznam?",
   "deleteTimeDialogPluralContent": "Přejete si vymazat všechny položky vybraného pokrmu?",

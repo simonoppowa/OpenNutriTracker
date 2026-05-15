@@ -81,6 +81,9 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m26(hour, minute) => "${hour}:${minute}";
 
+  static String mLowKcal(threshold) =>
+      "Yetişkinler tıbbi gözetim olmadan uzun süreyle günde ${threshold} kcal\'nin altında beslenmemelidir. Bu kadar düşük bir hedefte kalmadan önce lütfen bir sağlık uzmanına danışmayı düşün.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -220,6 +223,11 @@ class MessageLookup extends MessageLookupByLibrary {
             "Bu işlem profilinizi, öğünlerinizi, aktivitelerinizi, kilo geçmişinizi ve tüm özel tariflerinizi bu cihazdan kalıcı olarak siler. Open Food Facts ve USDA Food Data Central veritabanları bundan etkilenmez. Bu işlem geri alınamaz."),
         "settingsDeleteAllDataConfirmAction":
             MessageLookupByLibrary.simpleMessage("Hepsini sil"),
+        "lowKcalWarningTitle": MessageLookupByLibrary.simpleMessage(
+            "Bu günlük hedef oldukça düşük"),
+        "lowKcalWarningBody": mLowKcal,
+        "lowKcalWarningViewDisclaimer": MessageLookupByLibrary.simpleMessage(
+            "Sorumluluk reddini görüntüle"),
         "deleteSelectedRecipesConfirmTitle": m18,
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Seçilen öğeyi silmek istiyor musunuz?"),

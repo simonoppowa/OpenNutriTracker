@@ -79,6 +79,9 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m26(hour, minute) => "${hour}:${minute}";
 
+  static String mLowKcal(threshold) =>
+      "Dospelí by bez lekárskeho dohľadu nemali dlhodobo prijímať menej než ${threshold} kcal denne. Zvážte konzultáciu so zdravotníckym odborníkom skôr, než zostanete pri takomto nízkom cieli.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -225,6 +228,11 @@ class MessageLookup extends MessageLookupByLibrary {
             "Tým sa z tohto zariadenia natrvalo odstráni váš profil, jedlá, aktivity, história hmotnosti a všetky vlastné recepty. Databázy Open Food Facts a USDA Food Data Central tým nie sú ovplyvnené. Túto akciu nie je možné vrátiť späť."),
         "settingsDeleteAllDataConfirmAction":
             MessageLookupByLibrary.simpleMessage("Zmazať všetko"),
+        "lowKcalWarningTitle": MessageLookupByLibrary.simpleMessage(
+            "Tento denný cieľ je dosť nízky"),
+        "lowKcalWarningBody": mLowKcal,
+        "lowKcalWarningViewDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Zobraziť upozornenie"),
         "deleteSelectedRecipesConfirmTitle": m18,
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Naozaj chcete zmazať vybranú položku?"),

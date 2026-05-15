@@ -3111,6 +3111,36 @@ class S {
     );
   }
 
+  /// `This daily target is on the low side`
+  String get lowKcalWarningTitle {
+    return Intl.message(
+      'This daily target is on the low side',
+      name: 'lowKcalWarningTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Most adults shouldn't eat fewer than {threshold} kcal a day for any length of time without medical guidance. Please consider speaking with a healthcare professional before sticking with a target this low.`
+  String lowKcalWarningBody(int threshold) {
+    return Intl.message(
+      'Most adults shouldn\'t eat fewer than $threshold kcal a day for any length of time without medical guidance. Please consider speaking with a healthcare professional before sticking with a target this low.',
+      name: 'lowKcalWarningBody',
+      desc: '',
+      args: [threshold],
+    );
+  }
+
+  /// `View disclaimer`
+  String get lowKcalWarningViewDisclaimer {
+    return Intl.message(
+      'View disclaimer',
+      name: 'lowKcalWarningViewDisclaimer',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `supplied`
   String get suppliedLabel {
     return Intl.message(

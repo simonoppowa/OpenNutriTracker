@@ -1,5 +1,8 @@
+import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
+import 'package:opennutritracker/core/utils/bounds/ranges_const.dart';
 import 'package:opennutritracker/core/utils/calc/tdee_calc.dart';
 
 class CalorieGoalCalc {
@@ -108,5 +111,44 @@ class CalorieGoalCalc {
     final span = taperStartDistanceKg - taperEndDistanceKg;
     final progress = (distance - taperEndDistanceKg) / span;
     return baseAdjustment * progress;
+  }
+
+  /// Whether the computed daily kcal goal sits below the research-backed
+  /// minimum for the user's hormonal profile. Used to decide whether to
+  /// surface the soft low-kcal warning card next to the target value.
+  ///
+  /// The male floor (≈1500 kcal) is used when there is positive evidence
+  /// for it: a binary male profile, or a non-binary user who explicitly
+  /// picked a testosterone-typical calories profile. Everywhere else —
+  /// binary female, non-binary on estrogen-typical, non-binary on the
+  /// averaged midpoint (because that maps to a TDEE midpoint and the
+  /// lower floor sits more naturally beside it), or non-binary who hasn't
+  /// chosen a profile yet — the female floor (≈1200 kcal) is used.
+  ///
+  /// The check is intentionally non-strict (`<`), so a value sitting
+  /// exactly on the floor does not trip the warning.
+  static bool isBelowRecommendedDailyKcalFloor({
+    required double goalKcal,
+    required UserGenderEntity gender,
+    CaloriesProfileEntity? caloriesProfile,
+  }) =>
+      goalKcal <
+      recommendedDailyKcalFloor(
+        gender: gender,
+        caloriesProfile: caloriesProfile,
+      );
+
+  /// Returns the floor used by [isBelowRecommendedDailyKcalFloor] for the
+  /// given user, so UI surfaces can quote the actual number in the
+  /// warning message.
+  static double recommendedDailyKcalFloor({
+    required UserGenderEntity gender,
+    CaloriesProfileEntity? caloriesProfile,
+  }) {
+    final usesMaleFloor = gender == UserGenderEntity.male ||
+        caloriesProfile == CaloriesProfileEntity.testosteroneTypical;
+    return usesMaleFloor
+        ? Ranges.minRecommendedDailyKcalMale
+        : Ranges.minRecommendedDailyKcalFemale;
   }
 }
