@@ -50,8 +50,6 @@ class ConfigDBO extends HiveObject {
   String? customMealFormMode; // #232: 'simple' or 'advanced'; null means default (simple)
   @HiveField(19)
   int? dayStartOffsetHours; // #139: 0-23, null means default (0 = wall-clock midnight)
-  @HiveField(20)
-  bool caloriesTaperEnabled;
   // #160 follow-up: per-nutrient show/hide map for the daily nutrient panel.
   // Keys are nutrient identifiers from [DailyNutrientPanel]; values are
   // explicit user overrides. A nutrient not present in the map (or a null
@@ -91,7 +89,6 @@ class ConfigDBO extends HiveObject {
     this.mealKcalSharesPct,
     this.customMealFormMode,
     this.dayStartOffsetHours,
-    this.caloriesTaperEnabled = false,
     this.diarySortPreferences,
     this.nutrientPanelVisibility,
     this.dayStartOffsetMinutes,
@@ -106,7 +103,6 @@ class ConfigDBO extends HiveObject {
         entity.hasAcceptedSendAnonymousData,
         AppThemeDBO.fromAppThemeEntity(entity.appTheme),
         usesImperialUnits: entity.usesImperialUnits,
-        caloriesTaperEnabled: entity.caloriesTaperEnabled,
       );
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>

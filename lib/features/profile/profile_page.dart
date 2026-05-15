@@ -191,6 +191,30 @@ class _ProfilePageState extends State<ProfilePage> {
                 _showSetTargetWeightDialog(context, user, usesImperialUnits),
           ),
         ),
+        // The opt-in linear taper scales the daily kcal deficit down
+        // as current weight approaches the target. Surfaced here only
+        // once a target weight is set, since without one the toggle
+        // has nothing to scale against.
+        if (user.targetWeightKg != null)
+          Semantics(
+            identifier: 'profile-calorie-taper',
+            child: SwitchListTile(
+              title: Text(
+                S.of(context).settingsCaloriesTaperLabel,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              subtitle: Text(
+                S.of(context).settingsCaloriesTaperDescription,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              secondary: const SizedBox(
+                height: double.infinity,
+                child: Icon(Icons.trending_down_outlined),
+              ),
+              value: user.caloriesTaperEnabled,
+              onChanged: (v) => _profileBloc.setCaloriesTaperEnabled(v),
+            ),
+          ),
         Semantics(
           identifier: 'profile-weight-history',
           child: ListTile(

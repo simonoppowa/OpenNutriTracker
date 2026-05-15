@@ -26,6 +26,12 @@ class UserEntity {
   /// nears is a separate scope question.
   double? targetWeightKg;
 
+  /// Opt-in linear taper that scales the daily kcal deficit down as
+  /// current weight approaches [targetWeightKg]. The toggle only has
+  /// anything to act on when a target weight is set, so Profile gates
+  /// the surfacing behind that condition.
+  bool caloriesTaperEnabled;
+
   UserEntity({
     required this.birthday,
     required this.heightCM,
@@ -36,6 +42,7 @@ class UserEntity {
     this.weeklyWeightGoalKg,
     this.caloriesProfile,
     this.targetWeightKg,
+    this.caloriesTaperEnabled = false,
   });
 
   factory UserEntity.fromUserDBO(UserDBO userDBO) {
@@ -51,6 +58,7 @@ class UserEntity {
           ? null
           : CaloriesProfileEntity.fromDBO(userDBO.caloriesProfile!),
       targetWeightKg: userDBO.targetWeightKg,
+      caloriesTaperEnabled: userDBO.caloriesTaperEnabled,
     );
   }
 

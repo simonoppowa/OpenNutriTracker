@@ -39,7 +39,6 @@ class ConfigEntity extends Equatable {
   final bool showMicronutrients; // #237
   final bool usesKilojoules; // #177
   final Map<String, int> mealKcalSharesPct; // #150
-  final bool caloriesTaperEnabled;
   final Map<String, int>? diarySortPreferences;
   // #160 follow-up: per-nutrient show/hide overrides for the daily panel.
   // Keys are nutrient identifiers (see `DailyNutrientPanel.nutrientKeys`),
@@ -69,7 +68,6 @@ class ConfigEntity extends Equatable {
     this.showMicronutrients = false,
     this.usesKilojoules = false,
     this.mealKcalSharesPct = defaultMealKcalSharesPct,
-    this.caloriesTaperEnabled = false,
     this.diarySortPreferences,
     this.nutrientPanelVisibility = const <String, bool>{},
     this.dayStartOffsetHours = 0,
@@ -108,7 +106,6 @@ class ConfigEntity extends Equatable {
         usesKilojoules: dbo.usesKilojoules ?? false,
         mealKcalSharesPct:
             _sanitiseShares(dbo.mealKcalSharesPct) ?? defaultMealKcalSharesPct,
-        caloriesTaperEnabled: dbo.caloriesTaperEnabled,
         diarySortPreferences: dbo.diarySortPreferences,
         nutrientPanelVisibility:
             dbo.nutrientPanelVisibility ?? const <String, bool>{},
@@ -167,7 +164,6 @@ class ConfigEntity extends Equatable {
         showMicronutrients,
         usesKilojoules,
         mealKcalSharesPct,
-        caloriesTaperEnabled,
         diarySortPreferences,
         nutrientPanelVisibility,
         dayStartOffsetHours,

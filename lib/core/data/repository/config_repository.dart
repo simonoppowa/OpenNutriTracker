@@ -113,14 +113,6 @@ class ConfigRepository {
     await _configDataSource.setCustomMealFormMode(mode);
   }
 
-  Future<bool> getCaloriesTaperEnabled() async {
-    return await _configDataSource.getCaloriesTaperEnabled();
-  }
-
-  Future<void> setConfigCaloriesTaperEnabled(bool enabled) async {
-    await _configDataSource.setConfigCaloriesTaperEnabled(enabled);
-  }
-
   Future<Map<String, int>?> getDiarySortPreferences() async {
     return await _configDataSource.getDiarySortPreferences();
   }

@@ -34,7 +34,6 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         mealKcalSharesPct: (fields[17] as Map?)?.cast<String, int>(),
         customMealFormMode: fields[18] as String?,
         dayStartOffsetHours: (fields[19] as num?)?.toInt(),
-        caloriesTaperEnabled: fields[20] == null ? false : fields[20] as bool,
         diarySortPreferences: (fields[21] as Map?)?.cast<String, int>(),
         nutrientPanelVisibility: (fields[22] as Map?)?.cast<String, bool>(),
         dayStartOffsetMinutes: (fields[23] as num?)?.toInt(),
@@ -47,7 +46,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(24)
+      ..writeByte(23)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -88,8 +87,6 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..write(obj.customMealFormMode)
       ..writeByte(19)
       ..write(obj.dayStartOffsetHours)
-      ..writeByte(20)
-      ..write(obj.caloriesTaperEnabled)
       ..writeByte(21)
       ..write(obj.diarySortPreferences)
       ..writeByte(22)
@@ -133,7 +130,6 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
             ?.map((k, e) => MapEntry(k, (e as num).toInt())),
         customMealFormMode: json['customMealFormMode'] as String?,
         dayStartOffsetHours: (json['dayStartOffsetHours'] as num?)?.toInt(),
-        caloriesTaperEnabled: json['caloriesTaperEnabled'] as bool? ?? false,
         diarySortPreferences:
             (json['diarySortPreferences'] as Map<String, dynamic>?)?.map(
               (k, e) => MapEntry(k, (e as num).toInt()),
@@ -169,7 +165,6 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'mealKcalSharesPct': instance.mealKcalSharesPct,
   'customMealFormMode': instance.customMealFormMode,
   'dayStartOffsetHours': instance.dayStartOffsetHours,
-  'caloriesTaperEnabled': instance.caloriesTaperEnabled,
   'nutrientPanelVisibility': instance.nutrientPanelVisibility,
   'diarySortPreferences': instance.diarySortPreferences,
   'dayStartOffsetMinutes': instance.dayStartOffsetMinutes,

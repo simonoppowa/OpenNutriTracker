@@ -34,7 +34,7 @@ class GetKcalGoalUsecase {
       user,
       totalKcalActivities,
       kcalUserAdjustment: config.userKcalAdjustment,
-      caloriesTaperEnabled: config.caloriesTaperEnabled,
+      caloriesTaperEnabled: user.caloriesTaperEnabled,
     );
   }
 }
