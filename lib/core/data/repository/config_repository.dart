@@ -105,6 +105,14 @@ class ConfigRepository {
     await _configDataSource.setConfigMealKcalSharesPct(shares);
   }
 
+  Future<String?> getCustomMealFormMode() async {
+    return await _configDataSource.getCustomMealFormMode();
+  }
+
+  Future<void> setCustomMealFormMode(String mode) async {
+    await _configDataSource.setCustomMealFormMode(mode);
+  }
+
   Future<bool> getCaloriesTaperEnabled() async {
     return await _configDataSource.getCaloriesTaperEnabled();
   }

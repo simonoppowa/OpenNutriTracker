@@ -210,6 +210,17 @@
   "customMealBarcodeInvalid": "Der Barcode muss 8 bis 14 Ziffern haben",
   "customMealBarcodeLabel": "Barcode",
   "customMealBarcodeScanButton": "Barcode scannen",
+  "customMealFormAdvanced": "Erweitert",
+  "customMealFormAdvancedHelp": "Grundmenge und Werte pro 100 für genaue Skalierung festlegen.",
+  "customMealFormModeLabel": "Formularansicht",
+  "customMealFormSimple": "Einfach",
+  "customMealFormSimpleHelp": "Gib die Gesamtwerte für eine Portion ein.",
+  "customMealFormSimpleFieldHelper": "{unit} pro Portion",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": { "type": "String" }
+    }
+  },
   "customMealsDeleteConfirmContent": "Alle Tagebucheinträge, die diese Mahlzeit verwenden, werden ebenfalls entfernt.",
   "customMealsDeleteConfirmTitle": "Eigene Mahlzeit löschen?",
   "customMealsEmptyLabel": "Noch keine eigenen Mahlzeiten gespeichert.",

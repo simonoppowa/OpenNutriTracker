@@ -73,6 +73,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m23(consumed, target) => "${consumed} / ${target} kcal";
 
+  static String m24(unit) => "${unit} w jednej porcji";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1202,6 +1204,17 @@ class MessageLookup extends MessageLookupByLibrary {
             "Zapisz jako szablon na później"),
         "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
             "Nie masz jeszcze zapisanych szablonów. Zaznacz „Zapisz jako szablon na później”, aby zapamiętać aktywność niestandardową na przyszłość."),
+        "customMealFormAdvanced":
+            MessageLookupByLibrary.simpleMessage("Zaawansowany"),
+        "customMealFormAdvancedHelp": MessageLookupByLibrary.simpleMessage(
+            "Ustaw ilość bazową i wartości na 100 g/ml dla dokładnego przeliczenia."),
+        "customMealFormModeLabel":
+            MessageLookupByLibrary.simpleMessage("Widok formularza"),
+        "customMealFormSimple":
+            MessageLookupByLibrary.simpleMessage("Prosty"),
+        "customMealFormSimpleFieldHelper": m24,
+        "customMealFormSimpleHelp": MessageLookupByLibrary.simpleMessage(
+            "Wpisz wartości dla jednej porcji."),
         "mealPatternFiveSmall":
             MessageLookupByLibrary.simpleMessage("5 małych"),
         "mealPatternMediterranean":

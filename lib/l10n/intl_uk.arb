@@ -179,6 +179,17 @@
   "customMealBarcodeInvalid": "Штрих-код має містити від 8 до 14 цифр",
   "customMealBarcodeLabel": "Штрих-код",
   "customMealBarcodeScanButton": "Сканувати штрих-код",
+  "customMealFormAdvanced": "Розширений",
+  "customMealFormAdvancedHelp": "Вкажіть базову кількість і значення на 100 г/мл для точного перерахунку.",
+  "customMealFormModeLabel": "Вигляд форми",
+  "customMealFormSimple": "Простий",
+  "customMealFormSimpleHelp": "Введіть значення для однієї порції.",
+  "customMealFormSimpleFieldHelper": "{unit} в одній порції",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": { "type": "String" }
+    }
+  },
   "customMealsDeleteConfirmContent": "Усі записи в щоденнику, що використовують цю страву, також буде видалено.",
   "customMealsDeleteConfirmTitle": "Видалити власну страву?",
   "customMealsEmptyLabel": "Ще немає збережених власних страв.",

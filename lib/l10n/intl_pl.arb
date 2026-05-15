@@ -179,6 +179,17 @@
   "customMealBarcodeInvalid": "Kod kreskowy musi mieć od 8 do 14 cyfr",
   "customMealBarcodeLabel": "Kod kreskowy",
   "customMealBarcodeScanButton": "Skanuj kod kreskowy",
+  "customMealFormAdvanced": "Zaawansowany",
+  "customMealFormAdvancedHelp": "Ustaw ilość bazową i wartości na 100 g/ml dla dokładnego przeliczenia.",
+  "customMealFormModeLabel": "Widok formularza",
+  "customMealFormSimple": "Prosty",
+  "customMealFormSimpleHelp": "Wpisz wartości dla jednej porcji.",
+  "customMealFormSimpleFieldHelper": "{unit} w jednej porcji",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": { "type": "String" }
+    }
+  },
   "customMealsDeleteConfirmContent": "Wszystkie wpisy w dzienniku używające tego posiłku zostaną również usunięte.",
   "customMealsDeleteConfirmTitle": "Usunąć własny posiłek?",
   "customMealsEmptyLabel": "Brak zapisanych własnych posiłków.",

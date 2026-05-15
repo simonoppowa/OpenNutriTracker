@@ -73,6 +73,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m22(consumed, target) => "${consumed} / ${target} kcal";
 
+  static String m23(unit) => "${unit} in one serving";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1178,6 +1180,17 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Replace photo"),
         "recipeImageTakePhoto":
             MessageLookupByLibrary.simpleMessage("Take photo"),
+        "customMealFormAdvanced":
+            MessageLookupByLibrary.simpleMessage("Advanced"),
+        "customMealFormAdvancedHelp": MessageLookupByLibrary.simpleMessage(
+            "Set base quantity and per-100 values for precise scaling."),
+        "customMealFormModeLabel":
+            MessageLookupByLibrary.simpleMessage("Form view"),
+        "customMealFormSimple":
+            MessageLookupByLibrary.simpleMessage("Simple"),
+        "customMealFormSimpleFieldHelper": m23,
+        "customMealFormSimpleHelp": MessageLookupByLibrary.simpleMessage(
+            "Type the totals for one serving."),
         "mealPatternFiveSmall":
             MessageLookupByLibrary.simpleMessage("Five-small"),
         "mealPatternMediterranean":

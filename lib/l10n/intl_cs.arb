@@ -179,6 +179,17 @@
   "customMealBarcodeInvalid": "Čárový kód musí mít 8 až 14 číslic",
   "customMealBarcodeLabel": "Čárový kód",
   "customMealBarcodeScanButton": "Naskenovat čárový kód",
+  "customMealFormAdvanced": "Pokročilý",
+  "customMealFormAdvancedHelp": "Zadejte základní množství a hodnoty na 100 g/ml pro přesné škálování.",
+  "customMealFormModeLabel": "Zobrazení formuláře",
+  "customMealFormSimple": "Jednoduchý",
+  "customMealFormSimpleHelp": "Zadejte hodnoty pro jednu porci.",
+  "customMealFormSimpleFieldHelper": "{unit} v jedné porci",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": { "type": "String" }
+    }
+  },
   "customMealsDeleteConfirmContent": "Všechny záznamy v deníku používající toto jídlo budou také odstraněny.",
   "customMealsDeleteConfirmTitle": "Smazat vlastní jídlo?",
   "customMealsEmptyLabel": "Zatím žádná vlastní jídla uložena.",

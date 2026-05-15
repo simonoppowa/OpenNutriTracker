@@ -209,6 +209,17 @@
   "customMealBarcodeInvalid": "Čiarový kód musí mať 8 až 14 číslic",
   "customMealBarcodeLabel": "Čiarový kód",
   "customMealBarcodeScanButton": "Naskenovať kód",
+  "customMealFormAdvanced": "Pokročilý",
+  "customMealFormAdvancedHelp": "Nastavte základné množstvo a hodnoty na 100, aby ste mohli presne škálovať.",
+  "customMealFormModeLabel": "Režim zadávania",
+  "customMealFormSimple": "Jednoduchý",
+  "customMealFormSimpleHelp": "Zadajte celkové hodnoty pre jednu porciu.",
+  "customMealFormSimpleFieldHelper": "{unit} v jednej porcii",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": { "type": "String" }
+    }
+  },
   "customMealsDeleteConfirmContent": "Všetky záznamy v denníku, ktoré používajú toto jedlo, budú tiež odstránené.",
   "customMealsDeleteConfirmTitle": "Zmazať vlastné jedlo?",
   "customMealsEmptyLabel": "Zatiaľ nie sú uložené žiadne vlastné jedlá.",

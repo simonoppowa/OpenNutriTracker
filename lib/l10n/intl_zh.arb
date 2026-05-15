@@ -180,6 +180,17 @@
   "customMealBarcodeInvalid": "条形码必须为 8 到 14 位数字",
   "customMealBarcodeLabel": "条形码",
   "customMealBarcodeScanButton": "扫描条形码",
+  "customMealFormAdvanced": "高级",
+  "customMealFormAdvancedHelp": "设置基准量和每 100 克/毫升的数值以进行精确换算。",
+  "customMealFormModeLabel": "表单视图",
+  "customMealFormSimple": "简单",
+  "customMealFormSimpleHelp": "输入一份的总量。",
+  "customMealFormSimpleFieldHelper": "每份 {unit}",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": { "type": "String" }
+    }
+  },
   "customMealsDeleteConfirmContent": "所有使用此餐食的日记条目也将被删除。",
   "customMealsDeleteConfirmTitle": "删除自定义餐食？",
   "customMealsEmptyLabel": "尚未保存自定义餐食。",

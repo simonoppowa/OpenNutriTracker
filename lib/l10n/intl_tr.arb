@@ -210,6 +210,17 @@
   "customMealBarcodeInvalid": "Barkod 8 ile 14 hane arasında olmalı",
   "customMealBarcodeLabel": "Barkod",
   "customMealBarcodeScanButton": "Barkod tara",
+  "customMealFormAdvanced": "Gelişmiş",
+  "customMealFormAdvancedHelp": "Hassas ölçek için temel miktarı ve 100 g/ml değerlerini belirleyin.",
+  "customMealFormModeLabel": "Form görünümü",
+  "customMealFormSimple": "Basit",
+  "customMealFormSimpleHelp": "Bir porsiyon için toplam değerleri yazın.",
+  "customMealFormSimpleFieldHelper": "{unit} porsiyon başına",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": { "type": "String" }
+    }
+  },
   "customMealsDeleteConfirmContent": "Bu yemeği kullanan tüm günlük girişleri de kaldırılacak.",
   "customMealsDeleteConfirmTitle": "Özel yemek silinsin mi?",
   "customMealsEmptyLabel": "Henüz özel yemek kaydedilmedi.",

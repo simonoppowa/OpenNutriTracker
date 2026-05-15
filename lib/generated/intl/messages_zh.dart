@@ -70,6 +70,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m23(consumed, target) => "${consumed} / ${target} 千卡";
 
+  static String m24(unit) => "每份 ${unit}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample":
@@ -1045,6 +1047,15 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("保存为模板以便下次使用"),
         "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
             "你还没有保存任何模板。勾选「保存为模板以便下次使用」以便日后记住自定义活动。"),
+        "customMealFormAdvanced": MessageLookupByLibrary.simpleMessage("高级"),
+        "customMealFormAdvancedHelp": MessageLookupByLibrary.simpleMessage(
+            "设置基准量和每 100 克/毫升的数值以进行精确换算。"),
+        "customMealFormModeLabel":
+            MessageLookupByLibrary.simpleMessage("表单视图"),
+        "customMealFormSimple": MessageLookupByLibrary.simpleMessage("简单"),
+        "customMealFormSimpleFieldHelper": m24,
+        "customMealFormSimpleHelp":
+            MessageLookupByLibrary.simpleMessage("输入一份的总量。"),
         "mealPatternFiveSmall":
             MessageLookupByLibrary.simpleMessage("五餐"),
         "mealPatternMediterranean":

@@ -162,6 +162,18 @@ class ConfigDataSource {
     await config?.save();
   }
 
+  Future<String?> getCustomMealFormMode() async {
+    final config = _configBox.get(_configKey);
+    return config?.customMealFormMode;
+  }
+
+  Future<void> setCustomMealFormMode(String mode) async {
+    _log.fine('Updating config customMealFormMode to $mode');
+    final config = _configBox.get(_configKey);
+    config?.customMealFormMode = mode;
+    await config?.save();
+  }
+
   Future<bool> getCaloriesTaperEnabled() async {
     final config = _configBox.get(_configKey);
     return config?.caloriesTaperEnabled ?? false;

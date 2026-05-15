@@ -179,6 +179,17 @@
   "customMealBarcodeInvalid": "Il codice a barre deve avere da 8 a 14 cifre",
   "customMealBarcodeLabel": "Codice a barre",
   "customMealBarcodeScanButton": "Scansiona codice a barre",
+  "customMealFormAdvanced": "Avanzato",
+  "customMealFormAdvancedHelp": "Imposta quantità di base e valori per 100 g/ml per un calcolo preciso.",
+  "customMealFormModeLabel": "Vista del modulo",
+  "customMealFormSimple": "Semplice",
+  "customMealFormSimpleHelp": "Inserisci i totali per una porzione.",
+  "customMealFormSimpleFieldHelper": "{unit} per porzione",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": { "type": "String" }
+    }
+  },
   "customMealsDeleteConfirmContent": "Tutte le voci del diario che utilizzano questo pasto verranno rimosse.",
   "customMealsDeleteConfirmTitle": "Eliminare il pasto personalizzato?",
   "customMealsEmptyLabel": "Nessun pasto personalizzato salvato.",

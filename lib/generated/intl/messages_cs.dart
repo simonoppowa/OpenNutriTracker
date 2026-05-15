@@ -73,6 +73,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m23(consumed, target) => "${consumed} / ${target} kcal";
 
+  static String m24(unit) => "${unit} v jedné porci";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1191,6 +1193,17 @@ class MessageLookup extends MessageLookupByLibrary {
             "Uložit jako šablonu pro příště"),
         "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
             "Zatím nemáte uložené žádné šablony. Zaškrtněte „Uložit jako šablonu pro příště“, abyste si vlastní aktivitu zapamatovali na později."),
+        "customMealFormAdvanced":
+            MessageLookupByLibrary.simpleMessage("Pokročilý"),
+        "customMealFormAdvancedHelp": MessageLookupByLibrary.simpleMessage(
+            "Zadejte základní množství a hodnoty na 100 g/ml pro přesné škálování."),
+        "customMealFormModeLabel":
+            MessageLookupByLibrary.simpleMessage("Zobrazení formuláře"),
+        "customMealFormSimple":
+            MessageLookupByLibrary.simpleMessage("Jednoduchý"),
+        "customMealFormSimpleFieldHelper": m24,
+        "customMealFormSimpleHelp": MessageLookupByLibrary.simpleMessage(
+            "Zadejte hodnoty pro jednu porci."),
         "mealPatternFiveSmall":
             MessageLookupByLibrary.simpleMessage("5 malých"),
         "mealPatternMediterranean":

@@ -73,6 +73,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m23(consumed, target) => "${consumed} / ${target} kcal";
 
+  static String m24(unit) => "${unit} v jednej porcii";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1194,6 +1196,17 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("kJ za deň"),
         "settingsEnergyUnitLabel":
             MessageLookupByLibrary.simpleMessage("Jednotka energie"),
+        "customMealFormAdvanced":
+            MessageLookupByLibrary.simpleMessage("Pokročilý"),
+        "customMealFormAdvancedHelp":
+            MessageLookupByLibrary.simpleMessage("Nastavte základné množstvo a hodnoty na 100, aby ste mohli presne škálovať."),
+        "customMealFormModeLabel":
+            MessageLookupByLibrary.simpleMessage("Režim zadávania"),
+        "customMealFormSimple":
+            MessageLookupByLibrary.simpleMessage("Jednoduchý"),
+        "customMealFormSimpleFieldHelper": m24,
+        "customMealFormSimpleHelp":
+            MessageLookupByLibrary.simpleMessage("Zadajte celkové hodnoty pre jednu porciu."),
         "mealPatternFiveSmall":
             MessageLookupByLibrary.simpleMessage("Päť malých"),
         "mealPatternMediterranean":
