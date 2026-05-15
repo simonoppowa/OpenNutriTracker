@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
 class EditActivityDialog extends StatefulWidget {
   final UserActivityEntity activityEntity;
@@ -12,35 +15,64 @@ class EditActivityDialog extends StatefulWidget {
 }
 
 class _EditActivityDialogState extends State<EditActivityDialog> {
-  late TextEditingController _durationController;
+  late TextEditingController _quantityController;
+  bool _didSeed = false;
+
+  bool get _isCustom => widget.activityEntity.physicalActivityEntity.isCustom;
 
   @override
   void initState() {
     super.initState();
-    _durationController = TextEditingController(
-      text: widget.activityEntity.duration.toInt().toString(),
-    );
+    _quantityController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _durationController.dispose();
+    _quantityController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final usesKj = context.watch<EnergyUnitProvider>().usesKilojoules;
+    // For Custom activities the dialog respects the user's Energy unit
+    // setting (#177): the displayed value, suffix, and the parsed
+    // result handed back to the caller all stay in the unit the user
+    // is reading. The caller continues to receive a kcal figure
+    // (everything on disk is kcal), so the conversion is local here.
+    if (!_didSeed) {
+      _didSeed = true;
+      final storedKcal = _isCustom
+          ? (widget.activityEntity.userKcal ?? widget.activityEntity.burnedKcal)
+          : widget.activityEntity.duration;
+      final displayValue = (_isCustom && usesKj)
+          ? UnitCalc.kcalToKj(storedKcal)
+          : storedKcal;
+      _quantityController.text = displayValue.toInt().toString();
+    }
+
+    final suffix = _isCustom
+        ? (usesKj ? S.of(context).kjLabel : S.of(context).kcalLabel)
+        : 'min';
+
     return AlertDialog(
       title: Text(S.of(context).editItemDialogTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          TextFormField(
-            controller: _durationController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: S.of(context).quantityLabel,
-              suffixText: 'min',
+          Semantics(
+            identifier: 'edit-activity-quantity-input',
+            child: TextFormField(
+              controller: _quantityController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: _isCustom
+                    ? (usesKj
+                        ? S.of(context).mealEnergyLabel
+                        : S.of(context).customActivityKcalLabel)
+                    : S.of(context).quantityLabel,
+                suffixText: suffix,
+              ),
             ),
           ),
         ],
@@ -48,9 +80,12 @@ class _EditActivityDialogState extends State<EditActivityDialog> {
       actions: [
         TextButton(
           onPressed: () {
-            final parsed = double.tryParse(_durationController.text);
+            final parsed = double.tryParse(_quantityController.text);
             if (parsed != null && parsed > 0) {
-              Navigator.of(context).pop(parsed);
+              final result = (_isCustom && usesKj)
+                  ? UnitCalc.kjToKcal(parsed)
+                  : parsed;
+              Navigator.of(context).pop(result);
             }
           },
           child: Text(S.of(context).dialogOKLabel),

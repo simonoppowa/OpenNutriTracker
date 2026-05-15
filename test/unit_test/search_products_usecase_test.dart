@@ -689,6 +689,7 @@ RecipeDBO _recipeDbo({
     updatedAt: DateTime.utc(2024, 1, 1),
     servingsCount: null,
     tags: null,
+    imagePath: null,
   );
 }
 

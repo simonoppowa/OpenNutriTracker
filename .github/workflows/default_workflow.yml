@@ -89,6 +89,89 @@ jobs:
       - name: Test the iOS pod-install fallback parser
         run: .github/scripts/test_pod_install_with_targeted_fallback.sh
 
+  # Lightweight guard against the "iOS deps shifted but nobody re-ran
+  # `pod install`" failure mode. The full `ios-build` job below also
+  # regenerates Podfile.lock and auto-commits drift back to same-repo
+  # PRs, but fork PRs run with a read-only token and that auto-commit
+  # silently no-ops; this job exists to surface a hard failure on the PR
+  # check so a human notices and refreshes the lockfile locally on a
+  # Mac. We only run it on `pull_request` events where one of
+  # pubspec.yaml, pubspec.lock, or ios/Podfile actually changed —
+  # otherwise the macOS minutes aren't worth burning.
+  ios-podfile-lock-guard:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Need the merge base in scope so the paths-filter step below
+          # can diff against the PR's target branch.
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+
+      - name: Check for iOS-relevant file changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          base: ${{ github.event.pull_request.base.ref }}
+          filters: |
+            ios:
+              - 'pubspec.yaml'
+              - 'pubspec.lock'
+              - 'ios/Podfile'
+
+      - name: Setup Flutter
+        if: steps.changes.outputs.ios == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.7'
+          channel: 'stable'
+          cache: true
+
+      - name: Cache Flutter packages
+        if: steps.changes.outputs.ios == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-cache-
+
+      - name: Generate stub .env for CI
+        if: steps.changes.outputs.ios == 'true'
+        run: |
+          cat > .env <<'EOF'
+          FDC_API_KEY="ci-stub"
+          SENTRY_DNS="https://stub@sentry.io/0"
+          SUPABASE_PROJECT_URL="https://stub.supabase.co"
+          SUPABASE_PROJECT_ANON_KEY="ci-stub"
+          EOF
+
+      - name: Install Flutter packages
+        if: steps.changes.outputs.ios == 'true'
+        run: flutter pub get
+
+      - name: Pod install (with repo update)
+        if: steps.changes.outputs.ios == 'true'
+        run: cd ios && pod install --repo-update
+
+      # If `pod install` rewrote Podfile.lock, the working tree now has a
+      # diff that the PR author hasn't committed. Surface it as a hard
+      # failure with a hint so the contributor knows what to do next,
+      # rather than letting a stale lockfile silently ship to main.
+      - name: Fail if Podfile.lock drifted
+        if: steps.changes.outputs.ios == 'true'
+        run: |
+          if ! git diff --exit-code ios/Podfile.lock; then
+            echo "::error file=ios/Podfile.lock::Podfile.lock is out of date with pubspec.yaml. Run 'cd ios && pod install' on macOS and commit the result."
+            exit 1
+          fi
+
   ios-build:
     runs-on: macos-latest
     timeout-minutes: 45

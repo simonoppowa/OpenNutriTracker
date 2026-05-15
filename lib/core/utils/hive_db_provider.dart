@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
@@ -9,6 +10,7 @@ import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/hive_registrar.g.dart';
 
 class HiveDBProvider extends ChangeNotifier {
@@ -24,6 +26,9 @@ class HiveDBProvider extends ChangeNotifier {
   // last "touch" (creation or user re-select). Used by the TTL sweep so
   // unused cache entries age out after 90 days.
   static const cachedOffMealTimestampsBoxName = 'CachedOffMealTimestampsBox';
+  // #70 follow-up: saved Custom activity templates (name + typical kcal).
+  static const customActivityTemplateBoxName = 'CustomActivityTemplateBox';
+  static const weightLogBoxName = 'WeightLogBox';
 
   late Box<ConfigDBO> configBox;
   late Box<IntakeDBO> intakeBox;
@@ -34,6 +39,8 @@ class HiveDBProvider extends ChangeNotifier {
   late Box<RecipeDBO> recipeBox;
   late Box<MealDBO> cachedOffMealBox;
   late Box<int> cachedOffMealTimestampsBox;
+  late Box<CustomActivityTemplateDBO> customActivityTemplateBox;
+  late Box<WeightLogDBO> weightLogBox;
 
   Future<void> initHiveDB(Uint8List encryptionKey) async {
     final encryptionCypher = HiveAesCipher(encryptionKey);
@@ -80,6 +87,14 @@ class HiveDBProvider extends ChangeNotifier {
     );
     cachedOffMealTimestampsBox = await Hive.openBox(
       cachedOffMealTimestampsBoxName,
+      encryptionCipher: encryptionCypher,
+    );
+    customActivityTemplateBox = await Hive.openBox(
+      customActivityTemplateBoxName,
+      encryptionCipher: encryptionCypher,
+    );
+    weightLogBox = await Hive.openBox(
+      weightLogBoxName,
       encryptionCipher: encryptionCypher,
     );
   }

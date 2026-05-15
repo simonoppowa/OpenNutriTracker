@@ -39,6 +39,14 @@ class ConfigEntity extends Equatable {
   final bool showMicronutrients; // #237
   final bool usesKilojoules; // #177
   final Map<String, int> mealKcalSharesPct; // #150
+  final bool caloriesTaperEnabled;
+  final Map<String, int>? diarySortPreferences;
+  // #160 follow-up: per-nutrient show/hide overrides for the daily panel.
+  // Keys are nutrient identifiers (see `DailyNutrientPanel.nutrientKeys`),
+  // values are explicit user overrides. A nutrient not present in this map
+  // falls back to the default, which is currently "visible" for every
+  // nutrient — see [isNutrientVisible].
+  final Map<String, bool> nutrientPanelVisibility;
 
   const ConfigEntity(
     this.hasAcceptedDisclaimer,
@@ -59,7 +67,15 @@ class ConfigEntity extends Equatable {
     this.showMicronutrients = false,
     this.usesKilojoules = false,
     this.mealKcalSharesPct = defaultMealKcalSharesPct,
+    this.caloriesTaperEnabled = false,
+    this.diarySortPreferences,
+    this.nutrientPanelVisibility = const <String, bool>{},
   });
+
+  /// Whether a particular nutrient on the daily panel should be rendered.
+  /// All nutrients default to visible; the user can hide individual ones
+  /// from Settings → Nutrients.
+  bool isNutrientVisible(String key) => nutrientPanelVisibility[key] ?? true;
 
   factory ConfigEntity.fromConfigDBO(ConfigDBO dbo) => ConfigEntity(
         dbo.hasAcceptedDisclaimer,
@@ -81,6 +97,10 @@ class ConfigEntity extends Equatable {
         usesKilojoules: dbo.usesKilojoules ?? false,
         mealKcalSharesPct:
             _sanitiseShares(dbo.mealKcalSharesPct) ?? defaultMealKcalSharesPct,
+        caloriesTaperEnabled: dbo.caloriesTaperEnabled,
+        diarySortPreferences: dbo.diarySortPreferences,
+        nutrientPanelVisibility:
+            dbo.nutrientPanelVisibility ?? const <String, bool>{},
       );
 
   /// Returns the recommended kcal target for [mealKey] given a daily goal.
@@ -118,5 +138,8 @@ class ConfigEntity extends Equatable {
         showMicronutrients,
         usesKilojoules,
         mealKcalSharesPct,
+        caloriesTaperEnabled,
+        diarySortPreferences,
+        nutrientPanelVisibility,
       ];
 }

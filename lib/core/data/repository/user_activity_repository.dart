@@ -22,12 +22,14 @@ class UserActivityRepository {
   Future<UserActivityEntity?> updateUserActivity(
     String id,
     double newDuration,
-    double newBurnedKcal,
-  ) async {
+    double newBurnedKcal, {
+    double? userKcal,
+  }) async {
     final dbo = await _userActivityDataSource.updateUserActivity(
       id,
       newDuration,
       newBurnedKcal,
+      userKcal: userKcal,
     );
     return dbo == null ? null : UserActivityEntity.fromUserActivityDBO(dbo);
   }

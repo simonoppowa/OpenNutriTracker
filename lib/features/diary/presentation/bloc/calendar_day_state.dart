@@ -35,6 +35,11 @@ class CalendarDayLoaded extends CalendarDayState {
   final int lunchSharePct;
   final int dinnerSharePct;
   final int snackSharePct;
+  // Persisted per-meal sort preference, keyed by meal type string
+  // (breakfast / lunch / dinner / snack) and valued by DiarySortType index.
+  // Null when the user has never picked a sort, in which case the diary
+  // falls back to DiarySortType.timeAdded.
+  final Map<String, int>? diarySortPreferences;
 
   const CalendarDayLoaded(
     this.trackedDayEntity,
@@ -50,8 +55,9 @@ class CalendarDayLoaded extends CalendarDayState {
     this.breakfastSharePct,
     this.lunchSharePct,
     this.dinnerSharePct,
-    this.snackSharePct,
-  );
+    this.snackSharePct, {
+    this.diarySortPreferences,
+  });
 
   @override
   List<Object?> get props => [
@@ -64,5 +70,6 @@ class CalendarDayLoaded extends CalendarDayState {
         lunchSharePct,
         dinnerSharePct,
         snackSharePct,
+        diarySortPreferences,
       ];
 }

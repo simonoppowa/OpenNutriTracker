@@ -2,7 +2,9 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
 /// A physical activity with it's measured MET value by the
 /// '2024 Adult Compendium of Physical Activities'
@@ -20,6 +22,15 @@ class PhysicalActivityEntity extends Equatable {
 
   final PhysicalActivityTypeEntity type;
 
+  /// Reserved code for the generic Custom activity (#70). The detail screen
+  /// and the edit dialog branch on this to swap the duration field for a
+  /// direct kcal field, and the aggregation prefers the user-entered value.
+  static const String customCode = '99999';
+
+  /// True for the generic Custom activity — UI paths use this to swap the
+  /// duration entry for a direct kcal entry.
+  bool get isCustom => code == customCode;
+
   const PhysicalActivityEntity(
     this.code,
     this.specificActivity,
@@ -27,6 +38,21 @@ class PhysicalActivityEntity extends Equatable {
     this.mets,
     this.tags,
     this.type,
+  );
+
+  /// The synthetic Custom activity entity (#70). Constructed in code
+  /// rather than loaded from the compendium data source, because it is
+  /// not a real workout — it is the "log kcal directly" escape hatch
+  /// the AppBar "+" button opens. The localised name and description
+  /// continue to come from `getName` / `getDescription` via the
+  /// `customCode` lookup.
+  static const PhysicalActivityEntity custom = PhysicalActivityEntity(
+    customCode,
+    'custom',
+    'user-entered kcal',
+    0.0,
+    <String>[],
+    PhysicalActivityTypeEntity.conditioningExercise,
   );
 
   @override
@@ -137,6 +163,7 @@ class PhysicalActivityEntity extends Equatable {
       "19252": S.of(context).paSnowShovingModerate,
       "19080": S.of(context).paCrossCountrySkiing,
       "19260": S.of(context).paSnowshoeing,
+      "99999": S.of(context).customActivityName,
     };
     return physicalActivityMap[code] ?? type.getName(context);
   }
@@ -246,8 +273,20 @@ class PhysicalActivityEntity extends Equatable {
       "19252": S.of(context).paSnowShovingModerateDesc,
       "19080": S.of(context).paCrossCountrySkiingDesc,
       "19260": S.of(context).paGeneralDesc,
+      "99999": _customActivityDescription(context),
     };
     return physicalActivityMap[code] ?? type.getName(context);
+  }
+
+  /// The Custom activity's description mentions the energy unit by name,
+  /// so when the user reads in kJ (#177) we swap in the kJ-phrased
+  /// variant. Everywhere else the description is unit-agnostic.
+  String _customActivityDescription(BuildContext context) {
+    final usesKj =
+        Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
+    return usesKj
+        ? S.of(context).customActivityDescriptionKj
+        : S.of(context).customActivityDescription;
   }
 
   IconData getDisplayIcon() {
@@ -528,6 +567,12 @@ class PhysicalActivityEntity extends Equatable {
         break;
       case "19260":
         iconData = Icons.snowshoeing;
+        break;
+      case "99999":
+        // A neutral, generic icon for the Custom activity — the local
+        // fitness-tracker burn count or one-off workout that doesn't have
+        // a compendium entry of its own.
+        iconData = Icons.local_fire_department_outlined;
         break;
       default:
         iconData = CustomIcons.medal;

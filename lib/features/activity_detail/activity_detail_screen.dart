@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/domain/entity/custom_activity_template_entity.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
@@ -14,6 +17,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
 class ActivityDetailScreen extends StatefulWidget {
   const ActivityDetailScreen({super.key});
@@ -158,10 +162,20 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                     children: [
                       // set Focus
                       Text(
-                        '~${EnergyDisplay.formatWithUnit(context, totalKcal)}',
+                        // For Custom activities the user enters kcal/kJ directly,
+                        // so the leading tilde (which implies an estimate) is
+                        // dropped: the figure on screen is exactly what they
+                        // typed in.
+                        activityEntity.isCustom
+                            ? EnergyDisplay.formatWithUnit(context, totalKcal)
+                            : '~${EnergyDisplay.formatWithUnit(context, totalKcal)}',
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
-                      Text(' / ${totalQuantity.toInt()} min'),
+                      // For Custom activities the duration line would just
+                      // mirror the kcal figure, which is confusing — so we
+                      // hide it.
+                      if (!activityEntity.isCustom)
+                        Text(' / ${totalQuantity.toInt()} min'),
                     ],
                   ),
                   const SizedBox(height: 8.0),
@@ -178,15 +192,30 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     );
   }
 
+  /// For a Custom activity the typed value is read in whichever unit the
+  /// user is currently displaying (kcal or kJ) and converted back to kcal
+  /// before it reaches the bloc. Everything stored on UserActivityDBO
+  /// stays in kcal regardless of the display setting, so toggling units
+  /// later just re-renders the same underlying energy.
+  double _convertTypedToKcal(double typed) {
+    if (!activityEntity.isCustom) return typed;
+    final usesKj =
+        Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
+    return usesKj ? UnitCalc.kjToKcal(typed) : typed;
+  }
+
   void _onQuantityChanged() {
     final state = _activityDetailBloc.state;
     if (state is! ActivityDetailLoadedState) return;
     try {
       final newQuantity = double.parse(quantityTextController.text);
+      // For custom: the quantity field IS the energy figure; convert it
+      // to kcal up front so the bloc only ever sees stored units.
+      final quantityInKcal = _convertTypedToKcal(newQuantity);
       final newTotalKcal = _activityDetailBloc.getTotalKcalBurned(
         state.userEntity,
         activityEntity,
-        newQuantity,
+        quantityInKcal,
       );
       setState(() {
         totalQuantity = newQuantity;
@@ -206,13 +235,50 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     );
   }
 
-  void onAddButtonPressed(BuildContext context) {
+  void onAddButtonPressed(
+    BuildContext context, {
+    String? templateName,
+    bool saveAsTemplate = false,
+  }) {
+    // The bloc treats `persistActivity`'s first argument as a kcal value
+    // for Custom activities (and as minutes for compendium activities),
+    // so when the user typed in kJ we hand over the converted figure
+    // here rather than the raw text. Compendium activities pass through
+    // unchanged.
+    String quantityForBloc = quantityTextController.text;
+    if (activityEntity.isCustom) {
+      try {
+        final typed = double.parse(quantityTextController.text);
+        final kcal = _convertTypedToKcal(typed);
+        quantityForBloc = kcal.toString();
+      } on FormatException catch (_) {
+        log.warning(
+          'Error while parsing on save: "${quantityTextController.text}"',
+        );
+      }
+    }
     _activityDetailBloc.persistActivity(
-      quantityTextController.text,
+      quantityForBloc,
       totalKcal,
       activityEntity,
       _day,
     );
+
+    // #70 follow-up: optionally remember the Custom activity as a
+    // template the user can recall next time. The checkbox is off by
+    // default so we only persist when the user has explicitly opted in
+    // and provided a name to find it by later.
+    if (saveAsTemplate &&
+        activityEntity.isCustom &&
+        templateName != null &&
+        templateName.isNotEmpty) {
+      _activityDetailBloc.saveCustomActivityTemplate(
+        CustomActivityTemplateEntity(
+          name: templateName,
+          typicalKcal: totalKcal,
+        ),
+      );
+    }
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());

@@ -904,5 +904,13 @@ class PhysicalActivityDataSource {
           [],
           PhysicalActivityTypeDBO.winterActivities,
         ),
+
+        // The Custom activity (code "99999") is intentionally NOT in
+        // this list. It isn't a workout someone would search for — it
+        // is the escape hatch for "log a kcal figure directly" — so it
+        // belongs on a top-right "+" affordance in the AppBar (mirroring
+        // the Custom meal entry point) rather than mixed in among the
+        // compendium results. Construction lives on
+        // PhysicalActivityEntity.custom().
       ];
 }

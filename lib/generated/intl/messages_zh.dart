@@ -66,7 +66,9 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m21(count, customCount) =>
       "已从 JSON 记录 ${count} 条，其中 ${customCount} 条保存为自定义餐食";
 
-  static String m22(consumed, target) => "${consumed} / ${target} 千卡";
+  static String m22(value) => "距离目标还差 ${value}";
+
+  static String m23(consumed, target) => "${consumed} / ${target} 千卡";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -167,6 +169,16 @@ class MessageLookup extends MessageLookupByLibrary {
             "无法读取 CSV 文件。请检查格式后重试。"),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "barcodeInvalidEan13CheckDigit": MessageLookupByLibrary.simpleMessage(
+            "这个 13 位条形码看起来输入有误：最后一位与前面的数字不匹配"),
+        "customMealBarcodeHint": MessageLookupByLibrary.simpleMessage(
+            "扫描或输入条形码，以便日后调用此餐食"),
+        "customMealBarcodeInvalid": MessageLookupByLibrary.simpleMessage(
+            "条形码必须为 8 到 14 位数字"),
+        "customMealBarcodeLabel":
+            MessageLookupByLibrary.simpleMessage("条形码"),
+        "customMealBarcodeScanButton":
+            MessageLookupByLibrary.simpleMessage("扫描条形码"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "所有使用此餐食的日记条目也将被删除。"),
         "customMealsDeleteConfirmTitle":
@@ -175,6 +187,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("尚未保存自定义餐食。"),
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("每日卡路里调整："),
+        "dailyKjAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("每日千焦调整："),
         "dataCollectionLabel":
             MessageLookupByLibrary.simpleMessage("通过提供匿名使用数据支持开发"),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("删除全部"),
@@ -190,9 +204,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "dialogCopyLabel": MessageLookupByLibrary.simpleMessage("复制到今天"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("删除"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("确定"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("此处仅汇总你已记录餐食中已追踪的营养素。如果某餐缺少某项数值,它就不会计入该营养素的总和,因此总量可能偏低。"),
         "diaryFutureDateWarning":
             MessageLookupByLibrary.simpleMessage("您正在编辑未来的日期"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("日记"),
+        "diaryNutrientPanelTitle": MessageLookupByLibrary.simpleMessage("今日营养素"),
         "dinnerExample": MessageLookupByLibrary.simpleMessage("例如：汤、鸡肉、葡萄酒..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("晚餐"),
         "discardChangesConfirmLabel":
@@ -238,6 +255,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("导出"),
         "exportImportAppDataLabel":
             MessageLookupByLibrary.simpleMessage("导出 / 导入应用数据"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("CSV 会保存活动、饮食日志和已记录的日期。食谱和添加的照片仅保存在 JSON 中——如果想纳入备份，请切换到 JSON。"),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "您可以将应用数据导出到zip文件并稍后导入。这在您想要备份数据或传输到另一台设备时很有用。\n\n应用不会使用任何云服务存储您的数据。"),
         "exportImportErrorLabel":
@@ -303,8 +322,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "itemDeletedSnackbar": MessageLookupByLibrary.simpleMessage("项目已删除"),
         "itemUpdatedSnackbar": MessageLookupByLibrary.simpleMessage("项目已更新"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("卡路里"),
+        "kjLabel": MessageLookupByLibrary.simpleMessage("千焦"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("剩余卡路里"),
         "kcalTooMuchLabel": MessageLookupByLibrary.simpleMessage("卡路里过多"),
+        "energyLeftLabel": MessageLookupByLibrary.simpleMessage("剩余"),
+        "energyTooMuchLabel": MessageLookupByLibrary.simpleMessage("过多"),
+        "settingsEnergyUnitLabel": MessageLookupByLibrary.simpleMessage("能量单位"),
+        "energyUnitKcalLabel": MessageLookupByLibrary.simpleMessage("千卡（kcal）"),
+        "energyUnitKjLabel": MessageLookupByLibrary.simpleMessage("千焦（kJ）"),
+        "onboardingKjPerDayLabel": MessageLookupByLibrary.simpleMessage("每日千焦"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("千克"),
         "lbsLabel": MessageLookupByLibrary.simpleMessage("磅"),
         "lunchExample": MessageLookupByLibrary.simpleMessage("例如：披萨、沙拉、米饭..."),
@@ -316,6 +342,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("碳水每"),
         "mealFatLabel": MessageLookupByLibrary.simpleMessage("脂肪每"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("卡路里每"),
+        "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("能量"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("餐食名称"),
         "mealNameValidationError":
             MessageLookupByLibrary.simpleMessage("餐食名称必须至少包含一个字母"),
@@ -343,6 +370,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "noResultsFound": MessageLookupByLibrary.simpleMessage("未找到结果"),
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("不可用"),
         "nothingAddedLabel": MessageLookupByLibrary.simpleMessage("未添加任何内容"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("日"),
+        "nutrientPanelWeekLabel": MessageLookupByLibrary.simpleMessage("周"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "所有营养素都已隐藏 — 请到设置 → 营养素中打开。"),
         "nutritionInfoLabel": MessageLookupByLibrary.simpleMessage("营养信息"),
         "nutritionalStatusNormalWeight":
             MessageLookupByLibrary.simpleMessage("正常体重"),
@@ -403,6 +434,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("例如：132"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("您当前的体重是多少？"),
+        "onboardingTargetWeightSubtitle":
+            MessageLookupByLibrary.simpleMessage("你有想要达到的目标体重吗？可以留空，也可以稍后在“个人资料”中修改。"),
+        "onboardingTargetWeightHintOptional":
+            MessageLookupByLibrary.simpleMessage("可选"),
         "onboardingWelcomeLabel": MessageLookupByLibrary.simpleMessage("欢迎使用"),
         "onboardingWrongHeightLabel":
             MessageLookupByLibrary.simpleMessage("请输入正确的身高"),
@@ -751,6 +786,26 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeTagsHelper":
             MessageLookupByLibrary.simpleMessage("用逗号分隔，例如\"早餐，素食\""),
         "recipeTagsLabel": MessageLookupByLibrary.simpleMessage("标签"),
+        "recipeImageLabel":
+            MessageLookupByLibrary.simpleMessage("添加照片"),
+        "recipeImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("从相册选择"),
+        "recipeImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("拍照"),
+        "recipeImageRemove":
+            MessageLookupByLibrary.simpleMessage("移除照片"),
+        "recipeImageReplace":
+            MessageLookupByLibrary.simpleMessage("更换照片"),
+        "mealImageLabel":
+            MessageLookupByLibrary.simpleMessage("添加照片"),
+        "mealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("从相册选择"),
+        "mealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("拍照"),
+        "mealImageRemove":
+            MessageLookupByLibrary.simpleMessage("移除照片"),
+        "mealImageReplace":
+            MessageLookupByLibrary.simpleMessage("更换照片"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "默认值为食材之和。液体按 1 毫升 ≈ 1 克近似计算。"),
         "recipeTotalWeightLabel":
@@ -792,8 +847,53 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsCustomMealsLabel":
             MessageLookupByLibrary.simpleMessage("自定义餐食"),
         "settingsDisclaimerLabel": MessageLookupByLibrary.simpleMessage("免责声明"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日纤维目标（克）。默认参考值为 30 克。"),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("纤维目标"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "每日面板中每种营养素的个人目标。一旦设置，日记将使用这些值代替默认的每日参考值。"),
+        "settingsNutrientGoalsLabel":
+            MessageLookupByLibrary.simpleMessage("营养目标"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "每日饱和脂肪上限（克）。默认参考值为 20 克。"),
+        "settingsSaturatedFatGoalLabel":
+            MessageLookupByLibrary.simpleMessage("饱和脂肪目标"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("来源与参考"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日糖摄入上限（克）。默认参考值为 50 克。"),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("糖目标"),
+        "settingsSodiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("钠目标"),
+        "settingsSodiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日钠摄入上限（毫克）。默认参考值为 2300 毫克。"),
+        "settingsCalciumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("钙目标"),
+        "settingsCalciumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日钙目标（毫克）。默认参考值为 1000 毫克。"),
+        "settingsIronGoalLabel":
+            MessageLookupByLibrary.simpleMessage("铁目标"),
+        "settingsIronGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日铁目标（毫克）。默认值因性别而异（男性 8 毫克，女性 18 毫克，其他 14 毫克）。"),
+        "settingsPotassiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("钾目标"),
+        "settingsPotassiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日钾目标（毫克）。默认参考值为 3500 毫克。"),
+        "settingsMagnesiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("镁目标"),
+        "settingsMagnesiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日镁目标（毫克）。默认值因性别而异（男性 400 毫克，女性 310 毫克，其他 355 毫克）。"),
+        "settingsVitaminDGoalLabel":
+            MessageLookupByLibrary.simpleMessage("维生素 D 目标"),
+        "settingsVitaminDGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日维生素 D 目标（微克）。默认参考值为 15 微克。"),
+        "settingsVitaminB12GoalLabel":
+            MessageLookupByLibrary.simpleMessage("维生素 B12 目标"),
+        "settingsVitaminB12GoalDescription": MessageLookupByLibrary.simpleMessage(
+            "每日维生素 B12 目标（微克）。默认参考值为 2.4 微克。"),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("查看来源"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(
@@ -846,6 +946,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("显示餐食宏量"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("显示微量营养素"),
+        "settingsNutrientsLabel": MessageLookupByLibrary.simpleMessage("营养素"),
+        "settingsNutrientsSubtitle":
+            MessageLookupByLibrary.simpleMessage("选择在日记面板中显示哪些营养素"),
+        "settingsNutrientsHelp":
+            MessageLookupByLibrary.simpleMessage("选择每日面板中显示哪些营养素。隐藏的可以随时重新开启。"),
         "settingsSourceCodeLabel": MessageLookupByLibrary.simpleMessage("源代码"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("系统"),
         "settingsThemeDarkLabel": MessageLookupByLibrary.simpleMessage("深色"),
@@ -882,11 +987,64 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("体重"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("锌"),
-        "energyLeftLabel": MessageLookupByLibrary.simpleMessage("剩余"),
-        "energyTooMuchLabel": MessageLookupByLibrary.simpleMessage("过多"),
-        "energyUnitKcalLabel": MessageLookupByLibrary.simpleMessage("千卡（kcal）"),
-        "energyUnitKjLabel": MessageLookupByLibrary.simpleMessage("千焦（kJ）"),
-        "kjLabel": MessageLookupByLibrary.simpleMessage("千焦"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("体重历史"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("添加记录"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "暂无体重记录。添加第一条以开始记录变化趋势。"),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("日期"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("体重"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("备注（可选）"),
+        "weightHistoryChartEmptyState":
+            MessageLookupByLibrary.simpleMessage("至少记录两天的数据才能查看变化趋势。"),
+        "diarySortByCarbs":
+            MessageLookupByLibrary.simpleMessage("碳水化合物（从高到低）"),
+        "diarySortByFat": MessageLookupByLibrary.simpleMessage("脂肪（从高到低）"),
+        "diarySortByKcal":
+            MessageLookupByLibrary.simpleMessage("卡路里（从高到低）"),
+        "diarySortByLabel": MessageLookupByLibrary.simpleMessage("排序方式"),
+        "diarySortByProtein":
+            MessageLookupByLibrary.simpleMessage("蛋白质（从高到低）"),
+        "diarySortByTime": MessageLookupByLibrary.simpleMessage("添加时间"),
+        "profileTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("目标体重"),
+        "profileTargetWeightNotSetLabel":
+            MessageLookupByLibrary.simpleMessage("未设置"),
+        "profileTargetWeightClearAction":
+            MessageLookupByLibrary.simpleMessage("清除"),
+        "profileTargetWeightReached":
+            MessageLookupByLibrary.simpleMessage("你已达到目标"),
+        "settingsCaloriesTaperDescription":
+            MessageLookupByLibrary.simpleMessage("逐渐减小每日热量缺口，让最后几公斤不再像一堵墙。"),
+        "settingsCaloriesTaperLabel":
+            MessageLookupByLibrary.simpleMessage("接近目标时调整卡路里目标"),
+        "settingsTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("目标体重"),
+        "profileTargetWeightToGo": m22,
+        "customActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "直接输入消耗的卡路里，适用于列表中没有的训练或来自健身追踪器的读数"),
+        "customActivityDescriptionKj":
+            MessageLookupByLibrary.simpleMessage("直接输入消耗的千焦，适用于列表中没有的训练或来自健身追踪器的读数"),
+        "customActivityKcalHint":
+            MessageLookupByLibrary.simpleMessage("例如 250"),
+        "customActivityKcalLabel":
+            MessageLookupByLibrary.simpleMessage("消耗的卡路里"),
+        "customActivityName":
+            MessageLookupByLibrary.simpleMessage("自定义活动"),
+        "customActivityNameFieldHint":
+            MessageLookupByLibrary.simpleMessage("例如 晚间骑行通勤"),
+        "customActivityNameFieldLabel":
+            MessageLookupByLibrary.simpleMessage("名称（可选）"),
+        "customActivityPickFromTemplate":
+            MessageLookupByLibrary.simpleMessage("从已保存的模板中选择"),
+        "customActivitySaveAsTemplate":
+            MessageLookupByLibrary.simpleMessage("保存为模板以便下次使用"),
+        "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
+            "你还没有保存任何模板。勾选「保存为模板以便下次使用」以便日后记住自定义活动。"),
         "mealPatternFiveSmall":
             MessageLookupByLibrary.simpleMessage("五餐"),
         "mealPatternMediterranean":
@@ -899,8 +1057,6 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("标准"),
         "mealPatternTwoMeal":
             MessageLookupByLibrary.simpleMessage("两餐"),
-        "onboardingKjPerDayLabel": MessageLookupByLibrary.simpleMessage("每日千焦"),
-        "settingsEnergyUnitLabel": MessageLookupByLibrary.simpleMessage("能量单位"),
         "settingsPerMealKcalShareBreakfast":
             MessageLookupByLibrary.simpleMessage("早餐"),
         "settingsPerMealKcalShareDescription": MessageLookupByLibrary.simpleMessage(
@@ -913,6 +1069,6 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("午餐"),
         "settingsPerMealKcalShareSnack":
             MessageLookupByLibrary.simpleMessage("零食"),
-        "diaryMealKcalConsumedOfTarget": m22,
+        "diaryMealKcalConsumedOfTarget": m23,
       };
 }

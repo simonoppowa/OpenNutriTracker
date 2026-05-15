@@ -217,6 +217,63 @@ class TrackedDayDataSource {
     }
   }
 
+  // #173 (+follow-up): update the user-configured per-nutrient goal
+  // columns for the given day. Each value is optional — pass null to
+  // leave that column untouched. The receiving columns themselves
+  // remain nullable on disk, with null meaning "no override, use the
+  // default reference". Units follow the convention documented on
+  // TrackedDayDBO: g for fibre/satFat/sugars; mg for sodium, calcium,
+  // iron, potassium, magnesium, B12; µg for vitamin D.
+  Future<void> updateDayNutrientGoals(
+    DateTime day, {
+    double? fibreGoal,
+    double? satFatGoal,
+    double? sugarsGoal,
+    double? sodiumGoal,
+    double? calciumGoal,
+    double? ironGoal,
+    double? potassiumGoal,
+    double? vitaminDGoal,
+    double? vitaminB12Goal,
+    double? magnesiumGoal,
+  }) async {
+    log.fine('Updating tracked day nutrient goals');
+    final updateDay = await getTrackedDay(day);
+    if (updateDay != null) {
+      if (fibreGoal != null) {
+        updateDay.fibreGoal = fibreGoal;
+      }
+      if (satFatGoal != null) {
+        updateDay.satFatGoal = satFatGoal;
+      }
+      if (sugarsGoal != null) {
+        updateDay.sugarsGoal = sugarsGoal;
+      }
+      if (sodiumGoal != null) {
+        updateDay.sodiumGoal = sodiumGoal;
+      }
+      if (calciumGoal != null) {
+        updateDay.calciumGoal = calciumGoal;
+      }
+      if (ironGoal != null) {
+        updateDay.ironGoal = ironGoal;
+      }
+      if (potassiumGoal != null) {
+        updateDay.potassiumGoal = potassiumGoal;
+      }
+      if (vitaminDGoal != null) {
+        updateDay.vitaminDGoal = vitaminDGoal;
+      }
+      if (vitaminB12Goal != null) {
+        updateDay.vitaminB12Goal = vitaminB12Goal;
+      }
+      if (magnesiumGoal != null) {
+        updateDay.magnesiumGoal = magnesiumGoal;
+      }
+      await updateDay.save();
+    }
+  }
+
   Future<void> reconcileCaloriesAndMacrosTracked(
     DateTime day,
     double calories,

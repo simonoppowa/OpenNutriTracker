@@ -11,13 +11,21 @@ class UserActivityEntity extends Equatable {
 
   final PhysicalActivityEntity physicalActivityEntity;
 
+  /// Optional direct kcal value entered by the user for a Custom activity.
+  /// When set, this is the source of truth and [burnedKcal] mirrors it so
+  /// the aggregation layer (which sums [burnedKcal] across the day) keeps
+  /// working unchanged. See `UserActivityDBO.userKcal` for the persistence
+  /// reasoning.
+  final double? userKcal;
+
   const UserActivityEntity(
     this.id,
     this.duration,
     this.burnedKcal,
     this.date,
-    this.physicalActivityEntity,
-  );
+    this.physicalActivityEntity, {
+    this.userKcal,
+  });
 
   factory UserActivityEntity.fromUserActivityDBO(UserActivityDBO activityDBO) {
     return UserActivityEntity(
@@ -28,11 +36,17 @@ class UserActivityEntity extends Equatable {
       PhysicalActivityEntity.fromPhysicalActivityDBO(
         activityDBO.physicalActivityDBO,
       ),
+      userKcal: activityDBO.userKcal,
     );
   }
 
+  /// The kcal value to display and aggregate for this activity. Prefers
+  /// the user-entered value when one is present (Custom activities),
+  /// otherwise falls back to the MET-computed [burnedKcal].
+  double get effectiveBurnedKcal => userKcal ?? burnedKcal;
+
   @override
-  List<Object?> get props => [id, duration, burnedKcal, date];
+  List<Object?> get props => [id, duration, burnedKcal, date, userKcal];
 
   static IconData getIconData() => Icons.directions_run_outlined;
 }

@@ -82,6 +82,10 @@ Thanks to all the contributors:
 ### Getting Started With Development
 See the [Getting Started](GettingStarted.md) file for more information.
 
+The data export bundle (Settings → Export / Import App Data → Export) is
+documented at [`docs/export-format.md`](docs/export-format.md) — both the
+JSON schema and the CSV companion the import / export round-trip uses.
+
 Self-hosting the Supabase FDC database for local development is documented at [`docs/supabase-fdc-self-hosting.md`](docs/supabase-fdc-self-hosting.md).
 
 ## Disclaimer

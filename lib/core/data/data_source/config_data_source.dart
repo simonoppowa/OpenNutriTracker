@@ -162,6 +162,56 @@ class ConfigDataSource {
     await config?.save();
   }
 
+  Future<bool> getCaloriesTaperEnabled() async {
+    final config = _configBox.get(_configKey);
+    return config?.caloriesTaperEnabled ?? false;
+  }
+
+  Future<void> setConfigCaloriesTaperEnabled(bool enabled) async {
+    _log.fine('Updating config caloriesTaperEnabled to $enabled');
+    final config = _configBox.get(_configKey);
+    config?.caloriesTaperEnabled = enabled;
+    await config?.save();
+  }
+
+  Future<Map<String, int>?> getDiarySortPreferences() async {
+    final config = _configBox.get(_configKey);
+    final stored = config?.diarySortPreferences;
+    if (stored == null) return null;
+    // The Hive-generated adapter hands us a Map<dynamic, dynamic>.cast<String,
+    // int>() view; eagerly copy into a concrete map so callers see a real
+    // Map<String, int> rather than a lazy cast view that throws on access if
+    // anything unexpected ever lands in the box.
+    return Map<String, int>.from(stored);
+  }
+
+  Future<void> setDiarySortPreference(String mealKey, int sortIndex) async {
+    _log.fine('Updating config diarySortPreferences[$mealKey] = $sortIndex');
+    final config = _configBox.get(_configKey);
+    if (config == null) return;
+    final current = config.diarySortPreferences;
+    // Build a fresh Map<String, int> so the write doesn't share storage with
+    // whatever map type Hive handed back, and so the cast lands eagerly
+    // rather than lazily at read time.
+    final next = <String, int>{
+      if (current != null) ...Map<String, int>.from(current),
+      mealKey: sortIndex,
+    };
+    config.diarySortPreferences = next;
+    await config.save();
+  }
+
+  Future<void> setConfigNutrientPanelVisibility(
+    Map<String, bool> visibility,
+  ) async {
+    _log.fine('Updating nutrientPanelVisibility to $visibility');
+    final config = _configBox.get(_configKey);
+    // Persist a defensive copy — Hive serialises whatever we hand it, and a
+    // caller-owned map mutating later would silently change the saved value.
+    config?.nutrientPanelVisibility = Map<String, bool>.from(visibility);
+    await config?.save();
+  }
+
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();
   }

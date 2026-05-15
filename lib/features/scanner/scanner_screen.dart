@@ -147,6 +147,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       );
     }
   }
+
 }
 
 class ScannerScreenArguments {

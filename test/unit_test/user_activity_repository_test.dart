@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/data/data_source/user_activity_data_source
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 
 import '../helpers/hive_test_setup.dart';
@@ -238,6 +239,71 @@ void main() {
       final june2 =
           await repo.getAllUserActivityByDate(DateTime.utc(2024, 6, 2));
       expect(june2.map((a) => a.id).toList(), equals(['c']));
+    });
+
+    test('Custom activity: userKcal takes precedence over burnedKcal '
+        'and round-trips through the box', () async {
+      // #70: when an activity is logged via the Custom flow, the user
+      // enters the kcal directly. The aggregation layer still sums
+      // burnedKcal across the day (so it has to match), but userKcal
+      // is the source of truth on edit, and effectiveBurnedKcal on the
+      // entity should prefer it.
+      final box = await Hive.openBox<UserActivityDBO>('activity_test');
+      await box.clear();
+      final repo = UserActivityRepository(UserActivityDataSource(box));
+
+      final customActivity = PhysicalActivityDBO(
+        '99999',
+        'custom',
+        'user-entered kcal',
+        0.0, // MET intentionally zero — kcal comes from userKcal
+        [],
+        PhysicalActivityTypeDBO.conditioningExercise,
+      );
+
+      await box.add(UserActivityDBO(
+        'custom-1',
+        0.0, // duration is meaningless for Custom
+        250.0, // mirrored from userKcal so daily totals stay correct
+        DateTime.utc(2026, 5, 1),
+        customActivity,
+        userKcal: 250.0,
+      ));
+
+      // updateUserActivity through the Custom path: usecase passes the
+      // new kcal as both burnedKcal and userKcal (duration stays 0).
+      final updated = await repo.updateUserActivity(
+        'custom-1',
+        0.0,
+        320.0,
+        userKcal: 320.0,
+      );
+
+      expect(updated, isNotNull);
+      expect(updated!.duration, equals(0.0));
+      expect(updated.burnedKcal, equals(320.0));
+      expect(updated.userKcal, equals(320.0));
+      expect(updated.effectiveBurnedKcal, equals(320.0));
+
+      // A non-custom activity with no userKcal still falls back to
+      // burnedKcal for the effective value — making sure the getter
+      // doesn't accidentally prefer null.
+      final fallback = UserActivityEntity(
+        'plain-1',
+        30.0,
+        180.0,
+        DateTime.utc(2026, 5, 1),
+        const PhysicalActivityEntity(
+          'running_general',
+          'running, general',
+          '',
+          8.0,
+          [],
+          PhysicalActivityTypeEntity.running,
+        ),
+      );
+      expect(fallback.userKcal, isNull);
+      expect(fallback.effectiveBurnedKcal, equals(180.0));
     });
 
     test('getRecentUserActivity dedups by physical activity code, '

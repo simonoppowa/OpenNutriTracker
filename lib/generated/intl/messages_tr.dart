@@ -71,7 +71,9 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m21(count, customCount) =>
       "JSON\'dan ${count} kayıt eklendi, ${customCount} özel öğün olarak kaydedildi";
 
-  static String m22(consumed, target) => "${consumed} / ${target} kcal";
+  static String m22(value) => "Hedefine ${value} kaldı";
+
+  static String m23(consumed, target) => "${consumed} / ${target} kcal";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -179,6 +181,16 @@ class MessageLookup extends MessageLookupByLibrary {
             "CSV dosyası okunamadı. Biçimi kontrol edin ve tekrar deneyin."),
         "csvImportPartialLabel": m13,
         "csvImportSuccessLabel": m12,
+        "barcodeInvalidEan13CheckDigit": MessageLookupByLibrary.simpleMessage(
+            "Bu 13 haneli barkod yanlış girilmiş gibi: son hane diğerleriyle uyuşmuyor"),
+        "customMealBarcodeHint": MessageLookupByLibrary.simpleMessage(
+            "Bu yemeği daha sonra hatırlamak için barkodu tarat veya yaz"),
+        "customMealBarcodeInvalid": MessageLookupByLibrary.simpleMessage(
+            "Barkod 8 ile 14 hane arasında olmalı"),
+        "customMealBarcodeLabel":
+            MessageLookupByLibrary.simpleMessage("Barkod"),
+        "customMealBarcodeScanButton":
+            MessageLookupByLibrary.simpleMessage("Barkod tara"),
         "customMealsDeleteConfirmContent": MessageLookupByLibrary.simpleMessage(
             "Bu yemeği kullanan tüm günlük girişleri de kaldırılacak."),
         "customMealsDeleteConfirmTitle":
@@ -187,6 +199,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Henüz özel yemek kaydedilmedi."),
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Günlük Kcal ayarı:"),
+        "dailyKjAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("Günlük kJ ayarı:"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Anonim kullanım verileri sağlayarak geliştirmeyi destekleyin"),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Tümünü sil"),
@@ -204,9 +218,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("BUGÜNE KOPYALA"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("SİL"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("TAMAM"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Yalnızca kaydettiğin öğünlerde takip edilen besinler burada toplanır. Bir değeri eksik olan öğün o besine katkıda bulunmaz — bu nedenle toplamlar olduğundan az görünebilir."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Gelecekteki bir tarihi düzenliyorsunuz"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Günlük"),
+        "diaryNutrientPanelTitle":
+            MessageLookupByLibrary.simpleMessage("Bugünün besinleri"),
         "dinnerExample":
             MessageLookupByLibrary.simpleMessage("ör. çorba, tavuk, şarap ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Akşam Yemeği"),
@@ -257,6 +275,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "exportAction": MessageLookupByLibrary.simpleMessage("Dışa Aktar"),
         "exportImportAppDataLabel": MessageLookupByLibrary.simpleMessage(
             "Uygulama Verilerini Dışa / İçe Aktar"),
+        "exportImportCsvRecipesNote":
+            MessageLookupByLibrary.simpleMessage("CSV; etkinliklerinizi, öğün günlüğünüzü ve takip edilen günleri saklar. Tarifler ve eklediğiniz fotoğraflar yalnızca JSON'da yer alır — yedeklemenizde olmalarını isterseniz JSON'a geçin."),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
             "Uygulama verilerini bir zip dosyasına dışa aktarabilir ve daha sonra içe aktarabilirsiniz. Bu, verilerinizi yedeklemek veya başka bir cihaza aktarmak istiyorsanız kullanışlıdır.\n\nUygulama, verilerinizi saklamak için herhangi bir bulut hizmeti kullanmaz."),
         "exportImportErrorLabel": MessageLookupByLibrary.simpleMessage(
@@ -332,8 +352,19 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Öğe güncellendi"),
         "kcalExceededLabel": MessageLookupByLibrary.simpleMessage("kcal aşıldı"),
         "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
+        "kjLabel": MessageLookupByLibrary.simpleMessage("kJ"),
         "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kalan kcal"),
         "kcalTooMuchLabel": MessageLookupByLibrary.simpleMessage("fazla kcal"),
+        "energyLeftLabel": MessageLookupByLibrary.simpleMessage("kalan"),
+        "energyTooMuchLabel": MessageLookupByLibrary.simpleMessage("fazla"),
+        "settingsEnergyUnitLabel":
+            MessageLookupByLibrary.simpleMessage("Enerji birimi"),
+        "energyUnitKcalLabel":
+            MessageLookupByLibrary.simpleMessage("Kilokalori (kcal)"),
+        "energyUnitKjLabel":
+            MessageLookupByLibrary.simpleMessage("Kilojul (kJ)"),
+        "onboardingKjPerDayLabel":
+            MessageLookupByLibrary.simpleMessage("günlük kJ"),
         "kgLabel": MessageLookupByLibrary.simpleMessage("kg"),
         "lbsLabel": MessageLookupByLibrary.simpleMessage("lbs"),
         "lunchExample": MessageLookupByLibrary.simpleMessage(
@@ -347,6 +378,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("karbonhidrat başına"),
         "mealFatLabel": MessageLookupByLibrary.simpleMessage("yağ başına"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("kcal başına"),
+        "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("Enerji"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("Yemek adı"),
         "mealNameValidationError": MessageLookupByLibrary.simpleMessage(
             "Yemek adı en az bir harf içermelidir"),
@@ -378,6 +410,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Mevcut Değil"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Hiçbir şey eklenmedi"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Gün"),
+        "nutrientPanelWeekLabel": MessageLookupByLibrary.simpleMessage("Hafta"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Tüm besinler gizli — bazılarını Ayarlar → Besinler bölümünden aç."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Beslenme Bilgileri"),
         "nutritionalStatusNormalWeight":
@@ -442,6 +478,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("ör. 132"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Mevcut kilonuz nedir?"),
+        "onboardingTargetWeightSubtitle":
+            MessageLookupByLibrary.simpleMessage("Ulaşmak istediğin bir kilo var mı? Bu alanı boş bırakabilir veya daha sonra Profil\'den değiştirebilirsin."),
+        "onboardingTargetWeightHintOptional":
+            MessageLookupByLibrary.simpleMessage("İsteğe bağlı"),
         "onboardingWelcomeLabel":
             MessageLookupByLibrary.simpleMessage("Hoş geldiniz"),
         "onboardingWrongHeightLabel":
@@ -862,6 +902,26 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeTagsHelper": MessageLookupByLibrary.simpleMessage(
             "Virgülle ayırın, örn. \"kahvaltı, vegan\""),
         "recipeTagsLabel": MessageLookupByLibrary.simpleMessage("Etiketler"),
+        "recipeImageLabel":
+            MessageLookupByLibrary.simpleMessage("Fotoğraf ekle"),
+        "recipeImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Galeriden seç"),
+        "recipeImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Fotoğraf çek"),
+        "recipeImageRemove":
+            MessageLookupByLibrary.simpleMessage("Fotoğrafı kaldır"),
+        "recipeImageReplace":
+            MessageLookupByLibrary.simpleMessage("Fotoğrafı değiştir"),
+        "mealImageLabel":
+            MessageLookupByLibrary.simpleMessage("Fotoğraf ekle"),
+        "mealImagePickFromGallery":
+            MessageLookupByLibrary.simpleMessage("Galeriden seç"),
+        "mealImageTakePhoto":
+            MessageLookupByLibrary.simpleMessage("Fotoğraf çek"),
+        "mealImageRemove":
+            MessageLookupByLibrary.simpleMessage("Fotoğrafı kaldır"),
+        "mealImageReplace":
+            MessageLookupByLibrary.simpleMessage("Fotoğrafı değiştir"),
         "recipeTotalWeightHelper": MessageLookupByLibrary.simpleMessage(
             "Varsayılan olarak malzemelerin toplamı. Sıvılar yaklaşık 1 ml ≈ 1 g olarak hesaplanır."),
         "recipeTotalWeightLabel":
@@ -912,8 +972,53 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Özel Yemekler"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Sorumluluk Reddi"),
+        "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük lif hedefi (gram). Varsayılan referans 30 g."),
+        "settingsFibreGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Lif hedefi"),
+        "settingsNutrientGoalsHint": MessageLookupByLibrary.simpleMessage(
+            "Günlük paneldeki her besin için kişisel hedefler. Bir hedef belirlediğinde günlük, varsayılan günlük referanslar yerine bu değerleri kullanır."),
+        "settingsNutrientGoalsLabel":
+            MessageLookupByLibrary.simpleMessage("Besin hedefleri"),
+        "settingsSaturatedFatGoalDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "Günlük doymuş yağ üst sınırı (gram). Varsayılan referans 20 g."),
+        "settingsSaturatedFatGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Doymuş yağ hedefi"),
         "settingsSourcesLabel":
             MessageLookupByLibrary.simpleMessage("Kaynaklar ve Referanslar"),
+        "settingsSugarsGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük şeker üst sınırı (gram). Varsayılan referans 50 g."),
+        "settingsSugarsGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Şeker hedefi"),
+        "settingsSodiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Sodyum hedefi"),
+        "settingsSodiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük sodyum üst sınırı (miligram). Varsayılan referans 2300 mg."),
+        "settingsCalciumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Kalsiyum hedefi"),
+        "settingsCalciumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük kalsiyum hedefi (miligram). Varsayılan referans 1000 mg."),
+        "settingsIronGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Demir hedefi"),
+        "settingsIronGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük demir hedefi (miligram). Varsayılan değer cinsiyete göre değişir (8 mg erkek, 18 mg kadın, diğerleri için 14 mg)."),
+        "settingsPotassiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Potasyum hedefi"),
+        "settingsPotassiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük potasyum hedefi (miligram). Varsayılan referans 3500 mg."),
+        "settingsMagnesiumGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Magnezyum hedefi"),
+        "settingsMagnesiumGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük magnezyum hedefi (miligram). Varsayılan değer cinsiyete göre değişir (400 mg erkek, 310 mg kadın, diğerleri için 355 mg)."),
+        "settingsVitaminDGoalLabel":
+            MessageLookupByLibrary.simpleMessage("D vitamini hedefi"),
+        "settingsVitaminDGoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük D vitamini hedefi (mikrogram). Varsayılan referans 15 µg."),
+        "settingsVitaminB12GoalLabel":
+            MessageLookupByLibrary.simpleMessage("B12 vitamini hedefi"),
+        "settingsVitaminB12GoalDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük B12 vitamini hedefi (mikrogram). Varsayılan referans 2,4 µg."),
         "sourcesIconTooltip":
             MessageLookupByLibrary.simpleMessage("Kaynakları görüntüle"),
         "sourcesScreenIntro": MessageLookupByLibrary.simpleMessage(
@@ -968,6 +1073,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Öğün makrolarını göster"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Mikro besinleri göster"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Besinler"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Günlük panelinde hangi besinlerin görüneceğini seç"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Günlük panelde hangi besinlerin görüneceğini seç. Gizlenenler istediğin zaman tekrar açılabilir."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Kaynak Kodu"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Sistem"),
@@ -1007,13 +1118,66 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Kilo"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("çinko"),
-        "energyLeftLabel": MessageLookupByLibrary.simpleMessage("kalan"),
-        "energyTooMuchLabel": MessageLookupByLibrary.simpleMessage("fazla"),
-        "energyUnitKcalLabel":
-            MessageLookupByLibrary.simpleMessage("Kilokalori (kcal)"),
-        "energyUnitKjLabel":
-            MessageLookupByLibrary.simpleMessage("Kilojul (kJ)"),
-        "kjLabel": MessageLookupByLibrary.simpleMessage("kJ"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("Kilo geçmişi"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("Kayıt ekle"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "Henüz kilo kaydı yok. Eğilimi izlemek için ilk kaydını ekle."),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("Tarih"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Kilo"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("Not (isteğe bağlı)"),
+        "weightHistoryChartEmptyState": MessageLookupByLibrary.simpleMessage(
+            "Eğilimini görmek için en az iki gün kaydet."),
+        "diarySortByCarbs":
+            MessageLookupByLibrary.simpleMessage("Karbonhidrat (çoktan aza)"),
+        "diarySortByFat":
+            MessageLookupByLibrary.simpleMessage("Yağ (çoktan aza)"),
+        "diarySortByKcal":
+            MessageLookupByLibrary.simpleMessage("Kalori (çoktan aza)"),
+        "diarySortByLabel": MessageLookupByLibrary.simpleMessage("Sırala"),
+        "diarySortByProtein":
+            MessageLookupByLibrary.simpleMessage("Protein (çoktan aza)"),
+        "diarySortByTime":
+            MessageLookupByLibrary.simpleMessage("Eklenme zamanı"),
+        "profileTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Hedef kilo"),
+        "profileTargetWeightNotSetLabel":
+            MessageLookupByLibrary.simpleMessage("Ayarlanmadı"),
+        "profileTargetWeightClearAction":
+            MessageLookupByLibrary.simpleMessage("Temizle"),
+        "profileTargetWeightReached":
+            MessageLookupByLibrary.simpleMessage("Hedefine ulaştın"),
+        "settingsCaloriesTaperDescription": MessageLookupByLibrary.simpleMessage(
+            "Günlük açığı kademeli olarak azaltır, böylece son birkaç kilo bir duvar gibi hissettirmez."),
+        "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
+            "Hedefine yaklaştıkça kalori hedefini ayarla"),
+        "settingsTargetWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Hedef kilo"),
+        "profileTargetWeightToGo": m22,
+        "customActivityDescription": MessageLookupByLibrary.simpleMessage(
+            "Listede olmayan antrenmanlar veya bir fitness takip cihazından okumalar için yakılan kaloriyi doğrudan girin"),
+        "customActivityDescriptionKj":
+            MessageLookupByLibrary.simpleMessage("Listede olmayan antrenmanlar veya bir fitness takip cihazından okumalar için yakılan kilojulleri doğrudan girin"),
+        "customActivityKcalHint":
+            MessageLookupByLibrary.simpleMessage("örn. 250"),
+        "customActivityKcalLabel":
+            MessageLookupByLibrary.simpleMessage("Yakılan kalori"),
+        "customActivityName":
+            MessageLookupByLibrary.simpleMessage("Özel etkinlik"),
+        "customActivityNameFieldHint": MessageLookupByLibrary.simpleMessage(
+            "örn. Akşam bisiklet yolculuğu"),
+        "customActivityNameFieldLabel":
+            MessageLookupByLibrary.simpleMessage("Ad (isteğe bağlı)"),
+        "customActivityPickFromTemplate": MessageLookupByLibrary.simpleMessage(
+            "Kaydedilmiş şablonlardan seç"),
+        "customActivitySaveAsTemplate": MessageLookupByLibrary.simpleMessage(
+            "Bir sonraki sefer için şablon olarak kaydet"),
+        "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
+            "Henüz kaydedilmiş bir şablonun yok. Bir özel etkinliği sonradan hatırlamak için „Bir sonraki sefer için şablon olarak kaydet“ kutusunu işaretle."),
         "mealPatternFiveSmall":
             MessageLookupByLibrary.simpleMessage("Beş küçük"),
         "mealPatternMediterranean":
@@ -1026,10 +1190,6 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Standart"),
         "mealPatternTwoMeal":
             MessageLookupByLibrary.simpleMessage("İki öğün"),
-        "onboardingKjPerDayLabel":
-            MessageLookupByLibrary.simpleMessage("günlük kJ"),
-        "settingsEnergyUnitLabel":
-            MessageLookupByLibrary.simpleMessage("Enerji birimi"),
         "settingsPerMealKcalShareBreakfast":
             MessageLookupByLibrary.simpleMessage("Kahvaltı"),
         "settingsPerMealKcalShareDescription": MessageLookupByLibrary.simpleMessage(
@@ -1042,6 +1202,6 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Öğle Yemeği"),
         "settingsPerMealKcalShareSnack":
             MessageLookupByLibrary.simpleMessage("Atıştırmalık"),
-        "diaryMealKcalConsumedOfTarget": m22,
+        "diaryMealKcalConsumedOfTarget": m23,
       };
 }
