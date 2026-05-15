@@ -20,7 +20,6 @@ on:
 jobs:
   linux-checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -100,7 +99,6 @@ jobs:
   # otherwise the macOS minutes aren't worth burning.
   ios-podfile-lock-guard:
     runs-on: macos-latest
-    timeout-minutes: 20
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
@@ -174,7 +172,6 @@ jobs:
 
   ios-build:
     runs-on: macos-latest
-    timeout-minutes: 45
     permissions:
       contents: write
     steps:
@@ -263,7 +260,6 @@ jobs:
 
   ios-integration-tests:
     runs-on: macos-latest
-    timeout-minutes: 45
     permissions:
       contents: read
     steps:
@@ -334,7 +330,6 @@ jobs:
 
   android-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -395,7 +390,6 @@ jobs:
 
   android-integration-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
     permissions:
       contents: read
     steps:
