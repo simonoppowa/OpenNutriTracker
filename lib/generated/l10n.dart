@@ -2200,6 +2200,15 @@ class S {
     );
   }
 
+  String customMealFormSimpleFieldHelper(String unit) {
+    return Intl.message(
+      '$unit in one serving',
+      name: 'customMealFormSimpleFieldHelper',
+      desc: '',
+      args: [unit],
+    );
+  }
+
   /// `Set base quantity and per-100 values for precise scaling.`
   String get customMealFormAdvancedHelp {
     return Intl.message(
