@@ -26,6 +26,12 @@ class LowKcalWarningCard extends StatelessWidget {
     final l10n = S.of(context);
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    // The card is found by text drivers via the "View disclaimer"
+    // content-desc rather than by coordinate, because Semantics inside
+    // a layout-greedy parent (ListView, Stack > Column) inherits the
+    // parent's bounds even with `container: true`. See CLAUDE.md
+    // "The `container: true` gotcha"; the identifier is kept for
+    // future hierarchy queries.
     return Semantics(
       identifier: 'low-kcal-warning-card',
       container: true,
@@ -41,10 +47,7 @@ class LowKcalWarningCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: colors.onTertiaryContainer,
-                  ),
+                  Icon(Icons.info_outline, color: colors.onTertiaryContainer),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
