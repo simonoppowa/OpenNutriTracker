@@ -206,7 +206,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "dailyKjAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Dzienna korekta kJ:"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
-            "Wspieraj rozwój, dostarczając anonimowe dane użytkowania"),
+            "Wysyłaj anonimowe raporty o awariach, aby pomóc w naprawianiu błędów. Nie są przesyłane dane o posiłkach, wadze ani dane osobowe."),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Usuń wszystko"),
         "deleteSelectedRecipesConfirmTitle": m18,
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(

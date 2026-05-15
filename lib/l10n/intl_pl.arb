@@ -195,7 +195,7 @@
   "customMealsEmptyLabel": "Brak zapisanych własnych posiłków.",
   "dailyKcalAdjustmentLabel": "Dzienna korekta Kcal:",
   "dailyKjAdjustmentLabel": "Dzienna korekta kJ:",
-  "dataCollectionLabel": "Wspieraj rozwój, dostarczając anonimowe dane użytkowania",
+  "dataCollectionLabel": "Wysyłaj anonimowe raporty o awariach, aby pomóc w naprawianiu błędów. Nie są przesyłane dane o posiłkach, wadze ani dane osobowe.",
   "deleteAllLabel": "Usuń wszystko",
   "deleteSelectedRecipesConfirmTitle": "Usunąć {count} przepis(ów)?",
   "deleteTimeDialogContent": "Czy chcesz usunąć wybraną pozycję?",

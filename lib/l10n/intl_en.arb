@@ -243,7 +243,7 @@
   "customMealsEmptyLabel": "No custom meals saved yet.",
   "dailyKcalAdjustmentLabel": "Daily Kcal adjustment:",
   "dailyKjAdjustmentLabel": "Daily kJ adjustment:",
-  "dataCollectionLabel": "Support development by providing anonymous usage data",
+  "dataCollectionLabel": "Send anonymous crash reports to help fix bugs. No food log, weight, or personal data is included.",
   "deleteAllLabel": "Delete all",
   "deleteSelectedRecipesConfirmTitle": "Delete {count} recipe(s)?",
   "deleteTimeDialogContent": "Do want to delete the selected item?",

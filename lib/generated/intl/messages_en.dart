@@ -169,7 +169,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "dailyKjAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Daily kJ adjustment:"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
-            "Support development by providing anonymous usage data"),
+            "Send anonymous crash reports to help fix bugs. No food log, weight, or personal data is included."),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Delete all"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Do want to delete the selected item?"),

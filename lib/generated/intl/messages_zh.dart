@@ -195,8 +195,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("每日卡路里调整："),
         "dailyKjAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("每日千焦调整："),
-        "dataCollectionLabel":
-            MessageLookupByLibrary.simpleMessage("通过提供匿名使用数据支持开发"),
+        "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
+            "发送匿名崩溃报告以帮助修复错误。不包含饮食记录、体重或个人数据。"),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("删除全部"),
         "deleteSelectedRecipesConfirmTitle": m18,
         "deleteTimeDialogContent":

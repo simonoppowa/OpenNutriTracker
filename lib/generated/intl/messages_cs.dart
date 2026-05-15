@@ -205,7 +205,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "dailyKjAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Úprava denního příjmu (kJ):"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
-            "Poskytněte anonymní data týkající se používání aplikace pro pomoc s jejím vývojem"),
+            "Odesílat anonymní hlášení o pádech, abychom mohli opravovat chyby. Neodesílají se žádné záznamy o jídle, hmotnosti ani osobní údaje."),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Smazat vše"),
         "deleteSelectedRecipesConfirmTitle": m18,
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(

@@ -226,7 +226,7 @@
   "customMealsEmptyLabel": "Noch keine eigenen Mahlzeiten gespeichert.",
   "dailyKcalAdjustmentLabel": "Tägliche kcal-Anpassung:",
   "dailyKjAdjustmentLabel": "Tägliche kJ-Anpassung:",
-  "dataCollectionLabel": "Unterstützen der Entwicklung durch Bereitstellung anonymer Nutzungsdaten",
+  "dataCollectionLabel": "Anonyme Absturzberichte senden, um bei der Fehlerbehebung zu helfen. Es werden keine Ernährungsdaten, Gewichtsdaten oder persönlichen Daten übermittelt.",
   "deleteAllLabel": "Alle löschen",
   "deleteSelectedRecipesConfirmTitle": "{count} Rezept(e) löschen?",
   "deleteTimeDialogContent": "Möchten Sie den ausgewählten Eintrag löschen?",

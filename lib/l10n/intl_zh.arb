@@ -196,7 +196,7 @@
   "customMealsEmptyLabel": "尚未保存自定义餐食。",
   "dailyKcalAdjustmentLabel": "每日卡路里调整：",
   "dailyKjAdjustmentLabel": "每日千焦调整：",
-  "dataCollectionLabel": "通过提供匿名使用数据支持开发",
+  "dataCollectionLabel": "发送匿名崩溃报告以帮助修复错误。不包含饮食记录、体重或个人数据。",
   "deleteAllLabel": "删除全部",
   "deleteSelectedRecipesConfirmTitle": "删除 {count} 个食谱？",
   "deleteTimeDialogContent": "您想删除选定的项目吗？",
