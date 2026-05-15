@@ -210,6 +210,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Hataların düzeltilmesine yardımcı olmak için anonim çökme raporları gönderin. Yemek günlüğü, kilo veya kişisel veriler dahil edilmez."),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Tümünü sil"),
+        "settingsDeleteAllDataLabel":
+            MessageLookupByLibrary.simpleMessage("Tüm verilerimi sil"),
+        "settingsDeleteAllDataSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Profil, öğünler, aktiviteler ve kilo geçmişi"),
+        "settingsDeleteAllDataConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("Tüm verileriniz silinsin mi?"),
+        "settingsDeleteAllDataConfirmContent": MessageLookupByLibrary.simpleMessage(
+            "Bu işlem profilinizi, öğünlerinizi, aktivitelerinizi, kilo geçmişinizi ve tüm özel tariflerinizi bu cihazdan kalıcı olarak siler. Open Food Facts ve USDA Food Data Central veritabanları bundan etkilenmez. Bu işlem geri alınamaz."),
+        "settingsDeleteAllDataConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Hepsini sil"),
         "deleteSelectedRecipesConfirmTitle": m18,
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Seçilen öğeyi silmek istiyor musunuz?"),

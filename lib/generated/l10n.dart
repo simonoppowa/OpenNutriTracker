@@ -3061,6 +3061,56 @@ class S {
     );
   }
 
+  /// `Delete all my data`
+  String get settingsDeleteAllDataLabel {
+    return Intl.message(
+      'Delete all my data',
+      name: 'settingsDeleteAllDataLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Profile, meals, activities and weight history`
+  String get settingsDeleteAllDataSubtitle {
+    return Intl.message(
+      'Profile, meals, activities and weight history',
+      name: 'settingsDeleteAllDataSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete all your data?`
+  String get settingsDeleteAllDataConfirmTitle {
+    return Intl.message(
+      'Delete all your data?',
+      name: 'settingsDeleteAllDataConfirmTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This permanently removes your profile, meals, activities, weight history and any custom recipes from this device. The Open Food Facts and USDA Food Data Central catalogues are not affected. This cannot be undone.`
+  String get settingsDeleteAllDataConfirmContent {
+    return Intl.message(
+      'This permanently removes your profile, meals, activities, weight history and any custom recipes from this device. The Open Food Facts and USDA Food Data Central catalogues are not affected. This cannot be undone.',
+      name: 'settingsDeleteAllDataConfirmContent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete everything`
+  String get settingsDeleteAllDataConfirmAction {
+    return Intl.message(
+      'Delete everything',
+      name: 'settingsDeleteAllDataConfirmAction',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `supplied`
   String get suppliedLabel {
     return Intl.message(

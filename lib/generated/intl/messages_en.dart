@@ -171,6 +171,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Send anonymous crash reports to help fix bugs. No food log, weight, or personal data is included."),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Delete all"),
+        "settingsDeleteAllDataLabel":
+            MessageLookupByLibrary.simpleMessage("Delete all my data"),
+        "settingsDeleteAllDataSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Profile, meals, activities and weight history"),
+        "settingsDeleteAllDataConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("Delete all your data?"),
+        "settingsDeleteAllDataConfirmContent": MessageLookupByLibrary.simpleMessage(
+            "This permanently removes your profile, meals, activities, weight history and any custom recipes from this device. The Open Food Facts and USDA Food Data Central catalogues are not affected. This cannot be undone."),
+        "settingsDeleteAllDataConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Delete everything"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Do want to delete the selected item?"),
         "deleteTimeDialogPluralContent": MessageLookupByLibrary.simpleMessage(

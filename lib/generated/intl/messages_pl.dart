@@ -208,6 +208,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Wysyłaj anonimowe raporty o awariach, aby pomóc w naprawianiu błędów. Nie są przesyłane dane o posiłkach, wadze ani dane osobowe."),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Usuń wszystko"),
+        "settingsDeleteAllDataLabel": MessageLookupByLibrary.simpleMessage(
+            "Usuń wszystkie moje dane"),
+        "settingsDeleteAllDataSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Profil, posiłki, aktywność i historia wagi"),
+        "settingsDeleteAllDataConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("Usunąć wszystkie Twoje dane?"),
+        "settingsDeleteAllDataConfirmContent": MessageLookupByLibrary.simpleMessage(
+            "Spowoduje to trwałe usunięcie z tego urządzenia Twojego profilu, posiłków, aktywności, historii wagi oraz wszystkich własnych przepisów. Bazy danych Open Food Facts i USDA Food Data Central pozostają nienaruszone. Tej operacji nie można cofnąć."),
+        "settingsDeleteAllDataConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Usuń wszystko"),
         "deleteSelectedRecipesConfirmTitle": m18,
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Czy chcesz usunąć wybraną pozycję?"),

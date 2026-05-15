@@ -215,6 +215,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Posielať anonymné hlásenia o páde, aby sme mohli opravovať chyby. Nezahŕňajú sa žiadne záznamy o jedle, hmotnosti ani osobné údaje."),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Zmazať všetko"),
+        "settingsDeleteAllDataLabel": MessageLookupByLibrary.simpleMessage(
+            "Zmazať všetky moje údaje"),
+        "settingsDeleteAllDataSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Profil, jedlá, aktivity a históriu hmotnosti"),
+        "settingsDeleteAllDataConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("Zmazať všetky vaše údaje?"),
+        "settingsDeleteAllDataConfirmContent": MessageLookupByLibrary.simpleMessage(
+            "Tým sa z tohto zariadenia natrvalo odstráni váš profil, jedlá, aktivity, história hmotnosti a všetky vlastné recepty. Databázy Open Food Facts a USDA Food Data Central tým nie sú ovplyvnené. Túto akciu nie je možné vrátiť späť."),
+        "settingsDeleteAllDataConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Zmazať všetko"),
         "deleteSelectedRecipesConfirmTitle": m18,
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Naozaj chcete zmazať vybranú položku?"),

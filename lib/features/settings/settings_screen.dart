@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
@@ -247,6 +249,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   )),
                   enabled: state.offCacheCount > 0,
                   onTap: () => _confirmClearOffCache(context),
+                ),
+                Semantics(
+                  identifier: 'settings-delete-all-data',
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.delete_forever_outlined,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    title: Text(
+                      S.of(context).settingsDeleteAllDataLabel,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    subtitle:
+                        Text(S.of(context).settingsDeleteAllDataSubtitle),
+                    onTap: () => _confirmDeleteAllData(context),
+                  ),
                 ),
                 const Divider(),
                 // About
@@ -556,6 +576,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (confirmed == true) {
       await _settingsBloc.clearOffCache();
     }
+  }
+
+  Future<void> _confirmDeleteAllData(BuildContext context) async {
+    final l10n = S.of(context);
+    final navigator = Navigator.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.settingsDeleteAllDataConfirmTitle),
+        content: Text(l10n.settingsDeleteAllDataConfirmContent),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.dialogCancelLabel),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.settingsDeleteAllDataConfirmAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await locator<DeleteAllUserDataUsecase>().deleteAll();
+    if (!mounted) return;
+    navigator.pushNamedAndRemoveUntil(
+      NavigationOptions.onboardingRoute,
+      (_) => false,
+    );
   }
 
   /// Format a byte count for display in the cache-clear tile subtitle.

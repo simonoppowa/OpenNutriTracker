@@ -28,6 +28,7 @@ import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_custom_activity_template_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_recipe_usecase.dart';
@@ -98,6 +99,10 @@ Future<void> initLocator() async {
   final hiveDBProvider = HiveDBProvider();
   await hiveDBProvider.initHiveDB(
     await secureAppStorageProvider.getHiveEncryptionKey(),
+  );
+  locator.registerLazySingleton<HiveDBProvider>(() => hiveDBProvider);
+  locator.registerLazySingleton<DeleteAllUserDataUsecase>(
+    () => DeleteAllUserDataUsecase(locator()),
   );
 
   // Backend

@@ -208,6 +208,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Надсилати анонімні звіти про збої, щоб допомогти виправляти помилки. Жодні дані про їжу, вагу чи особисті дані не передаються."),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Видалити все"),
+        "settingsDeleteAllDataLabel": MessageLookupByLibrary.simpleMessage(
+            "Видалити всі мої дані"),
+        "settingsDeleteAllDataSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Профіль, прийоми їжі, активності та історію ваги"),
+        "settingsDeleteAllDataConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("Видалити всі ваші дані?"),
+        "settingsDeleteAllDataConfirmContent": MessageLookupByLibrary.simpleMessage(
+            "Це остаточно видалить з цього пристрою ваш профіль, прийоми їжі, активності, історію ваги та всі власні рецепти. Бази Open Food Facts та USDA Food Data Central залишаться без змін. Цю дію не можна скасувати."),
+        "settingsDeleteAllDataConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Видалити все"),
         "deleteSelectedRecipesConfirmTitle": m18,
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Ви хочете видалити вибраний елемент?"),

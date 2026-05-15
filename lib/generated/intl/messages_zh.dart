@@ -198,6 +198,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "发送匿名崩溃报告以帮助修复错误。不包含饮食记录、体重或个人数据。"),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("删除全部"),
+        "settingsDeleteAllDataLabel":
+            MessageLookupByLibrary.simpleMessage("删除我的所有数据"),
+        "settingsDeleteAllDataSubtitle":
+            MessageLookupByLibrary.simpleMessage("个人资料、饮食、活动和体重历史"),
+        "settingsDeleteAllDataConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("删除您的所有数据？"),
+        "settingsDeleteAllDataConfirmContent": MessageLookupByLibrary.simpleMessage(
+            "此操作将永久从此设备移除您的个人资料、饮食记录、活动记录、体重历史以及所有自定义食谱。Open Food Facts 与 USDA Food Data Central 数据库不受影响。此操作无法撤销。"),
+        "settingsDeleteAllDataConfirmAction":
+            MessageLookupByLibrary.simpleMessage("全部删除"),
         "deleteSelectedRecipesConfirmTitle": m18,
         "deleteTimeDialogContent":
             MessageLookupByLibrary.simpleMessage("您想删除选定的项目吗？"),

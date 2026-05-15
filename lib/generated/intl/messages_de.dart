@@ -213,6 +213,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
             "Anonyme Absturzberichte senden, um bei der Fehlerbehebung zu helfen. Es werden keine Ernährungsdaten, Gewichtsdaten oder persönlichen Daten übermittelt."),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Alle löschen"),
+        "settingsDeleteAllDataLabel": MessageLookupByLibrary.simpleMessage(
+            "Alle meine Daten löschen"),
+        "settingsDeleteAllDataSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Profil, Mahlzeiten, Aktivitäten und Gewichtsverlauf"),
+        "settingsDeleteAllDataConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("Alle Daten löschen?"),
+        "settingsDeleteAllDataConfirmContent": MessageLookupByLibrary.simpleMessage(
+            "Hierdurch werden dein Profil, deine Mahlzeiten, Aktivitäten, dein Gewichtsverlauf und alle eigenen Rezepte dauerhaft von diesem Gerät entfernt. Die Datenbanken von Open Food Facts und USDA Food Data Central sind davon nicht betroffen. Dies kann nicht rückgängig gemacht werden."),
+        "settingsDeleteAllDataConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Alles löschen"),
         "deleteSelectedRecipesConfirmTitle": m18,
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
             "Möchten Sie den ausgewählten Eintrag löschen?"),
