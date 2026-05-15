@@ -1210,11 +1210,21 @@ class S {
     );
   }
 
-  /// `Calculations`
-  String get settingsCalculationsLabel {
+  /// `Daily kcal adjustment`
+  String get settingsKcalAdjustmentLabel {
     return Intl.message(
-      'Calculations',
-      name: 'settingsCalculationsLabel',
+      'Daily kcal adjustment',
+      name: 'settingsKcalAdjustmentLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Macro split`
+  String get settingsMacroSplitLabel {
+    return Intl.message(
+      'Macro split',
+      name: 'settingsMacroSplitLabel',
       desc: '',
       args: [],
     );
@@ -6741,15 +6751,6 @@ class S {
     );
   }
 
-  /// `Target weight`
-  String get settingsTargetWeightLabel {
-    return Intl.message(
-      'Target weight',
-      name: 'settingsTargetWeightLabel',
-      desc: '',
-      args: [],
-    );
-  }
 
   /// `Not set`
   String get profileTargetWeightNotSetLabel {

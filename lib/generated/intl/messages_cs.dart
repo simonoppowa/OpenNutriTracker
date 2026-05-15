@@ -982,8 +982,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("O aplikaci"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Zpětná vazba"),
-        "settingsCalculationsLabel":
-            MessageLookupByLibrary.simpleMessage("Vypočtené hodnoty"),
         "settingsCustomMealsLabel":
             MessageLookupByLibrary.simpleMessage("Vlastní jídla"),
         "settingsDisclaimerLabel":
@@ -1065,9 +1063,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Vzdálenost"),
         "settingsImperialLabel":
             MessageLookupByLibrary.simpleMessage("Imperiální (lbs, ft, oz)"),
+        "settingsKcalAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("Denní úprava kcal"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Nastavení"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Jazyk"),
+        "settingsMacroSplitLabel":
+            MessageLookupByLibrary.simpleMessage("Rozdělení makroživin"),
         "settingsLicensesLabel":
             MessageLookupByLibrary.simpleMessage("Licence"),
         "settingsMassLabel": MessageLookupByLibrary.simpleMessage("Hmota"),
@@ -1183,8 +1185,6 @@ class MessageLookup extends MessageLookupByLibrary {
             "Postupně zmenšuje denní deficit, aby posledních pár kilogramů nepůsobilo jako zeď."),
         "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
             "Upravovat kalorický cíl, jak se blížíte k cílové váze"),
-        "settingsTargetWeightLabel":
-            MessageLookupByLibrary.simpleMessage("Cílová hmotnost"),
         "profileTargetWeightToGo": m22,
         "customActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Zadejte spálené kalorie přímo, pro tréninky, které nejsou na seznamu, nebo hodnoty z fitness náramku"),

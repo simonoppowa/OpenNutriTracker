@@ -972,8 +972,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("Hakkında"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Geri Bildirim"),
-        "settingsCalculationsLabel":
-            MessageLookupByLibrary.simpleMessage("Hesaplamalar"),
         "settingsCustomMealsLabel":
             MessageLookupByLibrary.simpleMessage("Özel Yemekler"),
         "settingsDisclaimerLabel":
@@ -1054,8 +1052,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsDistanceLabel": MessageLookupByLibrary.simpleMessage("Mesafe"),
         "settingsImperialLabel":
             MessageLookupByLibrary.simpleMessage("İmperial (lbs, ft, oz)"),
+        "settingsKcalAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("Günlük kcal ayarı"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Ayarlar"),
         "settingsLanguageLabel": MessageLookupByLibrary.simpleMessage("Dil"),
+        "settingsMacroSplitLabel":
+            MessageLookupByLibrary.simpleMessage("Makro dağılımı"),
         "settingsLicensesLabel":
             MessageLookupByLibrary.simpleMessage("Lisanslar"),
         "settingsMassLabel": MessageLookupByLibrary.simpleMessage("Kütle"),
@@ -1170,8 +1172,6 @@ class MessageLookup extends MessageLookupByLibrary {
             "Günlük açığı kademeli olarak azaltır, böylece son birkaç kilo bir duvar gibi hissettirmez."),
         "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
             "Hedefine yaklaştıkça kalori hedefini ayarla"),
-        "settingsTargetWeightLabel":
-            MessageLookupByLibrary.simpleMessage("Hedef kilo"),
         "profileTargetWeightToGo": m22,
         "customActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Listede olmayan antrenmanlar veya bir fitness takip cihazından okumalar için yakılan kaloriyi doğrudan girin"),

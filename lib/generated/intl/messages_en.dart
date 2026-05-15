@@ -976,8 +976,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),
-        "settingsCalculationsLabel":
-            MessageLookupByLibrary.simpleMessage("Calculations"),
         "settingsDisclaimerLabel":
             MessageLookupByLibrary.simpleMessage("Disclaimer"),
         "settingsFibreGoalDescription": MessageLookupByLibrary.simpleMessage(
@@ -1057,9 +1055,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Distance"),
         "settingsImperialLabel":
             MessageLookupByLibrary.simpleMessage("Imperial (lbs, ft, oz)"),
+        "settingsKcalAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("Daily kcal adjustment"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Settings"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Language"),
+        "settingsMacroSplitLabel":
+            MessageLookupByLibrary.simpleMessage("Macro split"),
         "settingsLicensesLabel":
             MessageLookupByLibrary.simpleMessage("Licenses"),
         "settingsMassLabel": MessageLookupByLibrary.simpleMessage("Mass"),
@@ -1171,8 +1173,6 @@ class MessageLookup extends MessageLookupByLibrary {
             "Reduces the daily deficit gradually so the last few kg don\'t feel like a wall."),
         "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
             "Adjust calorie goal as you approach target"),
-        "settingsTargetWeightLabel":
-            MessageLookupByLibrary.simpleMessage("Target weight"),
         "profileTargetWeightToGo": m21,
         "recipeImageLabel":
             MessageLookupByLibrary.simpleMessage("Add a photo"),

@@ -992,8 +992,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingAboutLabel":
             MessageLookupByLibrary.simpleMessage("Про додаток"),
         "settingFeedbackLabel": MessageLookupByLibrary.simpleMessage("Відгук"),
-        "settingsCalculationsLabel":
-            MessageLookupByLibrary.simpleMessage("Розрахунки"),
         "settingsCustomMealsLabel":
             MessageLookupByLibrary.simpleMessage("Власні страви"),
         "settingsDisclaimerLabel": MessageLookupByLibrary.simpleMessage(
@@ -1075,9 +1073,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Відстань"),
         "settingsImperialLabel": MessageLookupByLibrary.simpleMessage(
             "Імперська (фунти, фут, унції)"),
+        "settingsKcalAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage(
+                "Щоденне коригування ккал"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Налаштування"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Мова"),
+        "settingsMacroSplitLabel":
+            MessageLookupByLibrary.simpleMessage("Розподіл макросів"),
         "settingsLicensesLabel":
             MessageLookupByLibrary.simpleMessage("Ліцензії"),
         "settingsMassLabel": MessageLookupByLibrary.simpleMessage("Маса"),
@@ -1196,8 +1199,6 @@ class MessageLookup extends MessageLookupByLibrary {
             "Поступово зменшує щоденний дефіцит, щоб останні кілограми не здавалися стіною."),
         "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
             "Коригувати калорійну ціль у міру наближення до цілі"),
-        "settingsTargetWeightLabel":
-            MessageLookupByLibrary.simpleMessage("Цільова вага"),
         "profileTargetWeightToGo": m22,
         "customActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Введіть спалені калорії безпосередньо — для тренувань, яких немає у списку, або показників із фітнес-трекера"),

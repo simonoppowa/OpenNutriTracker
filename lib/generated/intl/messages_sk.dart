@@ -953,8 +953,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("O aplikácii"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Spätná väzba"),
-        "settingsCalculationsLabel":
-            MessageLookupByLibrary.simpleMessage("Výpočty"),
         "settingsCustomMealsLabel":
             MessageLookupByLibrary.simpleMessage("Vlastné jedlá"),
         "settingsDisclaimerLabel":
@@ -991,9 +989,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Vzdialenosť"),
         "settingsImperialLabel":
             MessageLookupByLibrary.simpleMessage("Imperiálne (lbs, ft, oz)"),
+        "settingsKcalAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("Denná úprava kcal"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Nastavenia"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Jazyk"),
+        "settingsMacroSplitLabel":
+            MessageLookupByLibrary.simpleMessage("Rozdelenie makroživín"),
         "settingsLicensesLabel":
             MessageLookupByLibrary.simpleMessage("Licencie"),
         "settingsMassLabel": MessageLookupByLibrary.simpleMessage("Hmotnosť"),
@@ -1161,8 +1163,6 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Postupne znižuje denný kalorický deficit, aby posledné kilá nepôsobili ako stena."),
         "settingsCaloriesTaperLabel":
             MessageLookupByLibrary.simpleMessage("Upraviť kalorický cieľ s blížením k cieľovej hmotnosti"),
-        "settingsTargetWeightLabel":
-            MessageLookupByLibrary.simpleMessage("Cieľová hmotnosť"),
         "profileTargetWeightToGo": m22,
         "barcodeInvalidEan13CheckDigit":
             MessageLookupByLibrary.simpleMessage("Tento 13-miestny čiarový kód vyzerá ako preklep: posledná číslica nesedí so zvyškom"),

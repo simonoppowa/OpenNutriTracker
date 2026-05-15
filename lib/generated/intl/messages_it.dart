@@ -992,8 +992,6 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Informazioni"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),
-        "settingsCalculationsLabel":
-            MessageLookupByLibrary.simpleMessage("Calcoli"),
         "settingsCustomMealsLabel":
             MessageLookupByLibrary.simpleMessage("Pasti personalizzati"),
         "settingsDisclaimerLabel":
@@ -1075,9 +1073,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Distanza"),
         "settingsImperialLabel":
             MessageLookupByLibrary.simpleMessage("Imperiale (lbs, ft, oz)"),
+        "settingsKcalAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("Aggiustamento kcal giornaliero"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Impostazioni"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Lingua"),
+        "settingsMacroSplitLabel":
+            MessageLookupByLibrary.simpleMessage("Distribuzione macro"),
         "settingsLicensesLabel":
             MessageLookupByLibrary.simpleMessage("Licenze"),
         "settingsMassLabel": MessageLookupByLibrary.simpleMessage("Massa"),
@@ -1195,8 +1197,6 @@ class MessageLookup extends MessageLookupByLibrary {
             "Riduce gradualmente il deficit giornaliero così gli ultimi chili non sembrano un muro."),
         "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
             "Adatta l\'obiettivo calorico mentre ti avvicini al tuo peso obiettivo"),
-        "settingsTargetWeightLabel":
-            MessageLookupByLibrary.simpleMessage("Peso obiettivo"),
         "profileTargetWeightToGo": m22,
         "customActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Inserisci direttamente le calorie bruciate, per allenamenti non in elenco o letture da un fitness tracker"),

@@ -1003,8 +1003,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("Über"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),
-        "settingsCalculationsLabel":
-            MessageLookupByLibrary.simpleMessage("Berechnungen"),
         "settingsCustomMealsLabel":
             MessageLookupByLibrary.simpleMessage("Eigene Mahlzeiten"),
         "settingsDisclaimerLabel":
@@ -1086,9 +1084,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Entfernung"),
         "settingsImperialLabel":
             MessageLookupByLibrary.simpleMessage("Imperial (lbs, ft, oz)"),
+        "settingsKcalAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("Tägliche kcal-Anpassung"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Einstellungen"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Sprache"),
+        "settingsMacroSplitLabel":
+            MessageLookupByLibrary.simpleMessage("Makro-Aufteilung"),
         "settingsLicensesLabel":
             MessageLookupByLibrary.simpleMessage("Lizenzen"),
         "settingsMassLabel": MessageLookupByLibrary.simpleMessage("Masse"),
@@ -1207,8 +1209,6 @@ class MessageLookup extends MessageLookupByLibrary {
             "Reduziert das tägliche Defizit allmählich, damit die letzten Kilos nicht wie eine Wand wirken."),
         "settingsCaloriesTaperLabel": MessageLookupByLibrary.simpleMessage(
             "Kalorienziel anpassen, wenn du dich dem Ziel näherst"),
-        "settingsTargetWeightLabel":
-            MessageLookupByLibrary.simpleMessage("Zielgewicht"),
         "profileTargetWeightToGo": m22,
         "customActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Trage verbrannte Kalorien direkt ein – für Trainings, die nicht in der Liste sind, oder Werte aus einem Fitnesstracker"),

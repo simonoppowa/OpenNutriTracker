@@ -23,7 +23,11 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:opennutritracker/features/settings/presentation/widgets/calculations_dialog.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/diary_day_boundary_dialog.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/kcal_adjustment_dialog.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/macro_split_dialog.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_goals_screen.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/per_meal_kcal_share_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -90,19 +94,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _showEnergyUnitDialog(context, state.usesKilojoules),
                   ),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.local_fire_department_outlined),
-                  title: Text(S.of(context).settingsEnergyUnitLabel),
-                  subtitle: Text(state.usesKilojoules
-                      ? S.of(context).energyUnitKjLabel
-                      : S.of(context).energyUnitKcalLabel),
-                  onTap: () =>
-                      _showEnergyUnitDialog(context, state.usesKilojoules),
+                // The old Calculations dialog had grown into a wall of
+                // sliders covering daily kcal, macros, per-meal split,
+                // ten nutrient goals, and the diary day boundary. Each
+                // is now its own focused entry so people can find the
+                // setting they want and only see the controls for it.
+                Semantics(
+                  identifier: 'settings-kcal-adjustment',
+                  child: ListTile(
+                    leading: const Icon(Icons.calculate_outlined),
+                    title: Text(S.of(context).settingsKcalAdjustmentLabel),
+                    onTap: () => _showKcalAdjustmentDialog(context),
+                  ),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.calculate_outlined),
-                  title: Text(S.of(context).settingsCalculationsLabel),
-                  onTap: () => _showCalculationsDialog(context),
+                Semantics(
+                  identifier: 'settings-macro-split',
+                  child: ListTile(
+                    leading: const Icon(Icons.pie_chart_outline),
+                    title: Text(S.of(context).settingsMacroSplitLabel),
+                    onTap: () => _showMacroSplitDialog(context),
+                  ),
+                ),
+                Semantics(
+                  identifier: 'settings-per-meal-share',
+                  child: ListTile(
+                    leading: const Icon(Icons.restaurant_menu_outlined),
+                    title:
+                        Text(S.of(context).settingsPerMealKcalShareLabel),
+                    onTap: () => _showPerMealKcalShareDialog(context),
+                  ),
+                ),
+                Semantics(
+                  identifier: 'settings-nutrient-goals',
+                  child: ListTile(
+                    leading: const Icon(Icons.spa_outlined),
+                    title: Text(S.of(context).settingsNutrientGoalsLabel),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _openNutrientGoalsScreen(context),
+                  ),
+                ),
+                Semantics(
+                  identifier: 'settings-day-boundary',
+                  child: ListTile(
+                    leading: const Icon(Icons.schedule_outlined),
+                    title: Text(S.of(context).settingsDayStartLabel),
+                    onTap: () => _showDayBoundaryDialog(context),
+                  ),
                 ),
                 SwitchListTile(
                   secondary: const Icon(Icons.directions_run_outlined),
@@ -422,14 +459,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showCalculationsDialog(BuildContext context) {
+  void _showKcalAdjustmentDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => CalculationsDialog(
+      builder: (context) => KcalAdjustmentDialog(
         settingsBloc: _settingsBloc,
         profileBloc: _profileBloc,
         homeBloc: _homeBloc,
-        diaryBloc: _diaryBloc,
+      ),
+    );
+  }
+
+  void _showMacroSplitDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => MacroSplitDialog(
+        settingsBloc: _settingsBloc,
+        homeBloc: _homeBloc,
+      ),
+    );
+  }
+
+  void _showPerMealKcalShareDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => PerMealKcalShareDialog(
+        settingsBloc: _settingsBloc,
+        homeBloc: _homeBloc,
+        calendarDayBloc: _calendarDayBloc,
+      ),
+    );
+  }
+
+  void _openNutrientGoalsScreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => NutrientGoalsScreen(
+          settingsBloc: _settingsBloc,
+          profileBloc: _profileBloc,
+          diaryBloc: _diaryBloc,
+          calendarDayBloc: _calendarDayBloc,
+          homeBloc: _homeBloc,
+        ),
+      ),
+    );
+  }
+
+  void _showDayBoundaryDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => DiaryDayBoundaryDialog(
+        settingsBloc: _settingsBloc,
+        homeBloc: _homeBloc,
         calendarDayBloc: _calendarDayBloc,
       ),
     );

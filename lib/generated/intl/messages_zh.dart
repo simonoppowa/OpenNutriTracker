@@ -849,7 +849,6 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("份量大小 (克/毫升)"),
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("关于"),
         "settingFeedbackLabel": MessageLookupByLibrary.simpleMessage("反馈"),
-        "settingsCalculationsLabel": MessageLookupByLibrary.simpleMessage("计算"),
         "settingsCustomMealsLabel":
             MessageLookupByLibrary.simpleMessage("自定义餐食"),
         "settingsDisclaimerLabel": MessageLookupByLibrary.simpleMessage("免责声明"),
@@ -929,8 +928,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsDistanceLabel": MessageLookupByLibrary.simpleMessage("距离"),
         "settingsImperialLabel":
             MessageLookupByLibrary.simpleMessage("英制（磅、英尺、盎司）"),
+        "settingsKcalAdjustmentLabel":
+            MessageLookupByLibrary.simpleMessage("每日千卡调整"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("设置"),
         "settingsLanguageLabel": MessageLookupByLibrary.simpleMessage("语言"),
+        "settingsMacroSplitLabel":
+            MessageLookupByLibrary.simpleMessage("宏量营养素分配"),
         "settingsLicensesLabel": MessageLookupByLibrary.simpleMessage("许可证"),
         "settingsMassLabel": MessageLookupByLibrary.simpleMessage("质量"),
         "settingsMetricLabel":
@@ -1037,8 +1040,6 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("逐渐减小每日热量缺口，让最后几公斤不再像一堵墙。"),
         "settingsCaloriesTaperLabel":
             MessageLookupByLibrary.simpleMessage("接近目标时调整卡路里目标"),
-        "settingsTargetWeightLabel":
-            MessageLookupByLibrary.simpleMessage("目标体重"),
         "profileTargetWeightToGo": m22,
         "customActivityDescription": MessageLookupByLibrary.simpleMessage(
             "直接输入消耗的卡路里，适用于列表中没有的训练或来自健身追踪器的读数"),
