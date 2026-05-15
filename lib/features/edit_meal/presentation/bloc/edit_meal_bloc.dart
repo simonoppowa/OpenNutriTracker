@@ -66,6 +66,16 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
     String carbsText,
     String fatText,
     String proteinText, {
+    String? fiberText,
+    String? saturatedFatText,
+    String? sugarsText,
+    String? sodiumText,
+    String? calciumText,
+    String? ironText,
+    String? potassiumText,
+    String? magnesiumText,
+    String? vitaminDText,
+    String? vitaminB12Text,
     String? barcodeOverride,
     String? localImagePathOverride,
     bool clearLocalImagePath = false,
@@ -79,16 +89,24 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       return nutrimentValue != null ? nutrimentValue * factorTo100g : null;
     }
 
+    double? fromTextOrOld(String? text, double? oldValue) =>
+        multiplyIfNotNull(text?.toDoubleOrNull() ?? oldValue);
+
     final newMealNutriments = MealNutrimentsEntity(
       energyKcal100: multiplyIfNotNull(kcalText.toDoubleOrNull()),
       carbohydrates100: multiplyIfNotNull(carbsText.toDoubleOrNull()),
       fat100: multiplyIfNotNull(fatText.toDoubleOrNull()),
       proteins100: multiplyIfNotNull(proteinText.toDoubleOrNull()),
-      sugars100: multiplyIfNotNull(oldMealEntity.nutriments.sugars100),
-      saturatedFat100: multiplyIfNotNull(
-        oldMealEntity.nutriments.saturatedFat100,
-      ),
-      fiber100: multiplyIfNotNull(oldMealEntity.nutriments.fiber100),
+      sugars100: fromTextOrOld(sugarsText, oldMealEntity.nutriments.sugars100),
+      saturatedFat100: fromTextOrOld(saturatedFatText, oldMealEntity.nutriments.saturatedFat100),
+      fiber100: fromTextOrOld(fiberText, oldMealEntity.nutriments.fiber100),
+      sodium100: fromTextOrOld(sodiumText, oldMealEntity.nutriments.sodium100),
+      calcium100: fromTextOrOld(calciumText, oldMealEntity.nutriments.calcium100),
+      iron100: fromTextOrOld(ironText, oldMealEntity.nutriments.iron100),
+      potassium100: fromTextOrOld(potassiumText, oldMealEntity.nutriments.potassium100),
+      magnesium100: fromTextOrOld(magnesiumText, oldMealEntity.nutriments.magnesium100),
+      vitaminD100: fromTextOrOld(vitaminDText, oldMealEntity.nutriments.vitaminD100),
+      vitaminB12100: fromTextOrOld(vitaminB12Text, oldMealEntity.nutriments.vitaminB12100),
     );
 
     return MealEntity(
