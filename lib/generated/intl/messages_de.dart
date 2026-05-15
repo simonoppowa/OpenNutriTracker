@@ -384,9 +384,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "magnesiumLabel": MessageLookupByLibrary.simpleMessage("Magnesium"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Marken"),
         "mealCarbsLabel":
-            MessageLookupByLibrary.simpleMessage("Kohlenhydrate pro 100 g/ml"),
+            MessageLookupByLibrary.simpleMessage("Kohlenhydrate"),
         "mealFatLabel":
-            MessageLookupByLibrary.simpleMessage("Fett pro 100 g/ml"),
+            MessageLookupByLibrary.simpleMessage("Fett"),
         "mealKcalLabel":
             MessageLookupByLibrary.simpleMessage("kcal pro 100 g/ml"),
         "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("Energie"),
@@ -397,7 +397,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Gesamtmenge"),
         "mealProteinLabel":
-            MessageLookupByLibrary.simpleMessage("Protein pro 100 g/ml"),
+            MessageLookupByLibrary.simpleMessage("Protein"),
         "mealSizeLabel":
             MessageLookupByLibrary.simpleMessage("Mahlzeitsgröße (g/ml)"),
         "mealSizeLabelImperial":

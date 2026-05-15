@@ -375,8 +375,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "magnesiumLabel": MessageLookupByLibrary.simpleMessage("magnezyum"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Markalar"),
         "mealCarbsLabel":
-            MessageLookupByLibrary.simpleMessage("karbonhidrat başına"),
-        "mealFatLabel": MessageLookupByLibrary.simpleMessage("yağ başına"),
+            MessageLookupByLibrary.simpleMessage("Karbonhidrat"),
+        "mealFatLabel": MessageLookupByLibrary.simpleMessage("Yağ"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("kcal başına"),
         "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("Enerji"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("Yemek adı"),
@@ -386,7 +386,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Toplam miktar"),
         "mealProteinLabel":
-            MessageLookupByLibrary.simpleMessage("protein başına 100 g/ml"),
+            MessageLookupByLibrary.simpleMessage("Protein"),
         "mealSizeLabel":
             MessageLookupByLibrary.simpleMessage("Yemek boyutu (g/ml)"),
         "mealSizeLabelImperial":

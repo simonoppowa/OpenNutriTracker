@@ -377,8 +377,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "magnesiumLabel": MessageLookupByLibrary.simpleMessage("magnesio"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Marche"),
         "mealCarbsLabel":
-            MessageLookupByLibrary.simpleMessage("carboidrati per"),
-        "mealFatLabel": MessageLookupByLibrary.simpleMessage("grassi per"),
+            MessageLookupByLibrary.simpleMessage("Carboidrati"),
+        "mealFatLabel": MessageLookupByLibrary.simpleMessage("Grassi"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("kcal per"),
         "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("Energia"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("Nome pasto"),
@@ -388,7 +388,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Quantità totale"),
         "mealProteinLabel":
-            MessageLookupByLibrary.simpleMessage("proteine per 100 g/ml"),
+            MessageLookupByLibrary.simpleMessage("Proteine"),
         "mealSizeLabel":
             MessageLookupByLibrary.simpleMessage("Dimensione pasto (g/ml)"),
         "mealSizeLabelImperial":

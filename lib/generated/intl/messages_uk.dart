@@ -376,8 +376,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Розподіл макроелементів:"),
         "magnesiumLabel": MessageLookupByLibrary.simpleMessage("магній"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Бренди"),
-        "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("вуглеводи на"),
-        "mealFatLabel": MessageLookupByLibrary.simpleMessage("жири на"),
+        "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("Вуглеводи"),
+        "mealFatLabel": MessageLookupByLibrary.simpleMessage("Жири"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("ккал на"),
         "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("Енергія"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("Назва страви"),
@@ -387,7 +387,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Загальна кількість"),
         "mealProteinLabel":
-            MessageLookupByLibrary.simpleMessage("білки на 100 г/мл"),
+            MessageLookupByLibrary.simpleMessage("Білки"),
         "mealSizeLabel":
             MessageLookupByLibrary.simpleMessage("Розмір страви (г/мл)"),
         "mealSizeLabelImperial": MessageLookupByLibrary.simpleMessage(

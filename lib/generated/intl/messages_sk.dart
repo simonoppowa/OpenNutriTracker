@@ -366,8 +366,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Rozdelenie makroživín:"),
         "magnesiumLabel": MessageLookupByLibrary.simpleMessage("horčík"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Značky"),
-        "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("Sacharidy (g)"),
-        "mealFatLabel": MessageLookupByLibrary.simpleMessage("Tuky (g)"),
+        "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("Sacharidy"),
+        "mealFatLabel": MessageLookupByLibrary.simpleMessage("Tuky"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("Názov jedla"),
         "mealNameValidationError": MessageLookupByLibrary.simpleMessage(
@@ -376,7 +376,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Celkové množstvo"),
         "mealProteinLabel":
-            MessageLookupByLibrary.simpleMessage("Bielkoviny (g)"),
+            MessageLookupByLibrary.simpleMessage("Bielkoviny"),
         "mealSizeLabel":
             MessageLookupByLibrary.simpleMessage("Veľkosť jedla (g/ml)"),
         "mealSizeLabelImperial":

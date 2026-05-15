@@ -339,8 +339,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("宏量营养素分布："),
         "magnesiumLabel": MessageLookupByLibrary.simpleMessage("镁"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("品牌"),
-        "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("碳水每"),
-        "mealFatLabel": MessageLookupByLibrary.simpleMessage("脂肪每"),
+        "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("碳水化合物"),
+        "mealFatLabel": MessageLookupByLibrary.simpleMessage("脂肪"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("卡路里每"),
         "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("能量"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("餐食名称"),
@@ -350,7 +350,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("总量"),
         "mealProteinLabel":
-            MessageLookupByLibrary.simpleMessage("蛋白质每 100 克/毫升"),
+            MessageLookupByLibrary.simpleMessage("蛋白质"),
         "mealSizeLabel": MessageLookupByLibrary.simpleMessage("餐食大小 (克/毫升)"),
         "mealSizeLabelImperial":
             MessageLookupByLibrary.simpleMessage("餐食大小 (盎司/液量盎司)"),

@@ -367,8 +367,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "macroDistributionLabel":
             MessageLookupByLibrary.simpleMessage("Macronutrient Distribution:"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Brands"),
-        "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("carbs per"),
-        "mealFatLabel": MessageLookupByLibrary.simpleMessage("fat per"),
+        "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("Carbohydrates"),
+        "mealFatLabel": MessageLookupByLibrary.simpleMessage("Fat"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("kcal per"),
         "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("Energy"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("Meal name"),
@@ -378,7 +378,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Total amount"),
         "mealProteinLabel":
-            MessageLookupByLibrary.simpleMessage("protein per 100 g/ml"),
+            MessageLookupByLibrary.simpleMessage("Protein"),
         "mealSizeLabel":
             MessageLookupByLibrary.simpleMessage("Meal size (g/ml)"),
         "mealSizeLabelImperial":
