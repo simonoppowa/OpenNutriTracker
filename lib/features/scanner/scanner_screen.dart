@@ -40,6 +40,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
         ModalRoute.of(context)?.settings.arguments as ScannerScreenArguments;
     _intakeTypeEntity = args.intakeTypeEntity;
     _day = args.day;
+    if (args.initialBarcode != null && _scannedBarcode == null) {
+      _scannedBarcode = args.initialBarcode;
+      _scannerBloc.add(ScannerLoadProductEvent(barcode: args.initialBarcode!));
+    }
     super.didChangeDependencies();
   }
 
@@ -225,6 +229,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 class ScannerScreenArguments {
   final DateTime day;
   final IntakeTypeEntity intakeTypeEntity;
+  final String? initialBarcode;
 
-  ScannerScreenArguments(this.day, this.intakeTypeEntity);
+  ScannerScreenArguments(this.day, this.intakeTypeEntity, {this.initialBarcode});
 }
