@@ -840,5 +840,26 @@
   "settingsWaterGoalDescription": "主屏幕上的饮水提示使用此目标。",
   "settingsWaterGoalLabel": "每日饮水目标",
   "waterChipLabel": "{current} / {goal} 毫升",
-  "zincLabel": "锌"
+  "zincLabel": "锌",
+  "customMealsRowMoreTooltip": "更多操作",
+  "customMealsMergeAction": "与另一项自定义食物合并",
+  "customMealsMergePickerTitle": "选择要合并的自定义食物",
+  "customMealsMergeChooseSurvivorTitle": "保留哪一项?",
+  "customMealsMergeContinueAction": "继续",
+  "customMealsMergeConfirmTitle": "合并自定义食物?",
+  "customMealsMergeConfirmContent": "这会把所有用 {loser} 记录的条目改为显示 {winner},并把 {loser} 从你的自定义食物中移除。此操作无法撤销。",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": { "type": "String" },
+      "winner": { "type": "String" }
+    }
+  },
+  "customMealsMergeConfirmAction": "合并",
+  "customMealsMergeSuccessSnackbar": "已合并 — {winner} 现在有 {count} 条记录。",
+  "@customMealsMergeSuccessSnackbar": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "winner": { "type": "String" }
+    }
+  }
 }

@@ -839,5 +839,26 @@
   "settingsWaterGoalDescription": "Usato dal contatore d'acqua nella schermata principale.",
   "settingsWaterGoalLabel": "Obiettivo idrico giornaliero",
   "waterChipLabel": "{current} / {goal} ml",
-  "zincLabel": "zinco"
+  "zincLabel": "zinco",
+  "customMealsRowMoreTooltip": "Altre azioni",
+  "customMealsMergeAction": "Unisci a un altro alimento personalizzato",
+  "customMealsMergePickerTitle": "Scegli l'alimento personalizzato da unire",
+  "customMealsMergeChooseSurvivorTitle": "Quale rimane?",
+  "customMealsMergeContinueAction": "Continua",
+  "customMealsMergeConfirmTitle": "Unire gli alimenti personalizzati?",
+  "customMealsMergeConfirmContent": "Tutte le voci registrate con {loser} verranno sostituite e mostrate come {winner}, e {loser} sarà rimosso dai tuoi alimenti personalizzati. Questa operazione non può essere annullata.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": { "type": "String" },
+      "winner": { "type": "String" }
+    }
+  },
+  "customMealsMergeConfirmAction": "Unisci",
+  "customMealsMergeSuccessSnackbar": "Uniti — {winner} ora ha {count} voci registrate.",
+  "@customMealsMergeSuccessSnackbar": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "winner": { "type": "String" }
+    }
+  }
 }

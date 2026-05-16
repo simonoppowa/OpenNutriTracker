@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.d
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 part 'custom_meals_event.dart';
@@ -16,12 +17,14 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
   final GetIntakeUsecase _getIntakeUsecase;
   final DeleteIntakeUsecase _deleteIntakeUsecase;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
+  final MergeCustomMealsUseCase _mergeCustomMealsUseCase;
 
   CustomMealsBloc(
     this._customMealDataSource,
     this._getIntakeUsecase,
     this._deleteIntakeUsecase,
     this._addTrackedDayUsecase,
+    this._mergeCustomMealsUseCase,
   ) : super(CustomMealsInitial()) {
     on<LoadCustomMealsEvent>((event, emit) async {
       emit(CustomMealsLoadingState());
@@ -62,6 +65,30 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
           );
         }
         add(LoadCustomMealsEvent());
+      } catch (error) {
+        log.severe(error);
+        emit(CustomMealsFailedState());
+      }
+    });
+
+    on<MergeCustomMealsEvent>((event, emit) async {
+      emit(CustomMealsLoadingState());
+      try {
+        final result = await _mergeCustomMealsUseCase.merge(
+          loserKey: event.loserKey,
+          winnerKey: event.winnerKey,
+        );
+        final meals = _customMealDataSource
+            .getAllCustomMeals()
+            .map(MealEntity.fromMealDBO)
+            .toList();
+        emit(
+          CustomMealsMergedState(
+            meals: meals,
+            rewrittenIntakeCount: result.rewrittenIntakeCount,
+            winnerDisplayName: result.winnerDisplayName,
+          ),
+        );
       } catch (error) {
         log.severe(error);
         emit(CustomMealsFailedState());

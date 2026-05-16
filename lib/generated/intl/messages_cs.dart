@@ -86,6 +86,12 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String mLogWaterAmount(amount) => "Přidat ${amount} ml";
 
+  static String mMergeConfirm(loser, winner) =>
+      "Tímto se všechny záznamy zapsané s ${loser} nahradí, aby se zobrazovaly jako ${winner}, a ${loser} bude odstraněna z vašich vlastních potravin. Tuto akci nelze vrátit zpět.";
+
+  static String mMergeSuccess(count, winner) =>
+      "Sloučeno — ${winner} má nyní ${count} záznamů.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -207,6 +213,22 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Smazat vlastní jídlo?"),
         "customMealsEmptyLabel": MessageLookupByLibrary.simpleMessage(
             "Zatím žádná vlastní jídla uložena."),
+        "customMealsRowMoreTooltip":
+            MessageLookupByLibrary.simpleMessage("Další akce"),
+        "customMealsMergeAction": MessageLookupByLibrary.simpleMessage(
+            "Sloučit s jinou vlastní potravinou"),
+        "customMealsMergePickerTitle": MessageLookupByLibrary.simpleMessage(
+            "Vyberte vlastní potravinu pro sloučení"),
+        "customMealsMergeChooseSurvivorTitle":
+            MessageLookupByLibrary.simpleMessage("Která zůstane?"),
+        "customMealsMergeContinueAction":
+            MessageLookupByLibrary.simpleMessage("Pokračovat"),
+        "customMealsMergeConfirmTitle": MessageLookupByLibrary.simpleMessage(
+            "Sloučit vlastní potraviny?"),
+        "customMealsMergeConfirmContent": mMergeConfirm,
+        "customMealsMergeConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Sloučit"),
+        "customMealsMergeSuccessSnackbar": mMergeSuccess,
         "dailyKcalAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
             "Úprava denního kalorického příjmu:"),
         "dailyKjAdjustmentLabel":

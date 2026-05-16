@@ -870,5 +870,26 @@
   "settingsWaterGoalDescription": "Ana ekrandaki su göstergesinin kullandığı hedef.",
   "settingsWaterGoalLabel": "Günlük su hedefi",
   "waterChipLabel": "{current} / {goal} ml",
-  "zincLabel": "çinko"
+  "zincLabel": "çinko",
+  "customMealsRowMoreTooltip": "Diğer eylemler",
+  "customMealsMergeAction": "Başka bir özel yiyecekle birleştir",
+  "customMealsMergePickerTitle": "Birleştirilecek özel yiyeceği seç",
+  "customMealsMergeChooseSurvivorTitle": "Hangisi kalsın?",
+  "customMealsMergeContinueAction": "Devam et",
+  "customMealsMergeConfirmTitle": "Özel yiyecekler birleştirilsin mi?",
+  "customMealsMergeConfirmContent": "Bu işlem, {loser} ile kaydedilen tüm girdileri değiştirip {winner} olarak gösterir ve {loser} özel yiyeceklerinden kaldırılır. Bu işlem geri alınamaz.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": { "type": "String" },
+      "winner": { "type": "String" }
+    }
+  },
+  "customMealsMergeConfirmAction": "Birleştir",
+  "customMealsMergeSuccessSnackbar": "Birleştirildi — {winner} artık {count} kayıtlı girdiye sahip.",
+  "@customMealsMergeSuccessSnackbar": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "winner": { "type": "String" }
+    }
+  }
 }

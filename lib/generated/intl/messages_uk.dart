@@ -86,6 +86,12 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String mLogWaterAmount(amount) => "Додати ${amount} мл";
 
+  static String mMergeConfirm(loser, winner) =>
+      "Це замінить усі записи, додані з ${loser}, щоб вони показували ${winner}, і видалить ${loser} з ваших власних страв. Цю дію не можна скасувати.";
+
+  static String mMergeSuccess(count, winner) =>
+      "Об’єднано — ${winner} тепер має ${count} записів.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -208,6 +214,22 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Видалити власну страву?"),
         "customMealsEmptyLabel": MessageLookupByLibrary.simpleMessage(
             "Ще немає збережених власних страв."),
+        "customMealsRowMoreTooltip":
+            MessageLookupByLibrary.simpleMessage("Більше дій"),
+        "customMealsMergeAction": MessageLookupByLibrary.simpleMessage(
+            "Об’єднати з іншою власною стравою"),
+        "customMealsMergePickerTitle": MessageLookupByLibrary.simpleMessage(
+            "Виберіть власну страву для об’єднання"),
+        "customMealsMergeChooseSurvivorTitle":
+            MessageLookupByLibrary.simpleMessage("Яка залишається?"),
+        "customMealsMergeContinueAction":
+            MessageLookupByLibrary.simpleMessage("Продовжити"),
+        "customMealsMergeConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("Об’єднати власні страви?"),
+        "customMealsMergeConfirmContent": mMergeConfirm,
+        "customMealsMergeConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Об’єднати"),
+        "customMealsMergeSuccessSnackbar": mMergeSuccess,
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Щоденна корекція калорій:"),
         "dailyKjAdjustmentLabel":

@@ -839,5 +839,26 @@
   "settingsWaterGoalDescription": "Používá se pro ukazatel vody na hlavní obrazovce.",
   "settingsWaterGoalLabel": "Denní cíl pití vody",
   "waterChipLabel": "{current} / {goal} ml",
-  "zincLabel": "zinek"
+  "zincLabel": "zinek",
+  "customMealsRowMoreTooltip": "Další akce",
+  "customMealsMergeAction": "Sloučit s jinou vlastní potravinou",
+  "customMealsMergePickerTitle": "Vyberte vlastní potravinu pro sloučení",
+  "customMealsMergeChooseSurvivorTitle": "Která zůstane?",
+  "customMealsMergeContinueAction": "Pokračovat",
+  "customMealsMergeConfirmTitle": "Sloučit vlastní potraviny?",
+  "customMealsMergeConfirmContent": "Tímto se všechny záznamy zapsané s {loser} nahradí, aby se zobrazovaly jako {winner}, a {loser} bude odstraněna z vašich vlastních potravin. Tuto akci nelze vrátit zpět.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": { "type": "String" },
+      "winner": { "type": "String" }
+    }
+  },
+  "customMealsMergeConfirmAction": "Sloučit",
+  "customMealsMergeSuccessSnackbar": "Sloučeno — {winner} má nyní {count} záznamů.",
+  "@customMealsMergeSuccessSnackbar": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "winner": { "type": "String" }
+    }
+  }
 }

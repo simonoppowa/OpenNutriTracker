@@ -7151,6 +7151,96 @@ class S {
       args: [],
     );
   }
+
+  /// `More actions`
+  String get customMealsRowMoreTooltip {
+    return Intl.message(
+      'More actions',
+      name: 'customMealsRowMoreTooltip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Merge with another custom food`
+  String get customMealsMergeAction {
+    return Intl.message(
+      'Merge with another custom food',
+      name: 'customMealsMergeAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pick the custom food to merge with`
+  String get customMealsMergePickerTitle {
+    return Intl.message(
+      'Pick the custom food to merge with',
+      name: 'customMealsMergePickerTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Which one stays?`
+  String get customMealsMergeChooseSurvivorTitle {
+    return Intl.message(
+      'Which one stays?',
+      name: 'customMealsMergeChooseSurvivorTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Continue`
+  String get customMealsMergeContinueAction {
+    return Intl.message(
+      'Continue',
+      name: 'customMealsMergeContinueAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Merge custom foods?`
+  String get customMealsMergeConfirmTitle {
+    return Intl.message(
+      'Merge custom foods?',
+      name: 'customMealsMergeConfirmTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This will replace all entries logged with {loser} so they show {winner} instead, and remove {loser} from your custom foods. This can't be undone.`
+  String customMealsMergeConfirmContent(String loser, String winner) {
+    return Intl.message(
+      "This will replace all entries logged with $loser so they show $winner instead, and remove $loser from your custom foods. This can't be undone.",
+      name: 'customMealsMergeConfirmContent',
+      desc: '',
+      args: [loser, winner],
+    );
+  }
+
+  /// `Merge`
+  String get customMealsMergeConfirmAction {
+    return Intl.message(
+      'Merge',
+      name: 'customMealsMergeConfirmAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Merged — {winner} now has {count} logged entries.`
+  String customMealsMergeSuccessSnackbar(int count, String winner) {
+    return Intl.message(
+      'Merged — $winner now has $count logged entries.',
+      name: 'customMealsMergeSuccessSnackbar',
+      desc: '',
+      args: [count, winner],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

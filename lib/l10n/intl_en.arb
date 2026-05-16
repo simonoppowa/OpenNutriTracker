@@ -887,5 +887,26 @@
   "settingsWaterGoalDescription": "Used by the water chip on the home screen.",
   "settingsWaterGoalLabel": "Daily water goal",
   "waterChipLabel": "{current} / {goal} ml",
-  "zincLabel": "zinc"
+  "zincLabel": "zinc",
+  "customMealsRowMoreTooltip": "More actions",
+  "customMealsMergeAction": "Merge with another custom food",
+  "customMealsMergePickerTitle": "Pick the custom food to merge with",
+  "customMealsMergeChooseSurvivorTitle": "Which one stays?",
+  "customMealsMergeContinueAction": "Continue",
+  "customMealsMergeConfirmTitle": "Merge custom foods?",
+  "customMealsMergeConfirmContent": "This will replace all entries logged with {loser} so they show {winner} instead, and remove {loser} from your custom foods. This can't be undone.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": { "type": "String" },
+      "winner": { "type": "String" }
+    }
+  },
+  "customMealsMergeConfirmAction": "Merge",
+  "customMealsMergeSuccessSnackbar": "Merged — {winner} now has {count} logged entries.",
+  "@customMealsMergeSuccessSnackbar": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "winner": { "type": "String" }
+    }
+  }
 }

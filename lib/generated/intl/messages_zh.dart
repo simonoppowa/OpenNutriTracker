@@ -83,6 +83,12 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String mLogWaterAmount(amount) => "添加 ${amount} 毫升";
 
+  static String mMergeConfirm(loser, winner) =>
+      "这会把所有用 ${loser} 记录的条目改为显示 ${winner}，并把 ${loser} 从你的自定义食物中移除。此操作无法撤销。";
+
+  static String mMergeSuccess(count, winner) =>
+      "已合并 — ${winner} 现在有 ${count} 条记录。";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample":
@@ -198,6 +204,22 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("删除自定义餐食？"),
         "customMealsEmptyLabel":
             MessageLookupByLibrary.simpleMessage("尚未保存自定义餐食。"),
+        "customMealsRowMoreTooltip":
+            MessageLookupByLibrary.simpleMessage("更多操作"),
+        "customMealsMergeAction":
+            MessageLookupByLibrary.simpleMessage("与另一项自定义食物合并"),
+        "customMealsMergePickerTitle":
+            MessageLookupByLibrary.simpleMessage("选择要合并的自定义食物"),
+        "customMealsMergeChooseSurvivorTitle":
+            MessageLookupByLibrary.simpleMessage("保留哪一项？"),
+        "customMealsMergeContinueAction":
+            MessageLookupByLibrary.simpleMessage("继续"),
+        "customMealsMergeConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("合并自定义食物？"),
+        "customMealsMergeConfirmContent": mMergeConfirm,
+        "customMealsMergeConfirmAction":
+            MessageLookupByLibrary.simpleMessage("合并"),
+        "customMealsMergeSuccessSnackbar": mMergeSuccess,
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("每日卡路里调整："),
         "dailyKjAdjustmentLabel":

@@ -86,6 +86,12 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String mLogWaterAmount(amount) => "Pridať ${amount} ml";
 
+  static String mMergeConfirm(loser, winner) =>
+      "Tým sa všetky záznamy zapísané s ${loser} nahradia, aby zobrazovali ${winner}, a ${loser} bude odstránené z vašich vlastných jedál. Túto akciu nemožno vrátiť späť.";
+
+  static String mMergeSuccess(count, winner) =>
+      "Zlúčené — ${winner} má teraz ${count} zaznamenaných záznamov.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -215,6 +221,22 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Zmazať vlastné jedlo?"),
         "customMealsEmptyLabel": MessageLookupByLibrary.simpleMessage(
             "Zatiaľ nie sú uložené žiadne vlastné jedlá."),
+        "customMealsRowMoreTooltip":
+            MessageLookupByLibrary.simpleMessage("Ďalšie akcie"),
+        "customMealsMergeAction": MessageLookupByLibrary.simpleMessage(
+            "Zlúčiť s iným vlastným jedlom"),
+        "customMealsMergePickerTitle": MessageLookupByLibrary.simpleMessage(
+            "Vyberte vlastné jedlo na zlúčenie"),
+        "customMealsMergeChooseSurvivorTitle":
+            MessageLookupByLibrary.simpleMessage("Ktoré ostane?"),
+        "customMealsMergeContinueAction":
+            MessageLookupByLibrary.simpleMessage("Pokračovať"),
+        "customMealsMergeConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("Zlúčiť vlastné jedlá?"),
+        "customMealsMergeConfirmContent": mMergeConfirm,
+        "customMealsMergeConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Zlúčiť"),
+        "customMealsMergeSuccessSnackbar": mMergeSuccess,
         "dailyKcalAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
             "Denná úprava kcal:"),
         "dailyKjAdjustmentLabel":

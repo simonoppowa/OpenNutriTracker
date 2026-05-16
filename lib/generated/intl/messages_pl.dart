@@ -85,6 +85,12 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String mLogWaterAmount(amount) => "Dodaj ${amount} ml";
 
+  static String mMergeConfirm(loser, winner) =>
+      "Spowoduje to zastąpienie wszystkich wpisów zarejestrowanych z ${loser}, tak by pokazywały ${winner}, oraz usunie ${loser} z Twoich własnych produktów. Tej operacji nie można cofnąć.";
+
+  static String mMergeSuccess(count, winner) =>
+      "Połączono — ${winner} ma teraz ${count} zarejestrowanych wpisów.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -207,6 +213,22 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Usunąć własny posiłek?"),
         "customMealsEmptyLabel": MessageLookupByLibrary.simpleMessage(
             "Brak zapisanych własnych posiłków."),
+        "customMealsRowMoreTooltip":
+            MessageLookupByLibrary.simpleMessage("Więcej akcji"),
+        "customMealsMergeAction": MessageLookupByLibrary.simpleMessage(
+            "Połącz z innym własnym produktem"),
+        "customMealsMergePickerTitle": MessageLookupByLibrary.simpleMessage(
+            "Wybierz własny produkt do połączenia"),
+        "customMealsMergeChooseSurvivorTitle":
+            MessageLookupByLibrary.simpleMessage("Który zostaje?"),
+        "customMealsMergeContinueAction":
+            MessageLookupByLibrary.simpleMessage("Kontynuuj"),
+        "customMealsMergeConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("Połączyć własne produkty?"),
+        "customMealsMergeConfirmContent": mMergeConfirm,
+        "customMealsMergeConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Połącz"),
+        "customMealsMergeSuccessSnackbar": mMergeSuccess,
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Dzienna korekta Kcal:"),
         "dailyKjAdjustmentLabel":

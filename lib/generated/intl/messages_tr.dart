@@ -88,6 +88,12 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String mLogWaterAmount(amount) => "${amount} ml ekle";
 
+  static String mMergeConfirm(loser, winner) =>
+      "Bu işlem, ${loser} ile kaydedilen tüm girdileri değiştirip ${winner} olarak gösterir ve ${loser} özel yiyeceklerinden kaldırılır. Bu işlem geri alınamaz.";
+
+  static String mMergeSuccess(count, winner) =>
+      "Birleştirildi — ${winner} artık ${count} kayıtlı girdiye sahip.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -210,6 +216,22 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Özel yemek silinsin mi?"),
         "customMealsEmptyLabel": MessageLookupByLibrary.simpleMessage(
             "Henüz özel yemek kaydedilmedi."),
+        "customMealsRowMoreTooltip":
+            MessageLookupByLibrary.simpleMessage("Diğer eylemler"),
+        "customMealsMergeAction": MessageLookupByLibrary.simpleMessage(
+            "Başka bir özel yiyecekle birleştir"),
+        "customMealsMergePickerTitle": MessageLookupByLibrary.simpleMessage(
+            "Birleştirilecek özel yiyeceği seç"),
+        "customMealsMergeChooseSurvivorTitle":
+            MessageLookupByLibrary.simpleMessage("Hangisi kalsın?"),
+        "customMealsMergeContinueAction":
+            MessageLookupByLibrary.simpleMessage("Devam et"),
+        "customMealsMergeConfirmTitle": MessageLookupByLibrary.simpleMessage(
+            "Özel yiyecekler birleştirilsin mi?"),
+        "customMealsMergeConfirmContent": mMergeConfirm,
+        "customMealsMergeConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Birleştir"),
+        "customMealsMergeSuccessSnackbar": mMergeSuccess,
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Günlük Kcal ayarı:"),
         "dailyKjAdjustmentLabel":

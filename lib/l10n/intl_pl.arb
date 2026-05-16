@@ -839,5 +839,26 @@
   "settingsWaterGoalDescription": "Używane przez wskaźnik wody na ekranie głównym.",
   "settingsWaterGoalLabel": "Dzienny cel wody",
   "waterChipLabel": "{current} / {goal} ml",
-  "zincLabel": "cynk"
+  "zincLabel": "cynk",
+  "customMealsRowMoreTooltip": "Więcej akcji",
+  "customMealsMergeAction": "Połącz z innym własnym produktem",
+  "customMealsMergePickerTitle": "Wybierz własny produkt do połączenia",
+  "customMealsMergeChooseSurvivorTitle": "Który zostaje?",
+  "customMealsMergeContinueAction": "Kontynuuj",
+  "customMealsMergeConfirmTitle": "Połączyć własne produkty?",
+  "customMealsMergeConfirmContent": "Spowoduje to zastąpienie wszystkich wpisów zarejestrowanych z {loser}, tak by pokazywały {winner}, oraz usunie {loser} z Twoich własnych produktów. Tej operacji nie można cofnąć.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": { "type": "String" },
+      "winner": { "type": "String" }
+    }
+  },
+  "customMealsMergeConfirmAction": "Połącz",
+  "customMealsMergeSuccessSnackbar": "Połączono — {winner} ma teraz {count} zarejestrowanych wpisów.",
+  "@customMealsMergeSuccessSnackbar": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "winner": { "type": "String" }
+    }
+  }
 }

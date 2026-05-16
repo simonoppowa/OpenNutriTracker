@@ -869,5 +869,26 @@
   "settingsWaterGoalDescription": "Používa sa ukazovateľom vody na hlavnej obrazovke.",
   "settingsWaterGoalLabel": "Denný cieľ pitia vody",
   "waterChipLabel": "{current} / {goal} ml",
-  "zincLabel": "zinok"
+  "zincLabel": "zinok",
+  "customMealsRowMoreTooltip": "Ďalšie akcie",
+  "customMealsMergeAction": "Zlúčiť s iným vlastným jedlom",
+  "customMealsMergePickerTitle": "Vyberte vlastné jedlo na zlúčenie",
+  "customMealsMergeChooseSurvivorTitle": "Ktoré ostane?",
+  "customMealsMergeContinueAction": "Pokračovať",
+  "customMealsMergeConfirmTitle": "Zlúčiť vlastné jedlá?",
+  "customMealsMergeConfirmContent": "Tým sa všetky záznamy zapísané s {loser} nahradia, aby zobrazovali {winner}, a {loser} bude odstránené z vašich vlastných jedál. Túto akciu nemožno vrátiť späť.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": { "type": "String" },
+      "winner": { "type": "String" }
+    }
+  },
+  "customMealsMergeConfirmAction": "Zlúčiť",
+  "customMealsMergeSuccessSnackbar": "Zlúčené — {winner} má teraz {count} zaznamenaných záznamov.",
+  "@customMealsMergeSuccessSnackbar": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "winner": { "type": "String" }
+    }
+  }
 }

@@ -119,4 +119,37 @@ class IntakeDataSource {
   Future<List<IntakeDBO>> getCustomMealIntakes() async {
     return _intakeBox.values.where((dbo) => dbo.meal.source == MealSourceDBO.custom).toList();
   }
+
+  /// Replace the denormalised [MealDBO] snapshot on every intake whose
+  /// `(meal.code ?? meal.name)` matches [fromMealKey] *and* whose meal source
+  /// is custom. Used by the custom-meal merge flow: callers compute the
+  /// kcal/macro deltas before invoking this and apply them to TrackedDay
+  /// totals separately.
+  ///
+  /// Returns the list of `(oldIntake, newIntake)` pairs that were rewritten,
+  /// so the caller can recompute totals from the diff.
+  Future<List<(IntakeDBO, IntakeDBO)>> remapCustomMealOnIntakes({
+    required String fromMealKey,
+    required MealDBO toMeal,
+  }) async {
+    final rewrites = <(IntakeDBO, IntakeDBO)>[];
+    final entries = _intakeBox.toMap().entries.toList();
+    for (final entry in entries) {
+      final dbo = entry.value;
+      if (dbo.meal.source != MealSourceDBO.custom) continue;
+      final key = dbo.meal.code ?? dbo.meal.name;
+      if (key != fromMealKey) continue;
+      final updated = IntakeDBO(
+        id: dbo.id,
+        unit: dbo.unit,
+        amount: dbo.amount,
+        type: dbo.type,
+        meal: toMeal,
+        dateTime: dbo.dateTime,
+      );
+      await _intakeBox.put(entry.key, updated);
+      rewrites.add((dbo, updated));
+    }
+    return rewrites;
+  }
 }

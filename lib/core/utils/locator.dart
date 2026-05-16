@@ -35,6 +35,7 @@ import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecas
 import 'package:opennutritracker/core/domain/usecase/delete_custom_activity_template_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_recipe_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
@@ -202,7 +203,13 @@ Future<void> initLocator() async {
   // create-from-popup flow on the same tab — both must mutate / observe the
   // same instance so the list refreshes after a new entry is created.
   locator.registerLazySingleton<CustomMealsBloc>(
-    () => CustomMealsBloc(locator(), locator(), locator(), locator()),
+    () => CustomMealsBloc(
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+    ),
   );
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
@@ -373,6 +380,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => GetAllRecipesUseCase(locator()));
   locator.registerLazySingleton(() => GetRecipeByIdUseCase(locator()));
   locator.registerLazySingleton(() => DeleteRecipeUseCase(locator()));
+  locator.registerLazySingleton(
+    () => MergeCustomMealsUseCase(locator(), locator(), locator()),
+  );
 
   // Repositories
   locator.registerLazySingleton(() => ConfigRepository(locator()));
