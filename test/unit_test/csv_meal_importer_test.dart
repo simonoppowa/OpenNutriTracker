@@ -207,5 +207,65 @@ void main() {
       expect(result.meals[0].name, 'Banana');
       expect(result.meals[1].name, 'Whole Milk 3.25%');
     });
+
+    test('serving_size populates servingQuantity and hasServingValues', () {
+      // Issue #420 / #421: when present, the meal-detail screen uses
+      // `hasServingValues` to default the logged amount to 1 serving
+      // instead of 100 g.
+      const csv = 'name,kcal_per_100g,serving_size\nBanana,89,118';
+
+      final result = CsvMealImporter.parse(csv);
+
+      expect(result.errors, isEmpty);
+      final meal = result.meals.single;
+      expect(meal.servingQuantity, 118);
+      expect(meal.servingSize, '118 g');
+      expect(meal.hasServingValues, isTrue);
+    });
+
+    test('decimal serving_size like 62.5 is preserved', () {
+      const csv = 'name,kcal_per_100g,serving_size\nProtein Bar,400,62.5';
+
+      final result = CsvMealImporter.parse(csv);
+
+      expect(result.errors, isEmpty);
+      final meal = result.meals.single;
+      expect(meal.servingQuantity, 62.5);
+      expect(meal.servingSize, '62.5 g');
+    });
+
+    test('blank serving_size leaves servingQuantity null', () {
+      const csv = 'name,kcal_per_100g,serving_size\nApple,52,\nBanana,89,';
+
+      final result = CsvMealImporter.parse(csv);
+
+      expect(result.errors, isEmpty);
+      expect(result.meals.every((m) => m.servingQuantity == null), isTrue);
+    });
+
+    test('non-positive serving_size is rejected with a row error', () {
+      const csv = 'name,kcal_per_100g,serving_size\nApple,52,-1\nBanana,89,0';
+
+      final result = CsvMealImporter.parse(csv);
+
+      expect(result.meals, isEmpty);
+      expect(result.errors, hasLength(2));
+      expect(result.errors[0], contains('serving_size'));
+      expect(result.errors[1], contains('serving_size'));
+    });
+
+    test('old CSV without serving_size column still parses (backward-compat)', () {
+      // The header set predating issue #420. Importers in the wild that
+      // omit the new column must keep working.
+      const csv = 'name,brands,barcode,kcal_per_100g,carbs_per_100g,'
+          'fat_per_100g,protein_per_100g,sugars_per_100g,'
+          'saturated_fat_per_100g,fiber_per_100g\n'
+          'Banana,,,89,22.8,0.3,1.1,12.2,0.1,2.6';
+
+      final result = CsvMealImporter.parse(csv);
+
+      expect(result.errors, isEmpty);
+      expect(result.meals.single.servingQuantity, isNull);
+    });
   });
 }

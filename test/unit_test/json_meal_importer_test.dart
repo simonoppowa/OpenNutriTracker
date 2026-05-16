@@ -147,6 +147,53 @@ void main() {
       expect(intake.totalKcal, closeTo(200, 0.001));
       expect(intake.totalProteinsGram, closeTo(10, 0.001));
     });
+
+    test('serving_size populates servingQuantity on the saved meal', () {
+      // Issue #420 / #421: a saved custom meal with serving values set
+      // makes meal-detail default re-logged quantities to 1 serving.
+      const json = '{"name":"Banana","kcal":89,"protein":1.1,"carbs":22.8,'
+          '"fat":0.3,"amount":100,"unit":"g","serving_size":118}';
+
+      final result = JsonMealImporter.parse(json, now: fixedNow);
+
+      expect(result.errors, isEmpty);
+      final meal = result.intakes.single.meal;
+      expect(meal.servingQuantity, 118);
+      expect(meal.servingSize, '118 g');
+      expect(meal.hasServingValues, isTrue);
+    });
+
+    test('serving_size omitted leaves servingQuantity null', () {
+      const json = '{"name":"Apple","kcal":52,"protein":0.3,"carbs":14,'
+          '"fat":0.2}';
+
+      final result = JsonMealImporter.parse(json, now: fixedNow);
+
+      expect(result.errors, isEmpty);
+      expect(result.intakes.single.meal.servingQuantity, isNull);
+    });
+
+    test('non-positive serving_size is rejected', () {
+      const json = '{"name":"Apple","kcal":52,"protein":0.3,"carbs":14,'
+          '"fat":0.2,"serving_size":0}';
+
+      final result = JsonMealImporter.parse(json, now: fixedNow);
+
+      expect(result.intakes, isEmpty);
+      expect(result.errors.single, contains('serving_size'));
+    });
+
+    test('decimal serving_size like 62.5 is preserved', () {
+      const json = '{"name":"Protein Bar","kcal":400,"protein":20,"carbs":35,'
+          '"fat":15,"serving_size":62.5}';
+
+      final result = JsonMealImporter.parse(json, now: fixedNow);
+
+      expect(result.errors, isEmpty);
+      final meal = result.intakes.single.meal;
+      expect(meal.servingQuantity, 62.5);
+      expect(meal.servingSize, '62.5 g');
+    });
   });
 
   group('JsonMealImporter.sampleJson', () {

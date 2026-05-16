@@ -36,7 +36,9 @@ class JsonImportResult {
 ///   "mealType": "snack",   // optional, default "snack"
 ///   "amount": 100,         // optional, default 100
 ///   "unit": "g",           // optional, default "g"
-///   "date": "2026-05-13"   // optional, default today
+///   "date": "2026-05-13",  // optional, default today
+///   "serving_size": 100    // optional — when set, the saved custom meal
+///                          // defaults to 1 serving on re-log
 /// }
 /// ```
 ///
@@ -61,6 +63,7 @@ class JsonMealImporter {
   static const _kAmount = 'amount';
   static const _kUnit = 'unit';
   static const _kDate = 'date';
+  static const _kServingSize = 'serving_size';
 
   static const _requiredKeys = <String>[_kName, _kKcal, _kProtein, _kCarbs, _kFat];
 
@@ -97,7 +100,8 @@ class JsonMealImporter {
     "protein": 7.0,
     "carbs": 12.0,
     "fat": 16.0,
-    "mealType": "lunch"
+    "mealType": "lunch",
+    "serving_size": 250
   }
 ]
 ''';
@@ -207,6 +211,21 @@ class JsonMealImporter {
           ? entry[_kUnit].toString().trim()
           : 'g';
 
+      // Optional serving_size: independent of `amount`. `amount` is what
+      // was logged this time; `serving_size` describes what a serving
+      // *generally* is, and once the meal is saved as a custom food the
+      // meal-detail screen uses it to default re-logged quantities to
+      // 1 serving instead of 100 g.
+      double? servingQuantity;
+      if (entry.containsKey(_kServingSize) && entry[_kServingSize] != null) {
+        final parsed = _asDouble(entry[_kServingSize]);
+        if (parsed == null || parsed <= 0) {
+          errors.add('Entry $entryNum: serving_size must be a positive number');
+          continue;
+        }
+        servingQuantity = parsed;
+      }
+
       DateTime date;
       final dateRaw = entry[_kDate]?.toString().trim();
       if (dateRaw == null || dateRaw.isEmpty) {
@@ -245,9 +264,11 @@ class JsonMealImporter {
         url: null,
         mealQuantity: amount.toString(),
         mealUnit: unit,
-        servingQuantity: null,
+        servingQuantity: servingQuantity,
         servingUnit: unit,
-        servingSize: '$amount $unit',
+        servingSize: servingQuantity != null
+            ? '${_formatNumber(servingQuantity)} $unit'
+            : '$amount $unit',
         nutriments: nutriments,
         source: MealSourceEntity.custom,
       );
@@ -276,6 +297,11 @@ class JsonMealImporter {
       return double.tryParse(trimmed.replaceAll(',', '.'));
     }
     return null;
+  }
+
+  static String _formatNumber(double n) {
+    if (n == n.truncateToDouble()) return n.toInt().toString();
+    return n.toString();
   }
 
   static IntakeTypeEntity? _parseMealType(String raw) {

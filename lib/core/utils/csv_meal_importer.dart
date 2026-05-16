@@ -29,6 +29,7 @@ class CsvMealImporter {
   static const _kSugars = 'sugars_per_100g';
   static const _kSatFat = 'saturated_fat_per_100g';
   static const _kFiber = 'fiber_per_100g';
+  static const _kServingSize = 'serving_size';
 
   /// Column order in the sample CSV (also used by the column-name table in
   /// the UI / docs).
@@ -43,6 +44,7 @@ class CsvMealImporter {
     _kSugars,
     _kSatFat,
     _kFiber,
+    _kServingSize,
   ];
 
   static const requiredColumns = <String>{_kName, _kKcal};
@@ -113,6 +115,21 @@ class CsvMealImporter {
         continue;
       }
 
+      // Optional `serving_size` (issues #420 / #421): when present, becomes
+      // the meal's per-serving quantity in grams, which `meal_detail_screen`
+      // reads via `hasServingValues` to default the logged amount to 1
+      // serving instead of 100 g.
+      final servingRaw = row[_kServingSize];
+      double? servingQuantity;
+      if (servingRaw != null && servingRaw.isNotEmpty) {
+        final parsed = CsvRowParser.parseDoubleOrNull(servingRaw);
+        if (parsed == null || parsed <= 0) {
+          errors.add('Row $rowNum: serving_size must be a positive number');
+          continue;
+        }
+        servingQuantity = parsed;
+      }
+
       meals.add(
         MealEntity(
           // Leave the code null when no barcode was supplied so
@@ -124,9 +141,11 @@ class CsvMealImporter {
           url: null,
           mealQuantity: '100',
           mealUnit: 'g',
-          servingQuantity: null,
+          servingQuantity: servingQuantity,
           servingUnit: 'g',
-          servingSize: '100 g',
+          servingSize: servingQuantity != null
+              ? '${_formatNumber(servingQuantity)} g'
+              : '100 g',
           nutriments: MealNutrimentsEntity(
             energyKcal100: kcal,
             carbohydrates100: CsvRowParser.parseDoubleOrNull(row[_kCarbs]),
@@ -145,12 +164,23 @@ class CsvMealImporter {
   }
 
   /// Sample CSV text shipped with the app. Includes the header row plus a
-  /// couple of plausible rows so the user can see the expected shape.
+  /// couple of plausible rows so the user can see the expected shape — the
+  /// banana row demonstrates a serving size (one medium banana ~118 g) and
+  /// the milk row shows a sensible glass (240 ml expressed as 240 g, since
+  /// the importer is gram-only today).
   static String sampleCsv() {
     final header = orderedColumns.join(',');
     return '$header\n'
-        'Banana,,,89,22.8,0.3,1.1,12.2,0.1,2.6\n'
-        'Whole Milk 3.25%,Acme Dairy,1234567890123,61,4.8,3.3,3.2,5.1,1.9,0\n';
+        'Banana,,,89,22.8,0.3,1.1,12.2,0.1,2.6,118\n'
+        'Whole Milk 3.25%,Acme Dairy,1234567890123,61,4.8,3.3,3.2,5.1,1.9,0,240\n';
   }
 
+  /// Render `n` as a compact decimal: no trailing `.0` for whole numbers,
+  /// trimmed trailing zeros otherwise. So `118.0` becomes `118` and
+  /// `62.5` stays `62.5`. Keeps the user-visible servingSize string ("118 g")
+  /// readable.
+  static String _formatNumber(double n) {
+    if (n == n.truncateToDouble()) return n.toInt().toString();
+    return n.toString();
+  }
 }
