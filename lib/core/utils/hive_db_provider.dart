@@ -5,6 +5,7 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
@@ -34,6 +35,10 @@ class HiveDBProvider extends ChangeNotifier {
   // dialog's "undo last" can roll a single entry back without losing the
   // rest of the day.
   static const waterIntakeBoxName = 'WaterIntakeBox';
+  // #84: persisted fasting sessions, one record per start. The data layer
+  // intentionally keeps cancelled and completed sessions side by side with no
+  // success/failure label on the record — see `FastingSessionDBO`.
+  static const fastingBoxName = 'FastingBox';
 
   late Box<ConfigDBO> configBox;
   late Box<IntakeDBO> intakeBox;
@@ -47,6 +52,7 @@ class HiveDBProvider extends ChangeNotifier {
   late Box<CustomActivityTemplateDBO> customActivityTemplateBox;
   late Box<WeightLogDBO> weightLogBox;
   late Box<WaterIntakeDBO> waterIntakeBox;
+  late Box<FastingSessionDBO> fastingBox;
 
   Future<void> initHiveDB(Uint8List encryptionKey) async {
     final encryptionCypher = HiveAesCipher(encryptionKey);
@@ -105,6 +111,10 @@ class HiveDBProvider extends ChangeNotifier {
     );
     waterIntakeBox = await Hive.openBox(
       waterIntakeBoxName,
+      encryptionCipher: encryptionCypher,
+    );
+    fastingBox = await Hive.openBox(
+      fastingBoxName,
       encryptionCipher: encryptionCypher,
     );
   }

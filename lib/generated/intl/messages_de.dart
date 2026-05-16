@@ -88,6 +88,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String mLogWaterAmount(amount) => "${amount} ml hinzufügen";
 
+  static String mFastingRemaining(value) => "Noch ${value}";
+
+  static String mFastingTarget(value) => "Ziel: ${value}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1301,5 +1305,25 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsWaterGoalLabel":
             MessageLookupByLibrary.simpleMessage("Tägliches Wasserziel"),
         "waterChipLabel": mWaterChip,
+        "profileFastingEntry": MessageLookupByLibrary.simpleMessage('Fasten-Timer'),
+        "fastingTitle": MessageLookupByLibrary.simpleMessage('Fasten-Timer'),
+        "fastingSubtitle": MessageLookupByLibrary.simpleMessage('Ein einfacher Timer für die Zeit zwischen den Mahlzeiten. Keine Serien, keine Ziele, nur die Uhr.'),
+        "fastingWarningTitle": MessageLookupByLibrary.simpleMessage('Bevor du beginnst'),
+        "fastingWarningBody": MessageLookupByLibrary.simpleMessage('Das Verfolgen von Fastenzeiten kann für manche hilfreich und für andere belastend sein, besonders wenn eine Essstörung Teil deiner Geschichte ist. Bitte achte zuerst auf dich. Unterstützung findest du bei BEAT (UK) und NEDA (US).'),
+        "fastingWarningDecline": MessageLookupByLibrary.simpleMessage('Nichts für mich'),
+        "fastingWarningAccept": MessageLookupByLibrary.simpleMessage('Verstanden, Timer aktivieren'),
+        "fastingPresetCustom": MessageLookupByLibrary.simpleMessage('Eigene Dauer'),
+        "fastingStart": MessageLookupByLibrary.simpleMessage('Timer starten'),
+        "fastingCancel": MessageLookupByLibrary.simpleMessage('Fasten beenden'),
+        "fastingCancelConfirmTitle": MessageLookupByLibrary.simpleMessage('Fasten jetzt beenden?'),
+        "fastingCancelConfirmBody": MessageLookupByLibrary.simpleMessage('Damit wird die aktuelle Sitzung geschlossen.'),
+        "fastingComplete": MessageLookupByLibrary.simpleMessage('Sitzung abgeschlossen'),
+        "fastingLinkBeat": MessageLookupByLibrary.simpleMessage('BEAT (UK)'),
+        "fastingLinkNeda": MessageLookupByLibrary.simpleMessage('NEDA (US)'),
+        "fastingElapsedLabel": MessageLookupByLibrary.simpleMessage('Vergangen'),
+        "hoursLabel": MessageLookupByLibrary.simpleMessage('Stunden'),
+        "dialogCloseLabel": MessageLookupByLibrary.simpleMessage('Schließen'),
+        "fastingRemainingValue": mFastingRemaining,
+        "fastingTargetValue": mFastingTarget,
       };
 }

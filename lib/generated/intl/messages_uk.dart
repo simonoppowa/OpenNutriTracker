@@ -86,6 +86,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String mLogWaterAmount(amount) => "Додати ${amount} мл";
 
+  static String mFastingRemaining(value) => "Залишилося ${value}";
+
+  static String mFastingTarget(value) => "Ціль: ${value}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1292,5 +1296,25 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsWaterGoalLabel":
             MessageLookupByLibrary.simpleMessage("Денна ціль вживання води"),
         "waterChipLabel": mWaterChip,
+        "profileFastingEntry": MessageLookupByLibrary.simpleMessage('Таймер посту'),
+        "fastingTitle": MessageLookupByLibrary.simpleMessage('Таймер посту'),
+        "fastingSubtitle": MessageLookupByLibrary.simpleMessage('Простий таймер для часу між прийомами їжі. Без серій, без цілей, лише годинник.'),
+        "fastingWarningTitle": MessageLookupByLibrary.simpleMessage('Перш ніж почати'),
+        "fastingWarningBody": MessageLookupByLibrary.simpleMessage('Відстеження часу посту комусь допомагає, а декому може шкодити, особливо людям із досвідом розладів харчової поведінки. Якщо це про вас, будь ласка, спершу подбайте про себе. Підтримку надають BEAT (UK) і NEDA (US).'),
+        "fastingWarningDecline": MessageLookupByLibrary.simpleMessage('Це не для мене'),
+        "fastingWarningAccept": MessageLookupByLibrary.simpleMessage('Розумію, увімкнути таймер'),
+        "fastingPresetCustom": MessageLookupByLibrary.simpleMessage('Власний'),
+        "fastingStart": MessageLookupByLibrary.simpleMessage('Запустити таймер'),
+        "fastingCancel": MessageLookupByLibrary.simpleMessage('Завершити піст'),
+        "fastingCancelConfirmTitle": MessageLookupByLibrary.simpleMessage('Завершити піст зараз?'),
+        "fastingCancelConfirmBody": MessageLookupByLibrary.simpleMessage('Поточну сесію буде закрито.'),
+        "fastingComplete": MessageLookupByLibrary.simpleMessage('Сесію завершено'),
+        "fastingLinkBeat": MessageLookupByLibrary.simpleMessage('BEAT (UK)'),
+        "fastingLinkNeda": MessageLookupByLibrary.simpleMessage('NEDA (US)'),
+        "fastingElapsedLabel": MessageLookupByLibrary.simpleMessage('Минуло'),
+        "hoursLabel": MessageLookupByLibrary.simpleMessage('години'),
+        "dialogCloseLabel": MessageLookupByLibrary.simpleMessage('Закрити'),
+        "fastingRemainingValue": mFastingRemaining,
+        "fastingTargetValue": mFastingTarget,
       };
 }

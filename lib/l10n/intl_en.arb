@@ -252,7 +252,9 @@
   "customMealFormSimpleFieldHelper": "{unit} in one serving",
   "@customMealFormSimpleFieldHelper": {
     "placeholders": {
-      "unit": { "type": "String" }
+      "unit": {
+        "type": "String"
+      }
     }
   },
   "customMealsDeleteConfirmContent": "All diary entries using this meal will also be removed.",
@@ -887,5 +889,39 @@
   "settingsWaterGoalDescription": "Used by the water chip on the home screen.",
   "settingsWaterGoalLabel": "Daily water goal",
   "waterChipLabel": "{current} / {goal} ml",
-  "zincLabel": "zinc"
+  "zincLabel": "zinc",
+  "profileFastingEntry": "Fasting timer",
+  "fastingTitle": "Fasting timer",
+  "fastingSubtitle": "A simple timer for tracking time between meals. No streaks, no targets, just the clock.",
+  "fastingWarningTitle": "Before you start",
+  "fastingWarningBody": "Tracking fasting time can be helpful for some people and distressing for others, especially anyone with a history of disordered eating. If that's you, please look after yourself first. Support is available from BEAT (UK) and NEDA (US).",
+  "fastingWarningDecline": "Not for me",
+  "fastingWarningAccept": "I understand, enable timer",
+  "fastingPresetCustom": "Custom",
+  "fastingStart": "Start timer",
+  "fastingCancel": "End fast",
+  "fastingCancelConfirmTitle": "End fast now?",
+  "fastingCancelConfirmBody": "This will close the current session.",
+  "fastingComplete": "Session complete",
+  "fastingLinkBeat": "BEAT (UK)",
+  "fastingLinkNeda": "NEDA (US)",
+  "fastingElapsedLabel": "Elapsed",
+  "fastingRemainingValue": "{value} remaining",
+  "@fastingRemainingValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingTargetValue": "Target: {value}",
+  "@fastingTargetValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "hoursLabel": "hours",
+  "dialogCloseLabel": "Close"
 }

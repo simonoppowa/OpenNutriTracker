@@ -187,7 +187,9 @@
   "customMealFormSimpleFieldHelper": "{unit} v jedné porci",
   "@customMealFormSimpleFieldHelper": {
     "placeholders": {
-      "unit": { "type": "String" }
+      "unit": {
+        "type": "String"
+      }
     }
   },
   "customMealsDeleteConfirmContent": "Všechny záznamy v deníku používající toto jídlo budou také odstraněny.",
@@ -839,5 +841,39 @@
   "settingsWaterGoalDescription": "Používá se pro ukazatel vody na hlavní obrazovce.",
   "settingsWaterGoalLabel": "Denní cíl pití vody",
   "waterChipLabel": "{current} / {goal} ml",
-  "zincLabel": "zinek"
+  "zincLabel": "zinek",
+  "profileFastingEntry": "Časovač půstu",
+  "fastingTitle": "Časovač půstu",
+  "fastingSubtitle": "Jednoduchý časovač pro sledování času mezi jídly. Žádné série, žádné cíle, jen hodiny.",
+  "fastingWarningTitle": "Než začnete",
+  "fastingWarningBody": "Sledování doby půstu může být pro někoho užitečné a pro jiného zraňující, zvlášť pokud máte zkušenost s poruchou příjmu potravy. Pokud se vás to týká, prosím postarejte se nejdřív o sebe. Podporu nabízí BEAT (UK) a NEDA (US).",
+  "fastingWarningDecline": "Není to pro mě",
+  "fastingWarningAccept": "Rozumím, zapnout časovač",
+  "fastingPresetCustom": "Vlastní",
+  "fastingStart": "Spustit časovač",
+  "fastingCancel": "Ukončit půst",
+  "fastingCancelConfirmTitle": "Ukončit půst teď?",
+  "fastingCancelConfirmBody": "Aktuální relace bude uzavřena.",
+  "fastingComplete": "Relace dokončena",
+  "fastingLinkBeat": "BEAT (UK)",
+  "fastingLinkNeda": "NEDA (US)",
+  "fastingElapsedLabel": "Uplynulo",
+  "fastingRemainingValue": "Zbývá {value}",
+  "@fastingRemainingValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingTargetValue": "Cíl: {value}",
+  "@fastingTargetValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "hoursLabel": "hodiny",
+  "dialogCloseLabel": "Zavřít"
 }

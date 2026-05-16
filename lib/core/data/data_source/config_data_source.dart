@@ -233,6 +233,13 @@ class ConfigDataSource {
     await config?.save();
   }
 
+  Future<void> setFastingWarningAcknowledged(bool acknowledged) async {
+    _log.fine('Updating config fastingWarningAcknowledged to $acknowledged');
+    final config = _configBox.get(_configKey);
+    config?.fastingWarningAcknowledged = acknowledged;
+    await config?.save();
+  }
+
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();
   }

@@ -7151,6 +7151,206 @@ class S {
       args: [],
     );
   }
+
+  /// `Fasting timer`
+  String get profileFastingEntry {
+    return Intl.message(
+      'Fasting timer',
+      name: 'profileFastingEntry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fasting timer`
+  String get fastingTitle {
+    return Intl.message(
+      'Fasting timer',
+      name: 'fastingTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `A simple timer for tracking time between meals. No streaks, no targets, just the clock.`
+  String get fastingSubtitle {
+    return Intl.message(
+      'A simple timer for tracking time between meals. No streaks, no targets, just the clock.',
+      name: 'fastingSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Before you start`
+  String get fastingWarningTitle {
+    return Intl.message(
+      'Before you start',
+      name: 'fastingWarningTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tracking fasting time can be helpful for some people and distressing for others, especially anyone with a history of disordered eating. If that's you, please look after yourself first. Support is available from BEAT (UK) and NEDA (US).`
+  String get fastingWarningBody {
+    return Intl.message(
+      "Tracking fasting time can be helpful for some people and distressing for others, especially anyone with a history of disordered eating. If that's you, please look after yourself first. Support is available from BEAT (UK) and NEDA (US).",
+      name: 'fastingWarningBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not for me`
+  String get fastingWarningDecline {
+    return Intl.message(
+      'Not for me',
+      name: 'fastingWarningDecline',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `I understand, enable timer`
+  String get fastingWarningAccept {
+    return Intl.message(
+      'I understand, enable timer',
+      name: 'fastingWarningAccept',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Custom`
+  String get fastingPresetCustom {
+    return Intl.message(
+      'Custom',
+      name: 'fastingPresetCustom',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Start timer`
+  String get fastingStart {
+    return Intl.message(
+      'Start timer',
+      name: 'fastingStart',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `End fast`
+  String get fastingCancel {
+    return Intl.message(
+      'End fast',
+      name: 'fastingCancel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `End fast now?`
+  String get fastingCancelConfirmTitle {
+    return Intl.message(
+      'End fast now?',
+      name: 'fastingCancelConfirmTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This will close the current session.`
+  String get fastingCancelConfirmBody {
+    return Intl.message(
+      'This will close the current session.',
+      name: 'fastingCancelConfirmBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Session complete`
+  String get fastingComplete {
+    return Intl.message(
+      'Session complete',
+      name: 'fastingComplete',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `BEAT (UK)`
+  String get fastingLinkBeat {
+    return Intl.message(
+      'BEAT (UK)',
+      name: 'fastingLinkBeat',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `NEDA (US)`
+  String get fastingLinkNeda {
+    return Intl.message(
+      'NEDA (US)',
+      name: 'fastingLinkNeda',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Elapsed`
+  String get fastingElapsedLabel {
+    return Intl.message(
+      'Elapsed',
+      name: 'fastingElapsedLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{value} remaining`
+  String fastingRemainingValue(String value) {
+    return Intl.message(
+      '$value remaining',
+      name: 'fastingRemainingValue',
+      desc: '',
+      args: [value],
+    );
+  }
+
+  /// `Target: {value}`
+  String fastingTargetValue(String value) {
+    return Intl.message(
+      'Target: $value',
+      name: 'fastingTargetValue',
+      desc: '',
+      args: [value],
+    );
+  }
+
+  /// `hours`
+  String get hoursLabel {
+    return Intl.message(
+      'hours',
+      name: 'hoursLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Close`
+  String get dialogCloseLabel {
+    return Intl.message(
+      'Close',
+      name: 'dialogCloseLabel',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

@@ -75,6 +75,12 @@ class ConfigDBO extends HiveObject {
   // working without a migration.
   @HiveField(24)
   int? dailyWaterGoalMl;
+  // #84: persisted acknowledgement of the disordered-eating sensitivity
+  // warning shown the first time the fasting screen is opened. Once true,
+  // the warning dialog stays suppressed. Nullable so existing configs
+  // (and never-opened users) keep being treated as "not yet acknowledged".
+  @HiveField(25)
+  bool? fastingWarningAcknowledged;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -98,6 +104,7 @@ class ConfigDBO extends HiveObject {
     this.nutrientPanelVisibility,
     this.dayStartOffsetMinutes,
     this.dailyWaterGoalMl,
+    this.fastingWarningAcknowledged,
   });
 
   factory ConfigDBO.empty() =>

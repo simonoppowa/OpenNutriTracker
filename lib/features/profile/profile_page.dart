@@ -242,6 +242,22 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         Semantics(
+          identifier: 'profile-fasting-entry',
+          child: ListTile(
+            title: Text(
+              S.of(context).profileFastingEntry,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            leading: const SizedBox(
+              height: double.infinity,
+              child: Icon(Icons.timer_outlined),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () =>
+                Navigator.of(context).pushNamed(NavigationOptions.fastingRoute),
+          ),
+        ),
+        Semantics(
           identifier: 'profile-weight-history',
           child: ListTile(
             title: Text(

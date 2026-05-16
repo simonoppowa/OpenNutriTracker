@@ -218,7 +218,9 @@
   "customMealFormSimpleFieldHelper": "{unit} pro Portion",
   "@customMealFormSimpleFieldHelper": {
     "placeholders": {
-      "unit": { "type": "String" }
+      "unit": {
+        "type": "String"
+      }
     }
   },
   "customMealsDeleteConfirmContent": "Alle Tagebucheinträge, die diese Mahlzeit verwenden, werden ebenfalls entfernt.",
@@ -870,5 +872,39 @@
   "settingsWaterGoalDescription": "Wird vom Wasser-Chip auf dem Startbildschirm verwendet.",
   "settingsWaterGoalLabel": "Tägliches Wasserziel",
   "waterChipLabel": "{current} / {goal} ml",
-  "zincLabel": "Zink"
+  "zincLabel": "Zink",
+  "profileFastingEntry": "Fasten-Timer",
+  "fastingTitle": "Fasten-Timer",
+  "fastingSubtitle": "Ein einfacher Timer für die Zeit zwischen den Mahlzeiten. Keine Serien, keine Ziele, nur die Uhr.",
+  "fastingWarningTitle": "Bevor du beginnst",
+  "fastingWarningBody": "Das Verfolgen von Fastenzeiten kann für manche hilfreich und für andere belastend sein, besonders wenn eine Essstörung Teil deiner Geschichte ist. Bitte achte zuerst auf dich. Unterstützung findest du bei BEAT (UK) und NEDA (US).",
+  "fastingWarningDecline": "Nichts für mich",
+  "fastingWarningAccept": "Verstanden, Timer aktivieren",
+  "fastingPresetCustom": "Eigene Dauer",
+  "fastingStart": "Timer starten",
+  "fastingCancel": "Fasten beenden",
+  "fastingCancelConfirmTitle": "Fasten jetzt beenden?",
+  "fastingCancelConfirmBody": "Damit wird die aktuelle Sitzung geschlossen.",
+  "fastingComplete": "Sitzung abgeschlossen",
+  "fastingLinkBeat": "BEAT (UK)",
+  "fastingLinkNeda": "NEDA (US)",
+  "fastingElapsedLabel": "Vergangen",
+  "fastingRemainingValue": "Noch {value}",
+  "@fastingRemainingValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingTargetValue": "Ziel: {value}",
+  "@fastingTargetValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "hoursLabel": "Stunden",
+  "dialogCloseLabel": "Schließen"
 }

@@ -218,7 +218,9 @@
   "customMealFormSimpleFieldHelper": "{unit} porsiyon başına",
   "@customMealFormSimpleFieldHelper": {
     "placeholders": {
-      "unit": { "type": "String" }
+      "unit": {
+        "type": "String"
+      }
     }
   },
   "customMealsDeleteConfirmContent": "Bu yemeği kullanan tüm günlük girişleri de kaldırılacak.",
@@ -870,5 +872,39 @@
   "settingsWaterGoalDescription": "Ana ekrandaki su göstergesinin kullandığı hedef.",
   "settingsWaterGoalLabel": "Günlük su hedefi",
   "waterChipLabel": "{current} / {goal} ml",
-  "zincLabel": "çinko"
+  "zincLabel": "çinko",
+  "profileFastingEntry": "Oruç zamanlayıcısı",
+  "fastingTitle": "Oruç zamanlayıcısı",
+  "fastingSubtitle": "Öğünler arası süreyi izlemek için basit bir zamanlayıcı. Seri yok, hedef yok, sadece saat.",
+  "fastingWarningTitle": "Başlamadan önce",
+  "fastingWarningBody": "Oruç sürelerini takip etmek bazı insanlara iyi gelirken, özellikle yeme bozukluğu geçmişi olanlar için zorlayıcı olabilir. Bu sen olabilirsen lütfen önce kendine iyi bak. Destek için BEAT (UK) ve NEDA (US) yardımcı olabilir.",
+  "fastingWarningDecline": "Bana göre değil",
+  "fastingWarningAccept": "Anladım, zamanlayıcıyı aç",
+  "fastingPresetCustom": "Özel",
+  "fastingStart": "Zamanlayıcıyı başlat",
+  "fastingCancel": "Orucu sonlandır",
+  "fastingCancelConfirmTitle": "Orucu şimdi sonlandırılsın mı?",
+  "fastingCancelConfirmBody": "Bu, mevcut oturumu kapatacak.",
+  "fastingComplete": "Oturum tamamlandı",
+  "fastingLinkBeat": "BEAT (UK)",
+  "fastingLinkNeda": "NEDA (US)",
+  "fastingElapsedLabel": "Geçen",
+  "fastingRemainingValue": "{value} kaldı",
+  "@fastingRemainingValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingTargetValue": "Hedef: {value}",
+  "@fastingTargetValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "hoursLabel": "saat",
+  "dialogCloseLabel": "Kapat"
 }

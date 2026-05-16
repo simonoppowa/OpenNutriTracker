@@ -86,6 +86,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String mLogWaterAmount(amount) => "Aggiungi ${amount} ml";
 
+  static String mFastingRemaining(value) => "${value} rimanenti";
+
+  static String mFastingTarget(value) => "Obiettivo: ${value}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1291,5 +1295,25 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage(
                 "Obiettivo idrico giornaliero"),
         "waterChipLabel": mWaterChip,
+        "profileFastingEntry": MessageLookupByLibrary.simpleMessage('Timer di digiuno'),
+        "fastingTitle": MessageLookupByLibrary.simpleMessage('Timer di digiuno'),
+        "fastingSubtitle": MessageLookupByLibrary.simpleMessage('Un semplice timer per il tempo tra i pasti. Nessuna serie, nessun obiettivo, solo l\'orologio.'),
+        "fastingWarningTitle": MessageLookupByLibrary.simpleMessage('Prima di iniziare'),
+        "fastingWarningBody": MessageLookupByLibrary.simpleMessage('Tenere traccia dei tempi di digiuno può aiutare alcune persone e turbarne altre, in particolare chi ha alle spalle un disturbo alimentare. Se è il tuo caso, prenditi prima cura di te. Puoi trovare sostegno presso BEAT (UK) e NEDA (US).'),
+        "fastingWarningDecline": MessageLookupByLibrary.simpleMessage('Non fa per me'),
+        "fastingWarningAccept": MessageLookupByLibrary.simpleMessage('Ho capito, attiva il timer'),
+        "fastingPresetCustom": MessageLookupByLibrary.simpleMessage('Personalizzato'),
+        "fastingStart": MessageLookupByLibrary.simpleMessage('Avvia timer'),
+        "fastingCancel": MessageLookupByLibrary.simpleMessage('Termina digiuno'),
+        "fastingCancelConfirmTitle": MessageLookupByLibrary.simpleMessage('Terminare il digiuno?'),
+        "fastingCancelConfirmBody": MessageLookupByLibrary.simpleMessage('Chiuderà la sessione corrente.'),
+        "fastingComplete": MessageLookupByLibrary.simpleMessage('Sessione completata'),
+        "fastingLinkBeat": MessageLookupByLibrary.simpleMessage('BEAT (UK)'),
+        "fastingLinkNeda": MessageLookupByLibrary.simpleMessage('NEDA (US)'),
+        "fastingElapsedLabel": MessageLookupByLibrary.simpleMessage('Trascorso'),
+        "hoursLabel": MessageLookupByLibrary.simpleMessage('ore'),
+        "dialogCloseLabel": MessageLookupByLibrary.simpleMessage('Chiudi'),
+        "fastingRemainingValue": mFastingRemaining,
+        "fastingTargetValue": mFastingTarget,
       };
 }

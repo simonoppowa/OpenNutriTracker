@@ -187,7 +187,9 @@
   "customMealFormSimpleFieldHelper": "{unit} w jednej porcji",
   "@customMealFormSimpleFieldHelper": {
     "placeholders": {
-      "unit": { "type": "String" }
+      "unit": {
+        "type": "String"
+      }
     }
   },
   "customMealsDeleteConfirmContent": "Wszystkie wpisy w dzienniku używające tego posiłku zostaną również usunięte.",
@@ -839,5 +841,39 @@
   "settingsWaterGoalDescription": "Używane przez wskaźnik wody na ekranie głównym.",
   "settingsWaterGoalLabel": "Dzienny cel wody",
   "waterChipLabel": "{current} / {goal} ml",
-  "zincLabel": "cynk"
+  "zincLabel": "cynk",
+  "profileFastingEntry": "Minutnik postu",
+  "fastingTitle": "Minutnik postu",
+  "fastingSubtitle": "Prosty minutnik do śledzenia czasu między posiłkami. Bez serii, bez celów, tylko zegar.",
+  "fastingWarningTitle": "Zanim zaczniesz",
+  "fastingWarningBody": "Śledzenie czasu postu jednym pomaga, a innym może szkodzić, szczególnie osobom z historią zaburzeń odżywiania. Jeśli to o tobie, zadbaj najpierw o siebie. Wsparcie oferują BEAT (UK) i NEDA (US).",
+  "fastingWarningDecline": "To nie dla mnie",
+  "fastingWarningAccept": "Rozumiem, włącz minutnik",
+  "fastingPresetCustom": "Własny",
+  "fastingStart": "Uruchom minutnik",
+  "fastingCancel": "Zakończ post",
+  "fastingCancelConfirmTitle": "Zakończyć post teraz?",
+  "fastingCancelConfirmBody": "Bieżąca sesja zostanie zamknięta.",
+  "fastingComplete": "Sesja zakończona",
+  "fastingLinkBeat": "BEAT (UK)",
+  "fastingLinkNeda": "NEDA (US)",
+  "fastingElapsedLabel": "Upłynęło",
+  "fastingRemainingValue": "Pozostało {value}",
+  "@fastingRemainingValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingTargetValue": "Cel: {value}",
+  "@fastingTargetValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "hoursLabel": "godziny",
+  "dialogCloseLabel": "Zamknij"
 }

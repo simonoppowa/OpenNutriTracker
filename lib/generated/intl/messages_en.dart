@@ -85,6 +85,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String mLogWaterAmount(amount) => "Add ${amount} ml";
 
+  static String mFastingRemaining(value) => "${value} remaining";
+
+  static String mFastingTarget(value) => "Target: ${value}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1264,5 +1268,25 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsWaterGoalLabel":
             MessageLookupByLibrary.simpleMessage("Daily water goal"),
         "waterChipLabel": mWaterChip,
+        "profileFastingEntry": MessageLookupByLibrary.simpleMessage('Fasting timer'),
+        "fastingTitle": MessageLookupByLibrary.simpleMessage('Fasting timer'),
+        "fastingSubtitle": MessageLookupByLibrary.simpleMessage('A simple timer for tracking time between meals. No streaks, no targets, just the clock.'),
+        "fastingWarningTitle": MessageLookupByLibrary.simpleMessage('Before you start'),
+        "fastingWarningBody": MessageLookupByLibrary.simpleMessage('Tracking fasting time can be helpful for some people and distressing for others, especially anyone with a history of disordered eating. If that\'s you, please look after yourself first. Support is available from BEAT (UK) and NEDA (US).'),
+        "fastingWarningDecline": MessageLookupByLibrary.simpleMessage('Not for me'),
+        "fastingWarningAccept": MessageLookupByLibrary.simpleMessage('I understand, enable timer'),
+        "fastingPresetCustom": MessageLookupByLibrary.simpleMessage('Custom'),
+        "fastingStart": MessageLookupByLibrary.simpleMessage('Start timer'),
+        "fastingCancel": MessageLookupByLibrary.simpleMessage('End fast'),
+        "fastingCancelConfirmTitle": MessageLookupByLibrary.simpleMessage('End fast now?'),
+        "fastingCancelConfirmBody": MessageLookupByLibrary.simpleMessage('This will close the current session.'),
+        "fastingComplete": MessageLookupByLibrary.simpleMessage('Session complete'),
+        "fastingLinkBeat": MessageLookupByLibrary.simpleMessage('BEAT (UK)'),
+        "fastingLinkNeda": MessageLookupByLibrary.simpleMessage('NEDA (US)'),
+        "fastingElapsedLabel": MessageLookupByLibrary.simpleMessage('Elapsed'),
+        "hoursLabel": MessageLookupByLibrary.simpleMessage('hours'),
+        "dialogCloseLabel": MessageLookupByLibrary.simpleMessage('Close'),
+        "fastingRemainingValue": mFastingRemaining,
+        "fastingTargetValue": mFastingTarget,
       };
 }
