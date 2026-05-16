@@ -7482,11 +7482,21 @@ class S {
     );
   }
 
+  /// `Merged — {winner} now has 1 logged entry.`
+  String customMealsMergeSuccessSnackbarOne(String winner) {
+    return Intl.message(
+      'Merged — $winner now has 1 logged entry.',
+      name: 'customMealsMergeSuccessSnackbarOne',
+      desc: '',
+      args: [winner],
+    );
+  }
+
   /// `Merged — {winner} now has {count} logged entries.`
-  String customMealsMergeSuccessSnackbar(int count, String winner) {
+  String customMealsMergeSuccessSnackbarOther(int count, String winner) {
     return Intl.message(
       'Merged — $winner now has $count logged entries.',
-      name: 'customMealsMergeSuccessSnackbar',
+      name: 'customMealsMergeSuccessSnackbarOther',
       desc: '',
       args: [count, winner],
     );

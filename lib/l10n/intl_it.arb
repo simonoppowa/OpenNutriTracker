@@ -887,8 +887,12 @@
     }
   },
   "customMealsMergeConfirmAction": "Unisci",
-  "customMealsMergeSuccessSnackbar": "Uniti — {winner} ora ha {count} voci registrate.",
-  "@customMealsMergeSuccessSnackbar": {
+  "customMealsMergeSuccessSnackbarOne": "Unito — {winner} ora ha 1 voce registrata.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": { "winner": { "type": "String" } }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Unito — {winner} ora ha {count} voci registrate.",
+  "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
       "count": { "type": "int" },
       "winner": { "type": "String" }

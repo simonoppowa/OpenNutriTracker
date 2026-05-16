@@ -918,8 +918,12 @@
     }
   },
   "customMealsMergeConfirmAction": "Zusammenführen",
-  "customMealsMergeSuccessSnackbar": "Zusammengeführt — {winner} hat jetzt {count} protokollierte Einträge.",
-  "@customMealsMergeSuccessSnackbar": {
+  "customMealsMergeSuccessSnackbarOne": "Zusammengeführt — {winner} hat jetzt 1 Eintrag.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": { "winner": { "type": "String" } }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Zusammengeführt — {winner} hat jetzt {count} Einträge.",
+  "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
       "count": { "type": "int" },
       "winner": { "type": "String" }

@@ -94,6 +94,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static String mMergeSuccess(count, winner) =>
       "Birleştirildi — ${winner} artık ${count} kayıtlı girdiye sahip.";
   static String mDriRef(value) => "ref. ${value}";
+  static String mMergeOneTr(winner) => "Birleştirildi — ${winner} artık 1 kayda sahip.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -232,7 +233,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "customMealsMergeConfirmContent": mMergeConfirm,
         "customMealsMergeConfirmAction":
             MessageLookupByLibrary.simpleMessage("Birleştir"),
-        "customMealsMergeSuccessSnackbar": mMergeSuccess,
+                "customMealsMergeSuccessSnackbarOne": mMergeOneTr,
+        "customMealsMergeSuccessSnackbarOther": mMergeSuccess,
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Günlük Kcal ayarı:"),
         "dailyKjAdjustmentLabel":

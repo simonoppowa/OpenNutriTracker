@@ -887,8 +887,12 @@
     }
   },
   "customMealsMergeConfirmAction": "Sloučit",
-  "customMealsMergeSuccessSnackbar": "Sloučeno — {winner} má nyní {count} záznamů.",
-  "@customMealsMergeSuccessSnackbar": {
+  "customMealsMergeSuccessSnackbarOne": "Sloučeno — {winner} má nyní 1 záznam.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": { "winner": { "type": "String" } }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Sloučeno — {winner} má nyní {count} záznamů.",
+  "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
       "count": { "type": "int" },
       "winner": { "type": "String" }

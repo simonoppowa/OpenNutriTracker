@@ -91,6 +91,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static String mMergeSuccess(count, winner) =>
       "Merged — ${winner} now has ${count} logged entries.";
   static String mDriRef(value) => "ref ${value}";
+  static String mMergeOneEn(winner) => "Merged — ${winner} now has 1 logged entry.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -322,7 +323,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "customMealsMergeConfirmContent": mMergeConfirm,
         "customMealsMergeConfirmAction":
             MessageLookupByLibrary.simpleMessage("Merge"),
-        "customMealsMergeSuccessSnackbar": mMergeSuccess,
+                "customMealsMergeSuccessSnackbarOne": mMergeOneEn,
+        "customMealsMergeSuccessSnackbarOther": mMergeSuccess,
         "ironLabel": MessageLookupByLibrary.simpleMessage("iron"),
         "magnesiumLabel": MessageLookupByLibrary.simpleMessage("magnesium"),
         "micronutrientsLabel": MessageLookupByLibrary.simpleMessage("Micronutrients"),

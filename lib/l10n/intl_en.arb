@@ -935,8 +935,12 @@
     }
   },
   "customMealsMergeConfirmAction": "Merge",
-  "customMealsMergeSuccessSnackbar": "Merged — {winner} now has {count} logged entries.",
-  "@customMealsMergeSuccessSnackbar": {
+  "customMealsMergeSuccessSnackbarOne": "Merged — {winner} now has 1 logged entry.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": { "winner": { "type": "String" } }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Merged — {winner} now has {count} logged entries.",
+  "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
       "count": { "type": "int" },
       "winner": { "type": "String" }

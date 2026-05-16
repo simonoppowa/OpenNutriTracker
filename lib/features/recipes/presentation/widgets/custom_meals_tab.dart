@@ -29,10 +29,14 @@ class CustomMealsTab extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                s.customMealsMergeSuccessSnackbar(
-                  state.rewrittenIntakeCount,
-                  state.winnerDisplayName,
-                ),
+                state.rewrittenIntakeCount == 1
+                    ? s.customMealsMergeSuccessSnackbarOne(
+                        state.winnerDisplayName,
+                      )
+                    : s.customMealsMergeSuccessSnackbarOther(
+                        state.rewrittenIntakeCount,
+                        state.winnerDisplayName,
+                      ),
               ),
             ),
           );

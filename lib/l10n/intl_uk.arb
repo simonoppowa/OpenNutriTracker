@@ -887,8 +887,12 @@
     }
   },
   "customMealsMergeConfirmAction": "Об’єднати",
-  "customMealsMergeSuccessSnackbar": "Об’єднано — {winner} тепер має {count} записів.",
-  "@customMealsMergeSuccessSnackbar": {
+  "customMealsMergeSuccessSnackbarOne": "Об'єднано — {winner} тепер має 1 запис.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": { "winner": { "type": "String" } }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Об'єднано — {winner} тепер має {count} записів.",
+  "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
       "count": { "type": "int" },
       "winner": { "type": "String" }

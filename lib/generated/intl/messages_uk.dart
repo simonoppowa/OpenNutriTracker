@@ -92,6 +92,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static String mMergeSuccess(count, winner) =>
       "Об’єднано — ${winner} тепер має ${count} записів.";
   static String mDriRef(value) => "орієнт. ${value}";
+  static String mMergeOneUk(winner) => "Об'єднано — ${winner} тепер має 1 запис.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -230,7 +231,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "customMealsMergeConfirmContent": mMergeConfirm,
         "customMealsMergeConfirmAction":
             MessageLookupByLibrary.simpleMessage("Об’єднати"),
-        "customMealsMergeSuccessSnackbar": mMergeSuccess,
+                "customMealsMergeSuccessSnackbarOne": mMergeOneUk,
+        "customMealsMergeSuccessSnackbarOther": mMergeSuccess,
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Щоденна корекція калорій:"),
         "dailyKjAdjustmentLabel":

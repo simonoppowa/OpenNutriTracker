@@ -888,8 +888,12 @@
     }
   },
   "customMealsMergeConfirmAction": "合并",
-  "customMealsMergeSuccessSnackbar": "已合并 — {winner} 现在有 {count} 条记录。",
-  "@customMealsMergeSuccessSnackbar": {
+  "customMealsMergeSuccessSnackbarOne": "已合并 — {winner} 现在有 1 条记录。",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": { "winner": { "type": "String" } }
+  },
+  "customMealsMergeSuccessSnackbarOther": "已合并 — {winner} 现在有 {count} 条记录。",
+  "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
       "count": { "type": "int" },
       "winner": { "type": "String" }

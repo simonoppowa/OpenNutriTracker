@@ -887,8 +887,12 @@
     }
   },
   "customMealsMergeConfirmAction": "Połącz",
-  "customMealsMergeSuccessSnackbar": "Połączono — {winner} ma teraz {count} zarejestrowanych wpisów.",
-  "@customMealsMergeSuccessSnackbar": {
+  "customMealsMergeSuccessSnackbarOne": "Połączono — {winner} ma teraz 1 wpis.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": { "winner": { "type": "String" } }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Połączono — {winner} ma teraz {count} wpisów.",
+  "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
       "count": { "type": "int" },
       "winner": { "type": "String" }

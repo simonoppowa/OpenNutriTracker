@@ -92,6 +92,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static String mMergeSuccess(count, winner) =>
       "Zlúčené — ${winner} má teraz ${count} zaznamenaných záznamov.";
   static String mDriRef(value) => "ref. ${value}";
+  static String mMergeOneSk(winner) => "Zlúčené — ${winner} má teraz 1 záznam.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -237,7 +238,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "customMealsMergeConfirmContent": mMergeConfirm,
         "customMealsMergeConfirmAction":
             MessageLookupByLibrary.simpleMessage("Zlúčiť"),
-        "customMealsMergeSuccessSnackbar": mMergeSuccess,
+                "customMealsMergeSuccessSnackbarOne": mMergeOneSk,
+        "customMealsMergeSuccessSnackbarOther": mMergeSuccess,
         "dailyKcalAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
             "Denná úprava kcal:"),
         "dailyKjAdjustmentLabel":

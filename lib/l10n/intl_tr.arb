@@ -918,8 +918,12 @@
     }
   },
   "customMealsMergeConfirmAction": "Birleştir",
-  "customMealsMergeSuccessSnackbar": "Birleştirildi — {winner} artık {count} kayıtlı girdiye sahip.",
-  "@customMealsMergeSuccessSnackbar": {
+  "customMealsMergeSuccessSnackbarOne": "Birleştirildi — {winner} artık 1 kayda sahip.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": { "winner": { "type": "String" } }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Birleştirildi — {winner} artık {count} kayda sahip.",
+  "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
       "count": { "type": "int" },
       "winner": { "type": "String" }
