@@ -984,6 +984,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("tłuszcze nasycone"),
         "scanProductLabel":
             MessageLookupByLibrary.simpleMessage("Skanuj produkt"),
+        "scannerManualEntryButton":
+            MessageLookupByLibrary.simpleMessage("Wpisz kod ręcznie"),
+        "scannerManualEntryCancel":
+            MessageLookupByLibrary.simpleMessage("Anuluj"),
+        "scannerManualEntryDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Wprowadź kod kreskowy"),
+        "scannerManualEntryFieldHint":
+            MessageLookupByLibrary.simpleMessage("Od 8 do 14 cyfr"),
+        "scannerManualEntryInvalid": MessageLookupByLibrary.simpleMessage(
+            "Ten kod kreskowy wygląda na nieprawidłowy. Sprawdź cyfry i spróbuj ponownie."),
+        "scannerManualEntrySubmit":
+            MessageLookupByLibrary.simpleMessage("Wyszukaj"),
         "searchDefaultLabel": MessageLookupByLibrary.simpleMessage(
             "Wprowadź słowo do wyszukania"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Jedzenie"),

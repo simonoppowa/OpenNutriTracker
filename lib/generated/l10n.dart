@@ -3681,6 +3681,66 @@ class S {
     );
   }
 
+  /// `Type code manually`
+  String get scannerManualEntryButton {
+    return Intl.message(
+      'Type code manually',
+      name: 'scannerManualEntryButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel`
+  String get scannerManualEntryCancel {
+    return Intl.message(
+      'Cancel',
+      name: 'scannerManualEntryCancel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter barcode`
+  String get scannerManualEntryDialogTitle {
+    return Intl.message(
+      'Enter barcode',
+      name: 'scannerManualEntryDialogTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `8 to 14 digits`
+  String get scannerManualEntryFieldHint {
+    return Intl.message(
+      '8 to 14 digits',
+      name: 'scannerManualEntryFieldHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `That barcode doesn't look valid. Please check the digits and try again.`
+  String get scannerManualEntryInvalid {
+    return Intl.message(
+      'That barcode doesn\'t look valid. Please check the digits and try again.',
+      name: 'scannerManualEntryInvalid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Look up`
+  String get scannerManualEntrySubmit {
+    return Intl.message(
+      'Look up',
+      name: 'scannerManualEntrySubmit',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `g`
   String get gramUnit {
     return Intl.message(

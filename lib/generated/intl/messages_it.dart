@@ -987,6 +987,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("grassi saturi"),
         "scanProductLabel":
             MessageLookupByLibrary.simpleMessage("Scansiona prodotto"),
+        "scannerManualEntryButton": MessageLookupByLibrary.simpleMessage(
+            "Inserisci il codice manualmente"),
+        "scannerManualEntryCancel":
+            MessageLookupByLibrary.simpleMessage("Annulla"),
+        "scannerManualEntryDialogTitle": MessageLookupByLibrary.simpleMessage(
+            "Inserisci il codice a barre"),
+        "scannerManualEntryFieldHint":
+            MessageLookupByLibrary.simpleMessage("Da 8 a 14 cifre"),
+        "scannerManualEntryInvalid": MessageLookupByLibrary.simpleMessage(
+            "Questo codice a barre non sembra valido. Controlla le cifre e riprova."),
+        "scannerManualEntrySubmit":
+            MessageLookupByLibrary.simpleMessage("Cerca"),
         "searchDefaultLabel": MessageLookupByLibrary.simpleMessage(
             "Inserisci una parola da cercare"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Cibo"),

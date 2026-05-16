@@ -968,6 +968,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "retryLabel": MessageLookupByLibrary.simpleMessage("Tekrar Dene"),
         "saturatedFatLabel": MessageLookupByLibrary.simpleMessage("doymuş yağ"),
         "scanProductLabel": MessageLookupByLibrary.simpleMessage("Ürünü Tara"),
+        "scannerManualEntryButton":
+            MessageLookupByLibrary.simpleMessage("Kodu elle gir"),
+        "scannerManualEntryCancel":
+            MessageLookupByLibrary.simpleMessage("İptal"),
+        "scannerManualEntryDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Barkodu girin"),
+        "scannerManualEntryFieldHint":
+            MessageLookupByLibrary.simpleMessage("8 ile 14 arasında rakam"),
+        "scannerManualEntryInvalid": MessageLookupByLibrary.simpleMessage(
+            "Bu barkod geçerli görünmüyor. Lütfen rakamları kontrol edip tekrar deneyin."),
+        "scannerManualEntrySubmit": MessageLookupByLibrary.simpleMessage("Ara"),
         "searchDefaultLabel": MessageLookupByLibrary.simpleMessage(
             "Lütfen bir arama kelimesi girin"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Yiyecek"),

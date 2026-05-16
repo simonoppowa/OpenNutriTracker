@@ -972,6 +972,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("saturated fat"),
         "scanProductLabel":
             MessageLookupByLibrary.simpleMessage("Scan Product"),
+        "scannerManualEntryButton":
+            MessageLookupByLibrary.simpleMessage("Type code manually"),
+        "scannerManualEntryCancel":
+            MessageLookupByLibrary.simpleMessage("Cancel"),
+        "scannerManualEntryDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Enter barcode"),
+        "scannerManualEntryFieldHint":
+            MessageLookupByLibrary.simpleMessage("8 to 14 digits"),
+        "scannerManualEntryInvalid": MessageLookupByLibrary.simpleMessage(
+            "That barcode doesn\'t look valid. Please check the digits and try again."),
+        "scannerManualEntrySubmit":
+            MessageLookupByLibrary.simpleMessage("Look up"),
         "searchDefaultLabel":
             MessageLookupByLibrary.simpleMessage("Please enter a search word"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Food"),
