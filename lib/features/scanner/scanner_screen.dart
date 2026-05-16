@@ -53,6 +53,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
       bloc: _scannerBloc,
       builder: (context, state) {
         if (state is ScannerInitial) {
+          if (_scannedBarcode != null) {
+            return Scaffold(
+              appBar: AppBar(),
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          }
           return _getScannerContent(context);
         } else if (state is ScannerLoadingState) {
           return Scaffold(
