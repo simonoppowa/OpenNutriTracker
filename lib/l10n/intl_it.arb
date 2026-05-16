@@ -164,7 +164,7 @@
   "csvImportContributeOffPrefix": "Hai un codice a barre? Contribuisci il prodotto a Open Food Facts:",
   "csvImportErrorLabel": "Impossibile leggere il file CSV. Controlla il formato e riprova.",
   "csvImportPartialLabel": "Importati {imported} pasti; {skipped} righe ignorate per dati non validi.",
-  "csvImportSuccessLabel": "Importati {count} pasti dal file CSV.",
+  "csvImportSuccessLabel": "Importati {count} pasti.",
   "customActivityDescription": "Inserisci direttamente le calorie bruciate, per allenamenti non in elenco o letture da un fitness tracker",
   "customActivityDescriptionKj": "Inserisci direttamente i kilojoule bruciati, per allenamenti non in elenco o letture da un fitness tracker",
   "customActivityKcalHint": "es. 250",

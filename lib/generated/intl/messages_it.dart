@@ -45,7 +45,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(time) => "Orario promemoria: ${time}";
 
-  static String m12(count) => "Importati ${count} pasti dal file CSV.";
+  static String m12(count) => "Importati ${count} pasti.";
 
   static String m13(imported, skipped) =>
       "Importati ${imported} pasti; ${skipped} righe ignorate per dati non validi.";

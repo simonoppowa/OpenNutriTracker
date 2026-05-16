@@ -229,7 +229,7 @@
   "csvImportContributeOffPrefix": "Have a barcode? Help everyone by contributing the product to Open Food Facts:",
   "csvImportErrorLabel": "Could not read CSV file. Check the format and try again.",
   "csvImportPartialLabel": "Imported {imported} meal(s); {skipped} row(s) were skipped due to invalid data.",
-  "csvImportSuccessLabel": "Imported {count} meal(s) from the CSV file.",
+  "csvImportSuccessLabel": "Imported {count} meal(s).",
   "customActivityDescription": "Enter calories burned directly, for workouts that aren't in the list or readings from a fitness tracker",
   "customActivityDescriptionKj": "Enter kilojoules burned directly, for workouts that aren't in the list or readings from a fitness tracker",
   "customActivityKcalHint": "e.g. 250",

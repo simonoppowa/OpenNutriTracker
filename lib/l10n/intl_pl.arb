@@ -164,7 +164,7 @@
   "csvImportContributeOffPrefix": "Masz kod kreskowy? Dodaj produkt do Open Food Facts:",
   "csvImportErrorLabel": "Nie można odczytać pliku CSV. Sprawdź format i spróbuj ponownie.",
   "csvImportPartialLabel": "Zaimportowano {imported} posiłk(ów); pominięto {skipped} wiersz(y) z powodu nieprawidłowych danych.",
-  "csvImportSuccessLabel": "Zaimportowano {count} posiłk(ów) z pliku CSV.",
+  "csvImportSuccessLabel": "Zaimportowano {count} posiłk(ów).",
   "customActivityDescription": "Wprowadź spalone kalorie bezpośrednio – dla treningów spoza listy lub odczytów z opaski fitness",
   "customActivityDescriptionKj": "Wprowadź spalone kilodżule bezpośrednio – dla treningów spoza listy lub odczytów z opaski fitness",
   "customActivityKcalHint": "np. 250",

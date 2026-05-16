@@ -211,7 +211,7 @@
   "csvImportContributeOffPrefix": "Máte čiarový kód? Pomôžte všetkým a prispejte produktom do Open Food Facts:",
   "csvImportErrorLabel": "CSV súbor sa nepodarilo prečítať. Skontrolujte formát a skúste to znova.",
   "csvImportPartialLabel": "Importovaných {imported} jedál; {skipped} riadkov bolo preskočených pre neplatné údaje.",
-  "csvImportSuccessLabel": "Z CSV súboru bolo importovaných {count} jedál.",
+  "csvImportSuccessLabel": "Importovaných {count} jedál.",
   "customActivityDescription": "Zadajte spálené kalórie priamo, pre tréningy ktoré nie sú v zozname, alebo údaje z fitness náramku",
   "customActivityDescriptionKj": "Zadajte spálené kilojouly priamo, pre tréningy ktoré nie sú v zozname, alebo údaje z fitness náramku",
   "customActivityKcalHint": "napr. 250",

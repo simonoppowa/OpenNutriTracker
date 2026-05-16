@@ -43,7 +43,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(time) => "提醒时间：${time}";
 
-  static String m12(count) => "已从 CSV 文件导入 ${count} 项餐食。";
+  static String m12(count) => "已导入 ${count} 项餐食。";
 
   static String m13(imported, skipped) =>
       "已导入 ${imported} 项餐食；因数据无效跳过 ${skipped} 行。";

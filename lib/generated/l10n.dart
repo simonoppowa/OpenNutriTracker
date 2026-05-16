@@ -2449,7 +2449,7 @@ class S {
 
   String csvImportSuccessLabel(int count) {
     return Intl.message(
-      'Imported $count meal(s) from the CSV file.',
+      'Imported $count meal(s).',
       name: 'csvImportSuccessLabel',
       desc: '',
       args: [count],

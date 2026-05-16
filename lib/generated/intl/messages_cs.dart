@@ -45,7 +45,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(time) => "Čas připomínky: ${time}";
 
-  static String m12(count) => "Importováno ${count} jídel z CSV souboru.";
+  static String m12(count) => "Importováno ${count} jídel.";
 
   static String m13(imported, skipped) =>
       "Importováno ${imported} jídel; ${skipped} řádků přeskočeno kvůli neplatným datům.";

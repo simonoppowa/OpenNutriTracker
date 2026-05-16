@@ -164,7 +164,7 @@
   "csvImportContributeOffPrefix": "Маєте штрих-код? Додайте продукт до Open Food Facts:",
   "csvImportErrorLabel": "Не вдалося прочитати CSV файл. Перевірте формат і спробуйте знову.",
   "csvImportPartialLabel": "Імпортовано {imported} страв; {skipped} рядків пропущено через неправильні дані.",
-  "csvImportSuccessLabel": "З CSV файлу імпортовано {count} страв.",
+  "csvImportSuccessLabel": "Імпортовано {count} страв.",
   "customActivityDescription": "Введіть спалені калорії безпосередньо — для тренувань, яких немає у списку, або показників із фітнес-трекера",
   "customActivityDescriptionKj": "Введіть спалені кілоджоулі безпосередньо — для тренувань, яких немає у списку, або показників із фітнес-трекера",
   "customActivityKcalHint": "напр. 250",

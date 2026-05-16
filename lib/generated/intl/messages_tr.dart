@@ -47,7 +47,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(time) => "Hatırlatma zamanı: ${time}";
 
-  static String m12(count) => "CSV dosyasından ${count} öğün içe aktarıldı.";
+  static String m12(count) => "${count} öğün içe aktarıldı.";
 
   static String m13(imported, skipped) =>
       "${imported} öğün içe aktarıldı; geçersiz veri nedeniyle ${skipped} satır atlandı.";

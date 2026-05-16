@@ -195,7 +195,7 @@
   "csvImportContributeOffPrefix": "Barcode dabei? Trag das Produkt zu Open Food Facts bei:",
   "csvImportErrorLabel": "CSV-Datei konnte nicht gelesen werden. Format prüfen und erneut versuchen.",
   "csvImportPartialLabel": "{imported} Mahlzeit(en) importiert; {skipped} Zeile(n) wegen ungültiger Daten übersprungen.",
-  "csvImportSuccessLabel": "{count} Mahlzeit(en) aus der CSV-Datei importiert.",
+  "csvImportSuccessLabel": "{count} Mahlzeit(en) importiert.",
   "customActivityDescription": "Trage verbrannte Kalorien direkt ein – für Trainings, die nicht in der Liste sind, oder Werte aus einem Fitnesstracker",
   "customActivityDescriptionKj": "Trage verbrannte Kilojoule direkt ein – für Trainings, die nicht in der Liste sind, oder Werte aus einem Fitnesstracker",
   "customActivityKcalHint": "z. B. 250",

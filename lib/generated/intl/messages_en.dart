@@ -47,8 +47,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(time) => "Reminder time: ${time}";
 
-  static String m12(count) =>
-      "Imported ${count} meal(s) from the CSV file.";
+  static String m12(count) => "Imported ${count} meal(s).";
 
   static String m13(imported, skipped) =>
       "Imported ${imported} meal(s); ${skipped} row(s) were skipped due to invalid data.";

@@ -47,8 +47,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(time) => "Erinnerungszeit: ${time}";
 
-  static String m12(count) =>
-      "${count} Mahlzeit(en) aus der CSV-Datei importiert.";
+  static String m12(count) => "${count} Mahlzeit(en) importiert.";
 
   static String m13(imported, skipped) =>
       "${imported} Mahlzeit(en) importiert; ${skipped} Zeile(n) wegen ungültiger Daten übersprungen.";

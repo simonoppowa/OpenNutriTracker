@@ -45,7 +45,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(time) => "Час нагадування: ${time}";
 
-  static String m12(count) => "З CSV файлу імпортовано ${count} страв.";
+  static String m12(count) => "Імпортовано ${count} страв.";
 
   static String m13(imported, skipped) =>
       "Імпортовано ${imported} страв; ${skipped} рядків пропущено через неправильні дані.";

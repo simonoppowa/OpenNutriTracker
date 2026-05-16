@@ -165,7 +165,7 @@
   "csvImportContributeOffPrefix": "有条形码？请把产品贡献到 Open Food Facts：",
   "csvImportErrorLabel": "无法读取 CSV 文件。请检查格式后重试。",
   "csvImportPartialLabel": "已导入 {imported} 项餐食；因数据无效跳过 {skipped} 行。",
-  "csvImportSuccessLabel": "已从 CSV 文件导入 {count} 项餐食。",
+  "csvImportSuccessLabel": "已导入 {count} 项餐食。",
   "customActivityDescription": "直接输入消耗的卡路里，适用于列表中没有的训练或来自健身追踪器的读数",
   "customActivityDescriptionKj": "直接输入消耗的千焦，适用于列表中没有的训练或来自健身追踪器的读数",
   "customActivityKcalHint": "例如 250",
