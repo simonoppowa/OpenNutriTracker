@@ -88,6 +88,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String mMergeSuccess(count, winner) =>
       "已合并 — ${winner} 现在有 ${count} 条记录。";
+  static String mDriRef(value) => "参考 ${value}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -260,6 +261,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("您正在编辑未来的日期"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("日记"),
         "diaryNutrientPanelTitle": MessageLookupByLibrary.simpleMessage("今日营养素"),
+        "driPanelInfoBody": MessageLookupByLibrary.simpleMessage(
+            "这些参考量取自 IOM 成人膳食营养素参考摄入量,会因年龄和性别而异。它们只是参考,并非目标——你自身的需要可能有所不同。"),
+        "driPanelInfoLinkLabel":
+            MessageLookupByLibrary.simpleMessage("来源：IOM Dietary Reference Intakes"),
+        "driPanelInfoTitle":
+            MessageLookupByLibrary.simpleMessage("参考摄入量"),
+        "driPanelReferenceLabel": mDriRef,
         "dinnerExample": MessageLookupByLibrary.simpleMessage("例如：汤、鸡肉、葡萄酒..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("晚餐"),
         "discardChangesConfirmLabel":
@@ -873,6 +881,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "retryLabel": MessageLookupByLibrary.simpleMessage("重试"),
         "saturatedFatLabel": MessageLookupByLibrary.simpleMessage("饱和脂肪"),
         "scanProductLabel": MessageLookupByLibrary.simpleMessage("扫描产品"),
+        "scannerManualEntryButton":
+            MessageLookupByLibrary.simpleMessage("手动输入条码"),
+        "scannerManualEntryCancel": MessageLookupByLibrary.simpleMessage("取消"),
+        "scannerManualEntryDialogTitle":
+            MessageLookupByLibrary.simpleMessage("输入条码"),
+        "scannerManualEntryFieldHint":
+            MessageLookupByLibrary.simpleMessage("8 到 14 位数字"),
+        "scannerManualEntryInvalid":
+            MessageLookupByLibrary.simpleMessage("此条码似乎无效。请检查数字后重试。"),
+        "scannerManualEntrySubmit": MessageLookupByLibrary.simpleMessage("查找"),
         "searchDefaultLabel": MessageLookupByLibrary.simpleMessage("请输入搜索词"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("食物"),
         "searchLabel": MessageLookupByLibrary.simpleMessage("搜索"),
@@ -963,6 +981,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("活动消耗的卡路里 (MET 数值)"),
         "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
             "活动中消耗的卡路里按 MET × 体重（千克）× 时长（小时）估算，所用数值来自 Adult Compendium of Physical Activities。"),
+        "sourcesNutrientReferenceTitle": MessageLookupByLibrary.simpleMessage("营养参考摄入量"),
+        "sourcesNutrientReferenceDescription": MessageLookupByLibrary.simpleMessage("日记营养面板中显示的每日参考量来自美国医学研究所(Institute of Medicine)的膳食参考摄入量(DRI)汇总报告,涵盖成人各项营养素目标。"),
         "sourcesNonBinaryTitle":
             MessageLookupByLibrary.simpleMessage("非二元性别人士的卡路里估算"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
@@ -976,6 +996,21 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("每日千卡调整"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("设置"),
         "settingsLanguageLabel": MessageLookupByLibrary.simpleMessage("语言"),
+        "settingsMaterialYouTitle":
+            MessageLookupByLibrary.simpleMessage("使用系统颜色"),
+        "settingsMaterialYouSubtitle": MessageLookupByLibrary.simpleMessage("在 Android 12 及更高版本上,使用你壁纸的强调色。"),
+        "settingsAccentColourTitle": MessageLookupByLibrary.simpleMessage("强调色"),
+        "settingsAccentSubtitleMaterialYou": MessageLookupByLibrary.simpleMessage("Material You"),
+        "settingsAccentSubtitleCustom": MessageLookupByLibrary.simpleMessage("自定义"),
+        "settingsAccentSubtitleDefault": MessageLookupByLibrary.simpleMessage("默认"),
+        "settingsAccentPresetsHeader": MessageLookupByLibrary.simpleMessage("选择颜色"),
+        "settingsAccentCustomColour": MessageLookupByLibrary.simpleMessage("自定义颜色…"),
+        "settingsAccentCustomSubtitle": MessageLookupByLibrary.simpleMessage("打开色相滑块进行精确选择"),
+        "settingsAccentHexLabel": MessageLookupByLibrary.simpleMessage("十六进制代码"),
+        "settingsAccentHexInvalid": MessageLookupByLibrary.simpleMessage("这个十六进制代码看起来不对 — 需要六个字符,0-9 和 A-F。"),
+        "settingsAccentHueTitle": MessageLookupByLibrary.simpleMessage("强调色"),
+        "settingsAccentHueDisabledHint": MessageLookupByLibrary.simpleMessage("关闭系统颜色以选择自定义强调色。"),
+        "settingsAccentHueReset": MessageLookupByLibrary.simpleMessage("重置"),
         "settingsMacroSplitLabel":
             MessageLookupByLibrary.simpleMessage("宏量营养素分配"),
         "settingsLicensesLabel": MessageLookupByLibrary.simpleMessage("许可证"),

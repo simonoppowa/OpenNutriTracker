@@ -16,4 +16,5 @@ class NavigationOptions {
   static const recipeDetailRoute = "recipeDetail";
   static const importRecipeScannerRoute = "importRecipeScanner";
   static const weightHistoryRoute = "weightHistory";
+  static const accentColourRoute = "accentColour";
 }

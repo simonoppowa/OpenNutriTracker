@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -34,6 +35,7 @@ import 'package:opennutritracker/features/home/presentation/screens/import_activ
 import 'package:opennutritracker/features/home/presentation/screens/import_meal_scanner_screen.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/accent_colour_screen.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -72,18 +74,20 @@ Future<void> main() async {
   final savedLocale =
       savedLocaleCode != null ? Locale(savedLocaleCode) : null;
   final savedUsesKilojoules = config.usesKilojoules;
+  final savedUseMaterialYou = config.useMaterialYou;
+  final savedAccentColor = config.accentColor;
   final log = Logger('main');
 
   // If the user has accepted anonymous data collection, run the app with
   // sentry enabled, else run without it
   if (kReleaseMode && hasAcceptedAnonymousData) {
     log.info('Starting App with Sentry enabled ...');
-    _runAppWithSentryReporting(
-        isUserInitialized, savedAppTheme, savedLocale, savedUsesKilojoules);
+    _runAppWithSentryReporting(isUserInitialized, savedAppTheme, savedLocale,
+        savedUsesKilojoules, savedUseMaterialYou, savedAccentColor);
   } else {
     log.info('Starting App ...');
-    runAppWithChangeNotifiers(
-        isUserInitialized, savedAppTheme, savedLocale, savedUsesKilojoules);
+    runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, savedLocale,
+        savedUsesKilojoules, savedUseMaterialYou, savedAccentColor);
   }
 }
 
@@ -92,14 +96,16 @@ void _runAppWithSentryReporting(
   AppThemeEntity savedAppTheme,
   Locale? savedLocale,
   bool savedUsesKilojoules,
+  bool savedUseMaterialYou,
+  int? savedAccentColor,
 ) async {
   await SentryFlutter.init(
     (options) {
       options.dsn = Env.sentryDns;
       options.tracesSampleRate = 1.0;
     },
-    appRunner: () => runAppWithChangeNotifiers(
-        isUserInitialized, savedAppTheme, savedLocale, savedUsesKilojoules),
+    appRunner: () => runAppWithChangeNotifiers(isUserInitialized, savedAppTheme,
+        savedLocale, savedUsesKilojoules, savedUseMaterialYou, savedAccentColor),
   );
 }
 
@@ -108,12 +114,18 @@ void runAppWithChangeNotifiers(
   AppThemeEntity savedAppTheme,
   Locale? savedLocale,
   bool savedUsesKilojoules,
+  bool savedUseMaterialYou,
+  int? savedAccentColor,
 ) =>
     runApp(
       MultiProvider(
         providers: [
           ChangeNotifierProvider(
-            create: (_) => ThemeModeProvider(appTheme: savedAppTheme),
+            create: (_) => ThemeModeProvider(
+              appTheme: savedAppTheme,
+              useMaterialYou: savedUseMaterialYou,
+              accentColor: savedAccentColor,
+            ),
           ),
           ChangeNotifierProvider(
             create: (_) => LocaleProvider(locale: savedLocale),
@@ -134,17 +146,51 @@ class OpenNutriTrackerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // #415: DynamicColorBuilder hands back null on platforms that don't
+    // support wallpaper-derived colours (iOS, older Android, desktop test
+    // builds), so the static palette always remains as a graceful fallback.
+    final themeProvider = Provider.of<ThemeModeProvider>(context);
+    final useMaterialYou = themeProvider.useMaterialYou;
+    final accentColor = themeProvider.accentColor;
+    return DynamicColorBuilder(
+      builder: (lightDynamic, darkDynamic) {
+        final ColorScheme lightScheme;
+        final ColorScheme darkScheme;
+        if (useMaterialYou && lightDynamic != null && darkDynamic != null) {
+          lightScheme = lightDynamic.harmonized();
+          darkScheme = darkDynamic.harmonized();
+        } else if (accentColor != null) {
+          final seed = Color(accentColor);
+          lightScheme = ColorScheme.fromSeed(seedColor: seed);
+          darkScheme = ColorScheme.fromSeed(
+            seedColor: seed,
+            brightness: Brightness.dark,
+          );
+        } else {
+          lightScheme = lightColorScheme;
+          darkScheme = darkColorScheme;
+        }
+        return _buildMaterialApp(context, lightScheme, darkScheme);
+      },
+    );
+  }
+
+  Widget _buildMaterialApp(
+    BuildContext context,
+    ColorScheme lightScheme,
+    ColorScheme darkScheme,
+  ) {
     return MaterialApp(
       onGenerateTitle: (context) => S.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: lightColorScheme,
+        colorScheme: lightScheme,
         textTheme: appTextTheme,
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorScheme: darkColorScheme,
+        colorScheme: darkScheme,
         textTheme: appTextTheme,
       ),
       themeMode: Provider.of<ThemeModeProvider>(context).themeMode,
@@ -164,6 +210,8 @@ class OpenNutriTrackerApp extends StatelessWidget {
         NavigationOptions.onboardingRoute: (context) =>
             const OnboardingScreen(),
         NavigationOptions.settingsRoute: (context) => const SettingsScreen(),
+        NavigationOptions.accentColourRoute: (context) =>
+            const AccentColourScreen(),
         NavigationOptions.addMealRoute: (context) => const AddMealScreen(),
         NavigationOptions.scannerRoute: (context) => const ScannerScreen(),
         NavigationOptions.mealDetailRoute: (context) =>

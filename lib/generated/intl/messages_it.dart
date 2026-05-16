@@ -91,6 +91,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String mMergeSuccess(count, winner) =>
       "Uniti — ${winner} ora ha ${count} voci registrate.";
+  static String mDriRef(value) => "rif. ${value}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -274,6 +275,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diario"),
         "diaryNutrientPanelTitle":
             MessageLookupByLibrary.simpleMessage("Nutrienti di oggi"),
+        "driPanelInfoBody": MessageLookupByLibrary.simpleMessage(
+            "Questi valori di riferimento provengono dai Dietary Reference Intakes dell\'IOM per adulti e variano in base a età e genere. Sono un riferimento, non un obiettivo — le tue esigenze possono essere diverse."),
+        "driPanelInfoLinkLabel":
+            MessageLookupByLibrary.simpleMessage("Fonte: IOM Dietary Reference Intakes"),
+        "driPanelInfoTitle":
+            MessageLookupByLibrary.simpleMessage("Apporto di riferimento"),
+        "driPanelReferenceLabel": mDriRef,
         "dinnerExample":
             MessageLookupByLibrary.simpleMessage("es. zuppa, pollo, vino ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Cena"),
@@ -1009,6 +1017,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("grassi saturi"),
         "scanProductLabel":
             MessageLookupByLibrary.simpleMessage("Scansiona prodotto"),
+        "scannerManualEntryButton": MessageLookupByLibrary.simpleMessage(
+            "Inserisci il codice manualmente"),
+        "scannerManualEntryCancel":
+            MessageLookupByLibrary.simpleMessage("Annulla"),
+        "scannerManualEntryDialogTitle": MessageLookupByLibrary.simpleMessage(
+            "Inserisci il codice a barre"),
+        "scannerManualEntryFieldHint":
+            MessageLookupByLibrary.simpleMessage("Da 8 a 14 cifre"),
+        "scannerManualEntryInvalid": MessageLookupByLibrary.simpleMessage(
+            "Questo codice a barre non sembra valido. Controlla le cifre e riprova."),
+        "scannerManualEntrySubmit":
+            MessageLookupByLibrary.simpleMessage("Cerca"),
         "searchDefaultLabel": MessageLookupByLibrary.simpleMessage(
             "Inserisci una parola da cercare"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Cibo"),
@@ -1107,6 +1127,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Calorie dall\'attività (valori MET)"),
         "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Le calorie bruciate durante un\'attività si stimano come MET × peso corporeo (kg) × durata (ore), usando i valori dell\'Adult Compendium of Physical Activities."),
+        "sourcesNutrientReferenceTitle": MessageLookupByLibrary.simpleMessage("Apporti nutrizionali di riferimento"),
+        "sourcesNutrientReferenceDescription": MessageLookupByLibrary.simpleMessage("Gli apporti giornalieri mostrati nel pannello nutrienti del diario provengono dal rapporto di sintesi delle Dietary Reference Intakes dell'Institute of Medicine, che copre gli obiettivi per ciascun nutriente negli adulti."),
         "sourcesNonBinaryTitle":
             MessageLookupByLibrary.simpleMessage("Stima calorica per persone non binarie"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
@@ -1122,6 +1144,21 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Impostazioni"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Lingua"),
+        "settingsMaterialYouTitle":
+            MessageLookupByLibrary.simpleMessage("Usa i colori di sistema"),
+        "settingsMaterialYouSubtitle": MessageLookupByLibrary.simpleMessage("Riprende il colore d'accento dello sfondo su Android 12 e versioni successive."),
+        "settingsAccentColourTitle": MessageLookupByLibrary.simpleMessage("Colore d'accento"),
+        "settingsAccentSubtitleMaterialYou": MessageLookupByLibrary.simpleMessage("Material You"),
+        "settingsAccentSubtitleCustom": MessageLookupByLibrary.simpleMessage("Personalizzato"),
+        "settingsAccentSubtitleDefault": MessageLookupByLibrary.simpleMessage("Predefinito"),
+        "settingsAccentPresetsHeader": MessageLookupByLibrary.simpleMessage("Scegli un colore"),
+        "settingsAccentCustomColour": MessageLookupByLibrary.simpleMessage("Colore personalizzato…"),
+        "settingsAccentCustomSubtitle": MessageLookupByLibrary.simpleMessage("Apri il selettore di tonalità per una scelta precisa"),
+        "settingsAccentHexLabel": MessageLookupByLibrary.simpleMessage("Codice esadecimale"),
+        "settingsAccentHexInvalid": MessageLookupByLibrary.simpleMessage("Quel codice esadecimale non sembra giusto — sei caratteri, 0-9 e A-F."),
+        "settingsAccentHueTitle": MessageLookupByLibrary.simpleMessage("Colore d\u2019accento"),
+        "settingsAccentHueDisabledHint": MessageLookupByLibrary.simpleMessage("Disattiva i colori di sistema per scegliere un accento personalizzato."),
+        "settingsAccentHueReset": MessageLookupByLibrary.simpleMessage("Reimposta"),
         "settingsMacroSplitLabel":
             MessageLookupByLibrary.simpleMessage("Distribuzione macro"),
         "settingsLicensesLabel":

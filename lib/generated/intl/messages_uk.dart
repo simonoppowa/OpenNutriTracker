@@ -91,6 +91,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String mMergeSuccess(count, winner) =>
       "Об’єднано — ${winner} тепер має ${count} записів.";
+  static String mDriRef(value) => "орієнт. ${value}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -273,6 +274,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Щоденник"),
         "diaryNutrientPanelTitle": MessageLookupByLibrary.simpleMessage(
             "Поживні речовини за сьогодні"),
+        "driPanelInfoBody": MessageLookupByLibrary.simpleMessage(
+            "Ці орієнтовні значення взято з рекомендованих норм споживання IOM для дорослих і вони залежать від віку та статі. Це точка відліку, а не мета — твої власні потреби можуть бути іншими."),
+        "driPanelInfoLinkLabel":
+            MessageLookupByLibrary.simpleMessage("Джерело: IOM Dietary Reference Intakes"),
+        "driPanelInfoTitle":
+            MessageLookupByLibrary.simpleMessage("Орієнтовне споживання"),
+        "driPanelReferenceLabel": mDriRef,
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
             "наприклад, суп, курка, вино ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Вечеря"),
@@ -1010,6 +1018,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("насичені жири"),
         "scanProductLabel":
             MessageLookupByLibrary.simpleMessage("Сканувати продукт"),
+        "scannerManualEntryButton":
+            MessageLookupByLibrary.simpleMessage("Ввести код вручну"),
+        "scannerManualEntryCancel":
+            MessageLookupByLibrary.simpleMessage("Скасувати"),
+        "scannerManualEntryDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Введіть штрихкод"),
+        "scannerManualEntryFieldHint":
+            MessageLookupByLibrary.simpleMessage("Від 8 до 14 цифр"),
+        "scannerManualEntryInvalid": MessageLookupByLibrary.simpleMessage(
+            "Цей штрихкод виглядає недійсним. Будь ласка, перевірте цифри та спробуйте знову."),
+        "scannerManualEntrySubmit":
+            MessageLookupByLibrary.simpleMessage("Знайти"),
         "searchDefaultLabel":
             MessageLookupByLibrary.simpleMessage("Введіть слово для пошуку"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Їжа"),
@@ -1107,6 +1127,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Калорії від активності (значення MET)"),
         "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Калорії, спалені під час активності, оцінюються як MET × маса тіла (кг) × тривалість (години) на основі значень з Adult Compendium of Physical Activities."),
+        "sourcesNutrientReferenceTitle": MessageLookupByLibrary.simpleMessage("Референсні норми споживання поживних речовин"),
+        "sourcesNutrientReferenceDescription": MessageLookupByLibrary.simpleMessage("Щоденні референсні значення, показані в панелі поживних речовин щоденника, взяті зі зведеного звіту Dietary Reference Intakes Institute of Medicine, який охоплює цільові показники для кожної поживної речовини у дорослих."),
         "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
             "Розрахунок калорій для небінарних осіб"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
@@ -1123,6 +1145,21 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Налаштування"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Мова"),
+        "settingsMaterialYouTitle": MessageLookupByLibrary.simpleMessage(
+            "Використовувати системні кольори"),
+        "settingsMaterialYouSubtitle": MessageLookupByLibrary.simpleMessage("Підхоплює акцентний колір ваших шпалер на Android 12 і новіших версіях."),
+        "settingsAccentColourTitle": MessageLookupByLibrary.simpleMessage("Акцентний колір"),
+        "settingsAccentSubtitleMaterialYou": MessageLookupByLibrary.simpleMessage("Material You"),
+        "settingsAccentSubtitleCustom": MessageLookupByLibrary.simpleMessage("Власний"),
+        "settingsAccentSubtitleDefault": MessageLookupByLibrary.simpleMessage("Стандартний"),
+        "settingsAccentPresetsHeader": MessageLookupByLibrary.simpleMessage("Виберіть колір"),
+        "settingsAccentCustomColour": MessageLookupByLibrary.simpleMessage("Власний колір…"),
+        "settingsAccentCustomSubtitle": MessageLookupByLibrary.simpleMessage("Відкрити повзунок відтінку для точного вибору"),
+        "settingsAccentHexLabel": MessageLookupByLibrary.simpleMessage("Hex код"),
+        "settingsAccentHexInvalid": MessageLookupByLibrary.simpleMessage("Цей hex код виглядає неправильно — шість символів, 0-9 і A-F."),
+        "settingsAccentHueTitle": MessageLookupByLibrary.simpleMessage("Акцентний колір"),
+        "settingsAccentHueDisabledHint": MessageLookupByLibrary.simpleMessage("Вимкніть системні кольори, щоб обрати власний акцент."),
+        "settingsAccentHueReset": MessageLookupByLibrary.simpleMessage("Скинути"),
         "settingsMacroSplitLabel":
             MessageLookupByLibrary.simpleMessage("Розподіл макросів"),
         "settingsLicensesLabel":

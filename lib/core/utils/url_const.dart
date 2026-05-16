@@ -10,6 +10,12 @@ class URLConst {
   // can verify each number we show against its peer-reviewed source.
   static const sourceEnergyIomDriURL =
       "https://nap.nationalacademies.org/catalog/10490";
+  // Per-nutrient reference intakes shown on the diary's daily nutrient
+  // panel (fibre, iron, calcium, vitamins, etc.) come from this Summary
+  // Report, which covers the broader DRI tables — distinct from the
+  // energy-specific 2005 catalogue cited above.
+  static const sourceNutrientReferenceIomURL =
+      "https://www.nationalacademies.org/our-work/summary-report-of-the-dietary-reference-intakes";
   static const sourceBmiWhoURL =
       "https://www.who.int/data/gho/data/themes/topics/topic-details/GHO/body-mass-index";
   static const sourceMacrosWhoTrs916URL =

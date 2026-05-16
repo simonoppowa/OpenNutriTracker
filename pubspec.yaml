@@ -80,6 +80,8 @@ dependencies:
   timezone: ^0.10.1
   flutter_timezone: ^3.0.0
 
+  dynamic_color: ^1.7.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -34,6 +34,13 @@
       }
     }
   },
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {
       "consumed": {
@@ -291,6 +298,10 @@
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "diaryNutrientPanelDataDisclaimer": "Only nutrients tracked on the meals you logged are summed here. A meal missing a value contributes nothing to that nutrient — so these totals may underreport.",
   "diaryNutrientPanelTitle": "Today's nutrients",
+  "driPanelInfoTitle": "Reference intake",
+  "driPanelInfoBody": "These reference amounts come from the IOM Dietary Reference Intakes for adults and vary by age and gender. They're a point of reference, not a target — your own needs may differ.",
+  "driPanelInfoLinkLabel": "Source: IOM Dietary Reference Intakes",
+  "driPanelReferenceLabel": "ref {value}",
   "diarySortByCarbs": "Carbs (high to low)",
   "diarySortByFat": "Fat (high to low)",
   "diarySortByKcal": "Calories (high to low)",
@@ -754,6 +765,12 @@
   "retryLabel": "Retry",
   "saturatedFatLabel": "saturated fat",
   "scanProductLabel": "Scan Product",
+  "scannerManualEntryButton": "Type code manually",
+  "scannerManualEntryCancel": "Cancel",
+  "scannerManualEntryDialogTitle": "Enter barcode",
+  "scannerManualEntryFieldHint": "8 to 14 digits",
+  "scannerManualEntryInvalid": "That barcode doesn't look valid. Please check the digits and try again.",
+  "scannerManualEntrySubmit": "Look up",
   "searchDefaultLabel": "Please enter a search word",
   "searchFoodPage": "Food",
   "searchLabel": "Search",
@@ -792,6 +809,20 @@
   "settingsIronGoalLabel": "Iron goal",
   "settingsLabel": "Settings",
   "settingsLanguageLabel": "Language",
+  "settingsMaterialYouTitle": "Use system colours",
+  "settingsMaterialYouSubtitle": "Match your wallpaper accent on Android 12 and newer.",
+  "settingsAccentColourTitle": "Accent colour",
+  "settingsAccentSubtitleMaterialYou": "Material You",
+  "settingsAccentSubtitleCustom": "Custom",
+  "settingsAccentSubtitleDefault": "Default",
+  "settingsAccentPresetsHeader": "Pick a colour",
+  "settingsAccentCustomColour": "Custom colour…",
+  "settingsAccentCustomSubtitle": "Open the hue picker for a precise choice",
+  "settingsAccentHexLabel": "Hex code",
+  "settingsAccentHexInvalid": "That hex code doesn’t look right — six digits, 0-9 and A-F.",
+  "settingsAccentHueTitle": "Accent colour",
+  "settingsAccentHueDisabledHint": "Turn off system colours to choose a custom accent.",
+  "settingsAccentHueReset": "Reset",
   "settingsMacroSplitLabel": "Macro split",
   "settingsLicensesLabel": "Licenses",
   "settingsMagnesiumGoalDescription": "Daily magnesium target in milligrams. Default varies by gender (400mg male, 310mg female, 355mg otherwise).",
@@ -854,6 +885,8 @@
   "sourcesMacrosDescription": "The default split of 60% carbohydrates, 25% fat, and 15% protein falls within the population nutrient intake ranges published by the WHO. You can adjust this in Settings → Calculations. Source: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
   "sourcesMacrosTitle": "Macronutrient distribution",
   "sourcesNonBinaryDescription": "Energy-expenditure research has historically used binary sex categories, so there is no single validated TDEE formula for non-binary people. OpenNutriTracker therefore lets you choose between an averaged reference, an estrogen-typical reference, or a testosterone-typical reference under Settings → Calculations. If an accurate number genuinely matters for your care, please speak to a clinician familiar with your hormone status.",
+  "sourcesNutrientReferenceTitle": "Nutrient reference intakes",
+  "sourcesNutrientReferenceDescription": "Daily reference amounts shown on the diary nutrient panel come from the Institute of Medicine's Dietary Reference Intakes summary, which covers per-nutrient targets for adults.",
   "sourcesNonBinaryTitle": "Non-binary calorie estimation",
   "sourcesOpenSourceLabel": "View source",
   "sourcesScreenIntro": "OpenNutriTracker uses well-established, peer-reviewed methodologies for every calculation it shows. The citations below link to the original sources so you can verify any number yourself.",

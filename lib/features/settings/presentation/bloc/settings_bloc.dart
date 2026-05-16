@@ -67,6 +67,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           usesKilojoules: userConfig.usesKilojoules,
           dayStartOffsetHours: userConfig.dayStartOffsetHours,
           dayStartOffsetMinutes: userConfig.dayStartOffsetMinutes,
+          useMaterialYou: userConfig.useMaterialYou,
+          accentColor: userConfig.accentColor,
         ),
       );
     });
@@ -117,6 +119,14 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   void setUsesKilojoules(bool usesKilojoules) {
     _addConfigUsecase.setConfigUsesKilojoules(usesKilojoules);
+  }
+
+  void setUseMaterialYou(bool useMaterialYou) {
+    _addConfigUsecase.setConfigUseMaterialYou(useMaterialYou);
+  }
+
+  void setAccentColor(int? value) {
+    _addConfigUsecase.setConfigAccentColor(value);
   }
 
   Future<Map<String, int>?> getDiarySortPreferences() async {

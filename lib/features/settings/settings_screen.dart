@@ -193,6 +193,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: Text(S.of(context).settingsThemeLabel),
                   onTap: () => _showThemeDialog(context, state.appTheme),
                 ),
+                Semantics(
+                  identifier: 'settings-accent-colour',
+                  child: ListTile(
+                    leading: const Icon(Icons.palette_outlined),
+                    title: Text(S.of(context).settingsAccentColourTitle),
+                    subtitle: Text(
+                      _accentSubtitle(
+                        context,
+                        useMaterialYou: state.useMaterialYou,
+                        accentColor: state.accentColor,
+                      ),
+                    ),
+                    trailing: _AccentTrailingSwatch(
+                      useMaterialYou: state.useMaterialYou,
+                      accentColor: state.accentColor,
+                    ),
+                    onTap: () => Navigator.of(context).pushNamed(
+                      NavigationOptions.accentColourRoute,
+                    ),
+                  ),
+                ),
                 ListTile(
                   leading: const Icon(Icons.language_outlined),
                   title: Text(S.of(context).settingsLanguageLabel),
@@ -959,5 +980,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     }
+  }
+}
+
+
+String _accentSubtitle(
+  BuildContext context, {
+  required bool useMaterialYou,
+  required int? accentColor,
+}) {
+  final isAndroid = Theme.of(context).platform == TargetPlatform.android;
+  if (isAndroid && useMaterialYou) {
+    return S.of(context).settingsAccentSubtitleMaterialYou;
+  }
+  if (accentColor != null) {
+    return S.of(context).settingsAccentSubtitleCustom;
+  }
+  return S.of(context).settingsAccentSubtitleDefault;
+}
+
+class _AccentTrailingSwatch extends StatelessWidget {
+  final bool useMaterialYou;
+  final int? accentColor;
+
+  const _AccentTrailingSwatch({
+    required this.useMaterialYou,
+    required this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isAndroid = Theme.of(context).platform == TargetPlatform.android;
+    if (isAndroid && useMaterialYou) {
+      return Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const SweepGradient(
+            colors: <Color>[
+              Color(0xFFFF5252),
+              Color(0xFFFFD740),
+              Color(0xFF69F0AE),
+              Color(0xFF40C4FF),
+              Color(0xFFB388FF),
+              Color(0xFFFF5252),
+            ],
+          ),
+        ),
+      );
+    }
+    final color = accentColor != null
+        ? Color(accentColor!)
+        : const Color(0xFF43A047); // default green disc preview
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
   }
 }

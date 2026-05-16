@@ -15,6 +15,7 @@ import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_ite
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
+import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class AddMealScreen extends StatefulWidget {
@@ -299,6 +300,18 @@ class _AddMealScreenState extends State<AddMealScreen>
   void _onSearchSubmit(String inputText) {
     switch (_tabController.index) {
       case 0:
+        final trimmed = inputText.trim();
+        if (isValidBarcodeCheckDigit(trimmed)) {
+          Navigator.of(context).pushNamed(
+            NavigationOptions.scannerRoute,
+            arguments: ScannerScreenArguments(
+              _day,
+              _mealType.getIntakeType(),
+              initialBarcode: trimmed,
+            ),
+          );
+          return;
+        }
         _productsBloc.add(LoadProductsEvent(searchString: inputText));
       case 1:
         _foodBloc.add(LoadFoodEvent(searchString: inputText));

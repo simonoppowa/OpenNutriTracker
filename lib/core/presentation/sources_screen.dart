@@ -95,6 +95,19 @@ class SourcesScreen extends StatelessWidget {
           ),
         ],
       ),
+      _SourceEntry(
+        title: l10n.sourcesNutrientReferenceTitle,
+        description: l10n.sourcesNutrientReferenceDescription,
+        sources: const [
+          _SourceLink(
+            citation:
+                'Institute of Medicine. Dietary Reference Intakes: The '
+                'Essential Guide to Nutrient Requirements. Summary Report. '
+                'National Academies Press.',
+            url: URLConst.sourceNutrientReferenceIomURL,
+          ),
+        ],
+      ),
     ];
 
     return Scaffold(

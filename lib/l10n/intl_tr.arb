@@ -33,6 +33,13 @@
       }
     }
   },
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {
       "consumed": {
@@ -257,6 +264,10 @@
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "diaryNutrientPanelDataDisclaimer": "Yalnızca kaydettiğin öğünlerde takip edilen besinler burada toplanır. Bir değeri eksik olan öğün o besine katkıda bulunmaz — bu nedenle toplamlar olduğundan az görünebilir.",
   "diaryNutrientPanelTitle": "Bugünün besinleri",
+  "driPanelInfoTitle": "Referans alım",
+  "driPanelInfoBody": "Bu referans değerler, yetişkinler için IOM Diyet Referans Alımları'ndan gelir ve yaşa ile cinsiyete göre değişir. Bir hedef değil, bir referans noktasıdır — kendi ihtiyaçların farklı olabilir.",
+  "driPanelInfoLinkLabel": "Kaynak: IOM Dietary Reference Intakes",
+  "driPanelReferenceLabel": "ref. {value}",
   "diarySortByCarbs": "Karbonhidrat (çoktan aza)",
   "diarySortByFat": "Yağ (çoktan aza)",
   "diarySortByKcal": "Kalori (çoktan aza)",
@@ -720,6 +731,12 @@
   "retryLabel": "Tekrar Dene",
   "saturatedFatLabel": "doymuş yağ",
   "scanProductLabel": "Ürünü Tara",
+  "scannerManualEntryButton": "Kodu elle gir",
+  "scannerManualEntryCancel": "İptal",
+  "scannerManualEntryDialogTitle": "Barkodu girin",
+  "scannerManualEntryFieldHint": "8 ile 14 arasında rakam",
+  "scannerManualEntryInvalid": "Bu barkod geçerli görünmüyor. Lütfen rakamları kontrol edip tekrar deneyin.",
+  "scannerManualEntrySubmit": "Ara",
   "searchDefaultLabel": "Lütfen bir arama kelimesi girin",
   "searchFoodPage": "Yiyecek",
   "searchLabel": "Ara",
@@ -775,6 +792,20 @@
   "settingsIronGoalLabel": "Demir hedefi",
   "settingsLabel": "Ayarlar",
   "settingsLanguageLabel": "Dil",
+  "settingsMaterialYouTitle": "Sistem renklerini kullan",
+  "settingsMaterialYouSubtitle": "Android 12 ve daha yeni sürümlerde duvar kâğıdınızın vurgu rengiyle uyumlanır.",
+  "settingsAccentColourTitle": "Vurgu rengi",
+  "settingsAccentSubtitleMaterialYou": "Material You",
+  "settingsAccentSubtitleCustom": "Özel",
+  "settingsAccentSubtitleDefault": "Varsayılan",
+  "settingsAccentPresetsHeader": "Bir renk seç",
+  "settingsAccentCustomColour": "Özel renk…",
+  "settingsAccentCustomSubtitle": "Hassas seçim için ton kaydırıcısını aç",
+  "settingsAccentHexLabel": "Hex kod",
+  "settingsAccentHexInvalid": "Bu hex kod doğru görünmüyor — altı karakter, 0-9 ve A-F.",
+  "settingsAccentHueTitle": "Vurgu rengi",
+  "settingsAccentHueDisabledHint": "Özel bir vurgu seçmek için sistem renklerini kapatın.",
+  "settingsAccentHueReset": "Sıfırla",
   "settingsMacroSplitLabel": "Makro dağılımı",
   "settingsLicensesLabel": "Lisanslar",
   "settingsMagnesiumGoalDescription": "Günlük magnezyum hedefi (miligram). Varsayılan değer cinsiyete göre değişir (400 mg erkek, 310 mg kadın, diğerleri için 355 mg).",
@@ -837,6 +868,8 @@
   "sourcesMacrosDescription": "%60 karbonhidrat, %25 yağ ve %15 protein şeklindeki varsayılan dağılım, DSÖ'nün önerdiği nüfus besin alımı aralıkları içinde kalır. Ayarlar → Hesaplamalar bölümünden değiştirebilirsin. Kaynak: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
   "sourcesMacrosTitle": "Makro besin dağılımı",
   "sourcesNonBinaryDescription": "Enerji harcaması üzerine yapılan araştırmalar tarihsel olarak yalnızca ikili cinsiyet kategorilerini kullanmıştır; bu nedenle non-binary kişiler için doğrulanmış tek bir TDEE formülü yoktur. Bu yüzden OpenNutriTracker, Ayarlar → Hesaplamalar bölümünde ortalanmış bir referans, östrojen-tipik bir referans ve testosteron-tipik bir referans arasında seçim yapmanı sağlar. Bakımın için kesin bir değer gerçekten önemliyse lütfen hormon durumunu bilen bir klinisyenle görüş.",
+  "sourcesNutrientReferenceTitle": "Besin referans alımları",
+  "sourcesNutrientReferenceDescription": "Günlük besin panelinde gösterilen referans değerleri, yetişkinler için besin başına hedefleri kapsayan Institute of Medicine'ın Dietary Reference Intakes özetinden alınmıştır.",
   "sourcesNonBinaryTitle": "Non-binary kişiler için kalori tahmini",
   "sourcesOpenSourceLabel": "Kaynağı aç",
   "sourcesScreenIntro": "OpenNutriTracker, gösterdiği her hesaplama için yerleşik ve hakemli yöntemler kullanır. Aşağıdaki kaynaklar orijinal yayınlara bağlanır, böylece her değeri kendin doğrulayabilirsin.",

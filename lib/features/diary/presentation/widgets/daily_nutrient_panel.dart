@@ -8,9 +8,11 @@ import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/dri_reference.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Daily micronutrient summary that aggregates the nutrients reporters keep
 /// asking for — fibre, sodium, saturated fat, sugar, calcium, iron, potassium,
@@ -229,19 +231,69 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
     // Per-nutrient targets — route through the public resolver helpers so
     // the unit tests and the build method share a single source of truth.
     final td = widget.trackedDay;
-    final fiberRefG = DailyNutrientPanel.resolveFibreReference(td);
-    final sodiumRefMg = DailyNutrientPanel.resolveSodiumReference(td);
+    // Helper: prefer the per-day tracked override, then the IOM age-banded
+    // DRI when a user record is available, then the gender-agnostic default
+    // the panel has always used as a last resort. This keeps the existing
+    // resolver helpers as the single source of truth for tests, but layers
+    // the age-aware IOM lookup (#245) on top for users we know enough about.
+    double resolveWithDri(
+      double? Function() trackedOverride,
+      String nutrientKey,
+      double fallback,
+    ) {
+      final tracked = trackedOverride();
+      if (tracked != null) return tracked;
+      if (user != null) {
+        final dri = getReferenceFor(nutrient: nutrientKey, user: user);
+        if (dri != null) return dri.amount;
+      }
+      return fallback;
+    }
+
+    final fiberRefG = resolveWithDri(
+      () => td?.fibreGoal,
+      NutrientPanelKeys.fiber,
+      DailyNutrientPanel.defaultFibreRefG,
+    );
+    final sodiumRefMg = resolveWithDri(
+      () => td?.sodiumGoal,
+      NutrientPanelKeys.sodium,
+      DailyNutrientPanel.defaultSodiumRefMg,
+    );
+    // Saturated fat and sugars have no IOM RDA — the resolver helper still
+    // returns the published FDA Daily Value as the fallback for both.
     final saturatedFatRefG = DailyNutrientPanel.resolveSatFatReference(td);
     final sugarRefG = DailyNutrientPanel.resolveSugarsReference(td);
-    final calciumRefMg = DailyNutrientPanel.resolveCalciumReference(td);
-    final ironRefMg = DailyNutrientPanel.resolveIronReference(
-      td,
+    final calciumRefMg = resolveWithDri(
+      () => td?.calciumGoal,
+      NutrientPanelKeys.calcium,
+      DailyNutrientPanel.defaultCalciumRefMg,
+    );
+    final ironRefMg = resolveWithDri(
+      () => td?.ironGoal,
+      NutrientPanelKeys.iron,
       _ironRefForUser(user),
     );
-    final potassiumRefMg = DailyNutrientPanel.resolvePotassiumReference(td);
-    final vitaminDRefMcg = DailyNutrientPanel.resolveVitaminDReference(td);
-    final vitaminB12RefMcg = DailyNutrientPanel.resolveVitaminB12Reference(td);
-    final magnesiumRefMg = td?.magnesiumGoal ?? _magnesiumRefForUser(user);
+    final potassiumRefMg = resolveWithDri(
+      () => td?.potassiumGoal,
+      NutrientPanelKeys.potassium,
+      DailyNutrientPanel.defaultPotassiumRefMg,
+    );
+    final vitaminDRefMcg = resolveWithDri(
+      () => td?.vitaminDGoal,
+      NutrientPanelKeys.vitaminD,
+      DailyNutrientPanel.defaultVitaminDRefUg,
+    );
+    final vitaminB12RefMcg = resolveWithDri(
+      () => td?.vitaminB12Goal,
+      NutrientPanelKeys.vitaminB12,
+      DailyNutrientPanel.defaultVitaminB12RefUg,
+    );
+    final magnesiumRefMg = resolveWithDri(
+      () => td?.magnesiumGoal,
+      NutrientPanelKeys.magnesium,
+      _magnesiumRefForUser(user),
+    );
 
     final s = S.of(context);
     final allRows = <_PanelRow>[
@@ -369,20 +421,23 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
               // dialog without expanding the panel — IconButton's own
               // InkResponse consumes the pointer event, so the
               // surrounding ExpansionTile doesn't toggle.
-              IconButton(
-                tooltip: s.diaryNutrientPanelDataDisclaimer,
-                icon: Icon(
-                  Icons.info_outline,
-                  size: 20,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.7),
+              Semantics(
+                identifier: 'dri-panel-info',
+                child: IconButton(
+                  tooltip: s.driPanelInfoTitle,
+                  icon: Icon(
+                    Icons.info_outline,
+                    size: 20,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
+                  ),
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(),
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  onPressed: () => _showDataDisclaimer(context, s),
                 ),
-                visualDensity: VisualDensity.compact,
-                constraints: const BoxConstraints(),
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                onPressed: () => _showDataDisclaimer(context, s),
               ),
             ],
           ),
@@ -441,8 +496,47 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
       builder: (dialogContext) {
         return AlertDialog(
           icon: const Icon(Icons.info_outline),
-          title: Text(s.diaryNutrientPanelTitle),
-          content: Text(s.diaryNutrientPanelDataDisclaimer),
+          title: Text(s.driPanelInfoTitle),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(s.driPanelInfoBody),
+                const SizedBox(height: 12.0),
+                Text(s.diaryNutrientPanelDataDisclaimer),
+                const SizedBox(height: 16.0),
+                Semantics(
+                  identifier: 'dri-panel-info-link',
+                  child: InkWell(
+                    onTap: () async {
+                      final uri = Uri.parse(driSourceUrl);
+                      // Best-effort link launch — silently no-ops if the
+                      // platform reports it cannot handle the URL, which is
+                      // friendlier than throwing in front of the user.
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri,
+                            mode: LaunchMode.externalApplication);
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Text(
+                        s.driPanelInfoLinkLabel,
+                        style:
+                            Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(dialogContext)
+                                      .colorScheme
+                                      .primary,
+                                  decoration: TextDecoration.underline,
+                                ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
