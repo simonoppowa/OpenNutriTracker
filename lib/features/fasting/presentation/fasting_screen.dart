@@ -61,6 +61,15 @@ class _FastingScreenState extends State<FastingScreen> {
       appBar: AppBar(title: Text(l10n.fastingTitle)),
       body: BlocConsumer<FastingBloc, FastingState>(
         bloc: _bloc,
+        listenWhen: (prev, curr) {
+          // Schedule on enter-Active; cancel on enter-Idle (user ended the
+          // fast). FastingCompleted intentionally not listened for here —
+          // the OS-scheduled alarm is firing at exactly that moment.
+          if (curr is FastingWarningRequired) return true;
+          if (curr is FastingActive && prev is! FastingActive) return true;
+          if (curr is FastingIdle && prev is! FastingIdle) return true;
+          return false;
+        },
         listener: (context, state) {
           if (state is FastingWarningRequired) {
             _handleWarning(context);
@@ -68,7 +77,7 @@ class _FastingScreenState extends State<FastingScreen> {
           if (state is FastingActive) {
             _scheduleCompleteNotification(context, state);
           }
-          if (state is FastingIdle || state is FastingCompleted) {
+          if (state is FastingIdle) {
             _cancelCompleteNotification();
           }
         },
