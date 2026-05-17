@@ -98,6 +98,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Birleştirildi — ${winner} artık ${count} kayıtlı girdiye sahip.";
   static String mDriRef(value) => "ref. ${value}";
   static String mMergeOneTr(winner) => "Birleştirildi — ${winner} artık 1 kayda sahip.";
+  static String mFastingChipTr(remaining) => 'Oruç · ${remaining} kaldı';
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1340,6 +1341,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "fastingCancel": MessageLookupByLibrary.simpleMessage('Orucu sonlandır'),
         "fastingCancelConfirmTitle": MessageLookupByLibrary.simpleMessage('Orucu şimdi sonlandırılsın mı?'),
         "fastingCancelConfirmBody": MessageLookupByLibrary.simpleMessage('Bu, mevcut oturumu kapatacak.'),
+        "fastingHomeChipBody": mFastingChipTr,
+        "fastingNotificationCompleteTitle": MessageLookupByLibrary.simpleMessage('Oruç süresi tamamlandı'),
+        "fastingNotificationCompleteBody": MessageLookupByLibrary.simpleMessage('Hedef sürene ulaştın.'),
         "fastingComplete": MessageLookupByLibrary.simpleMessage('Oturum tamamlandı'),
         "fastingLinkBeat": MessageLookupByLibrary.simpleMessage('BEAT (UK)'),
         "fastingLinkNeda": MessageLookupByLibrary.simpleMessage('NEDA (US)'),

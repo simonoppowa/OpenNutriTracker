@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/features/fasting/presentation/bloc/fasting_bloc.dart';
 import 'package:opennutritracker/features/fasting/presentation/widgets/fasting_warning_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -63,6 +64,12 @@ class _FastingScreenState extends State<FastingScreen> {
         listener: (context, state) {
           if (state is FastingWarningRequired) {
             _handleWarning(context);
+          }
+          if (state is FastingActive) {
+            _scheduleCompleteNotification(context, state);
+          }
+          if (state is FastingIdle || state is FastingCompleted) {
+            _cancelCompleteNotification();
           }
         },
         builder: (context, state) {
@@ -325,5 +332,27 @@ class _FastingScreenState extends State<FastingScreen> {
     final m = (d.inMinutes % 60).toString().padLeft(2, '0');
     final s = (d.inSeconds % 60).toString().padLeft(2, '0');
     return '$h:$m:$s';
+  }
+
+  Future<void> _scheduleCompleteNotification(
+    BuildContext context,
+    FastingActive state,
+  ) async {
+    final notificationService = locator<NotificationService>();
+    final permitted = await notificationService.requestPermission();
+    if (!permitted) return;
+    final when = state.session.startedAt.add(state.session.targetDuration);
+    if (!when.isAfter(DateTime.now())) return;
+    if (!context.mounted) return;
+    final l10n = S.of(context);
+    await notificationService.scheduleFastingComplete(
+      when: when,
+      title: l10n.fastingNotificationCompleteTitle,
+      body: l10n.fastingNotificationCompleteBody,
+    );
+  }
+
+  Future<void> _cancelCompleteNotification() async {
+    await locator<NotificationService>().cancelFastingComplete();
   }
 }

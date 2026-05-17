@@ -963,5 +963,13 @@
       "count": { "type": "int" },
       "winner": { "type": "String" }
     }
-  }
+  },
+  "fastingHomeChipBody": "Pôst · zostáva {remaining}",
+  "@fastingHomeChipBody": {
+    "placeholders": {
+      "remaining": { "type": "String" }
+    }
+  },
+  "fastingNotificationCompleteTitle": "Pôst dokončený",
+  "fastingNotificationCompleteBody": "Cieľový čas bol dosiahnutý."
 }

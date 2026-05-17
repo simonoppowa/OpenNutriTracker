@@ -95,6 +95,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Połączono — ${winner} ma teraz ${count} zarejestrowanych wpisów.";
   static String mDriRef(value) => "ref. ${value}";
   static String mMergeOnePl(winner) => "Połączono — ${winner} ma teraz 1 wpis.";
+  static String mFastingChipPl(remaining) => "Post · pozostało ${remaining}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1364,6 +1365,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "fastingCancel": MessageLookupByLibrary.simpleMessage('Zakończ post'),
         "fastingCancelConfirmTitle": MessageLookupByLibrary.simpleMessage('Zakończyć post teraz?'),
         "fastingCancelConfirmBody": MessageLookupByLibrary.simpleMessage('Bieżąca sesja zostanie zamknięta.'),
+        "fastingHomeChipBody": mFastingChipPl,
+        "fastingNotificationCompleteTitle": MessageLookupByLibrary.simpleMessage("Sesja postu zakończona"),
+        "fastingNotificationCompleteBody": MessageLookupByLibrary.simpleMessage("Czas docelowy został osiągnięty."),
         "fastingComplete": MessageLookupByLibrary.simpleMessage('Sesja zakończona'),
         "fastingLinkBeat": MessageLookupByLibrary.simpleMessage('BEAT (UK)'),
         "fastingLinkNeda": MessageLookupByLibrary.simpleMessage('NEDA (US)'),

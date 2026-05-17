@@ -934,5 +934,13 @@
       "count": { "type": "int" },
       "winner": { "type": "String" }
     }
-  }
+  },
+  "fastingHomeChipBody": "禁食中 · 剩余 {remaining}",
+  "@fastingHomeChipBody": {
+    "placeholders": {
+      "remaining": { "type": "String" }
+    }
+  },
+  "fastingNotificationCompleteTitle": "禁食时间到了",
+  "fastingNotificationCompleteBody": "已达到你的目标时间。"
 }

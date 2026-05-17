@@ -964,5 +964,13 @@
       "count": { "type": "int" },
       "winner": { "type": "String" }
     }
-  }
+  },
+  "fastingHomeChipBody": "Oruç · {remaining} kaldı",
+  "@fastingHomeChipBody": {
+    "placeholders": {
+      "remaining": { "type": "String" }
+    }
+  },
+  "fastingNotificationCompleteTitle": "Oruç süresi tamamlandı",
+  "fastingNotificationCompleteBody": "Hedef sürene ulaştın."
 }

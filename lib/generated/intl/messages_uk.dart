@@ -96,6 +96,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Об’єднано — ${winner} тепер має ${count} записів.";
   static String mDriRef(value) => "орієнт. ${value}";
   static String mMergeOneUk(winner) => "Об'єднано — ${winner} тепер має 1 запис.";
+  static String mFastingChipUk(remaining) => "Голодування · залишилось ${remaining}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1368,6 +1369,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "fastingCancel": MessageLookupByLibrary.simpleMessage('Завершити піст'),
         "fastingCancelConfirmTitle": MessageLookupByLibrary.simpleMessage('Завершити піст зараз?'),
         "fastingCancelConfirmBody": MessageLookupByLibrary.simpleMessage('Поточну сесію буде закрито.'),
+        "fastingHomeChipBody": mFastingChipUk,
+        "fastingNotificationCompleteTitle": MessageLookupByLibrary.simpleMessage("Сесія голодування завершена"),
+        "fastingNotificationCompleteBody": MessageLookupByLibrary.simpleMessage("Цільовий час досягнуто."),
         "fastingComplete": MessageLookupByLibrary.simpleMessage('Сесію завершено'),
         "fastingLinkBeat": MessageLookupByLibrary.simpleMessage('BEAT (UK)'),
         "fastingLinkNeda": MessageLookupByLibrary.simpleMessage('NEDA (US)'),

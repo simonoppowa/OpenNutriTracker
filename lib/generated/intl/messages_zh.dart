@@ -93,6 +93,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "已合并 — ${winner} 现在有 ${count} 条记录。";
   static String mDriRef(value) => "参考 ${value}";
   static String mMergeOneZh(winner) => "已合并 — ${winner} 现在有 1 条记录。";
+  static String mFastingChipZh(remaining) => "禁食中 · 剩余 ${remaining}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1205,6 +1206,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "fastingCancel": MessageLookupByLibrary.simpleMessage('结束断食'),
         "fastingCancelConfirmTitle": MessageLookupByLibrary.simpleMessage('现在结束断食?'),
         "fastingCancelConfirmBody": MessageLookupByLibrary.simpleMessage('这将关闭当前会话。'),
+        "fastingHomeChipBody": mFastingChipZh,
+        "fastingNotificationCompleteTitle": MessageLookupByLibrary.simpleMessage("禁食时间到了"),
+        "fastingNotificationCompleteBody": MessageLookupByLibrary.simpleMessage("已达到你的目标时间。"),
         "fastingComplete": MessageLookupByLibrary.simpleMessage('会话完成'),
         "fastingLinkBeat": MessageLookupByLibrary.simpleMessage('BEAT(英国)'),
         "fastingLinkNeda": MessageLookupByLibrary.simpleMessage('NEDA(美国)'),

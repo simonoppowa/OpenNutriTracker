@@ -933,5 +933,13 @@
       "count": { "type": "int" },
       "winner": { "type": "String" }
     }
-  }
+  },
+  "fastingHomeChipBody": "Голодування · залишилось {remaining}",
+  "@fastingHomeChipBody": {
+    "placeholders": {
+      "remaining": { "type": "String" }
+    }
+  },
+  "fastingNotificationCompleteTitle": "Сесія голодування завершена",
+  "fastingNotificationCompleteBody": "Цільовий час досягнуто."
 }

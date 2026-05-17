@@ -933,5 +933,13 @@
       "count": { "type": "int" },
       "winner": { "type": "String" }
     }
-  }
+  },
+  "fastingHomeChipBody": "Post · pozostało {remaining}",
+  "@fastingHomeChipBody": {
+    "placeholders": {
+      "remaining": { "type": "String" }
+    }
+  },
+  "fastingNotificationCompleteTitle": "Sesja postu zakończona",
+  "fastingNotificationCompleteBody": "Czas docelowy został osiągnięty."
 }

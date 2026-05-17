@@ -964,5 +964,13 @@
       "count": { "type": "int" },
       "winner": { "type": "String" }
     }
-  }
+  },
+  "fastingHomeChipBody": "Fasten · noch {remaining}",
+  "@fastingHomeChipBody": {
+    "placeholders": {
+      "remaining": { "type": "String" }
+    }
+  },
+  "fastingNotificationCompleteTitle": "Fastenzeit abgeschlossen",
+  "fastingNotificationCompleteBody": "Deine Zielzeit wurde erreicht."
 }

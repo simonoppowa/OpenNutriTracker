@@ -933,5 +933,13 @@
       "count": { "type": "int" },
       "winner": { "type": "String" }
     }
-  }
+  },
+  "fastingHomeChipBody": "Digiuno · {remaining} rimanenti",
+  "@fastingHomeChipBody": {
+    "placeholders": {
+      "remaining": { "type": "String" }
+    }
+  },
+  "fastingNotificationCompleteTitle": "Sessione di digiuno completata",
+  "fastingNotificationCompleteBody": "Il tuo tempo obiettivo è stato raggiunto."
 }

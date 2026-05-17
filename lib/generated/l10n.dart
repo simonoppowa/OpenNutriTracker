@@ -7711,6 +7711,36 @@ class S {
       args: [],
     );
   }
+
+  /// `Fasting · {remaining} left`
+  String fastingHomeChipBody(String remaining) {
+    return Intl.message(
+      'Fasting · $remaining left',
+      name: 'fastingHomeChipBody',
+      desc: '',
+      args: [remaining],
+    );
+  }
+
+  /// `Fasting session complete`
+  String get fastingNotificationCompleteTitle {
+    return Intl.message(
+      'Fasting session complete',
+      name: 'fastingNotificationCompleteTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your target time has been reached.`
+  String get fastingNotificationCompleteBody {
+    return Intl.message(
+      'Your target time has been reached.',
+      name: 'fastingNotificationCompleteBody',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

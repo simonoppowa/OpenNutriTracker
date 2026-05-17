@@ -96,6 +96,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Sloučeno — ${winner} má nyní ${count} záznamů.";
   static String mDriRef(value) => "ref. ${value}";
   static String mMergeOneCs(winner) => "Sloučeno — ${winner} má nyní 1 záznam.";
+  static String mFastingChipCs(remaining) => "Půst · zbývá ${remaining}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1354,6 +1355,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "fastingCancel": MessageLookupByLibrary.simpleMessage('Ukončit půst'),
         "fastingCancelConfirmTitle": MessageLookupByLibrary.simpleMessage('Ukončit půst teď?'),
         "fastingCancelConfirmBody": MessageLookupByLibrary.simpleMessage('Aktuální relace bude uzavřena.'),
+        "fastingHomeChipBody": mFastingChipCs,
+        "fastingNotificationCompleteTitle": MessageLookupByLibrary.simpleMessage("Půst dokončen"),
+        "fastingNotificationCompleteBody": MessageLookupByLibrary.simpleMessage("Cílový čas byl dosažen."),
         "fastingComplete": MessageLookupByLibrary.simpleMessage('Relace dokončena'),
         "fastingLinkBeat": MessageLookupByLibrary.simpleMessage('BEAT (UK)'),
         "fastingLinkNeda": MessageLookupByLibrary.simpleMessage('NEDA (US)'),
