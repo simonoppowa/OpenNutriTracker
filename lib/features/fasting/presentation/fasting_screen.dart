@@ -289,6 +289,7 @@ class _FastingScreenState extends State<FastingScreen> {
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(
             Icons.check_circle_outline,
@@ -296,7 +297,11 @@ class _FastingScreenState extends State<FastingScreen> {
             color: Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(height: 16),
-          Text(l10n.fastingComplete, style: textTheme.headlineSmall),
+          Text(
+            l10n.fastingComplete,
+            style: textTheme.headlineSmall,
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 32),
           Semantics(
             identifier: 'fasting-complete-close',
