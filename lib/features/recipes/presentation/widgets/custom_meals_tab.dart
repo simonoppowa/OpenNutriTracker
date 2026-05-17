@@ -228,28 +228,32 @@ class CustomMealsTab extends StatelessWidget {
         return StatefulBuilder(
           builder: (ctx2, setState) => AlertDialog(
             title: Text(S.of(context).customMealsMergeChooseSurvivorTitle),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Semantics(
-                  identifier: 'custom-foods-merge-successor-a',
-                  child: RadioListTile<MealEntity>(
-                    title: Text(a.name ?? ''),
-                    value: a,
-                    groupValue: selected,
-                    onChanged: (v) => setState(() => selected = v ?? a),
+            // Flutter 3.32 deprecated the per-tile `groupValue` / `onChanged`
+            // pattern in favour of a single `RadioGroup` ancestor that owns
+            // the selected value and the change callback. The tiles now
+            // just declare their `value`.
+            content: RadioGroup<MealEntity>(
+              groupValue: selected,
+              onChanged: (v) => setState(() => selected = v ?? selected),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Semantics(
+                    identifier: 'custom-foods-merge-successor-a',
+                    child: RadioListTile<MealEntity>(
+                      title: Text(a.name ?? ''),
+                      value: a,
+                    ),
                   ),
-                ),
-                Semantics(
-                  identifier: 'custom-foods-merge-successor-b',
-                  child: RadioListTile<MealEntity>(
-                    title: Text(b.name ?? ''),
-                    value: b,
-                    groupValue: selected,
-                    onChanged: (v) => setState(() => selected = v ?? b),
+                  Semantics(
+                    identifier: 'custom-foods-merge-successor-b',
+                    child: RadioListTile<MealEntity>(
+                      title: Text(b.name ?? ''),
+                      value: b,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             actions: [
               Semantics(
