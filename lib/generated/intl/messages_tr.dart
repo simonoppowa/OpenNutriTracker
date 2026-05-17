@@ -91,6 +91,13 @@ class MessageLookup extends MessageLookupByLibrary {
   static String mFastingRemaining(value) => "${value} kaldı";
 
   static String mFastingTarget(value) => "Hedef: ${value}";
+  static String mMergeConfirm(loser, winner) =>
+      "Bu işlem, ${loser} ile kaydedilen tüm girdileri değiştirip ${winner} olarak gösterir ve ${loser} özel yiyeceklerinden kaldırılır. Bu işlem geri alınamaz.";
+
+  static String mMergeSuccess(count, winner) =>
+      "Birleştirildi — ${winner} artık ${count} kayıtlı girdiye sahip.";
+  static String mDriRef(value) => "ref. ${value}";
+  static String mMergeOneTr(winner) => "Birleştirildi — ${winner} artık 1 kayda sahip.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -214,6 +221,23 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Özel yemek silinsin mi?"),
         "customMealsEmptyLabel": MessageLookupByLibrary.simpleMessage(
             "Henüz özel yemek kaydedilmedi."),
+        "customMealsRowMoreTooltip":
+            MessageLookupByLibrary.simpleMessage("Diğer eylemler"),
+        "customMealsMergeAction": MessageLookupByLibrary.simpleMessage(
+            "Başka bir özel yiyecekle birleştir"),
+        "customMealsMergePickerTitle": MessageLookupByLibrary.simpleMessage(
+            "Birleştirilecek özel yiyeceği seç"),
+        "customMealsMergeChooseSurvivorTitle":
+            MessageLookupByLibrary.simpleMessage("Hangisi kalsın?"),
+        "customMealsMergeContinueAction":
+            MessageLookupByLibrary.simpleMessage("Devam et"),
+        "customMealsMergeConfirmTitle": MessageLookupByLibrary.simpleMessage(
+            "Özel yiyecekler birleştirilsin mi?"),
+        "customMealsMergeConfirmContent": mMergeConfirm,
+        "customMealsMergeConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Birleştir"),
+                "customMealsMergeSuccessSnackbarOne": mMergeOneTr,
+        "customMealsMergeSuccessSnackbarOther": mMergeSuccess,
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Günlük Kcal ayarı:"),
         "dailyKjAdjustmentLabel":
@@ -257,6 +281,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Günlük"),
         "diaryNutrientPanelTitle":
             MessageLookupByLibrary.simpleMessage("Bugünün besinleri"),
+        "driPanelInfoBody": MessageLookupByLibrary.simpleMessage(
+            "Bu referans değerler, yetişkinler için IOM Diyet Referans Alımları\'ndan gelir ve yaşa ile cinsiyete göre değişir. Bir hedef değil, bir referans noktasıdır — kendi ihtiyaçların farklı olabilir."),
+        "driPanelInfoLinkLabel":
+            MessageLookupByLibrary.simpleMessage("Kaynak: IOM Dietary Reference Intakes"),
+        "driPanelInfoTitle":
+            MessageLookupByLibrary.simpleMessage("Referans alım"),
+        "driPanelReferenceLabel": mDriRef,
         "dinnerExample":
             MessageLookupByLibrary.simpleMessage("ör. çorba, tavuk, şarap ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Akşam Yemeği"),
@@ -972,6 +1003,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "retryLabel": MessageLookupByLibrary.simpleMessage("Tekrar Dene"),
         "saturatedFatLabel": MessageLookupByLibrary.simpleMessage("doymuş yağ"),
         "scanProductLabel": MessageLookupByLibrary.simpleMessage("Ürünü Tara"),
+        "scannerManualEntryButton":
+            MessageLookupByLibrary.simpleMessage("Kodu elle gir"),
+        "scannerManualEntryCancel":
+            MessageLookupByLibrary.simpleMessage("İptal"),
+        "scannerManualEntryDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Barkodu girin"),
+        "scannerManualEntryFieldHint":
+            MessageLookupByLibrary.simpleMessage("8 ile 14 arasında rakam"),
+        "scannerManualEntryInvalid": MessageLookupByLibrary.simpleMessage(
+            "Bu barkod geçerli görünmüyor. Lütfen rakamları kontrol edip tekrar deneyin."),
+        "scannerManualEntrySubmit": MessageLookupByLibrary.simpleMessage("Ara"),
         "searchDefaultLabel": MessageLookupByLibrary.simpleMessage(
             "Lütfen bir arama kelimesi girin"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Yiyecek"),
@@ -1069,6 +1111,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Aktivite kalorileri (MET değerleri)"),
         "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Bir aktivite sırasında yakılan kaloriler, Adult Compendium of Physical Activities\'teki değerler kullanılarak MET × vücut ağırlığı (kg) × süre (saat) olarak tahmin edilir."),
+        "sourcesNutrientReferenceTitle": MessageLookupByLibrary.simpleMessage("Besin referans alımları"),
+        "sourcesNutrientReferenceDescription": MessageLookupByLibrary.simpleMessage("Günlük besin panelinde gösterilen referans değerleri, yetişkinler için besin başına hedefleri kapsayan Institute of Medicine'ın Dietary Reference Intakes özetinden alınmıştır."),
         "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
             "Non-binary kişiler için kalori tahmini"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
@@ -1082,6 +1126,21 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Günlük kcal ayarı"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Ayarlar"),
         "settingsLanguageLabel": MessageLookupByLibrary.simpleMessage("Dil"),
+        "settingsMaterialYouTitle":
+            MessageLookupByLibrary.simpleMessage("Sistem renklerini kullan"),
+        "settingsMaterialYouSubtitle": MessageLookupByLibrary.simpleMessage("Android 12 ve daha yeni sürümlerde duvar kâğıdınızın vurgu rengiyle uyumlanır."),
+        "settingsAccentColourTitle": MessageLookupByLibrary.simpleMessage("Vurgu rengi"),
+        "settingsAccentSubtitleMaterialYou": MessageLookupByLibrary.simpleMessage("Material You"),
+        "settingsAccentSubtitleCustom": MessageLookupByLibrary.simpleMessage("Özel"),
+        "settingsAccentSubtitleDefault": MessageLookupByLibrary.simpleMessage("Varsayılan"),
+        "settingsAccentPresetsHeader": MessageLookupByLibrary.simpleMessage("Bir renk seç"),
+        "settingsAccentCustomColour": MessageLookupByLibrary.simpleMessage("Özel renk…"),
+        "settingsAccentCustomSubtitle": MessageLookupByLibrary.simpleMessage("Hassas seçim için ton kaydırıcısını aç"),
+        "settingsAccentHexLabel": MessageLookupByLibrary.simpleMessage("Hex kod"),
+        "settingsAccentHexInvalid": MessageLookupByLibrary.simpleMessage("Bu hex kod doğru görünmüyor — altı karakter, 0-9 ve A-F."),
+        "settingsAccentHueTitle": MessageLookupByLibrary.simpleMessage("Vurgu rengi"),
+        "settingsAccentHueDisabledHint": MessageLookupByLibrary.simpleMessage("Özel bir vurgu seçmek için sistem renklerini kapatın."),
+        "settingsAccentHueReset": MessageLookupByLibrary.simpleMessage("Sıfırla"),
         "settingsMacroSplitLabel":
             MessageLookupByLibrary.simpleMessage("Makro dağılımı"),
         "settingsLicensesLabel":

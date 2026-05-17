@@ -34,6 +34,13 @@
       }
     }
   },
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {
       "consumed": {
@@ -229,6 +236,10 @@
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} 千卡",
   "diaryNutrientPanelDataDisclaimer": "此处仅汇总你已记录餐食中已追踪的营养素。如果某餐缺少某项数值,它就不会计入该营养素的总和,因此总量可能偏低。",
   "diaryNutrientPanelTitle": "今日营养素",
+  "driPanelInfoTitle": "参考摄入量",
+  "driPanelInfoBody": "这些参考量取自 IOM 成人膳食营养素参考摄入量,会因年龄和性别而异。它们只是参考,并非目标——你自身的需要可能有所不同。",
+  "driPanelInfoLinkLabel": "来源：IOM Dietary Reference Intakes",
+  "driPanelReferenceLabel": "参考 {value}",
   "diarySortByCarbs": "碳水化合物（从高到低）",
   "diarySortByFat": "脂肪（从高到低）",
   "diarySortByKcal": "卡路里（从高到低）",
@@ -692,6 +703,12 @@
   "retryLabel": "重试",
   "saturatedFatLabel": "饱和脂肪",
   "scanProductLabel": "扫描产品",
+  "scannerManualEntryButton": "手动输入条码",
+  "scannerManualEntryCancel": "取消",
+  "scannerManualEntryDialogTitle": "输入条码",
+  "scannerManualEntryFieldHint": "8 到 14 位数字",
+  "scannerManualEntryInvalid": "此条码似乎无效。请检查数字后重试。",
+  "scannerManualEntrySubmit": "查找",
   "searchDefaultLabel": "请输入搜索词",
   "searchFoodPage": "食物",
   "searchLabel": "搜索",
@@ -747,6 +764,20 @@
   "settingsIronGoalLabel": "铁目标",
   "settingsLabel": "设置",
   "settingsLanguageLabel": "语言",
+  "settingsMaterialYouTitle": "使用系统颜色",
+  "settingsMaterialYouSubtitle": "在 Android 12 及更高版本上,使用你壁纸的强调色。",
+  "settingsAccentColourTitle": "强调色",
+  "settingsAccentSubtitleMaterialYou": "Material You",
+  "settingsAccentSubtitleCustom": "自定义",
+  "settingsAccentSubtitleDefault": "默认",
+  "settingsAccentPresetsHeader": "选择颜色",
+  "settingsAccentCustomColour": "自定义颜色…",
+  "settingsAccentCustomSubtitle": "打开色相滑块进行精确选择",
+  "settingsAccentHexLabel": "十六进制代码",
+  "settingsAccentHexInvalid": "这个十六进制代码看起来不对 — 需要六个字符,0-9 和 A-F。",
+  "settingsAccentHueTitle": "强调色",
+  "settingsAccentHueDisabledHint": "关闭系统颜色以选择自定义强调色。",
+  "settingsAccentHueReset": "重置",
   "settingsMacroSplitLabel": "宏量营养素分配",
   "settingsLicensesLabel": "许可证",
   "settingsMagnesiumGoalDescription": "每日镁目标（毫克）。默认值因性别而异（男性 400 毫克，女性 310 毫克，其他 355 毫克）。",
@@ -809,6 +840,8 @@
   "sourcesMacrosDescription": "默认的 60% 碳水化合物、25% 脂肪、15% 蛋白质比例落在 WHO 推荐的人群营养摄入范围内。你可以在 设置 → 计算 中调整。来源：WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases。",
   "sourcesMacrosTitle": "宏量营养素分配",
   "sourcesNonBinaryDescription": "能量消耗的研究历史上一直只采用二元性别分类，因此目前并不存在一条经过验证的、适用于非二元性别人士的 TDEE 公式。OpenNutriTracker 因此在 设置 → 计算 中提供平均参考、雌激素型参考、睾酮型参考三种选项供你选择。如果精确数值对你确实重要，请咨询了解你激素状况的临床医师。",
+  "sourcesNutrientReferenceTitle": "营养参考摄入量",
+  "sourcesNutrientReferenceDescription": "日记营养面板中显示的每日参考量来自美国医学研究所(Institute of Medicine)的膳食参考摄入量(DRI)汇总报告,涵盖成人各项营养素目标。",
   "sourcesNonBinaryTitle": "非二元性别人士的卡路里估算",
   "sourcesOpenSourceLabel": "打开来源",
   "sourcesScreenIntro": "OpenNutriTracker 的每一项计算都采用成熟的、经同行评审的方法。以下引用直接链接到原始文献，你可以自行核对其中的每一个数值。",
@@ -876,5 +909,30 @@
     }
   },
   "hoursLabel": "小时",
-  "dialogCloseLabel": "关闭"
+  "dialogCloseLabel": "关闭",
+  "customMealsRowMoreTooltip": "更多操作",
+  "customMealsMergeAction": "与另一项自定义食物合并",
+  "customMealsMergePickerTitle": "选择要合并的自定义食物",
+  "customMealsMergeChooseSurvivorTitle": "保留哪一项?",
+  "customMealsMergeContinueAction": "继续",
+  "customMealsMergeConfirmTitle": "合并自定义食物?",
+  "customMealsMergeConfirmContent": "这会把所有用 {loser} 记录的条目改为显示 {winner},并把 {loser} 从你的自定义食物中移除。此操作无法撤销。",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": { "type": "String" },
+      "winner": { "type": "String" }
+    }
+  },
+  "customMealsMergeConfirmAction": "合并",
+  "customMealsMergeSuccessSnackbarOne": "已合并 — {winner} 现在有 1 条记录。",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": { "winner": { "type": "String" } }
+  },
+  "customMealsMergeSuccessSnackbarOther": "已合并 — {winner} 现在有 {count} 条记录。",
+  "@customMealsMergeSuccessSnackbarOther": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "winner": { "type": "String" }
+    }
+  }
 }

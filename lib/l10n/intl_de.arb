@@ -33,6 +33,13 @@
       }
     }
   },
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {
       "consumed": {
@@ -259,6 +266,10 @@
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "diaryNutrientPanelDataDisclaimer": "Hier werden nur Nährstoffe summiert, die auf deinen protokollierten Mahlzeiten erfasst sind. Eine Mahlzeit ohne einen Wert trägt nichts zu diesem Nährstoff bei — die Summen können also zu niedrig sein.",
   "diaryNutrientPanelTitle": "Heutige Nährstoffe",
+  "driPanelInfoTitle": "Referenzzufuhr",
+  "driPanelInfoBody": "Diese Referenzwerte stammen aus den IOM-Empfehlungen zur Nährstoffzufuhr für Erwachsene und hängen von Alter und Geschlecht ab. Sie dienen als Orientierung, nicht als Vorgabe — dein eigener Bedarf kann abweichen.",
+  "driPanelInfoLinkLabel": "Quelle: IOM Dietary Reference Intakes",
+  "driPanelReferenceLabel": "Ref. {value}",
   "diarySortByCarbs": "Kohlenhydrate (absteigend)",
   "diarySortByFat": "Fett (absteigend)",
   "diarySortByKcal": "Kalorien (absteigend)",
@@ -722,6 +733,12 @@
   "retryLabel": "Erneut versuchen",
   "saturatedFatLabel": "gesättigtes Fett",
   "scanProductLabel": "Produkt scannen",
+  "scannerManualEntryButton": "Code manuell eingeben",
+  "scannerManualEntryCancel": "Abbrechen",
+  "scannerManualEntryDialogTitle": "Barcode eingeben",
+  "scannerManualEntryFieldHint": "8 bis 14 Ziffern",
+  "scannerManualEntryInvalid": "Dieser Barcode sieht nicht gültig aus. Bitte überprüfe die Ziffern und versuche es erneut.",
+  "scannerManualEntrySubmit": "Suchen",
   "searchDefaultLabel": "Bitte geben Sie ein Suchwort ein",
   "searchFoodPage": "Lebensmittel",
   "searchLabel": "Suchen",
@@ -777,6 +794,20 @@
   "settingsIronGoalLabel": "Eisenziel",
   "settingsLabel": "Einstellungen",
   "settingsLanguageLabel": "Sprache",
+  "settingsMaterialYouTitle": "Systemfarben verwenden",
+  "settingsMaterialYouSubtitle": "Übernimmt die Akzentfarbe deines Hintergrundbilds auf Android 12 und neuer.",
+  "settingsAccentColourTitle": "Akzentfarbe",
+  "settingsAccentSubtitleMaterialYou": "Material You",
+  "settingsAccentSubtitleCustom": "Eigene Farbe",
+  "settingsAccentSubtitleDefault": "Standard",
+  "settingsAccentPresetsHeader": "Farbe auswählen",
+  "settingsAccentCustomColour": "Eigene Farbe…",
+  "settingsAccentCustomSubtitle": "Öffne den Farbtonregler für eine genaue Auswahl",
+  "settingsAccentHexLabel": "Hex-Code",
+  "settingsAccentHexInvalid": "Dieser Hex-Code stimmt nicht — sechs Zeichen, 0-9 und A-F.",
+  "settingsAccentHueTitle": "Akzentfarbe",
+  "settingsAccentHueDisabledHint": "Schalte die Systemfarben aus, um eine eigene Akzentfarbe zu wählen.",
+  "settingsAccentHueReset": "Zurücksetzen",
   "settingsMacroSplitLabel": "Makro-Aufteilung",
   "settingsLicensesLabel": "Lizenzen",
   "settingsMagnesiumGoalDescription": "Tägliches Magnesiumziel in Milligramm. Standard nach Geschlecht (400 mg männlich, 310 mg weiblich, 355 mg sonst).",
@@ -839,6 +870,8 @@
   "sourcesMacrosDescription": "Die Standardverteilung von 60 % Kohlenhydraten, 25 % Fett und 15 % Eiweiß liegt innerhalb der von der WHO empfohlenen Nährstoffspannen. In Einstellungen → Berechnungen kannst du sie anpassen. Quelle: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
   "sourcesMacrosTitle": "Makronährstoff-Verteilung",
   "sourcesNonBinaryDescription": "Die Forschung zum Energieverbrauch hat historisch nur binäre Geschlechtskategorien verwendet, sodass es keine validierte TDEE-Formel für non-binäre Personen gibt. OpenNutriTracker bietet daher unter Einstellungen → Berechnungen eine gemittelte Referenz, eine Östrogen-typische Referenz und eine Testosteron-typische Referenz zur Auswahl. Wenn ein genauer Wert für deine Gesundheit wichtig ist, sprich bitte mit einer Ärztin oder einem Arzt, die deinen Hormonstatus kennen.",
+  "sourcesNutrientReferenceTitle": "Nährstoff-Referenzwerte",
+  "sourcesNutrientReferenceDescription": "Die täglichen Referenzwerte im Nährstoff-Panel des Tagebuchs stammen aus der Zusammenfassung der Dietary Reference Intakes des Institute of Medicine — pro Nährstoff für Erwachsene.",
   "sourcesNonBinaryTitle": "Kalorienberechnung für non-binäre Personen",
   "sourcesOpenSourceLabel": "Quelle öffnen",
   "sourcesScreenIntro": "OpenNutriTracker verwendet für alle Berechnungen etablierte, peer-reviewed Methoden. Die folgenden Quellenangaben verlinken auf die Originaltexte, damit du jede Zahl selbst überprüfen kannst.",
@@ -906,5 +939,30 @@
     }
   },
   "hoursLabel": "Stunden",
-  "dialogCloseLabel": "Schließen"
+  "dialogCloseLabel": "Schließen",
+  "customMealsRowMoreTooltip": "Weitere Aktionen",
+  "customMealsMergeAction": "Mit einer anderen eigenen Mahlzeit zusammenführen",
+  "customMealsMergePickerTitle": "Wähle die eigene Mahlzeit zum Zusammenführen",
+  "customMealsMergeChooseSurvivorTitle": "Welche bleibt?",
+  "customMealsMergeContinueAction": "Weiter",
+  "customMealsMergeConfirmTitle": "Eigene Mahlzeiten zusammenführen?",
+  "customMealsMergeConfirmContent": "Dadurch werden alle Einträge, die mit {loser} protokolliert wurden, ersetzt, sodass sie {winner} anzeigen. Außerdem wird {loser} aus deinen eigenen Mahlzeiten entfernt. Das kann nicht rückgängig gemacht werden.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": { "type": "String" },
+      "winner": { "type": "String" }
+    }
+  },
+  "customMealsMergeConfirmAction": "Zusammenführen",
+  "customMealsMergeSuccessSnackbarOne": "Zusammengeführt — {winner} hat jetzt 1 Eintrag.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": { "winner": { "type": "String" } }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Zusammengeführt — {winner} hat jetzt {count} Einträge.",
+  "@customMealsMergeSuccessSnackbarOther": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "winner": { "type": "String" }
+    }
+  }
 }

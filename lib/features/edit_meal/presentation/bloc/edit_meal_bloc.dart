@@ -12,6 +12,20 @@ part 'edit_meal_state.dart';
 
 part 'edit_meal_event.dart';
 
+/// Computes the per-100g scale factor for a typed base-quantity string.
+///
+/// `createNewMealEntity` multiplies every typed nutriment by this factor
+/// before storing it on the per-100g fields, so values typed at the
+/// user's chosen base quantity land in the canonical "per 100" slot.
+/// Lifted out of the bloc so it can be unit-tested directly without
+/// instantiating the bloc's dependency graph — see
+/// `test/unit_test/edit_meal_simple_mode_scale_test.dart` for the
+/// regression coverage on Simple-mode (#232).
+double factorTo100gFromBase(String baseQuantity) {
+  final parsed = double.tryParse(baseQuantity);
+  return parsed != null ? (100 / parsed) : 1;
+}
+
 /// Custom meal form view mode (#232). Persisted on ConfigDBO so the form
 /// remembers which view the user prefers between sessions.
 enum CustomMealFormMode {
@@ -80,10 +94,7 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
     String? localImagePathOverride,
     bool clearLocalImagePath = false,
   }) {
-    final baseQuantityDouble = double.tryParse(baseQuantity);
-
-    final double factorTo100g =
-        baseQuantityDouble != null ? (100 / baseQuantityDouble) : 1;
+    final double factorTo100g = factorTo100gFromBase(baseQuantity);
 
     double? multiplyIfNotNull(double? nutrimentValue) {
       return nutrimentValue != null ? nutrimentValue * factorTo100g : null;

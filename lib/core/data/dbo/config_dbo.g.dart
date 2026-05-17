@@ -39,6 +39,8 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         dayStartOffsetMinutes: (fields[23] as num?)?.toInt(),
         dailyWaterGoalMl: (fields[24] as num?)?.toInt(),
         fastingWarningAcknowledged: fields[25] as bool?,
+        useMaterialYou: fields[20] as bool?,
+        accentColor: (fields[26] as num?)?.toInt(),
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -48,7 +50,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(25)
+      ..writeByte(27)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -89,6 +91,8 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..write(obj.customMealFormMode)
       ..writeByte(19)
       ..write(obj.dayStartOffsetHours)
+      ..writeByte(20)
+      ..write(obj.useMaterialYou)
       ..writeByte(21)
       ..write(obj.diarySortPreferences)
       ..writeByte(22)
@@ -98,7 +102,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(24)
       ..write(obj.dailyWaterGoalMl)
       ..writeByte(25)
-      ..write(obj.fastingWarningAcknowledged);
+      ..write(obj.fastingWarningAcknowledged)
+      ..writeByte(26)
+      ..write(obj.accentColor);
   }
 
   @override
@@ -147,6 +153,8 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
         dayStartOffsetMinutes: (json['dayStartOffsetMinutes'] as num?)?.toInt(),
         dailyWaterGoalMl: (json['dailyWaterGoalMl'] as num?)?.toInt(),
         fastingWarningAcknowledged: json['fastingWarningAcknowledged'] as bool?,
+        useMaterialYou: json['useMaterialYou'] as bool?,
+        accentColor: (json['accentColor'] as num?)?.toInt(),
       )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -178,6 +186,8 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'dayStartOffsetMinutes': instance.dayStartOffsetMinutes,
   'dailyWaterGoalMl': instance.dailyWaterGoalMl,
   'fastingWarningAcknowledged': instance.fastingWarningAcknowledged,
+  'useMaterialYou': instance.useMaterialYou,
+  'accentColor': instance.accentColor,
 };
 
 const _$AppThemeDBOEnumMap = {

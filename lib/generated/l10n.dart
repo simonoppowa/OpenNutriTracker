@@ -1500,6 +1500,146 @@ class S {
     );
   }
 
+  /// `Use system colours`
+  String get settingsMaterialYouTitle {
+    return Intl.message(
+      'Use system colours',
+      name: 'settingsMaterialYouTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Match your wallpaper accent on Android 12 and newer.`
+  String get settingsMaterialYouSubtitle {
+    return Intl.message(
+      'Match your wallpaper accent on Android 12 and newer.',
+      name: 'settingsMaterialYouSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Accent colour`
+  String get settingsAccentColourTitle {
+    return Intl.message(
+      'Accent colour',
+      name: 'settingsAccentColourTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Material You`
+  String get settingsAccentSubtitleMaterialYou {
+    return Intl.message(
+      'Material You',
+      name: 'settingsAccentSubtitleMaterialYou',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Custom`
+  String get settingsAccentSubtitleCustom {
+    return Intl.message(
+      'Custom',
+      name: 'settingsAccentSubtitleCustom',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Default`
+  String get settingsAccentSubtitleDefault {
+    return Intl.message(
+      'Default',
+      name: 'settingsAccentSubtitleDefault',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pick a colour`
+  String get settingsAccentPresetsHeader {
+    return Intl.message(
+      'Pick a colour',
+      name: 'settingsAccentPresetsHeader',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Custom colour…`
+  String get settingsAccentCustomColour {
+    return Intl.message(
+      'Custom colour…',
+      name: 'settingsAccentCustomColour',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Open the hue picker for a precise choice`
+  String get settingsAccentCustomSubtitle {
+    return Intl.message(
+      'Open the hue picker for a precise choice',
+      name: 'settingsAccentCustomSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hex code`
+  String get settingsAccentHexLabel {
+    return Intl.message(
+      'Hex code',
+      name: 'settingsAccentHexLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `That hex code doesn’t look right — six digits, 0-9 and A-F.`
+  String get settingsAccentHexInvalid {
+    return Intl.message(
+      "That hex code doesn't look right — six digits, 0-9 and A-F.",
+      name: 'settingsAccentHexInvalid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Accent colour`
+  String get settingsAccentHueTitle {
+    return Intl.message(
+      'Accent colour',
+      name: 'settingsAccentHueTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Turn off system colours to choose a custom accent.`
+  String get settingsAccentHueDisabledHint {
+    return Intl.message(
+      'Turn off system colours to choose a custom accent.',
+      name: 'settingsAccentHueDisabledHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reset`
+  String get settingsAccentHueReset {
+    return Intl.message(
+      'Reset',
+      name: 'settingsAccentHueReset',
+      desc: '',
+      args: [],
+    );
+  }
+
   String get settingsLicensesLabel {
     return Intl.message(
       'Licenses',
@@ -1644,6 +1784,26 @@ class S {
     return Intl.message(
       'Energy-expenditure research has historically used binary sex categories, so there is no single validated TDEE formula for non-binary people. OpenNutriTracker therefore lets you choose between an averaged reference, an estrogen-typical reference, or a testosterone-typical reference under Settings → Calculations. If an accurate number genuinely matters for your care, please speak to a clinician familiar with your hormone status.',
       name: 'sourcesNonBinaryDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Nutrient reference intakes`
+  String get sourcesNutrientReferenceTitle {
+    return Intl.message(
+      'Nutrient reference intakes',
+      name: 'sourcesNutrientReferenceTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily reference amounts shown on the diary nutrient panel come from the Institute of Medicine's Dietary Reference Intakes summary, which covers per-nutrient targets for adults.`
+  String get sourcesNutrientReferenceDescription {
+    return Intl.message(
+      "Daily reference amounts shown on the diary nutrient panel come from the Institute of Medicine's Dietary Reference Intakes summary, which covers per-nutrient targets for adults.",
+      name: 'sourcesNutrientReferenceDescription',
       desc: '',
       args: [],
     );
@@ -3676,6 +3836,66 @@ class S {
     return Intl.message(
       'Scan Product',
       name: 'scanProductLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Type code manually`
+  String get scannerManualEntryButton {
+    return Intl.message(
+      'Type code manually',
+      name: 'scannerManualEntryButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel`
+  String get scannerManualEntryCancel {
+    return Intl.message(
+      'Cancel',
+      name: 'scannerManualEntryCancel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter barcode`
+  String get scannerManualEntryDialogTitle {
+    return Intl.message(
+      'Enter barcode',
+      name: 'scannerManualEntryDialogTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `8 to 14 digits`
+  String get scannerManualEntryFieldHint {
+    return Intl.message(
+      '8 to 14 digits',
+      name: 'scannerManualEntryFieldHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `That barcode doesn't look valid. Please check the digits and try again.`
+  String get scannerManualEntryInvalid {
+    return Intl.message(
+      'That barcode doesn\'t look valid. Please check the digits and try again.',
+      name: 'scannerManualEntryInvalid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Look up`
+  String get scannerManualEntrySubmit {
+    return Intl.message(
+      'Look up',
+      name: 'scannerManualEntrySubmit',
       desc: '',
       args: [],
     );
@@ -7162,11 +7382,31 @@ class S {
     );
   }
 
+  /// `More actions`
+  String get customMealsRowMoreTooltip {
+    return Intl.message(
+      'More actions',
+      name: 'customMealsRowMoreTooltip',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Fasting timer`
   String get fastingTitle {
     return Intl.message(
       'Fasting timer',
       name: 'fastingTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reference intake`
+  String get driPanelInfoTitle {
+    return Intl.message(
+      'Reference intake',
+      name: 'driPanelInfoTitle',
       desc: '',
       args: [],
     );
@@ -7182,11 +7422,31 @@ class S {
     );
   }
 
+  /// `Merge with another custom food`
+  String get customMealsMergeAction {
+    return Intl.message(
+      'Merge with another custom food',
+      name: 'customMealsMergeAction',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Before you start`
   String get fastingWarningTitle {
     return Intl.message(
       'Before you start',
       name: 'fastingWarningTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `These reference amounts come from the IOM Dietary Reference Intakes for adults and vary by age and gender. They're a point of reference, not a target — your own needs may differ.`
+  String get driPanelInfoBody {
+    return Intl.message(
+      "These reference amounts come from the IOM Dietary Reference Intakes for adults and vary by age and gender. They're a point of reference, not a target — your own needs may differ.",
+      name: 'driPanelInfoBody',
       desc: '',
       args: [],
     );
@@ -7202,11 +7462,31 @@ class S {
     );
   }
 
+  /// `Pick the custom food to merge with`
+  String get customMealsMergePickerTitle {
+    return Intl.message(
+      'Pick the custom food to merge with',
+      name: 'customMealsMergePickerTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Not for me`
   String get fastingWarningDecline {
     return Intl.message(
       'Not for me',
       name: 'fastingWarningDecline',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Source: IOM Dietary Reference Intakes`
+  String get driPanelInfoLinkLabel {
+    return Intl.message(
+      'Source: IOM Dietary Reference Intakes',
+      name: 'driPanelInfoLinkLabel',
       desc: '',
       args: [],
     );
@@ -7222,11 +7502,31 @@ class S {
     );
   }
 
+  /// `Which one stays?`
+  String get customMealsMergeChooseSurvivorTitle {
+    return Intl.message(
+      'Which one stays?',
+      name: 'customMealsMergeChooseSurvivorTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Custom`
   String get fastingPresetCustom {
     return Intl.message(
       'Custom',
       name: 'fastingPresetCustom',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Continue`
+  String get customMealsMergeContinueAction {
+    return Intl.message(
+      'Continue',
+      name: 'customMealsMergeContinueAction',
       desc: '',
       args: [],
     );
@@ -7242,11 +7542,41 @@ class S {
     );
   }
 
+  /// `Merge custom foods?`
+  String get customMealsMergeConfirmTitle {
+    return Intl.message(
+      'Merge custom foods?',
+      name: 'customMealsMergeConfirmTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `End fast`
   String get fastingCancel {
     return Intl.message(
       'End fast',
       name: 'fastingCancel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This will replace all entries logged with {loser} so they show {winner} instead, and remove {loser} from your custom foods. This can't be undone.`
+  String customMealsMergeConfirmContent(String loser, String winner) {
+    return Intl.message(
+      "This will replace all entries logged with $loser so they show $winner instead, and remove $loser from your custom foods. This can't be undone.",
+      name: 'customMealsMergeConfirmContent',
+      desc: '',
+      args: [loser, winner],
+    );
+  }
+
+  /// `Merge`
+  String get customMealsMergeConfirmAction {
+    return Intl.message(
+      'Merge',
+      name: 'customMealsMergeConfirmAction',
       desc: '',
       args: [],
     );
@@ -7317,6 +7647,36 @@ class S {
     return Intl.message(
       '$value remaining',
       name: 'fastingRemainingValue',
+      desc: '',
+      args: [value],
+    );
+  }
+
+  /// `Merged — {winner} now has 1 logged entry.`
+  String customMealsMergeSuccessSnackbarOne(String winner) {
+    return Intl.message(
+      'Merged — $winner now has 1 logged entry.',
+      name: 'customMealsMergeSuccessSnackbarOne',
+      desc: '',
+      args: [winner],
+    );
+  }
+
+  /// `Merged — {winner} now has {count} logged entries.`
+  String customMealsMergeSuccessSnackbarOther(int count, String winner) {
+    return Intl.message(
+      'Merged — $winner now has $count logged entries.',
+      name: 'customMealsMergeSuccessSnackbarOther',
+      desc: '',
+      args: [count, winner],
+    );
+  }
+
+  /// `ref {value}`
+  String driPanelReferenceLabel(String value) {
+    return Intl.message(
+      'ref $value',
+      name: 'driPanelReferenceLabel',
       desc: '',
       args: [value],
     );

@@ -88,6 +88,13 @@ class MessageLookup extends MessageLookupByLibrary {
   static String mFastingRemaining(value) => "Pozostało ${value}";
 
   static String mFastingTarget(value) => "Cel: ${value}";
+  static String mMergeConfirm(loser, winner) =>
+      "Spowoduje to zastąpienie wszystkich wpisów zarejestrowanych z ${loser}, tak by pokazywały ${winner}, oraz usunie ${loser} z Twoich własnych produktów. Tej operacji nie można cofnąć.";
+
+  static String mMergeSuccess(count, winner) =>
+      "Połączono — ${winner} ma teraz ${count} zarejestrowanych wpisów.";
+  static String mDriRef(value) => "ref. ${value}";
+  static String mMergeOnePl(winner) => "Połączono — ${winner} ma teraz 1 wpis.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -211,6 +218,23 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Usunąć własny posiłek?"),
         "customMealsEmptyLabel": MessageLookupByLibrary.simpleMessage(
             "Brak zapisanych własnych posiłków."),
+        "customMealsRowMoreTooltip":
+            MessageLookupByLibrary.simpleMessage("Więcej akcji"),
+        "customMealsMergeAction": MessageLookupByLibrary.simpleMessage(
+            "Połącz z innym własnym produktem"),
+        "customMealsMergePickerTitle": MessageLookupByLibrary.simpleMessage(
+            "Wybierz własny produkt do połączenia"),
+        "customMealsMergeChooseSurvivorTitle":
+            MessageLookupByLibrary.simpleMessage("Który zostaje?"),
+        "customMealsMergeContinueAction":
+            MessageLookupByLibrary.simpleMessage("Kontynuuj"),
+        "customMealsMergeConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("Połączyć własne produkty?"),
+        "customMealsMergeConfirmContent": mMergeConfirm,
+        "customMealsMergeConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Połącz"),
+                "customMealsMergeSuccessSnackbarOne": mMergeOnePl,
+        "customMealsMergeSuccessSnackbarOther": mMergeSuccess,
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Dzienna korekta Kcal:"),
         "dailyKjAdjustmentLabel":
@@ -254,6 +278,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Dziennik"),
         "diaryNutrientPanelTitle": MessageLookupByLibrary.simpleMessage(
             "Dzisiejsze składniki odżywcze"),
+        "driPanelInfoBody": MessageLookupByLibrary.simpleMessage(
+            "Te wartości referencyjne pochodzą z zaleceń IOM dotyczących spożycia dla dorosłych i zależą od wieku oraz płci. Są punktem odniesienia, nie celem — twoje własne potrzeby mogą się różnić."),
+        "driPanelInfoLinkLabel":
+            MessageLookupByLibrary.simpleMessage("Źródło: IOM Dietary Reference Intakes"),
+        "driPanelInfoTitle":
+            MessageLookupByLibrary.simpleMessage("Spożycie referencyjne"),
+        "driPanelReferenceLabel": mDriRef,
         "dinnerExample":
             MessageLookupByLibrary.simpleMessage("np. zupa, kurczak, wino ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Kolacja"),
@@ -988,6 +1019,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("tłuszcze nasycone"),
         "scanProductLabel":
             MessageLookupByLibrary.simpleMessage("Skanuj produkt"),
+        "scannerManualEntryButton":
+            MessageLookupByLibrary.simpleMessage("Wpisz kod ręcznie"),
+        "scannerManualEntryCancel":
+            MessageLookupByLibrary.simpleMessage("Anuluj"),
+        "scannerManualEntryDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Wprowadź kod kreskowy"),
+        "scannerManualEntryFieldHint":
+            MessageLookupByLibrary.simpleMessage("Od 8 do 14 cyfr"),
+        "scannerManualEntryInvalid": MessageLookupByLibrary.simpleMessage(
+            "Ten kod kreskowy wygląda na nieprawidłowy. Sprawdź cyfry i spróbuj ponownie."),
+        "scannerManualEntrySubmit":
+            MessageLookupByLibrary.simpleMessage("Wyszukaj"),
         "searchDefaultLabel": MessageLookupByLibrary.simpleMessage(
             "Wprowadź słowo do wyszukania"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Jedzenie"),
@@ -1085,6 +1128,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Kalorie z aktywności (wartości MET)"),
         "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Kalorie spalone podczas aktywności są szacowane jako MET × masa ciała (kg) × czas trwania (godziny), na podstawie wartości z Adult Compendium of Physical Activities."),
+        "sourcesNutrientReferenceTitle": MessageLookupByLibrary.simpleMessage("Wartości referencyjne składników odżywczych"),
+        "sourcesNutrientReferenceDescription": MessageLookupByLibrary.simpleMessage("Dzienne wartości referencyjne pokazywane w panelu składników odżywczych w dzienniku pochodzą z podsumowania Dietary Reference Intakes Institute of Medicine, obejmującego cele dla poszczególnych składników u osób dorosłych."),
         "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
             "Obliczanie kalorii dla osób niebinarnych"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
@@ -1100,6 +1145,21 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Ustawienia"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Język"),
+        "settingsMaterialYouTitle":
+            MessageLookupByLibrary.simpleMessage("Użyj kolorów systemu"),
+        "settingsMaterialYouSubtitle": MessageLookupByLibrary.simpleMessage("Dopasowuje aplikację do akcentu tapety w systemie Android 12 i nowszym."),
+        "settingsAccentColourTitle": MessageLookupByLibrary.simpleMessage("Kolor akcentu"),
+        "settingsAccentSubtitleMaterialYou": MessageLookupByLibrary.simpleMessage("Material You"),
+        "settingsAccentSubtitleCustom": MessageLookupByLibrary.simpleMessage("Niestandardowy"),
+        "settingsAccentSubtitleDefault": MessageLookupByLibrary.simpleMessage("Domyślny"),
+        "settingsAccentPresetsHeader": MessageLookupByLibrary.simpleMessage("Wybierz kolor"),
+        "settingsAccentCustomColour": MessageLookupByLibrary.simpleMessage("Kolor niestandardowy…"),
+        "settingsAccentCustomSubtitle": MessageLookupByLibrary.simpleMessage("Otwórz suwak odcienia, aby wybrać precyzyjnie"),
+        "settingsAccentHexLabel": MessageLookupByLibrary.simpleMessage("Kod hex"),
+        "settingsAccentHexInvalid": MessageLookupByLibrary.simpleMessage("Ten kod hex nie wygląda dobrze — sześć znaków, 0-9 i A-F."),
+        "settingsAccentHueTitle": MessageLookupByLibrary.simpleMessage("Kolor akcentu"),
+        "settingsAccentHueDisabledHint": MessageLookupByLibrary.simpleMessage("Wyłącz kolory systemowe, aby wybrać własny akcent."),
+        "settingsAccentHueReset": MessageLookupByLibrary.simpleMessage("Zresetuj"),
         "settingsMacroSplitLabel":
             MessageLookupByLibrary.simpleMessage("Podział makroskładników"),
         "settingsLicensesLabel":

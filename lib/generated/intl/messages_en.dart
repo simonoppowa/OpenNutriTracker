@@ -88,6 +88,13 @@ class MessageLookup extends MessageLookupByLibrary {
   static String mFastingRemaining(value) => "${value} remaining";
 
   static String mFastingTarget(value) => "Target: ${value}";
+  static String mMergeConfirm(loser, winner) =>
+      "This will replace all entries logged with ${loser} so they show ${winner} instead, and remove ${loser} from your custom foods. This can\'t be undone.";
+
+  static String mMergeSuccess(count, winner) =>
+      "Merged — ${winner} now has ${count} logged entries.";
+  static String mDriRef(value) => "ref ${value}";
+  static String mMergeOneEn(winner) => "Merged — ${winner} now has 1 logged entry.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -216,6 +223,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("You are editing a future date"),
         "diaryNutrientPanelTitle":
             MessageLookupByLibrary.simpleMessage("Today\'s nutrients"),
+        "driPanelInfoBody": MessageLookupByLibrary.simpleMessage(
+            "These reference amounts come from the IOM Dietary Reference Intakes for adults and vary by age and gender. They\'re a point of reference, not a target — your own needs may differ."),
+        "driPanelInfoLinkLabel":
+            MessageLookupByLibrary.simpleMessage("Source: IOM Dietary Reference Intakes"),
+        "driPanelInfoTitle":
+            MessageLookupByLibrary.simpleMessage("Reference intake"),
+        "driPanelReferenceLabel": mDriRef,
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
             "e.g. soup, chicken, wine ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Dinner"),
@@ -297,6 +311,23 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Delete custom meal?"),
         "customMealsEmptyLabel":
             MessageLookupByLibrary.simpleMessage("No custom meals saved yet."),
+        "customMealsRowMoreTooltip":
+            MessageLookupByLibrary.simpleMessage("More actions"),
+        "customMealsMergeAction": MessageLookupByLibrary.simpleMessage(
+            "Merge with another custom food"),
+        "customMealsMergePickerTitle": MessageLookupByLibrary.simpleMessage(
+            "Pick the custom food to merge with"),
+        "customMealsMergeChooseSurvivorTitle":
+            MessageLookupByLibrary.simpleMessage("Which one stays?"),
+        "customMealsMergeContinueAction":
+            MessageLookupByLibrary.simpleMessage("Continue"),
+        "customMealsMergeConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("Merge custom foods?"),
+        "customMealsMergeConfirmContent": mMergeConfirm,
+        "customMealsMergeConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Merge"),
+                "customMealsMergeSuccessSnackbarOne": mMergeOneEn,
+        "customMealsMergeSuccessSnackbarOther": mMergeSuccess,
         "ironLabel": MessageLookupByLibrary.simpleMessage("iron"),
         "magnesiumLabel": MessageLookupByLibrary.simpleMessage("magnesium"),
         "micronutrientsLabel": MessageLookupByLibrary.simpleMessage("Micronutrients"),
@@ -976,6 +1007,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("saturated fat"),
         "scanProductLabel":
             MessageLookupByLibrary.simpleMessage("Scan Product"),
+        "scannerManualEntryButton":
+            MessageLookupByLibrary.simpleMessage("Type code manually"),
+        "scannerManualEntryCancel":
+            MessageLookupByLibrary.simpleMessage("Cancel"),
+        "scannerManualEntryDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Enter barcode"),
+        "scannerManualEntryFieldHint":
+            MessageLookupByLibrary.simpleMessage("8 to 14 digits"),
+        "scannerManualEntryInvalid": MessageLookupByLibrary.simpleMessage(
+            "That barcode doesn\'t look valid. Please check the digits and try again."),
+        "scannerManualEntrySubmit":
+            MessageLookupByLibrary.simpleMessage("Look up"),
         "searchDefaultLabel":
             MessageLookupByLibrary.simpleMessage("Please enter a search word"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Food"),
@@ -1070,6 +1113,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Activity calories (MET values)"),
         "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Calories burned during an activity are estimated as MET × body weight (kg) × duration (hours), using values from the Adult Compendium of Physical Activities."),
+        "sourcesNutrientReferenceTitle": MessageLookupByLibrary.simpleMessage("Nutrient reference intakes"),
+        "sourcesNutrientReferenceDescription": MessageLookupByLibrary.simpleMessage("Daily reference amounts shown on the diary nutrient panel come from the Institute of Medicine's Dietary Reference Intakes summary, which covers per-nutrient targets for adults."),
         "sourcesNonBinaryTitle":
             MessageLookupByLibrary.simpleMessage("Non-binary calorie estimation"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
@@ -1085,6 +1130,21 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Settings"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Language"),
+        "settingsMaterialYouTitle":
+            MessageLookupByLibrary.simpleMessage("Use system colours"),
+        "settingsMaterialYouSubtitle": MessageLookupByLibrary.simpleMessage("Match your wallpaper accent on Android 12 and newer."),
+        "settingsAccentColourTitle": MessageLookupByLibrary.simpleMessage("Accent colour"),
+        "settingsAccentSubtitleMaterialYou": MessageLookupByLibrary.simpleMessage("Material You"),
+        "settingsAccentSubtitleCustom": MessageLookupByLibrary.simpleMessage("Custom"),
+        "settingsAccentSubtitleDefault": MessageLookupByLibrary.simpleMessage("Default"),
+        "settingsAccentPresetsHeader": MessageLookupByLibrary.simpleMessage("Pick a colour"),
+        "settingsAccentCustomColour": MessageLookupByLibrary.simpleMessage("Custom colour…"),
+        "settingsAccentCustomSubtitle": MessageLookupByLibrary.simpleMessage("Open the hue picker for a precise choice"),
+        "settingsAccentHexLabel": MessageLookupByLibrary.simpleMessage("Hex code"),
+        "settingsAccentHexInvalid": MessageLookupByLibrary.simpleMessage("That hex code doesn’t look right — six digits, 0-9 and A-F."),
+        "settingsAccentHueTitle": MessageLookupByLibrary.simpleMessage("Accent colour"),
+        "settingsAccentHueDisabledHint": MessageLookupByLibrary.simpleMessage("Turn off system colours to choose a custom accent."),
+        "settingsAccentHueReset": MessageLookupByLibrary.simpleMessage("Reset"),
         "settingsMacroSplitLabel":
             MessageLookupByLibrary.simpleMessage("Macro split"),
         "settingsLicensesLabel":

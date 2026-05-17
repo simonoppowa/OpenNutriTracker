@@ -598,6 +598,14 @@ class _EditMealScreenState extends State<EditMealScreen> {
     );
   }
 
+  /// Returns "0" for empty / whitespace-only text, otherwise the original
+  /// string. Used on the Simple-mode save path so a blank macro field is
+  /// stored as an explicit 0 — see the surrounding comment at the call
+  /// site for why "empty means zero" is the right default in Simple mode.
+  String _simpleFieldOrZero(String text) {
+    return text.trim().isEmpty ? '0' : text;
+  }
+
   String _getDisplayQuantity() {
     final text = _baseQuantityTextController.text;
     return text.isEmpty ? baseQuantity : text;
@@ -632,8 +640,11 @@ class _EditMealScreenState extends State<EditMealScreen> {
       final MealEntity newMealEntity;
       if (_formMode == CustomMealFormMode.simple) {
         // Simple mode (#232): the user typed totals for one serving. Convert
-        // kJ → kcal if needed, then store using baseQuantity="1" so the
-        // downstream factorTo100g math works out.
+        // kJ → kcal if needed, then store using baseQuantity="100" so the
+        // entered values land in the per-100g fields without scaling.
+        // The earlier "1" here meant factorTo100g resolved to 100, which
+        // silently multiplied every typed value by 100 on save — 100 kcal
+        // round-tripped to 10000 kcal once the meal was reloaded.
         final usesKjOnSave =
             Provider.of<EnergyUnitProvider>(context, listen: false)
                 .usesKilojoules;
@@ -641,18 +652,28 @@ class _EditMealScreenState extends State<EditMealScreen> {
         final kcalTextForSimple = (enteredEnergyRaw != null && usesKjOnSave)
             ? UnitCalc.kjToKcal(enteredEnergyRaw).toStringAsFixed(1)
             : _kcalTextController.text;
+        // Treat empty Simple-mode macro fields as an explicit zero rather
+        // than null. A user filling out a custom meal in Simple mode is the
+        // source of truth for that food — many real foods genuinely have
+        // zero of one macro (oil, plain meat, egg whites) and leaving the
+        // field blank should mean "this food has none", not "I don't know".
+        // The previous behaviour persisted null on the per-100g slot, which
+        // the meal-detail sheet's _hasRequiredProductInfoMissing() then
+        // blocked at log time with a "Product missing required kcal or
+        // macronutrients information" message that contradicted the on-
+        // screen 0.0 display.
         newMealEntity = _editMealBloc.createNewMealEntity(
           _mealEntity,
           _nameTextController.text,
           _brandsTextController.text,
-          "1",
-          "1",
-          "1",
+          "100",
+          "100",
+          "100",
           _units[2], // g/ml
-          kcalTextForSimple,
-          _carbsTextController.text,
-          _fatTextController.text,
-          _proteinTextController.text,
+          _simpleFieldOrZero(kcalTextForSimple),
+          _simpleFieldOrZero(_carbsTextController.text),
+          _simpleFieldOrZero(_fatTextController.text),
+          _simpleFieldOrZero(_proteinTextController.text),
           barcodeOverride: rawBarcode.isEmpty ? null : rawBarcode,
           localImagePathOverride: _localImagePath,
           clearLocalImagePath: _localImageCleared && _localImagePath == null,

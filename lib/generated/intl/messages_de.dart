@@ -91,6 +91,13 @@ class MessageLookup extends MessageLookupByLibrary {
   static String mFastingRemaining(value) => "Noch ${value}";
 
   static String mFastingTarget(value) => "Ziel: ${value}";
+  static String mMergeConfirm(loser, winner) =>
+      "Dadurch werden alle Einträge, die mit ${loser} protokolliert wurden, ersetzt, sodass sie ${winner} anzeigen. Außerdem wird ${loser} aus deinen eigenen Mahlzeiten entfernt. Das kann nicht rückgängig gemacht werden.";
+
+  static String mMergeSuccess(count, winner) =>
+      "Zusammengeführt — ${winner} hat jetzt ${count} protokollierte Einträge.";
+  static String mDriRef(value) => "Ref. ${value}";
+  static String mMergeOneDe(winner) => "Zusammengeführt — ${winner} hat jetzt 1 Eintrag.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -216,6 +223,23 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Eigene Mahlzeit löschen?"),
         "customMealsEmptyLabel": MessageLookupByLibrary.simpleMessage(
             "Noch keine eigenen Mahlzeiten gespeichert."),
+        "customMealsRowMoreTooltip":
+            MessageLookupByLibrary.simpleMessage("Weitere Aktionen"),
+        "customMealsMergeAction": MessageLookupByLibrary.simpleMessage(
+            "Mit einer anderen eigenen Mahlzeit zusammenführen"),
+        "customMealsMergePickerTitle": MessageLookupByLibrary.simpleMessage(
+            "Wähle die eigene Mahlzeit zum Zusammenführen"),
+        "customMealsMergeChooseSurvivorTitle":
+            MessageLookupByLibrary.simpleMessage("Welche bleibt?"),
+        "customMealsMergeContinueAction":
+            MessageLookupByLibrary.simpleMessage("Weiter"),
+        "customMealsMergeConfirmTitle": MessageLookupByLibrary.simpleMessage(
+            "Eigene Mahlzeiten zusammenführen?"),
+        "customMealsMergeConfirmContent": mMergeConfirm,
+        "customMealsMergeConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Zusammenführen"),
+                "customMealsMergeSuccessSnackbarOne": mMergeOneDe,
+        "customMealsMergeSuccessSnackbarOther": mMergeSuccess,
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Tägliche kcal-Anpassung:"),
         "dailyKjAdjustmentLabel":
@@ -259,6 +283,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Tagebuch"),
         "diaryNutrientPanelTitle":
             MessageLookupByLibrary.simpleMessage("Heutige Nährstoffe"),
+        "driPanelInfoBody": MessageLookupByLibrary.simpleMessage(
+            "Diese Referenzwerte stammen aus den IOM-Empfehlungen zur Nährstoffzufuhr für Erwachsene und hängen von Alter und Geschlecht ab. Sie dienen als Orientierung, nicht als Vorgabe — dein eigener Bedarf kann abweichen."),
+        "driPanelInfoLinkLabel":
+            MessageLookupByLibrary.simpleMessage("Quelle: IOM Dietary Reference Intakes"),
+        "driPanelInfoTitle":
+            MessageLookupByLibrary.simpleMessage("Referenzzufuhr"),
+        "driPanelReferenceLabel": mDriRef,
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
             "z. B. Suppe, Hähnchen, Wein ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Abendessen"),
@@ -1002,6 +1033,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("gesättigtes Fett"),
         "scanProductLabel":
             MessageLookupByLibrary.simpleMessage("Produkt scannen"),
+        "scannerManualEntryButton":
+            MessageLookupByLibrary.simpleMessage("Code manuell eingeben"),
+        "scannerManualEntryCancel":
+            MessageLookupByLibrary.simpleMessage("Abbrechen"),
+        "scannerManualEntryDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Barcode eingeben"),
+        "scannerManualEntryFieldHint":
+            MessageLookupByLibrary.simpleMessage("8 bis 14 Ziffern"),
+        "scannerManualEntryInvalid": MessageLookupByLibrary.simpleMessage(
+            "Dieser Barcode sieht nicht gültig aus. Bitte überprüfe die Ziffern und versuche es erneut."),
+        "scannerManualEntrySubmit":
+            MessageLookupByLibrary.simpleMessage("Suchen"),
         "searchDefaultLabel": MessageLookupByLibrary.simpleMessage(
             "Bitte geben Sie ein Suchwort ein"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Lebensmittel"),
@@ -1099,6 +1142,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Aktivitätskalorien (MET-Werte)"),
         "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Der Kalorienverbrauch bei einer Aktivität wird als MET × Körpergewicht (kg) × Dauer (Stunden) geschätzt, basierend auf den Werten des Adult Compendium of Physical Activities."),
+        "sourcesNutrientReferenceTitle": MessageLookupByLibrary.simpleMessage("Nährstoff-Referenzwerte"),
+        "sourcesNutrientReferenceDescription": MessageLookupByLibrary.simpleMessage("Die täglichen Referenzwerte im Nährstoff-Panel des Tagebuchs stammen aus der Zusammenfassung der Dietary Reference Intakes des Institute of Medicine — pro Nährstoff für Erwachsene."),
         "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
             "Kalorienberechnung für non-binäre Personen"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
@@ -1114,6 +1159,21 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Einstellungen"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Sprache"),
+        "settingsMaterialYouTitle":
+            MessageLookupByLibrary.simpleMessage("Systemfarben verwenden"),
+        "settingsMaterialYouSubtitle": MessageLookupByLibrary.simpleMessage("Übernimmt die Akzentfarbe deines Hintergrundbilds auf Android 12 und neuer."),
+        "settingsAccentColourTitle": MessageLookupByLibrary.simpleMessage("Akzentfarbe"),
+        "settingsAccentSubtitleMaterialYou": MessageLookupByLibrary.simpleMessage("Material You"),
+        "settingsAccentSubtitleCustom": MessageLookupByLibrary.simpleMessage("Eigene Farbe"),
+        "settingsAccentSubtitleDefault": MessageLookupByLibrary.simpleMessage("Standard"),
+        "settingsAccentPresetsHeader": MessageLookupByLibrary.simpleMessage("Farbe auswählen"),
+        "settingsAccentCustomColour": MessageLookupByLibrary.simpleMessage("Eigene Farbe…"),
+        "settingsAccentCustomSubtitle": MessageLookupByLibrary.simpleMessage("Öffne den Farbtonregler für eine genaue Auswahl"),
+        "settingsAccentHexLabel": MessageLookupByLibrary.simpleMessage("Hex-Code"),
+        "settingsAccentHexInvalid": MessageLookupByLibrary.simpleMessage("Dieser Hex-Code stimmt nicht — sechs Zeichen, 0-9 und A-F."),
+        "settingsAccentHueTitle": MessageLookupByLibrary.simpleMessage("Akzentfarbe"),
+        "settingsAccentHueDisabledHint": MessageLookupByLibrary.simpleMessage("Schalte die Systemfarben aus, um eine eigene Akzentfarbe zu wählen."),
+        "settingsAccentHueReset": MessageLookupByLibrary.simpleMessage("Zurücksetzen"),
         "settingsMacroSplitLabel":
             MessageLookupByLibrary.simpleMessage("Makro-Aufteilung"),
         "settingsLicensesLabel":

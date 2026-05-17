@@ -89,6 +89,13 @@ class MessageLookup extends MessageLookupByLibrary {
   static String mFastingRemaining(value) => "Zostáva ${value}";
 
   static String mFastingTarget(value) => "Cieľ: ${value}";
+  static String mMergeConfirm(loser, winner) =>
+      "Tým sa všetky záznamy zapísané s ${loser} nahradia, aby zobrazovali ${winner}, a ${loser} bude odstránené z vašich vlastných jedál. Túto akciu nemožno vrátiť späť.";
+
+  static String mMergeSuccess(count, winner) =>
+      "Zlúčené — ${winner} má teraz ${count} zaznamenaných záznamov.";
+  static String mDriRef(value) => "ref. ${value}";
+  static String mMergeOneSk(winner) => "Zlúčené — ${winner} má teraz 1 záznam.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -219,6 +226,23 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Zmazať vlastné jedlo?"),
         "customMealsEmptyLabel": MessageLookupByLibrary.simpleMessage(
             "Zatiaľ nie sú uložené žiadne vlastné jedlá."),
+        "customMealsRowMoreTooltip":
+            MessageLookupByLibrary.simpleMessage("Ďalšie akcie"),
+        "customMealsMergeAction": MessageLookupByLibrary.simpleMessage(
+            "Zlúčiť s iným vlastným jedlom"),
+        "customMealsMergePickerTitle": MessageLookupByLibrary.simpleMessage(
+            "Vyberte vlastné jedlo na zlúčenie"),
+        "customMealsMergeChooseSurvivorTitle":
+            MessageLookupByLibrary.simpleMessage("Ktoré ostane?"),
+        "customMealsMergeContinueAction":
+            MessageLookupByLibrary.simpleMessage("Pokračovať"),
+        "customMealsMergeConfirmTitle":
+            MessageLookupByLibrary.simpleMessage("Zlúčiť vlastné jedlá?"),
+        "customMealsMergeConfirmContent": mMergeConfirm,
+        "customMealsMergeConfirmAction":
+            MessageLookupByLibrary.simpleMessage("Zlúčiť"),
+                "customMealsMergeSuccessSnackbarOne": mMergeOneSk,
+        "customMealsMergeSuccessSnackbarOther": mMergeSuccess,
         "dailyKcalAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
             "Denná úprava kcal:"),
         "dailyKjAdjustmentLabel":
@@ -953,6 +977,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("nasýtené tuky"),
         "scanProductLabel":
             MessageLookupByLibrary.simpleMessage("Naskenovať produkt"),
+        "scannerManualEntryButton":
+            MessageLookupByLibrary.simpleMessage("Zadať kód ručne"),
+        "scannerManualEntryCancel":
+            MessageLookupByLibrary.simpleMessage("Zrušiť"),
+        "scannerManualEntryDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Zadajte čiarový kód"),
+        "scannerManualEntryFieldHint":
+            MessageLookupByLibrary.simpleMessage("8 až 14 číslic"),
+        "scannerManualEntryInvalid": MessageLookupByLibrary.simpleMessage(
+            "Tento čiarový kód nevyzerá platne. Skontrolujte číslice a skúste to znova."),
+        "scannerManualEntrySubmit":
+            MessageLookupByLibrary.simpleMessage("Vyhľadať"),
         "searchDefaultLabel": MessageLookupByLibrary.simpleMessage(
             "Zadajte prosím hľadané slovo"),
         "searchFoodPage": MessageLookupByLibrary.simpleMessage("Potraviny"),
@@ -1005,6 +1041,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Kalórie z aktivity (hodnoty MET)"),
         "sourcesActivityDescription": MessageLookupByLibrary.simpleMessage(
             "Kalórie spálené počas aktivity sa odhadujú ako MET × telesná hmotnosť (kg) × trvanie (hodiny) podľa hodnôt z Adult Compendium of Physical Activities."),
+        "sourcesNutrientReferenceTitle": MessageLookupByLibrary.simpleMessage("Referenčné príjmy živín"),
+        "sourcesNutrientReferenceDescription": MessageLookupByLibrary.simpleMessage("Denné referenčné hodnoty zobrazené v paneli živín v denníku pochádzajú zo súhrnu Dietary Reference Intakes Institute of Medicine, ktorý pokrýva ciele pre jednotlivé živiny u dospelých."),
         "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
             "Odhad kalórií pre nebinárne osoby"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
@@ -1020,6 +1058,20 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Nastavenia"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Jazyk"),
+        "settingsMaterialYouTitle": MessageLookupByLibrary.simpleMessage("Použiť systémové farby"),
+        "settingsMaterialYouSubtitle": MessageLookupByLibrary.simpleMessage("Zladí aplikáciu s farbou tapety v Androide 12 a novšom."),
+        "settingsAccentColourTitle": MessageLookupByLibrary.simpleMessage("Farba zvýraznenia"),
+        "settingsAccentSubtitleMaterialYou": MessageLookupByLibrary.simpleMessage("Material You"),
+        "settingsAccentSubtitleCustom": MessageLookupByLibrary.simpleMessage("Vlastné"),
+        "settingsAccentSubtitleDefault": MessageLookupByLibrary.simpleMessage("Predvolené"),
+        "settingsAccentPresetsHeader": MessageLookupByLibrary.simpleMessage("Vyberte farbu"),
+        "settingsAccentCustomColour": MessageLookupByLibrary.simpleMessage("Vlastná farba…"),
+        "settingsAccentCustomSubtitle": MessageLookupByLibrary.simpleMessage("Otvorte posuvník odtieňa pre presný výber"),
+        "settingsAccentHexLabel": MessageLookupByLibrary.simpleMessage("Hex kód"),
+        "settingsAccentHexInvalid": MessageLookupByLibrary.simpleMessage("Tento hex kód nevyzerá správne — šesť znakov, 0-9 a A-F."),
+        "settingsAccentHueTitle": MessageLookupByLibrary.simpleMessage("Farba zvýraznenia"),
+        "settingsAccentHueDisabledHint": MessageLookupByLibrary.simpleMessage("Vypnite systémové farby, aby ste mohli vybrať vlastný akcent."),
+        "settingsAccentHueReset": MessageLookupByLibrary.simpleMessage("Obnoviť"),
         "settingsMacroSplitLabel":
             MessageLookupByLibrary.simpleMessage("Rozdelenie makroživín"),
         "settingsLicensesLabel":
@@ -1109,6 +1161,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "zincLabel": MessageLookupByLibrary.simpleMessage("zinok"),
         "diaryNutrientPanelTitle":
             MessageLookupByLibrary.simpleMessage("Dnešné živiny"),
+        "driPanelInfoBody": MessageLookupByLibrary.simpleMessage(
+            "Tieto referenčné hodnoty pochádzajú z odporúčaných dietetických príjmov IOM pre dospelých a líšia sa podľa veku a pohlavia. Sú orientačné, nie cieľové — tvoje vlastné potreby sa môžu líšiť."),
+        "driPanelInfoLinkLabel":
+            MessageLookupByLibrary.simpleMessage("Zdroj: IOM Dietary Reference Intakes"),
+        "driPanelInfoTitle":
+            MessageLookupByLibrary.simpleMessage("Referenčný príjem"),
+        "driPanelReferenceLabel": mDriRef,
         "nutrientPanelAllHiddenLabel":
             MessageLookupByLibrary.simpleMessage("Všetky živiny sú skryté — zapnite niektoré v Nastavenia → Živiny."),
         "nutrientPanelDayLabel":

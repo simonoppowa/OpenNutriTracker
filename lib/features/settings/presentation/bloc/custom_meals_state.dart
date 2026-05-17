@@ -13,3 +13,18 @@ class CustomMealsLoadedState extends CustomMealsState {
 }
 
 class CustomMealsFailedState extends CustomMealsState {}
+
+/// Emitted after a successful merge so the UI can surface a snackbar
+/// referencing the survivor and the count of rewritten diary entries.
+/// Extends [CustomMealsLoadedState] so existing list-rendering code keeps
+/// working without a new branch in the BlocBuilder.
+class CustomMealsMergedState extends CustomMealsLoadedState {
+  final int rewrittenIntakeCount;
+  final String winnerDisplayName;
+
+  CustomMealsMergedState({
+    required super.meals,
+    required this.rewrittenIntakeCount,
+    required this.winnerDisplayName,
+  });
+}

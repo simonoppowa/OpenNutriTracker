@@ -33,6 +33,13 @@
       }
     }
   },
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {
       "consumed": {
@@ -228,6 +235,10 @@
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "diaryNutrientPanelDataDisclaimer": "Sumowane są tylko składniki odżywcze zapisane na zalogowanych posiłkach. Posiłek bez wartości nie wnosi nic do danego składnika — sumy mogą być więc zaniżone.",
   "diaryNutrientPanelTitle": "Dzisiejsze składniki odżywcze",
+  "driPanelInfoTitle": "Spożycie referencyjne",
+  "driPanelInfoBody": "Te wartości referencyjne pochodzą z zaleceń IOM dotyczących spożycia dla dorosłych i zależą od wieku oraz płci. Są punktem odniesienia, nie celem — twoje własne potrzeby mogą się różnić.",
+  "driPanelInfoLinkLabel": "Źródło: IOM Dietary Reference Intakes",
+  "driPanelReferenceLabel": "ref. {value}",
   "diarySortByCarbs": "Węglowodany (malejąco)",
   "diarySortByFat": "Tłuszcze (malejąco)",
   "diarySortByKcal": "Kalorie (malejąco)",
@@ -691,6 +702,12 @@
   "retryLabel": "Ponów",
   "saturatedFatLabel": "tłuszcze nasycone",
   "scanProductLabel": "Skanuj produkt",
+  "scannerManualEntryButton": "Wpisz kod ręcznie",
+  "scannerManualEntryCancel": "Anuluj",
+  "scannerManualEntryDialogTitle": "Wprowadź kod kreskowy",
+  "scannerManualEntryFieldHint": "Od 8 do 14 cyfr",
+  "scannerManualEntryInvalid": "Ten kod kreskowy wygląda na nieprawidłowy. Sprawdź cyfry i spróbuj ponownie.",
+  "scannerManualEntrySubmit": "Wyszukaj",
   "searchDefaultLabel": "Wprowadź słowo do wyszukania",
   "searchFoodPage": "Jedzenie",
   "searchLabel": "Szukaj",
@@ -746,6 +763,20 @@
   "settingsIronGoalLabel": "Cel żelaza",
   "settingsLabel": "Ustawienia",
   "settingsLanguageLabel": "Język",
+  "settingsMaterialYouTitle": "Użyj kolorów systemu",
+  "settingsMaterialYouSubtitle": "Dopasowuje aplikację do akcentu tapety w systemie Android 12 i nowszym.",
+  "settingsAccentColourTitle": "Kolor akcentu",
+  "settingsAccentSubtitleMaterialYou": "Material You",
+  "settingsAccentSubtitleCustom": "Niestandardowy",
+  "settingsAccentSubtitleDefault": "Domyślny",
+  "settingsAccentPresetsHeader": "Wybierz kolor",
+  "settingsAccentCustomColour": "Kolor niestandardowy…",
+  "settingsAccentCustomSubtitle": "Otwórz suwak odcienia, aby wybrać precyzyjnie",
+  "settingsAccentHexLabel": "Kod hex",
+  "settingsAccentHexInvalid": "Ten kod hex nie wygląda dobrze — sześć znaków, 0-9 i A-F.",
+  "settingsAccentHueTitle": "Kolor akcentu",
+  "settingsAccentHueDisabledHint": "Wyłącz kolory systemowe, aby wybrać własny akcent.",
+  "settingsAccentHueReset": "Zresetuj",
   "settingsMacroSplitLabel": "Podział makroskładników",
   "settingsLicensesLabel": "Licencje",
   "settingsMagnesiumGoalDescription": "Dzienny cel magnezu w miligramach. Wartość domyślna zależy od płci (400 mg mężczyzna, 310 mg kobieta, 355 mg w pozostałych przypadkach).",
@@ -808,6 +839,8 @@
   "sourcesMacrosDescription": "Domyślny podział 60% węglowodanów, 25% tłuszczu i 15% białka mieści się w zakresach spożycia rekomendowanych przez WHO. Możesz go zmienić w Ustawienia → Obliczenia. Źródło: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
   "sourcesMacrosTitle": "Rozkład makroskładników",
   "sourcesNonBinaryDescription": "Badania nad wydatkiem energetycznym historycznie korzystały wyłącznie z binarnych kategorii płci, dlatego nie istnieje jeden zwalidowany wzór TDEE dla osób niebinarnych. OpenNutriTracker oferuje więc w Ustawienia → Obliczenia wybór między uśrednioną referencją, referencją typową dla estrogenu oraz referencją typową dla testosteronu. Jeśli dokładna wartość jest dla ciebie naprawdę istotna, skonsultuj się z lekarzem znającym twój profil hormonalny.",
+  "sourcesNutrientReferenceTitle": "Wartości referencyjne składników odżywczych",
+  "sourcesNutrientReferenceDescription": "Dzienne wartości referencyjne pokazywane w panelu składników odżywczych w dzienniku pochodzą z podsumowania Dietary Reference Intakes Institute of Medicine, obejmującego cele dla poszczególnych składników u osób dorosłych.",
   "sourcesNonBinaryTitle": "Obliczanie kalorii dla osób niebinarnych",
   "sourcesOpenSourceLabel": "Otwórz źródło",
   "sourcesScreenIntro": "OpenNutriTracker stosuje dla każdego obliczenia uznane, recenzowane metody. Poniższe odnośniki prowadzą do oryginalnych źródeł, dzięki czemu możesz samodzielnie zweryfikować dowolną wartość.",
@@ -875,5 +908,30 @@
     }
   },
   "hoursLabel": "godziny",
-  "dialogCloseLabel": "Zamknij"
+  "dialogCloseLabel": "Zamknij",
+  "customMealsRowMoreTooltip": "Więcej akcji",
+  "customMealsMergeAction": "Połącz z innym własnym produktem",
+  "customMealsMergePickerTitle": "Wybierz własny produkt do połączenia",
+  "customMealsMergeChooseSurvivorTitle": "Który zostaje?",
+  "customMealsMergeContinueAction": "Kontynuuj",
+  "customMealsMergeConfirmTitle": "Połączyć własne produkty?",
+  "customMealsMergeConfirmContent": "Spowoduje to zastąpienie wszystkich wpisów zarejestrowanych z {loser}, tak by pokazywały {winner}, oraz usunie {loser} z Twoich własnych produktów. Tej operacji nie można cofnąć.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": { "type": "String" },
+      "winner": { "type": "String" }
+    }
+  },
+  "customMealsMergeConfirmAction": "Połącz",
+  "customMealsMergeSuccessSnackbarOne": "Połączono — {winner} ma teraz 1 wpis.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": { "winner": { "type": "String" } }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Połączono — {winner} ma teraz {count} wpisów.",
+  "@customMealsMergeSuccessSnackbarOther": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "winner": { "type": "String" }
+    }
+  }
 }

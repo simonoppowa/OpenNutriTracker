@@ -60,6 +60,14 @@ class ConfigEntity extends Equatable {
   // warning is shown until the user explicitly taps "I understand, enable
   // timer", which flips this to true.
   final bool fastingWarningAcknowledged;
+  // #415: whether to harmonise the app palette with the user's system
+  // wallpaper colours. Effective only on Android 12+ — every other
+  // platform falls back to the static palette regardless of this value.
+  final bool useMaterialYou;
+  // #415 follow-up: custom accent colour packed as 32-bit ARGB. Overrides
+  // Material You when set. Null means "use the platform default" — Material
+  // You on Android 12+, the static palette elsewhere.
+  final int? accentColor;
 
   /// Default daily water goal in millilitres for the home chip when the
   /// user has not picked one yet.
@@ -125,6 +133,8 @@ class ConfigEntity extends Equatable {
     this.dayStartOffsetMinutes = 0,
     this.dailyWaterGoalMl,
     this.fastingWarningAcknowledged = false,
+    this.useMaterialYou = true,
+    this.accentColor,
   });
 
   /// Resolves the daily water goal for the home chip. Returns the user's
@@ -205,6 +215,8 @@ class ConfigEntity extends Equatable {
     dayStartOffsetMinutes: _normaliseOffsetMinutes(dbo.dayStartOffsetMinutes),
     dailyWaterGoalMl: _normaliseWaterGoal(dbo.dailyWaterGoalMl),
     fastingWarningAcknowledged: dbo.fastingWarningAcknowledged ?? false,
+    useMaterialYou: dbo.useMaterialYou ?? true,
+    accentColor: _normaliseAccentColor(dbo.accentColor),
   );
 
   /// Returns the recommended kcal target for [mealKey] given a daily goal.
@@ -248,6 +260,14 @@ class ConfigEntity extends Equatable {
     return raw;
   }
 
+  // Defensive clamp on the persisted accent colour. Null means "no custom
+  // colour stored" — the platform default kicks in. Anything else is
+  // accepted as a 32-bit ARGB int (negative values come from packing the
+  // top byte's alpha=0xFF, so don't try to reject them on range).
+  static int? _normaliseAccentColor(int? raw) {
+    return raw;
+  }
+
   @override
   List<Object?> get props => [
     hasAcceptedDisclaimer,
@@ -273,5 +293,7 @@ class ConfigEntity extends Equatable {
     dayStartOffsetMinutes,
     dailyWaterGoalMl,
     fastingWarningAcknowledged,
+    useMaterialYou,
+    accentColor,
   ];
 }

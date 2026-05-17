@@ -1,6 +1,7 @@
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 
@@ -69,5 +70,25 @@ class IntakeRepository {
   Future<List<IntakeEntity>> getCustomMealIntakes() async {
     final dboList = await _intakeDataSource.getCustomMealIntakes();
     return dboList.map(IntakeEntity.fromIntakeDBO).toList();
+  }
+
+  /// Rewrites every custom-meal intake whose key (code-or-name) matches
+  /// [fromMealKey] to instead snapshot [toMeal]. Returns the rewritten
+  /// before/after pairs so the caller can reconcile TrackedDay totals from
+  /// the macro diff per intake.
+  Future<List<(IntakeEntity, IntakeEntity)>> remapCustomMealOnIntakes({
+    required String fromMealKey,
+    required MealDBO toMeal,
+  }) async {
+    final rewrites = await _intakeDataSource.remapCustomMealOnIntakes(
+      fromMealKey: fromMealKey,
+      toMeal: toMeal,
+    );
+    return rewrites
+        .map((pair) => (
+              IntakeEntity.fromIntakeDBO(pair.$1),
+              IntakeEntity.fromIntakeDBO(pair.$2),
+            ))
+        .toList();
   }
 }

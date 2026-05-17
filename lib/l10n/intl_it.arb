@@ -33,6 +33,13 @@
       }
     }
   },
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {
       "consumed": {
@@ -228,6 +235,10 @@
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "diaryNutrientPanelDataDisclaimer": "Vengono sommati solo i nutrienti registrati sui pasti che hai inserito. Un pasto senza un valore non contribuisce a quel nutriente — i totali potrebbero quindi essere sottostimati.",
   "diaryNutrientPanelTitle": "Nutrienti di oggi",
+  "driPanelInfoTitle": "Apporto di riferimento",
+  "driPanelInfoBody": "Questi valori di riferimento provengono dai Dietary Reference Intakes dell'IOM per adulti e variano in base a età e genere. Sono un riferimento, non un obiettivo — le tue esigenze possono essere diverse.",
+  "driPanelInfoLinkLabel": "Fonte: IOM Dietary Reference Intakes",
+  "driPanelReferenceLabel": "rif. {value}",
   "diarySortByCarbs": "Carboidrati (dal più alto al più basso)",
   "diarySortByFat": "Grassi (dal più alto al più basso)",
   "diarySortByKcal": "Calorie (dal più alto al più basso)",
@@ -691,6 +702,12 @@
   "retryLabel": "Riprova",
   "saturatedFatLabel": "grassi saturi",
   "scanProductLabel": "Scansiona prodotto",
+  "scannerManualEntryButton": "Inserisci il codice manualmente",
+  "scannerManualEntryCancel": "Annulla",
+  "scannerManualEntryDialogTitle": "Inserisci il codice a barre",
+  "scannerManualEntryFieldHint": "Da 8 a 14 cifre",
+  "scannerManualEntryInvalid": "Questo codice a barre non sembra valido. Controlla le cifre e riprova.",
+  "scannerManualEntrySubmit": "Cerca",
   "searchDefaultLabel": "Inserisci una parola da cercare",
   "searchFoodPage": "Cibo",
   "searchLabel": "Cerca",
@@ -746,6 +763,20 @@
   "settingsIronGoalLabel": "Obiettivo ferro",
   "settingsLabel": "Impostazioni",
   "settingsLanguageLabel": "Lingua",
+  "settingsMaterialYouTitle": "Usa i colori di sistema",
+  "settingsMaterialYouSubtitle": "Riprende il colore d'accento dello sfondo su Android 12 e versioni successive.",
+  "settingsAccentColourTitle": "Colore d'accento",
+  "settingsAccentSubtitleMaterialYou": "Material You",
+  "settingsAccentSubtitleCustom": "Personalizzato",
+  "settingsAccentSubtitleDefault": "Predefinito",
+  "settingsAccentPresetsHeader": "Scegli un colore",
+  "settingsAccentCustomColour": "Colore personalizzato…",
+  "settingsAccentCustomSubtitle": "Apri il selettore di tonalità per una scelta precisa",
+  "settingsAccentHexLabel": "Codice esadecimale",
+  "settingsAccentHexInvalid": "Quel codice esadecimale non sembra giusto — sei caratteri, 0-9 e A-F.",
+  "settingsAccentHueTitle": "Colore d'accento",
+  "settingsAccentHueDisabledHint": "Disattiva i colori di sistema per scegliere un accento personalizzato.",
+  "settingsAccentHueReset": "Reimposta",
   "settingsMacroSplitLabel": "Distribuzione macro",
   "settingsLicensesLabel": "Licenze",
   "settingsMagnesiumGoalDescription": "Obiettivo giornaliero di magnesio in milligrammi. Il valore predefinito dipende dal genere (400 mg uomo, 310 mg donna, 355 mg altrimenti).",
@@ -808,6 +839,8 @@
   "sourcesMacrosDescription": "La distribuzione predefinita di 60% carboidrati, 25% grassi e 15% proteine rientra negli intervalli raccomandati dall'OMS. Puoi modificarla in Impostazioni → Calcoli. Fonte: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
   "sourcesMacrosTitle": "Distribuzione dei macronutrienti",
   "sourcesNonBinaryDescription": "La ricerca sul dispendio energetico ha storicamente usato solo categorie binarie di sesso, quindi non esiste una formula TDEE validata per le persone non binarie. OpenNutriTracker permette quindi di scegliere tra un riferimento medio, un riferimento di tipo estrogenico e uno di tipo testosteronico in Impostazioni → Calcoli. Se per te è davvero importante un valore accurato, ti consigliamo di parlarne con un medico che conosca il tuo profilo ormonale.",
+  "sourcesNutrientReferenceTitle": "Apporti nutrizionali di riferimento",
+  "sourcesNutrientReferenceDescription": "Gli apporti giornalieri mostrati nel pannello nutrienti del diario provengono dal rapporto di sintesi delle Dietary Reference Intakes dell'Institute of Medicine, che copre gli obiettivi per ciascun nutriente negli adulti.",
   "sourcesNonBinaryTitle": "Stima calorica per persone non binarie",
   "sourcesOpenSourceLabel": "Apri la fonte",
   "sourcesScreenIntro": "OpenNutriTracker utilizza per ogni calcolo metodologie consolidate e sottoposte a peer review. I riferimenti seguenti rimandano alle fonti originali, così puoi verificare ogni numero in autonomia.",
@@ -875,5 +908,30 @@
     }
   },
   "hoursLabel": "ore",
-  "dialogCloseLabel": "Chiudi"
+  "dialogCloseLabel": "Chiudi",
+  "customMealsRowMoreTooltip": "Altre azioni",
+  "customMealsMergeAction": "Unisci a un altro alimento personalizzato",
+  "customMealsMergePickerTitle": "Scegli l'alimento personalizzato da unire",
+  "customMealsMergeChooseSurvivorTitle": "Quale rimane?",
+  "customMealsMergeContinueAction": "Continua",
+  "customMealsMergeConfirmTitle": "Unire gli alimenti personalizzati?",
+  "customMealsMergeConfirmContent": "Tutte le voci registrate con {loser} verranno sostituite e mostrate come {winner}, e {loser} sarà rimosso dai tuoi alimenti personalizzati. Questa operazione non può essere annullata.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": { "type": "String" },
+      "winner": { "type": "String" }
+    }
+  },
+  "customMealsMergeConfirmAction": "Unisci",
+  "customMealsMergeSuccessSnackbarOne": "Unito — {winner} ora ha 1 voce registrata.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": { "winner": { "type": "String" } }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Unito — {winner} ora ha {count} voci registrate.",
+  "@customMealsMergeSuccessSnackbarOther": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "winner": { "type": "String" }
+    }
+  }
 }

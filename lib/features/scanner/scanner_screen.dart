@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -8,6 +9,7 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
+import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ScannerScreen extends StatefulWidget {
@@ -38,6 +40,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
         ModalRoute.of(context)?.settings.arguments as ScannerScreenArguments;
     _intakeTypeEntity = args.intakeTypeEntity;
     _day = args.day;
+    if (args.initialBarcode != null && _scannedBarcode == null) {
+      _scannedBarcode = args.initialBarcode;
+      _scannerBloc.add(ScannerLoadProductEvent(barcode: args.initialBarcode!));
+    }
     super.didChangeDependencies();
   }
 
@@ -47,6 +53,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
       bloc: _scannerBloc,
       builder: (context, state) {
         if (state is ScannerInitial) {
+          if (_scannedBarcode != null) {
+            return Scaffold(
+              appBar: AppBar(),
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          }
           return _getScannerContent(context);
         } else if (state is ScannerLoadingState) {
           return Scaffold(
@@ -115,26 +127,97 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ),
         ],
       ),
-      body: MobileScanner(
-        controller: cameraController,
-        onDetect: (capture) {
-          final List<Barcode> barcodes = capture.barcodes;
-          for (final barcode in barcodes) {
-            if (barcode.rawValue != null &&
-                barcode.type == BarcodeType.product) {
-              final barcodeResult = barcode.rawValue;
-              if (barcodeResult != null) {
-                _scannedBarcode = barcodeResult;
-                log.fine('Barcode found: $barcodeResult');
-                _scannerBloc.add(
-                  ScannerLoadProductEvent(barcode: barcodeResult),
-                );
-              }
-            }
-          }
-        },
+      body: Column(
+        children: [
+          Expanded(
+            child: MobileScanner(
+              controller: cameraController,
+              onDetect: (capture) {
+                final List<Barcode> barcodes = capture.barcodes;
+                for (final barcode in barcodes) {
+                  if (barcode.rawValue != null && barcode.type == BarcodeType.product) {
+                    final barcodeResult = barcode.rawValue;
+                    if (barcodeResult != null) {
+                      _scannedBarcode = barcodeResult;
+                      log.fine('Barcode found: $barcodeResult');
+                      _scannerBloc.add(
+                        ScannerLoadProductEvent(barcode: barcodeResult),
+                      );
+                    }
+                  }
+                }
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Semantics(
+              identifier: 'scanner-manual-entry-open',
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.keyboard_outlined),
+                label: Text(S.of(context).scannerManualEntryButton),
+                onPressed: () => _showManualEntryDialog(context),
+              ),
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  Future<void> _showManualEntryDialog(BuildContext context) async {
+    final controller = TextEditingController();
+    final rootMessenger = ScaffoldMessenger.of(context);
+    final invalidMessage = S.of(context).scannerManualEntryInvalid;
+
+    final submitted = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(S.of(dialogContext).scannerManualEntryDialogTitle),
+          content: Semantics(
+            identifier: 'scanner-manual-entry-field',
+            child: TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(14),
+              ],
+              decoration: InputDecoration(
+                hintText: S.of(dialogContext).scannerManualEntryFieldHint,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(S.of(dialogContext).scannerManualEntryCancel),
+            ),
+            Semantics(
+              identifier: 'scanner-manual-entry-submit',
+              child: TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+                child: Text(S.of(dialogContext).scannerManualEntrySubmit),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted) return;
+    if (submitted == null || submitted.isEmpty) return;
+
+    if (!isValidBarcodeCheckDigit(submitted)) {
+      rootMessenger.showSnackBar(SnackBar(content: Text(invalidMessage)));
+      return;
+    }
+
+    _scannedBarcode = submitted;
+    log.fine('Manual barcode entered: $submitted');
+    _scannerBloc.add(ScannerLoadProductEvent(barcode: submitted));
   }
 
   void _onRefreshButtonPressed() {
@@ -147,12 +230,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
       );
     }
   }
-
 }
 
 class ScannerScreenArguments {
   final DateTime day;
   final IntakeTypeEntity intakeTypeEntity;
+  final String? initialBarcode;
 
-  ScannerScreenArguments(this.day, this.intakeTypeEntity);
+  ScannerScreenArguments(this.day, this.intakeTypeEntity, {this.initialBarcode});
 }

@@ -17,9 +17,31 @@ class CustomMealsTab extends StatelessWidget {
 
   const CustomMealsTab({super.key, required this.usesImperialUnits});
 
+  static String _keyFor(MealEntity meal) => meal.code ?? meal.name ?? '';
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CustomMealsBloc, CustomMealsState>(
+    return BlocConsumer<CustomMealsBloc, CustomMealsState>(
+      listenWhen: (prev, curr) => curr is CustomMealsMergedState,
+      listener: (context, state) {
+        if (state is CustomMealsMergedState) {
+          final s = S.of(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                state.rewrittenIntakeCount == 1
+                    ? s.customMealsMergeSuccessSnackbarOne(
+                        state.winnerDisplayName,
+                      )
+                    : s.customMealsMergeSuccessSnackbarOther(
+                        state.rewrittenIntakeCount,
+                        state.winnerDisplayName,
+                      ),
+              ),
+            ),
+          );
+        }
+      },
       builder: (context, state) {
         if (state is CustomMealsLoadingState ||
             state is CustomMealsInitial) {
@@ -41,14 +63,41 @@ class CustomMealsTab extends StatelessWidget {
             itemCount: state.meals.length,
             itemBuilder: (context, index) {
               final meal = state.meals[index];
+              final canMerge = state.meals.length >= 2;
               return ListTile(
                 leading: _MealLeadingThumbnail(meal: meal),
                 title: Text(meal.name ?? ''),
                 subtitle: meal.brands != null ? Text(meal.brands!) : null,
                 onTap: () => _openEditMeal(context, meal),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () => _confirmDelete(context, meal),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (canMerge)
+                      Semantics(
+                        identifier: 'custom-foods-merge-open',
+                        child: PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert),
+                          tooltip: S.of(context).customMealsRowMoreTooltip,
+                          onSelected: (value) {
+                            if (value == 'merge') {
+                              _startMerge(context, meal, state.meals);
+                            }
+                          },
+                          itemBuilder: (ctx) => [
+                            PopupMenuItem<String>(
+                              value: 'merge',
+                              child: Text(
+                                S.of(context).customMealsMergeAction,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () => _confirmDelete(context, meal),
+                    ),
+                  ],
                 ),
               );
             },
@@ -96,6 +145,166 @@ class CustomMealsTab extends StatelessWidget {
     if (confirmed == true) {
       bloc.add(DeleteCustomMealEvent(meal.code ?? meal.name ?? ''));
     }
+  }
+
+  /// Two-step flow: pick the partner to merge with, then choose which of
+  /// the two stays as the survivor. The row the menu was opened from is
+  /// pre-selected as the survivor so the default behaviour matches the
+  /// gesture (you tapped the "good" entry, then picked the duplicate).
+  Future<void> _startMerge(
+    BuildContext context,
+    MealEntity tappedFrom,
+    List<MealEntity> allMeals,
+  ) async {
+    final bloc = context.read<CustomMealsBloc>();
+    final candidates = allMeals
+        .where((m) => _keyFor(m) != _keyFor(tappedFrom))
+        .toList();
+    if (candidates.isEmpty) return;
+
+    final partner = await showModalBottomSheet<MealEntity>(
+      context: context,
+      builder: (ctx) {
+        return Semantics(
+          identifier: 'custom-foods-merge-picker',
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Text(
+                    S.of(context).customMealsMergePickerTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: candidates.length,
+                    itemBuilder: (ctx2, i) {
+                      final m = candidates[i];
+                      return ListTile(
+                        leading: _MealLeadingThumbnail(meal: m),
+                        title: Text(m.name ?? ''),
+                        subtitle: m.brands != null ? Text(m.brands!) : null,
+                        onTap: () => Navigator.of(ctx).pop(m),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (partner == null || !context.mounted) return;
+
+    final winner = await _chooseSurvivor(context, tappedFrom, partner);
+    if (winner == null || !context.mounted) return;
+    final loser = _keyFor(winner) == _keyFor(tappedFrom) ? partner : tappedFrom;
+
+    final confirmed = await _confirmMerge(context, loser: loser, winner: winner);
+    if (confirmed != true) return;
+
+    bloc.add(
+      MergeCustomMealsEvent(
+        loserKey: _keyFor(loser),
+        winnerKey: _keyFor(winner),
+      ),
+    );
+  }
+
+  Future<MealEntity?> _chooseSurvivor(
+    BuildContext context,
+    MealEntity a,
+    MealEntity b,
+  ) async {
+    MealEntity selected = a;
+    return showDialog<MealEntity>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx2, setState) => AlertDialog(
+            title: Text(S.of(context).customMealsMergeChooseSurvivorTitle),
+            // Flutter 3.32 deprecated the per-tile `groupValue` / `onChanged`
+            // pattern in favour of a single `RadioGroup` ancestor that owns
+            // the selected value and the change callback. The tiles now
+            // just declare their `value`.
+            content: RadioGroup<MealEntity>(
+              groupValue: selected,
+              onChanged: (v) => setState(() => selected = v ?? selected),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Semantics(
+                    identifier: 'custom-foods-merge-successor-a',
+                    child: RadioListTile<MealEntity>(
+                      title: Text(a.name ?? ''),
+                      value: a,
+                    ),
+                  ),
+                  Semantics(
+                    identifier: 'custom-foods-merge-successor-b',
+                    child: RadioListTile<MealEntity>(
+                      title: Text(b.name ?? ''),
+                      value: b,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              Semantics(
+                identifier: 'custom-foods-merge-cancel',
+                child: TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(S.of(context).dialogCancelLabel),
+                ),
+              ),
+              Semantics(
+                identifier: 'custom-foods-merge-confirm',
+                child: FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(selected),
+                  child: Text(S.of(context).customMealsMergeContinueAction),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<bool?> _confirmMerge(
+    BuildContext context, {
+    required MealEntity loser,
+    required MealEntity winner,
+  }) {
+    final s = S.of(context);
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(s.customMealsMergeConfirmTitle),
+        content: Text(
+          s.customMealsMergeConfirmContent(
+            loser.name ?? '',
+            winner.name ?? '',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(s.dialogCancelLabel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(s.customMealsMergeConfirmAction),
+          ),
+        ],
+      ),
+    );
   }
 }
 

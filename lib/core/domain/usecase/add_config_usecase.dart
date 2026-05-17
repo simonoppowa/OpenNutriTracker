@@ -100,4 +100,12 @@ class AddConfigUsecase {
   Future<void> setConfigDailyWaterGoalMl(int goalMl) async {
     await _configRepository.setConfigDailyWaterGoalMl(goalMl);
   }
+
+  Future<void> setConfigUseMaterialYou(bool useMaterialYou) async {
+    await _configRepository.setConfigUseMaterialYou(useMaterialYou);
+  }
+
+  Future<void> setConfigAccentColor(int? value) async {
+    await _configRepository.setConfigAccentColor(value);
+  }
 }

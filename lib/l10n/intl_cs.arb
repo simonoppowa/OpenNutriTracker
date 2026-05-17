@@ -33,6 +33,13 @@
       }
     }
   },
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "@diaryMealKcalConsumedOfTarget": {
     "placeholders": {
       "consumed": {
@@ -228,6 +235,10 @@
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "diaryNutrientPanelDataDisclaimer": "Sčítají se zde pouze živiny, které jsou u zaznamenaných jídel zachyceny. Jídlo bez hodnoty k dané živině nepřispěje — součty proto mohou být podhodnocené.",
   "diaryNutrientPanelTitle": "Dnešní živiny",
+  "driPanelInfoTitle": "Referenční příjem",
+  "driPanelInfoBody": "Tyto referenční hodnoty pocházejí z doporučených dietních příjmů IOM pro dospělé a liší se podle věku a pohlaví. Jde o orientační údaj, nikoli o cíl — tvoje vlastní potřeby se mohou lišit.",
+  "driPanelInfoLinkLabel": "Zdroj: IOM Dietary Reference Intakes",
+  "driPanelReferenceLabel": "ref. {value}",
   "diarySortByCarbs": "Sacharidy (sestupně)",
   "diarySortByFat": "Tuky (sestupně)",
   "diarySortByKcal": "Kalorie (sestupně)",
@@ -691,6 +702,12 @@
   "retryLabel": "Znovu",
   "saturatedFatLabel": "nasycené mastné kyseliny",
   "scanProductLabel": "Skenovat produkt",
+  "scannerManualEntryButton": "Zadat kód ručně",
+  "scannerManualEntryCancel": "Zrušit",
+  "scannerManualEntryDialogTitle": "Zadejte čárový kód",
+  "scannerManualEntryFieldHint": "8 až 14 číslic",
+  "scannerManualEntryInvalid": "Tento čárový kód nevypadá platně. Zkontrolujte prosím číslice a zkuste to znovu.",
+  "scannerManualEntrySubmit": "Vyhledat",
   "searchDefaultLabel": "Zadejte prosím slovo k vyhledání",
   "searchFoodPage": "Potraviny",
   "searchLabel": "Vyhledat",
@@ -746,6 +763,20 @@
   "settingsIronGoalLabel": "Cíl železa",
   "settingsLabel": "Nastavení",
   "settingsLanguageLabel": "Jazyk",
+  "settingsMaterialYouTitle": "Použít systémové barvy",
+  "settingsMaterialYouSubtitle": "Sladí aplikaci s akcentem vaší tapety v Androidu 12 a novějším.",
+  "settingsAccentColourTitle": "Akcentová barva",
+  "settingsAccentSubtitleMaterialYou": "Material You",
+  "settingsAccentSubtitleCustom": "Vlastní",
+  "settingsAccentSubtitleDefault": "Výchozí",
+  "settingsAccentPresetsHeader": "Vyberte barvu",
+  "settingsAccentCustomColour": "Vlastní barva…",
+  "settingsAccentCustomSubtitle": "Otevřít posuvník odstínu pro přesný výběr",
+  "settingsAccentHexLabel": "Hex kód",
+  "settingsAccentHexInvalid": "Tento hex kód nevypadá správně — šest znaků, 0-9 a A-F.",
+  "settingsAccentHueTitle": "Akcentová barva",
+  "settingsAccentHueDisabledHint": "Vypněte systémové barvy, abyste mohli zvolit vlastní akcent.",
+  "settingsAccentHueReset": "Obnovit",
   "settingsMacroSplitLabel": "Rozdělení makroživin",
   "settingsLicensesLabel": "Licence",
   "settingsMagnesiumGoalDescription": "Denní cíl hořčíku v miligramech. Výchozí podle pohlaví (400 mg muž, 310 mg žena, 355 mg jinak).",
@@ -808,6 +839,8 @@
   "sourcesMacrosDescription": "Výchozí rozložení 60 % sacharidů, 25 % tuků a 15 % bílkovin spadá do doporučených rozsahů příjmu živin podle WHO. V Nastavení → Výpočty si je můžeš upravit. Zdroj: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
   "sourcesMacrosTitle": "Rozložení makroživin",
   "sourcesNonBinaryDescription": "Výzkum energetického výdeje historicky používal pouze binární pohlavní kategorie, takže pro non-binární osoby neexistuje jediný validovaný vzorec TDEE. OpenNutriTracker proto v Nastavení → Výpočty nabízí volbu mezi zprůměrovanou referencí, estrogen-typickou referencí a testosteron-typickou referencí. Pokud na přesné hodnotě skutečně záleží, prosím poraď se s lékařem, který zná tvůj hormonální stav.",
+  "sourcesNutrientReferenceTitle": "Referenční příjem živin",
+  "sourcesNutrientReferenceDescription": "Denní referenční hodnoty zobrazené v panelu živin v deníku pocházejí ze souhrnu Dietary Reference Intakes Institute of Medicine, který pokrývá cíle pro jednotlivé živiny u dospělých.",
   "sourcesNonBinaryTitle": "Výpočet kalorií pro non-binární osoby",
   "sourcesOpenSourceLabel": "Otevřít zdroj",
   "sourcesScreenIntro": "OpenNutriTracker používá pro každý zobrazený výpočet zavedené, recenzované metody. Následující odkazy vedou na původní zdroje, takže si můžeš každé číslo sám ověřit.",
@@ -875,5 +908,30 @@
     }
   },
   "hoursLabel": "hodiny",
-  "dialogCloseLabel": "Zavřít"
+  "dialogCloseLabel": "Zavřít",
+  "customMealsRowMoreTooltip": "Další akce",
+  "customMealsMergeAction": "Sloučit s jinou vlastní potravinou",
+  "customMealsMergePickerTitle": "Vyberte vlastní potravinu pro sloučení",
+  "customMealsMergeChooseSurvivorTitle": "Která zůstane?",
+  "customMealsMergeContinueAction": "Pokračovat",
+  "customMealsMergeConfirmTitle": "Sloučit vlastní potraviny?",
+  "customMealsMergeConfirmContent": "Tímto se všechny záznamy zapsané s {loser} nahradí, aby se zobrazovaly jako {winner}, a {loser} bude odstraněna z vašich vlastních potravin. Tuto akci nelze vrátit zpět.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": { "type": "String" },
+      "winner": { "type": "String" }
+    }
+  },
+  "customMealsMergeConfirmAction": "Sloučit",
+  "customMealsMergeSuccessSnackbarOne": "Sloučeno — {winner} má nyní 1 záznam.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": { "winner": { "type": "String" } }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Sloučeno — {winner} má nyní {count} záznamů.",
+  "@customMealsMergeSuccessSnackbarOther": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "winner": { "type": "String" }
+    }
+  }
 }
