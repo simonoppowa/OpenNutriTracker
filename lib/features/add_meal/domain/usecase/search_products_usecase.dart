@@ -18,10 +18,7 @@ class SearchProductsResult {
   final List<MealEntity> meals;
   final bool remoteSourceEmpty;
 
-  const SearchProductsResult({
-    required this.meals,
-    required this.remoteSourceEmpty,
-  });
+  const SearchProductsResult({required this.meals, required this.remoteSourceEmpty});
 }
 
 class SearchProductsUseCase {
@@ -41,29 +38,21 @@ class SearchProductsUseCase {
     this._recipeDataSource,
   );
 
-  Future<SearchProductsResult> searchOFFProductsByString(
-    String searchString,
-  ) async {
-    final remote = await _safeRemoteCall(
-      'OFF',
-      () => _productsRepository.getOFFProductsByString(searchString),
-    );
+  Future<SearchProductsResult> searchOFFProductsByString(String searchString) async {
+    final remote = await _safeRemoteCall('OFF', () => _productsRepository.getOFFProductsByString(searchString));
     // Cache the result page. Untouched entries age out after 90 days
     // (RemoteSearchCacheDataSource.pruneStale), so this can't grow
     // unbounded. Items the user actually selects (logs an intake of)
     // get their timestamp refreshed and stay until 90 days after the
     // last selection.
     await _cacheRemoteResults(remote);
-    return _buildResult(searchString, remote);
+    return _buildResult(searchString, remote, cacheSourceFilter: {MealSourceEntity.off});
   }
 
   Future<SearchProductsResult> searchFDCFoodByString(String searchString) async {
-    final remote = await _safeRemoteCall(
-      'FDC',
-      () => _productsRepository.getSupabaseFDCFoodsByString(searchString),
-    );
+    final remote = await _safeRemoteCall('FDC', () => _productsRepository.getSupabaseFDCFoodsByString(searchString));
     await _cacheRemoteResults(remote);
-    return _buildResult(searchString, remote);
+    return _buildResult(searchString, remote, cacheSourceFilter: {MealSourceEntity.fdc});
   }
 
   Future<void> _cacheRemoteResults(List<MealEntity> remote) async {
@@ -73,42 +62,32 @@ class SearchProductsUseCase {
     // earlier (its timestamp got bumped via the intent path) keeps that
     // newer timestamp even when a subsequent search re-includes it,
     // letting it remain at the top of the cache-sorted list.
-    await _cachedOffMealDataSource
-        .cacheFromSearch(remote.map(MealDBO.fromMealEntity));
+    await _cachedOffMealDataSource.cacheFromSearch(remote.map(MealDBO.fromMealEntity));
   }
 
   /// Run a remote search and fall back to an empty list when the source
   /// throws (rate limit, timeout, network failure, etc). The caller still
   /// receives matching custom meals from local intake history even when the
   /// remote API is unavailable.
-  Future<List<MealEntity>> _safeRemoteCall(
-    String sourceLabel,
-    Future<List<MealEntity>> Function() call,
-  ) async {
+  Future<List<MealEntity>> _safeRemoteCall(String sourceLabel, Future<List<MealEntity>> Function() call) async {
     try {
       return await call();
     } catch (exception, stack) {
-      _log.warning(
-        '$sourceLabel search failed; falling back to custom-meal results only',
-        exception,
-        stack,
-      );
+      _log.warning('$sourceLabel search failed; falling back to custom-meal results only', exception, stack);
       return const [];
     }
   }
 
   Future<SearchProductsResult> _buildResult(
     String searchString,
-    List<MealEntity> remoteResults,
-  ) async {
+    List<MealEntity> remoteResults, {
+    Set<MealSourceEntity> cacheSourceFilter = const {MealSourceEntity.off, MealSourceEntity.fdc},
+  }) async {
     final remoteSourceEmpty = remoteResults.isEmpty;
 
     final normalizedSearchString = searchString.trim().toLowerCase();
     if (normalizedSearchString.isEmpty) {
-      return SearchProductsResult(
-        meals: remoteResults,
-        remoteSourceEmpty: remoteSourceEmpty,
-      );
+      return SearchProductsResult(meals: remoteResults, remoteSourceEmpty: remoteSourceEmpty);
     }
 
     // Local sources of matches, in priority order:
@@ -152,6 +131,7 @@ class SearchProductsUseCase {
     final fromOffCache = _cachedOffMealDataSource
         .getAllByMostRecentlyTouched()
         .map(MealEntity.fromMealDBO)
+        .where((meal) => cacheSourceFilter.contains(meal.source))
         .where((meal) => _mealMatchesSearch(meal, normalizedSearchString))
         .toList();
 
@@ -174,8 +154,7 @@ class SearchProductsUseCase {
   }
 
   bool _mealMatchesSearch(MealEntity meal, String normalizedSearchString) {
-    return (meal.name?.toLowerCase().contains(normalizedSearchString) ??
-            false) ||
+    return (meal.name?.toLowerCase().contains(normalizedSearchString) ?? false) ||
         (meal.brands?.toLowerCase().contains(normalizedSearchString) ?? false);
   }
 
