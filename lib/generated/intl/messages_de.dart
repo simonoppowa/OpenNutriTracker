@@ -416,6 +416,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Wie groß sind Sie derzeit?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "Um loszulegen, benötigt die App einige Informationen über Sie, um Ihr tägliches Kalorienziel zu berechnen. Alle Informationen über Sie werden sicher auf Ihrem Gerät gespeichert."),
+        "onboardingIntroSourcesLinkLabel": MessageLookupByLibrary.simpleMessage(
+            "Quellen unserer medizinischen Berechnungen ansehen"),
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("kcal pro Tag"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(
@@ -940,7 +942,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
             "Kalorienberechnung für non-binäre Personen"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
-            "Die Forschung zum Energieverbrauch hat historisch nur binäre Geschlechtskategorien verwendet, sodass es keine validierte TDEE-Formel für non-binäre Personen gibt. OpenNutriTracker bietet daher unter Einstellungen → Berechnungen eine gemittelte Referenz, eine Östrogen-typische Referenz und eine Testosteron-typische Referenz zur Auswahl. Wenn ein genauer Wert für deine Gesundheit wichtig ist, sprich bitte mit einer Ärztin oder einem Arzt, die deinen Hormonstatus kennen. Quelle: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6."),
+            "Die Forschung zum Energieverbrauch hat historisch nur binäre Geschlechtskategorien verwendet, sodass es keine validierte TDEE-Formel für non-binäre Personen gibt. OpenNutriTracker bietet daher unter Einstellungen → Berechnungen eine gemittelte Referenz, eine Östrogen-typische Referenz und eine Testosteron-typische Referenz zur Auswahl. Wenn ein genauer Wert für deine Gesundheit wichtig ist, sprich bitte mit einer Ärztin oder einem Arzt, die deinen Hormonstatus kennen."),
         "sourcesOpenSourceLabel":
             MessageLookupByLibrary.simpleMessage("Quelle öffnen"),
         "settingsDistanceLabel":

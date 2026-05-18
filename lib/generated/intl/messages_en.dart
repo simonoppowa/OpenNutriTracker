@@ -381,6 +381,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Whats your current height?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "To start, the app needs some information about you to calculate your daily calorie goal.\nAll information about you is stored securely on your device."),
+        "onboardingIntroSourcesLinkLabel": MessageLookupByLibrary.simpleMessage(
+            "Read our medical calculation sources"),
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("kcal per day"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(
@@ -912,7 +914,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "sourcesNonBinaryTitle":
             MessageLookupByLibrary.simpleMessage("Non-binary calorie estimation"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
-            "Energy-expenditure research has historically used binary sex categories, so there is no single validated TDEE formula for non-binary people. OpenNutriTracker therefore lets you choose between an averaged reference, an estrogen-typical reference, or a testosterone-typical reference under Settings → Calculations. If an accurate number genuinely matters for your care, please speak to a clinician familiar with your hormone status. Source: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6."),
+            "Energy-expenditure research has historically used binary sex categories, so there is no single validated TDEE formula for non-binary people. OpenNutriTracker therefore lets you choose between an averaged reference, an estrogen-typical reference, or a testosterone-typical reference under Settings → Calculations. If an accurate number genuinely matters for your care, please speak to a clinician familiar with your hormone status."),
         "sourcesOpenSourceLabel":
             MessageLookupByLibrary.simpleMessage("View source"),
         "settingsDistanceLabel":

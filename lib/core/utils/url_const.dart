@@ -18,4 +18,8 @@ class URLConst {
       "https://pubmed.ncbi.nlm.nih.gov/38242596/";
   static const sourceInclusiveDesignLinsenmeyer2021URL =
       "https://doi.org/10.1186/s12937-021-00662-z";
+  static const sourceTransMetabolismWiik2018URL =
+      "https://pmc.ncbi.nlm.nih.gov/articles/PMC6046513/";
+  static const sourceTransNutritionLinsenmeyer2020URL =
+      "https://link.springer.com/article/10.1186/s12937-020-00590-4";
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
@@ -92,6 +93,12 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                   onChanged: (value) => _toggleDataCollection(),
                 ),
               ),
+              const SizedBox(height: 8.0),
+              TextButton.icon(
+                onPressed: () => _openSources(context),
+                icon: const Icon(Icons.menu_book_outlined),
+                label: Text(S.of(context).onboardingIntroSourcesLinkLabel),
+              ),
             ],
           );
         } else {
@@ -113,6 +120,12 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
       _acceptedDataCollection = !_acceptedDataCollection;
       widget.setPageContent(_acceptedPolicy, _acceptedDataCollection);
     });
+  }
+
+  void _openSources(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const SourcesScreen()),
+    );
   }
 
   Future<void> _launchUrl() async {

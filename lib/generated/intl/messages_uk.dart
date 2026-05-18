@@ -404,6 +404,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Який ваш поточний зріст?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "Для початку додаток потребує деяку інформацію про вас, щоб розрахувати вашу щоденну ціль калорій.\nВся інформація про вас зберігається безпечно на вашому пристрої."),
+        "onboardingIntroSourcesLinkLabel": MessageLookupByLibrary.simpleMessage(
+            "Переглянути джерела наших медичних обчислень"),
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("ккал на день"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(
@@ -928,7 +930,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
             "Розрахунок калорій для небінарних осіб"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
-            "Дослідження енергетичних витрат історично використовували лише бінарні категорії статі, тому для небінарних осіб не існує єдиної підтвердженої формули TDEE. Тому OpenNutriTracker у Налаштування → Розрахунки пропонує вибір між усередненим орієнтиром, орієнтиром, типовим для естрогену, та орієнтиром, типовим для тестостерону. Якщо точне значення є дійсно важливим для тебе, будь ласка, поговори з лікарем, який знає твій гормональний стан. Джерело: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6."),
+            "Дослідження енергетичних витрат історично використовували лише бінарні категорії статі, тому для небінарних осіб не існує єдиної підтвердженої формули TDEE. Тому OpenNutriTracker у Налаштування → Розрахунки пропонує вибір між усередненим орієнтиром, орієнтиром, типовим для естрогену, та орієнтиром, типовим для тестостерону. Якщо точне значення є дійсно важливим для тебе, будь ласка, поговори з лікарем, який знає твій гормональний стан."),
         "sourcesOpenSourceLabel":
             MessageLookupByLibrary.simpleMessage("Відкрити джерело"),
         "settingsDistanceLabel":

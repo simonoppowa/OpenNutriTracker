@@ -405,6 +405,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Mevcut boyunuz nedir?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "Başlamak için, uygulamanın günlük kalori hedefinizi hesaplamak için hakkınızda bazı bilgilere ihtiyacı var.\nHakkınızdaki tüm bilgiler cihazınızda güvenli bir şekilde saklanır."),
+        "onboardingIntroSourcesLinkLabel": MessageLookupByLibrary.simpleMessage(
+            "Tıbbi hesaplama kaynaklarımızı okuyun"),
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("günlük kcal"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(
@@ -910,7 +912,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "sourcesNonBinaryTitle": MessageLookupByLibrary.simpleMessage(
             "Non-binary kişiler için kalori tahmini"),
         "sourcesNonBinaryDescription": MessageLookupByLibrary.simpleMessage(
-            "Enerji harcaması üzerine yapılan araştırmalar tarihsel olarak yalnızca ikili cinsiyet kategorilerini kullanmıştır; bu nedenle non-binary kişiler için doğrulanmış tek bir TDEE formülü yoktur. Bu yüzden OpenNutriTracker, Ayarlar → Hesaplamalar bölümünde ortalanmış bir referans, östrojen-tipik bir referans ve testosteron-tipik bir referans arasında seçim yapmanı sağlar. Bakımın için kesin bir değer gerçekten önemliyse lütfen hormon durumunu bilen bir klinisyenle görüş. Kaynak: Linsenmeyer W, Waters J. Sex and gender differences in nutrition research: considerations with the transgender and gender nonconforming population. Nutrition Journal 2021;20:6."),
+            "Enerji harcaması üzerine yapılan araştırmalar tarihsel olarak yalnızca ikili cinsiyet kategorilerini kullanmıştır; bu nedenle non-binary kişiler için doğrulanmış tek bir TDEE formülü yoktur. Bu yüzden OpenNutriTracker, Ayarlar → Hesaplamalar bölümünde ortalanmış bir referans, östrojen-tipik bir referans ve testosteron-tipik bir referans arasında seçim yapmanı sağlar. Bakımın için kesin bir değer gerçekten önemliyse lütfen hormon durumunu bilen bir klinisyenle görüş."),
         "sourcesOpenSourceLabel":
             MessageLookupByLibrary.simpleMessage("Kaynağı aç"),
         "settingsDistanceLabel": MessageLookupByLibrary.simpleMessage("Mesafe"),

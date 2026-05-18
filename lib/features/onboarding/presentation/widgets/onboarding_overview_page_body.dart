@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingOverviewPageBody extends StatelessWidget {
@@ -116,6 +117,16 @@ class OnboardingOverviewPageBody extends StatelessWidget {
                       ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 24.0),
+          Center(
+            child: TextButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SourcesScreen()),
+              ),
+              icon: const Icon(Icons.menu_book_outlined),
+              label: Text(S.of(context).settingsSourcesLabel),
             ),
           ),
         ],
