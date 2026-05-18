@@ -14,6 +14,28 @@ via Google Translate.
 
 ---
 
+## Quickstart – use pre-built CSV files
+
+If you want to skip Steps 1–4, pre-built CSV files (Foundation & SR Legacy,
+snapshot 2026-04-30, with German translations) are available at:
+
+[h4rib0/OpenNutriTracker – data/supabase-fdc/](https://github.com/h4rib0/OpenNutriTracker/tree/docs/supabase-fdc-setup-scripts/data/supabase-fdc)
+
+| File | Rows |
+|---|---|
+| `fdc_food_20260430_de.csv` | ~8 200 |
+| `fdc_portions_20260430.csv` | ~14 600 |
+| `fdc_nutrients_20260430.csv` | ~665 000 |
+
+Download the files and jump straight to **Step 5**.
+Use them as-is for the `fdc_food` and `fdc_portions` import in Step 6
+(set `base` to the folder containing the downloaded files and use the
+filenames above instead of `fdc_food.csv` / `fdc_portions.csv`).
+For `fdc_nutrients`, import `fdc_nutrients_20260430.csv` via the
+Supabase Table Editor CSV import.
+
+---
+
 ## Step 1 – Download the FDC data
 
 Go to the official USDA FoodData Central download page:
