@@ -78,14 +78,24 @@ class RemoteSearchCacheDataSource {
   /// data refreshed but **keep their existing timestamp**, so the
   /// "user-selected this recently" signal isn't wiped out by an
   /// unrelated re-search of the same query.
+  ///
+  /// Exception: if the existing cached entry has user-enriched nutrients
+  /// (non-zero kcal) but the incoming remote result does not, the existing
+  /// data is kept so manually entered values aren't silently erased.
   Future<void> cacheFromSearch(Iterable<MealDBO> meals) async {
     final index = _buildDedupIndex();
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final meal in meals) {
       final existingKey = _lookupExistingKey(meal, index);
       if (existingKey != null) {
-        // Refresh data, leave timestamp alone.
-        await _cacheBox.put(existingKey, meal);
+        final existing = _cacheBox.get(existingKey);
+        // Preserve user-enriched nutrients: if the cached entry already has
+        // kcal data but the incoming remote result doesn't, keep the existing
+        // entry so manually entered values survive a re-search.
+        final keepExisting = existing != null && _hasNutrients(existing) && !_hasNutrients(meal);
+        if (!keepExisting) {
+          await _cacheBox.put(existingKey, meal);
+        }
       } else {
         final newKey = await _cacheBox.add(meal);
         _registerInIndex(meal, newKey, index);
@@ -95,6 +105,13 @@ class RemoteSearchCacheDataSource {
         }
       }
     }
+  }
+
+  /// True when [meal] carries meaningful energy data (i.e. a user has
+  /// enriched it manually or the remote source returned nutrient values).
+  bool _hasNutrients(MealDBO meal) {
+    final kcal = meal.nutriments.energyKcal100;
+    return kcal != null && kcal > 0;
   }
 
   /// Snapshot the cache box into a per-call dedup index. Two maps so
@@ -205,8 +222,7 @@ class RemoteSearchCacheDataSource {
   ///
   /// Returns the number of entries removed. Call once at app startup.
   Future<int> pruneStale(Duration maxAge) async {
-    final cutoff =
-        DateTime.now().subtract(maxAge).millisecondsSinceEpoch;
+    final cutoff = DateTime.now().subtract(maxAge).millisecondsSinceEpoch;
     final keysToDelete = <dynamic>[];
     final timestampKeysToDelete = <String>[];
 

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
@@ -45,20 +46,16 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
   final GetConfigUsecase _getConfigUsecase;
   final CustomMealDataSource _customMealDataSource; // #267
   final ConfigRepository _configRepository;
+  final RemoteSearchCacheDataSource _remoteSearchCache;
 
-  EditMealBloc(this._getConfigUsecase, this._customMealDataSource, this._configRepository)
-      : super(EditMealInitial()) {
+  EditMealBloc(this._getConfigUsecase, this._customMealDataSource, this._configRepository, this._remoteSearchCache)
+    : super(EditMealInitial()) {
     on<InitializeEditMealEvent>((event, emit) async {
       emit(EditMealLoadingState());
 
       final config = await _getConfigUsecase.getConfig();
-      final mode = CustomMealFormMode.fromString(
-        await _configRepository.getCustomMealFormMode(),
-      );
-      emit(EditMealLoadedState(
-        usesImperialUnits: config.usesImperialUnits,
-        formMode: mode,
-      ));
+      final mode = CustomMealFormMode.fromString(await _configRepository.getCustomMealFormMode());
+      emit(EditMealLoadedState(usesImperialUnits: config.usesImperialUnits, formMode: mode));
     });
   }
 
@@ -100,8 +97,7 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       return nutrimentValue != null ? nutrimentValue * factorTo100g : null;
     }
 
-    double? fromTextOrOld(String? text, double? oldValue) =>
-        multiplyIfNotNull(text?.toDoubleOrNull() ?? oldValue);
+    double? fromTextOrOld(String? text, double? oldValue) => multiplyIfNotNull(text?.toDoubleOrNull() ?? oldValue);
 
     final newMealNutriments = MealNutrimentsEntity(
       energyKcal100: multiplyIfNotNull(kcalText.toDoubleOrNull()),
@@ -141,14 +137,19 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       // #64 follow-up: a freshly-picked local photo wins over what was
       // on the old entity; a clear flag means the user removed the
       // photo and the slug should be wiped from the saved meal.
-      localImagePath: clearLocalImagePath
-          ? null
-          : (localImagePathOverride ?? oldMealEntity.localImagePath),
+      localImagePath: clearLocalImagePath ? null : (localImagePathOverride ?? oldMealEntity.localImagePath),
     );
   }
 
   /// Persist custom meal template so it appears in Recent Meals before first log (#267)
   Future<void> saveCustomMeal(MealEntity mealEntity) async {
     await _customMealDataSource.saveCustomMeal(MealDBO.fromMealEntity(mealEntity));
+  }
+
+  /// Write user-enriched nutrient data back to the remote search cache so
+  /// subsequent searches return the enriched version instead of the original
+  /// (often nutrient-less) remote result.
+  Future<void> updateCachedMealNutrients(MealEntity mealEntity) async {
+    await _remoteSearchCache.cache(MealDBO.fromMealEntity(mealEntity));
   }
 }
