@@ -20,18 +20,29 @@ class SpFdcDataSource {
         final queryDescriptionColumn = SPConst.getFdcFoodDescriptionColumnName(
           SupportedLanguage.fromCode(Platform.localeName),
         );
+        final selectClause =
+            'fdc_id, $queryDescriptionColumn, fdc_portions ( measure_unit_id, amount, gram_weight ), fdc_nutrients ( nutrient_id, amount )';
 
-        final response = await supaBaseClient
+        var response = await supaBaseClient
             .from(SPConst.fdcFoodTableName)
-            .select(
-              '''fdc_id, $queryDescriptionColumn, fdc_portions ( measure_unit_id, amount, gram_weight ), fdc_nutrients ( nutrient_id, amount )''',
-            )
+            .select(selectClause)
             .textSearch(
               queryDescriptionColumn,
               searchString,
               type: TextSearchType.websearch,
             )
             .limit(SPConst.maxNumberOfItems);
+
+        // Full-text search can miss inflected forms (e.g. "Tomate" vs
+        // "Tomaten"). Fall back to a substring match when it returns nothing.
+        if (response.isEmpty) {
+          log.fine('FTS returned no results, falling back to ilike search');
+          response = await supaBaseClient
+              .from(SPConst.fdcFoodTableName)
+              .select(selectClause)
+              .ilike(queryDescriptionColumn, '%$searchString%')
+              .limit(SPConst.maxNumberOfItems);
+        }
 
         final fdcFoodItems =
             response.map((fdcFood) => SpFdcFoodDTO.fromJson(fdcFood)).toList();
