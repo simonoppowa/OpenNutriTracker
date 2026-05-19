@@ -3,38 +3,37 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
-import 'package:opennutritracker/features/recipes/domain/entity/shared_recipe_payload.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
-class ShareRecipeQrDialog extends StatefulWidget {
-  final RecipeEntity recipe;
+class ShareQrDialog extends StatefulWidget {
+  final String title;
+  final String code;
+  final String fileBaseName;
 
-  const ShareRecipeQrDialog({super.key, required this.recipe});
+  const ShareQrDialog({
+    super.key,
+    required this.title,
+    required this.code,
+    required this.fileBaseName,
+  });
 
   @override
-  State<ShareRecipeQrDialog> createState() => _ShareRecipeQrDialogState();
+  State<ShareQrDialog> createState() => _ShareQrDialogState();
 }
 
-class _ShareRecipeQrDialogState extends State<ShareRecipeQrDialog> {
+class _ShareQrDialogState extends State<ShareQrDialog> {
   static const int _errorCorrectionLevel = QrErrorCorrectLevel.M;
   static const int _quietZoneModules = 3;
 
-  late final String _code;
-
-  @override
-  void initState() {
-    super.initState();
-    _code = SharedRecipePayload.fromRecipe(widget.recipe).toJsonString();
-  }
+  final GlobalKey _shareButtonKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(S.of(context).shareRecipeLabel),
+      title: Text(widget.title),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -43,7 +42,7 @@ class _ShareRecipeQrDialogState extends State<ShareRecipeQrDialog> {
               width: 260,
               height: 260,
               child: QrImageView(
-                data: _code,
+                data: widget.code,
                 version: QrVersions.auto,
                 errorCorrectionLevel: _errorCorrectionLevel,
                 backgroundColor: Colors.white,
@@ -60,16 +59,17 @@ class _ShareRecipeQrDialogState extends State<ShareRecipeQrDialog> {
                   icon: const Icon(Icons.copy, size: 18),
                   label: Text(S.of(context).copyCodeLabel),
                   onPressed: () {
-                    Clipboard.setData(ClipboardData(text: _code));
+                    Clipboard.setData(ClipboardData(text: widget.code));
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(S.of(context).codeCopiedLabel)),
                     );
                   },
                 ),
                 OutlinedButton.icon(
+                  key: _shareButtonKey,
                   icon: const Icon(Icons.share, size: 18),
                   label: Text(S.of(context).shareCodeLabel),
-                  onPressed: () => _share(context),
+                  onPressed: _share,
                 ),
               ],
             ),
@@ -85,16 +85,28 @@ class _ShareRecipeQrDialogState extends State<ShareRecipeQrDialog> {
     );
   }
 
-  Future<void> _share(BuildContext context) async {
+  Future<void> _share() async {
+    final origin = _shareButtonOrigin();
     try {
-      final qrBytes = await _renderQrToImage(_code);
+      final qrBytes = await _renderQrToImage(widget.code);
       final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/recipe_qr.png');
+      final file = File('${tempDir.path}/${widget.fileBaseName}.png');
       await file.writeAsBytes(qrBytes);
-      await Share.shareXFiles([XFile(file.path)], text: _code);
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: widget.code,
+        sharePositionOrigin: origin,
+      );
     } catch (_) {
-      await Share.share(_code);
+      await Share.share(widget.code, sharePositionOrigin: origin);
     }
+  }
+
+  Rect? _shareButtonOrigin() {
+    final box =
+        _shareButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return null;
+    return box.localToGlobal(Offset.zero) & box.size;
   }
 
   Future<List<int>> _renderQrToImage(String data) async {

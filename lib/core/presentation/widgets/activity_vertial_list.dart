@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_card.dart';
+import 'package:opennutritracker/core/presentation/widgets/share_qr_dialog.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
-import 'package:opennutritracker/features/home/presentation/widgets/share_activity_qr_dialog.dart';
+import 'package:opennutritracker/features/home/domain/entity/shared_activity_payload.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 enum _ActivityPopupMenuSelection { onCopy, onShare, onImport }
@@ -65,10 +66,15 @@ class _ActivityVerticalListState extends State<ActivityVerticalList> {
                       }
                     case _ActivityPopupMenuSelection.onShare:
                       if (context.mounted) {
+                        final code = SharedActivityPayload
+                                .fromUserActivityList(widget.userActivityList)
+                            .toJsonString();
                         await showDialog(
                           context: context,
-                          builder: (_) => ShareActivityQrDialog(
-                            activityList: widget.userActivityList,
+                          builder: (_) => ShareQrDialog(
+                            title: S.of(context).shareActivityLabel,
+                            code: code,
+                            fileBaseName: 'workout_qr',
                           ),
                         );
                       }

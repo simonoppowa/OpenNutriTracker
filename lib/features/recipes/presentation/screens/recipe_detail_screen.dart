@@ -3,14 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/presentation/widgets/share_qr_dialog.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:opennutritracker/features/recipes/domain/entity/shared_recipe_payload.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_detail_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/recipe_builder_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/ingredient_list_item.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/recipe_nutrition_summary.dart';
-import 'package:opennutritracker/features/recipes/presentation/widgets/share_recipe_qr_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class RecipeDetailArguments {
@@ -76,10 +77,17 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           IconButton(
             tooltip: S.of(context).shareRecipeLabel,
             icon: const Icon(Icons.share_outlined),
-            onPressed: () => showDialog(
-              context: context,
-              builder: (_) => ShareRecipeQrDialog(recipe: recipe),
-            ),
+            onPressed: () {
+              final code = SharedRecipePayload.fromRecipe(recipe).toJsonString();
+              showDialog(
+                context: context,
+                builder: (_) => ShareQrDialog(
+                  title: S.of(context).shareRecipeLabel,
+                  code: code,
+                  fileBaseName: 'recipe_qr',
+                ),
+              );
+            },
           ),
           IconButton(
             tooltip: S.of(context).editRecipeTitle,
