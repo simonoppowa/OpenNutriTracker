@@ -7,6 +7,15 @@ import 'package:opennutritracker/features/recipes/domain/entity/shared_recipe_pa
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+class ImportRecipeScannerArguments {
+  /// QR text already captured by the standard barcode scanner. When set,
+  /// the import screen skips its own camera and goes straight to the
+  /// confirm dialog so the user doesn't have to point the camera twice.
+  final String? initialCode;
+
+  const ImportRecipeScannerArguments({this.initialCode});
+}
+
 class ImportRecipeScannerScreen extends StatefulWidget {
   const ImportRecipeScannerScreen({super.key});
 
@@ -17,6 +26,22 @@ class ImportRecipeScannerScreen extends StatefulWidget {
 
 class _ImportRecipeScannerScreenState extends State<ImportRecipeScannerScreen> {
   bool _isProcessing = false;
+  bool _handledInitialCode = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (!_handledInitialCode &&
+        args is ImportRecipeScannerArguments &&
+        args.initialCode != null) {
+      _handledInitialCode = true;
+      _isProcessing = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _processCode(args.initialCode!);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

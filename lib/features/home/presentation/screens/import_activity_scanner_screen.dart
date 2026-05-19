@@ -12,6 +12,15 @@ import 'package:opennutritracker/features/home/domain/entity/shared_activity_pay
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+class ImportActivityScannerArguments {
+  /// QR text already captured by the standard barcode scanner. When set,
+  /// the import screen skips its own camera and goes straight to the
+  /// confirm dialog so the user doesn't have to point the camera twice.
+  final String? initialCode;
+
+  const ImportActivityScannerArguments({this.initialCode});
+}
+
 class ImportActivityScannerScreen extends StatefulWidget {
   const ImportActivityScannerScreen({super.key});
 
@@ -26,6 +35,7 @@ class _ImportActivityScannerScreenState
   late GetPhysicalActivityUsecase _getPhysicalActivityUsecase;
   late GetUserUsecase _getUserUsecase;
   bool _isProcessing = false;
+  bool _handledInitialCode = false;
 
   @override
   void initState() {
@@ -33,6 +43,21 @@ class _ImportActivityScannerScreenState
     _getPhysicalActivityUsecase = locator<GetPhysicalActivityUsecase>();
     _getUserUsecase = locator<GetUserUsecase>();
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (!_handledInitialCode &&
+        args is ImportActivityScannerArguments &&
+        args.initialCode != null) {
+      _handledInitialCode = true;
+      _isProcessing = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _processCode(args.initialCode!);
+      });
+    }
   }
 
   @override

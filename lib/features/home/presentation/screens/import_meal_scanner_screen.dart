@@ -26,7 +26,18 @@ class ImportMealScannerArguments {
   final AddMealType addMealType;
   final DateTime day;
 
-  ImportMealScannerArguments(this.intakeTypeEntity, this.addMealType, this.day);
+  /// QR text already captured by the standard barcode scanner. When set,
+  /// the import screen skips its own camera and goes straight to the
+  /// confirm dialog so the user doesn't have to point the camera at the
+  /// same QR twice.
+  final String? initialCode;
+
+  ImportMealScannerArguments(
+    this.intakeTypeEntity,
+    this.addMealType,
+    this.day, {
+    this.initialCode,
+  });
 }
 
 class ImportMealScannerScreen extends StatefulWidget {
@@ -52,6 +63,8 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen> {
     super.initState();
   }
 
+  bool _handledInitialCode = false;
+
   @override
   void didChangeDependencies() {
     final args = ModalRoute.of(context)?.settings.arguments
@@ -60,6 +73,16 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen> {
     _addMealType = args.addMealType;
     _day = args.day;
     super.didChangeDependencies();
+
+    // If the standard scanner already captured the QR text, jump straight
+    // to the confirm dialog instead of opening another camera.
+    if (!_handledInitialCode && args.initialCode != null) {
+      _handledInitialCode = true;
+      _isProcessing = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _processCode(args.initialCode!);
+      });
+    }
   }
 
   @override

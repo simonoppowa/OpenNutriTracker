@@ -5,6 +5,19 @@ import 'package:opennutritracker/generated/l10n.dart';
 enum AddMealType { breakfastType, lunchType, dinnerType, snackType }
 
 extension AddMealExtension on AddMealType {
+  static AddMealType fromIntakeTypeEntity(IntakeTypeEntity intakeType) {
+    switch (intakeType) {
+      case IntakeTypeEntity.breakfast:
+        return AddMealType.breakfastType;
+      case IntakeTypeEntity.lunch:
+        return AddMealType.lunchType;
+      case IntakeTypeEntity.dinner:
+        return AddMealType.dinnerType;
+      case IntakeTypeEntity.snack:
+        return AddMealType.snackType;
+    }
+  }
+
   String getTypeName(BuildContext context) {
     switch (this) {
       case AddMealType.breakfastType:
