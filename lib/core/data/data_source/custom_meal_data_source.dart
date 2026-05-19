@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_supabase_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 
 class CustomMealDataSource {
   final Box<MealDBO> _customMealBox;
+  final CustomMealSupabaseDataSource? _supabase;
 
-  CustomMealDataSource(this._customMealBox);
+  CustomMealDataSource(this._customMealBox, [this._supabase]);
 
   Future<void> saveCustomMeal(MealDBO mealDBO) async {
     final existing = _customMealBox.values.cast<MealDBO?>().firstWhere(
@@ -17,6 +21,7 @@ class CustomMealDataSource {
     } else {
       await _customMealBox.add(mealDBO);
     }
+    unawaited(_supabase?.upsert(mealDBO));
   }
 
   List<MealDBO> getAllCustomMeals() => _customMealBox.values.toList();
@@ -27,6 +32,20 @@ class CustomMealDataSource {
         .toList();
     for (final meal in toDelete) {
       await meal.delete();
+    }
+    unawaited(_supabase?.delete(mealKey));
+  }
+
+  /// Fetches custom meals from Supabase and saves any that are missing locally.
+  /// Called once at startup to restore data after a reinstall.
+  Future<void> syncFromSupabase() async {
+    final remote = await _supabase?.fetchAll() ?? [];
+    if (remote.isEmpty) return;
+    final localKeys = _customMealBox.values.map((m) => m.code ?? m.name).toSet();
+    for (final meal in remote) {
+      if (!localKeys.contains(meal.code ?? meal.name)) {
+        await _customMealBox.add(meal);
+      }
     }
   }
 }

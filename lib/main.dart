@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_supabase_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
@@ -52,6 +54,12 @@ Future<void> main() async {
   unawaited(
     locator<RemoteSearchCacheDataSource>().pruneStale(const Duration(days: 90)),
   );
+
+  // Sign in anonymously to Supabase and restore custom meals from the cloud.
+  unawaited(() async {
+    await locator<CustomMealSupabaseDataSource>().ensureSignedIn();
+    await locator<CustomMealDataSource>().syncFromSupabase();
+  }());
 
   final isUserInitialized = await locator<UserDataSource>().hasUserData();
   final configRepo = locator<ConfigRepository>();

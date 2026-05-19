@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_supabase_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/physical_activity_data_source.dart';
@@ -296,7 +297,8 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => TrackedDayDataSource(hiveDBProvider.trackedDayBox));
   locator.registerLazySingleton<WeightLogDataSource>(() => WeightLogDataSource(hiveDBProvider.weightLogBox));
   locator.registerLazySingleton<WaterIntakeDataSource>(() => WaterIntakeDataSource(hiveDBProvider.waterIntakeBox));
-  locator.registerLazySingleton(() => CustomMealDataSource(hiveDBProvider.customMealBox));
+  locator.registerLazySingleton(() => CustomMealSupabaseDataSource(locator()));
+  locator.registerLazySingleton(() => CustomMealDataSource(hiveDBProvider.customMealBox, locator()));
   locator.registerLazySingleton(() => RecipeDataSource(hiveDBProvider.recipeBox));
   locator.registerLazySingleton(
     () => RemoteSearchCacheDataSource(hiveDBProvider.cachedOffMealBox, hiveDBProvider.cachedOffMealTimestampsBox),
