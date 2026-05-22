@@ -34,8 +34,8 @@ class DynamicOntLogo extends StatelessWidget {
         } else {
           return Image.asset(
             MediaQuery.of(context).platformBrightness == Brightness.light
-                ? 'assets/icon/ont_logo_square.png'
-                : 'assets/icon/ont_logo_square_light.png',
+                ? 'assets/icon/ont_logo_square_color_back_1024x1024.png'
+                : 'assets/icon/ont_logo_square_color_white_1024x1024.png',
           );
         }
       },

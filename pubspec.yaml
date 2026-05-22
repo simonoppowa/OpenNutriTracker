@@ -105,9 +105,9 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/icon/ont_logo_square.png
     - assets/icon/ont_logo_square.svg
-    - assets/icon/ont_logo_square_light.png
+    - assets/icon/ont_logo_square_color_back_1024x1024.png
+    - assets/icon/ont_logo_square_color_white_1024x1024.png
     - assets/icon/ont_banner_top.png
     - assets/icon/ont_banner_top_light.png
     - assets/icon/nonbinary_symbol.svg
@@ -151,9 +151,13 @@ flutter_intl:
 
 flutter_launcher_icons:
   android: true
-  adaptive_icon_foreground: "assets/icon/ont_logo_square.png"
+  adaptive_icon_foreground: "assets/icon/ont_logo_square_color_back_1024x1024.png"
   adaptive_icon_background: "#ffffff"
+  adaptive_icon_monochrome: "assets/icon/ont_logo_square_color_white_1024x1024.png"
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/icon/ont_logo_square.png"
+  image_path: "assets/icon/ont_logo_square_color_back_1024x1024.png"
+  image_path_ios_dark_transparent: "assets/icon/ont_logo_square_color_white_1024x1024.png"
+  image_path_ios_tinted_grayscale: "assets/icon/ont_logo_square_color_white_1024x1024.png"
+  desaturate_tinted_to_grayscale_ios: true
   min_sdk_android: 21

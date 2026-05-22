@@ -1,5 +1,8 @@
 <p align="center">
-  <img alt="Logo" src="assets/icon/ont_logo_square.png" width="128" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/icon/ont_logo_square_color_white_1024x1024.png">
+    <img alt="Logo" src="assets/icon/ont_logo_square_color_back_1024x1024.png" width="128" />
+  </picture>
   <h1 align="center">OpenNutriTracker</h1>
 </p>
 
