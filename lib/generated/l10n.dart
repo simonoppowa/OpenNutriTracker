@@ -4171,6 +4171,26 @@ class S {
     );
   }
 
+  /// `Day total: {consumed} / {goal}`
+  String mealDetailDayTotalLabel(String consumed, String goal) {
+    return Intl.message(
+      'Day total: $consumed / $goal',
+      name: 'mealDetailDayTotalLabel',
+      desc: '',
+      args: [consumed, goal],
+    );
+  }
+
+  /// `(+{kcal} kcal current selection)`
+  String mealDetailCurrentSelectionLabel(String kcal) {
+    return Intl.message(
+      '(+$kcal kcal current selection)',
+      name: 'mealDetailCurrentSelectionLabel',
+      desc: '',
+      args: [kcal],
+    );
+  }
+
   /// `Fat (g)`
   String get mealFatLabel {
     return Intl.message(

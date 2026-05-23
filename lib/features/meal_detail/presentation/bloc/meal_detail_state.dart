@@ -9,6 +9,9 @@ abstract class MealDetailState extends Equatable {
 
   final String selectedUnit;
 
+  final double dayKcalConsumed;
+  final double dayKcalGoal;
+
   const MealDetailState({
     required this.totalQuantityConverted,
     this.totalKcal = 0,
@@ -16,6 +19,8 @@ abstract class MealDetailState extends Equatable {
     this.totalFat = 0,
     this.totalProtein = 0,
     required this.selectedUnit,
+    this.dayKcalConsumed = 0,
+    this.dayKcalGoal = 0,
   });
 
   @override
@@ -26,6 +31,8 @@ abstract class MealDetailState extends Equatable {
         totalFat,
         totalProtein,
         selectedUnit,
+        dayKcalConsumed,
+        dayKcalGoal,
       ];
 
   MealDetailInitial copyWith({
@@ -35,6 +42,8 @@ abstract class MealDetailState extends Equatable {
     double? totalFat,
     double? totalProtein,
     String? selectedUnit,
+    double? dayKcalConsumed,
+    double? dayKcalGoal,
   }) {
     return MealDetailInitial(
       totalQuantityConverted:
@@ -44,6 +53,8 @@ abstract class MealDetailState extends Equatable {
       totalFat: totalFat ?? this.totalFat,
       totalProtein: totalProtein ?? this.totalProtein,
       selectedUnit: selectedUnit ?? this.selectedUnit,
+      dayKcalConsumed: dayKcalConsumed ?? this.dayKcalConsumed,
+      dayKcalGoal: dayKcalGoal ?? this.dayKcalGoal,
     );
   }
 }
@@ -56,5 +67,7 @@ class MealDetailInitial extends MealDetailState {
     super.totalFat,
     super.totalProtein,
     required super.selectedUnit,
+    super.dayKcalConsumed,
+    super.dayKcalGoal,
   });
 }

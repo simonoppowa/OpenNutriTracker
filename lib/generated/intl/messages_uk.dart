@@ -98,6 +98,12 @@ class MessageLookup extends MessageLookupByLibrary {
   static String mMergeOneUk(winner) => "Об'єднано — ${winner} тепер має 1 запис.";
   static String mFastingChipUk(remaining) => "Голодування · залишилось ${remaining}";
 
+  static String mMealDetailDayTotal(consumed, goal) =>
+      "Денний підсумок: ${consumed} / ${goal}";
+
+  static String mMealDetailCurrentSelection(kcal) =>
+      "(+${kcal} kcal поточний вибір)";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -441,6 +447,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "magnesiumLabel": MessageLookupByLibrary.simpleMessage("магній"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Бренди"),
         "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("Вуглеводи"),
+        "mealDetailCurrentSelectionLabel": mMealDetailCurrentSelection,
+        "mealDetailDayTotalLabel": mMealDetailDayTotal,
         "mealFatLabel": MessageLookupByLibrary.simpleMessage("Жири"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("ккал на"),
         "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("Енергія"),

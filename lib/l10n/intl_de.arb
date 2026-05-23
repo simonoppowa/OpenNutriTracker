@@ -368,6 +368,8 @@
   "magnesiumLabel": "Magnesium",
   "mealBrandsLabel": "Marken",
   "mealCarbsLabel": "Kohlenhydrate",
+  "mealDetailCurrentSelectionLabel": "(+{kcal} kcal aktuelle Auswahl)",
+  "mealDetailDayTotalLabel": "Tagessumme: {consumed} / {goal}",
   "mealEnergyLabel": "Energie",
   "mealFatLabel": "Fett",
   "mealImageLabel": "Foto hinzufügen",

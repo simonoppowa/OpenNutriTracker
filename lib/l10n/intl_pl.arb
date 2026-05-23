@@ -337,6 +337,8 @@
   "magnesiumLabel": "magnez",
   "mealBrandsLabel": "Marki",
   "mealCarbsLabel": "Węglowodany",
+  "mealDetailCurrentSelectionLabel": "(+{kcal} kcal bieżący wybór)",
+  "mealDetailDayTotalLabel": "Suma dzienna: {consumed} / {goal}",
   "mealEnergyLabel": "Energia",
   "mealFatLabel": "Tłuszcze",
   "mealImageLabel": "Dodaj zdjęcie",

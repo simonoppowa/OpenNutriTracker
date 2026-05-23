@@ -98,6 +98,12 @@ class MessageLookup extends MessageLookupByLibrary {
   static String mMergeOneSk(winner) => "Zlúčené — ${winner} má teraz 1 záznam.";
   static String mFastingChipSk(remaining) => "Pôst · zostáva ${remaining}";
 
+  static String mMealDetailDayTotal(consumed, goal) =>
+      "Denný súčet: ${consumed} / ${goal}";
+
+  static String mMealDetailCurrentSelection(kcal) =>
+      "(+${kcal} kcal aktuálny výber)";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -424,6 +430,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "magnesiumLabel": MessageLookupByLibrary.simpleMessage("horčík"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Značky"),
         "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("Sacharidy"),
+        "mealDetailCurrentSelectionLabel": mMealDetailCurrentSelection,
+        "mealDetailDayTotalLabel": mMealDetailDayTotal,
         "mealFatLabel": MessageLookupByLibrary.simpleMessage("Tuky"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("Názov jedla"),

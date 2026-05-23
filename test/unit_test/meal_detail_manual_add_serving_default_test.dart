@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
@@ -30,6 +31,8 @@ class _FakeGetKcalGoalUsecase extends Fake implements GetKcalGoalUsecase {}
 
 class _FakeGetMacroGoalUsecase extends Fake implements GetMacroGoalUsecase {}
 
+class _FakeGetTrackedDayUsecase extends Fake implements GetTrackedDayUsecase {}
+
 class _FakeProductsRepository extends Fake implements ProductsRepository {}
 
 class _FakeRemoteSearchCacheDataSource extends Fake
@@ -40,6 +43,7 @@ MealDetailBloc _buildBloc() => MealDetailBloc(
       _FakeAddTrackedDayUsecase(),
       _FakeGetKcalGoalUsecase(),
       _FakeGetMacroGoalUsecase(),
+      _FakeGetTrackedDayUsecase(),
       _FakeProductsRepository(),
       _FakeRemoteSearchCacheDataSource(),
     );

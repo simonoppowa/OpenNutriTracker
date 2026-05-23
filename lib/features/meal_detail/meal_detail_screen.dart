@@ -13,6 +13,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/daily_kcal_overview.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_macro_nutrients.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_nutriments_table.dart';
@@ -74,6 +75,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     intakeTypeEntity = args.intakeTypeEntity;
     _usesImperialUnits = args.usesImperialUnits;
 
+    _mealDetailBloc.add(LoadDailyTotalsEvent(_day));
+
     // Set initial unit
     if (_initialUnit == "") {
       if (meal.hasServingValues) {
@@ -122,14 +125,25 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           bloc: _mealDetailBloc,
           builder: (context, state) {
             if (state is MealDetailInitial) {
-              return _getLoadedContent(
-                context,
-                state.totalQuantityConverted,
-                state.totalKcal,
-                state.totalCarbs,
-                state.totalFat,
-                state.totalProtein,
-                state.selectedUnit,
+              return Column(
+                children: [
+                  DailyKcalOverview(
+                    dayKcalConsumed: state.dayKcalConsumed,
+                    dayKcalGoal: state.dayKcalGoal,
+                    currentSelectionKcal: state.totalKcal,
+                  ),
+                  Expanded(
+                    child: _getLoadedContent(
+                      context,
+                      state.totalQuantityConverted,
+                      state.totalKcal,
+                      state.totalCarbs,
+                      state.totalFat,
+                      state.totalProtein,
+                      state.selectedUnit,
+                    ),
+                  ),
+                ],
               );
             }
             return const Center(child: CircularProgressIndicator());

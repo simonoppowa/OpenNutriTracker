@@ -337,6 +337,8 @@
   "magnesiumLabel": "магній",
   "mealBrandsLabel": "Бренди",
   "mealCarbsLabel": "Вуглеводи",
+  "mealDetailCurrentSelectionLabel": "(+{kcal} kcal поточний вибір)",
+  "mealDetailDayTotalLabel": "Денний підсумок: {consumed} / {goal}",
   "mealEnergyLabel": "Енергія",
   "mealFatLabel": "Жири",
   "mealImageLabel": "Додати фото",

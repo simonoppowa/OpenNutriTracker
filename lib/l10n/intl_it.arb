@@ -337,6 +337,8 @@
   "magnesiumLabel": "magnesio",
   "mealBrandsLabel": "Marche",
   "mealCarbsLabel": "Carboidrati",
+  "mealDetailCurrentSelectionLabel": "(+{kcal} kcal selezione attuale)",
+  "mealDetailDayTotalLabel": "Totale giornaliero: {consumed} / {goal}",
   "mealEnergyLabel": "Energia",
   "mealFatLabel": "Grassi",
   "mealImageLabel": "Aggiungi una foto",

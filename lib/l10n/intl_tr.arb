@@ -368,6 +368,8 @@
   "magnesiumLabel": "magnezyum",
   "mealBrandsLabel": "Markalar",
   "mealCarbsLabel": "Karbonhidrat",
+  "mealDetailCurrentSelectionLabel": "(+{kcal} kcal mevcut seçim)",
+  "mealDetailDayTotalLabel": "Günlük toplam: {consumed} / {goal}",
   "mealEnergyLabel": "Enerji",
   "mealFatLabel": "Yağ",
   "mealImageLabel": "Fotoğraf ekle",

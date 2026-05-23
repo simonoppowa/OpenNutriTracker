@@ -95,6 +95,12 @@ class MessageLookup extends MessageLookupByLibrary {
   static String mMergeOneZh(winner) => "已合并 — ${winner} 现在有 1 条记录。";
   static String mFastingChipZh(remaining) => "禁食中 · 剩余 ${remaining}";
 
+  static String mMealDetailDayTotal(consumed, goal) =>
+      "今日总计：${consumed} / ${goal}";
+
+  static String mMealDetailCurrentSelection(kcal) =>
+      "（+${kcal} 千卡 当前选择）";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample":
@@ -404,6 +410,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "magnesiumLabel": MessageLookupByLibrary.simpleMessage("镁"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("品牌"),
         "mealCarbsLabel": MessageLookupByLibrary.simpleMessage("碳水化合物"),
+        "mealDetailCurrentSelectionLabel": mMealDetailCurrentSelection,
+        "mealDetailDayTotalLabel": mMealDetailDayTotal,
         "mealFatLabel": MessageLookupByLibrary.simpleMessage("脂肪"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("卡路里每"),
         "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("能量"),

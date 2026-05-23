@@ -97,6 +97,12 @@ class MessageLookup extends MessageLookupByLibrary {
   static String mMergeOnePl(winner) => "Połączono — ${winner} ma teraz 1 wpis.";
   static String mFastingChipPl(remaining) => "Post · pozostało ${remaining}";
 
+  static String mMealDetailDayTotal(consumed, goal) =>
+      "Suma dzienna: ${consumed} / ${goal}";
+
+  static String mMealDetailCurrentSelection(kcal) =>
+      "(+${kcal} kcal bieżący wybór)";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -439,6 +445,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Marki"),
         "mealCarbsLabel":
             MessageLookupByLibrary.simpleMessage("Węglowodany"),
+        "mealDetailCurrentSelectionLabel": mMealDetailCurrentSelection,
+        "mealDetailDayTotalLabel": mMealDetailDayTotal,
         "mealFatLabel": MessageLookupByLibrary.simpleMessage("Tłuszcze"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("kcal na"),
         "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("Energia"),

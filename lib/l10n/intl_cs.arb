@@ -337,6 +337,8 @@
   "magnesiumLabel": "hořčík",
   "mealBrandsLabel": "Výrobce, značka",
   "mealCarbsLabel": "Sacharidy",
+  "mealDetailCurrentSelectionLabel": "(+{kcal} kcal aktuální výběr)",
+  "mealDetailDayTotalLabel": "Denní součet: {consumed} / {goal}",
   "mealEnergyLabel": "Energie",
   "mealFatLabel": "Tuky",
   "mealImageLabel": "Přidat fotku",

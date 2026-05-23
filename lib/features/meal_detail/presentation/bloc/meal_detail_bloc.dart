@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
@@ -28,6 +29,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
   final AddTrackedDayUsecase _addTrackedDayUsecase;
   final GetKcalGoalUsecase _getKcalGoalUsecase;
   final GetMacroGoalUsecase _getMacroGoalUsecase;
+  final GetTrackedDayUsecase _getTrackedDayUsecase;
   final ProductsRepository _productsRepository;
   final RemoteSearchCacheDataSource _remoteSearchCacheDataSource;
 
@@ -36,6 +38,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     this._addTrackedDayUsecase,
     this._getKcalGoalUsecase,
     this._getMacroGoalUsecase,
+    this._getTrackedDayUsecase,
     this._productsRepository,
     this._remoteSearchCacheDataSource,
   ) : super(
@@ -88,6 +91,31 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         );
       } catch (e) {
         log.severe('Error calculating kcal: $e');
+        Sentry.captureException(e);
+      }
+    });
+
+    on<LoadDailyTotalsEvent>((event, emit) async {
+      try {
+        final tracked = await _getTrackedDayUsecase.getTrackedDay(event.day);
+        if (tracked != null) {
+          emit(
+            state.copyWith(
+              dayKcalConsumed: tracked.caloriesTracked,
+              dayKcalGoal: tracked.calorieGoal,
+            ),
+          );
+        } else {
+          final goal = await _getKcalGoalUsecase.getKcalGoal();
+          emit(
+            state.copyWith(
+              dayKcalConsumed: 0,
+              dayKcalGoal: goal,
+            ),
+          );
+        }
+      } catch (e) {
+        log.severe('Error loading daily totals: $e');
         Sentry.captureException(e);
       }
     });

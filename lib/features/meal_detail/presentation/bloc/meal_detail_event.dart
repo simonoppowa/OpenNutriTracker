@@ -31,3 +31,12 @@ class UpdateKcalEvent extends MealDetailEvent {
         selectedUnit,
       ];
 }
+
+class LoadDailyTotalsEvent extends MealDetailEvent {
+  final DateTime day;
+
+  const LoadDailyTotalsEvent(this.day);
+
+  @override
+  List<Object?> get props => [day];
+}

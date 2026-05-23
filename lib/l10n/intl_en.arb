@@ -86,6 +86,23 @@
       }
     }
   },
+  "@mealDetailCurrentSelectionLabel": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      }
+    }
+  },
+  "@mealDetailDayTotalLabel": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
   "@mealNutrientsPerQtyLabel": {
     "placeholders": {
       "qty": {
@@ -402,6 +419,8 @@
   "magnesiumLabel": "magnesium",
   "mealBrandsLabel": "Brands",
   "mealCarbsLabel": "Carbohydrates",
+  "mealDetailCurrentSelectionLabel": "(+{kcal} kcal current selection)",
+  "mealDetailDayTotalLabel": "Day total: {consumed} / {goal}",
   "mealEnergyLabel": "Energy",
   "mealFatLabel": "Fat",
   "mealImageLabel": "Add a photo",
