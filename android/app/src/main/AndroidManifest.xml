@@ -5,11 +5,6 @@
     <!-- #312: Notification reminders -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <!-- #64/#144: Attach a photo to a custom meal. Android 13+ requires the
-         scoped READ_MEDIA_IMAGES permission for image_picker's gallery flow;
-         camera capture is delegated to the system Camera app, so no
-         CAMERA permission is needed here. -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
 
     <!-- Provide required visibility configuration for API level 30 and above -->
     <queries>
@@ -24,7 +19,7 @@
     </queries>
 
    <application
-        android:label="OpenNutriTracker"
+        android:label="@string/app_name"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

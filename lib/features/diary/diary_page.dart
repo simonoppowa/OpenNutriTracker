@@ -71,6 +71,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
             state.trackedDayMap,
             state.usesImperialUnits,
             state.showMealMacros,
+            state.showActivityTracking,
           );
         }
         return const SizedBox();
@@ -95,6 +96,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     Map<String, TrackedDayEntity> trackedDaysMap,
     bool usesImperialUnits,
     bool showMealMacros,
+    bool showActivityTracking,
   ) {
     return ListView(
       children: [
@@ -131,6 +133,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
                 onEditActivity: _onEditActivityItem,
                 usesImperialUnits: usesImperialUnits,
                 showMealMacros: showMealMacros,
+                showActivityTracking: showActivityTracking,
                 breakfastKcalTarget: state.breakfastKcalTarget,
                 lunchKcalTarget: state.lunchKcalTarget,
                 dinnerKcalTarget: state.dinnerKcalTarget,

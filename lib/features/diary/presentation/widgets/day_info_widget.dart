@@ -46,6 +46,9 @@ class DayInfoWidget extends StatefulWidget {
 
   final bool usesImperialUnits;
   final bool showMealMacros;
+  // When the user disables Show Activity Tracking in Settings, the diary's
+  // per-day Activity section is hidden alongside the home one.
+  final bool showActivityTracking;
   // Persisted per-meal sort preference loaded by [CalendarDayBloc]. Keys are
   // meal-type strings (breakfast / lunch / dinner / snack) and values are
   // [DiarySortType] enum indices. Null when the user has never picked a
@@ -82,6 +85,7 @@ class DayInfoWidget extends StatefulWidget {
     required this.snackIntake,
     required this.usesImperialUnits,
     this.showMealMacros = true,
+    this.showActivityTracking = true,
     this.diarySortPreferences,
     required this.onDeleteIntake,
     required this.onDeleteActivity,
@@ -257,19 +261,21 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 selectedDay: widget.selectedDay,
                 trackedDay: widget.trackedDayEntity,
               ),
-            const SizedBox(height: 8.0),
-            ActivityVerticalList(
-              day: widget.selectedDay,
-              title: S.of(context).activityLabel,
-              userActivityList: widget.userActivities,
-              onItemLongPressedCallback: onActivityItemLongPressed,
-              onItemTappedCallback: widget.onEditActivity,
-              onCopyActivityCallback:
-                  DateUtils.isSameDay(widget.selectedDay, DateTime.now())
-                      ? null
-                      : (activity) =>
-                          widget.onCopyActivity(activity, widget.trackedDayEntity),
-            ),
+            if (widget.showActivityTracking) ...[
+              const SizedBox(height: 8.0),
+              ActivityVerticalList(
+                day: widget.selectedDay,
+                title: S.of(context).activityLabel,
+                userActivityList: widget.userActivities,
+                onItemLongPressedCallback: onActivityItemLongPressed,
+                onItemTappedCallback: widget.onEditActivity,
+                onCopyActivityCallback:
+                    DateUtils.isSameDay(widget.selectedDay, DateTime.now())
+                        ? null
+                        : (activity) =>
+                            widget.onCopyActivity(activity, widget.trackedDayEntity),
+              ),
+            ],
             // #150 follow-up: a 0% share hides the section entirely so OMAD
             // users (and anyone else who's set a meal slot to 0%) don't see
             // a meal type they explicitly opted out of. Logged intakes for a

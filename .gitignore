@@ -59,3 +59,8 @@ result
 # Hive test artefacts
 *.hive
 *.lock
+# Exception for Gemfile.lock, which is needed for Fastlane / Bundler
+!**/Gemfile.lock
+
+# Fastlane / Bundler — local gem install path (bundle config set path vendor/bundle)
+ios/vendor/

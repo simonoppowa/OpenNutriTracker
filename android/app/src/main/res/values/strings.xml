@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Default app label, used by the `full` Gradle flavor (production
+         applicationId). The `develop` flavor overrides this in
+         src/develop/res/values/strings.xml so a sideloaded debug build is
+         visually distinguishable on the home screen from a Play Store
+         install. -->
+    <string name="app_name">OpenNutriTracker</string>
+</resources>

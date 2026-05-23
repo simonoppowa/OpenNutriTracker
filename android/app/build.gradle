@@ -75,9 +75,56 @@ android {
         }
     }
 
+    flavorDimensions "version"
+
+    productFlavors {
+        develop {
+            dimension "version"
+            applicationIdSuffix ".develop"
+            versionNameSuffix "-develop"
+        }
+        full {
+            dimension "version"
+        }
+    }
     buildTypes {
         release {
             signingConfig signingConfigs.release
+        }
+    }
+
+    // Preserve the historic `app-<buildType>.apk` / `app-<buildType>.aab`
+    // filenames for the `full` flavor so the public-facing artifacts stay
+    // named `app-release.apk` and `app-release.aab`, matching the website's
+    // "verify your download" instructions, the update-release-fingerprint
+    // workflow, and the fastlane Android lane's default path. The develop
+    // flavor keeps Gradle's default `app-develop-<buildType>.{apk,aab}` so
+    // a sideloaded build is easy to spot in the output directory.
+    applicationVariants.all { variant ->
+        if (variant.flavorName == 'full') {
+            // APK rename — AGP exposes this directly via Variant.outputs.
+            variant.outputs.all { output ->
+                output.outputFileName = "app-${variant.buildType.name}.apk"
+            }
+            // AAB rename — AGP doesn't expose a public DSL for the bundle
+            // output filename, so we hook the variant's bundle task with a
+            // doLast and move the file once it's been written. The bundle
+            // lives at outputs/bundle/<variantName>/app-<flavor>-<buildType>.aab
+            // by default; we rename it in place to app-<buildType>.aab.
+            def variantName = variant.name
+            def buildTypeName = variant.buildType.name
+            def bundleTaskName = "bundle${variantName.capitalize()}"
+            tasks.matching { it.name == bundleTaskName }.configureEach { task ->
+                task.doLast {
+                    def bundleDir = file("${buildDir}/outputs/bundle/${variantName}")
+                    def sourceAab = new File(bundleDir, "app-${variant.flavorName}-${buildTypeName}.aab")
+                    def destAab = new File(bundleDir, "app-${buildTypeName}.aab")
+                    if (sourceAab.exists()) {
+                        if (destAab.exists()) destAab.delete()
+                        sourceAab.renameTo(destAab)
+                    }
+                }
+            }
         }
     }
 }

@@ -106,5 +106,6 @@ class HomeLoadedState extends HomeState {
     waterMlToday,
     waterGoalMl,
     waterIntakes,
+    showActivityTracking,
   ];
 }

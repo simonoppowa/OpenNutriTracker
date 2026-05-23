@@ -1,0 +1,97 @@
+default_platform(:ios)
+
+platform :ios do
+  desc 'Sync certificates and provisioning profiles from match repository'
+  lane :certs do
+    sync_signing
+  end
+
+  desc 'Build a signed App Store IPA using Flutter'
+  lane :build do
+    setup_ci if ENV['CI']
+    sync_signing
+    enforce_app_store_signing
+    sh('cd .. && fvm flutter pub get')
+    # --flavor full maps to the `full` Xcode scheme so the build uses the
+    # production bundle identifier and BUNDLE_DISPLAY_NAME (no .develop
+    # suffix). The develop scheme exists for local sideloading and isn't
+    # what App Store distribution should ever pick up.
+    sh("cd .. && fvm flutter build ipa --release --flavor full --export-method app-store --build-number=#{ENV.fetch('CI_BUILD_NUMBER', '1')}")
+  end
+
+  desc 'Upload the latest IPA to TestFlight'
+  lane :beta do
+    build
+    upload_to_testflight(
+      api_key: app_store_connect_api_key_from_env,
+      ipa: latest_ipa_path,
+      skip_waiting_for_build_processing: true,
+      # changelog: ENV['TESTFLIGHT_CHANGELOG']
+    )
+  end
+
+  desc 'Upload an already-built IPA to TestFlight'
+  lane :beta_from_ipa do
+    upload_to_testflight(
+      api_key: app_store_connect_api_key_from_env,
+      ipa: latest_ipa_path,
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc 'Upload the latest IPA to App Store Connect production'
+  lane :release do
+    build
+    upload_to_app_store(
+      api_key: app_store_connect_api_key_from_env,
+      ipa: latest_ipa_path,
+      submit_for_review: false,
+      automatic_release: false,
+      force: true
+    )
+  end
+
+  private_lane :sync_signing do
+    match(
+      type: 'appstore',
+      readonly: ENV.fetch('MATCH_READONLY', 'true') == 'true',
+      api_key: app_store_connect_api_key_from_env
+    )
+  end
+
+  private_lane :enforce_app_store_signing do
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: 'Runner.xcodeproj',
+      team_id: '79AJPC6DP3',
+      bundle_identifier: 'com.opennutritracker.ont.opennutritracker',
+      targets: ['Runner'],
+      build_configurations: ['Release-full', 'Profile-full'],
+      code_sign_identity: 'Apple Distribution',
+      profile_name: 'match AppStore com.opennutritracker.ont.opennutritracker'
+    )
+  end
+
+  private_lane :app_store_connect_api_key_from_env do
+    key_id = ENV.fetch('APP_STORE_CONNECT_API_KEY_ID')
+    issuer_id = ENV.fetch('APP_STORE_CONNECT_ISSUER_ID')
+    key_content = ENV.fetch('APP_STORE_CONNECT_API_KEY_P8')
+    key_is_base64 = ENV.fetch('APP_STORE_CONNECT_API_KEY_IS_KEY_CONTENT_BASE64', 'true') == 'true'
+
+    app_store_connect_api_key(
+      key_id: key_id,
+      issuer_id: issuer_id,
+      key_content: key_content,
+      is_key_content_base64: key_is_base64
+    )
+  end
+
+  private_lane :latest_ipa_path do
+    ipa_glob = File.expand_path('../../build/ios/ipa/*.ipa', __dir__)
+    ipa = Dir[ipa_glob].max_by { |path| File.mtime(path) }
+    UI.user_error!("No IPA found in ../../build/ios/ipa. Run lane 'build' first.") if ipa.nil?
+    ipa
+  end
+end
+
+

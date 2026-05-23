@@ -1,0 +1,38 @@
+name: Write .env file
+description: Writes a .env file from provided values and fails if a value is missing.
+inputs:
+  fdc_api_key:
+    description: FDC API key value.
+    required: true
+  sentry_dns:
+    description: Sentry DSN value.
+    required: true
+  supabase_project_url:
+    description: Supabase project URL.
+    required: true
+  supabase_project_anon_key:
+    description: Supabase anon key.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Generate .env
+      shell: bash
+      env:
+        FDC_API_KEY: ${{ inputs.fdc_api_key }}
+        SENTRY_DNS: ${{ inputs.sentry_dns }}
+        SUPABASE_PROJECT_URL: ${{ inputs.supabase_project_url }}
+        SUPABASE_PROJECT_ANON_KEY: ${{ inputs.supabase_project_anon_key }}
+      run: |
+        : "${FDC_API_KEY:?Missing fdc_api_key input}"
+        : "${SENTRY_DNS:?Missing sentry_dns input}"
+        : "${SUPABASE_PROJECT_URL:?Missing supabase_project_url input}"
+        : "${SUPABASE_PROJECT_ANON_KEY:?Missing supabase_project_anon_key input}"
+
+        cat > .env <<EOF
+        FDC_API_KEY="$FDC_API_KEY"
+        SENTRY_DNS="$SENTRY_DNS"
+        SUPABASE_PROJECT_URL="$SUPABASE_PROJECT_URL"
+        SUPABASE_PROJECT_ANON_KEY="$SUPABASE_PROJECT_ANON_KEY"
+        EOF
+

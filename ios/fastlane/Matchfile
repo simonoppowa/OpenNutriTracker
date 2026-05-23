@@ -1,0 +1,10 @@
+git_url(ENV.fetch('MATCH_GIT_URL'))
+git_branch('main')
+
+storage_mode('git')
+type('appstore')
+app_identifier('com.opennutritracker.ont.opennutritracker')
+team_id('79AJPC6DP3')
+readonly(true)
+
+

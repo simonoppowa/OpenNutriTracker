@@ -4,7 +4,7 @@
 # Sequential ADB smoke-test pass for all triage branches.
 #
 # For each branch:
-#   1. Checkout + flutter pub get + flutter build apk --debug
+#   1. Checkout + flutter pub get + flutter build apk --flavor full --debug
 #   2. adb install -r
 #   3. Clear app data, launch, walk onboarding (tools/adb/walk-onboarding.sh)
 #   4. Run the branch-specific feature probe (finds widgets by Semantics identifier)
@@ -332,8 +332,11 @@ for BRANCH in "${BRANCHES[@]}"; do
   _log "  pub get..."
   "$FVM" flutter pub get --no-example 2>&1 | tail -2 | tee -a "$LOG"
 
-  _log "  building debug APK..."
-  BUILD_OUT=$("$FVM" flutter build apk --debug 2>&1)
+  _log "  building debug APK (full flavor)..."
+  # --flavor full uses the production applicationId so this smoke test
+  # exercises the same install identity as a Play Store build, not the
+  # .develop sideload variant.
+  BUILD_OUT=$("$FVM" flutter build apk --flavor full --debug 2>&1)
   BUILD_EXIT=$?
   echo "$BUILD_OUT" | tail -3 | sed 's/^/  /' | tee -a "$LOG"
 

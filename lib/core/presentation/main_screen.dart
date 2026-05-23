@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -195,7 +196,9 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  void _onFabPressed(BuildContext context) {
+  Future<void> _onFabPressed(BuildContext context) async {
+    final config = await locator<GetConfigUsecase>().getConfig();
+    if (!context.mounted) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -206,7 +209,10 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
       builder: (BuildContext context) {
-        return AddItemBottomSheet(day: DateTime.now());
+        return AddItemBottomSheet(
+          day: DateTime.now(),
+          showActivityTracking: config.showActivityTracking,
+        );
       },
     );
   }
