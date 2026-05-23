@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Override the app label for the `develop` Gradle flavor so a
+         sideloaded debug build shows up as "ONT Develop" on the home screen
+         rather than the same "OpenNutriTracker" as a Play Store install.
+         Combined with the .develop applicationId suffix in
+         android/app/build.gradle, both installs can coexist on the same
+         device and remain easy to tell apart. -->
+    <string name="app_name">ONT Develop</string>
+</resources>
