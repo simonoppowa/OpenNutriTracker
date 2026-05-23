@@ -125,25 +125,16 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           bloc: _mealDetailBloc,
           builder: (context, state) {
             if (state is MealDetailInitial) {
-              return Column(
-                children: [
-                  DailyKcalOverview(
-                    dayKcalConsumed: state.dayKcalConsumed,
-                    dayKcalGoal: state.dayKcalGoal,
-                    currentSelectionKcal: state.totalKcal,
-                  ),
-                  Expanded(
-                    child: _getLoadedContent(
-                      context,
-                      state.totalQuantityConverted,
-                      state.totalKcal,
-                      state.totalCarbs,
-                      state.totalFat,
-                      state.totalProtein,
-                      state.selectedUnit,
-                    ),
-                  ),
-                ],
+              return _getLoadedContent(
+                context,
+                state.totalQuantityConverted,
+                state.totalKcal,
+                state.totalCarbs,
+                state.totalFat,
+                state.totalProtein,
+                state.selectedUnit,
+                state.dayKcalConsumed,
+                state.dayKcalGoal,
               );
             }
             return const Center(child: CircularProgressIndicator());
@@ -176,13 +167,23 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     double totalFat,
     double totalProtein,
     String selectedUnit,
+    double dayKcalConsumed,
+    double dayKcalGoal,
   ) {
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
         SliverAppBar(
           pinned: true,
-          expandedHeight: 200,
+          expandedHeight: dayKcalGoal > 0 ? 268 : 200,
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(dayKcalGoal > 0 ? 68 : 0),
+            child: DailyKcalOverview(
+              dayKcalConsumed: dayKcalConsumed,
+              dayKcalGoal: dayKcalGoal,
+              currentSelectionKcal: totalKcal,
+            ),
+          ),
           flexibleSpace: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               final top = constraints.biggest.height;
@@ -191,9 +192,14 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               const offset = 10;
               return FlexibleSpaceBar(
                 expandedTitleScale: 1, // don't scale title
-                background: MealTitleExpanded(
-                  meal: meal,
-                  usesImperialUnits: _usesImperialUnits,
+                background: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: dayKcalGoal > 0 ? 68 : 0,
+                  ),
+                  child: MealTitleExpanded(
+                    meal: meal,
+                    usesImperialUnits: _usesImperialUnits,
+                  ),
                 ),
                 title: AnimatedOpacity(
                   opacity: 1.0,
@@ -362,3 +368,4 @@ class MealDetailScreenArguments {
     this.usesImperialUnits,
   );
 }
+

@@ -29,7 +29,8 @@ class DailyKcalOverview extends StatelessWidget {
 
     final hasLiveSelection = currentSelectionKcal > 0;
 
-    return Padding(
+    return Container(
+      color: colorScheme.surface,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
