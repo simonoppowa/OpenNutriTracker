@@ -32,8 +32,15 @@ class DynamicOntLogo extends StatelessWidget {
         } else if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox();
         } else {
+          // Match the active Material theme rather than the system
+          // platformBrightness: when the user has overridden the app theme
+          // to differ from system (e.g. forced dark while the device is on
+          // light), the in-app logo should follow what they're actually
+          // seeing. This also keeps the fallback consistent with the
+          // primary SVG path above (which reads from Theme.of(context))
+          // and with the About dialog in settings_screen.dart.
           return Image.asset(
-            MediaQuery.of(context).platformBrightness == Brightness.light
+            Theme.of(context).brightness == Brightness.light
                 ? 'assets/icon/ont_logo_square_color_back_1024x1024.png'
                 : 'assets/icon/ont_logo_square_color_white_1024x1024.png',
           );
