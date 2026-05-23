@@ -46,8 +46,8 @@ class DayInfoWidget extends StatefulWidget {
 
   final bool usesImperialUnits;
   final bool showMealMacros;
-  // #277: when the user disables Show Activity Tracking in Settings, the
-  // diary's per-day Activity section is hidden alongside the home one.
+  // When the user disables Show Activity Tracking in Settings, the diary's
+  // per-day Activity section is hidden alongside the home one.
   final bool showActivityTracking;
   // Persisted per-meal sort preference loaded by [CalendarDayBloc]. Keys are
   // meal-type strings (breakfast / lunch / dinner / snack) and values are
