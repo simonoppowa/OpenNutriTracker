@@ -75,6 +75,18 @@ android {
         }
     }
 
+    flavorDimensions "version"
+
+    productFlavors {
+        develop {
+            dimension "version"
+            applicationIdSuffix ".develop"
+            versionNameSuffix "-develop"
+        }
+        full {
+            dimension "version"
+        }
+    }
     buildTypes {
         release {
             signingConfig signingConfigs.release
