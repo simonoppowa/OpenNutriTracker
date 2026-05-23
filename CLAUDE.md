@@ -76,7 +76,7 @@ dart run build_runner build
 
 ## Localization
 
-Source strings live in `lib/l10n/intl_en.arb` (and locale ARBs for `de`, `cs`, `it`, `pl`, `tr`, `uk`, `zh`). Generated Dart files live in `lib/generated/intl/` and `lib/generated/l10n.dart`.
+Source strings live in `lib/l10n/intl_en.arb` (and locale ARBs for `de`, `cs`, `it`, `pl`, `sk`, `tr`, `uk`, `zh`). Generated Dart files live in `lib/generated/intl/` and `lib/generated/l10n.dart`.
 
 The generated files in `lib/generated/` are **manually maintained** — do not regenerate them with `intl_translation:generate_from_arb`, as the generator output conflicts with the project's 120-char formatting. Edit them directly when adding strings, then run `just check_intl` to verify CI passes.
 
@@ -233,16 +233,18 @@ lib/
     styles/       # Color schemes, typography
     utils/        # locator.dart (DI), hive_db_provider.dart, env.dart, calc/, etc.
   features/       # One folder per screen/flow
-    home/         # Dashboard with daily kcal/macro summary
-    diary/        # Calendar-based food diary
-    profile/      # User stats, BMI, goals
+    home/         # Dashboard with daily kcal/macro summary, water chip, fasting chip
+    diary/        # Calendar-based food diary, micronutrient panel, sort controls
+    profile/      # User stats, BMI, goals, weight history chart
     add_meal/     # Food search (text + barcode) and meal logging
-    meal_detail/  # Nutritional detail view for a food item
-    edit_meal/    # Edit a logged intake entry
-    scanner/      # Barcode camera scanner
-    add_activity/ # Log physical activity
+    meal_detail/  # Nutritional detail view for a food item, with daily kcal banner
+    edit_meal/    # Edit a logged intake entry, custom meal create / template
+    scanner/      # Barcode camera scanner (with manual entry fallback)
+    add_activity/ # Log physical activity, including custom kcal templates
     activity_detail/ # View logged activity
-    settings/     # App settings, data export/import
+    fasting/      # Intermittent-fasting timer with content-warning gate
+    recipes/      # Reusable recipes with photo, brand, ingredient picker
+    settings/     # App settings, data export/import, day-start, theme picker
     onboarding/   # First-run user setup flow
   generated/      # Intl files — maintained manually (see Localization above)
   l10n/           # Source ARB translation files
@@ -271,17 +273,25 @@ Named routes are defined in `NavigationOptions` and registered in `main.dart`. T
 
 ### Local database
 
-**hive_ce** (the actively maintained community fork of Hive) is used for all persistent local storage, AES-256 encrypted. The five boxes opened by `HiveDBProvider`:
+**hive_ce** (the actively maintained community fork of Hive) is used for all persistent local storage, AES-256 encrypted. The boxes opened by `HiveDBProvider`:
 
-| Box               | DBO type          | Purpose                                                         |
-| ----------------- | ----------------- | --------------------------------------------------------------- |
-| `ConfigBox`       | `ConfigDBO`       | App settings: theme, units, kcal adjustment, per-macro % goals  |
-| `IntakeBox`       | `IntakeDBO`       | Meal log entries (links to `MealDBO`, typed by `IntakeTypeDBO`) |
-| `UserActivityBox` | `UserActivityDBO` | Logged physical activities                                      |
-| `UserBox`         | `UserDBO`         | User profile: height, weight, birthday, gender, PAL, goal       |
-| `TrackedDayBox`   | `TrackedDayDBO`   | Per-day calorie/macro running totals for diary calendar         |
+| Box                            | DBO type / payload          | Purpose                                                              |
+| ------------------------------ | --------------------------- | -------------------------------------------------------------------- |
+| `ConfigBox`                    | `ConfigDBO`                 | App settings: theme, units, kcal adjustment, per-macro % goals       |
+| `IntakeBox`                    | `IntakeDBO`                 | Meal log entries (links to `MealDBO`, typed by `IntakeTypeDBO`)      |
+| `UserActivityBox`              | `UserActivityDBO`           | Logged physical activities                                           |
+| `UserBox`                      | `UserDBO`                   | User profile: height, weight, birthday, gender, PAL, goal            |
+| `TrackedDayBox`                | `TrackedDayDBO`             | Per-day calorie/macro running totals for diary calendar              |
+| `CustomMealBox`                | `MealDBO`                   | User-saved custom meals (search index for the food picker)           |
+| `RecipeBox`                    | `RecipeDBO`                 | User-saved recipes with photo, brand, ingredients                    |
+| `CachedOffMealBox`             | `MealDBO`                   | Open Food Facts response cache for offline / slow-connection use     |
+| `CachedOffMealTimestampsBox`   | `int`                       | Cache freshness timestamps for the OFF cache                         |
+| `CustomActivityTemplateBox`    | `CustomActivityTemplateDBO` | Reusable templates for custom-kcal activities                        |
+| `WeightLogBox`                 | `WeightLogDBO`              | Weight history points for the profile trend chart                    |
+| `WaterIntakeBox`               | `WaterIntakeDBO`            | Water log entries powering the home chip                             |
+| `FastingBox`                   | `FastingSessionDBO`         | Fasting sessions (current and historical) for the timer              |
 
-When adding a new `@HiveType`, assign a unique `typeId`. Check all existing DBOs to avoid collisions — IDs are currently scattered across 0–15+.
+When adding a new `@HiveType`, assign a unique `typeId`. Check all existing DBOs to avoid collisions — IDs are currently scattered across 0–30+.
 
 ### Food data sources
 
@@ -306,7 +316,7 @@ Calculation utilities live in `lib/core/utils/calc/`:
 
 ### Data export / import
 
-Settings screen exports to a `.zip` containing three JSON files (user activities, intakes, tracked days). Import merges from a user-selected zip. User profile data is **not** included in the export.
+Settings screen exports to a `.zip` that bundles intakes, activities, tracked days, and recipes in both JSON (canonical, re-importable) and CSV (flat, for spreadsheets) formats — see [`docs/export-format.md`](docs/export-format.md) for the full schema. Import accepts the same zip and merges its contents into the existing boxes. User profile data (height, weight, birthday, PAL, goal) is intentionally **not** included in the export. Settings → Import also supports a pasted JSON blob for ad-hoc meal imports.
 
 ## Naming Conventions
 

@@ -38,6 +38,7 @@ When adding a new string key in the same PR you must:
    | `intl_cs.arb` | Czech |
    | `intl_it.arb` | Italian |
    | `intl_pl.arb` | Polish |
+   | `intl_sk.arb` | Slovak |
    | `intl_tr.arb` | Turkish |
    | `intl_uk.arb` | Ukrainian |
    | `intl_zh.arb` | Chinese (Simplified) |

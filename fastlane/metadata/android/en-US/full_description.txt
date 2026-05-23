@@ -1,9 +1,18 @@
 OpenNutriTracker is an open-source mobile application designed to simplify nutritional tracking and management. Whether you are looking to improve your health, lose weight, or simply maintain a balanced diet, OpenNutriTracker provides a minimalistic interface to easily track and analyze your daily nutrition.
 
 
-🍎 Nutritional Tracking: Easily log your meals and snacks, and access a vast database of food items and ingredients to get detailed nutritional information.
-📓 Food Diary: Maintain a comprehensive food diary to keep track of your daily food consumption, habits, and progress.
-🍽️ Custom Meals: Plan your meals in advance, create personalized meal plans, and optimize them according to your dietary goals.
-📷 Barcode Scanner: Scan barcodes on packaged food items to instantly retrieve their nutritional information.
-🔒 Privacy Focused: OpenNutriTracker prioritizes the privacy its users. It does not collect or share any personal data without your consent.
-🚫💰 No Subscription, In-App Purchases, or Ads: OpenNutriTracker is completely free to use, without any subscription fees, in-app purchases, or intrusive advertisements.
+🍎 Nutritional tracking: Log meals and snacks against a large food database (Open Food Facts plus a curated subset of USDA FDC). Search, scan, or add straight as a number when you already know the calorie cost.
+📓 Food diary: A calendar-driven diary that breaks the day into Breakfast, Lunch, Dinner, and Snack, with per-meal kcal targets (Standard, OMAD, Five-small, Mediterranean, Two-meal, or a custom share), drag-to-rearrange between meals, and sort by time or by macro contribution.
+🥕 Micronutrient panel: Day and week views for fibre, sodium, saturated fat, sugar, calcium, iron, potassium, vitamin D, vitamin B12, and magnesium, with optional Dietary Reference Intake bars from the IOM tables.
+🍽️ Custom meals & recipes: Build a one-off custom meal or save a reusable recipe with photo, brand, and barcode. The recipe builder has its own ingredient picker with barcode scanning so you can compose meals from real products.
+⚡ Quick add: When you already know roughly how much you ate, skip the search flow entirely — Quick add takes a title plus kcal (and optional macros) and logs it straight to the meal section.
+📷 Barcode scanner: Scan packaged items for instant lookup, paste a barcode manually when the camera struggles, or attach a barcode to a custom meal so future scans recognise your own foods.
+🏃 Activities: Log workouts from a categorised activity catalogue or define your own custom activities with direct kcal entry and reusable templates.
+💧 Water tracker: A water chip on the home screen with quick-add increments, an editable goal, and undo for the last entry.
+⏱️ Fasting timer: Optional intermittent-fasting timer with content-warning gate, a home chip showing time remaining, and a completion notification when you reach your window.
+⚖️ Weight history: Capture weight during onboarding and on demand, see the trend on a chart with a dashed line at your target weight, and optionally taper the calorie goal as you approach it.
+🎨 Material You & theme picker: Adopt the system accent colour on Android 12+, or pick from sixteen built-in presets. The app icon adapts to Android themed icons.
+🔢 kcal or kJ: Switch the energy unit globally; every diary entry, target, and chart reflects the choice.
+📤 Export & import: Export your full diary, activities, and custom catalogue to a JSON zip or CSV, paste a JSON blob to import meals, and share a single meal or activity as a QR code another phone can scan.
+🔒 Privacy first: All data is AES-encrypted and stored locally. Anonymous crash reporting is opt-in during onboarding and can be turned off at any time.
+🚫💰 No subscriptions, in-app purchases, or ads: OpenNutriTracker is completely free, with no paid tier and no advertising.
