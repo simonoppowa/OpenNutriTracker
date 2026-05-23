@@ -66,7 +66,7 @@ platform :ios do
       team_id: '79AJPC6DP3',
       bundle_identifier: 'com.opennutritracker.ont.opennutritracker',
       targets: ['Runner'],
-      build_configurations: ['Release', 'Profile'],
+      build_configurations: ['Release-full', 'Profile-full'],
       code_sign_identity: 'Apple Distribution',
       profile_name: 'match AppStore com.opennutritracker.ont.opennutritracker'
     )
