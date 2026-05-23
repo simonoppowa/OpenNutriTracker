@@ -256,7 +256,11 @@ jobs:
           path: ios/Podfile.lock
 
       - name: Build iOS (no codesign)
-        run: flutter build ios --no-codesign --release
+        # --flavor full maps to the `full` Xcode scheme (matches the
+        # production bundle identifier and display name). The `develop`
+        # scheme exists for local sideloading alongside a TestFlight /
+        # App Store install and isn't what CI should validate.
+        run: flutter build ios --no-codesign --release --flavor full
 
   ios-integration-tests:
     runs-on: macos-latest
@@ -326,7 +330,9 @@ jobs:
           echo "DEVICE_UDID=$DEVICE_UDID" >> $GITHUB_ENV
 
       - name: Run integration tests
-        run: flutter test integration_test/ -d "$DEVICE_UDID" --reporter expanded
+        # --flavor full so the integration-test app matches the production
+        # iOS scheme (bundle id + display name) rather than the develop one.
+        run: flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded
 
   android-build:
     runs-on: ubuntu-latest
@@ -386,7 +392,11 @@ jobs:
         # --release would need a keystore which CI doesn't have; --debug
         # exercises the same Gradle / desugaring / R8 paths sufficiently
         # for a "compiles cleanly" gate.
-        run: flutter build apk --debug
+        # --flavor full builds the production-equivalent applicationId
+        # (no .develop suffix); the develop flavor exists for local
+        # sideloading alongside the Play Store install and isn't what CI
+        # should validate.
+        run: flutter build apk --flavor full --debug
 
   android-integration-tests:
     runs-on: ubuntu-latest
@@ -483,7 +493,10 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: flutter test integration_test/ --reporter expanded
+          # --flavor full so the integration-test APK matches the
+          # production-equivalent applicationId rather than the dev sideload
+          # variant (see android/app/build.gradle).
+          script: flutter test integration_test/ --flavor full --reporter expanded
 
 # Historical reference — the original single-step `just ci` invocation that
 # was used before this workflow was split into linux-checks + ios-build.
