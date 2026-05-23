@@ -32,7 +32,12 @@ PACKAGE="com.opennutritracker.ont.opennutritracker"
 ACTIVITY="com.opennutritracker.ont.opennutritracker.MainActivity"
 REPO="$(cd "$__DIR/../.." && pwd)"
 FVM="${FVM:-$(command -v fvm 2>/dev/null || echo "$HOME/fvm/bin/fvm")}"
-APK="$REPO/build/app/outputs/flutter-apk/app-debug.apk"
+# Gradle's outputFileName rename for the full flavor keeps the historic
+# app-<buildType>.apk filename in apk/full/<buildType>/, but Flutter's
+# post-build copy at flutter-apk/ ignores the rename and uses the
+# flavored name (app-full-debug.apk). Pull from Gradle's native dir
+# where the rename actually applies.
+APK="$REPO/build/app/outputs/apk/full/debug/app-debug.apk"
 SCREENSHOTS="/tmp/ont-branch-screenshots"
 LOG="/tmp/ont-branch-test.log"
 SECRETS="/tmp/ont-secrets"

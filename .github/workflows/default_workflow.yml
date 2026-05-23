@@ -690,13 +690,18 @@ jobs:
           if-no-files-found: error
 
       - name: Upload Android APK artifact
-        # Same rename trick as the AAB above — the full flavor's APK
-        # stays named app-release.apk so the website's verify-your-download
-        # instructions and update-release-fingerprint workflow keep working.
+        # The Gradle outputFileName rename in android/app/build.gradle
+        # keeps the historic `app-release.apk` filename, but only in
+        # Gradle's native output directory (apk/<flavor>/<buildType>/).
+        # Flutter's post-build copy at build/app/outputs/flutter-apk/
+        # bypasses the rename and writes `app-full-release.apk` there,
+        # so we point the upload at the Gradle dir where the name is
+        # what the website and update-release-fingerprint workflow
+        # expect.
         uses: actions/upload-artifact@v7
         with:
           name: android-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/apk/full/release/app-release.apk
           if-no-files-found: error
 
   android-deploy:
