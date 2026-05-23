@@ -652,19 +652,29 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build Android App Bundle
-        run: flutter build appbundle --release
+        # --flavor full is the production-equivalent applicationId
+        # (no .develop suffix); Play Store distribution requires this
+        # flavor.
+        run: flutter build appbundle --release --flavor full
 
       - name: Build Android APK
-        run: flutter build apk --release
+        run: flutter build apk --release --flavor full
 
       - name: Upload Android AAB artifact
+        # The full flavor's AAB keeps the historic `app-release.aab`
+        # filename via the rename in android/app/build.gradle so the
+        # fastlane lane's default path and the GitHub release asset list
+        # keep working unchanged.
         uses: actions/upload-artifact@v7
         with:
           name: android-aab
-          path: build/app/outputs/bundle/release/app-release.aab
+          path: build/app/outputs/bundle/fullRelease/app-release.aab
           if-no-files-found: error
 
       - name: Upload Android APK artifact
+        # Same rename trick as the AAB above — the full flavor's APK
+        # stays named app-release.apk so the website's verify-your-download
+        # instructions and update-release-fingerprint workflow keep working.
         uses: actions/upload-artifact@v7
         with:
           name: android-apk

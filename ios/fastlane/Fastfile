@@ -12,7 +12,11 @@ platform :ios do
     sync_signing
     enforce_app_store_signing
     sh('cd .. && fvm flutter pub get')
-    sh("cd .. && fvm flutter build ipa --release --export-method app-store --build-number=#{ENV.fetch('CI_BUILD_NUMBER', '1')}")
+    # --flavor full maps to the `full` Xcode scheme so the build uses the
+    # production bundle identifier and BUNDLE_DISPLAY_NAME (no .develop
+    # suffix). The develop scheme exists for local sideloading and isn't
+    # what App Store distribution should ever pick up.
+    sh("cd .. && fvm flutter build ipa --release --flavor full --export-method app-store --build-number=#{ENV.fetch('CI_BUILD_NUMBER', '1')}")
   end
 
   desc 'Upload the latest IPA to TestFlight'

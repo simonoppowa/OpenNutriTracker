@@ -3,8 +3,8 @@ default_platform(:android)
 platform :android do
   desc 'Upload signed Android app bundle to Google Play internal testing'
   lane :internal do
-    aab_path = ENV.fetch('ANDROID_AAB_PATH', '../build/app/outputs/bundle/release/app-release.aab')
-    UI.user_error!("AAB not found at #{aab_path}. Run flutter build appbundle --release first.") unless File.exist?(aab_path)
+    aab_path = ENV.fetch('ANDROID_AAB_PATH', '../build/app/outputs/bundle/fullRelease/app-release.aab')
+    UI.user_error!("AAB not found at #{aab_path}. Run flutter build appbundle --release --flavor full first.") unless File.exist?(aab_path)
 
     service_account_json = ENV['GOOGLE_PLAY_SERVICE_ACCOUNT_JSON']
     UI.user_error!('Missing GOOGLE_PLAY_SERVICE_ACCOUNT_JSON secret.') if service_account_json.to_s.empty?
