@@ -152,6 +152,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _settingsBloc.setShowActivityTracking(value);
                     _settingsBloc.add(LoadSettingsEvent());
                     _homeBloc.add(LoadItemsEvent());
+                    // DiaryBloc is a lazy singleton so its loaded state
+                    // survives navigation. Without an explicit reload here the
+                    // diary keeps the stale flag and the per-day Activity
+                    // section stays visible after the user has toggled off.
+                    _diaryBloc.add(const LoadDiaryYearEvent());
                   },
                 ),
                 SwitchListTile(

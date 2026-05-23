@@ -1070,20 +1070,20 @@ class S {
     );
   }
 
-  /// `Whats your current height?`
+  /// `What's your current height?`
   String get onboardingHeightQuestionSubtitle {
     return Intl.message(
-      'Whats your current height?',
+      'What\'s your current height?',
       name: 'onboardingHeightQuestionSubtitle',
       desc: '',
       args: [],
     );
   }
 
-  /// `Whats your current weight?`
+  /// `What's your current weight?`
   String get onboardingWeightQuestionSubtitle {
     return Intl.message(
-      'Whats your current weight?',
+      'What\'s your current weight?',
       name: 'onboardingWeightQuestionSubtitle',
       desc: '',
       args: [],

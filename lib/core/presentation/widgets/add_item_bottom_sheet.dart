@@ -9,8 +9,13 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 class AddItemBottomSheet extends StatelessWidget {
   final DateTime day;
+  final bool showActivityTracking;
 
-  const AddItemBottomSheet({super.key, required this.day});
+  const AddItemBottomSheet({
+    super.key,
+    required this.day,
+    this.showActivityTracking = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,37 +34,39 @@ class AddItemBottomSheet extends StatelessWidget {
                   ),
             ),
           ),
-          Semantics(
-            identifier: 'add-item-activity',
-            child: ListTile(
-              title: Text(
-                S.of(context).activityLabel,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-              ),
-              subtitle: Text(
-                S.of(context).activityExample,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
-              ),
-              // ignore: sized_box_for_whitespace
-              leading: Container(
-                height: double.infinity,
-                child: Icon(
-                  UserActivityEntity.getIconData(),
-                  color: Theme.of(context).colorScheme.onSurface,
+          if (showActivityTracking) ...[
+            Semantics(
+              identifier: 'add-item-activity',
+              child: ListTile(
+                title: Text(
+                  S.of(context).activityLabel,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                 ),
+                subtitle: Text(
+                  S.of(context).activityExample,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
+                ),
+                // ignore: sized_box_for_whitespace
+                leading: Container(
+                  height: double.infinity,
+                  child: Icon(
+                    UserActivityEntity.getIconData(),
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                onTap: () {
+                  _showAddActivityScreen(context);
+                },
               ),
-              onTap: () {
-                _showAddActivityScreen(context);
-              },
             ),
-          ),
-          const Divider(indent: 16, endIndent: 16),
+            const Divider(indent: 16, endIndent: 16),
+          ],
           Semantics(
             identifier: 'add-item-breakfast',
             child: ListTile(

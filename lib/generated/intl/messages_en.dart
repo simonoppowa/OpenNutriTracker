@@ -510,7 +510,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingHeightExampleHintFt":
             MessageLookupByLibrary.simpleMessage("e.g. 5.8"),
         "onboardingHeightQuestionSubtitle":
-            MessageLookupByLibrary.simpleMessage("Whats your current height?"),
+            MessageLookupByLibrary.simpleMessage("What\'s your current height?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "To start, the app needs some information about you to calculate your daily calorie goal.\nAll information about you is stored securely on your device."),
         "onboardingKcalPerDayLabel":
@@ -526,7 +526,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingWeightExampleHintLbs":
             MessageLookupByLibrary.simpleMessage("e.g. 132"),
         "onboardingWeightQuestionSubtitle":
-            MessageLookupByLibrary.simpleMessage("Whats your current weight?"),
+            MessageLookupByLibrary.simpleMessage("What\'s your current weight?"),
         "onboardingTargetWeightSubtitle":
             MessageLookupByLibrary.simpleMessage("Is there a weight you\'re working towards? You can leave this blank or change it later in Profile."),
         "onboardingTargetWeightHintOptional":
