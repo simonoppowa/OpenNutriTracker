@@ -151,10 +151,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          # Check out the PR head so auto-commit lands on the right branch.
-          # Falls back to github.ref for push and workflow_dispatch.
-          ref: ${{ github.event.pull_request.head.ref || github.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          # Same-repo PRs: check out the head branch so the auto-commit
+          # step below can push Podfile.lock fixes back to the branch.
+          # Fork PRs: this job runs with `contents: write` permissions,
+          # which means GitHub issues a token that's scoped to the base
+          # repo and can't authenticate against the fork — the auto-commit
+          # step is already gated to skip for fork PRs, so we just need a
+          # checkout that works. Use the PR head SHA from the base repo's
+          # refs/pull/N/head mirror, which the GITHUB_TOKEN can always read.
+          # Push and workflow_dispatch fall back to github.ref.
+          ref: >-
+            ${{
+              github.event.pull_request.head.repo.full_name == github.repository
+                && github.event.pull_request.head.ref
+                || github.event.pull_request.head.sha
+                || github.ref
+            }}
+          repository: >-
+            ${{
+              github.event.pull_request.head.repo.full_name == github.repository
+                && github.event.pull_request.head.repo.full_name
+                || github.repository
+            }}
 
       - name: Setup Flutter + cache packages
         uses: ./.github/actions/setup-flutter-cache
