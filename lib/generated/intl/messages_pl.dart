@@ -539,6 +539,8 @@ class MessageLookup extends MessageLookupByLibrary {
                 "Jaki jest Twój aktualny wzrost?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "Na początek aplikacja potrzebuje kilku informacji o Tobie, aby obliczyć Twój dzienny cel kaloryczny.\nWszystkie informacje o Tobie są bezpiecznie przechowywane na Twoim urządzeniu."),
+        "onboardingIntroSourcesLinkLabel": MessageLookupByLibrary.simpleMessage(
+            "Przeczytaj źródła naszych obliczeń medycznych"),
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("kcal dziennie"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(

@@ -434,6 +434,7 @@
   "onboardingHeightExampleHintFt": "z. B. 5.8",
   "onboardingHeightQuestionSubtitle": "Wie groß sind Sie derzeit?",
   "onboardingIntroDescription": "Um loszulegen, benötigt die App einige Informationen über Sie, um Ihr tägliches Kalorienziel zu berechnen. Alle Informationen über Sie werden sicher auf Ihrem Gerät gespeichert.",
+  "onboardingIntroSourcesLinkLabel": "Quellen unserer medizinischen Berechnungen ansehen",
   "onboardingKcalPerDayLabel": "kcal pro Tag",
   "onboardingKjPerDayLabel": "kJ pro Tag",
   "onboardingNonBinaryDisclaimer": "Es gibt keine veröffentlichte Kalorien-Grundlage für nicht-binäre Personen. Wir verwenden standardmäßig einen Mittelwert der männlichen und weiblichen Formeln — ein Ausgangspunkt, keine genaue Schätzung. Du kannst dies jederzeit unter Einstellungen → Berechnungen anpassen.",

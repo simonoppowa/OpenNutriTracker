@@ -538,6 +538,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Mevcut boyunuz nedir?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "Başlamak için, uygulamanın günlük kalori hedefinizi hesaplamak için hakkınızda bazı bilgilere ihtiyacı var.\nHakkınızdaki tüm bilgiler cihazınızda güvenli bir şekilde saklanır."),
+        "onboardingIntroSourcesLinkLabel": MessageLookupByLibrary.simpleMessage(
+            "Tıbbi hesaplama kaynaklarımızı okuyun"),
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("günlük kcal"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(

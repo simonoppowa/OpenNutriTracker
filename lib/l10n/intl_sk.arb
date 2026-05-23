@@ -450,6 +450,7 @@
   "onboardingHeightExampleHintFt": "napr. 5.8",
   "onboardingHeightQuestionSubtitle": "Aká je vaša aktuálna výška?",
   "onboardingIntroDescription": "Na začiatok potrebuje aplikácia o vás niekoľko informácií, aby mohla vypočítať váš denný kalorický cieľ.\nVšetky informácie o vás sú bezpečne uložené iba vo vašom zariadení.",
+  "onboardingIntroSourcesLinkLabel": "Prečítať zdroje našich zdravotných výpočtov",
   "onboardingKcalPerDayLabel": "kcal za deň",
   "onboardingKjPerDayLabel": "kJ za deň",
   "onboardingNonBinaryDisclaimer": "Pre nebinárne osoby neexistuje publikovaná kalorická základňa, preto štandardne používame priemer mužského a ženského vzorca — východiskový bod, nie presný odhad. Kedykoľvek si to môžete doladiť v Nastavenia → Výpočty.",

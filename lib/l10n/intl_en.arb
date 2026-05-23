@@ -492,6 +492,7 @@
   "onboardingHeightExampleHintFt": "e.g. 5.8",
   "onboardingHeightQuestionSubtitle": "What's your current height?",
   "onboardingIntroDescription": "To start, the app needs some information about you to calculate your daily calorie goal.\nAll information about you is stored securely on your device.",
+  "onboardingIntroSourcesLinkLabel": "Read our medical calculation sources",
   "onboardingKcalPerDayLabel": "kcal per day",
   "onboardingKjPerDayLabel": "kJ per day",
   "onboardingNonBinaryDisclaimer": "There's no published non-binary calorie baseline, so by default we use an average of the male and female formulas — a starting point, not a precise estimate. You can fine-tune anytime in Settings → Calculations.",

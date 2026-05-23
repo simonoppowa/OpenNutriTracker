@@ -1030,6 +1030,16 @@ class S {
     );
   }
 
+  /// `Read our medical calculation sources`
+  String get onboardingIntroSourcesLinkLabel {
+    return Intl.message(
+      'Read our medical calculation sources',
+      name: 'onboardingIntroSourcesLinkLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `What's your gender?`
   String get onboardingGenderQuestionSubtitle {
     return Intl.message(

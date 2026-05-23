@@ -532,6 +532,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Jaká je Vaše výška?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "Než začnete, aplikace o Vás potřebuje zadat několik údajů, aby mohla spočítat Váš denní kalorický cíl.\nVeškeré osobní údaje jsou bezpečně uloženy pouze ve Vašem zařízení."),
+        "onboardingIntroSourcesLinkLabel": MessageLookupByLibrary.simpleMessage(
+            "Přečíst zdroje našich zdravotních výpočtů"),
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("kcal denně"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(

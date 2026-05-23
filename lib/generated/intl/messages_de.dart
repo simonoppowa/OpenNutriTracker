@@ -548,6 +548,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Wie groß sind Sie derzeit?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "Um loszulegen, benötigt die App einige Informationen über Sie, um Ihr tägliches Kalorienziel zu berechnen. Alle Informationen über Sie werden sicher auf Ihrem Gerät gespeichert."),
+        "onboardingIntroSourcesLinkLabel": MessageLookupByLibrary.simpleMessage(
+            "Quellen unserer medizinischen Berechnungen ansehen"),
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("kcal pro Tag"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(

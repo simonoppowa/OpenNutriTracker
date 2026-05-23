@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
@@ -327,6 +328,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: const Icon(Icons.description_outlined),
                   title: Text(S.of(context).settingsDisclaimerLabel),
                   onTap: () => _showDisclaimerDialog(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.menu_book_outlined),
+                  title: Text(S.of(context).settingsSourcesLabel),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SourcesScreen()),
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.bug_report_outlined),

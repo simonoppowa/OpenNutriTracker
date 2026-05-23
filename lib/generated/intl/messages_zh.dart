@@ -495,6 +495,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("您当前的身高是多少？"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "开始使用前，应用需要一些关于您的信息来计算您的每日卡路里目标。\n所有关于您的信息都安全存储在您的设备上。"),
+        "onboardingIntroSourcesLinkLabel": MessageLookupByLibrary.simpleMessage(
+            "查看我们的医学计算参考来源"),
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("每日卡路里"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/low_kcal_warning_card.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
@@ -141,6 +142,16 @@ class OnboardingOverviewPageBody extends StatelessWidget {
                       ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 24.0),
+          Center(
+            child: TextButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SourcesScreen()),
+              ),
+              icon: const Icon(Icons.menu_book_outlined),
+              label: Text(S.of(context).settingsSourcesLabel),
             ),
           ),
         ],

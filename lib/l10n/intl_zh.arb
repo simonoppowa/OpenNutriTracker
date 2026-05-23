@@ -404,6 +404,7 @@
   "onboardingHeightExampleHintFt": "例如：5.8",
   "onboardingHeightQuestionSubtitle": "您当前的身高是多少？",
   "onboardingIntroDescription": "开始使用前，应用需要一些关于您的信息来计算您的每日卡路里目标。\n所有关于您的信息都安全存储在您的设备上。",
+  "onboardingIntroSourcesLinkLabel": "查看我们的医学计算参考来源",
   "onboardingKcalPerDayLabel": "每日卡路里",
   "onboardingKjPerDayLabel": "每日千焦",
   "onboardingNonBinaryDisclaimer": "目前没有公开的非二元性别热量基准，所以我们默认使用男性和女性公式的平均值——这是一个起点，并非精确估算。你可以随时在 设置 → 计算 中进行调整。",

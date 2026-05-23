@@ -403,6 +403,7 @@
   "onboardingHeightExampleHintFt": "np. 5.8",
   "onboardingHeightQuestionSubtitle": "Jaki jest Twój aktualny wzrost?",
   "onboardingIntroDescription": "Na początek aplikacja potrzebuje kilku informacji o Tobie, aby obliczyć Twój dzienny cel kaloryczny.\nWszystkie informacje o Tobie są bezpiecznie przechowywane na Twoim urządzeniu.",
+  "onboardingIntroSourcesLinkLabel": "Przeczytaj źródła naszych obliczeń medycznych",
   "onboardingKcalPerDayLabel": "kcal dziennie",
   "onboardingKjPerDayLabel": "kJ dziennie",
   "onboardingNonBinaryDisclaimer": "Nie istnieje opublikowana kaloryczna wartość bazowa dla osób niebinarnych, więc domyślnie używamy średniej z formuł męskiej i żeńskiej — to punkt wyjścia, a nie precyzyjne oszacowanie. Możesz to skorygować w każdej chwili w Ustawieniach → Obliczenia.",

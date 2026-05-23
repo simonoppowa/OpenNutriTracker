@@ -539,6 +539,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Який ваш поточний зріст?"),
         "onboardingIntroDescription": MessageLookupByLibrary.simpleMessage(
             "Для початку додаток потребує деяку інформацію про вас, щоб розрахувати вашу щоденну ціль калорій.\nВся інформація про вас зберігається безпечно на вашому пристрої."),
+        "onboardingIntroSourcesLinkLabel": MessageLookupByLibrary.simpleMessage(
+            "Переглянути джерела наших медичних обчислень"),
         "onboardingKcalPerDayLabel":
             MessageLookupByLibrary.simpleMessage("ккал на день"),
         "onboardingNonBinaryDisclaimer": MessageLookupByLibrary.simpleMessage(

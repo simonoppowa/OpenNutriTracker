@@ -434,6 +434,7 @@
   "onboardingHeightExampleHintFt": "ör. 5.8",
   "onboardingHeightQuestionSubtitle": "Mevcut boyunuz nedir?",
   "onboardingIntroDescription": "Başlamak için, uygulamanın günlük kalori hedefinizi hesaplamak için hakkınızda bazı bilgilere ihtiyacı var.\nHakkınızdaki tüm bilgiler cihazınızda güvenli bir şekilde saklanır.",
+  "onboardingIntroSourcesLinkLabel": "Tıbbi hesaplama kaynaklarımızı okuyun",
   "onboardingKcalPerDayLabel": "günlük kcal",
   "onboardingKjPerDayLabel": "günlük kJ",
   "onboardingNonBinaryDisclaimer": "Non-binary bireyler için yayımlanmış bir kalori temeli bulunmuyor, bu nedenle varsayılan olarak erkek ve kadın formüllerinin ortalamasını kullanıyoruz — bir başlangıç noktası, kesin bir tahmin değil. Ayarlar → Hesaplamalar bölümünden istediğin zaman ince ayar yapabilirsin.",
