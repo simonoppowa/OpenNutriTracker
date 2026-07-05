@@ -149,6 +149,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Viac informácií na\nFoodData Central"),
         "additionalInfoLabelOFF": MessageLookupByLibrary.simpleMessage(
             "Viac informácií na\nOpenFoodFacts"),
+        "additionalInfoLabelRecipe":
+            MessageLookupByLibrary.simpleMessage("Vlastný recept"),
         "additionalInfoLabelUnknown":
             MessageLookupByLibrary.simpleMessage("Neznáma položka jedla"),
         "ageLabel": MessageLookupByLibrary.simpleMessage("Vek"),
