@@ -204,6 +204,7 @@
   "additionalInfoLabelCustom": "Custom Meal Item",
   "additionalInfoLabelFDC": "More Information at\nFoodData Central",
   "additionalInfoLabelOFF": "More Information at\nOpenFoodFacts",
+  "additionalInfoLabelRecipe": "Custom Recipe",
   "additionalInfoLabelUnknown": "Unknown Meal Item",
   "ageLabel": "Age",
   "allItemsLabel": "All",
