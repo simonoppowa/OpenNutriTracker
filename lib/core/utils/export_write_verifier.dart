@@ -4,14 +4,14 @@ import 'dart:io';
 /// actually has bytes on disk.
 ///
 /// FilePicker.saveFile reports success as soon as its Android platform
-/// channel call returns a path — but the path can come from a content://
+/// channel call returns a path - but the path can come from a content://
 /// URI handed out by a document provider (this is the normal case for the
 /// Downloads folder). The plugin's own write silently no-ops if the
 /// provider's output stream can't be opened, and still hands back that
 /// path as if all was well. See simonoppowa/OpenNutriTracker#504, where
 /// exporting to Downloads reported success over a 0-byte zip.
 ///
-/// [savedPath] isn't always something dart:io can open — content:// URIs
+/// [savedPath] isn't always something dart:io can open - content:// URIs
 /// aren't real filesystem paths, so reading them back this way is a
 /// best-effort check, not a guarantee. Where we can read the file back, an
 /// empty result is treated as a real failure. Where we can't stat it at
