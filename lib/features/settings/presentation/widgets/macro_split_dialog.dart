@@ -117,7 +117,27 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
     setState(() => setter(parsed.toDouble()));
   }
 
+  void _applyPendingTextInputs() {
+    final carbs = int.tryParse(_carbsController.text);
+    final protein = int.tryParse(_proteinController.text);
+    final fat = int.tryParse(_fatController.text);
+
+    setState(() {
+      if (carbs != null && carbs >= 5 && carbs <= 90) {
+        _carbsPct = carbs.toDouble();
+      }
+      if (protein != null && protein >= 5 && protein <= 90) {
+        _proteinPct = protein.toDouble();
+      }
+      if (fat != null && fat >= 5 && fat <= 90) {
+        _fatPct = fat.toDouble();
+      }
+    });
+    _syncControllers();
+  }
+
   Future<void> _save() async {
+    _applyPendingTextInputs();
     await widget.settingsBloc.setMacroGoals(_carbsPct, _proteinPct, _fatPct);
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.homeBloc.add(const LoadItemsEvent());
