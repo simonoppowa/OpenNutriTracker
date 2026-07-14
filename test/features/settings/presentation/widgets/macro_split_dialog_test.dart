@@ -78,6 +78,43 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(settingsBloc.savedCarbs, 50);
+    expect(settingsBloc.savedProtein, closeTo(18.75, 0.001));
+    expect(settingsBloc.savedFat, closeTo(31.25, 0.001));
+    expect(
+      (settingsBloc.savedCarbs ?? 0) +
+          (settingsBloc.savedProtein ?? 0) +
+          (settingsBloc.savedFat ?? 0),
+      closeTo(100, 0.001),
+    );
+  });
+
+  testWidgets('ignores invalid typed macro values on save', (tester) async {
+    final settingsBloc = _FakeSettingsBloc();
+    final homeBloc = _FakeHomeBloc();
+
+    await tester.pumpWidget(_wrap(Builder(builder: (context) {
+      return ElevatedButton(
+        onPressed: () => showDialog<void>(
+          context: context,
+          builder: (_) => MacroSplitDialog(
+            settingsBloc: settingsBloc,
+            homeBloc: homeBloc,
+          ),
+        ),
+        child: const Text('Open'),
+      );
+    })));
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.first, '95');
+
+    await tester.tap(find.text(S.current.dialogOKLabel));
+    await tester.pumpAndSettle();
+
+    expect(settingsBloc.savedCarbs, 60);
     expect(settingsBloc.savedProtein, 15);
     expect(settingsBloc.savedFat, 25);
   });

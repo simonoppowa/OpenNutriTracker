@@ -27,11 +27,14 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
   static const double _defaultCarbsPct = 60;
   static const double _defaultProteinPct = 15;
   static const double _defaultFatPct = 25;
+  static const double _minMacroPct = 5;
+  static const double _maxMacroPct = 90;
 
   double _carbsPct = _defaultCarbsPct;
   double _proteinPct = _defaultProteinPct;
   double _fatPct = _defaultFatPct;
   bool _loaded = false;
+  _MacroField? _lastEditedMacro;
 
   late final TextEditingController _carbsController;
   late final TextEditingController _proteinController;
@@ -74,6 +77,14 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
     _fatController.text = _fatPct.round().toString();
   }
 
+  bool _isValidMacroPercentage(int? value) =>
+      value != null && value >= _minMacroPct && value <= _maxMacroPct;
+
+  int? _parseMacroPercentage(TextEditingController controller) {
+    final parsed = int.tryParse(controller.text);
+    return _isValidMacroPercentage(parsed) ? parsed : null;
+  }
+
   /// Rebalance the two unmoved macros proportionally to their current
   /// ratio so the trio re-sums to 100. Each gets clamped to a 5% floor;
   /// anything that would push another macro below the floor is shaved
@@ -95,45 +106,86 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
     final ratioB = otherB / totalOthers;
     var newA = otherA - delta * ratioA;
     var newB = otherB - delta * ratioB;
-    if (newA < 5) {
-      newB -= 5 - newA;
-      newA = 5;
+    if (newA < _minMacroPct) {
+      newB -= _minMacroPct - newA;
+      newA = _minMacroPct;
     }
-    if (newB < 5) {
-      newA -= 5 - newB;
-      newB = 5;
+    if (newB < _minMacroPct) {
+      newA -= _minMacroPct - newB;
+      newB = _minMacroPct;
     }
     setOtherA(newA);
     setOtherB(newB);
   }
 
-  void _applyTextInput(TextEditingController controller, double currentValue,
-      void Function(double) setter) {
-    final parsed = int.tryParse(controller.text);
-    if (parsed == null || parsed < 5 || parsed > 90) {
+  void _applyCarbsInput() {
+    final parsed = _parseMacroPercentage(_carbsController);
+    if (parsed == null) {
       _syncControllers();
       return;
     }
-    setState(() => setter(parsed.toDouble()));
+    setState(() => _redistribute(
+          moved: parsed.toDouble(),
+          oldMoved: _carbsPct,
+          setMoved: (x) => _carbsPct = x,
+          otherA: _proteinPct,
+          setOtherA: (x) => _proteinPct = x,
+          otherB: _fatPct,
+          setOtherB: (x) => _fatPct = x,
+        ));
+    _syncControllers();
+  }
+
+  void _applyProteinInput() {
+    final parsed = _parseMacroPercentage(_proteinController);
+    if (parsed == null) {
+      _syncControllers();
+      return;
+    }
+    setState(() => _redistribute(
+          moved: parsed.toDouble(),
+          oldMoved: _proteinPct,
+          setMoved: (x) => _proteinPct = x,
+          otherA: _carbsPct,
+          setOtherA: (x) => _carbsPct = x,
+          otherB: _fatPct,
+          setOtherB: (x) => _fatPct = x,
+        ));
+    _syncControllers();
+  }
+
+  void _applyFatInput() {
+    final parsed = _parseMacroPercentage(_fatController);
+    if (parsed == null) {
+      _syncControllers();
+      return;
+    }
+    setState(() => _redistribute(
+          moved: parsed.toDouble(),
+          oldMoved: _fatPct,
+          setMoved: (x) => _fatPct = x,
+          otherA: _carbsPct,
+          setOtherA: (x) => _carbsPct = x,
+          otherB: _proteinPct,
+          setOtherB: (x) => _proteinPct = x,
+        ));
+    _syncControllers();
   }
 
   void _applyPendingTextInputs() {
-    final carbs = int.tryParse(_carbsController.text);
-    final protein = int.tryParse(_proteinController.text);
-    final fat = int.tryParse(_fatController.text);
-
-    setState(() {
-      if (carbs != null && carbs >= 5 && carbs <= 90) {
-        _carbsPct = carbs.toDouble();
-      }
-      if (protein != null && protein >= 5 && protein <= 90) {
-        _proteinPct = protein.toDouble();
-      }
-      if (fat != null && fat >= 5 && fat <= 90) {
-        _fatPct = fat.toDouble();
-      }
-    });
-    _syncControllers();
+    switch (_lastEditedMacro) {
+      case _MacroField.carbs:
+        _applyCarbsInput();
+        break;
+      case _MacroField.protein:
+        _applyProteinInput();
+        break;
+      case _MacroField.fat:
+        _applyFatInput();
+        break;
+      case null:
+        break;
+    }
   }
 
   Future<void> _save() async {
@@ -207,8 +259,8 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                           setOtherB: (x) => _fatPct = x,
                         )),
                     onSliderEnd: _syncControllers,
-                    onTextSubmitted: () => _applyTextInput(
-                        _carbsController, _carbsPct, (v) => _carbsPct = v),
+                    onTextChanged: (_) => _lastEditedMacro = _MacroField.carbs,
+                    onTextSubmitted: _applyCarbsInput,
                   ),
                   _MacroRow(
                     label: s.proteinLabel,
@@ -226,8 +278,8 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                           setOtherB: (x) => _fatPct = x,
                         )),
                     onSliderEnd: _syncControllers,
-                    onTextSubmitted: () => _applyTextInput(_proteinController,
-                        _proteinPct, (v) => _proteinPct = v),
+                    onTextChanged: (_) => _lastEditedMacro = _MacroField.protein,
+                    onTextSubmitted: _applyProteinInput,
                   ),
                   _MacroRow(
                     label: s.fatLabel,
@@ -245,8 +297,8 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                           setOtherB: (x) => _proteinPct = x,
                         )),
                     onSliderEnd: _syncControllers,
-                    onTextSubmitted: () => _applyTextInput(
-                        _fatController, _fatPct, (v) => _fatPct = v),
+                    onTextChanged: (_) => _lastEditedMacro = _MacroField.fat,
+                    onTextSubmitted: _applyFatInput,
                   ),
                 ],
               ),
@@ -276,6 +328,7 @@ class _MacroRow extends StatelessWidget {
   final String semanticIdentifier;
   final ValueChanged<double> onSliderChanged;
   final VoidCallback onSliderEnd;
+  final ValueChanged<String> onTextChanged;
   final VoidCallback onTextSubmitted;
 
   const _MacroRow({
@@ -286,11 +339,14 @@ class _MacroRow extends StatelessWidget {
     required this.semanticIdentifier,
     required this.onSliderChanged,
     required this.onSliderEnd,
+    required this.onTextChanged,
     required this.onTextSubmitted,
   });
 
   @override
   Widget build(BuildContext context) {
+    final macroRange = _MacroSplitDialogState._maxMacroPct - _MacroSplitDialogState._minMacroPct;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -308,6 +364,7 @@ class _MacroRow extends StatelessWidget {
                   suffixText: '%',
                   isDense: true,
                 ),
+                onChanged: onTextChanged,
                 onSubmitted: (_) => onTextSubmitted(),
                 onEditingComplete: onTextSubmitted,
               ),
@@ -323,10 +380,13 @@ class _MacroRow extends StatelessWidget {
           child: Semantics(
             identifier: semanticIdentifier,
             child: Slider(
-              min: 5,
-              max: 90,
-              value: value.clamp(5, 90),
-              divisions: 85,
+            min: _MacroSplitDialogState._minMacroPct,
+            max: _MacroSplitDialogState._maxMacroPct,
+            value: value.clamp(
+              _MacroSplitDialogState._minMacroPct,
+              _MacroSplitDialogState._maxMacroPct,
+            ),
+            divisions: macroRange.toInt(),
               onChanged: (v) {
                 final rounded = v.round().toDouble();
                 if (100 - rounded >= 10) {
@@ -341,3 +401,5 @@ class _MacroRow extends StatelessWidget {
     );
   }
 }
+
+enum _MacroField { carbs, protein, fat }
