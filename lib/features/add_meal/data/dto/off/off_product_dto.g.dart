@@ -29,6 +29,7 @@ OFFProductDTO _$OFFProductDTOFromJson(Map<String, dynamic> json) =>
       product_quantity: json['product_quantity'],
       serving_quantity: json['serving_quantity'],
       serving_size: json['serving_size'] as String?,
+      serving_quantity_unit: json['serving_quantity_unit'] as String?,
       nutriments: json['nutriments'] == null
           ? null
           : OFFProductNutrimentsDTO.fromJson(
@@ -63,6 +64,7 @@ Map<String, dynamic> _$OFFProductDTOToJson(OFFProductDTO instance) =>
       'product_quantity': instance.product_quantity,
       'serving_quantity': instance.serving_quantity,
       'serving_size': instance.serving_size,
+      'serving_quantity_unit': instance.serving_quantity_unit,
       'popularity_key': instance.popularity_key,
       'countries_tags': instance.countries_tags,
       'nutriments': instance.nutriments,

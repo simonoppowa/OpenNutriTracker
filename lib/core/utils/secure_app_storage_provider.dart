@@ -8,6 +8,12 @@ class SecureAppStorageProvider {
   static const _sharedPrefsName = "SharedPrefs";
   static const _hiveEncryptionTag = "HiveEncryptionTag";
 
+  // Pointer to the profile whose box-set is currently active. Lives in
+  // secure storage (not a Hive box) because it has to be read at the very
+  // start of boot, before any per-profile box is open, to decide which
+  // boxes to open in the first place.
+  static const _activeProfileTag = "ActiveProfileTag";
+
   static const _androidOptions = AndroidOptions(
     storageCipherAlgorithm: StorageCipherAlgorithm.AES_CBC_PKCS7Padding,
     sharedPreferencesName: _sharedPrefsName,
@@ -39,5 +45,13 @@ class SecureAppStorageProvider {
       );
     }
     return encryptionKey;
+  }
+
+  Future<String?> getActiveProfileId() async {
+    return _secureStorage.read(key: _activeProfileTag);
+  }
+
+  Future<void> setActiveProfileId(String profileId) async {
+    await _secureStorage.write(key: _activeProfileTag, value: profileId);
   }
 }

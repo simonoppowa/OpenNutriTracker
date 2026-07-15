@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-OpenNutriTracker is a Flutter mobile app (iOS/Android) for nutritional tracking. It uses Open Food Facts and USDA Food Data Central (via Supabase) as food databases, with all user data stored locally in an AES-encrypted Hive database.
+OpenNutriTracker is a Flutter mobile app (iOS/Android) for nutritional tracking. It uses Open Food Facts and a multi-source Supabase food backend (USDA FoodData Central, German BLS, and more — see the [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) repo) as food databases, with all user data stored locally in an AES-encrypted Hive database.
 
 Flutter version: **3.41.7** (managed via FVM; see `.fvmrc`)
 
@@ -76,7 +76,7 @@ dart run build_runner build
 
 **`lib/hive_registrar.g.dart`** is checked in to version control (it has no machine-specific content). Regenerate it any time you add or remove a DBO type. The `HiveDBProvider` registers adapters by calling `Hive.registerAdapters()` which delegates to this file.
 
-**DTO files** live under `lib/features/add_meal/data/dto/` (OFF, FDC, and Supabase FDC subfolders). Regenerate when you add or change API response fields.
+**DTO files** live under `lib/features/add_meal/data/dto/` (OFF, FDC, and Supabase `sp` subfolders). Regenerate when you add or change API response fields.
 
 **`lib/core/utils/env.g.dart`** is the only generated file that is gitignored. After a fresh clone, run `just build` with a valid `.env` file before the app will compile.
 
@@ -86,7 +86,7 @@ Source strings live in `lib/l10n/intl_en.arb` (and locale ARBs for `de`, `cs`, `
 
 The generated files in `lib/generated/` are **manually maintained** — do not regenerate them with `intl_translation:generate_from_arb`, as the generator output conflicts with the project's 120-char formatting. Edit them directly when adding strings, then run `just check_intl` to verify CI passes.
 
-Note: `SupportedLanguage` enum (used internally for Supabase FDC column selection) only handles `en` and `de`; all other locales fall back to English.
+Note: the `SupportedLanguage` enum maps device locales to `food_translation` locales via `SPConst.translationLocaleOf` (`en` reads `food_summary.name` directly; `de`, `pl`, `zh`, `cs`, `it`, `sk`, `tr`, `uk` query translations, falling back to English).
 
 ## Code Style
 
@@ -303,13 +303,13 @@ When adding a new `@HiveType`, assign a unique `typeId`. Check all existing DBOs
 
 `ProductsRepository` aggregates three sources via `SearchProductsUseCase`:
 
-| Source          | Class             | Notes                                                            |
-| --------------- | ----------------- | ---------------------------------------------------------------- |
-| Open Food Facts | `OFFDataSource`   | REST API — text search + barcode lookup                          |
-| Supabase FDC    | `SpFdcDataSource` | Full-text search on `fdc_food` table; `en`/`de` column selection |
-| USDA FDC direct | `FDCDataSource`   | Requires `FDC_API_KEY`; not actively surfaced in the UI          |
+| Source           | Class              | Notes                                                                               |
+| ---------------- | ------------------ | ----------------------------------------------------------------------------------- |
+| Open Food Facts  | `OFFDataSource`    | REST API — text search + barcode lookup                                             |
+| Supabase backend | `SpFoodDataSource` | Full-text search on `food_summary` + `food_translation` (multi-source: FDC, BLS, …) |
+| USDA FDC direct  | `FDCDataSource`    | Requires `FDC_API_KEY`; not actively surfaced in the UI                             |
 
-`SearchProductsUseCase.searchFDCFoodByString` uses the **Supabase** source, not the direct FDC API.
+`SearchProductsUseCase.searchFDCFoodByString` uses the **Supabase** source, not the direct FDC API. The backend schema and import pipeline live in the [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) repo; users choose which backend sources to search in Settings → Food databases (`SPConst.settingsSelectableFoodSources`).
 
 ### Calorie and macro calculations
 

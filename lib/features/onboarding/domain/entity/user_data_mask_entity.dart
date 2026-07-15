@@ -1,3 +1,5 @@
+import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
@@ -24,7 +26,36 @@ class UserDataMaskEntity {
 
   bool acceptDataCollection = false;
 
-  bool usesImperialUnits = false;
+  /// Whether the user chose to display and enter height in imperial feet.
+  bool heightUsesImperial = false;
+
+  /// The unit chosen for current weight and target weight display.
+  BodyWeightUnit bodyWeightUnit = BodyWeightUnit.kg;
+
+  /// Whether the user chose to measure food and drinks in imperial units.
+  /// Chosen explicitly rather than inferred from the height toggle.
+  bool foodUsesImperial = false;
+
+  /// App theme picked on the "Other options" page. Defaults to following
+  /// the system, matching ConfigDBO.empty().
+  AppThemeEntity appTheme = AppThemeEntity.system;
+
+  /// Per-source enable flags for the food search, keyed by backend
+  /// food_source code — same semantics as ConfigEntity.foodSourceToggles
+  /// (absent key = enabled). Left empty when the user doesn't touch the
+  /// switches, which keeps every source on.
+  Map<String, bool> foodSourceToggles = <String, bool>{};
+
+  /// Whether the user opted into the daily logging reminder. The actual
+  /// permission request and scheduling happen when onboarding finishes.
+  bool dailyReminderEnabled = false;
+
+  /// Accent-colour choice from the "Other options" page, mirroring the
+  /// Settings semantics: [useMaterialYou] true + null [accentColor] is the
+  /// platform default (wallpaper palette on Android 12+, static elsewhere);
+  /// picking a preset stores its ARGB value and turns Material You off.
+  bool useMaterialYou = true;
+  int? accentColor;
 
   UserDataMaskEntity({
     this.gender,
@@ -36,7 +67,9 @@ class UserDataMaskEntity {
     this.goal,
     this.targetWeight,
     this.acceptDataCollection = false,
-    this.usesImperialUnits = false,
+    this.heightUsesImperial = false,
+    this.bodyWeightUnit = BodyWeightUnit.kg,
+    this.foodUsesImperial = false,
   });
 
   bool checkDataProvided() {

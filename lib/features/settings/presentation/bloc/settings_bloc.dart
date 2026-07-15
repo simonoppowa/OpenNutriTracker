@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
@@ -55,6 +56,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           userConfig.hasAcceptedSendAnonymousData,
           userConfig.appTheme,
           usesImperialUnits,
+          usesImperialFoodUnits: userConfig.usesImperialFoodUnits,
+          usesImperialHeightUnits: userConfig.usesImperialHeightUnits,
+          bodyWeightUnit: userConfig.bodyWeightUnit,
           showActivityTracking: userConfig.showActivityTracking,
           showMealMacros: userConfig.showMealMacros,
           notificationsEnabled: userConfig.notificationsEnabled,
@@ -91,6 +95,18 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   void setUsesImperialUnits(bool usesImperialUnits) {
     _addConfigUsecase.setConfigUsesImperialUnits(usesImperialUnits);
+  }
+
+  void setUsesImperialFoodUnits(bool usesImperial) {
+    _addConfigUsecase.setConfigUsesImperialFoodUnits(usesImperial);
+  }
+
+  void setUsesImperialHeightUnits(bool usesImperial) {
+    _addConfigUsecase.setConfigUsesImperialHeightUnits(usesImperial);
+  }
+
+  void setBodyWeightUnit(BodyWeightUnit unit) {
+    _addConfigUsecase.setConfigBodyWeightUnit(unit);
   }
 
   void setShowActivityTracking(bool showActivityTracking) {

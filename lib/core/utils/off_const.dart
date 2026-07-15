@@ -1,4 +1,8 @@
 class OFFConst {
+  /// Proper name of the database, shown as the source chip on search
+  /// result cards in every app language.
+  static const offSourceName = "Open Food Facts";
+
   static const offWebsiteUrl = "https://world.openfoodfacts.org/";
   static const _offBaseUrl = "world.openfoodfacts.org";
   static const _offProductSearchTag = "/api/v2/product";
@@ -9,6 +13,13 @@ class OFFConst {
   // source for the thinner Search-a-licious results.
   static const _salBaseUrl = "search.openfoodfacts.org";
   static const _salSearchTag = "/search";
+
+  // Classic search API on the main OFF host. Search-a-licious runs on its
+  // own infrastructure and goes down independently (502s that can last a
+  // while); this endpoint is the fallback for those outages. Deprecated
+  // upstream but still maintained, and it returns the same product shape
+  // under `products` instead of `hits`.
+  static const _offLegacySearchPath = "/cgi/search.pl";
 
   // We fetch a larger relevance-ordered candidate pool than we display so the
   // repository can re-rank it (fusing relevance position with popularity_key)
@@ -45,6 +56,7 @@ class OFFConst {
   static const _offProductQuantityTag = "product_quantity";
   static const _offQuantityTag = "quantity";
   static const _offServingQuantityTag = "serving_quantity";
+  static const _offServingQuantityUnitTag = "serving_quantity_unit";
   static const _offServingSizeTag = "serving_size";
   static const _offNutrimentsTag = "nutriments";
   static const _offPopularityKeyTag = "popularity_key";
@@ -86,6 +98,7 @@ class OFFConst {
     _offProductQuantityTag,
     _offQuantityTag,
     _offServingQuantityTag,
+    _offServingQuantityUnitTag,
     _offServingSizeTag,
     _offNutrimentsTag,
   ];
@@ -102,6 +115,24 @@ class OFFConst {
     };
 
     return Uri.https(_salBaseUrl, _salSearchTag, queryParameters);
+  }
+
+  /// Fallback word search against the classic API for when Search-a-licious
+  /// is down. Same fields and pool size as [getOffWordSearchUrl] so the
+  /// repository's re-ranking works unchanged; relevance ordering is weaker
+  /// than Search-a-licious, which is acceptable for a degraded mode.
+  static Uri getOffLegacyWordSearchUrl(String searchString) {
+    final queryParameters = {
+      'search_terms': searchString,
+      'search_simple': '1',
+      'action': 'process',
+      _offJsonTag: _offJsonValue,
+      _offFieldsTag: _joinFields(_searchReturnFields),
+      _salPageSizeTag: '$searchCandidatePoolSize',
+      _salPageTag: '1',
+    };
+
+    return Uri.https(_offBaseUrl, _offLegacySearchPath, queryParameters);
   }
 
   static Uri getOffBarcodeSearchUri(String barcode) {

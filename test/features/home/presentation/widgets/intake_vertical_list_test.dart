@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
@@ -17,6 +19,27 @@ import 'package:provider/provider.dart';
 class _FakeMealDetailBloc extends Fake implements MealDetailBloc {}
 
 class _FakeHomeBloc extends Fake implements HomeBloc {}
+
+/// Single-profile stub: with only one profile the "Copy to profile" menu
+/// item stays hidden, so the section menu matches its pre-multi-profile
+/// shape in these tests.
+class _SingleProfileGetProfilesUsecase implements GetProfilesUsecase {
+  static final _profile = ProfileEntity(
+    id: 'p1',
+    name: 'Me',
+    createdAt: DateTime(2026, 1, 1),
+    boxSuffix: '',
+  );
+
+  @override
+  List<ProfileEntity> getProfiles() => [_profile];
+
+  @override
+  String get activeProfileId => 'p1';
+
+  @override
+  ProfileEntity? getActiveProfile() => _profile;
+}
 
 IntakeEntity _buildIntake({
   required double amount,
@@ -70,6 +93,9 @@ void main() {
     final locator = GetIt.instance;
     locator.registerFactory<MealDetailBloc>(_FakeMealDetailBloc.new);
     locator.registerFactory<HomeBloc>(_FakeHomeBloc.new);
+    locator.registerFactory<GetProfilesUsecase>(
+      _SingleProfileGetProfilesUsecase.new,
+    );
   });
 
   tearDownAll(() {

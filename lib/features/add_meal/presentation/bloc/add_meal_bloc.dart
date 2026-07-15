@@ -14,7 +14,7 @@ class AddMealBloc extends Bloc<AddMealEvent, AddMealState> {
       emit(AddMealLoadingState());
 
       final config = await _getConfigUsecase.getConfig();
-      emit(AddMealLoadedState(usesImperialUnits: config.usesImperialUnits));
+      emit(AddMealLoadedState(usesImperialUnits: config.usesImperialFoodUnits));
     });
   }
 }

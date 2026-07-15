@@ -96,6 +96,7 @@ class _WaterGoalDialogState extends State<WaterGoalDialog> {
           Expanded(
             child: Text(
               s.settingsWaterGoalLabel,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),

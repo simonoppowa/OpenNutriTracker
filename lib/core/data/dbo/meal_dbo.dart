@@ -59,6 +59,19 @@ class MealDBO extends HiveObject {
   @HiveField(14)
   final bool? detailed;
 
+  /// Backend food_source.code ('fdc_sr_legacy', 'bls'...) for foods from
+  /// the Supabase backend. Null for OFF/custom/recipe meals and for rows
+  /// cached before this field existed — the UI then falls back to the
+  /// generic FoodData Central label.
+  @HiveField(15)
+  final String? backendSource;
+
+  /// True when [name] is an unreviewed machine translation (see
+  /// MealEntity.machineTranslatedName). Nullable for rows cached before
+  /// this field existed — treated as false.
+  @HiveField(16)
+  final bool? machineTranslatedName;
+
   MealDBO({
     required this.code,
     required this.name,
@@ -75,6 +88,8 @@ class MealDBO extends HiveObject {
     required this.source,
     this.localImagePath,
     this.detailed,
+    this.backendSource,
+    this.machineTranslatedName,
   });
 
   factory MealDBO.fromMealEntity(MealEntity mealEntity) => MealDBO(
@@ -95,6 +110,8 @@ class MealDBO extends HiveObject {
         source: MealSourceDBO.fromMealSourceEntity(mealEntity.source),
         localImagePath: mealEntity.localImagePath,
         detailed: mealEntity.detailed,
+        backendSource: mealEntity.backendSource,
+        machineTranslatedName: mealEntity.machineTranslatedName,
       );
 
   factory MealDBO.fromJson(Map<String, dynamic> json) =>

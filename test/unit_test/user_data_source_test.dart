@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
 
 import '../helpers/hive_test_setup.dart';
+import '../helpers/fake_hive_db_provider.dart';
 
 void main() {
   group('UserDataSource race-condition guarantees', () {
@@ -37,7 +38,7 @@ void main() {
       // the box during the onboarding race. The data source must now fail
       // loudly so callers can diagnose the race instead of corrupting calcs.
       final box = await Hive.openBox<UserDBO>('user_data_source_test_empty');
-      final source = UserDataSource(box);
+      final source = UserDataSource(FakeHiveDBProvider(userBox: box));
 
       expect(source.getUserData, throwsStateError);
     });
@@ -50,7 +51,7 @@ void main() {
       // OnboardingBloc.saveOnboardingData) could navigate away before the
       // user landed in the box.
       final box = await Hive.openBox<UserDBO>('user_data_source_test_save');
-      final source = UserDataSource(box);
+      final source = UserDataSource(FakeHiveDBProvider(userBox: box));
 
       await source.saveUserData(buildUser());
 

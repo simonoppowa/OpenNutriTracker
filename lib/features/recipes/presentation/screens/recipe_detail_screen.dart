@@ -4,6 +4,8 @@ import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/share_qr_dialog.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
@@ -70,6 +72,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   }
 
   Widget _buildLoaded(BuildContext context, RecipeEntity recipe) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(recipe.name),
@@ -101,7 +106,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             },
           ),
           PopupMenuButton<_RecipeMenuAction>(
-            icon: const Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_vert_rounded),
             onSelected: (action) => _onMenuSelected(context, action, recipe),
             itemBuilder: (context) => [
               PopupMenuItem(
@@ -109,7 +114,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 child: Row(
                   children: [
                     const Icon(Icons.copy_outlined),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: Dimens.spacing12),
                     Text(S.of(context).duplicateRecipeLabel),
                   ],
                 ),
@@ -118,8 +123,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 value: _RecipeMenuAction.delete,
                 child: Row(
                   children: [
-                    const Icon(Icons.delete_outline),
-                    const SizedBox(width: 12),
+                    const Icon(Icons.delete_outline_rounded),
+                    const SizedBox(width: Dimens.spacing12),
                     Text(S.of(context).dialogDeleteLabel),
                   ],
                 ),
@@ -129,38 +134,42 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Dimens.spacing16),
         children: [
           if (recipe.description != null && recipe.description!.isNotEmpty) ...[
             Text(
               recipe.description!,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: textTheme.bodyMedium?.copyWith(color: palette.textMuted),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Dimens.spacing16),
           ],
           RecipeNutritionSummary(
             nutrimentsPer100: recipe.aggregatedNutrimentsPer100,
             totalWeightG: recipe.totalWeightG,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Dimens.spacing24),
           Text(
             S.of(context).recipeIngredientsLabel,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Dimens.spacing8),
           ...recipe.ingredients.map(
             (i) => IngredientListItem(ingredient: i),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Dimens.spacing24),
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: Dimens.spacing16),
+                shape: Dimens.shapeM,
+              ),
               onPressed: () => _onLogPressed(context, recipe),
-              icon: const Icon(Icons.add),
+              icon: const Icon(Icons.add_rounded),
               label: Text(S.of(context).recipeLogCtaLabel),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Dimens.spacing32),
         ],
       ),
     );
@@ -195,6 +204,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
           servingsCount: draft.servingsCount,
+          tags: draft.tags,
         );
         await Navigator.of(context).pushNamed(
           NavigationOptions.recipeBuilderRoute,
@@ -240,40 +250,56 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         recipe.toMealEntity(),
         intakeType,
         DateTime.now(),
-        config.usesImperialUnits,
+        config.usesImperialFoodUnits,
       ),
     );
   }
 
   Future<IntakeTypeEntity?> _pickIntakeType(BuildContext context) {
     final s = S.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
     return showModalBottomSheet<IntakeTypeEntity>(
       context: context,
       builder: (ctx) {
+        Widget tile(IntakeTypeEntity type, String label) {
+          final accent = Theme.of(ctx).colorScheme.primary;
+          return ListTile(
+            leading: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.14),
+                borderRadius: Dimens.borderRadiusS,
+              ),
+              child: Icon(type.getIconData(), color: accent, size: 22),
+            ),
+            title: Text(
+              label,
+              style: Theme.of(ctx).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            onTap: () => Navigator.of(ctx).pop(type),
+          );
+        }
+
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                leading: Icon(IntakeTypeEntity.breakfast.getIconData()),
-                title: Text(s.breakfastLabel),
-                onTap: () => Navigator.of(ctx).pop(IntakeTypeEntity.breakfast),
+              const SizedBox(height: Dimens.spacing12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: palette.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-              ListTile(
-                leading: Icon(IntakeTypeEntity.lunch.getIconData()),
-                title: Text(s.lunchLabel),
-                onTap: () => Navigator.of(ctx).pop(IntakeTypeEntity.lunch),
-              ),
-              ListTile(
-                leading: Icon(IntakeTypeEntity.dinner.getIconData()),
-                title: Text(s.dinnerLabel),
-                onTap: () => Navigator.of(ctx).pop(IntakeTypeEntity.dinner),
-              ),
-              ListTile(
-                leading: Icon(IntakeTypeEntity.snack.getIconData()),
-                title: Text(s.snackLabel),
-                onTap: () => Navigator.of(ctx).pop(IntakeTypeEntity.snack),
-              ),
+              const SizedBox(height: Dimens.spacing8),
+              tile(IntakeTypeEntity.breakfast, s.breakfastLabel),
+              tile(IntakeTypeEntity.lunch, s.lunchLabel),
+              tile(IntakeTypeEntity.dinner, s.dinnerLabel),
+              tile(IntakeTypeEntity.snack, s.snackLabel),
             ],
           ),
         );

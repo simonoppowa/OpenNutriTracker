@@ -1,5 +1,6 @@
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 
 class AddConfigUsecase {
@@ -29,6 +30,18 @@ class AddConfigUsecase {
 
   Future<void> setConfigUsesImperialUnits(bool usesImperialUnits) async {
     await _configRepository.setConfigUsesImperialUnits(usesImperialUnits);
+  }
+
+  Future<void> setConfigUsesImperialFoodUnits(bool usesImperial) async {
+    await _configRepository.setConfigUsesImperialFoodUnits(usesImperial);
+  }
+
+  Future<void> setConfigUsesImperialHeightUnits(bool usesImperial) async {
+    await _configRepository.setConfigUsesImperialHeightUnits(usesImperial);
+  }
+
+  Future<void> setConfigBodyWeightUnit(BodyWeightUnit unit) async {
+    await _configRepository.setConfigBodyWeightUnit(unit);
   }
 
   Future<void> setConfigKcalAdjustment(double kcalAdjustment) async {
@@ -107,5 +120,9 @@ class AddConfigUsecase {
 
   Future<void> setConfigAccentColor(int? value) async {
     await _configRepository.setConfigAccentColor(value);
+  }
+
+  Future<void> setConfigFoodSourceToggles(Map<String, bool> toggles) async {
+    await _configRepository.setConfigFoodSourceToggles(toggles);
   }
 }

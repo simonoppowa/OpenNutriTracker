@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:horizontal_picker/horizontal_picker.dart';
+import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_picker_bounds.dart';
+import 'package:opennutritracker/features/profile/presentation/widgets/body_weight_input.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Outcome of [SetTargetWeightDialog]. The dialog has three exits:
 ///
 ///   * Cancel — returns `null` from `showDialog`.
 ///   * OK with a value — returns a [TargetWeightDialogResult] with [value]
-///     set and [clear] false. Caller persists the new target.
+///     set (in kg) and [clear] false. Caller persists the new target.
 ///   * Clear (only offered when a target is already set) — returns a result
 ///     with [clear] true and [value] null. Caller writes `null` back to the
 ///     user record.
@@ -16,6 +19,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// a target in the first place isn't forced to commit to an arbitrary number
 /// just to back out of the dialog.
 class TargetWeightDialogResult {
+  /// Weight in kilograms, or null when [clear] is true.
   final double? value;
   final bool clear;
 
@@ -26,23 +30,21 @@ class TargetWeightDialogResult {
 }
 
 class SetTargetWeightDialog extends StatefulWidget {
-  /// Pre-selected value the picker centres on. In display units (kg or lbs
-  /// depending on [usesImperialUnits]). When the user has no existing
-  /// target the caller typically seeds this from current weight, so the
-  /// wheel doesn't dump them on a wildly distant number.
-  final double initialTargetWeight;
+  /// Initial weight to centre the picker on, in kilograms. When the user has
+  /// no existing target the caller typically seeds this from current weight.
+  final double initialKg;
 
   /// Whether the user already has a target set. Controls whether the
   /// "Clear target" action is offered alongside the OK / Cancel buttons.
   final bool hasExistingTarget;
 
-  final bool usesImperialUnits;
+  final BodyWeightUnit unit;
 
   const SetTargetWeightDialog({
     super.key,
-    required this.initialTargetWeight,
+    required this.initialKg,
     required this.hasExistingTarget,
-    required this.usesImperialUnits,
+    required this.unit,
   });
 
   @override
@@ -50,20 +52,66 @@ class SetTargetWeightDialog extends StatefulWidget {
 }
 
 class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
-  late double selectedWeight;
+  // Picker display value for kg / lb paths.
+  late double _pickerDisplayWeight;
+
+  // Stones path: kg from BodyWeightInput, null if invalid/empty.
+  double? _stKg;
 
   @override
   void initState() {
     super.initState();
-    selectedWeight = widget.initialTargetWeight;
+    _pickerDisplayWeight = _toDisplay(widget.initialKg);
+    _stKg = widget.initialKg;
+  }
+
+  double _toDisplay(double kg) {
+    switch (widget.unit) {
+      case BodyWeightUnit.kg:
+        return kg;
+      case BodyWeightUnit.lb:
+        return UnitCalc.kgToLbs(kg);
+      case BodyWeightUnit.st:
+        return 0; // placeholder — st uses BodyWeightInput
+    }
+  }
+
+  double _pickerWeightToKg(double display) {
+    switch (widget.unit) {
+      case BodyWeightUnit.kg:
+        return display;
+      case BodyWeightUnit.lb:
+        return UnitCalc.lbsToKg(display);
+      case BodyWeightUnit.st:
+        return display; // unreachable
+    }
+  }
+
+  void _submitValue() {
+    final double kg;
+    if (widget.unit == BodyWeightUnit.st) {
+      final valid = _stKg;
+      if (valid == null) {
+        Navigator.of(context).pop();
+        return;
+      }
+      kg = valid;
+    } else {
+      final isImperial = widget.unit == BodyWeightUnit.lb;
+      final display = clampWeightSelection(
+        _pickerDisplayWeight,
+        minSelectableWeight(_pickerDisplayWeight, isImperial),
+      );
+      kg = _pickerWeightToKg(display);
+    }
+    Navigator.of(context).pop(TargetWeightDialogResult.value(kg));
   }
 
   @override
   Widget build(BuildContext context) {
-    final minWeight =
-        minSelectableWeight(widget.initialTargetWeight, widget.usesImperialUnits);
-    final maxWeight =
-        maxSelectableWeight(widget.initialTargetWeight, widget.usesImperialUnits);
+    final isImperial = widget.unit == BodyWeightUnit.lb;
+    final minWeight = minSelectableWeight(_pickerDisplayWeight, isImperial);
+    final maxWeight = maxSelectableWeight(_pickerDisplayWeight, isImperial);
 
     return AlertDialog(
       title: Text(S.of(context).profileTargetWeightLabel),
@@ -71,22 +119,31 @@ class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
         children: [
           Column(
             children: [
-              HorizontalPicker(
-                height: 100,
-                backgroundColor: Colors.transparent,
-                minValue: minWeight,
-                maxValue: maxWeight,
-                initialPosition: InitialPosition.center,
-                divisions: 1000,
-                suffix: widget.usesImperialUnits
-                    ? S.of(context).lbsLabel
-                    : S.of(context).kgLabel,
-                onChanged: (value) {
-                  setState(() {
-                    selectedWeight = value;
-                  });
-                },
-              ),
+              if (widget.unit == BodyWeightUnit.st)
+                BodyWeightInput(
+                  initialKg: widget.initialKg,
+                  unit: BodyWeightUnit.st,
+                  identifierPrefix: 'set-target-weight-dialog',
+                  autofocus: true,
+                  onChangedKg: (kg) => setState(() => _stKg = kg),
+                )
+              else
+                HorizontalPicker(
+                  height: 100,
+                  backgroundColor: Colors.transparent,
+                  minValue: minWeight,
+                  maxValue: maxWeight,
+                  initialPosition: InitialPosition.center,
+                  divisions: 1000,
+                  suffix: isImperial
+                      ? S.of(context).lbsLabel
+                      : S.of(context).kgLabel,
+                  onChanged: (value) {
+                    setState(() {
+                      _pickerDisplayWeight = value;
+                    });
+                  },
+                ),
             ],
           ),
         ],
@@ -104,11 +161,7 @@ class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
           child: Text(S.of(context).dialogCancelLabel),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(
-            TargetWeightDialogResult.value(
-              clampWeightSelection(selectedWeight, minWeight),
-            ),
-          ),
+          onPressed: _submitValue,
           child: Text(S.of(context).dialogOKLabel),
         ),
       ],

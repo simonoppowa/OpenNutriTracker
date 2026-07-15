@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 
 import '../fixture/meal_entity_fixtures.dart';
 import '../helpers/hive_test_setup.dart';
+import '../helpers/fake_hive_db_provider.dart';
 
 void main() {
   group('IntakeRepository test', () {
@@ -24,7 +25,7 @@ void main() {
     test('returns last added first', () async {
       final box = await Hive.openBox<IntakeDBO>('intake_test');
 
-      final repo = IntakeRepository(IntakeDataSource(box));
+      final repo = IntakeRepository(IntakeDataSource(FakeHiveDBProvider(intakeBox: box)));
 
       await repo.addIntake(
         IntakeEntity(

@@ -137,6 +137,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
           Expanded(
             child: Text(
               s.settingsMacroSplitLabel,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -278,7 +279,9 @@ class _MacroRow extends StatelessWidget {
           children: [
             Expanded(child: Text(label)),
             SizedBox(
-              width: 60,
+              // Scale the field width with the user's text setting so the
+              // value and its % suffix stay readable at large font scales.
+              width: MediaQuery.textScalerOf(context).scale(96),
               child: TextField(
                 controller: controller,
                 keyboardType: TextInputType.number,
@@ -287,6 +290,7 @@ class _MacroRow extends StatelessWidget {
                 decoration: const InputDecoration(
                   suffixText: '%',
                   isDense: true,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                 ),
                 onSubmitted: (_) => onTextSubmitted(),
                 onEditingComplete: onTextSubmitted,

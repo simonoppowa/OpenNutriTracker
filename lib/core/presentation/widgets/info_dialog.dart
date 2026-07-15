@@ -11,7 +11,7 @@ class InfoDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(title),
-      icon: const Icon(Icons.help_outline_outlined),
+      icon: const Icon(Icons.help_outline_rounded),
       content: Text(body),
       actions: [
         TextButton(

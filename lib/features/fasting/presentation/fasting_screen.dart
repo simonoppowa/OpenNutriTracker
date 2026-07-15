@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/features/fasting/presentation/bloc/fasting_bloc.dart';
@@ -57,8 +60,14 @@ class _FastingScreenState extends State<FastingScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = S.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.fastingTitle)),
+      backgroundColor: palette.canvas,
+      appBar: AppBar(
+        backgroundColor: palette.canvas,
+        title: Text(l10n.fastingTitle),
+      ),
       body: BlocConsumer<FastingBloc, FastingState>(
         bloc: _bloc,
         listenWhen: (prev, curr) {
@@ -101,58 +110,67 @@ class _FastingScreenState extends State<FastingScreen> {
   }
 
   Widget _buildIdle(BuildContext context, S l10n) {
-    final colors = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Dimens.spacing20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             l10n.fastingSubtitle,
-            style: textTheme.bodyMedium?.copyWith(
-              color: colors.onSurfaceVariant,
+            style: textTheme.bodyMedium?.copyWith(color: palette.textMuted),
+          ),
+          const SizedBox(height: Dimens.spacing24),
+          AppCard(
+            padding: const EdgeInsets.all(Dimens.spacing20),
+            child: Wrap(
+              spacing: Dimens.spacing8,
+              runSpacing: Dimens.spacing8,
+              children: [
+                for (final h in _presetHours)
+                  Semantics(
+                    identifier: 'fasting-preset-${h}h',
+                    child: ChoiceChip(
+                      label: Text('${h}h'),
+                      selected: _selectedHours == h && _customHours == null,
+                      onSelected: (_) {
+                        setState(() {
+                          _selectedHours = h;
+                          _customHours = null;
+                        });
+                      },
+                    ),
+                  ),
+                Semantics(
+                  identifier: 'fasting-preset-custom',
+                  child: ChoiceChip(
+                    label: Text(
+                      _customHours == null
+                          ? l10n.fastingPresetCustom
+                          : '${_customHours}h',
+                    ),
+                    selected: _customHours != null,
+                    onSelected: (_) => _pickCustomHours(context),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 24),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final h in _presetHours)
-                Semantics(
-                  identifier: 'fasting-preset-${h}h',
-                  child: ChoiceChip(
-                    label: Text('${h}h'),
-                    selected: _selectedHours == h && _customHours == null,
-                    onSelected: (_) {
-                      setState(() {
-                        _selectedHours = h;
-                        _customHours = null;
-                      });
-                    },
-                  ),
-                ),
-              Semantics(
-                identifier: 'fasting-preset-custom',
-                child: ChoiceChip(
-                  label: Text(
-                    _customHours == null
-                        ? l10n.fastingPresetCustom
-                        : '${_customHours}h',
-                  ),
-                  selected: _customHours != null,
-                  onSelected: (_) => _pickCustomHours(context),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Dimens.spacing32),
           Center(
             child: Semantics(
               identifier: 'fasting-start',
               child: FilledButton.icon(
-                icon: const Icon(Icons.play_arrow),
+                style: FilledButton.styleFrom(
+                  shape: Dimens.shapeM,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: Dimens.spacing32,
+                    vertical: Dimens.spacing16,
+                  ),
+                ),
+                icon: const Icon(Icons.play_arrow_rounded),
                 label: Text(l10n.fastingStart),
                 onPressed: () {
                   final hours = _customHours ?? _selectedHours;
@@ -174,6 +192,7 @@ class _FastingScreenState extends State<FastingScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
+          shape: Dimens.shapeL,
           title: Text(S.of(ctx).fastingPresetCustom),
           content: TextField(
             controller: controller,
@@ -211,68 +230,100 @@ class _FastingScreenState extends State<FastingScreen> {
 
   Widget _buildActive(BuildContext context, S l10n, FastingActive state) {
     final textTheme = Theme.of(context).textTheme;
-    final colors = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final accent = Theme.of(context).colorScheme.primary;
     final elapsed = _formatDuration(state.elapsed);
     final remaining = _formatDuration(state.remaining);
     final progress = state.target.inSeconds == 0
         ? 0.0
         : (state.elapsed.inSeconds / state.target.inSeconds).clamp(0.0, 1.0);
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Dimens.spacing24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 24),
+          const SizedBox(height: Dimens.spacing24),
           Center(
             child: SizedBox(
-              width: 200,
-              height: 200,
+              width: 220,
+              height: 220,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   SizedBox.expand(
                     child: CircularProgressIndicator(
                       value: progress,
-                      strokeWidth: 10,
-                      backgroundColor: colors.surfaceContainerHighest,
+                      strokeWidth: 12,
+                      strokeCap: StrokeCap.round,
+                      color: accent,
+                      backgroundColor: palette.surfaceMuted,
                     ),
                   ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(elapsed, style: textTheme.headlineMedium),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.fastingElapsedLabel,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colors.onSurfaceVariant,
-                        ),
+                  // The ring is a fixed 220px, but the time text scales with
+                  // the user's font setting. Scale the centre content down to
+                  // fit so a large font never overflows the ring.
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Dimens.spacing24,
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            elapsed,
+                            style: textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: palette.textStrong,
+                            ),
+                          ),
+                          const SizedBox(height: Dimens.spacing4),
+                          Text(
+                            l10n.fastingElapsedLabel,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: palette.textMuted,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 24),
-          Center(
-            child: Text(
-              l10n.fastingRemainingValue(remaining),
-              style: textTheme.titleMedium,
+          const SizedBox(height: Dimens.spacing24),
+          AppCard(
+            padding: const EdgeInsets.all(Dimens.spacing20),
+            child: Column(
+              children: [
+                Text(
+                  l10n.fastingRemainingValue(remaining),
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: Dimens.spacing4),
+                Text(
+                  l10n.fastingTargetValue(_formatDuration(state.target)),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: palette.textMuted,
+                  ),
+                ),
+              ],
             ),
           ),
-          Center(
-            child: Text(
-              l10n.fastingTargetValue(_formatDuration(state.target)),
-              style: textTheme.bodyMedium?.copyWith(
-                color: colors.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(height: 40),
+          const SizedBox(height: Dimens.spacing32),
           Semantics(
             identifier: 'fasting-cancel',
             child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                shape: Dimens.shapeM,
+                side: BorderSide(color: palette.border, width: Dimens.hairline),
+                padding: const EdgeInsets.symmetric(vertical: Dimens.spacing16),
+              ),
               icon: const Icon(Icons.stop_circle_outlined),
               label: Text(l10n.fastingCancel),
               onPressed: () => _confirmCancel(context, l10n),
@@ -285,27 +336,43 @@ class _FastingScreenState extends State<FastingScreen> {
 
   Widget _buildCompleted(BuildContext context, S l10n) {
     final textTheme = Theme.of(context).textTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final accent = Theme.of(context).colorScheme.primary;
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Dimens.spacing24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(
-            Icons.check_circle_outline,
-            size: 72,
-            color: Theme.of(context).colorScheme.primary,
+          Container(
+            padding: const EdgeInsets.all(Dimens.spacing24),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.14),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.check_rounded, size: 64, color: accent),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Dimens.spacing24),
           Text(
             l10n.fastingComplete,
-            style: textTheme.headlineSmall,
+            style: textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: palette.textStrong,
+            ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Dimens.spacing32),
           Semantics(
             identifier: 'fasting-complete-close',
             child: FilledButton(
+              style: FilledButton.styleFrom(
+                shape: Dimens.shapeM,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Dimens.spacing32,
+                  vertical: Dimens.spacing16,
+                ),
+              ),
               onPressed: () => Navigator.of(context).pop(),
               child: Text(l10n.dialogCloseLabel),
             ),
@@ -319,6 +386,7 @@ class _FastingScreenState extends State<FastingScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: Dimens.shapeL,
         title: Text(l10n.fastingCancelConfirmTitle),
         content: Text(l10n.fastingCancelConfirmBody),
         actions: [

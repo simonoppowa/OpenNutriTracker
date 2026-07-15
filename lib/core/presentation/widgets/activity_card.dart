@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 
+/// A logged activity, rendered as a full-width row to match the meal rows: an
+/// accent icon chip, the activity name and duration, and the burned energy.
 class ActivityCard extends StatelessWidget {
   final UserActivityEntity activityEntity;
   final Function(BuildContext, UserActivityEntity) onItemLongPressed;
@@ -20,91 +25,78 @@ class ActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final card = Row(
-      children: [
-        SizedBox(
-          width: firstListElement ? 16 : 0,
-        ),
-        SizedBox(
-          width: 120,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 120,
-                child: Card(
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12.0)),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final accent = Theme.of(context).colorScheme.primary;
+    final textTheme = Theme.of(context).textTheme;
+    final radius = BorderRadius.circular(Dimens.radiusM);
+
+    final card = Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Dimens.spacing16,
+        vertical: Dimens.spacing4,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onItemTapped != null
+              ? () => onItemTapped!(context, activityEntity)
+              : null,
+          onLongPress: onItemDragCallback == null
+              ? () => onItemLongPressed(context, activityEntity)
+              : null,
+          child: AppCard(
+            borderRadius: Dimens.radiusM,
+            padding: const EdgeInsets.all(Dimens.spacing12),
+            child: Row(
+              children: [
+                Container(
+                  width: IntakeThumb.size,
+                  height: IntakeThumb.size,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(Dimens.radiusS),
                   ),
-                  child: InkWell(
-                    onTap: onItemTapped != null
-                        ? () => onItemTapped!(context, activityEntity)
-                        : null,
-                    onLongPress: onItemDragCallback == null
-                        ? () => onItemLongPressed(context, activityEntity)
-                        : null,
-                    child: Stack(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.all(8.0),
-                          padding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .tertiaryContainer
-                                .withValues(alpha: 0.8),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            "🔥${EnergyDisplay.formatWithUnit(context, activityEntity.burnedKcal)}",
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onTertiaryContainer,
-                                ),
-                          ),
-                        ),
-                        Center(
-                          child: Icon(
-                            activityEntity.physicalActivityEntity.displayIcon,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSecondaryContainer,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: Icon(
+                    activityEntity.physicalActivityEntity.displayIcon,
+                    color: accent,
+                    size: 24,
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 8.0),
-                child: Text(
-                  activityEntity.physicalActivityEntity.getName(context),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
+                const SizedBox(width: Dimens.spacing12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        activityEntity.physicalActivityEntity.getName(context),
+                        style: textTheme.titleSmall?.copyWith(color: palette.textStrong),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Text(
-                  '${activityEntity.duration.toInt()} min',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.8),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${activityEntity.duration.toInt()} min',
+                        style: textTheme.bodySmall?.copyWith(color: palette.textMuted),
                       ),
-                  maxLines: 1,
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: Dimens.spacing8),
+                Text(
+                  "🔥${EnergyDisplay.formatWithUnit(context, activityEntity.burnedKcal)}",
+                  style: textTheme.labelMedium?.copyWith(
+                    color: palette.textStrong,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ],
+      ),
     );
 
     if (onItemDragCallback == null) return card;
@@ -115,19 +107,19 @@ class ActivityCard extends StatelessWidget {
       onDragEnd: (_) => onItemDragCallback!.call(false),
       onDraggableCanceled: (velocity, offset) => onItemDragCallback!.call(false),
       feedback: Material(
-        elevation: 4,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.transparent,
         child: SizedBox(
-          width: 80,
-          height: 80,
-          child: Icon(
-            activityEntity.physicalActivityEntity.displayIcon,
-            size: 36,
-          ),
+          width: MediaQuery.of(context).size.width,
+          child: Opacity(opacity: 0.85, child: card),
         ),
       ),
-      childWhenDragging: Opacity(opacity: 0.4, child: card),
+      childWhenDragging: Opacity(opacity: 0.35, child: card),
       child: card,
     );
   }
+}
+
+/// Shared thumbnail size so meal and activity rows line up.
+abstract final class IntakeThumb {
+  static const double size = 52;
 }

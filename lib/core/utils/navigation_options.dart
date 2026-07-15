@@ -18,4 +18,5 @@ class NavigationOptions {
   static const weightHistoryRoute = "weightHistory";
   static const fastingRoute = "fasting";
   static const accentColourRoute = "accentColour";
+  static const manageProfilesRoute = "manageProfiles";
 }

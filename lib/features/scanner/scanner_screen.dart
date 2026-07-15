@@ -6,7 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/presentation/scanner_orientation_mixin.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/shared_payload_router.dart';
@@ -27,7 +30,7 @@ class ScannerScreen extends StatefulWidget {
 }
 
 class _ScannerScreenState extends State<ScannerScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, ScannerOrientationMixin {
   final log = Logger('ScannerScreen');
 
   String? _scannedBarcode;
@@ -93,20 +96,24 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
     return BlocBuilder<ScannerBloc, ScannerState>(
       bloc: _scannerBloc,
       builder: (context, state) {
         if (state is ScannerInitial) {
           if (_scannedBarcode != null) {
             return Scaffold(
-              appBar: AppBar(),
+              backgroundColor: palette.canvas,
+              appBar: AppBar(backgroundColor: palette.canvas),
               body: const Center(child: CircularProgressIndicator()),
             );
           }
           return _getScannerContent(context);
         } else if (state is ScannerLoadingState) {
           return Scaffold(
-            appBar: AppBar(),
+            backgroundColor: palette.canvas,
+            appBar: AppBar(backgroundColor: palette.canvas),
             body: const Center(child: CircularProgressIndicator()),
           );
         } else if (state is ScannerLoadedState) {
@@ -135,7 +142,8 @@ class _ScannerScreenState extends State<ScannerScreen>
           }
         } else if (state is ScannerFailedState) {
           return Scaffold(
-            appBar: AppBar(),
+            backgroundColor: palette.canvas,
+            appBar: AppBar(backgroundColor: palette.canvas),
             body: Center(
               child: ErrorDialog(
                 errorText: state.type == ScannerFailedStateType.productNotFound
@@ -152,9 +160,18 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   Scaffold _getScannerContent(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
     return Scaffold(
+      backgroundColor: palette.canvas,
       appBar: AppBar(
-        title: Text(S.of(context).scanProductLabel),
+        backgroundColor: palette.canvas,
+        toolbarHeight: MediaQuery.textScalerOf(context).scale(kToolbarHeight),
+        title: Text(
+          S.of(context).scanProductLabel,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           IconButton(
             icon: ValueListenableBuilder(
@@ -162,21 +179,22 @@ class _ScannerScreenState extends State<ScannerScreen>
               builder: (context, state, child) {
                 switch (state.torchState) {
                   case TorchState.off || TorchState.unavailable:
-                    return const Icon(
-                      Icons.flash_off_outlined,
-                      color: Colors.grey,
+                    return Icon(
+                      Icons.flash_off_rounded,
+                      color: palette.textMuted,
                     );
                   case TorchState.on || TorchState.auto:
-                    return const Icon(Icons.flash_on_outlined);
+                    return const Icon(Icons.flash_on_rounded);
                 }
               },
             ),
             onPressed: () => _cameraController.toggleTorch(),
           ),
           IconButton(
-            icon: const Icon(Icons.flip_camera_android_outlined),
+            icon: const Icon(Icons.flip_camera_android_rounded),
             onPressed: () => _cameraController.switchCamera(),
           ),
+          buildPortraitLockAction(context),
         ],
       ),
       body: Column(
@@ -220,11 +238,16 @@ class _ScannerScreenState extends State<ScannerScreen>
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(Dimens.spacing16),
             child: Semantics(
               identifier: 'scanner-manual-entry-open',
               child: OutlinedButton.icon(
-                icon: const Icon(Icons.keyboard_outlined),
+                style: OutlinedButton.styleFrom(
+                  shape: Dimens.shapeM,
+                  side: BorderSide(color: palette.border, width: Dimens.hairline),
+                  padding: const EdgeInsets.symmetric(vertical: Dimens.spacing16),
+                ),
+                icon: const Icon(Icons.keyboard_rounded),
                 label: Text(S.of(context).scannerManualEntryButton),
                 onPressed: () => _showManualEntryDialog(context),
               ),
@@ -244,6 +267,7 @@ class _ScannerScreenState extends State<ScannerScreen>
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
+          shape: Dimens.shapeL,
           title: Text(S.of(dialogContext).scannerManualEntryDialogTitle),
           content: Semantics(
             identifier: 'scanner-manual-entry-field',

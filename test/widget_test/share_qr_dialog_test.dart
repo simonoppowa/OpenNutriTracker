@@ -47,8 +47,8 @@ void main() {
       await _pumpDialog(tester);
 
       // Locate the share button by its icon — the dialog has only one
-      // Icons.share, on the share OutlinedButton.icon.
-      final shareIcon = find.byIcon(Icons.share);
+      // Icons.share_rounded, on the share OutlinedButton.icon.
+      final shareIcon = find.byIcon(Icons.share_rounded);
       expect(shareIcon, findsOneWidget);
 
       final shareButton = find.ancestor(

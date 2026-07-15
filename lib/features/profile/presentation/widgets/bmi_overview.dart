@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_bmi_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/info_dialog.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -17,45 +19,57 @@ class BMIOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final ringColor = _ringColor(context, palette);
+    final text = Theme.of(context).textTheme;
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(36.0),
+          padding: const EdgeInsets.all(Dimens.spacing32),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: getContainerColorTheme(context),
+            color: ringColor.withValues(alpha: isDark ? 0.22 : 0.16),
+            border: Border.all(
+              color: ringColor.withValues(alpha: 0.45),
+              width: 2,
+            ),
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 '${bmiValue.roundToPrecision(1)}',
-                style: getContainerTextStyle(
-                  context,
-                  Theme.of(context).textTheme.displaySmall?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+                style: text.displaySmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: palette.textStrong,
                 ),
               ),
               Text(
                 S.of(context).bmiLabel,
-                style: getContainerTextStyle(
-                  context,
-                  Theme.of(context).textTheme.titleLarge,
+                style: text.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: palette.textMuted,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 8.0),
+        const SizedBox(height: Dimens.spacing16),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               nutritionalStatus.getName(context),
-              style: Theme.of(context).textTheme.titleLarge,
+              style: text.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: palette.textStrong,
+              ),
               textAlign: TextAlign.center,
             ),
+            const SizedBox(width: Dimens.spacing4),
             InkWell(
+              borderRadius: Dimens.borderRadiusS,
               onTap: () {
                 showDialog(
                   context: context,
@@ -65,10 +79,17 @@ class BMIOverview extends StatelessWidget {
                   ),
                 );
               },
-              child: const Icon(Icons.help_outline_outlined),
+              child: Padding(
+                padding: const EdgeInsets.all(Dimens.spacing4),
+                child: Icon(
+                  Icons.help_outline_rounded,
+                  size: 22,
+                  color: palette.textMuted,
+                ),
+              ),
             ),
-            const SizedBox(width: 8.0),
             InkWell(
+              borderRadius: Dimens.borderRadiusS,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => const SourcesScreen(),
@@ -76,7 +97,14 @@ class BMIOverview extends StatelessWidget {
               ),
               child: Tooltip(
                 message: S.of(context).sourcesIconTooltip,
-                child: const Icon(Icons.info_outline),
+                child: Padding(
+                  padding: const EdgeInsets.all(Dimens.spacing4),
+                  child: Icon(
+                    Icons.info_outline_rounded,
+                    size: 22,
+                    color: palette.textMuted,
+                  ),
+                ),
               ),
             ),
           ],
@@ -85,84 +113,28 @@ class BMIOverview extends StatelessWidget {
           S.of(context).nutritionalStatusRiskLabel(
                 nutritionalStatus.getRiskStatus(context),
               ),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
+          style: text.titleMedium?.copyWith(color: palette.textMuted),
         ),
       ],
     );
   }
 
-  Color getContainerColorTheme(BuildContext context) {
-    Color theme;
+  /// The single colour the BMI ring and its border lean on. A healthy reading
+  /// rests on the active accent (so it follows the picker / Material You); the
+  /// rest of the scale shades toward the theme's error colour as risk climbs,
+  /// matching the rest of the calm-flat surfaces rather than Material's
+  /// container roles.
+  Color _ringColor(BuildContext context, AppPalette palette) {
+    final scheme = Theme.of(context).colorScheme;
     switch (nutritionalStatus) {
-      case UserNutritionalStatus.underWeight:
-        theme = Theme.of(context).colorScheme.errorContainer
-          ..withValues(alpha: 0.1);
-        break;
       case UserNutritionalStatus.normalWeight:
-        theme = Theme.of(
-          context,
-        ).colorScheme.primaryContainer.withValues(alpha: 0.6);
-        break;
-      case UserNutritionalStatus.preObesity:
-        theme = Theme.of(
-          context,
-        ).colorScheme.errorContainer.withValues(alpha: 0.2);
-        break;
-      case UserNutritionalStatus.obesityClassI:
-        theme = Theme.of(
-          context,
-        ).colorScheme.errorContainer.withValues(alpha: 0.4);
-        break;
-      case UserNutritionalStatus.obesityClassII:
-        theme = Theme.of(
-          context,
-        ).colorScheme.errorContainer.withValues(alpha: 0.7);
-        break;
-      case UserNutritionalStatus.obesityClassIII:
-        theme = Theme.of(context).colorScheme.errorContainer;
-        break;
-    }
-    return theme;
-  }
-
-  TextStyle? getContainerTextStyle(BuildContext context, TextStyle? style) {
-    TextStyle? textStyle;
-    switch (nutritionalStatus) {
+        return scheme.primary;
       case UserNutritionalStatus.underWeight:
-        textStyle = style?.copyWith(
-          color: Theme.of(context).colorScheme.onErrorContainer,
-        );
-        break;
-      case UserNutritionalStatus.normalWeight:
-        textStyle = style?.copyWith(
-          color: Theme.of(context).colorScheme.onPrimaryContainer,
-        );
-        break;
       case UserNutritionalStatus.preObesity:
-        textStyle = style?.copyWith(
-          color: Theme.of(context).colorScheme.onErrorContainer,
-        );
-        break;
       case UserNutritionalStatus.obesityClassI:
-        textStyle = style?.copyWith(
-          color: Theme.of(context).colorScheme.onErrorContainer,
-        );
-        break;
       case UserNutritionalStatus.obesityClassII:
-        textStyle = style?.copyWith(
-          color: Theme.of(context).colorScheme.onErrorContainer,
-        );
-        break;
       case UserNutritionalStatus.obesityClassIII:
-        textStyle = style?.copyWith(
-          color: Theme.of(context).colorScheme.onErrorContainer,
-        );
-        break;
+        return scheme.error;
     }
-    return textStyle;
   }
 }

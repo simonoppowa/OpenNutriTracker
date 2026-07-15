@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/presentation/widgets/empty_hint.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class NoResultsWidget extends StatelessWidget {
@@ -6,18 +7,9 @@ class NoResultsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 64),
-      child: Column(
-        children: [
-          const Icon(Icons.search, size: 64),
-          const SizedBox(height: 8),
-          Text(
-            S.of(context).noResultsFound,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ],
-      ),
+    return EmptyHint(
+      icon: Icons.search_off_rounded,
+      title: S.of(context).noResultsFound,
     );
   }
 }

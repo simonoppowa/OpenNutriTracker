@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/diary/diary_page.dart';
 import 'package:opennutritracker/core/presentation/widgets/home_appbar.dart';
 import 'package:opennutritracker/features/home/home_page.dart';
 import 'package:opennutritracker/core/presentation/widgets/main_appbar.dart';
 import 'package:opennutritracker/features/profile/profile_page.dart';
-import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
-import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
-import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
-import 'package:opennutritracker/features/recipes/presentation/screens/recipes_page.dart';
-import 'package:opennutritracker/features/settings/presentation/bloc/custom_meals_bloc.dart';
+import 'package:opennutritracker/features/trends/presentation/trends_page.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MainScreen extends StatefulWidget {
@@ -34,126 +29,87 @@ class _MainScreenState extends State<MainScreen> {
     _bodyPages = [
       const HomePage(),
       const DiaryPage(),
-      const RecipesPage(),
+      const TrendsPage(),
       const ProfilePage(),
     ];
     _appbarPages = [
       const HomeAppbar(),
       MainAppbar(title: S.of(context).diaryLabel, iconData: Icons.book),
-      AppBar(
-        leading: const Icon(Icons.menu_book),
-        title: Text(S.of(context).recipesLabel),
-        actions: [
-          PopupMenuButton<_RecipesAction>(
-            tooltip: S.of(context).addLabel,
-            icon: const Icon(Icons.add),
-            onSelected: (action) => _onRecipesAddSelected(context, action),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: _RecipesAction.newRecipe,
-                child: Row(
-                  children: [
-                    const Icon(Icons.menu_book_outlined),
-                    const SizedBox(width: 12),
-                    Text(S.of(context).createRecipeTitle),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: _RecipesAction.newCustomMeal,
-                child: Row(
-                  children: [
-                    const Icon(Icons.restaurant_outlined),
-                    const SizedBox(width: 12),
-                    Text(S.of(context).newCustomMealLabel),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: _RecipesAction.importRecipe,
-                child: Row(
-                  children: [
-                    const Icon(Icons.qr_code_scanner_outlined),
-                    const SizedBox(width: 12),
-                    Text(S.of(context).importRecipeLabel),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          IconButton(
-            tooltip: S.of(context).settingsLabel,
-            onPressed: () => Navigator.of(
-              context,
-            ).pushNamed(NavigationOptions.settingsRoute),
-            icon: const Icon(Icons.settings_outlined),
-          ),
-        ],
-      ),
-      MainAppbar(
-        title: S.of(context).profileLabel,
-        iconData: Icons.account_circle,
-      ),
+      MainAppbar(title: S.of(context).trendsLabel, iconData: Icons.insights),
+      MainAppbar(title: S.of(context).youLabel, iconData: Icons.account_circle),
     ];
     super.didChangeDependencies();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
     return Scaffold(
       appBar: _appbarPages[_selectedPageIndex],
-      body: _bodyPages[_selectedPageIndex],
-      floatingActionButton: _selectedPageIndex == 0
-          ? Semantics(
-              identifier: 'fab-add-item',
-              child: FloatingActionButton(
-                onPressed: () => _onFabPressed(context),
-                tooltip: S.of(context).addLabel,
-                child: const Icon(Icons.add),
-              ),
-            )
-          : null,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedPageIndex,
-        onDestinationSelected: _setPage,
-        destinations: [
-          NavigationDestination(
-            icon: Semantics(
-              identifier: 'nav-home',
-              child: _selectedPageIndex == 0
-                  ? const Icon(Icons.home)
-                  : const Icon(Icons.home_outlined),
+      body: IndexedStack(index: _selectedPageIndex, children: _bodyPages),
+      floatingActionButton: Semantics(
+        identifier: 'fab-add-item',
+        child: FloatingActionButton(
+          onPressed: () => _onFabPressed(context),
+          tooltip: S.of(context).addLabel,
+          child: const Icon(Icons.add, size: 30),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        color: palette.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        height: 78,
+        padding: EdgeInsets.zero,
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8,
+        child: Row(
+          children: [
+            _NavItem(
+              id: 'nav-home',
+              icon: Icons.home_outlined,
+              selectedIcon: Icons.home_rounded,
+              label: S.of(context).homeLabel,
+              index: 0,
+              selectedIndex: _selectedPageIndex,
+              palette: palette,
+              onTap: _setPage,
             ),
-            label: S.of(context).homeLabel,
-          ),
-          NavigationDestination(
-            icon: Semantics(
-              identifier: 'nav-diary',
-              child: _selectedPageIndex == 1
-                  ? const Icon(Icons.book)
-                  : const Icon((Icons.book_outlined)),
+            _NavItem(
+              id: 'nav-diary',
+              icon: Icons.book_outlined,
+              selectedIcon: Icons.book_rounded,
+              label: S.of(context).diaryLabel,
+              index: 1,
+              selectedIndex: _selectedPageIndex,
+              palette: palette,
+              onTap: _setPage,
             ),
-            label: S.of(context).diaryLabel,
-          ),
-          NavigationDestination(
-            icon: Semantics(
-              identifier: 'nav-recipes',
-              child: _selectedPageIndex == 2
-                  ? const Icon(Icons.menu_book)
-                  : const Icon(Icons.menu_book_outlined),
+            const SizedBox(width: 64), // notch gap for the centre Add FAB
+            _NavItem(
+              id: 'nav-trends',
+              icon: Icons.insights_outlined,
+              selectedIcon: Icons.insights_rounded,
+              label: S.of(context).trendsLabel,
+              index: 2,
+              selectedIndex: _selectedPageIndex,
+              palette: palette,
+              onTap: _setPage,
             ),
-            label: S.of(context).recipesLabel,
-          ),
-          NavigationDestination(
-            icon: Semantics(
-              identifier: 'nav-profile',
-              child: _selectedPageIndex == 3
-                  ? const Icon(Icons.account_circle)
-                  : const Icon(Icons.account_circle_outlined),
+            _NavItem(
+              id: 'nav-you',
+              icon: Icons.account_circle_outlined,
+              selectedIcon: Icons.account_circle_rounded,
+              label: S.of(context).youLabel,
+              index: 3,
+              selectedIndex: _selectedPageIndex,
+              palette: palette,
+              onTap: _setPage,
             ),
-            label: S.of(context).profileLabel,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -164,58 +120,70 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  Future<void> _onRecipesAddSelected(
-    BuildContext context,
-    _RecipesAction action,
-  ) async {
-    switch (action) {
-      case _RecipesAction.newRecipe:
-        await Navigator.of(
-          context,
-        ).pushNamed(NavigationOptions.recipeBuilderRoute);
-        locator<RecipesBloc>().add(const LoadRecipesEvent());
-      case _RecipesAction.newCustomMeal:
-        await Navigator.of(context).pushNamed(
-          NavigationOptions.editMealRoute,
-          arguments: EditMealScreenArguments(
-            DateTime.now(),
-            MealEntity.empty(),
-            IntakeTypeEntity.breakfast,
-            false,
-            editOnly: true,
-          ),
-        );
-        locator<CustomMealsBloc>().add(LoadCustomMealsEvent());
-      case _RecipesAction.importRecipe:
-        await Navigator.of(
-          context,
-        ).pushNamed(NavigationOptions.importRecipeScannerRoute);
-        // The scanner screen itself dispatches LoadRecipesEvent on success,
-        // but cover the cancel-then-reopen flow here too.
-        locator<RecipesBloc>().add(const LoadRecipesEvent());
-    }
-  }
-
   Future<void> _onFabPressed(BuildContext context) async {
     final config = await locator<GetConfigUsecase>().getConfig();
     if (!context.mounted) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16.0),
-          topRight: Radius.circular(16.0),
-        ),
-      ),
       builder: (BuildContext context) {
         return AddItemBottomSheet(
           day: DateTime.now(),
           showActivityTracking: config.showActivityTracking,
+          usesImperialUnits: config.usesImperialFoodUnits,
         );
       },
     );
   }
 }
 
-enum _RecipesAction { newRecipe, newCustomMeal, importRecipe }
+class _NavItem extends StatelessWidget {
+  final String id;
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final int index;
+  final int selectedIndex;
+  final AppPalette palette;
+  final void Function(int) onTap;
+
+  const _NavItem({
+    required this.id,
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.index,
+    required this.selectedIndex,
+    required this.palette,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = index == selectedIndex;
+    final color = selected ? Theme.of(context).colorScheme.primary : palette.textMuted;
+    return Expanded(
+      child: Semantics(
+        identifier: id,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => onTap(index),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(selected ? selectedIcon : icon, color: color, size: 26),
+                const SizedBox(height: 3),
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

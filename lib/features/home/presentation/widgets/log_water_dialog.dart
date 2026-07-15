@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -29,6 +30,7 @@ class _LogWaterDialogState extends State<LogWaterDialog> {
   Widget build(BuildContext context) {
     final s = S.of(context);
     return AlertDialog(
+      shape: Dimens.shapeL,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -58,7 +60,10 @@ class _LogWaterDialogState extends State<LogWaterDialog> {
           Text(
             s.logWaterAmountLabel(_selectedMl.round()),
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
           ),
           const SizedBox(height: 8),
           Semantics(
@@ -79,7 +84,7 @@ class _LogWaterDialogState extends State<LogWaterDialog> {
             child: Semantics(
               identifier: 'log-water-undo',
               child: TextButton.icon(
-                icon: const Icon(Icons.undo),
+                icon: const Icon(Icons.undo_rounded),
                 label: Text(s.logWaterUndoLabel),
                 onPressed: _onUndoPressed,
               ),

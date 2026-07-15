@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -34,13 +35,15 @@ class UserImagePickerTile extends StatelessWidget {
   });
 
   IconData get _fallbackIcon => switch (kind) {
-        UserImageKind.recipe => Icons.restaurant_menu,
-        UserImageKind.meal => Icons.restaurant_outlined,
+        UserImageKind.recipe => Icons.restaurant_menu_rounded,
+        UserImageKind.meal => Icons.restaurant_rounded,
+        UserImageKind.profile => Icons.person_rounded,
       };
 
   String get _semanticsIdentifier => switch (kind) {
         UserImageKind.recipe => 'recipe-builder-image-picker',
         UserImageKind.meal => 'edit-meal-image-picker',
+        UserImageKind.profile => 'profile-image-picker',
       };
 
   _Strings _stringsFor(BuildContext context) {
@@ -59,6 +62,13 @@ class UserImagePickerTile extends StatelessWidget {
           takePhoto: s.mealImageTakePhoto,
           pickFromGallery: s.mealImagePickFromGallery,
           remove: s.mealImageRemove,
+        ),
+      UserImageKind.profile => _Strings(
+          add: s.profileImageLabel,
+          replace: s.profileImageReplace,
+          takePhoto: s.mealImageTakePhoto,
+          pickFromGallery: s.mealImagePickFromGallery,
+          remove: s.profileImageRemove,
         ),
     };
   }
@@ -122,14 +132,14 @@ class UserImagePickerTile extends StatelessWidget {
                     radius: 16,
                     backgroundColor: theme.colorScheme.primary,
                     child: Icon(
-                      hasImage ? Icons.edit : Icons.camera_alt,
+                      hasImage ? Icons.edit_rounded : Icons.camera_alt_rounded,
                       size: 18,
                       color: theme.colorScheme.onPrimary,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Dimens.spacing8),
               Text(
                 hasImage ? strings.replace : strings.add,
                 style: theme.textTheme.bodyMedium,
@@ -153,7 +163,7 @@ class UserImagePickerTile extends StatelessWidget {
           child: Wrap(
             children: [
               ListTile(
-                leading: const Icon(Icons.photo_camera_outlined),
+                leading: const Icon(Icons.photo_camera_rounded),
                 title: Text(strings.takePhoto),
                 onTap: () {
                   Navigator.of(ctx).pop();
@@ -161,7 +171,7 @@ class UserImagePickerTile extends StatelessWidget {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library_outlined),
+                leading: const Icon(Icons.photo_library_rounded),
                 title: Text(strings.pickFromGallery),
                 onTap: () {
                   Navigator.of(ctx).pop();
@@ -170,7 +180,7 @@ class UserImagePickerTile extends StatelessWidget {
               ),
               if (hasImage)
                 ListTile(
-                  leading: const Icon(Icons.delete_outline),
+                  leading: const Icon(Icons.delete_outline_rounded),
                   title: Text(strings.remove),
                   onTap: () {
                     Navigator.of(ctx).pop();

@@ -134,6 +134,7 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
           Expanded(
             child: Text(
               s.settingsKcalAdjustmentLabel,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -165,6 +166,7 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
                   // doesn't feel hidden.
                   DropdownButtonFormField(
                     isExpanded: true,
+                    itemHeight: null,
                     decoration: InputDecoration(
                       enabled: false,
                       filled: false,
@@ -228,7 +230,10 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
                               ),
                             ),
                             SizedBox(
-                              width: 80,
+                              // Scale with the user's text setting so the value
+                              // and unit suffix stay readable at large fonts.
+                              width:
+                                  MediaQuery.textScalerOf(context).scale(128),
                               child: Semantics(
                                 identifier: 'kcal-adjustment-input',
                                 child: TextField(
@@ -247,6 +252,10 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
                                   decoration: InputDecoration(
                                     suffixText: unitLabel,
                                     isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 12,
+                                    ),
                                   ),
                                   onSubmitted: (_) => _applyKcalInput(),
                                   onEditingComplete: _applyKcalInput,

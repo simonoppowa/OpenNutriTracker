@@ -11,8 +11,8 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
-import 'package:opennutritracker/core/styles/color_schemes.dart';
-import 'package:opennutritracker/core/styles/fonts.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
@@ -27,6 +27,7 @@ import 'package:opennutritracker/features/add_activity/presentation/add_activity
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/onboarding/onboarding_screen.dart';
 import 'package:opennutritracker/features/fasting/presentation/fasting_screen.dart';
+import 'package:opennutritracker/features/profile/presentation/screens/manage_profiles_screen.dart';
 import 'package:opennutritracker/features/profile/presentation/weight_history_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/import_recipe_scanner_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/recipe_builder_screen.dart';
@@ -166,45 +167,34 @@ class OpenNutriTrackerApp extends StatelessWidget {
     final accentColor = themeProvider.accentColor;
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) {
-        final ColorScheme lightScheme;
-        final ColorScheme darkScheme;
+        // The friendly-flat canvas, surfaces and macro colours are fixed; only
+        // the single vivid accent follows the user. Material You (when enabled)
+        // or a picked accent drives that one role, otherwise the brand green.
+        AppPalette light = AppPalette.light;
+        AppPalette dark = AppPalette.dark;
         if (useMaterialYou && lightDynamic != null && darkDynamic != null) {
-          lightScheme = lightDynamic.harmonized();
-          darkScheme = darkDynamic.harmonized();
+          light = light.withAccent(lightDynamic.harmonized().primary);
+          dark = dark.withAccent(darkDynamic.harmonized().primary);
         } else if (accentColor != null) {
           final seed = Color(accentColor);
-          lightScheme = ColorScheme.fromSeed(seedColor: seed);
-          darkScheme = ColorScheme.fromSeed(
-            seedColor: seed,
-            brightness: Brightness.dark,
-          );
-        } else {
-          lightScheme = lightColorScheme;
-          darkScheme = darkColorScheme;
+          light = light.withAccent(seed);
+          dark = dark.withAccent(seed);
         }
-        return _buildMaterialApp(context, lightScheme, darkScheme);
+        return _buildMaterialApp(context, light, dark);
       },
     );
   }
 
   Widget _buildMaterialApp(
     BuildContext context,
-    ColorScheme lightScheme,
-    ColorScheme darkScheme,
+    AppPalette lightPalette,
+    AppPalette darkPalette,
   ) {
     return MaterialApp(
       onGenerateTitle: (context) => S.of(context).appTitle,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: lightScheme,
-        textTheme: appTextTheme,
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorScheme: darkScheme,
-        textTheme: appTextTheme,
-      ),
+      theme: buildAppTheme(lightPalette),
+      darkTheme: buildAppTheme(darkPalette),
       themeMode: Provider.of<ThemeModeProvider>(context).themeMode,
       locale: Provider.of<LocaleProvider>(context).locale,
       localizationsDelegates: const [
@@ -249,6 +239,8 @@ class OpenNutriTrackerApp extends StatelessWidget {
         NavigationOptions.weightHistoryRoute: (context) =>
             const WeightHistoryScreen(),
         NavigationOptions.fastingRoute: (context) => const FastingScreen(),
+        NavigationOptions.manageProfilesRoute: (context) =>
+            const ManageProfilesScreen(),
       },
     );
   }

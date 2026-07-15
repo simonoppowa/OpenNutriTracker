@@ -35,13 +35,59 @@ class UnitCalc {
     return (feet * 30.48).roundToDouble();
   }
 
+  /// Splits a centimetre height into whole feet and whole inches, the way
+  /// people actually read height ("5 ft 9 in") rather than decimal feet.
+  /// Inches are rounded to the nearest whole inch and roll into the next foot
+  /// at 12 so we never show "5 ft 12 in".
+  static (int feet, int inches) cmToFeetInches(double cm) {
+    final totalInches = cm / 2.54;
+    var feet = totalInches ~/ 12;
+    var inches = (totalInches - feet * 12).round();
+    if (inches >= 12) {
+      feet += 1;
+      inches = 0;
+    }
+    return (feet, inches);
+  }
+
+  /// Combines feet and inches back into centimetres, rounded to a whole
+  /// centimetre to match how metric heights are stored and entered.
+  static double feetInchesToCm(int feet, int inches) {
+    return ((feet * 12 + inches) * 2.54).roundToDouble();
+  }
+
+  /// Keeps one decimal place. Whole-pound rounding used to drop up to half a
+  /// pound, so the same stored weight read differently across screens (the
+  /// home chip and Trends show one decimal); this keeps every surface
+  /// consistent and loses less precision on the way out.
   static double kgToLbs(double kg) {
-    return (kg * 2.20462).roundToDouble();
+    return double.parse((kg * 2.20462).toStringAsFixed(1));
   }
 
   /// Preserves two decimal places so round-tripping lbs→kg→lbs stays exact.
   static double lbsToKg(double lbs) {
     return double.parse((lbs / 2.20462).toStringAsFixed(2));
+  }
+
+  /// Splits a kilogram weight into whole stones and the remaining pounds for
+  /// the UK-style "11 st 5.2 lb" display and input. Pounds keep two decimals,
+  /// mirroring [lbsToKg], and a value that rounds up to a full 14 lb rolls
+  /// into the next stone so we never show "10 st 14.0 lb".
+  static (int stones, double pounds) kgToStLb(double kg) {
+    final totalLbs = kg * 2.20462;
+    var stones = totalLbs ~/ 14;
+    var pounds = double.parse((totalLbs - stones * 14).toStringAsFixed(2));
+    if (pounds >= 14.0) {
+      stones += 1;
+      pounds = 0.0;
+    }
+    return (stones, pounds);
+  }
+
+  /// Combines stones and pounds back into kilograms, preserving two decimals
+  /// so a st+lb → kg → st+lb round-trip stays tight (matches [lbsToKg]).
+  static double stLbToKg(int stones, double pounds) {
+    return double.parse(((stones * 14 + pounds) / 2.20462).toStringAsFixed(2));
   }
 
   static double gToOz(double g) {

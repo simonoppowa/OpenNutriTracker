@@ -2,6 +2,7 @@ import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 
 class ConfigRepository {
@@ -53,6 +54,18 @@ class ConfigRepository {
 
   Future<void> setConfigUsesImperialUnits(bool usesImperialUnits) async {
     await _configDataSource.setConfigUsesImperialUnits(usesImperialUnits);
+  }
+
+  Future<void> setConfigUsesImperialFoodUnits(bool usesImperial) async {
+    await _configDataSource.setConfigUsesImperialFoodUnits(usesImperial);
+  }
+
+  Future<void> setConfigUsesImperialHeightUnits(bool usesImperial) async {
+    await _configDataSource.setConfigUsesImperialHeightUnits(usesImperial);
+  }
+
+  Future<void> setConfigBodyWeightUnit(BodyWeightUnit unit) async {
+    await _configDataSource.setConfigBodyWeightUnitIndex(unit.index);
   }
 
   Future<double> getConfigKcalAdjustment() async {
@@ -149,5 +162,13 @@ class ConfigRepository {
 
   Future<void> setConfigAccentColor(int? value) async {
     await _configDataSource.setConfigAccentColor(value);
+  }
+
+  Future<void> setConfigScannerPortraitLock(bool value) async {
+    await _configDataSource.setConfigScannerPortraitLock(value);
+  }
+
+  Future<void> setConfigFoodSourceToggles(Map<String, bool> toggles) async {
+    await _configDataSource.setConfigFoodSourceToggles(toggles);
   }
 }

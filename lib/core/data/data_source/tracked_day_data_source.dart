@@ -2,12 +2,15 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
 class TrackedDayDataSource {
   final log = Logger('TrackedDayDataSource');
-  final Box<TrackedDayDBO> _trackedDayBox;
+  final HiveDBProvider _db;
 
-  TrackedDayDataSource(this._trackedDayBox);
+  TrackedDayDataSource(this._db);
+
+  Box<TrackedDayDBO> get _trackedDayBox => _db.trackedDayBox;
 
   Future<void> saveTrackedDay(TrackedDayDBO trackedDayDBO) async {
     log.fine('Updating tracked day in db');

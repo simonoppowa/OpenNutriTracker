@@ -4,6 +4,9 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/custom_activity_template_entity.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
@@ -71,8 +74,11 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
     return SafeArea(
       child: Scaffold(
+        backgroundColor: palette.canvas,
         body: BlocBuilder<ActivityDetailBloc, ActivityDetailState>(
           bloc: _activityDetailBloc,
           builder: (context, state) {
@@ -103,11 +109,16 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   }
 
   Widget getLoadedContent(double totalKcalBurned, UserEntity userEntity) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final accent = Theme.of(context).colorScheme.primary;
+    final text = Theme.of(context).textTheme;
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
         SliverAppBar(
           pinned: true,
+          backgroundColor: palette.canvas,
           expandedHeight: 200,
           flexibleSpace: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
@@ -138,49 +149,62 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         SliverList(
           delegate: SliverChildListDelegate([
             Center(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(80),
-                child: Container(
-                  width: _containerSize,
-                  height: _containerSize,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondaryContainer,
-                  ),
-                  child: Icon(
-                    activityEntity.displayIcon,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.onSecondaryContainer,
-                  ),
+              child: Container(
+                width: _containerSize,
+                height: _containerSize,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.14),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  activityEntity.displayIcon,
+                  size: 64,
+                  color: accent,
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(Dimens.spacing16),
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      // set Focus
-                      Text(
-                        // For Custom activities the user enters kcal/kJ directly,
-                        // so the leading tilde (which implies an estimate) is
-                        // dropped: the figure on screen is exactly what they
-                        // typed in.
-                        activityEntity.isCustom
-                            ? EnergyDisplay.formatWithUnit(context, totalKcal)
-                            : '~${EnergyDisplay.formatWithUnit(context, totalKcal)}',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      // For Custom activities the duration line would just
-                      // mirror the kcal figure, which is confusing — so we
-                      // hide it.
-                      if (!activityEntity.isCustom)
-                        Text(' / ${totalQuantity.toInt()} min'),
-                    ],
+                  AppCard(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Dimens.spacing20,
+                      vertical: Dimens.spacing16,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        // set Focus
+                        Text(
+                          // For Custom activities the user enters kcal/kJ directly,
+                          // so the leading tilde (which implies an estimate) is
+                          // dropped: the figure on screen is exactly what they
+                          // typed in.
+                          activityEntity.isCustom
+                              ? EnergyDisplay.formatWithUnit(context, totalKcal)
+                              : '~${EnergyDisplay.formatWithUnit(context, totalKcal)}',
+                          style: text.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: palette.textStrong,
+                          ),
+                        ),
+                        // For Custom activities the duration line would just
+                        // mirror the kcal figure, which is confusing — so we
+                        // hide it.
+                        if (!activityEntity.isCustom)
+                          Text(
+                            ' / ${totalQuantity.toInt()} min',
+                            style: text.titleMedium?.copyWith(
+                              color: palette.textMuted,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 8.0),
-                  const Divider(),
-                  const SizedBox(height: 48.0),
+                  const SizedBox(height: Dimens.spacing32),
                   // The Compendium attribution only makes sense for the
                   // built-in activities it actually sourced. Custom activities
                   // are user-entered, so the citation would be misleading.

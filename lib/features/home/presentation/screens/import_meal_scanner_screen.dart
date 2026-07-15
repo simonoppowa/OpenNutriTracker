@@ -8,6 +8,8 @@ import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
+import 'package:opennutritracker/core/presentation/scanner_orientation_mixin.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/retry_util.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -51,7 +53,7 @@ class ImportMealScannerScreen extends StatefulWidget {
 }
 
 class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, ScannerOrientationMixin {
   late MealDetailBloc _mealDetailBloc;
   late SearchProductByBarcodeUseCase _searchProductByBarcodeUseCase;
   late IntakeTypeEntity _intakeTypeEntity;
@@ -122,10 +124,11 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
         title: Text(S.of(context).importMealLabel),
         actions: [
           IconButton(
-            icon: const Icon(Icons.keyboard_outlined),
+            icon: const Icon(Icons.keyboard_rounded),
             tooltip: S.of(context).pasteCodeLabel,
             onPressed: _showPasteCodeDialog,
           ),
+          buildPortraitLockAction(context),
         ],
       ),
       body: MobileScanner(
@@ -152,13 +155,14 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
     final code = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: Dimens.shapeL,
         title: Text(S.of(ctx).pasteCodeLabel),
         content: TextField(
           controller: controller,
           maxLines: 5,
           decoration: InputDecoration(
             hintText: S.of(ctx).pasteCodeHint,
-            border: const OutlineInputBorder(),
+            border: const OutlineInputBorder(borderRadius: Dimens.borderRadiusS),
           ),
           autofocus: true,
         ),
@@ -224,6 +228,7 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: Dimens.shapeL,
         title: Text(
           S.of(ctx).importMealConfirmTitle(payload.totalCount),
         ),

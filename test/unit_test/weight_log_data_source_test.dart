@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/data/data_source/weight_log_data_source.da
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 
 import '../helpers/hive_test_setup.dart';
+import '../helpers/fake_hive_db_provider.dart';
 
 void main() {
   group('WeightLogDataSource', () {
@@ -20,7 +21,7 @@ void main() {
       box = await Hive.openBox<WeightLogDBO>(
         'weight_log_test_${DateTime.now().microsecondsSinceEpoch}',
       );
-      dataSource = WeightLogDataSource(box);
+      dataSource = WeightLogDataSource(FakeHiveDBProvider(weightLogBox: box));
     });
 
     tearDown(() async {

@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.d
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/physical_activity_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/profile_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
@@ -16,6 +17,7 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/physical_activity_repository.dart';
+import 'package:opennutritracker/core/data/repository/profile_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
@@ -31,7 +33,9 @@ import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/create_profile_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_profile_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_custom_activity_template_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_recipe_usecase.dart';
@@ -46,6 +50,7 @@ import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_physical_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_recipe_by_id_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
@@ -53,19 +58,25 @@ import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/send_intake_to_profiles_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/switch_profile_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/update_profile_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
+import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
+import 'package:opennutritracker/core/utils/profile_bootstrap.dart';
 import 'package:opennutritracker/core/utils/ont_image_cache_manager.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
+import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/activities_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_activities_bloc.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
-import 'package:opennutritracker/features/add_meal/data/data_sources/sp_fdc_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
@@ -87,6 +98,7 @@ import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart'
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:opennutritracker/features/profile/presentation/utils/profile_switch_coordinator.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_builder_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_detail_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
@@ -114,6 +126,12 @@ Future<void> initLocator() async {
   await hiveDBProvider.initHiveDB(
     await secureAppStorageProvider.getHiveEncryptionKey(),
   );
+  // Resolve the active profile and open its box-set (creating the default
+  // profile on first run) before anything reads per-profile data.
+  await bootstrapActiveProfile(hiveDBProvider, secureAppStorageProvider);
+  locator.registerLazySingleton<SecureAppStorageProvider>(
+    () => secureAppStorageProvider,
+  );
   locator.registerLazySingleton<HiveDBProvider>(() => hiveDBProvider);
   locator.registerLazySingleton<DeleteAllUserDataUsecase>(
     () => DeleteAllUserDataUsecase(locator()),
@@ -123,6 +141,11 @@ Future<void> initLocator() async {
   await Supabase.initialize(
     url: Env.supabaseProjectUrl,
     anonKey: Env.supabaseProjectAnonKey,
+    // In debug builds supabase_flutter attaches its own printer to the
+    // shared root log stream (hierarchical logging is off), duplicating
+    // every app log line in a second format. LoggerConfig already prints
+    // everything — including supabase records — once.
+    debug: false,
   );
   locator.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
 
@@ -178,6 +201,10 @@ Future<void> initLocator() async {
     () => ProfileBloc(locator(), locator(), locator(), locator(), locator()),
   );
   locator.registerLazySingleton<RecipesBloc>(() => RecipesBloc(locator()));
+  // Singleton so a unit change in Settings can refresh the live Trends page
+  // (it lives in the main IndexedStack and isn't recreated on tab switch).
+  locator.registerLazySingleton<TrendsBloc>(
+      () => TrendsBloc(locator(), locator(), locator(), locator(), locator()));
   locator.registerFactory<RecipeBuilderBloc>(
     () => RecipeBuilderBloc(locator(), locator()),
   );
@@ -282,8 +309,32 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<AddUserUsecase>(
     () => AddUserUsecase(locator()),
   );
+
+  // Profiles (#471)
+  locator.registerLazySingleton<GetProfilesUsecase>(
+    () => GetProfilesUsecase(locator(), locator()),
+  );
+  locator.registerLazySingleton<CreateProfileUsecase>(
+    () => CreateProfileUsecase(locator()),
+  );
+  locator.registerLazySingleton<SwitchProfileUsecase>(
+    () => SwitchProfileUsecase(locator(), locator(), locator()),
+  );
+  locator.registerLazySingleton<UpdateProfileUsecase>(
+    () => UpdateProfileUsecase(locator()),
+  );
+  locator.registerLazySingleton<DeleteProfileUsecase>(
+    () => DeleteProfileUsecase(locator(), locator(), locator()),
+  );
+  locator.registerLazySingleton<SendIntakeToProfilesUsecase>(
+    () => SendIntakeToProfilesUsecase(locator()),
+  );
+  locator.registerLazySingleton<ProfileSwitchCoordinator>(
+    () => ProfileSwitchCoordinator(locator(), locator()),
+  );
   locator.registerLazySingleton<SearchProductsUseCase>(
     () => SearchProductsUseCase(
+      locator(),
       locator(),
       locator(),
       locator(),
@@ -447,41 +498,39 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<FastingRepository>(
     () => FastingRepository(locator()),
   );
+  locator.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepository(locator()),
+  );
 
   // DataSources
-  locator.registerLazySingleton(
-    () => ConfigDataSource(hiveDBProvider.configBox),
-  );
+  // Per-profile data sources take the provider and resolve the *active*
+  // profile's box on each call (see HiveDBProvider). Only the OFF search
+  // cache is wired to the fixed global boxes.
+  locator.registerLazySingleton(() => ConfigDataSource(hiveDBProvider));
   locator.registerLazySingleton<UserDataSource>(
-    () => UserDataSource(hiveDBProvider.userBox),
+    () => UserDataSource(hiveDBProvider),
   );
   locator.registerLazySingleton<IntakeDataSource>(
-    () => IntakeDataSource(hiveDBProvider.intakeBox),
+    () => IntakeDataSource(hiveDBProvider),
   );
   locator.registerLazySingleton<UserActivityDataSource>(
-    () => UserActivityDataSource(hiveDBProvider.userActivityBox),
+    () => UserActivityDataSource(hiveDBProvider),
   );
   locator.registerLazySingleton<PhysicalActivityDataSource>(
     () => PhysicalActivityDataSource(),
   );
   locator.registerLazySingleton<OFFDataSource>(() => OFFDataSource());
   locator.registerLazySingleton<FDCDataSource>(() => FDCDataSource());
-  locator.registerLazySingleton<SpFdcDataSource>(() => SpFdcDataSource());
-  locator.registerLazySingleton(
-    () => TrackedDayDataSource(hiveDBProvider.trackedDayBox),
-  );
+  locator.registerLazySingleton<SpFoodDataSource>(() => SpFoodDataSource());
+  locator.registerLazySingleton(() => TrackedDayDataSource(hiveDBProvider));
   locator.registerLazySingleton<WeightLogDataSource>(
-    () => WeightLogDataSource(hiveDBProvider.weightLogBox),
+    () => WeightLogDataSource(hiveDBProvider),
   );
   locator.registerLazySingleton<WaterIntakeDataSource>(
-    () => WaterIntakeDataSource(hiveDBProvider.waterIntakeBox),
+    () => WaterIntakeDataSource(hiveDBProvider),
   );
-  locator.registerLazySingleton(
-    () => CustomMealDataSource(hiveDBProvider.customMealBox),
-  );
-  locator.registerLazySingleton(
-    () => RecipeDataSource(hiveDBProvider.recipeBox),
-  );
+  locator.registerLazySingleton(() => CustomMealDataSource(hiveDBProvider));
+  locator.registerLazySingleton(() => RecipeDataSource(hiveDBProvider));
   locator.registerLazySingleton(
     () => RemoteSearchCacheDataSource(
       hiveDBProvider.cachedOffMealBox,
@@ -489,19 +538,14 @@ Future<void> initLocator() async {
     ),
   );
   locator.registerLazySingleton<CustomActivityTemplateDataSource>(
-    () => CustomActivityTemplateDataSource(
-      hiveDBProvider.customActivityTemplateBox,
-    ),
+    () => CustomActivityTemplateDataSource(hiveDBProvider),
   );
   locator.registerLazySingleton<FastingDataSource>(
-    () => FastingDataSource(hiveDBProvider.fastingBox),
+    () => FastingDataSource(hiveDBProvider),
+  );
+  locator.registerLazySingleton<ProfileDataSource>(
+    () => ProfileDataSource(hiveDBProvider),
   );
 
-  await _initializeConfig(locator());
-}
-
-Future<void> _initializeConfig(ConfigDataSource configDataSource) async {
-  if (!await configDataSource.configInitialized()) {
-    configDataSource.initializeConfig();
-  }
+  await ensureConfigInitialized(locator());
 }

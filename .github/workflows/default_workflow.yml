@@ -342,10 +342,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Setup Java
+      - name: Setup Java (Zulu)
+        id: setup_java_zulu
         uses: actions/setup-java@v5
+        continue-on-error: true
         with:
           distribution: 'zulu'
+          java-version: '17'
+
+      # Azul's download CDN intermittently returns HTTP 520, which fails the
+      # whole job at the JDK-fetch step. Fall back to Temurin only when the
+      # Zulu setup failed, so a single vendor's CDN blip no longer reds the
+      # build. It now takes both vendors being down at once.
+      - name: Setup Java (Temurin fallback)
+        if: steps.setup_java_zulu.outcome == 'failure'
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Setup Flutter + cache packages
@@ -413,10 +426,23 @@ jobs:
           sudo docker image prune --all --force || true
           df -h /
 
-      - name: Setup Java
+      - name: Setup Java (Zulu)
+        id: setup_java_zulu
         uses: actions/setup-java@v5
+        continue-on-error: true
         with:
           distribution: 'zulu'
+          java-version: '17'
+
+      # Azul's download CDN intermittently returns HTTP 520, which fails the
+      # whole job at the JDK-fetch step. Fall back to Temurin only when the
+      # Zulu setup failed, so a single vendor's CDN blip no longer reds the
+      # build. It now takes both vendors being down at once.
+      - name: Setup Java (Temurin fallback)
+        if: steps.setup_java_zulu.outcome == 'failure'
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Setup Flutter + cache packages
@@ -699,10 +725,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Setup Java
+      - name: Setup Java (Zulu)
+        id: setup_java_zulu
         uses: actions/setup-java@v5
+        continue-on-error: true
         with:
           distribution: 'zulu'
+          java-version: '17'
+
+      # Azul's download CDN intermittently returns HTTP 520, which fails the
+      # whole job at the JDK-fetch step. Fall back to Temurin only when the
+      # Zulu setup failed, so a single vendor's CDN blip no longer reds the
+      # build. It now takes both vendors being down at once.
+      - name: Setup Java (Temurin fallback)
+        if: steps.setup_java_zulu.outcome == 'failure'
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Setup Ruby + Bundler

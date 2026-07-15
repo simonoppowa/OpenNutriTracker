@@ -1,6 +1,9 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/activity_detail/activity_detail_screen.dart';
 
@@ -16,52 +19,68 @@ class ActivityItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: Theme.of(context).colorScheme.outline),
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final accent = Theme.of(context).colorScheme.primary;
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Dimens.spacing4,
+        vertical: Dimens.spacing8,
       ),
-      child: InkWell(
-        child: SizedBox(
-          height: 100,
-          child: Center(
-            child: ListTile(
-              leading: CircleAvatar(
-                radius: 40,
-                backgroundColor:
-                    Theme.of(context).colorScheme.secondaryContainer,
-                child: Icon(
-                  physicalActivityEntity.displayIcon,
-                  color: Theme.of(context).colorScheme.onSecondaryContainer,
-                ),
+      child: AppCard(
+        onTap: () => _onItemPressed(context),
+        padding: const EdgeInsets.all(Dimens.spacing16),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
               ),
-              title: AutoSizeText(
-                physicalActivityEntity.getName(context),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              child: Icon(
+                physicalActivityEntity.displayIcon,
+                color: accent,
+                size: 26,
               ),
-              subtitle: AutoSizeText(
-                physicalActivityEntity.getDescription(context),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-              trailing: IconButton(
-                style: IconButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.onSurface,
-                ),
-                icon: const Icon(Icons.add_outlined),
-                onPressed: () => _onItemPressed(context),
-              ),
-              onTap: () => _onItemPressed(context),
             ),
-          ),
+            const SizedBox(width: Dimens.spacing16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AutoSizeText(
+                    physicalActivityEntity.getName(context),
+                    style: text.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: palette.textStrong,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: Dimens.spacing4),
+                  AutoSizeText(
+                    physicalActivityEntity.getDescription(context),
+                    style: text.bodyMedium?.copyWith(color: palette.textMuted),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: Dimens.spacing8),
+            IconButton(
+              style: IconButton.styleFrom(
+                foregroundColor: accent,
+                backgroundColor: accent.withValues(alpha: 0.12),
+              ),
+              icon: const Icon(Icons.add_rounded),
+              onPressed: () => _onItemPressed(context),
+            ),
+          ],
         ),
       ),
     );

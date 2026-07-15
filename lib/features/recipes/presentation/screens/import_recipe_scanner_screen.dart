@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
+import 'package:opennutritracker/core/presentation/scanner_orientation_mixin.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/recipes/domain/entity/shared_recipe_payload.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
@@ -27,7 +28,7 @@ class ImportRecipeScannerScreen extends StatefulWidget {
 }
 
 class _ImportRecipeScannerScreenState extends State<ImportRecipeScannerScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, ScannerOrientationMixin {
   bool _isProcessing = false;
   bool _handledInitialCode = false;
   late final MobileScannerController _cameraController;
@@ -89,6 +90,7 @@ class _ImportRecipeScannerScreenState extends State<ImportRecipeScannerScreen>
             tooltip: S.of(context).pasteCodeLabel,
             onPressed: _showPasteCodeDialog,
           ),
+          buildPortraitLockAction(context),
         ],
       ),
       body: MobileScanner(

@@ -6,12 +6,15 @@ import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
 class IntakeDataSource {
   final log = Logger('IntakeDataSource');
-  final Box<IntakeDBO> _intakeBox;
+  final HiveDBProvider _db;
 
-  IntakeDataSource(this._intakeBox);
+  IntakeDataSource(this._db);
+
+  Box<IntakeDBO> get _intakeBox => _db.intakeBox;
 
   Future<void> addIntake(IntakeDBO intakeDBO) async {
     log.fine('Adding new intake item to db');

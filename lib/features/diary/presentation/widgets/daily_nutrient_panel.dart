@@ -8,6 +8,9 @@ import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/dri_reference.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
@@ -399,92 +402,102 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
     // so the nutrient detail sits inside an ExpansionTile and only reveals
     // itself when the user explicitly opens it. The header still shows
     // "Today's nutrients" so the affordance is discoverable.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Theme(
-        // Strips the dividers ExpansionTile would otherwise draw above and
-        // below itself — they fight with the dividers the diary day view
-        // already places between sections.
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 8.0),
-          childrenPadding: const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 8.0),
-          title: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  s.diaryNutrientPanelTitle,
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-              ),
-              // Inline info icon. Tapping it pops the data-disclaimer
-              // dialog without expanding the panel — IconButton's own
-              // InkResponse consumes the pointer event, so the
-              // surrounding ExpansionTile doesn't toggle.
-              Semantics(
-                identifier: 'dri-panel-info',
-                child: IconButton(
-                  tooltip: s.driPanelInfoTitle,
-                  icon: Icon(
-                    Icons.info_outline,
-                    size: 20,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.7),
+      padding: const EdgeInsets.fromLTRB(
+        Dimens.spacing16,
+        Dimens.spacing8,
+        Dimens.spacing16,
+        Dimens.spacing4,
+      ),
+      child: AppCard(
+        padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing8),
+        child: Theme(
+          // Strips the dividers ExpansionTile would otherwise draw above and
+          // below itself — they fight with the calm card surface the panel
+          // now sits inside.
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusL),
+            collapsedShape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusL),
+            tilePadding: const EdgeInsets.symmetric(horizontal: Dimens.spacing12),
+            childrenPadding: const EdgeInsets.fromLTRB(
+              Dimens.spacing12,
+              0.0,
+              Dimens.spacing12,
+              Dimens.spacing16,
+            ),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    s.diaryNutrientPanelTitle,
+                    style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                   ),
-                  visualDensity: VisualDensity.compact,
-                  constraints: const BoxConstraints(),
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  onPressed: () => _showDataDisclaimer(context, s),
+                ),
+                // Inline info icon. Tapping it pops the data-disclaimer
+                // dialog without expanding the panel — IconButton's own
+                // InkResponse consumes the pointer event, so the
+                // surrounding ExpansionTile doesn't toggle.
+                Semantics(
+                  identifier: 'dri-panel-info',
+                  child: IconButton(
+                    tooltip: s.driPanelInfoTitle,
+                    icon: Icon(
+                      Icons.info_outline_rounded,
+                      size: 22,
+                      color: palette.textMuted,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing8),
+                    onPressed: () => _showDataDisclaimer(context, s),
+                  ),
+                ),
+              ],
+            ),
+            initiallyExpanded: _expanded,
+            onExpansionChanged: (open) => setState(() => _expanded = open),
+            children: [
+              Align(
+                alignment: Alignment.centerRight,
+                child: SegmentedButton<_NutrientView>(
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  showSelectedIcon: false,
+                  segments: <ButtonSegment<_NutrientView>>[
+                    ButtonSegment(
+                      value: _NutrientView.day,
+                      label: Text(s.nutrientPanelDayLabel),
+                    ),
+                    ButtonSegment(
+                      value: _NutrientView.week,
+                      label: Text(s.nutrientPanelWeekLabel),
+                    ),
+                  ],
+                  selected: <_NutrientView>{_view},
+                  onSelectionChanged: (selection) {
+                    setState(() => _view = selection.first);
+                  },
                 ),
               ),
+              const SizedBox(height: Dimens.spacing8),
+              if (visibleRows.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: Dimens.spacing4),
+                  child: Text(
+                    s.nutrientPanelAllHiddenLabel,
+                    style: textTheme.bodySmall?.copyWith(color: palette.textMuted),
+                  ),
+                )
+              else
+                ...visibleRows,
             ],
           ),
-          initiallyExpanded: _expanded,
-          onExpansionChanged: (open) => setState(() => _expanded = open),
-          children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: SegmentedButton<_NutrientView>(
-                style: const ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                showSelectedIcon: false,
-                segments: <ButtonSegment<_NutrientView>>[
-                  ButtonSegment(
-                    value: _NutrientView.day,
-                    label: Text(s.nutrientPanelDayLabel),
-                  ),
-                  ButtonSegment(
-                    value: _NutrientView.week,
-                    label: Text(s.nutrientPanelWeekLabel),
-                  ),
-                ],
-                selected: <_NutrientView>{_view},
-                onSelectionChanged: (selection) {
-                  setState(() => _view = selection.first);
-                },
-              ),
-            ),
-            const SizedBox(height: 8.0),
-            if (visibleRows.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Text(
-                  s.nutrientPanelAllHiddenLabel,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.7),
-                      ),
-                ),
-              )
-            else
-              ...visibleRows,
-          ],
         ),
       ),
     );
@@ -750,6 +763,9 @@ class _NutrientRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final textTheme = Theme.of(context).textTheme;
     final ratio = reference > 0 ? value / reference : 0.0;
     final clamped = ratio.clamp(0.0, 1.0).toDouble();
     final color = _colorForRatio(context, ratio);
@@ -757,7 +773,7 @@ class _NutrientRow extends StatelessWidget {
         ' / ${reference.toStringAsFixed(reference >= 10 ? 0 : 1)}$unit';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: Dimens.spacing8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -767,7 +783,7 @@ class _NutrientRow extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: textTheme.bodyMedium?.copyWith(color: palette.textStrong),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -781,36 +797,31 @@ class _NutrientRow extends StatelessWidget {
                   if (excessMatters) ...[
                     Text(
                       s.nutrientPanelLimitLabel,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.6),
-                            fontStyle: FontStyle.italic,
-                          ),
+                      style: textTheme.labelSmall?.copyWith(
+                        color: palette.textMuted,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
-                    const SizedBox(width: 6.0),
+                    const SizedBox(width: Dimens.spacing4),
                   ],
                   Text(
                     valueLabel,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.8),
-                        ),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: palette.textStrong,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 4.0),
+          const SizedBox(height: Dimens.spacing8),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4.0),
+            borderRadius: BorderRadius.circular(8.0),
             child: LinearProgressIndicator(
               value: clamped,
-              minHeight: 6.0,
-              backgroundColor: color.withValues(alpha: 0.15),
+              minHeight: 8.0,
+              backgroundColor: palette.surfaceMuted,
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),

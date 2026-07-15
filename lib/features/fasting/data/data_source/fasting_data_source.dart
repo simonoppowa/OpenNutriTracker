@@ -1,15 +1,18 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
+import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
 /// Stores fasting sessions keyed by session id. The data source intentionally
 /// makes no value-judgement about cancellation vs natural completion — both
 /// are simply timestamped on the same record.
 class FastingDataSource {
   final _log = Logger('FastingDataSource');
-  final Box<FastingSessionDBO> _box;
+  final HiveDBProvider _db;
 
-  FastingDataSource(this._box);
+  FastingDataSource(this._db);
+
+  Box<FastingSessionDBO> get _box => _db.fastingBox;
 
   Future<void> addSession(FastingSessionDBO session) async {
     _log.fine('Adding fasting session ${session.id}');
