@@ -680,6 +680,75 @@ class MessageLookup extends MessageLookupByLibrary {
     "itemUpdatedSnackbar": MessageLookupByLibrary.simpleMessage(
       "Елемент оновлено",
     ),
+    "kcalGoalInfoActivityExplanation": MessageLookupByLibrary.simpleMessage(
+      "Калорії, спалені зафіксованими активностями, додаються до цілі, тож запланований дефіцит чи профіцит у тренувальні дні не змінюється.",
+    ),
+    "kcalGoalInfoActivitySection": MessageLookupByLibrary.simpleMessage(
+      "Крок 4 · Сьогоднішні тренування",
+    ),
+    "kcalGoalInfoAdjustmentExplanationFlat": MessageLookupByLibrary.simpleMessage(
+      "Ваша ціль ваги застосовує фіксовану добову поправку: −500 ккал для схуднення, +500 ккал для набору, 0 для підтримання.",
+    ),
+    "kcalGoalInfoAdjustmentExplanationWeekly": MessageLookupByLibrary.simpleMessage(
+      "Добову поправку визначає ваш тижневий темп. 1 кг жирової тканини містить близько 7 700 ккал, тож кожен кг на тиждень зсуває ціль приблизно на 1 100 ккал на день.",
+    ),
+    "kcalGoalInfoAdjustmentSection": MessageLookupByLibrary.simpleMessage(
+      "Крок 2 · Поправка на ціль ваги",
+    ),
+    "kcalGoalInfoAppliedAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Застосована поправка",
+    ),
+    "kcalGoalInfoAveragedNote": MessageLookupByLibrary.simpleMessage(
+      "З усередненим еталоном ваш TDEE — це середина між чоловічим і жіночим еталонними результатами.",
+    ),
+    "kcalGoalInfoBaseAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Поправка цілі",
+    ),
+    "kcalGoalInfoEstimateNote": MessageLookupByLibrary.simpleMessage(
+      "Усі формули — це оцінки на рівні популяції, індивідуальні потреби різняться. Ціль — це відправна точка, а не медична порада.",
+    ),
+    "kcalGoalInfoFemaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Жіночий еталон",
+    ),
+    "kcalGoalInfoInputsSection": MessageLookupByLibrary.simpleMessage(
+      "Ваші дані",
+    ),
+    "kcalGoalInfoIntro": MessageLookupByLibrary.simpleMessage(
+      "Ваша денна ціль калорій обчислюється за опублікованими науковими рівняннями лише з наведених нижче значень. Ця сторінка показує кожне число, що входить у сьогоднішню ціль.",
+    ),
+    "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
+      "Повна документація розрахунку",
+    ),
+    "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Чоловічий еталон",
+    ),
+    "kcalGoalInfoManualExplanation": MessageLookupByLibrary.simpleMessage(
+      "Фіксований зсув, який ви самі задаєте в Налаштуваннях — якщо знаєте, що ваші потреби відрізняються від оцінки.",
+    ),
+    "kcalGoalInfoManualSection": MessageLookupByLibrary.simpleMessage(
+      "Крок 3 · Ручна поправка",
+    ),
+    "kcalGoalInfoPaRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Коефіцієнт активності (PA)",
+    ),
+    "kcalGoalInfoPalRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Рівень фізичної активності (PAL)",
+    ),
+    "kcalGoalInfoResultSection": MessageLookupByLibrary.simpleMessage(
+      "Сьогоднішня ціль калорій",
+    ),
+    "kcalGoalInfoTaperNote": MessageLookupByLibrary.simpleMessage(
+      "Оскільки ввімкнено плавне зменшення біля цільової ваги, поправка зменшується з наближенням до цілі (повний ефект понад 5 кг, підтримання в межах 1 кг).",
+    ),
+    "kcalGoalInfoTdeeExplanation": MessageLookupByLibrary.simpleMessage(
+      "Ваші загальні добові енерговитрати (TDEE) — енергія, яку ви витрачаєте у звичайний день — оцінюються рівнянням IOM 2005 за віком, вагою, зростом і рівнем активності.",
+    ),
+    "kcalGoalInfoTdeeResultLabel": MessageLookupByLibrary.simpleMessage(
+      "Ваш TDEE",
+    ),
+    "kcalGoalInfoTdeeSection": MessageLookupByLibrary.simpleMessage(
+      "Крок 1 · Енергія підтримання (TDEE)",
+    ),
     "kcalLabel": MessageLookupByLibrary.simpleMessage("ккал"),
     "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("залишилось ккал"),
     "kcalTooMuchLabel": MessageLookupByLibrary.simpleMessage(
@@ -1783,6 +1852,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsKcalAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
       "Щоденне коригування ккал",
+    ),
+    "settingsKcalGoalInfoLabel": MessageLookupByLibrary.simpleMessage(
+      "Як обчислюється ваша ціль",
     ),
     "settingsLabel": MessageLookupByLibrary.simpleMessage("Налаштування"),
     "settingsLanguageLabel": MessageLookupByLibrary.simpleMessage("Мова"),

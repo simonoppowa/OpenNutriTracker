@@ -34,6 +34,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/diary_day_boundary_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/kcal_adjustment_dialog.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/kcal_goal_info_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/macro_split_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_goals_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/per_meal_kcal_share_dialog.dart';
@@ -163,6 +164,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     // ten nutrient goals, and the diary day boundary. Each
                     // is now its own focused entry so people can find the
                     // setting they want and only see the controls for it.
+                    _SettingsTile(
+                      identifier: 'settings-kcal-goal-info',
+                      palette: palette,
+                      icon: Icons.functions_rounded,
+                      title: S.of(context).settingsKcalGoalInfoLabel,
+                      showChevron: true,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const KcalGoalInfoScreen(),
+                        ),
+                      ),
+                    ),
                     _SettingsTile(
                       identifier: 'settings-kcal-adjustment',
                       palette: palette,

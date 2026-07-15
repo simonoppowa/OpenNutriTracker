@@ -683,6 +683,75 @@ class MessageLookup extends MessageLookupByLibrary {
     "itemUpdatedSnackbar": MessageLookupByLibrary.simpleMessage(
       "Alimento aggiornato",
     ),
+    "kcalGoalInfoActivityExplanation": MessageLookupByLibrary.simpleMessage(
+      "Le calorie bruciate con le attività registrate si aggiungono all\'obiettivo, così il deficit o surplus pianificato resta uguale nei giorni di allenamento.",
+    ),
+    "kcalGoalInfoActivitySection": MessageLookupByLibrary.simpleMessage(
+      "Passo 4 · Attività di oggi",
+    ),
+    "kcalGoalInfoAdjustmentExplanationFlat": MessageLookupByLibrary.simpleMessage(
+      "Il tuo obiettivo di peso applica una correzione giornaliera fissa: −500 kcal per dimagrire, +500 kcal per aumentare, 0 per mantenere.",
+    ),
+    "kcalGoalInfoAdjustmentExplanationWeekly": MessageLookupByLibrary.simpleMessage(
+      "Il ritmo settimanale determina la correzione giornaliera. 1 kg di grasso corporeo immagazzina circa 7.700 kcal, quindi ogni kg a settimana sposta l\'obiettivo di circa 1.100 kcal al giorno.",
+    ),
+    "kcalGoalInfoAdjustmentSection": MessageLookupByLibrary.simpleMessage(
+      "Passo 2 · Correzione per l\'obiettivo di peso",
+    ),
+    "kcalGoalInfoAppliedAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Correzione applicata",
+    ),
+    "kcalGoalInfoAveragedNote": MessageLookupByLibrary.simpleMessage(
+      "Con il riferimento mediato, il tuo TDEE è il punto medio tra il risultato di riferimento maschile e femminile.",
+    ),
+    "kcalGoalInfoBaseAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Correzione dell\'obiettivo",
+    ),
+    "kcalGoalInfoEstimateNote": MessageLookupByLibrary.simpleMessage(
+      "Tutte le formule sono stime a livello di popolazione — i bisogni individuali variano. L\'obiettivo è un punto di partenza, non un consiglio medico.",
+    ),
+    "kcalGoalInfoFemaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Riferimento femminile",
+    ),
+    "kcalGoalInfoInputsSection": MessageLookupByLibrary.simpleMessage(
+      "I tuoi dati",
+    ),
+    "kcalGoalInfoIntro": MessageLookupByLibrary.simpleMessage(
+      "Il tuo obiettivo calorico giornaliero viene calcolato con equazioni scientifiche pubblicate usando solo i valori qui sotto. Questa pagina mostra ogni numero che contribuisce all\'obiettivo di oggi.",
+    ),
+    "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
+      "Documentazione completa del calcolo",
+    ),
+    "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Riferimento maschile",
+    ),
+    "kcalGoalInfoManualExplanation": MessageLookupByLibrary.simpleMessage(
+      "Uno scostamento fisso che imposti tu stesso nelle Impostazioni, per quando sai che il tuo fabbisogno differisce dalla stima.",
+    ),
+    "kcalGoalInfoManualSection": MessageLookupByLibrary.simpleMessage(
+      "Passo 3 · Correzione manuale",
+    ),
+    "kcalGoalInfoPaRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Coefficiente di attività (PA)",
+    ),
+    "kcalGoalInfoPalRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Livello di attività fisica (PAL)",
+    ),
+    "kcalGoalInfoResultSection": MessageLookupByLibrary.simpleMessage(
+      "Obiettivo calorico di oggi",
+    ),
+    "kcalGoalInfoTaperNote": MessageLookupByLibrary.simpleMessage(
+      "Poiché la riduzione graduale verso il peso obiettivo è attiva, la correzione diminuisce man mano che ti avvicini al peso obiettivo (effetto pieno oltre 5 kg, mantenimento entro 1 kg).",
+    ),
+    "kcalGoalInfoTdeeExplanation": MessageLookupByLibrary.simpleMessage(
+      "Il tuo dispendio energetico giornaliero totale (TDEE) — l\'energia che consumi in una giornata tipica — è stimato con l\'equazione IOM 2005 da età, peso, altezza e livello di attività.",
+    ),
+    "kcalGoalInfoTdeeResultLabel": MessageLookupByLibrary.simpleMessage(
+      "Il tuo TDEE",
+    ),
+    "kcalGoalInfoTdeeSection": MessageLookupByLibrary.simpleMessage(
+      "Passo 1 · Energia di mantenimento (TDEE)",
+    ),
     "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
     "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal rimanenti"),
     "kcalTooMuchLabel": MessageLookupByLibrary.simpleMessage("kcal in eccesso"),
@@ -1784,6 +1853,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsKcalAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
       "Aggiustamento kcal giornaliero",
+    ),
+    "settingsKcalGoalInfoLabel": MessageLookupByLibrary.simpleMessage(
+      "Come viene calcolato il tuo obiettivo",
     ),
     "settingsLabel": MessageLookupByLibrary.simpleMessage("Impostazioni"),
     "settingsLanguageLabel": MessageLookupByLibrary.simpleMessage("Lingua"),

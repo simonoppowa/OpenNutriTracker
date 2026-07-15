@@ -2243,6 +2243,236 @@ class S {
     );
   }
 
+  /// `Calories burned by logged activities are added on top of your goal, so your planned deficit or surplus stays the same on training days.`
+  String get kcalGoalInfoActivityExplanation {
+    return Intl.message(
+      'Calories burned by logged activities are added on top of your goal, so your planned deficit or surplus stays the same on training days.',
+      name: 'kcalGoalInfoActivityExplanation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Step 4 · Today's exercise`
+  String get kcalGoalInfoActivitySection {
+    return Intl.message(
+      'Step 4 · Today\'s exercise',
+      name: 'kcalGoalInfoActivitySection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your weight goal applies a fixed daily adjustment: −500 kcal to lose, +500 kcal to gain, 0 to maintain.`
+  String get kcalGoalInfoAdjustmentExplanationFlat {
+    return Intl.message(
+      'Your weight goal applies a fixed daily adjustment: −500 kcal to lose, +500 kcal to gain, 0 to maintain.',
+      name: 'kcalGoalInfoAdjustmentExplanationFlat',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your weekly rate sets the daily adjustment. 1 kg of body fat stores about 7,700 kcal, so each kg per week shifts the goal by about 1,100 kcal per day.`
+  String get kcalGoalInfoAdjustmentExplanationWeekly {
+    return Intl.message(
+      'Your weekly rate sets the daily adjustment. 1 kg of body fat stores about 7,700 kcal, so each kg per week shifts the goal by about 1,100 kcal per day.',
+      name: 'kcalGoalInfoAdjustmentExplanationWeekly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Step 2 · Weight-goal adjustment`
+  String get kcalGoalInfoAdjustmentSection {
+    return Intl.message(
+      'Step 2 · Weight-goal adjustment',
+      name: 'kcalGoalInfoAdjustmentSection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Applied adjustment`
+  String get kcalGoalInfoAppliedAdjustmentLabel {
+    return Intl.message(
+      'Applied adjustment',
+      name: 'kcalGoalInfoAppliedAdjustmentLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `With the averaged reference, your TDEE is the midpoint of the male and female reference results.`
+  String get kcalGoalInfoAveragedNote {
+    return Intl.message(
+      'With the averaged reference, your TDEE is the midpoint of the male and female reference results.',
+      name: 'kcalGoalInfoAveragedNote',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Goal adjustment`
+  String get kcalGoalInfoBaseAdjustmentLabel {
+    return Intl.message(
+      'Goal adjustment',
+      name: 'kcalGoalInfoBaseAdjustmentLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All formulas are population-level estimates — individual needs vary. Your goal is a starting point, not medical advice.`
+  String get kcalGoalInfoEstimateNote {
+    return Intl.message(
+      'All formulas are population-level estimates — individual needs vary. Your goal is a starting point, not medical advice.',
+      name: 'kcalGoalInfoEstimateNote',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Female reference`
+  String get kcalGoalInfoFemaleReferenceLabel {
+    return Intl.message(
+      'Female reference',
+      name: 'kcalGoalInfoFemaleReferenceLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your inputs`
+  String get kcalGoalInfoInputsSection {
+    return Intl.message(
+      'Your inputs',
+      name: 'kcalGoalInfoInputsSection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your daily calorie goal is computed from published scientific equations using only the values below. This page shows every number that goes into today's goal.`
+  String get kcalGoalInfoIntro {
+    return Intl.message(
+      'Your daily calorie goal is computed from published scientific equations using only the values below. This page shows every number that goes into today\'s goal.',
+      name: 'kcalGoalInfoIntro',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Full calculation documentation`
+  String get kcalGoalInfoLearnMoreLabel {
+    return Intl.message(
+      'Full calculation documentation',
+      name: 'kcalGoalInfoLearnMoreLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Male reference`
+  String get kcalGoalInfoMaleReferenceLabel {
+    return Intl.message(
+      'Male reference',
+      name: 'kcalGoalInfoMaleReferenceLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `A fixed offset you set yourself in Settings, for when you know your needs differ from the estimate.`
+  String get kcalGoalInfoManualExplanation {
+    return Intl.message(
+      'A fixed offset you set yourself in Settings, for when you know your needs differ from the estimate.',
+      name: 'kcalGoalInfoManualExplanation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Step 3 · Manual adjustment`
+  String get kcalGoalInfoManualSection {
+    return Intl.message(
+      'Step 3 · Manual adjustment',
+      name: 'kcalGoalInfoManualSection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Activity coefficient (PA)`
+  String get kcalGoalInfoPaRowLabel {
+    return Intl.message(
+      'Activity coefficient (PA)',
+      name: 'kcalGoalInfoPaRowLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Physical activity level (PAL)`
+  String get kcalGoalInfoPalRowLabel {
+    return Intl.message(
+      'Physical activity level (PAL)',
+      name: 'kcalGoalInfoPalRowLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today's calorie goal`
+  String get kcalGoalInfoResultSection {
+    return Intl.message(
+      'Today\'s calorie goal',
+      name: 'kcalGoalInfoResultSection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Because the target-weight taper is on, the adjustment is scaled down as you approach your target weight (full effect beyond 5 kg, maintenance within 1 kg).`
+  String get kcalGoalInfoTaperNote {
+    return Intl.message(
+      'Because the target-weight taper is on, the adjustment is scaled down as you approach your target weight (full effect beyond 5 kg, maintenance within 1 kg).',
+      name: 'kcalGoalInfoTaperNote',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your total daily energy expenditure (TDEE) — the energy you use on a typical day — is estimated with the IOM 2005 equation from your age, weight, height, and activity level.`
+  String get kcalGoalInfoTdeeExplanation {
+    return Intl.message(
+      'Your total daily energy expenditure (TDEE) — the energy you use on a typical day — is estimated with the IOM 2005 equation from your age, weight, height, and activity level.',
+      name: 'kcalGoalInfoTdeeExplanation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your TDEE`
+  String get kcalGoalInfoTdeeResultLabel {
+    return Intl.message(
+      'Your TDEE',
+      name: 'kcalGoalInfoTdeeResultLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Step 1 · Maintenance energy (TDEE)`
+  String get kcalGoalInfoTdeeSection {
+    return Intl.message(
+      'Step 1 · Maintenance energy (TDEE)',
+      name: 'kcalGoalInfoTdeeSection',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `kcal`
   String get kcalLabel {
     return Intl.message('kcal', name: 'kcalLabel', desc: '', args: []);
@@ -6203,6 +6433,16 @@ class S {
     return Intl.message(
       'Daily kcal adjustment',
       name: 'settingsKcalAdjustmentLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `How your goal is calculated`
+  String get settingsKcalGoalInfoLabel {
+    return Intl.message(
+      'How your goal is calculated',
+      name: 'settingsKcalGoalInfoLabel',
       desc: '',
       args: [],
     );

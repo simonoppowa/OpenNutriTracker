@@ -679,6 +679,75 @@ class MessageLookup extends MessageLookupByLibrary {
     "itemUpdatedSnackbar": MessageLookupByLibrary.simpleMessage(
       "Eintrag aktualisiert",
     ),
+    "kcalGoalInfoActivityExplanation": MessageLookupByLibrary.simpleMessage(
+      "Durch erfasste Aktivitäten verbrannte Kalorien werden auf dein Ziel aufgeschlagen, damit dein geplantes Defizit oder Plus auch an Trainingstagen gleich bleibt.",
+    ),
+    "kcalGoalInfoActivitySection": MessageLookupByLibrary.simpleMessage(
+      "Schritt 4 · Heutige Aktivitäten",
+    ),
+    "kcalGoalInfoAdjustmentExplanationFlat": MessageLookupByLibrary.simpleMessage(
+      "Dein Gewichtsziel bewirkt eine feste tägliche Anpassung: −500 kcal beim Abnehmen, +500 kcal beim Zunehmen, 0 beim Halten.",
+    ),
+    "kcalGoalInfoAdjustmentExplanationWeekly": MessageLookupByLibrary.simpleMessage(
+      "Deine wöchentliche Rate bestimmt die tägliche Anpassung. 1 kg Körperfett speichert etwa 7.700 kcal, jedes kg pro Woche verschiebt das Ziel also um etwa 1.100 kcal pro Tag.",
+    ),
+    "kcalGoalInfoAdjustmentSection": MessageLookupByLibrary.simpleMessage(
+      "Schritt 2 · Anpassung für dein Gewichtsziel",
+    ),
+    "kcalGoalInfoAppliedAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Angewendete Anpassung",
+    ),
+    "kcalGoalInfoAveragedNote": MessageLookupByLibrary.simpleMessage(
+      "Mit der gemittelten Referenz ist dein TDEE der Mittelwert aus männlichem und weiblichem Referenzergebnis.",
+    ),
+    "kcalGoalInfoBaseAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Ziel-Anpassung",
+    ),
+    "kcalGoalInfoEstimateNote": MessageLookupByLibrary.simpleMessage(
+      "Alle Formeln sind Schätzungen auf Bevölkerungsebene — individuelle Bedürfnisse variieren. Dein Ziel ist ein Ausgangspunkt, keine medizinische Empfehlung.",
+    ),
+    "kcalGoalInfoFemaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Weibliche Referenz",
+    ),
+    "kcalGoalInfoInputsSection": MessageLookupByLibrary.simpleMessage(
+      "Deine Angaben",
+    ),
+    "kcalGoalInfoIntro": MessageLookupByLibrary.simpleMessage(
+      "Dein tägliches Kalorienziel wird mit veröffentlichten wissenschaftlichen Formeln ausschließlich aus den unten stehenden Werten berechnet. Diese Seite zeigt jede Zahl, die in dein heutiges Ziel einfließt.",
+    ),
+    "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
+      "Vollständige Dokumentation der Berechnung",
+    ),
+    "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Männliche Referenz",
+    ),
+    "kcalGoalInfoManualExplanation": MessageLookupByLibrary.simpleMessage(
+      "Ein fester Wert, den du selbst in den Einstellungen festlegst — falls du weißt, dass dein Bedarf von der Schätzung abweicht.",
+    ),
+    "kcalGoalInfoManualSection": MessageLookupByLibrary.simpleMessage(
+      "Schritt 3 · Manuelle Anpassung",
+    ),
+    "kcalGoalInfoPaRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Aktivitätskoeffizient (PA)",
+    ),
+    "kcalGoalInfoPalRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Aktivitätslevel (PAL)",
+    ),
+    "kcalGoalInfoResultSection": MessageLookupByLibrary.simpleMessage(
+      "Heutiges Kalorienziel",
+    ),
+    "kcalGoalInfoTaperNote": MessageLookupByLibrary.simpleMessage(
+      "Da das Ausschleichen zum Zielgewicht aktiv ist, wird die Anpassung in Zielnähe reduziert (volle Wirkung ab 5 kg Abstand, Erhaltung innerhalb von 1 kg).",
+    ),
+    "kcalGoalInfoTdeeExplanation": MessageLookupByLibrary.simpleMessage(
+      "Dein Gesamtenergieverbrauch (TDEE) — die Energie, die du an einem typischen Tag verbrauchst — wird mit der IOM-Formel von 2005 aus Alter, Gewicht, Größe und Aktivitätslevel geschätzt.",
+    ),
+    "kcalGoalInfoTdeeResultLabel": MessageLookupByLibrary.simpleMessage(
+      "Dein TDEE",
+    ),
+    "kcalGoalInfoTdeeSection": MessageLookupByLibrary.simpleMessage(
+      "Schritt 1 · Erhaltungsbedarf (TDEE)",
+    ),
     "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
     "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal übrig"),
     "kcalTooMuchLabel": MessageLookupByLibrary.simpleMessage("kcal zu viel"),
@@ -1748,6 +1817,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsIronGoalLabel": MessageLookupByLibrary.simpleMessage("Eisenziel"),
     "settingsKcalAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
       "Tägliche kcal-Anpassung",
+    ),
+    "settingsKcalGoalInfoLabel": MessageLookupByLibrary.simpleMessage(
+      "So wird dein Ziel berechnet",
     ),
     "settingsLabel": MessageLookupByLibrary.simpleMessage("Einstellungen"),
     "settingsLanguageLabel": MessageLookupByLibrary.simpleMessage("Sprache"),
