@@ -34,6 +34,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
   double _proteinPct = _defaultProteinPct;
   double _fatPct = _defaultFatPct;
   bool _loaded = false;
+  bool _syncingControllers = false;
   _MacroField? _lastEditedMacro;
 
   late final TextEditingController _carbsController;
@@ -72,9 +73,19 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
   }
 
   void _syncControllers() {
-    _carbsController.text = _carbsPct.round().toString();
-    _proteinController.text = _proteinPct.round().toString();
-    _fatController.text = _fatPct.round().toString();
+    _syncingControllers = true;
+    try {
+      _carbsController.text = _carbsPct.round().toString();
+      _proteinController.text = _proteinPct.round().toString();
+      _fatController.text = _fatPct.round().toString();
+    } finally {
+      _syncingControllers = false;
+    }
+  }
+
+  void _markLastEdited(_MacroField field) {
+    if (_syncingControllers) return;
+    _lastEditedMacro = field;
   }
 
   bool _isValidMacroPercentage(int? value) =>
@@ -259,7 +270,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                           setOtherB: (x) => _fatPct = x,
                         )),
                     onSliderEnd: _syncControllers,
-                    onTextChanged: (_) => _lastEditedMacro = _MacroField.carbs,
+                    onTextChanged: (_) => _markLastEdited(_MacroField.carbs),
                     onTextSubmitted: _applyCarbsInput,
                   ),
                   _MacroRow(
@@ -278,7 +289,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                           setOtherB: (x) => _fatPct = x,
                         )),
                     onSliderEnd: _syncControllers,
-                    onTextChanged: (_) => _lastEditedMacro = _MacroField.protein,
+                    onTextChanged: (_) => _markLastEdited(_MacroField.protein),
                     onTextSubmitted: _applyProteinInput,
                   ),
                   _MacroRow(
@@ -297,7 +308,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                           setOtherB: (x) => _proteinPct = x,
                         )),
                     onSliderEnd: _syncControllers,
-                    onTextChanged: (_) => _lastEditedMacro = _MacroField.fat,
+                    onTextChanged: (_) => _markLastEdited(_MacroField.fat),
                     onTextSubmitted: _applyFatInput,
                   ),
                 ],
