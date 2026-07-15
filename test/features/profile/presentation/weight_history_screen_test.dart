@@ -133,9 +133,9 @@ void main() {
       );
     });
 
-    testWidgets('default 30d hides an older point (showing empty state), '
-        'selecting 60d shows chart, and selecting All shows chart '
-        'with very old history', (tester) async {
+    testWidgets('default and 365d hide very old history; All includes it', (
+      tester,
+    ) async {
       final today = DateTime.now();
       DateTime day(int daysAgo) {
         final d = today.subtract(Duration(days: daysAgo));
@@ -144,7 +144,6 @@ void main() {
 
       final entries = [
         WeightLogEntity(date: day(0), weightKg: 70.0),
-        WeightLogEntity(date: day(45), weightKg: 71.0),
         WeightLogEntity(date: day(200), weightKg: 72.0),
       ];
 
@@ -158,19 +157,19 @@ void main() {
       );
       expect(find.byKey(const Key('weightHistoryChart')), findsNothing);
 
-      // Tap 60d segment: should now include the 45-day-old point, showing the chart.
-      final button60 = find.text('60d');
-      expect(button60, findsOneWidget);
-      await tester.tap(button60);
+      // Tap 365d: still only one point in range, so chart stays in empty state.
+      final button365 = find.text('365d');
+      expect(button365, findsOneWidget);
+      await tester.tap(button365);
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('weightHistoryChart')), findsOneWidget);
+      expect(find.byKey(const Key('weightHistoryChart')), findsNothing);
       expect(
         find.byKey(const Key('weightHistoryChartEmptyState')),
-        findsNothing,
+        findsOneWidget,
       );
 
-      // Tap All segment: should show chart for all history including 200-day-old point.
+      // Tap All segment: should include the 200-day-old point and render the chart.
       final buttonAll = find.text(S.current.allItemsLabel);
       expect(buttonAll, findsOneWidget);
       await tester.tap(buttonAll);
