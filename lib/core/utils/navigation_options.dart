@@ -1,4 +1,5 @@
 class NavigationOptions {
+  static const splashRoute = "splash";
   static const mainRoute = "main";
   static const onboardingRoute = "onboarding";
   static const settingsRoute = "settings";

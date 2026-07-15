@@ -108,6 +108,8 @@ flutter:
 
   assets:
     - assets/icon/ont_logo_square.svg
+    - assets/icon/ont_splash_rings.svg
+    - assets/icon/ont_splash_spoon.svg
     - assets/icon/ont_logo_square_color_back_1024x1024.png
     - assets/icon/ont_logo_square_color_white_1024x1024.png
     - assets/icon/ont_banner_top.png
