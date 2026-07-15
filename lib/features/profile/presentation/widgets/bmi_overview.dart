@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_bmi_entity.dart';
-import 'package:opennutritracker/core/presentation/widgets/info_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
+import 'package:opennutritracker/features/profile/presentation/widgets/bmi_info_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class BMIOverview extends StatelessWidget {
@@ -70,15 +70,14 @@ class BMIOverview extends StatelessWidget {
             const SizedBox(width: Dimens.spacing4),
             InkWell(
               borderRadius: Dimens.borderRadiusS,
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => InfoDialog(
-                    title: S.of(context).bmiLabel,
-                    body: S.of(context).bmiInfo,
-                  ),
-                );
-              },
+              // Opens the transparency screen showing the BMI formula with
+              // the user's own numbers and the full WHO classification —
+              // richer than the static dialog this icon used to show.
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const BmiInfoScreen(),
+                ),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(Dimens.spacing4),
                 child: Icon(

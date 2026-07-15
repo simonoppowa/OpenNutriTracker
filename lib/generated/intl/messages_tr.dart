@@ -174,6 +174,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "Vücut Kitle İndeksi (BMI), yetişkinlerde aşırı kiloyu ve obeziteyi sınıflandırmak için kullanılan bir indekstir. Kilogram cinsinden ağırlığın, metre cinsinden boyun karesine bölünmesiyle tanımlanır (kg/m²).\n\nBMI, yağ ve kas kütlesi arasında ayrım yapmaz ve bazı bireyler için yanıltıcı olabilir.",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "DSÖ sınıflandırması",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("Formül"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage(
+      "BMI\'niz nasıl hesaplanır",
+    ),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "ör. mısır gevreği, süt, kahve ...",

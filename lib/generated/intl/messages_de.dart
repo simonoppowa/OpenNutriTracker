@@ -190,6 +190,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "Der Body-Mass-Index (BMI) ist ein Index zur Klassifizierung von Übergewicht und Fettleibigkeit bei Erwachsenen. Er wird berechnet, indem das Gewicht in Kilogramm durch das Quadrat der Körpergröße in Metern (kg/m²) geteilt wird.\n\nDer BMI unterscheidet nicht zwischen Fett- und Muskelmasse und kann für einige Personen irreführend sein.",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "WHO-Klassifikation",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("Formel"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage(
+      "So wird dein BMI berechnet",
+    ),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "z. B. Müsli, Milch, Kaffee ...",

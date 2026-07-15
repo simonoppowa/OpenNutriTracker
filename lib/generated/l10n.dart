@@ -464,6 +464,36 @@ class S {
     );
   }
 
+  /// `WHO classification`
+  String get bmiInfoClassificationSection {
+    return Intl.message(
+      'WHO classification',
+      name: 'bmiInfoClassificationSection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Formula`
+  String get bmiInfoFormulaSection {
+    return Intl.message(
+      'Formula',
+      name: 'bmiInfoFormulaSection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `How your BMI is calculated`
+  String get bmiInfoScreenTitle {
+    return Intl.message(
+      'How your BMI is calculated',
+      name: 'bmiInfoScreenTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `BMI`
   String get bmiLabel {
     return Intl.message('BMI', name: 'bmiLabel', desc: '', args: []);

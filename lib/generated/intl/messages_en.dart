@@ -186,6 +186,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals.",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "WHO classification",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("Formula"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage(
+      "How your BMI is calculated",
+    ),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "e.g. cereal, milk, coffee ...",

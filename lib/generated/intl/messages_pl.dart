@@ -186,6 +186,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "Wskaźnik Masy Ciała (BMI) to wskaźnik służący do klasyfikacji nadwagi i otyłości u dorosłych. Jest definiowany jako waga w kilogramach podzielona przez kwadrat wzrostu w metrach (kg/m²).\n\nBMI nie rozróżnia między tkanką tłuszczową a mięśniową i może być mylący dla niektórych osób.",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "Klasyfikacja WHO",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("Wzór"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage(
+      "Jak obliczane jest twoje BMI",
+    ),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "np. płatki, mleko, kawa ...",

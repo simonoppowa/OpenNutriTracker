@@ -190,6 +190,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "L\'Indice di Massa Corporea (BMI) è un indice per classificare sovrappeso e obesità negli adulti. È definito come peso in chilogrammi diviso per l\'altezza in metri al quadrato (kg/m²).\n\nIl BMI non differenzia tra massa grassa e muscolare e può essere fuorviante per alcune persone.",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "Classificazione OMS",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("Formula"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage(
+      "Come viene calcolato il tuo BMI",
+    ),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "es. cereali, latte, caffè ...",

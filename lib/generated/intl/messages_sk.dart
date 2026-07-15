@@ -189,6 +189,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "Index telesnej hmotnosti (BMI) je ukazovateľ na klasifikáciu nadváhy a obezity u dospelých. Vypočíta sa ako hmotnosť v kilogramoch delená druhou mocninou výšky v metroch (kg/m²).\n\nBMI nerozlišuje medzi tukovou a svalovou hmotou a u niektorých jednotlivcov môže byť zavádzajúci.",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "Klasifikácia WHO",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("Vzorec"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage(
+      "Ako sa počíta vaše BMI",
+    ),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "napr. cereálie, mlieko, káva ...",

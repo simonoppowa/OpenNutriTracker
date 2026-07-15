@@ -187,6 +187,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "Індекс маси тіла (ІМТ) — це індекс для класифікації надмірної ваги та ожиріння у дорослих. Визначається як вага в кілограмах, поділена на квадрат зросту в метрах (кг/м²). ІМТ не розрізняє жирову і м\'язову масу і може бути неточним для деяких людей.",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "Класифікація ВООЗ",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("Формула"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage(
+      "Як обчислюється ваш ІМТ",
+    ),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("ІМТ"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "наприклад, пластівці, молоко, кава ...",

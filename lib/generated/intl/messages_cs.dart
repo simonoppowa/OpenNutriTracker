@@ -186,6 +186,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "Body Mass Index (BMI) je výpočet pro klasifikaci nadváhy a obezity u dospělých. Je definován jako hmotnost v kilogramech vydělená druhou mocninou výšky v metrech (kg/m²).\n\nBMI nerozlišuje mezi tukovou tkání a svalovou hmotou a může být chybně interpretován u některých jedinců.",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "Klasifikace WHO",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("Vzorec"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage(
+      "Jak se počítá vaše BMI",
+    ),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "např. obilniny, mléko, káva...",

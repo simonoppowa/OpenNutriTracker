@@ -165,6 +165,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "体重指数（BMI）是用于分类成人超重和肥胖的指标。它定义为体重（千克）除以身高（米）的平方（kg/m²）。\n\nBMI不区分脂肪和肌肉质量，对某些人可能有误导性。",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "WHO 分类",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("公式"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage("您的 BMI 如何计算"),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "例如： cereal、牛奶、咖啡...",
