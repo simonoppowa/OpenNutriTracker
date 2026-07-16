@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/kcal_goal_info_screen.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -112,30 +113,46 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                 const SizedBox(height: Dimens.spacing16),
                 Semantics(
                   label: '${displayValue.toInt()} $kcalLabelText',
+                  hint: S.of(context).settingsKcalGoalInfoLabel,
+                  button: true,
                   excludeSemantics: true,
-                  child: CircularPercentIndicator(
-                  radius: 90,
-                  lineWidth: 16,
-                  percent: gaugeValue.clamp(0.0, 1.0),
-                  animation: true,
-                  animationDuration: 800,
-                  curve: AppMotion.emphasized,
-                  circularStrokeCap: CircularStrokeCap.round,
-                  backgroundColor: palette.surfaceMuted,
-                  progressColor: Theme.of(context).colorScheme.primary,
-                  center: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AnimatedFlipCounter(
-                        duration: const Duration(milliseconds: 800),
-                        curve: AppMotion.emphasized,
-                        value: displayValue.toInt(),
-                        textStyle: textTheme.displaySmall?.copyWith(height: 1),
+                  // Tapping the gauge opens the calorie-goal transparency
+                  // screen, so the central number on the dashboard is one
+                  // tap away from its full derivation.
+                  child: Tooltip(
+                    message: S.of(context).settingsKcalGoalInfoLabel,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const KcalGoalInfoScreen(),
+                        ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(kcalLabelText, style: textTheme.bodyMedium?.copyWith(color: palette.textMuted)),
-                    ],
-                  ),
+                      child: CircularPercentIndicator(
+                        radius: 90,
+                        lineWidth: 16,
+                        percent: gaugeValue.clamp(0.0, 1.0),
+                        animation: true,
+                        animationDuration: 800,
+                        curve: AppMotion.emphasized,
+                        circularStrokeCap: CircularStrokeCap.round,
+                        backgroundColor: palette.surfaceMuted,
+                        progressColor: Theme.of(context).colorScheme.primary,
+                        center: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AnimatedFlipCounter(
+                              duration: const Duration(milliseconds: 800),
+                              curve: AppMotion.emphasized,
+                              value: displayValue.toInt(),
+                              textStyle: textTheme.displaySmall?.copyWith(height: 1),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(kcalLabelText, style: textTheme.bodyMedium?.copyWith(color: palette.textMuted)),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
