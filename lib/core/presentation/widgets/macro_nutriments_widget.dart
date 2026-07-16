@@ -99,23 +99,30 @@ class _MacroRing extends StatelessWidget {
           backgroundColor: palette.surfaceMuted,
           circularStrokeCap: CircularStrokeCap.round,
         ),
-        Padding(
-          padding: const EdgeInsets.all(Dimens.spacing4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${intake.toInt()}/${goal.toInt()} g',
-                style: textTheme.titleSmall?.copyWith(
-                  color: palette.textStrong,
-                  fontWeight: FontWeight.w700,
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.all(Dimens.spacing4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${intake.toInt()}/${goal.toInt()} g',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.titleSmall?.copyWith(
+                    color: palette.textStrong,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              Text(
-                label,
-                style: textTheme.bodySmall?.copyWith(color: palette.textMuted),
-              ),
-            ],
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style:
+                      textTheme.bodySmall?.copyWith(color: palette.textMuted),
+                ),
+              ],
+            ),
           ),
         ),
       ],

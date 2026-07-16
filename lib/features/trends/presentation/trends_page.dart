@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -377,8 +378,11 @@ class _WaterTrendCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(S.of(context).trendsWaterLabel,
-                    style: text.titleMedium),
+                child: AutoSizeText(S.of(context).trendsWaterLabel,
+                    style: text.titleMedium,
+                    maxLines: 1,
+                    minFontSize: 12,
+                    overflow: TextOverflow.ellipsis),
               ),
               Text(
                 S.of(context).waterChipLabel(avg, goalMl),
@@ -482,8 +486,13 @@ class _MacrosTrendCard extends StatelessWidget {
           for (final (label, intake, goal, color) in rows) ...[
             Row(
               children: [
-                Text(label, style: text.labelMedium),
-                const Spacer(),
+                Expanded(
+                  child: Text(label,
+                      style: text.labelMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                ),
+                const SizedBox(width: Dimens.spacing8),
                 Text('${intake.toInt()} / ${goal.toInt()} g',
                     style: text.bodySmall?.copyWith(color: palette.textStrong, fontWeight: FontWeight.w700)),
               ],
@@ -535,8 +544,11 @@ class _WeightCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(S.of(context).weightHistoryWeightLabel,
-                    style: text.titleMedium),
+                child: AutoSizeText(S.of(context).weightHistoryWeightLabel,
+                    style: text.titleMedium,
+                    maxLines: 1,
+                    minFontSize: 12,
+                    overflow: TextOverflow.ellipsis),
               ),
               Semantics(
                 identifier: 'trends-log-weight',

@@ -56,6 +56,8 @@ class LowKcalWarningCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       l10n.lowKcalWarningTitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: textTheme.titleSmall?.copyWith(
                         color: palette.textStrong,
                       ),

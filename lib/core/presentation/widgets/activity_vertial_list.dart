@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_card.dart';
@@ -52,11 +53,16 @@ class _ActivityVerticalListState extends State<ActivityVerticalList> {
                 color: Theme.of(context).colorScheme.onSurface,
               ),
               const SizedBox(width: Dimens.spacing8),
-              Text(
-                widget.title,
-                style: Theme.of(context).textTheme.titleLarge,
+              Expanded(
+                child: AutoSizeText(
+                  widget.title,
+                  maxLines: 1,
+                  minFontSize: 14,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ),
-              const Spacer(),
+              const SizedBox(width: Dimens.spacing8),
               PopupMenuButton<_ActivityPopupMenuSelection>(
                 onSelected: (_ActivityPopupMenuSelection selection) async {
                   switch (selection) {
