@@ -118,4 +118,44 @@ void main() {
     expect(settingsBloc.savedProtein, 15);
     expect(settingsBloc.savedFat, 25);
   });
+
+  testWidgets('saves typed value from a non-first field and rebalances the rest',
+      (tester) async {
+    final settingsBloc = _FakeSettingsBloc();
+    final homeBloc = _FakeHomeBloc();
+
+    await tester.pumpWidget(_wrap(Builder(builder: (context) {
+      return ElevatedButton(
+        onPressed: () => showDialog<void>(
+          context: context,
+          builder: (_) => MacroSplitDialog(
+            settingsBloc: settingsBloc,
+            homeBloc: homeBloc,
+          ),
+        ),
+        child: const Text('Open'),
+      );
+    })));
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    // Second field is protein; typing here exercises the otherA/otherB wiring
+    // that differs per macro, guarding against a copy-paste mistake.
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(1), '25');
+
+    await tester.tap(find.text(S.current.dialogOKLabel));
+    await tester.pumpAndSettle();
+
+    expect(settingsBloc.savedProtein, 25);
+    expect(settingsBloc.savedCarbs, closeTo(52.941, 0.001));
+    expect(settingsBloc.savedFat, closeTo(22.059, 0.001));
+    expect(
+      (settingsBloc.savedCarbs ?? 0) +
+          (settingsBloc.savedProtein ?? 0) +
+          (settingsBloc.savedFat ?? 0),
+      closeTo(100, 0.001),
+    );
+  });
 }

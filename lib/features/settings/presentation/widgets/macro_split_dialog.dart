@@ -35,6 +35,12 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
   double _fatPct = _defaultFatPct;
   bool _loaded = false;
   bool _syncingControllers = false;
+
+  /// The field the user typed in most recently. On save we apply only this
+  /// field's pending (unsubmitted) text — last write wins. Reconciling
+  /// conflicting edits across multiple fields at once isn't worth the
+  /// complexity, and every submit/reset re-syncs the controllers anyway, so
+  /// an already-applied field re-applies as a no-op.
   _MacroField? _lastEditedMacro;
 
   late final TextEditingController _carbsController;
@@ -84,6 +90,9 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
   }
 
   void _markLastEdited(_MacroField field) {
+    // Guard against programmatic controller updates from _syncControllers.
+    // (Assigning controller.text doesn't currently fire TextField.onChanged,
+    // but the flag keeps this correct if that ever changes.)
     if (_syncingControllers) return;
     _lastEditedMacro = field;
   }
@@ -391,13 +400,13 @@ class _MacroRow extends StatelessWidget {
           child: Semantics(
             identifier: semanticIdentifier,
             child: Slider(
-            min: _MacroSplitDialogState._minMacroPct,
-            max: _MacroSplitDialogState._maxMacroPct,
-            value: value.clamp(
-              _MacroSplitDialogState._minMacroPct,
-              _MacroSplitDialogState._maxMacroPct,
-            ),
-            divisions: macroRange.toInt(),
+              min: _MacroSplitDialogState._minMacroPct,
+              max: _MacroSplitDialogState._maxMacroPct,
+              value: value.clamp(
+                _MacroSplitDialogState._minMacroPct,
+                _MacroSplitDialogState._maxMacroPct,
+              ),
+              divisions: macroRange.toInt(),
               onChanged: (v) {
                 final rounded = v.round().toDouble();
                 if (100 - rounded >= 10) {
