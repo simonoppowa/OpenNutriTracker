@@ -697,6 +697,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
       "Hesaplamanın tam dokümantasyonu",
     ),
+    "kcalGoalInfoMacroExplanation": MessageLookupByLibrary.simpleMessage(
+      "Kalori hedefiniz, makro dağılımınıza göre karbonhidrat, yağ ve proteine bölünür (varsayılan: %60 karbonhidrat, %25 yağ, %15 protein — Ayarlar\'dan değiştirilebilir). Gram hedefleri enerji yoğunluklarından gelir: karbonhidrat ve protein gram başına 4 kcal, yağ 9 kcal sağlar.",
+    ),
+    "kcalGoalInfoMacroSection": MessageLookupByLibrary.simpleMessage(
+      "Makro besin dağılımı",
+    ),
     "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
       "Erkek referansı",
     ),

@@ -729,6 +729,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
       "Documentazione completa del calcolo",
     ),
+    "kcalGoalInfoMacroExplanation": MessageLookupByLibrary.simpleMessage(
+      "Il tuo obiettivo calorico viene suddiviso in carboidrati, grassi e proteine secondo la tua ripartizione dei macro (predefinita: 60 % carboidrati, 25 % grassi, 15 % proteine — modificabile nelle Impostazioni). I grammi derivano dalle densità energetiche: carboidrati e proteine forniscono 4 kcal per grammo, i grassi 9 kcal per grammo.",
+    ),
+    "kcalGoalInfoMacroSection": MessageLookupByLibrary.simpleMessage(
+      "Distribuzione dei macronutrienti",
+    ),
     "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
       "Riferimento maschile",
     ),

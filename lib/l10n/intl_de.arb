@@ -416,6 +416,8 @@
   "kcalGoalInfoInputsSection": "Deine Angaben",
   "kcalGoalInfoIntro": "Dein tägliches Kalorienziel wird mit veröffentlichten wissenschaftlichen Formeln ausschließlich aus den unten stehenden Werten berechnet. Diese Seite zeigt jede Zahl, die in dein heutiges Ziel einfließt.",
   "kcalGoalInfoLearnMoreLabel": "Vollständige Dokumentation der Berechnung",
+  "kcalGoalInfoMacroExplanation": "Dein Kalorienziel wird anhand deiner Makro-Verteilung auf Kohlenhydrate, Fett und Protein aufgeteilt (Standard: 60 % Kohlenhydrate, 25 % Fett, 15 % Protein — anpassbar in den Einstellungen). Die Grammziele ergeben sich aus den Energiedichten: Kohlenhydrate und Protein liefern 4 kcal pro Gramm, Fett 9 kcal pro Gramm.",
+  "kcalGoalInfoMacroSection": "Verteilung der Makronährstoffe",
   "kcalGoalInfoMaleReferenceLabel": "Männliche Referenz",
   "kcalGoalInfoManualExplanation": "Ein fester Wert, den du selbst in den Einstellungen festlegst — falls du weißt, dass dein Bedarf von der Schätzung abweicht.",
   "kcalGoalInfoManualSection": "Schritt 3 · Manuelle Anpassung",

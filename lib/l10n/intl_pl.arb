@@ -385,6 +385,8 @@
   "kcalGoalInfoInputsSection": "Twoje dane",
   "kcalGoalInfoIntro": "Twój dzienny cel kaloryczny jest obliczany według opublikowanych równań naukowych wyłącznie z poniższych wartości. Ta strona pokazuje każdą liczbę składającą się na dzisiejszy cel.",
   "kcalGoalInfoLearnMoreLabel": "Pełna dokumentacja obliczeń",
+  "kcalGoalInfoMacroExplanation": "Twój cel kaloryczny jest dzielony na węglowodany, tłuszcze i białko według twojego podziału makro (domyślnie: 60 % węglowodany, 25 % tłuszcze, 15 % białko — do zmiany w Ustawieniach). Cele w gramach wynikają z gęstości energetycznej: węglowodany i białko dostarczają 4 kcal na gram, tłuszcz 9 kcal na gram.",
+  "kcalGoalInfoMacroSection": "Rozkład makroskładników",
   "kcalGoalInfoMaleReferenceLabel": "Referencja męska",
   "kcalGoalInfoManualExplanation": "Stałe przesunięcie ustawiane samodzielnie w Ustawieniach — gdy wiesz, że twoje potrzeby różnią się od oszacowania.",
   "kcalGoalInfoManualSection": "Krok 3 · Korekta ręczna",

@@ -717,6 +717,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
       "Úplná dokumentace výpočtu",
     ),
+    "kcalGoalInfoMacroExplanation": MessageLookupByLibrary.simpleMessage(
+      "Váš kalorický cíl se dělí na sacharidy, tuky a bílkoviny podle vašeho rozdělení maker (výchozí: 60 % sacharidy, 25 % tuky, 15 % bílkoviny — lze upravit v Nastavení). Gramové cíle vyplývají z energetické hustoty: sacharidy a bílkoviny dodávají 4 kcal na gram, tuky 9 kcal na gram.",
+    ),
+    "kcalGoalInfoMacroSection": MessageLookupByLibrary.simpleMessage(
+      "Rozdělení makroživin",
+    ),
     "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
       "Mužská reference",
     ),

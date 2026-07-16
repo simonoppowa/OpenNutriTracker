@@ -2403,6 +2403,26 @@ class S {
     );
   }
 
+  /// `Your calorie goal is split into carbs, fat, and protein using your macro split (default: 60 % carbs, 25 % fat, 15 % protein — adjustable in Settings). Gram targets follow from the energy densities: carbohydrates and protein provide 4 kcal per gram, fat 9 kcal per gram.`
+  String get kcalGoalInfoMacroExplanation {
+    return Intl.message(
+      'Your calorie goal is split into carbs, fat, and protein using your macro split (default: 60 % carbs, 25 % fat, 15 % protein — adjustable in Settings). Gram targets follow from the energy densities: carbohydrates and protein provide 4 kcal per gram, fat 9 kcal per gram.',
+      name: 'kcalGoalInfoMacroExplanation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Macronutrient distribution`
+  String get kcalGoalInfoMacroSection {
+    return Intl.message(
+      'Macronutrient distribution',
+      name: 'kcalGoalInfoMacroSection',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Male reference`
   String get kcalGoalInfoMaleReferenceLabel {
     return Intl.message(

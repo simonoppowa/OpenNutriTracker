@@ -386,6 +386,8 @@
   "kcalGoalInfoInputsSection": "您的输入",
   "kcalGoalInfoIntro": "您的每日热量目标仅根据以下数值、按照已发表的科学公式计算。本页展示了构成今日目标的每一个数字。",
   "kcalGoalInfoLearnMoreLabel": "完整计算文档",
+  "kcalGoalInfoMacroExplanation": "您的热量目标会按照您的宏量营养素比例分配到碳水化合物、脂肪和蛋白质（默认：碳水 60%、脂肪 25%、蛋白质 15%——可在设置中调整）。克数目标由能量密度得出：碳水化合物和蛋白质每克提供 4 千卡，脂肪每克提供 9 千卡。",
+  "kcalGoalInfoMacroSection": "宏量营养素分配",
   "kcalGoalInfoMaleReferenceLabel": "男性参考",
   "kcalGoalInfoManualExplanation": "您在设置中自行设定的固定偏移——当您知道自己的需求与估算不同时使用。",
   "kcalGoalInfoManualSection": "第 3 步 · 手动调整",

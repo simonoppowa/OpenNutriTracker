@@ -725,6 +725,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
       "Vollständige Dokumentation der Berechnung",
     ),
+    "kcalGoalInfoMacroExplanation": MessageLookupByLibrary.simpleMessage(
+      "Dein Kalorienziel wird anhand deiner Makro-Verteilung auf Kohlenhydrate, Fett und Protein aufgeteilt (Standard: 60 % Kohlenhydrate, 25 % Fett, 15 % Protein — anpassbar in den Einstellungen). Die Grammziele ergeben sich aus den Energiedichten: Kohlenhydrate und Protein liefern 4 kcal pro Gramm, Fett 9 kcal pro Gramm.",
+    ),
+    "kcalGoalInfoMacroSection": MessageLookupByLibrary.simpleMessage(
+      "Verteilung der Makronährstoffe",
+    ),
     "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
       "Männliche Referenz",
     ),

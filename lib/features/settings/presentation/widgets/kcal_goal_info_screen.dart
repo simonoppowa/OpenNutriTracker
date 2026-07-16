@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_breakdown_use
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
@@ -67,6 +68,8 @@ class _KcalGoalInfoScreenState extends State<KcalGoalInfoScreen> {
               _ActivityCard(breakdown: breakdown),
               const SizedBox(height: Dimens.spacing12),
               _ResultCard(breakdown: breakdown),
+              const SizedBox(height: Dimens.spacing12),
+              _MacroCard(breakdown: breakdown),
               const SizedBox(height: Dimens.spacing16),
               Text(
                 l10n.kcalGoalInfoEstimateNote,
@@ -403,6 +406,68 @@ class _ResultCard extends StatelessWidget {
   }
 }
 
+/// How the calorie goal splits into carb / fat / protein gram targets.
+class _MacroCard extends StatelessWidget {
+  final KcalGoalBreakdownEntity breakdown;
+
+  const _MacroCard({required this.breakdown});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = S.of(context);
+    final goalKcal = breakdown.totalKcalGoal.round();
+    return _SectionCard(
+      title: l10n.kcalGoalInfoMacroSection,
+      children: [
+        Text(
+          l10n.kcalGoalInfoMacroExplanation,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: Dimens.spacing12),
+        _FormulaText.raw(
+          text: '${l10n.carbsLabel}: '
+              '${_macroLine(goalKcal, breakdown.carbsFractionGoal, MacroCalc.carbsKcalPerGram, breakdown.carbsGoalGrams)}\n'
+              '${l10n.fatLabel}: '
+              '${_macroLine(goalKcal, breakdown.fatsFractionGoal, MacroCalc.fatKcalPerGram, breakdown.fatsGoalGrams)}\n'
+              '${l10n.proteinLabel}: '
+              '${_macroLine(goalKcal, breakdown.proteinsFractionGoal, MacroCalc.proteinKcalPerGram, breakdown.proteinsGoalGrams)}',
+        ),
+        const Divider(height: Dimens.spacing20),
+        _ValueRow(
+          label: l10n.carbsLabel,
+          value: '${breakdown.carbsGoalGrams.round()} g',
+          emphasized: true,
+        ),
+        _ValueRow(
+          label: l10n.fatLabel,
+          value: '${breakdown.fatsGoalGrams.round()} g',
+          emphasized: true,
+        ),
+        _ValueRow(
+          label: l10n.proteinLabel,
+          value: '${breakdown.proteinsGoalGrams.round()} g',
+          emphasized: true,
+        ),
+      ],
+    );
+  }
+
+  /// One substituted line of the gram computation, e.g.
+  /// `2100 × 60 % ÷ 4 = 315 g`. Percentages are shown rounded the way the
+  /// macro-split dialog edits them; the gram result comes from the entity,
+  /// not from re-deriving it here.
+  String _macroLine(
+    int goalKcal,
+    double fraction,
+    double kcalPerGram,
+    double grams,
+  ) {
+    final pct = (fraction * 100).round();
+    final density = kcalPerGram.toStringAsFixed(0);
+    return '$goalKcal × $pct % ÷ $density = ${grams.round()} g';
+  }
+}
+
 class _SectionCard extends StatelessWidget {
   final String title;
   final List<Widget> children;
@@ -476,14 +541,25 @@ class _FormulaSideLabel extends StatelessWidget {
 /// kcal even when the display unit is kJ — the converted result appears in
 /// the summary rows instead.
 class _FormulaText extends StatelessWidget {
-  final String formula;
-  final double resultKcal;
+  final String? formula;
+  final double? resultKcal;
+  final String? rawText;
 
-  const _FormulaText({required this.formula, required this.resultKcal});
+  const _FormulaText({required this.formula, required this.resultKcal})
+      : rawText = null;
+
+  /// Renders pre-assembled monospace lines (used by the macro card, whose
+  /// per-line results are grams rather than a single kcal value).
+  const _FormulaText.raw({required String text})
+      : rawText = text,
+        formula = null,
+        resultKcal = null;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final text = rawText ??
+        '$formula\n= ${resultKcal!.round()} ${S.of(context).kcalLabel}';
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(Dimens.spacing8),
@@ -492,7 +568,7 @@ class _FormulaText extends StatelessWidget {
         borderRadius: BorderRadius.circular(Dimens.spacing8),
       ),
       child: Text(
-        '$formula\n= ${resultKcal.round()} ${S.of(context).kcalLabel}',
+        text,
         style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
       ),
     );

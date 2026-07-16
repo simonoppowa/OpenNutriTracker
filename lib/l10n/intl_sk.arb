@@ -433,6 +433,8 @@
   "kcalGoalInfoInputsSection": "Vaše údaje",
   "kcalGoalInfoIntro": "Váš denný kalorický cieľ sa počíta podľa publikovaných vedeckých rovníc len z hodnôt uvedených nižšie. Táto stránka ukazuje každé číslo, ktoré vstupuje do dnešného cieľa.",
   "kcalGoalInfoLearnMoreLabel": "Úplná dokumentácia výpočtu",
+  "kcalGoalInfoMacroExplanation": "Váš kalorický cieľ sa delí na sacharidy, tuky a bielkoviny podľa vášho rozdelenia makier (predvolené: 60 % sacharidy, 25 % tuky, 15 % bielkoviny — dá sa upraviť v Nastaveniach). Gramové ciele vyplývajú z energetickej hustoty: sacharidy a bielkoviny dodávajú 4 kcal na gram, tuky 9 kcal na gram.",
+  "kcalGoalInfoMacroSection": "Rozdelenie makroživín",
   "kcalGoalInfoMaleReferenceLabel": "Mužská referencia",
   "kcalGoalInfoManualExplanation": "Pevný posun, ktorý si sami nastavíte v Nastaveniach — ak viete, že sa vaše potreby líšia od odhadu.",
   "kcalGoalInfoManualSection": "Krok 3 · Manuálna úprava",

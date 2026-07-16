@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/calc/pal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/tdee_calc.dart';
 
@@ -58,6 +59,17 @@ class KcalGoalBreakdownEntity extends Equatable {
   /// equals [CalorieGoalCalc.getTotalKcalGoal] for the same inputs.
   final double totalKcalGoal;
 
+  // Macronutrient split derived from [totalKcalGoal]. The fractions are the
+  // effective ones — the user's custom split when set, otherwise the
+  // [MacroCalc] defaults (0.60 / 0.25 / 0.15) — and the gram goals come from
+  // the same [MacroCalc] calls the home screen uses.
+  final double carbsFractionGoal;
+  final double fatsFractionGoal;
+  final double proteinsFractionGoal;
+  final double carbsGoalGrams;
+  final double fatsGoalGrams;
+  final double proteinsGoalGrams;
+
   const KcalGoalBreakdownEntity({
     required this.age,
     required this.heightCM,
@@ -80,6 +92,12 @@ class KcalGoalBreakdownEntity extends Equatable {
     required this.manualKcalAdjustment,
     required this.activityKcal,
     required this.totalKcalGoal,
+    required this.carbsFractionGoal,
+    required this.fatsFractionGoal,
+    required this.proteinsFractionGoal,
+    required this.carbsGoalGrams,
+    required this.fatsGoalGrams,
+    required this.proteinsGoalGrams,
   });
 
   /// Whether the taper actually changed the adjustment for this snapshot.
@@ -94,6 +112,9 @@ class KcalGoalBreakdownEntity extends Equatable {
     required UserEntity user,
     double? userKcalAdjustment,
     required double totalKcalActivities,
+    double? userCarbsGoalPct,
+    double? userFatsGoalPct,
+    double? userProteinsGoalPct,
   }) {
     final palValue = PalCalc.getPALValueFromActivityCategory(user);
 
@@ -160,6 +181,19 @@ class KcalGoalBreakdownEntity extends Equatable {
       caloriesTaperEnabled: user.caloriesTaperEnabled,
     );
 
+    final carbsGrams = MacroCalc.getTotalCarbsGoal(
+      totalGoal,
+      userCarbsGoal: userCarbsGoalPct,
+    );
+    final fatsGrams = MacroCalc.getTotalFatsGoal(
+      totalGoal,
+      userFatsGoal: userFatsGoalPct,
+    );
+    final proteinsGrams = MacroCalc.getTotalProteinsGoal(
+      totalGoal,
+      userProteinsGoal: userProteinsGoalPct,
+    );
+
     return KcalGoalBreakdownEntity(
       age: user.age,
       heightCM: user.heightCM,
@@ -182,6 +216,13 @@ class KcalGoalBreakdownEntity extends Equatable {
       manualKcalAdjustment: userKcalAdjustment ?? 0,
       activityKcal: totalKcalActivities,
       totalKcalGoal: totalGoal,
+      carbsFractionGoal: userCarbsGoalPct ?? MacroCalc.defaultCarbsPercentageGoal,
+      fatsFractionGoal: userFatsGoalPct ?? MacroCalc.defaultFatsPercentageGoal,
+      proteinsFractionGoal:
+          userProteinsGoalPct ?? MacroCalc.defaultProteinsPercentageGoal,
+      carbsGoalGrams: carbsGrams,
+      fatsGoalGrams: fatsGrams,
+      proteinsGoalGrams: proteinsGrams,
     );
   }
 
@@ -208,5 +249,11 @@ class KcalGoalBreakdownEntity extends Equatable {
     manualKcalAdjustment,
     activityKcal,
     totalKcalGoal,
+    carbsFractionGoal,
+    fatsFractionGoal,
+    proteinsFractionGoal,
+    carbsGoalGrams,
+    fatsGoalGrams,
+    proteinsGoalGrams,
   ];
 }

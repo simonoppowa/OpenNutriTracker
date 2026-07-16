@@ -584,6 +584,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
       "完整计算文档",
     ),
+    "kcalGoalInfoMacroExplanation": MessageLookupByLibrary.simpleMessage(
+      "您的热量目标会按照您的宏量营养素比例分配到碳水化合物、脂肪和蛋白质（默认：碳水 60%、脂肪 25%、蛋白质 15%——可在设置中调整）。克数目标由能量密度得出：碳水化合物和蛋白质每克提供 4 千卡，脂肪每克提供 9 千卡。",
+    ),
+    "kcalGoalInfoMacroSection": MessageLookupByLibrary.simpleMessage("宏量营养素分配"),
     "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
       "男性参考",
     ),

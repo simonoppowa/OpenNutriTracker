@@ -385,6 +385,8 @@
   "kcalGoalInfoInputsSection": "I tuoi dati",
   "kcalGoalInfoIntro": "Il tuo obiettivo calorico giornaliero viene calcolato con equazioni scientifiche pubblicate usando solo i valori qui sotto. Questa pagina mostra ogni numero che contribuisce all'obiettivo di oggi.",
   "kcalGoalInfoLearnMoreLabel": "Documentazione completa del calcolo",
+  "kcalGoalInfoMacroExplanation": "Il tuo obiettivo calorico viene suddiviso in carboidrati, grassi e proteine secondo la tua ripartizione dei macro (predefinita: 60 % carboidrati, 25 % grassi, 15 % proteine — modificabile nelle Impostazioni). I grammi derivano dalle densità energetiche: carboidrati e proteine forniscono 4 kcal per grammo, i grassi 9 kcal per grammo.",
+  "kcalGoalInfoMacroSection": "Distribuzione dei macronutrienti",
   "kcalGoalInfoMaleReferenceLabel": "Riferimento maschile",
   "kcalGoalInfoManualExplanation": "Uno scostamento fisso che imposti tu stesso nelle Impostazioni, per quando sai che il tuo fabbisogno differisce dalla stima.",
   "kcalGoalInfoManualSection": "Passo 3 · Correzione manuale",

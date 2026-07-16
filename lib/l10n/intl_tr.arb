@@ -416,6 +416,8 @@
   "kcalGoalInfoInputsSection": "Girdileriniz",
   "kcalGoalInfoIntro": "Günlük kalori hedefiniz, yalnızca aşağıdaki değerler kullanılarak yayımlanmış bilimsel denklemlerle hesaplanır. Bu sayfa bugünkü hedefe giren her sayıyı gösterir.",
   "kcalGoalInfoLearnMoreLabel": "Hesaplamanın tam dokümantasyonu",
+  "kcalGoalInfoMacroExplanation": "Kalori hedefiniz, makro dağılımınıza göre karbonhidrat, yağ ve proteine bölünür (varsayılan: %60 karbonhidrat, %25 yağ, %15 protein — Ayarlar'dan değiştirilebilir). Gram hedefleri enerji yoğunluklarından gelir: karbonhidrat ve protein gram başına 4 kcal, yağ 9 kcal sağlar.",
+  "kcalGoalInfoMacroSection": "Makro besin dağılımı",
   "kcalGoalInfoMaleReferenceLabel": "Erkek referansı",
   "kcalGoalInfoManualExplanation": "Ayarlar'da kendinizin belirlediği sabit bir kaydırma — ihtiyacınızın tahminden farklı olduğunu bildiğiniz durumlar için.",
   "kcalGoalInfoManualSection": "Adım 3 · Manuel düzeltme",

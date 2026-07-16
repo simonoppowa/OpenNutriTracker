@@ -726,6 +726,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
       "Повна документація розрахунку",
     ),
+    "kcalGoalInfoMacroExplanation": MessageLookupByLibrary.simpleMessage(
+      "Ваша ціль калорій розподіляється на вуглеводи, жири та білки згідно з вашим розподілом макросів (типово: 60 % вуглеводи, 25 % жири, 15 % білки — можна змінити в Налаштуваннях). Грамові цілі випливають з енергетичної щільності: вуглеводи та білки дають 4 ккал на грам, жири — 9 ккал на грам.",
+    ),
+    "kcalGoalInfoMacroSection": MessageLookupByLibrary.simpleMessage(
+      "Розподіл макронутрієнтів",
+    ),
     "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
       "Чоловічий еталон",
     ),

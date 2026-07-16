@@ -31,6 +31,9 @@ class GetKcalGoalBreakdownUsecase {
       user: user,
       userKcalAdjustment: config.userKcalAdjustment,
       totalKcalActivities: totalKcalActivities,
+      userCarbsGoalPct: config.userCarbGoalPct,
+      userFatsGoalPct: config.userFatGoalPct,
+      userProteinsGoalPct: config.userProteinGoalPct,
     );
   }
 }

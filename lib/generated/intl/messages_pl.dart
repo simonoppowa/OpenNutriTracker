@@ -717,6 +717,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
       "Pełna dokumentacja obliczeń",
     ),
+    "kcalGoalInfoMacroExplanation": MessageLookupByLibrary.simpleMessage(
+      "Twój cel kaloryczny jest dzielony na węglowodany, tłuszcze i białko według twojego podziału makro (domyślnie: 60 % węglowodany, 25 % tłuszcze, 15 % białko — do zmiany w Ustawieniach). Cele w gramach wynikają z gęstości energetycznej: węglowodany i białko dostarczają 4 kcal na gram, tłuszcz 9 kcal na gram.",
+    ),
+    "kcalGoalInfoMacroSection": MessageLookupByLibrary.simpleMessage(
+      "Rozkład makroskładników",
+    ),
     "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
       "Referencja męska",
     ),

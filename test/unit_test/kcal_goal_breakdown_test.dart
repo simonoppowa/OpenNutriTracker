@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/calc/tdee_calc.dart';
 
 import '../fixture/user_entity_fixtures.dart';
@@ -162,5 +163,63 @@ void main() {
     );
 
     expect(breakdown.manualKcalAdjustment, 0);
+  });
+
+  test('macro grams match the production MacroCalc results', () {
+    final breakdown = KcalGoalBreakdownEntity.compute(
+      user: buildUser(),
+      totalKcalActivities: 200,
+    );
+
+    expect(
+      breakdown.carbsGoalGrams,
+      MacroCalc.getTotalCarbsGoal(breakdown.totalKcalGoal),
+    );
+    expect(
+      breakdown.fatsGoalGrams,
+      MacroCalc.getTotalFatsGoal(breakdown.totalKcalGoal),
+    );
+    expect(
+      breakdown.proteinsGoalGrams,
+      MacroCalc.getTotalProteinsGoal(breakdown.totalKcalGoal),
+    );
+    // Default split when the user has not customised it.
+    expect(breakdown.carbsFractionGoal, 0.6);
+    expect(breakdown.fatsFractionGoal, 0.25);
+    expect(breakdown.proteinsFractionGoal, 0.15);
+  });
+
+  test('custom macro split replaces the defaults', () {
+    final breakdown = KcalGoalBreakdownEntity.compute(
+      user: buildUser(),
+      totalKcalActivities: 0,
+      userCarbsGoalPct: 0.4,
+      userFatsGoalPct: 0.3,
+      userProteinsGoalPct: 0.3,
+    );
+
+    expect(breakdown.carbsFractionGoal, 0.4);
+    expect(breakdown.fatsFractionGoal, 0.3);
+    expect(breakdown.proteinsFractionGoal, 0.3);
+    expect(
+      breakdown.carbsGoalGrams,
+      MacroCalc.getTotalCarbsGoal(breakdown.totalKcalGoal,
+          userCarbsGoal: 0.4),
+    );
+  });
+
+  test('macro gram energies sum back to the calorie goal', () {
+    final breakdown = KcalGoalBreakdownEntity.compute(
+      user: buildUser(),
+      totalKcalActivities: 150,
+    );
+
+    // 60/25/15 sums to 100 %, so grams × densities must rebuild the goal.
+    expect(
+      breakdown.carbsGoalGrams * MacroCalc.carbsKcalPerGram +
+          breakdown.fatsGoalGrams * MacroCalc.fatKcalPerGram +
+          breakdown.proteinsGoalGrams * MacroCalc.proteinKcalPerGram,
+      closeTo(breakdown.totalKcalGoal, 0.0001),
+    );
   });
 }
