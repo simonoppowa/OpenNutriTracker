@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_bmi_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/info_dialog.dart';
@@ -59,13 +60,18 @@ class BMIOverview extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              nutritionalStatus.getName(context),
-              style: text.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: palette.textStrong,
+            Flexible(
+              child: AutoSizeText(
+                nutritionalStatus.getName(context),
+                maxLines: 1,
+                minFontSize: 14,
+                overflow: TextOverflow.ellipsis,
+                style: text.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: palette.textStrong,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
             const SizedBox(width: Dimens.spacing4),
             InkWell(

@@ -86,11 +86,13 @@ class _DashboardWidgetState extends State<DashboardWidget> {
               children: [
                 Row(
                   children: [
-                    _MiniStat(
-                      icon: Icons.arrow_downward_rounded,
-                      value: '${displaySupplied.toInt()}',
-                      label: S.of(context).suppliedLabel,
-                      color: palette.proteinColor,
+                    Flexible(
+                      child: _MiniStat(
+                        icon: Icons.arrow_downward_rounded,
+                        value: '${displaySupplied.toInt()}',
+                        label: S.of(context).suppliedLabel,
+                        color: palette.proteinColor,
+                      ),
                     ),
                     const Spacer(),
                     GestureDetector(
@@ -100,12 +102,14 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                       child: Icon(Icons.info_outline_rounded, color: palette.textMuted, size: 22),
                     ),
                     const Spacer(),
-                    _MiniStat(
-                      icon: Icons.local_fire_department_rounded,
-                      value: '${displayBurned.toInt()}',
-                      label: S.of(context).burnedLabel,
-                      color: palette.carbsColor,
-                      trailing: true,
+                    Flexible(
+                      child: _MiniStat(
+                        icon: Icons.local_fire_department_rounded,
+                        value: '${displayBurned.toInt()}',
+                        label: S.of(context).burnedLabel,
+                        color: palette.carbsColor,
+                        trailing: true,
+                      ),
                     ),
                   ],
                 ),
@@ -208,8 +212,10 @@ class _MiniStat extends StatelessWidget {
           child: Icon(icon, color: color, size: 20),
         ),
         const SizedBox(height: 6),
-        Text(value, style: textTheme.titleMedium),
-        Text(label, style: textTheme.labelSmall),
+        Text(value,
+            maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.titleMedium),
+        Text(label,
+            maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.labelSmall),
       ],
     );
   }

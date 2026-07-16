@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -67,9 +68,10 @@ class RecipeListItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    AutoSizeText(
                       recipe.name,
                       maxLines: 1,
+                      minFontSize: 12,
                       overflow: TextOverflow.ellipsis,
                       style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                     ),

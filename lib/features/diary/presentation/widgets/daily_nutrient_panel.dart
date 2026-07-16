@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
@@ -432,8 +433,11 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
             title: Row(
               children: [
                 Expanded(
-                  child: Text(
+                  child: AutoSizeText(
                     s.diaryNutrientPanelTitle,
+                    maxLines: 1,
+                    minFontSize: 12,
+                    overflow: TextOverflow.ellipsis,
                     style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
