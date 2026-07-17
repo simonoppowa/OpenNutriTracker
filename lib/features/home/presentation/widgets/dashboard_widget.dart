@@ -86,7 +86,11 @@ class _DashboardWidgetState extends State<DashboardWidget> {
               children: [
                 Row(
                   children: [
-                    Flexible(
+                    // Two equal halves; each stat pins itself to its card
+                    // edge via its own cross-axis alignment. A Spacer next
+                    // to loose-fit Flexible children would leave the spare
+                    // width at the row end and pull "burned" off the edge.
+                    Expanded(
                       child: _MiniStat(
                         icon: Icons.arrow_downward_rounded,
                         value: '${displaySupplied.toInt()}',
@@ -94,8 +98,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                         color: palette.proteinColor,
                       ),
                     ),
-                    const Spacer(),
-                    Flexible(
+                    Expanded(
                       child: _MiniStat(
                         icon: Icons.local_fire_department_rounded,
                         value: '${displayBurned.toInt()}',
