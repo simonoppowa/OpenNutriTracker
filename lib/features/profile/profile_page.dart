@@ -7,6 +7,9 @@ import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/calories_profile_info_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
@@ -467,8 +470,20 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
     if (newKg != null) {
-      userEntity.weightKG = newKg;
-      _profileBloc.updateUser(userEntity);
+      final now = DateTime.now();
+      await locator<AddWeightLogUsecase>().addEntry(
+        WeightLogEntity(
+          date: DateTime(now.year, now.month, now.day),
+          weightKg: newKg,
+        ),
+      );
+
+      // addEntry already persisted today's weight onto the user record, so
+      // reload it and route through ProfileBloc.updateUser purely so the
+      // profile screen, diary, and home all refresh in one go — mirrors
+      // QuickWeightWidget._showWeightDialog on the home screen.
+      final updatedUser = await locator<GetUserUsecase>().getUserData();
+      _profileBloc.updateUser(updatedUser);
     }
   }
 
