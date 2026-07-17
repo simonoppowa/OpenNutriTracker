@@ -19,7 +19,11 @@ import 'package:url_launcher/url_launcher.dart';
 /// the exact production calculation — this screen only renders, it never
 /// computes goal math of its own.
 class KcalGoalInfoScreen extends StatefulWidget {
-  const KcalGoalInfoScreen({super.key});
+  /// Injectable for widget tests; production callers leave this null and
+  /// get the locator-registered usecase.
+  final GetKcalGoalBreakdownUsecase? usecase;
+
+  const KcalGoalInfoScreen({super.key, this.usecase});
 
   @override
   State<KcalGoalInfoScreen> createState() => _KcalGoalInfoScreenState();
@@ -31,7 +35,8 @@ class _KcalGoalInfoScreenState extends State<KcalGoalInfoScreen> {
   @override
   void initState() {
     super.initState();
-    _breakdown = locator<GetKcalGoalBreakdownUsecase>().getBreakdown();
+    _breakdown = (widget.usecase ?? locator<GetKcalGoalBreakdownUsecase>())
+        .getBreakdown();
   }
 
   @override
@@ -415,7 +420,7 @@ class _MacroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = S.of(context);
-    final goalKcal = breakdown.totalKcalGoal.round();
+    final goalKcal = breakdown.totalKcalGoal.toInt();
     return _SectionCard(
       title: l10n.kcalGoalInfoMacroSection,
       children: [
@@ -435,17 +440,17 @@ class _MacroCard extends StatelessWidget {
         const Divider(height: Dimens.spacing20),
         _ValueRow(
           label: l10n.carbsLabel,
-          value: '${breakdown.carbsGoalGrams.round()} g',
+          value: '${breakdown.carbsGoalGrams.toInt()} g',
           emphasized: true,
         ),
         _ValueRow(
           label: l10n.fatLabel,
-          value: '${breakdown.fatsGoalGrams.round()} g',
+          value: '${breakdown.fatsGoalGrams.toInt()} g',
           emphasized: true,
         ),
         _ValueRow(
           label: l10n.proteinLabel,
-          value: '${breakdown.proteinsGoalGrams.round()} g',
+          value: '${breakdown.proteinsGoalGrams.toInt()} g',
           emphasized: true,
         ),
       ],
@@ -464,7 +469,8 @@ class _MacroCard extends StatelessWidget {
   ) {
     final pct = (fraction * 100).round();
     final density = kcalPerGram.toStringAsFixed(0);
-    return '$goalKcal × $pct % ÷ $density = ${grams.round()} g';
+    // Grams truncate (not round) to match the dashboard's macro tiles.
+    return '$goalKcal × $pct % ÷ $density = ${grams.toInt()} g';
   }
 }
 
@@ -559,7 +565,7 @@ class _FormulaText extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final text = rawText ??
-        '$formula\n= ${resultKcal!.round()} ${S.of(context).kcalLabel}';
+        '$formula\n= ${resultKcal!.toInt()} ${S.of(context).kcalLabel}';
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(Dimens.spacing8),

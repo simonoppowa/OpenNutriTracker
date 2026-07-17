@@ -18,7 +18,11 @@ import 'package:url_launcher/url_launcher.dart';
 /// status are computed through the same [BMICalc] calls the Profile bloc
 /// uses, so this screen always matches the ring on the Profile tab.
 class BmiInfoScreen extends StatefulWidget {
-  const BmiInfoScreen({super.key});
+  /// Injectable for widget tests; production callers leave this null and
+  /// get the locator-registered usecase.
+  final GetUserUsecase? userUsecase;
+
+  const BmiInfoScreen({super.key, this.userUsecase});
 
   @override
   State<BmiInfoScreen> createState() => _BmiInfoScreenState();
@@ -30,7 +34,7 @@ class _BmiInfoScreenState extends State<BmiInfoScreen> {
   @override
   void initState() {
     super.initState();
-    _user = locator<GetUserUsecase>().getUserData();
+    _user = (widget.userUsecase ?? locator<GetUserUsecase>()).getUserData();
   }
 
   @override
