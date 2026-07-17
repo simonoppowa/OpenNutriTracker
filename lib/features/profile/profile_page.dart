@@ -483,7 +483,7 @@ class _ProfilePageState extends State<ProfilePage> {
       // profile screen, diary, and home all refresh in one go — mirrors
       // QuickWeightWidget._showWeightDialog on the home screen.
       final updatedUser = await locator<GetUserUsecase>().getUserData();
-      _profileBloc.updateUser(updatedUser);
+      await _profileBloc.updateUser(updatedUser);
     }
   }
 
