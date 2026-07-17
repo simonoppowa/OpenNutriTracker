@@ -1,8 +1,10 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/share_qr_dialog.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
 import 'package:opennutritracker/features/home/domain/entity/shared_activity_payload.dart';
@@ -40,7 +42,8 @@ class _ActivityVerticalListState extends State<ActivityVerticalList> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.fromLTRB(
+              Dimens.spacing16, Dimens.spacing16, Dimens.spacing16, Dimens.spacing8),
           alignment: Alignment.centerLeft,
           child: Row(
             children: [
@@ -49,14 +52,17 @@ class _ActivityVerticalListState extends State<ActivityVerticalList> {
                 size: 24,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
-              const SizedBox(width: 4.0),
-              Text(
-                widget.title,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+              const SizedBox(width: Dimens.spacing8),
+              Expanded(
+                child: AutoSizeText(
+                  widget.title,
+                  maxLines: 1,
+                  minFontSize: 14,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ),
-              const Spacer(),
+              const SizedBox(width: Dimens.spacing8),
               PopupMenuButton<_ActivityPopupMenuSelection>(
                 onSelected: (_ActivityPopupMenuSelection selection) async {
                   switch (selection) {
@@ -108,31 +114,23 @@ class _ActivityVerticalListState extends State<ActivityVerticalList> {
             ],
           ),
         ),
-        SizedBox(
-          height: 160,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: widget.userActivityList.length + 1,
-            itemBuilder: (BuildContext context, int index) {
-              final firstListElement = index == 0 ? true : false;
-              if (index == widget.userActivityList.length) {
-                return PlaceholderCard(
-                  day: widget.day,
-                  onTap: () => _onPlaceholderCardTapped(context),
-                  firstListElement: firstListElement,
-                );
-              } else {
-                final userActivity = widget.userActivityList[index];
-                return ActivityCard(
-                  activityEntity: userActivity,
-                  onItemLongPressed: widget.onItemLongPressedCallback,
-                  onItemTapped: widget.onItemTappedCallback,
-                  onItemDragCallback: widget.onItemDragCallback,
-                  firstListElement: firstListElement,
-                );
-              }
-            },
-          ),
+        Column(
+          children: [
+            for (final userActivity in widget.userActivityList)
+              ActivityCard(
+                activityEntity: userActivity,
+                onItemLongPressed: widget.onItemLongPressedCallback,
+                onItemTapped: widget.onItemTappedCallback,
+                onItemDragCallback: widget.onItemDragCallback,
+                firstListElement: false,
+              ),
+            PlaceholderCard(
+              day: widget.day,
+              onTap: () => _onPlaceholderCardTapped(context),
+              firstListElement: true,
+              semanticIdentifier: 'add-activity-placeholder',
+            ),
+          ],
         ),
       ],
     );

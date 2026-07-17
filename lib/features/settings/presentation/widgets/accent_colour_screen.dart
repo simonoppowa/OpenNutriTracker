@@ -3,32 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
+import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/styles/accent_colors.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-
-/// Sixteen hand-picked accent colours that span the wheel and read well as
-/// circular swatches in a 4×4 grid. Each one drives `ColorScheme.fromSeed`
-/// to produce a coherent Material 3 palette.
-const List<Color> _presetColors = <Color>[
-  Color(0xFFE53935), // red
-  Color(0xFFFF6F61), // coral
-  Color(0xFFFB8C00), // orange
-  Color(0xFFFFB300), // amber
-  Color(0xFFFDD835), // yellow
-  Color(0xFFC0CA33), // chartreuse
-  Color(0xFF7CB342), // lime
-  Color(0xFF43A047), // green
-  Color(0xFF00897B), // teal
-  Color(0xFF00ACC1), // cyan
-  Color(0xFF039BE5), // sky
-  Color(0xFF1E88E5), // blue
-  Color(0xFF3949AB), // indigo
-  Color(0xFF8E24AA), // violet
-  Color(0xFFD81B60), // magenta
-  Color(0xFFEC407A), // pink
-];
 
 class AccentColourScreen extends StatefulWidget {
   const AccentColourScreen({super.key});
@@ -79,47 +61,81 @@ class _AccentColourScreenState extends State<AccentColourScreen> {
           if (state is! SettingsLoadedState) {
             return const Center(child: CircularProgressIndicator());
           }
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          final palette = isDark ? AppPalette.dark : AppPalette.light;
+          final accent = Theme.of(context).colorScheme.primary;
           final materialYouActive = isAndroid && state.useMaterialYou;
           final currentArgb = state.accentColor;
           return ListView(
+            padding: const EdgeInsets.fromLTRB(
+              Dimens.spacing16,
+              Dimens.spacing16,
+              Dimens.spacing16,
+              Dimens.spacing32,
+            ),
             children: [
               if (isAndroid)
-                Semantics(
-                  identifier: 'accent-option-material-you',
-                  child: ListTile(
-                    leading: const Icon(Icons.auto_awesome_outlined),
-                    title: Text(S.of(context).settingsMaterialYouTitle),
-                    subtitle:
-                        Text(S.of(context).settingsMaterialYouSubtitle),
-                    trailing: materialYouActive
-                        ? const Icon(Icons.check_circle, color: Colors.green)
-                        : const Icon(Icons.circle_outlined),
-                    onTap: _selectMaterialYou,
+                AppCard(
+                  padding: const EdgeInsets.symmetric(vertical: Dimens.spacing4),
+                  child: Semantics(
+                    identifier: 'accent-option-material-you',
+                    child: ListTile(
+                      leading: _SwatchTile.iconChip(
+                        Icons.auto_awesome_rounded,
+                        accent,
+                      ),
+                      title: Text(
+                        S.of(context).settingsMaterialYouTitle,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      subtitle: Text(
+                        S.of(context).settingsMaterialYouSubtitle,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: palette.textMuted,
+                            ),
+                      ),
+                      trailing: Icon(
+                        materialYouActive
+                            ? Icons.check_circle_rounded
+                            : Icons.circle_outlined,
+                        color: materialYouActive ? accent : palette.textMuted,
+                      ),
+                      onTap: _selectMaterialYou,
+                    ),
                   ),
                 ),
-              if (isAndroid) const Divider(),
+              if (isAndroid) const SizedBox(height: Dimens.spacing24),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: const EdgeInsets.only(
+                  left: Dimens.spacing4,
+                  bottom: Dimens.spacing12,
+                ),
                 child: Text(
                   S.of(context).settingsAccentPresetsHeader,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: palette.textMuted,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                      ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+              AppCard(
+                padding: const EdgeInsets.all(Dimens.spacing16),
                 child: GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _presetColors.length,
+                  itemCount: accentPresetColors.length,
                   gridDelegate:
                       const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4,
                     childAspectRatio: 1,
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
+                    mainAxisSpacing: Dimens.spacing12,
+                    crossAxisSpacing: Dimens.spacing12,
                   ),
                   itemBuilder: (context, index) {
-                    final color = _presetColors[index];
+                    final color = accentPresetColors[index];
                     final selected =
                         !materialYouActive && currentArgb == color.toARGB32();
                     return Semantics(
@@ -127,25 +143,24 @@ class _AccentColourScreenState extends State<AccentColourScreen> {
                           'accent-preset-${index.toString().padLeft(2, '0')}',
                       child: InkWell(
                         onTap: () => _selectColor(color),
-                        customBorder: const CircleBorder(),
+                        borderRadius: Dimens.borderRadiusM,
                         child: Container(
                           decoration: BoxDecoration(
                             color: color,
-                            shape: BoxShape.circle,
+                            borderRadius: Dimens.borderRadiusM,
                             border: selected
                                 ? Border.all(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface,
+                                    color: palette.textStrong,
                                     width: 3,
                                   )
-                                : null,
+                                : Border.all(
+                                    color: palette.border,
+                                    width: Dimens.hairline,
+                                  ),
                           ),
                           child: selected
-                              ? const Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                )
+                              ? const Icon(Icons.check_rounded,
+                                  color: Colors.white)
                               : null,
                         ),
                       ),
@@ -153,16 +168,28 @@ class _AccentColourScreenState extends State<AccentColourScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 16),
-              const Divider(),
-              Semantics(
-                identifier: 'accent-custom-colour',
-                child: ListTile(
-                  leading: const Icon(Icons.colorize_outlined),
-                  title: Text(S.of(context).settingsAccentCustomColour),
-                  subtitle: Text(S.of(context).settingsAccentCustomSubtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _openCustomColourDialog(currentArgb),
+              const SizedBox(height: Dimens.spacing24),
+              AppCard(
+                padding: const EdgeInsets.symmetric(vertical: Dimens.spacing4),
+                child: Semantics(
+                  identifier: 'accent-custom-colour',
+                  child: ListTile(
+                    leading: _SwatchTile.iconChip(Icons.colorize_rounded, accent),
+                    title: Text(
+                      S.of(context).settingsAccentCustomColour,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    subtitle: Text(
+                      S.of(context).settingsAccentCustomSubtitle,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: palette.textMuted,
+                          ),
+                    ),
+                    trailing: Icon(Icons.chevron_right_rounded, color: accent),
+                    onTap: () => _openCustomColourDialog(currentArgb),
+                  ),
                 ),
               ),
             ],
@@ -178,12 +205,29 @@ class _AccentColourScreenState extends State<AccentColourScreen> {
       builder: (_) => _CustomColourDialog(
         initialColor: initialArgb != null
             ? Color(initialArgb)
-            : _presetColors.first,
+            : accentPresetColors.first,
       ),
     );
     if (picked != null) {
       _selectColor(picked);
     }
+  }
+}
+
+/// Small helper namespace for the soft rounded leading icon chip shared by
+/// the Material You and custom-colour rows, matching the chips on the Profile
+/// and Settings screens.
+abstract final class _SwatchTile {
+  static Widget iconChip(IconData icon, Color color) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: Dimens.borderRadiusS,
+      ),
+      child: Icon(icon, color: color, size: 22),
+    );
   }
 }
 

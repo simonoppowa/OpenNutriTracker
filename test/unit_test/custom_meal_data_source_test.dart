@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 
 import '../helpers/hive_test_setup.dart';
+import '../helpers/fake_hive_db_provider.dart';
 
 MealNutrimentsDBO _emptyNutriments({double? kcal}) => MealNutrimentsDBO(
       energyKcal100: kcal,
@@ -52,7 +53,7 @@ void main() {
     setUp(() async {
       box = await Hive.openBox<MealDBO>(
           'custom_meal_test_${DateTime.now().microsecondsSinceEpoch}');
-      ds = CustomMealDataSource(box);
+      ds = CustomMealDataSource(FakeHiveDBProvider(customMealBox: box));
     });
 
     tearDown(() async {

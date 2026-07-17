@@ -172,6 +172,7 @@ class _PerMealKcalShareDialogState extends State<PerMealKcalShareDialog> {
           Expanded(
             child: Text(
               s.settingsPerMealKcalShareLabel,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),

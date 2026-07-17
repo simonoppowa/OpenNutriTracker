@@ -78,6 +78,10 @@ class MealValueUnitText extends StatelessWidget {
         return usesImperialUnits
             ? S.of(context).flOzUnit
             : S.of(context).milliliterUnit;
+      case 'gml':
+        // Generic "per 100 g/ml" base unit; show the friendly label rather
+        // than the raw token (which read as "100 gml" on cards).
+        return S.of(context).gramMilliliterUnit;
       default:
         return unit;
     }

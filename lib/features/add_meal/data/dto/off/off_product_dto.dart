@@ -53,6 +53,10 @@ class OFFProductDTO {
   final dynamic product_quantity; // Can either be int or String
   final dynamic serving_quantity; // Can either be int or String
   final String? serving_size; // E.g. 2 Tbsp (32 g)
+  // OFF-normalised unit of serving_quantity ('g' or 'ml'). Preferred
+  // source for the product's entry unit; only the v2 product endpoint
+  // carries it (absent from the Search-a-licious projection).
+  final String? serving_quantity_unit;
 
   // Open Food Facts' precomputed ranking key (a composite of scan popularity,
   // data completeness and quality). Higher is better; null/absent for sparse
@@ -131,6 +135,7 @@ class OFFProductDTO {
     required this.product_quantity,
     required this.serving_quantity,
     required this.serving_size,
+    this.serving_quantity_unit,
     required this.nutriments,
     this.popularity_key,
     this.countries_tags,

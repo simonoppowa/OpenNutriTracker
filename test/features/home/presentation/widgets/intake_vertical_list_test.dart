@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
@@ -17,6 +20,27 @@ import 'package:provider/provider.dart';
 class _FakeMealDetailBloc extends Fake implements MealDetailBloc {}
 
 class _FakeHomeBloc extends Fake implements HomeBloc {}
+
+/// Single-profile stub: with only one profile the "Copy to profile" menu
+/// item stays hidden, so the section menu matches its pre-multi-profile
+/// shape in these tests.
+class _SingleProfileGetProfilesUsecase implements GetProfilesUsecase {
+  static final _profile = ProfileEntity(
+    id: 'p1',
+    name: 'Me',
+    createdAt: DateTime(2026, 1, 1),
+    boxSuffix: '',
+  );
+
+  @override
+  List<ProfileEntity> getProfiles() => [_profile];
+
+  @override
+  String get activeProfileId => 'p1';
+
+  @override
+  ProfileEntity? getActiveProfile() => _profile;
+}
 
 IntakeEntity _buildIntake({
   required double amount,
@@ -70,6 +94,9 @@ void main() {
     final locator = GetIt.instance;
     locator.registerFactory<MealDetailBloc>(_FakeMealDetailBloc.new);
     locator.registerFactory<HomeBloc>(_FakeHomeBloc.new);
+    locator.registerFactory<GetProfilesUsecase>(
+      _SingleProfileGetProfilesUsecase.new,
+    );
   });
 
   tearDownAll(() {
@@ -225,6 +252,47 @@ void main() {
       expect(find.text(S.current.deleteAllLabel), findsNothing);
       expect(find.text(S.current.shareMealLabel), findsNothing);
       expect(find.text(S.current.importMealLabel), findsOneWidget);
+    },
+  );
+
+  // Regression: at a phone-width header the title used to be starved of space
+  // by a Spacer competing with the kcal summary for flex, so "Breakfast"
+  // wrapped onto a second line ("Breakfas" / "t"). The title now takes an
+  // Expanded and shrinks to fit, so it must stay on exactly one line.
+  testWidgets(
+    'meal title stays on a single line beside the kcal summary',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(_wrapWithMaterial(
+        Align(
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+            width: 360,
+            child: IntakeVerticalList(
+              day: DateTime(2026, 1, 1),
+              title: 'Breakfast',
+              listIcon: Icons.bakery_dining_outlined,
+              addMealType: AddMealType.breakfastType,
+              intakeList: intakes,
+              usesImperialUnits: false,
+              showMealMacros: false,
+              mealKcalTarget: 583,
+              onDeleteIntakeCallback: (_, _) {},
+            ),
+          ),
+        ),
+      ));
+      await tester.pump();
+
+      // No RenderFlex overflow from the header competing for width.
+      expect(tester.takeException(), isNull);
+
+      final titleFinder = find.text('Breakfast');
+      expect(titleFinder, findsOneWidget);
+      // A single line of titleLarge (21px) renders around one line-height tall;
+      // the old wrapped layout produced two lines (~double). Anything under
+      // this threshold can only be a single line.
+      final paragraph = tester.renderObject<RenderParagraph>(titleFinder);
+      expect(paragraph.size.height, lessThan(35));
     },
   );
 }

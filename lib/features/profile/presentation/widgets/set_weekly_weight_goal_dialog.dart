@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// #284: Dialog for setting the weekly weight change rate. The dialog
@@ -37,12 +38,12 @@ class WeeklyWeightGoalSet extends WeeklyWeightGoalResult {
 
 class SetWeeklyWeightGoalDialog extends StatefulWidget {
   final double? currentGoalKg;
-  final bool usesImperialUnits;
+  final BodyWeightUnit bodyWeightUnit;
 
   const SetWeeklyWeightGoalDialog({
     super.key,
     required this.currentGoalKg,
-    required this.usesImperialUnits,
+    required this.bodyWeightUnit,
   });
 
   @override
@@ -66,17 +67,54 @@ class _SetWeeklyWeightGoalDialogState
     _selectedKg = _selectedKg.clamp(_minKg, _maxKg);
   }
 
-  double get _displayValue => widget.usesImperialUnits
-      ? _selectedKg * 2.20462
-      : _selectedKg;
+  double get _displayValue {
+    switch (widget.bodyWeightUnit) {
+      case BodyWeightUnit.kg:
+        return _selectedKg;
+      case BodyWeightUnit.lb:
+        return _selectedKg * 2.20462;
+      case BodyWeightUnit.st:
+        // For rates, show as decimal stones (total lbs / 14) with 'st' label.
+        return _selectedKg * 2.20462 / 14;
+    }
+  }
 
   String get _displayLabel {
     if (_selectedKg == 0.0) return S.of(context).goalMaintainWeight;
     final sign = _displayValue > 0 ? '+' : '';
-    final formatted = '$sign${_displayValue.toStringAsFixed(2)}';
-    return widget.usesImperialUnits
-        ? S.of(context).weeklyWeightGoalLbsPerWeek(formatted)
-        : S.of(context).weeklyWeightGoalKgPerWeek(formatted);
+    switch (widget.bodyWeightUnit) {
+      case BodyWeightUnit.kg:
+        final formatted = '$sign${_displayValue.toStringAsFixed(2)}';
+        return S.of(context).weeklyWeightGoalKgPerWeek(formatted);
+      case BodyWeightUnit.lb:
+        final formatted = '$sign${_displayValue.toStringAsFixed(2)}';
+        return S.of(context).weeklyWeightGoalLbsPerWeek(formatted);
+      case BodyWeightUnit.st:
+        final formatted = '$sign${_displayValue.toStringAsFixed(2)}';
+        return '$formatted ${S.of(context).stLabel}${S.of(context).trendsPerWeekSuffix}';
+    }
+  }
+
+  String get _minLabel {
+    switch (widget.bodyWeightUnit) {
+      case BodyWeightUnit.kg:
+        return '-1.0 kg';
+      case BodyWeightUnit.lb:
+        return '-2.2 lbs';
+      case BodyWeightUnit.st:
+        return '-0.16 st';
+    }
+  }
+
+  String get _maxLabel {
+    switch (widget.bodyWeightUnit) {
+      case BodyWeightUnit.kg:
+        return '+1.0 kg';
+      case BodyWeightUnit.lb:
+        return '+2.2 lbs';
+      case BodyWeightUnit.st:
+        return '+0.16 st';
+    }
   }
 
   @override
@@ -102,11 +140,11 @@ class _SetWeeklyWeightGoalDialogState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                widget.usesImperialUnits ? '-2.2 lbs' : '-1.0 kg',
+                _minLabel,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               Text(
-                widget.usesImperialUnits ? '+2.2 lbs' : '+1.0 kg',
+                _maxLabel,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],

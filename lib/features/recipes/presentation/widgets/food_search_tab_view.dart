@@ -3,12 +3,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/search_debounce.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/default_results_widget.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_search_bar.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/no_results_widget.dart';
@@ -100,25 +104,41 @@ class _FoodSearchTabViewState extends State<FoodSearchTabView>
     );
   }
 
+  static const _pendingSpinner = Center(
+    child: Padding(
+      padding: EdgeInsets.only(top: 32),
+      child: SizedBox(
+        width: 36,
+        height: 36,
+        child: CircularProgressIndicator(),
+      ),
+    ),
+  );
+
   Widget _buildProductsTab(BuildContext context) {
-    return BlocBuilder<ProductsBloc, ProductsState>(
-      bloc: _productsBloc,
-      builder: (context, state) {
-        if (state is ProductsInitial) return const DefaultsResultsWidget();
+    // Rebuild on keystrokes so an empty list can tell "no results for this
+    // query" apart from "the search for it is still debouncing/in flight"
+    // (loaded-state query lags behind the field) — the latter spins.
+    return ValueListenableBuilder<String>(
+      valueListenable: _searchStringListener,
+      builder: (context, query, _) => BlocBuilder<ProductsBloc, ProductsState>(
+        bloc: _productsBloc,
+        builder: (context, state) {
+        if (state is ProductsInitial) {
+          return query.trim().length >= minQueryLength
+              ? _pendingSpinner
+              : const DefaultsResultsWidget();
+        }
         if (state is ProductsLoadingState) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.only(top: 32),
-              child: SizedBox(
-                width: 36,
-                height: 36,
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          );
+          return _pendingSpinner;
         }
         if (state is ProductsLoadedState) {
-          if (state.products.isEmpty) return const NoResultsWidget();
+          if (state.products.isEmpty) {
+            return query.trim().length >= minQueryLength &&
+                    state.query != query
+                ? _pendingSpinner
+                : const NoResultsWidget();
+          }
           return ListView.builder(
             itemCount:
                 state.products.length + (state.remoteSourceEmpty ? 1 : 0),
@@ -141,29 +161,32 @@ class _FoodSearchTabViewState extends State<FoodSearchTabView>
           );
         }
         return const SizedBox.shrink();
-      },
+        },
+      ),
     );
   }
 
   Widget _buildFoodTab(BuildContext context) {
-    return BlocBuilder<FoodBloc, FoodState>(
-      bloc: _foodBloc,
-      builder: (context, state) {
-        if (state is FoodInitial) return const DefaultsResultsWidget();
+    return ValueListenableBuilder<String>(
+      valueListenable: _searchStringListener,
+      builder: (context, query, _) => BlocBuilder<FoodBloc, FoodState>(
+        bloc: _foodBloc,
+        builder: (context, state) {
+        if (state is FoodInitial) {
+          return query.trim().length >= minQueryLength
+              ? _pendingSpinner
+              : const DefaultsResultsWidget();
+        }
         if (state is FoodLoadingState) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.only(top: 32),
-              child: SizedBox(
-                width: 36,
-                height: 36,
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          );
+          return _pendingSpinner;
         }
         if (state is FoodLoadedState) {
-          if (state.food.isEmpty) return const NoResultsWidget();
+          if (state.food.isEmpty) {
+            return query.trim().length >= minQueryLength &&
+                    state.query != query
+                ? _pendingSpinner
+                : const NoResultsWidget();
+          }
           return ListView.builder(
             itemCount: state.food.length + (state.remoteSourceEmpty ? 1 : 0),
             itemBuilder: (context, index) {
@@ -182,7 +205,8 @@ class _FoodSearchTabViewState extends State<FoodSearchTabView>
           );
         }
         return const SizedBox.shrink();
-      },
+        },
+      ),
     );
   }
 
@@ -260,65 +284,69 @@ class _PickableMealCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: Theme.of(context).colorScheme.outline),
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
-      ),
-      child: InkWell(
-        onTap: () => onTap(meal),
-        child: SizedBox(
-          height: 100,
-          child: Center(
-            child: ListTile(
-              leading: meal.thumbnailImageUrl != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: CachedNetworkImage(
-                        cacheManager: locator<CacheManager>(),
-                        fit: BoxFit.cover,
-                        width: 60,
-                        height: 60,
-                        imageUrl: meal.thumbnailImageUrl ?? '',
-                      ),
-                    )
-                  : ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        color: Theme.of(context).colorScheme.secondaryContainer,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final accent = Theme.of(context).colorScheme.primary;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing8, vertical: Dimens.spacing4),
+      child: AppCard(
+        padding: EdgeInsets.zero,
+        child: InkWell(
+          borderRadius: Dimens.borderRadiusL,
+          onTap: () => onTap(meal),
+          child: Padding(
+            padding: const EdgeInsets.all(Dimens.spacing12),
+            child: Row(
+              children: [
+                meal.thumbnailImageUrl != null
+                    ? ClipRRect(
+                        borderRadius: Dimens.borderRadiusS,
+                        child: CachedNetworkImage(
+                          cacheManager: locator<CacheManager>(),
+                          fit: BoxFit.cover,
+                          width: 52,
+                          height: 52,
+                          imageUrl: meal.thumbnailImageUrl ?? '',
+                        ),
+                      )
+                    : Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: accent.withValues(alpha: 0.14),
+                          borderRadius: Dimens.borderRadiusS,
+                        ),
                         child: Icon(
                           meal.source == MealSourceEntity.recipe
-                              ? Icons.menu_book_outlined
-                              : Icons.restaurant_outlined,
+                              ? Icons.menu_book_rounded
+                              : Icons.restaurant_rounded,
+                          color: accent,
+                          size: 24,
                         ),
                       ),
-                    ),
-              title: AutoSizeText.rich(
-                TextSpan(
-                  text: meal.name ?? '?',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                  children: [
+                const SizedBox(width: Dimens.spacing12),
+                Expanded(
+                  child: AutoSizeText.rich(
                     TextSpan(
-                      text: ' ${meal.brands ?? ''}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.8),
-                          ),
+                      text: meal.name ?? '?',
+                      style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                      children: [
+                        TextSpan(
+                          text: ' ${meal.brands ?? ''}',
+                          style: textTheme.bodyMedium?.copyWith(color: palette.textMuted),
+                        ),
+                      ],
                     ),
-                  ],
+                    style: textTheme.titleSmall,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                style: Theme.of(context).textTheme.titleLarge,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              trailing: const Icon(Icons.add_outlined),
+                const SizedBox(width: Dimens.spacing8),
+                Icon(Icons.add_circle_outline_rounded, color: accent, size: 24),
+              ],
             ),
           ),
         ),

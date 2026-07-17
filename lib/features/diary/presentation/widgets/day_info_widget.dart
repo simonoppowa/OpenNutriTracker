@@ -8,7 +8,10 @@ import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list
 import 'package:opennutritracker/core/presentation/widgets/copy_or_delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/macro_nutriments_widget.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
+import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/presentation/widgets/empty_hint.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
@@ -174,75 +177,79 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
   @override
   Widget build(BuildContext context) {
     final trackedDay = widget.trackedDayEntity;
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.fromLTRB(
+            Dimens.spacing20,
+            Dimens.spacing8,
+            Dimens.spacing20,
+            Dimens.spacing4,
+          ),
           child: Text(
             DateFormat.yMMMMEEEEd().format(widget.selectedDay),
-            style: Theme.of(context).textTheme.headlineSmall,
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
         ),
-        const SizedBox(height: 8.0),
+        const SizedBox(height: Dimens.spacing8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             trackedDay == null
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      S.of(context).nothingAddedLabel,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.7),
-                          ),
-                    ),
+                ? EmptyHint(
+                    icon: Icons.restaurant_rounded,
+                    title: S.of(context).nothingAddedLabel,
                   )
                 : const SizedBox(),
             trackedDay != null
                 ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Card(
-                          elevation: 0.0,
-                          margin: const EdgeInsets.all(0.0),
-                          color: widget.trackedDayEntity
-                              ?.getRatingDayTextBackgroundColor(context),
-                          child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing16),
+                    child: AppCard(
+                      padding: const EdgeInsets.fromLTRB(
+                        Dimens.spacing20,
+                        Dimens.spacing20,
+                        Dimens.spacing20,
+                        Dimens.spacing20,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                              vertical: 8.0,
+                              horizontal: Dimens.spacing16,
+                              vertical: Dimens.spacing12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: widget.trackedDayEntity
+                                  ?.getRatingDayTextBackgroundColor(context),
+                              borderRadius: Dimens.borderRadiusM,
                             ),
                             child: Text(
                               _getCaloriesTrackedDisplayString(
                                   context, trackedDay),
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleLarge?.copyWith(
-                                    color: widget.trackedDayEntity
-                                        ?.getRatingDayTextColor(context),
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              style: textTheme.titleLarge?.copyWith(
+                                color: widget.trackedDayEntity
+                                    ?.getRatingDayTextColor(context),
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 12.0),
-                        MacroNutrientsView(
-                          totalCarbsIntake: _allIntakes
-                              .fold(0.0, (sum, i) => sum + i.totalCarbsGram),
-                          totalFatsIntake: _allIntakes
-                              .fold(0.0, (sum, i) => sum + i.totalFatsGram),
-                          totalProteinsIntake: _allIntakes
-                              .fold(0.0, (sum, i) => sum + i.totalProteinsGram),
-                          totalCarbsGoal: trackedDay.carbsGoal ?? 0.0,
-                          totalFatsGoal: trackedDay.fatGoal ?? 0.0,
-                          totalProteinsGoal: trackedDay.proteinGoal ?? 0.0,
-                        ),
-                      ],
+                          const SizedBox(height: Dimens.spacing16),
+                          MacroNutrientsView(
+                            totalCarbsIntake: _allIntakes
+                                .fold(0.0, (sum, i) => sum + i.totalCarbsGram),
+                            totalFatsIntake: _allIntakes
+                                .fold(0.0, (sum, i) => sum + i.totalFatsGram),
+                            totalProteinsIntake: _allIntakes
+                                .fold(0.0, (sum, i) => sum + i.totalProteinsGram),
+                            totalCarbsGoal: trackedDay.carbsGoal ?? 0.0,
+                            totalFatsGoal: trackedDay.fatGoal ?? 0.0,
+                            totalProteinsGoal: trackedDay.proteinGoal ?? 0.0,
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 : const SizedBox(),
@@ -262,7 +269,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 trackedDay: widget.trackedDayEntity,
               ),
             if (widget.showActivityTracking) ...[
-              const SizedBox(height: 8.0),
+              const SizedBox(height: Dimens.spacing8),
               ActivityVerticalList(
                 day: widget.selectedDay,
                 title: S.of(context).activityLabel,
@@ -371,7 +378,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onSortTypeChanged: (sort) =>
                     _setSortFor(IntakeTypeEntity.snack, sort),
               ),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: Dimens.spacing16),
           ],
         ),
       ],

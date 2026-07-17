@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.dart';
 
 import '../helpers/hive_test_setup.dart';
+import '../helpers/fake_hive_db_provider.dart';
 
 MealNutrimentsDBO _nutriments({double kcal = 100, double protein = 5}) =>
     MealNutrimentsDBO(
@@ -80,10 +81,10 @@ void main() {
       intakeBox = await Hive.openBox<IntakeDBO>('merge_intake_$stamp');
       trackedDayBox =
           await Hive.openBox<TrackedDayDBO>('merge_tracked_$stamp');
-      final customDs = CustomMealDataSource(customBox);
-      final intakeRepo = IntakeRepository(IntakeDataSource(intakeBox));
+      final customDs = CustomMealDataSource(FakeHiveDBProvider(customMealBox: customBox));
+      final intakeRepo = IntakeRepository(IntakeDataSource(FakeHiveDBProvider(intakeBox: intakeBox)));
       final trackedRepo =
-          TrackedDayRepository(TrackedDayDataSource(trackedDayBox));
+          TrackedDayRepository(TrackedDayDataSource(FakeHiveDBProvider(trackedDayBox: trackedDayBox)));
       usecase = MergeCustomMealsUseCase(
         customDs,
         intakeRepo,

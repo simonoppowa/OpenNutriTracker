@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class DailyKcalOverview extends StatelessWidget {
@@ -19,7 +21,9 @@ class DailyKcalOverview extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final accent = Theme.of(context).colorScheme.primary;
     final textTheme = Theme.of(context).textTheme;
 
     final projected = dayKcalConsumed + currentSelectionKcal;
@@ -30,56 +34,57 @@ class DailyKcalOverview extends StatelessWidget {
     final hasLiveSelection = currentSelectionKcal > 0;
 
     return Container(
-      color: colorScheme.surface,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      color: palette.surface,
+      padding: const EdgeInsets.fromLTRB(
+        Dimens.spacing16,
+        Dimens.spacing8,
+        Dimens.spacing16,
+        Dimens.spacing8,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(Dimens.radiusS),
             child: SizedBox(
               height: 8,
               child: Stack(
                 children: [
-                  Container(color: colorScheme.primary.withValues(alpha: 0.15)),
+                  Container(color: palette.surfaceMuted),
                   FractionallySizedBox(
                     alignment: Alignment.centerLeft,
                     widthFactor: projectedFactor,
-                    child: Container(
-                      color: colorScheme.primary.withValues(alpha: 0.45),
-                    ),
+                    child: Container(color: accent.withValues(alpha: 0.45)),
                   ),
                   FractionallySizedBox(
                     alignment: Alignment.centerLeft,
                     widthFactor: consumedFactor,
-                    child: Container(color: colorScheme.primary),
+                    child: Container(color: accent),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: Dimens.spacing8),
           Text(
             S.of(context).mealDetailDayTotalLabel(
                   projected.toStringAsFixed(0),
                   dayKcalGoal.toStringAsFixed(0),
                 ),
             style: textTheme.labelLarge?.copyWith(
-              color: colorScheme.primary,
-              fontWeight: FontWeight.w600,
+              color: accent,
+              fontWeight: FontWeight.w700,
             ),
             textAlign: TextAlign.center,
           ),
           if (hasLiveSelection) ...[
-            const SizedBox(height: 2),
+            const SizedBox(height: Dimens.spacing4),
             Text(
               S.of(context).mealDetailCurrentSelectionLabel(
                     currentSelectionKcal.toStringAsFixed(0),
                   ),
-              style: textTheme.labelSmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+              style: textTheme.labelSmall?.copyWith(color: palette.textMuted),
               textAlign: TextAlign.center,
             ),
           ],

@@ -7,6 +7,9 @@ import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -31,7 +34,7 @@ class _FakeProductsRepository implements ProductsRepository {
   }
 
   @override
-  Future<List<MealEntity>> getSupabaseFDCFoodsByString(
+  Future<List<MealEntity>> getSupabaseFoodsByString(
     String searchString,
   ) async {
     if (fdcThrowOn.contains(searchString)) {
@@ -67,6 +70,25 @@ class _FakeGetIntakeUsecase implements GetIntakeUsecase {
       'Unexpected call: ${invocation.memberName}',
     );
   }
+}
+
+class _FakeGetConfigUsecase implements GetConfigUsecase {
+  /// Per-source enable flags mirrored from ConfigEntity.foodSourceToggles;
+  /// empty means everything enabled (the default for real users too).
+  Map<String, bool> foodSourceToggles = const <String, bool>{};
+
+  @override
+  Future<ConfigEntity> getConfig() async => ConfigEntity(
+        true,
+        true,
+        false,
+        AppThemeEntity.system,
+        foodSourceToggles: foodSourceToggles,
+      );
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
 class _FakeCustomMealDataSource implements CustomMealDataSource {
@@ -177,6 +199,7 @@ void main() {
     late _FakeCustomMealDataSource customMealDataSource;
     late _FakeRemoteSearchCacheDataSource cachedOffMealDataSource;
     late _FakeRecipeDataSource recipeDataSource;
+    late _FakeGetConfigUsecase getConfigUsecase;
     late SearchProductsUseCase useCase;
 
     setUp(() {
@@ -185,12 +208,14 @@ void main() {
       customMealDataSource = _FakeCustomMealDataSource();
       cachedOffMealDataSource = _FakeRemoteSearchCacheDataSource();
       recipeDataSource = _FakeRecipeDataSource();
+      getConfigUsecase = _FakeGetConfigUsecase();
       useCase = SearchProductsUseCase(
         productsRepository,
         getIntakeUsecase,
         customMealDataSource,
         cachedOffMealDataSource,
         recipeDataSource,
+        getConfigUsecase,
       );
     });
 
@@ -520,6 +545,29 @@ void main() {
       expect(cachedOffMealDataSource.cached.single.code, 'fdc-1');
     });
 
+    test(
+        'cached entries from a disabled food source are hidden from FDC '
+        'search results; entries without a backendSource stay visible',
+        () async {
+      await cachedOffMealDataSource.cache(MealDBO.fromMealEntity(_meal(
+        code: 'bls-1',
+        name: 'Apfel roh',
+        source: MealSourceEntity.fdc,
+        backendSource: 'bls',
+      )));
+      await cachedOffMealDataSource.cache(MealDBO.fromMealEntity(_meal(
+        code: 'fdc-legacy',
+        name: 'Apfel legacy',
+        source: MealSourceEntity.fdc,
+      )));
+      productsRepository.fdcResults['apfel'] = const [];
+      getConfigUsecase.foodSourceToggles = {'bls': false};
+
+      final result = await useCase.searchFDCFoodByString('apfel');
+
+      expect(result.meals.map((m) => m.code), ['fdc-legacy']);
+    });
+
     test('empty remote results do NOT write to the cache', () async {
       productsRepository.offResults['nothing'] = const [];
 
@@ -653,6 +701,7 @@ void main() {
     late _FakeCustomMealDataSource customMealDataSource;
     late _FakeRemoteSearchCacheDataSource cachedOffMealDataSource;
     late _FakeRecipeDataSource recipeDataSource;
+    late _FakeGetConfigUsecase getConfigUsecase;
     late SearchProductsUseCase useCase;
 
     setUp(() {
@@ -661,12 +710,14 @@ void main() {
       customMealDataSource = _FakeCustomMealDataSource();
       cachedOffMealDataSource = _FakeRemoteSearchCacheDataSource();
       recipeDataSource = _FakeRecipeDataSource();
+      getConfigUsecase = _FakeGetConfigUsecase();
       useCase = SearchProductsUseCase(
         productsRepository,
         getIntakeUsecase,
         customMealDataSource,
         cachedOffMealDataSource,
         recipeDataSource,
+        getConfigUsecase,
       );
     });
 
@@ -787,6 +838,7 @@ MealEntity _meal({
   required String code,
   required String name,
   required MealSourceEntity source,
+  String? backendSource,
 }) {
   return MealEntity(
     code: code,
@@ -802,6 +854,7 @@ MealEntity _meal({
     servingSize: null,
     nutriments: MealNutrimentsEntity.empty(),
     source: source,
+    backendSource: backendSource,
   );
 }
 

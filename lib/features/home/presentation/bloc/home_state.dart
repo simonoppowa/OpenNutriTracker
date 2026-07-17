@@ -31,7 +31,10 @@ class HomeLoadedState extends HomeState {
   final List<IntakeEntity> lunchIntakeList;
   final List<IntakeEntity> dinnerIntakeList;
   final List<IntakeEntity> snackIntakeList;
+  // Food serving units (g/oz). Sourced from the food-units preference.
   final bool usesImperialUnits;
+  // Body weight unit (kg/lb/st) for the home weight chip, independent of food.
+  final BodyWeightUnit bodyWeightUnit;
   final bool showActivityTracking; // #277
   final bool showMealMacros;
   final double userWeightKg;
@@ -76,6 +79,7 @@ class HomeLoadedState extends HomeState {
     required this.dinnerIntakeList,
     required this.snackIntakeList,
     required this.usesImperialUnits,
+    required this.bodyWeightUnit,
     required this.userWeightKg,
     required this.breakfastKcalTarget,
     required this.lunchKcalTarget,
@@ -101,6 +105,7 @@ class HomeLoadedState extends HomeState {
     dinnerIntakeList,
     snackIntakeList,
     usesImperialUnits,
+    bodyWeightUnit,
     userWeightKg,
     totalKcalDaily,
     waterMlToday,

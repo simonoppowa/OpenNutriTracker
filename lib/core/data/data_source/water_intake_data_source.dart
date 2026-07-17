@@ -1,6 +1,7 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
+import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
 /// Stores water intake entries — one row per sip. We hold every entry rather
 /// than coalescing to a daily total so the "undo last" affordance can roll a
@@ -8,9 +9,11 @@ import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 /// so a future "graph of hydration through the day" view is cheap to add.
 class WaterIntakeDataSource {
   final log = Logger('WaterIntakeDataSource');
-  final Box<WaterIntakeDBO> _waterIntakeBox;
+  final HiveDBProvider _db;
 
-  WaterIntakeDataSource(this._waterIntakeBox);
+  WaterIntakeDataSource(this._db);
+
+  Box<WaterIntakeDBO> get _waterIntakeBox => _db.waterIntakeBox;
 
   Future<void> addEntry(WaterIntakeDBO entry) async {
     log.fine('Adding water intake ${entry.amountMl} ml at ${entry.dateTime}');

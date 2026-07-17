@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.d
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 
 import '../helpers/hive_test_setup.dart';
+import '../helpers/fake_hive_db_provider.dart';
 
 void main() {
   group('TrackedDayDataSource getTrackedDaysInRange test', () {
@@ -18,7 +19,7 @@ void main() {
     setUp(() async {
       Hive.init('.');
       box = await Hive.openBox<TrackedDayDBO>('tracked_day_test');
-      dataSource = TrackedDayDataSource(box);
+      dataSource = TrackedDayDataSource(FakeHiveDBProvider(trackedDayBox: box));
     });
 
     tearDown(() async {
@@ -157,7 +158,7 @@ void main() {
       Hive.init('.');
       box = await Hive.openBox<TrackedDayDBO>(
           'tracked_day_mut_test_${DateTime.now().microsecondsSinceEpoch}');
-      ds = TrackedDayDataSource(box);
+      ds = TrackedDayDataSource(FakeHiveDBProvider(trackedDayBox: box));
     });
 
     tearDown(() async {

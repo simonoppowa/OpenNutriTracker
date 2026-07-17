@@ -4,7 +4,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/utils/off_country.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
-import 'package:opennutritracker/features/add_meal/data/data_sources/sp_fdc_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -30,7 +30,7 @@ class ProductsRepository {
 
   final OFFDataSource _offDataSource;
   final FDCDataSource _fdcDataSource;
-  final SpFdcDataSource _spBackendDataSource;
+  final SpFoodDataSource _spBackendDataSource;
 
   ProductsRepository(
     this._offDataSource,
@@ -113,14 +113,14 @@ class ProductsRepository {
     return products;
   }
 
-  Future<List<MealEntity>> getSupabaseFDCFoodsByString(
+  Future<List<MealEntity>> getSupabaseFoodsByString(
     String searchString,
   ) async {
-    final spFdcWordResponse = await _spBackendDataSource.fetchSearchWordResults(
+    final spWordResponse = await _spBackendDataSource.fetchSearchWordResults(
       searchString,
     );
-    final products = spFdcWordResponse
-        .map((foodItem) => MealEntity.fromSpFDCFood(foodItem))
+    final products = spWordResponse
+        .map((foodItem) => MealEntity.fromSpFood(foodItem))
         .where(_keepIfConsistent)
         .toList();
     return products;

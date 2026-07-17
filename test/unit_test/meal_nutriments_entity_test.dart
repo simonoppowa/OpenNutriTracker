@@ -29,10 +29,45 @@ void main() {
       expect(entity.fiber100, 2);
     });
 
+    test('energy ids match the FDC nutrient ids, not the numbers', () {
+      // Regression for #252: the Atwater energy constants must be the FDC
+      // nutrient *ids* (2047/2048), not the numbers (957/958). Foundation
+      // foods such as "Potatoes, russet, without skin, raw" (FDC 2346401)
+      // carry only Atwater energy, so keying on the numbers left them with no
+      // kcal and they were rejected as "missing required kcal".
+      expect(FDCConst.fdcKcalAtwaterGeneralId, 2047);
+      expect(FDCConst.fdcKcalAtwaterSpecificId, 2048);
+      expect(FDCConst.fdcTotalKcalId, 1008);
+    });
+
+    test('micronutrient ids match the FDC nutrient ids, not the numbers', () {
+      // #237 originally used FDC nutrient *numbers* for the lipid / mineral /
+      // vitamin constants, so they never matched the FDC `nutrientId` the data
+      // is keyed on and silently resolved to null. These are the ids. Vitamin A
+      // is the RAE form (1106) and Vitamin D the µg form (1114) so the values
+      // land in the units the entity documents.
+      expect(FDCConst.fdcMonounsaturatedFatId, 1292);
+      expect(FDCConst.fdcPolyunsaturatedFatId, 1293);
+      expect(FDCConst.fdcTransFatId, 1257);
+      expect(FDCConst.fdcCholesterolId, 1253);
+      expect(FDCConst.fdcSodiumId, 1093);
+      expect(FDCConst.fdcPotassiumId, 1092);
+      expect(FDCConst.fdcMagnesiumId, 1090);
+      expect(FDCConst.fdcCalciumId, 1087);
+      expect(FDCConst.fdcIronId, 1089);
+      expect(FDCConst.fdcZincId, 1095);
+      expect(FDCConst.fdcPhosphorusId, 1091);
+      expect(FDCConst.fdcVitaminAId, 1106);
+      expect(FDCConst.fdcVitaminCId, 1162);
+      expect(FDCConst.fdcVitaminDId, 1114);
+      expect(FDCConst.fdcVitaminB6Id, 1175);
+      expect(FDCConst.fdcVitaminB12Id, 1178);
+      expect(FDCConst.fdcNiacinId, 1167);
+    });
+
     test('energy prefers Atwater Specific over General and total', () {
-      // Atwater Specific (958) is the most precise FDC energy value;
-      // when present it should be used in preference to General (957) or
-      // the raw total (1008).
+      // Atwater Specific is the most precise FDC energy value; when present it
+      // should be used in preference to General or the raw total.
       final entity = MealNutrimentsEntity.fromFDCNutriments([
         _fdc(FDCConst.fdcTotalKcalId, 250),
         _fdc(FDCConst.fdcKcalAtwaterGeneralId, 180),

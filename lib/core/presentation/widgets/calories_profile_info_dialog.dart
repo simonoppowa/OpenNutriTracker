@@ -28,7 +28,7 @@ class _CaloriesProfileInfoDialogState extends State<CaloriesProfileInfoDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(S.of(context).caloriesProfileInfoTitle),
-      icon: const Icon(Icons.tune_outlined),
+      icon: const Icon(Icons.tune_rounded),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,

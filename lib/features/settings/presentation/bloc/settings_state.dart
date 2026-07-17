@@ -19,6 +19,9 @@ class SettingsLoadedState extends SettingsState {
   final bool sendAnonymousData;
   final AppThemeEntity appTheme;
   final bool usesImperialUnits;
+  final bool usesImperialFoodUnits;
+  final bool usesImperialHeightUnits;
+  final BodyWeightUnit bodyWeightUnit;
   final bool showActivityTracking;
   final bool showMealMacros;
   final bool notificationsEnabled;
@@ -39,6 +42,9 @@ class SettingsLoadedState extends SettingsState {
     this.sendAnonymousData,
     this.appTheme,
     this.usesImperialUnits, {
+    this.usesImperialFoodUnits = false,
+    this.usesImperialHeightUnits = false,
+    this.bodyWeightUnit = BodyWeightUnit.kg,
     this.showActivityTracking = true,
     this.showMealMacros = true,
     this.notificationsEnabled = false,
@@ -61,6 +67,9 @@ class SettingsLoadedState extends SettingsState {
         sendAnonymousData,
         appTheme,
         usesImperialUnits,
+        usesImperialFoodUnits,
+        usesImperialHeightUnits,
+        bodyWeightUnit,
         showActivityTracking,
         showMealMacros,
         notificationsEnabled,

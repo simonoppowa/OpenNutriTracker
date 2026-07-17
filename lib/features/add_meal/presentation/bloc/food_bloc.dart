@@ -18,67 +18,89 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
 
   String _searchString = "";
 
+  /// The last query whose results actually made it to the UI. See
+  /// [ProductsBloc] — only a successful emit registers here, so failed or
+  /// restart-cancelled runs never block a retype of the same query.
+  String? _completedQuery;
+
   FoodBloc(this._searchProductUseCase, this._getConfigUsecase)
       : super(FoodInitial()) {
     on<LoadFoodEvent>(
-      (event, emit) =>
-          _loadFood(event.searchString, emit, skipRemote: false, force: true),
+      (event, emit) => _loadFood(event.searchString, emit, force: true),
     );
     on<SearchFoodInputChangedEvent>(
-      (event, emit) => _loadFood(
-        event.searchString,
-        emit,
-        skipRemote: event.searchString.trim().length < minRemoteQueryLength,
-      ),
+      (event, emit) => _loadFood(event.searchString, emit),
       transformer: debounceRestartable(searchDebounceDuration),
     );
     on<RefreshFoodEvent>((event, emit) async {
+      if (_searchString.trim().isEmpty) {
+        _completedQuery = null;
+        emit(FoodInitial());
+        return;
+      }
       emit(FoodLoadingState());
       try {
         final result = await _searchProductUseCase.searchFDCFoodByString(
           _searchString,
         );
+        if (emit.isDone) return;
         emit(FoodLoadedState(
           food: result.meals,
           remoteSourceEmpty: result.remoteSourceEmpty,
+          query: _searchString,
         ));
+        _completedQuery = _searchString;
       } catch (error) {
         log.severe(error);
+        _completedQuery = null;
         emit(FoodFailedState());
       }
     });
   }
 
   /// Shared search routine for the immediate and debounced events. See
-  /// [ProductsBloc] for the rationale behind [skipRemote], [force], and the
-  /// no-blank behaviour.
+  /// [ProductsBloc] for the rationale behind [force], the min-length
+  /// guard, the no-blank behaviour, and the completed-query dedup.
   Future<void> _loadFood(
     String searchString,
     Emitter<FoodState> emit, {
-    required bool skipRemote,
     bool force = false,
   }) async {
-    if (!force && searchString == _searchString) return;
+    if (searchString.trim().length < minQueryLength) {
+      _searchString = searchString;
+      _completedQuery = null;
+      if (state is! FoodInitial) emit(FoodInitial());
+      return;
+    }
+    if (!force && searchString == _completedQuery) {
+      return;
+    }
     _searchString = searchString;
-    if (state is! FoodLoadedState) {
+    // See ProductsBloc: keep visible results during a refinement, but an
+    // empty list blanks to the spinner rather than a premature "no results".
+    final current = state;
+    if (current is! FoodLoadedState || current.food.isEmpty) {
       emit(FoodLoadingState());
     }
     try {
       final result = await _searchProductUseCase.searchFDCFoodByString(
         searchString,
-        skipRemote: skipRemote,
       );
       final config = await _getConfigUsecase.getConfig();
+      if (emit.isDone) return;
       emit(
         FoodLoadedState(
           food: result.meals,
-          usesImperialUnits: config.usesImperialUnits,
+          usesImperialUnits: config.usesImperialFoodUnits,
           remoteSourceEmpty: result.remoteSourceEmpty,
+          query: searchString,
         ),
       );
+      _completedQuery = searchString;
     } catch (error) {
       log.severe(error);
-      emit(FoodFailedState());
+      _completedQuery = null;
+      if (!emit.isDone) emit(FoodFailedState());
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class EditDialog extends StatefulWidget {
@@ -41,7 +42,8 @@ class _EditDialogState extends State<EditDialog> {
         children: [
           TextFormField(
             controller: amountEditingController,
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: CustomTextInputFormatter.doubleOnly(),
             decoration: InputDecoration(
               labelText: S.of(context).quantityLabel,
               suffixText: _convertUnit(widget.intakeEntity.meal.mealUnit ?? ''),
@@ -52,7 +54,10 @@ class _EditDialogState extends State<EditDialog> {
       actions: [
         TextButton(
           onPressed: () {
-            double newAmount = double.parse(amountEditingController.text);
+            final newAmount = double.tryParse(
+              amountEditingController.text.replaceAll(',', '.'),
+            );
+            if (newAmount == null) return;
             Navigator.of(context).pop(
               _convertBackToMetricValue(
                 newAmount,

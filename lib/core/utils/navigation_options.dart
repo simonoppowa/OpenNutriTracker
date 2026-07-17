@@ -1,4 +1,5 @@
 class NavigationOptions {
+  static const splashRoute = "splash";
   static const mainRoute = "main";
   static const onboardingRoute = "onboarding";
   static const settingsRoute = "settings";
@@ -18,4 +19,5 @@ class NavigationOptions {
   static const weightHistoryRoute = "weightHistory";
   static const fastingRoute = "fasting";
   static const accentColourRoute = "accentColour";
+  static const manageProfilesRoute = "manageProfiles";
 }

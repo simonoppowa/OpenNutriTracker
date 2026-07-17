@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/data/repository/custom_activity_template_r
 import 'package:opennutritracker/core/domain/entity/custom_activity_template_entity.dart';
 
 import '../helpers/hive_test_setup.dart';
+import '../helpers/fake_hive_db_provider.dart';
 
 void main() {
   group('CustomActivityTemplateRepository', () {
@@ -34,7 +35,7 @@ void main() {
       );
       await box.clear();
       final repo = CustomActivityTemplateRepository(
-        CustomActivityTemplateDataSource(box),
+        CustomActivityTemplateDataSource(FakeHiveDBProvider(customActivityTemplateBox: box)),
       );
 
       await repo.addTemplate(
@@ -73,7 +74,7 @@ void main() {
       );
       await box.clear();
       final repo = CustomActivityTemplateRepository(
-        CustomActivityTemplateDataSource(box),
+        CustomActivityTemplateDataSource(FakeHiveDBProvider(customActivityTemplateBox: box)),
       );
 
       await repo.addTemplate(
@@ -100,7 +101,7 @@ void main() {
       );
       await box.clear();
       final repo = CustomActivityTemplateRepository(
-        CustomActivityTemplateDataSource(box),
+        CustomActivityTemplateDataSource(FakeHiveDBProvider(customActivityTemplateBox: box)),
       );
 
       await repo.addTemplate(
@@ -131,7 +132,7 @@ void main() {
       );
       await box.clear();
       final repo = CustomActivityTemplateRepository(
-        CustomActivityTemplateDataSource(box),
+        CustomActivityTemplateDataSource(FakeHiveDBProvider(customActivityTemplateBox: box)),
       );
 
       final imported = [

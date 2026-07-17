@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/widgets/dynamic_ont_logo.dart';
-import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
@@ -26,18 +25,6 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ],
       ),
-      actions: [
-        IconButton(
-          icon: Icon(
-            Icons.settings_outlined,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-          tooltip: S.of(context).settingsLabel,
-          onPressed: () {
-            Navigator.of(context).pushNamed(NavigationOptions.settingsRoute);
-          },
-        ),
-      ],
     );
   }
 

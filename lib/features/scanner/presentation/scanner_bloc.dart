@@ -27,7 +27,7 @@ class ScannerBloc extends Bloc<ScannerEvent, ScannerState> {
         emit(
           ScannerLoadedState(
             product: meal,
-            usesImperialUnits: config.usesImperialUnits,
+            usesImperialUnits: config.usesImperialFoodUnits,
           ),
         );
       } catch (exception) {

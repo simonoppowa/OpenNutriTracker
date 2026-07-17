@@ -11,10 +11,14 @@ class OFFWordResponseDTO {
   final int? page_count;
   final int? page_size;
 
-  // Search-a-licious returns matches under `hits`; the rest of the app still
-  // reads them as `products`.
-  @JsonKey(name: 'hits')
+  // Search-a-licious returns matches under `hits`; the classic search API
+  // (the fallback when Search-a-licious is down) uses `products`. Accept
+  // both — the rest of the app reads them as `products`.
+  @JsonKey(name: 'hits', readValue: _matchesFromEitherKey)
   final List<OFFProductDTO> products;
+
+  static Object? _matchesFromEitherKey(Map json, String key) =>
+      json[key] ?? json['products'];
 
   OFFWordResponseDTO({
     required this.count,

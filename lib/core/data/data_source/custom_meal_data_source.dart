@@ -1,10 +1,13 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
 class CustomMealDataSource {
-  final Box<MealDBO> _customMealBox;
+  final HiveDBProvider _db;
 
-  CustomMealDataSource(this._customMealBox);
+  CustomMealDataSource(this._db);
+
+  Box<MealDBO> get _customMealBox => _db.customMealBox;
 
   Future<void> saveCustomMeal(MealDBO mealDBO) async {
     final existing = _customMealBox.values.cast<MealDBO?>().firstWhere(

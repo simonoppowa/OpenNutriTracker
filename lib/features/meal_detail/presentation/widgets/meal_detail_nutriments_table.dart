@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -22,11 +25,15 @@ class MealDetailNutrimentsTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
     final textStyleNormal =
-        Theme.of(context).textTheme.bodyMedium ?? const TextStyle();
-    final textStyleBold = Theme.of(
-          context,
-        ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold) ??
+        Theme.of(context).textTheme.bodyMedium?.copyWith(color: palette.textStrong) ??
+            const TextStyle();
+    final textStyleBold = Theme.of(context)
+            .textTheme
+            .bodyMedium
+            ?.copyWith(fontWeight: FontWeight.w700, color: palette.textMuted) ??
         const TextStyle();
 
     final headerText = usesImperialUnits && servingQuantity != null
@@ -42,17 +49,21 @@ class MealDetailNutrimentsTable extends StatelessWidget {
       children: [
         Text(
           S.of(context).nutritionInfoLabel,
-          style: Theme.of(context).textTheme.titleLarge,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
         ),
-        const SizedBox(height: 16.0),
-        Table(
-          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          border: TableBorder.all(
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.5),
+        const SizedBox(height: Dimens.spacing16),
+        AppCard(
+          color: palette.surfaceMuted,
+          padding: const EdgeInsets.symmetric(
+            horizontal: Dimens.spacing16,
+            vertical: Dimens.spacing8,
           ),
-          children: <TableRow>[
+          child: Table(
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            border: TableBorder(
+              horizontalInside: BorderSide(color: palette.border, width: Dimens.hairline),
+            ),
+            children: <TableRow>[
             _getNutrimentsTableRow("", headerText, textStyleBold),
             _getNutrimentsTableRow(
               S.of(context).energyLabel,
@@ -90,28 +101,37 @@ class MealDetailNutrimentsTable extends StatelessWidget {
               "${_adjustValueForServing(n.proteins100 ?? 0).roundToPrecision(2)}g",
               textStyleNormal,
             ),
-          ],
+            ],
+          ),
         ),
         if (showSection) ...[
-          const SizedBox(height: 8.0),
+          const SizedBox(height: Dimens.spacing8),
           Theme(
             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
             child: ExpansionTile(
               tilePadding: EdgeInsets.zero,
               title: Text(
                 S.of(context).micronutrientsLabel,
-                style: Theme.of(context).textTheme.titleMedium,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
               initiallyExpanded: hasMicroData,
               children: [
-                Table(
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  border: TableBorder.all(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.5),
+                AppCard(
+                  color: palette.surfaceMuted,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: Dimens.spacing16,
+                    vertical: Dimens.spacing8,
                   ),
-                  children: [
+                  child: Table(
+                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                    border: TableBorder(
+                      horizontalInside:
+                          BorderSide(color: palette.border, width: Dimens.hairline),
+                    ),
+                    children: [
                     // Extended lipid profile
                     _microRow(
                       '   ${S.of(context).monounsaturatedFatLabel}',
@@ -217,7 +237,8 @@ class MealDetailNutrimentsTable extends StatelessWidget {
                       'mg',
                       textStyleNormal,
                     ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -261,14 +282,17 @@ class MealDetailNutrimentsTable extends StatelessWidget {
   ) {
     return TableRow(
       children: <Widget>[
-        Container(
-          padding: const EdgeInsets.only(left: 8.0),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: Dimens.spacing12),
           child: Text(label, style: textStyle),
         ),
-        Container(
-          padding: const EdgeInsets.only(right: 8.0),
-          alignment: Alignment.centerRight,
-          child: Text(quantityString, style: textStyle),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: Dimens.spacing12),
+          child: Text(
+            quantityString,
+            style: textStyle,
+            textAlign: TextAlign.right,
+          ),
         ),
       ],
     );

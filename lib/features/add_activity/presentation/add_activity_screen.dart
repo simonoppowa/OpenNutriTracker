@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/activity_detail/activity_detail_screen.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/activities_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_activities_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/widgets/activity_item_card.dart';
+import 'package:opennutritracker/features/add_activity/presentation/widgets/quick_add_activity_bottom_sheet.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/no_results_widget.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -51,30 +54,58 @@ class _AddActivityScreenState extends State<AddActivityScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final accent = Theme.of(context).colorScheme.primary;
     return Scaffold(
+      backgroundColor: palette.canvas,
       appBar: AppBar(
-        title: Text(S.of(context).activityLabel),
+        backgroundColor: palette.canvas,
+        toolbarHeight: MediaQuery.textScalerOf(context).scale(kToolbarHeight),
+        title: Text(
+          S.of(context).activityLabel,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
+          Semantics(
+            identifier: 'add-activity-quick-add',
+            child: TextButton(
+              onPressed: _onQuickAddPressed,
+              child: Text(S.of(context).quickAddCardLabel),
+            ),
+          ),
           Semantics(
             identifier: 'add-activity-custom',
             child: IconButton(
               tooltip: S.of(context).customActivityName,
               onPressed: _onCustomActivityPressed,
-              icon: const Icon(Icons.add_circle_outline),
+              icon: const Icon(Icons.add_circle_outline_rounded),
             ),
           ),
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing12),
         child: Column(
           children: [
             TextField(
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: palette.surface,
+                prefixIcon: Icon(Icons.search_rounded, color: palette.textMuted),
                 hintText: S.of(context).searchLabel,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: Dimens.borderRadiusM,
+                  borderSide: BorderSide(color: palette.border, width: Dimens.hairline),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: Dimens.borderRadiusM,
+                  borderSide: BorderSide(color: palette.border, width: Dimens.hairline),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: Dimens.borderRadiusM,
+                  borderSide: BorderSide(color: accent, width: 1.5),
                 ),
               ),
               onChanged: (String searchString) {
@@ -86,7 +117,7 @@ class _AddActivityScreenState extends State<AddActivityScreen>
                 );
               },
             ),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: Dimens.spacing16),
             TabBar(
               tabs: [
                 Tab(text: S.of(context).allItemsLabel),
@@ -94,8 +125,9 @@ class _AddActivityScreenState extends State<AddActivityScreen>
               ],
               controller: _tabController,
               indicatorSize: TabBarIndicatorSize.tab,
+              dividerColor: Colors.transparent,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Dimens.spacing16),
             Expanded(
               child: TabBarView(
                 controller: _tabController,
@@ -196,6 +228,15 @@ class _AddActivityScreenState extends State<AddActivityScreen>
           ],
         ),
       ),
+    );
+  }
+
+  void _onQuickAddPressed() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => QuickAddActivityBottomSheet(day: _day),
     );
   }
 

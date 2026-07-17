@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class OffDisclaimer extends StatelessWidget {
@@ -6,11 +7,12 @@ class OffDisclaimer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
     return Text(
       S.of(context).offDisclaimer,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            color: palette.textMuted,
             fontStyle: FontStyle.italic,
           ),
     );

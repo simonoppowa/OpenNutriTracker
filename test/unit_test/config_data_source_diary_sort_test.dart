@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
 
 import '../helpers/hive_test_setup.dart';
+import '../helpers/fake_hive_db_provider.dart';
 
 /// Round-trip test for the persisted per-meal diary sort preference (#82
 /// follow-up). The original sort dropdown stored its choice in widget state
@@ -46,7 +47,7 @@ void main() {
 
     test('breakfast sort preference survives recreating the data source',
         () async {
-      final firstSource = ConfigDataSource(box);
+      final firstSource = ConfigDataSource(FakeHiveDBProvider(configBox: box));
 
       expect(
         await firstSource.getDiarySortPreferences(),
@@ -61,7 +62,7 @@ void main() {
 
       // Simulate the bloc tearing down and a fresh one wiring itself up
       // against the same underlying Hive box on the next app launch.
-      final secondSource = ConfigDataSource(box);
+      final secondSource = ConfigDataSource(FakeHiveDBProvider(configBox: box));
       final prefs = await secondSource.getDiarySortPreferences();
 
       expect(prefs, isNotNull);
@@ -72,7 +73,7 @@ void main() {
 
     test('setting lunch after breakfast preserves the breakfast choice',
         () async {
-      final source = ConfigDataSource(box);
+      final source = ConfigDataSource(FakeHiveDBProvider(configBox: box));
 
       await source.setDiarySortPreference(
         'breakfast',
@@ -99,7 +100,7 @@ void main() {
         ConfigDBO(false, false, false, AppThemeDBO.system),
       );
 
-      final source = ConfigDataSource(box);
+      final source = ConfigDataSource(FakeHiveDBProvider(configBox: box));
       expect(await source.getDiarySortPreferences(), isNull);
     });
   });

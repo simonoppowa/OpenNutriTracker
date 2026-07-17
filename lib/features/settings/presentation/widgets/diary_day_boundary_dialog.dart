@@ -72,6 +72,7 @@ class _DiaryDayBoundaryDialogState extends State<DiaryDayBoundaryDialog> {
           Expanded(
             child: Text(
               s.settingsDayStartLabel,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),

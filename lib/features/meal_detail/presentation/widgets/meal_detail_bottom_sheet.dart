@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/serving_label_localizer.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -83,23 +86,22 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final productMissingRequiredInfo = _hasRequiredProductInfoMissing();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
     return BottomSheet(
-      elevation: 10,
+      elevation: 0,
       onClosing: () {},
       enableDrag: false,
       builder: (context) {
         return Container(
           decoration: BoxDecoration(
             border: Border(
-              top: BorderSide(
-                color: Theme.of(context).colorScheme.outline,
-                width: 0.5,
-              ),
+              top: BorderSide(color: palette.border, width: Dimens.hairline),
             ),
-            color: Theme.of(context).colorScheme.surface,
+            color: palette.surface,
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
+              topLeft: Radius.circular(Dimens.radiusL),
+              topRight: Radius.circular(Dimens.radiusL),
             ),
           ),
           child: SafeArea(
@@ -127,7 +129,9 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                                 ),
                               ],
                               decoration: InputDecoration(
-                                border: const OutlineInputBorder(),
+                                border: const OutlineInputBorder(
+                                  borderRadius: Dimens.borderRadiusM,
+                                ),
                                 labelText: S.of(context).quantityLabel,
                               ),
                             ),
@@ -136,10 +140,13 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                           Expanded(
                             child: DropdownButtonFormField(
                               isExpanded: true,
+                              itemHeight: null,
                               initialValue: widget.selectedUnit,
                               key: ValueKey(widget.selectedUnit),
                               decoration: InputDecoration(
-                                border: const OutlineInputBorder(),
+                                border: const OutlineInputBorder(
+                                  borderRadius: Dimens.borderRadiusM,
+                                ),
                                 labelText: S.of(context).unitLabel,
                               ),
                               items: <DropdownMenuItem<String>>[
@@ -165,27 +172,52 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                           ),
                         ],
                       ),
-                      SizedBox(
-                        width: double.infinity, // Make button full width
-                        child: ElevatedButton.icon(
-                          onPressed: !productMissingRequiredInfo
-                              ? () {
-                                  onAddButtonPressed(context);
-                                }
-                              : null,
-                          style:
-                              ElevatedButton.styleFrom(
-                                foregroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.primaryContainer,
-                              ).copyWith(
-                                elevation: ButtonStyleButton.allOrNull(0.0),
+                      if (!productMissingRequiredInfo) ...[
+                        const SizedBox(height: Dimens.spacing12),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Wrap(
+                            spacing: Dimens.spacing8,
+                            children: [
+                              // Quick-quantity presets — one tap to a common
+                              // serving size instead of typing.
+                              for (final preset in const [50, 100, 150, 200, 250])
+                                ActionChip(
+                                  label: Text('$preset'),
+                                  onPressed: () {
+                                    widget.quantityTextController.text = '$preset';
+                                    widget.onQuantityOrUnitChanged(
+                                      '$preset',
+                                      widget.selectedUnit,
+                                    );
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: Dimens.spacing16),
+                      Semantics(
+                        identifier: 'meal-detail-add',
+                        child: SizedBox(
+                          width: double.infinity, // Make button full width
+                          child: FilledButton.icon(
+                            onPressed: !productMissingRequiredInfo
+                                ? () {
+                                    onAddButtonPressed(context);
+                                  }
+                                : null,
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: Dimens.spacing16,
                               ),
-                          icon: const Icon(Icons.add_outlined),
-                          label: Text(S.of(context).addLabel),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: Dimens.borderRadiusM,
+                              ),
+                            ),
+                            icon: const Icon(Icons.add_rounded),
+                            label: Text(S.of(context).addLabel),
+                          ),
                         ),
                       ),
                       productMissingRequiredInfo
@@ -341,11 +373,20 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   }
 
   DropdownMenuItem<String> _getServingDropdownItem(BuildContext context) {
+    // Custom meals are seeded from MealEntity.empty(), which carries an empty
+    // servingSize string rather than null. An empty (or whitespace-only)
+    // description should fall through to the constructed label so the option
+    // doesn't render blank — otherwise '' wins over the ?? fallback (#495).
+    final servingSize = widget.product.servingSize;
+    // Serving labels are stored in English (see MealEntity._spServingLabel);
+    // translate the common household units at display time.
+    final servingText = (servingSize != null && servingSize.trim().isNotEmpty)
+        ? localizeServingLabel(S.of(context), servingSize)
+        : '${S.of(context).servingLabel} (${widget.product.servingQuantity} ${widget.product.servingUnit})';
     return DropdownMenuItem(
       value: UnitDropdownItem.serving.toString(),
       child: Text(
-        widget.product.servingSize ??
-            '${S.of(context).servingLabel} (${widget.product.servingQuantity} ${widget.product.servingUnit})',
+        servingText,
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
       ),

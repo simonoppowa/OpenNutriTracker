@@ -2,12 +2,15 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
 class WeightLogDataSource {
   final log = Logger('WeightLogDataSource');
-  final Box<WeightLogDBO> _weightLogBox;
+  final HiveDBProvider _db;
 
-  WeightLogDataSource(this._weightLogBox);
+  WeightLogDataSource(this._db);
+
+  Box<WeightLogDBO> get _weightLogBox => _db.weightLogBox;
 
   /// Stores a single entry keyed by its day (`yyyy-MM-dd`). Two entries
   /// for the same calendar day overwrite each other so the log carries

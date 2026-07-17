@@ -1,13 +1,12 @@
-/// Languages OFF (and, where the Supabase columns exist, FDC) are
-/// asked to return product names in. The set is broader than the
-/// app's UI locale set because OFF carries product names in many
-/// languages even where ONT itself doesn't ship a UI translation.
+/// Languages OFF and the Supabase food backend are asked to return
+/// product names in. The set is broader than the app's UI locale set
+/// because OFF carries product names in many languages even where ONT
+/// itself doesn't ship a UI translation.
 ///
-/// FDC product names are sourced from a Supabase view; that view
-/// only has English and German columns today, so the FDC DTOs fall
-/// through to English for cs / it / pl / tr / uk / zh users. The
-/// fallthrough is documented at each call site so a Supabase schema
-/// update can fill it in cleanly.
+/// Supabase food names come from the `food_translation` table (keyed by
+/// BCP 47 locale, see SPConst.translationLocaleOf); foods without a
+/// translation for the user's locale fall back to their English name in
+/// `food_summary`.
 enum SupportedLanguage {
   en,
   de,

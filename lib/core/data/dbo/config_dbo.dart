@@ -94,6 +94,32 @@ class ConfigDBO extends HiveObject {
   // the static palette elsewhere.
   @HiveField(26)
   int? accentColor;
+  // #165: whether the barcode scanner forces portrait. Null means the user
+  // has not made a deliberate choice, which the scanner treats as "follow the
+  // device" — locked on phone-sized screens (so the camera preview can't tip
+  // sideways) and free on tablets (so a landscape tablet isn't forced upright).
+  @HiveField(27)
+  bool? scannerPortraitLock;
+  // Three independent unit preferences that together replace the original
+  // single `usesImperialUnits` switch. Each is nullable so existing installs
+  // fall back to the legacy flag (see `ConfigEntity.fromConfigDBO`) and keep
+  // their current behaviour without a migration. `usesImperialUnits` is kept
+  // around as that fallback and as a coherent value for an older build.
+  @HiveField(28)
+  bool? usesImperialFoodUnits; // g/oz + ml/fl oz
+  @HiveField(29)
+  bool? usesImperialHeightUnits; // cm/ft
+  // Body weight is a three-way choice (kg / lb / st), persisted as the
+  // BodyWeightUnit enum index. Null means "derive from usesImperialUnits".
+  @HiveField(30)
+  int? bodyWeightUnitIndex;
+  // Food-source selection for the search screens. Keys are backend
+  // food_source codes (see SPConst.foodSourceDisplayNames); a source absent
+  // from the map — or a null map altogether — is enabled, so newly added
+  // sources default to on and existing installs need no migration. Open
+  // Food Facts is always enabled and deliberately has no entry here.
+  @HiveField(31)
+  Map<String, bool>? foodSourceToggles;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -120,6 +146,11 @@ class ConfigDBO extends HiveObject {
     this.fastingWarningAcknowledged,
     this.useMaterialYou,
     this.accentColor,
+    this.scannerPortraitLock,
+    this.usesImperialFoodUnits,
+    this.usesImperialHeightUnits,
+    this.bodyWeightUnitIndex,
+    this.foodSourceToggles,
   });
 
   factory ConfigDBO.empty() =>
@@ -131,6 +162,9 @@ class ConfigDBO extends HiveObject {
     entity.hasAcceptedSendAnonymousData,
     AppThemeDBO.fromAppThemeEntity(entity.appTheme),
     usesImperialUnits: entity.usesImperialUnits,
+    usesImperialFoodUnits: entity.usesImperialFoodUnits,
+    usesImperialHeightUnits: entity.usesImperialHeightUnits,
+    bodyWeightUnitIndex: entity.bodyWeightUnit.index,
   );
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>

@@ -24,7 +24,7 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
       emit(DiaryLoadingState());
 
       final config = await _getConfigUsecase.getConfig();
-      final usesImperialUnits = config.usesImperialUnits;
+      final usesImperialUnits = config.usesImperialFoodUnits;
       final showMealMacros = config.showMealMacros;
       final showActivityTracking = config.showActivityTracking;
 

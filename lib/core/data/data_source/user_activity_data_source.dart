@@ -4,12 +4,15 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
 class UserActivityDataSource {
   final log = Logger('UserActivityDataSource');
-  final Box<UserActivityDBO> _userActivityBox;
+  final HiveDBProvider _db;
 
-  UserActivityDataSource(this._userActivityBox);
+  UserActivityDataSource(this._db);
+
+  Box<UserActivityDBO> get _userActivityBox => _db.userActivityBox;
 
   Future<void> addUserActivity(UserActivityDBO userActivityDBO) async {
     log.fine('Adding new user activity to db');

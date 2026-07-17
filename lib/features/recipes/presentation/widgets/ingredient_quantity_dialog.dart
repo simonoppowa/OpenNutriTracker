@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -74,51 +76,72 @@ class _IngredientQuantitySheetState extends State<_IngredientQuantitySheet> {
   List<DropdownMenuItem<String>> _unitItems(BuildContext context) {
     final items = <DropdownMenuItem<String>>[];
     if (widget.meal.hasServingValues) {
-      items.add(const DropdownMenuItem(
-        value: 'serving',
-        child: Text('serving'),
-      ));
+      items.add(_unitItem('serving'));
     }
     if (widget.meal.isSolid ||
         (!widget.meal.isLiquid && !widget.meal.isSolid)) {
-      items.add(const DropdownMenuItem(value: 'g', child: Text('g')));
-      items.add(const DropdownMenuItem(value: 'kg', child: Text('kg')));
-      items.add(const DropdownMenuItem(value: 'oz', child: Text('oz')));
+      items.add(_unitItem('g'));
+      items.add(_unitItem('kg'));
+      items.add(_unitItem('oz'));
     }
     if (widget.meal.isLiquid ||
         (!widget.meal.isLiquid && !widget.meal.isSolid)) {
-      items.add(const DropdownMenuItem(value: 'ml', child: Text('ml')));
-      items.add(const DropdownMenuItem(value: 'l', child: Text('l')));
-      items.add(const DropdownMenuItem(value: 'fl.oz', child: Text('fl.oz')));
+      items.add(_unitItem('ml'));
+      items.add(_unitItem('l'));
+      items.add(_unitItem('fl.oz'));
     }
     return items;
   }
 
+  DropdownMenuItem<String> _unitItem(String unit) {
+    return DropdownMenuItem(
+      value: unit,
+      child: Text(unit, maxLines: 1, overflow: TextOverflow.ellipsis),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
     final viewInsets = MediaQuery.of(context).viewInsets;
+    final fieldBorder = OutlineInputBorder(
+      borderRadius: Dimens.borderRadiusS,
+      borderSide: BorderSide(color: palette.border, width: Dimens.hairline),
+    );
     return Padding(
       padding: EdgeInsets.only(bottom: viewInsets.bottom),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+        padding: const EdgeInsets.fromLTRB(Dimens.spacing24, Dimens.spacing24, Dimens.spacing24, Dimens.spacing16),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: palette.surface,
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+            topLeft: Radius.circular(Dimens.radiusXL),
+            topRight: Radius.circular(Dimens.radiusXL),
           ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: palette.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: Dimens.spacing20),
             Text(
               widget.meal.name ?? '?',
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Dimens.spacing16),
             Row(
               children: [
                 Expanded(
@@ -136,19 +159,23 @@ class _IngredientQuantitySheetState extends State<_IngredientQuantitySheet> {
                     ],
                     decoration: InputDecoration(
                       labelText: S.of(context).recipeIngredientAmountLabel,
-                      border: const OutlineInputBorder(),
+                      border: fieldBorder,
+                      enabledBorder: fieldBorder,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: Dimens.spacing12),
                 Expanded(
                   flex: 2,
                   child: DropdownButtonFormField<String>(
                     isExpanded: true,
+                    itemHeight: null,
                     initialValue: _unit,
+                    borderRadius: Dimens.borderRadiusM,
                     decoration: InputDecoration(
                       labelText: S.of(context).recipeIngredientUnitLabel,
-                      border: const OutlineInputBorder(),
+                      border: fieldBorder,
+                      enabledBorder: fieldBorder,
                     ),
                     items: _unitItems(context),
                     onChanged: (value) {
@@ -160,15 +187,19 @@ class _IngredientQuantitySheetState extends State<_IngredientQuantitySheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Dimens.spacing24),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: Dimens.spacing16),
+                  shape: Dimens.shapeM,
+                ),
                 onPressed: _onConfirm,
                 child: Text(S.of(context).addLabel),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Dimens.spacing8),
           ],
         ),
       ),

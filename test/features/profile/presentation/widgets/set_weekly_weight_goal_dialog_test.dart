@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_weekly_weight_goal_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -30,7 +31,7 @@ void main() {
                 context: context,
                 builder: (_) => const SetWeeklyWeightGoalDialog(
                   currentGoalKg: null,
-                  usesImperialUnits: false,
+                  bodyWeightUnit: BodyWeightUnit.kg,
                 ),
               );
             },
@@ -55,7 +56,7 @@ void main() {
                 context: context,
                 builder: (_) => const SetWeeklyWeightGoalDialog(
                   currentGoalKg: 0.5,
-                  usesImperialUnits: false,
+                  bodyWeightUnit: BodyWeightUnit.kg,
                 ),
               );
             },
@@ -81,7 +82,7 @@ void main() {
                 context: context,
                 builder: (_) => const SetWeeklyWeightGoalDialog(
                   currentGoalKg: -0.25,
-                  usesImperialUnits: false,
+                  bodyWeightUnit: BodyWeightUnit.kg,
                 ),
               );
             },

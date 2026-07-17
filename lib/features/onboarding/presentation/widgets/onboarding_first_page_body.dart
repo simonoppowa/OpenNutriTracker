@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
@@ -104,9 +105,14 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
         children: [
           Row(
             children: [
-              Text(
-                S.of(context).genderLabel,
-                style: Theme.of(context).textTheme.headlineSmall,
+              Expanded(
+                child: AutoSizeText(
+                  S.of(context).genderLabel,
+                  maxLines: 1,
+                  minFontSize: 16,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
               ),
               IconButton(
                 visualDensity: VisualDensity.compact,

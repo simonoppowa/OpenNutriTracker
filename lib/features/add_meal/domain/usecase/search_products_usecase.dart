@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.d
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -32,6 +33,7 @@ class SearchProductsUseCase {
   final CustomMealDataSource _customMealDataSource;
   final RemoteSearchCacheDataSource _cachedOffMealDataSource;
   final RecipeDataSource _recipeDataSource;
+  final GetConfigUsecase _getConfigUsecase;
 
   SearchProductsUseCase(
     this._productsRepository,
@@ -39,6 +41,7 @@ class SearchProductsUseCase {
     this._customMealDataSource,
     this._cachedOffMealDataSource,
     this._recipeDataSource,
+    this._getConfigUsecase,
   );
 
   /// [skipRemote] limits the search to local matches (custom meals, recipes,
@@ -76,7 +79,7 @@ class SearchProductsUseCase {
     }
     final remote = await _safeRemoteCall(
       'FDC',
-      () => _productsRepository.getSupabaseFDCFoodsByString(searchString),
+      () => _productsRepository.getSupabaseFoodsByString(searchString),
     );
     await _cacheRemoteResults(remote);
     return _buildResult(searchString, remote,
@@ -178,10 +181,19 @@ class SearchProductsUseCase {
     // into the FDC "Food" tab and vice versa, since both tabs share this
     // helper. Custom meals, recipes and intake history above are the user's
     // own and are intentionally surfaced in both tabs.
+    // Cached entries respect the food-source selection (Settings → Food
+    // databases) just like fresh remote results, which the data source
+    // already filters server-side. Entries without a backendSource (OFF
+    // products, pre-migration rows) are always kept — only Supabase backend
+    // sources are user-selectable.
+    final config = await _getConfigUsecase.getConfig();
     final fromCache = _cachedOffMealDataSource
         .getAllByMostRecentlyTouched()
         .map(MealEntity.fromMealDBO)
         .where((meal) => meal.source == cacheSource)
+        .where((meal) =>
+            meal.backendSource == null ||
+            config.isFoodSourceEnabled(meal.backendSource!))
         .where((meal) => _mealMatchesSearch(meal, normalizedSearchString))
         .toList();
 

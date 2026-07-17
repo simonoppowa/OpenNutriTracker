@@ -23,14 +23,20 @@ class FoodLoadedState extends FoodState {
   /// hint below any custom-meal matches.
   final bool remoteSourceEmpty;
 
+  /// The raw search input these results answer — see
+  /// ProductsLoadedState.query for how the UI uses it.
+  final String query;
+
   const FoodLoadedState({
     required this.food,
     this.usesImperialUnits = false,
     this.remoteSourceEmpty = false,
+    this.query = '',
   });
 
   @override
-  List<Object?> get props => [food, usesImperialUnits, remoteSourceEmpty];
+  List<Object?> get props =>
+      [food, usesImperialUnits, remoteSourceEmpty, query];
 }
 
 class FoodFailedState extends FoodState {

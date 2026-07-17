@@ -55,10 +55,30 @@ class PhysicalActivityEntity extends Equatable {
     PhysicalActivityTypeEntity.conditioningExercise,
   );
 
+  /// A Custom activity that carries a user-supplied label. The name rides
+  /// in [specificActivity] (persisted on the DBO) and [getName] surfaces it
+  /// instead of the generic "Custom activity" text. The plain [custom]
+  /// sentinel keeps `specificActivity == 'custom'`, so unnamed entries are
+  /// unaffected.
+  factory PhysicalActivityEntity.customNamed(String name) =>
+      PhysicalActivityEntity(
+        customCode,
+        name,
+        'user-entered kcal',
+        0.0,
+        const <String>[],
+        PhysicalActivityTypeEntity.conditioningExercise,
+      );
+
   @override
   List<Object?> get props => [code, specificActivity, description, mets];
 
   String getName(BuildContext context) {
+    // A named Custom activity (e.g. from Quick Add) carries its label in
+    // specificActivity; show that instead of the generic "Custom activity".
+    if (isCustom && specificActivity.isNotEmpty && specificActivity != 'custom') {
+      return specificActivity;
+    }
     final physicalActivityMap = {
       "01015": S.of(context).paBicyclingGeneral,
       "01009": S.of(context).paBicyclingMountainGeneral,

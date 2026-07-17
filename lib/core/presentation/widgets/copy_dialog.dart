@@ -29,6 +29,7 @@ class CopyDialogState extends State<CopyDialog> {
       title: Text(S.of(context).copyDialogTitle),
       content: DropdownButton<AddMealType>(
         value: _selectedValue,
+        itemHeight: null,
         onChanged: (AddMealType? addMealType) {
           if (addMealType != null) {
             setState(() {

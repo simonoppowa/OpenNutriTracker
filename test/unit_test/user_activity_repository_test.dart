@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dar
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 
 import '../helpers/hive_test_setup.dart';
+import '../helpers/fake_hive_db_provider.dart';
 
 void main() {
   group('UserActivityRepository', () {
@@ -28,7 +29,7 @@ void main() {
     test('updateUserActivity updates duration and recalculates burnedKcal',
         () async {
       final box = await Hive.openBox<UserActivityDBO>('activity_test');
-      final repo = UserActivityRepository(UserActivityDataSource(box));
+      final repo = UserActivityRepository(UserActivityDataSource(FakeHiveDBProvider(userActivityBox: box)));
 
       final physicalActivity = PhysicalActivityDBO(
         'running_general',
@@ -59,7 +60,7 @@ void main() {
 
     test('updateUserActivity returns null for unknown id', () async {
       final box = await Hive.openBox<UserActivityDBO>('activity_test');
-      final repo = UserActivityRepository(UserActivityDataSource(box));
+      final repo = UserActivityRepository(UserActivityDataSource(FakeHiveDBProvider(userActivityBox: box)));
 
       final result =
           await repo.updateUserActivity('nonexistent', 60.0, 100.0);
@@ -68,7 +69,7 @@ void main() {
 
     test('updateUserActivity preserves the original date', () async {
       final box = await Hive.openBox<UserActivityDBO>('activity_test');
-      final repo = UserActivityRepository(UserActivityDataSource(box));
+      final repo = UserActivityRepository(UserActivityDataSource(FakeHiveDBProvider(userActivityBox: box)));
 
       final originalDate = DateTime.utc(2026, 3, 14, 9, 26, 53);
       final physicalActivity = PhysicalActivityDBO(
@@ -95,7 +96,7 @@ void main() {
     test('updateUserActivity preserves the underlying physical activity',
         () async {
       final box = await Hive.openBox<UserActivityDBO>('activity_test');
-      final repo = UserActivityRepository(UserActivityDataSource(box));
+      final repo = UserActivityRepository(UserActivityDataSource(FakeHiveDBProvider(userActivityBox: box)));
 
       final physicalActivity = PhysicalActivityDBO(
         'walking_brisk',
@@ -121,7 +122,7 @@ void main() {
     test('updateUserActivity accepts a zero duration without crashing',
         () async {
       final box = await Hive.openBox<UserActivityDBO>('activity_test');
-      final repo = UserActivityRepository(UserActivityDataSource(box));
+      final repo = UserActivityRepository(UserActivityDataSource(FakeHiveDBProvider(userActivityBox: box)));
 
       final physicalActivity = PhysicalActivityDBO(
         'running_general',
@@ -148,7 +149,7 @@ void main() {
     test('two consecutive updates both work and the last one wins', () async {
       final box = await Hive.openBox<UserActivityDBO>('activity_test');
       await box.clear();
-      final repo = UserActivityRepository(UserActivityDataSource(box));
+      final repo = UserActivityRepository(UserActivityDataSource(FakeHiveDBProvider(userActivityBox: box)));
 
       final physicalActivity = PhysicalActivityDBO(
         'running_general',
@@ -181,7 +182,7 @@ void main() {
 
     test('deleteUserActivity removes the activity by id', () async {
       final box = await Hive.openBox<UserActivityDBO>('activity_test');
-      final repo = UserActivityRepository(UserActivityDataSource(box));
+      final repo = UserActivityRepository(UserActivityDataSource(FakeHiveDBProvider(userActivityBox: box)));
 
       final physicalActivity = PhysicalActivityDBO(
         'running_general',
@@ -212,7 +213,7 @@ void main() {
         () async {
       final box = await Hive.openBox<UserActivityDBO>('activity_test');
       await box.clear();
-      final repo = UserActivityRepository(UserActivityDataSource(box));
+      final repo = UserActivityRepository(UserActivityDataSource(FakeHiveDBProvider(userActivityBox: box)));
 
       final physicalActivity = PhysicalActivityDBO(
         'walking_brisk',
@@ -250,7 +251,7 @@ void main() {
       // entity should prefer it.
       final box = await Hive.openBox<UserActivityDBO>('activity_test');
       await box.clear();
-      final repo = UserActivityRepository(UserActivityDataSource(box));
+      final repo = UserActivityRepository(UserActivityDataSource(FakeHiveDBProvider(userActivityBox: box)));
 
       final customActivity = PhysicalActivityDBO(
         '99999',
@@ -310,7 +311,7 @@ void main() {
         'most recent first', () async {
       final box = await Hive.openBox<UserActivityDBO>('activity_test');
       await box.clear();
-      final repo = UserActivityRepository(UserActivityDataSource(box));
+      final repo = UserActivityRepository(UserActivityDataSource(FakeHiveDBProvider(userActivityBox: box)));
 
       final running = PhysicalActivityDBO(
         'running_general',

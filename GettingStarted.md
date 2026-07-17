@@ -54,7 +54,7 @@ This downloads the pinned Flutter version (defined in `.fvmrc`) and creates a `.
 
 `cp .env.example .env`
 
-`.env` is gitignored. Edit it to fill in real values (or leave the placeholders for a debug build that doesn't need the live backend — see `docs/supabase-fdc-self-hosting.md` for the FDC keys).
+`.env` is gitignored. Edit it to fill in real values (or leave the placeholders for a debug build that doesn't need the live backend — see `docs/supabase-self-hosting.md` for pointing the app at your own Supabase food database).
 
 5.⁠ ⁠Get Dependencies.
 

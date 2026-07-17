@@ -29,7 +29,7 @@ class RecentMealBloc extends Bloc<RecentMealEvent, RecentMealState> {
           emit(
             RecentMealLoadedState(
               recentMeals: recentIntake.map((intake) => intake.meal).toList(),
-              usesImperialUnits: config.usesImperialUnits,
+              usesImperialUnits: config.usesImperialFoodUnits,
             ),
           );
         } else {
@@ -39,7 +39,7 @@ class RecentMealBloc extends Bloc<RecentMealEvent, RecentMealState> {
                   .where(matchesSearchString(searchString))
                   .map((intake) => intake.meal)
                   .toList(),
-              usesImperialUnits: config.usesImperialUnits,
+              usesImperialUnits: config.usesImperialFoodUnits,
             ),
           );
         }
