@@ -1,6 +1,5 @@
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -94,13 +93,6 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                         label: S.of(context).suppliedLabel,
                         color: palette.proteinColor,
                       ),
-                    ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SourcesScreen()),
-                      ),
-                      child: Icon(Icons.info_outline_rounded, color: palette.textMuted, size: 22),
                     ),
                     const Spacer(),
                     Flexible(
