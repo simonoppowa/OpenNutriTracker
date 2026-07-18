@@ -97,9 +97,10 @@ class SpFoodDataSource {
     // is rejected outright with a parse error (PGRST100), so relevance has
     // to be ranked client-side instead of via Postgres ORDER BY.
     final foods = response.map((food) => SpFoodDTO.fromJson(food)).toList();
-    mergeSort(foods,
-        compare: (a, b) =>
-            textRelevanceScore(b.name, searchString).compareTo(textRelevanceScore(a.name, searchString)));
+    mergeSort(foods, compare: (a, b) {
+      return textRelevanceScore(b.name, searchString)
+          .compareTo(textRelevanceScore(a.name, searchString));
+    });
     return foods;
   }
 
