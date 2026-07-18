@@ -607,7 +607,7 @@ jobs:
           echo "$HOME/fvm/bin" >> "$GITHUB_PATH"
 
       - name: Install Flutter version for FVM
-        run: fvm install 3.41.7
+        run: fvm install 3.44.6
 
       - name: Generate .env from GitHub Secrets
         uses: ./.github/actions/write-env-file

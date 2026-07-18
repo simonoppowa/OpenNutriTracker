@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 OpenNutriTracker is a Flutter mobile app (iOS/Android) for nutritional tracking. It uses Open Food Facts and a multi-source Supabase food backend (USDA FoodData Central, German BLS, and more — see the [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) repo) as food databases, with all user data stored locally in an AES-encrypted Hive database.
 
-Flutter version: **3.41.7** (managed via FVM; see `.fvmrc`)
+Flutter version: **3.44.6** (managed via FVM; see `.fvmrc`)
 
 ## Commands
 
