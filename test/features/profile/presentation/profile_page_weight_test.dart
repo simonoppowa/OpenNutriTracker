@@ -121,8 +121,9 @@ void main() {
     );
   });
 
-  tearDown(() {
-    GetIt.instance.reset();
+  tearDown(() async {
+    await fakeProfileBloc.close();
+    await GetIt.instance.reset();
   });
 
   testWidgets('tapping the profile weight tile logs a weight-history entry '
@@ -153,8 +154,13 @@ void main() {
     expect(fakeAddWeightLogUsecase.entries, hasLength(1));
     final logged = fakeAddWeightLogUsecase.entries.single;
     expect(logged.weightKg, closeTo(user.weightKG, 0.5));
-    final today = DateTime.now();
-    expect(logged.date, DateTime(today.year, today.month, today.day));
+    // Use a two-day window to avoid a flaky failure when the test runs right
+    // across a midnight boundary (the production code calls DateTime.now()
+    // before we capture it here).
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    expect({today, yesterday}, contains(logged.date));
 
     // Profile/home/diary refresh still happens via ProfileBloc.updateUser.
     expect(fakeProfileBloc.updateUserCalls, hasLength(1));
