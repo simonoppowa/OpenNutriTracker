@@ -111,6 +111,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                 ),
                 const SizedBox(height: Dimens.spacing16),
                 Semantics(
+                  identifier: 'home-kcal-gauge',
                   label: '${displayValue.toInt()} $kcalLabelText',
                   hint: S.of(context).settingsKcalGoalInfoLabel,
                   button: true,

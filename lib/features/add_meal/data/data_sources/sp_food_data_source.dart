@@ -203,11 +203,11 @@ class SpFoodDataSource {
 @visibleForTesting
 List<SpFoodDTO> rankAndTruncateFoodsByName(
     List<SpFoodDTO> foods, String searchString) {
-  final ranked = [...foods];
-  mergeSort(ranked,
-      compare: (a, b) => textRelevanceScore(b.name, searchString)
-          .compareTo(textRelevanceScore(a.name, searchString)));
-  return ranked.take(SPConst.maxNumberOfItems).toList();
+  final decorated = [
+    for (final food in foods) (food: food, score: textRelevanceScore(food.name, searchString)),
+  ];
+  mergeSort(decorated, compare: (a, b) => b.score.compareTo(a.score));
+  return [for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.food];
 }
 
 /// Same idea as [rankAndTruncateFoodsByName], but for raw `food_translation`
@@ -216,11 +216,13 @@ List<SpFoodDTO> rankAndTruncateFoodsByName(
 @visibleForTesting
 List<Map<String, dynamic>> rankAndTruncateTranslationRows(
     List<Map<String, dynamic>> rows, String searchString) {
-  final ranked = [...rows];
-  mergeSort(ranked,
-      compare: (a, b) => textRelevanceScore(
-              b[SPConst.translationDescription] as String?, searchString)
-          .compareTo(textRelevanceScore(
-              a[SPConst.translationDescription] as String?, searchString)));
-  return ranked.take(SPConst.maxNumberOfItems).toList();
+  final decorated = [
+    for (final row in rows)
+      (
+        row: row,
+        score: textRelevanceScore(row[SPConst.translationDescription] as String?, searchString),
+      ),
+  ];
+  mergeSort(decorated, compare: (a, b) => b.score.compareTo(a.score));
+  return [for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.row];
 }
