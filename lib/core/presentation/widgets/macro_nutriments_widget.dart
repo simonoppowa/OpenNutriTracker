@@ -76,7 +76,7 @@ class _MacroRing extends StatelessWidget {
   });
 
   double get _percent {
-    if (intake <= 0 || goal <= 0) {
+    if (!intake.isFinite || !goal.isFinite || intake <= 0 || goal <= 0) {
       return 0;
     } else if (intake > goal) {
       return 1;
@@ -106,7 +106,8 @@ class _MacroRing extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${intake.toInt()}/${goal.toInt()} g',
+                  '${intake.isFinite ? intake.toInt() : 0}/'
+                  '${goal.isFinite ? goal.toInt() : 0} g',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.titleSmall?.copyWith(

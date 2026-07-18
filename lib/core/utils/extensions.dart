@@ -13,7 +13,14 @@ extension Cast on Object? {
       value = this as double;
     } else if (this is String) {
       final stringValue = this as String;
-      value = double.parse(stringValue);
+      // double.parse() accepts the literal strings "NaN"/"Infinity"/
+      // "-Infinity" and otherwise throws on garbage input. Upstream food
+      // APIs (notably Open Food Facts) occasionally carry exactly that kind
+      // of malformed nutriment value, which would otherwise silently poison
+      // downstream macro calculations (e.g. NaN.toInt() throwing in the
+      // diary's macro rings).
+      value = double.tryParse(stringValue);
+      if (value != null && !value.isFinite) value = null;
     } else {
       value = null;
     }
@@ -35,7 +42,8 @@ extension CastString on String {
     if (isEmpty) {
       return null;
     } else {
-      return double.parse(this);
+      final value = double.tryParse(this);
+      return (value != null && value.isFinite) ? value : null;
     }
   }
 }
