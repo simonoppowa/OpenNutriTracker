@@ -53,10 +53,13 @@ class WeightTrendChart extends StatelessWidget {
     // how the calorie/water charts window their range.
     final windowStart = today.subtract(Duration(days: windowDays - 1));
 
-    final inWindow = entries
-        .where((e) => !e.date.isBefore(windowStart) && !e.date.isAfter(today))
-        .toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
+    final inWindow =
+        entries
+            .where(
+              (e) => !e.date.isBefore(windowStart) && !e.date.isAfter(today),
+            )
+            .toList()
+          ..sort((a, b) => a.date.compareTo(b.date));
 
     if (inWindow.length < 2) {
       return Padding(
@@ -96,14 +99,18 @@ class WeightTrendChart extends StatelessWidget {
     // Only draw the dashed reference when the target sits within (or just
     // adjacent to) the auto y-range, so a far-off target doesn't autoscale
     // the chart away from the recorded weights.
-    final showTargetLine = targetY != null &&
+    final showTargetLine =
+        targetY != null &&
         targetY >= (minY - yPadding) &&
         targetY <= (maxY + yPadding);
 
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     final dateFormat = DateFormat.MMMd(localeTag);
     // ~5 evenly spaced date labels regardless of window length.
-    final labelInterval = (windowDays / 5).ceilToDouble().clamp(1, 30).toDouble();
+    final labelInterval = (windowDays / 5)
+        .ceilToDouble()
+        .clamp(1.0, double.infinity)
+        .toDouble();
 
     return Padding(
       key: const Key('weightHistoryChart'),
@@ -130,7 +137,9 @@ class WeightTrendChart extends StatelessWidget {
                   showTitles: true,
                   reservedSize: 40,
                   getTitlesWidget: (value, meta) => Text(
-                    value.toStringAsFixed(bodyWeightUnit == BodyWeightUnit.st ? 1 : 0),
+                    value.toStringAsFixed(
+                      bodyWeightUnit == BodyWeightUnit.st ? 1 : 0,
+                    ),
                     style: theme.textTheme.labelSmall,
                   ),
                 ),
@@ -175,10 +184,10 @@ class WeightTrendChart extends StatelessWidget {
                   show: true,
                   getDotPainter: (spot, percent, bar, index) =>
                       FlDotCirclePainter(
-                    radius: 3,
-                    color: lineColor,
-                    strokeWidth: 0,
-                  ),
+                        radius: 3,
+                        color: lineColor,
+                        strokeWidth: 0,
+                      ),
                 ),
               ),
             ],
