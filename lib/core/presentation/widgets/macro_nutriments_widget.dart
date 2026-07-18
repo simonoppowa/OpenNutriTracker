@@ -34,26 +34,32 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _MacroRing(
-          intake: widget.totalCarbsIntake,
-          goal: widget.totalCarbsGoal,
-          label: S.of(context).carbsLabel,
-          color: palette.carbs,
-          palette: palette,
+        Expanded(
+          child: _MacroRing(
+            intake: widget.totalCarbsIntake,
+            goal: widget.totalCarbsGoal,
+            label: S.of(context).carbsLabel,
+            color: palette.carbs,
+            palette: palette,
+          ),
         ),
-        _MacroRing(
-          intake: widget.totalFatsIntake,
-          goal: widget.totalFatsGoal,
-          label: S.of(context).fatLabel,
-          color: palette.fat,
-          palette: palette,
+        Expanded(
+          child: _MacroRing(
+            intake: widget.totalFatsIntake,
+            goal: widget.totalFatsGoal,
+            label: S.of(context).fatLabel,
+            color: palette.fat,
+            palette: palette,
+          ),
         ),
-        _MacroRing(
-          intake: widget.totalProteinsIntake,
-          goal: widget.totalProteinsGoal,
-          label: S.of(context).proteinLabel,
-          color: palette.protein,
-          palette: palette,
+        Expanded(
+          child: _MacroRing(
+            intake: widget.totalProteinsIntake,
+            goal: widget.totalProteinsGoal,
+            label: S.of(context).proteinLabel,
+            color: palette.protein,
+            palette: palette,
+          ),
         ),
       ],
     );
