@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/retry_util.dart';
@@ -16,6 +17,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// see opennutritracker-backend/sql/schema.sql).
 class SpFoodDataSource {
   final log = Logger('SpFoodDataSource');
+
+  /// Rows fetched from Postgres before ranking and truncating down to
+  /// [SPConst.maxNumberOfItems]. Postgres has no `ORDER BY` available here
+  /// (see [rankAndTruncateFoodsByName]), so a plain `.limit(20)` would hand
+  /// back an arbitrary (physical/PK-order) 20-row slice of all matches —
+  /// truncating *before* ranking could silently drop the single best match
+  /// if it happened to be row 21+. Casting a wider net first and truncating
+  /// only after ranking fixes that, at the cost of a larger (still bounded)
+  /// fetch.
+  static const _candidatePoolSize = SPConst.maxNumberOfItems * 5;
 
   Future<List<SpFoodDTO>> fetchSearchWordResults(String searchString) async {
     try {
@@ -90,17 +101,14 @@ class SpFoodDataSource {
     if (enabledSources != null) {
       query = query.inFilter(SPConst.foodSource, enabledSources);
     }
-    final response = await query.limit(SPConst.maxNumberOfItems);
+    final response = await query.limit(_candidatePoolSize);
 
     // PostgREST's `order` query parameter only accepts column references
     // (`.order('column')`), not computed expressions — `.order(ts_rank(...))`
     // is rejected outright with a parse error (PGRST100), so relevance has
     // to be ranked client-side instead of via Postgres ORDER BY.
     final foods = response.map((food) => SpFoodDTO.fromJson(food)).toList();
-    mergeSort(foods,
-        compare: (a, b) =>
-            textRelevanceScore(b.name, searchString).compareTo(textRelevanceScore(a.name, searchString)));
-    return foods;
+    return rankAndTruncateFoodsByName(foods, searchString);
   }
 
   /// Two-step localized search: `food_summary` is a materialized view, so
@@ -126,7 +134,7 @@ class SpFoodDataSource {
           config: SPConst.translationFtsConfig,
           type: TextSearchType.websearch,
         )
-        .limit(SPConst.maxNumberOfItems);
+        .limit(_candidatePoolSize);
 
     if (unrankedRows.isEmpty) return const [];
 
@@ -134,13 +142,10 @@ class SpFoodDataSource {
     // not computed expressions — `.order(ts_rank(...))` is rejected outright
     // with a parse error (PGRST100), so translated-text relevance has to be
     // ranked client-side instead of via Postgres ORDER BY (same issue as
-    // _searchEnglish).
-    final translationRows = [...unrankedRows];
-    mergeSort(translationRows,
-        compare: (a, b) => textRelevanceScore(
-                b[SPConst.translationDescription] as String?, searchString)
-            .compareTo(textRelevanceScore(
-                a[SPConst.translationDescription] as String?, searchString)));
+    // _searchEnglish). Rank the whole candidate pool, then truncate — see
+    // _candidatePoolSize for why truncating first would be wrong.
+    final translationRows =
+        rankAndTruncateTranslationRows([...unrankedRows], searchString);
 
     final nameByFoodId = {
       for (final row in translationRows)
@@ -182,9 +187,40 @@ class SpFoodDataSource {
           machineTranslatedFoodIds.contains(dto.foodId);
       return dto;
     }).toList();
-    foods.sort((a, b) =>
-        (rankByFoodId[a.foodId] ?? rankByFoodId.length)
+    mergeSort(foods,
+        compare: (a, b) => (rankByFoodId[a.foodId] ?? rankByFoodId.length)
             .compareTo(rankByFoodId[b.foodId] ?? rankByFoodId.length));
     return foods;
   }
+}
+
+/// Ranks [foods] by [textRelevanceScore] of [SpFoodDTO.name] against
+/// [searchString] and truncates to [SPConst.maxNumberOfItems]. This is the
+/// actual client-side replacement for the Postgres `ts_rank` ordering that
+/// PostgREST rejects (see [SpFoodDataSource._searchEnglish]) — kept as a
+/// standalone top-level function, rather than inlined private logic, so it's
+/// directly unit-testable without mocking the Supabase client.
+@visibleForTesting
+List<SpFoodDTO> rankAndTruncateFoodsByName(
+    List<SpFoodDTO> foods, String searchString) {
+  final ranked = [...foods];
+  mergeSort(ranked,
+      compare: (a, b) => textRelevanceScore(b.name, searchString)
+          .compareTo(textRelevanceScore(a.name, searchString)));
+  return ranked.take(SPConst.maxNumberOfItems).toList();
+}
+
+/// Same idea as [rankAndTruncateFoodsByName], but for raw `food_translation`
+/// rows — ranked by [SPConst.translationDescription] — before they're mapped
+/// into [SpFoodDTO] (see [SpFoodDataSource._searchByTranslation]).
+@visibleForTesting
+List<Map<String, dynamic>> rankAndTruncateTranslationRows(
+    List<Map<String, dynamic>> rows, String searchString) {
+  final ranked = [...rows];
+  mergeSort(ranked,
+      compare: (a, b) => textRelevanceScore(
+              b[SPConst.translationDescription] as String?, searchString)
+          .compareTo(textRelevanceScore(
+              a[SPConst.translationDescription] as String?, searchString)));
+  return ranked.take(SPConst.maxNumberOfItems).toList();
 }
