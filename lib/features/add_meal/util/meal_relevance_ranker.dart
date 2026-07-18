@@ -9,7 +9,9 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 /// overlap between the query and the meal's name/brand, plus small quality
 /// tie-breakers.
 ///
-/// Returns 0.0 for an empty query or a meal with no name.
+/// Returns 0.0 for an empty query. A meal with no name can still receive a
+/// non-zero score when the query matches the brand (weighted at 60% of the
+/// equivalent name match).
 double scoreMealRelevance(MealEntity meal, String query) {
   final normalizedQuery = _normalize(query);
   if (normalizedQuery.isEmpty) return 0.0;
@@ -117,7 +119,9 @@ String _nearDuplicateKey(MealEntity meal) {
   final name = _normalize(meal.name);
   // No name to match on — key on identity instead of an empty string, which
   // would otherwise collapse every unrelated nameless meal into one.
-  if (name.isEmpty) return 'noname:${meal.source.name}:${meal.code}';
+  // meal.code is nullable: fall back to identityHashCode so two distinct
+  // nameless meals without codes don't share the same key.
+  if (name.isEmpty) return 'noname:${meal.source.name}:${meal.code ?? identityHashCode(meal)}';
   final brand = _normalize(meal.brands);
   return brand.isEmpty ? name : '$name|$brand';
 }
