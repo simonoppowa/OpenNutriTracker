@@ -121,8 +121,9 @@ void main() {
     );
   });
 
-  tearDown(() {
-    GetIt.instance.reset();
+  tearDown(() async {
+    await fakeProfileBloc.close();
+    await GetIt.instance.reset();
   });
 
   testWidgets('tapping the profile weight tile logs a weight-history entry '
