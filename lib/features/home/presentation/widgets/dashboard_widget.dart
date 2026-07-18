@@ -41,6 +41,14 @@ class DashboardWidget extends StatefulWidget {
 }
 
 class _DashboardWidgetState extends State<DashboardWidget> {
+  void _openKcalGoalInfoScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const KcalGoalInfoScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double kcalValue = 0;
@@ -116,6 +124,11 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                   hint: S.of(context).settingsKcalGoalInfoLabel,
                   button: true,
                   excludeSemantics: true,
+                  // excludeSemantics strips the GestureDetector's semantic
+                  // tap action along with the rest of the subtree, so the
+                  // node needs its own onTap for screen readers to be able
+                  // to activate the button it announces.
+                  onTap: _openKcalGoalInfoScreen,
                   // Tapping the gauge opens the calorie-goal transparency
                   // screen, so the central number on the dashboard is one
                   // tap away from its full derivation.
@@ -123,11 +136,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                     message: S.of(context).settingsKcalGoalInfoLabel,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const KcalGoalInfoScreen(),
-                        ),
-                      ),
+                      onTap: _openKcalGoalInfoScreen,
                       child: CircularPercentIndicator(
                         radius: 90,
                         lineWidth: 16,
