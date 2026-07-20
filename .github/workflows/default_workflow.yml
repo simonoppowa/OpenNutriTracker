@@ -7,7 +7,7 @@ on:
   # `pull_request` synchronize run). All pre-merge validation happens via
   # `pull_request`; the `push: main` trigger only catches post-merge runs
   # on `main`. Direct pushes to `develop` are disallowed by project policy
-  # (see CLAUDE.md) so skipping CI for them is safe.
+  # (see AGENTS.md) so skipping CI for them is safe.
   push:
     branches:
       - main

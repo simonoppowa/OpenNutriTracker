@@ -53,7 +53,7 @@ When adding a new string key in the same PR you must:
 
 ## Code generation
 
-Some files are produced by `build_runner` (Hive type adapters and JSON serialization). Run `just build` after touching any `@HiveType`, `@HiveField`, or `@JsonSerializable` source file. See `CLAUDE.md` for the full list of triggers.
+Some files are produced by `build_runner` (Hive type adapters and JSON serialization). Run `just build` after touching any `@HiveType`, `@HiveField`, or `@JsonSerializable` source file. See `AGENTS.md` for the full list of triggers.
 
 ## Code style and tests
 

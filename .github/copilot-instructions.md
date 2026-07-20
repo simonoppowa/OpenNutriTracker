@@ -1,10 +1,8 @@
 # Copilot instructions
 
-## Commits
+Canonical agent guidance is in **[AGENTS.md](../AGENTS.md)**. Read and follow that file.
 
-- Prefer conventional commit messages (`feat:`, `fix:`, `chore:`, `docs:`, …).
-- **Never** add Copilot or any AI assistant as a git co-author.
-- Omit `Co-authored-by: Copilot App <…>` and any similar AI `Co-authored-by:` trailers.
-- Do not name the assistant in the commit subject or body.
+## Commits (quick reminder)
 
-See `AGENTS.md` and `CLAUDE.md` for full project guidance.
+- Conventional commits only.
+- **Never** add Copilot or any AI assistant as a git co-author (`Co-authored-by:` trailers for AI tools are forbidden).
