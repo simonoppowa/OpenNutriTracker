@@ -141,16 +141,19 @@ class _CreditText extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(top: 6),
-        child: InkWell(
-          onTap: () => launchUrl(
-            Uri.parse(credit.profileUrl),
-            mode: LaunchMode.externalApplication,
-          ),
-          child: Text(
-            'Photo: ${credit.name} / Unsplash',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: palette.onSurfaceVariant,
-              decoration: TextDecoration.underline,
+        child: Semantics(
+          identifier: 'unsplash-photo-credit',
+          child: InkWell(
+            onTap: () => launchUrl(
+              Uri.parse(credit.profileUrl),
+              mode: LaunchMode.externalApplication,
+            ),
+            child: Text(
+              'Photo: ${credit.name} / Unsplash',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: palette.onSurfaceVariant,
+                decoration: TextDecoration.underline,
+              ),
             ),
           ),
         ),
