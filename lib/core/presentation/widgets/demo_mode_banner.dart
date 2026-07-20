@@ -85,7 +85,6 @@ class DemoModeBanner extends StatelessWidget {
 
   Future<void> _confirmSetUpProfile(BuildContext context) async {
     final l10n = S.of(context);
-    final navigator = Navigator.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -104,10 +103,12 @@ class DemoModeBanner extends StatelessWidget {
       ),
     );
     if (confirmed != true) return;
+    // StatelessWidget — use context.mounted (SettingsScreen uses State.mounted).
+    if (!context.mounted) return;
     await exitDemoMode();
-    navigator.pushNamedAndRemoveUntil(
-      NavigationOptions.onboardingRoute,
-      (_) => false,
-    );
+    if (!context.mounted) return;
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(NavigationOptions.onboardingRoute, (_) => false);
   }
 }

@@ -20,17 +20,21 @@ void main() {
   Future<void> pumpIntroPage(
     WidgetTester tester, {
     required void Function(bool acceptedPolicy, bool acceptedData)
-        onSetPageContent,
+    onSetPageContent,
+    bool allowTryDemo = true,
   }) async {
-    await tester.pumpWidget(MaterialApp(
-      localizationsDelegates: const [S.delegate],
-      supportedLocales: S.supportedLocales,
-      home: Scaffold(
-        body: OnboardingIntroPageBody(
-          setPageContent: onSetPageContent,
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: const [S.delegate],
+        supportedLocales: S.supportedLocales,
+        home: Scaffold(
+          body: OnboardingIntroPageBody(
+            setPageContent: onSetPageContent,
+            allowTryDemo: allowTryDemo,
+          ),
         ),
       ),
-    ));
+    );
     // Let the version-number FutureBuilder resolve before continuing.
     await tester.pumpAndSettle();
   }
@@ -38,59 +42,78 @@ void main() {
   testWidgets('renders both checkboxes unchecked initially', (tester) async {
     await pumpIntroPage(tester, onSetPageContent: (_, _) {});
 
-    final checkboxes = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
+    final checkboxes = tester
+        .widgetList<Checkbox>(find.byType(Checkbox))
+        .toList();
     expect(checkboxes, hasLength(2));
-    expect(checkboxes[0].value, isFalse, reason: 'policy checkbox starts unchecked');
-    expect(checkboxes[1].value, isFalse, reason: 'data-collection checkbox starts unchecked');
-  });
-
-  testWidgets('tapping the policy checkbox reports (true, false) and checks the box',
-      (tester) async {
-    bool? lastPolicy;
-    bool? lastData;
-    await pumpIntroPage(tester, onSetPageContent: (policy, data) {
-      lastPolicy = policy;
-      lastData = data;
-    });
-
-    await tester.tap(find.byType(Checkbox).first);
-    await tester.pump();
-
-    expect(lastPolicy, isTrue);
-    expect(lastData, isFalse);
     expect(
-      tester.widget<Checkbox>(find.byType(Checkbox).first).value,
-      isTrue,
+      checkboxes[0].value,
+      isFalse,
+      reason: 'policy checkbox starts unchecked',
+    );
+    expect(
+      checkboxes[1].value,
+      isFalse,
+      reason: 'data-collection checkbox starts unchecked',
     );
   });
 
-  testWidgets('tapping the data-collection checkbox reports (false, true)',
-      (tester) async {
+  testWidgets(
+    'tapping the policy checkbox reports (true, false) and checks the box',
+    (tester) async {
+      bool? lastPolicy;
+      bool? lastData;
+      await pumpIntroPage(
+        tester,
+        onSetPageContent: (policy, data) {
+          lastPolicy = policy;
+          lastData = data;
+        },
+      );
+
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pump();
+
+      expect(lastPolicy, isTrue);
+      expect(lastData, isFalse);
+      expect(
+        tester.widget<Checkbox>(find.byType(Checkbox).first).value,
+        isTrue,
+      );
+    },
+  );
+
+  testWidgets('tapping the data-collection checkbox reports (false, true)', (
+    tester,
+  ) async {
     bool? lastPolicy;
     bool? lastData;
-    await pumpIntroPage(tester, onSetPageContent: (policy, data) {
-      lastPolicy = policy;
-      lastData = data;
-    });
+    await pumpIntroPage(
+      tester,
+      onSetPageContent: (policy, data) {
+        lastPolicy = policy;
+        lastData = data;
+      },
+    );
 
     await tester.tap(find.byType(Checkbox).last);
     await tester.pump();
 
     expect(lastPolicy, isFalse);
     expect(lastData, isTrue);
-    expect(
-      tester.widget<Checkbox>(find.byType(Checkbox).last).value,
-      isTrue,
-    );
+    expect(tester.widget<Checkbox>(find.byType(Checkbox).last).value, isTrue);
   });
 
   testWidgets('tapping both checkboxes reports (true, true)', (tester) async {
     bool? lastPolicy;
     bool? lastData;
-    await pumpIntroPage(tester, onSetPageContent: (policy, data) {
-      lastPolicy = policy;
-      lastData = data;
-    });
+    await pumpIntroPage(
+      tester,
+      onSetPageContent: (policy, data) {
+        lastPolicy = policy;
+        lastData = data;
+      },
+    );
 
     await tester.tap(find.byType(Checkbox).first);
     await tester.pump();
@@ -101,12 +124,16 @@ void main() {
     expect(lastData, isTrue);
   });
 
-  testWidgets('tapping the policy checkbox twice toggles it back off',
-      (tester) async {
+  testWidgets('tapping the policy checkbox twice toggles it back off', (
+    tester,
+  ) async {
     final reportedStates = <(bool, bool)>[];
-    await pumpIntroPage(tester, onSetPageContent: (policy, data) {
-      reportedStates.add((policy, data));
-    });
+    await pumpIntroPage(
+      tester,
+      onSetPageContent: (policy, data) {
+        reportedStates.add((policy, data));
+      },
+    );
 
     final policyBox = find.byType(Checkbox).first;
     await tester.tap(policyBox);
@@ -118,22 +145,45 @@ void main() {
     expect(tester.widget<Checkbox>(policyBox).value, isFalse);
   });
 
-  testWidgets('tapping the policy ListTile (not just the checkbox) also toggles',
-      (tester) async {
-    bool? lastPolicy;
-    await pumpIntroPage(tester, onSetPageContent: (policy, _) {
-      lastPolicy = policy;
-    });
+  testWidgets(
+    'tapping the policy ListTile (not just the checkbox) also toggles',
+    (tester) async {
+      bool? lastPolicy;
+      await pumpIntroPage(
+        tester,
+        onSetPageContent: (policy, _) {
+          lastPolicy = policy;
+        },
+      );
 
-    // The policy ListTile has onTap wired to _togglePolicy, so tapping the
-    // surrounding row (e.g., the policy text) should also flip the checkbox.
-    final policyTile = find.ancestor(
-      of: find.byType(Checkbox).first,
-      matching: find.byType(ListTile),
+      // The policy ListTile has onTap wired to _togglePolicy, so tapping the
+      // surrounding row (e.g., the policy text) should also flip the checkbox.
+      final policyTile = find.ancestor(
+        of: find.byType(Checkbox).first,
+        matching: find.byType(ListTile),
+      );
+      await tester.tap(policyTile);
+      await tester.pump();
+
+      expect(lastPolicy, isTrue);
+    },
+  );
+
+  testWidgets('shows Try Demo on first-run onboarding', (tester) async {
+    await pumpIntroPage(tester, onSetPageContent: (_, _) {});
+
+    expect(find.bySemanticsIdentifier('onboarding-try-demo'), findsOneWidget);
+  });
+
+  testWidgets('hides Try Demo when add-profile onboarding disallows it', (
+    tester,
+  ) async {
+    await pumpIntroPage(
+      tester,
+      onSetPageContent: (_, _) {},
+      allowTryDemo: false,
     );
-    await tester.tap(policyTile);
-    await tester.pump();
 
-    expect(lastPolicy, isTrue);
+    expect(find.bySemanticsIdentifier('onboarding-try-demo'), findsNothing);
   });
 }

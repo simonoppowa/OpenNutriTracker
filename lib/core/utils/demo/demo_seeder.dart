@@ -36,7 +36,6 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/fasting/data/repository/fasting_repository.dart';
 import 'package:opennutritracker/features/fasting/domain/entity/fasting_session_entity.dart';
-import 'package:opennutritracker/features/fasting/domain/usecase/acknowledge_fasting_warning_usecase.dart';
 import 'package:path_provider/path_provider.dart';
 
 final _log = Logger('DemoSeeder');
@@ -106,8 +105,19 @@ class DemoSeedOptions {
 /// Called from two places: `lib/dev/main_dev.dart` (dev-only, [DemoSeedOptions.dev])
 /// and the onboarding intro page's "try it with sample data" link
 /// ([DemoSeedOptions.onboarding], shipped in every build).
+///
+/// Throws [StateError] when more than one profile exists — demo mode writes
+/// into the shared recipe/custom-meal/activity-template libraries, so seeding
+/// while another profile is already on the device would either wipe that
+/// profile's content or leave unreclaimable shared demo entries behind.
 Future<void> seedDemoData(DemoSeedOptions options) async {
   _log.info('Seeding demo data (${options.daysOfHistory} days)...');
+
+  if (!_isSingleProfileDevice()) {
+    throw StateError(
+      'Demo data can only be seeded when a single profile exists on the device',
+    );
+  }
 
   await _wipeActiveProfileAndDemoContent();
 
@@ -115,7 +125,9 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   final startOfToday = DateTime(now.year, now.month, now.day);
   final user = _demoUser(startOfToday);
   await locator<AddUserUsecase>().addUser(user);
-  await locator<AcknowledgeFastingWarningUseCase>()();
+  // Do not auto-acknowledge the fasting safety warning for a synthetic user —
+  // that flag lives in app-wide config and would permanently suppress the
+  // disordered-eating gate for a later real profile on this device.
 
   // Hand-picked Unsplash photos, reused across every day's intake entries
   // — see unsplash_attribution.dart for why these are hardcoded URLs
@@ -158,7 +170,8 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
     // Home screen has something to show immediately after seeding.
     var activityBurnedKcal = 0.0;
     if (daysAgo == 0 || demoRng.nextDouble() < 0.5) {
-      final activity = demoActivityPool[demoRng.nextInt(demoActivityPool.length)];
+      final activity =
+          demoActivityPool[demoRng.nextInt(demoActivityPool.length)];
       final duration = 25.0 + demoRng.nextInt(40); // 25-64 min
       final burnedKcal = METCalc.getTotalBurnedKcal(user, activity, duration);
       activityBurnedKcal = burnedKcal;
@@ -196,7 +209,8 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
     // day lands on-track by construction. The boundary day is always
     // forced to miss (rather than left to the random roll) so a nonzero
     // streak comes out to exactly [guaranteedStreakDays], not "at least".
-    final isMissedDay = options.missedDayProbability > 0 &&
+    final isMissedDay =
+        options.missedDayProbability > 0 &&
         (daysAgo == options.guaranteedStreakDays ||
             (daysAgo > options.guaranteedStreakDays &&
                 demoRng.nextDouble() < options.missedDayProbability));
@@ -232,10 +246,7 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
     intakeDBOs.addAll(dayIntakes.map(IntakeDBO.fromIntakeEntity));
 
     final totalKcal = dayIntakes.fold(0.0, (sum, i) => sum + i.totalKcal);
-    final totalCarbs = dayIntakes.fold(
-      0.0,
-      (sum, i) => sum + i.totalCarbsGram,
-    );
+    final totalCarbs = dayIntakes.fold(0.0, (sum, i) => sum + i.totalCarbsGram);
     final totalFat = dayIntakes.fold(0.0, (sum, i) => sum + i.totalFatsGram);
     final totalProtein = dayIntakes.fold(
       0.0,
@@ -262,9 +273,7 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   }
 
   await locator<IntakeRepository>().addAllIntakeDBOs(intakeDBOs);
-  await locator<UserActivityRepository>().addAllUserActivityDBOs(
-    activityDBOs,
-  );
+  await locator<UserActivityRepository>().addAllUserActivityDBOs(activityDBOs);
   await locator<TrackedDayRepository>().addAllTrackedDays(trackedDayDBOs);
   await locator<WaterIntakeRepository>().addAllEntries(waterIntakeDBOs);
   await locator<WeightLogRepository>().addAllEntries(
@@ -287,18 +296,32 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   _log.info('Demo data seeded.');
 }
 
-/// Wipes the active profile's tracked data plus the demo-only shared
-/// content a seed writes (custom meals, recipes, activity templates —
+/// Whether this device currently has at most one profile. Demo mode is only
+/// safe in that case because recipes / custom meals / activity templates are
+/// global boxes shared by every profile.
+bool _isSingleProfileDevice() =>
+    locator<GetProfilesUsecase>().getProfiles().length <= 1;
+
+/// Wipes the active profile's tracked data plus, when safe, the demo-only
+/// shared content a seed writes (custom meals, recipes, activity templates —
 /// see [HiveDBProvider]'s doc comment on why those live outside
 /// [DeleteAllUserDataUsecase]'s per-profile clear). Shared by
 /// [seedDemoData]'s own pre-reseed wipe and [exitDemoMode] so the two
 /// can't drift apart.
+///
+/// Shared libraries are only cleared on a single-profile device so an
+/// add-profile / multi-profile path can never delete another profile's
+/// recipes or custom meals.
 Future<void> _wipeActiveProfileAndDemoContent() async {
-  await locator<DeleteAllUserDataUsecase>().deleteAll();
-  final hiveDBProvider = locator<HiveDBProvider>();
-  await hiveDBProvider.customMealBox.clear();
-  await hiveDBProvider.recipeBox.clear();
-  await hiveDBProvider.customActivityTemplateBox.clear();
+  // closeSentry: false — demo seed/exit is not a user privacy wipe; tearing
+  // down Sentry here would silence crash reporting for the rest of the session.
+  await locator<DeleteAllUserDataUsecase>().deleteAll(closeSentry: false);
+  if (_isSingleProfileDevice()) {
+    final hiveDBProvider = locator<HiveDBProvider>();
+    await hiveDBProvider.customMealBox.clear();
+    await hiveDBProvider.recipeBox.clear();
+    await hiveDBProvider.customActivityTemplateBox.clear();
+  }
 }
 
 /// Called when the user taps "Set up your profile" on the demo-mode
@@ -317,6 +340,11 @@ Future<void> exitDemoMode() async {
   final active = locator<GetProfilesUsecase>().getActiveProfile();
 
   await _wipeActiveProfileAndDemoContent();
+
+  // isDemoData is profile-scoped and deleteAll clears the profile config box,
+  // but write false explicitly so any stale app-box copy and a recreated
+  // profile config both agree after exit.
+  await locator<AddConfigUsecase>().setConfigIsDemoData(false);
 
   if (active == null) return;
   if (active.imagePath != null) {
@@ -364,7 +392,12 @@ Future<void> _setupActiveProfile() async {
   String? imagePath;
   try {
     final avatarUrl = unsplashImageUrl(_profilePhotoId, width: 500);
-    final response = await http.get(Uri.parse(avatarUrl));
+    // Bound the download so a stalled Unsplash request cannot hang the
+    // onboarding "Try Demo" spinner indefinitely. Failures fall through to
+    // the catch below and seed continues without an avatar.
+    final response = await http
+        .get(Uri.parse(avatarUrl))
+        .timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
       final tempDir = await getTemporaryDirectory();
       final tempFile = File('${tempDir.path}/demo_profile_avatar_source');
@@ -416,7 +449,8 @@ List<WeightLogDBO> _buildWeightLog(
   var daysAgo = totalDays;
   while (daysAgo > 0) {
     final progress = totalDays == 0 ? 1.0 : 1 - daysAgo / totalDays;
-    final trendWeight = options.startWeightKg +
+    final trendWeight =
+        options.startWeightKg +
         (currentWeightKg - options.startWeightKg) * progress;
     final jitter = (demoRng.nextDouble() - 0.5) * 0.6; // +/- 0.3kg
     entries.add(
@@ -443,7 +477,10 @@ List<WeightLogDBO> _buildWeightLog(
 /// mostly completed, occasionally broken early — plus one still in
 /// progress so the fasting timer has something live to show right after
 /// seeding.
-List<FastingSessionEntity> _buildFastingSessions(DateTime now, int daysOfHistory) {
+List<FastingSessionEntity> _buildFastingSessions(
+  DateTime now,
+  int daysOfHistory,
+) {
   final sessions = <FastingSessionEntity>[];
   var daysAgo = daysOfHistory - 1;
   while (daysAgo >= 3) {
