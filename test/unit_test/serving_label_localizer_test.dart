@@ -6,7 +6,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 void main() {
   group('localizeServingLabel', () {
     test('translates unit words with plural agreement (German)', () async {
-      final s = await S.load(const Locale('de'));
+      final s = lookupS(const Locale('de'));
       expect(localizeServingLabel(s, '1 slice (38 g)'), '1 Scheibe (38 g)');
       expect(localizeServingLabel(s, '2 slices (76 g)'), '2 Scheiben (76 g)');
       expect(localizeServingLabel(s, '1 portion (150 g)'),
@@ -15,13 +15,13 @@ void main() {
     });
 
     test('keeps English labels intact for the English locale', () async {
-      final s = await S.load(const Locale('en'));
+      final s = lookupS(const Locale('en'));
       expect(localizeServingLabel(s, '1 slice (38 g)'), '1 slice (38 g)');
       expect(localizeServingLabel(s, '2 slices (76 g)'), '2 slices (76 g)');
     });
 
     test('leaves unknown units and descriptive prose untouched', () async {
-      final s = await S.load(const Locale('de'));
+      final s = lookupS(const Locale('de'));
       // Unknown unit word.
       expect(localizeServingLabel(s, '1 drumstick (110 g)'),
           '1 drumstick (110 g)');

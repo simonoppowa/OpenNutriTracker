@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/kcal_goal_info_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
+import '../../../../helpers/test_l10n.dart';
 
 /// Renders the transparency screen against breakdowns computed by the real
 /// [KcalGoalBreakdownEntity.compute] and asserts the *displayed strings*
@@ -66,7 +67,7 @@ Widget _wrap(KcalGoalBreakdownEntity breakdown, {bool usesKilojoules = false}) {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: S.delegate.supportedLocales,
+      supportedLocales: S.supportedLocales,
       home: KcalGoalInfoScreen(usecase: _FakeBreakdownUsecase(breakdown)),
     ),
   );
@@ -141,7 +142,7 @@ void main() {
       expect(find.text('−500 kcal'), findsNWidgets(3));
       expect(find.text('+150 kcal'), findsNWidgets(2));
       expect(find.text('+320 kcal'), findsNWidgets(2));
-      expect(find.text(S.current.kcalGoalInfoAdjustmentExplanationFlat),
+      expect(find.text(l10nEn.kcalGoalInfoAdjustmentExplanationFlat),
           findsOneWidget);
     });
 
@@ -204,14 +205,14 @@ void main() {
 
       expect(find.text('−500 kcal'), findsOneWidget); // base row only
       expect(find.text('−250 kcal'), findsNWidgets(2)); // applied + result
-      expect(find.text(S.current.kcalGoalInfoTaperNote), findsOneWidget);
+      expect(find.text(l10nEn.kcalGoalInfoTaperNote), findsOneWidget);
     });
 
     testWidgets('taper note is absent when no taper is active',
         (tester) async {
       await _pump(tester, maleBreakdown());
 
-      expect(find.text(S.current.kcalGoalInfoTaperNote), findsNothing);
+      expect(find.text(l10nEn.kcalGoalInfoTaperNote), findsNothing);
     });
 
     testWidgets('weekly rate shows its explanation and 1100-based adjustment',
@@ -224,9 +225,9 @@ void main() {
 
       // −0.5 kg/week × 1100 = −550 kcal/day (base, applied, result rows).
       expect(find.text('−550 kcal'), findsNWidgets(3));
-      expect(find.text(S.current.kcalGoalInfoAdjustmentExplanationWeekly),
+      expect(find.text(l10nEn.kcalGoalInfoAdjustmentExplanationWeekly),
           findsOneWidget);
-      expect(find.text(S.current.kcalGoalInfoAdjustmentExplanationFlat),
+      expect(find.text(l10nEn.kcalGoalInfoAdjustmentExplanationFlat),
           findsNothing);
     });
 
@@ -240,7 +241,7 @@ void main() {
 
       expect(find.textContaining('387 − 7.31 × 30'), findsOneWidget);
       expect(find.textContaining('864 −'), findsNothing);
-      expect(find.text(S.current.kcalGoalInfoAveragedNote), findsNothing);
+      expect(find.text(l10nEn.kcalGoalInfoAveragedNote), findsNothing);
     });
 
     testWidgets('non-binary averaged profile shows both reference sides',
@@ -253,13 +254,13 @@ void main() {
 
       expect(find.textContaining('864 − 9.72 × 30'), findsOneWidget);
       expect(find.textContaining('387 − 7.31 × 30'), findsOneWidget);
-      expect(find.text(S.current.kcalGoalInfoAveragedNote), findsOneWidget);
+      expect(find.text(l10nEn.kcalGoalInfoAveragedNote), findsOneWidget);
       expect(
-        find.textContaining(S.current.kcalGoalInfoMaleReferenceLabel),
+        find.textContaining(l10nEn.kcalGoalInfoMaleReferenceLabel),
         findsWidgets,
       );
       expect(
-        find.textContaining(S.current.kcalGoalInfoFemaleReferenceLabel),
+        find.textContaining(l10nEn.kcalGoalInfoFemaleReferenceLabel),
         findsWidgets,
       );
     });

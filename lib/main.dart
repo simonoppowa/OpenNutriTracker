@@ -79,16 +79,17 @@ Future<void> main() async {
   final savedLocale = savedLocaleCode != null ? Locale(savedLocaleCode) : null;
 
   // #312: Restore scheduled notifications after app start / device reboot.
-  // Load the user's localized strings first — there's no widget tree yet, so
-  // S is driven directly off the saved (or device) locale. Android re-applies
-  // the channel name/description on every (re)registration, and they surface
-  // in the OS settings, so this keeps them in the user's language instead of
-  // reverting to English on each launch.
+  // Look up the user's localized strings first — there's no widget tree yet,
+  // so S is driven directly off the saved (or device) locale, resolved against
+  // the supported locales because lookupS throws on unsupported ones. Android
+  // re-applies the channel name/description on every (re)registration, and
+  // they surface in the OS settings, so this keeps them in the user's
+  // language instead of reverting to English on each launch.
   if (config.notificationsEnabled) {
-    await S.load(
-      savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale,
-    );
-    final s = S.current;
+    final s = lookupS(basicLocaleListResolution(
+      [savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale],
+      S.supportedLocales,
+    ));
     final notificationService = locator<NotificationService>();
     await notificationService.initialize();
     await notificationService.scheduleDailyReminder(
@@ -235,7 +236,7 @@ class OpenNutriTrackerApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      supportedLocales: S.delegate.supportedLocales,
+      supportedLocales: S.supportedLocales,
       initialRoute: NavigationOptions.splashRoute,
       routes: {
         NavigationOptions.splashRoute: (context) =>

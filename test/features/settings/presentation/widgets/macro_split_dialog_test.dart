@@ -4,6 +4,7 @@ import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart'
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/macro_split_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import '../../../../helpers/test_l10n.dart';
 
 class _FakeSettingsBloc extends Fake implements SettingsBloc {
   double? savedCarbs;
@@ -45,7 +46,7 @@ class _FakeHomeBloc extends Fake implements HomeBloc {
 Widget _wrap(Widget child) {
   return MaterialApp(
     localizationsDelegates: const [S.delegate],
-    supportedLocales: S.delegate.supportedLocales,
+    supportedLocales: S.supportedLocales,
     home: Scaffold(body: child),
   );
 }
@@ -74,7 +75,7 @@ void main() {
     final fields = find.byType(TextField);
     await tester.enterText(fields.first, '50');
 
-    await tester.tap(find.text(S.current.dialogOKLabel));
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
     await tester.pumpAndSettle();
 
     expect(settingsBloc.savedCarbs, 50);
@@ -111,7 +112,7 @@ void main() {
     final fields = find.byType(TextField);
     await tester.enterText(fields.first, '95');
 
-    await tester.tap(find.text(S.current.dialogOKLabel));
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
     await tester.pumpAndSettle();
 
     expect(settingsBloc.savedCarbs, 60);
@@ -145,7 +146,7 @@ void main() {
     final fields = find.byType(TextField);
     await tester.enterText(fields.at(1), '25');
 
-    await tester.tap(find.text(S.current.dialogOKLabel));
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
     await tester.pumpAndSettle();
 
     expect(settingsBloc.savedProtein, 25);

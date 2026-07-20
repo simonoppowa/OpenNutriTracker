@@ -14,7 +14,7 @@ Future<void> _pumpDialog(WidgetTester tester) async {
         GlobalCupertinoLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      supportedLocales: S.delegate.supportedLocales,
+      supportedLocales: S.supportedLocales,
       home: const Scaffold(
         body: ShareQrDialog(
           title: 'Share meal',
