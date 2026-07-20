@@ -17,6 +17,7 @@ import 'package:opennutritracker/features/profile/profile_page.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 import '../../../fixture/user_entity_fixtures.dart';
+import '../../../helpers/test_l10n.dart';
 
 /// Real Bloc state/stream machinery, but [updateUser] just records the call
 /// instead of touching AddUserUsecase / HomeBloc / DiaryBloc / CalendarDayBloc
@@ -88,7 +89,7 @@ Widget _wrap(Widget child) {
       GlobalWidgetsLocalizations.delegate,
       GlobalCupertinoLocalizations.delegate,
     ],
-    supportedLocales: S.delegate.supportedLocales,
+    supportedLocales: S.supportedLocales,
     home: Scaffold(body: child),
   );
 }
@@ -148,7 +149,7 @@ void main() {
 
     // Submit without moving the picker — the dialog defaults to the
     // current weight, which is enough to prove the write path fires.
-    await tester.tap(find.text(S.current.dialogOKLabel));
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
     await tester.pumpAndSettle();
 
     expect(fakeAddWeightLogUsecase.entries, hasLength(1));

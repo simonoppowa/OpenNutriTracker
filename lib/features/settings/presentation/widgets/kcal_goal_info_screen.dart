@@ -137,7 +137,7 @@ class _InputsCard extends StatelessWidget {
       children: [
         _ValueRow(
           label: l10n.ageLabel,
-          value: l10n.yearsLabel(breakdown.age.toString()),
+          value: l10n.yearsLabel(breakdown.age),
         ),
         _ValueRow(
           label: l10n.heightLabel,

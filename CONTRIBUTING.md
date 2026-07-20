@@ -22,14 +22,13 @@ For environment setup (Flutter / Android SDK / IDE), see [GettingStarted.md](Get
 
 ## Adding or changing localized strings
 
-Source strings live in `lib/l10n/intl_en.arb`. Translations live in a separate ARB file per supported locale, plus manually-maintained Dart files under `lib/generated/`.
-
-> [!IMPORTANT]
-> **For now**, the files under `lib/generated/` carry a `// GENERATED CODE - DO NOT MODIFY BY HAND` header but are **maintained manually** in this project — the upstream generator's output conflicts with the repo's 120-character formatting and would fail CI. Until the generation pipeline is reconciled with the formatting rules, edit those files by hand. Do **not** run `intl_translation:generate_from_arb` — this caveat will go away once the generator output is fixed.
+Source strings live in `lib/l10n/intl_en.arb`. Translations live in a separate ARB file per supported locale. The Dart bindings under `lib/generated/` are produced by Flutter's built-in `gen-l10n` tool (configured in `l10n.yaml`) — they are **gitignored** and regenerated on every `flutter run`/`flutter build`, or on demand with `just gen_l10n`. Never edit generated files by hand or commit them.
 
 When adding a new string key in the same PR you must:
 
-1. **Add the key to every ARB file** under `lib/l10n/`. The currently supported locales are:
+1. **Add the key to `lib/l10n/intl_en.arb`** (the template file). If the message has placeholders, declare them with types in an accompanying `@key` metadata entry, e.g. `"@yearsLabel": {"placeholders": {"age": {"type": "int"}}}`.
+
+2. **Add the key to every other ARB file** under `lib/l10n/`. The currently supported locales are:
 
    | File | Language |
    | --- | --- |
@@ -45,11 +44,7 @@ When adding a new string key in the same PR you must:
 
    Provide a real translation for each locale — do not leave the English string in as a placeholder. If you only speak one of the languages, machine translation is acceptable as a starting point; native-speaker review is welcome post-merge.
 
-2. **Add a getter to `lib/generated/l10n.dart`**, following the existing style.
-
-3. **Add a matching `MessageLookupByLibrary.simpleMessage(...)` entry to each `lib/generated/intl/messages_<locale>.dart` file**, one per locale.
-
-4. **Verify with `just check_intl`** — this is what CI runs and will fail the PR if any of the above is missing or out of sync.
+3. **Run `just gen_l10n`** and use the new key via `S.of(context).yourNewKey`. Keys missing from a locale ARB fall back to the English source string at generation time and are listed in `l10n_untranslated.json` (gitignored), so a forgotten translation won't break the build — but see rule 2.
 
 ## Code generation
 
@@ -60,7 +55,7 @@ Some files are produced by `build_runner` (Hive type adapters and JSON serializa
 - 120-character line width (configured in `analysis_options.yaml`).
 - Format with `just format` before committing — this targets only `lib/core`, `lib/features`, `lib/l10n`, and `test` and deliberately skips `lib/generated/`.
 - Run `flutter analyze` and `just test` locally before opening the PR.
-- `just ci` runs the full CI pipeline (install, format check, intl check, build, analyze, test) and is the closest thing to a one-shot pre-flight check.
+- `just ci` runs the full CI pipeline (install, format check, l10n generation, build, analyze, test) and is the closest thing to a one-shot pre-flight check.
 
 ## Commit messages
 

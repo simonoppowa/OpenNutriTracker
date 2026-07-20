@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/bmi_info_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import '../../../../helpers/test_l10n.dart';
 
 /// Renders the BMI transparency screen for fixed profiles and asserts the
 /// displayed values against hand-computed BMI numbers, including the WHO
@@ -45,7 +46,7 @@ Widget _wrap(UserEntity user) {
       GlobalWidgetsLocalizations.delegate,
       GlobalCupertinoLocalizations.delegate,
     ],
-    supportedLocales: S.delegate.supportedLocales,
+    supportedLocales: S.supportedLocales,
     home: BmiInfoScreen(userUsecase: _FakeGetUserUsecase(user)),
   );
 }
@@ -95,12 +96,12 @@ void main() {
       // BMI 24.7 → normal weight.
       await _pump(tester, _buildUser());
 
-      final normal = find.text(S.current.nutritionalStatusNormalWeight);
+      final normal = find.text(l10nEn.nutritionalStatusNormalWeight);
       final normalStyle = tester.widget<Text>(normal).style;
       expect(normalStyle?.fontWeight, FontWeight.bold);
       expect(normalStyle?.color, _primaryOf(tester, normal));
 
-      final pre = find.text(S.current.nutritionalStatusPreObesity);
+      final pre = find.text(l10nEn.nutritionalStatusPreObesity);
       expect(tester.widget<Text>(pre).style?.fontWeight, isNot(FontWeight.bold));
     });
 
@@ -112,12 +113,12 @@ void main() {
 
       expect(find.text('25.0'), findsOneWidget);
 
-      final pre = find.text(S.current.nutritionalStatusPreObesity);
+      final pre = find.text(l10nEn.nutritionalStatusPreObesity);
       final preStyle = tester.widget<Text>(pre).style;
       expect(preStyle?.fontWeight, FontWeight.bold);
       expect(preStyle?.color, _primaryOf(tester, pre));
 
-      final normal = find.text(S.current.nutritionalStatusNormalWeight);
+      final normal = find.text(l10nEn.nutritionalStatusNormalWeight);
       expect(
         tester.widget<Text>(normal).style?.fontWeight,
         isNot(FontWeight.bold),

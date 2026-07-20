@@ -24,7 +24,7 @@ void main() {
   }) async {
     await tester.pumpWidget(MaterialApp(
       localizationsDelegates: const [S.delegate],
-      supportedLocales: S.delegate.supportedLocales,
+      supportedLocales: S.supportedLocales,
       home: Scaffold(
         body: OnboardingIntroPageBody(
           setPageContent: onSetPageContent,

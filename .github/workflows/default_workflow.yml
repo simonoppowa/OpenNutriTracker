@@ -47,14 +47,14 @@ jobs:
 
       # `just ci` would also run `dart format --set-exit-if-changed`, but the
       # codebase currently has accumulated pre-existing format drift from the
-      # period when CI was disabled. We run the rest of `just ci` (intl
-      # check, build_runner, analyze, test) and leave the format pass for a
-      # dedicated follow-up PR.
+      # period when CI was disabled. We run the rest of `just ci` (l10n
+      # generation, build_runner, analyze, test) and leave the format pass
+      # for a dedicated follow-up PR.
       - name: Install Flutter packages
         run: just install
 
-      - name: Verify generated intl files
-        run: just check_intl
+      - name: Generate localizations
+        run: just gen_l10n
 
       - name: Generate code (env.g.dart, Hive adapters, JSON serializers)
         run: just build

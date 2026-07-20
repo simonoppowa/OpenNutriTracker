@@ -1,5 +1,3 @@
-intl_output_dir := "./lib/generated/intl/"
-
 # Install dependencies
 install:
   flutter pub get
@@ -8,25 +6,20 @@ install:
 build:
   dart run build_runner build
 
-# Format dart code (excludes lib/generated/ — those files are auto-generated with their own style)
+# Format dart code (excludes lib/generated/ — gitignored gen-l10n output with its own style)
 format *OPTIONS:
   dart format {{OPTIONS}} ./lib/core ./lib/features ./lib/l10n ./test
 
-# Regenerate intl files
-# Note: lib/generated/ files are maintained manually to avoid formatting churn from the generators
-run_intl: format
-
-# Check if intl files are correctly generated
-check_intl:
-  git diff --exit-code {{intl_output_dir}}
-  git diff --exit-code lib/generated/l10n.dart
+# Generate localizations from lib/l10n/*.arb into lib/generated/ (gitignored)
+gen_l10n:
+  flutter gen-l10n
 
 # Run tests
 test:
   flutter test
 
 # Run CI checks
-ci: install (format "--set-exit-if-changed") check_intl build && test
+ci: install (format "--set-exit-if-changed") gen_l10n build && test
   flutter analyze
 
 create_emulator:

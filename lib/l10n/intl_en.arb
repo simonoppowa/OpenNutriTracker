@@ -1,5 +1,4 @@
 {
-  "@PHYSICAL_ACTIVITIES": {},
   "@clearOffCacheSubtitle": {
     "placeholders": {
       "count": {
@@ -204,6 +203,7 @@
   "additionalInfoLabelCustom": "Custom Meal Item",
   "additionalInfoLabelFDC": "More Information at\nFoodData Central",
   "additionalInfoLabelSource": "More Information at\n{sourceName}",
+  "@additionalInfoLabelSource": {"placeholders": {"sourceName": {"type": "String"}}},
   "foodSourcesAlwaysEnabledLabel": "Always enabled",
   "foodSourcesHelpText": "Search results come from these food databases. Open Food Facts powers the product and barcode search and is always enabled.",
   "machineTranslatedNameHint": "Name translated automatically",
@@ -245,6 +245,7 @@
   "appLicenseLabel": "GPL-3.0 license",
   "appTitle": "OpenNutriTracker",
   "appVersionName": "Version {versionNumber}",
+  "@appVersionName": {"placeholders": {"versionNumber": {"type": "String"}}},
   "barcodeInvalidEan13CheckDigit": "This 13-digit barcode looks miskeyed: its last digit doesn't match the rest",
   "baseQuantityLabel": "Nutrition is per",
   "betaVersionName": "[Beta]",
@@ -264,6 +265,7 @@
   "calciumLabel": "calcium",
   "calculationsMacronutrientsDistributionLabel": "Macros distribution",
   "calculationsMacrosDistribution": "{pctCarbs}% carbs, {pctFats}% fats, {pctProteins}% proteins",
+  "@calculationsMacrosDistribution": {"placeholders": {"pctCarbs": {}, "pctFats": {}, "pctProteins": {}}},
   "calculationsRecommendedLabel": "(recommended)",
   "calculationsTDEEIOM2006Label": "Institute of Medicine Equation (2005)",
   "calculationsTDEELabel": "TDEE equation",
@@ -558,6 +560,7 @@
   "nutritionalStatusRiskAverage": "Average",
   "nutritionalStatusRiskIncreased": "Increased",
   "nutritionalStatusRiskLabel": "Risk of comorbidities: {riskValue}",
+  "@nutritionalStatusRiskLabel": {"placeholders": {"riskValue": {"type": "String"}}},
   "nutritionalStatusRiskLow": "Low \n(but risk of other \nclinical problems increased)",
   "nutritionalStatusRiskModerate": "Moderate",
   "nutritionalStatusRiskSevere": "Severe",
@@ -1052,6 +1055,7 @@
   "weightHistoryWeightLabel": "Weight",
   "weightLabel": "Weight",
   "yearsLabel": "{age} years",
+  "@yearsLabel": {"placeholders": {"age": {"type": "int"}}},
   "logWaterAmountLabel": "Add {amount} ml",
   "logWaterDialogTitle": "Log water intake",
   "logWaterNothingToUndoLabel": "Nothing to undo",
