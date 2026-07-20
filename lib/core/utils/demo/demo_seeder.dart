@@ -108,6 +108,10 @@ class DemoSeedOptions {
 /// ([DemoSeedOptions.onboarding], shipped in every build).
 Future<void> seedDemoData(DemoSeedOptions options) async {
   _log.info('Seeding demo data (${options.daysOfHistory} days)...');
+  // Reproducible fixture even when seedDemoData runs more than once in
+  // the same process (exit demo → try sample data again, or repeated
+  // `just dev_seed` hot-restarts that skip a full process restart).
+  resetDemoRng();
 
   await _wipeActiveProfileAndDemoContent();
 
@@ -364,7 +368,9 @@ Future<void> _setupActiveProfile() async {
   String? imagePath;
   try {
     final avatarUrl = unsplashImageUrl(_profilePhotoId, width: 500);
-    final response = await http.get(Uri.parse(avatarUrl));
+    final response = await http
+        .get(Uri.parse(avatarUrl))
+        .timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
       final tempDir = await getTemporaryDirectory();
       final tempFile = File('${tempDir.path}/demo_profile_avatar_source');

@@ -67,6 +67,11 @@ class _FakeConfigRepository implements ConfigRepository {
   @override
   Future<void> setConfigAccentColor(int? _) async {}
 
+  // Cleared at the end of real onboarding so a post-demo profile can never
+  // keep showing the sample-data banner. Not part of the race under test.
+  @override
+  Future<void> setIsDemoData(bool _) async {}
+
   @override
   noSuchMethod(Invocation invocation) =>
       throw UnimplementedError(invocation.memberName.toString());

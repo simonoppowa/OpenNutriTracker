@@ -7,7 +7,7 @@ import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/main.dart';
 
 /// Dev-only entry point: wipes the active profile and reseeds it with
-/// realistic demo data (user, a week of meals and activities, weight/water
+/// realistic demo data (user, a year of meals and activities, weight/water
 /// history, a recipe, fasting sessions), then boots straight past
 /// onboarding.
 ///

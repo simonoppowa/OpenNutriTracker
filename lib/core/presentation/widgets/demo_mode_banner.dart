@@ -59,6 +59,8 @@ class DemoModeBanner extends StatelessWidget {
                   Expanded(
                     child: Text(
                       S.of(context).homeDemoBannerLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: textTheme.labelLarge?.copyWith(
                         color: palette.textStrong,
                         fontWeight: FontWeight.w700,
@@ -66,12 +68,16 @@ class DemoModeBanner extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: Dimens.spacing8),
-                  Text(
-                    S.of(context).homeDemoBannerAction,
-                    style: textTheme.labelLarge?.copyWith(
-                      color: accent,
-                      fontWeight: FontWeight.w700,
-                      decoration: TextDecoration.underline,
+                  Flexible(
+                    child: Text(
+                      S.of(context).homeDemoBannerAction,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.labelLarge?.copyWith(
+                        color: accent,
+                        fontWeight: FontWeight.w700,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
                 ],
