@@ -34,26 +34,32 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _MacroRing(
-          intake: widget.totalCarbsIntake,
-          goal: widget.totalCarbsGoal,
-          label: S.of(context).carbsLabel,
-          color: palette.carbs,
-          palette: palette,
+        Expanded(
+          child: _MacroRing(
+            intake: widget.totalCarbsIntake,
+            goal: widget.totalCarbsGoal,
+            label: S.of(context).carbsLabel,
+            color: palette.carbs,
+            palette: palette,
+          ),
         ),
-        _MacroRing(
-          intake: widget.totalFatsIntake,
-          goal: widget.totalFatsGoal,
-          label: S.of(context).fatLabel,
-          color: palette.fat,
-          palette: palette,
+        Expanded(
+          child: _MacroRing(
+            intake: widget.totalFatsIntake,
+            goal: widget.totalFatsGoal,
+            label: S.of(context).fatLabel,
+            color: palette.fat,
+            palette: palette,
+          ),
         ),
-        _MacroRing(
-          intake: widget.totalProteinsIntake,
-          goal: widget.totalProteinsGoal,
-          label: S.of(context).proteinLabel,
-          color: palette.protein,
-          palette: palette,
+        Expanded(
+          child: _MacroRing(
+            intake: widget.totalProteinsIntake,
+            goal: widget.totalProteinsGoal,
+            label: S.of(context).proteinLabel,
+            color: palette.protein,
+            palette: palette,
+          ),
         ),
       ],
     );
@@ -76,7 +82,7 @@ class _MacroRing extends StatelessWidget {
   });
 
   double get _percent {
-    if (intake <= 0 || goal <= 0) {
+    if (!intake.isFinite || !goal.isFinite || intake <= 0 || goal <= 0) {
       return 0;
     } else if (intake > goal) {
       return 1;
@@ -99,23 +105,31 @@ class _MacroRing extends StatelessWidget {
           backgroundColor: palette.surfaceMuted,
           circularStrokeCap: CircularStrokeCap.round,
         ),
-        Padding(
-          padding: const EdgeInsets.all(Dimens.spacing4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${intake.toInt()}/${goal.toInt()} g',
-                style: textTheme.titleSmall?.copyWith(
-                  color: palette.textStrong,
-                  fontWeight: FontWeight.w700,
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.all(Dimens.spacing4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${intake.isFinite ? intake.toInt() : 0}/'
+                  '${goal.isFinite ? goal.toInt() : 0} g',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.titleSmall?.copyWith(
+                    color: palette.textStrong,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              Text(
-                label,
-                style: textTheme.bodySmall?.copyWith(color: palette.textMuted),
-              ),
-            ],
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style:
+                      textTheme.bodySmall?.copyWith(color: palette.textMuted),
+                ),
+              ],
+            ),
           ),
         ),
       ],

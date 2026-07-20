@@ -366,6 +366,8 @@ class _RecipesPageState extends State<RecipesPage>
           Expanded(
             child: Text(
               s.selectionCountLabel(_selectedIds.length),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: accent,
                     fontWeight: FontWeight.w700,

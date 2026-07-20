@@ -186,6 +186,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "Body Mass Index (BMI) je výpočet pro klasifikaci nadváhy a obezity u dospělých. Je definován jako hmotnost v kilogramech vydělená druhou mocninou výšky v metrech (kg/m²).\n\nBMI nerozlišuje mezi tukovou tkání a svalovou hmotou a může být chybně interpretován u některých jedinců.",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "Klasifikace WHO",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("Vzorec"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage(
+      "Jak se počítá vaše BMI",
+    ),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "např. obilniny, mléko, káva...",
@@ -670,6 +677,81 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "itemUpdatedSnackbar": MessageLookupByLibrary.simpleMessage(
       "Záznam upraven",
+    ),
+    "kcalGoalInfoActivityExplanation": MessageLookupByLibrary.simpleMessage(
+      "Kalorie spálené zaznamenanými aktivitami se přičítají k cíli, takže plánovaný deficit nebo přebytek zůstává v tréninkové dny stejný.",
+    ),
+    "kcalGoalInfoActivitySection": MessageLookupByLibrary.simpleMessage(
+      "Krok 4 · Dnešní aktivity",
+    ),
+    "kcalGoalInfoAdjustmentExplanationFlat": MessageLookupByLibrary.simpleMessage(
+      "Váš cíl hmotnosti uplatňuje pevnou denní úpravu: −500 kcal při hubnutí, +500 kcal při přibírání, 0 při udržování.",
+    ),
+    "kcalGoalInfoAdjustmentExplanationWeekly": MessageLookupByLibrary.simpleMessage(
+      "Denní úpravu určuje vaše týdenní tempo. 1 kg tělesného tuku ukládá přibližně 7 700 kcal, takže každý kg za týden posouvá cíl asi o 1 100 kcal denně.",
+    ),
+    "kcalGoalInfoAdjustmentSection": MessageLookupByLibrary.simpleMessage(
+      "Krok 2 · Úprava podle cíle hmotnosti",
+    ),
+    "kcalGoalInfoAppliedAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Použitá úprava",
+    ),
+    "kcalGoalInfoAveragedNote": MessageLookupByLibrary.simpleMessage(
+      "Při zprůměrované referenci je vaše TDEE středem mezi mužským a ženským referenčním výsledkem.",
+    ),
+    "kcalGoalInfoBaseAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Úprava cíle",
+    ),
+    "kcalGoalInfoEstimateNote": MessageLookupByLibrary.simpleMessage(
+      "Všechny vzorce jsou odhady na úrovni populace — individuální potřeby se liší. Cíl je výchozí bod, ne lékařské doporučení.",
+    ),
+    "kcalGoalInfoFemaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Ženská reference",
+    ),
+    "kcalGoalInfoInputsSection": MessageLookupByLibrary.simpleMessage(
+      "Vaše údaje",
+    ),
+    "kcalGoalInfoIntro": MessageLookupByLibrary.simpleMessage(
+      "Váš denní kalorický cíl se počítá podle publikovaných vědeckých rovnic pouze z níže uvedených hodnot. Tato stránka ukazuje každé číslo, které vstupuje do dnešního cíle.",
+    ),
+    "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
+      "Úplná dokumentace výpočtu",
+    ),
+    "kcalGoalInfoMacroExplanation": MessageLookupByLibrary.simpleMessage(
+      "Váš kalorický cíl se dělí na sacharidy, tuky a bílkoviny podle vašeho rozdělení maker (výchozí: 60 % sacharidy, 25 % tuky, 15 % bílkoviny — lze upravit v Nastavení). Gramové cíle vyplývají z energetické hustoty: sacharidy a bílkoviny dodávají 4 kcal na gram, tuky 9 kcal na gram.",
+    ),
+    "kcalGoalInfoMacroSection": MessageLookupByLibrary.simpleMessage(
+      "Rozdělení makroživin",
+    ),
+    "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Mužská reference",
+    ),
+    "kcalGoalInfoManualExplanation": MessageLookupByLibrary.simpleMessage(
+      "Pevný posun, který si sami nastavíte v Nastavení — pro případ, že víte, že se vaše potřeby od odhadu liší.",
+    ),
+    "kcalGoalInfoManualSection": MessageLookupByLibrary.simpleMessage(
+      "Krok 3 · Ruční úprava",
+    ),
+    "kcalGoalInfoPaRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Koeficient aktivity (PA)",
+    ),
+    "kcalGoalInfoPalRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Úroveň fyzické aktivity (PAL)",
+    ),
+    "kcalGoalInfoResultSection": MessageLookupByLibrary.simpleMessage(
+      "Dnešní kalorický cíl",
+    ),
+    "kcalGoalInfoTaperNote": MessageLookupByLibrary.simpleMessage(
+      "Protože je zapnuté postupné dorovnání k cílové hmotnosti, úprava se s blížícím se cílem zmenšuje (plný účinek nad 5 kg, udržování do 1 kg).",
+    ),
+    "kcalGoalInfoTdeeExplanation": MessageLookupByLibrary.simpleMessage(
+      "Váš celkový denní energetický výdej (TDEE) — energie, kterou spotřebujete v běžném dni — se odhaduje rovnicí IOM 2005 z věku, hmotnosti, výšky a úrovně aktivity.",
+    ),
+    "kcalGoalInfoTdeeResultLabel": MessageLookupByLibrary.simpleMessage(
+      "Vaše TDEE",
+    ),
+    "kcalGoalInfoTdeeSection": MessageLookupByLibrary.simpleMessage(
+      "Krok 1 · Udržovací energie (TDEE)",
     ),
     "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
     "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal zbývá"),
@@ -1740,6 +1822,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsIronGoalLabel": MessageLookupByLibrary.simpleMessage("Cíl železa"),
     "settingsKcalAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
       "Denní úprava kcal",
+    ),
+    "settingsKcalGoalInfoLabel": MessageLookupByLibrary.simpleMessage(
+      "Jak se počítá váš cíl",
     ),
     "settingsLabel": MessageLookupByLibrary.simpleMessage("Nastavení"),
     "settingsLanguageLabel": MessageLookupByLibrary.simpleMessage("Jazyk"),

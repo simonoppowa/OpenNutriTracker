@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -166,10 +167,11 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                 child: Icon(widget.listIcon, size: 20, color: accent),
               ),
               const SizedBox(width: Dimens.spacing12),
-              Flexible(
-                child: Text(
+              Expanded(
+                child: AutoSizeText(
                   widget.title,
-                  maxLines: 2,
+                  maxLines: 1,
+                  minFontSize: 14,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.titleLarge?.copyWith(
                     color: palette.textStrong,
@@ -177,7 +179,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                   ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: Dimens.spacing8),
               if (_shouldShowHeaderSummary)
                 Flexible(
                   child: Text(

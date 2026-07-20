@@ -17,6 +17,7 @@ import 'package:opennutritracker/features/add_meal/presentation/widgets/no_resul
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
+import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
@@ -323,7 +324,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           ps is ProductsLoadedState ? ps.products : const <MealEntity>[];
                       final foods =
                           fs is FoodLoadedState ? fs.food : const <MealEntity>[];
-                      final merged = [...products, ...foods];
+                      final merged = mergeAndRankMeals(products, foods, query);
                       if (merged.isEmpty) {
                         if (ps is ProductsInitial && fs is FoodInitial) {
                           return const DefaultsResultsWidget();

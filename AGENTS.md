@@ -6,7 +6,7 @@ Guidance for AI coding agents working in this repository. This is the **canonica
 
 OpenNutriTracker is a Flutter mobile app (iOS/Android) for nutritional tracking. It uses Open Food Facts and a multi-source Supabase food backend (USDA FoodData Central, German BLS, and more — see the [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) repo) as food databases, with all user data stored locally in an AES-encrypted Hive database.
 
-Flutter version: **3.41.7** (managed via FVM; see `.fvmrc`)
+Flutter version: **3.44.6** (managed via FVM; see `.fvmrc`)
 
 ## Commits
 
@@ -221,6 +221,18 @@ DEVICE=1C151FDEE003YJ bash tools/adb/run-branch-tests.sh
 ### Enforcement
 
 Convention, not lint. Reviewers call it out on PRs that touch interactive widgets. New widgets without identifiers aren't a merge blocker — but the per-branch feature verifier that lives alongside each branch's work won't be able to drive them, so the forcing function is downstream rather than upstream.
+
+## Row titles must not overflow
+
+Any title or label placed inside a `Row` has to survive a long localized string (German "Frühstück"/"Abendessen" run much wider than the English "Breakfast") and a large system font setting without wrapping to an extra line or triggering the `RenderFlex` overflow stripes. A short label such as a meal-type header quietly wrapping to two lines looks unpolished, so we guard against the whole class rather than fixing it one screenshot at a time.
+
+Three rules cover it:
+
+1. **Flex-constrain the title.** Wrap it in `Expanded` (or `Flexible`) so it can never overflow its `Row`, and don't let it share flex with a competing `Spacer()`. A `Flexible(title)` + `Spacer()` + `Flexible(value)` arrangement splits the width three ways and starves the title — give the title an `Expanded` and place a fixed `SizedBox` before a trailing value instead.
+2. **Bound the lines.** Set `maxLines` (usually `1` for a title) and `overflow: TextOverflow.ellipsis` so it can never silently wrap.
+3. **Let prominent titles shrink to fit.** For section headers and user-content names, use `AutoSizeText` (already a dependency, `auto_size_text`) with a sensible `minFontSize` rather than a plain `Text`, so a long label scales down to stay on one line and only ellipsizes in the extreme. Plain `Text` with `maxLines` + `ellipsis` is fine for short, secondary numeric labels.
+
+Genuine multi-line body or description copy (disclaimers, helper text) is meant to wrap and is exempt. Like the accessibility-identifier rule above, this is convention rather than lint — reviewers point at it on PRs that add or restructure row-based headers and cards.
 
 ## Architecture
 

@@ -53,29 +53,37 @@ class RecipeNutritionSummary extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _NutrientCell(
-                value: energyTotalDisplay,
-                label: energyLabel,
-                color: accent,
-                palette: palette,
+              Expanded(
+                child: _NutrientCell(
+                  value: energyTotalDisplay,
+                  label: energyLabel,
+                  color: accent,
+                  palette: palette,
+                ),
               ),
-              _NutrientCell(
-                value: _total(nutrimentsPer100.carbohydrates100),
-                label: '${s.carbsLabel} g',
-                color: palette.carbs,
-                palette: palette,
+              Expanded(
+                child: _NutrientCell(
+                  value: _total(nutrimentsPer100.carbohydrates100),
+                  label: '${s.carbsLabel} g',
+                  color: palette.carbs,
+                  palette: palette,
+                ),
               ),
-              _NutrientCell(
-                value: _total(nutrimentsPer100.fat100),
-                label: '${s.fatLabel} g',
-                color: palette.fat,
-                palette: palette,
+              Expanded(
+                child: _NutrientCell(
+                  value: _total(nutrimentsPer100.fat100),
+                  label: '${s.fatLabel} g',
+                  color: palette.fat,
+                  palette: palette,
+                ),
               ),
-              _NutrientCell(
-                value: _total(nutrimentsPer100.proteins100),
-                label: '${s.proteinLabel} g',
-                color: palette.protein,
-                palette: palette,
+              Expanded(
+                child: _NutrientCell(
+                  value: _total(nutrimentsPer100.proteins100),
+                  label: '${s.proteinLabel} g',
+                  color: palette.protein,
+                  palette: palette,
+                ),
               ),
             ],
           ),
@@ -114,11 +122,16 @@ class _NutrientCell extends StatelessWidget {
       children: [
         Text(
           value.toStringAsFixed(0),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: textTheme.titleLarge?.copyWith(color: color, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 2),
         Text(
           label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
           style: textTheme.bodySmall?.copyWith(color: palette.textMuted),
         ),
       ],
