@@ -8,6 +8,15 @@ OpenNutriTracker is a Flutter mobile app (iOS/Android) for nutritional tracking.
 
 Flutter version: **3.41.7** (managed via FVM; see `.fvmrc`)
 
+## Commits
+
+- Use conventional commits (e.g. `feat:`, `fix:`, `chore:`, `docs:`).
+- **Never** add Copilot or any AI assistant as a commit co-author.
+- Do **not** include `Co-authored-by: Copilot App <…>` or any other AI `Co-authored-by:` trailer.
+- Do not put the assistant's name in the commit subject or body.
+
+Also documented in [`AGENTS.md`](AGENTS.md) and [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
+
 ## Commands
 
 All common tasks are in the `justfile`:
