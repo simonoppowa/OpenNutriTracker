@@ -37,102 +37,106 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
       future: AppConst.getVersionNumber(),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         if (snapshot.hasData) {
-          return Column(
-            children: [
-              AppBannerVersion(versionNumber: snapshot.requireData),
-              const SizedBox(height: 32.0),
-              Text(
-                S.of(context).appDescription,
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32.0),
-              Text(
-                S.of(context).onboardingIntroDescription,
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24.0),
-              Semantics(
-                identifier: 'onboarding-try-demo',
-                child: SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _seedingDemo ? null : _tryDemo,
-                    icon: _seedingDemo
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.visibility_outlined),
-                    label: Text(S.of(context).onboardingTryDemoLabel),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4.0),
-              Text(
-                S.of(context).onboardingTryDemoSubtitle,
-                style: Theme.of(context).textTheme.bodySmall,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16.0),
-              ListTile(
-                onTap: () => _togglePolicy(),
-                title: Text.rich(
+          // Scroll so the demo CTA + checkboxes still fit on shorter
+          // viewports (e.g. the 800×600 surface used by widget tests).
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                AppBannerVersion(versionNumber: snapshot.requireData),
+                const SizedBox(height: 32.0),
+                Text(
+                  S.of(context).appDescription,
+                  style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
-                  TextSpan(
-                    text: S.of(context).readLabel,
-                    style: Theme.of(context).textTheme.bodySmall,
-                    children: [
-                      TextSpan(
-                        text: ' ${S.of(context).privacyPolicyLabel}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                              decoration: TextDecoration.underline,
-                            ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            _launchUrl();
-                          },
-                      ),
-                    ],
-                  ),
                 ),
-                leading: Semantics(
-                  identifier: 'onboarding-checkbox-privacy',
-                  child: Checkbox(
-                    value: _acceptedPolicy,
-                    onChanged: (value) {
-                      if (value != null) {
-                        _togglePolicy();
-                      }
-                    },
-                  ),
-                ),
-              ),
-              ListTile(
-                onTap: () => _toggleDataCollection(),
-                title: Text(
-                  S.of(context).dataCollectionLabel,
+                const SizedBox(height: 32.0),
+                Text(
+                  S.of(context).onboardingIntroDescription,
+                  style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24.0),
+                Semantics(
+                  identifier: 'onboarding-try-demo',
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _seedingDemo ? null : _tryDemo,
+                      icon: _seedingDemo
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.visibility_outlined),
+                      label: Text(S.of(context).onboardingTryDemoLabel),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4.0),
+                Text(
+                  S.of(context).onboardingTryDemoSubtitle,
                   style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
                 ),
-                leading: Semantics(
-                  identifier: 'onboarding-checkbox-data',
-                  child: Checkbox(
-                    value: _acceptedDataCollection,
-                    onChanged: (value) => _toggleDataCollection(),
+                const SizedBox(height: 16.0),
+                ListTile(
+                  onTap: () => _togglePolicy(),
+                  title: Text.rich(
+                    textAlign: TextAlign.center,
+                    TextSpan(
+                      text: S.of(context).readLabel,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      children: [
+                        TextSpan(
+                          text: ' ${S.of(context).privacyPolicyLabel}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                decoration: TextDecoration.underline,
+                              ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              _launchUrl();
+                            },
+                        ),
+                      ],
+                    ),
+                  ),
+                  leading: Semantics(
+                    identifier: 'onboarding-checkbox-privacy',
+                    child: Checkbox(
+                      value: _acceptedPolicy,
+                      onChanged: (value) {
+                        if (value != null) {
+                          _togglePolicy();
+                        }
+                      },
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 8.0),
-              TextButton.icon(
-                onPressed: () => _openSources(context),
-                icon: const Icon(Icons.menu_book_outlined),
-                label: Text(S.of(context).onboardingIntroSourcesLinkLabel),
-              ),
-            ],
+                ListTile(
+                  onTap: () => _toggleDataCollection(),
+                  title: Text(
+                    S.of(context).dataCollectionLabel,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  leading: Semantics(
+                    identifier: 'onboarding-checkbox-data',
+                    child: Checkbox(
+                      value: _acceptedDataCollection,
+                      onChanged: (value) => _toggleDataCollection(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+                TextButton.icon(
+                  onPressed: () => _openSources(context),
+                  icon: const Icon(Icons.menu_book_outlined),
+                  label: Text(S.of(context).onboardingIntroSourcesLinkLabel),
+                ),
+              ],
+            ),
           );
         } else {
           return const SizedBox();
