@@ -133,7 +133,7 @@ body:
     attributes:
       label: Logs or stack trace
       description: Paste any relevant crash logs, Sentry event IDs, or console output (please redact personal data).
-      render: text
+      render: markdown
 
   - type: textarea
     id: additional

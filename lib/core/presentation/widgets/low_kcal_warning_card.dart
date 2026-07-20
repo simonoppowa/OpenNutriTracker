@@ -34,7 +34,7 @@ class LowKcalWarningCard extends StatelessWidget {
     // The card is found by text drivers via the "View disclaimer"
     // content-desc rather than by coordinate, because Semantics inside
     // a layout-greedy parent (ListView, Stack > Column) inherits the
-    // parent's bounds even with `container: true`. See CLAUDE.md
+    // parent's bounds even with `container: true`. See AGENTS.md
     // "The `container: true` gotcha"; the identifier is kept for
     // future hierarchy queries.
     return Semantics(

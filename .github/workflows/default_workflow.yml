@@ -5,9 +5,9 @@ on:
   # double-fire on the `develop → main` release PR (where every push to
   # `develop` would otherwise trigger both a `push` run *and* a
   # `pull_request` synchronize run). All pre-merge validation happens via
-  # `pull_request`; the `push: main` trigger only catches post-merge runs
-  # on `main`. Direct pushes to `develop` are disallowed by project policy
-  # (see AGENTS.md) so skipping CI for them is safe.
+  # `pull_request` (against `main` and `develop`). The `push: main` trigger
+  # only catches post-merge runs on `main`. A direct push to `develop`
+  # does not run this workflow — prefer PRs into `develop` (see CONTRIBUTING.md).
   push:
     branches:
       - main
