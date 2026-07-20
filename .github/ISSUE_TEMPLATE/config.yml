@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: OpenNutriTracker website
+    url: https://simonoppowa.github.io/OpenNutriTracker/
+    about: Project website, screenshots, and overview.
+  - name: Privacy policy
+    url: https://www.iubenda.com/privacy-policy/53501884
+    about: How OpenNutriTracker handles personal data.
+  - name: Open Food Facts
+    url: https://world.openfoodfacts.org/
+    about: Report incorrect product data in the Open Food Facts database (not app bugs).
+  - name: Discussions
+    url: https://github.com/simonoppowa/OpenNutriTracker/discussions
+    about: General conversation if Discussions are enabled for this repository.
