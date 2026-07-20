@@ -47,7 +47,10 @@ class AppCard extends StatelessWidget {
           BoxShadow(color: palette.shadow, blurRadius: 18, offset: const Offset(0, 6)),
         ],
       ),
-      child: child,
+      // A transparent Material directly below the colored decoration so any
+      // descendant ListTile/InkWell paints on this ancestor rather than
+      // reaching past the decoration for one further up the tree.
+      child: child == null ? null : Material(color: Colors.transparent, child: child),
     );
     if (onTap == null) return tile;
     return Material(

@@ -186,6 +186,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals.",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "WHO classification",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("Formula"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage(
+      "How your BMI is calculated",
+    ),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "e.g. cereal, milk, coffee ...",
@@ -657,6 +664,81 @@ class MessageLookup extends MessageLookupByLibrary {
     "ironLabel": MessageLookupByLibrary.simpleMessage("iron"),
     "itemDeletedSnackbar": MessageLookupByLibrary.simpleMessage("Item deleted"),
     "itemUpdatedSnackbar": MessageLookupByLibrary.simpleMessage("Item updated"),
+    "kcalGoalInfoActivityExplanation": MessageLookupByLibrary.simpleMessage(
+      "Calories burned by logged activities are added on top of your goal, so your planned deficit or surplus stays the same on training days.",
+    ),
+    "kcalGoalInfoActivitySection": MessageLookupByLibrary.simpleMessage(
+      "Step 4 · Today\'s exercise",
+    ),
+    "kcalGoalInfoAdjustmentExplanationFlat": MessageLookupByLibrary.simpleMessage(
+      "Your weight goal applies a fixed daily adjustment: −500 kcal to lose, +500 kcal to gain, 0 to maintain.",
+    ),
+    "kcalGoalInfoAdjustmentExplanationWeekly": MessageLookupByLibrary.simpleMessage(
+      "Your weekly rate sets the daily adjustment. 1 kg of body fat stores about 7,700 kcal, so each kg per week shifts the goal by about 1,100 kcal per day.",
+    ),
+    "kcalGoalInfoAdjustmentSection": MessageLookupByLibrary.simpleMessage(
+      "Step 2 · Weight-goal adjustment",
+    ),
+    "kcalGoalInfoAppliedAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Applied adjustment",
+    ),
+    "kcalGoalInfoAveragedNote": MessageLookupByLibrary.simpleMessage(
+      "With the averaged reference, your TDEE is the midpoint of the male and female reference results.",
+    ),
+    "kcalGoalInfoBaseAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Goal adjustment",
+    ),
+    "kcalGoalInfoEstimateNote": MessageLookupByLibrary.simpleMessage(
+      "All formulas are population-level estimates — individual needs vary. Your goal is a starting point, not medical advice.",
+    ),
+    "kcalGoalInfoFemaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Female reference",
+    ),
+    "kcalGoalInfoInputsSection": MessageLookupByLibrary.simpleMessage(
+      "Your inputs",
+    ),
+    "kcalGoalInfoIntro": MessageLookupByLibrary.simpleMessage(
+      "Your daily calorie goal is computed from published scientific equations using only the values below. This page shows every number that goes into today\'s goal.",
+    ),
+    "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
+      "Full calculation documentation",
+    ),
+    "kcalGoalInfoMacroExplanation": MessageLookupByLibrary.simpleMessage(
+      "Your calorie goal is split into carbs, fat, and protein using your macro split (default: 60 % carbs, 25 % fat, 15 % protein — adjustable in Settings). Gram targets follow from the energy densities: carbohydrates and protein provide 4 kcal per gram, fat 9 kcal per gram.",
+    ),
+    "kcalGoalInfoMacroSection": MessageLookupByLibrary.simpleMessage(
+      "Macronutrient distribution",
+    ),
+    "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Male reference",
+    ),
+    "kcalGoalInfoManualExplanation": MessageLookupByLibrary.simpleMessage(
+      "A fixed offset you set yourself in Settings, for when you know your needs differ from the estimate.",
+    ),
+    "kcalGoalInfoManualSection": MessageLookupByLibrary.simpleMessage(
+      "Step 3 · Manual adjustment",
+    ),
+    "kcalGoalInfoPaRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Activity coefficient (PA)",
+    ),
+    "kcalGoalInfoPalRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Physical activity level (PAL)",
+    ),
+    "kcalGoalInfoResultSection": MessageLookupByLibrary.simpleMessage(
+      "Today\'s calorie goal",
+    ),
+    "kcalGoalInfoTaperNote": MessageLookupByLibrary.simpleMessage(
+      "Because the target-weight taper is on, the adjustment is scaled down as you approach your target weight (full effect beyond 5 kg, maintenance within 1 kg).",
+    ),
+    "kcalGoalInfoTdeeExplanation": MessageLookupByLibrary.simpleMessage(
+      "Your total daily energy expenditure (TDEE) — the energy you use on a typical day — is estimated with the IOM 2005 equation from your age, weight, height, and activity level.",
+    ),
+    "kcalGoalInfoTdeeResultLabel": MessageLookupByLibrary.simpleMessage(
+      "Your TDEE",
+    ),
+    "kcalGoalInfoTdeeSection": MessageLookupByLibrary.simpleMessage(
+      "Step 1 · Maintenance energy (TDEE)",
+    ),
     "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
     "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal left"),
     "kcalTooMuchLabel": MessageLookupByLibrary.simpleMessage("kcal too much"),
@@ -1686,6 +1768,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsIronGoalLabel": MessageLookupByLibrary.simpleMessage("Iron goal"),
     "settingsKcalAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
       "Daily kcal adjustment",
+    ),
+    "settingsKcalGoalInfoLabel": MessageLookupByLibrary.simpleMessage(
+      "How your goal is calculated",
     ),
     "settingsLabel": MessageLookupByLibrary.simpleMessage("Settings"),
     "settingsLanguageLabel": MessageLookupByLibrary.simpleMessage("Language"),

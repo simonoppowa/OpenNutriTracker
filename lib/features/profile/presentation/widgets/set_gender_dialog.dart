@@ -12,7 +12,11 @@ class SetGenderDialog extends StatelessWidget {
       title: Row(
         children: [
           Expanded(
-            child: Text(S.of(context).selectGenderDialogLabel),
+            child: Text(
+              S.of(context).selectGenderDialogLabel,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           IconButton(
             visualDensity: VisualDensity.compact,

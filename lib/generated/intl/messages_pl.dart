@@ -186,6 +186,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "Wskaźnik Masy Ciała (BMI) to wskaźnik służący do klasyfikacji nadwagi i otyłości u dorosłych. Jest definiowany jako waga w kilogramach podzielona przez kwadrat wzrostu w metrach (kg/m²).\n\nBMI nie rozróżnia między tkanką tłuszczową a mięśniową i może być mylący dla niektórych osób.",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "Klasyfikacja WHO",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("Wzór"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage(
+      "Jak obliczane jest twoje BMI",
+    ),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "np. płatki, mleko, kawa ...",
@@ -670,6 +677,81 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "itemUpdatedSnackbar": MessageLookupByLibrary.simpleMessage(
       "Pozycja zaktualizowana",
+    ),
+    "kcalGoalInfoActivityExplanation": MessageLookupByLibrary.simpleMessage(
+      "Kalorie spalone w zarejestrowanych aktywnościach są doliczane do celu, dzięki czemu planowany deficyt lub nadwyżka pozostaje taka sama w dni treningowe.",
+    ),
+    "kcalGoalInfoActivitySection": MessageLookupByLibrary.simpleMessage(
+      "Krok 4 · Dzisiejsze aktywności",
+    ),
+    "kcalGoalInfoAdjustmentExplanationFlat": MessageLookupByLibrary.simpleMessage(
+      "Twój cel wagowy stosuje stałą dzienną korektę: −500 kcal przy chudnięciu, +500 kcal przy przybieraniu, 0 przy utrzymaniu.",
+    ),
+    "kcalGoalInfoAdjustmentExplanationWeekly": MessageLookupByLibrary.simpleMessage(
+      "Dzienna korekta wynika z tygodniowego tempa. 1 kg tkanki tłuszczowej magazynuje około 7 700 kcal, więc każdy kg na tydzień przesuwa cel o około 1 100 kcal dziennie.",
+    ),
+    "kcalGoalInfoAdjustmentSection": MessageLookupByLibrary.simpleMessage(
+      "Krok 2 · Korekta celu wagowego",
+    ),
+    "kcalGoalInfoAppliedAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Zastosowana korekta",
+    ),
+    "kcalGoalInfoAveragedNote": MessageLookupByLibrary.simpleMessage(
+      "Przy uśrednionej referencji twoje TDEE jest środkiem między wynikiem referencji męskiej i żeńskiej.",
+    ),
+    "kcalGoalInfoBaseAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Korekta celu",
+    ),
+    "kcalGoalInfoEstimateNote": MessageLookupByLibrary.simpleMessage(
+      "Wszystkie wzory to oszacowania populacyjne — indywidualne potrzeby się różnią. Cel to punkt wyjścia, a nie porada medyczna.",
+    ),
+    "kcalGoalInfoFemaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Referencja żeńska",
+    ),
+    "kcalGoalInfoInputsSection": MessageLookupByLibrary.simpleMessage(
+      "Twoje dane",
+    ),
+    "kcalGoalInfoIntro": MessageLookupByLibrary.simpleMessage(
+      "Twój dzienny cel kaloryczny jest obliczany według opublikowanych równań naukowych wyłącznie z poniższych wartości. Ta strona pokazuje każdą liczbę składającą się na dzisiejszy cel.",
+    ),
+    "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
+      "Pełna dokumentacja obliczeń",
+    ),
+    "kcalGoalInfoMacroExplanation": MessageLookupByLibrary.simpleMessage(
+      "Twój cel kaloryczny jest dzielony na węglowodany, tłuszcze i białko według twojego podziału makro (domyślnie: 60 % węglowodany, 25 % tłuszcze, 15 % białko — do zmiany w Ustawieniach). Cele w gramach wynikają z gęstości energetycznej: węglowodany i białko dostarczają 4 kcal na gram, tłuszcz 9 kcal na gram.",
+    ),
+    "kcalGoalInfoMacroSection": MessageLookupByLibrary.simpleMessage(
+      "Rozkład makroskładników",
+    ),
+    "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Referencja męska",
+    ),
+    "kcalGoalInfoManualExplanation": MessageLookupByLibrary.simpleMessage(
+      "Stałe przesunięcie ustawiane samodzielnie w Ustawieniach — gdy wiesz, że twoje potrzeby różnią się od oszacowania.",
+    ),
+    "kcalGoalInfoManualSection": MessageLookupByLibrary.simpleMessage(
+      "Krok 3 · Korekta ręczna",
+    ),
+    "kcalGoalInfoPaRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Współczynnik aktywności (PA)",
+    ),
+    "kcalGoalInfoPalRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Poziom aktywności fizycznej (PAL)",
+    ),
+    "kcalGoalInfoResultSection": MessageLookupByLibrary.simpleMessage(
+      "Dzisiejszy cel kaloryczny",
+    ),
+    "kcalGoalInfoTaperNote": MessageLookupByLibrary.simpleMessage(
+      "Ponieważ włączone jest wygaszanie przy wadze docelowej, korekta maleje w miarę zbliżania się do celu (pełny efekt powyżej 5 kg, utrzymanie w granicach 1 kg).",
+    ),
+    "kcalGoalInfoTdeeExplanation": MessageLookupByLibrary.simpleMessage(
+      "Twój całkowity dzienny wydatek energetyczny (TDEE) — energia zużywana w typowym dniu — jest szacowany równaniem IOM 2005 na podstawie wieku, wagi, wzrostu i poziomu aktywności.",
+    ),
+    "kcalGoalInfoTdeeResultLabel": MessageLookupByLibrary.simpleMessage(
+      "Twoje TDEE",
+    ),
+    "kcalGoalInfoTdeeSection": MessageLookupByLibrary.simpleMessage(
+      "Krok 1 · Energia podtrzymania (TDEE)",
     ),
     "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
     "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kcal pozostało"),
@@ -1734,6 +1816,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsIronGoalLabel": MessageLookupByLibrary.simpleMessage("Cel żelaza"),
     "settingsKcalAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
       "Dzienna korekta kcal",
+    ),
+    "settingsKcalGoalInfoLabel": MessageLookupByLibrary.simpleMessage(
+      "Jak obliczany jest twój cel",
     ),
     "settingsLabel": MessageLookupByLibrary.simpleMessage("Ustawienia"),
     "settingsLanguageLabel": MessageLookupByLibrary.simpleMessage("Język"),

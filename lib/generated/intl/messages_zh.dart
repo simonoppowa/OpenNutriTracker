@@ -165,6 +165,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "体重指数（BMI）是用于分类成人超重和肥胖的指标。它定义为体重（千克）除以身高（米）的平方（kg/m²）。\n\nBMI不区分脂肪和肌肉质量，对某些人可能有误导性。",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "WHO 分类",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("公式"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage("您的 BMI 如何计算"),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "例如： cereal、牛奶、咖啡...",
@@ -542,6 +547,73 @@ class MessageLookup extends MessageLookupByLibrary {
     "ironLabel": MessageLookupByLibrary.simpleMessage("铁"),
     "itemDeletedSnackbar": MessageLookupByLibrary.simpleMessage("项目已删除"),
     "itemUpdatedSnackbar": MessageLookupByLibrary.simpleMessage("项目已更新"),
+    "kcalGoalInfoActivityExplanation": MessageLookupByLibrary.simpleMessage(
+      "记录的活动所消耗的热量会加到您的目标上，这样在训练日您计划的热量缺口或盈余保持不变。",
+    ),
+    "kcalGoalInfoActivitySection": MessageLookupByLibrary.simpleMessage(
+      "第 4 步 · 今日运动",
+    ),
+    "kcalGoalInfoAdjustmentExplanationFlat": MessageLookupByLibrary.simpleMessage(
+      "您的体重目标应用固定的每日调整：减重 −500 千卡，增重 +500 千卡，保持体重为 0。",
+    ),
+    "kcalGoalInfoAdjustmentExplanationWeekly": MessageLookupByLibrary.simpleMessage(
+      "每日调整由您设定的每周速度决定。1 千克体脂约储存 7700 千卡，因此每周每千克会使目标每天变动约 1100 千卡。",
+    ),
+    "kcalGoalInfoAdjustmentSection": MessageLookupByLibrary.simpleMessage(
+      "第 2 步 · 体重目标调整",
+    ),
+    "kcalGoalInfoAppliedAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "实际应用的调整",
+    ),
+    "kcalGoalInfoAveragedNote": MessageLookupByLibrary.simpleMessage(
+      "使用平均参考时，您的 TDEE 是男性与女性参考结果的中间值。",
+    ),
+    "kcalGoalInfoBaseAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "目标调整",
+    ),
+    "kcalGoalInfoEstimateNote": MessageLookupByLibrary.simpleMessage(
+      "所有公式都是基于人群的估算——个体需求各不相同。目标只是起点，并非医疗建议。",
+    ),
+    "kcalGoalInfoFemaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "女性参考",
+    ),
+    "kcalGoalInfoInputsSection": MessageLookupByLibrary.simpleMessage("您的输入"),
+    "kcalGoalInfoIntro": MessageLookupByLibrary.simpleMessage(
+      "您的每日热量目标仅根据以下数值、按照已发表的科学公式计算。本页展示了构成今日目标的每一个数字。",
+    ),
+    "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
+      "完整计算文档",
+    ),
+    "kcalGoalInfoMacroExplanation": MessageLookupByLibrary.simpleMessage(
+      "您的热量目标会按照您的宏量营养素比例分配到碳水化合物、脂肪和蛋白质（默认：碳水 60%、脂肪 25%、蛋白质 15%——可在设置中调整）。克数目标由能量密度得出：碳水化合物和蛋白质每克提供 4 千卡，脂肪每克提供 9 千卡。",
+    ),
+    "kcalGoalInfoMacroSection": MessageLookupByLibrary.simpleMessage("宏量营养素分配"),
+    "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "男性参考",
+    ),
+    "kcalGoalInfoManualExplanation": MessageLookupByLibrary.simpleMessage(
+      "您在设置中自行设定的固定偏移——当您知道自己的需求与估算不同时使用。",
+    ),
+    "kcalGoalInfoManualSection": MessageLookupByLibrary.simpleMessage(
+      "第 3 步 · 手动调整",
+    ),
+    "kcalGoalInfoPaRowLabel": MessageLookupByLibrary.simpleMessage("活动系数（PA）"),
+    "kcalGoalInfoPalRowLabel": MessageLookupByLibrary.simpleMessage(
+      "身体活动水平（PAL）",
+    ),
+    "kcalGoalInfoResultSection": MessageLookupByLibrary.simpleMessage("今日热量目标"),
+    "kcalGoalInfoTaperNote": MessageLookupByLibrary.simpleMessage(
+      "由于已开启目标体重渐减，调整量会随着接近目标体重而减小（距离超过 5 千克时全额生效，1 千克以内转为维持）。",
+    ),
+    "kcalGoalInfoTdeeExplanation": MessageLookupByLibrary.simpleMessage(
+      "您的每日总能量消耗（TDEE）——即您在平常一天中消耗的能量——根据年龄、体重、身高和活动水平，用 IOM 2005 公式估算。",
+    ),
+    "kcalGoalInfoTdeeResultLabel": MessageLookupByLibrary.simpleMessage(
+      "您的 TDEE",
+    ),
+    "kcalGoalInfoTdeeSection": MessageLookupByLibrary.simpleMessage(
+      "第 1 步 · 维持能量（TDEE）",
+    ),
     "kcalLabel": MessageLookupByLibrary.simpleMessage("卡路里"),
     "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("剩余卡路里"),
     "kcalTooMuchLabel": MessageLookupByLibrary.simpleMessage("卡路里过多"),
@@ -1305,6 +1377,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsIronGoalLabel": MessageLookupByLibrary.simpleMessage("铁目标"),
     "settingsKcalAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
       "每日千卡调整",
+    ),
+    "settingsKcalGoalInfoLabel": MessageLookupByLibrary.simpleMessage(
+      "您的目标如何计算",
     ),
     "settingsLabel": MessageLookupByLibrary.simpleMessage("设置"),
     "settingsLanguageLabel": MessageLookupByLibrary.simpleMessage("语言"),

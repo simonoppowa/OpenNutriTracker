@@ -1,11 +1,11 @@
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/kcal_goal_info_screen.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -41,6 +41,14 @@ class DashboardWidget extends StatefulWidget {
 }
 
 class _DashboardWidgetState extends State<DashboardWidget> {
+  void _openKcalGoalInfoScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const KcalGoalInfoScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double kcalValue = 0;
@@ -86,56 +94,74 @@ class _DashboardWidgetState extends State<DashboardWidget> {
               children: [
                 Row(
                   children: [
-                    _MiniStat(
-                      icon: Icons.arrow_downward_rounded,
-                      value: '${displaySupplied.toInt()}',
-                      label: S.of(context).suppliedLabel,
-                      color: palette.proteinColor,
-                    ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SourcesScreen()),
+                    // Two equal halves; each stat pins itself to its card
+                    // edge via its own cross-axis alignment. A Spacer next
+                    // to loose-fit Flexible children would leave the spare
+                    // width at the row end and pull "burned" off the edge.
+                    Expanded(
+                      child: _MiniStat(
+                        icon: Icons.arrow_downward_rounded,
+                        value: '${displaySupplied.toInt()}',
+                        label: S.of(context).suppliedLabel,
+                        color: palette.proteinColor,
                       ),
-                      child: Icon(Icons.info_outline_rounded, color: palette.textMuted, size: 22),
                     ),
-                    const Spacer(),
-                    _MiniStat(
-                      icon: Icons.local_fire_department_rounded,
-                      value: '${displayBurned.toInt()}',
-                      label: S.of(context).burnedLabel,
-                      color: palette.carbsColor,
-                      trailing: true,
+                    Expanded(
+                      child: _MiniStat(
+                        icon: Icons.local_fire_department_rounded,
+                        value: '${displayBurned.toInt()}',
+                        label: S.of(context).burnedLabel,
+                        color: palette.carbsColor,
+                        trailing: true,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: Dimens.spacing16),
                 Semantics(
+                  identifier: 'home-kcal-gauge',
                   label: '${displayValue.toInt()} $kcalLabelText',
+                  hint: S.of(context).settingsKcalGoalInfoLabel,
+                  button: true,
                   excludeSemantics: true,
-                  child: CircularPercentIndicator(
-                  radius: 90,
-                  lineWidth: 16,
-                  percent: gaugeValue.clamp(0.0, 1.0),
-                  animation: true,
-                  animationDuration: 800,
-                  curve: AppMotion.emphasized,
-                  circularStrokeCap: CircularStrokeCap.round,
-                  backgroundColor: palette.surfaceMuted,
-                  progressColor: Theme.of(context).colorScheme.primary,
-                  center: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AnimatedFlipCounter(
-                        duration: const Duration(milliseconds: 800),
+                  // excludeSemantics strips the GestureDetector's semantic
+                  // tap action along with the rest of the subtree, so the
+                  // node needs its own onTap for screen readers to be able
+                  // to activate the button it announces.
+                  onTap: _openKcalGoalInfoScreen,
+                  // Tapping the gauge opens the calorie-goal transparency
+                  // screen, so the central number on the dashboard is one
+                  // tap away from its full derivation.
+                  child: Tooltip(
+                    message: S.of(context).settingsKcalGoalInfoLabel,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _openKcalGoalInfoScreen,
+                      child: CircularPercentIndicator(
+                        radius: 90,
+                        lineWidth: 16,
+                        percent: gaugeValue.clamp(0.0, 1.0),
+                        animation: true,
+                        animationDuration: 800,
                         curve: AppMotion.emphasized,
-                        value: displayValue.toInt(),
-                        textStyle: textTheme.displaySmall?.copyWith(height: 1),
+                        circularStrokeCap: CircularStrokeCap.round,
+                        backgroundColor: palette.surfaceMuted,
+                        progressColor: Theme.of(context).colorScheme.primary,
+                        center: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AnimatedFlipCounter(
+                              duration: const Duration(milliseconds: 800),
+                              curve: AppMotion.emphasized,
+                              value: displayValue.toInt(),
+                              textStyle: textTheme.displaySmall?.copyWith(height: 1),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(kcalLabelText, style: textTheme.bodyMedium?.copyWith(color: palette.textMuted)),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(kcalLabelText, style: textTheme.bodyMedium?.copyWith(color: palette.textMuted)),
-                    ],
-                  ),
+                    ),
                   ),
                 ),
               ],
@@ -208,8 +234,10 @@ class _MiniStat extends StatelessWidget {
           child: Icon(icon, color: color, size: 20),
         ),
         const SizedBox(height: 6),
-        Text(value, style: textTheme.titleMedium),
-        Text(label, style: textTheme.labelSmall),
+        Text(value,
+            maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.titleMedium),
+        Text(label,
+            maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.labelSmall),
       ],
     );
   }

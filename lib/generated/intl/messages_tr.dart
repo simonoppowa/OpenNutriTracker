@@ -174,6 +174,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "Vücut Kitle İndeksi (BMI), yetişkinlerde aşırı kiloyu ve obeziteyi sınıflandırmak için kullanılan bir indekstir. Kilogram cinsinden ağırlığın, metre cinsinden boyun karesine bölünmesiyle tanımlanır (kg/m²).\n\nBMI, yağ ve kas kütlesi arasında ayrım yapmaz ve bazı bireyler için yanıltıcı olabilir.",
     ),
+    "bmiInfoClassificationSection": MessageLookupByLibrary.simpleMessage(
+      "DSÖ sınıflandırması",
+    ),
+    "bmiInfoFormulaSection": MessageLookupByLibrary.simpleMessage("Formül"),
+    "bmiInfoScreenTitle": MessageLookupByLibrary.simpleMessage(
+      "BMI\'niz nasıl hesaplanır",
+    ),
     "bmiLabel": MessageLookupByLibrary.simpleMessage("BMI"),
     "breakfastExample": MessageLookupByLibrary.simpleMessage(
       "ör. mısır gevreği, süt, kahve ...",
@@ -650,6 +657,81 @@ class MessageLookup extends MessageLookupByLibrary {
     "itemDeletedSnackbar": MessageLookupByLibrary.simpleMessage("Öğe silindi"),
     "itemUpdatedSnackbar": MessageLookupByLibrary.simpleMessage(
       "Öğe güncellendi",
+    ),
+    "kcalGoalInfoActivityExplanation": MessageLookupByLibrary.simpleMessage(
+      "Kaydedilen aktivitelerle yakılan kaloriler hedefinize eklenir; böylece planlanan açık veya fazla, antrenman günlerinde de aynı kalır.",
+    ),
+    "kcalGoalInfoActivitySection": MessageLookupByLibrary.simpleMessage(
+      "Adım 4 · Bugünkü egzersiz",
+    ),
+    "kcalGoalInfoAdjustmentExplanationFlat": MessageLookupByLibrary.simpleMessage(
+      "Kilo hedefiniz sabit bir günlük düzeltme uygular: vermek için −500 kcal, almak için +500 kcal, korumak için 0.",
+    ),
+    "kcalGoalInfoAdjustmentExplanationWeekly": MessageLookupByLibrary.simpleMessage(
+      "Haftalık hızınız günlük düzeltmeyi belirler. 1 kg vücut yağı yaklaşık 7.700 kcal depolar; bu yüzden haftada her kg, hedefi günde yaklaşık 1.100 kcal kaydırır.",
+    ),
+    "kcalGoalInfoAdjustmentSection": MessageLookupByLibrary.simpleMessage(
+      "Adım 2 · Kilo hedefi düzeltmesi",
+    ),
+    "kcalGoalInfoAppliedAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Uygulanan düzeltme",
+    ),
+    "kcalGoalInfoAveragedNote": MessageLookupByLibrary.simpleMessage(
+      "Ortalama referansta TDEE\'niz, erkek ve kadın referans sonuçlarının orta noktasıdır.",
+    ),
+    "kcalGoalInfoBaseAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
+      "Hedef düzeltmesi",
+    ),
+    "kcalGoalInfoEstimateNote": MessageLookupByLibrary.simpleMessage(
+      "Tüm formüller nüfus düzeyinde tahminlerdir — bireysel ihtiyaçlar değişir. Hedefiniz bir başlangıç noktasıdır, tıbbi tavsiye değildir.",
+    ),
+    "kcalGoalInfoFemaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Kadın referansı",
+    ),
+    "kcalGoalInfoInputsSection": MessageLookupByLibrary.simpleMessage(
+      "Girdileriniz",
+    ),
+    "kcalGoalInfoIntro": MessageLookupByLibrary.simpleMessage(
+      "Günlük kalori hedefiniz, yalnızca aşağıdaki değerler kullanılarak yayımlanmış bilimsel denklemlerle hesaplanır. Bu sayfa bugünkü hedefe giren her sayıyı gösterir.",
+    ),
+    "kcalGoalInfoLearnMoreLabel": MessageLookupByLibrary.simpleMessage(
+      "Hesaplamanın tam dokümantasyonu",
+    ),
+    "kcalGoalInfoMacroExplanation": MessageLookupByLibrary.simpleMessage(
+      "Kalori hedefiniz, makro dağılımınıza göre karbonhidrat, yağ ve proteine bölünür (varsayılan: %60 karbonhidrat, %25 yağ, %15 protein — Ayarlar\'dan değiştirilebilir). Gram hedefleri enerji yoğunluklarından gelir: karbonhidrat ve protein gram başına 4 kcal, yağ 9 kcal sağlar.",
+    ),
+    "kcalGoalInfoMacroSection": MessageLookupByLibrary.simpleMessage(
+      "Makro besin dağılımı",
+    ),
+    "kcalGoalInfoMaleReferenceLabel": MessageLookupByLibrary.simpleMessage(
+      "Erkek referansı",
+    ),
+    "kcalGoalInfoManualExplanation": MessageLookupByLibrary.simpleMessage(
+      "Ayarlar\'da kendinizin belirlediği sabit bir kaydırma — ihtiyacınızın tahminden farklı olduğunu bildiğiniz durumlar için.",
+    ),
+    "kcalGoalInfoManualSection": MessageLookupByLibrary.simpleMessage(
+      "Adım 3 · Manuel düzeltme",
+    ),
+    "kcalGoalInfoPaRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Aktivite katsayısı (PA)",
+    ),
+    "kcalGoalInfoPalRowLabel": MessageLookupByLibrary.simpleMessage(
+      "Fiziksel aktivite düzeyi (PAL)",
+    ),
+    "kcalGoalInfoResultSection": MessageLookupByLibrary.simpleMessage(
+      "Bugünkü kalori hedefi",
+    ),
+    "kcalGoalInfoTaperNote": MessageLookupByLibrary.simpleMessage(
+      "Hedef kiloya yaklaşırken azaltma açık olduğundan, düzeltme hedefe yaklaştıkça küçülür (5 kg üzerinde tam etki, 1 kg içinde koruma).",
+    ),
+    "kcalGoalInfoTdeeExplanation": MessageLookupByLibrary.simpleMessage(
+      "Toplam günlük enerji harcamanız (TDEE) — tipik bir günde kullandığınız enerji — yaş, kilo, boy ve aktivite düzeyinizden IOM 2005 denklemiyle tahmin edilir.",
+    ),
+    "kcalGoalInfoTdeeResultLabel": MessageLookupByLibrary.simpleMessage(
+      "TDEE\'niz",
+    ),
+    "kcalGoalInfoTdeeSection": MessageLookupByLibrary.simpleMessage(
+      "Adım 1 · Koruma enerjisi (TDEE)",
     ),
     "kcalLabel": MessageLookupByLibrary.simpleMessage("kcal"),
     "kcalLeftLabel": MessageLookupByLibrary.simpleMessage("kalan kcal"),
@@ -1698,6 +1780,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsKcalAdjustmentLabel": MessageLookupByLibrary.simpleMessage(
       "Günlük kcal ayarı",
+    ),
+    "settingsKcalGoalInfoLabel": MessageLookupByLibrary.simpleMessage(
+      "Hedefiniz nasıl hesaplanır",
     ),
     "settingsLabel": MessageLookupByLibrary.simpleMessage("Ayarlar"),
     "settingsLanguageLabel": MessageLookupByLibrary.simpleMessage("Dil"),
