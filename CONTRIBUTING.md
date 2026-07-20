@@ -4,6 +4,11 @@ Thanks for taking an interest in contributing! This guide covers the conventions
 
 For environment setup (Flutter / Android SDK / IDE), see [GettingStarted.md](GettingStarted.md).
 
+Looking for a small first contribution? See the seed list in
+[docs/first-timer-backlog.md](docs/first-timer-backlog.md) — concrete
+“good first issue” ideas with file paths and acceptance criteria. Agent and
+architecture conventions live in [AGENTS.md](AGENTS.md).
+
 ## Pull request target branch
 
 **All pull requests must target the `develop` branch, not `main`.**
