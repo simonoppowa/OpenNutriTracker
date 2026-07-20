@@ -1,0 +1,153 @@
+name: Bug report
+description: Report a problem or unexpected behaviour in OpenNutriTracker
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill out the sections below so we can reproduce and fix the issue faster.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise summary of what went wrong.
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Detailed steps so someone else can trigger the same issue.
+      placeholder: |
+        1. Go to '...'
+        2. Tap '...'
+        3. Enter '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What you expected to happen instead.
+      placeholder: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What actually happened, including error messages if any.
+      placeholder: What happened instead?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: Where did you encounter the bug?
+      multiple: true
+      options:
+        - Android
+        - iOS
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      description: e.g. Android 15, iOS 18.2
+      placeholder: Android 15
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: Version shown in Settings, or the GitHub release / store build number.
+      placeholder: e.g. 1.2.3
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-source
+    attributes:
+      label: Install source
+      options:
+        - Google Play
+        - Apple App Store
+        - GitHub Release
+        - F-Droid
+        - Built from source
+        - Other
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature area
+      description: Which part of the app is affected? (optional)
+      multiple: true
+      options:
+        - Onboarding
+        - Home / dashboard
+        - Food search / Open Food Facts
+        - Food search / backend databases
+        - Barcode scanner
+        - Meal detail / logging
+        - Custom meals
+        - Recipes
+        - Diary / calendar
+        - Micronutrients
+        - Activities
+        - Water tracker
+        - Fasting timer
+        - Weight history
+        - Profile / goals
+        - Settings / theme / units
+        - Export / import
+        - Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / recordings
+      description: Drag and drop images or screen recordings if they help illustrate the issue.
+      placeholder: Attach files here
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or stack trace
+      description: Paste any relevant crash logs, Sentry event IDs, or console output (please redact personal data).
+      render: text
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Anything else that might help (device model, locale, units, recent import, etc.).
+      placeholder: Optional
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I am reporting a bug in OpenNutriTracker, not a third-party food database entry error
+          required: true
