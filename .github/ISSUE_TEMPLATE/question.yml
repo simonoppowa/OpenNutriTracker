@@ -1,0 +1,67 @@
+name: Question
+description: Ask a question about using or contributing to OpenNutriTracker
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for usage questions, contributor onboarding, or clarifying how something works.
+        For bugs or new features, please open a Bug report or Feature request instead.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What would you like to know?
+      placeholder: How do I … ?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What have you already tried, read, or remembered from the docs/README?
+      placeholder: I looked at … and tried …
+    validations:
+      required: false
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic
+      options:
+        - Using the app
+        - Food databases / search
+        - Export / import
+        - Privacy / data storage
+        - Building from source
+        - Contributing / development
+        - Translations / localization
+        - Releases / store builds
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform (if relevant)
+      options:
+        - Android
+        - iOS
+        - Both / not platform-specific
+        - N/A
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have checked the README and existing issues for an answer
+          required: true
+        - label: This is a question, not a bug report or feature request
+          required: true

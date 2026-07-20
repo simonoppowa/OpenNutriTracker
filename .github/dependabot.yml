@@ -15,14 +15,14 @@ updates:
     target-branch: "develop"
     open-pull-requests-limit: 10
 
-  - package-ecosystem: "cocoapods"
-    directory: "/ios"
+  - package-ecosystem: "pub"
+    directory: "/"
     schedule:
       interval: "weekly"
     target-branch: "develop"
     open-pull-requests-limit: 10
 
-  - package-ecosystem: "pub"
+  - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
