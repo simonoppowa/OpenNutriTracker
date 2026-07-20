@@ -142,6 +142,15 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                         lineWidth: 16,
                         percent: gaugeValue.clamp(0.0, 1.0),
                         animation: true,
+                        // The dashboard's first-ever build of a session (a
+                        // cold start, or landing on Home right after
+                        // seeding/onboarding) must show the real value
+                        // immediately — animating up from 0% every time
+                        // reads as the data being wrong for a beat, not as
+                        // a nice reveal. Later rebuilds (e.g. logging a
+                        // meal) still animate from the old percent, since
+                        // that's a real, visible change worth animating.
+                        animateToInitialPercent: false,
                         animationDuration: 800,
                         curve: AppMotion.emphasized,
                         circularStrokeCap: CircularStrokeCap.round,

@@ -1,333 +1,45 @@
-import 'dart:io';
 import 'dart:math';
 
-import 'package:http/http.dart' as http;
-import 'package:logging/logging.dart';
-import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
-import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
-import 'package:opennutritracker/core/data/repository/config_repository.dart';
-import 'package:opennutritracker/core/data/repository/intake_repository.dart';
-import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
-import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
-import 'package:opennutritracker/core/data/repository/water_intake_repository.dart';
-import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/entity/custom_activity_template_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
-import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_ingredient_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
-import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_custom_activity_template_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/update_profile_usecase.dart';
-import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
-import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
-import 'package:opennutritracker/core/utils/calc/met_calc.dart';
-import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/demo/unsplash_attribution.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/user_image_storage.dart';
-import 'package:opennutritracker/dev/unsplash_attribution.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
-import 'package:opennutritracker/features/fasting/data/repository/fasting_repository.dart';
-import 'package:opennutritracker/features/fasting/domain/entity/fasting_session_entity.dart';
-import 'package:opennutritracker/features/fasting/domain/usecase/acknowledge_fasting_warning_usecase.dart';
-import 'package:path_provider/path_provider.dart';
 
-final _log = Logger('DemoDataSeeder');
-
-const _daysOfHistory = 365;
-const _demoProfileName = 'Alex Demo';
-
-/// The current-streak guarantee (see [seedDemoData]) and the day-to-day
-/// randomisation both read off this single fixed-seed generator, so the
-/// data looks organically noisy (no obvious repeating cycle in the
-/// calorie/water graphs) while still being reproducible across runs —
-/// handy for a dev tool where you want the same fixture every time you
-/// reseed, not a new random one.
-final _rng = Random(1337);
-
-/// Wipes the active profile back to a fresh, un-onboarded state and refills
-/// it with a full year of realistic demo data — a named, photographed user
-/// profile, daily meals sized to hit (and rarely exceed) both the calorie
-/// and macro goals on ~90% of days with a 15-day current streak, activities
-/// on roughly half the days, noisy (not cyclical) weight/water history for
-/// a user who stays outside the "normal" BMI range all year, several
-/// recipes, a saved activity template, and fasting sessions in every state
-/// — so every screen has a year's worth of realistic-looking history
-/// without walking onboarding by hand each run.
+/// Shared, duration-agnostic demo content: the curated food set, activity
+/// pool, recipes, and the algorithm that turns a day's macro targets into
+/// realistic intake entries. Both the dev-only 365-day QA fixture
+/// (`lib/dev/main_dev.dart`) and the production "try it with sample data"
+/// onboarding flow build on this — only how many days and how strict the
+/// adherence is (see `demo_seeder.dart`'s `DemoSeedOptions`) differs
+/// between them.
 ///
-/// Builds every day's records in memory first and writes each box with a
-/// single bulk `addAll` call — a sequential per-day/per-usecase await loop
-/// over 365 days would take minutes on a real device.
-///
-/// Only ever called from `lib/dev/main_dev.dart`; never reachable from the
-/// normal `lib/main.dart` entry point.
-Future<void> seedDemoData() async {
-  _log.info('Seeding demo data ($_daysOfHistory days)...');
-
-  await locator<DeleteAllUserDataUsecase>().deleteAll();
-  final hiveDBProvider = locator<HiveDBProvider>();
-  await hiveDBProvider.customMealBox.clear();
-  await hiveDBProvider.recipeBox.clear();
-  await hiveDBProvider.customActivityTemplateBox.clear();
-
-  final now = DateTime.now();
-  final startOfToday = DateTime(now.year, now.month, now.day);
-  final user = _demoUser(startOfToday);
-  await locator<AddUserUsecase>().addUser(user);
-  await locator<AcknowledgeFastingWarningUseCase>()();
-
-  // Hand-picked Unsplash photos, reused across all 365 days' intake
-  // entries — see unsplash_attribution.dart for why these are hardcoded
-  // URLs rather than a live search.
-  final foods = _buildDemoFoods();
-  await _setupActiveProfile();
-
-  // Base (activity-free) goal, computed once — recomputing per day via the
-  // async usecases would mean thousands of repeated Hive reads for a value
-  // that doesn't change day to day for a fixed user/config.
-  final config = await locator<ConfigRepository>().getConfig();
-  final baseKcalGoal = CalorieGoalCalc.getTotalKcalGoal(
-    user,
-    0,
-    kcalUserAdjustment: config.userKcalAdjustment,
-    caloriesTaperEnabled: user.caloriesTaperEnabled,
-  );
-  final baseCarbsGoal = MacroCalc.getTotalCarbsGoal(
-    baseKcalGoal,
-    userCarbsGoal: config.userCarbGoalPct,
-  );
-  final baseFatGoal = MacroCalc.getTotalFatsGoal(
-    baseKcalGoal,
-    userFatsGoal: config.userFatGoalPct,
-  );
-  final baseProteinGoal = MacroCalc.getTotalProteinsGoal(
-    baseKcalGoal,
-    userProteinsGoal: config.userProteinGoalPct,
-  );
-
-  final intakeDBOs = <IntakeDBO>[];
-  final activityDBOs = <UserActivityDBO>[];
-  final trackedDayDBOs = <TrackedDayDBO>[];
-  final waterIntakeDBOs = <WaterIntakeDBO>[];
-
-  for (var daysAgo = _daysOfHistory - 1; daysAgo >= 0; daysAgo--) {
-    final day = startOfToday.subtract(Duration(days: daysAgo));
-
-    // Activity on roughly half of all days, always including today so the
-    // Home screen has something to show immediately after seeding.
-    var activityBurnedKcal = 0.0;
-    if (daysAgo == 0 || _rng.nextDouble() < 0.5) {
-      final activity = _activityPool[_rng.nextInt(_activityPool.length)];
-      final duration = 25.0 + _rng.nextInt(40); // 25-64 min
-      final burnedKcal = METCalc.getTotalBurnedKcal(user, activity, duration);
-      activityBurnedKcal = burnedKcal;
-      activityDBOs.add(
-        UserActivityDBO.fromUserActivityEntity(
-          UserActivityEntity(
-            IdGenerator.getUniqueID(),
-            duration,
-            burnedKcal,
-            _jitteredTime(day, 18),
-            activity,
-          ),
-        ),
-      );
-    }
-
-    // Mirrors ActivityDetailBloc._updateTrackedDay: burned activity kcal
-    // raises the day's calorie (and proportional macro) headroom.
-    final dayKcalGoal = baseKcalGoal + activityBurnedKcal;
-    final dayCarbsGoal =
-        baseCarbsGoal + MacroCalc.getTotalCarbsGoal(activityBurnedKcal);
-    final dayFatGoal =
-        baseFatGoal + MacroCalc.getTotalFatsGoal(activityBurnedKcal);
-    final dayProteinGoal =
-        baseProteinGoal + MacroCalc.getTotalProteinsGoal(activityBurnedKcal);
-
-    // The most recent 15 days are always on-track, guaranteeing a 15-day
-    // current streak (Trends' "current" streak is the run ending today,
-    // within whichever window chip is selected — the default 7d chip
-    // only ever looks at 7 days, so the 15-day run only shows once the
-    // 30d/90d/All chip is picked). Every other day has a ~10% chance of
-    // missing the goal outright (an over- or under-shoot well past the
-    // "on track" tolerance), landing overall adherence around 90%. Day 15
-    // is always forced to miss (rather than left to the random roll) so
-    // the current streak comes out to exactly 15, not "15 or more by
-    // chance".
-    final isMissedDay =
-        daysAgo == 15 || (daysAgo > 15 && _rng.nextDouble() < 0.10);
-    final double deficit;
-    if (isMissedDay) {
-      final overate = _rng.nextBool();
-      // Over by 550-1449 kcal (exceeds the >500-over "on track" limit) or
-      // under by 1050-1549 kcal (exceeds the >=1000-under limit) — see
-      // TrackedDayEntity._hasExceededMaxKcalDifferenceGoal.
-      deficit = overate
-          ? -(550.0 + _rng.nextInt(900))
-          : (1050.0 + _rng.nextInt(500));
-    } else {
-      // 200-749 kcal under goal — comfortably inside the "on track" band
-      // and consistent with this demo user's "lose weight" goal. Random
-      // rather than a fixed cycle so the calorie trend graph looks like
-      // an actual person's data instead of a repeating sawtooth.
-      deficit = 200.0 + _rng.nextInt(550);
-    }
-    final targetKcal = dayKcalGoal - deficit;
-
-    // Scale the day's macro targets by the same ratio as the calorie
-    // target, so a day eaten under goal is also under its macro goals
-    // (macros should "rarely exceed" per-goal, not just calories).
-    final kcalRatio = targetKcal / dayKcalGoal;
-    final targetMacros = (
-      carbs: dayCarbsGoal * kcalRatio,
-      fat: dayFatGoal * kcalRatio,
-      protein: dayProteinGoal * kcalRatio,
-    );
-
-    final dayIntakes = _buildDailyIntakes(day, targetMacros, foods);
-    intakeDBOs.addAll(dayIntakes.map(IntakeDBO.fromIntakeEntity));
-
-    final totalKcal = dayIntakes.fold(0.0, (sum, i) => sum + i.totalKcal);
-    final totalCarbs = dayIntakes.fold(
-      0.0,
-      (sum, i) => sum + i.totalCarbsGram,
-    );
-    final totalFat = dayIntakes.fold(0.0, (sum, i) => sum + i.totalFatsGram);
-    final totalProtein = dayIntakes.fold(
-      0.0,
-      (sum, i) => sum + i.totalProteinsGram,
-    );
-
-    trackedDayDBOs.add(
-      TrackedDayDBO(
-        day: day,
-        calorieGoal: dayKcalGoal,
-        caloriesTracked: totalKcal,
-        carbsGoal: dayCarbsGoal,
-        carbsTracked: totalCarbs,
-        fatGoal: dayFatGoal,
-        fatTracked: totalFat,
-        proteinGoal: dayProteinGoal,
-        proteinTracked: totalProtein,
-      ),
-    );
-
-    waterIntakeDBOs.addAll(_buildDailyWater(day));
-  }
-
-  await locator<IntakeRepository>().addAllIntakeDBOs(intakeDBOs);
-  await locator<UserActivityRepository>().addAllUserActivityDBOs(
-    activityDBOs,
-  );
-  await locator<TrackedDayRepository>().addAllTrackedDays(trackedDayDBOs);
-  await locator<WaterIntakeRepository>().addAllEntries(waterIntakeDBOs);
-  await locator<WeightLogRepository>().addAllEntries(
-    _buildWeightLog(startOfToday, user.weightKG),
-  );
-
-  final fastingRepository = locator<FastingRepository>();
-  for (final session in _buildFastingSessions(now)) {
-    await fastingRepository.addSession(session);
-  }
-
-  await _seedRecipes(now, foods);
-  await _seedCustomActivityTemplate();
-
-  _log.info('Demo data seeded.');
-}
-
-/// 178cm / 87kg puts BMI at ~27.5 ("overweight") — solidly outside the
-/// normal 18.5-24.9 range all year, since the weight-log trend (see
-/// [_buildWeightLog]) never dips below this figure either.
-UserEntity _demoUser(DateTime startOfToday) => UserEntity(
-  birthday: DateTime(startOfToday.year - 29, 4, 12),
-  heightCM: 178,
-  weightKG: 87,
-  gender: UserGenderEntity.male,
-  goal: UserWeightGoalEntity.loseWeight,
-  pal: UserPALEntity.active,
-  weeklyWeightGoalKg: -0.4,
-);
+/// The current-streak guarantee and all day-to-day randomisation (which
+/// foods/portions/times are picked) read off this single fixed-seed
+/// generator, so the data looks organically noisy (no obvious repeating
+/// cycle in the calorie/water graphs) while still being reproducible
+/// across runs — handy for a dev tool where you want the same fixture
+/// every time you reseed, not a new random one.
+final demoRng = Random(1337);
 
 /// [hour]:00 plus up to 44 random minutes, so logged times don't land on
 /// the exact same clock minute every single day.
-DateTime _jitteredTime(DateTime day, int hour) =>
-    DateTime(day.year, day.month, day.day, hour, _rng.nextInt(45));
-
-/// The one hand-picked Unsplash portrait used for the demo profile's
-/// avatar (see unsplash_attribution.dart) — a friendly, neutral headshot,
-/// since Unsplash has no "people" search angle the way Open Food Facts
-/// has product photos.
-const _profilePhotoId = '1651684215020-f7a5b6610f23';
-
-/// Renames the active profile and, best-effort, downloads and stores the
-/// curated Unsplash portrait as its avatar, recording the photographer
-/// credit in a sidecar file (read back by `profile_editor_screen.dart`).
-/// Network/storage failures are swallowed — a missing avatar shouldn't
-/// abort the whole seed.
-Future<void> _setupActiveProfile() async {
-  final active = locator<GetProfilesUsecase>().getActiveProfile();
-  if (active == null) return;
-
-  String? imagePath;
-  try {
-    final avatarUrl = unsplashImageUrl(_profilePhotoId, width: 500);
-    final response = await http.get(Uri.parse(avatarUrl));
-    if (response.statusCode == 200) {
-      final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/demo_profile_avatar_source');
-      await tempFile.writeAsBytes(response.bodyBytes);
-      imagePath = await UserImageStorage.importFrom(
-        kind: UserImageKind.profile,
-        ownerId: active.id,
-        sourcePath: tempFile.path,
-      );
-      await tempFile.delete();
-      final credit = unsplashCreditForUrl(avatarUrl);
-      if (credit != null) {
-        await UserImageStorage.writeCredit(
-          imagePath,
-          name: credit.name,
-          profileUrl: credit.profileUrl,
-        );
-      }
-    }
-  } catch (e) {
-    _log.warning('Could not download demo profile picture: $e');
-  }
-
-  await locator<UpdateProfileUsecase>().updateProfile(
-    ProfileEntity(
-      id: active.id,
-      name: _demoProfileName,
-      createdAt: active.createdAt,
-      boxSuffix: active.boxSuffix,
-      imagePath: imagePath ?? active.imagePath,
-    ),
-  );
-}
+DateTime jitteredTime(DateTime day, int hour) =>
+    DateTime(day.year, day.month, day.day, hour, demoRng.nextInt(45));
 
 /// The fixed set of foods used to build every day's intake and the
-/// recipes. Grouped so [_buildDailyIntakes] and [_seedRecipes] don't have
-/// to know how they were constructed (with or without a fetched photo).
-typedef _DemoFoods = ({
+/// recipes. Grouped so [buildDailyIntakes] and [seedRecipes] don't have
+/// to know how they were constructed.
+typedef DemoFoods = ({
   MealEntity oatmeal,
   MealEntity brownRice,
   MealEntity wholegrainBread,
@@ -419,7 +131,7 @@ MealEntity _meal(
 /// Builds every demo food, each with its curated Unsplash photo id (see
 /// unsplash_attribution.dart) — a fixed, hand-picked set rather than a
 /// live search, so this needs no network access and returns synchronously.
-_DemoFoods _buildDemoFoods() {
+DemoFoods buildDemoFoods() {
   final oatmeal = _meal(
     'Oatmeal',
     photoId: '1548807371-30dc1bbe6cb5',
@@ -684,23 +396,23 @@ double _macroGrams(
 /// protein specifically, routinely overshoots the goal once the other
 /// foods' incidental protein is added on top.
 ///
-/// Which foods and what split ratios are chosen is randomised per day (see
-/// [_rng]) rather than rotated through a fixed cycle, so the week doesn't
-/// visibly repeat itself.
-List<IntakeEntity> _buildDailyIntakes(
+/// Which foods and what split ratios are chosen is randomised per day
+/// (see [demoRng]) rather than rotated through a fixed cycle, so the
+/// week doesn't visibly repeat itself.
+List<IntakeEntity> buildDailyIntakes(
   DateTime day,
   ({double carbs, double fat, double protein}) targetMacros,
-  _DemoFoods foods,
+  DemoFoods foods,
 ) {
   final carbPool = [foods.oatmeal, foods.brownRice, foods.wholegrainBread];
   final proteinPool = [foods.chickenBreast, foods.greekYogurt, foods.salmon];
-  final carbMealA = carbPool[_rng.nextInt(carbPool.length)];
-  final carbMealB = carbPool[_rng.nextInt(carbPool.length)];
-  final proteinMeal = proteinPool[_rng.nextInt(proteinPool.length)];
-  final fruitMeal = _rng.nextBool() ? foods.banana : foods.apple;
+  final carbMealA = carbPool[demoRng.nextInt(carbPool.length)];
+  final carbMealB = carbPool[demoRng.nextInt(carbPool.length)];
+  final proteinMeal = proteinPool[demoRng.nextInt(proteinPool.length)];
+  final fruitMeal = demoRng.nextBool() ? foods.banana : foods.apple;
 
-  final veggieAmount = 80.0 + _rng.nextInt(60); // 80-139g
-  final fruitAmount = 100.0 + _rng.nextInt(60); // 100-159g
+  final veggieAmount = 80.0 + demoRng.nextInt(60); // 80-139g
+  final fruitAmount = 100.0 + demoRng.nextInt(60); // 100-159g
   final veggieCarb = _macroGrams(foods.broccoli, veggieAmount, (n) => n.carbohydrates100);
   final veggieFat = _macroGrams(foods.broccoli, veggieAmount, (n) => n.fat100);
   final veggieProtein = _macroGrams(foods.broccoli, veggieAmount, (n) => n.proteins100);
@@ -709,7 +421,7 @@ List<IntakeEntity> _buildDailyIntakes(
   final fruitProtein = _macroGrams(fruitMeal, fruitAmount, (n) => n.proteins100);
 
   // Carb target split ~30-60% breakfast / rest dinner starch.
-  final carbShareA = 0.3 + _rng.nextDouble() * 0.3;
+  final carbShareA = 0.3 + demoRng.nextDouble() * 0.3;
   final remainingCarb = targetMacros.carbs - veggieCarb - fruitCarb;
   final carbAmountA = _roundToNearest5g(
     _gramsFor(carbMealA, remainingCarb * carbShareA, (n) => n.carbohydrates100),
@@ -729,7 +441,7 @@ List<IntakeEntity> _buildDailyIntakes(
       _macroGrams(carbMealB, carbAmountB, (n) => n.proteins100);
 
   // Fat target split ~50-75% dinner oil / rest a handful of almonds.
-  final oilShare = 0.5 + _rng.nextDouble() * 0.25;
+  final oilShare = 0.5 + demoRng.nextDouble() * 0.25;
   final remainingFat = targetMacros.fat - veggieFat - fruitFat - carbFat;
   final oilAmount = _roundToNearest5g(
     _gramsFor(foods.oliveOil, remainingFat * oilShare, (n) => n.fat100),
@@ -759,7 +471,7 @@ List<IntakeEntity> _buildDailyIntakes(
       amount: carbAmountA,
       type: IntakeTypeEntity.breakfast,
       meal: carbMealA,
-      dateTime: _jitteredTime(day, 8),
+      dateTime: jitteredTime(day, 8),
     ),
     IntakeEntity(
       id: IdGenerator.getUniqueID(),
@@ -767,7 +479,7 @@ List<IntakeEntity> _buildDailyIntakes(
       amount: proteinAmount,
       type: IntakeTypeEntity.lunch,
       meal: proteinMeal,
-      dateTime: _jitteredTime(day, 13),
+      dateTime: jitteredTime(day, 13),
     ),
     IntakeEntity(
       id: IdGenerator.getUniqueID(),
@@ -775,7 +487,7 @@ List<IntakeEntity> _buildDailyIntakes(
       amount: veggieAmount,
       type: IntakeTypeEntity.dinner,
       meal: foods.broccoli,
-      dateTime: _jitteredTime(day, 19),
+      dateTime: jitteredTime(day, 19),
     ),
     IntakeEntity(
       id: IdGenerator.getUniqueID(),
@@ -783,7 +495,7 @@ List<IntakeEntity> _buildDailyIntakes(
       amount: carbAmountB,
       type: IntakeTypeEntity.dinner,
       meal: carbMealB,
-      dateTime: _jitteredTime(day, 19),
+      dateTime: jitteredTime(day, 19),
     ),
     IntakeEntity(
       id: IdGenerator.getUniqueID(),
@@ -791,7 +503,7 @@ List<IntakeEntity> _buildDailyIntakes(
       amount: oilAmount,
       type: IntakeTypeEntity.dinner,
       meal: foods.oliveOil,
-      dateTime: _jitteredTime(day, 19),
+      dateTime: jitteredTime(day, 19),
     ),
     IntakeEntity(
       id: IdGenerator.getUniqueID(),
@@ -799,7 +511,7 @@ List<IntakeEntity> _buildDailyIntakes(
       amount: fruitAmount,
       type: IntakeTypeEntity.snack,
       meal: fruitMeal,
-      dateTime: _jitteredTime(day, 16),
+      dateTime: jitteredTime(day, 16),
     ),
     IntakeEntity(
       id: IdGenerator.getUniqueID(),
@@ -807,7 +519,7 @@ List<IntakeEntity> _buildDailyIntakes(
       amount: almondAmount,
       type: IntakeTypeEntity.snack,
       meal: foods.almonds,
-      dateTime: _jitteredTime(day, 16),
+      dateTime: jitteredTime(day, 16),
     ),
   ];
 }
@@ -836,98 +548,22 @@ const _dancingLight = PhysicalActivityEntity(
   [],
   PhysicalActivityTypeEntity.dancing,
 );
-const _activityPool = [_runningVigorous, _bicyclingModerate, _dancingLight];
+const demoActivityPool = [_runningVigorous, _bicyclingModerate, _dancingLight];
 
 /// 2-4 glasses of randomised size — a fixed "500 + 500 + 300-600" pattern
 /// repeating every few days made the Trends water graph look mechanical;
 /// real logging is noisier (and some days people just log less).
-List<WaterIntakeDBO> _buildDailyWater(DateTime day) {
-  final glassCount = 2 + _rng.nextInt(3);
+List<WaterIntakeEntity> buildDailyWater(DateTime day) {
+  final glassCount = 2 + demoRng.nextInt(3);
   final hours = [8, 11, 15, 18, 21];
   return [
     for (var i = 0; i < glassCount; i++)
-      WaterIntakeDBO.fromWaterIntakeEntity(
-        WaterIntakeEntity(
-          id: IdGenerator.getUniqueID(),
-          dateTime: _jitteredTime(day, hours[i]),
-          amountMl: 200 + _rng.nextInt(5) * 100, // 200-600 ml
-        ),
+      WaterIntakeEntity(
+        id: IdGenerator.getUniqueID(),
+        dateTime: jitteredTime(day, hours[i]),
+        amountMl: 200 + demoRng.nextInt(5) * 100, // 200-600 ml
       ),
   ];
-}
-
-/// Weigh-ins roughly every 2 days (frequent enough that the Trends 7-day
-/// window — which previously could contain zero or one point, since the
-/// old weekly cadence rarely landed inside a 7-day range — always has
-/// several) trending from a year-ago starting weight down to the user's
-/// current weight, with randomised jitter so the chart doesn't look like
-/// a perfectly straight or perfectly formulaic line. Both ends of the
-/// trend (96kg -> 87kg at 178cm) stay well above the ~78.9kg upper bound
-/// of a normal BMI, so the user is never in the "normal" range.
-List<WeightLogDBO> _buildWeightLog(DateTime startOfToday, double currentWeightKg) {
-  const startWeightKg = 96.0;
-  final entries = <WeightLogDBO>[];
-
-  var daysAgo = _daysOfHistory - 1;
-  while (daysAgo > 0) {
-    final progress = 1 - daysAgo / (_daysOfHistory - 1);
-    final trendWeight =
-        startWeightKg + (currentWeightKg - startWeightKg) * progress;
-    final jitter = (_rng.nextDouble() - 0.5) * 0.6; // +/- 0.3kg
-    entries.add(
-      WeightLogDBO.fromWeightLogEntity(
-        WeightLogEntity(
-          date: startOfToday.subtract(Duration(days: daysAgo)),
-          weightKg: double.parse((trendWeight + jitter).toStringAsFixed(1)),
-        ),
-      ),
-    );
-    daysAgo -= 2 + _rng.nextInt(2); // every 2-3 days
-  }
-  // Today's exact current weight, matching the profile — no jitter, so it
-  // stays consistent with what the Home/Profile screens show elsewhere.
-  entries.add(
-    WeightLogDBO.fromWeightLogEntity(
-      WeightLogEntity(date: startOfToday, weightKg: currentWeightKg),
-    ),
-  );
-  return entries;
-}
-
-/// A fasting session roughly every 9-14 days across the year — mostly
-/// completed, occasionally broken early — plus one still in progress so
-/// the fasting timer has something live to show right after seeding.
-List<FastingSessionEntity> _buildFastingSessions(DateTime now) {
-  final sessions = <FastingSessionEntity>[];
-  var daysAgo = _daysOfHistory - 1;
-  while (daysAgo >= 3) {
-    final start = now.subtract(Duration(days: daysAgo, hours: 8));
-    final targetMinutes = 14 * 60 + _rng.nextInt(181); // 14-17h
-    final brokeEarly = _rng.nextDouble() < 0.08;
-    sessions.add(
-      FastingSessionEntity(
-        id: IdGenerator.getUniqueID(),
-        startedAt: start,
-        targetDurationMinutes: targetMinutes,
-        completedAt: brokeEarly
-            ? null
-            : start.add(Duration(minutes: targetMinutes + 5)),
-        cancelledAt: brokeEarly
-            ? start.add(Duration(hours: 3 + _rng.nextInt(3)))
-            : null,
-      ),
-    );
-    daysAgo -= 9 + _rng.nextInt(6);
-  }
-
-  sessions.add(
-    FastingSessionEntity(
-      id: IdGenerator.getUniqueID(),
-      startedAt: now.subtract(const Duration(hours: 5)),
-      targetDurationMinutes: 16 * 60,
-    ),
-  );
-  return sessions;
 }
 
 MealNutrimentsEntity _emptyRecipeNutriments() => MealNutrimentsEntity.empty();
@@ -936,7 +572,7 @@ MealNutrimentsEntity _emptyRecipeNutriments() => MealNutrimentsEntity.empty();
 /// and lighter options — `SaveRecipeUseCase.save` recomputes the
 /// aggregated nutriments from the ingredient list, so only the ingredient
 /// amounts need to be realistic.
-Future<void> _seedRecipes(DateTime now, _DemoFoods foods) async {
+Future<void> seedRecipes(DateTime now, DemoFoods foods) async {
   RecipeIngredientEntity ingredient(MealEntity meal, double amountG) =>
       RecipeIngredientEntity(
         snapshotMeal: meal,
@@ -1019,7 +655,7 @@ Future<void> _seedRecipes(DateTime now, _DemoFoods foods) async {
   }
 }
 
-Future<void> _seedCustomActivityTemplate() async {
+Future<void> seedCustomActivityTemplate() async {
   await locator<AddCustomActivityTemplateUsecase>().addTemplate(
     const CustomActivityTemplateEntity(
       name: 'Gym session',

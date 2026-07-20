@@ -7,7 +7,7 @@ import 'package:opennutritracker/core/domain/usecase/update_profile_usecase.dart
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/core/presentation/widgets/user_image_picker_tile.dart';
-import 'package:opennutritracker/dev/unsplash_attribution.dart';
+import 'package:opennutritracker/core/utils/demo/unsplash_attribution.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Edits a single profile's name and picture. The picture is imported the

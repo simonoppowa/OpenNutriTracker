@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/utils/demo/demo_seeder.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
-import 'package:opennutritracker/dev/demo_data_seeder.dart';
 import 'package:opennutritracker/main.dart';
 
 /// Dev-only entry point: wipes the active profile and reseeds it with
@@ -25,7 +25,7 @@ Future<void> main() async {
   LoggerConfig.intiLogger();
   await initLocator();
 
-  await seedDemoData();
+  await seedDemoData(DemoSeedOptions.dev);
 
   final configRepo = locator<ConfigRepository>();
   final config = await configRepo.getConfig();

@@ -60,6 +60,13 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     await _addConfigUsecase.setNotificationsEnabled(dailyReminderEnabled);
     await _addConfigUsecase.setConfigUseMaterialYou(useMaterialYou);
     await _addConfigUsecase.setConfigAccentColor(accentColor);
+    // Defensive: real onboarding always starts from a wiped, un-onboarded
+    // profile (either fresh install, or the demo-mode banner's own wipe
+    // before returning here), so this is normally already false — but
+    // clearing it explicitly means a real profile can never be left
+    // showing the demo-mode banner by some other, future path into
+    // onboarding.
+    await _addConfigUsecase.setConfigIsDemoData(false);
   }
 
   double? getOverviewCalorieGoal() {

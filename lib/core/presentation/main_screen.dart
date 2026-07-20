@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
+import 'package:opennutritracker/core/presentation/widgets/demo_mode_banner.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/diary_page.dart';
@@ -20,9 +21,25 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedPageIndex = 0;
+  bool _isDemoData = false;
 
   late List<Widget> _bodyPages;
   late List<PreferredSizeWidget> _appbarPages;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDemoDataFlag();
+  }
+
+  // Checked once per screen instance rather than kept live — leaving demo
+  // mode always replaces this whole screen with the onboarding route (see
+  // DemoModeBanner), so there's no in-place transition to react to.
+  Future<void> _loadDemoDataFlag() async {
+    final config = await locator<GetConfigUsecase>().getConfig();
+    if (!mounted) return;
+    setState(() => _isDemoData = config.isDemoData);
+  }
 
   @override
   void didChangeDependencies() {
@@ -47,7 +64,17 @@ class _MainScreenState extends State<MainScreen> {
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     return Scaffold(
       appBar: _appbarPages[_selectedPageIndex],
-      body: IndexedStack(index: _selectedPageIndex, children: _bodyPages),
+      body: Column(
+        children: [
+          if (_isDemoData) const DemoModeBanner(),
+          Expanded(
+            child: IndexedStack(
+              index: _selectedPageIndex,
+              children: _bodyPages,
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: Semantics(
         identifier: 'fab-add-item',
         child: FloatingActionButton(

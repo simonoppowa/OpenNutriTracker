@@ -1898,6 +1898,56 @@ class S {
     );
   }
 
+  /// `You're viewing sample data`
+  String get homeDemoBannerLabel {
+    return Intl.message(
+      'You\'re viewing sample data',
+      name: 'homeDemoBannerLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Set up your profile`
+  String get homeDemoBannerAction {
+    return Intl.message(
+      'Set up your profile',
+      name: 'homeDemoBannerAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Set up your own profile?`
+  String get homeDemoBannerConfirmTitle {
+    return Intl.message(
+      'Set up your own profile?',
+      name: 'homeDemoBannerConfirmTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sample data will be cleared and you'll set up your own profile. This cannot be undone.`
+  String get homeDemoBannerConfirmContent {
+    return Intl.message(
+      'Sample data will be cleared and you\'ll set up your own profile. This cannot be undone.',
+      name: 'homeDemoBannerConfirmContent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Continue`
+  String get homeDemoBannerConfirmAction {
+    return Intl.message(
+      'Continue',
+      name: 'homeDemoBannerConfirmAction',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Daily average`
   String get trendsDailyAverageLabel {
     return Intl.message(
@@ -3328,6 +3378,36 @@ class S {
     return Intl.message(
       'Is there a weight you\'re working towards? You can leave this blank or change it later in Profile.',
       name: 'onboardingTargetWeightSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Try Demo`
+  String get onboardingTryDemoLabel {
+    return Intl.message(
+      'Try Demo',
+      name: 'onboardingTryDemoLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Skip setup and explore the app with sample data`
+  String get onboardingTryDemoSubtitle {
+    return Intl.message(
+      'Skip setup and explore the app with sample data',
+      name: 'onboardingTryDemoSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Couldn't set up the demo. Please try again.`
+  String get onboardingTryDemoError {
+    return Intl.message(
+      'Couldn\'t set up the demo. Please try again.',
+      name: 'onboardingTryDemoError',
       desc: '',
       args: [],
     );

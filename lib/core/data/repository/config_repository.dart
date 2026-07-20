@@ -156,6 +156,10 @@ class ConfigRepository {
     await _configDataSource.setFastingWarningAcknowledged(acknowledged);
   }
 
+  Future<void> setIsDemoData(bool isDemoData) async {
+    await _configDataSource.setIsDemoData(isDemoData);
+  }
+
   Future<void> setConfigUseMaterialYou(bool useMaterialYou) async {
     await _configDataSource.setConfigUseMaterialYou(useMaterialYou);
   }
