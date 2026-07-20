@@ -38,7 +38,8 @@ ADB / UI-driver stability.
 | ---- | ----------------------------- |
 | `lib/core/presentation/widgets/share_qr_dialog.dart` | Copy code → `share-qr-copy`; Share → `share-qr-share` (Copy-to-profile already has `share-copy-to-profile`) |
 | `lib/features/settings/presentation/widgets/export_import_dialog.dart` | Primary export/import action buttons and format segmented control if interactive |
-| Related import dialogs (e.g. `import_custom_food_data_dialog.dart`) only if you touch the same flow |
+| `lib/features/settings/presentation/widgets/import_custom_food_data_dialog.dart` | Only if you touch the same flow — primary actions for custom food import |
+
 
 **Acceptance criteria:**
 
