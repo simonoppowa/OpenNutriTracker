@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dar
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/utils/env.dart';
+import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
@@ -46,7 +47,21 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LoggerConfig.intiLogger();
-  await initLocator();
+  final log = Logger('main');
+  try {
+    await initLocator();
+  } on HiveStorageIntegrityException catch (error, stackTrace) {
+    // Sentry is normally started only after init + consent (both live in
+    // encrypted Hive). Storage-integrity failures happen before that, so
+    // report them from a short-lived Sentry client first, then rethrow.
+    log.severe(
+      'Local database integrity failure during bootstrap',
+      error,
+      stackTrace,
+    );
+    await _reportHiveStorageIntegrityFailure(error, stackTrace);
+    rethrow;
+  }
 
   // Drop cached remote-search results that haven't been touched in 90
   // days. Done once per app start; no need to schedule a recurring task.
@@ -59,8 +74,7 @@ Future<void> main() async {
 
   final config = await configRepo.getConfig();
   final savedLocaleCode = await configRepo.getSelectedLocale();
-  final savedLocale =
-      savedLocaleCode != null ? Locale(savedLocaleCode) : null;
+  final savedLocale = savedLocaleCode != null ? Locale(savedLocaleCode) : null;
 
   // #312: Restore scheduled notifications after app start / device reboot.
   // Load the user's localized strings first — there's no widget tree yet, so
@@ -70,7 +84,8 @@ Future<void> main() async {
   // reverting to English on each launch.
   if (config.notificationsEnabled) {
     await S.load(
-        savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale);
+      savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale,
+    );
     final s = S.current;
     final notificationService = locator<NotificationService>();
     await notificationService.initialize();
@@ -83,24 +98,75 @@ Future<void> main() async {
       channelDescription: s.notificationsDailyReminderChannelDescription,
     );
   }
-  final hasAcceptedAnonymousData =
-      await configRepo.getConfigHasAcceptedAnonymousData();
+  final hasAcceptedAnonymousData = await configRepo
+      .getConfigHasAcceptedAnonymousData();
   final savedAppTheme = await configRepo.getConfigAppTheme();
   final savedUsesKilojoules = config.usesKilojoules;
   final savedUseMaterialYou = config.useMaterialYou;
   final savedAccentColor = config.accentColor;
-  final log = Logger('main');
 
   // If the user has accepted anonymous data collection, run the app with
   // sentry enabled, else run without it
   if (kReleaseMode && hasAcceptedAnonymousData) {
     log.info('Starting App with Sentry enabled ...');
-    _runAppWithSentryReporting(isUserInitialized, savedAppTheme, savedLocale,
-        savedUsesKilojoules, savedUseMaterialYou, savedAccentColor);
+    _runAppWithSentryReporting(
+      isUserInitialized,
+      savedAppTheme,
+      savedLocale,
+      savedUsesKilojoules,
+      savedUseMaterialYou,
+      savedAccentColor,
+    );
   } else {
     log.info('Starting App ...');
-    runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, savedLocale,
-        savedUsesKilojoules, savedUseMaterialYou, savedAccentColor);
+    runAppWithChangeNotifiers(
+      isUserInitialized,
+      savedAppTheme,
+      savedLocale,
+      savedUsesKilojoules,
+      savedUseMaterialYou,
+      savedAccentColor,
+    );
+  }
+}
+
+/// Report key-loss / wrong-cipher Hive failures that abort boot before the
+/// normal Sentry app-runner starts.
+///
+/// Consent lives in the encrypted Config box and cannot be read here. We still
+/// send this single non-PII diagnostic in release builds: it only carries the
+/// integrity [code] and stack — no meals, profile, or secure-storage values —
+/// and is the only signal that the factory-reset wipe path is still firing in
+/// the wild.
+Future<void> _reportHiveStorageIntegrityFailure(
+  HiveStorageIntegrityException error,
+  StackTrace stackTrace,
+) async {
+  if (!kReleaseMode) return;
+  try {
+    await SentryFlutter.init((options) {
+      options.dsn = Env.sentryDns;
+      options.tracesSampleRate = 0;
+      options.sendDefaultPii = false;
+    });
+    await Sentry.captureException(
+      error,
+      stackTrace: stackTrace,
+      withScope: (scope) async {
+        scope.level = SentryLevel.fatal;
+        await scope.setTag('fault', 'hive_storage_integrity');
+        await scope.setTag('hive_integrity_code', error.code);
+        scope.fingerprint = ['hive-storage-integrity', error.code];
+      },
+    );
+    // Flush the transport so the event leaves before the isolate dies.
+    await Sentry.close();
+  } catch (reportError, reportStack) {
+    Logger('main').warning(
+      'Failed to report Hive storage integrity failure to Sentry',
+      reportError,
+      reportStack,
+    );
   }
 }
 
@@ -117,8 +183,14 @@ void _runAppWithSentryReporting(
       options.dsn = Env.sentryDns;
       options.tracesSampleRate = 1.0;
     },
-    appRunner: () => runAppWithChangeNotifiers(isUserInitialized, savedAppTheme,
-        savedLocale, savedUsesKilojoules, savedUseMaterialYou, savedAccentColor),
+    appRunner: () => runAppWithChangeNotifiers(
+      isUserInitialized,
+      savedAppTheme,
+      savedLocale,
+      savedUsesKilojoules,
+      savedUseMaterialYou,
+      savedAccentColor,
+    ),
   );
 }
 
@@ -129,28 +201,26 @@ void runAppWithChangeNotifiers(
   bool savedUsesKilojoules,
   bool savedUseMaterialYou,
   int? savedAccentColor,
-) =>
-    runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-            create: (_) => ThemeModeProvider(
-              appTheme: savedAppTheme,
-              useMaterialYou: savedUseMaterialYou,
-              accentColor: savedAccentColor,
-            ),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => LocaleProvider(locale: savedLocale),
-          ),
-          ChangeNotifierProvider(
-            create: (_) =>
-                EnergyUnitProvider(usesKilojoules: savedUsesKilojoules),
-          ),
-        ],
-        child: OpenNutriTrackerApp(userInitialized: userInitialized),
+) => runApp(
+  MultiProvider(
+    providers: [
+      ChangeNotifierProvider(
+        create: (_) => ThemeModeProvider(
+          appTheme: savedAppTheme,
+          useMaterialYou: savedUseMaterialYou,
+          accentColor: savedAccentColor,
+        ),
       ),
-    );
+      ChangeNotifierProvider(
+        create: (_) => LocaleProvider(locale: savedLocale),
+      ),
+      ChangeNotifierProvider(
+        create: (_) => EnergyUnitProvider(usesKilojoules: savedUsesKilojoules),
+      ),
+    ],
+    child: OpenNutriTrackerApp(userInitialized: userInitialized),
+  ),
+);
 
 class OpenNutriTrackerApp extends StatelessWidget {
   final bool userInitialized;

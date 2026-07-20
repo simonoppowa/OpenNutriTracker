@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
+import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/hive_registrar.g.dart';
 
 /// Owns every Hive box the app uses.
@@ -163,27 +164,16 @@ class HiveDBProvider extends ChangeNotifier {
     // swallowed silently. Result: profile reset to null on app relaunch.
     Hive.registerAdapters();
 
-    profileBox = await Hive.openBox(profileBoxName, encryptionCipher: _cipher);
-    cachedOffMealBox = await Hive.openBox(
-      cachedOffMealBoxName,
-      encryptionCipher: _cipher,
-    );
-    cachedOffMealTimestampsBox = await Hive.openBox(
+    profileBox = await _openEncryptedBox(profileBoxName);
+    cachedOffMealBox = await _openEncryptedBox(cachedOffMealBoxName);
+    cachedOffMealTimestampsBox = await _openEncryptedBox(
       cachedOffMealTimestampsBoxName,
-      encryptionCipher: _cipher,
     );
-    _appConfigBox = await Hive.openBox(
-      appConfigBoxName,
-      encryptionCipher: _cipher,
-    );
-    customMealBox = await Hive.openBox(
-      customMealBoxName,
-      encryptionCipher: _cipher,
-    );
-    recipeBox = await Hive.openBox(recipeBoxName, encryptionCipher: _cipher);
-    customActivityTemplateBox = await Hive.openBox(
+    _appConfigBox = await _openEncryptedBox(appConfigBoxName);
+    customMealBox = await _openEncryptedBox(customMealBoxName);
+    recipeBox = await _openEncryptedBox(recipeBoxName);
+    customActivityTemplateBox = await _openEncryptedBox(
       customActivityTemplateBoxName,
-      encryptionCipher: _cipher,
     );
   }
 
@@ -217,38 +207,22 @@ class HiveDBProvider extends ChangeNotifier {
 
   Future<void> _openActiveProfileBoxes() async {
     final suffix = _activeBoxSuffix;
-    _configBox = await Hive.openBox(
-      boxNameFor(configBoxName, suffix),
-      encryptionCipher: _cipher,
-    );
-    _intakeBox = await Hive.openBox(
-      boxNameFor(intakeBoxName, suffix),
-      encryptionCipher: _cipher,
-    );
-    _userActivityBox = await Hive.openBox(
+    _configBox = await _openEncryptedBox(boxNameFor(configBoxName, suffix));
+    _intakeBox = await _openEncryptedBox(boxNameFor(intakeBoxName, suffix));
+    _userActivityBox = await _openEncryptedBox(
       boxNameFor(userActivityBoxName, suffix),
-      encryptionCipher: _cipher,
     );
-    _userBox = await Hive.openBox(
-      boxNameFor(userBoxName, suffix),
-      encryptionCipher: _cipher,
-    );
-    _trackedDayBox = await Hive.openBox(
+    _userBox = await _openEncryptedBox(boxNameFor(userBoxName, suffix));
+    _trackedDayBox = await _openEncryptedBox(
       boxNameFor(trackedDayBoxName, suffix),
-      encryptionCipher: _cipher,
     );
-    _weightLogBox = await Hive.openBox(
+    _weightLogBox = await _openEncryptedBox(
       boxNameFor(weightLogBoxName, suffix),
-      encryptionCipher: _cipher,
     );
-    _waterIntakeBox = await Hive.openBox(
+    _waterIntakeBox = await _openEncryptedBox(
       boxNameFor(waterIntakeBoxName, suffix),
-      encryptionCipher: _cipher,
     );
-    _fastingBox = await Hive.openBox(
-      boxNameFor(fastingBoxName, suffix),
-      encryptionCipher: _cipher,
-    );
+    _fastingBox = await _openEncryptedBox(boxNameFor(fastingBoxName, suffix));
   }
 
   Future<void> _closeActiveProfileBoxes() async {
@@ -276,11 +250,31 @@ class HiveDBProvider extends ChangeNotifier {
   /// suffix, using the shared encryption cipher. Used to read/write a
   /// profile other than the active one — e.g. copying a meal into another
   /// profile — without disturbing the active box-set.
+  Future<Box<E>> _openEncryptedBox<E>(String name) async {
+    try {
+      return await Hive.openBox<E>(
+        name,
+        encryptionCipher: _cipher,
+        // Wrong encryption key makes frame CRCs fail. Hive's default
+        // crashRecovery=true then truncates the file to "repair" it, which
+        // silently wipes user data after a secure-storage key loss. Fail loud
+        // instead so the data files remain intact for recovery.
+        crashRecovery: false,
+      );
+    } on HiveError catch (error) {
+      // Typical message: "Wrong checksum in hive file $path. ..."
+      final lower = error.message.toLowerCase();
+      if (lower.contains('checksum') ||
+          lower.contains('corrupted') ||
+          lower.contains('crc')) {
+        throw HiveStorageIntegrityException.wrongKeyOrCorrupted(error);
+      }
+      rethrow;
+    }
+  }
+
   Future<Box<E>> openScopedBox<E>(String baseName, String boxSuffix) {
-    return Hive.openBox<E>(
-      boxNameFor(baseName, boxSuffix),
-      encryptionCipher: _cipher,
-    );
+    return _openEncryptedBox<E>(boxNameFor(baseName, boxSuffix));
   }
 
   /// Closes a box previously opened via [openScopedBox]. Callers that open a
