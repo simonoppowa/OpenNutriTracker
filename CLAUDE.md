@@ -19,7 +19,42 @@ just format        # dart format ./lib/core ./lib/features ./lib/l10n ./test
 just test          # flutter test
 just check_intl    # verify generated intl files are up to date (used in CI)
 just ci            # full CI: install, format check, intl check, build, analyze, test
+just dev           # fvm flutter run --flavor develop
+just dev_seed      # same, but wipes the active profile and seeds a year of demo data — see below
 ```
+
+### Running with demo data
+
+`just dev_seed` runs a separate entry point, `lib/dev/main_dev.dart`, instead
+of the normal `lib/main.dart`. On every launch it wipes the active profile's
+Hive boxes and reseeds a full year of realistic data via
+[`lib/dev/demo_data_seeder.dart`](lib/dev/demo_data_seeder.dart) — skips
+onboarding entirely, and lands on Home with:
+
+- A named, photographed profile ("Alex Demo"), overweight BMI, on a
+  "lose weight" goal.
+- A year of meals, activities, weight/water logs, and fasting sessions,
+  sized to hit calorie/macro goals on ~90% of days with a 15-day current
+  streak (visible on the Trends 30d/90d/All tabs — the default 7d tab
+  structurally caps the displayed streak at 7 days).
+- Several saved recipes and a custom activity template.
+
+Food and profile photos come from a small, hand-picked set of Unsplash
+images — hardcoded photo ids in
+[`lib/dev/unsplash_attribution.dart`](lib/dev/unsplash_attribution.dart),
+not a live search — so seeding needs network access only to fetch those
+fixed URLs (and downloads the profile picture locally); a failed lookup
+just skips that one photo rather than aborting the seed. That file also
+carries the photographer-credit lookup and small credit-line widget shown
+on the meal detail screen and the profile editor (the only two production
+files that import from `lib/dev/`) — see the file's doc comment for why
+hardcoded URLs sidestep Unsplash's stricter API usage terms. Data is
+generated from a fixed-seed RNG, so re-running `just dev_seed` reproduces
+the same fixture every time rather than a new random one.
+
+This is a dev-only tool, grouped under `lib/dev/` — `main_dev.dart` throws
+if built in release mode, and nothing in `lib/dev/` is ever referenced from
+`lib/main.dart`, so it can't leak into a shipped build.
 
 Run a single test file:
 
@@ -264,6 +299,7 @@ lib/
     recipes/      # Reusable recipes with photo, brand, ingredient picker
     settings/     # App settings, data export/import, day-start, theme picker
     onboarding/   # First-run user setup flow
+  dev/            # Dev-only demo-data seeding (never shipped) — see "Running with demo data" above
   generated/      # Intl files — maintained manually (see Localization above)
   l10n/           # Source ARB translation files
 ```

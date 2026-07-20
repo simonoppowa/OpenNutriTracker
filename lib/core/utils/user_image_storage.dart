@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -105,6 +106,11 @@ class UserImageStorage {
     } else {
       await File(sourcePath).copy(destPath);
     }
+    // A fresh import always wins over any stale photo-credit sidecar (see
+    // [writeCredit]) — a real user picking their own photo over a
+    // previously-seeded demo one should never keep showing someone else's
+    // attribution.
+    await _deleteCreditFile(destPath);
     return relativePathFor(kind, ownerId);
   }
 
@@ -118,6 +124,42 @@ class UserImageStorage {
     final file = File(absolute);
     if (await file.exists()) {
       await file.delete();
+    }
+    await _deleteCreditFile(absolute);
+  }
+
+  /// Records a photographer credit for the image at `relativePath`, kept
+  /// as a `<relativePath>.credit.json` sidecar rather than a DBO field —
+  /// this is only ever written by the dev-only demo-data seeder for its
+  /// curated Unsplash photos, and a sidecar file needed no schema change
+  /// (and no Hive codegen) to add. Real user-picked photos never have one.
+  static Future<void> writeCredit(
+    String relativePath, {
+    required String name,
+    required String profileUrl,
+  }) async {
+    final absolute = await absolutePath(relativePath);
+    await File('$absolute.credit.json').writeAsString(
+      jsonEncode({'name': name, 'profileUrl': profileUrl}),
+    );
+  }
+
+  /// The credit written by [writeCredit] for `relativePath`, or null when
+  /// there isn't one (the common case).
+  static Future<({String name, String profileUrl})?> readCredit(
+    String relativePath,
+  ) async {
+    final absolute = await absolutePath(relativePath);
+    final file = File('$absolute.credit.json');
+    if (!await file.exists()) return null;
+    final data = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+    return (name: data['name'] as String, profileUrl: data['profileUrl'] as String);
+  }
+
+  static Future<void> _deleteCreditFile(String absoluteImagePath) async {
+    final creditFile = File('$absoluteImagePath.credit.json');
+    if (await creditFile.exists()) {
+      await creditFile.delete();
     }
   }
 
