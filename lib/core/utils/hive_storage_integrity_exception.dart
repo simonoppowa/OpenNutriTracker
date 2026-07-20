@@ -4,13 +4,13 @@
 /// frames.
 ///
 /// Intentionally distinct from a generic [StateError] so bootstrap can
-/// fingerprint and report these to Sentry without mistaking them for ordinary
+/// classify key-loss / decrypt failures without mistaking them for ordinary
 /// bugs. Callers must not mint a new key or enable Hive crash recovery in
 /// response; either would silently wipe user data.
 class HiveStorageIntegrityException implements Exception {
   HiveStorageIntegrityException(this.code, this.message, {this.cause});
 
-  /// Stable machine-readable reason for Sentry fingerprinting / alerts.
+  /// Stable machine-readable reason for logs and (post-consent) diagnostics.
   final String code;
   final String message;
   final Object? cause;

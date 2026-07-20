@@ -51,15 +51,16 @@ Future<void> main() async {
   try {
     await initLocator();
   } on HiveStorageIntegrityException catch (error, stackTrace) {
-    // Sentry is normally started only after init + consent (both live in
-    // encrypted Hive). Storage-integrity failures happen before that, so
-    // report them from a short-lived Sentry client first, then rethrow.
+    // Consent (and thus Sentry) lives in the encrypted Config Hive box, so it
+    // cannot be read on this path. Shipping a pre-consent network report would
+    // break the opt-in telemetry promise (onboarding/settings copy, README,
+    // F-Droid expectations). Local log only — then abort unlock/mint paths.
     log.severe(
-      'Local database integrity failure during bootstrap',
+      'Local database integrity failure during bootstrap '
+      '(code=${error.code}). Not reporting to Sentry before consent.',
       error,
       stackTrace,
     );
-    await _reportHiveStorageIntegrityFailure(error, stackTrace);
     rethrow;
   }
 
@@ -126,46 +127,6 @@ Future<void> main() async {
       savedUsesKilojoules,
       savedUseMaterialYou,
       savedAccentColor,
-    );
-  }
-}
-
-/// Report key-loss / wrong-cipher Hive failures that abort boot before the
-/// normal Sentry app-runner starts.
-///
-/// Consent lives in the encrypted Config box and cannot be read here. We still
-/// send this single non-PII diagnostic in release builds: it only carries the
-/// integrity [code] and stack — no meals, profile, or secure-storage values —
-/// and is the only signal that the factory-reset wipe path is still firing in
-/// the wild.
-Future<void> _reportHiveStorageIntegrityFailure(
-  HiveStorageIntegrityException error,
-  StackTrace stackTrace,
-) async {
-  if (!kReleaseMode) return;
-  try {
-    await SentryFlutter.init((options) {
-      options.dsn = Env.sentryDns;
-      options.tracesSampleRate = 0;
-      options.sendDefaultPii = false;
-    });
-    await Sentry.captureException(
-      error,
-      stackTrace: stackTrace,
-      withScope: (scope) async {
-        scope.level = SentryLevel.fatal;
-        await scope.setTag('fault', 'hive_storage_integrity');
-        await scope.setTag('hive_integrity_code', error.code);
-        scope.fingerprint = ['hive-storage-integrity', error.code];
-      },
-    );
-    // Flush the transport so the event leaves before the isolate dies.
-    await Sentry.close();
-  } catch (reportError, reportStack) {
-    Logger('main').warning(
-      'Failed to report Hive storage integrity failure to Sentry',
-      reportError,
-      reportStack,
     );
   }
 }
