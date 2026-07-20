@@ -45,7 +45,16 @@ class SecureAppStorageProvider {
       if (raw == null || raw.isEmpty) {
         throw HiveStorageIntegrityException.emptyKey();
       }
-      return base64Url.decode(raw);
+      try {
+        return base64Url.decode(raw);
+      } on FormatException catch (error, stackTrace) {
+        // Malformed/partial secure-storage values must not bypass the typed
+        // integrity path and crash bootstrap as an unrelated FormatException.
+        Error.throwWithStackTrace(
+          HiveStorageIntegrityException.malformedKey(error),
+          stackTrace,
+        );
+      }
     }
 
     // Key missing. Only mint a fresh key on a true first install. If any

@@ -261,13 +261,16 @@ class HiveDBProvider extends ChangeNotifier {
         // instead so the data files remain intact for recovery.
         crashRecovery: false,
       );
-    } on HiveError catch (error) {
+    } on HiveError catch (error, stackTrace) {
       // Typical message: "Wrong checksum in hive file $path. ..."
       final lower = error.message.toLowerCase();
       if (lower.contains('checksum') ||
           lower.contains('corrupted') ||
           lower.contains('crc')) {
-        throw HiveStorageIntegrityException.wrongKeyOrCorrupted(error);
+        Error.throwWithStackTrace(
+          HiveStorageIntegrityException.wrongKeyOrCorrupted(error),
+          stackTrace,
+        );
       }
       rethrow;
     }

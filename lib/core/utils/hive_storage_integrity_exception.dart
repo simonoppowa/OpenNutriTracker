@@ -30,6 +30,14 @@ class HiveStorageIntegrityException implements Exception {
             'because that would silently wipe local user data.',
       );
 
+  factory HiveStorageIntegrityException.malformedKey(Object cause) =>
+      HiveStorageIntegrityException(
+        'hive_encryption_key_malformed',
+        'Hive encryption key in secure storage is not valid base64url. '
+            'Refusing to open or recreate the local database.',
+        cause: cause,
+      );
+
   factory HiveStorageIntegrityException.wrongKeyOrCorrupted(Object cause) =>
       HiveStorageIntegrityException(
         'hive_wrong_key_or_corrupted',
