@@ -373,7 +373,7 @@ DemoFoods buildDemoFoods() {
   );
 }
 
-double _roundToNearest5g(double grams) => max(10.0, (grams / 5).round() * 5.0);
+double _roundToNearest5g(double grams) => grams <= 0 ? 0.0 : max(10.0, (grams / 5).round() * 5.0);
 
 /// Grams of [meal] needed to supply [targetGrams] of the macro read off by
 /// [macroPer100] (e.g. `(n) => n.proteins100`). Zero when the food doesn't
@@ -531,7 +531,7 @@ List<IntakeEntity> buildDailyIntakes(
       meal: foods.almonds,
       dateTime: jitteredTime(day, 16),
     ),
-  ];
+  ].where((intake) => intake.amount > 0).toList();
 }
 
 const _runningVigorous = PhysicalActivityEntity(
