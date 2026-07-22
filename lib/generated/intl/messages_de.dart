@@ -605,6 +605,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("g/ml"),
     "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
     "heightLabel": MessageLookupByLibrary.simpleMessage("Größe"),
+    "homeDemoBannerAction": MessageLookupByLibrary.simpleMessage("Eigenes Profil einrichten"),
+    "homeDemoBannerConfirmAction": MessageLookupByLibrary.simpleMessage("Weiter"),
+    "homeDemoBannerConfirmContent": MessageLookupByLibrary.simpleMessage(
+      "Die Beispieldaten werden gelöscht und du richtest dein eigenes Profil ein. Das kann nicht rückgängig gemacht werden.",
+    ),
+    "homeDemoBannerConfirmTitle": MessageLookupByLibrary.simpleMessage("Eigenes Profil einrichten?"),
+    "homeDemoBannerLabel": MessageLookupByLibrary.simpleMessage("Du siehst Beispieldaten"),
     "homeFirstMealHint": MessageLookupByLibrary.simpleMessage(
       "Tippe auf +, um deine erste Mahlzeit oder Aktivität zu erfassen",
     ),
@@ -1005,6 +1012,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "onboardingTargetWeightSubtitle": MessageLookupByLibrary.simpleMessage(
       "Gibt es ein Gewicht, auf das du hinarbeitest? Du kannst das Feld leer lassen oder es später im Profil ändern.",
     ),
+    "onboardingTryDemoError": MessageLookupByLibrary.simpleMessage("Demo konnte nicht eingerichtet werden. Bitte versuche es erneut."),
+    "onboardingTryDemoLabel": MessageLookupByLibrary.simpleMessage("Demo ausprobieren"),
+    "onboardingTryDemoSubtitle": MessageLookupByLibrary.simpleMessage("Einrichtung überspringen und die App mit Beispieldaten erkunden"),
     "onboardingWeightExampleHintKg": MessageLookupByLibrary.simpleMessage(
       "z. B. 60",
     ),

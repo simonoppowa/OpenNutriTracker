@@ -597,6 +597,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("g/ml"),
     "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
     "heightLabel": MessageLookupByLibrary.simpleMessage("Výška"),
+    "homeDemoBannerAction": MessageLookupByLibrary.simpleMessage("Nastavit svůj profil"),
+    "homeDemoBannerConfirmAction": MessageLookupByLibrary.simpleMessage("Pokračovat"),
+    "homeDemoBannerConfirmContent": MessageLookupByLibrary.simpleMessage(
+      "Ukázková data budou smazána a nastavíte si vlastní profil. Tuto akci nelze vrátit zpět.",
+    ),
+    "homeDemoBannerConfirmTitle": MessageLookupByLibrary.simpleMessage("Nastavit vlastní profil?"),
+    "homeDemoBannerLabel": MessageLookupByLibrary.simpleMessage("Prohlížíte ukázková data"),
     "homeFirstMealHint": MessageLookupByLibrary.simpleMessage(
       "Klepnutím na + zaznamenáte své první jídlo nebo aktivitu",
     ),
@@ -987,6 +994,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "onboardingTargetWeightSubtitle": MessageLookupByLibrary.simpleMessage(
       "Máš hmotnost, ke které směřuješ? Pole můžeš nechat prázdné nebo ho později změnit v Profilu.",
     ),
+    "onboardingTryDemoError": MessageLookupByLibrary.simpleMessage("Demo se nepodařilo nastavit. Zkuste to prosím znovu."),
+    "onboardingTryDemoLabel": MessageLookupByLibrary.simpleMessage("Vyzkoušet demo"),
+    "onboardingTryDemoSubtitle": MessageLookupByLibrary.simpleMessage("Přeskočit nastavení a prozkoumat aplikaci s ukázkovými daty"),
     "onboardingWeightExampleHintKg": MessageLookupByLibrary.simpleMessage(
       "např. 60",
     ),

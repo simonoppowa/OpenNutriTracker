@@ -492,6 +492,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("g/ml"),
     "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
     "heightLabel": MessageLookupByLibrary.simpleMessage("身高"),
+    "homeDemoBannerAction": MessageLookupByLibrary.simpleMessage("设置您的个人资料"),
+    "homeDemoBannerConfirmAction": MessageLookupByLibrary.simpleMessage("继续"),
+    "homeDemoBannerConfirmContent": MessageLookupByLibrary.simpleMessage("示例数据将被清除，您将设置自己的个人资料。此操作无法撤销。"),
+    "homeDemoBannerConfirmTitle": MessageLookupByLibrary.simpleMessage("设置自己的个人资料？"),
+    "homeDemoBannerLabel": MessageLookupByLibrary.simpleMessage("您正在查看示例数据"),
     "homeFirstMealHint": MessageLookupByLibrary.simpleMessage(
       "点按 + 记录你的第一餐或运动",
     ),
@@ -800,6 +805,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "onboardingTargetWeightSubtitle": MessageLookupByLibrary.simpleMessage(
       "你有想要达到的目标体重吗？可以留空，也可以稍后在“个人资料”中修改。",
     ),
+    "onboardingTryDemoError": MessageLookupByLibrary.simpleMessage("无法设置演示。请重试。"),
+    "onboardingTryDemoLabel": MessageLookupByLibrary.simpleMessage("试用演示"),
+    "onboardingTryDemoSubtitle": MessageLookupByLibrary.simpleMessage("跳过设置，使用示例数据探索应用"),
     "onboardingWeightExampleHintKg": MessageLookupByLibrary.simpleMessage(
       "例如：60",
     ),

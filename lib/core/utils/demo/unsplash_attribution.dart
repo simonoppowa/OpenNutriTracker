@@ -144,10 +144,17 @@ class _CreditText extends StatelessWidget {
         child: Semantics(
           identifier: 'unsplash-photo-credit',
           child: InkWell(
-            onTap: () => launchUrl(
-              Uri.parse(credit.profileUrl),
-              mode: LaunchMode.externalApplication,
-            ),
+            onTap: () async {
+              try {
+                await launchUrl(
+                  Uri.parse(credit.profileUrl),
+                  mode: LaunchMode.externalApplication,
+                );
+              } catch (_) {
+                // Optional credit link — failure must not surface as an
+                // unhandled async error from a gesture callback.
+              }
+            },
             child: Text(
               'Photo: ${credit.name} / Unsplash',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(

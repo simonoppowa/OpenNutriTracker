@@ -579,6 +579,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("g/ml"),
     "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
     "heightLabel": MessageLookupByLibrary.simpleMessage("Boy"),
+    "homeDemoBannerAction": MessageLookupByLibrary.simpleMessage("Profilini oluştur"),
+    "homeDemoBannerConfirmAction": MessageLookupByLibrary.simpleMessage("Devam"),
+    "homeDemoBannerConfirmContent": MessageLookupByLibrary.simpleMessage(
+      "Örnek veriler silinecek ve kendi profilini oluşturacaksın. Bu işlem geri alınamaz.",
+    ),
+    "homeDemoBannerConfirmTitle": MessageLookupByLibrary.simpleMessage("Kendi profilini oluştur?"),
+    "homeDemoBannerLabel": MessageLookupByLibrary.simpleMessage("Örnek verileri görüntülüyorsunuz"),
     "homeFirstMealHint": MessageLookupByLibrary.simpleMessage(
       "İlk öğününü veya aktiviteni eklemek için + simgesine dokun",
     ),
@@ -973,6 +980,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "onboardingTargetWeightSubtitle": MessageLookupByLibrary.simpleMessage(
       "Ulaşmak istediğin bir kilo var mı? Bu alanı boş bırakabilir veya daha sonra Profil\'den değiştirebilirsin.",
     ),
+    "onboardingTryDemoError": MessageLookupByLibrary.simpleMessage("Demo ayarlanamadı. Lütfen tekrar dene."),
+    "onboardingTryDemoLabel": MessageLookupByLibrary.simpleMessage("Demoyu dene"),
+    "onboardingTryDemoSubtitle": MessageLookupByLibrary.simpleMessage("Kurulumu atla ve uygulamayı örnek verilerle keşfet"),
     "onboardingWeightExampleHintKg": MessageLookupByLibrary.simpleMessage(
       "ör. 60",
     ),

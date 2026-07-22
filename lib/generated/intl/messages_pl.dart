@@ -597,6 +597,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("g/ml"),
     "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
     "heightLabel": MessageLookupByLibrary.simpleMessage("Wzrost"),
+    "homeDemoBannerAction": MessageLookupByLibrary.simpleMessage("Skonfiguruj swój profil"),
+    "homeDemoBannerConfirmAction": MessageLookupByLibrary.simpleMessage("Kontynuuj"),
+    "homeDemoBannerConfirmContent": MessageLookupByLibrary.simpleMessage(
+      "Dane przykładowe zostaną usunięte, a Ty skonfigurujesz własny profil. Tej operacji nie można cofnąć.",
+    ),
+    "homeDemoBannerConfirmTitle": MessageLookupByLibrary.simpleMessage("Skonfigurować własny profil?"),
+    "homeDemoBannerLabel": MessageLookupByLibrary.simpleMessage("Przeglądasz dane przykładowe"),
     "homeFirstMealHint": MessageLookupByLibrary.simpleMessage(
       "Dotknij +, aby dodać swój pierwszy posiłek lub aktywność",
     ),
@@ -989,6 +996,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "onboardingTargetWeightSubtitle": MessageLookupByLibrary.simpleMessage(
       "Czy masz wagę, do której dążysz? Możesz zostawić to pole puste lub zmienić je później w Profilu.",
     ),
+    "onboardingTryDemoError": MessageLookupByLibrary.simpleMessage("Nie udało się uruchomić demo. Spróbuj ponownie."),
+    "onboardingTryDemoLabel": MessageLookupByLibrary.simpleMessage("Wypróbuj demo"),
+    "onboardingTryDemoSubtitle": MessageLookupByLibrary.simpleMessage("Pomiń konfigurację i poznaj aplikację na danych przykładowych"),
     "onboardingWeightExampleHintKg": MessageLookupByLibrary.simpleMessage(
       "np. 60",
     ),

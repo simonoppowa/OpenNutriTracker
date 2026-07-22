@@ -138,10 +138,12 @@ class UserImageStorage {
     required String name,
     required String profileUrl,
   }) async {
-    final absolute = await absolutePath(relativePath);
-    await File('$absolute.credit.json').writeAsString(
-      jsonEncode({'name': name, 'profileUrl': profileUrl}),
-    );
+    final sanitized = sanitizeRelative(relativePath);
+    if (sanitized == null) return;
+    final absolute = await absolutePath(sanitized);
+    await File(
+      '$absolute.credit.json',
+    ).writeAsString(jsonEncode({'name': name, 'profileUrl': profileUrl}));
   }
 
   /// The credit written by [writeCredit] for `relativePath`, or null when
@@ -150,7 +152,9 @@ class UserImageStorage {
     String relativePath,
   ) async {
     try {
-      final absolute = await absolutePath(relativePath);
+      final sanitized = sanitizeRelative(relativePath);
+      if (sanitized == null) return null;
+      final absolute = await absolutePath(sanitized);
       final file = File('$absolute.credit.json');
       if (!await file.exists()) return null;
       final decoded = jsonDecode(await file.readAsString());
