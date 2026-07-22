@@ -162,7 +162,8 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
     // Home screen has something to show immediately after seeding.
     var activityBurnedKcal = 0.0;
     if (daysAgo == 0 || demoRng.nextDouble() < 0.5) {
-      final activity = demoActivityPool[demoRng.nextInt(demoActivityPool.length)];
+      final activity =
+          demoActivityPool[demoRng.nextInt(demoActivityPool.length)];
       final duration = 25.0 + demoRng.nextInt(40); // 25-64 min
       final burnedKcal = METCalc.getTotalBurnedKcal(user, activity, duration);
       activityBurnedKcal = burnedKcal;
@@ -200,7 +201,8 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
     // day lands on-track by construction. The boundary day is always
     // forced to miss (rather than left to the random roll) so a nonzero
     // streak comes out to exactly [guaranteedStreakDays], not "at least".
-    final isMissedDay = options.missedDayProbability > 0 &&
+    final isMissedDay =
+        options.missedDayProbability > 0 &&
         (daysAgo == options.guaranteedStreakDays ||
             (daysAgo > options.guaranteedStreakDays &&
                 demoRng.nextDouble() < options.missedDayProbability));
@@ -236,10 +238,7 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
     intakeDBOs.addAll(dayIntakes.map(IntakeDBO.fromIntakeEntity));
 
     final totalKcal = dayIntakes.fold(0.0, (sum, i) => sum + i.totalKcal);
-    final totalCarbs = dayIntakes.fold(
-      0.0,
-      (sum, i) => sum + i.totalCarbsGram,
-    );
+    final totalCarbs = dayIntakes.fold(0.0, (sum, i) => sum + i.totalCarbsGram);
     final totalFat = dayIntakes.fold(0.0, (sum, i) => sum + i.totalFatsGram);
     final totalProtein = dayIntakes.fold(
       0.0,
@@ -266,9 +265,7 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   }
 
   await locator<IntakeRepository>().addAllIntakeDBOs(intakeDBOs);
-  await locator<UserActivityRepository>().addAllUserActivityDBOs(
-    activityDBOs,
-  );
+  await locator<UserActivityRepository>().addAllUserActivityDBOs(activityDBOs);
   await locator<TrackedDayRepository>().addAllTrackedDays(trackedDayDBOs);
   await locator<WaterIntakeRepository>().addAllEntries(waterIntakeDBOs);
   await locator<WeightLogRepository>().addAllEntries(
@@ -374,20 +371,25 @@ Future<void> _setupActiveProfile() async {
     if (response.statusCode == 200) {
       final tempDir = await getTemporaryDirectory();
       final tempFile = File('${tempDir.path}/demo_profile_avatar_source');
-      await tempFile.writeAsBytes(response.bodyBytes);
-      imagePath = await UserImageStorage.importFrom(
-        kind: UserImageKind.profile,
-        ownerId: active.id,
-        sourcePath: tempFile.path,
-      );
-      await tempFile.delete();
-      final credit = unsplashCreditForUrl(avatarUrl);
-      if (credit != null) {
-        await UserImageStorage.writeCredit(
-          imagePath,
-          name: credit.name,
-          profileUrl: credit.profileUrl,
+      try {
+        await tempFile.writeAsBytes(response.bodyBytes);
+        imagePath = await UserImageStorage.importFrom(
+          kind: UserImageKind.profile,
+          ownerId: active.id,
+          sourcePath: tempFile.path,
         );
+        final credit = unsplashCreditForUrl(avatarUrl);
+        if (credit != null) {
+          await UserImageStorage.writeCredit(
+            imagePath,
+            name: credit.name,
+            profileUrl: credit.profileUrl,
+          );
+        }
+      } finally {
+        if (await tempFile.exists()) {
+          await tempFile.delete();
+        }
       }
     }
   } catch (e) {
@@ -422,7 +424,8 @@ List<WeightLogDBO> _buildWeightLog(
   var daysAgo = totalDays;
   while (daysAgo > 0) {
     final progress = totalDays == 0 ? 1.0 : 1 - daysAgo / totalDays;
-    final trendWeight = options.startWeightKg +
+    final trendWeight =
+        options.startWeightKg +
         (currentWeightKg - options.startWeightKg) * progress;
     final jitter = (demoRng.nextDouble() - 0.5) * 0.6; // +/- 0.3kg
     entries.add(
@@ -449,7 +452,10 @@ List<WeightLogDBO> _buildWeightLog(
 /// mostly completed, occasionally broken early — plus one still in
 /// progress so the fasting timer has something live to show right after
 /// seeding.
-List<FastingSessionEntity> _buildFastingSessions(DateTime now, int daysOfHistory) {
+List<FastingSessionEntity> _buildFastingSessions(
+  DateTime now,
+  int daysOfHistory,
+) {
   final sessions = <FastingSessionEntity>[];
   var daysAgo = daysOfHistory - 1;
   while (daysAgo >= 3) {

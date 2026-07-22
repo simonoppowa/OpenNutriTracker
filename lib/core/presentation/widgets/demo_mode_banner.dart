@@ -32,7 +32,7 @@ class DemoModeBanner extends StatelessWidget {
         0,
       ),
       child: Semantics(
-        identifier: 'home-demo-banner',
+        identifier: 'main-demo-banner',
         child: Material(
           color: Colors.transparent,
           borderRadius: Dimens.borderRadiusM,
