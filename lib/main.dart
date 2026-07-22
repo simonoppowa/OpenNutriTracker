@@ -15,6 +15,7 @@ import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dar
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/utils/env.dart';
+import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
@@ -47,7 +48,22 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LoggerConfig.intiLogger();
-  await initLocator();
+  final log = Logger('main');
+  try {
+    await initLocator();
+  } on HiveStorageIntegrityException catch (error, stackTrace) {
+    // Consent (and thus Sentry) lives in the encrypted Config Hive box, so it
+    // cannot be read on this path. Shipping a pre-consent network report would
+    // break the opt-in telemetry promise (onboarding/settings copy, README,
+    // F-Droid expectations). Local log only — then abort unlock/mint paths.
+    log.severe(
+      'Local database integrity failure during bootstrap '
+      '(code=${error.code}). Not reporting to Sentry before consent.',
+      error,
+      stackTrace,
+    );
+    rethrow;
+  }
 
   // Drop cached remote-search results that haven't been touched in 90
   // days. Done once per app start; no need to schedule a recurring task.
@@ -60,8 +76,7 @@ Future<void> main() async {
 
   final config = await configRepo.getConfig();
   final savedLocaleCode = await configRepo.getSelectedLocale();
-  final savedLocale =
-      savedLocaleCode != null ? Locale(savedLocaleCode) : null;
+  final savedLocale = savedLocaleCode != null ? Locale(savedLocaleCode) : null;
 
   // #312: Restore scheduled notifications after app start / device reboot.
   // Load the user's localized strings first — there's no widget tree yet, so
@@ -71,7 +86,8 @@ Future<void> main() async {
   // reverting to English on each launch.
   if (config.notificationsEnabled) {
     await S.load(
-        savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale);
+      savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale,
+    );
     final s = S.current;
     final notificationService = locator<NotificationService>();
     await notificationService.initialize();
@@ -84,24 +100,35 @@ Future<void> main() async {
       channelDescription: s.notificationsDailyReminderChannelDescription,
     );
   }
-  final hasAcceptedAnonymousData =
-      await configRepo.getConfigHasAcceptedAnonymousData();
+  final hasAcceptedAnonymousData = await configRepo
+      .getConfigHasAcceptedAnonymousData();
   final savedAppTheme = await configRepo.getConfigAppTheme();
   final savedUsesKilojoules = config.usesKilojoules;
   final savedUseMaterialYou = config.useMaterialYou;
   final savedAccentColor = config.accentColor;
-  final log = Logger('main');
 
   // If the user has accepted anonymous data collection, run the app with
   // sentry enabled, else run without it
   if (kReleaseMode && hasAcceptedAnonymousData) {
     log.info('Starting App with Sentry enabled ...');
-    _runAppWithSentryReporting(isUserInitialized, savedAppTheme, savedLocale,
-        savedUsesKilojoules, savedUseMaterialYou, savedAccentColor);
+    _runAppWithSentryReporting(
+      isUserInitialized,
+      savedAppTheme,
+      savedLocale,
+      savedUsesKilojoules,
+      savedUseMaterialYou,
+      savedAccentColor,
+    );
   } else {
     log.info('Starting App ...');
-    runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, savedLocale,
-        savedUsesKilojoules, savedUseMaterialYou, savedAccentColor);
+    runAppWithChangeNotifiers(
+      isUserInitialized,
+      savedAppTheme,
+      savedLocale,
+      savedUsesKilojoules,
+      savedUseMaterialYou,
+      savedAccentColor,
+    );
   }
 }
 
@@ -118,8 +145,14 @@ void _runAppWithSentryReporting(
       options.dsn = Env.sentryDns;
       options.tracesSampleRate = 1.0;
     },
-    appRunner: () => runAppWithChangeNotifiers(isUserInitialized, savedAppTheme,
-        savedLocale, savedUsesKilojoules, savedUseMaterialYou, savedAccentColor),
+    appRunner: () => runAppWithChangeNotifiers(
+      isUserInitialized,
+      savedAppTheme,
+      savedLocale,
+      savedUsesKilojoules,
+      savedUseMaterialYou,
+      savedAccentColor,
+    ),
   );
 }
 
@@ -130,28 +163,26 @@ void runAppWithChangeNotifiers(
   bool savedUsesKilojoules,
   bool savedUseMaterialYou,
   int? savedAccentColor,
-) =>
-    runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-            create: (_) => ThemeModeProvider(
-              appTheme: savedAppTheme,
-              useMaterialYou: savedUseMaterialYou,
-              accentColor: savedAccentColor,
-            ),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => LocaleProvider(locale: savedLocale),
-          ),
-          ChangeNotifierProvider(
-            create: (_) =>
-                EnergyUnitProvider(usesKilojoules: savedUsesKilojoules),
-          ),
-        ],
-        child: OpenNutriTrackerApp(userInitialized: userInitialized),
+) => runApp(
+  MultiProvider(
+    providers: [
+      ChangeNotifierProvider(
+        create: (_) => ThemeModeProvider(
+          appTheme: savedAppTheme,
+          useMaterialYou: savedUseMaterialYou,
+          accentColor: savedAccentColor,
+        ),
       ),
-    );
+      ChangeNotifierProvider(
+        create: (_) => LocaleProvider(locale: savedLocale),
+      ),
+      ChangeNotifierProvider(
+        create: (_) => EnergyUnitProvider(usesKilojoules: savedUsesKilojoules),
+      ),
+    ],
+    child: OpenNutriTrackerApp(userInitialized: userInitialized),
+  ),
+);
 
 class OpenNutriTrackerApp extends StatelessWidget {
   final bool userInitialized;
