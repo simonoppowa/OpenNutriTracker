@@ -1,0 +1,99 @@
+name: Feature request
+description: Suggest a new feature or improvement for OpenNutriTracker
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for ideas that make OpenNutriTracker better. Please describe the problem and your proposal clearly.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What problem does this solve? What is frustrating or missing today?
+      placeholder: As a user, I want to … because …
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should the feature work from a user perspective?
+      placeholder: Describe the behaviour you would like to see.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you thought about, or workarounds you use today.
+      placeholder: Optional
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature area
+      description: Which part of the app does this relate to?
+      multiple: true
+      options:
+        - Onboarding
+        - Home / dashboard
+        - Food search / Open Food Facts
+        - Food search / backend databases
+        - Barcode scanner
+        - Meal detail / logging
+        - Custom meals
+        - Recipes
+        - Diary / calendar
+        - Micronutrients
+        - Activities
+        - Water tracker
+        - Fasting timer
+        - Weight history
+        - Profile / goals
+        - Settings / theme / units
+        - Export / import
+        - Accessibility
+        - Other
+    validations:
+      required: false
+
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Target platforms
+      multiple: true
+      options:
+        - Android
+        - iOS
+        - Both
+    validations:
+      required: false
+
+  - type: textarea
+    id: mocks
+    attributes:
+      label: Mockups or references
+      description: Screenshots, sketches, or links to similar UX elsewhere (optional).
+      placeholder: Attach files or paste links
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Anything else that would help evaluate or design this feature.
+      placeholder: Optional
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: This is a product/feature idea for OpenNutriTracker (not a food database data fix)
+          required: true

@@ -31,12 +31,11 @@ class LowKcalWarningCard extends StatelessWidget {
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     final accent = Theme.of(context).colorScheme.primary;
     final textTheme = Theme.of(context).textTheme;
-    // The card is found by text drivers via the "View disclaimer"
-    // content-desc rather than by coordinate, because Semantics inside
-    // a layout-greedy parent (ListView, Stack > Column) inherits the
-    // parent's bounds even with `container: true`. See CLAUDE.md
-    // "The `container: true` gotcha"; the identifier is kept for
-    // future hierarchy queries.
+    // Prefer text/`content-desc` drivers ("View disclaimer") over
+    // coordinate taps: in scrollable/list layouts hit targets still
+    // shift. `container: true` keeps the semantics node bounds tight
+    // (see AGENTS.md "The `container: true` gotcha"); the identifier
+    // remains useful for hierarchy queries.
     return Semantics(
       identifier: 'low-kcal-warning-card',
       container: true,
