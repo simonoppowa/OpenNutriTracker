@@ -20,7 +20,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   final AddConfigUsecase _addConfigUsecase;
 
   OnboardingBloc(this._addUserUsecase, this._addConfigUsecase)
-      : super(OnboardingInitialState()) {
+    : super(OnboardingInitialState()) {
     on<LoadOnboardingEvent>((event, emit) async {
       emit(OnboardingLoadingState());
 
@@ -41,6 +41,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     required int? accentColor,
   }) async {
     await _addUserUsecase.addUser(userEntity);
+    // Privacy policy is required to leave the intro page, so completing
+    // onboarding always means the user accepted it. Persist that – the flag
+    // previously only lived in ephemeral intro UI state.
+    await _addConfigUsecase.setConfigHasAcceptedPolicy(true);
     await _addConfigUsecase.setConfigHasAcceptedAnonymousData(
       hasAcceptedDataCollection,
     );

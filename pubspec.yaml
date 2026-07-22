@@ -116,6 +116,9 @@ flutter:
     - assets/icon/ont_banner_top.png
     - assets/icon/ont_banner_top_light.png
     - assets/icon/nonbinary_symbol.svg
+    # Offline demo profile portrait (bundled Unsplash photo; credit in
+    # unsplash_attribution.dart). Avoids a hot network download on Try Demo.
+    - assets/demo/alex_demo_avatar.jpg
 
   fonts:
     - family: CustomIcons

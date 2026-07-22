@@ -989,11 +989,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "onboardingTryDemoError": MessageLookupByLibrary.simpleMessage(
       "Couldn\'t set up the demo. Please try again.",
     ),
-    "onboardingTryDemoLabel": MessageLookupByLibrary.simpleMessage(
-      "Try Demo",
-    ),
+    "onboardingTryDemoLabel": MessageLookupByLibrary.simpleMessage("Try Demo"),
     "onboardingTryDemoSubtitle": MessageLookupByLibrary.simpleMessage(
-      "Skip setup and explore the app with sample data",
+      'Skip setup and explore the app with sample data. Accept the privacy policy first.',
+    ),
+    "onboardingTryDemoDisclaimer": MessageLookupByLibrary.simpleMessage(
+      'Uses only fictional sample data. Crash reports stay off unless you enable them later. Sample photos and food search may use the network.',
     ),
     "onboardingWeightExampleHintKg": MessageLookupByLibrary.simpleMessage(
       "e.g. 60",
@@ -1861,6 +1862,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsPrivacySettings": MessageLookupByLibrary.simpleMessage(
       "Privacy Settings",
+    ),
+    "settingsDemoPrivacyNote": MessageLookupByLibrary.simpleMessage(
+      'Crash reporting is unavailable while you are viewing sample data. Set up your own profile first.',
     ),
     "settingsReportErrorLabel": MessageLookupByLibrary.simpleMessage(
       "Report Error",

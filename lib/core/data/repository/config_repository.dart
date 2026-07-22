@@ -27,6 +27,10 @@ class ConfigRepository {
     );
   }
 
+  Future<void> setConfigHasAcceptedPolicy(bool hasAcceptedPolicy) async {
+    await _configDataSource.setConfigAcceptedPolicy(hasAcceptedPolicy);
+  }
+
   Future<bool> getConfigHasAcceptedAnonymousData() async {
     return await _configDataSource.getHasAcceptedAnonymousData();
   }

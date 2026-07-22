@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
@@ -283,7 +283,13 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   // Marks the active profile as holding sample, not real, data — drives
   // the Home screen's demo-mode banner (see `main_screen.dart`) and, as a
   // side effect, lets `just dev_seed` exercise that same banner/exit flow.
-  await locator<AddConfigUsecase>().setConfigIsDemoData(true);
+  // Try Demo requires the privacy-policy checkbox first; persist that
+  // acceptance and keep crash reporting off for the demo session (device-wide
+  // consent must not silently ride along from a previous profile).
+  final addConfig = locator<AddConfigUsecase>();
+  await addConfig.setConfigHasAcceptedPolicy(true);
+  await addConfig.setConfigHasAcceptedAnonymousData(false);
+  await addConfig.setConfigIsDemoData(true);
 
   _log.info('Demo data seeded.');
 }
@@ -348,15 +354,16 @@ UserEntity _demoUser(DateTime startOfToday) => UserEntity(
 );
 
 /// The one hand-picked Unsplash portrait used for the demo profile's
-/// avatar (see unsplash_attribution.dart) — a friendly, neutral headshot,
-/// since Unsplash has no "people" search angle the way Open Food Facts
-/// has product photos.
+/// avatar (see unsplash_attribution.dart) — bundled at
+/// [assets/demo/alex_demo_avatar.jpg] so Try Demo needs no network for
+/// the headshot. Meal thumbnails still hotlink curated Unsplash CDN URLs.
 const _profilePhotoId = '1651684215020-f7a5b6610f23';
+const _profileAvatarAsset = 'assets/demo/alex_demo_avatar.jpg';
 
-/// Renames the active profile and, best-effort, downloads and stores the
-/// curated Unsplash portrait as its avatar, recording the photographer
+/// Renames the active profile and, best-effort, copies the bundled Unsplash
+/// portrait into local profile image storage, recording the photographer
 /// credit in a sidecar file (read back by `profile_editor_screen.dart`).
-/// Network/storage failures are swallowed — a missing avatar shouldn't
+/// Asset/storage failures are swallowed — a missing avatar shouldn't
 /// abort the whole seed.
 Future<void> _setupActiveProfile() async {
   final active = locator<GetProfilesUsecase>().getActiveProfile();
@@ -364,36 +371,33 @@ Future<void> _setupActiveProfile() async {
 
   String? imagePath;
   try {
-    final avatarUrl = unsplashImageUrl(_profilePhotoId, width: 500);
-    final response = await http
-        .get(Uri.parse(avatarUrl))
-        .timeout(const Duration(seconds: 10));
-    if (response.statusCode == 200) {
-      final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/demo_profile_avatar_source');
-      try {
-        await tempFile.writeAsBytes(response.bodyBytes);
-        imagePath = await UserImageStorage.importFrom(
-          kind: UserImageKind.profile,
-          ownerId: active.id,
-          sourcePath: tempFile.path,
+    final bytes = (await rootBundle.load(
+      _profileAvatarAsset,
+    )).buffer.asUint8List();
+    final tempDir = await getTemporaryDirectory();
+    final tempFile = File('${tempDir.path}/demo_profile_avatar_source.jpg');
+    try {
+      await tempFile.writeAsBytes(bytes, flush: true);
+      imagePath = await UserImageStorage.importFrom(
+        kind: UserImageKind.profile,
+        ownerId: active.id,
+        sourcePath: tempFile.path,
+      );
+      final credit = unsplashCreditForUrl(unsplashImageUrl(_profilePhotoId));
+      if (credit != null) {
+        await UserImageStorage.writeCredit(
+          imagePath,
+          name: credit.name,
+          profileUrl: credit.profileUrl,
         );
-        final credit = unsplashCreditForUrl(avatarUrl);
-        if (credit != null) {
-          await UserImageStorage.writeCredit(
-            imagePath,
-            name: credit.name,
-            profileUrl: credit.profileUrl,
-          );
-        }
-      } finally {
-        if (await tempFile.exists()) {
-          await tempFile.delete();
-        }
+      }
+    } finally {
+      if (await tempFile.exists()) {
+        await tempFile.delete();
       }
     }
   } catch (e) {
-    _log.warning('Could not download demo profile picture: $e');
+    _log.warning('Could not import bundled demo profile picture: $e');
   }
 
   await locator<UpdateProfileUsecase>().updateProfile(

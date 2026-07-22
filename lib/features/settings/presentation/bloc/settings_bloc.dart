@@ -73,6 +73,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           dayStartOffsetMinutes: userConfig.dayStartOffsetMinutes,
           useMaterialYou: userConfig.useMaterialYou,
           accentColor: userConfig.accentColor,
+          isDemoData: userConfig.isDemoData,
         ),
       );
     });

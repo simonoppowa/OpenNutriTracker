@@ -55,31 +55,8 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                   style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 24.0),
-                Semantics(
-                  identifier: 'onboarding-try-demo',
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: _seedingDemo ? null : _tryDemo,
-                      icon: _seedingDemo
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.visibility_outlined),
-                      label: Text(S.of(context).onboardingTryDemoLabel),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4.0),
-                Text(
-                  S.of(context).onboardingTryDemoSubtitle,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  textAlign: TextAlign.center,
-                ),
                 const SizedBox(height: 16.0),
+                // Policy first: both Start (footer) and Try Demo require it.
                 ListTile(
                   onTap: () => _togglePolicy(),
                   title: Text.rich(
@@ -90,7 +67,8 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                       children: [
                         TextSpan(
                           text: ' ${S.of(context).privacyPolicyLabel}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
                                 color: Theme.of(context).colorScheme.primary,
                                 decoration: TextDecoration.underline,
                               ),
@@ -129,6 +107,40 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16.0),
+                Semantics(
+                  identifier: 'onboarding-try-demo',
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: (_seedingDemo || !_acceptedPolicy)
+                          ? null
+                          : _tryDemo,
+                      icon: _seedingDemo
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.visibility_outlined),
+                      label: Text(S.of(context).onboardingTryDemoLabel),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4.0),
+                Text(
+                  S.of(context).onboardingTryDemoSubtitle,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4.0),
+                Text(
+                  S.of(context).onboardingTryDemoDisclaimer,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 8.0),
                 TextButton.icon(
                   onPressed: () => _openSources(context),
@@ -160,19 +172,18 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   }
 
   void _openSources(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SourcesScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SourcesScreen()));
   }
 
-  /// Seeds the active profile with sample data and jumps straight to Home,
-  /// skipping the rest of onboarding entirely — independent of whether the
-  /// privacy-policy checkbox above is ticked, since demo mode writes no
-  /// personal data of the person tapping this (see
-  /// `lib/core/utils/demo/demo_seeder.dart`). Takes no `BuildContext`
-  /// parameter (uses the State's own `context` instead) so the `mounted`
-  /// guards below are recognised as covering every post-`await` use.
+  /// Seeds the active profile with sample data and jumps straight to Home.
+  /// Requires the privacy-policy checkbox (same bar as Start) so demo entry
+  /// still records legal acceptance; anonymous crash reporting stays off
+  /// unless the user opts in later from Settings (and is locked while demo
+  /// data is active). Data-collection checkbox is intentionally independent.
   Future<void> _tryDemo() async {
+    if (!_acceptedPolicy) return;
     setState(() => _seedingDemo = true);
     try {
       await seedDemoData(DemoSeedOptions.onboarding);

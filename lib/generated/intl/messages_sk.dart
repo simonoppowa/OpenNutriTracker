@@ -606,13 +606,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("g/ml"),
     "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
     "heightLabel": MessageLookupByLibrary.simpleMessage("Výška"),
-    "homeDemoBannerAction": MessageLookupByLibrary.simpleMessage("Nastaviť vlastný profil"),
-    "homeDemoBannerConfirmAction": MessageLookupByLibrary.simpleMessage("Pokračovať"),
+    "homeDemoBannerAction": MessageLookupByLibrary.simpleMessage(
+      "Nastaviť vlastný profil",
+    ),
+    "homeDemoBannerConfirmAction": MessageLookupByLibrary.simpleMessage(
+      "Pokračovať",
+    ),
     "homeDemoBannerConfirmContent": MessageLookupByLibrary.simpleMessage(
       "Ukážkové dáta budú vymazané a nastavíte si vlastný profil. Túto akciu nie je možné vrátiť späť.",
     ),
-    "homeDemoBannerConfirmTitle": MessageLookupByLibrary.simpleMessage("Nastaviť vlastný profil?"),
-    "homeDemoBannerLabel": MessageLookupByLibrary.simpleMessage("Prezeráte ukážkové dáta"),
+    "homeDemoBannerConfirmTitle": MessageLookupByLibrary.simpleMessage(
+      "Nastaviť vlastný profil?",
+    ),
+    "homeDemoBannerLabel": MessageLookupByLibrary.simpleMessage(
+      "Prezeráte ukážkové dáta",
+    ),
     "homeFirstMealHint": MessageLookupByLibrary.simpleMessage(
       "Klepnutím na + zaznamenáte svoje prvé jedlo alebo aktivitu",
     ),
@@ -1005,9 +1013,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "onboardingTargetWeightSubtitle": MessageLookupByLibrary.simpleMessage(
       "Máš hmotnosť, ku ktorej smeruješ? Pole môžeš nechať prázdne alebo ho neskôr zmeniť v Profile.",
     ),
-    "onboardingTryDemoError": MessageLookupByLibrary.simpleMessage("Demo sa nepodarilo nastaviť. Skúste to prosím znova."),
-    "onboardingTryDemoLabel": MessageLookupByLibrary.simpleMessage("Vyskúšať demo"),
-    "onboardingTryDemoSubtitle": MessageLookupByLibrary.simpleMessage("Preskočiť nastavenie a preskúmať aplikáciu s ukážkovými dátami"),
+    "onboardingTryDemoError": MessageLookupByLibrary.simpleMessage(
+      "Demo sa nepodarilo nastaviť. Skúste to prosím znova.",
+    ),
+    "onboardingTryDemoLabel": MessageLookupByLibrary.simpleMessage(
+      "Vyskúšať demo",
+    ),
+    "onboardingTryDemoSubtitle": MessageLookupByLibrary.simpleMessage(
+      'Preskočte nastavenie a preskúmajte aplikáciu so vzorovými dátami. Najprv prijmite zásady ochrany súkromia.',
+    ),
+    "onboardingTryDemoDisclaimer": MessageLookupByLibrary.simpleMessage(
+      'Používa iba fiktívne vzorové dáta. Hlásenia pádov zostávajú vypnuté, kým ich neskôr nezapnete. Vzorové fotografie a vyhľadávanie jedla môžu používať sieť.',
+    ),
     "onboardingWeightExampleHintKg": MessageLookupByLibrary.simpleMessage(
       "napr. 60",
     ),
@@ -1930,6 +1947,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsPrivacySettings": MessageLookupByLibrary.simpleMessage(
       "Nastavenia súkromia",
+    ),
+    "settingsDemoPrivacyNote": MessageLookupByLibrary.simpleMessage(
+      'Hlásenia pádov nie sú k dispozícii pri zobrazení vzorových dát. Najprv nastavte vlastný profil.',
     ),
     "settingsReportErrorLabel": MessageLookupByLibrary.simpleMessage(
       "Nahlásiť chybu",

@@ -494,8 +494,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "heightLabel": MessageLookupByLibrary.simpleMessage("身高"),
     "homeDemoBannerAction": MessageLookupByLibrary.simpleMessage("设置您的个人资料"),
     "homeDemoBannerConfirmAction": MessageLookupByLibrary.simpleMessage("继续"),
-    "homeDemoBannerConfirmContent": MessageLookupByLibrary.simpleMessage("示例数据将被清除，您将设置自己的个人资料。此操作无法撤销。"),
-    "homeDemoBannerConfirmTitle": MessageLookupByLibrary.simpleMessage("设置自己的个人资料？"),
+    "homeDemoBannerConfirmContent": MessageLookupByLibrary.simpleMessage(
+      "示例数据将被清除，您将设置自己的个人资料。此操作无法撤销。",
+    ),
+    "homeDemoBannerConfirmTitle": MessageLookupByLibrary.simpleMessage(
+      "设置自己的个人资料？",
+    ),
     "homeDemoBannerLabel": MessageLookupByLibrary.simpleMessage("您正在查看示例数据"),
     "homeFirstMealHint": MessageLookupByLibrary.simpleMessage(
       "点按 + 记录你的第一餐或运动",
@@ -558,12 +562,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "kcalGoalInfoActivitySection": MessageLookupByLibrary.simpleMessage(
       "第 4 步 · 今日运动",
     ),
-    "kcalGoalInfoAdjustmentExplanationFlat": MessageLookupByLibrary.simpleMessage(
-      "您的体重目标应用固定的每日调整：减重 −500 千卡，增重 +500 千卡，保持体重为 0。",
-    ),
-    "kcalGoalInfoAdjustmentExplanationWeekly": MessageLookupByLibrary.simpleMessage(
-      "每日调整由您设定的每周速度决定。1 千克体脂约储存 7700 千卡，因此每周每千克会使目标每天变动约 1100 千卡。",
-    ),
+    "kcalGoalInfoAdjustmentExplanationFlat":
+        MessageLookupByLibrary.simpleMessage(
+          "您的体重目标应用固定的每日调整：减重 −500 千卡，增重 +500 千卡，保持体重为 0。",
+        ),
+    "kcalGoalInfoAdjustmentExplanationWeekly":
+        MessageLookupByLibrary.simpleMessage(
+          "每日调整由您设定的每周速度决定。1 千克体脂约储存 7700 千卡，因此每周每千克会使目标每天变动约 1100 千卡。",
+        ),
     "kcalGoalInfoAdjustmentSection": MessageLookupByLibrary.simpleMessage(
       "第 2 步 · 体重目标调整",
     ),
@@ -805,9 +811,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "onboardingTargetWeightSubtitle": MessageLookupByLibrary.simpleMessage(
       "你有想要达到的目标体重吗？可以留空，也可以稍后在“个人资料”中修改。",
     ),
-    "onboardingTryDemoError": MessageLookupByLibrary.simpleMessage("无法设置演示。请重试。"),
+    "onboardingTryDemoError": MessageLookupByLibrary.simpleMessage(
+      "无法设置演示。请重试。",
+    ),
     "onboardingTryDemoLabel": MessageLookupByLibrary.simpleMessage("试用演示"),
-    "onboardingTryDemoSubtitle": MessageLookupByLibrary.simpleMessage("跳过设置，使用示例数据探索应用"),
+    "onboardingTryDemoSubtitle": MessageLookupByLibrary.simpleMessage(
+      '跳过设置，使用示例数据探索应用。请先接受隐私政策。',
+    ),
+    "onboardingTryDemoDisclaimer": MessageLookupByLibrary.simpleMessage(
+      '仅使用虚构示例数据。除非你稍后开启，否则崩溃报告保持关闭。示例图片和食物搜索可能会使用网络。',
+    ),
     "onboardingWeightExampleHintKg": MessageLookupByLibrary.simpleMessage(
       "例如：60",
     ),
@@ -1435,6 +1448,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsPotassiumGoalLabel": MessageLookupByLibrary.simpleMessage("钾目标"),
     "settingsPrivacySettings": MessageLookupByLibrary.simpleMessage("隐私设置"),
+    "settingsDemoPrivacyNote": MessageLookupByLibrary.simpleMessage(
+      '查看示例数据时无法使用崩溃报告。请先设置你自己的个人资料。',
+    ),
     "settingsReportErrorLabel": MessageLookupByLibrary.simpleMessage("报告错误"),
     "settingsSaturatedFatGoalDescription": MessageLookupByLibrary.simpleMessage(
       "每日饱和脂肪上限（克）。默认参考值为 20 克。",
