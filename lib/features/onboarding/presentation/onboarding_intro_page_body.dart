@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/demo/demo_seeder.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
+import 'package:opennutritracker/features/profile/presentation/utils/profile_switch_coordinator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -188,6 +189,11 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
     try {
       await seedDemoData(DemoSeedOptions.onboarding);
       if (!mounted) return;
+      // The screen-persistent tab BLoCs were created before the demo profile
+      // existed (or hold another profile's data). Refresh them against the
+      // freshly seeded active profile before landing on the main screen —
+      // same as the normal onboarding start path (onboarding_screen.dart).
+      ProfileSwitchCoordinator.reloadTabBlocs();
       Navigator.of(
         context,
       ).pushNamedAndRemoveUntil(NavigationOptions.mainRoute, (route) => false);

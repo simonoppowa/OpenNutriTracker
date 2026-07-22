@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Animated OpenNutriTracker logo (dark theme, white spoon): the spoon makes
+     a single accelerating-then-settling turn and "paints" the rings into
+     existence behind it via a radial wipe mask synced to the same easing.
+     Pure SMIL, no scripts: animates in browsers and GitHub-rendered READMEs.
+     Click to replay when opened directly. -->
+<svg id="ont-reveal-dark" width="144" height="144" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <defs>
+        <mask id="wipe-dark" maskUnits="userSpaceOnUse" x="0" y="0" width="144" height="144">
+            <!-- A stroke twice the radius renders a full disc; a full-circumference
+                 dash (2*pi*40 ~ 252) shifted fully out of view via dashoffset, then
+                 animated to 0, sweeps the disc in clockwise. dashoffset is a single
+                 number, so SMIL interpolates it reliably (unlike dasharray lists).
+                 The rotate(-88) puts the wipe origin ~2deg right of 12 o'clock,
+                 exactly where the ring arcs begin, so the reveal starts at the ring
+                 tips beside the spoon and nothing shows behind its start position.
+                 The 340 start offset delays the reveal until the spoon is about a quarter turn in;
+                 the radar then chases the spoon and the trail
+                 converges back under the spoon silhouette by the landing. The
+                 animation runs from t=0 and holds through the initial beat via
+                 keyTimes (a begin delay would let some renderers flash the static
+                 state first). -->
+            <circle cx="72" cy="72" r="40" fill="none" stroke="#ffffff" stroke-width="80" stroke-dasharray="252 600" stroke-dashoffset="0" transform="rotate(-88 72 72)">
+                <animate attributeName="stroke-dashoffset" begin="0s;ont-reveal-dark.click" dur="2.3s" values="340;340;0" keyTimes="0;0.2174;1" calcMode="spline" keySplines="0 0 1 1;0.45 0 0.12 1" fill="freeze"/>
+            </circle>
+        </mask>
+    </defs>
+    <!-- The static attributes (dashoffset 0, opacity 1) show the complete logo, so
+         non-animating renderers (image viewers, thumbnailers) display a proper
+         fallback. In SMIL renderers the animations below run from t=0 and override
+         them: rings held invisible through the initial beat, then swept in. -->
+    <g mask="url(#wipe-dark)">
+        <animate attributeName="opacity" begin="0s;ont-reveal-dark.click" dur="2.3s" values="0;0;1;1" keyTimes="0;0.2174;0.2175;1" calcMode="linear" fill="freeze"/>
+        <g transform="translate(4.41,-11.8)">
+            <path d="M67.59,133.88C39.98,133.88 17.51,111.41 17.51,83.8C17.51,56.19 39.98,33.72 67.59,33.72C69.6,33.72 71.22,35.35 71.22,37.35C71.22,39.35 69.59,40.98 67.59,40.98C43.98,40.98 24.78,60.19 24.78,83.79C24.78,107.39 43.99,126.6 67.59,126.6C91.19,126.6 110.4,107.4 110.4,83.79C110.4,68.64 102.27,54.48 89.18,46.81C87.45,45.8 86.87,43.57 87.88,41.84C88.89,40.11 91.12,39.52 92.85,40.54C108.16,49.5 117.66,66.07 117.66,83.79C117.66,111.4 95.19,133.87 67.58,133.87L67.59,133.88Z" style="fill:#23da62;fill-rule:nonzero;"/>
+            <path d="M67.59,117.53C48.99,117.53 33.86,102.4 33.86,83.8C33.86,65.2 48.21,50.66 66.52,50.09C68.51,50.03 70.2,51.6 70.27,53.61C70.33,55.62 68.76,57.29 66.75,57.36C52.62,57.8 41.13,69.66 41.13,83.81C41.13,97.96 53,110.27 67.59,110.27C82.18,110.27 94.05,98.4 94.05,83.81C94.05,75.18 89.81,67.07 82.7,62.1C81.05,60.95 80.65,58.68 81.8,57.04C82.95,55.4 85.22,54.99 86.86,56.14C95.91,62.46 101.31,72.8 101.31,83.8C101.31,102.4 86.18,117.53 67.58,117.53L67.59,117.53Z" style="fill:#23da62;fill-rule:nonzero;"/>
+            <path d="M67.59,101.18C58.01,101.18 50.22,93.39 50.22,83.81C50.22,74.23 58.01,66.44 67.59,66.44C69.6,66.44 71.22,68.07 71.22,70.07C71.22,72.07 69.59,73.7 67.59,73.7C62.02,73.7 57.48,78.23 57.48,83.81C57.48,89.39 62.01,93.92 67.59,93.92C73.17,93.92 77.7,89.39 77.7,83.81C77.7,81.36 76.81,78.99 75.18,77.15C73.85,75.64 74,73.35 75.51,72.02C77.02,70.69 79.31,70.84 80.64,72.35C83.43,75.52 84.97,79.59 84.97,83.81C84.97,93.39 77.18,101.18 67.6,101.18L67.59,101.18Z" style="fill:#53da62;fill-rule:nonzero;"/>
+            <!-- The spoon's shadow notches stay in the masked rings layer: they sit
+                 just left of 12 o'clock, the final sector of the clockwise sweep,
+                 so they appear exactly as the spoon settles back upright. -->
+            <path d="m 67.590859,66.440781 c -3.644952,0 -7.031887,1.127821 -9.828125,3.052735 C 56.595097,74.934382 56.839146,80.500584 57.48,83.81 c 0,-5.58 4.540859,-10.109453 10.110859,-10.109453 2,0 3.628907,-1.630859 3.628907,-3.630859 0,-2 -1.618907,-3.628907 -3.628907,-3.628907 z" style="fill:#1ebb54;fill-rule:nonzero;"/>
+            <path d="m 66.520547,50.089219 c -2.506322,0.07802 -4.938254,0.418026 -7.269531,0.99414 0.12206,0.622915 0.154643,1.269142 0.09375,1.914063 l -0.564453,5.880859 c 2.509099,-0.901803 5.187624,-1.430975 7.968749,-1.517578 2.01,-0.07 3.581485,-1.74 3.521485,-3.75 -0.07,-2.01 -1.76,-3.581484 -3.75,-3.521484 z" style="fill:#1ebb54;fill-rule:nonzero;"/>
+            <path d="m 67.590859,33.720078 c -5.490167,0 -10.777171,0.888619 -15.724609,2.529297 -0.105576,0.762875 -0.162109,1.467136 -0.162109,2.087891 0,1.882542 0.507626,3.648479 1.392578,5.167968 4.527881,-1.633914 9.40945,-2.52539 14.49414,-2.52539 2,0 3.628907,-1.628906 3.628907,-3.628906 0,-2 -1.618907,-3.63086 -3.628907,-3.63086 z" style="fill:#1ebb54;fill-rule:nonzero;"/>
+        </g>
+    </g>
+    <g transform="translate(4.41,-11.8)">
+        <g>
+            <path d="M73.04,45.33C75.96,43.51 77.91,40.27 77.91,36.58C77.91,30.89 73.28,18.15 67.59,18.15C61.9,18.15 57.27,30.89 57.27,36.58C57.27,40.27 59.22,43.51 62.14,45.33C64.12,46.57 65.13,48.91 64.91,51.24L61.99,81.69C61.62,85.16 64.66,88.21 68.14,87.84C71.24,87.54 73.51,84.79 73.21,81.69C73.21,81.69 71.53,64.24 70.28,51.24C70.06,48.91 71.06,46.57 73.05,45.34L73.04,45.33Z" style="fill:#ffffff;fill-rule:nonzero;"/>
+            <animateTransform attributeName="transform" attributeType="XML" type="rotate" begin="0s;ont-reveal-dark.click" dur="2.3s" values="0 67.59 83.8;0 67.59 83.8;360 67.59 83.8" keyTimes="0;0.2174;1" calcMode="spline" keySplines="0 0 1 1;0.45 0 0.12 1" fill="freeze"/>
+        </g>
+    </g>
+</svg>
