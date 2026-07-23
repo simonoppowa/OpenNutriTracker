@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Photographer credit for one curated Unsplash photo used by the
-/// demo-data seeder (`demo_seeder.dart`). Unsplash's general License
+/// Photographer credit for one curated Unsplash photo used by the dev-only
+/// demo-data seeder (`demo_data_seeder.dart`). Unsplash's general License
 /// (unsplash.com/license) doesn't require attribution for these — the
 /// seeder hand-picks specific, hardcoded photo URLs rather than querying
 /// Unsplash's search API, so the stricter API Guidelines (which do require
@@ -141,26 +141,16 @@ class _CreditText extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(top: 6),
-        child: Semantics(
-          identifier: 'unsplash-photo-credit',
-          child: InkWell(
-            onTap: () async {
-              try {
-                await launchUrl(
-                  Uri.parse(credit.profileUrl),
-                  mode: LaunchMode.externalApplication,
-                );
-              } catch (_) {
-                // Optional credit link — failure must not surface as an
-                // unhandled async error from a gesture callback.
-              }
-            },
-            child: Text(
-              'Photo: ${credit.name} / Unsplash',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: palette.onSurfaceVariant,
-                decoration: TextDecoration.underline,
-              ),
+        child: InkWell(
+          onTap: () => launchUrl(
+            Uri.parse(credit.profileUrl),
+            mode: LaunchMode.externalApplication,
+          ),
+          child: Text(
+            'Photo: ${credit.name} / Unsplash',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: palette.onSurfaceVariant,
+              decoration: TextDecoration.underline,
             ),
           ),
         ),

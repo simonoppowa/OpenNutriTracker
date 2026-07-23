@@ -23,23 +23,13 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments
 /// adherence is (see `demo_seeder.dart`'s `DemoSeedOptions`) differs
 /// between them.
 ///
-/// Fixed seed for [demoRng]. Re-applied via [resetDemoRng] at the start of
-/// every `seedDemoData` call so a second try-demo / `just dev_seed` in the
-/// same process reproduces the same fixture rather than continuing the
-/// previous run's RNG stream.
-const demoRngSeed = 1337;
-
 /// The current-streak guarantee and all day-to-day randomisation (which
 /// foods/portions/times are picked) read off this single fixed-seed
 /// generator, so the data looks organically noisy (no obvious repeating
 /// cycle in the calorie/water graphs) while still being reproducible
 /// across runs — handy for a dev tool where you want the same fixture
 /// every time you reseed, not a new random one.
-var demoRng = Random(demoRngSeed);
-
-/// Reset [demoRng] to a fresh `Random([demoRngSeed])`. Called by
-/// `seedDemoData` before generating content.
-void resetDemoRng() => demoRng = Random(demoRngSeed);
+final demoRng = Random(1337);
 
 /// [hour]:00 plus up to 44 random minutes, so logged times don't land on
 /// the exact same clock minute every single day.
@@ -373,7 +363,7 @@ DemoFoods buildDemoFoods() {
   );
 }
 
-double _roundToNearest5g(double grams) => grams <= 0 ? 0.0 : max(10.0, (grams / 5).round() * 5.0);
+double _roundToNearest5g(double grams) => max(10.0, (grams / 5).round() * 5.0);
 
 /// Grams of [meal] needed to supply [targetGrams] of the macro read off by
 /// [macroPer100] (e.g. `(n) => n.proteins100`). Zero when the food doesn't
@@ -531,7 +521,7 @@ List<IntakeEntity> buildDailyIntakes(
       meal: foods.almonds,
       dateTime: jitteredTime(day, 16),
     ),
-  ].where((intake) => intake.amount > 0).toList();
+  ];
 }
 
 const _runningVigorous = PhysicalActivityEntity(

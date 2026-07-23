@@ -25,14 +25,12 @@ class ProfileEditorScreen extends StatefulWidget {
 class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
   late final TextEditingController _nameController;
   late String? _imagePath;
-  Future<({String name, String profileUrl})?>? _imageCredit;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.profile.name);
     _imagePath = widget.profile.imagePath;
-    _imageCredit = _creditFor(_imagePath);
   }
 
   @override
@@ -40,9 +38,6 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
     _nameController.dispose();
     super.dispose();
   }
-
-  Future<({String name, String profileUrl})?>? _creditFor(String? path) =>
-      path == null ? null : UserImageStorage.readCredit(path);
 
   @override
   Widget build(BuildContext context) {
@@ -78,8 +73,10 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
               onRemove: _onRemoveImage,
             ),
           ),
-          if (_imageCredit != null)
-            UnsplashCreditFromSidecar(credit: _imageCredit!),
+          if (_imagePath != null)
+            UnsplashCreditFromSidecar(
+              credit: UserImageStorage.readCredit(_imagePath!),
+            ),
           const SizedBox(height: 16),
           Semantics(
             identifier: 'profile-editor-name',
@@ -107,21 +104,14 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
       sourcePath: picked.path,
     );
     FileImage(File(await UserImageStorage.absolutePath(relative))).evict();
-    setState(() {
-      _imagePath = relative;
-      // importFrom deletes any stale credit sidecar, so re-read once.
-      _imageCredit = _creditFor(relative);
-    });
+    setState(() => _imagePath = relative);
   }
 
   Future<void> _onRemoveImage() async {
     final current = _imagePath;
     if (current == null) return;
     await UserImageStorage.delete(current);
-    setState(() {
-      _imagePath = null;
-      _imageCredit = null;
-    });
+    setState(() => _imagePath = null);
   }
 
   Future<void> _onSave() async {

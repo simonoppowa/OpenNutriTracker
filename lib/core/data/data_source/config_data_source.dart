@@ -13,7 +13,8 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 ///   active;
 /// - the **per-profile** [HiveDBProvider.configBox] holds only the personal
 ///   nutrition goals (kcal adjustment, macro split, per-meal kcal shares and
-///   the daily water goal), which differ from one profile to the next.
+///   the daily water goal) plus profile-scoped flags such as [ConfigDBO.isDemoData],
+///   which differ from one profile to the next.
 ///
 /// Reads merge the two — shared fields from the app box, personal fields
 /// from the active profile's box. Writes store a detached copy of the merged
@@ -51,6 +52,10 @@ class ConfigDataSource {
       merged.userFatGoalPct = profile.userFatGoalPct;
       merged.mealKcalSharesPct = profile.mealKcalSharesPct;
       merged.dailyWaterGoalMl = profile.dailyWaterGoalMl;
+      // Demo status is a property of this profile's data, not a device-wide
+      // preference — otherwise leaving demo / switching profiles would leave
+      // the banner (and its destructive exit) stuck on every profile.
+      merged.isDemoData = profile.isDemoData;
     } else {
       // Explicitly clear personal fields so they don't leak from the
       // app box after a profile reset.
@@ -60,6 +65,7 @@ class ConfigDataSource {
       merged.userFatGoalPct = null;
       merged.mealKcalSharesPct = null;
       merged.dailyWaterGoalMl = null;
+      merged.isDemoData = null;
     }
     return merged;
   }
@@ -116,10 +122,6 @@ class ConfigDataSource {
     await _update(
       (c) => c.hasAcceptedSendAnonymousData = hasAcceptedAnonymousData,
     );
-  }
-
-  Future<void> setConfigAcceptedPolicy(bool hasAcceptedPolicy) async {
-    await _update((c) => c.hasAcceptedPolicy = hasAcceptedPolicy);
   }
 
   Future<AppThemeDBO> getAppTheme() async => _readMerged().selectedAppTheme;

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
@@ -36,7 +36,6 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/fasting/data/repository/fasting_repository.dart';
 import 'package:opennutritracker/features/fasting/domain/entity/fasting_session_entity.dart';
-import 'package:opennutritracker/features/fasting/domain/usecase/acknowledge_fasting_warning_usecase.dart';
 import 'package:path_provider/path_provider.dart';
 
 final _log = Logger('DemoSeeder');
@@ -106,12 +105,19 @@ class DemoSeedOptions {
 /// Called from two places: `lib/dev/main_dev.dart` (dev-only, [DemoSeedOptions.dev])
 /// and the onboarding intro page's "try it with sample data" link
 /// ([DemoSeedOptions.onboarding], shipped in every build).
+///
+/// Throws [StateError] when more than one profile exists — demo mode writes
+/// into the shared recipe/custom-meal/activity-template libraries, so seeding
+/// while another profile is already on the device would either wipe that
+/// profile's content or leave unreclaimable shared demo entries behind.
 Future<void> seedDemoData(DemoSeedOptions options) async {
   _log.info('Seeding demo data (${options.daysOfHistory} days)...');
-  // Reproducible fixture even when seedDemoData runs more than once in
-  // the same process (exit demo → try sample data again, or repeated
-  // `just dev_seed` hot-restarts that skip a full process restart).
-  resetDemoRng();
+
+  if (!_isSingleProfileDevice()) {
+    throw StateError(
+      'Demo data can only be seeded when a single profile exists on the device',
+    );
+  }
 
   await _wipeActiveProfileAndDemoContent();
 
@@ -119,7 +125,9 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   final startOfToday = DateTime(now.year, now.month, now.day);
   final user = _demoUser(startOfToday);
   await locator<AddUserUsecase>().addUser(user);
-  await locator<AcknowledgeFastingWarningUseCase>()();
+  // Do not auto-acknowledge the fasting safety warning for a synthetic user —
+  // that flag lives in app-wide config and would permanently suppress the
+  // disordered-eating gate for a later real profile on this device.
 
   // Hand-picked Unsplash photos, reused across every day's intake entries
   // — see unsplash_attribution.dart for why these are hardcoded URLs
@@ -283,29 +291,37 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   // Marks the active profile as holding sample, not real, data — drives
   // the Home screen's demo-mode banner (see `main_screen.dart`) and, as a
   // side effect, lets `just dev_seed` exercise that same banner/exit flow.
-  // Try Demo requires the privacy-policy checkbox first; persist that
-  // acceptance and keep crash reporting off for the demo session (device-wide
-  // consent must not silently ride along from a previous profile).
-  final addConfig = locator<AddConfigUsecase>();
-  await addConfig.setConfigHasAcceptedPolicy(true);
-  await addConfig.setConfigHasAcceptedAnonymousData(false);
-  await addConfig.setConfigIsDemoData(true);
+  await locator<AddConfigUsecase>().setConfigIsDemoData(true);
 
   _log.info('Demo data seeded.');
 }
 
-/// Wipes the active profile's tracked data plus the demo-only shared
-/// content a seed writes (custom meals, recipes, activity templates —
+/// Whether this device currently has at most one profile. Demo mode is only
+/// safe in that case because recipes / custom meals / activity templates are
+/// global boxes shared by every profile.
+bool _isSingleProfileDevice() =>
+    locator<GetProfilesUsecase>().getProfiles().length <= 1;
+
+/// Wipes the active profile's tracked data plus, when safe, the demo-only
+/// shared content a seed writes (custom meals, recipes, activity templates —
 /// see [HiveDBProvider]'s doc comment on why those live outside
 /// [DeleteAllUserDataUsecase]'s per-profile clear). Shared by
 /// [seedDemoData]'s own pre-reseed wipe and [exitDemoMode] so the two
 /// can't drift apart.
+///
+/// Shared libraries are only cleared on a single-profile device so an
+/// add-profile / multi-profile path can never delete another profile's
+/// recipes or custom meals.
 Future<void> _wipeActiveProfileAndDemoContent() async {
-  await locator<DeleteAllUserDataUsecase>().deleteAll();
-  final hiveDBProvider = locator<HiveDBProvider>();
-  await hiveDBProvider.customMealBox.clear();
-  await hiveDBProvider.recipeBox.clear();
-  await hiveDBProvider.customActivityTemplateBox.clear();
+  // closeSentry: false — demo seed/exit is not a user privacy wipe; tearing
+  // down Sentry here would silence crash reporting for the rest of the session.
+  await locator<DeleteAllUserDataUsecase>().deleteAll(closeSentry: false);
+  if (_isSingleProfileDevice()) {
+    final hiveDBProvider = locator<HiveDBProvider>();
+    await hiveDBProvider.customMealBox.clear();
+    await hiveDBProvider.recipeBox.clear();
+    await hiveDBProvider.customActivityTemplateBox.clear();
+  }
 }
 
 /// Called when the user taps "Set up your profile" on the demo-mode
@@ -324,6 +340,11 @@ Future<void> exitDemoMode() async {
   final active = locator<GetProfilesUsecase>().getActiveProfile();
 
   await _wipeActiveProfileAndDemoContent();
+
+  // isDemoData is profile-scoped and deleteAll clears the profile config box,
+  // but write false explicitly so any stale app-box copy and a recreated
+  // profile config both agree after exit.
+  await locator<AddConfigUsecase>().setConfigIsDemoData(false);
 
   if (active == null) return;
   if (active.imagePath != null) {
@@ -354,16 +375,15 @@ UserEntity _demoUser(DateTime startOfToday) => UserEntity(
 );
 
 /// The one hand-picked Unsplash portrait used for the demo profile's
-/// avatar (see unsplash_attribution.dart) — bundled at
-/// [assets/demo/alex_demo_avatar.jpg] so Try Demo needs no network for
-/// the headshot. Meal thumbnails still hotlink curated Unsplash CDN URLs.
+/// avatar (see unsplash_attribution.dart) — a friendly, neutral headshot,
+/// since Unsplash has no "people" search angle the way Open Food Facts
+/// has product photos.
 const _profilePhotoId = '1651684215020-f7a5b6610f23';
-const _profileAvatarAsset = 'assets/demo/alex_demo_avatar.jpg';
 
-/// Renames the active profile and, best-effort, copies the bundled Unsplash
-/// portrait into local profile image storage, recording the photographer
+/// Renames the active profile and, best-effort, downloads and stores the
+/// curated Unsplash portrait as its avatar, recording the photographer
 /// credit in a sidecar file (read back by `profile_editor_screen.dart`).
-/// Asset/storage failures are swallowed — a missing avatar shouldn't
+/// Network/storage failures are swallowed — a missing avatar shouldn't
 /// abort the whole seed.
 Future<void> _setupActiveProfile() async {
   final active = locator<GetProfilesUsecase>().getActiveProfile();
@@ -371,19 +391,24 @@ Future<void> _setupActiveProfile() async {
 
   String? imagePath;
   try {
-    final bytes = (await rootBundle.load(
-      _profileAvatarAsset,
-    )).buffer.asUint8List();
-    final tempDir = await getTemporaryDirectory();
-    final tempFile = File('${tempDir.path}/demo_profile_avatar_source.jpg');
-    try {
-      await tempFile.writeAsBytes(bytes, flush: true);
+    final avatarUrl = unsplashImageUrl(_profilePhotoId, width: 500);
+    // Bound the download so a stalled Unsplash request cannot hang the
+    // onboarding "Try Demo" spinner indefinitely. Failures fall through to
+    // the catch below and seed continues without an avatar.
+    final response = await http
+        .get(Uri.parse(avatarUrl))
+        .timeout(const Duration(seconds: 10));
+    if (response.statusCode == 200) {
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/demo_profile_avatar_source');
+      await tempFile.writeAsBytes(response.bodyBytes);
       imagePath = await UserImageStorage.importFrom(
         kind: UserImageKind.profile,
         ownerId: active.id,
         sourcePath: tempFile.path,
       );
-      final credit = unsplashCreditForUrl(unsplashImageUrl(_profilePhotoId));
+      await tempFile.delete();
+      final credit = unsplashCreditForUrl(avatarUrl);
       if (credit != null) {
         await UserImageStorage.writeCredit(
           imagePath,
@@ -391,13 +416,9 @@ Future<void> _setupActiveProfile() async {
           profileUrl: credit.profileUrl,
         );
       }
-    } finally {
-      if (await tempFile.exists()) {
-        await tempFile.delete();
-      }
     }
   } catch (e) {
-    _log.warning('Could not import bundled demo profile picture: $e');
+    _log.warning('Could not download demo profile picture: $e');
   }
 
   await locator<UpdateProfileUsecase>().updateProfile(

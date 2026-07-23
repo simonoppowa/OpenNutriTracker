@@ -32,7 +32,7 @@ class DemoModeBanner extends StatelessWidget {
         0,
       ),
       child: Semantics(
-        identifier: 'main-demo-banner',
+        identifier: 'home-demo-banner',
         child: Material(
           color: Colors.transparent,
           borderRadius: Dimens.borderRadiusM,
@@ -59,8 +59,6 @@ class DemoModeBanner extends StatelessWidget {
                   Expanded(
                     child: Text(
                       S.of(context).homeDemoBannerLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: textTheme.labelLarge?.copyWith(
                         color: palette.textStrong,
                         fontWeight: FontWeight.w700,
@@ -68,16 +66,12 @@ class DemoModeBanner extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: Dimens.spacing8),
-                  Flexible(
-                    child: Text(
-                      S.of(context).homeDemoBannerAction,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.labelLarge?.copyWith(
-                        color: accent,
-                        fontWeight: FontWeight.w700,
-                        decoration: TextDecoration.underline,
-                      ),
+                  Text(
+                    S.of(context).homeDemoBannerAction,
+                    style: textTheme.labelLarge?.copyWith(
+                      color: accent,
+                      fontWeight: FontWeight.w700,
+                      decoration: TextDecoration.underline,
                     ),
                   ),
                 ],
@@ -91,7 +85,6 @@ class DemoModeBanner extends StatelessWidget {
 
   Future<void> _confirmSetUpProfile(BuildContext context) async {
     final l10n = S.of(context);
-    final navigator = Navigator.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -114,9 +107,8 @@ class DemoModeBanner extends StatelessWidget {
     if (!context.mounted) return;
     await exitDemoMode();
     if (!context.mounted) return;
-    navigator.pushNamedAndRemoveUntil(
-      NavigationOptions.onboardingRoute,
-      (_) => false,
-    );
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(NavigationOptions.onboardingRoute, (_) => false);
   }
 }

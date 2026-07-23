@@ -153,142 +153,147 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   List<PageViewModel> _getPageViewModels() {
     final selection = _onboardingBloc.userSelection;
+    // Add-profile onboarding passes the prior profile id as the route
+    // argument. Demo seed is first-run only — it clears shared content
+    // libraries that other profiles use.
+    final isAddProfileOnboarding =
+        ModalRoute.of(context)?.settings.arguments is String;
     return <PageViewModel>[
-        PageViewModel(
-          title: S.of(context).onboardingWelcomeLabel,
-          decoration: _pageDecoration,
-          image: _defaultImageWidget,
-          bodyWidget: OnboardingIntroPageBody(
-            setPageContent: _setIntroPageData,
-            initialAcceptedPolicy: _introPageButtonActive,
-            initialAcceptedDataCollection: selection.acceptDataCollection,
-          ),
-          footer: HighlightButton(
-            buttonLabel: S.of(context).buttonStartLabel,
-            onButtonPressed: () => _scrollToPage(1),
-            buttonActive: _introPageButtonActive,
-          ),
+      PageViewModel(
+        title: S.of(context).onboardingWelcomeLabel,
+        decoration: _pageDecoration,
+        image: _defaultImageWidget,
+        bodyWidget: OnboardingIntroPageBody(
+          setPageContent: _setIntroPageData,
+          initialAcceptedPolicy: _introPageButtonActive,
+          initialAcceptedDataCollection: selection.acceptDataCollection,
+          allowTryDemo: !isAddProfileOnboarding,
         ),
-        PageViewModel(
-          titleWidget: const SizedBox(),
-          // empty
-          decoration: _pageDecoration,
-          image: _defaultImageWidget,
-          bodyWidget: OnboardingFirstPageBody(
-            setPageContent: _setFirstPageData,
-            initialGender: selection.gender,
-            initialCaloriesProfile: selection.caloriesProfile,
-            initialBirthday: selection.birthday,
-          ),
-          footer: HighlightButton(
-            buttonLabel: S.of(context).buttonNextLabel,
-            onButtonPressed: () => _scrollToPage(2),
-            buttonActive: _firstPageButtonActive,
-          ),
+        footer: HighlightButton(
+          buttonLabel: S.of(context).buttonStartLabel,
+          onButtonPressed: () => _scrollToPage(1),
+          buttonActive: _introPageButtonActive,
         ),
-        PageViewModel(
-          titleWidget: const SizedBox(),
-          // empty
-          decoration: _pageDecoration,
-          image: _defaultImageWidget,
-          bodyWidget: OnboardingSecondPageBody(
-            setButtonContent: _setSecondPageData,
-            initialHeightCm: selection.height,
-            initialWeightKg: selection.weight,
-            initialTargetWeightKg: selection.targetWeight,
-            initialHeightImperial: selection.heightUsesImperial,
-            initialBodyWeightUnit: selection.bodyWeightUnit,
-            initialFoodImperial: selection.foodUsesImperial,
-          ),
-          footer: HighlightButton(
-            buttonLabel: S.of(context).buttonNextLabel,
-            onButtonPressed: () => _scrollToPage(3),
-            buttonActive: _secondPageButtonActive,
-          ),
+      ),
+      PageViewModel(
+        titleWidget: const SizedBox(),
+        // empty
+        decoration: _pageDecoration,
+        image: _defaultImageWidget,
+        bodyWidget: OnboardingFirstPageBody(
+          setPageContent: _setFirstPageData,
+          initialGender: selection.gender,
+          initialCaloriesProfile: selection.caloriesProfile,
+          initialBirthday: selection.birthday,
         ),
-        PageViewModel(
-          titleWidget: const SizedBox(),
-          // empty
-          decoration: _pageDecoration,
-          image: _defaultImageWidget,
-          bodyWidget: OnboardingThirdPageBody(
-            setButtonContent: _setThirdPageButton,
-            initialActivity: selection.activity,
-          ),
-          footer: HighlightButton(
-            buttonLabel: S.of(context).buttonNextLabel,
-            onButtonPressed: () => _scrollToPage(4),
-            buttonActive: _thirdPageButtonActive,
-          ),
+        footer: HighlightButton(
+          buttonLabel: S.of(context).buttonNextLabel,
+          onButtonPressed: () => _scrollToPage(2),
+          buttonActive: _firstPageButtonActive,
         ),
-        PageViewModel(
-          titleWidget: const SizedBox(),
-          // empty
-          decoration: _pageDecoration,
-          image: _defaultImageWidget,
-          bodyWidget: OnboardingFourthPageBody(
-            setButtonContent: _setFourthPageButton,
-            initialGoal: selection.goal,
-          ),
-          footer: HighlightButton(
-            buttonLabel: S.of(context).buttonNextLabel,
-            onButtonPressed: () => _scrollToPage(5),
-            buttonActive: _fourthPageButtonActive,
-          ),
+      ),
+      PageViewModel(
+        titleWidget: const SizedBox(),
+        // empty
+        decoration: _pageDecoration,
+        image: _defaultImageWidget,
+        bodyWidget: OnboardingSecondPageBody(
+          setButtonContent: _setSecondPageData,
+          initialHeightCm: selection.height,
+          initialWeightKg: selection.weight,
+          initialTargetWeightKg: selection.targetWeight,
+          initialHeightImperial: selection.heightUsesImperial,
+          initialBodyWeightUnit: selection.bodyWeightUnit,
+          initialFoodImperial: selection.foodUsesImperial,
         ),
-        PageViewModel(
-          titleWidget: const SizedBox(),
-          // empty
-          decoration: _pageDecoration,
-          image: _defaultImageWidget,
-          bodyWidget: OnboardingOtherOptionsPageBody(
-            setPageContent: _setOtherOptionsPageData,
-            initialTheme: selection.appTheme,
-            initialFoodSourceToggles: selection.foodSourceToggles,
-            initialDailyReminderEnabled: selection.dailyReminderEnabled,
-            initialUseMaterialYou: selection.useMaterialYou,
-            initialAccentColor: selection.accentColor,
-          ),
-          // Everything on this page is optional and pre-filled with
-          // defaults, so the button is always active.
-          footer: HighlightButton(
-            buttonLabel: S.of(context).buttonNextLabel,
-            onButtonPressed: () => _scrollToPage(6),
-            buttonActive: true,
-          ),
+        footer: HighlightButton(
+          buttonLabel: S.of(context).buttonNextLabel,
+          onButtonPressed: () => _scrollToPage(3),
+          buttonActive: _secondPageButtonActive,
         ),
-        PageViewModel(
-          titleWidget: const SizedBox(),
-          // empty
-          decoration: _pageDecoration,
-          image: _defaultImageWidget,
-          bodyWidget: OnboardingOverviewPageBody(
-            calorieGoalDayString:
-                _onboardingBloc.getOverviewCalorieGoal()?.toInt().toString() ??
-                    "?",
-            carbsGoalString:
-                _onboardingBloc.getOverviewCarbsGoal()?.toInt().toString() ??
-                    "?",
-            fatGoalString:
-                _onboardingBloc.getOverviewFatGoal()?.toInt().toString() ?? "?",
-            proteinGoalString:
-                _onboardingBloc.getOverviewProteinGoal()?.toInt().toString() ??
-                    "?",
-            setButtonActive: _setOverviewPageContent,
-            showLowKcalWarning:
-                _onboardingBloc.isOverviewBelowRecommendedKcalFloor(),
-            lowKcalWarningThreshold:
-                _onboardingBloc.getOverviewRecommendedKcalFloor(),
-          ),
-          footer: HighlightButton(
-            buttonLabel: S.of(context).buttonStartLabel,
-            onButtonPressed: () {
-              _onOverviewStartButtonPressed(context);
-            },
-            buttonActive: _overviewPageButtonActive,
-          ),
+      ),
+      PageViewModel(
+        titleWidget: const SizedBox(),
+        // empty
+        decoration: _pageDecoration,
+        image: _defaultImageWidget,
+        bodyWidget: OnboardingThirdPageBody(
+          setButtonContent: _setThirdPageButton,
+          initialActivity: selection.activity,
         ),
-      ];
+        footer: HighlightButton(
+          buttonLabel: S.of(context).buttonNextLabel,
+          onButtonPressed: () => _scrollToPage(4),
+          buttonActive: _thirdPageButtonActive,
+        ),
+      ),
+      PageViewModel(
+        titleWidget: const SizedBox(),
+        // empty
+        decoration: _pageDecoration,
+        image: _defaultImageWidget,
+        bodyWidget: OnboardingFourthPageBody(
+          setButtonContent: _setFourthPageButton,
+          initialGoal: selection.goal,
+        ),
+        footer: HighlightButton(
+          buttonLabel: S.of(context).buttonNextLabel,
+          onButtonPressed: () => _scrollToPage(5),
+          buttonActive: _fourthPageButtonActive,
+        ),
+      ),
+      PageViewModel(
+        titleWidget: const SizedBox(),
+        // empty
+        decoration: _pageDecoration,
+        image: _defaultImageWidget,
+        bodyWidget: OnboardingOtherOptionsPageBody(
+          setPageContent: _setOtherOptionsPageData,
+          initialTheme: selection.appTheme,
+          initialFoodSourceToggles: selection.foodSourceToggles,
+          initialDailyReminderEnabled: selection.dailyReminderEnabled,
+          initialUseMaterialYou: selection.useMaterialYou,
+          initialAccentColor: selection.accentColor,
+        ),
+        // Everything on this page is optional and pre-filled with
+        // defaults, so the button is always active.
+        footer: HighlightButton(
+          buttonLabel: S.of(context).buttonNextLabel,
+          onButtonPressed: () => _scrollToPage(6),
+          buttonActive: true,
+        ),
+      ),
+      PageViewModel(
+        titleWidget: const SizedBox(),
+        // empty
+        decoration: _pageDecoration,
+        image: _defaultImageWidget,
+        bodyWidget: OnboardingOverviewPageBody(
+          calorieGoalDayString:
+              _onboardingBloc.getOverviewCalorieGoal()?.toInt().toString() ??
+              "?",
+          carbsGoalString:
+              _onboardingBloc.getOverviewCarbsGoal()?.toInt().toString() ?? "?",
+          fatGoalString:
+              _onboardingBloc.getOverviewFatGoal()?.toInt().toString() ?? "?",
+          proteinGoalString:
+              _onboardingBloc.getOverviewProteinGoal()?.toInt().toString() ??
+              "?",
+          setButtonActive: _setOverviewPageContent,
+          showLowKcalWarning: _onboardingBloc
+              .isOverviewBelowRecommendedKcalFloor(),
+          lowKcalWarningThreshold: _onboardingBloc
+              .getOverviewRecommendedKcalFloor(),
+        ),
+        footer: HighlightButton(
+          buttonLabel: S.of(context).buttonStartLabel,
+          onButtonPressed: () {
+            _onOverviewStartButtonPressed(context);
+          },
+          buttonActive: _overviewPageButtonActive,
+        ),
+      ),
+    ];
   }
 
   void _scrollToPage(int page) {
