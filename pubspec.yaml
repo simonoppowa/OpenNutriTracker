@@ -57,7 +57,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   bloc_concurrency: ^0.3.0
   stream_transform: ^2.1.1
-  equatable: ^2.0.8
+  equatable: ^2.1.0
 
   percent_indicator: ^4.2.5
   horizontal_picker: ^1.2.0
