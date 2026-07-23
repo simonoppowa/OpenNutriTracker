@@ -614,7 +614,7 @@ jobs:
 
       - name: Load SSH key for match repository
         if: startsWith(env.MATCH_GIT_URL, 'git@') && env.MATCH_GIT_SSH_PRIVATE_KEY != ''
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.MATCH_GIT_SSH_PRIVATE_KEY }}
 
