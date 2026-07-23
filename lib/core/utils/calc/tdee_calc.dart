@@ -44,24 +44,28 @@ class TDEECalc {
     final palValue = PalCalc.getPALValueFromActivityCategory(userEntity);
     switch (userEntity.gender) {
       case UserGenderEntity.male:
-        return _iom2005MaleKcal(userEntity, palValue);
+        return iom2005MaleReferenceKcal(userEntity, palValue);
       case UserGenderEntity.female:
-        return _iom2005FemaleKcal(userEntity, palValue);
+        return iom2005FemaleReferenceKcal(userEntity, palValue);
       case UserGenderEntity.nonBinary:
         switch (userEntity.caloriesProfile ?? CaloriesProfileEntity.averaged) {
           case CaloriesProfileEntity.averaged:
-            return (_iom2005MaleKcal(userEntity, palValue) +
-                    _iom2005FemaleKcal(userEntity, palValue)) /
+            return (iom2005MaleReferenceKcal(userEntity, palValue) +
+                    iom2005FemaleReferenceKcal(userEntity, palValue)) /
                 2;
           case CaloriesProfileEntity.estrogenTypical:
-            return _iom2005FemaleKcal(userEntity, palValue);
+            return iom2005FemaleReferenceKcal(userEntity, palValue);
           case CaloriesProfileEntity.testosteroneTypical:
-            return _iom2005MaleKcal(userEntity, palValue);
+            return iom2005MaleReferenceKcal(userEntity, palValue);
         }
     }
   }
 
-  static double _iom2005MaleKcal(UserEntity userEntity, double palValue) {
+  /// Single-side male reference result for a given PAL value. Public so the
+  /// calorie-goal transparency breakdown can show each reference side of an
+  /// averaged non-binary TDEE without duplicating the coefficients.
+  static double iom2005MaleReferenceKcal(
+      UserEntity userEntity, double palValue) {
     final paValue = PalCalc.getPAValueForFormula(
       palValue: palValue,
       isMaleFormula: true,
@@ -72,7 +76,10 @@ class TDEECalc {
         503 * (userEntity.heightCM / 100);
   }
 
-  static double _iom2005FemaleKcal(UserEntity userEntity, double palValue) {
+  /// Single-side female reference result for a given PAL value. See
+  /// [iom2005MaleReferenceKcal] for why this is public.
+  static double iom2005FemaleReferenceKcal(
+      UserEntity userEntity, double palValue) {
     final paValue = PalCalc.getPAValueForFormula(
       palValue: palValue,
       isMaleFormula: false,

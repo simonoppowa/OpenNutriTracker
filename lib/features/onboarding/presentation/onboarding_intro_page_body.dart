@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
+import 'package:opennutritracker/core/utils/demo/demo_seeder.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
+import 'package:opennutritracker/features/profile/presentation/utils/profile_switch_coordinator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -27,6 +30,7 @@ class OnboardingIntroPageBody extends StatefulWidget {
 class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   late bool _acceptedPolicy = widget.initialAcceptedPolicy;
   late bool _acceptedDataCollection = widget.initialAcceptedDataCollection;
+  bool _seedingDemo = false;
 
   @override
   Widget build(BuildContext context) {
@@ -34,78 +38,118 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
       future: AppConst.getVersionNumber(),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         if (snapshot.hasData) {
-          return Column(
-            children: [
-              AppBannerVersion(versionNumber: snapshot.requireData),
-              const SizedBox(height: 32.0),
-              Text(
-                S.of(context).appDescription,
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32.0),
-              Text(
-                S.of(context).onboardingIntroDescription,
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16.0),
-              ListTile(
-                onTap: () => _togglePolicy(),
-                title: Text.rich(
+          // Scroll so the demo CTA + checkboxes still fit on shorter
+          // viewports (e.g. the 800×600 surface used by widget tests).
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                AppBannerVersion(versionNumber: snapshot.requireData),
+                const SizedBox(height: 32.0),
+                Text(
+                  S.of(context).appDescription,
+                  style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
-                  TextSpan(
-                    text: S.of(context).readLabel,
+                ),
+                const SizedBox(height: 32.0),
+                Text(
+                  S.of(context).onboardingIntroDescription,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16.0),
+                // Policy first: both Start (footer) and Try Demo require it.
+                ListTile(
+                  onTap: () => _togglePolicy(),
+                  title: Text.rich(
+                    textAlign: TextAlign.center,
+                    TextSpan(
+                      text: S.of(context).readLabel,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      children: [
+                        TextSpan(
+                          text: ' ${S.of(context).privacyPolicyLabel}',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                decoration: TextDecoration.underline,
+                              ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              _launchUrl();
+                            },
+                        ),
+                      ],
+                    ),
+                  ),
+                  leading: Semantics(
+                    identifier: 'onboarding-checkbox-privacy',
+                    child: Checkbox(
+                      value: _acceptedPolicy,
+                      onChanged: (value) {
+                        if (value != null) {
+                          _togglePolicy();
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                ListTile(
+                  onTap: () => _toggleDataCollection(),
+                  title: Text(
+                    S.of(context).dataCollectionLabel,
+                    textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall,
-                    children: [
-                      TextSpan(
-                        text: ' ${S.of(context).privacyPolicyLabel}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                              decoration: TextDecoration.underline,
-                            ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            _launchUrl();
-                          },
-                      ),
-                    ],
+                  ),
+                  leading: Semantics(
+                    identifier: 'onboarding-checkbox-data',
+                    child: Checkbox(
+                      value: _acceptedDataCollection,
+                      onChanged: (value) => _toggleDataCollection(),
+                    ),
                   ),
                 ),
-                leading: Semantics(
-                  identifier: 'onboarding-checkbox-privacy',
-                  child: Checkbox(
-                    value: _acceptedPolicy,
-                    onChanged: (value) {
-                      if (value != null) {
-                        _togglePolicy();
-                      }
-                    },
+                const SizedBox(height: 16.0),
+                Semantics(
+                  identifier: 'onboarding-try-demo',
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: (_seedingDemo || !_acceptedPolicy)
+                          ? null
+                          : _tryDemo,
+                      icon: _seedingDemo
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.visibility_outlined),
+                      label: Text(S.of(context).onboardingTryDemoLabel),
+                    ),
                   ),
                 ),
-              ),
-              ListTile(
-                onTap: () => _toggleDataCollection(),
-                title: Text(
-                  S.of(context).dataCollectionLabel,
-                  textAlign: TextAlign.center,
+                const SizedBox(height: 4.0),
+                Text(
+                  S.of(context).onboardingTryDemoSubtitle,
                   style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
                 ),
-                leading: Semantics(
-                  identifier: 'onboarding-checkbox-data',
-                  child: Checkbox(
-                    value: _acceptedDataCollection,
-                    onChanged: (value) => _toggleDataCollection(),
+                const SizedBox(height: 4.0),
+                Text(
+                  S.of(context).onboardingTryDemoDisclaimer,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(height: 8.0),
-              TextButton.icon(
-                onPressed: () => _openSources(context),
-                icon: const Icon(Icons.menu_book_outlined),
-                label: Text(S.of(context).onboardingIntroSourcesLinkLabel),
-              ),
-            ],
+                const SizedBox(height: 8.0),
+                TextButton.icon(
+                  onPressed: () => _openSources(context),
+                  icon: const Icon(Icons.menu_book_outlined),
+                  label: Text(S.of(context).onboardingIntroSourcesLinkLabel),
+                ),
+              ],
+            ),
           );
         } else {
           return const SizedBox();
@@ -129,9 +173,37 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   }
 
   void _openSources(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SourcesScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SourcesScreen()));
+  }
+
+  /// Seeds the active profile with sample data and jumps straight to Home.
+  /// Requires the privacy-policy checkbox (same bar as Start) so demo entry
+  /// still records legal acceptance; anonymous crash reporting stays off
+  /// unless the user opts in later from Settings (and is locked while demo
+  /// data is active). Data-collection checkbox is intentionally independent.
+  Future<void> _tryDemo() async {
+    if (!_acceptedPolicy) return;
+    setState(() => _seedingDemo = true);
+    try {
+      await seedDemoData(DemoSeedOptions.onboarding);
+      if (!mounted) return;
+      // The screen-persistent tab BLoCs were created before the demo profile
+      // existed (or hold another profile's data). Refresh them against the
+      // freshly seeded active profile before landing on the main screen —
+      // same as the normal onboarding start path (onboarding_screen.dart).
+      ProfileSwitchCoordinator.reloadTabBlocs();
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(NavigationOptions.mainRoute, (route) => false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _seedingDemo = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).onboardingTryDemoError)),
+      );
+    }
   }
 
   Future<void> _launchUrl() async {

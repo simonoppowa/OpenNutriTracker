@@ -1,0 +1,11 @@
+arb-dir: lib/l10n
+template-arb-file: intl_en.arb
+output-dir: lib/generated
+output-localization-file: l10n.dart
+output-class: S
+nullable-getter: false
+# en first => it is the basicLocaleListResolution fallback, matching the old
+# flutter_intl behavior where English was the default locale.
+preferred-supported-locales: [en]
+untranslated-messages-file: l10n_untranslated.json
+header: "// GENERATED CODE - DO NOT MODIFY BY HAND"

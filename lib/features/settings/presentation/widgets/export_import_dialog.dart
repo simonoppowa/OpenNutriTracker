@@ -108,7 +108,9 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
                           color: Theme.of(context).colorScheme.primary,
                         ),
                         const SizedBox(width: 8),
-                        Text(S.of(context).exportImportSuccessLabel),
+                        Expanded(
+                          child: Text(S.of(context).exportImportSuccessLabel),
+                        ),
                       ],
                     );
                   } else if (state is ExportImportError) {
@@ -119,7 +121,9 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
                           color: Theme.of(context).colorScheme.error,
                         ),
                         const SizedBox(width: 8),
-                        Text(S.of(context).exportImportErrorLabel),
+                        Expanded(
+                          child: Text(S.of(context).exportImportErrorLabel),
+                        ),
                       ],
                     );
                   }

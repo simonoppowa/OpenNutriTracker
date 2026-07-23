@@ -4,13 +4,16 @@ class MacroCalc {
   /// THE GLOBAL EPIDEMIC' by WHO page 104
   /// ISBN 92 4 120894 5
   /// ISSN 0512-3054
-  static const _carbsKcalPerGram = 4.0;
-  static const _fatKcalPerGram = 9.0;
-  static const _proteinKcalPerGram = 4.0;
+  ///
+  /// Public (rather than private) so the calorie-goal transparency screen
+  /// can display the exact densities and default split it computes with.
+  static const carbsKcalPerGram = 4.0;
+  static const fatKcalPerGram = 9.0;
+  static const proteinKcalPerGram = 4.0;
 
-  static const _defaultCarbsPercentageGoal = 0.6;
-  static const _defaultFatsPercentageGoal = 0.25;
-  static const _defaultProteinsPercentageGoal = 0.15;
+  static const defaultCarbsPercentageGoal = 0.6;
+  static const defaultFatsPercentageGoal = 0.25;
+  static const defaultProteinsPercentageGoal = 0.15;
 
   /// Calculate the total carbs goal based on the total calorie goal
   /// Uses the default percentage if the user has not set a goal
@@ -18,8 +21,8 @@ class MacroCalc {
     double totalCalorieGoal, {
     double? userCarbsGoal,
   }) =>
-      (totalCalorieGoal * (userCarbsGoal ?? _defaultCarbsPercentageGoal)) /
-      _carbsKcalPerGram;
+      (totalCalorieGoal * (userCarbsGoal ?? defaultCarbsPercentageGoal)) /
+      carbsKcalPerGram;
 
   /// Calculate the total fats goal based on the total calorie goal
   /// Uses the default percentage if the user has not set a goal
@@ -27,8 +30,8 @@ class MacroCalc {
     double totalCalorieGoal, {
     double? userFatsGoal,
   }) =>
-      (totalCalorieGoal * (userFatsGoal ?? _defaultFatsPercentageGoal)) /
-      _fatKcalPerGram;
+      (totalCalorieGoal * (userFatsGoal ?? defaultFatsPercentageGoal)) /
+      fatKcalPerGram;
 
   /// Calculate the total proteins goal based on the total calorie goal
   /// Uses the default percentage if the user has not set a goal
@@ -37,6 +40,6 @@ class MacroCalc {
     double? userProteinsGoal,
   }) =>
       (totalCalorieGoal *
-          (userProteinsGoal ?? _defaultProteinsPercentageGoal)) /
-      _proteinKcalPerGram;
+          (userProteinsGoal ?? defaultProteinsPercentageGoal)) /
+      proteinKcalPerGram;
 }

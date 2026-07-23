@@ -41,8 +41,9 @@ class ConfigDataSource {
   ConfigDBO _readMerged() {
     final app = _appBox.get(_configKey);
     final profile = _profileBox.get(_configKey);
-    final merged =
-        app != null ? ConfigDBO.fromJson(app.toJson()) : ConfigDBO.empty();
+    final merged = app != null
+        ? ConfigDBO.fromJson(app.toJson())
+        : ConfigDBO.empty();
     if (profile != null) {
       merged.userKcalAdjustment = profile.userKcalAdjustment;
       merged.userCarbGoalPct = profile.userCarbGoalPct;
@@ -117,8 +118,11 @@ class ConfigDataSource {
     );
   }
 
-  Future<AppThemeDBO> getAppTheme() async =>
-      _readMerged().selectedAppTheme;
+  Future<void> setConfigAcceptedPolicy(bool hasAcceptedPolicy) async {
+    await _update((c) => c.hasAcceptedPolicy = hasAcceptedPolicy);
+  }
+
+  Future<AppThemeDBO> getAppTheme() async => _readMerged().selectedAppTheme;
 
   Future<void> setConfigAppTheme(AppThemeDBO appTheme) async {
     await _update((c) => c.selectedAppTheme = appTheme);
@@ -263,6 +267,10 @@ class ConfigDataSource {
     await _update((c) => c.fastingWarningAcknowledged = acknowledged);
   }
 
+  Future<void> setIsDemoData(bool isDemoData) async {
+    await _update((c) => c.isDemoData = isDemoData);
+  }
+
   Future<void> setConfigUseMaterialYou(bool useMaterialYou) async {
     await _update((c) => c.useMaterialYou = useMaterialYou);
   }
@@ -286,9 +294,7 @@ class ConfigDataSource {
 
   Future<void> setConfigFoodSourceToggles(Map<String, bool> toggles) async {
     // Copy into a fresh map so Hive sees a distinct object reference on save.
-    await _update(
-      (c) => c.foodSourceToggles = Map<String, bool>.from(toggles),
-    );
+    await _update((c) => c.foodSourceToggles = Map<String, bool>.from(toggles));
   }
 
   Future<ConfigDBO> getConfig() async => _readMerged();

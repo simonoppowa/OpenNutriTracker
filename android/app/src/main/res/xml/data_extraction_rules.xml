@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ (API 31) backup / device-transfer policy.
+
+  Companion to android:allowBackup="false" and android:fullBackupContent="false"
+  on the <application> tag (those flags cover pre-31). Cloud backup and
+  OS-mediated device transfer must not ship encrypted Hive boxes without the
+  matching Keystore-backed FlutterSecureStorage key — OEM phone-clone tools
+  can still ignore these rules, so the in-app key-guard remains the real
+  defense against silent factory-reset wipes.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>

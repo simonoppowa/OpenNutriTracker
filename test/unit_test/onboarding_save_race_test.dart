@@ -39,6 +39,11 @@ class _FakeConfigRepository implements ConfigRepository {
     await anonCompleter.future;
   }
 
+  // The policy acceptance is written right after the user, before the anon
+  // write; it's not part of the race under test, so it resolves immediately.
+  @override
+  Future<void> setConfigHasAcceptedPolicy(bool _) async {}
+
   // The split unit preferences are written after the user and anon writes;
   // they're not part of the race under test, so they resolve immediately.
   @override
@@ -67,6 +72,11 @@ class _FakeConfigRepository implements ConfigRepository {
   @override
   Future<void> setConfigAccentColor(int? _) async {}
 
+  // Cleared at the end of real onboarding so a post-demo profile can never
+  // keep showing the sample-data banner. Not part of the race under test.
+  @override
+  Future<void> setIsDemoData(bool _) async {}
+
   @override
   noSuchMethod(Invocation invocation) =>
       throw UnimplementedError(invocation.memberName.toString());
@@ -92,55 +102,62 @@ void main() {
     });
 
     UserEntity makeUser() => UserEntity(
-          birthday: DateTime(1990, 6, 15),
-          heightCM: 165,
-          weightKG: 70,
-          gender: UserGenderEntity.female,
-          goal: UserWeightGoalEntity.loseWeight,
-          pal: UserPALEntity.sedentary,
-        );
+      birthday: DateTime(1990, 6, 15),
+      heightCM: 165,
+      weightKG: 70,
+      gender: UserGenderEntity.female,
+      goal: UserWeightGoalEntity.loseWeight,
+      pal: UserPALEntity.sedentary,
+    );
 
     test(
-        'saveOnboardingData does not resolve until the user write completes',
-        () async {
-      // Regression: saveOnboardingData was `void ... async` and did not
-      // await `_addUserUsecase.addUser(...)`. The onboarding screen then
-      // navigated away before the user had been written to Hive, and the
-      // home screen recomputed kcal against the dummy default user.
+      'saveOnboardingData does not resolve until the user write completes',
+      () async {
+        // Regression: saveOnboardingData was `void ... async` and did not
+        // await `_addUserUsecase.addUser(...)`. The onboarding screen then
+        // navigated away before the user had been written to Hive, and the
+        // home screen recomputed kcal against the dummy default user.
 
-      final saveFuture = bloc.saveOnboardingData(
-        makeUser(),
-        false,
-        false,
-        BodyWeightUnit.kg,
-        false,
-        appTheme: AppThemeEntity.system,
-        foodSourceToggles: const {},
-        dailyReminderEnabled: false,
-        useMaterialYou: true,
-        accentColor: null,
-      );
+        final saveFuture = bloc.saveOnboardingData(
+          makeUser(),
+          false,
+          false,
+          BodyWeightUnit.kg,
+          false,
+          appTheme: AppThemeEntity.system,
+          foodSourceToggles: const {},
+          dailyReminderEnabled: false,
+          useMaterialYou: true,
+          accentColor: null,
+        );
 
-      // Yield once so the bloc has a chance to start the inner write.
-      await Future<void>.delayed(Duration.zero);
-      expect(userRepo.writeStarted, isTrue,
-          reason: 'bloc must start the user write immediately');
+        // Yield once so the bloc has a chance to start the inner write.
+        await Future<void>.delayed(Duration.zero);
+        expect(
+          userRepo.writeStarted,
+          isTrue,
+          reason: 'bloc must start the user write immediately',
+        );
 
-      bool resolved = false;
-      // ignore: unawaited_futures
-      saveFuture.then((_) => resolved = true);
+        bool resolved = false;
+        // ignore: unawaited_futures
+        saveFuture.then((_) => resolved = true);
 
-      // Without completing the user write, saveOnboardingData must not be
-      // done — proves the bloc actually awaits the write.
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(resolved, isFalse,
-          reason: 'saveOnboardingData must await the user write');
+        // Without completing the user write, saveOnboardingData must not be
+        // done — proves the bloc actually awaits the write.
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(
+          resolved,
+          isFalse,
+          reason: 'saveOnboardingData must await the user write',
+        );
 
-      // Complete the writes in order; saveOnboardingData should now resolve.
-      userRepo.writeCompleter.complete();
-      configRepo.anonCompleter.complete();
-      await saveFuture;
-      expect(resolved, isTrue);
-    });
+        // Complete the writes in order; saveOnboardingData should now resolve.
+        userRepo.writeCompleter.complete();
+        configRepo.anonCompleter.complete();
+        await saveFuture;
+        expect(resolved, isTrue);
+      },
+    );
   });
 }

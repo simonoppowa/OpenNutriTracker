@@ -55,7 +55,8 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
       widget.configRepository ?? locator<ConfigRepository>();
   // Optional in tests so the harness doesn't need to register the
   // user usecase in the locator just to render the chart.
-  late final GetUserUsecase? _getUserUsecase = widget.getUserUsecase ??
+  late final GetUserUsecase? _getUserUsecase =
+      widget.getUserUsecase ??
       (locator.isRegistered<GetUserUsecase>()
           ? locator<GetUserUsecase>()
           : null);
@@ -66,6 +67,7 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   // Loaded once at mount time so the chart can draw a dashed reference
   // line for the user's #119 target weight. Null when unset.
   double? _targetWeightKg;
+  _ChartRange _selectedRange = _ChartRange.days30;
 
   @override
   void initState() {
@@ -89,12 +91,91 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
     });
   }
 
+  int _calculateWindowDays() {
+    switch (_selectedRange) {
+      case _ChartRange.days30:
+        return 30;
+      case _ChartRange.days60:
+        return 60;
+      case _ChartRange.days180:
+        return 180;
+      case _ChartRange.days365:
+        return 365;
+      case _ChartRange.all:
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final nonFutureEntries = _entries
+            .where((e) => !e.date.isAfter(today))
+            .toList();
+        if (nonFutureEntries.isEmpty) {
+          return 30;
+        }
+        final oldestDate = nonFutureEntries
+            .map((e) => e.date)
+            .reduce((a, b) => a.isBefore(b) ? a : b);
+        final oldestDateOnly = DateTime(
+          oldestDate.year,
+          oldestDate.month,
+          oldestDate.day,
+        );
+        final diffDays = today.difference(oldestDateOnly).inDays + 1;
+        return diffDays < 30 ? 30 : diffDays;
+    }
+  }
+
+  Widget _buildRangeSelector() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Center(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Semantics(
+            identifier: 'weight-history-range-selector',
+            child: SegmentedButton<_ChartRange>(
+              showSelectedIcon: false,
+              style: const ButtonStyle(
+                visualDensity: VisualDensity.compact,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              segments: [
+                const ButtonSegment(
+                  value: _ChartRange.days30,
+                  label: Text('30d'),
+                ),
+                const ButtonSegment(
+                  value: _ChartRange.days60,
+                  label: Text('60d'),
+                ),
+                const ButtonSegment(
+                  value: _ChartRange.days180,
+                  label: Text('180d'),
+                ),
+                const ButtonSegment(
+                  value: _ChartRange.days365,
+                  label: Text('365d'),
+                ),
+                ButtonSegment(
+                  value: _ChartRange.all,
+                  label: Text(S.of(context).allItemsLabel),
+                ),
+              ],
+              selected: {_selectedRange},
+              onSelectionChanged: (set) {
+                setState(() {
+                  _selectedRange = set.first;
+                });
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(S.of(context).profileWeightHistoryTitle),
-      ),
+      appBar: AppBar(title: Text(S.of(context).profileWeightHistoryTitle)),
       floatingActionButton: Semantics(
         identifier: 'weight-history-add',
         child: FloatingActionButton.extended(
@@ -106,35 +187,42 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _entries.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Text(
-                      S.of(context).weightHistoryNoEntries,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ),
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.only(top: 8, bottom: 96),
-                  itemCount: _entries.length + 1,
-                  separatorBuilder: (context, index) {
-                    // No divider between the chart card and the first list tile.
-                    if (index == 0) return const SizedBox.shrink();
-                    return const Divider(height: 1);
-                  },
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return WeightTrendChart(
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  S.of(context).weightHistoryNoEntries,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+            )
+          : ListView.separated(
+              padding: const EdgeInsets.only(top: 8, bottom: 96),
+              itemCount: _entries.length + 1,
+              separatorBuilder: (context, index) {
+                // No divider between the chart card and the first list tile.
+                if (index == 0) return const SizedBox.shrink();
+                return const Divider(height: 1);
+              },
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildRangeSelector(),
+                      WeightTrendChart(
                         entries: _entries,
                         bodyWeightUnit: _bodyWeightUnit,
                         targetWeightKg: _targetWeightKg,
-                      );
-                    }
-                    return _buildEntryTile(_entries[index - 1]);
-                  },
-                ),
+                        windowDays: _calculateWindowDays(),
+                      ),
+                    ],
+                  );
+                }
+                return _buildEntryTile(_entries[index - 1]);
+              },
+            ),
     );
   }
 
@@ -153,7 +241,9 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
     return ListTile(
       title: Text(displayStr),
       subtitle: Text(
-        entry.note?.isNotEmpty == true ? '$dateLabel  •  ${entry.note}' : dateLabel,
+        entry.note?.isNotEmpty == true
+            ? '$dateLabel  •  ${entry.note}'
+            : dateLabel,
       ),
       trailing: IconButton(
         icon: const Icon(Icons.delete_outline),
@@ -163,7 +253,9 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   }
 
   Future<void> _onAddEntry() async {
-    final initialWeightKg = _entries.isNotEmpty ? _entries.first.weightKg : 70.0;
+    final initialWeightKg = _entries.isNotEmpty
+        ? _entries.first.weightKg
+        : 70.0;
     final result = await showDialog<_NewWeightEntry>(
       context: context,
       builder: (context) => _AddWeightEntryDialog(
@@ -312,3 +404,5 @@ class _AddWeightEntryDialogState extends State<_AddWeightEntryDialog> {
     );
   }
 }
+
+enum _ChartRange { days30, days60, days180, days365, all }

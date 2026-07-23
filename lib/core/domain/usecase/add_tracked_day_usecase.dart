@@ -41,7 +41,7 @@ class AddTrackedDayUsecase {
     DateTime day,
     double caloriesTracked,
   ) async {
-    _trackedDayRepository.addDayTrackedCalories(day, caloriesTracked);
+    await _trackedDayRepository.addDayTrackedCalories(day, caloriesTracked);
   }
 
   Future<void> removeDayCaloriesTracked(

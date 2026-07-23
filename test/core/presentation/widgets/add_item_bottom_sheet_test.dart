@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import '../../../helpers/test_l10n.dart';
 
 // #277: the Show Activity Tracking toggle in Settings has been wired to
 // hide every activity-related surface in the app. AddItemBottomSheet is
@@ -14,7 +15,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 Widget _wrapWithMaterial(Widget child) {
   return MaterialApp(
     localizationsDelegates: const [S.delegate],
-    supportedLocales: S.delegate.supportedLocales,
+    supportedLocales: S.supportedLocales,
     home: Scaffold(body: child),
   );
 }
@@ -31,8 +32,8 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.text(S.current.activityLabel), findsOneWidget);
-      expect(find.text(S.current.breakfastLabel), findsOneWidget);
+      expect(find.text(l10nEn.activityLabel), findsOneWidget);
+      expect(find.text(l10nEn.breakfastLabel), findsOneWidget);
     },
   );
 
@@ -47,12 +48,12 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.text(S.current.activityLabel), findsNothing);
+      expect(find.text(l10nEn.activityLabel), findsNothing);
       // Meal tiles still render so the sheet stays useful for food logging.
-      expect(find.text(S.current.breakfastLabel), findsOneWidget);
-      expect(find.text(S.current.lunchLabel), findsOneWidget);
-      expect(find.text(S.current.dinnerLabel), findsOneWidget);
-      expect(find.text(S.current.snackLabel), findsOneWidget);
+      expect(find.text(l10nEn.breakfastLabel), findsOneWidget);
+      expect(find.text(l10nEn.lunchLabel), findsOneWidget);
+      expect(find.text(l10nEn.dinnerLabel), findsOneWidget);
+      expect(find.text(l10nEn.snackLabel), findsOneWidget);
     },
   );
 
@@ -64,7 +65,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.text(S.current.activityLabel), findsOneWidget);
+      expect(find.text(l10nEn.activityLabel), findsOneWidget);
     },
   );
 }

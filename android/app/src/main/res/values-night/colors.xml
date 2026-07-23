@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches AppPalette.dark.canvas so the OS launch screen blends into the
+         Flutter splash (see lib/core/presentation/splash_screen.dart). -->
+    <color name="splash_background">#1B1A18</color>
+</resources>

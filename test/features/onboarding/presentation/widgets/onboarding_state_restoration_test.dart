@@ -31,7 +31,7 @@ void main() {
 
   Widget wrap(Widget child) => MaterialApp(
         localizationsDelegates: const [S.delegate],
-        supportedLocales: S.delegate.supportedLocales,
+        supportedLocales: S.supportedLocales,
         home: Scaffold(body: child),
       );
 

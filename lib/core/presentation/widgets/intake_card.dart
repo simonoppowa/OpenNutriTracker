@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -66,10 +67,11 @@ class IntakeCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      AutoSizeText(
                         intake.meal.name ?? "?",
                         style: textTheme.titleSmall?.copyWith(color: palette.textStrong),
                         maxLines: 1,
+                        minFontSize: 11,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),

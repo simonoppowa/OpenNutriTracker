@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/data/repository/tracked_day_repository.dar
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
+import 'package:opennutritracker/core/utils/export_write_verifier.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 
 /// The two export shapes available from Settings → Export / Import App Data.
@@ -177,6 +178,14 @@ class ExportDataUsecase {
 
     // Save the zip file to the user-specified location
     final zipBytes = ZipEncoder().encode(archive);
+    if (zipBytes.isEmpty) {
+      // We built the archive ourselves a few lines up, so this should be
+      // unreachable — but if it ever happens, fail loudly rather than
+      // handing FilePicker.saveFile an empty payload and calling that
+      // a successful export.
+      throw StateError('Export archive was empty, refusing to save it');
+    }
+
     final result = await FilePicker.saveFile(
       fileName: exportZipFileName,
       type: FileType.custom,
@@ -184,7 +193,13 @@ class ExportDataUsecase {
       bytes: Uint8List.fromList(zipBytes),
     );
 
-    return result != null && result.isNotEmpty;
+    if (result == null || result.isEmpty) {
+      // User cancelled the save dialog.
+      return false;
+    }
+
+    ExportWriteVerifier.verify(result, zipBytes.length);
+    return true;
   }
 
   Future<void> _addUserImageIfPresent(

@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
@@ -70,10 +71,11 @@ class ActivityCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      AutoSizeText(
                         activityEntity.physicalActivityEntity.getName(context),
                         style: textTheme.titleSmall?.copyWith(color: palette.textStrong),
                         maxLines: 1,
+                        minFontSize: 11,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),

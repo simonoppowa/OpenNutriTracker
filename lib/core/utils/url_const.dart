@@ -28,4 +28,10 @@ class URLConst {
       "https://pmc.ncbi.nlm.nih.gov/articles/PMC6046513/";
   static const sourceTransNutritionLinsenmeyer2020URL =
       "https://link.springer.com/article/10.1186/s12937-020-00590-4";
+
+  // Wiki page documenting every in-app calculation in full — linked from
+  // the calorie-goal transparency screen for people who want the complete
+  // derivation including sources.
+  static const wikiCalculationsURL =
+      "https://github.com/simonoppowa/OpenNutriTracker/wiki/Calculations";
 }

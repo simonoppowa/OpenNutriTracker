@@ -5,9 +5,9 @@ on:
   # double-fire on the `develop → main` release PR (where every push to
   # `develop` would otherwise trigger both a `push` run *and* a
   # `pull_request` synchronize run). All pre-merge validation happens via
-  # `pull_request`; the `push: main` trigger only catches post-merge runs
-  # on `main`. Direct pushes to `develop` are disallowed by project policy
-  # (see CLAUDE.md) so skipping CI for them is safe.
+  # `pull_request` (against `main` and `develop`). The `push: main` trigger
+  # only catches post-merge runs on `main`. A direct push to `develop`
+  # does not run this workflow — prefer PRs into `develop` (see CONTRIBUTING.md).
   push:
     branches:
       - main
@@ -47,14 +47,14 @@ jobs:
 
       # `just ci` would also run `dart format --set-exit-if-changed`, but the
       # codebase currently has accumulated pre-existing format drift from the
-      # period when CI was disabled. We run the rest of `just ci` (intl
-      # check, build_runner, analyze, test) and leave the format pass for a
-      # dedicated follow-up PR.
+      # period when CI was disabled. We run the rest of `just ci` (l10n
+      # generation, build_runner, analyze, test) and leave the format pass
+      # for a dedicated follow-up PR.
       - name: Install Flutter packages
         run: just install
 
-      - name: Verify generated intl files
-        run: just check_intl
+      - name: Generate localizations
+        run: just gen_l10n
 
       - name: Generate code (env.g.dart, Hive adapters, JSON serializers)
         run: just build
@@ -113,6 +113,20 @@ jobs:
       - name: Setup Flutter + cache packages
         if: steps.changes.outputs.ios == 'true'
         uses: ./.github/actions/setup-flutter-cache
+
+      # Swift Package Manager is enabled by default on Flutter's stable
+      # channel (see flutter_tools' features.dart), which flips CocoaPods
+      # over to installing plugins with a Package.swift (image_picker,
+      # sentry_flutter, ...) via SPM instead. That works for a normal
+      # build, but `flutter build ios --no-codesign` in ios-build hits an
+      # Xcode limitation where SPM package products still demand a
+      # signing identity even with codesigning disabled — and this app
+      # has no Development Team configured in CI. Pin CocoaPods as the
+      # sole iOS dependency manager until that's resolved (or until we
+      # wire up real signing for CI).
+      - name: Disable Swift Package Manager
+        if: steps.changes.outputs.ios == 'true'
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Generate stub .env for CI
         if: steps.changes.outputs.ios == 'true'
@@ -177,6 +191,13 @@ jobs:
       - name: Setup Flutter + cache packages
         uses: ./.github/actions/setup-flutter-cache
 
+      # See the matching step in ios-podfile-lock-guard: SPM is enabled
+      # by default on stable, but `flutter build ios --no-codesign`
+      # below can't satisfy the signing identity SPM package products
+      # need, and this job has no Development Team configured.
+      - name: Disable Swift Package Manager
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Cache CocoaPods
         uses: actions/cache@v5
         with:
@@ -217,15 +238,17 @@ jobs:
 
       # Same-repo PRs only — fork PRs run with a read-only token so this
       # step would fail to push. Fork contributors get the lockfile via
-      # the artifact uploaded below.
-      - name: Auto-commit refreshed Podfile.lock
+      # the artifact uploaded below. `pod install` above can also touch
+      # project.pbxproj (it (re)writes the per-flavor Pods-Runner
+      # xcconfig file references), so both are covered here.
+      - name: Auto-commit refreshed iOS project files
         if: >-
           github.event_name == 'pull_request' &&
           github.event.pull_request.head.repo.full_name == github.repository
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          file_pattern: 'ios/Podfile.lock'
-          commit_message: 'chore(ios): refresh Podfile.lock via CI'
+          file_pattern: 'ios/Podfile.lock ios/Runner.xcodeproj/project.pbxproj'
+          commit_message: 'chore(ios): refresh Podfile.lock and project.pbxproj via CI'
 
       - name: Upload Podfile.lock artifact
         uses: actions/upload-artifact@v7
@@ -607,7 +630,7 @@ jobs:
           echo "$HOME/fvm/bin" >> "$GITHUB_PATH"
 
       - name: Install Flutter version for FVM
-        run: fvm install 3.41.7
+        run: fvm install 3.44.6
 
       - name: Generate .env from GitHub Secrets
         uses: ./.github/actions/write-env-file

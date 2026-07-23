@@ -120,6 +120,15 @@ class ConfigDBO extends HiveObject {
   // Food Facts is always enabled and deliberately has no entry here.
   @HiveField(31)
   Map<String, bool>? foodSourceToggles;
+  // Set true only by the demo-data seeder (see
+  // `lib/core/utils/demo/demo_seeder.dart`) when the active profile holds
+  // sample data seeded from the onboarding "try it with sample data" link,
+  // rather than a real user's own data. Null/false means real data — the
+  // Home screen's demo-mode banner only ever appears when this is true.
+  // `DeleteAllUserDataUsecase.deleteAll()` clears the whole config box, so
+  // leaving demo mode clears this for free.
+  @HiveField(32)
+  bool? isDemoData;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -151,6 +160,7 @@ class ConfigDBO extends HiveObject {
     this.usesImperialHeightUnits,
     this.bodyWeightUnitIndex,
     this.foodSourceToggles,
+    this.isDemoData,
   });
 
   factory ConfigDBO.empty() =>

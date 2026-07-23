@@ -22,7 +22,7 @@ void main() {
             GlobalCupertinoLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
-          supportedLocales: S.delegate.supportedLocales,
+          supportedLocales: S.supportedLocales,
           home: const DashboardWidget(
             totalKcalSupplied: 1500,
             totalKcalBurned: 500,

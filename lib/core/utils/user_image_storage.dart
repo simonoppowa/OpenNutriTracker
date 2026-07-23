@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -105,6 +106,11 @@ class UserImageStorage {
     } else {
       await File(sourcePath).copy(destPath);
     }
+    // A fresh import always wins over any stale photo-credit sidecar (see
+    // [writeCredit]) — a real user picking their own photo over a
+    // previously-seeded demo one should never keep showing someone else's
+    // attribution.
+    await _deleteCreditFile(destPath);
     return relativePathFor(kind, ownerId);
   }
 
@@ -118,6 +124,56 @@ class UserImageStorage {
     final file = File(absolute);
     if (await file.exists()) {
       await file.delete();
+    }
+    await _deleteCreditFile(absolute);
+  }
+
+  /// Records a photographer credit for the image at `relativePath`, kept
+  /// as a `<relativePath>.credit.json` sidecar rather than a DBO field —
+  /// this is only ever written by the dev-only demo-data seeder for its
+  /// curated Unsplash photos, and a sidecar file needed no schema change
+  /// (and no Hive codegen) to add. Real user-picked photos never have one.
+  static Future<void> writeCredit(
+    String relativePath, {
+    required String name,
+    required String profileUrl,
+  }) async {
+    final sanitized = sanitizeRelative(relativePath);
+    if (sanitized == null) return;
+    final absolute = await absolutePath(sanitized);
+    await File(
+      '$absolute.credit.json',
+    ).writeAsString(jsonEncode({'name': name, 'profileUrl': profileUrl}));
+  }
+
+  /// The credit written by [writeCredit] for `relativePath`, or null when
+  /// there isn't one (the common case).
+  static Future<({String name, String profileUrl})?> readCredit(
+    String relativePath,
+  ) async {
+    try {
+      final sanitized = sanitizeRelative(relativePath);
+      if (sanitized == null) return null;
+      final absolute = await absolutePath(sanitized);
+      final file = File('$absolute.credit.json');
+      if (!await file.exists()) return null;
+      final decoded = jsonDecode(await file.readAsString());
+      if (decoded is! Map) return null;
+      final name = decoded['name'];
+      final profileUrl = decoded['profileUrl'];
+      if (name is! String || profileUrl is! String) return null;
+      return (name: name, profileUrl: profileUrl);
+    } catch (_) {
+      // Optional UI metadata — a corrupt/partial sidecar must not break
+      // the profile editor or meal detail screen.
+      return null;
+    }
+  }
+
+  static Future<void> _deleteCreditFile(String absoluteImagePath) async {
+    final creditFile = File('$absoluteImagePath.credit.json');
+    if (await creditFile.exists()) {
+      await creditFile.delete();
     }
   }
 

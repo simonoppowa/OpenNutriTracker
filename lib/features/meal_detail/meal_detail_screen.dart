@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/demo/unsplash_attribution.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
@@ -57,17 +58,34 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   bool _hydrationRequested = false;
   bool _userChangedSelection = false;
 
+  // Scroll distance from expandedHeight down to the collapsed SliverAppBar
+  // (toolbar + bottom bar): 268-124 with the DailyKcalOverview bottom bar,
+  // 200-56 without it — always 144 either way, so no need to key it off
+  // dayKcalGoal.
+  static const double _collapseScrollThreshold = 144.0;
+  bool _showAppBarTitle = false;
+
   @override
   void initState() {
     _mealDetailBloc = locator<MealDetailBloc>();
     _loadMicronutrientSetting();
+    _scrollController.addListener(_handleScroll);
     super.initState();
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_handleScroll);
+    _scrollController.dispose();
     quantityTextController.dispose();
     super.dispose();
+  }
+
+  void _handleScroll() {
+    final show = _scrollController.offset >= _collapseScrollThreshold - 4;
+    if (show != _showAppBarTitle) {
+      setState(() => _showAppBarTitle = show);
+    }
   }
 
   Future<void> _loadMicronutrientSetting() async {
@@ -236,6 +254,23 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           backgroundColor: palette.surface,
           surfaceTintColor: Colors.transparent,
           expandedHeight: dayKcalGoal > 0 ? 268 : 200,
+          // The real toolbar title slot, not FlexibleSpaceBar.title: that
+          // widget bottom-anchors itself within the whole flexible-space
+          // stack (which includes the `bottom` bar's height), so with the
+          // DailyKcalOverview bottom bar present it renders underneath that
+          // bar instead of in the visible toolbar row.
+          title: AnimatedOpacity(
+            opacity: _showAppBarTitle ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 200),
+            child: Text(
+              meal.name ?? '',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w800),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(dayKcalGoal > 0 ? 68 : 0),
             child: DailyKcalOverview(
@@ -244,39 +279,16 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               currentSelectionKcal: totalKcal,
             ),
           ),
-          flexibleSpace: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              final top = constraints.biggest.height;
-              final barsHeight =
-                  MediaQuery.of(context).padding.top + kToolbarHeight;
-              const offset = 10;
-              return FlexibleSpaceBar(
-                expandedTitleScale: 1, // don't scale title
-                background: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: dayKcalGoal > 0 ? 68 : 0,
-                  ),
-                  child: MealTitleExpanded(
-                    meal: meal,
-                    usesImperialUnits: _usesImperialUnits,
-                  ),
-                ),
-                title: AnimatedOpacity(
-                  opacity: 1.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: top > barsHeight - offset && top < barsHeight + offset
-                      ? Text(
-                          meal.name ?? '',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(fontWeight: FontWeight.w800),
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      : const SizedBox(),
-                ),
-              );
-            },
+          flexibleSpace: FlexibleSpaceBar(
+            background: Padding(
+              padding: EdgeInsets.only(
+                bottom: dayKcalGoal > 0 ? 68 : 0,
+              ),
+              child: MealTitleExpanded(
+                meal: meal,
+                usesImperialUnits: _usesImperialUnits,
+              ),
+            ),
           ),
           actions: [
             Semantics(
@@ -329,6 +341,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 ),
               ),
             ),
+            UnsplashCreditLine(imageUrl: meal.mainImageUrl),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(

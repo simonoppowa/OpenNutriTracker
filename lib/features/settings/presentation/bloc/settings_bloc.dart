@@ -73,6 +73,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           dayStartOffsetMinutes: userConfig.dayStartOffsetMinutes,
           useMaterialYou: userConfig.useMaterialYou,
           accentColor: userConfig.accentColor,
+          isDemoData: userConfig.isDemoData,
         ),
       );
     });
@@ -83,8 +84,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     add(LoadSettingsEvent());
   }
 
-  void setHasAcceptedAnonymousData(bool hasAcceptedAnonymousData) {
-    _addConfigUsecase.setConfigHasAcceptedAnonymousData(
+  Future<void> setHasAcceptedAnonymousData(bool hasAcceptedAnonymousData) {
+    return _addConfigUsecase.setConfigHasAcceptedAnonymousData(
       hasAcceptedAnonymousData,
     );
   }

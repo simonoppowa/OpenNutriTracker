@@ -34,6 +34,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/diary_day_boundary_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/kcal_adjustment_dialog.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/kcal_goal_info_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/macro_split_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_goals_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/per_meal_kcal_share_dialog.dart';
@@ -163,6 +164,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     // ten nutrient goals, and the diary day boundary. Each
                     // is now its own focused entry so people can find the
                     // setting they want and only see the controls for it.
+                    _SettingsTile(
+                      identifier: 'settings-kcal-goal-info',
+                      palette: palette,
+                      icon: Icons.functions_rounded,
+                      title: S.of(context).settingsKcalGoalInfoLabel,
+                      showChevron: true,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const KcalGoalInfoScreen(),
+                        ),
+                      ),
+                    ),
                     _SettingsTile(
                       identifier: 'settings-kcal-adjustment',
                       palette: palette,
@@ -401,8 +414,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       palette: palette,
                       icon: Icons.policy_rounded,
                       title: S.of(context).settingsPrivacySettings,
-                      onTap: () =>
-                          _showPrivacyDialog(context, state.sendAnonymousData),
+                      onTap: () => _showPrivacyDialog(
+                        context,
+                        state.sendAnonymousData,
+                        isDemoData: state.isDemoData,
+                      ),
                     ),
                     _SettingsTile(
                       palette: palette,
@@ -1114,9 +1130,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showPrivacyDialog(
     BuildContext context,
-    bool hasAcceptedAnonymousData,
-  ) async {
-    bool switchActive = hasAcceptedAnonymousData;
+    bool hasAcceptedAnonymousData, {
+    required bool isDemoData,
+  }) async {
+    // Crash reporting is not meaningful on synthetic demo data and would
+    // still attach release diagnostics to a session that holds no real
+    // user profile — keep the control off and locked while isDemoData.
+    bool switchActive = isDemoData ? false : hasAcceptedAnonymousData;
     showDialog(
       context: context,
       builder: (context) {
@@ -1128,14 +1148,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   BuildContext context,
                   void Function(void Function()) setState,
                 ) {
-                  return SwitchListTile(
-                    title: Text(S.of(context).sendAnonymousUserData),
-                    value: switchActive,
-                    onChanged: (bool value) {
-                      setState(() {
-                        switchActive = value;
-                      });
-                    },
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(S.of(context).sendAnonymousUserData),
+                        value: switchActive,
+                        onChanged: isDemoData
+                            ? null
+                            : (bool value) {
+                                setState(() {
+                                  switchActive = value;
+                                });
+                              },
+                      ),
+                      if (isDemoData) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          S.of(context).settingsDemoPrivacyNote,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ],
                   );
                 },
           ),
@@ -1148,9 +1184,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             TextButton(
               onPressed: () async {
-                _settingsBloc.setHasAcceptedAnonymousData(switchActive);
-                if (!switchActive) Sentry.close();
+                final accepted = isDemoData ? false : switchActive;
+                await _settingsBloc.setHasAcceptedAnonymousData(accepted);
+                if (!accepted) Sentry.close();
                 _settingsBloc.add(LoadSettingsEvent());
+                if (!context.mounted) return;
                 Navigator.of(context).pop();
               },
               child: Text(S.of(context).dialogOKLabel),

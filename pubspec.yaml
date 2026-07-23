@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 2.0.0+59
+version: 2.0.1+60
 
 environment:
   sdk: '>=3.11.0 <4.0.0'
@@ -34,6 +34,7 @@ dependencies:
 
 
   collection: ^1.19.1
+  meta: ^1.17.0
   intl: ^0.20.2
   get_it: ^9.2.1
   provider: ^6.1.5+1
@@ -103,16 +104,22 @@ dev_dependencies:
   plugin_platform_interface: ^2.1.8
 
 flutter:
+  generate: true
 
   uses-material-design: true
 
   assets:
     - assets/icon/ont_logo_square.svg
+    - assets/icon/ont_splash_rings.svg
+    - assets/icon/ont_splash_spoon.svg
     - assets/icon/ont_logo_square_color_back_1024x1024.png
     - assets/icon/ont_logo_square_color_white_1024x1024.png
     - assets/icon/ont_banner_top.png
     - assets/icon/ont_banner_top_light.png
     - assets/icon/nonbinary_symbol.svg
+    # Offline demo profile portrait (bundled Unsplash photo; credit in
+    # unsplash_attribution.dart). Avoids a hot network download on Try Demo.
+    - assets/demo/alex_demo_avatar.jpg
 
   fonts:
     - family: CustomIcons
@@ -153,9 +160,6 @@ flutter:
     - family: Nunito
       fonts:
       - asset: fonts/Nunito.ttf
-
-flutter_intl:
-  enabled: true
 
 flutter_launcher_icons:
   android: true
