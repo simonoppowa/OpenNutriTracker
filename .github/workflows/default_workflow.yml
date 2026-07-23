@@ -24,7 +24,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Flutter + cache packages
         uses: ./.github/actions/setup-flutter-cache
@@ -91,7 +91,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # Need the merge base in scope so the paths-filter step below
           # can diff against the PR's target branch.
@@ -163,7 +163,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # Same-repo PRs: check out the head branch so the auto-commit
           # step below can push Podfile.lock fixes back to the branch.
@@ -292,7 +292,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Flutter + cache packages
         uses: ./.github/actions/setup-flutter-cache
@@ -375,7 +375,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Java (Zulu)
         id: setup_java_zulu
@@ -447,7 +447,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # The hosted ubuntu runner has ~14 GB free after its preinstalled
       # toolchains, and pulling the android-34 system image plus booting the
@@ -604,7 +604,7 @@ jobs:
       APP_STORE_CONNECT_API_KEY_IS_KEY_CONTENT_BASE64: 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Ruby + Bundler
         uses: ruby/setup-ruby@v1
@@ -722,7 +722,7 @@ jobs:
       APP_STORE_CONNECT_API_KEY_IS_KEY_CONTENT_BASE64: 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Ruby + Bundler
         uses: ruby/setup-ruby@v1
@@ -761,7 +761,7 @@ jobs:
       BUNDLE_GEMFILE: ${{ github.workspace }}/android/Gemfile
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Java (Zulu)
         id: setup_java_zulu
@@ -893,7 +893,7 @@ jobs:
       BUNDLE_GEMFILE: ${{ github.workspace }}/android/Gemfile
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Ruby + Bundler
         uses: ruby/setup-ruby@v1
@@ -926,7 +926,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download iOS IPA artifact
         uses: actions/download-artifact@v8
