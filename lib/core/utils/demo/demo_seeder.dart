@@ -291,7 +291,13 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   // Marks the active profile as holding sample, not real, data — drives
   // the Home screen's demo-mode banner (see `main_screen.dart`) and, as a
   // side effect, lets `just dev_seed` exercise that same banner/exit flow.
-  await locator<AddConfigUsecase>().setConfigIsDemoData(true);
+  // Demo seeding implies the privacy policy was accepted (the Try Demo
+  // button is gated on it) and keeps crash reporting off, since the data is
+  // synthetic and not the user's own.
+  final addConfig = locator<AddConfigUsecase>();
+  await addConfig.setConfigHasAcceptedPolicy(true);
+  await addConfig.setConfigHasAcceptedAnonymousData(false);
+  await addConfig.setConfigIsDemoData(true);
 
   _log.info('Demo data seeded.');
 }

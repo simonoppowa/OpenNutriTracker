@@ -938,6 +938,7 @@
   "settingsPotassiumGoalLabel": "Kaliumziel",
   "settingsPrivacySettings": "Datenschutzeinstellungen",
   "settingsDemoPrivacyNote": "Absturzberichte sind nicht verfügbar, solange Beispieldaten angezeigt werden. Richte zuerst dein eigenes Profil ein.",
+  "settingsDemoPrivacyNote": "Absturzberichte sind nicht verfügbar, solange Beispieldaten angezeigt werden. Richte zuerst dein eigenes Profil ein.",
   "settingsReportErrorLabel": "Fehler melden",
   "settingsSaturatedFatGoalDescription": "Tägliche Obergrenze für gesättigte Fette in Gramm. Standardreferenz: 20 g.",
   "settingsSaturatedFatGoalLabel": "Ziel für gesättigte Fette",

@@ -124,6 +124,10 @@ class ConfigDataSource {
     );
   }
 
+  Future<void> setConfigAcceptedPolicy(bool hasAcceptedPolicy) async {
+    await _update((c) => c.hasAcceptedPolicy = hasAcceptedPolicy);
+  }
+
   Future<AppThemeDBO> getAppTheme() async => _readMerged().selectedAppTheme;
 
   Future<void> setConfigAppTheme(AppThemeDBO appTheme) async {

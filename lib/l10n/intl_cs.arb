@@ -907,6 +907,7 @@
   "settingsPotassiumGoalLabel": "Cíl draslíku",
   "settingsPrivacySettings": "Nastavení soukromí",
   "settingsDemoPrivacyNote": "Hlášení pádů není k dispozici při zobrazení vzorových dat. Nejprve si nastavte vlastní profil.",
+  "settingsDemoPrivacyNote": "Hlášení pádů není k dispozici při zobrazení vzorových dat. Nejprve si nastavte vlastní profil.",
   "settingsReportErrorLabel": "Nahlásit chybu",
   "settingsSaturatedFatGoalDescription": "Denní limit nasycených tuků v gramech. Výchozí reference je 20 g.",
   "settingsSaturatedFatGoalLabel": "Cíl nasycených tuků",

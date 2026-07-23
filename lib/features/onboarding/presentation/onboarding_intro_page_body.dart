@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/demo/demo_seeder.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
+import 'package:opennutritracker/features/profile/presentation/utils/profile_switch_coordinator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -66,7 +67,9 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                     child: SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: _seedingDemo ? null : _tryDemo,
+                        onPressed: (_seedingDemo || !_acceptedPolicy)
+                            ? null
+                            : _tryDemo,
                         icon: _seedingDemo
                             ? const SizedBox(
                                 width: 16,
@@ -175,17 +178,17 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   }
 
   /// Seeds the active profile with sample data and jumps straight to Home,
-  /// skipping the rest of onboarding entirely — independent of whether the
-  /// privacy-policy checkbox above is ticked, since demo mode writes no
-  /// personal data of the person tapping this (see
-  /// `lib/core/utils/demo/demo_seeder.dart`). Takes no `BuildContext`
-  /// parameter (uses the State's own `context` instead) so the `mounted`
-  /// guards below are recognised as covering every post-`await` use.
+  /// skipping the rest of onboarding entirely. The button stays disabled
+  /// until the privacy-policy checkbox is ticked, so entering demo mode is an
+  /// explicit, consented choice (see `_acceptedPolicy`). Takes no
+  /// `BuildContext` parameter (uses the State's own `context` instead) so the
+  /// `mounted` guards below are recognised as covering every post-`await` use.
   Future<void> _tryDemo() async {
     setState(() => _seedingDemo = true);
     try {
       await seedDemoData(DemoSeedOptions.onboarding);
       if (!mounted) return;
+      ProfileSwitchCoordinator.reloadTabBlocs();
       Navigator.of(
         context,
       ).pushNamedAndRemoveUntil(NavigationOptions.mainRoute, (route) => false);

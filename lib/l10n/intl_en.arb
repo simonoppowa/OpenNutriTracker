@@ -981,6 +981,7 @@
   "settingsPotassiumGoalDescription": "Daily potassium target in milligrams. Default reference is 3500mg.",
   "settingsPotassiumGoalLabel": "Potassium goal",
   "settingsPrivacySettings": "Privacy Settings",
+  "settingsDemoPrivacyNote": "Crash reporting is unavailable while you are viewing sample data. Set up your own profile first.",
   "settingsReportErrorLabel": "Report Error",
   "settingsSaturatedFatGoalDescription": "Daily saturated fat cap in grams. Default reference is 20g.",
   "settingsSaturatedFatGoalLabel": "Saturated fat goal",
