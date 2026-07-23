@@ -27,6 +27,10 @@ class ConfigRepository {
     );
   }
 
+  Future<void> setConfigHasAcceptedPolicy(bool hasAcceptedPolicy) async {
+    await _configDataSource.setConfigAcceptedPolicy(hasAcceptedPolicy);
+  }
+
   Future<bool> getConfigHasAcceptedAnonymousData() async {
     return await _configDataSource.getHasAcceptedAnonymousData();
   }
@@ -154,6 +158,10 @@ class ConfigRepository {
 
   Future<void> setFastingWarningAcknowledged(bool acknowledged) async {
     await _configDataSource.setFastingWarningAcknowledged(acknowledged);
+  }
+
+  Future<void> setIsDemoData(bool isDemoData) async {
+    await _configDataSource.setIsDemoData(isDemoData);
   }
 
   Future<void> setConfigUseMaterialYou(bool useMaterialYou) async {

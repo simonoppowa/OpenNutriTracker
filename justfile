@@ -37,3 +37,7 @@ start_emulator:
 
 dev:
   fvm flutter run --flavor develop
+
+# Run with the active profile wiped and reseeded with demo data (skips onboarding)
+dev_seed:
+  fvm flutter run --flavor develop -t lib/dev/main_dev.dart

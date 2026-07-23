@@ -24,6 +24,10 @@ class AddConfigUsecase {
     );
   }
 
+  Future<void> setConfigHasAcceptedPolicy(bool hasAcceptedPolicy) async {
+    await _configRepository.setConfigHasAcceptedPolicy(hasAcceptedPolicy);
+  }
+
   Future<void> setConfigAppTheme(AppThemeEntity appTheme) async {
     await _configRepository.setConfigAppTheme(appTheme);
   }
@@ -124,5 +128,9 @@ class AddConfigUsecase {
 
   Future<void> setConfigFoodSourceToggles(Map<String, bool> toggles) async {
     await _configRepository.setConfigFoodSourceToggles(toggles);
+  }
+
+  Future<void> setConfigIsDemoData(bool isDemoData) async {
+    await _configRepository.setIsDemoData(isDemoData);
   }
 }

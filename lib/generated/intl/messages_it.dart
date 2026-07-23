@@ -609,6 +609,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("g/ml"),
     "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
     "heightLabel": MessageLookupByLibrary.simpleMessage("Altezza"),
+    "homeDemoBannerAction": MessageLookupByLibrary.simpleMessage(
+      "Configura il tuo profilo",
+    ),
+    "homeDemoBannerConfirmAction": MessageLookupByLibrary.simpleMessage(
+      "Continua",
+    ),
+    "homeDemoBannerConfirmContent": MessageLookupByLibrary.simpleMessage(
+      "I dati di esempio verranno cancellati e configurerai il tuo profilo. Questa operazione non può essere annullata.",
+    ),
+    "homeDemoBannerConfirmTitle": MessageLookupByLibrary.simpleMessage(
+      "Configurare il tuo profilo?",
+    ),
+    "homeDemoBannerLabel": MessageLookupByLibrary.simpleMessage(
+      "Stai visualizzando dati di esempio",
+    ),
     "homeFirstMealHint": MessageLookupByLibrary.simpleMessage(
       "Tocca + per registrare il tuo primo pasto o attività",
     ),
@@ -1012,6 +1027,18 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "onboardingTargetWeightSubtitle": MessageLookupByLibrary.simpleMessage(
       "C\'è un peso che vuoi raggiungere? Puoi lasciare vuoto o modificarlo più tardi dal Profilo.",
+    ),
+    "onboardingTryDemoError": MessageLookupByLibrary.simpleMessage(
+      "Impossibile avviare la demo. Riprova.",
+    ),
+    "onboardingTryDemoLabel": MessageLookupByLibrary.simpleMessage(
+      "Prova la demo",
+    ),
+    "onboardingTryDemoSubtitle": MessageLookupByLibrary.simpleMessage(
+      'Salta la configurazione ed esplora l\'app con dati di esempio. Accetta prima l\'informativa sulla privacy.',
+    ),
+    "onboardingTryDemoDisclaimer": MessageLookupByLibrary.simpleMessage(
+      'Usa solo dati di esempio fittizi. I report di crash restano disattivati finché non li attivi in seguito. Foto di esempio e ricerca alimenti possono usare la rete.',
     ),
     "onboardingWeightExampleHintKg": MessageLookupByLibrary.simpleMessage(
       "es. 60",
@@ -1935,6 +1962,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsPrivacySettings": MessageLookupByLibrary.simpleMessage(
       "Impostazioni privacy",
+    ),
+    "settingsDemoPrivacyNote": MessageLookupByLibrary.simpleMessage(
+      'I report di crash non sono disponibili mentre visualizzi dati di esempio. Configura prima il tuo profilo.',
     ),
     "settingsReportErrorLabel": MessageLookupByLibrary.simpleMessage(
       "Segnala errore",

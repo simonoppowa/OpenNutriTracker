@@ -589,6 +589,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("g/ml"),
     "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
     "heightLabel": MessageLookupByLibrary.simpleMessage("Height"),
+    "homeDemoBannerAction": MessageLookupByLibrary.simpleMessage(
+      "Set up your profile",
+    ),
+    "homeDemoBannerConfirmAction": MessageLookupByLibrary.simpleMessage(
+      "Continue",
+    ),
+    "homeDemoBannerConfirmContent": MessageLookupByLibrary.simpleMessage(
+      "Sample data will be cleared and you\'ll set up your own profile. This cannot be undone.",
+    ),
+    "homeDemoBannerConfirmTitle": MessageLookupByLibrary.simpleMessage(
+      "Set up your own profile?",
+    ),
+    "homeDemoBannerLabel": MessageLookupByLibrary.simpleMessage(
+      "You\'re viewing sample data",
+    ),
     "homeFirstMealHint": MessageLookupByLibrary.simpleMessage(
       "Tap + to log your first meal or activity",
     ),
@@ -970,6 +985,16 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "onboardingTargetWeightSubtitle": MessageLookupByLibrary.simpleMessage(
       "Is there a weight you\'re working towards? You can leave this blank or change it later in Profile.",
+    ),
+    "onboardingTryDemoError": MessageLookupByLibrary.simpleMessage(
+      "Couldn\'t set up the demo. Please try again.",
+    ),
+    "onboardingTryDemoLabel": MessageLookupByLibrary.simpleMessage("Try Demo"),
+    "onboardingTryDemoSubtitle": MessageLookupByLibrary.simpleMessage(
+      'Skip setup and explore the app with sample data. Accept the privacy policy first.',
+    ),
+    "onboardingTryDemoDisclaimer": MessageLookupByLibrary.simpleMessage(
+      'Uses only fictional sample data. Crash reports stay off unless you enable them later. Sample photos and food search may use the network.',
     ),
     "onboardingWeightExampleHintKg": MessageLookupByLibrary.simpleMessage(
       "e.g. 60",
@@ -1837,6 +1862,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsPrivacySettings": MessageLookupByLibrary.simpleMessage(
       "Privacy Settings",
+    ),
+    "settingsDemoPrivacyNote": MessageLookupByLibrary.simpleMessage(
+      'Crash reporting is unavailable while you are viewing sample data. Set up your own profile first.',
     ),
     "settingsReportErrorLabel": MessageLookupByLibrary.simpleMessage(
       "Report Error",

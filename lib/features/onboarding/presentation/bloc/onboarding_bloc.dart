@@ -20,7 +20,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   final AddConfigUsecase _addConfigUsecase;
 
   OnboardingBloc(this._addUserUsecase, this._addConfigUsecase)
-      : super(OnboardingInitialState()) {
+    : super(OnboardingInitialState()) {
     on<LoadOnboardingEvent>((event, emit) async {
       emit(OnboardingLoadingState());
 
@@ -41,6 +41,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     required int? accentColor,
   }) async {
     await _addUserUsecase.addUser(userEntity);
+    // Privacy policy is required to leave the intro page, so completing
+    // onboarding always means the user accepted it. Persist that – the flag
+    // previously only lived in ephemeral intro UI state.
+    await _addConfigUsecase.setConfigHasAcceptedPolicy(true);
     await _addConfigUsecase.setConfigHasAcceptedAnonymousData(
       hasAcceptedDataCollection,
     );
@@ -60,6 +64,13 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     await _addConfigUsecase.setNotificationsEnabled(dailyReminderEnabled);
     await _addConfigUsecase.setConfigUseMaterialYou(useMaterialYou);
     await _addConfigUsecase.setConfigAccentColor(accentColor);
+    // Defensive: real onboarding always starts from a wiped, un-onboarded
+    // profile (either fresh install, or the demo-mode banner's own wipe
+    // before returning here), so this is normally already false — but
+    // clearing it explicitly means a real profile can never be left
+    // showing the demo-mode banner by some other, future path into
+    // onboarding.
+    await _addConfigUsecase.setConfigIsDemoData(false);
   }
 
   double? getOverviewCalorieGoal() {

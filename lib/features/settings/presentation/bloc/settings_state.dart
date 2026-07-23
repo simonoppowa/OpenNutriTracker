@@ -36,6 +36,9 @@ class SettingsLoadedState extends SettingsState {
   final int dayStartOffsetMinutes; // #139 follow-up
   final bool useMaterialYou; // #415
   final int? accentColor; // #415 follow-up
+  /// True while the active profile holds Try Demo / dev sample data.
+  /// Privacy settings lock Sentry opt-in for that session.
+  final bool isDemoData;
 
   const SettingsLoadedState(
     this.versionNumber,
@@ -59,6 +62,7 @@ class SettingsLoadedState extends SettingsState {
     this.dayStartOffsetMinutes = 0,
     this.useMaterialYou = true,
     this.accentColor,
+    this.isDemoData = false,
   });
 
   @override
@@ -84,5 +88,6 @@ class SettingsLoadedState extends SettingsState {
         dayStartOffsetMinutes,
         useMaterialYou,
         accentColor,
+        isDemoData,
       ];
 }

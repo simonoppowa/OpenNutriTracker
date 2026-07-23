@@ -606,6 +606,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("г/мл"),
     "gramUnit": MessageLookupByLibrary.simpleMessage("г"),
     "heightLabel": MessageLookupByLibrary.simpleMessage("Зріст"),
+    "homeDemoBannerAction": MessageLookupByLibrary.simpleMessage(
+      "Налаштувати свій профіль",
+    ),
+    "homeDemoBannerConfirmAction": MessageLookupByLibrary.simpleMessage(
+      "Продовжити",
+    ),
+    "homeDemoBannerConfirmContent": MessageLookupByLibrary.simpleMessage(
+      "Зразкові дані буде видалено, і ви налаштуєте власний профіль. Цю дію неможливо скасувати.",
+    ),
+    "homeDemoBannerConfirmTitle": MessageLookupByLibrary.simpleMessage(
+      "Налаштувати власний профіль?",
+    ),
+    "homeDemoBannerLabel": MessageLookupByLibrary.simpleMessage(
+      "Ви переглядаєте зразкові дані",
+    ),
     "homeFirstMealHint": MessageLookupByLibrary.simpleMessage(
       "Натисніть +, щоб додати першу їжу чи активність",
     ),
@@ -1003,6 +1018,18 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "onboardingTargetWeightSubtitle": MessageLookupByLibrary.simpleMessage(
       "Чи є вага, до якої ти прагнеш? Це поле можна залишити порожнім або змінити пізніше у Профілі.",
+    ),
+    "onboardingTryDemoError": MessageLookupByLibrary.simpleMessage(
+      "Не вдалося налаштувати демо. Будь ласка, спробуйте ще раз.",
+    ),
+    "onboardingTryDemoLabel": MessageLookupByLibrary.simpleMessage(
+      "Спробувати демо",
+    ),
+    "onboardingTryDemoSubtitle": MessageLookupByLibrary.simpleMessage(
+      'Пропустіть налаштування та дослідіть програму зі зразковими даними. Спочатку прийміть політику конфіденційності.',
+    ),
+    "onboardingTryDemoDisclaimer": MessageLookupByLibrary.simpleMessage(
+      'Використовує лише вигадані зразкові дані. Звіти про збої лишаються вимкненими, доки ви не увімкнете їх пізніше. Зразкові фото та пошук їжі можуть використовувати мережу.',
     ),
     "onboardingWeightExampleHintKg": MessageLookupByLibrary.simpleMessage(
       "наприклад, 60",
@@ -1936,6 +1963,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsPrivacySettings": MessageLookupByLibrary.simpleMessage(
       "Налаштування конфіденційності",
+    ),
+    "settingsDemoPrivacyNote": MessageLookupByLibrary.simpleMessage(
+      'Звіти про збої недоступні під час перегляду зразкових даних. Спочатку налаштуйте власний профіль.',
     ),
     "settingsReportErrorLabel": MessageLookupByLibrary.simpleMessage(
       "Повідомити про помилку",

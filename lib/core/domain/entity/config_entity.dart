@@ -87,6 +87,12 @@ class ConfigEntity extends Equatable {
   // always enabled and never appears here.
   final Map<String, bool> foodSourceToggles;
 
+  /// True only when the active profile holds sample data seeded from the
+  /// onboarding "try it with sample data" link, not a real user's own
+  /// data — drives the Home screen's demo-mode banner. See
+  /// `lib/core/utils/demo/demo_seeder.dart`.
+  final bool isDemoData;
+
   /// Default daily water goal in millilitres for the home chip when the
   /// user has not picked one yet.
   ///
@@ -158,6 +164,7 @@ class ConfigEntity extends Equatable {
     this.accentColor,
     this.scannerPortraitLock,
     this.foodSourceToggles = const <String, bool>{},
+    this.isDemoData = false,
   });
 
   /// Resolves the daily water goal for the home chip. Returns the user's
@@ -260,6 +267,7 @@ class ConfigEntity extends Equatable {
     foodSourceToggles: dbo.foodSourceToggles != null
         ? Map<String, bool>.from(dbo.foodSourceToggles!)
         : const <String, bool>{},
+    isDemoData: dbo.isDemoData ?? false,
   );
 
   /// Returns the recommended kcal target for [mealKey] given a daily goal.
@@ -343,5 +351,6 @@ class ConfigEntity extends Equatable {
     accentColor,
     scannerPortraitLock,
     foodSourceToggles,
+    isDemoData,
   ];
 }

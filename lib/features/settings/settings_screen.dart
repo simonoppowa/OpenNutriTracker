@@ -414,8 +414,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       palette: palette,
                       icon: Icons.policy_rounded,
                       title: S.of(context).settingsPrivacySettings,
-                      onTap: () =>
-                          _showPrivacyDialog(context, state.sendAnonymousData),
+                      onTap: () => _showPrivacyDialog(
+                        context,
+                        state.sendAnonymousData,
+                        isDemoData: state.isDemoData,
+                      ),
                     ),
                     _SettingsTile(
                       palette: palette,
@@ -1127,9 +1130,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showPrivacyDialog(
     BuildContext context,
-    bool hasAcceptedAnonymousData,
-  ) async {
-    bool switchActive = hasAcceptedAnonymousData;
+    bool hasAcceptedAnonymousData, {
+    required bool isDemoData,
+  }) async {
+    // Crash reporting is not meaningful on synthetic demo data and would
+    // still attach release diagnostics to a session that holds no real
+    // user profile — keep the control off and locked while isDemoData.
+    bool switchActive = isDemoData ? false : hasAcceptedAnonymousData;
     showDialog(
       context: context,
       builder: (context) {
@@ -1141,14 +1148,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   BuildContext context,
                   void Function(void Function()) setState,
                 ) {
-                  return SwitchListTile(
-                    title: Text(S.of(context).sendAnonymousUserData),
-                    value: switchActive,
-                    onChanged: (bool value) {
-                      setState(() {
-                        switchActive = value;
-                      });
-                    },
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(S.of(context).sendAnonymousUserData),
+                        value: switchActive,
+                        onChanged: isDemoData
+                            ? null
+                            : (bool value) {
+                                setState(() {
+                                  switchActive = value;
+                                });
+                              },
+                      ),
+                      if (isDemoData) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          S.of(context).settingsDemoPrivacyNote,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ],
                   );
                 },
           ),
@@ -1161,8 +1184,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             TextButton(
               onPressed: () async {
-                _settingsBloc.setHasAcceptedAnonymousData(switchActive);
-                if (!switchActive) Sentry.close();
+                final accepted = isDemoData ? false : switchActive;
+                _settingsBloc.setHasAcceptedAnonymousData(accepted);
+                if (!accepted) Sentry.close();
                 _settingsBloc.add(LoadSettingsEvent());
                 Navigator.of(context).pop();
               },
