@@ -79,7 +79,7 @@ dependencies:
   sentry_flutter: ^9.19.0
 
   supabase_flutter: ^2.12.4
-  flutter_local_notifications: ^19.5.0
+  flutter_local_notifications: ^20.1.0
   timezone: ^0.10.1
   flutter_timezone: ^3.0.0
 
