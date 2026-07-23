@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/presentation/splash_screen.dart';
+import 'package:opennutritracker/core/presentation/storage_recovery_app.dart';
 import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/app_theme.dart';
@@ -48,21 +49,25 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LoggerConfig.intiLogger();
+  await _bootstrapApp();
+}
+
+Future<void> _bootstrapApp() async {
   final log = Logger('main');
   try {
     await initLocator();
   } on HiveStorageIntegrityException catch (error, stackTrace) {
     // Consent (and thus Sentry) lives in the encrypted Config Hive box, so it
-    // cannot be read on this path. Shipping a pre-consent network report would
-    // break the opt-in telemetry promise (onboarding/settings copy, README,
-    // F-Droid expectations). Local log only — then abort unlock/mint paths.
+    // cannot be read on this path. Keep diagnostics local and preserve the
+    // database files while giving the user a safe, retryable recovery screen.
     log.severe(
       'Local database integrity failure during bootstrap '
       '(code=${error.code}). Not reporting to Sentry before consent.',
       error,
       stackTrace,
     );
-    rethrow;
+    runApp(StorageRecoveryApp(errorCode: error.code, onRetry: _bootstrapApp));
+    return;
   }
 
   // Drop cached remote-search results that haven't been touched in 90
@@ -86,10 +91,11 @@ Future<void> main() async {
   // they surface in the OS settings, so this keeps them in the user's
   // language instead of reverting to English on each launch.
   if (config.notificationsEnabled) {
-    final s = lookupS(basicLocaleListResolution(
-      [savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale],
-      S.supportedLocales,
-    ));
+    final s = lookupS(
+      basicLocaleListResolution([
+        savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale,
+      ], S.supportedLocales),
+    );
     final notificationService = locator<NotificationService>();
     await notificationService.initialize();
     await notificationService.scheduleDailyReminder(

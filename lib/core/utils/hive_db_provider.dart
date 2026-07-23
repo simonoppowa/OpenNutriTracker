@@ -35,6 +35,8 @@ import 'package:opennutritracker/hive_registrar.g.dart';
 /// opens the target's, so the per-profile getters always hand back the
 /// boxes belonging to whoever is active right now.
 class HiveDBProvider extends ChangeNotifier {
+  static bool _adaptersRegistered = false;
+
   static const configBoxName = 'ConfigBox';
   static const intakeBoxName = 'IntakeBox';
   static const userActivityBoxName = 'UserActivityBox';
@@ -162,7 +164,10 @@ class HiveDBProvider extends ChangeNotifier {
     // (#7 on UserDBO) was missing, causing every save with a non-null
     // hormone profile to throw, which the previous broken async chains
     // swallowed silently. Result: profile reset to null on app relaunch.
-    Hive.registerAdapters();
+    if (!_adaptersRegistered) {
+      Hive.registerAdapters();
+      _adaptersRegistered = true;
+    }
 
     profileBox = await _openEncryptedBox(profileBoxName);
     cachedOffMealBox = await _openEncryptedBox(cachedOffMealBoxName);
