@@ -283,8 +283,11 @@ jobs:
     runs-on: macos-15
     # Bound the job so a hung test fails fast rather than drifting toward
     # GitHub's 6-hour default. A healthy run is the ~11-12 min Xcode build
-    # plus a few minutes of tests, so 30 leaves comfortable headroom.
-    timeout-minutes: 30
+    # plus a few minutes of tests, but the "Run integration tests" step
+    # retries the whole build+test once on failure, so a single flake needs
+    # room for a second cold build. 30 was too tight for that and got
+    # cancelled mid-retry; 50 covers the retry while still catching hangs.
+    timeout-minutes: 50
     permissions:
       contents: read
     steps:
@@ -293,6 +296,15 @@ jobs:
 
       - name: Setup Flutter + cache packages
         uses: ./.github/actions/setup-flutter-cache
+
+      # Match ios-podfile-lock-guard and ios-build: SPM is enabled by
+      # default on Flutter's stable channel, so `flutter test` would spend
+      # ~150s "Adding Swift Package Manager integration" and resolve plugins
+      # via the SPM graph instead of the CocoaPods one those jobs pin to.
+      # Disable it here too so this job builds the same pinned graph and
+      # skips that avoidable per-build cost.
+      - name: Disable Swift Package Manager
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Cache CocoaPods
         uses: actions/cache@v5
@@ -426,8 +438,11 @@ jobs:
     # android-build (it rebuilds the app itself) nor a file-discovery job.
     runs-on: ubuntu-latest
     # Same bound as iOS so a hung test fails fast rather than running to the
-    # 6-hour default.
-    timeout-minutes: 30
+    # 6-hour default. On a cold cache this job pays an AVD seed boot plus a
+    # test boot, and the "retry once" step adds a third boot + rebuild, so 30
+    # was too tight and got cancelled mid-retry (which also skips the AVD
+    # cache save, keeping the next run cold). 50 covers the retry path.
+    timeout-minutes: 50
     permissions:
       contents: read
     steps:
