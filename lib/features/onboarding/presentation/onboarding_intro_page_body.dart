@@ -16,15 +16,11 @@ class OnboardingIntroPageBody extends StatefulWidget {
     required this.setPageContent,
     this.initialAcceptedPolicy = false,
     this.initialAcceptedDataCollection = false,
-    // First-run only. Add-profile onboarding must leave this false so demo
-    // seed cannot wipe another profile's shared recipes/meals/templates.
-    this.allowTryDemo = true,
   });
 
   final Function(bool active, bool acceptedDataCollection) setPageContent;
   final bool initialAcceptedPolicy;
   final bool initialAcceptedDataCollection;
-  final bool allowTryDemo;
 
   @override
   State<OnboardingIntroPageBody> createState() =>
@@ -42,8 +38,8 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
       future: AppConst.getVersionNumber(),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         if (snapshot.hasData) {
-          // Scroll so the intro (banner + Try Demo + checkboxes) still fits
-          // on short viewports without a bottom overflow.
+          // Scroll so the demo CTA + checkboxes still fit on shorter
+          // viewports (e.g. the 800×600 surface used by widget tests).
           return SingleChildScrollView(
             child: Column(
               children: [
@@ -60,37 +56,8 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                   style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
-                if (widget.allowTryDemo) ...[
-                  const SizedBox(height: 24.0),
-                  Semantics(
-                    identifier: 'onboarding-try-demo',
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: (_seedingDemo || !_acceptedPolicy)
-                            ? null
-                            : _tryDemo,
-                        icon: _seedingDemo
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.visibility_outlined),
-                        label: Text(S.of(context).onboardingTryDemoLabel),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4.0),
-                  Text(
-                    S.of(context).onboardingTryDemoSubtitle,
-                    style: Theme.of(context).textTheme.bodySmall,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
                 const SizedBox(height: 16.0),
+                // Policy first: both Start (footer) and Try Demo require it.
                 ListTile(
                   onTap: () => _togglePolicy(),
                   title: Text.rich(
@@ -141,6 +108,40 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16.0),
+                Semantics(
+                  identifier: 'onboarding-try-demo',
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: (_seedingDemo || !_acceptedPolicy)
+                          ? null
+                          : _tryDemo,
+                      icon: _seedingDemo
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.visibility_outlined),
+                      label: Text(S.of(context).onboardingTryDemoLabel),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4.0),
+                Text(
+                  S.of(context).onboardingTryDemoSubtitle,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4.0),
+                Text(
+                  S.of(context).onboardingTryDemoDisclaimer,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 8.0),
                 TextButton.icon(
                   onPressed: () => _openSources(context),
@@ -177,17 +178,21 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
     ).push(MaterialPageRoute(builder: (_) => const SourcesScreen()));
   }
 
-  /// Seeds the active profile with sample data and jumps straight to Home,
-  /// skipping the rest of onboarding entirely. The button stays disabled
-  /// until the privacy-policy checkbox is ticked, so entering demo mode is an
-  /// explicit, consented choice (see `_acceptedPolicy`). Takes no
-  /// `BuildContext` parameter (uses the State's own `context` instead) so the
-  /// `mounted` guards below are recognised as covering every post-`await` use.
+  /// Seeds the active profile with sample data and jumps straight to Home.
+  /// Requires the privacy-policy checkbox (same bar as Start) so demo entry
+  /// still records legal acceptance; anonymous crash reporting stays off
+  /// unless the user opts in later from Settings (and is locked while demo
+  /// data is active). Data-collection checkbox is intentionally independent.
   Future<void> _tryDemo() async {
+    if (!_acceptedPolicy) return;
     setState(() => _seedingDemo = true);
     try {
       await seedDemoData(DemoSeedOptions.onboarding);
       if (!mounted) return;
+      // The screen-persistent tab BLoCs were created before the demo profile
+      // existed (or hold another profile's data). Refresh them against the
+      // freshly seeded active profile before landing on the main screen —
+      // same as the normal onboarding start path (onboarding_screen.dart).
       ProfileSwitchCoordinator.reloadTabBlocs();
       Navigator.of(
         context,

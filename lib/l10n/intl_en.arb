@@ -1,4 +1,5 @@
 {
+  "@PHYSICAL_ACTIVITIES": {},
   "@clearOffCacheSubtitle": {
     "placeholders": {
       "count": {
@@ -586,7 +587,8 @@
   "onboardingTargetWeightHintOptional": "Optional",
   "onboardingTargetWeightSubtitle": "Is there a weight you're working towards? You can leave this blank or change it later in Profile.",
   "onboardingTryDemoLabel": "Try Demo",
-  "onboardingTryDemoSubtitle": "Skip setup and explore the app with sample data",
+  "onboardingTryDemoSubtitle": "Skip setup and explore the app with sample data. Accept the privacy policy first.",
+  "onboardingTryDemoDisclaimer": "Uses only fictional sample data. Crash reports stay off unless you enable them later. Sample photos and food search may use the network.",
   "onboardingTryDemoError": "Couldn't set up the demo. Please try again.",
   "onboardingWeightExampleHintKg": "e.g. 60",
   "onboardingWeightExampleHintLbs": "e.g. 132",

@@ -17,21 +17,13 @@ class DeleteAllUserDataUsecase {
 
   DeleteAllUserDataUsecase(this._hiveDBProvider);
 
-  /// Clears the active profile's tracked boxes.
-  ///
-  /// [closeSentry] defaults to true for Settings' "delete all my data" path,
-  /// where consent-relevant telemetry should stop immediately. Demo seed/exit
-  /// reuses this wipe without closing Sentry so trying sample data does not
-  /// tear down crash reporting for the rest of the session.
-  Future<void> deleteAll({bool closeSentry = true}) async {
+  Future<void> deleteAll() async {
     _log.info('Clearing the active profile\'s Hive boxes on user request');
 
     // Closing Sentry first stops any in-flight queue from referencing
     // boxes mid-clear. The user can re-enable crash reporting later from
     // Settings; nothing here re-opens the SDK on its own.
-    if (closeSentry) {
-      await Sentry.close();
-    }
+    await Sentry.close();
 
     // Only the active profile's own data is cleared. The shared content
     // libraries (custom meals, recipes, activity templates) and the shared

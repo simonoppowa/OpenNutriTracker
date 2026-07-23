@@ -125,9 +125,8 @@ class ConfigDBO extends HiveObject {
   // sample data seeded from the onboarding "try it with sample data" link,
   // rather than a real user's own data. Null/false means real data — the
   // Home screen's demo-mode banner only ever appears when this is true.
-  // Authoritative on the **per-profile** config box (see
-  // `ConfigDataSource._readMerged`); `exitDemoMode` also writes false
-  // explicitly so the flag cannot stick around after shared-app leftovers.
+  // `DeleteAllUserDataUsecase.deleteAll()` clears the whole config box, so
+  // leaving demo mode clears this for free.
   @HiveField(32)
   bool? isDemoData;
 

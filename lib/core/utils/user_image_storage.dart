@@ -138,10 +138,12 @@ class UserImageStorage {
     required String name,
     required String profileUrl,
   }) async {
-    final absolute = await absolutePath(relativePath);
-    await File('$absolute.credit.json').writeAsString(
-      jsonEncode({'name': name, 'profileUrl': profileUrl}),
-    );
+    final sanitized = sanitizeRelative(relativePath);
+    if (sanitized == null) return;
+    final absolute = await absolutePath(sanitized);
+    await File(
+      '$absolute.credit.json',
+    ).writeAsString(jsonEncode({'name': name, 'profileUrl': profileUrl}));
   }
 
   /// The credit written by [writeCredit] for `relativePath`, or null when
@@ -149,11 +151,23 @@ class UserImageStorage {
   static Future<({String name, String profileUrl})?> readCredit(
     String relativePath,
   ) async {
-    final absolute = await absolutePath(relativePath);
-    final file = File('$absolute.credit.json');
-    if (!await file.exists()) return null;
-    final data = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
-    return (name: data['name'] as String, profileUrl: data['profileUrl'] as String);
+    try {
+      final sanitized = sanitizeRelative(relativePath);
+      if (sanitized == null) return null;
+      final absolute = await absolutePath(sanitized);
+      final file = File('$absolute.credit.json');
+      if (!await file.exists()) return null;
+      final decoded = jsonDecode(await file.readAsString());
+      if (decoded is! Map) return null;
+      final name = decoded['name'];
+      final profileUrl = decoded['profileUrl'];
+      if (name is! String || profileUrl is! String) return null;
+      return (name: name, profileUrl: profileUrl);
+    } catch (_) {
+      // Optional UI metadata — a corrupt/partial sidecar must not break
+      // the profile editor or meal detail screen.
+      return null;
+    }
   }
 
   static Future<void> _deleteCreditFile(String absoluteImagePath) async {
