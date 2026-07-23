@@ -49,8 +49,17 @@ class AppCard extends StatelessWidget {
       ),
       // A transparent Material directly below the colored decoration so any
       // descendant ListTile/InkWell paints on this ancestor rather than
-      // reaching past the decoration for one further up the tree.
-      child: child == null ? null : Material(color: Colors.transparent, child: child),
+      // reaching past the decoration for one further up the tree. Clipped to
+      // the card radius so descendant ink splashes/highlights stay within the
+      // rounded corners instead of painting square past them.
+      child: child == null
+          ? null
+          : Material(
+              color: Colors.transparent,
+              borderRadius: radius,
+              clipBehavior: Clip.antiAlias,
+              child: child,
+            ),
     );
     if (onTap == null) return tile;
     return Material(

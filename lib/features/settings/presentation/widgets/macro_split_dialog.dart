@@ -210,7 +210,15 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
 
   Future<void> _save() async {
     _applyPendingTextInputs();
-    await widget.settingsBloc.setMacroGoals(_carbsPct, _proteinPct, _fatPct);
+    // Persist the same rounded values the text fields show. _redistribute
+    // leaves fractional percentages (e.g. 18.75), and setMacroGoals stores
+    // via toInt()/100 — passing the raw doubles would truncate the split and
+    // can persist a total below 100% (e.g. 60 + 18 + 21 = 99).
+    await widget.settingsBloc.setMacroGoals(
+      _carbsPct.roundToDouble(),
+      _proteinPct.roundToDouble(),
+      _fatPct.roundToDouble(),
+    );
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.homeBloc.add(const LoadItemsEvent());
     await widget.settingsBloc.updateTrackedDay(DateTime.now());
