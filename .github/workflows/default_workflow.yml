@@ -199,7 +199,7 @@ jobs:
         run: flutter config --no-enable-swift-package-manager
 
       - name: Cache CocoaPods
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
@@ -307,7 +307,7 @@ jobs:
         run: flutter config --no-enable-swift-package-manager
 
       - name: Cache CocoaPods
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
@@ -400,7 +400,7 @@ jobs:
         uses: ./.github/actions/setup-flutter-cache
 
       - name: Cache Gradle
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -487,7 +487,7 @@ jobs:
         uses: ./.github/actions/setup-flutter-cache
 
       - name: Cache Gradle
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -499,7 +499,7 @@ jobs:
       # Cache the AVD snapshot so future runs skip the slow first-boot.
       # Key includes the API level so a bump invalidates the cache.
       - name: Cache AVD
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: avd-cache
         with:
           path: |
@@ -632,7 +632,7 @@ jobs:
           chmod 600 ~/.ssh/known_hosts
 
       - name: Cache CocoaPods
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
@@ -792,7 +792,7 @@ jobs:
         uses: ./.github/actions/setup-flutter-cache
 
       - name: Cache Gradle
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
