@@ -52,22 +52,30 @@ Widget _wrap(Widget child) {
 }
 
 void main() {
-  testWidgets('saves typed macro values even without submitting the field', (tester) async {
+  testWidgets('saves typed macro values even without submitting the field', (
+    tester,
+  ) async {
     final settingsBloc = _FakeSettingsBloc();
     final homeBloc = _FakeHomeBloc();
 
-    await tester.pumpWidget(_wrap(Builder(builder: (context) {
-      return ElevatedButton(
-        onPressed: () => showDialog<void>(
-          context: context,
-          builder: (_) => MacroSplitDialog(
-            settingsBloc: settingsBloc,
-            homeBloc: homeBloc,
-          ),
+    await tester.pumpWidget(
+      _wrap(
+        Builder(
+          builder: (context) {
+            return ElevatedButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => MacroSplitDialog(
+                  settingsBloc: settingsBloc,
+                  homeBloc: homeBloc,
+                ),
+              ),
+              child: const Text('Open'),
+            );
+          },
         ),
-        child: const Text('Open'),
-      );
-    })));
+      ),
+    );
 
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
@@ -78,14 +86,16 @@ void main() {
     await tester.tap(find.text(l10nEn.dialogOKLabel));
     await tester.pumpAndSettle();
 
+    // 50 / residual 50 split 15:25 → 18.75 / 31.25. Largest-remainder
+    // floors to 50/18/31 then awards the leftover point to protein → 50/19/31.
     expect(settingsBloc.savedCarbs, 50);
-    expect(settingsBloc.savedProtein, closeTo(18.75, 0.001));
-    expect(settingsBloc.savedFat, closeTo(31.25, 0.001));
+    expect(settingsBloc.savedProtein, 19);
+    expect(settingsBloc.savedFat, 31);
     expect(
       (settingsBloc.savedCarbs ?? 0) +
           (settingsBloc.savedProtein ?? 0) +
           (settingsBloc.savedFat ?? 0),
-      closeTo(100, 0.001),
+      100,
     );
   });
 
@@ -93,18 +103,24 @@ void main() {
     final settingsBloc = _FakeSettingsBloc();
     final homeBloc = _FakeHomeBloc();
 
-    await tester.pumpWidget(_wrap(Builder(builder: (context) {
-      return ElevatedButton(
-        onPressed: () => showDialog<void>(
-          context: context,
-          builder: (_) => MacroSplitDialog(
-            settingsBloc: settingsBloc,
-            homeBloc: homeBloc,
-          ),
+    await tester.pumpWidget(
+      _wrap(
+        Builder(
+          builder: (context) {
+            return ElevatedButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => MacroSplitDialog(
+                  settingsBloc: settingsBloc,
+                  homeBloc: homeBloc,
+                ),
+              ),
+              child: const Text('Open'),
+            );
+          },
         ),
-        child: const Text('Open'),
-      );
-    })));
+      ),
+    );
 
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
@@ -120,43 +136,69 @@ void main() {
     expect(settingsBloc.savedFat, 25);
   });
 
-  testWidgets('saves typed value from a non-first field and rebalances the rest',
-      (tester) async {
-    final settingsBloc = _FakeSettingsBloc();
-    final homeBloc = _FakeHomeBloc();
+  testWidgets(
+    'saves typed value from a non-first field and rebalances the rest',
+    (tester) async {
+      final settingsBloc = _FakeSettingsBloc();
+      final homeBloc = _FakeHomeBloc();
 
-    await tester.pumpWidget(_wrap(Builder(builder: (context) {
-      return ElevatedButton(
-        onPressed: () => showDialog<void>(
-          context: context,
-          builder: (_) => MacroSplitDialog(
-            settingsBloc: settingsBloc,
-            homeBloc: homeBloc,
+      await tester.pumpWidget(
+        _wrap(
+          Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => MacroSplitDialog(
+                    settingsBloc: settingsBloc,
+                    homeBloc: homeBloc,
+                  ),
+                ),
+                child: const Text('Open'),
+              );
+            },
           ),
         ),
-        child: const Text('Open'),
       );
-    })));
 
-    await tester.tap(find.text('Open'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
 
-    // Second field is protein; typing here exercises the otherA/otherB wiring
-    // that differs per macro, guarding against a copy-paste mistake.
-    final fields = find.byType(TextField);
-    await tester.enterText(fields.at(1), '25');
+      // Second field is protein; typing here exercises the otherA/otherB wiring
+      // that differs per macro, guarding against a copy-paste mistake.
+      final fields = find.byType(TextField);
+      await tester.enterText(fields.at(1), '25');
 
-    await tester.tap(find.text(l10nEn.dialogOKLabel));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
 
-    expect(settingsBloc.savedProtein, 25);
-    expect(settingsBloc.savedCarbs, closeTo(52.941, 0.001));
-    expect(settingsBloc.savedFat, closeTo(22.059, 0.001));
-    expect(
-      (settingsBloc.savedCarbs ?? 0) +
-          (settingsBloc.savedProtein ?? 0) +
-          (settingsBloc.savedFat ?? 0),
-      closeTo(100, 0.001),
-    );
+      // protein 25 / residual 75 split 60:25 → ~52.941 / ~22.059. Floors
+      // 52/25/22, leftover goes to carbs → 53/25/22.
+      expect(settingsBloc.savedProtein, 25);
+      expect(settingsBloc.savedCarbs, 53);
+      expect(settingsBloc.savedFat, 22);
+      expect(
+        (settingsBloc.savedCarbs ?? 0) +
+            (settingsBloc.savedProtein ?? 0) +
+            (settingsBloc.savedFat ?? 0),
+        100,
+      );
+    },
+  );
+
+  test('roundMacroPercentsToHundred always sums to 100', () {
+    // Typical redistribute leftovers.
+    expect(roundMacroPercentsToHundred(50, 18.75, 31.25), (50, 19, 31));
+    expect(roundMacroPercentsToHundred(52.941, 25, 22.059), (53, 25, 22));
+
+    // Independent .round() on 55/22.5/22.5 is 55+23+23=101 (Dart half-away-
+    // from-zero); largest-remainder must still land on 100.
+    final halfUp = roundMacroPercentsToHundred(55, 22.5, 22.5);
+    expect(halfUp.$1 + halfUp.$2 + halfUp.$3, 100);
+    expect(halfUp, (55, 23, 22));
+
+    // Already-integers and the defaults.
+    expect(roundMacroPercentsToHundred(60, 15, 25), (60, 15, 25));
+    expect(roundMacroPercentsToHundred(0, 0, 0), (60, 15, 25));
   });
 }
