@@ -24,12 +24,11 @@ class _FakeGetUserUsecase extends Fake implements GetUserUsecase {
 }
 
 UserEntity _buildUser({double weightKG = 80.0, double heightCM = 180.0}) {
+  // Yesterday, not day - 1, so the birthday stays valid on the 1st of the
+  // month; captured once to avoid a midnight rollover between now() calls.
+  final yesterday = DateTime.now().subtract(const Duration(days: 1));
   return UserEntity(
-    birthday: DateTime(
-      DateTime.now().year - 30,
-      DateTime.now().month,
-      DateTime.now().day - 1,
-    ),
+    birthday: DateTime(yesterday.year - 30, yesterday.month, yesterday.day),
     heightCM: heightCM,
     weightKG: weightKG,
     gender: UserGenderEntity.male,
@@ -67,8 +66,9 @@ Future<void> _pump(WidgetTester tester, UserEntity user) async {
 
 void main() {
   group('BmiInfoScreen', () {
-    testWidgets('shows inputs, substituted formula, and hand-computed BMI',
-        (tester) async {
+    testWidgets('shows inputs, substituted formula, and hand-computed BMI', (
+      tester,
+    ) async {
       // 80 kg / 1.80 m² = 24.6913… → 24.7 at one decimal.
       await _pump(tester, _buildUser());
 
@@ -79,8 +79,9 @@ void main() {
       expect(find.text('24.7'), findsOneWidget);
     });
 
-    testWidgets('all six WHO bands are listed with their ranges',
-        (tester) async {
+    testWidgets('all six WHO bands are listed with their ranges', (
+      tester,
+    ) async {
       await _pump(tester, _buildUser());
 
       expect(find.text('< 18.5'), findsOneWidget);
@@ -91,8 +92,9 @@ void main() {
       expect(find.text('≥ 40.0'), findsOneWidget);
     });
 
-    testWidgets('highlights exactly the user\'s WHO classification',
-        (tester) async {
+    testWidgets('highlights exactly the user\'s WHO classification', (
+      tester,
+    ) async {
       // BMI 24.7 → normal weight.
       await _pump(tester, _buildUser());
 
@@ -102,11 +104,15 @@ void main() {
       expect(normalStyle?.color, _primaryOf(tester, normal));
 
       final pre = find.text(l10nEn.nutritionalStatusPreObesity);
-      expect(tester.widget<Text>(pre).style?.fontWeight, isNot(FontWeight.bold));
+      expect(
+        tester.widget<Text>(pre).style?.fontWeight,
+        isNot(FontWeight.bold),
+      );
     });
 
-    testWidgets('the 25.0 boundary falls into pre-obesity, matching BMICalc',
-        (tester) async {
+    testWidgets('the 25.0 boundary falls into pre-obesity, matching BMICalc', (
+      tester,
+    ) async {
       // 81 kg / 1.80 m² = 25.0 exactly — WHO/BMICalc classify this as
       // pre-obesity, not normal weight. Pins the boundary behaviour.
       await _pump(tester, _buildUser(weightKG: 81.0));

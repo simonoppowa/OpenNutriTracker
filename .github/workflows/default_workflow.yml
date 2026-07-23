@@ -248,7 +248,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           file_pattern: 'ios/Podfile.lock ios/Runner.xcodeproj/project.pbxproj'
-          commit_message: 'chore(ios): refresh Podfile.lock via CI'
+          commit_message: 'chore(ios): refresh Podfile.lock and project.pbxproj via CI'
 
       - name: Upload Podfile.lock artifact
         uses: actions/upload-artifact@v7

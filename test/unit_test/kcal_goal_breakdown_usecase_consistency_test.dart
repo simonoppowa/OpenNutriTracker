@@ -49,17 +49,17 @@ class _FakeUserActivityRepository extends Fake
     DateTime dateTime, {
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
-  }) async =>
-      activities;
+  }) async => activities;
 }
 
 void main() {
+  // Captured once so the birthday can't straddle a midnight boundary
+  // between multiple DateTime.now() calls, and yesterday (rather than
+  // day - 1) so the test still works on the 1st of the month.
+  final now = DateTime.now();
+  final yesterday = now.subtract(const Duration(days: 1));
   final user = UserEntity(
-    birthday: DateTime(
-      DateTime.now().year - 42,
-      DateTime.now().month,
-      DateTime.now().day - 1,
-    ),
+    birthday: DateTime(yesterday.year - 42, yesterday.month, yesterday.day),
     heightCM: 172.0,
     weightKG: 74.5,
     gender: UserGenderEntity.female,
@@ -86,14 +86,14 @@ void main() {
       'a1',
       45,
       312.5,
-      DateTime.now(),
+      now,
       PhysicalActivityFixtures.moderateBicycling,
     ),
     UserActivityEntity(
       'a2',
       20,
       87.25,
-      DateTime.now(),
+      now,
       PhysicalActivityFixtures.lightDancing,
     ),
   ];
@@ -106,22 +106,26 @@ void main() {
     final userRepo = _FakeUserRepository(user);
     final configRepo = _FakeConfigRepository(config);
     final activityRepo = _FakeUserActivityRepository(activities);
-    breakdownUsecase =
-        GetKcalGoalBreakdownUsecase(userRepo, configRepo, activityRepo);
+    breakdownUsecase = GetKcalGoalBreakdownUsecase(
+      userRepo,
+      configRepo,
+      activityRepo,
+    );
     kcalGoalUsecase = GetKcalGoalUsecase(userRepo, configRepo, activityRepo);
     macroGoalUsecase = GetMacroGoalUsecase(configRepo);
   });
 
-  test('breakdown total equals the production kcal goal from the same data',
-      () async {
-    final breakdown = await breakdownUsecase.getBreakdown();
-    final productionGoal = await kcalGoalUsecase.getKcalGoal();
+  test(
+    'breakdown total equals the production kcal goal from the same data',
+    () async {
+      final breakdown = await breakdownUsecase.getBreakdown();
+      final productionGoal = await kcalGoalUsecase.getKcalGoal();
 
-    expect(breakdown.totalKcalGoal, productionGoal);
-  });
+      expect(breakdown.totalKcalGoal, productionGoal);
+    },
+  );
 
-  test('breakdown activity kcal is the sum of the logged activities',
-      () async {
+  test('breakdown activity kcal is the sum of the logged activities', () async {
     final breakdown = await breakdownUsecase.getBreakdown();
 
     expect(breakdown.activityKcal, closeTo(312.5 + 87.25, 0.0001));
@@ -137,14 +141,8 @@ void main() {
     final breakdown = await breakdownUsecase.getBreakdown();
     final goal = breakdown.totalKcalGoal;
 
-    expect(
-      breakdown.carbsGoalGrams,
-      await macroGoalUsecase.getCarbsGoal(goal),
-    );
-    expect(
-      breakdown.fatsGoalGrams,
-      await macroGoalUsecase.getFatsGoal(goal),
-    );
+    expect(breakdown.carbsGoalGrams, await macroGoalUsecase.getCarbsGoal(goal));
+    expect(breakdown.fatsGoalGrams, await macroGoalUsecase.getFatsGoal(goal));
     expect(
       breakdown.proteinsGoalGrams,
       await macroGoalUsecase.getProteinsGoal(goal),

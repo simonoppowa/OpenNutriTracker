@@ -1185,9 +1185,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextButton(
               onPressed: () async {
                 final accepted = isDemoData ? false : switchActive;
-                _settingsBloc.setHasAcceptedAnonymousData(accepted);
+                await _settingsBloc.setHasAcceptedAnonymousData(accepted);
                 if (!accepted) Sentry.close();
                 _settingsBloc.add(LoadSettingsEvent());
+                if (!context.mounted) return;
                 Navigator.of(context).pop();
               },
               child: Text(S.of(context).dialogOKLabel),

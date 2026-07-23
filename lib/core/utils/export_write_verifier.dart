@@ -14,28 +14,39 @@ import 'dart:io';
 /// [savedPath] isn't always something dart:io can open - content:// URIs
 /// aren't real filesystem paths, so reading them back this way is a
 /// best-effort check, not a guarantee. Where we can read the file back, an
-/// empty result is treated as a real failure. Where we can't stat it at
-/// all (the exact Downloads scenario from #504), this can't tell the
+/// empty or truncated result is treated as a real failure. A genuine
+/// content:// URI can't be statted at all, so there we can't tell the
 /// difference between "wrote nothing" and "wrote fine, just not a path we
-/// can open" and stays silent rather than reporting a false failure.
+/// can open" and stay silent rather than reporting a false failure.
+/// Stat failures on a normal filesystem path (permission denied, parent
+/// missing, ...) mean the write did not land and are reported.
 class ExportWriteVerifier {
   const ExportWriteVerifier._();
 
-  /// Throws a [StateError] if [savedPath] can be statted and turns out to
-  /// be empty despite [expectedByteLength] being greater than zero.
+  /// Throws a [StateError] if [savedPath] can be statted and its length
+  /// differs from [expectedByteLength], or if a non-content:// path cannot
+  /// be statted at all.
   static void verify(String savedPath, int expectedByteLength) {
-    late final int writtenLength;
-    try {
-      writtenLength = File(savedPath).lengthSync();
-    } catch (_) {
-      // Not a path we can stat from here - nothing more we can check.
+    if (savedPath.startsWith('content://')) {
+      // Not a path dart:io can stat - nothing more we can check.
       return;
     }
 
-    if (writtenLength == 0 && expectedByteLength > 0) {
+    final int writtenLength;
+    try {
+      writtenLength = File(savedPath).lengthSync();
+    } on FileSystemException catch (error) {
       throw StateError(
-        'Export reported success but the saved file is empty '
-        '(0 bytes written to $savedPath)',
+        'Export reported success but the saved file cannot be read '
+        '($savedPath: ${error.message})',
+      );
+    }
+
+    if (writtenLength != expectedByteLength) {
+      throw StateError(
+        'Export reported success but the saved file has $writtenLength '
+        'bytes instead of the expected $expectedByteLength '
+        '($savedPath)',
       );
     }
   }

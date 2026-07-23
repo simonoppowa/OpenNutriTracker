@@ -12,6 +12,10 @@ import 'package:opennutritracker/core/utils/calc/tdee_calc.dart';
 import '../fixture/user_entity_fixtures.dart';
 
 void main() {
+  // Yesterday (not `day - 1`) so the date stays valid on the 1st of the
+  // month; captured once so components can't straddle a midnight rollover.
+  final yesterday = DateTime.now().subtract(const Duration(days: 1));
+
   UserEntity buildUser({
     UserGenderEntity gender = UserGenderEntity.male,
     CaloriesProfileEntity? caloriesProfile,
@@ -23,11 +27,7 @@ void main() {
     double weightKG = 80.0,
   }) {
     return UserEntity(
-      birthday: DateTime(
-        DateTime.now().year - 30,
-        DateTime.now().month,
-        DateTime.now().day - 1,
-      ),
+      birthday: DateTime(yesterday.year - 30, yesterday.month, yesterday.day),
       heightCM: 180.0,
       weightKG: weightKG,
       gender: gender,
@@ -203,8 +203,7 @@ void main() {
     expect(breakdown.proteinsFractionGoal, 0.3);
     expect(
       breakdown.carbsGoalGrams,
-      MacroCalc.getTotalCarbsGoal(breakdown.totalKcalGoal,
-          userCarbsGoal: 0.4),
+      MacroCalc.getTotalCarbsGoal(breakdown.totalKcalGoal, userCarbsGoal: 0.4),
     );
   });
 

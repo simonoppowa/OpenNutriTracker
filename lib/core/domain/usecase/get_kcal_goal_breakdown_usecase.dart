@@ -26,6 +26,8 @@ class GetKcalGoalBreakdownUsecase {
     final totalKcalActivities =
         (await _userActivityRepository.getAllUserActivityByDate(
           DateTime.now(),
+          dayStartOffsetHours: config.dayStartOffsetHours,
+          dayStartOffsetMinutes: config.dayStartOffsetMinutes,
         )).map((activity) => activity.burnedKcal).toList().sum;
     return KcalGoalBreakdownEntity.compute(
       user: user,

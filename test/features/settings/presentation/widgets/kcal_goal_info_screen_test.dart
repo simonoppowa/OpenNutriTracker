@@ -20,7 +20,8 @@ import '../../../../helpers/test_l10n.dart';
 /// math, formatting, and rounding conventions (truncation, matching the
 /// dashboard) — so the screen cannot silently drift from the numbers the
 /// rest of the app shows.
-class _FakeBreakdownUsecase extends Fake implements GetKcalGoalBreakdownUsecase {
+class _FakeBreakdownUsecase extends Fake
+    implements GetKcalGoalBreakdownUsecase {
   final KcalGoalBreakdownEntity breakdown;
 
   _FakeBreakdownUsecase(this.breakdown);
@@ -39,12 +40,11 @@ UserEntity _buildUser({
   bool taperEnabled = false,
   double weightKG = 80.0,
 }) {
+  // Yesterday (not `day - 1`) so the date stays valid on the 1st of the
+  // month; captured once so components can't straddle a midnight rollover.
+  final yesterday = DateTime.now().subtract(const Duration(days: 1));
   return UserEntity(
-    birthday: DateTime(
-      DateTime.now().year - 30,
-      DateTime.now().month,
-      DateTime.now().day - 1,
-    ),
+    birthday: DateTime(yesterday.year - 30, yesterday.month, yesterday.day),
     heightCM: 180.0,
     weightKG: weightKG,
     gender: gender,
@@ -94,10 +94,10 @@ void main() {
     //      = 864 − 291.6 + 1442.72 + 905.4 = 2920.52
     // Goal = 2920.52 − 500 + 150 + 320 = 2890.52
     KcalGoalBreakdownEntity maleBreakdown() => KcalGoalBreakdownEntity.compute(
-          user: _buildUser(),
-          userKcalAdjustment: 150,
-          totalKcalActivities: 320,
-        );
+      user: _buildUser(),
+      userKcalAdjustment: 150,
+      totalKcalActivities: 320,
+    );
 
     testWidgets('shows the hand-computed input values', (tester) async {
       await _pump(tester, maleBreakdown());
@@ -109,16 +109,16 @@ void main() {
       expect(find.text('Lose Weight'), findsOneWidget);
     });
 
-    testWidgets('shows PAL and PA values from the IOM tables',
-        (tester) async {
+    testWidgets('shows PAL and PA values from the IOM tables', (tester) async {
       await _pump(tester, maleBreakdown());
 
       expect(find.text('1.75'), findsOneWidget); // PAL for "active"
       expect(find.text('1.27'), findsOneWidget); // male PA at PAL 1.75
     });
 
-    testWidgets('shows the substituted IOM formula and truncated TDEE',
-        (tester) async {
+    testWidgets('shows the substituted IOM formula and truncated TDEE', (
+      tester,
+    ) async {
       await _pump(tester, maleBreakdown());
 
       expect(
@@ -133,8 +133,9 @@ void main() {
       expect(find.text('2920 kcal'), findsNWidgets(2));
     });
 
-    testWidgets('shows every goal component with an explicit sign',
-        (tester) async {
+    testWidgets('shows every goal component with an explicit sign', (
+      tester,
+    ) async {
       await _pump(tester, maleBreakdown());
 
       // Without a taper the same value fills the base row, the applied
@@ -142,44 +143,40 @@ void main() {
       expect(find.text('−500 kcal'), findsNWidgets(3));
       expect(find.text('+150 kcal'), findsNWidgets(2));
       expect(find.text('+320 kcal'), findsNWidgets(2));
-      expect(find.text(l10nEn.kcalGoalInfoAdjustmentExplanationFlat),
-          findsOneWidget);
+      expect(
+        find.text(l10nEn.kcalGoalInfoAdjustmentExplanationFlat),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('total equals the hand-computed goal, truncated like home',
-        (tester) async {
+    testWidgets('total equals the hand-computed goal, truncated like home', (
+      tester,
+    ) async {
       await _pump(tester, maleBreakdown());
 
       // 2890.52 truncates to 2890 — identical to the dashboard's toInt().
       expect(find.text('2890 kcal'), findsOneWidget);
     });
 
-    testWidgets('macro card shows the hand-computed gram targets',
-        (tester) async {
+    testWidgets('macro card shows the hand-computed gram targets', (
+      tester,
+    ) async {
       await _pump(tester, maleBreakdown());
 
       // Carbs: 2890.52 × 0.60 ÷ 4 = 433.578 → 433 g (truncated, like the
       // dashboard tiles). Fat: ×0.25 ÷ 9 = 80.29 → 80 g.
       // Protein: ×0.15 ÷ 4 = 108.39 → 108 g.
-      expect(
-        find.textContaining('2890 × 60 % ÷ 4 = 433 g'),
-        findsOneWidget,
-      );
-      expect(
-        find.textContaining('2890 × 25 % ÷ 9 = 80 g'),
-        findsOneWidget,
-      );
-      expect(
-        find.textContaining('2890 × 15 % ÷ 4 = 108 g'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('2890 × 60 % ÷ 4 = 433 g'), findsOneWidget);
+      expect(find.textContaining('2890 × 25 % ÷ 9 = 80 g'), findsOneWidget);
+      expect(find.textContaining('2890 × 15 % ÷ 4 = 108 g'), findsOneWidget);
       expect(find.text('433 g'), findsOneWidget);
       expect(find.text('80 g'), findsOneWidget);
       expect(find.text('108 g'), findsOneWidget);
     });
 
-    testWidgets('kJ mode converts summary rows but keeps the formula in kcal',
-        (tester) async {
+    testWidgets('kJ mode converts summary rows but keeps the formula in kcal', (
+      tester,
+    ) async {
       await _pump(tester, maleBreakdown(), usesKilojoules: true);
 
       // 2890.52 kcal × 4.184 = 12093.9 → 12093 kJ (truncated).
@@ -190,8 +187,9 @@ void main() {
       expect(find.textContaining('= 2920 kcal'), findsOneWidget);
     });
 
-    testWidgets('taper case shows base and tapered adjustment plus the note',
-        (tester) async {
+    testWidgets('taper case shows base and tapered adjustment plus the note', (
+      tester,
+    ) async {
       // 3 kg above a 75 kg target with the taper on → factor 0.5.
       final breakdown = KcalGoalBreakdownEntity.compute(
         user: _buildUser(
@@ -208,15 +206,15 @@ void main() {
       expect(find.text(l10nEn.kcalGoalInfoTaperNote), findsOneWidget);
     });
 
-    testWidgets('taper note is absent when no taper is active',
-        (tester) async {
+    testWidgets('taper note is absent when no taper is active', (tester) async {
       await _pump(tester, maleBreakdown());
 
       expect(find.text(l10nEn.kcalGoalInfoTaperNote), findsNothing);
     });
 
-    testWidgets('weekly rate shows its explanation and 1100-based adjustment',
-        (tester) async {
+    testWidgets('weekly rate shows its explanation and 1100-based adjustment', (
+      tester,
+    ) async {
       final breakdown = KcalGoalBreakdownEntity.compute(
         user: _buildUser(weeklyWeightGoalKg: -0.5),
         totalKcalActivities: 0,
@@ -225,14 +223,19 @@ void main() {
 
       // −0.5 kg/week × 1100 = −550 kcal/day (base, applied, result rows).
       expect(find.text('−550 kcal'), findsNWidgets(3));
-      expect(find.text(l10nEn.kcalGoalInfoAdjustmentExplanationWeekly),
-          findsOneWidget);
-      expect(find.text(l10nEn.kcalGoalInfoAdjustmentExplanationFlat),
-          findsNothing);
+      expect(
+        find.text(l10nEn.kcalGoalInfoAdjustmentExplanationWeekly),
+        findsOneWidget,
+      );
+      expect(
+        find.text(l10nEn.kcalGoalInfoAdjustmentExplanationFlat),
+        findsNothing,
+      );
     });
 
-    testWidgets('female profile uses the female formula constants only',
-        (tester) async {
+    testWidgets('female profile uses the female formula constants only', (
+      tester,
+    ) async {
       final breakdown = KcalGoalBreakdownEntity.compute(
         user: _buildUser(gender: UserGenderEntity.female),
         totalKcalActivities: 0,
@@ -244,8 +247,9 @@ void main() {
       expect(find.text(l10nEn.kcalGoalInfoAveragedNote), findsNothing);
     });
 
-    testWidgets('non-binary averaged profile shows both reference sides',
-        (tester) async {
+    testWidgets('non-binary averaged profile shows both reference sides', (
+      tester,
+    ) async {
       final breakdown = KcalGoalBreakdownEntity.compute(
         user: _buildUser(gender: UserGenderEntity.nonBinary),
         totalKcalActivities: 0,
@@ -265,8 +269,9 @@ void main() {
       );
     });
 
-    testWidgets('custom macro split is rendered with its own percentages',
-        (tester) async {
+    testWidgets('custom macro split is rendered with its own percentages', (
+      tester,
+    ) async {
       final breakdown = KcalGoalBreakdownEntity.compute(
         user: _buildUser(),
         totalKcalActivities: 0,

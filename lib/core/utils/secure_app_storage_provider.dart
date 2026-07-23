@@ -45,8 +45,9 @@ class SecureAppStorageProvider {
       if (raw == null || raw.isEmpty) {
         throw HiveStorageIntegrityException.emptyKey();
       }
+      final Uint8List key;
       try {
-        return base64Url.decode(raw);
+        key = base64Url.decode(raw);
       } on FormatException catch (error, stackTrace) {
         // Malformed/partial secure-storage values must not bypass the typed
         // integrity path and crash bootstrap as an unrelated FormatException.
@@ -55,6 +56,15 @@ class SecureAppStorageProvider {
           stackTrace,
         );
       }
+      // HiveAesCipher requires exactly 32 bytes; a truncated/corrupted
+      // value would otherwise surface later as an untyped ArgumentError
+      // or HiveError and bypass the bootstrap integrity path.
+      if (key.length != 32) {
+        throw HiveStorageIntegrityException.malformedKey(
+          FormatException('expected 32 bytes, got ${key.length}'),
+        );
+      }
+      return key;
     }
 
     // Key missing. Only mint a fresh key on a true first install. If any
