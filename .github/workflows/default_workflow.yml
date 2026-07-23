@@ -716,7 +716,7 @@ jobs:
           bundler-cache: true
 
       - name: Download iOS IPA artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ios-ipa
           path: build/ios/ipa
@@ -887,7 +887,7 @@ jobs:
           bundler-cache: true
 
       - name: Download Android AAB artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: android-aab
           path: release-assets/android
@@ -914,19 +914,19 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Download iOS IPA artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ios-ipa
           path: release-assets/ios
 
       - name: Download Android AAB artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: android-aab
           path: release-assets/android
 
       - name: Download Android APK artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: android-apk
           path: release-assets/android
