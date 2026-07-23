@@ -245,7 +245,7 @@ jobs:
         if: >-
           github.event_name == 'pull_request' &&
           github.event.pull_request.head.repo.full_name == github.repository
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           file_pattern: 'ios/Podfile.lock ios/Runner.xcodeproj/project.pbxproj'
           commit_message: 'chore(ios): refresh Podfile.lock and project.pbxproj via CI'
