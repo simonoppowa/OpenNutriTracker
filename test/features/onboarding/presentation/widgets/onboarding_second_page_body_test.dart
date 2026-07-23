@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_second_page_body.dart';
+import '../../../../helpers/test_l10n.dart';
 
 void main() {
   testWidgets('Case 1: Value is null', (WidgetTester tester) async {
@@ -21,7 +22,7 @@ void main() {
     state.validate();
     await tester.pump();
 
-    expect(find.text(S.current.onboardingWrongHeightLabel), findsOneWidget);
+    expect(find.text(l10nEn.onboardingWrongHeightLabel), findsOneWidget);
   });
 
   testWidgets(
@@ -44,14 +45,14 @@ void main() {
       await tester.tap(
         find.descendant(
           of: imperialButton,
-          matching: find.text(S.current.ftLabel),
+          matching: find.text(l10nEn.ftLabel),
         ),
       );
       await tester.pump();
 
       // Two coupled fields appear: feet (also matched by the toggle) and inches.
-      expect(find.text(S.current.ftLabel), findsWidgets);
-      expect(find.text(S.current.inLabel), findsOneWidget);
+      expect(find.text(l10nEn.ftLabel), findsWidgets);
+      expect(find.text(l10nEn.inLabel), findsOneWidget);
       // Nothing entered yet, so the page is not ready to proceed.
       expect(lastActive ?? false, isFalse);
     },
@@ -74,7 +75,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(ToggleButtons).first,
-        matching: find.text(S.current.ftLabel),
+        matching: find.text(l10nEn.ftLabel),
       ),
     );
     await tester.pump();
@@ -104,7 +105,7 @@ void main() {
 
     final metricButton = find.byType(ToggleButtons).first;
     await tester.tap(
-      find.descendant(of: metricButton, matching: find.text(S.current.cmLabel)),
+      find.descendant(of: metricButton, matching: find.text(l10nEn.cmLabel)),
     );
     await tester.pump();
 
@@ -117,7 +118,7 @@ void main() {
     state.validate();
     await tester.pump();
 
-    expect(find.text(S.current.onboardingWrongHeightLabel), findsOneWidget);
+    expect(find.text(l10nEn.onboardingWrongHeightLabel), findsOneWidget);
   });
 
   testWidgets('Case 6: Value is below minimum height with decimal units', (
@@ -139,7 +140,7 @@ void main() {
 
     final metricButton = find.byType(ToggleButtons).first;
     await tester.tap(
-      find.descendant(of: metricButton, matching: find.text(S.current.cmLabel)),
+      find.descendant(of: metricButton, matching: find.text(l10nEn.cmLabel)),
     );
     await tester.pump();
 
@@ -152,7 +153,7 @@ void main() {
     state.validate();
     await tester.pump();
 
-    expect(find.text(S.current.onboardingWrongHeightLabel), findsOneWidget);
+    expect(find.text(l10nEn.onboardingWrongHeightLabel), findsOneWidget);
   });
 
   testWidgets('Case 4: imperial feet + inches with a weight is accepted', (
@@ -173,7 +174,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(ToggleButtons).first,
-        matching: find.text(S.current.ftLabel),
+        matching: find.text(l10nEn.ftLabel),
       ),
     );
     await tester.pump();
@@ -205,7 +206,7 @@ void main() {
 
     final metricButton = find.byType(ToggleButtons).first;
     await tester.tap(
-      find.descendant(of: metricButton, matching: find.text(S.current.cmLabel)),
+      find.descendant(of: metricButton, matching: find.text(l10nEn.cmLabel)),
     );
     await tester.pump();
 
@@ -223,7 +224,7 @@ void main() {
     await tester.pump();
 
     expect(isValid, isTrue);
-    expect(find.text(S.current.onboardingWrongHeightLabel), findsNothing);
+    expect(find.text(l10nEn.onboardingWrongHeightLabel), findsNothing);
   });
 
   // Regression coverage for #244 — the weight field used to be locked to
@@ -256,7 +257,7 @@ void main() {
     // digitsOnly formatter would have stripped the dot).
     expect(find.text('65.5'), findsOneWidget);
     expect(isValid, isTrue);
-    expect(find.text(S.current.onboardingWrongWeightLabel), findsNothing);
+    expect(find.text(l10nEn.onboardingWrongWeightLabel), findsNothing);
   });
 
   testWidgets(
@@ -283,7 +284,7 @@ void main() {
 
       expect(find.text('65,5'), findsOneWidget);
       expect(isValid, isTrue);
-      expect(find.text(S.current.onboardingWrongWeightLabel), findsNothing);
+      expect(find.text(l10nEn.onboardingWrongWeightLabel), findsNothing);
     },
   );
 
@@ -309,7 +310,7 @@ void main() {
     tester.state<FormState>(weightForm).validate();
     await tester.pump();
 
-    expect(find.text(S.current.onboardingWrongWeightLabel), findsOneWidget);
+    expect(find.text(l10nEn.onboardingWrongWeightLabel), findsOneWidget);
   });
 
   // Regression coverage: switching the body-weight unit used to leave the
@@ -334,7 +335,7 @@ void main() {
     await tester.enterText(weightField, '80');
     await tester.pump();
 
-    await tester.tap(find.text(S.current.lbsLabel));
+    await tester.tap(find.text(l10nEn.lbsLabel));
     await tester.pump();
 
     // 80 kg -> 176.4 lb (UnitCalc.kgToLbs), not a stale "80".
@@ -360,7 +361,7 @@ void main() {
       await tester.enterText(weightField, '80');
       await tester.pump();
 
-      await tester.tap(find.text(S.current.stLabel));
+      await tester.tap(find.text(l10nEn.stLabel));
       await tester.pump();
 
       // 80 kg -> 12 st 8.4 lb; the stones/pounds fields must show the just
@@ -369,7 +370,7 @@ void main() {
       expect(find.text('12'), findsOneWidget);
       expect(find.text('8.4'), findsOneWidget);
 
-      await tester.tap(find.text(S.current.kgLabel));
+      await tester.tap(find.text(l10nEn.kgLabel));
       await tester.pump();
 
       // Back to kg: the shared field must show the original 80, not be blank

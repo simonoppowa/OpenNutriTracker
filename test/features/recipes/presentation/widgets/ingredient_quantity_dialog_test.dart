@@ -21,7 +21,7 @@ MealEntity _solidMeal() => MealEntity(
 Widget _wrap({required Widget child}) {
   return MaterialApp(
     localizationsDelegates: const [S.delegate],
-    supportedLocales: S.delegate.supportedLocales,
+    supportedLocales: S.supportedLocales,
     home: child,
   );
 }

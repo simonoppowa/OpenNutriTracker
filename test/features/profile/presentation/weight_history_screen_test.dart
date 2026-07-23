@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.d
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
 import 'package:opennutritracker/features/profile/presentation/weight_history_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import '../../../helpers/test_l10n.dart';
 
 class _FakeGetWeightLogUsecase extends Fake implements GetWeightLogUsecase {
   final List<WeightLogEntity> _entries;
@@ -57,7 +58,7 @@ Widget _wrap(Widget child) {
       GlobalWidgetsLocalizations.delegate,
       GlobalCupertinoLocalizations.delegate,
     ],
-    supportedLocales: S.delegate.supportedLocales,
+    supportedLocales: S.supportedLocales,
     home: child,
   );
 }
@@ -80,7 +81,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // 0 entries: the global "no readings yet" message is shown, no chart.
-      expect(find.text(S.current.weightHistoryNoEntries), findsOneWidget);
+      expect(find.text(l10nEn.weightHistoryNoEntries), findsOneWidget);
       expect(find.byType(LineChart), findsNothing);
     });
 
@@ -103,7 +104,7 @@ void main() {
         find.byKey(const Key('weightHistoryChartEmptyState')),
         findsOneWidget,
       );
-      expect(find.text(S.current.weightHistoryChartEmptyState), findsOneWidget);
+      expect(find.text(l10nEn.weightHistoryChartEmptyState), findsOneWidget);
       expect(find.byType(LineChart), findsNothing);
     });
 
@@ -171,7 +172,7 @@ void main() {
       );
 
       // Tap All segment: should show chart for all history including 200-day-old point.
-      final buttonAll = find.text(S.current.allItemsLabel);
+      final buttonAll = find.text(l10nEn.allItemsLabel);
       expect(buttonAll, findsOneWidget);
       await tester.tap(buttonAll);
       await tester.pumpAndSettle();

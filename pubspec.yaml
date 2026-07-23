@@ -104,6 +104,7 @@ dev_dependencies:
   plugin_platform_interface: ^2.1.8
 
 flutter:
+  generate: true
 
   uses-material-design: true
 
@@ -159,9 +160,6 @@ flutter:
     - family: Nunito
       fonts:
       - asset: fonts/Nunito.ttf
-
-flutter_intl:
-  enabled: true
 
 flutter_launcher_icons:
   android: true

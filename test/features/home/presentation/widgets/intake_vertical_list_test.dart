@@ -16,6 +16,7 @@ import 'package:opennutritracker/features/home/presentation/widgets/intake_verti
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
+import '../../../../helpers/test_l10n.dart';
 
 class _FakeMealDetailBloc extends Fake implements MealDetailBloc {}
 
@@ -83,7 +84,7 @@ Widget _wrapWithMaterial(Widget child) {
     create: (_) => EnergyUnitProvider(),
     child: MaterialApp(
       localizationsDelegates: const [S.delegate],
-      supportedLocales: S.delegate.supportedLocales,
+      supportedLocales: S.supportedLocales,
       home: Scaffold(body: child),
     ),
   );
@@ -116,12 +117,12 @@ void main() {
   ];
 
   String headerWithMacros() =>
-      '200 ${S.current.kcalLabel}\n'
-      '20 ${S.current.carbsLabelShort}  '
-      '10 ${S.current.fatLabelShort}  '
-      '5 ${S.current.proteinLabelShort}';
+      '200 ${l10nEn.kcalLabel}\n'
+      '20 ${l10nEn.carbsLabelShort}  '
+      '10 ${l10nEn.fatLabelShort}  '
+      '5 ${l10nEn.proteinLabelShort}';
 
-  String headerKcalOnly() => '200 ${S.current.kcalLabel}';
+  String headerKcalOnly() => '200 ${l10nEn.kcalLabel}';
 
   testWidgets(
     'shows kcal + macro breakdown when showMealMacros is true',
@@ -221,10 +222,10 @@ void main() {
       await tester.tap(find.byType(PopupMenuButton<VerticalListPopupMenuSelections>));
       await tester.pumpAndSettle();
 
-      expect(find.text(S.current.dialogCopyLabel), findsOneWidget);
-      expect(find.text(S.current.deleteAllLabel), findsOneWidget);
-      expect(find.text(S.current.shareMealLabel), findsOneWidget);
-      expect(find.text(S.current.importMealLabel), findsOneWidget);
+      expect(find.text(l10nEn.dialogCopyLabel), findsOneWidget);
+      expect(find.text(l10nEn.deleteAllLabel), findsOneWidget);
+      expect(find.text(l10nEn.shareMealLabel), findsOneWidget);
+      expect(find.text(l10nEn.importMealLabel), findsOneWidget);
     },
   );
 
@@ -248,10 +249,10 @@ void main() {
 
       // Empty section: no Copy/Delete/Share — nothing to act on. Import is
       // always available so the user can scan a QR to populate the section.
-      expect(find.text(S.current.dialogCopyLabel), findsNothing);
-      expect(find.text(S.current.deleteAllLabel), findsNothing);
-      expect(find.text(S.current.shareMealLabel), findsNothing);
-      expect(find.text(S.current.importMealLabel), findsOneWidget);
+      expect(find.text(l10nEn.dialogCopyLabel), findsNothing);
+      expect(find.text(l10nEn.deleteAllLabel), findsNothing);
+      expect(find.text(l10nEn.shareMealLabel), findsNothing);
+      expect(find.text(l10nEn.importMealLabel), findsOneWidget);
     },
   );
 

@@ -3,13 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import '../../../helpers/test_l10n.dart';
 
 void main() {
   testWidgets('shows the initialValue as the dropdown selection on open',
       (tester) async {
     await tester.pumpWidget(MaterialApp(
       localizationsDelegates: const [S.delegate],
-      supportedLocales: S.delegate.supportedLocales,
+      supportedLocales: S.supportedLocales,
       home: const Scaffold(
         body: CopyDialog(initialValue: AddMealType.dinnerType),
       ),
@@ -28,7 +29,7 @@ void main() {
 
     await tester.pumpWidget(MaterialApp(
       localizationsDelegates: const [S.delegate],
-      supportedLocales: S.delegate.supportedLocales,
+      supportedLocales: S.supportedLocales,
       home: Scaffold(
         body: Builder(builder: (context) {
           capturedContext = context;
@@ -44,7 +45,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text(S.current.dialogOKLabel));
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
     await tester.pumpAndSettle();
     returned = await future;
 
@@ -58,7 +59,7 @@ void main() {
 
     await tester.pumpWidget(MaterialApp(
       localizationsDelegates: const [S.delegate],
-      supportedLocales: S.delegate.supportedLocales,
+      supportedLocales: S.supportedLocales,
       home: Scaffold(
         body: Builder(builder: (context) {
           capturedContext = context;
@@ -74,7 +75,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text(S.current.dialogCancelLabel));
+    await tester.tap(find.text(l10nEn.dialogCancelLabel));
     await tester.pumpAndSettle();
     returned = await future;
 
@@ -88,7 +89,7 @@ void main() {
 
     await tester.pumpWidget(MaterialApp(
       localizationsDelegates: const [S.delegate],
-      supportedLocales: S.delegate.supportedLocales,
+      supportedLocales: S.supportedLocales,
       home: Scaffold(
         body: Builder(builder: (context) {
           capturedContext = context;
@@ -108,10 +109,10 @@ void main() {
     // Open the dropdown and pick "dinner".
     await tester.tap(find.byType(DropdownButton<AddMealType>));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(S.current.dinnerLabel).last);
+    await tester.tap(find.text(l10nEn.dinnerLabel).last);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text(S.current.dialogOKLabel));
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
     await tester.pumpAndSettle();
     returned = await future;
 
