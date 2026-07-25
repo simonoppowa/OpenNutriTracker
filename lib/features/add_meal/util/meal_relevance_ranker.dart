@@ -121,7 +121,9 @@ String _nearDuplicateKey(MealEntity meal) {
   // would otherwise collapse every unrelated nameless meal into one.
   // meal.code is nullable: fall back to identityHashCode so two distinct
   // nameless meals without codes don't share the same key.
-  if (name.isEmpty) return 'noname:${meal.source.name}:${meal.code ?? identityHashCode(meal)}';
+  if (name.isEmpty) {
+    return 'noname:${meal.source.name}:${meal.code ?? identityHashCode(meal)}';
+  }
   final brand = _normalize(meal.brands);
   return brand.isEmpty ? name : '$name|$brand';
 }
