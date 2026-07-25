@@ -939,6 +939,8 @@
   "settingsVolumeLabel": "Objętość",
   "shareActivityLabel": "Udostępnij trening",
   "shareCodeLabel": "Udostępnij kod",
+  "shareJsonImportContent": "Te posiłki zostaną dodane do twojego dziennika.",
+  "shareJsonImportErrorLabel": "Nie można odczytać udostępnionego JSON. Sprawdź, czy odpowiada oczekiwanemu formatowi.",
   "shareMealLabel": "Udostępnij posiłek",
   "shareRecipeLabel": "Udostępnij przepis",
   "snackExample": "np. jabłko, lody, czekolada ...",

@@ -940,6 +940,8 @@
   "settingsVolumeLabel": "体积",
   "shareActivityLabel": "分享运动",
   "shareCodeLabel": "分享代码",
+  "shareJsonImportContent": "这些餐食将被添加到您的日记中。",
+  "shareJsonImportErrorLabel": "无法读取共享的 JSON。请检查其格式是否符合预期。",
   "shareMealLabel": "分享餐食",
   "shareRecipeLabel": "分享食谱",
   "snackExample": "例如：苹果、冰淇淋、巧克力...",

@@ -970,6 +970,8 @@
   "settingsVolumeLabel": "Objem",
   "shareActivityLabel": "Zdieľať tréning",
   "shareCodeLabel": "Zdieľať kód",
+  "shareJsonImportContent": "Tieto jedlá budú pridané do vášho denníka.",
+  "shareJsonImportErrorLabel": "Zdieľaný JSON sa nedá prečítať. Skontrolujte, či zodpovedá očakávanému formátu.",
   "shareMealLabel": "Zdieľať jedlo",
   "shareRecipeLabel": "Zdieľať recept",
   "snackExample": "napr. jablko, zmrzlina, čokoláda ...",

@@ -939,6 +939,8 @@
   "settingsVolumeLabel": "Об'єм",
   "shareActivityLabel": "Поділитися тренуванням",
   "shareCodeLabel": "Поділитися кодом",
+  "shareJsonImportContent": "Ці страви буде додано до вашого щоденника.",
+  "shareJsonImportErrorLabel": "Не вдалося прочитати спільний JSON. Перевірте, чи відповідає він очікуваному формату.",
   "shareMealLabel": "Share meal",
   "shareRecipeLabel": "Поділитися рецептом",
   "snackExample": "наприклад, яблуко, морозиво, шоколад ...",

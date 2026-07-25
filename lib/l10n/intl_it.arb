@@ -939,6 +939,8 @@
   "settingsVolumeLabel": "Volume",
   "shareActivityLabel": "Condividi allenamento",
   "shareCodeLabel": "Condividi codice",
+  "shareJsonImportContent": "Questi pasti verranno aggiunti al tuo diario.",
+  "shareJsonImportErrorLabel": "Impossibile leggere il JSON condiviso. Verificare che corrisponda al formato previsto.",
   "shareMealLabel": "Condividi pasto",
   "shareRecipeLabel": "Condividi ricetta",
   "snackExample": "es. mela, gelato, cioccolato ...",
