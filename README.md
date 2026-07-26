@@ -104,55 +104,24 @@ easily track and analyze your daily nutrition.
 
 ## Privacy
 
-There is no account and no sign-in, no analytics SDK, and no advertising SDK. Everything you log is written to an encrypted database on your device and stays there. The formal policy is [Data Protection](https://www.iubenda.com/privacy-policy/53501884); this section describes what the code actually does.
+No account, no sign-in, no analytics, no ads. Your profile, diary, activities, weight, water and fasting history, custom meals, and recipes live in local [Hive](https://pub.dev/packages/hive_ce) boxes encrypted with **AES-256** — the key is generated on first launch, kept in the Android Keystore / iOS Keychain, and never transmitted ([source](lib/core/utils/secure_app_storage_provider.dart)). **Settings → Delete all my data** wipes the active profile. Formal policy: [Data Protection](https://www.iubenda.com/privacy-policy/53501884).
 
-### Stored on your device
-
-Your profile, diary, activities, weight log, water and fasting history, custom meals, and recipes live in local [Hive](https://pub.dev/packages/hive_ce) boxes encrypted with **AES-256**.
-
-The 32-byte key is generated with a secure RNG on first launch and kept in platform secure storage — the Android Keystore and the iOS Keychain — via [`flutter_secure_storage`](https://pub.dev/packages/flutter_secure_storage). It is never written into the database and never transmitted. See [`secure_app_storage_provider.dart`](lib/core/utils/secure_app_storage_provider.dart).
-
-**Settings → Delete all my data** clears the active profile's boxes and returns the app to onboarding.
-
-### Leaves your device
-
-Only these four destinations are ever contacted, and only for the reason listed:
+**What leaves your device** — these four destinations, nothing else:
 
 | Destination | When | What is sent |
 | :-- | :-- | :-- |
-| [Open Food Facts](https://world.openfoodfacts.org/) | You search for a food or scan a barcode | The search term or barcode, plus a country tag derived from your device locale so locally sold products rank higher |
-| [USDA FoodData Central](https://fdc.nal.usda.gov/) (`api.nal.usda.gov`) | You search for a food | The search term and the app's API key |
-| Supabase reference backend | You search for a food, when that source is enabled | The search term |
-| [Sentry](https://sentry.io) | **Only if you opt in** | Crash stack traces, app version, OS version, device model |
+| [Open Food Facts](https://world.openfoodfacts.org/) | Food search or barcode scan | The search term or barcode, plus a country tag from your device locale for ranking |
+| [USDA FoodData Central](https://fdc.nal.usda.gov/) | Food search | The search term and the app's API key |
+| Supabase reference backend | Food search, when that source is enabled | The search term |
+| [Sentry](https://sentry.io) | **Only if you opt in** | Crash traces, app and OS version, device model |
 
-Requests carry a User-Agent naming the app, platform, and version — no user or device identifier is attached. Remote search results are cached locally and pruned after 90 days.
+Requests carry a User-Agent naming the app, platform, and version — no user or device identifier. Search results are cached locally and pruned after 90 days.
 
-### Crash reporting is opt-in
+**Crash reporting** is off until you enable it, and initializes only in release builds ([`main.dart:119`](lib/main.dart:119)). `sendDefaultPii` stays `false`, so no username, email, or IP-derived identity is attached. Disabling it — or deleting your data — closes the SDK immediately.
 
-Crash reporting is off unless you turn it on, and it is offered during onboarding rather than assumed. Concretely:
+**Permissions:** camera (barcode scanning, meal photos), photo library (meal photos, exports), notifications (daily reminder, fasting timer), internet (food lookups), and receive-boot-completed (re-registering the reminder after a reboot). No location, contacts, microphone, or health-data access.
 
-- It initializes only when consent was given **and** the build is a release build ([`main.dart:119`](lib/main.dart:119)) — debug and profile builds never report.
-- Sentry's `sendDefaultPii` is left at its default of `false`, so events carry no username, email, or IP-derived identity.
-- Turning it off in Settings closes the SDK immediately, and **Delete all my data** closes it before wiping.
-- If the local database fails an integrity check at startup, diagnostics stay local — consent lives inside the encrypted box, so nothing is reported before it can be read ([`main.dart:59-71`](lib/main.dart:59)).
-
-### Permissions
-
-| Permission | Why |
-| :-- | :-- |
-| Camera | Barcode scanning, and photographing a custom meal |
-| Photo library | Attaching a meal photo, and saving an export |
-| Notifications | Daily reminder and fasting-window completion |
-| Internet | Food database lookups |
-| Receive boot completed | Re-registers the daily reminder after a reboot |
-
-No location, contacts, microphone, or platform health-data access is requested.
-
-### Not collected
-
-- No account, email address, or phone number — the Supabase backend is read with an anonymous key and the app contains no sign-in path.
-- No advertising identifier and no cross-app tracking. The iOS privacy manifest declares `NSPrivacyTracking` as `false` with an empty tracking-domains list, and reports crash and performance data as *not linked to the user* ([`PrivacyInfo.xcprivacy`](ios/Runner/PrivacyInfo.xcprivacy)).
-- No ads, and no third-party ad or attribution SDKs.
+**Not collected:** no account, email, or phone number — the backend is read with an anonymous key and there is no sign-in path. No advertising ID and no cross-app tracking: `NSPrivacyTracking` is `false` with an empty tracking-domains list, and crash and performance data are declared *not linked to the user* ([`PrivacyInfo.xcprivacy`](ios/Runner/PrivacyInfo.xcprivacy)).
 
 <details>
 <summary><b>Verifying APK signatures</b></summary>
