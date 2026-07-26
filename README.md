@@ -1,43 +1,85 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/icon/ont_logo_square_color_white_1024x1024.png">
-    <img alt="Logo" src="assets/icon/ont_logo_square_color_back_1024x1024.png" width="128" />
+    <source media="(prefers-color-scheme: dark)" srcset="assets/icon/ont_banner_top_light.png">
+    <img alt="OpenNutriTracker" src="assets/icon/ont_banner_top.png" width="420" />
   </picture>
-  <h1 align="center">OpenNutriTracker</h1>
 </p>
 
 <p align="center">
-  <a href="https://opensource.org/licenses/MIT" alt="License">
-        <img src="https://img.shields.io/badge/license-GPLv3-blue" /></a>
-  <a href="https://github.com/simonoppowa/OpenNutriTracker/stargazers" alt="GitHub Stars">
-        <img src="https://img.shields.io/github/stars/simonoppowa/OpenNutriTracker.svg" /></a>
-  <a href="https://github.com/simonoppowa/OpenNutriTracker/issues" alt="GitHub Issues">
-        <img src="https://img.shields.io/github/issues/simonoppowa/OpenNutriTracker.svg" /></a>
-  <a href="https://github.com/simonoppowa/OpenNutriTracker/pulls" alt="GitHub Pull Requests">
-        <img src="https://img.shields.io/github/issues-pr/simonoppowa/OpenNutriTracker.svg" /></a>
+  <b>Nutrition tracking that stays on your phone.</b><br />
+  Open-source calorie and micronutrient logging — no account, no subscription, no ads.
 </p>
 
-## Description
-OpenNutriTracker is an open-source mobile application designed to simplify nutritional tracking and management. Whether you are looking to improve your health, lose weight, or simply maintain a balanced diet, OpenNutriTracker provides a minimalistic interface to easily track and analyze your daily nutrition.
-
-[Website](https://simonoppowa.github.io/OpenNutriTracker/)
-
-## Screenshots
 <p align="center">
-  <img alt="Logo" src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_en-US.png" width="20%" />
-  &nbsp;&nbsp;
-  <img alt="Logo" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_en-US.png" width="20%" />
-  &nbsp;&nbsp;
-  <img alt="Logo" src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_en-US.png" width="20%" />
-  &nbsp;&nbsp;
-  <img alt="Logo" src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_en-US.png" width="20%" />
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-GPLv3-22de5f?style=flat-square" /></a>
+  <a href="https://github.com/simonoppowa/OpenNutriTracker/releases"><img alt="Release" src="https://img.shields.io/github/v/release/simonoppowa/OpenNutriTracker?style=flat-square&color=22de5f" /></a>
+  <a href="https://github.com/simonoppowa/OpenNutriTracker/actions/workflows/default_workflow.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/simonoppowa/OpenNutriTracker/default_workflow.yml?branch=main&style=flat-square" /></a>
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Android%20%7C%20iOS-lightgrey?style=flat-square" />
+  <a href="https://github.com/simonoppowa/OpenNutriTracker/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/simonoppowa/OpenNutriTracker?style=flat-square" /></a>
+  <a href="https://github.com/simonoppowa/OpenNutriTracker/issues"><img alt="Issues" src="https://img.shields.io/github/issues/simonoppowa/OpenNutriTracker?style=flat-square" /></a>
+  <a href="https://github.com/simonoppowa/OpenNutriTracker/pulls"><img alt="Pull requests" src="https://img.shields.io/github/issues-pr/simonoppowa/OpenNutriTracker?style=flat-square" /></a>
 </p>
+
+<p align="center">
+  <a href="https://simonoppowa.github.io/OpenNutriTracker/">Website</a>
+  ·
+  <a href="GettingStarted.md">Getting started</a>
+  ·
+  <a href="CONTRIBUTING.md">Contributing</a>
+</p>
+
+OpenNutriTracker is an open-source mobile application designed to simplify nutritional
+tracking and management. Whether you are looking to improve your health, lose weight, or
+simply maintain a balanced diet, OpenNutriTracker provides a minimalistic interface to
+easily track and analyze your daily nutrition.
 
 ## Install
-[<img src="fastlane/metadata/android/en-US/images/appstore_banner.png" width="30%">](https://apps.apple.com/us/app/opennutritracker/id6451490901)
-[<img src="fastlane/metadata/android/en-US/images/playstore_banner.png" width="30%">](https://play.google.com/store/apps/details?id=com.opennutritracker.ont.opennutritracker)
 
-## Key Features
+<p align="center">
+  <a href="https://apps.apple.com/us/app/opennutritracker/id6451490901"><img alt="Download on the App Store" src="fastlane/metadata/android/en-US/images/appstore_banner.png" height="54" /></a>
+  &nbsp;&nbsp;
+  <a href="https://play.google.com/store/apps/details?id=com.opennutritracker.ont.opennutritracker"><img alt="Get it on Google Play" src="fastlane/metadata/android/en-US/images/playstore_banner.png" height="54" /></a>
+</p>
+
+## Screenshots
+
+<table align="center">
+  <tr>
+    <td align="center" width="25%"><img alt="Home screen" src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_en-US.png" /></td>
+    <td align="center" width="25%"><img alt="Barcode scanner" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_en-US.png" /></td>
+    <td align="center" width="25%"><img alt="Food details" src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_en-US.png" /></td>
+    <td align="center" width="25%"><img alt="Profile" src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_en-US.png" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Home</b></sub></td>
+    <td align="center"><sub><b>Barcode scanner</b></sub></td>
+    <td align="center"><sub><b>Food details</b></sub></td>
+    <td align="center"><sub><b>Profile</b></sub></td>
+  </tr>
+</table>
+
+## Key features
+
+|  | Feature | |
+| :--: | :-- | :-- |
+| 🍎 | **Nutritional tracking** | Log meals against Open Food Facts plus a multi-source reference backend (USDA FoodData Central, German BLS). |
+| 📓 | **Food diary** | Calendar-driven diary split into Breakfast, Lunch, Dinner, and Snack, with per-meal kcal targets. |
+| 🥕 | **Micronutrient panel** | Day and week views for ten micronutrients, with optional Dietary Reference Intake bars. |
+| 🍽️ | **Custom meals + recipes** | Save reusable recipes with photo, brand, and barcode, built from a dedicated ingredient picker. |
+| ⚡ | **Quick add** | Skip the search flow — a title plus kcal (and optional macros) logs straight to the meal section. |
+| 📷 | **Barcode scanner** | Scan packaged items for instant lookup, or attach a barcode to your own custom meals. |
+| 🏃 | **Activities** | Log workouts from a categorised catalogue, or define custom activities with direct kcal entry. |
+| 💧 | **Water tracker** | A home-screen chip with quick-add increments, an editable goal, and undo. |
+| ⏱️ | **Fasting timer** | Optional intermittent-fasting timer with a home chip and a completion notification. |
+| ⚖️ | **Weight history** | Trend chart with a dashed target line, and an optional calorie taper as you approach it. |
+| 🎨 | **Material You** | System accent colour on Android 12+, or sixteen built-in themes. Adaptive app icons. |
+| 🔢 | **kcal or kJ** | Switch the energy unit globally; every entry, target, and chart follows. |
+| 📤 | **Export and import** | Full JSON/CSV export, JSON paste-import, and QR sharing for a single meal or activity. |
+| 🔒 | **Privacy first** | All data AES-encrypted and stored locally. Crash reporting is opt-in. |
+| 🚫 | **No subscriptions** | No paid tier, no in-app purchases, no advertising. |
+
+<details>
+<summary>More detail on each feature</summary>
 
 - **🍎 Nutritional tracking:** Log meals and snacks against a large food database — Open Food Facts plus a multi-source reference backend covering USDA FoodData Central and the German Bundeslebensmittelschlüssel (BLS), with the sources selectable in Settings → Food databases. Each entry can be searched, scanned, or added straight as a number when you already know the calorie cost.
 - **📓 Food diary:** A calendar-driven diary that breaks the day into Breakfast, Lunch, Dinner, and Snack, with per-meal kcal targets (Standard, OMAD, Five-small, Mediterranean, Two-meal, or a custom share), drag-to-rearrange between meals, and sort by time or by macro contribution.
@@ -55,13 +97,18 @@ OpenNutriTracker is an open-source mobile application designed to simplify nutri
 - **🔒 Privacy first:** All data is AES-encrypted and stored locally. Anonymous crash reporting is opt-in during onboarding, can be turned off at any time, and the App Store privacy manifest declares exactly what the app does and does not collect.
 - **🚫💰 No subscriptions, in-app purchases, or ads:** OpenNutriTracker is free, with no paid tier and no advertising.
 
-## Privacy
-See [Data Protection](https://www.iubenda.com/privacy-policy/53501884)
-- **Data Encryption**: All collected user data is encrypted and stored locally on your device
-- **Minimal Data Collection**: OpenNutriTracker only collects the necessary information required for tracking nutrition and providing personalized insights. Your data will not be shared with third parties without your consent.
-- **Open-Source**: OpenNutriTracker is an open-source application
+</details>
 
-## Verifying APK signatures
+## Privacy
+
+See [Data Protection](https://www.iubenda.com/privacy-policy/53501884).
+
+- **Data encryption:** All collected user data is encrypted and stored locally on your device.
+- **Minimal data collection:** OpenNutriTracker only collects the information required for tracking nutrition and providing personalized insights. Your data will not be shared with third parties without your consent.
+- **Open source:** OpenNutriTracker is an open-source application.
+
+<details>
+<summary><b>Verifying APK signatures</b></summary>
 
 If you are side-loading an OpenNutriTracker APK from GitHub Releases — or from F-Droid, once the app is published there — you may reasonably want to confirm that the file you downloaded was signed by the same key the maintainer uses for every release, rather than by someone who intercepted the download or repackaged the app. The check below is for anyone who would like that extra reassurance before installing.
 
@@ -79,41 +126,54 @@ apksigner verify --print-certs /path/to/opennutritracker.apk
 
 The `SHA-256` line in the output should match the value above exactly.
 
-## Contribution
+</details>
+
+## Contributing
+
 Contributions to OpenNutriTracker are welcome! If you find any issues or have suggestions for new features, please open an issue or submit a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) for the project's conventions — including the requirement to target the `develop` branch and the steps for adding localized strings.
 
+Built with **Flutter** and **Dart**, following a clean-architecture split (data / domain / presentation) with `flutter_bloc` for state, `get_it` for dependency injection, and encrypted `hive_ce` boxes for local storage. [AGENTS.md](AGENTS.md) is the full architecture and conventions reference.
+
+**Getting started:** see [GettingStarted.md](GettingStarted.md) for setting up a local build.
+
+**Data export format:** the export bundle (Settings → Export / Import App Data → Export) is documented at [`docs/export-format.md`](docs/export-format.md) — both the JSON schema and the CSV companion the import / export round-trip uses.
+
+**Food database backend:** the multi-source food database lives in its own repository, [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) — schema, import pipeline, and translation tooling. Self-hosting it and pointing a local build at your own Supabase project is documented at [`docs/supabase-self-hosting.md`](docs/supabase-self-hosting.md).
+
 Thanks to all the contributors:
+
 <a href="https://github.com/simonoppowa/OpenNutriTracker/graphs/contributors">
 <img src="https://contrib.rocks/image?repo=simonoppowa/OpenNutriTracker" />
 </a>
 
-### Getting Started With Development
-See the [Getting Started](GettingStarted.md) file for more information.
-
-The data export bundle (Settings → Export / Import App Data → Export) is
-documented at [`docs/export-format.md`](docs/export-format.md) — both the
-JSON schema and the CSV companion the import / export round-trip uses.
-
-The multi-source food database lives in its own repository, [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) — schema, import pipeline, and translation tooling. Self-hosting it and pointing a local build at your own Supabase project is documented at [`docs/supabase-self-hosting.md`](docs/supabase-self-hosting.md).
-
 ## Disclaimer
-OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.
 
-The application is still under construction. Errors, bugs and crashes might occur.
+> [!WARNING]
+> OpenNutriTracker is not a medical application. All data provided is not validated and
+> should be used with caution. Please maintain a healthy lifestyle and consult a
+> professional if you have any problems. Use during illness, pregnancy or lactation is
+> not recommended.
+
+> [!NOTE]
+> The application is still under construction. Errors, bugs and crashes might occur.
 
 ## Acknowledgments
+
 The OpenNutriTracker project was inspired by the need for a simple and effective nutrition tracking tool.
+
 The food database used in OpenNutriTracker is powered by [Open Food Facts](https://world.openfoodfacts.org/) together with a multi-source reference backend hosted in Supabase: [USDA FoodData Central](https://fdc.nal.usda.gov/) (CC0) and the [Bundeslebensmittelschlüssel](https://www.blsdb.de) 4.0 (CC BY 4.0, © Max Rubner-Institut), with the [Anuvaad INDB](https://anuvaad.org.in) (CC BY 4.0) and [TBCA Brazil](https://www.tbca.net.br) (USP/FoRC) prepared as future sources. The schema and import pipeline live in the [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) repository; self-hosting is documented in [`docs/supabase-self-hosting.md`](docs/supabase-self-hosting.md).
 
 Dietary Reference Intake values for the micronutrient panel come from the U.S. National Academies' Institute of Medicine tables. The in-app **Sources & References** screen (one tap from the home calorie ring or the profile BMI card) lists the peer-reviewed sources used for energy needs, BMI classification, macro distribution, MET activity calories, and non-binary calorie estimation.
 
 ## License
-This project is licensed under the GNU General Public License v3.0 License. See the [LICENSE](LICENSE) file for more information.
+
+This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for more information.
 
 ## Contact
+
 For questions, suggestions, or collaborations, feel free to contact the project maintainer:
 
-Simon Oppowa
+**Simon Oppowa**
 
 - GitHub: [@simonoppowa](https://github.com/simonoppowa)
 - Email: [opennutritracker-dev@pm.me](mailto:opennutritracker-dev@pm.me)
