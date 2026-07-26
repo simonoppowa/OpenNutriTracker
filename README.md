@@ -71,21 +71,15 @@ easily track and analyze your daily nutrition.
 
 |  | Feature | |
 | :--: | :-- | :-- |
-| 🍎 | **Nutritional tracking** | Log meals against Open Food Facts plus a multi-source reference backend (USDA FoodData Central, German BLS). |
-| 📓 | **Food diary** | Calendar-driven diary split into Breakfast, Lunch, Dinner, and Snack, with per-meal kcal targets. |
-| 🥕 | **Micronutrient panel** | Day and week views for ten micronutrients, with optional Dietary Reference Intake bars. |
-| 🍽️ | **Custom meals + recipes** | Save reusable recipes with photo, brand, and barcode, built from a dedicated ingredient picker. |
-| ⚡ | **Quick add** | Skip the search flow — a title plus kcal (and optional macros) logs straight to the meal section. |
-| 📷 | **Barcode scanner** | Scan packaged items for instant lookup, or attach a barcode to your own custom meals. |
-| 🏃 | **Activities** | Log workouts from a categorised catalogue, or define custom activities with direct kcal entry. |
-| 💧 | **Water tracker** | A home-screen chip with quick-add increments, an editable goal, and undo. |
-| ⏱️ | **Fasting timer** | Optional intermittent-fasting timer with a home chip and a completion notification. |
-| ⚖️ | **Weight history** | Trend chart with a dashed target line, and an optional calorie taper as you approach it. |
-| 🎨 | **Material You** | System accent colour on Android 12+, or sixteen built-in themes. Adaptive app icons. |
-| 🔢 | **kcal or kJ** | Switch the energy unit globally; every entry, target, and chart follows. |
-| 📤 | **Export and import** | Full JSON/CSV export, JSON paste-import, and QR sharing for a single meal or activity. |
-| 🔒 | **Privacy first** | All data AES-encrypted and stored locally. Crash reporting is opt-in. |
-| 🚫 | **No subscriptions** | No paid tier, no in-app purchases, no advertising. |
+| 🍎 | **Food logging** | Search, scan a barcode, or quick-add kcal — backed by Open Food Facts, USDA, and German BLS. |
+| 📓 | **Food diary** | Breakfast, Lunch, Dinner, and Snack on a calendar, with per-meal kcal targets. |
+| 🥕 | **Micronutrients** | Day and week views for ten nutrients, with optional reference-intake bars. |
+| 🍽️ | **Meals and recipes** | Reusable recipes with photo, brand, and barcode. |
+| 🏃 | **Activities and weight** | Workout catalogue or custom activities; weight trend against a target. |
+| 💧 | **Water and fasting** | A home-screen water chip and an optional intermittent-fasting timer. |
+| 🎨 | **Themes and units** | Material You accent on Android 12+, sixteen built-in themes, kcal or kJ. |
+| 📤 | **Export and import** | JSON and CSV export, JSON import, and QR sharing. |
+| 🔒 | **Private and free** | Encrypted local storage, opt-in crash reports, no ads or subscriptions. |
 
 <details>
 <summary>More detail on each feature</summary>
