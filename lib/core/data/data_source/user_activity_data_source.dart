@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
@@ -63,25 +62,23 @@ class UserActivityDataSource {
     return _userActivityBox.values.toList();
   }
 
+  /// Activities filed under the calendar day [day].
+  ///
+  /// [day] is a day label, not a moment — see [IntakeDataSource
+  /// .getAllIntakesByDate] for the rationale (#139, #586).
   Future<List<UserActivityDBO>> getAllUserActivitiesByDate(
-    DateTime dateTime, {
+    DateTime day, {
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
   }) async {
-    // #139: see IntakeDataSource for the rationale — a zero total offset
-    // preserves the original wall-clock day behaviour. The follow-up to
-    // #139 adds the minutes companion which composes additively here.
-    final totalMinutes = dayStartOffsetHours * 60 +
-        dayStartOffsetMinutes.clamp(0, 59);
-    if (totalMinutes == 0) {
-      return _userActivityBox.values
-          .where((activity) => DateUtils.isSameDay(dateTime, activity.date))
-          .toList();
-    }
+    final totalMinutes = DayBoundaryCalc.totalMinutesOf(
+      dayStartOffsetHours,
+      dayStartOffsetMinutes,
+    );
     return _userActivityBox.values
         .where(
-          (activity) => DayBoundaryCalc.isSameLogicalDayMinutes(
-            dateTime,
+          (activity) => DayBoundaryCalc.isMomentInLogicalDayMinutes(
+            day,
             activity.date,
             totalMinutes,
           ),

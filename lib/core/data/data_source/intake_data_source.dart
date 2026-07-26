@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
@@ -64,33 +63,30 @@ class IntakeDataSource {
     return _intakeBox.values.toList();
   }
 
+  /// Intakes of [intakeType] filed under the calendar day [day].
+  ///
+  /// [day] is a day label — the date the user is looking at — not a
+  /// moment in time. #139: when a non-zero day-start offset is
+  /// configured, an entry logged before that time rolls into the
+  /// previous day; the label itself must stay put (#586). The follow-up
+  /// to #139 adds a minutes companion, which composes additively into a
+  /// single total-minutes value here. A zero total offset reduces to the
+  /// original wall-clock-day behaviour.
   Future<List<IntakeDBO>> getAllIntakesByDate(
     IntakeTypeDBO intakeType,
-    DateTime dateTime, {
+    DateTime day, {
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
   }) async {
-    // #139: when a non-zero day-start offset is configured, an entry
-    // logged before that hour rolls into the previous wall-clock day.
-    // A zero total offset preserves the original wall-clock behaviour.
-    // The follow-up to #139 adds a minutes companion; both compose
-    // additively into a single total-minutes value here.
-    final totalMinutes = dayStartOffsetHours * 60 +
-        dayStartOffsetMinutes.clamp(0, 59);
-    if (totalMinutes == 0) {
-      return _intakeBox.values
-          .where(
-            (intake) =>
-                DateUtils.isSameDay(dateTime, intake.dateTime) &&
-                intake.type == intakeType,
-          )
-          .toList();
-    }
+    final totalMinutes = DayBoundaryCalc.totalMinutesOf(
+      dayStartOffsetHours,
+      dayStartOffsetMinutes,
+    );
     return _intakeBox.values
         .where(
           (intake) =>
-              DayBoundaryCalc.isSameLogicalDayMinutes(
-                dateTime,
+              DayBoundaryCalc.isMomentInLogicalDayMinutes(
+                day,
                 intake.dateTime,
                 totalMinutes,
               ) &&

@@ -223,6 +223,96 @@ void main() {
     });
   });
 
+  group('DayBoundaryCalc.isMomentInLogicalDayMinutes (#586)', () {
+    // The day label is what the user tapped in the diary calendar. The
+    // offset must move only the entry, never the label — shifting the
+    // label was #586: selecting the 20th showed the 19th.
+    final label = DateTime.utc(2026, 7, 20);
+    const sixAm = 6 * 60;
+
+    test('a midday entry stays on the day it was logged', () {
+      expect(
+        DayBoundaryCalc.isMomentInLogicalDayMinutes(
+          label,
+          DateTime(2026, 7, 20, 12, 0),
+          sixAm,
+        ),
+        isTrue,
+      );
+    });
+
+    test('an entry logged before the boundary belongs to the previous day', () {
+      // 02:00 on the 21st is still "the 20th" under a 06:00 boundary.
+      expect(
+        DayBoundaryCalc.isMomentInLogicalDayMinutes(
+          label,
+          DateTime(2026, 7, 21, 2, 0),
+          sixAm,
+        ),
+        isTrue,
+      );
+      // ...and by the same token the previous evening is not.
+      expect(
+        DayBoundaryCalc.isMomentInLogicalDayMinutes(
+          label,
+          DateTime(2026, 7, 19, 20, 0),
+          sixAm,
+        ),
+        isFalse,
+      );
+    });
+
+    test('a diary-added entry is a day label and is not rolled back', () {
+      // Entries added from the diary carry the calendar cell itself as
+      // their timestamp, so they must be matched verbatim.
+      expect(
+        DayBoundaryCalc.isMomentInLogicalDayMinutes(label, label, sixAm),
+        isTrue,
+      );
+      expect(
+        DayBoundaryCalc.isMomentInLogicalDayMinutes(
+          label,
+          DateTime.utc(2026, 7, 19),
+          sixAm,
+        ),
+        isFalse,
+      );
+    });
+
+    test('a zero offset matches plain calendar-day semantics', () {
+      expect(
+        DayBoundaryCalc.isMomentInLogicalDayMinutes(
+          label,
+          DateTime(2026, 7, 20, 2, 0),
+          0,
+        ),
+        isTrue,
+      );
+      expect(
+        DayBoundaryCalc.isMomentInLogicalDayMinutes(
+          label,
+          DateTime(2026, 7, 21, 2, 0),
+          0,
+        ),
+        isFalse,
+      );
+    });
+
+    test('a local-midnight label works too (diary before any day is tapped)',
+        () {
+      // _selectedDate starts life as DateTime.now(), so the label handed
+      // to the query is not always UTC.
+      expect(
+        DayBoundaryCalc.isMomentInLogicalDayMinutes(
+          DateTime(2026, 7, 20),
+          DateTime(2026, 7, 20, 12, 0),
+          sixAm,
+        ),
+        isTrue,
+      );
+    });
+  });
+
   group('ConfigEntity-level clamping (via the minutes companion)', () {
     // The actual clamping happens at the entity boundary, but the
     // data-source code path also defends itself. This documents the

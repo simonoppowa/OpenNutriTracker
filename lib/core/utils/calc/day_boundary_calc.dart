@@ -64,8 +64,58 @@ class DayBoundaryCalc {
   static DateTime currentLogicalDayMinutes(int? offsetTotalMinutes) =>
       logicalDayOfMinutes(DateTime.now(), offsetTotalMinutes);
 
+  /// Composes the hours + minutes pair the data layer passes around into
+  /// the single total-minutes value the calculations below expect. A
+  /// stored minute value outside 0-59 cannot inflate the total.
+  static int totalMinutesOf(int offsetHours, int offsetMinutes) =>
+      offsetHours * 60 + offsetMinutes.clamp(0, 59);
+
+  /// The label of the logical day "now" falls in, from an hours +
+  /// minutes pair.
+  ///
+  /// Queries that mean "today" must resolve the boundary *before* they
+  /// filter, because the query itself takes a day label: on a 06:00
+  /// boundary at 02:00, "today" is yesterday's label (#586).
+  static DateTime currentLogicalDayLabel(int offsetHours, int offsetMinutes) =>
+      currentLogicalDayMinutes(totalMinutesOf(offsetHours, offsetMinutes));
+
+  /// True when the entry logged at [moment] belongs to the logical day
+  /// labelled [dayLabel], given [offsetTotalMinutes].
+  ///
+  /// Use this — not [isSameLogicalDayMinutes] — whenever one side is a
+  /// calendar date the user picked rather than a clock reading. A day
+  /// label names a column in the diary; only its calendar date carries
+  /// meaning, and applying the offset to it shifts the whole selection
+  /// (#586: with a 06:00 boundary, tapping the 20th listed the 19th's
+  /// entries, because subtracting six hours from midnight lands in the
+  /// previous day). Only [moment] is resolved through the boundary.
+  static bool isMomentInLogicalDayMinutes(
+    DateTime dayLabel,
+    DateTime moment,
+    int? offsetTotalMinutes,
+  ) {
+    // Entries added from the diary are stamped with the calendar cell
+    // itself — table_calendar hands out `DateTime.utc(y, m, d)`, which
+    // DayInfoWidget passes through AddMealScreenArguments into
+    // MealDetailBloc.addIntake as the intake's `dateTime`. That value is
+    // a label, not a moment, so it is compared as-is: rolling it back
+    // would file every diary-added entry a day early. Live-logged
+    // entries always come from `DateTime.now()` and so are local, which
+    // is what keeps the two cases distinguishable (hive_ce preserves the
+    // UTC flag across a round trip).
+    final momentDay = _isDayLabel(moment)
+        ? moment
+        : logicalDayOfMinutes(moment, offsetTotalMinutes);
+    return momentDay.year == dayLabel.year &&
+        momentDay.month == dayLabel.month &&
+        momentDay.day == dayLabel.day;
+  }
+
   /// True when [a] and [b] resolve to the same logical day under
   /// [offsetTotalMinutes].
+  ///
+  /// Both arguments must be real timestamps. If either is a user-picked
+  /// calendar date, reach for [isMomentInLogicalDayMinutes] instead.
   static bool isSameLogicalDayMinutes(
     DateTime a,
     DateTime b,
@@ -82,6 +132,17 @@ class DayBoundaryCalc {
     final shifted = moment.subtract(Duration(minutes: totalMinutes));
     return DateTime(shifted.year, shifted.month, shifted.day);
   }
+
+  /// A UTC midnight is how this app spells "the calendar day named
+  /// y-m-d" (see [isMomentInLogicalDayMinutes]); nothing writes a
+  /// live-logged entry in UTC, so the flag is an unambiguous marker.
+  static bool _isDayLabel(DateTime value) =>
+      value.isUtc &&
+      value.hour == 0 &&
+      value.minute == 0 &&
+      value.second == 0 &&
+      value.millisecond == 0 &&
+      value.microsecond == 0;
 
   static int _sanitiseHours(int? offsetHours) {
     if (offsetHours == null) return 0;
