@@ -7,8 +7,11 @@ import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 
 import '../fixture/meal_entity_fixtures.dart';
@@ -100,23 +103,41 @@ void main() {
   });
 
   // The Home page asks for "today" rather than a selected day, so it has
-  // to resolve the boundary into a label *before* filtering: on a 06:00
-  // boundary at 02:00, "today" is yesterday's label. Passing a raw
-  // `DateTime.now()` to a label-taking query asks for the wall-clock
+  // to resolve the boundary into a label *before* filtering: passing a
+  // raw `DateTime.now()` to a label-taking query asks for the wall-clock
   // date, which is a different day for exactly the hours the offset
-  // exists to handle.
-  //
-  // These usecases read the clock internally, so a test can only observe
-  // the difference between 00:00 and the boundary. What is pinned here is
-  // the composition Home relies on, for a fixed "now".
+  // exists to handle. The clock is pinned inside that window, because
+  // outside it the two spellings of "today" coincide and the test would
+  // pass either way.
   group('a "today" read resolves the boundary before filtering', () {
-    late IntakeDataSource dataSource;
     late IntakeRepository repo;
+    late GetIntakeUsecase intakeUsecase;
+    late GetUserActivityUsecase activityUsecase;
+
+    const offsetHours = 6;
+    // 02:00 — after midnight, before the 06:00 boundary, so the logical
+    // day is still the 19th while the wall-clock date is the 20th.
+    final beforeBoundary = DateTime(2026, 7, 20, 2, 0);
 
     setUp(() async {
-      final box = await Hive.openBox<IntakeDBO>('intake_today_test');
-      dataSource = IntakeDataSource(FakeHiveDBProvider(intakeBox: box));
-      repo = IntakeRepository(dataSource);
+      DayBoundaryCalc.clock = () => beforeBoundary;
+      addTearDown(() => DayBoundaryCalc.clock = DateTime.now);
+
+      final intakeBox = await Hive.openBox<IntakeDBO>('intake_today_test');
+      repo = IntakeRepository(
+        IntakeDataSource(FakeHiveDBProvider(intakeBox: intakeBox)),
+      );
+      intakeUsecase = GetIntakeUsecase(repo);
+
+      final activityBox =
+          await Hive.openBox<UserActivityDBO>('activity_today_test');
+      activityUsecase = GetUserActivityUsecase(
+        UserActivityRepository(
+          UserActivityDataSource(
+            FakeHiveDBProvider(userActivityBox: activityBox),
+          ),
+        ),
+      );
     });
 
     Future<void> addLunchAt(String id, DateTime when) => repo.addIntake(
@@ -130,29 +151,92 @@ void main() {
           ),
         );
 
-    test('at 02:00 on a 06:00 boundary, "today" is the previous day', () async {
-      const offsetHours = 6;
-      final now = DateTime(2026, 7, 20, 2, 0);
-
+    test('at 02:00 on a 06:00 boundary, "today" is still the 19th', () async {
       await addLunchAt('19th-evening', DateTime(2026, 7, 19, 20, 0));
       await addLunchAt('20th-small-hours', DateTime(2026, 7, 20, 1, 0));
+      // Already past the next boundary, so it belongs to the 20th.
       await addLunchAt('20th-after-boundary', DateTime(2026, 7, 20, 9, 0));
 
-      // The label a "today" read must resolve to...
-      final label = DayBoundaryCalc.logicalDayOfMinutes(now, offsetHours * 60);
-      expect(label, DateTime(2026, 7, 19));
-
-      // ...and what the diary/home list shows for it: the previous
-      // evening plus the small hours that have not yet crossed 06:00.
-      final result = await dataSource.getAllIntakesByDate(
-        IntakeTypeDBO.lunch,
-        label,
+      final today = await intakeUsecase.getTodayLunchIntake(
         dayStartOffsetHours: offsetHours,
       );
       expect(
-        result.map((dbo) => dbo.id).toSet(),
+        today.map((e) => e.id).toSet(),
         {'19th-evening', '20th-small-hours'},
       );
+    });
+
+    test('with no offset configured, "today" is the wall-clock day',
+        () async {
+      await addLunchAt('19th-evening', DateTime(2026, 7, 19, 20, 0));
+      await addLunchAt('20th-small-hours', DateTime(2026, 7, 20, 1, 0));
+
+      final today = await intakeUsecase.getTodayLunchIntake();
+      expect(today.map((e) => e.id), ['20th-small-hours']);
+    });
+
+    test('every meal slot agrees on which day "today" is', () async {
+      // A slot reading the wall-clock date while its neighbours read the
+      // logical one would split a single evening across two days.
+      for (final type in IntakeTypeEntity.values) {
+        await repo.addIntake(
+          IntakeEntity(
+            id: 'small-hours-${type.name}',
+            unit: 'g',
+            amount: 1,
+            type: type,
+            meal: MealEntityFixtures.mealOne,
+            dateTime: DateTime(2026, 7, 20, 1, 0),
+          ),
+        );
+        await repo.addIntake(
+          IntakeEntity(
+            id: 'after-boundary-${type.name}',
+            unit: 'g',
+            amount: 1,
+            type: type,
+            meal: MealEntityFixtures.mealOne,
+            dateTime: DateTime(2026, 7, 20, 9, 0),
+          ),
+        );
+      }
+
+      final reads = {
+        IntakeTypeEntity.breakfast: intakeUsecase.getTodayBreakfastIntake,
+        IntakeTypeEntity.lunch: intakeUsecase.getTodayLunchIntake,
+        IntakeTypeEntity.dinner: intakeUsecase.getTodayDinnerIntake,
+        IntakeTypeEntity.snack: intakeUsecase.getTodaySnackIntake,
+      };
+      for (final entry in reads.entries) {
+        final result = await entry.value(dayStartOffsetHours: offsetHours);
+        expect(
+          result.map((e) => e.id),
+          ['small-hours-${entry.key.name}'],
+          reason: '${entry.key.name} disagreed about "today"',
+        );
+      }
+    });
+
+    test('activities resolve "today" the same way', () async {
+      final walking = PhysicalActivityDBO(
+        '02020',
+        'Walking',
+        'Walking, leisure',
+        3.5,
+        const [],
+        PhysicalActivityTypeDBO.sport,
+      );
+      await Hive.box<UserActivityDBO>('activity_today_test').addAll([
+        UserActivityDBO(
+            'small-hours', 30, 100, DateTime(2026, 7, 20, 1, 0), walking),
+        UserActivityDBO(
+            'after-boundary', 30, 100, DateTime(2026, 7, 20, 9, 0), walking),
+      ]);
+
+      final today = await activityUsecase.getTodayUserActivity(
+        dayStartOffsetHours: offsetHours,
+      );
+      expect(today.map((e) => e.id), ['small-hours']);
     });
   });
 

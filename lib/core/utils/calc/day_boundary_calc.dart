@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 /// Helper for the configurable diary day boundary (#139).
 ///
 /// Some reporters live by a 04:00-to-04:00 day rather than the wall-clock
@@ -13,6 +15,16 @@
 /// the entry was created). Notification scheduling has its own timing
 /// logic and is intentionally untouched here.
 class DayBoundaryCalc {
+  /// The clock every "now" below reads.
+  ///
+  /// A boundary only misbehaves between midnight and the offset, so a
+  /// test that reads the real clock silently proves nothing for most of
+  /// the day — which is how the `…Today…` reads went a release without
+  /// anyone noticing they asked for the wrong day (#586). Tests pin this
+  /// and restore it; production never assigns it.
+  @visibleForTesting
+  static DateTime Function() clock = DateTime.now;
+
   /// Returns the wall-clock midnight of the logical day that [moment]
   /// belongs to, given a configured [offsetHours] in the range 0–23.
   ///
@@ -30,7 +42,7 @@ class DayBoundaryCalc {
 
   /// The logical day for "now", given the configured [offsetHours].
   static DateTime currentLogicalDay(int? offsetHours) =>
-      logicalDayOf(DateTime.now(), offsetHours);
+      logicalDayOf(clock(), offsetHours);
 
   /// True when [a] and [b] resolve to the same logical day under
   /// [offsetHours].
@@ -62,7 +74,7 @@ class DayBoundaryCalc {
 
   /// The logical day for "now", given the configured [offsetTotalMinutes].
   static DateTime currentLogicalDayMinutes(int? offsetTotalMinutes) =>
-      logicalDayOfMinutes(DateTime.now(), offsetTotalMinutes);
+      logicalDayOfMinutes(clock(), offsetTotalMinutes);
 
   /// Composes the hours + minutes pair the data layer passes around into
   /// the single total-minutes value the calculations below expect. A
