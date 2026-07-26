@@ -156,9 +156,12 @@ To start a language that isn't listed yet, request it from the [Weblate project 
 
 ## Mentions
 
+> I've got my OpenNutriTracker here, my open-source calorie counter. Support open-source apps. No ads, no subscriptions, and I don't send my data to anyone — everything stays here.
+
+— [**Cadê a Chave?**, Ep. 1773](https://www.youtube.com/watch?v=DPLtsx-f6Ro&t=498s) (at 8:18), the vlog channel run by the team behind [Coisa de Nerd](https://www.youtube.com/@coisadenerd), one of Brazil's largest tech channels at 11M+ subscribers. Translated from the Portuguese by a contributor in [#375](https://github.com/simonoppowa/OpenNutriTracker/issues/375).
+
 | Where | What |
 | :-- | :-- |
-| [Cadê a chave? — Ep. 1773](https://www.youtube.com/watch?v=DPLtsx-f6Ro&t=498s) | OpenNutriTracker comes up at 8:18 in this Portuguese-language podcast |
 | [Trendshift](https://trendshift.io/repositories/12625) | Ranked #2 Dart Repository of the Day |
 | [It's All Widgets!](https://itsallwidgets.com/opennutritracker) | Featured in the Flutter app showcase |
 | [AlternativeTo](https://alternativeto.net/software/myfitnesspal/?license=opensource) | Currently the top-ranked open-source MyFitnessPal alternative |
