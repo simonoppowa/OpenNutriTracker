@@ -154,6 +154,17 @@ OpenNutriTracker is translated on [Hosted Weblate](https://hosted.weblate.org/en
 
 To start a language that isn't listed yet, request it from the [Weblate project page](https://hosted.weblate.org/projects/opennutritracker/). If you would rather work in the repository directly, the source strings live in [`lib/l10n/intl_en.arb`](lib/l10n/intl_en.arb) — see [CONTRIBUTING.md](CONTRIBUTING.md) for the conventions.
 
+## Mentions
+
+| Where | What |
+| :-- | :-- |
+| [Cadê a chave? — Ep. 1773](https://www.youtube.com/watch?v=DPLtsx-f6Ro&t=498s) | OpenNutriTracker comes up at 8:18 in this Portuguese-language podcast |
+| [Trendshift](https://trendshift.io/repositories/12625) | Ranked #2 Dart Repository of the Day |
+| [It's All Widgets!](https://itsallwidgets.com/opennutritracker) | Featured in the Flutter app showcase |
+| [AlternativeTo](https://alternativeto.net/software/myfitnesspal/?license=opensource) | Currently the top-ranked open-source MyFitnessPal alternative |
+
+Written or talked about OpenNutriTracker somewhere? Open an issue or a pull request and it can go on this list.
+
 ## Contributing
 
 Contributions to OpenNutriTracker are welcome! If you find any issues or have suggestions for new features, please open an issue or submit a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) for the project's conventions — including the requirement to target the `develop` branch and the steps for adding localized strings.
