@@ -154,6 +154,30 @@ OpenNutriTracker is translated on [Hosted Weblate](https://hosted.weblate.org/en
 
 To start a language that isn't listed yet, request it from the [Weblate project page](https://hosted.weblate.org/projects/opennutritracker/). If you would rather work in the repository directly, the source strings live in [`lib/l10n/intl_en.arb`](lib/l10n/intl_en.arb) — see [CONTRIBUTING.md](CONTRIBUTING.md) for the conventions.
 
+## What people say
+
+> This app has a user-friendly interface and is unburdened by the ridiculous (and constant) cash-grabbing that is chronic across health and wellness apps. As someone suffering from extreme subscription fatigue — I'm not a walking wallet! — this nutrition tracker is a breath of fresh air.
+
+— **Ai C.**, Google Play ★★★★★
+
+> No ads, no paywalls, no bloat, no bs. You can export your data at any moment, or import some from somewhere else, no questions asked. I have experienced no bugs in these last few months. Developers are still active on the repo, so I'm expecting it to get even better.
+
+— **App Store review** ★★★★★
+
+> The most recent version puts this open source nutrition tracker among the best resources out there — all while respecting your privacy through free and open source software. If you care about your fitness and care about having control of your data, look no further!
+
+— **App Store review** ★★★★★
+
+> Excellent simple app without ads that gets the job done. I have legit lost over 10 kg using this app.
+
+— **Esko E.**, Google Play ★★★★★
+
+> Simple, fast and very functional. Finally I don't have to sell my soul to MyFitnessPal ;)
+
+— **Frederic-Leon C.**, Google Play ★★★★★
+
+Reviews are lightly trimmed for length; the full text is on the [App Store](https://apps.apple.com/us/app/opennutritracker/id6451490901) and [Google Play](https://play.google.com/store/apps/details?id=com.opennutritracker.ont.opennutritracker) listings. Found a bug or missing feature? [Open an issue](https://github.com/simonoppowa/OpenNutriTracker/issues) — it gets read faster than a review does.
+
 ## Mentions
 
 > I've got my OpenNutriTracker here, my open-source calorie counter. Support open-source apps. No ads, no subscriptions, and I don't send my data to anyone — everything stays here.
