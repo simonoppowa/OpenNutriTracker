@@ -21,6 +21,12 @@
 </p>
 
 <p align="center">
+  <a href="https://trendshift.io/repositories/12625"><img alt="simonoppowa/OpenNutriTracker | Trendshift" src="https://trendshift.io/api/badge/repositories/12625" width="250" height="55" /></a>
+  &nbsp;
+  <a href="https://trendshift.io/repositories/12625"><img alt="#2 Dart Repository Of The Day | Trendshift" src="https://trendshift.io/api/badge/trendshift/repositories/12625/daily?language=Dart" width="250" height="55" /></a>
+</p>
+
+<p align="center">
   <a href="https://simonoppowa.github.io/OpenNutriTracker/">Website</a>
   ·
   <a href="GettingStarted.md">Getting started</a>
