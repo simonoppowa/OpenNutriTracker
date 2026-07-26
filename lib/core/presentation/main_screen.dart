@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet
 import 'package:opennutritracker/core/presentation/widgets/demo_mode_banner.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/meal_type_suggester.dart';
 import 'package:opennutritracker/features/diary/diary_page.dart';
 import 'package:opennutritracker/core/presentation/widgets/home_appbar.dart';
 import 'package:opennutritracker/features/home/home_page.dart';
@@ -158,6 +159,7 @@ class _MainScreenState extends State<MainScreen> {
           day: DateTime.now(),
           showActivityTracking: config.showActivityTracking,
           usesImperialUnits: config.usesImperialFoodUnits,
+          suggestedType: MealTypeSuggester.suggestFromTime(DateTime.now()),
         );
       },
     );

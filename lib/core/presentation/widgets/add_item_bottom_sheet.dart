@@ -16,11 +16,18 @@ class AddItemBottomSheet extends StatelessWidget {
   final bool showActivityTracking;
   final bool usesImperialUnits;
 
+  /// Meal type to visually highlight as a suggested default (e.g. based on
+  /// the current time). Null keeps every tile unhighlighted — used when the
+  /// sheet is launched from a specific meal section, where the caller has
+  /// already committed to a meal type.
+  final IntakeTypeEntity? suggestedType;
+
   const AddItemBottomSheet({
     super.key,
     required this.day,
     this.showActivityTracking = true,
     this.usesImperialUnits = false,
+    this.suggestedType,
   });
 
   @override
@@ -97,6 +104,7 @@ class AddItemBottomSheet extends StatelessWidget {
                 height: double.infinity,
                 child: Icon(IntakeTypeEntity.breakfast.getIconData()),
               ),
+              trailing: _suggestedChip(context, IntakeTypeEntity.breakfast),
               onTap: () {
                 _showAddItemScreen(context, AddMealType.breakfastType);
               },
@@ -124,6 +132,7 @@ class AddItemBottomSheet extends StatelessWidget {
                 height: double.infinity,
                 child: Icon(IntakeTypeEntity.lunch.getIconData()),
               ),
+              trailing: _suggestedChip(context, IntakeTypeEntity.lunch),
               onTap: () {
                 _showAddItemScreen(context, AddMealType.lunchType);
               },
@@ -151,6 +160,7 @@ class AddItemBottomSheet extends StatelessWidget {
                 height: double.infinity,
                 child: Icon(IntakeTypeEntity.dinner.getIconData()),
               ),
+              trailing: _suggestedChip(context, IntakeTypeEntity.dinner),
               onTap: () {
                 _showAddItemScreen(context, AddMealType.dinnerType);
               },
@@ -178,6 +188,7 @@ class AddItemBottomSheet extends StatelessWidget {
                 height: double.infinity,
                 child: Icon(IntakeTypeEntity.snack.getIconData()),
               ),
+              trailing: _suggestedChip(context, IntakeTypeEntity.snack),
               onTap: () {
                 _showAddItemScreen(context, AddMealType.snackType);
               },
@@ -247,6 +258,31 @@ class AddItemBottomSheet extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  /// Returns a compact "Suggested" chip for the tile matching [suggestedType],
+  /// or null for every other tile (so no trailing space is reserved).
+  Widget? _suggestedChip(BuildContext context, IntakeTypeEntity tileType) {
+    if (suggestedType != tileType) return null;
+    final scheme = Theme.of(context).colorScheme;
+    return Semantics(
+      identifier: 'add-item-suggested-chip',
+      label: S.of(context).suggestedLabel,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: scheme.secondaryContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          S.of(context).suggestedLabel,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: scheme.onSecondaryContainer,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+      ),
     );
   }
 
