@@ -18,7 +18,10 @@
 # Dependencies: adb, python3 (stdlib only)
 # ---------------------------------------------------------------------------
 
-DEVICE="${DEVICE:-$(adb devices | awk '/device$/{print $1; exit}')}"
+# cut -f1 rather than awk $1: serials from wireless debugging contain spaces
+# (e.g. "adb-18101FDF60010M-c9jbnv (2)._adb-tls-connect._tcp"), and splitting on
+# whitespace truncates them into a "device not found".
+DEVICE="${DEVICE:-$(adb devices | sed -n '2p' | cut -f1)}"
 DUMP_PATH="/sdcard/window_dump.xml"
 LOCAL_DUMP="/tmp/ont-window-dump.xml"
 

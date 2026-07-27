@@ -54,18 +54,28 @@ easily track and analyze your daily nutrition.
 
 <table align="center">
   <tr>
-    <td align="center" width="25%"><img alt="Home screen" src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_en-US.png" /></td>
-    <td align="center" width="25%"><img alt="Barcode scanner" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_en-US.png" /></td>
-    <td align="center" width="25%"><img alt="Food details" src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_en-US.png" /></td>
-    <td align="center" width="25%"><img alt="Profile" src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_en-US.png" /></td>
+    <td align="center" width="33%"><img alt="Home screen showing calories left on a progress ring, carbs, fat and protein against their targets, and the day's logged activity" src="docs/site/screenshots/1_en-US.png" /></td>
+    <td align="center" width="33%"><img alt="Adding food to lunch, with recently logged items ready to re-add in one tap and a barcode scanner in the search field" src="docs/site/screenshots/2_en-US.png" /></td>
+    <td align="center" width="33%"><img alt="Food detail showing the full nutrition table with saturated fat, sugar and fibre, plus an expanded micronutrient panel" src="docs/site/screenshots/3_en-US.png" /></td>
   </tr>
   <tr>
-    <td align="center"><sub><b>Home</b></sub></td>
-    <td align="center"><sub><b>Barcode scanner</b></sub></td>
-    <td align="center"><sub><b>Food details</b></sub></td>
-    <td align="center"><sub><b>Profile</b></sub></td>
+    <td align="center"><sub><b>Home</b><br />where the day stands</sub></td>
+    <td align="center"><sub><b>Add food</b><br />re-log in one tap</sub></td>
+    <td align="center"><sub><b>Food detail</b><br />down to the micronutrient</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img alt="Diary showing a month calendar with each day marked by how it went, and the selected day's calories and macro rings below" src="docs/site/screenshots/4_en-US.png" /></td>
+    <td align="center"><img alt="Trends showing a seven-day streak, calories charted against the goal line, and daily macro averages" src="docs/site/screenshots/5_en-US.png" /></td>
+    <td align="center"><img alt="Profile screen showing BMI, activity level, weight goal and weekly rate" src="docs/site/screenshots/6_en-US.png" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Diary</b><br />every day you've logged</sub></td>
+    <td align="center"><sub><b>Trends</b><br />the shape of a month</sub></td>
+    <td align="center"><sub><b>You</b><br />goals and body metrics</sub></td>
   </tr>
 </table>
+
+<sub>Screenshots show a demo profile with generated data.</sub>
 
 ## Key features
 

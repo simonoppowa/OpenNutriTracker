@@ -61,11 +61,19 @@ class DemoSeedOptions {
   /// demo user's current weight (87kg) across [daysOfHistory].
   final double startWeightKg;
 
+  /// Whether to flag the profile as holding sample data, which is what
+  /// raises `MainScreen`'s demo banner. On for anything a human might
+  /// mistake for their own data; off only for [screenshots], where the
+  /// banner would sit on top of four of the six framed captures and not
+  /// the other two.
+  final bool markAsDemoData;
+
   const DemoSeedOptions({
     required this.daysOfHistory,
     required this.missedDayProbability,
     required this.guaranteedStreakDays,
     required this.startWeightKg,
+    this.markAsDemoData = true,
   });
 
   /// The exhaustive year-long QA fixture used by `lib/dev/main_dev.dart` —
@@ -89,6 +97,19 @@ class DemoSeedOptions {
     missedDayProbability: 0.0,
     guaranteedStreakDays: 21,
     startWeightKg: 87.0 + 0.4 * 3,
+  );
+
+  /// The fixture behind `lib/dev/main_screenshots.dart`, used to shoot the
+  /// README and store screenshots. Same year-long dataset as [dev] — the
+  /// occasional missed day is what stops the Trends charts reading as a
+  /// synthetic straight line — but without the demo flag, so the banner
+  /// stays out of the frame.
+  static const screenshots = DemoSeedOptions(
+    daysOfHistory: 365,
+    missedDayProbability: 0.10,
+    guaranteedStreakDays: 15,
+    startWeightKg: 96.0,
+    markAsDemoData: false,
   );
 }
 
@@ -283,13 +304,16 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   // Marks the active profile as holding sample, not real, data — drives
   // the Home screen's demo-mode banner (see `main_screen.dart`) and, as a
   // side effect, lets `just dev_seed` exercise that same banner/exit flow.
+  // [DemoSeedOptions.screenshots] is the one caller that opts out; it is
+  // written explicitly rather than left to the pre-seed wipe so the flag
+  // never survives from whatever the profile held before.
   // Try Demo requires the privacy-policy checkbox first; persist that
   // acceptance and keep crash reporting off for the demo session (device-wide
   // consent must not silently ride along from a previous profile).
   final addConfig = locator<AddConfigUsecase>();
   await addConfig.setConfigHasAcceptedPolicy(true);
   await addConfig.setConfigHasAcceptedAnonymousData(false);
-  await addConfig.setConfigIsDemoData(true);
+  await addConfig.setConfigIsDemoData(options.markAsDemoData);
 
   _log.info('Demo data seeded.');
 }

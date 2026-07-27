@@ -34,3 +34,8 @@ dev:
 # Run with the active profile wiped and reseeded with demo data (skips onboarding)
 dev_seed:
   fvm flutter run --flavor develop -t lib/dev/main_dev.dart
+
+# Same seeded data as dev_seed but without the demo banner, for shooting the
+# README / store screenshots. Drive the capture with tools/adb/capture-screenshots.sh
+screenshots:
+  fvm flutter run --flavor develop -t lib/dev/main_screenshots.dart
