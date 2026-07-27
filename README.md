@@ -116,14 +116,15 @@ easily track and analyze your daily nutrition.
 
 No account, no sign-in, no analytics, no ads. Your profile, diary, activities, weight, water and fasting history, custom meals, and recipes live in local [Hive](https://pub.dev/packages/hive_ce) boxes encrypted with **AES-256** — the key is generated on first launch, kept in the Android Keystore / iOS Keychain, and never transmitted ([source](lib/core/utils/secure_app_storage_provider.dart)). **Settings → Delete all my data** wipes the active profile. Formal policy: [Data Protection](https://www.iubenda.com/privacy-policy/53501884).
 
-**What leaves your device** — these four destinations, nothing else:
+**What leaves your device** — these three destinations, nothing else:
 
 | Destination | When | What is sent |
 | :-- | :-- | :-- |
 | [Open Food Facts](https://world.openfoodfacts.org/) | Food search or barcode scan | The search term or barcode, plus a country tag from your device locale for ranking |
-| [USDA FoodData Central](https://fdc.nal.usda.gov/) | Food search | The search term and the app's API key |
-| Supabase reference backend | Food search, when that source is enabled | The search term |
+| Supabase reference backend | Food search | The search term |
 | [Sentry](https://sentry.io) | **Only if you opt in** | Crash traces, app and OS version, device model |
+
+[USDA FoodData Central](https://fdc.nal.usda.gov/), the German [BLS](https://www.blsdb.de), INDB and TBCA are where the food *data* comes from, not places your device talks to. Those datasets are ingested into the Supabase backend ahead of time ([self-hosting guide](docs/supabase-fdc-self-hosting.md)), so a search reaches that backend and stops there. Settings → Food sources chooses which of the seven datasets a search covers.
 
 Requests carry a User-Agent naming the app, platform, and version — no user or device identifier. Search results are cached locally and pruned after 90 days.
 
