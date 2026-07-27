@@ -49,16 +49,17 @@ void main() {
     testWidgets('padding still spaces the child away from the card edge',
         (tester) async {
       const padding = EdgeInsets.all(16);
+      const childKey = Key('app-card-test-child');
 
       await tester.pumpWidget(_wrap(
         const AppCard(
           padding: padding,
-          child: SizedBox(width: 100, height: 40),
+          child: SizedBox(key: childKey, width: 100, height: 40),
         ),
       ));
 
       final card = tester.getRect(find.byType(AppCard));
-      final child = tester.getRect(find.byType(SizedBox).last);
+      final child = tester.getRect(find.byKey(childKey));
       const inset = Dimens.hairline; // the bordered decoration
 
       expect(child.left - card.left, padding.left + inset);
