@@ -38,7 +38,6 @@ class AppCard extends StatelessWidget {
     final tile = Container(
       width: width,
       height: height,
-      padding: padding,
       decoration: BoxDecoration(
         color: color ?? palette.surface,
         borderRadius: radius,
@@ -52,13 +51,24 @@ class AppCard extends StatelessWidget {
       // reaching past the decoration for one further up the tree. Clipped to
       // the card radius so descendant ink splashes/highlights stay within the
       // rounded corners instead of painting square past them.
+      //
+      // The Material must span the whole card, with [padding] applied inside
+      // it — not on the Container around it. Padding the Container instead
+      // shrinks the Material to the content box while the clip keeps the
+      // card's full radius, so the corner arc curves in over the content and
+      // takes a bite out of anything flush against the edge. That clipped the
+      // first glyph of left-aligned text sitting in a card corner, e.g. the
+      // "374/428 g" totals in the home macro tiles.
       child: child == null
           ? null
           : Material(
               color: Colors.transparent,
               borderRadius: radius,
               clipBehavior: Clip.antiAlias,
-              child: child,
+              child: Padding(
+                padding: padding ?? EdgeInsets.zero,
+                child: child,
+              ),
             ),
     );
     if (onTap == null) return tile;
