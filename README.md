@@ -37,10 +37,10 @@
   <a href="https://hosted.weblate.org/engage/opennutritracker/">Translate</a>
 </p>
 
-OpenNutriTracker is an open-source mobile application designed to simplify nutritional
-tracking and management. Whether you are looking to improve your health, lose weight, or
-simply maintain a balanced diet, OpenNutriTracker provides a minimalistic interface to
-easily track and analyze your daily nutrition.
+OpenNutriTracker logs what you eat and drink against a calorie and macro target it works
+out from your height, weight, age, and activity level, and keeps the record on your phone.
+It is for anyone who wants the numbers without handing their eating history to a company —
+whether that is losing weight, gaining it, managing a condition, or simply knowing.
 
 ## Install
 
@@ -77,6 +77,22 @@ easily track and analyze your daily nutrition.
 
 <sub>Screenshots show a demo profile with generated data.</sub>
 
+## Why OpenNutriTracker
+
+|  | |
+| :-- | :-- |
+| **Free, permanently** | No paid tier, no in-app purchase, no ads. There are zero advertising or analytics SDKs in [`pubspec.yaml`](pubspec.yaml) — an absence, not a policy. |
+| **Independent** | No investors, no acquisition, no data brokerage. It is built by an open-source developer community under the GPLv3, so anyone can carry it forward. |
+| **Local-first by architecture** | No account to create. Your diary lives in AES-256-encrypted storage with the key held in the Android Keystore / iOS Keychain — see [Privacy](#privacy). |
+| **Auditable, not just promised** | Every destination that ever receives a request is listed under [Privacy](#privacy) with what it's sent, and the release signing fingerprint is published so you can verify your download. |
+| **Every number is cited** | Calorie targets follow IOM 2005, BMI follows WHO, macros follow WHO TRS 916, activity burn follows the 2024 Compendium. The in-app Sources & References screen links each paper ([`sources_screen.dart`](lib/core/presentation/sources_screen.dart)). |
+| **No lock-in** | Export everything as JSON and CSV, re-import it, or share an entry by QR. The [export format](docs/export-format.md) is documented so you can write your own tooling. |
+| **Open data, all the way down** | Open Food Facts, USDA FoodData Central (CC0) and the German BLS (CC BY 4.0) — and the backend is its own open repository you can [self-host](docs/supabase-self-hosting.md). |
+| **Micronutrients, unpaywalled** | Ten nutrients, with optional Dietary Reference Intake bars, in the free app. The big-name trackers put this behind a subscription. |
+| **Built for everyone** | Non-binary calorie estimation grounded in published trans-health research, nine languages, kcal or kJ, and screen-reader support treated as a bug when it breaks. |
+| **Careful about disordered eating** | The fasting timer opens with a content warning linking BEAT and NEDA, and "Not for me" is a first-class answer ([`fasting_warning_dialog.dart`](lib/features/fasting/presentation/widgets/fasting_warning_dialog.dart)). No streak guilt, no re-engagement notifications. |
+| **Built in the open** | 40+ contributors, translation via [Weblate](https://hosted.weblate.org/engage/opennutritracker/) with no local setup or Dart required, and the food backend developed publicly too. |
+
 ## Key features
 
 |  | Feature | |
@@ -89,7 +105,6 @@ easily track and analyze your daily nutrition.
 | 💧 | **Water and fasting** | A home-screen water chip and an optional intermittent-fasting timer. |
 | 🎨 | **Themes and units** | Material You accent on Android 12+, sixteen built-in themes, kcal or kJ. |
 | 📤 | **Export and import** | JSON and CSV export, JSON import, and QR sharing. |
-| 🔒 | **Private and free** | Encrypted local storage, opt-in crash reports, no ads or subscriptions. |
 
 <details>
 <summary>More detail on each feature</summary>
@@ -107,8 +122,6 @@ easily track and analyze your daily nutrition.
 - **🎨 Material You + theme picker:** Adopt the system accent colour on Android 12+, or pick from sixteen built-in presets. The app icon adapts to iOS dark and tinted appearances and to Android themed icons.
 - **🔢 kcal or kJ:** Switch the energy unit globally; every diary entry, target, and chart reflects the choice.
 - **📤 Export and import:** Export your full diary, activities, and custom catalogue to a JSON zip or CSV, paste a JSON blob to import meals, and share a single meal or activity as a QR code another phone can scan.
-- **🔒 Privacy first:** All data is AES-encrypted and stored locally. Anonymous crash reporting is opt-in during onboarding, can be turned off at any time, and the App Store privacy manifest declares exactly what the app does and does not collect.
-- **🚫💰 No subscriptions, in-app purchases, or ads:** OpenNutriTracker is free, with no paid tier and no advertising.
 
 </details>
 
@@ -137,7 +150,7 @@ Requests carry a User-Agent naming the app, platform, and version — no user or
 <details>
 <summary><b>Verifying APK signatures</b></summary>
 
-If you are side-loading an OpenNutriTracker APK from GitHub Releases — or from F-Droid, once the app is published there — you may reasonably want to confirm that the file you downloaded was signed by the same key the maintainer uses for every release, rather than by someone who intercepted the download or repackaged the app. The check below is for anyone who would like that extra reassurance before installing.
+If you are side-loading an OpenNutriTracker APK from GitHub Releases — or from F-Droid, once the app is published there — you may reasonably want to confirm that the file you downloaded was signed by the same key used for every official release, rather than by someone who intercepted the download or repackaged the app. The check below is for anyone who would like that extra reassurance before installing.
 
 The official SHA256 fingerprint of the Android release signing certificate is:
 
