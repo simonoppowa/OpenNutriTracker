@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'fastlane', '~> 2.234'
+gem 'fastlane', '~> 2.237'
 gem 'cocoapods', '~> 1.17.0'
 gem 'rexml', '>= 3.3.6'
 gem 'ffi', '>= 1.15.0'
