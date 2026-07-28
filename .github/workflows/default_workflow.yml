@@ -24,7 +24,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Flutter + cache packages
         uses: ./.github/actions/setup-flutter-cache
@@ -91,7 +91,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # Need the merge base in scope so the paths-filter step below
           # can diff against the PR's target branch.
@@ -163,7 +163,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # Same-repo PRs: check out the head branch so the auto-commit
           # step below can push Podfile.lock fixes back to the branch.
@@ -199,7 +199,7 @@ jobs:
         run: flutter config --no-enable-swift-package-manager
 
       - name: Cache CocoaPods
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
@@ -245,7 +245,7 @@ jobs:
         if: >-
           github.event_name == 'pull_request' &&
           github.event.pull_request.head.repo.full_name == github.repository
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           file_pattern: 'ios/Podfile.lock ios/Runner.xcodeproj/project.pbxproj'
           commit_message: 'chore(ios): refresh Podfile.lock and project.pbxproj via CI'
@@ -292,7 +292,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Flutter + cache packages
         uses: ./.github/actions/setup-flutter-cache
@@ -307,7 +307,7 @@ jobs:
         run: flutter config --no-enable-swift-package-manager
 
       - name: Cache CocoaPods
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
@@ -375,7 +375,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Java (Zulu)
         id: setup_java_zulu
@@ -400,7 +400,7 @@ jobs:
         uses: ./.github/actions/setup-flutter-cache
 
       - name: Cache Gradle
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -447,7 +447,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # The hosted ubuntu runner has ~14 GB free after its preinstalled
       # toolchains, and pulling the android-34 system image plus booting the
@@ -487,7 +487,7 @@ jobs:
         uses: ./.github/actions/setup-flutter-cache
 
       - name: Cache Gradle
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -499,7 +499,7 @@ jobs:
       # Cache the AVD snapshot so future runs skip the slow first-boot.
       # Key includes the API level so a bump invalidates the cache.
       - name: Cache AVD
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: avd-cache
         with:
           path: |
@@ -604,7 +604,7 @@ jobs:
       APP_STORE_CONNECT_API_KEY_IS_KEY_CONTENT_BASE64: 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Ruby + Bundler
         uses: ruby/setup-ruby@v1
@@ -614,7 +614,7 @@ jobs:
 
       - name: Load SSH key for match repository
         if: startsWith(env.MATCH_GIT_URL, 'git@') && env.MATCH_GIT_SSH_PRIVATE_KEY != ''
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.MATCH_GIT_SSH_PRIVATE_KEY }}
 
@@ -632,7 +632,7 @@ jobs:
           chmod 600 ~/.ssh/known_hosts
 
       - name: Cache CocoaPods
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
@@ -722,7 +722,7 @@ jobs:
       APP_STORE_CONNECT_API_KEY_IS_KEY_CONTENT_BASE64: 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Ruby + Bundler
         uses: ruby/setup-ruby@v1
@@ -731,7 +731,7 @@ jobs:
           bundler-cache: true
 
       - name: Download iOS IPA artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ios-ipa
           path: build/ios/ipa
@@ -761,7 +761,7 @@ jobs:
       BUNDLE_GEMFILE: ${{ github.workspace }}/android/Gemfile
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Java (Zulu)
         id: setup_java_zulu
@@ -792,7 +792,7 @@ jobs:
         uses: ./.github/actions/setup-flutter-cache
 
       - name: Cache Gradle
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -893,7 +893,7 @@ jobs:
       BUNDLE_GEMFILE: ${{ github.workspace }}/android/Gemfile
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Ruby + Bundler
         uses: ruby/setup-ruby@v1
@@ -902,7 +902,7 @@ jobs:
           bundler-cache: true
 
       - name: Download Android AAB artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: android-aab
           path: release-assets/android
@@ -926,22 +926,22 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download iOS IPA artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ios-ipa
           path: release-assets/ios
 
       - name: Download Android AAB artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: android-aab
           path: release-assets/android
 
       - name: Download Android APK artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: android-apk
           path: release-assets/android
