@@ -1,7 +1,7 @@
 OpenNutriTracker is an open-source mobile application designed to simplify nutritional tracking and management. Whether you are looking to improve your health, lose weight, or simply maintain a balanced diet, OpenNutriTracker provides a minimalistic interface to easily track and analyze your daily nutrition.
 
 
-🍎 Nutritional tracking: Log meals and snacks against a large food database (Open Food Facts plus a curated subset of USDA FDC). Search, scan, or add straight as a number when you already know the calorie cost.
+🍎 Nutritional tracking: Log meals and snacks against a large food database — Open Food Facts plus a multi-source reference backend covering USDA FoodData Central and the German Bundeslebensmittelschlüssel (BLS), with the sources selectable in Settings → Food databases. Search, scan, or add straight as a number when you already know the calorie cost.
 📓 Food diary: A calendar-driven diary that breaks the day into Breakfast, Lunch, Dinner, and Snack, with per-meal kcal targets (Standard, OMAD, Five-small, Mediterranean, Two-meal, or a custom share), drag-to-rearrange between meals, and sort by time or by macro contribution.
 🥕 Micronutrient panel: Day and week views for fibre, sodium, saturated fat, sugar, calcium, iron, potassium, vitamin D, vitamin B12, and magnesium, with optional Dietary Reference Intake bars from the IOM tables.
 🍽️ Custom meals & recipes: Build a one-off custom meal or save a reusable recipe with photo, brand, and barcode. The recipe builder has its own ingredient picker with barcode scanning so you can compose meals from real products.
