@@ -87,11 +87,11 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 | **Local-first by architecture** | No account to create. Your diary lives in AES-256-encrypted storage with the key held in the Android Keystore / iOS Keychain — see [Privacy](#privacy). |
 | **Auditable, not just promised** | Every destination that ever receives a request is listed under [Privacy](#privacy) with what it's sent, and the release signing fingerprint is published so you can verify your download. |
 | **Every number is cited** | Calorie targets follow IOM 2005, BMI follows WHO, macros follow WHO TRS 916, activity burn follows the 2024 Compendium. The in-app Sources & References screen links each paper ([`sources_screen.dart`](lib/core/presentation/sources_screen.dart)). |
-| **No lock-in** | Export everything as JSON and CSV, re-import it, or share an entry by QR. The [export format](docs/export-format.md) is documented so you can write your own tooling. |
+| **No lock-in** | Export your diary, activities, recipes, custom meals and weight history as JSON or CSV, re-import it, or share an entry by QR. The [export format](docs/export-format.md) documents the schema and what it leaves out. |
 | **Open data, all the way down** | Open Food Facts, USDA FoodData Central (CC0) and the German BLS (CC BY 4.0) — and the backend is its own open repository you can [self-host](docs/supabase-self-hosting.md). |
 | **Micronutrients, unpaywalled** | Ten nutrients, with optional Dietary Reference Intake bars, in the free app. The big-name trackers put this behind a subscription. |
 | **Built for everyone** | Non-binary calorie estimation grounded in published trans-health research, nine languages, kcal or kJ, and screen-reader support treated as a bug when it breaks. |
-| **Careful about disordered eating** | The fasting timer opens with a content warning linking BEAT and NEDA, and "Not for me" is a first-class answer ([`fasting_warning_dialog.dart`](lib/features/fasting/presentation/widgets/fasting_warning_dialog.dart)). No streak guilt, no re-engagement notifications. |
+| **Careful about disordered eating** | The fasting timer opens with a content warning linking BEAT and NEDA, and "Not for me" is a first-class answer ([`fasting_warning_dialog.dart`](lib/features/fasting/presentation/widgets/fasting_warning_dialog.dart)). No streak guilt, and no notification you didn't ask for — the daily reminder is off until you enable it. |
 
 ## Key features
 
@@ -121,7 +121,7 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 - **⚖️ Weight history:** Capture weight during onboarding and on demand, see the trend on a chart with a dashed line at your target weight, and optionally taper the calorie goal as you approach it.
 - **🎨 Material You + theme picker:** Adopt the system accent colour on Android 12+, or pick from sixteen built-in presets. The app icon adapts to iOS dark and tinted appearances and to Android themed icons.
 - **🔢 kcal or kJ:** Switch the energy unit globally; every diary entry, target, and chart reflects the choice.
-- **📤 Export and import:** Export your full diary, activities, and custom catalogue to a JSON zip or CSV, paste a JSON blob to import meals, and share a single meal or activity as a QR code another phone can scan.
+- **📤 Export and import:** Export your diary, activities, tracked days, recipes, custom meals, weight log, and activity templates to a JSON zip — or a flatter CSV covering intakes, activities, and tracked days — paste a JSON blob to import meals, and share a single meal or activity as a QR code another phone can scan. Profile, settings, water, and fasting history stay out of the bundle.
 
 </details>
 
@@ -129,15 +129,16 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 
 No account, no sign-in, no analytics, no ads. Your profile, diary, activities, weight, water and fasting history, custom meals, and recipes live in local [Hive](https://pub.dev/packages/hive_ce) boxes encrypted with **AES-256** — the key is generated on first launch, kept in the Android Keystore / iOS Keychain, and never transmitted ([source](lib/core/utils/secure_app_storage_provider.dart)). **Settings → Delete all my data** wipes the active profile. Formal policy: [Data Protection](https://www.iubenda.com/privacy-policy/53501884).
 
-**What leaves your device** — these three destinations, nothing else:
+**What leaves your device** — these four destinations, nothing else:
 
 | Destination | When | What is sent |
 | :-- | :-- | :-- |
 | [Open Food Facts](https://world.openfoodfacts.org/) | Food search or barcode scan | The search term or barcode, plus a country tag from your device locale for ranking |
 | Supabase reference backend | Food search | The search term |
+| [Unsplash](https://unsplash.com) | **Only in sample-data mode** | A request for a fixed photo URL. The sample meals seeded by "Try it with sample data" carry hotlinked Unsplash images ([`unsplash_attribution.dart`](lib/core/utils/demo/unsplash_attribution.dart)); nothing about you is sent |
 | [Sentry](https://sentry.io) | **Only if you opt in** | Crash traces, app and OS version, device model |
 
-[USDA FoodData Central](https://fdc.nal.usda.gov/), the German [BLS](https://www.blsdb.de), INDB and TBCA are where the food *data* comes from, not places your device talks to. Those datasets are ingested into the Supabase backend ahead of time ([self-hosting guide](docs/supabase-fdc-self-hosting.md)), so a search reaches that backend and stops there. Settings → Food sources chooses which of the seven datasets a search covers.
+[USDA FoodData Central](https://fdc.nal.usda.gov/), the German [BLS](https://www.blsdb.de), INDB and TBCA are where the food *data* comes from, not places your device talks to. Those datasets are ingested into the Supabase backend ahead of time ([self-hosting guide](docs/supabase-fdc-self-hosting.md)), so a search reaches that backend and stops there. Settings → Food sources chooses which datasets a search covers — five are selectable today, with INDB and TBCA in the schema but not yet carrying data ([`sp_const.dart`](lib/features/add_meal/data/dto/sp/sp_const.dart)).
 
 Requests carry a User-Agent naming the app, platform, and version — no user or device identifier. Search results are cached locally and pruned after 90 days.
 
