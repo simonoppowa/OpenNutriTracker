@@ -34,8 +34,14 @@ void main() {
     registerHiveAdaptersOnce();
   });
 
-  tearDown(() {
-    Hive.deleteFromDisk();
+  tearDown(() async {
+    // Awaited: deleteFromDisk is asynchronous, and letting it run loose
+    // lets the deletion land after the next test has already reopened
+    // its box, which fails as a PathNotFoundException on the box file.
+    // Not preceded by Hive.close() either — that deregisters the boxes,
+    // and deleteFromDisk would then have nothing left to delete, so the
+    // next test would inherit this one's entries.
+    await Hive.deleteFromDisk();
   });
 
   group('intakes under a 06:00 day start', () {
@@ -62,6 +68,9 @@ void main() {
       await addLunch('21st-small-hours', DateTime(2026, 7, 21, 2, 0));
       // Added from the diary itself, which stamps the calendar cell.
       await addLunch('20th-diary-added', selectedDay);
+      // Dated by JsonMealImporter, which spells the same calendar cell
+      // as *local* midnight.
+      await addLunch('20th-imported', DateTime(2026, 7, 20));
     });
 
     Future<Set<String>> idsFor(DateTime day, {int offsetHours = 0}) async {
@@ -76,7 +85,12 @@ void main() {
     test('selecting the 20th lists the 20th, not the 19th', () async {
       expect(
         await idsFor(selectedDay, offsetHours: sixAmOffset),
-        {'20th-midday', '20th-diary-added', '21st-small-hours'},
+        {
+          '20th-midday',
+          '20th-diary-added',
+          '20th-imported',
+          '21st-small-hours',
+        },
       );
     });
 
@@ -88,6 +102,8 @@ void main() {
     });
 
     test('the 19th keeps its own evening entry', () async {
+      // Notably it does not also borrow the entry imported for the 20th:
+      // a date-only import is a label too, however it is spelled.
       expect(
         await idsFor(DateTime.utc(2026, 7, 19), offsetHours: sixAmOffset),
         {'19th-evening'},
@@ -97,7 +113,7 @@ void main() {
     test('no offset falls back to plain calendar days', () async {
       expect(
         await idsFor(selectedDay),
-        {'20th-midday', '20th-diary-added'},
+        {'20th-midday', '20th-diary-added', '20th-imported'},
       );
     });
   });

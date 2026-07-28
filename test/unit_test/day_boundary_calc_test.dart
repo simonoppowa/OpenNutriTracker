@@ -311,6 +311,60 @@ void main() {
         isTrue,
       );
     });
+
+    test('an imported entry dated the 20th is a label, in either spelling',
+        () {
+      // JsonMealImporter dates an entry `DateTime(y, m, d)` — *local*
+      // midnight — from its optional `date` field. Keying "is this a
+      // label?" off the UTC flag alone filed every date-only import a
+      // day early once a boundary was configured.
+      expect(
+        DayBoundaryCalc.isMomentInLogicalDayMinutes(
+          label,
+          DateTime(2026, 7, 20),
+          sixAm,
+        ),
+        isTrue,
+      );
+      expect(
+        DayBoundaryCalc.isMomentInLogicalDayMinutes(
+          DateTime(2026, 7, 20),
+          DateTime(2026, 7, 20),
+          sixAm,
+        ),
+        isTrue,
+      );
+      // ...and it stays off the neighbouring day.
+      expect(
+        DayBoundaryCalc.isMomentInLogicalDayMinutes(
+          DateTime.utc(2026, 7, 19),
+          DateTime(2026, 7, 20),
+          sixAm,
+        ),
+        isFalse,
+      );
+    });
+
+    test('a minute past midnight is a moment again, not a label', () {
+      // The carve-out is deliberately narrow: only a bare midnight reads
+      // as a label, so a genuinely early entry still rolls back.
+      expect(
+        DayBoundaryCalc.isMomentInLogicalDayMinutes(
+          label,
+          DateTime(2026, 7, 21, 0, 1),
+          sixAm,
+        ),
+        isTrue,
+      );
+      expect(
+        DayBoundaryCalc.isMomentInLogicalDayMinutes(
+          DateTime.utc(2026, 7, 21),
+          DateTime(2026, 7, 21, 0, 1),
+          sixAm,
+        ),
+        isFalse,
+      );
+    });
   });
 
   group('ConfigEntity-level clamping (via the minutes companion)', () {

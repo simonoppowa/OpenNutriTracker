@@ -106,15 +106,9 @@ class DayBoundaryCalc {
     DateTime moment,
     int? offsetTotalMinutes,
   ) {
-    // Entries added from the diary are stamped with the calendar cell
-    // itself — table_calendar hands out `DateTime.utc(y, m, d)`, which
-    // DayInfoWidget passes through AddMealScreenArguments into
-    // MealDetailBloc.addIntake as the intake's `dateTime`. That value is
-    // a label, not a moment, so it is compared as-is: rolling it back
-    // would file every diary-added entry a day early. Live-logged
-    // entries always come from `DateTime.now()` and so are local, which
-    // is what keeps the two cases distinguishable (hive_ce preserves the
-    // UTC flag across a round trip).
+    // Some stored entries are themselves labels rather than clock
+    // readings, and must be compared as-is: rolling them back would file
+    // them a day early. See [_isDayLabel] for who writes them.
     final momentDay = _isDayLabel(moment)
         ? moment
         : logicalDayOfMinutes(moment, offsetTotalMinutes);
@@ -145,11 +139,25 @@ class DayBoundaryCalc {
     return DateTime(shifted.year, shifted.month, shifted.day);
   }
 
-  /// A UTC midnight is how this app spells "the calendar day named
-  /// y-m-d" (see [isMomentInLogicalDayMinutes]); nothing writes a
-  /// live-logged entry in UTC, so the flag is an unambiguous marker.
+  /// A bare midnight is how this app spells "the calendar day named
+  /// y-m-d" (see [isMomentInLogicalDayMinutes]). Two writers produce
+  /// one, in two different spellings:
+  ///
+  ///  * adding from the diary stamps the calendar cell itself —
+  ///    table_calendar hands out `DateTime.utc(y, m, d)`, which
+  ///    DayInfoWidget passes through AddMealScreenArguments into
+  ///    MealDetailBloc.addIntake as the intake's `dateTime`;
+  ///  * JsonMealImporter dates an entry `DateTime(y, m, d)` — *local*
+  ///    midnight — from the optional `date` field (or today's date when
+  ///    it is omitted), and CSV import can round-trip the same shape.
+  ///
+  /// Hence midnight, not the UTC flag, is the marker: keying off
+  /// `isUtc` alone moved every date-only import back a day as soon as a
+  /// boundary was configured. The cost is that a live entry logged at
+  /// exactly 00:00:00.000000 local stays on its wall-clock day instead
+  /// of rolling back; `DateTime.now()` carries microseconds, so that is
+  /// a rounding error against mis-filing every import.
   static bool _isDayLabel(DateTime value) =>
-      value.isUtc &&
       value.hour == 0 &&
       value.minute == 0 &&
       value.second == 0 &&
