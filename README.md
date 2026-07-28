@@ -82,7 +82,8 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 |  | |
 | :-- | :-- |
 | **Free, permanently** | No paid tier, no in-app purchase, no ads. There are zero advertising or analytics SDKs in [`pubspec.yaml`](pubspec.yaml) — an absence, not a policy. |
-| **Independent** | No investors, no acquisition, no data brokerage. It is built by an open-source developer community under the GPLv3, so anyone can carry it forward. |
+| **Built in the open** | Every translation is written by the community on [Weblate](https://hosted.weblate.org/engage/opennutritracker/) — no Dart, no local setup — and 40 contributors have landed code across the app and its food backend. |
+| **Independent** | No investors, no acquisition, no data brokerage. The GPLv3 licence means anyone can carry the project forward, so there is no exit that could paywall it. |
 | **Local-first by architecture** | No account to create. Your diary lives in AES-256-encrypted storage with the key held in the Android Keystore / iOS Keychain — see [Privacy](#privacy). |
 | **Auditable, not just promised** | Every destination that ever receives a request is listed under [Privacy](#privacy) with what it's sent, and the release signing fingerprint is published so you can verify your download. |
 | **Every number is cited** | Calorie targets follow IOM 2005, BMI follows WHO, macros follow WHO TRS 916, activity burn follows the 2024 Compendium. The in-app Sources & References screen links each paper ([`sources_screen.dart`](lib/core/presentation/sources_screen.dart)). |
@@ -91,7 +92,6 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 | **Micronutrients, unpaywalled** | Ten nutrients, with optional Dietary Reference Intake bars, in the free app. The big-name trackers put this behind a subscription. |
 | **Built for everyone** | Non-binary calorie estimation grounded in published trans-health research, nine languages, kcal or kJ, and screen-reader support treated as a bug when it breaks. |
 | **Careful about disordered eating** | The fasting timer opens with a content warning linking BEAT and NEDA, and "Not for me" is a first-class answer ([`fasting_warning_dialog.dart`](lib/features/fasting/presentation/widgets/fasting_warning_dialog.dart)). No streak guilt, no re-engagement notifications. |
-| **Built in the open** | 40+ contributors, translation via [Weblate](https://hosted.weblate.org/engage/opennutritracker/) with no local setup or Dart required, and the food backend developed publicly too. |
 
 ## Key features
 
