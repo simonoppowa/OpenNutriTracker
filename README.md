@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <b>Nutrition tracking that stays on your phone.</b><br />
+  <b>Free. Open. Cited.</b><br />
   Open-source calorie and micronutrient logging — no account, no subscription, no ads.
 </p>
 
