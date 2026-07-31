@@ -82,7 +82,7 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 |  | |
 | :-- | :-- |
 | **Free, permanently** | No paid tier, no in-app purchase, no ads. There are zero advertising or analytics SDKs in [`pubspec.yaml`](pubspec.yaml) — an absence, not a policy. |
-| **Built in the open** | Every translation is written by the community on [Weblate](https://hosted.weblate.org/engage/opennutritracker/) — no Dart, no local setup — and 40 contributors have landed code across the app and its food backend. |
+| **Community driven** | Every translation is contributed by users on [Weblate](https://hosted.weblate.org/engage/opennutritracker/) — no Dart, no local setup — and 40 contributors have landed code across the app and its food backend. |
 | **Independent** | No investors, no acquisition, no data brokerage. The GPLv3 licence means anyone can carry the project forward, so there is no exit that could paywall it. |
 | **Local-first by architecture** | No account to create. Your diary lives in AES-256-encrypted storage with the key held in the Android Keystore / iOS Keychain — see [Privacy](#privacy). |
 | **Auditable, not just promised** | Every destination that ever receives a request is listed under [Privacy](#privacy) with what it's sent, and the release signing fingerprint is published so you can verify your download. |
