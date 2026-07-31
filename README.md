@@ -126,13 +126,12 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 
 No account, no sign-in, no analytics, no ads. Your profile, diary, activities, weight, water and fasting history, custom meals, and recipes live in local [Hive](https://pub.dev/packages/hive_ce) boxes encrypted with AES-256. The key is generated on first launch, kept in the Android Keystore / iOS Keychain, and never transmitted ([source](lib/core/utils/secure_app_storage_provider.dart)). **Settings → Delete all my data** wipes the active profile. Formal policy: [Data Protection](https://www.iubenda.com/privacy-policy/53501884).
 
-**What leaves your device.** Four destinations, nothing else:
+**What leaves your device.** Three destinations, nothing else:
 
 | Destination | When | What is sent |
 | :-- | :-- | :-- |
 | [Open Food Facts](https://world.openfoodfacts.org/) | Food search or barcode scan | The search term or barcode, plus a country tag from your device locale for ranking |
 | Supabase reference backend | Food search | The search term |
-| [Unsplash](https://unsplash.com) | **Only in sample-data mode** | A request for a fixed photo URL. The sample meals seeded by "Try it with sample data" carry hotlinked Unsplash images ([`unsplash_attribution.dart`](lib/core/utils/demo/unsplash_attribution.dart)); nothing about you is sent |
 | [Sentry](https://sentry.io) | **Only if you opt in** | Crash traces, app and OS version, device model |
 
 [USDA FoodData Central](https://fdc.nal.usda.gov/), the German [BLS](https://www.blsdb.de), INDB and TBCA are where the food *data* comes from, not places your device talks to. Those datasets are ingested into the Supabase backend ahead of time ([self-hosting guide](docs/supabase-fdc-self-hosting.md)), so a search reaches that backend and stops there. Settings → Food sources chooses which datasets a search covers. Five are selectable today, with INDB and TBCA in the schema but not yet carrying data ([`sp_const.dart`](lib/features/add_meal/data/dto/sp/sp_const.dart)).
