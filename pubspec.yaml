@@ -120,6 +120,10 @@ flutter:
     # Offline demo profile portrait (bundled Unsplash photo; credit in
     # unsplash_attribution.dart). Avoids a hot network download on Try Demo.
     - assets/demo/alex_demo_avatar.jpg
+    # Bundled demo meal photos, one JPEG per curated Unsplash id (credits
+    # in unsplash_attribution.dart). Shipping them means Try Demo never
+    # contacts Unsplash's CDN, at seed time or at render time.
+    - assets/demo/meals/
 
   fonts:
     - family: CustomIcons
