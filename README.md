@@ -81,17 +81,14 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 
 |  | |
 | :-- | :-- |
-| **Free, permanently** | No paid tier, no in-app purchase, no ads. There are zero advertising or analytics SDKs in [`pubspec.yaml`](pubspec.yaml) — an absence, not a policy. |
-| **Community driven** | Every translation is contributed by users on [Weblate](https://hosted.weblate.org/engage/opennutritracker/) — no Dart, no local setup — and 40 contributors have landed code across the app and its food backend. |
-| **Independent** | No investors, no acquisition, no data brokerage. The GPLv3 licence means anyone can carry the project forward, so there is no exit that could paywall it. |
-| **Local-first by architecture** | No account to create. Your diary lives in AES-256-encrypted storage with the key held in the Android Keystore / iOS Keychain — see [Privacy](#privacy). |
-| **Auditable, not just promised** | Every destination that ever receives a request is listed under [Privacy](#privacy) with what it's sent, and the release signing fingerprint is published so you can verify your download. |
-| **Every number is cited** | Calorie targets follow IOM 2005, BMI follows WHO, macros follow WHO TRS 916, activity burn follows the 2024 Compendium. The in-app Sources & References screen links each paper ([`sources_screen.dart`](lib/core/presentation/sources_screen.dart)). |
-| **No lock-in** | Export your diary, activities, recipes, custom meals and weight history as JSON or CSV, re-import it, or share an entry by QR. The [export format](docs/export-format.md) documents the schema and what it leaves out. |
-| **Open data, all the way down** | Open Food Facts, USDA FoodData Central (CC0) and the German BLS (CC BY 4.0) — and the backend is its own open repository you can [self-host](docs/supabase-self-hosting.md). |
-| **Micronutrients, unpaywalled** | Ten nutrients, with optional Dietary Reference Intake bars, in the free app. The big-name trackers put this behind a subscription. |
-| **Built for everyone** | Non-binary calorie estimation grounded in published trans-health research, nine languages, kcal or kJ, and screen-reader support treated as a bug when it breaks. |
-| **Careful about disordered eating** | The fasting timer opens with a content warning linking BEAT and NEDA, and "Not for me" is a first-class answer ([`fasting_warning_dialog.dart`](lib/features/fasting/presentation/widgets/fasting_warning_dialog.dart)). No streak guilt, and no notification you didn't ask for — the daily reminder is off until you enable it. |
+| **Cited** | Calorie targets follow IOM 2005, BMI follows WHO, macros follow WHO TRS 916, activity burn follows the 2024 Compendium — and the in-app Sources & References screen links every paper ([`sources_screen.dart`](lib/core/presentation/sources_screen.dart)). |
+| **Careful** | The fasting timer opens with a content warning linking BEAT and NEDA, and "Not for me" is a first-class answer ([`fasting_warning_dialog.dart`](lib/features/fasting/presentation/widgets/fasting_warning_dialog.dart)). No streak guilt, and no notification you didn't ask for — the daily reminder is off until you enable it. |
+| **Free** | No paid tier, no in-app purchase, no ads, and zero advertising or analytics SDKs in [`pubspec.yaml`](pubspec.yaml) to add them with — including the micronutrient panel the big-name trackers put behind a subscription. No investors, and GPLv3 leaves no exit that could paywall it later. |
+| **Private** | No account to create. Your diary lives in AES-256-encrypted storage with the key held in the Android Keystore / iOS Keychain, every destination that receives a request is listed under [Privacy](#privacy) with what it's sent, and the release signing fingerprint is published so you can verify your download. |
+| **Portable** | Export your diary, activities, recipes, custom meals and weight history as JSON or CSV, re-import it, or share an entry by QR. The [export format](docs/export-format.md) documents the schema and what it leaves out. |
+| **Open** | Open Food Facts, USDA FoodData Central (CC0) and the German BLS (CC BY 4.0) — and the backend is its own open repository you can [self-host](docs/supabase-self-hosting.md). |
+| **Community driven** | Over 30 developers have already contributed code, and most merged pull requests come from someone other than the maintainer. Features and fixes arrive as user issues and PRs, across the app and its food backend, and every translation is contributed on [Weblate](https://hosted.weblate.org/engage/opennutritracker/) — no Dart, no local setup. |
+| **Inclusive** | Non-binary calorie estimation grounded in published trans-health research, nine languages, kcal or kJ, and screen-reader support treated as a bug when it breaks. |
 
 ## Key features
 
