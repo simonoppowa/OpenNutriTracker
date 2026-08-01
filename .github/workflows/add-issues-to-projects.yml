@@ -1,0 +1,56 @@
+# Route newly filed issues onto the GitHub Projects boards.
+#
+# GitHub's built-in project workflows only act on items that are *already*
+# on a board (set status, close, mark done). Nothing in the default set puts
+# a freshly opened issue there — the UI's "Auto-add to project" workflow does
+# that, but it can only target one board with one filter. This workflow exists
+# because there are two boards with different membership rules:
+#
+#   Roadmap (project 2)      — every open issue
+#   Contributors (project 3) — only `help wanted` / `good first issue`
+#
+# `labeled` is in the trigger list alongside `opened` so an issue that earns
+# `help wanted` weeks after it was filed still reaches the Contributors board.
+# Re-adding an item that is already on a board is a no-op (the underlying
+# addProjectV2ItemById mutation returns the existing item), so the repeated
+# `labeled` firings do not create duplicates.
+#
+# REQUIRED SECRET: `PROJECTS_TOKEN` — a PAT with write access to the projects.
+# The default GITHUB_TOKEN cannot write to user-owned (as opposed to
+# repo-owned) projects, so it will not work here. Without the secret every
+# run fails at the first step.
+#
+# Note that workflow files only take effect once they are on the default
+# branch — this does nothing while it lives on a feature branch.
+
+name: Add issues to projects
+
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  roadmap:
+    name: Add to Roadmap board
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add issue to Roadmap
+        uses: actions/add-to-project@v2
+        with:
+          project-url: https://github.com/users/simonoppowa/projects/2
+          github-token: ${{ secrets.PROJECTS_TOKEN }}
+
+  contributors:
+    name: Add to Contributors board
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add issue to Contributors
+        uses: actions/add-to-project@v2
+        with:
+          project-url: https://github.com/users/simonoppowa/projects/3
+          github-token: ${{ secrets.PROJECTS_TOKEN }}
+          labeled: help wanted, good first issue
+          label-operator: OR
