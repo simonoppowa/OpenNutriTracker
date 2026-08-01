@@ -158,9 +158,8 @@ flutter:
       - asset: fonts/Poppins-Thin.ttf
       - asset: fonts/Poppins-ThinItalic.ttf
         style: italic
-    - family: Fredoka
-      fonts:
-      - asset: fonts/Fredoka.ttf
+    # Nunito.ttf is a variable font (wght 200-1000); Flutter instances the
+    # axis from TextStyle.fontWeight, so one asset covers the whole scale.
     - family: Nunito
       fonts:
       - asset: fonts/Nunito.ttf
