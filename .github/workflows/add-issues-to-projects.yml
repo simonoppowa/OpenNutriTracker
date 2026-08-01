@@ -11,14 +11,20 @@
 #
 # `labeled` is in the trigger list alongside `opened` so an issue that earns
 # `help wanted` weeks after it was filed still reaches the Contributors board.
+# `transferred` is there because an issue moved in from OpenNutriTracker-Backend
+# or -Website arrives with its labels already attached, so it fires neither
+# `opened` nor `labeled` and would otherwise never reach a board.
+#
 # Re-adding an item that is already on a board is a no-op (the underlying
 # addProjectV2ItemById mutation returns the existing item), so the repeated
 # `labeled` firings do not create duplicates.
 #
-# REQUIRED SECRET: `PROJECTS_TOKEN` — a PAT with write access to the projects.
-# The default GITHUB_TOKEN cannot write to user-owned (as opposed to
-# repo-owned) projects, so it will not work here. Without the secret every
-# run fails at the first step.
+# REQUIRED SECRET: `PROJECTS_TOKEN` — this must be a *classic* PAT carrying the
+# `project` scope (plus `public_repo`). Fine-grained tokens cannot do this job:
+# they expose no Projects permission for user-owned projects, only for
+# organization-owned ones, and these boards belong to the `simonoppowa` user
+# account. The default GITHUB_TOKEN cannot write to user-owned projects either.
+# Without the secret every run fails at the first step.
 #
 # Note that workflow files only take effect once they are on the default
 # branch — this does nothing while it lives on a feature branch.
@@ -27,7 +33,7 @@ name: Add issues to projects
 
 on:
   issues:
-    types: [opened, labeled]
+    types: [opened, labeled, transferred]
 
 permissions:
   contents: read
