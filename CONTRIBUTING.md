@@ -17,6 +17,7 @@ architecture conventions live in [AGENTS.md](AGENTS.md).
 
 ## Before you start
 
+- Check the [public board](https://github.com/users/simonoppowa/projects/2) before picking something up — it shows what is already in progress, so you don't duplicate work that is underway.
 - Create your branch from the latest `develop`:
   ```sh
   git fetch origin
