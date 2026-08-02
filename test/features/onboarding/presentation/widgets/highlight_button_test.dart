@@ -118,8 +118,8 @@ void main() {
       expect(data.hint, 'Select your goal to continue');
       expect(data.flagsCollection.isButton, isTrue);
       expect(
-        data.actions & SemanticsAction.tap.index,
-        isNot(0),
+        data.hasAction(SemanticsAction.tap),
+        isTrue,
         reason: 'the explanation must stay reachable by double tap',
       );
     });
