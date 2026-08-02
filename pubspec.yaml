@@ -71,7 +71,7 @@ dependencies:
   qr_flutter: ^4.1.0
   share_plus: ^10.0.0
   image_picker: ^1.1.2
-  flutter_image_compress: ^2.4.0
+  flutter_image_compress: ^2.5.1
 
   hive_ce: ^2.19.3
   hive_ce_flutter: ^2.3.4
