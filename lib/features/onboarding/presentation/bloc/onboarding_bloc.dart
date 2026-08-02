@@ -1,11 +1,16 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
+import 'package:opennutritracker/core/domain/entity/kcal_goal_breakdown_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/bounds/ranges_const.dart';
+import 'package:opennutritracker/core/utils/locale_units.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_data_mask_entity.dart';
@@ -15,17 +20,77 @@ part 'onboarding_event.dart';
 part 'onboarding_state.dart';
 
 class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
-  final userSelection = UserDataMaskEntity();
+  /// Answers collected so far. Not final: the bloc is a singleton, so a
+  /// second trip through onboarding has to start from a clean sheet rather
+  /// than the previous run's data. See [resetSelection].
+  UserDataMaskEntity userSelection = UserDataMaskEntity();
   final AddUserUsecase _addUserUsecase;
   final AddConfigUsecase _addConfigUsecase;
+  final GetConfigUsecase _getConfigUsecase;
 
-  OnboardingBloc(this._addUserUsecase, this._addConfigUsecase)
-    : super(OnboardingInitialState()) {
+  OnboardingBloc(
+    this._addUserUsecase,
+    this._addConfigUsecase,
+    this._getConfigUsecase,
+  ) : super(OnboardingInitialState()) {
     on<LoadOnboardingEvent>((event, emit) async {
       emit(OnboardingLoadingState());
-
+      await _seedUnitSelection();
+      await _seedFoodSourceSelection();
       emit(OnboardingLoadedState());
     });
+  }
+
+  /// Drops the answers from a previous run of the flow.
+  ///
+  /// Onboarding runs again whenever a profile is added, and this bloc is a
+  /// lazy singleton, so without this the second run opens prefilled with the
+  /// first profile's gender, birthday, height and weight.
+  ///
+  /// Called synchronously as the screen initialises, before the first build,
+  /// so no page can render another profile's data even for one frame.
+  void resetSelection() {
+    userSelection = UserDataMaskEntity();
+  }
+
+  /// Picks the unit toggles the height/weight page opens on.
+  ///
+  /// A stored preference always wins. Units live in the shared app config,
+  /// so by the time someone adds a second profile they have already chosen
+  /// once. Re-guessing would override that choice, and because finishing
+  /// onboarding writes the units back to the shared box, it would change the
+  /// first profile's units too.
+  ///
+  /// Only a genuine first run falls through to the locale.
+  Future<void> _seedUnitSelection() async {
+    if (await _getConfigUsecase.hasExplicitUnitPreferences()) {
+      final config = await _getConfigUsecase.getConfig();
+      userSelection.heightUsesImperial = config.usesImperialHeightUnits;
+      userSelection.bodyWeightUnit = config.bodyWeightUnit;
+      userSelection.foodUsesImperial = config.usesImperialFoodUnits;
+      return;
+    }
+
+    final defaults = LocaleUnitDefaults.fromLocale(Platform.localeName);
+    userSelection.heightUsesImperial = defaults.heightUsesImperial;
+    userSelection.bodyWeightUnit = defaults.bodyWeightUnit;
+    userSelection.foodUsesImperial = defaults.foodUsesImperial;
+  }
+
+  /// Picks which food databases the "Other options" page starts with.
+  /// Follows the same rule as the units: a stored choice wins, and only a
+  /// first run falls back to the locale.
+  Future<void> _seedFoodSourceSelection() async {
+    if (await _getConfigUsecase.hasExplicitFoodSourceToggles()) {
+      final config = await _getConfigUsecase.getConfig();
+      userSelection.foodSourceToggles = Map<String, bool>.from(
+        config.foodSourceToggles,
+      );
+      return;
+    }
+    userSelection.foodSourceToggles = defaultFoodSourceToggles(
+      Platform.localeName,
+    );
   }
 
   Future<void> saveOnboardingData(
@@ -110,6 +175,24 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       proteinGoal = MacroCalc.getTotalProteinsGoal(calorieGoal);
     }
     return proteinGoal;
+  }
+
+  /// The full derivation of the goal shown on the overview page, computed
+  /// from the in-progress selection. Nothing has been written to Hive yet at
+  /// this point in the flow.
+  ///
+  /// Runs through the same [KcalGoalBreakdownEntity.compute] the Settings
+  /// transparency screen uses, so the number explained here is the number
+  /// the app shows afterwards.
+  KcalGoalBreakdownEntity? getOverviewBreakdown() {
+    final userEntity = userSelection.toUserEntity();
+    if (userEntity == null) return null;
+    return KcalGoalBreakdownEntity.compute(
+      user: userEntity,
+      // No manual offset or logged activity exists during onboarding; both
+      // become available once the user is in the app.
+      totalKcalActivities: 0,
+    );
   }
 
   /// Whether the calorie goal computed for the current onboarding

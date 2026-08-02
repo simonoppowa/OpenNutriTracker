@@ -10,11 +10,13 @@ class DisclaimerDialog extends StatelessWidget {
       title: Text(S.of(context).settingsDisclaimerLabel),
       content: Text(S.of(context).disclaimerText),
       actions: [
+        // Not the shared OK label: dismissing this dialog records an
+        // acknowledgement in ConfigEntity.hasAcceptedDisclaimer.
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(true);
           },
-          child: Text(S.of(context).dialogOKLabel),
+          child: Text(S.of(context).disclaimerAcknowledgeLabel),
         ),
       ],
     );

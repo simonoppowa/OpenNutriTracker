@@ -11,9 +11,11 @@ import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/presentation/widgets/section_group.dart';
 import 'package:opennutritracker/core/presentation/widgets/calories_profile_info_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/utils/bounds/validator.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -105,9 +107,9 @@ class _ProfilePageState extends State<ProfilePage> {
           nutritionalStatus: userBMIEntity.nutritionalStatus,
         ),
         const SizedBox(height: Dimens.spacing32),
-        _SectionHeader(label: S.of(context).goalLabel, palette: palette),
+        SectionHeader(label: S.of(context).goalLabel, palette: palette),
         const SizedBox(height: Dimens.spacing12),
-        _ProfileGroup(
+        SectionGroup(
           palette: palette,
           tiles: [
             _ProfileTile(
@@ -141,9 +143,9 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
         const SizedBox(height: Dimens.spacing24),
-        _SectionHeader(label: S.of(context).weightLabel, palette: palette),
+        SectionHeader(label: S.of(context).weightLabel, palette: palette),
         const SizedBox(height: Dimens.spacing12),
-        _ProfileGroup(
+        SectionGroup(
           palette: palette,
           tiles: [
             _ProfileTile(
@@ -237,12 +239,12 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
         const SizedBox(height: Dimens.spacing24),
-        _SectionHeader(
+        SectionHeader(
           label: S.of(context).settingsWaterGoalLabel,
           palette: palette,
         ),
         const SizedBox(height: Dimens.spacing12),
-        _ProfileGroup(
+        SectionGroup(
           palette: palette,
           tiles: [
             _ProfileTile(
@@ -256,12 +258,12 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
         const SizedBox(height: Dimens.spacing24),
-        _SectionHeader(
+        SectionHeader(
           label: S.of(context).profileLabel,
           palette: palette,
         ),
         const SizedBox(height: Dimens.spacing12),
-        _ProfileGroup(
+        SectionGroup(
           palette: palette,
           tiles: [
             _ProfileTile(
@@ -315,9 +317,9 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
         const SizedBox(height: Dimens.spacing24),
-        _SectionHeader(label: S.of(context).recipesLabel, palette: palette),
+        SectionHeader(label: S.of(context).recipesLabel, palette: palette),
         const SizedBox(height: Dimens.spacing12),
-        _ProfileGroup(
+        SectionGroup(
           palette: palette,
           tiles: [
             _ProfileTile(
@@ -522,9 +524,14 @@ class _ProfilePageState extends State<ProfilePage> {
   ) async {
     final selectedDate = await showDatePicker(
       context: context,
-      initialDate: userEntity.birthday,
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
+      initialDatePickerMode: DatePickerMode.year,
+      // Same bounds as onboarding: without them this picker accepted a
+      // birthday in 2099, which turns the age fed to the calorie
+      // calculation negative. Existing values are clamped so a birthday
+      // stored by an older build can still open the picker.
+      initialDate: ValueValidator.clampBirthday(userEntity.birthday),
+      firstDate: ValueValidator.getFirstDate(),
+      lastDate: ValueValidator.getLastDate(),
     );
     if (selectedDate != null) {
       userEntity.birthday = selectedDate;
@@ -632,52 +639,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
 /// A quiet section label that gives the grouped cards a consistent rhythm —
 /// muted, lightly tracked, sitting just above the card it introduces.
-class _SectionHeader extends StatelessWidget {
-  final String label;
-  final AppPalette palette;
-
-  const _SectionHeader({required this.label, required this.palette});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: Dimens.spacing4),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: palette.textMuted,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.3,
-            ),
-      ),
-    );
-  }
-}
-
-/// Wraps a run of related rows inside one [AppCard] so they read as a single
-/// surface, with a hairline divider between rows rather than between cards.
-class _ProfileGroup extends StatelessWidget {
-  final AppPalette palette;
-  final List<Widget> tiles;
-
-  const _ProfileGroup({required this.palette, required this.tiles});
-
-  @override
-  Widget build(BuildContext context) {
-    final rows = <Widget>[];
-    for (var i = 0; i < tiles.length; i++) {
-      if (i > 0) {
-        rows.add(Divider(height: Dimens.hairline, color: palette.border));
-      }
-      rows.add(tiles[i]);
-    }
-    return AppCard(
-      padding: const EdgeInsets.symmetric(vertical: Dimens.spacing4),
-      child: Column(mainAxisSize: MainAxisSize.min, children: rows),
-    );
-  }
-}
-
 /// A single tappable row inside a [_ProfileGroup]. Keeps the underlying
 /// [ListTile] (so its role semantics carry through) but dresses the leading
 /// icon as a soft, accent-tinted rounded chip in the friendly-flat style.
