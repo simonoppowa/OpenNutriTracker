@@ -92,7 +92,7 @@ dev_dependencies:
     sdk: flutter
 
   build_runner: ^2.15.1
-  json_serializable: ^6.14.0
+  json_serializable: ^6.14.1
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
   hive_ce_generator: ^1.11.1
