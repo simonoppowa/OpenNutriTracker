@@ -32,7 +32,11 @@ class OnboardingFourthPageBody extends StatefulWidget {
 class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
   late UserGoalSelectionEntity? _selected = widget.initialGoal;
 
-  late final GoalSuggestionEntity? _suggestion = GoalSuggestionEntity.from(
+  /// Derived on every build rather than cached, so going back to the
+  /// height/weight page and changing a value can't leave the badge marking
+  /// the goal the old numbers pointed at. It is pure arithmetic on three
+  /// doubles, so there is nothing to save by holding on to it.
+  GoalSuggestionEntity? get _suggestion => GoalSuggestionEntity.from(
     heightCm: widget.heightCm,
     weightKg: widget.weightKg,
     targetWeightKg: widget.targetWeightKg,
@@ -57,6 +61,7 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
 
   @override
   Widget build(BuildContext context) {
+    final suggestion = _suggestion;
     return SingleChildScrollView(
       child: SizedBox(
         width: double.infinity,
@@ -74,12 +79,12 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
             ),
             const SizedBox(height: Dimens.spacing16),
             for (final goal in UserGoalSelectionEntity.values) ...[
-              _buildGoalRow(goal),
+              _buildGoalRow(goal, suggestion),
               const SizedBox(height: Dimens.spacing8),
             ],
-            if (_suggestion != null) ...[
+            if (suggestion != null) ...[
               const SizedBox(height: Dimens.spacing8),
-              _buildSuggestionCard(_suggestion),
+              _buildSuggestionCard(suggestion),
             ],
           ],
         ),
@@ -87,8 +92,11 @@ class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
     );
   }
 
-  Widget _buildGoalRow(UserGoalSelectionEntity goal) {
-    final isSuggested = _suggestion?.goal == goal;
+  Widget _buildGoalRow(
+    UserGoalSelectionEntity goal,
+    GoalSuggestionEntity? suggestion,
+  ) {
+    final isSuggested = suggestion?.goal == goal;
     return Row(
       children: [
         Semantics(

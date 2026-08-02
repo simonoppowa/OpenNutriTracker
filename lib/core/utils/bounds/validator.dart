@@ -97,20 +97,27 @@ class ValueValidator {
   static DateTime getFirstDate({DateTime? now}) =>
       (now ?? DateTime.now()).subtract(Ranges.maxAge);
 
+  /// The same calendar day [years] earlier, with Feb 29 pulled back to Feb 28
+  /// when the target year isn't a leap year. Dart would otherwise roll that
+  /// date forward to Mar 1, which on a leap day would push the boundary a day
+  /// past the birthday [ageInYears] counts from.
+  static DateTime _yearsBefore(DateTime date, int years) {
+    final year = date.year - years;
+    final lastDayOfMonth = DateTime(year, date.month + 1, 0).day;
+    final day = date.day <= lastDayOfMonth ? date.day : lastDayOfMonth;
+    return DateTime(year, date.month, day);
+  }
+
   /// Latest birthday the app accepts, [Ranges.minAgeYears] before today.
   /// Walks the calendar so leap years can't drift the boundary.
-  static DateTime getLastDate({DateTime? now}) {
-    final today = now ?? DateTime.now();
-    return DateTime(today.year - Ranges.minAgeYears, today.month, today.day);
-  }
+  static DateTime getLastDate({DateTime? now}) =>
+      _yearsBefore(now ?? DateTime.now(), Ranges.minAgeYears);
 
   /// Where the birthday picker opens when the user hasn't chosen yet.
   /// A birthday is picked year-first, and 30 years back sits near the middle
   /// of the plausible range, the shortest average travel to a real answer.
-  static DateTime getInitialBirthdayDate({DateTime? now}) {
-    final today = now ?? DateTime.now();
-    return DateTime(today.year - 30, today.month, today.day);
-  }
+  static DateTime getInitialBirthdayDate({DateTime? now}) =>
+      _yearsBefore(now ?? DateTime.now(), 30);
 
   /// Completed years between [birthday] and today, counted on the calendar
   /// (a birthday that hasn't come round yet this year doesn't count).

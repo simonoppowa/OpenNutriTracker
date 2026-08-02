@@ -245,7 +245,12 @@ class OnboardingOverviewPageBody extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(label, style: style, maxLines: 2),
+          child: Text(
+            label,
+            style: style,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
         const SizedBox(width: 8.0),
         Text(value, style: style),

@@ -43,6 +43,21 @@ void main() {
       expect(ValueValidator.getLastDate().isBefore(DateTime.now()), isTrue);
     });
 
+    test('a leap day does not hand out an extra day of slack', () {
+      // 2028 is a leap year, 2015 is not. Left to normalise, Feb 29 2015
+      // becomes Mar 1 2015 — a birthday that is still 12 by the count in
+      // ageInYears, so the picker would offer a date the app rejects.
+      final leapDay = DateTime(2028, 2, 29);
+      final last = ValueValidator.getLastDate(now: leapDay);
+
+      expect(last, DateTime(2015, 2, 28));
+      expect(
+        ValueValidator.ageInYears(last, now: leapDay),
+        Ranges.minAgeYears,
+        reason: 'the latest offered birthday must actually be old enough',
+      );
+    });
+
     test('someone turning 13 today is exactly at the boundary', () {
       final now = DateTime(2026, 8, 1);
       final thirteenToday = DateTime(2013, 8, 1);

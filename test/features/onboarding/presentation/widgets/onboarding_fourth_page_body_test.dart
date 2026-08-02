@@ -97,6 +97,21 @@ void main() {
     expect(find.text(l10nEn.onboardingGoalSuggestionTarget), findsNothing);
   });
 
+  testWidgets('changing the weight behind the page moves the suggestion', (
+    tester,
+  ) async {
+    // Going back to the height/weight page and correcting a value rebuilds
+    // this page in place. The suggestion has to follow the new numbers
+    // rather than keep marking what the old ones pointed at.
+    await pumpPage(tester, heightCm: 180, weightKg: 95); // BMI 29.3
+    expect(badgeBesideChip(l10nEn.goalLoseWeight), findsOneWidget);
+
+    await pumpPage(tester, heightCm: 180, weightKg: 55); // BMI 17.0
+
+    expect(badgeBesideChip(l10nEn.goalGainWeight), findsOneWidget);
+    expect(badgeBesideChip(l10nEn.goalLoseWeight), findsNothing);
+  });
+
   testWidgets('the user can still pick something other than the suggestion', (
     tester,
   ) async {
