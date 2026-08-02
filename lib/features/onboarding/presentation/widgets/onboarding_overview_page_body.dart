@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/entity/kcal_goal_breakdown_entity.dart';
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/low_kcal_warning_card.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/kcal_goal_info_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
@@ -16,6 +19,10 @@ class OnboardingOverviewPageBody extends StatelessWidget {
   final bool showLowKcalWarning;
   final double lowKcalWarningThreshold;
 
+  /// The derivation behind [calorieGoalDayString]. Null while the selection
+  /// is still incomplete, in which case the page shows the goal alone.
+  final KcalGoalBreakdownEntity? breakdown;
+
   const OnboardingOverviewPageBody({
     super.key,
     required this.setButtonActive,
@@ -26,6 +33,7 @@ class OnboardingOverviewPageBody extends StatelessWidget {
     required this.proteinGoalString,
     this.showLowKcalWarning = false,
     this.lowKcalWarningThreshold = 0,
+    this.breakdown,
   });
 
   @override
@@ -78,6 +86,10 @@ class OnboardingOverviewPageBody extends StatelessWidget {
               ],
             ),
           ),
+          if (breakdown != null) ...[
+            const SizedBox(height: 16.0),
+            _buildDerivation(context, breakdown!),
+          ],
           if (showLowKcalWarning) ...[
             const SizedBox(height: 24.0),
             LowKcalWarningCard(
@@ -156,6 +168,88 @@ class OnboardingOverviewPageBody extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// The arithmetic behind the headline number, in the order the app applies
+  /// it, with a link to the full derivation.
+  Widget _buildDerivation(
+    BuildContext context,
+    KcalGoalBreakdownEntity breakdown,
+  ) {
+    final adjustment = breakdown.effectiveAdjustmentKcal;
+    // The sign stays visible. This is the step that turns maintenance
+    // energy into a goal, so its direction matters.
+    final adjustmentPrefix = adjustment > 0 ? '+' : '';
+
+    return Container(
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDerivationRow(
+            context,
+            S.of(context).kcalGoalInfoTdeeResultLabel,
+            EnergyDisplay.formatWithUnit(context, breakdown.tdeeKcal),
+          ),
+          const SizedBox(height: 4.0),
+          _buildDerivationRow(
+            context,
+            S.of(context).kcalGoalInfoAppliedAdjustmentLabel,
+            '$adjustmentPrefix'
+            '${EnergyDisplay.formatWithUnit(context, adjustment)}',
+          ),
+          const Divider(height: 16.0),
+          _buildDerivationRow(
+            context,
+            S.of(context).kcalGoalInfoResultSection,
+            EnergyDisplay.formatWithUnit(context, breakdown.totalKcalGoal),
+            emphasised: true,
+          ),
+          const SizedBox(height: 4.0),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Semantics(
+              identifier: 'onboarding-overview-calculation',
+              child: TextButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => KcalGoalInfoScreen(breakdown: breakdown),
+                  ),
+                ),
+                icon: const Icon(Icons.calculate_outlined, size: 18),
+                label: Text(S.of(context).settingsKcalGoalInfoLabel),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDerivationRow(
+    BuildContext context,
+    String label,
+    String value, {
+    bool emphasised = false,
+  }) {
+    final style = emphasised
+        ? Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          )
+        : Theme.of(context).textTheme.bodySmall;
+    return Row(
+      children: [
+        Expanded(
+          child: Text(label, style: style, maxLines: 2),
+        ),
+        const SizedBox(width: 8.0),
+        Text(value, style: style),
+      ],
     );
   }
 }

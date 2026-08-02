@@ -51,10 +51,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _fourthPageButtonActive = false;
   bool _overviewPageButtonActive = false;
 
+  /// Ticked when the height/weight page's Next is tapped while blocked, so
+  /// that page reveals the errors for fields the user never left.
+  final _secondPageShowErrors = ValueNotifier<int>(0);
+
   @override
   void initState() {
     _onboardingBloc = locator<OnboardingBloc>();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _secondPageShowErrors.dispose();
+    super.dispose();
   }
 
   @override
@@ -167,6 +177,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             buttonLabel: S.of(context).buttonStartLabel,
             onButtonPressed: () => _scrollToPage(1),
             buttonActive: _introPageButtonActive,
+            inactiveMessage: S.of(context).onboardingBlockedPolicySnack,
           ),
         ),
         PageViewModel(
@@ -184,6 +195,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             buttonLabel: S.of(context).buttonNextLabel,
             onButtonPressed: () => _scrollToPage(2),
             buttonActive: _firstPageButtonActive,
+            inactiveMessage: S.of(context).onboardingBlockedProfileSnack,
           ),
         ),
         PageViewModel(
@@ -199,11 +211,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             initialHeightImperial: selection.heightUsesImperial,
             initialBodyWeightUnit: selection.bodyWeightUnit,
             initialFoodImperial: selection.foodUsesImperial,
+            showErrorsSignal: _secondPageShowErrors,
           ),
           footer: HighlightButton(
             buttonLabel: S.of(context).buttonNextLabel,
             onButtonPressed: () => _scrollToPage(3),
             buttonActive: _secondPageButtonActive,
+            inactiveMessage: S.of(context).onboardingBlockedBodySnack,
+            onBlockedPressed: () => _secondPageShowErrors.value++,
           ),
         ),
         PageViewModel(
@@ -219,6 +234,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             buttonLabel: S.of(context).buttonNextLabel,
             onButtonPressed: () => _scrollToPage(4),
             buttonActive: _thirdPageButtonActive,
+            inactiveMessage: S.of(context).onboardingBlockedActivitySnack,
           ),
         ),
         PageViewModel(
@@ -229,11 +245,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           bodyWidget: OnboardingFourthPageBody(
             setButtonContent: _setFourthPageButton,
             initialGoal: selection.goal,
+            heightCm: selection.height,
+            weightKg: selection.weight,
+            targetWeightKg: selection.targetWeight,
           ),
           footer: HighlightButton(
             buttonLabel: S.of(context).buttonNextLabel,
             onButtonPressed: () => _scrollToPage(5),
             buttonActive: _fourthPageButtonActive,
+            inactiveMessage: S.of(context).onboardingBlockedGoalSnack,
           ),
         ),
         PageViewModel(
@@ -275,6 +295,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 _onboardingBloc.getOverviewProteinGoal()?.toInt().toString() ??
                     "?",
             setButtonActive: _setOverviewPageContent,
+            breakdown: _onboardingBloc.getOverviewBreakdown(),
             showLowKcalWarning:
                 _onboardingBloc.isOverviewBelowRecommendedKcalFloor(),
             lowKcalWarningThreshold:
@@ -286,6 +307,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               _onOverviewStartButtonPressed(context);
             },
             buttonActive: _overviewPageButtonActive,
+            inactiveMessage: S.of(context).onboardingBlockedOverviewSnack,
           ),
         ),
       ];

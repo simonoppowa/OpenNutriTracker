@@ -6,20 +6,29 @@ import '../../../../helpers/test_l10n.dart';
 
 void main() {
   testWidgets('Case 1: Value is null', (WidgetTester tester) async {
+    final showErrors = ValueNotifier<int>(0);
+    addTearDown(showErrors.dispose);
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
           body: OnboardingSecondPageBody(
             setButtonContent: (_, _, _, _, _, _, _) {},
+            showErrorsSignal: showErrors,
           ),
         ),
       ),
     );
 
+    // Errors stay quiet until the user leaves the field or tries to move on,
+    // so an untouched page shows nothing.
     final form = find.byType(Form).first;
-    final state = tester.state<FormState>(form);
-    state.validate();
+    tester.state<FormState>(form).validate();
+    await tester.pump();
+    expect(find.text(l10nEn.onboardingWrongHeightLabel), findsNothing);
+
+    // Tapping a blocked Next asks the page to reveal what is missing.
+    showErrors.value++;
     await tester.pump();
 
     expect(find.text(l10nEn.onboardingWrongHeightLabel), findsOneWidget);
@@ -92,12 +101,15 @@ void main() {
   testWidgets('Case 5: Value is empty string with decimal units', (
     WidgetTester tester,
   ) async {
+    final showErrors = ValueNotifier<int>(0);
+    addTearDown(showErrors.dispose);
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
           body: OnboardingSecondPageBody(
             setButtonContent: (_, _, _, _, _, _, _) {},
+            showErrorsSignal: showErrors,
           ),
         ),
       ),
@@ -113,9 +125,7 @@ void main() {
     await tester.enterText(heightField, '');
     await tester.pump();
 
-    final form = find.byType(Form).first;
-    final state = tester.state<FormState>(form);
-    state.validate();
+    showErrors.value++;
     await tester.pump();
 
     expect(find.text(l10nEn.onboardingWrongHeightLabel), findsOneWidget);
@@ -127,12 +137,15 @@ void main() {
     // Note: the cm field's input formatter is digitsOnly, so a literal "9.6"
     // is stripped to "96" — a valid cm height. To exercise the validator we
     // use a value that survives the formatter but fails the range check.
+    final showErrors = ValueNotifier<int>(0);
+    addTearDown(showErrors.dispose);
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
           body: OnboardingSecondPageBody(
             setButtonContent: (_, _, _, _, _, _, _) {},
+            showErrorsSignal: showErrors,
           ),
         ),
       ),
@@ -148,9 +161,7 @@ void main() {
     await tester.enterText(heightField, '9');
     await tester.pump();
 
-    final form = find.byType(Form).first;
-    final state = tester.state<FormState>(form);
-    state.validate();
+    showErrors.value++;
     await tester.pump();
 
     expect(find.text(l10nEn.onboardingWrongHeightLabel), findsOneWidget);
@@ -193,12 +204,15 @@ void main() {
   testWidgets('Case 7: Metric selected and value is 6.7 (should be valid)', (
     WidgetTester tester,
   ) async {
+    final showErrors = ValueNotifier<int>(0);
+    addTearDown(showErrors.dispose);
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
           body: OnboardingSecondPageBody(
             setButtonContent: (_, _, _, _, _, _, _) {},
+            showErrorsSignal: showErrors,
           ),
         ),
       ),
@@ -291,12 +305,15 @@ void main() {
   testWidgets('Weight field: zero is rejected (below minWeight=2)', (
     WidgetTester tester,
   ) async {
+    final showErrors = ValueNotifier<int>(0);
+    addTearDown(showErrors.dispose);
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
           body: OnboardingSecondPageBody(
             setButtonContent: (_, _, _, _, _, _, _) {},
+            showErrorsSignal: showErrors,
           ),
         ),
       ),
@@ -305,9 +322,13 @@ void main() {
     final weightField = find.byType(TextFormField).at(1);
     await tester.enterText(weightField, '0');
     await tester.pump();
+    expect(
+      find.text(l10nEn.onboardingWrongWeightLabel),
+      findsNothing,
+      reason: 'no error while the field still has focus',
+    );
 
-    final weightForm = find.byType(Form).at(1);
-    tester.state<FormState>(weightForm).validate();
+    showErrors.value++;
     await tester.pump();
 
     expect(find.text(l10nEn.onboardingWrongWeightLabel), findsOneWidget);

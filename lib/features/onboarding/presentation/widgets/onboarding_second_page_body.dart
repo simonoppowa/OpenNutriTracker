@@ -1,8 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
+import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/utils/bounds/validator.dart';
+import 'package:opennutritracker/core/utils/calc/healthy_weight_calc.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/features/profile/presentation/utils/profile_display_format.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/body_weight_input.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/feet_inches_input.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -37,6 +41,12 @@ class OnboardingSecondPageBody extends StatefulWidget {
   final BodyWeightUnit initialBodyWeightUnit;
   final bool initialFoodImperial;
 
+  /// Ticked by the parent when the user taps a blocked "Next", so the page
+  /// paints its errors for fields the user never left. Without it, someone
+  /// who types an invalid weight and goes straight for the button gets only
+  /// the footer snackbar and no indication of which field is at fault.
+  final ValueListenable<int>? showErrorsSignal;
+
   const OnboardingSecondPageBody({
     super.key,
     required this.setButtonContent,
@@ -46,6 +56,7 @@ class OnboardingSecondPageBody extends StatefulWidget {
     this.initialHeightImperial = false,
     this.initialBodyWeightUnit = BodyWeightUnit.kg,
     this.initialFoodImperial = false,
+    this.showErrorsSignal,
   });
 
   @override
@@ -64,6 +75,11 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
   final _weightController = TextEditingController();
   final _targetWeightController = TextEditingController();
 
+  /// Anchors the healthy-range card so focusing the target field can scroll
+  /// it into view. The card sits below that field, so the keyboard covers it
+  /// while the user is deciding what to type.
+  final _healthyRangeKey = GlobalKey();
+
   late bool _isHeightImperial;
   late BodyWeightUnit _bodyWeightUnit;
   late bool _isFoodImperial;
@@ -74,6 +90,20 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
   // onboarding flow stays valid either way. Only populated when the
   // input parses to a sensible kg value.
   double? _parsedTargetWeight;
+
+  // Whether each field's error text is allowed on screen yet. Validation
+  // runs on every keystroke, since that is what gates the Next button, but
+  // the red text only appears once the user has left the field or tried to
+  // move on. Typing "1" on the way to "180" produces no error.
+  bool _showHeightError = false;
+  bool _showWeightError = false;
+  bool _showTargetError = false;
+
+  // Values the user has explicitly confirmed as intentional in the
+  // plausibility dialog, so leaving the field again doesn't re-ask.
+  double? _confirmedHeightCm;
+  double? _confirmedWeightKg;
+  double? _confirmedTargetKg;
 
   bool get _isWeightLb => _bodyWeightUnit == BodyWeightUnit.lb;
   bool get _isWeightSt => _bodyWeightUnit == BodyWeightUnit.st;
@@ -86,6 +116,10 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
     _isFoodImperial = widget.initialFoodImperial;
     _heightFocusNode.attach(context);
     _weightFocusNode.attach(context);
+    _heightFocusNode.addListener(_onHeightFocusChange);
+    _weightFocusNode.addListener(_onWeightFocusChange);
+    _targetWeightFocusNode.addListener(_onTargetFocusChange);
+    widget.showErrorsSignal?.addListener(_onShowErrorsRequested);
 
     // Restore state if the parent passed previously-entered values (e.g.,
     // the user navigated back then forward). Stored values are always in
@@ -119,6 +153,300 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
       _targetWeightController.text = _formatRestoredNumber(displayTarget);
     }
     // For the stones unit, BodyWeightInput seeds itself from initialKg.
+  }
+
+  void _onHeightFocusChange() {
+    if (_heightFocusNode.hasFocus) return;
+    _revealHeightError();
+    _confirmHeightIfImplausible();
+  }
+
+  void _onWeightFocusChange() {
+    if (_weightFocusNode.hasFocus) return;
+    _revealWeightError();
+    _confirmWeightIfImplausible();
+  }
+
+  void _onTargetFocusChange() {
+    if (_targetWeightFocusNode.hasFocus) {
+      _scrollSuggestionIntoView();
+      return;
+    }
+    _revealTargetError();
+    _confirmTargetIfImplausible();
+  }
+
+  /// Brings the suggestion card above the keyboard when the user moves into
+  /// the target field. Runs after a short delay so the scroll is measured
+  /// against the viewport the keyboard has already shrunk.
+  Future<void> _scrollSuggestionIntoView() async {
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    final cardContext = _healthyRangeKey.currentContext;
+    // Null when there is no height/weight yet, so no card; unmounted when
+    // the page went away during the delay.
+    if (cardContext == null || !cardContext.mounted) return;
+    await Scrollable.ensureVisible(
+      cardContext,
+      // 1.0 lines the card's bottom up with the bottom of what's visible,
+      // so the chip clears the keyboard.
+      alignment: 1.0,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
+  }
+
+  /// The composite ft/in and stones widgets own their inner fields, so a
+  /// [Focus] wrapper is how this page learns the whole group was left.
+  void _onHeightGroupFocusChange(bool hasFocus) {
+    if (hasFocus) return;
+    _revealHeightError();
+    _confirmHeightIfImplausible();
+  }
+
+  void _onWeightGroupFocusChange(bool hasFocus) {
+    if (hasFocus) return;
+    _revealWeightError();
+    _confirmWeightIfImplausible();
+  }
+
+  void _onTargetGroupFocusChange(bool hasFocus) {
+    if (hasFocus) {
+      _scrollSuggestionIntoView();
+      return;
+    }
+    _confirmTargetIfImplausible();
+  }
+
+  void _revealHeightError() {
+    if (_showHeightError) return;
+    setState(() => _showHeightError = true);
+    _heightFormKey.currentState?.validate();
+  }
+
+  void _revealWeightError() {
+    if (_showWeightError) return;
+    setState(() => _showWeightError = true);
+    _weightFormKey.currentState?.validate();
+  }
+
+  void _revealTargetError() {
+    if (_showTargetError) return;
+    setState(() => _showTargetError = true);
+    _targetWeightFormKey.currentState?.validate();
+  }
+
+  /// The parent asks for this when a blocked Next is tapped.
+  void _onShowErrorsRequested() {
+    _revealHeightError();
+    _revealWeightError();
+    _revealTargetError();
+  }
+
+  /// Asks about a value that cleared the hard bounds but sits outside the
+  /// ordinary range. 45 kg is a real weight, 4.5 kg is a typo, and both pass
+  /// [Ranges]. Answering "Keep" records the value so the question isn't
+  /// repeated for it.
+  Future<void> _confirmHeightIfImplausible() async {
+    final cm = _parsedHeight;
+    if (cm == null) return; // hard-invalid: the inline error already says so
+    if (ValueValidator.isPlausibleHeightCm(cm)) return;
+    if (_confirmedHeightCm == cm) return;
+
+    final display = formatHeight(
+      cm,
+      _isHeightImperial,
+      cmLabel: S.of(context).cmLabel,
+      ftLabel: S.of(context).ftLabel,
+      inLabel: S.of(context).inLabel,
+    );
+    final keep = await _askKeepValue(
+      S.of(context).onboardingImplausibleHeightBody(display),
+    );
+    if (!mounted) return;
+    if (keep) {
+      _confirmedHeightCm = cm;
+    } else if (!_isHeightImperial) {
+      // Only the single metric field has a focus node here; the ft/in
+      // group manages its own, so the user taps back into it themselves.
+      FocusScope.of(context).requestFocus(_heightFocusNode);
+    }
+  }
+
+  Future<void> _confirmWeightIfImplausible() async {
+    final kg = _parsedWeight;
+    if (kg == null) return;
+    if (ValueValidator.isPlausibleWeightKg(kg)) return;
+    if (_confirmedWeightKg == kg) return;
+
+    final keep = await _askKeepValue(
+      S.of(context).onboardingImplausibleWeightBody(_formatKg(kg)),
+    );
+    if (!mounted) return;
+    if (keep) {
+      _confirmedWeightKg = kg;
+    } else if (!_isWeightSt) {
+      FocusScope.of(context).requestFocus(_weightFocusNode);
+    }
+  }
+
+  Future<void> _confirmTargetIfImplausible() async {
+    final kg = _parsedTargetWeight;
+    if (kg == null) return; // empty is a valid "no target"
+    if (ValueValidator.isPlausibleWeightKg(kg)) return;
+    if (_confirmedTargetKg == kg) return;
+
+    final keep = await _askKeepValue(
+      S.of(context).onboardingImplausibleWeightBody(_formatKg(kg)),
+    );
+    if (!mounted) return;
+    if (keep) {
+      _confirmedTargetKg = kg;
+    } else if (!_isWeightSt) {
+      FocusScope.of(context).requestFocus(_targetWeightFocusNode);
+    }
+  }
+
+  /// Returns whether the user chose to keep the value. Dismissing the
+  /// dialog counts as keeping, since the value is legal.
+  Future<bool> _askKeepValue(String body) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(S.of(dialogContext).onboardingImplausibleTitle),
+        content: Text(body),
+        actions: [
+          Semantics(
+            identifier: 'onboarding-implausible-change',
+            child: TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(S.of(dialogContext).onboardingImplausibleChange),
+            ),
+          ),
+          Semantics(
+            identifier: 'onboarding-implausible-keep',
+            child: TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(S.of(dialogContext).onboardingImplausibleKeep),
+            ),
+          ),
+        ],
+      ),
+    );
+    return result ?? true;
+  }
+
+  String _formatKg(double kg) => formatBodyWeight(
+    kg,
+    _bodyWeightUnit,
+    kgLabel: S.of(context).kgLabel,
+    lbLabel: S.of(context).lbsLabel,
+    stLabel: S.of(context).stLabel,
+  );
+
+  /// Fills the optional target field with the suggested weight. The stones
+  /// input seeds itself from `initialKg`, so it is rebuilt via its key to
+  /// pick the new value up.
+  void _applySuggestedTarget(double kg) {
+    setState(() {
+      _parsedTargetWeight = kg;
+      _confirmedTargetKg = null;
+      if (!_isWeightSt) {
+        final display = _isWeightLb ? UnitCalc.kgToLbs(kg) : kg;
+        _targetWeightController.text = _formatRestoredNumber(display);
+      }
+      checkCorrectInput();
+    });
+  }
+
+  /// The WHO healthy-weight band for the entered height, with the figure it
+  /// comes from stated next to it. Shown only once height and weight both
+  /// parse, since the suggestion depends on both.
+  Widget _buildHealthyRangeCard() {
+    final heightCm = _parsedHeight!;
+    final weightKg = _parsedWeight!;
+    final range = HealthyWeightRange.forHeightCm(heightCm);
+    final suggestion = range.suggestionFor(weightKg);
+    final rangeText = '${_formatKg(range.minKg)} – ${_formatKg(range.maxKg)}';
+    final heightText = formatHeight(
+      heightCm,
+      _isHeightImperial,
+      cmLabel: S.of(context).cmLabel,
+      ftLabel: S.of(context).ftLabel,
+      inLabel: S.of(context).inLabel,
+    );
+
+    return Container(
+      key: _healthyRangeKey,
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.straighten_outlined,
+                size: 18,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  S
+                      .of(context)
+                      .onboardingHealthyRangeLabel(heightText, rangeText),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4.0),
+          Text(
+            S.of(context).onboardingHealthyRangeSource,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8.0),
+          // A Wrap, so the citation link drops onto its own line instead of
+          // overflowing when the chip carries a long stones-and-pounds label.
+          Wrap(
+            spacing: 8.0,
+            runSpacing: 4.0,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Semantics(
+                identifier: 'onboarding-target-weight-suggestion',
+                child: ActionChip(
+                  avatar: const Icon(Icons.flag_outlined, size: 18),
+                  label: Text(
+                    S
+                        .of(context)
+                        .onboardingHealthyRangeApply(_formatKg(suggestion)),
+                  ),
+                  onPressed: () => _applySuggestedTarget(suggestion),
+                ),
+              ),
+              // The line above names the rule; this links to the citation,
+              // the WHO adult BMI classification the Sources screen lists.
+              Semantics(
+                identifier: 'onboarding-healthy-range-sources',
+                child: TextButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SourcesScreen()),
+                  ),
+                  icon: const Icon(Icons.menu_book_outlined, size: 18),
+                  label: Text(S.of(context).settingsSourcesLabel),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   /// Trim a restored value to one decimal place when needed, and drop the
@@ -158,6 +486,7 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
 
   @override
   void dispose() {
+    widget.showErrorsSignal?.removeListener(_onShowErrorsRequested);
     _heightFocusNode.dispose();
     _weightFocusNode.dispose();
     _targetWeightFocusNode.dispose();
@@ -192,15 +521,22 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
             // decimal feet, the way height is actually read. Metric stays a
             // single validated cm field.
             _isHeightImperial
-                ? Semantics(
-                    identifier: 'onboarding-height-field',
-                    child: FeetInchesInput(
-                      initialCm: _parsedHeight ?? widget.initialHeightCm,
-                      identifierPrefix: 'onboarding-height',
-                      onChangedCm: (cm) {
-                        _parsedHeight = cm;
-                        checkCorrectInput();
-                      },
+                ? Focus(
+                    canRequestFocus: false,
+                    onFocusChange: _onHeightGroupFocusChange,
+                    child: Semantics(
+                      identifier: 'onboarding-height-field',
+                      child: FeetInchesInput(
+                        initialCm: _parsedHeight ?? widget.initialHeightCm,
+                        identifierPrefix: 'onboarding-height',
+                        errorText: _showHeightError && _parsedHeight == null
+                            ? S.of(context).onboardingWrongHeightLabel
+                            : null,
+                        onChangedCm: (cm) {
+                          setState(() => _parsedHeight = cm);
+                          checkCorrectInput();
+                        },
+                      ),
                     ),
                   )
                 : Form(
@@ -211,16 +547,18 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
                         controller: _heightController,
                         focusNode: _heightFocusNode,
                         onChanged: (text) {
-                          if (_heightFormKey.currentState!.validate()) {
+                          setState(() {
                             _parsedHeight = ValueValidator.parseHeightInCm(
                               double.tryParse(text.replaceAll(',', '.')),
                               isImperial: false,
                             );
-                            checkCorrectInput();
-                          } else {
-                            _parsedHeight = null;
-                            checkCorrectInput();
+                          });
+                          // Keep an already-visible error in step with the
+                          // fix in progress; stay silent until then.
+                          if (_showHeightError) {
+                            _heightFormKey.currentState?.validate();
                           }
+                          checkCorrectInput();
                         },
                         onFieldSubmitted: (_) {
                           FocusScope.of(context).requestFocus(_weightFocusNode);
@@ -318,14 +656,21 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
             ),
             const SizedBox(height: 16.0),
             _isWeightSt
-                ? BodyWeightInput(
-                    initialKg: _parsedWeight ?? widget.initialWeightKg,
-                    unit: BodyWeightUnit.st,
-                    onChangedKg: (kg) {
-                      _parsedWeight = kg;
-                      checkCorrectInput();
-                    },
-                    identifierPrefix: 'onboarding-weight',
+                ? Focus(
+                    canRequestFocus: false,
+                    onFocusChange: _onWeightGroupFocusChange,
+                    child: BodyWeightInput(
+                      initialKg: _parsedWeight ?? widget.initialWeightKg,
+                      unit: BodyWeightUnit.st,
+                      errorText: _showWeightError && _parsedWeight == null
+                          ? S.of(context).onboardingWrongWeightLabel
+                          : null,
+                      onChangedKg: (kg) {
+                        setState(() => _parsedWeight = kg);
+                        checkCorrectInput();
+                      },
+                      identifierPrefix: 'onboarding-weight',
+                    ),
                   )
                 : Form(
                     key: _weightFormKey,
@@ -335,16 +680,16 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
                         controller: _weightController,
                         focusNode: _weightFocusNode,
                         onChanged: (text) {
-                          if (_weightFormKey.currentState!.validate()) {
+                          setState(() {
                             _parsedWeight = ValueValidator.parseWeightInKg(
                               double.tryParse(text.replaceAll(',', '.')),
                               isImperial: _isWeightLb,
                             );
-                            checkCorrectInput();
-                          } else {
-                            _parsedWeight = null;
-                            checkCorrectInput();
+                          });
+                          if (_showWeightError) {
+                            _weightFormKey.currentState?.validate();
                           }
+                          checkCorrectInput();
                         },
                         onFieldSubmitted: (_) {
                           FocusScope.of(
@@ -390,18 +735,26 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
             ),
             const SizedBox(height: 16.0),
             _isWeightSt
-                ? BodyWeightInput(
-                    initialKg:
-                        _parsedTargetWeight ?? widget.initialTargetWeightKg,
-                    unit: BodyWeightUnit.st,
-                    onChangedKg: (kg) {
-                      // null is a valid result for the target field (user left
-                      // both stones and pounds empty), so we treat it as "no
-                      // target" rather than blocking the Next button.
-                      _parsedTargetWeight = kg;
-                      checkCorrectInput();
-                    },
-                    identifierPrefix: 'onboarding-target-weight',
+                ? Focus(
+                    canRequestFocus: false,
+                    onFocusChange: _onTargetGroupFocusChange,
+                    child: BodyWeightInput(
+                      // Keyed on the applied suggestion so tapping the chip
+                      // re-seeds the stones/pounds pair, which reads its
+                      // value from initialKg only when it is built.
+                      key: ValueKey(_parsedTargetWeight),
+                      initialKg:
+                          _parsedTargetWeight ?? widget.initialTargetWeightKg,
+                      unit: BodyWeightUnit.st,
+                      onChangedKg: (kg) {
+                        // null is a valid result for the target field (user
+                        // left both stones and pounds empty), so treat it as
+                        // "no target" rather than blocking the Next button.
+                        _parsedTargetWeight = kg;
+                        checkCorrectInput();
+                      },
+                      identifierPrefix: 'onboarding-target-weight',
+                    ),
                   )
                 : Form(
                     key: _targetWeightFormKey,
@@ -411,19 +764,16 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
                         controller: _targetWeightController,
                         focusNode: _targetWeightFocusNode,
                         onChanged: (text) {
-                          if (text.trim().isEmpty) {
-                            _parsedTargetWeight = null;
-                            checkCorrectInput();
-                            return;
-                          }
-                          if (_targetWeightFormKey.currentState!.validate()) {
-                            _parsedTargetWeight =
-                                ValueValidator.parseWeightInKg(
-                                  double.tryParse(text.replaceAll(',', '.')),
-                                  isImperial: _isWeightLb,
-                                );
-                          } else {
-                            _parsedTargetWeight = null;
+                          setState(() {
+                            _parsedTargetWeight = text.trim().isEmpty
+                                ? null
+                                : ValueValidator.parseWeightInKg(
+                                    double.tryParse(text.replaceAll(',', '.')),
+                                    isImperial: _isWeightLb,
+                                  );
+                          });
+                          if (_showTargetError) {
+                            _targetWeightFormKey.currentState?.validate();
                           }
                           checkCorrectInput();
                         },
@@ -455,6 +805,10 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
                       ),
                     ),
                   ),
+            if (_parsedHeight != null && _parsedWeight != null) ...[
+              const SizedBox(height: 16.0),
+              _buildHealthyRangeCard(),
+            ],
             const SizedBox(height: 32.0),
             // Food units are chosen explicitly rather than inferred from the
             // height toggle, so a UK user on feet and stones can still log
@@ -517,6 +871,10 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
   }
 
   String? validateHeight(String? value) {
+    // Silence until the field has been left or Next was tried: the button
+    // is gated on the parsed value, so nothing depends on this returning
+    // an error while the user is still typing.
+    if (!_showHeightError) return null;
     final label = S.of(context).onboardingWrongHeightLabel;
     if (ValueValidator.heightStringValidator(
           value,
@@ -535,6 +893,11 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
   }
 
   String? validateWeight(String? value) {
+    if (!_showWeightError) return null;
+    return _weightErrorFor(value);
+  }
+
+  String? _weightErrorFor(String? value) {
     final label = S.of(context).onboardingWrongWeightLabel;
     if (ValueValidator.weightStringValidator(
           value,
@@ -552,55 +915,37 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
     return null;
   }
 
-  /// Target weight is opt-in, so an empty field is valid. When the user
-  /// has typed something we reuse the regular weight validator to keep
-  /// the bounds consistent.
+  /// Target weight is opt-in, so an empty field is valid. When the user has
+  /// typed something we reuse the regular weight bounds check, but not
+  /// [validateWeight] itself, whose silence is tied to the current weight
+  /// field's reveal flag instead of this one's.
   String? validateOptionalTargetWeight(String? value) {
+    if (!_showTargetError) return null;
     if (value == null || value.trim().isEmpty) return null;
-    return validateWeight(value);
+    return _weightErrorFor(value);
   }
 
   void checkCorrectInput() {
-    // Imperial height uses the FeetInchesInput, which reports cm via its
-    // callback, so gate on _parsedHeight rather than a form validator (the
-    // form only exists in metric mode).
-    final bool isHeightValid;
-    if (_isHeightImperial) {
-      isHeightValid = _parsedHeight != null;
-    } else {
-      isHeightValid = _heightFormKey.currentState?.validate() ?? false;
-    }
+    // Every path gates on the parsed value, not on a form validator. The
+    // parse applies the same bounds the validator does, and keeping the two
+    // apart lets the error text stay hidden while the button state tracks
+    // the input keystroke by keystroke. It also removes the old asymmetry
+    // where ft/in and stones were gated one way and the metric fields
+    // another.
 
-    // For the stones unit, the BodyWeightInput widget manages its own
-    // validation and reports via onChangedKg. We gate on _parsedWeight
-    // being non-null rather than running a form validator.
-    bool isWeightValid;
+    // Target weight is always optional, so block only when the user has
+    // typed something that doesn't parse. Empty (or null from
+    // BodyWeightInput when both stones and pounds are blank) means
+    // "no target".
+    final bool isTargetValid;
     if (_isWeightSt) {
-      isWeightValid = _parsedWeight != null;
-    } else {
-      isWeightValid = _weightFormKey.currentState?.validate() ?? false;
-    }
-
-    // Target weight is always optional — block proceed only when the user has
-    // typed something invalid; an empty field (or null from BodyWeightInput
-    // when both stones + pounds are blank) is fine.
-    bool isTargetValid;
-    if (_isWeightSt) {
-      // BodyWeightInput emits null when both fields are empty, which is valid
-      // for an optional target. Any non-null value from it is already in-range.
       isTargetValid = true;
     } else {
       final targetText = _targetWeightController.text.trim();
-      isTargetValid =
-          targetText.isEmpty ||
-          (_targetWeightFormKey.currentState?.validate() ?? false);
+      isTargetValid = targetText.isEmpty || _parsedTargetWeight != null;
     }
 
-    if (isHeightValid &&
-        isWeightValid &&
-        isTargetValid &&
-        _parsedHeight != null &&
-        _parsedWeight != null) {
+    if (isTargetValid && _parsedHeight != null && _parsedWeight != null) {
       widget.setButtonContent(
         true,
         _parsedHeight,

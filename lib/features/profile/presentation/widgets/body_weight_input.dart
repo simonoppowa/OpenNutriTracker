@@ -23,6 +23,12 @@ class BodyWeightInput extends StatefulWidget {
   final String identifierPrefix;
   final bool autofocus;
 
+  /// Error to display. The widget has no validator of its own. It reports
+  /// null upward and leaves the caller to decide when an invalid entry is
+  /// worth complaining about, which is how the onboarding page stays quiet
+  /// until the user leaves the field.
+  final String? errorText;
+
   const BodyWeightInput({
     super.key,
     required this.initialKg,
@@ -30,6 +36,7 @@ class BodyWeightInput extends StatefulWidget {
     required this.onChangedKg,
     required this.identifierPrefix,
     this.autofocus = false,
+    this.errorText,
   });
 
   @override
@@ -133,13 +140,36 @@ class _BodyWeightInputState extends State<BodyWeightInput> {
         inputFormatters: [
           FilteringTextInputFormatter.allow(RegExp(r'^\d+([.,]\d{0,1})?$')),
         ],
-        decoration: InputDecoration(labelText: label),
+        decoration: InputDecoration(
+          labelText: label,
+          errorText: widget.errorText,
+        ),
         onChanged: _emitSingle,
       ),
     );
   }
 
   Widget _buildStLbFields(BuildContext context) {
+    final errorText = widget.errorText;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildStLbRow(context),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 8),
+            child: Text(
+              errorText,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildStLbRow(BuildContext context) {
     return Row(
       children: [
         Expanded(
@@ -161,8 +191,9 @@ class _BodyWeightInputState extends State<BodyWeightInput> {
             identifier: '${widget.identifierPrefix}-pounds-input',
             child: TextField(
               controller: _poundsController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(
                   RegExp(r'^\d+([.,]\d{0,1})?$'),

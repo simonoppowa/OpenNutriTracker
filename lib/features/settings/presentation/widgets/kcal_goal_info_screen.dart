@@ -23,7 +23,16 @@ class KcalGoalInfoScreen extends StatefulWidget {
   /// get the locator-registered usecase.
   final GetKcalGoalBreakdownUsecase? usecase;
 
-  const KcalGoalInfoScreen({super.key, this.usecase});
+  /// An already-computed breakdown, used instead of fetching one.
+  ///
+  /// Onboarding needs this: the usecase reads the stored user and config,
+  /// and during onboarding nothing has been written yet. Passing the
+  /// breakdown computed from the in-progress selection means the same
+  /// renderer explains the goal before and after it is saved, so the two
+  /// can't drift apart.
+  final KcalGoalBreakdownEntity? breakdown;
+
+  const KcalGoalInfoScreen({super.key, this.usecase, this.breakdown});
 
   @override
   State<KcalGoalInfoScreen> createState() => _KcalGoalInfoScreenState();
@@ -35,8 +44,11 @@ class _KcalGoalInfoScreenState extends State<KcalGoalInfoScreen> {
   @override
   void initState() {
     super.initState();
-    _breakdown = (widget.usecase ?? locator<GetKcalGoalBreakdownUsecase>())
-        .getBreakdown();
+    final provided = widget.breakdown;
+    _breakdown = provided != null
+        ? Future.value(provided)
+        : (widget.usecase ?? locator<GetKcalGoalBreakdownUsecase>())
+              .getBreakdown();
   }
 
   @override

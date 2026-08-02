@@ -97,6 +97,9 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
   Widget build(BuildContext context) {
     final showNonBinaryNotice =
         _selectedGender == UserGenderSelectionEntity.genderNonBinary;
+    final birthday = _selectedDate;
+    final showAdultEquationNotice =
+        birthday != null && ValueValidator.isUnderAdultAge(birthday);
     return SizedBox(
       width: double.infinity,
       child: Column(
@@ -209,6 +212,39 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
               onTap: onDateInputClicked,
             ),
           ),
+          if (showAdultEquationNotice) ...[
+            const SizedBox(height: 12.0),
+            _buildAdultEquationNotice(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Shown for 13–17 year olds. The calorie goal is still calculated, but
+  /// the IOM 2005 equations behind it are the adult set, and saying so is
+  /// more honest than quietly handing a teenager an adult number.
+  Widget _buildAdultEquationNotice() {
+    return Container(
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 18,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              S.of(context).onboardingAdultEquationNotice,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
         ],
       ),
     );
@@ -228,9 +264,15 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
   }
 
   void onDateInputClicked() async {
+    final selected = _selectedDate;
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: ValueValidator.getLastDate(),
+      // Nobody scrolls month by month to 1994, so the picker opens on the
+      // year grid.
+      initialDatePickerMode: DatePickerMode.year,
+      initialDate: selected != null
+          ? ValueValidator.clampBirthday(selected)
+          : ValueValidator.getInitialBirthdayDate(),
       firstDate: ValueValidator.getFirstDate(),
       lastDate: ValueValidator.getLastDate(),
     );

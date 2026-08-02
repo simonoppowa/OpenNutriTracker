@@ -18,6 +18,8 @@ import 'package:opennutritracker/features/onboarding/presentation/widgets/onboar
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../../../helpers/test_l10n.dart';
+
 void main() {
   setUpAll(() {
     PackageInfo.setMockInitialValues(
@@ -120,7 +122,7 @@ void main() {
   });
 
   group('OnboardingThirdPageBody restoration', () {
-    testWidgets('reflects initialActivity on the correct ChoiceChip',
+    testWidgets('reflects initialActivity on the correct activity card',
         (tester) async {
       await tester.pumpWidget(wrap(OnboardingThirdPageBody(
         setButtonContent: (_, _) {},
@@ -128,13 +130,22 @@ void main() {
       )));
       await tester.pumpAndSettle();
 
-      final chips =
-          tester.widgetList<ChoiceChip>(find.byType(ChoiceChip)).toList();
-      // Order is sedentary, lowActive, active, veryActive.
-      expect(chips[0].selected, isFalse);
-      expect(chips[1].selected, isFalse);
-      expect(chips[2].selected, isTrue);
-      expect(chips[3].selected, isFalse);
+      // The four levels each render a card carrying a radio indicator;
+      // exactly the restored one is filled in. Order is sedentary,
+      // lowActive, active, veryActive.
+      expect(find.byIcon(Icons.radio_button_checked), findsOneWidget);
+      expect(find.byIcon(Icons.radio_button_unchecked), findsNWidgets(3));
+      expect(
+        find.descendant(
+          of: find.ancestor(
+            of: find.text(l10nEn.palActiveLabel),
+            matching: find.byType(Row),
+          ),
+          matching: find.byIcon(Icons.radio_button_checked),
+        ),
+        findsOneWidget,
+        reason: 'the filled indicator belongs to the restored level',
+      );
     });
   });
 
