@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/highlight_button.dart';
 
@@ -95,5 +96,53 @@ void main() {
     await tester.pump();
 
     expect(find.byType(SnackBar), findsOneWidget);
+  });
+
+  group('accessibility', () {
+    testWidgets('a blocked button announces why it is blocked', (tester) async {
+      // The grey is the only cue that the step is incomplete, and it is a
+      // visual one. Without the hint a screen reader announces an ordinary
+      // "Next, button" and the user is left guessing.
+      await pumpButton(
+        tester,
+        active: false,
+        inactiveMessage: 'Select your goal to continue',
+        onPressed: () {},
+      );
+
+      final data = tester
+          .getSemantics(find.bySemanticsIdentifier('onboarding-button'))
+          .getSemanticsData();
+
+      expect(data.label, 'Next');
+      expect(data.hint, 'Select your goal to continue');
+      expect(data.flagsCollection.isButton, isTrue);
+      expect(
+        data.actions & SemanticsAction.tap.index,
+        isNot(0),
+        reason: 'the explanation must stay reachable by double tap',
+      );
+    });
+
+    testWidgets('an active button is left as the plain Material one', (
+      tester,
+    ) async {
+      await pumpButton(
+        tester,
+        active: true,
+        inactiveMessage: 'Select your goal to continue',
+        onPressed: () {},
+      );
+
+      final data = tester
+          .getSemantics(find.bySemanticsIdentifier('onboarding-button'))
+          .getSemanticsData();
+
+      expect(
+        data.hint,
+        isEmpty,
+        reason: 'nothing is blocking it, so there is nothing to explain',
+      );
+    });
   });
 }

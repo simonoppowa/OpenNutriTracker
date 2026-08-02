@@ -57,6 +57,17 @@ class _HighlightButtonState extends State<HighlightButton> {
     final onPressed = active
         ? widget.onButtonPressed
         : (hasBlockedBehaviour ? _onBlockedPressed : null);
+    // A blocked button reads as an ordinary one to a screen reader: the grey
+    // is the only cue that the step can't be completed, and that cue is
+    // visual. Publish the reason as the button's hint so it is announced
+    // along with the label.
+    //
+    // The node is not marked disabled. This button does respond — it explains
+    // itself — and some screen readers skip disabled controls, which would
+    // bury the very explanation being added here. `excludeSemantics` replaces
+    // the button's own node rather than sitting beside it, so the label, the
+    // hint and the tap action are announced as one control.
+    final blockedReason = active ? null : widget.inactiveMessage;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       alignment: Alignment.bottomCenter,
@@ -67,9 +78,13 @@ class _HighlightButtonState extends State<HighlightButton> {
           // `container: true` is load-bearing: without it the Semantics node
           // inherits the surrounding Expanded/Container bounds (the full
           // footer area) and uiautomator-based tests tap mid-screen instead
-          // of the button. Visible/TalkBack behavior is unchanged — this
-          // Semantics carries no role or label, only the test identifier.
+          // of the button.
           container: true,
+          button: blockedReason != null ? true : null,
+          label: blockedReason != null ? widget.buttonLabel : null,
+          hint: blockedReason,
+          onTap: blockedReason != null ? _onBlockedPressed : null,
+          excludeSemantics: blockedReason != null,
           child: ElevatedButton.icon(
             onPressed: onPressed,
             style: active
