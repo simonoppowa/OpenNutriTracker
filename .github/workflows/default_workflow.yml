@@ -101,7 +101,7 @@ jobs:
 
       - name: Check for iOS-relevant file changes
         id: changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           base: ${{ github.event.pull_request.base.ref }}
           filters: |
