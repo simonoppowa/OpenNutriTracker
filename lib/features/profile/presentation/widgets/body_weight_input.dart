@@ -17,6 +17,7 @@ class BodyWeightInput extends StatefulWidget {
   final double? initialKg;
   final BodyWeightUnit unit;
   final ValueChanged<double?> onChangedKg;
+  final ValueChanged<bool>? onInputPresenceChanged;
 
   /// Prefix for the `Semantics(identifier:)` handles so each call site stays
   /// distinct for UI drivers, e.g. 'weight-history' -> 'weight-history-stones'.
@@ -35,6 +36,7 @@ class BodyWeightInput extends StatefulWidget {
     required this.unit,
     required this.onChangedKg,
     required this.identifierPrefix,
+    this.onInputPresenceChanged,
     this.autofocus = false,
     this.errorText,
   });
@@ -103,6 +105,7 @@ class _BodyWeightInputState extends State<BodyWeightInput> {
   }
 
   void _emitSingle(String text) {
+    widget.onInputPresenceChanged?.call(text.trim().isNotEmpty);
     final parsed = double.tryParse(text.replaceAll(',', '.'));
     final kg = ValueValidator.parseWeightInKg(
       parsed,
@@ -112,10 +115,13 @@ class _BodyWeightInputState extends State<BodyWeightInput> {
   }
 
   void _emitStLb() {
-    final stones = int.tryParse(_stonesController.text.trim());
-    final pounds = double.tryParse(
-      _poundsController.text.trim().replaceAll(',', '.'),
+    final stonesText = _stonesController.text.trim();
+    final poundsText = _poundsController.text.trim();
+    widget.onInputPresenceChanged?.call(
+      stonesText.isNotEmpty || poundsText.isNotEmpty,
     );
+    final stones = int.tryParse(stonesText);
+    final pounds = double.tryParse(poundsText.replaceAll(',', '.'));
     widget.onChangedKg(ValueValidator.parseStLbWeightInKg(stones, pounds));
   }
 

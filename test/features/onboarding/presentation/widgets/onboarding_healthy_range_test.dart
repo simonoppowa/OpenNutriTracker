@@ -283,6 +283,44 @@ void main() {
       expect(find.text(l10nEn.onboardingWrongWeightLabel), findsOneWidget);
     });
 
+    testWidgets(
+      'an incomplete stones target blocks progress and reports its error',
+      (tester) async {
+        bool? lastActive;
+        final showErrors = ValueNotifier<int>(0);
+        addTearDown(showErrors.dispose);
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: const [S.delegate],
+            supportedLocales: S.supportedLocales,
+            home: Scaffold(
+              body: OnboardingSecondPageBody(
+                initialBodyWeightUnit: BodyWeightUnit.st,
+                showErrorsSignal: showErrors,
+                setButtonContent: (active, _, _, _, _, _, _) =>
+                    lastActive = active,
+              ),
+            ),
+          ),
+        );
+
+        await tester.enterText(find.byType(TextFormField).first, '180');
+        final fields = find.byType(TextField);
+        await tester.enterText(fields.at(1), '11');
+        await tester.enterText(fields.at(2), '0');
+        await tester.pump();
+        expect(lastActive, isTrue);
+
+        await tester.enterText(fields.at(3), '10');
+        await tester.pumpAndSettle();
+        expect(lastActive, isFalse);
+
+        showErrors.value++;
+        await tester.pump();
+        expect(find.text(l10nEn.onboardingWrongWeightLabel), findsOneWidget);
+      },
+    );
+
     testWidgets('an implausible ft/in height asks for confirmation', (
       tester,
     ) async {

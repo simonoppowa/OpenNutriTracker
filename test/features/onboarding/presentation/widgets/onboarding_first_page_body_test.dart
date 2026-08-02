@@ -3,13 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_first_page_body.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+import '../../../../helpers/test_l10n.dart';
+
 /// The adult-equation notice on the birthday page. The calorie goal comes
 /// from the IOM 2005 adult equations, so a 13-17 year old is told where the
 /// number comes from rather than handed it silently.
 void main() {
-  const noticeText =
-      'Calorie goals are calculated with adult reference equations. '
-      'Under 18, check the result with a doctor or dietitian.';
+  final noticeText = l10nEn.onboardingAdultEquationNotice;
 
   Future<void> pumpFirstPage(WidgetTester tester, {DateTime? birthday}) async {
     await tester.pumpWidget(

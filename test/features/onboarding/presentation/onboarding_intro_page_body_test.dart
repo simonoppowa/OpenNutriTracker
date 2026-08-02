@@ -4,6 +4,8 @@ import 'package:opennutritracker/features/onboarding/presentation/onboarding_int
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../../helpers/test_l10n.dart';
+
 void main() {
   setUpAll(() {
     // The widget shows AppConst.getVersionNumber() in a FutureBuilder, which
@@ -128,7 +130,7 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text('Accept the privacy policy to try the demo'),
+      find.text(l10nEn.onboardingBlockedDemoPolicySnack),
       findsOneWidget,
     );
     expect(find.byType(CircularProgressIndicator), findsNothing,

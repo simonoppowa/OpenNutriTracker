@@ -90,6 +90,7 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
   // onboarding flow stays valid either way. Only populated when the
   // input parses to a sensible kg value.
   double? _parsedTargetWeight;
+  late bool _targetHasInput;
 
   // Whether each field's error text is allowed on screen yet. Validation
   // runs on every keystroke, since that is what gates the Next button, but
@@ -114,6 +115,7 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
     _isHeightImperial = widget.initialHeightImperial;
     _bodyWeightUnit = widget.initialBodyWeightUnit;
     _isFoodImperial = widget.initialFoodImperial;
+    _targetHasInput = widget.initialTargetWeightKg != null;
     _heightFocusNode.attach(context);
     _weightFocusNode.attach(context);
     _heightFocusNode.addListener(_onHeightFocusChange);
@@ -214,6 +216,7 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
       _scrollSuggestionIntoView();
       return;
     }
+    _revealTargetError();
     _confirmTargetIfImplausible();
   }
 
@@ -746,10 +749,16 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
                       initialKg:
                           _parsedTargetWeight ?? widget.initialTargetWeightKg,
                       unit: BodyWeightUnit.st,
+                      errorText:
+                          _showTargetError &&
+                              _targetHasInput &&
+                              _parsedTargetWeight == null
+                          ? S.of(context).onboardingWrongWeightLabel
+                          : null,
+                      onInputPresenceChanged: (hasInput) {
+                        _targetHasInput = hasInput;
+                      },
                       onChangedKg: (kg) {
-                        // null is a valid result for the target field (user
-                        // left both stones and pounds empty), so treat it as
-                        // "no target" rather than blocking the Next button.
                         _parsedTargetWeight = kg;
                         checkCorrectInput();
                       },
@@ -934,12 +943,10 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
     // another.
 
     // Target weight is always optional, so block only when the user has
-    // typed something that doesn't parse. Empty (or null from
-    // BodyWeightInput when both stones and pounds are blank) means
-    // "no target".
+    // typed something that doesn't parse. Empty means "no target".
     final bool isTargetValid;
     if (_isWeightSt) {
-      isTargetValid = true;
+      isTargetValid = !_targetHasInput || _parsedTargetWeight != null;
     } else {
       final targetText = _targetWeightController.text.trim();
       isTargetValid = targetText.isEmpty || _parsedTargetWeight != null;

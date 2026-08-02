@@ -307,7 +307,7 @@ class _OnboardingOtherOptionsPageBodyState
           ),
           for (final sourceCode in SPConst.settingsSelectableFoodSources)
             Semantics(
-              identifier: 'onboarding-food-source-$sourceCode',
+              identifier: 'onboarding-food-source-${sourceCode.replaceAll('_', '-')}',
               child: SwitchListTile(
                 dense: true,
                 title: Text(
