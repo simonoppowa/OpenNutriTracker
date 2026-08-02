@@ -1,4 +1,9 @@
+import 'dart:io';
 import 'dart:math';
+
+import 'package:flutter/services.dart';
+import 'package:logging/logging.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:opennutritracker/core/domain/entity/custom_activity_template_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -12,6 +17,7 @@ import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/core/utils/demo/unsplash_attribution.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
@@ -63,6 +69,57 @@ typedef DemoFoods = ({
   MealEntity broccoli,
 });
 
+final _log = Logger('DemoContent');
+
+/// Directory holding the bundled demo meal photos, one JPEG per curated
+/// Unsplash photo id. Registered in `pubspec.yaml`.
+const _mealPhotoAssetDir = 'assets/demo/meals';
+
+/// Copies the bundled photo for [photoId] into local meal-image storage
+/// under [ownerCode] and records the photographer credit in the sidecar
+/// that `UnsplashCreditFromSidecar` reads back.
+///
+/// The photos ship with the app rather than being hotlinked from
+/// Unsplash's CDN, so seeding — and every later render of a demo meal —
+/// needs no network access at all. Mirrors the profile-avatar import in
+/// `demo_seeder.dart`.
+///
+/// Returns null on any failure: a missing photo should fall back to the
+/// placeholder thumbnail, not abort the seed.
+Future<String?> _importMealPhoto(String photoId, String ownerCode) async {
+  try {
+    final bytes = (await rootBundle.load(
+      '$_mealPhotoAssetDir/$photoId.jpg',
+    )).buffer.asUint8List();
+    final tempDir = await getTemporaryDirectory();
+    final tempFile = File('${tempDir.path}/demo_meal_$photoId.jpg');
+    try {
+      await tempFile.writeAsBytes(bytes, flush: true);
+      final relativePath = await UserImageStorage.importFrom(
+        kind: UserImageKind.meal,
+        ownerId: ownerCode,
+        sourcePath: tempFile.path,
+      );
+      final credit = unsplashCreditForUrl(unsplashImageUrl(photoId));
+      if (credit != null) {
+        await UserImageStorage.writeCredit(
+          relativePath,
+          name: credit.name,
+          profileUrl: credit.profileUrl,
+        );
+      }
+      return relativePath;
+    } finally {
+      if (await tempFile.exists()) {
+        await tempFile.delete();
+      }
+    }
+  } catch (e) {
+    _log.warning('Could not import bundled demo meal photo $photoId: $e');
+    return null;
+  }
+}
+
 /// A per-100g nutrient snapshot broad enough to cover what the diary's
 /// micronutrient panel aggregates (see `DailyNutrientPanel`, which sums
 /// straight off logged intakes' [MealNutrimentsEntity] — there's no
@@ -70,7 +127,7 @@ typedef DemoFoods = ({
 /// approximate real-world figures for each food, not lab-precise, but
 /// plausible enough that the panel shows realistic numbers instead of
 /// zeroes.
-MealEntity _meal(
+Future<MealEntity> _meal(
   String name, {
   required double kcal100,
   required double carbs100,
@@ -99,50 +156,58 @@ MealEntity _meal(
   // demo food gets one, so this isn't optional the way a real OFF/FDC
   // search result's photo would be.
   required String photoId,
-}) => MealEntity(
-  code: IdGenerator.getUniqueID(),
-  name: name,
-  url: null,
-  thumbnailImageUrl: unsplashImageUrl(photoId, width: 200),
-  mainImageUrl: unsplashImageUrl(photoId, width: 800),
-  mealQuantity: null,
-  mealUnit: 'g',
-  servingQuantity: null,
-  servingUnit: null,
-  servingSize: null,
-  source: MealSourceEntity.custom,
-  nutriments: MealNutrimentsEntity(
-    energyKcal100: kcal100,
-    carbohydrates100: carbs100,
-    fat100: fat100,
-    proteins100: protein100,
-    sugars100: sugars100 ?? carbs100 * 0.3,
-    saturatedFat100: satFat100 ?? fat100 * 0.35,
-    fiber100: fiber100 ?? 2.0,
-    monounsaturatedFat100: monounsaturatedFat100,
-    polyunsaturatedFat100: polyunsaturatedFat100,
-    cholesterol100: cholesterol100,
-    sodium100: sodium100,
-    potassium100: potassium100,
-    magnesium100: magnesium100,
-    calcium100: calcium100,
-    iron100: iron100,
-    zinc100: zinc100,
-    phosphorus100: phosphorus100,
-    vitaminA100: vitaminA100,
-    vitaminC100: vitaminC100,
-    vitaminD100: vitaminD100,
-    vitaminB6100: vitaminB6100,
-    vitaminB12100: vitaminB12100,
-    niacin100: niacin100,
-  ),
-);
+}) async {
+  final code = IdGenerator.getUniqueID();
+  return MealEntity(
+    code: code,
+    name: name,
+    url: null,
+    // The photo ships with the app and is copied into local meal-image
+    // storage, so both remote URLs stay null and nothing is fetched at
+    // render time. MealEntity prefers localImagePath when it is set.
+    thumbnailImageUrl: null,
+    mainImageUrl: null,
+    localImagePath: await _importMealPhoto(photoId, code),
+    mealQuantity: null,
+    mealUnit: 'g',
+    servingQuantity: null,
+    servingUnit: null,
+    servingSize: null,
+    source: MealSourceEntity.custom,
+    nutriments: MealNutrimentsEntity(
+      energyKcal100: kcal100,
+      carbohydrates100: carbs100,
+      fat100: fat100,
+      proteins100: protein100,
+      sugars100: sugars100 ?? carbs100 * 0.3,
+      saturatedFat100: satFat100 ?? fat100 * 0.35,
+      fiber100: fiber100 ?? 2.0,
+      monounsaturatedFat100: monounsaturatedFat100,
+      polyunsaturatedFat100: polyunsaturatedFat100,
+      cholesterol100: cholesterol100,
+      sodium100: sodium100,
+      potassium100: potassium100,
+      magnesium100: magnesium100,
+      calcium100: calcium100,
+      iron100: iron100,
+      zinc100: zinc100,
+      phosphorus100: phosphorus100,
+      vitaminA100: vitaminA100,
+      vitaminC100: vitaminC100,
+      vitaminD100: vitaminD100,
+      vitaminB6100: vitaminB6100,
+      vitaminB12100: vitaminB12100,
+      niacin100: niacin100,
+    ),
+  );
+}
 
-/// Builds every demo food, each with its curated Unsplash photo id (see
+/// Builds every demo food, each with its curated Unsplash photo (see
 /// unsplash_attribution.dart) — a fixed, hand-picked set rather than a
-/// live search, so this needs no network access and returns synchronously.
-DemoFoods buildDemoFoods() {
-  final oatmeal = _meal(
+/// live search. The photos are bundled assets copied into local storage,
+/// so this needs no network access, but it is async because that copy is.
+Future<DemoFoods> buildDemoFoods() async {
+  final oatmeal = await _meal(
     'Oatmeal',
     photoId: '1548807371-30dc1bbe6cb5',
     kcal100: 150,
@@ -162,7 +227,7 @@ DemoFoods buildDemoFoods() {
     monounsaturatedFat100: 1.0,
     polyunsaturatedFat100: 1.1,
   );
-  final brownRice = _meal(
+  final brownRice = await _meal(
     'Brown rice',
     photoId: '1593357849627-cbbc9fda6b05',
     kcal100: 123,
@@ -185,7 +250,7 @@ DemoFoods buildDemoFoods() {
   // Deliberately not a low-carb-density food like potatoes (20g/100g) —
   // hitting a high daily carb target with a low-density food needs an
   // unrealistically large gram amount (900g+ was showing up in testing).
-  final wholegrainBread = _meal(
+  final wholegrainBread = await _meal(
     'Wholegrain bread',
     photoId: '1552056413-b8b5eed0170b',
     kcal100: 265,
@@ -205,7 +270,7 @@ DemoFoods buildDemoFoods() {
     monounsaturatedFat100: 0.4,
     polyunsaturatedFat100: 1.2,
   );
-  final chickenBreast = _meal(
+  final chickenBreast = await _meal(
     'Chicken breast',
     photoId: '1762631934518-f75e233413ca',
     kcal100: 165,
@@ -227,7 +292,7 @@ DemoFoods buildDemoFoods() {
     monounsaturatedFat100: 1.24,
     polyunsaturatedFat100: 0.8,
   );
-  final greekYogurt = _meal(
+  final greekYogurt = await _meal(
     'Greek yogurt',
     photoId: '1571212515416-fef01fc43637',
     kcal100: 59,
@@ -247,7 +312,7 @@ DemoFoods buildDemoFoods() {
     vitaminB12100: 0.5,
     monounsaturatedFat100: 0.1,
   );
-  final salmon = _meal(
+  final salmon = await _meal(
     'Salmon fillet',
     photoId: '1739785938237-73b3654200d5',
     kcal100: 208,
@@ -269,7 +334,7 @@ DemoFoods buildDemoFoods() {
     monounsaturatedFat100: 3.8,
     polyunsaturatedFat100: 3.9,
   );
-  final oliveOil = _meal(
+  final oliveOil = await _meal(
     'Olive oil',
     photoId: '1757801333069-f7b3cabaec4a',
     kcal100: 884,
@@ -280,7 +345,7 @@ DemoFoods buildDemoFoods() {
     monounsaturatedFat100: 73,
     polyunsaturatedFat100: 11,
   );
-  final almonds = _meal(
+  final almonds = await _meal(
     'Almonds',
     photoId: '1627820752174-acae1b399128',
     kcal100: 579,
@@ -300,7 +365,7 @@ DemoFoods buildDemoFoods() {
     monounsaturatedFat100: 31,
     polyunsaturatedFat100: 12,
   );
-  final banana = _meal(
+  final banana = await _meal(
     'Banana',
     photoId: '1757332050958-b797a022c910',
     kcal100: 89,
@@ -320,7 +385,7 @@ DemoFoods buildDemoFoods() {
     vitaminC100: 8.7,
     niacin100: 0.7,
   );
-  final apple = _meal(
+  final apple = await _meal(
     'Apple',
     photoId: '1567306226416-28f0efdc88ce',
     kcal100: 52,
@@ -337,7 +402,7 @@ DemoFoods buildDemoFoods() {
     vitaminC100: 4.6,
     niacin100: 0.09,
   );
-  final broccoli = _meal(
+  final broccoli = await _meal(
     'Broccoli',
     photoId: '1646161762904-043f71f256f1',
     kcal100: 35,

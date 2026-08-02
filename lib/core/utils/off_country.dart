@@ -1,3 +1,5 @@
+import 'package:opennutritracker/core/utils/locale_units.dart';
+
 /// Derives the user's Open Food Facts country tag (e.g. `en:united-kingdom`)
 /// from a platform locale name like `en_GB`, so the food search can softly
 /// boost products sold in the user's country up the result ranking.
@@ -45,9 +47,8 @@ class OffCountry {
   /// Maps a platform locale (`Platform.localeName`) to an OFF country tag.
   /// Handles forms like `en_GB`, `en-GB`, `en_GB.UTF-8`, `en` and `C`.
   static String? fromLocale(String localeName) {
-    final beforeDot = localeName.split('.').first;
-    final parts = beforeDot.split(RegExp('[_-]'));
-    if (parts.length < 2 || parts[1].isEmpty) return null;
-    return _isoToOffTag[parts[1].toUpperCase()];
+    final country = countryCodeFromLocale(localeName);
+    if (country == null) return null;
+    return _isoToOffTag[country];
   }
 }

@@ -26,8 +26,8 @@ just install       # flutter pub get
 just build         # dart run build_runner build --delete-conflicting-outputs
 just format        # dart format ./lib/core ./lib/features ./lib/l10n ./test
 just test          # flutter test
-just check_intl    # verify generated intl files are up to date (used in CI)
-just ci            # full CI: install, format check, intl check, build, analyze, test
+just gen_l10n      # regenerate lib/generated/ from the ARBs (gitignored output)
+just ci            # full CI: install, format check, gen_l10n, build, analyze, test
 just dev           # fvm flutter run --flavor develop
 just dev_seed      # same, but wipes the active profile and seeds a year of demo data — see below
 ```
@@ -145,9 +145,9 @@ dart run build_runner build
 
 ## Localization
 
-Source strings live in `lib/l10n/intl_en.arb` (and locale ARBs for `de`, `cs`, `it`, `pl`, `sk`, `tr`, `uk`, `zh`). Generated Dart files live in `lib/generated/intl/` and `lib/generated/l10n.dart`.
+Source strings live in `lib/l10n/intl_en.arb` (and locale ARBs for `de`, `cs`, `it`, `pl`, `sk`, `tr`, `uk`, `zh`). `lib/generated/l10n.dart` plus one `l10n_<locale>.dart` per locale are produced by `flutter gen-l10n`, configured in `l10n.yaml`.
 
-The generated files in `lib/generated/` are **manually maintained** — do not regenerate them with `intl_translation:generate_from_arb`, as the generator output conflicts with the project's 120-char formatting. Edit them directly when adding strings, then run `just check_intl` to verify CI passes.
+The generated files are **gitignored — never edit them by hand**. Add the key to every ARB (all nine stay at the same key count) and run `just gen_l10n`. Placeholder metadata (`"@key": {"placeholders": ...}`) only needs to be declared in the template `intl_en.arb`.
 
 Note: the `SupportedLanguage` enum maps device locales to `food_translation` locales via `SPConst.translationLocaleOf` (`en` reads `food_summary.name` directly; `de`, `pl`, `zh`, `cs`, `it`, `sk`, `tr`, `uk` query translations, falling back to English).
 
@@ -253,7 +253,7 @@ Reusable ADB scripts live in `tools/adb/`:
 | Script | Purpose |
 |--------|---------|
 | `adb-driver.sh` | Core driver library: `tap_id`, `wait_for_id`, `enter_text_at`, `_tap_text`, `screenshot`, `list_ids`, plus form-field helpers `tap_field_by_hint`, `enter_text_in_field`, `fill_fields_by_hint`, `clear_focused_field`, `hide_keyboard`. Source from any test script. |
-| `walk-onboarding.sh` | Walks the 6-page onboarding flow, lands the app on the main screen. Exports `walk_onboarding()`. Run standalone or source it. |
+| `walk-onboarding.sh` | Walks the 7-page onboarding flow, lands the app on the main screen. Exports `walk_onboarding()`. Run standalone or source it. |
 | `run-branch-tests.sh` | Sequential smoke-test runner for all triage branches: builds a debug APK, installs it, walks onboarding, and runs a branch-specific probe. Produces a pass/fail summary and per-branch screenshots. |
 
 Usage:

@@ -114,9 +114,19 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                   child: SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: (_seedingDemo || !_acceptedPolicy)
+                      // Stays tappable without the policy so the tap can
+                      // explain itself; only the in-flight seed truly
+                      // disables it.
+                      onPressed: _seedingDemo
                           ? null
-                          : _tryDemo,
+                          : (_acceptedPolicy ? _tryDemo : _policyRequired),
+                      style: _acceptedPolicy
+                          ? null
+                          : OutlinedButton.styleFrom(
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.38),
+                            ),
                       icon: _seedingDemo
                           ? const SizedBox(
                               width: 16,
@@ -176,6 +186,17 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const SourcesScreen()));
+  }
+
+  /// Says why the demo is unavailable instead of letting the tap fall on the
+  /// floor. The subtitle under the button already states the requirement;
+  /// this is for the user who tapped anyway.
+  void _policyRequired() {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(S.of(context).onboardingBlockedDemoPolicySnack)),
+      );
   }
 
   /// Seeds the active profile with sample data and jumps straight to Home.

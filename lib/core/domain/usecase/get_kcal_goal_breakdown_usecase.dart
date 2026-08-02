@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/domain/entity/kcal_goal_breakdown_entity.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 
 /// Assembles the full transparency breakdown of today's kcal goal.
 ///
@@ -25,7 +26,13 @@ class GetKcalGoalBreakdownUsecase {
     final config = await _configRepository.getConfig();
     final totalKcalActivities =
         (await _userActivityRepository.getAllUserActivityByDate(
-          DateTime.now(),
+          // Same day label as [GetKcalGoalUsecase] resolves (#586) —
+          // the two must agree or the transparency screen contradicts
+          // the goal it is explaining.
+          DayBoundaryCalc.currentLogicalDayLabel(
+            config.dayStartOffsetHours,
+            config.dayStartOffsetMinutes,
+          ),
           dayStartOffsetHours: config.dayStartOffsetHours,
           dayStartOffsetMinutes: config.dayStartOffsetMinutes,
         )).map((activity) => activity.burnedKcal).toList().sum;

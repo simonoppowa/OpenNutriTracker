@@ -124,7 +124,7 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   // Hand-picked Unsplash photos, reused across every day's intake entries
   // — see unsplash_attribution.dart for why these are hardcoded URLs
   // rather than a live search.
-  final foods = buildDemoFoods();
+  final foods = await buildDemoFoods();
   await _setupActiveProfile();
 
   // Base (activity-free) goal, computed once — recomputing per day via the

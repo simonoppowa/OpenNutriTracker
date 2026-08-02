@@ -191,9 +191,11 @@ main section:last-child {
   text-align: center;
 }
 
+/* Sized so the six screenshots land as a 3x2 grid at full width, matching
+   the README table, and fall back to 2 then 1 column as the page narrows. */
 .screenshot-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
   max-width: 900px;
   margin: 0 auto;
