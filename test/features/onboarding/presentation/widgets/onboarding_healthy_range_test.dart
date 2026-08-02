@@ -155,6 +155,20 @@ void main() {
     expect(chip.top, greaterThanOrEqualTo(viewport.top));
   });
 
+  testWidgets('the scroll delay does not outlive the page', (tester) async {
+    // Regression: a bare Future.delayed here left a pending timer behind, so
+    // disposing the page shortly after focusing the target field tripped the
+    // test binding's timer check. Note this pumps without settling.
+    await pumpPage(tester);
+    await enterHeightAndWeight(tester, height: '180', weight: '95');
+
+    await tester.tap(find.byType(TextFormField).at(2));
+    await tester.pump();
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  });
+
   testWidgets('an implausible weight asks for confirmation on blur', (
     tester,
   ) async {

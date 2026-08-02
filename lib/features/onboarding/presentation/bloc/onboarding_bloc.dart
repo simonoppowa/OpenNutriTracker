@@ -20,7 +20,10 @@ part 'onboarding_event.dart';
 part 'onboarding_state.dart';
 
 class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
-  final userSelection = UserDataMaskEntity();
+  /// Answers collected so far. Not final: the bloc is a singleton, so a
+  /// second trip through onboarding has to start from a clean sheet rather
+  /// than the previous run's data. See [resetSelection].
+  UserDataMaskEntity userSelection = UserDataMaskEntity();
   final AddUserUsecase _addUserUsecase;
   final AddConfigUsecase _addConfigUsecase;
   final GetConfigUsecase _getConfigUsecase;
@@ -36,6 +39,18 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       await _seedFoodSourceSelection();
       emit(OnboardingLoadedState());
     });
+  }
+
+  /// Drops the answers from a previous run of the flow.
+  ///
+  /// Onboarding runs again whenever a profile is added, and this bloc is a
+  /// lazy singleton, so without this the second run opens prefilled with the
+  /// first profile's gender, birthday, height and weight.
+  ///
+  /// Called synchronously as the screen initialises, before the first build,
+  /// so no page can render another profile's data even for one frame.
+  void resetSelection() {
+    userSelection = UserDataMaskEntity();
   }
 
   /// Picks the unit toggles the height/weight page opens on.

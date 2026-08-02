@@ -58,6 +58,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     _onboardingBloc = locator<OnboardingBloc>();
+    // The bloc is a singleton and its state persists, so a second trip
+    // through onboarding (adding a profile) used to skip loading entirely:
+    // the event only fired from the initial state, which meant the unit and
+    // food-source seeding never ran and the previous run's answers were
+    // still in the selection. Reset and reload on every entry instead.
+    _onboardingBloc.resetSelection();
+    _onboardingBloc.add(LoadOnboardingEvent());
     super.initState();
   }
 
@@ -81,12 +88,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: BlocBuilder<OnboardingBloc, OnboardingState>(
           bloc: _onboardingBloc,
           builder: (context, state) {
-            if (state is OnboardingInitialState) {
-              _onboardingBloc.add(LoadOnboardingEvent());
-              return _getLoadingContent();
-            } else if (state is OnboardingLoadingState) {
-              return _getLoadingContent();
-            } else if (state is OnboardingLoadedState) {
+            if (state is OnboardingLoadedState) {
               return _getLoadedContent(context);
             }
             return _getLoadingContent();

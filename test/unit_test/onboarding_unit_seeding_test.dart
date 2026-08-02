@@ -213,4 +213,90 @@ void main() {
       expect(bloc.userSelection.foodSourceToggles, stored);
     });
   });
+
+  group('a second run through onboarding', () {
+    test('re-seeds instead of keeping the first run\'s state', () async {
+      // The bloc is a lazy singleton and its state persists, so the load
+      // event used to fire only once per process: adding a profile later in
+      // the same session skipped seeding entirely.
+      final configRepo = _FakeConfigRepository(freshConfig());
+      final bloc = OnboardingBloc(
+        AddUserUsecase(_FakeUserRepository()),
+        AddConfigUsecase(configRepo),
+        GetConfigUsecase(configRepo),
+      );
+      addTearDown(bloc.close);
+
+      bloc.add(LoadOnboardingEvent());
+      await bloc.stream.firstWhere((state) => state is OnboardingLoadedState);
+
+      // First run: the user answers, then finishes.
+      bloc.userSelection.height = 178;
+      bloc.userSelection.weight = 81;
+      bloc.userSelection.bodyWeightUnit = BodyWeightUnit.st;
+
+      // Second run, as the screen does on entry.
+      bloc.resetSelection();
+      bloc.add(LoadOnboardingEvent());
+      await bloc.stream.firstWhere((state) => state is OnboardingLoadedState);
+
+      expect(bloc.userSelection.height, isNull);
+      expect(bloc.userSelection.weight, isNull);
+      expect(
+        bloc.userSelection.bodyWeightUnit,
+        LocaleUnitDefaults.fromLocale(Platform.localeName).bodyWeightUnit,
+        reason: 'the second run seeds again rather than keeping st',
+      );
+    });
+
+    test('picks up units stored between the two runs', () async {
+      // What the "a stored choice wins" rule is for: the first profile chose
+      // imperial, so the profile added afterwards opens on imperial too.
+      final configRepo = _MutableConfigRepository(freshConfig());
+      final bloc = OnboardingBloc(
+        AddUserUsecase(_FakeUserRepository()),
+        AddConfigUsecase(configRepo),
+        GetConfigUsecase(configRepo),
+      );
+      addTearDown(bloc.close);
+
+      bloc.add(LoadOnboardingEvent());
+      await bloc.stream.firstWhere((state) => state is OnboardingLoadedState);
+
+      configRepo.dbo = ConfigDBO(
+        false,
+        false,
+        false,
+        AppThemeDBO.system,
+        usesImperialHeightUnits: true,
+        usesImperialFoodUnits: true,
+        bodyWeightUnitIndex: BodyWeightUnit.lb.index,
+      );
+
+      bloc.resetSelection();
+      bloc.add(LoadOnboardingEvent());
+      await bloc.stream.firstWhere((state) => state is OnboardingLoadedState);
+
+      expect(bloc.userSelection.heightUsesImperial, isTrue);
+      expect(bloc.userSelection.bodyWeightUnit, BodyWeightUnit.lb);
+      expect(bloc.userSelection.foodUsesImperial, isTrue);
+    });
+  });
+}
+
+/// Serves a config that can change between two runs of the flow.
+class _MutableConfigRepository implements ConfigRepository {
+  _MutableConfigRepository(this.dbo);
+
+  ConfigDBO dbo;
+
+  @override
+  Future<ConfigDBO> getConfigDBO() async => dbo;
+
+  @override
+  Future<ConfigEntity> getConfig() async => ConfigEntity.fromConfigDBO(dbo);
+
+  @override
+  noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError(invocation.memberName.toString());
 }

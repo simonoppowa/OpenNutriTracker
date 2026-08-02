@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -79,6 +81,10 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
   /// it into view. The card sits below that field, so the keyboard covers it
   /// while the user is deciding what to type.
   final _healthyRangeKey = GlobalKey();
+
+  /// Pending scroll-into-view, cancelled on dispose and superseded when the
+  /// field is focused again.
+  Timer? _scrollDelay;
 
   late bool _isHeightImperial;
   late BodyWeightUnit _bodyWeightUnit;
@@ -179,22 +185,28 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
   }
 
   /// Brings the suggestion card above the keyboard when the user moves into
-  /// the target field. Runs after a short delay so the scroll is measured
-  /// against the viewport the keyboard has already shrunk.
-  Future<void> _scrollSuggestionIntoView() async {
-    await Future<void>.delayed(const Duration(milliseconds: 300));
-    final cardContext = _healthyRangeKey.currentContext;
-    // Null when there is no height/weight yet, so no card; unmounted when
-    // the page went away during the delay.
-    if (cardContext == null || !cardContext.mounted) return;
-    await Scrollable.ensureVisible(
-      cardContext,
-      // 1.0 lines the card's bottom up with the bottom of what's visible,
-      // so the chip clears the keyboard.
-      alignment: 1.0,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
-    );
+  /// the target field. Waits a moment first so the scroll is measured against
+  /// the viewport the keyboard has already shrunk.
+  ///
+  /// The timer is held rather than fired and forgotten: a bare
+  /// `Future.delayed` here outlives dispose, which leaves a pending timer
+  /// behind and trips the widget-test binding for anyone who pumps without
+  /// settling.
+  void _scrollSuggestionIntoView() {
+    _scrollDelay?.cancel();
+    _scrollDelay = Timer(const Duration(milliseconds: 300), () {
+      final cardContext = _healthyRangeKey.currentContext;
+      // Null when there is no height/weight yet, so no card.
+      if (cardContext == null || !cardContext.mounted) return;
+      Scrollable.ensureVisible(
+        cardContext,
+        // 1.0 lines the card's bottom up with the bottom of what's visible,
+        // so the chip clears the keyboard.
+        alignment: 1.0,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   /// The composite ft/in and stones widgets own their inner fields, so a
@@ -489,6 +501,7 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
 
   @override
   void dispose() {
+    _scrollDelay?.cancel();
     widget.showErrorsSignal?.removeListener(_onShowErrorsRequested);
     _heightFocusNode.dispose();
     _weightFocusNode.dispose();
