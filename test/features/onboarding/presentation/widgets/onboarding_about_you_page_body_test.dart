@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_first_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_about_you_page_body.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 import '../../../../helpers/test_l10n.dart';
@@ -17,7 +17,7 @@ void main() {
         localizationsDelegates: const [S.delegate],
         supportedLocales: S.supportedLocales,
         home: Scaffold(
-          body: OnboardingFirstPageBody(
+          body: OnboardingAboutYouPageBody(
             setPageContent: (_, _, _, _) {},
             initialBirthday: birthday,
           ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_second_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_body_measurements_page_body.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 import '../../../../helpers/test_l10n.dart';
@@ -19,7 +19,7 @@ void main() {
         localizationsDelegates: const [S.delegate],
         supportedLocales: S.supportedLocales,
         home: Scaffold(
-          body: OnboardingSecondPageBody(
+          body: OnboardingBodyMeasurementsPageBody(
             setButtonContent: (_, _, _, target, _, _, _) =>
                 onTarget?.call(target),
           ),
@@ -197,7 +197,7 @@ void main() {
         localizationsDelegates: const [S.delegate],
         supportedLocales: S.supportedLocales,
         home: Scaffold(
-          body: OnboardingSecondPageBody(
+          body: OnboardingBodyMeasurementsPageBody(
             setButtonContent: (active, _, _, _, _, _, _) => lastActive = active,
           ),
         ),
@@ -244,7 +244,7 @@ void main() {
           localizationsDelegates: const [S.delegate],
           supportedLocales: S.supportedLocales,
           home: Scaffold(
-            body: OnboardingSecondPageBody(
+            body: OnboardingBodyMeasurementsPageBody(
               initialHeightImperial: true,
               setButtonContent: (_, _, _, _, _, _, _) {},
             ),
@@ -278,7 +278,7 @@ void main() {
           localizationsDelegates: const [S.delegate],
           supportedLocales: S.supportedLocales,
           home: Scaffold(
-            body: OnboardingSecondPageBody(
+            body: OnboardingBodyMeasurementsPageBody(
               initialBodyWeightUnit: BodyWeightUnit.st,
               setButtonContent: (_, _, _, _, _, _, _) {},
             ),
@@ -308,7 +308,7 @@ void main() {
             localizationsDelegates: const [S.delegate],
             supportedLocales: S.supportedLocales,
             home: Scaffold(
-              body: OnboardingSecondPageBody(
+              body: OnboardingBodyMeasurementsPageBody(
                 initialBodyWeightUnit: BodyWeightUnit.st,
                 showErrorsSignal: showErrors,
                 setButtonContent: (active, _, _, _, _, _, _) =>
@@ -343,7 +343,7 @@ void main() {
           localizationsDelegates: const [S.delegate],
           supportedLocales: S.supportedLocales,
           home: Scaffold(
-            body: OnboardingSecondPageBody(
+            body: OnboardingBodyMeasurementsPageBody(
               initialHeightImperial: true,
               setButtonContent: (_, _, _, _, _, _, _) {},
             ),
@@ -371,7 +371,7 @@ void main() {
           localizationsDelegates: const [S.delegate],
           supportedLocales: S.supportedLocales,
           home: Scaffold(
-            body: OnboardingSecondPageBody(
+            body: OnboardingBodyMeasurementsPageBody(
               initialBodyWeightUnit: BodyWeightUnit.st,
               setButtonContent: (_, _, _, _, _, _, _) {},
             ),

@@ -11,10 +11,10 @@ import 'package:opennutritracker/features/onboarding/domain/entity/user_activity
 import 'package:opennutritracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_goal_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_first_page_body.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_fourth_page_body.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_second_page_body.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_third_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_about_you_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_goal_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_body_measurements_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_activity_page_body.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -53,10 +53,10 @@ void main() {
     });
   });
 
-  group('OnboardingFirstPageBody restoration', () {
+  group('OnboardingAboutYouPageBody restoration', () {
     testWidgets('reflects initialGender on the correct ChoiceChip',
         (tester) async {
-      await tester.pumpWidget(wrap(OnboardingFirstPageBody(
+      await tester.pumpWidget(wrap(OnboardingAboutYouPageBody(
         setPageContent: (_, _, _, _) {},
         initialGender: UserGenderSelectionEntity.genderFemale,
       )));
@@ -70,7 +70,7 @@ void main() {
     testWidgets('reflects initialBirthday in the date input field',
         (tester) async {
       final birthday = DateTime(1990, 6, 15);
-      await tester.pumpWidget(wrap(OnboardingFirstPageBody(
+      await tester.pumpWidget(wrap(OnboardingAboutYouPageBody(
         setPageContent: (_, _, _, _) {},
         initialBirthday: birthday,
       )));
@@ -82,10 +82,10 @@ void main() {
     });
   });
 
-  group('OnboardingSecondPageBody restoration', () {
+  group('OnboardingBodyMeasurementsPageBody restoration', () {
     testWidgets('metric: shows the stored cm/kg values in the text fields',
         (tester) async {
-      await tester.pumpWidget(wrap(OnboardingSecondPageBody(
+      await tester.pumpWidget(wrap(OnboardingBodyMeasurementsPageBody(
         setButtonContent: (_, _, _, _, _, _, _) {},
         initialHeightCm: 178,
         initialWeightKg: 72.5,
@@ -98,7 +98,7 @@ void main() {
 
     testWidgets('imperial: stored cm restores to feet+inches, kg to lbs',
         (tester) async {
-      await tester.pumpWidget(wrap(OnboardingSecondPageBody(
+      await tester.pumpWidget(wrap(OnboardingBodyMeasurementsPageBody(
         setButtonContent: (_, _, _, _, _, _, _) {},
         initialHeightCm: 180,
         initialWeightKg: 80,
@@ -121,10 +121,10 @@ void main() {
     });
   });
 
-  group('OnboardingThirdPageBody restoration', () {
+  group('OnboardingActivityPageBody restoration', () {
     testWidgets('reflects initialActivity on the correct activity card',
         (tester) async {
-      await tester.pumpWidget(wrap(OnboardingThirdPageBody(
+      await tester.pumpWidget(wrap(OnboardingActivityPageBody(
         setButtonContent: (_, _) {},
         initialActivity: UserActivitySelectionEntity.active,
       )));
@@ -149,10 +149,10 @@ void main() {
     });
   });
 
-  group('OnboardingFourthPageBody restoration', () {
+  group('OnboardingGoalPageBody restoration', () {
     testWidgets('reflects initialGoal on the correct ChoiceChip',
         (tester) async {
-      await tester.pumpWidget(wrap(OnboardingFourthPageBody(
+      await tester.pumpWidget(wrap(OnboardingGoalPageBody(
         setButtonContent: (_, _) {},
         initialGoal: UserGoalSelectionEntity.gainWeigh,
       )));
@@ -179,9 +179,9 @@ void main() {
       expect(boxes.every((b) => b.value == false), isTrue);
     });
 
-    testWidgets('first page: no chip selected, date field empty',
+    testWidgets('about-you page: no chip selected, date field empty',
         (tester) async {
-      await tester.pumpWidget(wrap(OnboardingFirstPageBody(
+      await tester.pumpWidget(wrap(OnboardingAboutYouPageBody(
         setPageContent: (_, _, _, _) {},
       )));
       await tester.pumpAndSettle();
@@ -194,9 +194,9 @@ void main() {
       expect(dateField.controller?.text, isEmpty);
     });
 
-    testWidgets('second page: text fields empty when no initial values given',
+    testWidgets('body-measurements page: fields empty without initial values',
         (tester) async {
-      await tester.pumpWidget(wrap(OnboardingSecondPageBody(
+      await tester.pumpWidget(wrap(OnboardingBodyMeasurementsPageBody(
         setButtonContent: (_, _, _, _, _, _, _) {},
       )));
       await tester.pumpAndSettle();

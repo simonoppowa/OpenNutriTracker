@@ -4,7 +4,7 @@ import 'package:opennutritracker/features/onboarding/domain/entity/goal_suggesti
 import 'package:opennutritracker/features/onboarding/domain/entity/user_goal_selection_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-class OnboardingFourthPageBody extends StatefulWidget {
+class OnboardingGoalPageBody extends StatefulWidget {
   final Function(bool active, UserGoalSelectionEntity? selectedGoal)
   setButtonContent;
   final UserGoalSelectionEntity? initialGoal;
@@ -15,7 +15,7 @@ class OnboardingFourthPageBody extends StatefulWidget {
   final double? weightKg;
   final double? targetWeightKg;
 
-  const OnboardingFourthPageBody({
+  const OnboardingGoalPageBody({
     super.key,
     required this.setButtonContent,
     this.initialGoal,
@@ -25,11 +25,10 @@ class OnboardingFourthPageBody extends StatefulWidget {
   });
 
   @override
-  State<OnboardingFourthPageBody> createState() =>
-      _OnboardingFourthPageBodyState();
+  State<OnboardingGoalPageBody> createState() => _OnboardingGoalPageBodyState();
 }
 
-class _OnboardingFourthPageBodyState extends State<OnboardingFourthPageBody> {
+class _OnboardingGoalPageBodyState extends State<OnboardingGoalPageBody> {
   late UserGoalSelectionEntity? _selected = widget.initialGoal;
 
   /// Derived on every build rather than cached, so going back to the

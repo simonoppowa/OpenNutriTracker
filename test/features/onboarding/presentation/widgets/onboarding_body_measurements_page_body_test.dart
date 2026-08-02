@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_second_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_body_measurements_page_body.dart';
 import '../../../../helpers/test_l10n.dart';
 
 void main() {
@@ -12,7 +12,7 @@ void main() {
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
-          body: OnboardingSecondPageBody(
+          body: OnboardingBodyMeasurementsPageBody(
             setButtonContent: (_, _, _, _, _, _, _) {},
             showErrorsSignal: showErrors,
           ),
@@ -42,7 +42,7 @@ void main() {
         MaterialApp(
           localizationsDelegates: const [S.delegate],
           home: Scaffold(
-            body: OnboardingSecondPageBody(
+            body: OnboardingBodyMeasurementsPageBody(
               setButtonContent: (active, _, _, _, _, _, _) =>
                   lastActive = active,
             ),
@@ -74,7 +74,7 @@ void main() {
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
-          body: OnboardingSecondPageBody(
+          body: OnboardingBodyMeasurementsPageBody(
             setButtonContent: (_, _, _, _, _, _, _) {},
           ),
         ),
@@ -107,7 +107,7 @@ void main() {
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
-          body: OnboardingSecondPageBody(
+          body: OnboardingBodyMeasurementsPageBody(
             setButtonContent: (_, _, _, _, _, _, _) {},
             showErrorsSignal: showErrors,
           ),
@@ -143,7 +143,7 @@ void main() {
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
-          body: OnboardingSecondPageBody(
+          body: OnboardingBodyMeasurementsPageBody(
             setButtonContent: (_, _, _, _, _, _, _) {},
             showErrorsSignal: showErrors,
           ),
@@ -175,7 +175,7 @@ void main() {
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
-          body: OnboardingSecondPageBody(
+          body: OnboardingBodyMeasurementsPageBody(
             setButtonContent: (active, _, _, _, _, _, _) => lastActive = active,
           ),
         ),
@@ -210,7 +210,7 @@ void main() {
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
-          body: OnboardingSecondPageBody(
+          body: OnboardingBodyMeasurementsPageBody(
             setButtonContent: (_, _, _, _, _, _, _) {},
             showErrorsSignal: showErrors,
           ),
@@ -252,7 +252,7 @@ void main() {
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
-          body: OnboardingSecondPageBody(
+          body: OnboardingBodyMeasurementsPageBody(
             setButtonContent: (_, _, _, _, _, _, _) {},
           ),
         ),
@@ -281,7 +281,7 @@ void main() {
         MaterialApp(
           localizationsDelegates: const [S.delegate],
           home: Scaffold(
-            body: OnboardingSecondPageBody(
+            body: OnboardingBodyMeasurementsPageBody(
               setButtonContent: (_, _, _, _, _, _, _) {},
             ),
           ),
@@ -311,7 +311,7 @@ void main() {
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
-          body: OnboardingSecondPageBody(
+          body: OnboardingBodyMeasurementsPageBody(
             setButtonContent: (_, _, _, _, _, _, _) {},
             showErrorsSignal: showErrors,
           ),
@@ -345,7 +345,7 @@ void main() {
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         home: Scaffold(
-          body: OnboardingSecondPageBody(
+          body: OnboardingBodyMeasurementsPageBody(
             setButtonContent: (_, _, _, _, _, _, _) {},
           ),
         ),
@@ -371,7 +371,7 @@ void main() {
         MaterialApp(
           localizationsDelegates: const [S.delegate],
           home: Scaffold(
-            body: OnboardingSecondPageBody(
+            body: OnboardingBodyMeasurementsPageBody(
               setButtonContent: (_, _, _, _, _, _, _) {},
             ),
           ),

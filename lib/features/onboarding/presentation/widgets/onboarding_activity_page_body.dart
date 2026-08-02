@@ -4,23 +4,24 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-class OnboardingThirdPageBody extends StatefulWidget {
+class OnboardingActivityPageBody extends StatefulWidget {
   final Function(bool active, UserActivitySelectionEntity? selectedActivity)
   setButtonContent;
   final UserActivitySelectionEntity? initialActivity;
 
-  const OnboardingThirdPageBody({
+  const OnboardingActivityPageBody({
     super.key,
     required this.setButtonContent,
     this.initialActivity,
   });
 
   @override
-  State<OnboardingThirdPageBody> createState() =>
-      _OnboardingThirdPageBodyState();
+  State<OnboardingActivityPageBody> createState() =>
+      _OnboardingActivityPageBodyState();
 }
 
-class _OnboardingThirdPageBodyState extends State<OnboardingThirdPageBody> {
+class _OnboardingActivityPageBodyState
+    extends State<OnboardingActivityPageBody> {
   late UserActivitySelectionEntity? _selected = widget.initialActivity;
 
   /// Identifier suffixes are pinned to the values the UI drivers already

@@ -13,7 +13,7 @@ import 'package:opennutritracker/features/profile/presentation/widgets/body_weig
 import 'package:opennutritracker/features/profile/presentation/widgets/feet_inches_input.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-class OnboardingSecondPageBody extends StatefulWidget {
+class OnboardingBodyMeasurementsPageBody extends StatefulWidget {
   final Function(
     bool active,
     double? selectedHeight,
@@ -49,7 +49,7 @@ class OnboardingSecondPageBody extends StatefulWidget {
   /// the footer snackbar and no indication of which field is at fault.
   final ValueListenable<int>? showErrorsSignal;
 
-  const OnboardingSecondPageBody({
+  const OnboardingBodyMeasurementsPageBody({
     super.key,
     required this.setButtonContent,
     this.initialHeightCm,
@@ -62,11 +62,12 @@ class OnboardingSecondPageBody extends StatefulWidget {
   });
 
   @override
-  State<OnboardingSecondPageBody> createState() =>
-      _OnboardingSecondPageBodyState();
+  State<OnboardingBodyMeasurementsPageBody> createState() =>
+      _OnboardingBodyMeasurementsPageBodyState();
 }
 
-class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
+class _OnboardingBodyMeasurementsPageBodyState
+    extends State<OnboardingBodyMeasurementsPageBody> {
   final _heightFormKey = GlobalKey<FormState>();
   final _weightFormKey = GlobalKey<FormState>();
   final _targetWeightFormKey = GlobalKey<FormState>();

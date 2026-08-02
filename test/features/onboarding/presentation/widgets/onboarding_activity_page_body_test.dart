@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_third_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_activity_page_body.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 import '../../../../helpers/test_l10n.dart';
@@ -20,7 +20,7 @@ void main() {
         localizationsDelegates: const [S.delegate],
         supportedLocales: S.supportedLocales,
         home: Scaffold(
-          body: OnboardingThirdPageBody(
+          body: OnboardingActivityPageBody(
             setButtonContent: (active, activity) =>
                 onSelected?.call(active, activity),
             initialActivity: initial,

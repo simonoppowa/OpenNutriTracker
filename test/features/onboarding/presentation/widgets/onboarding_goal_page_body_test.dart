@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_goal_selection_entity.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_fourth_page_body.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_goal_page_body.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 import '../../../../helpers/test_l10n.dart';
@@ -21,7 +21,7 @@ void main() {
         localizationsDelegates: const [S.delegate],
         supportedLocales: S.supportedLocales,
         home: Scaffold(
-          body: OnboardingFourthPageBody(
+          body: OnboardingGoalPageBody(
             setButtonContent: (active, goal) => onSelected?.call(active, goal),
             heightCm: heightCm,
             weightKg: weightKg,
