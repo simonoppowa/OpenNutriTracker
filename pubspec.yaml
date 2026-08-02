@@ -70,7 +70,7 @@ dependencies:
   mobile_scanner: ^7.2.0
   qr_flutter: ^4.1.0
   share_plus: ^10.0.0
-  image_picker: ^1.1.2
+  image_picker: ^1.2.3
   flutter_image_compress: ^2.4.0
 
   hive_ce: ^2.19.3
