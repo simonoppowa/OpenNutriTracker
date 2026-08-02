@@ -379,7 +379,7 @@ jobs:
 
       - name: Setup Java (Zulu)
         id: setup_java_zulu
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         continue-on-error: true
         with:
           distribution: 'zulu'
@@ -391,7 +391,7 @@ jobs:
       # build. It now takes both vendors being down at once.
       - name: Setup Java (Temurin fallback)
         if: steps.setup_java_zulu.outcome == 'failure'
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -466,7 +466,7 @@ jobs:
 
       - name: Setup Java (Zulu)
         id: setup_java_zulu
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         continue-on-error: true
         with:
           distribution: 'zulu'
@@ -478,7 +478,7 @@ jobs:
       # build. It now takes both vendors being down at once.
       - name: Setup Java (Temurin fallback)
         if: steps.setup_java_zulu.outcome == 'failure'
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -765,7 +765,7 @@ jobs:
 
       - name: Setup Java (Zulu)
         id: setup_java_zulu
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         continue-on-error: true
         with:
           distribution: 'zulu'
@@ -777,7 +777,7 @@ jobs:
       # build. It now takes both vendors being down at once.
       - name: Setup Java (Temurin fallback)
         if: steps.setup_java_zulu.outcome == 'failure'
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         with:
           distribution: 'temurin'
           java-version: '17'
