@@ -73,10 +73,20 @@ class UnitCalc {
   /// the UK-style "11 st 5.2 lb" display and input. Pounds keep two decimals,
   /// mirroring [lbsToKg], and a value that rounds up to a full 14 lb rolls
   /// into the next stone so we never show "10 st 14.0 lb".
-  static (int stones, double pounds) kgToStLb(double kg) {
+  ///
+  /// [poundsDecimals] is the precision the pounds figure is rounded to, and
+  /// the roll-over is checked against that rounded value. It matters because
+  /// every screen prints one decimal while the default here keeps two: a
+  /// 13.99 lb remainder clears the guard, then renders as "14", which is a
+  /// whole stone shown as a remainder ("9 st 14 lb" for a weight that is
+  /// 10 st). Callers that display the result pass 1; the two-decimal default
+  /// is what [stLbToKg] round-trips against.
+  static (int stones, double pounds) kgToStLb(double kg,
+      {int poundsDecimals = 2}) {
     final totalLbs = kg * 2.20462;
     var stones = totalLbs ~/ 14;
-    var pounds = double.parse((totalLbs - stones * 14).toStringAsFixed(2));
+    var pounds =
+        double.parse((totalLbs - stones * 14).toStringAsFixed(poundsDecimals));
     if (pounds >= 14.0) {
       stones += 1;
       pounds = 0.0;
