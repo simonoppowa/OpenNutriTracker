@@ -191,4 +191,36 @@ void main() {
       expect(result.errors, ['Item 1: not a valid food name']);
     });
   });
+
+  group('parseMealText quantity bounds', () {
+    test('a quantity of 0 is rejected', () {
+      final result = parseMealText('0g water');
+
+      expect(result.items, isEmpty);
+      expect(result.errors, ['Item 1: quantity must be greater than 0']);
+    });
+
+    test('a quantity over 10000 is rejected', () {
+      final result = parseMealText('10001g flour');
+
+      expect(result.items, isEmpty);
+      expect(result.errors, ['Item 1: quantity must be 10000 or less']);
+    });
+
+    test('exactly 10000 is accepted', () {
+      final result = parseMealText('10000g flour');
+
+      expect(result.errors, isEmpty);
+      expect(result.items.single.quantity, 10000);
+    });
+
+    test('the 10000 bound applies after kg -> g conversion, not before', () {
+      // 15 kg converts to 15000 g, which exceeds the bound — it must not
+      // be evaluated as 15 (under the bound) before the x1000 conversion.
+      final result = parseMealText('15kg flour');
+
+      expect(result.items, isEmpty);
+      expect(result.errors, ['Item 1: quantity must be 10000 or less']);
+    });
+  });
 }

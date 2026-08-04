@@ -1,5 +1,9 @@
 import 'package:opennutritracker/core/utils/food_name_validator.dart';
 
+/// Upper bound for a parsed quantity, matching the manual-entry check in
+/// meal_detail_bottom_sheet.dart.
+const _maxQuantity = 10000;
+
 /// One item extracted from a free-text meal description. [query] is what
 /// gets handed to the existing food search; [quantity] and [unit] are
 /// `null` when the input didn't state an amount, in which case the review
@@ -183,6 +187,20 @@ MealTextParseResult parseMealText(String input) {
     var unit = extracted.unit;
     if (quantity != null && unit != null) {
       (quantity, unit) = _normalizeUnitAndQuantity(quantity, unit);
+    }
+
+    // Bounds match meal_detail_bottom_sheet.dart's manual-entry check.
+    // Applied after kg/l conversion, so '15 kg' is rejected as 15000 g
+    // rather than silently becoming a valid-looking 15.
+    if (quantity != null) {
+      if (quantity <= 0) {
+        errors.add('Item $itemNum: quantity must be greater than 0');
+        continue;
+      }
+      if (quantity > _maxQuantity) {
+        errors.add('Item $itemNum: quantity must be $_maxQuantity or less');
+        continue;
+      }
     }
 
     items.add(ParsedMealItem(query: query, quantity: quantity, unit: unit));
