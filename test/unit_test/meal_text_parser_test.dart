@@ -40,7 +40,11 @@ void main() {
     test('a comma with no digit before it is a separator', () {
       final result = parseMealText('toast,2 eggs');
 
-      expect(result.items.map((i) => i.query), ['toast', '2 eggs']);
+      // Two segments: 'toast' and '2 eggs'. Quantity/unit extraction turns
+      // the second into query 'eggs' + quantity 2 — see the extraction
+      // group below for that behavior in isolation.
+      expect(result.items, hasLength(2));
+      expect(result.items.map((i) => i.query), ['toast', 'eggs']);
     });
 
     test(
@@ -48,7 +52,8 @@ void main() {
       () {
         final result = parseMealText('100g toast, 2 eggs');
 
-        expect(result.items.map((i) => i.query), ['100g toast', '2 eggs']);
+        expect(result.items, hasLength(2));
+        expect(result.items.map((i) => i.query), ['toast', 'eggs']);
       },
     );
 
@@ -71,6 +76,65 @@ void main() {
 
       expect(result.items, isEmpty);
       expect(result.errors, isEmpty);
+    });
+  });
+
+  group('parseMealText quantity/unit extraction', () {
+    test('leading quantity with no space before the unit (100g toast)', () {
+      final item = parseMealText('100g toast').items.single;
+
+      expect(item.query, 'toast');
+      expect(item.quantity, 100);
+      expect(item.unit, 'g');
+    });
+
+    test('trailing quantity with no space before the unit (toast 100g)', () {
+      final item = parseMealText('toast 100g').items.single;
+
+      expect(item.query, 'toast');
+      expect(item.quantity, 100);
+      expect(item.unit, 'g');
+    });
+
+    test(
+      'a space between the number and the unit is also accepted (1.5 l milk)',
+      () {
+        final item = parseMealText('1.5 l milk').items.single;
+
+        expect(item.query, 'milk');
+        expect(item.quantity, 1.5);
+        expect(item.unit, 'l');
+      },
+    );
+
+    test('quantity with no unit (2 eggs)', () {
+      final item = parseMealText('2 eggs').items.single;
+
+      expect(item.query, 'eggs');
+      expect(item.quantity, 2);
+      expect(item.unit, isNull);
+    });
+
+    test('no quantity at all (black coffee) leaves both fields null', () {
+      final item = parseMealText('black coffee').items.single;
+
+      expect(item.query, 'black coffee');
+      expect(item.quantity, isNull);
+      expect(item.unit, isNull);
+    });
+
+    test('unit matching is case-insensitive and normalized to lowercase', () {
+      final item = parseMealText('100G toast').items.single;
+
+      expect(item.unit, 'g');
+    });
+
+    test('an unrecognized unit-like token is left as part of the query', () {
+      final item = parseMealText('100xyz toast').items.single;
+
+      expect(item.query, '100xyz toast');
+      expect(item.quantity, isNull);
+      expect(item.unit, isNull);
     });
   });
 }

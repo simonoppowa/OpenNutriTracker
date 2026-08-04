@@ -69,6 +69,74 @@ bool _isDigit(String char) {
   return code >= 0x30 && code <= 0x39;
 }
 
+/// A quantity+unit token immediately before or after the food name, e.g.
+/// `100g toast` or `toast 100g`. `\s*` (not `\s+`) between the number and
+/// the unit letters is what lets `1.5 l milk` — number, space, unit — match
+/// the same way as the no-space `100g toast` does.
+final _leadingQuantity = RegExp(r'^(\d+(?:\.\d+)?)\s*([a-zA-Z]*)\s+(.+)$');
+final _trailingQuantity = RegExp(r'^(.+?)\s+(\d+(?:\.\d+)?)\s*([a-zA-Z]*)\s*$');
+
+/// The result of attempting to pull a quantity+unit out of one segment.
+/// [unit] is the raw matched letters (not yet normalized/validated) or
+/// `null` when no unit token was present.
+class _Extracted {
+  final String query;
+  final double? quantity;
+  final String? unit;
+
+  const _Extracted({required this.query, this.quantity, this.unit});
+}
+
+/// Tries [_leadingQuantity] then [_trailingQuantity]. A unit token that
+/// doesn't match a recognized symbol (see [_normalizeUnitSymbol]) is
+/// treated as part of the food name instead of a unit, since a run of
+/// letters glued to a number is more often a product code than a unit
+/// this parser doesn't know — leaving it in the query keeps the segment
+/// searchable rather than silently discarding it.
+_Extracted _extractQuantityAndUnit(String segment) {
+  final leading = _leadingQuantity.firstMatch(segment);
+  if (leading != null) {
+    final rawUnit = leading.group(2)!;
+    if (rawUnit.isEmpty || _normalizeUnitSymbol(rawUnit) != null) {
+      return _Extracted(
+        query: leading.group(3)!,
+        quantity: double.parse(leading.group(1)!),
+        unit: rawUnit.isEmpty ? null : rawUnit.toLowerCase(),
+      );
+    }
+  }
+
+  final trailing = _trailingQuantity.firstMatch(segment);
+  if (trailing != null) {
+    final rawUnit = trailing.group(3)!;
+    if (rawUnit.isEmpty || _normalizeUnitSymbol(rawUnit) != null) {
+      return _Extracted(
+        query: trailing.group(1)!,
+        quantity: double.parse(trailing.group(2)!),
+        unit: rawUnit.isEmpty ? null : rawUnit.toLowerCase(),
+      );
+    }
+  }
+
+  return _Extracted(query: segment);
+}
+
+/// `null` when [raw] (case-insensitive) isn't one of the five symbols this
+/// parser recognizes as input. Deliberately just `g`/`kg`/`ml`/`l`/`oz` —
+/// see the file doc comment for why word-based units are out of scope.
+String? _normalizeUnitSymbol(String raw) {
+  switch (raw.toLowerCase()) {
+    case 'g':
+    case 'kg':
+    case 'ml':
+    case 'l':
+    case 'oz':
+      return raw.toLowerCase();
+    default:
+      return null;
+  }
+}
+
 /// Turns one line of free text into a list of search intents. Pure and
 /// dependency-free: no I/O, no UI. See the class docs on [ParsedMealItem]
 /// and [MealTextParseResult] for the shape, and the doc comments on the
@@ -80,7 +148,14 @@ MealTextParseResult parseMealText(String input) {
   final errors = <String>[];
 
   for (var i = 0; i < segments.length; i++) {
-    items.add(ParsedMealItem(query: segments[i]));
+    final extracted = _extractQuantityAndUnit(segments[i]);
+    items.add(
+      ParsedMealItem(
+        query: extracted.query.trim(),
+        quantity: extracted.quantity,
+        unit: extracted.unit,
+      ),
+    );
   }
 
   return MealTextParseResult(items: items, errors: errors);
