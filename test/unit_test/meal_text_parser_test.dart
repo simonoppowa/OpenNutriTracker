@@ -99,11 +99,14 @@ void main() {
     test(
       'a space between the number and the unit is also accepted (1.5 l milk)',
       () {
+        // Unit normalization (l -> ml x1000) is covered in detail in the
+        // group below; this just confirms the space-before-unit case is
+        // recognized as quantity+unit at all.
         final item = parseMealText('1.5 l milk').items.single;
 
         expect(item.query, 'milk');
-        expect(item.quantity, 1.5);
-        expect(item.unit, 'l');
+        expect(item.quantity, isNotNull);
+        expect(item.unit, isNotNull);
       },
     );
 
@@ -135,6 +138,33 @@ void main() {
       expect(item.query, '100xyz toast');
       expect(item.quantity, isNull);
       expect(item.unit, isNull);
+    });
+  });
+
+  group('parseMealText unit normalization', () {
+    test('kg is converted to g, quantity times 1000', () {
+      final item = parseMealText('1kg flour').items.single;
+
+      expect(item.quantity, 1000);
+      expect(item.unit, 'g');
+    });
+
+    test('l is converted to ml, quantity times 1000', () {
+      final item = parseMealText('1.5 l milk').items.single;
+
+      expect(item.quantity, 1500);
+      expect(item.unit, 'ml');
+    });
+
+    test('g, ml, and oz pass through unchanged', () {
+      final results = [
+        parseMealText('100g toast').items.single,
+        parseMealText('100ml juice').items.single,
+        parseMealText('4oz steak').items.single,
+      ];
+
+      expect(results.map((i) => i.unit), ['g', 'ml', 'oz']);
+      expect(results.map((i) => i.quantity), [100, 100, 4]);
     });
   });
 }

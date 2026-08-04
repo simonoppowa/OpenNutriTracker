@@ -137,6 +137,22 @@ String? _normalizeUnitSymbol(String raw) {
   }
 }
 
+/// The app's [UnitDropdownItem] (`meal_detail_bloc.dart`) has no `kg` or
+/// `l` — its `fromString` falls through to `g/ml` for anything it doesn't
+/// recognize, so emitting `kg`/`l` unchanged would silently turn `1,5 l
+/// milk` into 1.5 g/ml instead of 1500 ml. Converting here, before the
+/// value ever reaches that code, is what avoids the silent 1000x error.
+(double, String) _normalizeUnitAndQuantity(double quantity, String unit) {
+  switch (unit) {
+    case 'kg':
+      return (quantity * 1000, 'g');
+    case 'l':
+      return (quantity * 1000, 'ml');
+    default:
+      return (quantity, unit);
+  }
+}
+
 /// Turns one line of free text into a list of search intents. Pure and
 /// dependency-free: no I/O, no UI. See the class docs on [ParsedMealItem]
 /// and [MealTextParseResult] for the shape, and the doc comments on the
@@ -149,11 +165,18 @@ MealTextParseResult parseMealText(String input) {
 
   for (var i = 0; i < segments.length; i++) {
     final extracted = _extractQuantityAndUnit(segments[i]);
+
+    var quantity = extracted.quantity;
+    var unit = extracted.unit;
+    if (quantity != null && unit != null) {
+      (quantity, unit) = _normalizeUnitAndQuantity(quantity, unit);
+    }
+
     items.add(
       ParsedMealItem(
         query: extracted.query.trim(),
-        quantity: extracted.quantity,
-        unit: extracted.unit,
+        quantity: quantity,
+        unit: unit,
       ),
     );
   }
