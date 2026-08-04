@@ -223,4 +223,48 @@ void main() {
       expect(result.errors, ['Item 1: quantity must be 10000 or less']);
     });
   });
+
+  group('parseMealText unit invariant', () {
+    // The app's UnitDropdownItem.toString() values (meal_detail_bloc.dart).
+    // A future unit addition there without a matching update here should
+    // fail this test rather than silently reach the app's g/ml fallback.
+    const validUnitDropdownValues = {
+      'g',
+      'ml',
+      'g/ml',
+      'oz',
+      'fl.oz',
+      'serving',
+    };
+
+    test(
+      'every parsed unit is null or one of the six UnitDropdownItem values',
+      () {
+        const inputs = [
+          '100g toast',
+          'toast 100g',
+          '1,5 l milk',
+          '1kg flour',
+          '4oz steak',
+          '2 eggs',
+          'black coffee',
+          '100G toast',
+          '100xyz toast',
+          '100g toast, 2 eggs; bacon+coffee\nwater',
+        ];
+
+        for (final input in inputs) {
+          for (final item in parseMealText(input).items) {
+            if (item.unit != null) {
+              expect(
+                validUnitDropdownValues.contains(item.unit),
+                isTrue,
+                reason: 'unexpected unit "${item.unit}" from input "$input"',
+              );
+            }
+          }
+        }
+      },
+    );
+  });
 }

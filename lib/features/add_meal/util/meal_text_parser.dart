@@ -4,6 +4,11 @@ import 'package:opennutritracker/core/utils/food_name_validator.dart';
 /// meal_detail_bottom_sheet.dart.
 const _maxQuantity = 10000;
 
+/// The exact set of `UnitDropdownItem.toString()` values (meal_detail_bloc
+/// .dart). [ParsedMealItem.unit] must always be `null` or one of these —
+/// see the assert in [parseMealText] and the dedicated invariant test.
+const _validUnits = {'g', 'ml', 'g/ml', 'oz', 'fl.oz', 'serving'};
+
 /// One item extracted from a free-text meal description. [query] is what
 /// gets handed to the existing food search; [quantity] and [unit] are
 /// `null` when the input didn't state an amount, in which case the review
@@ -202,6 +207,13 @@ MealTextParseResult parseMealText(String input) {
         continue;
       }
     }
+
+    // This is the invariant that stops a future unit addition reintroducing
+    // the silent kg/l coercion _normalizeUnitAndQuantity exists to prevent.
+    assert(
+      unit == null || _validUnits.contains(unit),
+      'parseMealText emitted unrecognized unit "$unit"',
+    );
 
     items.add(ParsedMealItem(query: query, quantity: quantity, unit: unit));
   }
