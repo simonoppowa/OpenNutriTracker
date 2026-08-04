@@ -108,11 +108,12 @@ _Extracted _extractQuantityAndUnit(String segment) {
   final leading = _leadingQuantity.firstMatch(segment);
   if (leading != null) {
     final rawUnit = leading.group(2)!;
-    if (rawUnit.isEmpty || _normalizeUnitSymbol(rawUnit) != null) {
+    final unit = rawUnit.isEmpty ? null : _normalizeUnitSymbol(rawUnit);
+    if (rawUnit.isEmpty || unit != null) {
       return _Extracted(
         query: leading.group(3)!,
         quantity: double.parse(leading.group(1)!),
-        unit: rawUnit.isEmpty ? null : rawUnit.toLowerCase(),
+        unit: unit,
       );
     }
   }
@@ -120,11 +121,12 @@ _Extracted _extractQuantityAndUnit(String segment) {
   final trailing = _trailingQuantity.firstMatch(segment);
   if (trailing != null) {
     final rawUnit = trailing.group(3)!;
-    if (rawUnit.isEmpty || _normalizeUnitSymbol(rawUnit) != null) {
+    final unit = rawUnit.isEmpty ? null : _normalizeUnitSymbol(rawUnit);
+    if (rawUnit.isEmpty || unit != null) {
       return _Extracted(
         query: trailing.group(1)!,
         quantity: double.parse(trailing.group(2)!),
-        unit: rawUnit.isEmpty ? null : rawUnit.toLowerCase(),
+        unit: unit,
       );
     }
   }
