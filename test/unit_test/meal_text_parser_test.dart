@@ -28,6 +28,18 @@ void main() {
       ]);
     });
 
+    test('all four separators together in one input', () {
+      final result = parseMealText('toast, eggs; bacon\ncoffee+juice');
+
+      expect(result.items.map((i) => i.query), [
+        'toast',
+        'eggs',
+        'bacon',
+        'coffee',
+        'juice',
+      ]);
+    });
+
     test(
       'a comma with digits on both sides is a decimal point, not a separator',
       () {
@@ -149,9 +161,20 @@ void main() {
       expect(item.unit, 'g');
     });
 
-    test('l is converted to ml, quantity times 1000', () {
+    test('l is converted to ml, quantity times 1000 (period decimal)', () {
       final item = parseMealText('1.5 l milk').items.single;
 
+      expect(item.quantity, 1500);
+      expect(item.unit, 'ml');
+    });
+
+    test('l is converted to ml, quantity times 1000 (comma decimal)', () {
+      // '1,5' is normalized to the decimal 1.5 before segmentation (the
+      // digit-digit comma rule), so this is one item, not two.
+      final result = parseMealText('1,5 l milk');
+      final item = result.items.single;
+
+      expect(item.query, 'milk');
       expect(item.quantity, 1500);
       expect(item.unit, 'ml');
     });
