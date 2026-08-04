@@ -164,10 +164,36 @@ String? _normalizeUnitSymbol(String raw) {
   }
 }
 
-/// Turns one line of free text into a list of search intents. Pure and
-/// dependency-free: no I/O, no UI. See the class docs on [ParsedMealItem]
-/// and [MealTextParseResult] for the shape, and the doc comments on the
-/// private helpers below for the segmentation and unit-normalization rules.
+/// Turns one line of free text into a list of search intents — the tier-0
+/// half of #599's AI-assisted meal logging: a deterministic parser, no
+/// model, so it ships free and runs offline. Pure and dependency-free: no
+/// I/O, no UI, fully unit-testable.
+///
+/// ```
+/// parseMealText('100g toast, 2 eggs; 1,5 l milk')
+/// // -> items: [
+/// //      ParsedMealItem(query: 'toast', quantity: 100, unit: 'g'),
+/// //      ParsedMealItem(query: 'eggs', quantity: 2, unit: null),
+/// //      ParsedMealItem(query: 'milk', quantity: 1500, unit: 'ml'),
+/// //    ]
+/// ```
+///
+/// Each `,` / `;` / newline / `+`-separated segment becomes one
+/// [ParsedMealItem], resolved independently against the existing food
+/// search downstream (this parser never invents nutrient estimates — see
+/// #599 for why that constraint matters to the project's privacy/citation
+/// claims). A segment with no recognizable quantity — `black coffee` —
+/// still becomes an item, just with `quantity` and `unit` left `null` for
+/// the review row to default. A segment that fails validation (no letters,
+/// quantity out of bounds) produces an indexed entry in [errors] instead
+/// and is dropped from [items]; it never silently disappears.
+///
+/// Locale-independent by construction: this keys off digits and the unit
+/// symbols `g`/`kg`/`ml`/`l`/`oz`, never number-words, so it needs no
+/// per-locale word list across the app's 9 supported locales. See the doc
+/// comments on the private helpers below for the segmentation and
+/// unit-normalization rules, and the class docs on [ParsedMealItem] and
+/// [MealTextParseResult] for the result shape.
 MealTextParseResult parseMealText(String input) {
   final segments = _segment(input.trim());
 
