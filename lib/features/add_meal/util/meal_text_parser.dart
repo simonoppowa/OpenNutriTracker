@@ -1,3 +1,5 @@
+import 'package:opennutritracker/core/utils/food_name_validator.dart';
+
 /// One item extracted from a free-text meal description. [query] is what
 /// gets handed to the existing food search; [quantity] and [unit] are
 /// `null` when the input didn't state an amount, in which case the review
@@ -163,8 +165,19 @@ MealTextParseResult parseMealText(String input) {
   final items = <ParsedMealItem>[];
   final errors = <String>[];
 
-  for (var i = 0; i < segments.length; i++) {
-    final extracted = _extractQuantityAndUnit(segments[i]);
+  // Numbers only the segments actually attempted, matching "empty segments
+  // are skipped, not errors" — a trailing comma doesn't consume an index.
+  var itemNum = 0;
+
+  for (final segment in segments) {
+    itemNum++;
+    final extracted = _extractQuantityAndUnit(segment);
+    final query = extracted.query.trim();
+
+    if (!FoodNameValidator.isValid(query)) {
+      errors.add('Item $itemNum: not a valid food name');
+      continue;
+    }
 
     var quantity = extracted.quantity;
     var unit = extracted.unit;
@@ -172,13 +185,7 @@ MealTextParseResult parseMealText(String input) {
       (quantity, unit) = _normalizeUnitAndQuantity(quantity, unit);
     }
 
-    items.add(
-      ParsedMealItem(
-        query: extracted.query.trim(),
-        quantity: quantity,
-        unit: unit,
-      ),
-    );
+    items.add(ParsedMealItem(query: query, quantity: quantity, unit: unit));
   }
 
   return MealTextParseResult(items: items, errors: errors);

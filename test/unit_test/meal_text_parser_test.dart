@@ -167,4 +167,28 @@ void main() {
       expect(results.map((i) => i.quantity), [100, 100, 4]);
     });
   });
+
+  group('parseMealText food-name validation', () {
+    test('a segment with no letters (123) is rejected', () {
+      final result = parseMealText('123');
+
+      expect(result.items, isEmpty);
+      expect(result.errors, ['Item 1: not a valid food name']);
+    });
+
+    test('a valid segment after a rejected one keeps its own item number', () {
+      final result = parseMealText('123, toast');
+
+      expect(result.errors, ['Item 1: not a valid food name']);
+      expect(result.items.single.query, 'toast');
+    });
+
+    test('empty segments do not consume an item number', () {
+      // The leading empty segment (before the comma) is skipped silently,
+      // so the invalid '123' is still 'Item 1', not 'Item 2'.
+      final result = parseMealText(',123');
+
+      expect(result.errors, ['Item 1: not a valid food name']);
+    });
+  });
 }
