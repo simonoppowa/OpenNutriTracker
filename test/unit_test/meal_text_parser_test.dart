@@ -151,6 +151,19 @@ void main() {
       expect(item.quantity, isNull);
       expect(item.unit, isNull);
     });
+
+    test('a negative number is not recognized as a quantity', () {
+      // Neither quantity regex matches a leading '-' (the spec only
+      // describes unsigned digits), so the whole segment falls through to
+      // the query as-is rather than being parsed as quantity -5. It still
+      // passes FoodNameValidator (it contains letters), so this is
+      // accepted as an odd-looking but valid item, not an error.
+      final item = parseMealText('-5g sugar').items.single;
+
+      expect(item.query, '-5g sugar');
+      expect(item.quantity, isNull);
+      expect(item.unit, isNull);
+    });
   });
 
   group('parseMealText unit normalization', () {
