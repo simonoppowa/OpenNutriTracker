@@ -166,6 +166,83 @@ void main() {
     });
   });
 
+  group('parseMealText multi-word foods with a bare quantity', () {
+    // Regression: the unit group used to be a bare ([a-zA-Z]*), which
+    // greedily took the first word of the food name as a candidate unit
+    // and then discarded the whole match when it turned out not to be
+    // one. '2 eggs' survived only because a single trailing word forced
+    // the engine to backtrack into the no-unit reading; anything longer
+    // silently lost its quantity.
+    test('a two-word food keeps its quantity', () {
+      final item = parseMealText('2 chicken breasts').items.single;
+
+      expect(item.query, 'chicken breasts');
+      expect(item.quantity, 2);
+      expect(item.unit, isNull);
+    });
+
+    test('a three-word food keeps its quantity', () {
+      final item = parseMealText('4 chocolate chip cookies').items.single;
+
+      expect(item.query, 'chocolate chip cookies');
+      expect(item.quantity, 4);
+      expect(item.unit, isNull);
+    });
+
+    test('a food whose first word starts with a unit letter', () {
+      // 'lemons' begins with 'l'; the unit group must not claim it.
+      final item = parseMealText('2 lemons').items.single;
+
+      expect(item.query, 'lemons');
+      expect(item.quantity, 2);
+      expect(item.unit, isNull);
+    });
+
+    test('an explicit unit before a multi-word food still parses', () {
+      final item = parseMealText('200g chicken breasts').items.single;
+
+      expect(item.query, 'chicken breasts');
+      expect(item.quantity, 200);
+      expect(item.unit, 'g');
+    });
+
+    test('several multi-word items in one line', () {
+      final result = parseMealText('2 boiled eggs, 3 slices bread');
+
+      expect(result.errors, isEmpty);
+      expect(result.items.map((i) => i.query), ['boiled eggs', 'slices bread']);
+      expect(result.items.map((i) => i.quantity), [2, 3]);
+    });
+  });
+
+  group('parseMealText leaves the food name as the user typed it', () {
+    // Regression: decimal commas used to be rewritten to '.' across the
+    // whole input before segmentation, which also rewrote commas inside
+    // food names — so the string handed to the food search contained
+    // characters the user never typed.
+    test('a comma inside a food name is not rewritten', () {
+      final item = parseMealText('yoghurt 3,5% fat').items.single;
+
+      expect(item.query, 'yoghurt 3,5% fat');
+    });
+
+    test('repeated digit-commas inside a food name are not rewritten', () {
+      final item = parseMealText('Omega 3,6,9 capsules').items.single;
+
+      expect(item.query, 'Omega 3,6,9 capsules');
+    });
+
+    test('a decimal comma in the quantity is still parsed as a number', () {
+      // The conversion happens only on the number actually matched, so
+      // this keeps working while the two cases above are left alone.
+      final item = parseMealText('0,5kg rice').items.single;
+
+      expect(item.query, 'rice');
+      expect(item.quantity, 500);
+      expect(item.unit, 'g');
+    });
+  });
+
   group('parseMealText unit normalization', () {
     test('kg is converted to g, quantity times 1000', () {
       final item = parseMealText('1kg flour').items.single;

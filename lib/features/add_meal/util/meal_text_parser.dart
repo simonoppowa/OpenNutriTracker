@@ -39,57 +39,69 @@ class MealTextParseResult {
   bool get hasErrors => errors.isNotEmpty;
 }
 
-/// Splits [input] on `,` / `;` / newline / `+`, subject to the comma rule
-/// below, and returns the trimmed, non-empty pieces in order.
-List<String> _segment(String input) {
-  final normalized = _normalizeDecimalCommas(input);
-  return normalized
-      .split(RegExp(r'[,;+\n]'))
-      .map((s) => s.trim())
-      .where((s) => s.isNotEmpty)
-      .toList();
-}
-
-/// A comma with a digit immediately before it and a digit immediately
-/// after it is a decimal point; every other comma is a separator. This
-/// rewrites decimal commas to `.` in place so the later split on `,` only
-/// ever cuts on separator commas.
+/// A comma with a digit immediately before it *and* immediately after it
+/// is a decimal point; every other comma separates items. The lookarounds
+/// express that as "a comma not preceded by a digit, or not followed by
+/// one", so a decimal comma is simply never matched as a separator.
 ///
-/// `1,5 l milk` → `1.5 l milk` (digits on both sides, one item).
-/// `100g toast, 2 eggs` → unchanged (space follows the comma, two items).
-/// `toast,2 eggs` → unchanged (no digit before the comma, two items).
-String _normalizeDecimalCommas(String input) {
-  final buffer = StringBuffer();
-  for (var i = 0; i < input.length; i++) {
-    final char = input[i];
-    if (char == ',') {
-      final before = i > 0 ? input[i - 1] : '';
-      final after = i < input.length - 1 ? input[i + 1] : '';
-      final isDecimal = _isDigit(before) && _isDigit(after);
-      buffer.write(isDecimal ? '.' : ',');
-    } else {
-      buffer.write(char);
-    }
-  }
-  return buffer.toString();
-}
+/// `1,5 l milk` → one segment (digits on both sides).
+/// `100g toast, 2 eggs` → two segments (a space follows the comma).
+/// `toast,2 eggs` → two segments (no digit precedes the comma).
+///
+/// Splitting rather than rewriting matters: an earlier version replaced
+/// every decimal comma with `.` across the whole input before splitting,
+/// which also rewrote commas inside food names — `yoghurt 3,5% fat` and
+/// `Omega 3,6,9 capsules` reached the food search with characters the user
+/// never typed. The decimal comma is now converted only inside the number
+/// actually parsed, in [_parseQuantity].
+final _separator = RegExp(r'[;+\n]|(?<!\d),|,(?!\d)');
 
-bool _isDigit(String char) {
-  if (char.isEmpty) return false;
-  final code = char.codeUnitAt(0);
-  return code >= 0x30 && code <= 0x39;
-}
+/// Splits [input] into trimmed, non-empty pieces on `,` / `;` / newline /
+/// `+`, subject to the comma rule on [_separator].
+List<String> _segment(String input) => input
+    .split(_separator)
+    .map((s) => s.trim())
+    .where((s) => s.isNotEmpty)
+    .toList();
+
+/// The five unit symbols this parser recognizes as *input*, longest-first
+/// so a two-character symbol is never shadowed by its first letter. Naming
+/// them explicitly (rather than matching any run of letters) is what lets
+/// the regex engine backtrack to the no-unit reading when the word after
+/// the number simply belongs to the food name — see [_leadingQuantity].
+const _unitSymbol = r'(?:kg|ml|oz|g|l)';
+
+/// A number, accepting either decimal separator. `JsonMealImporter` takes
+/// both the same way; [_parseQuantity] does the conversion.
+const _number = r'\d+(?:[.,]\d+)?';
 
 /// A quantity+unit token immediately before or after the food name, e.g.
 /// `100g toast` or `toast 100g`. `\s*` (not `\s+`) between the number and
-/// the unit letters is what lets `1.5 l milk` — number, space, unit — match
-/// the same way as the no-space `100g toast` does.
-final _leadingQuantity = RegExp(r'^(\d+(?:\.\d+)?)\s*([a-zA-Z]*)\s+(.+)$');
-final _trailingQuantity = RegExp(r'^(.+?)\s+(\d+(?:\.\d+)?)\s*([a-zA-Z]*)\s*$');
+/// the unit is what lets `1.5 l milk` — number, space, unit — match the
+/// same way as the no-space `100g toast` does.
+///
+/// The unit group is optional *and* restricted to [_unitSymbol]. Both
+/// halves matter: with a bare `([a-zA-Z]*)` the group greedily swallowed
+/// the first word of a multi-word food, and because that word is not a
+/// unit the whole match was then discarded — so `2 chicken breasts` lost
+/// its quantity entirely while `2 eggs` kept it, purely because a single
+/// trailing word forced the engine to backtrack. Restricting the group
+/// makes the engine find the no-unit reading itself.
+final _leadingQuantity = RegExp(
+  '^($_number)\\s*($_unitSymbol)?\\s+(.+)\$',
+  caseSensitive: false,
+);
+final _trailingQuantity = RegExp(
+  '^(.+?)\\s+($_number)\\s*($_unitSymbol)?\\s*\$',
+  caseSensitive: false,
+);
+
+/// Both decimal separators reach here; `double.parse` only accepts `.`.
+double _parseQuantity(String raw) => double.parse(raw.replaceAll(',', '.'));
 
 /// The result of attempting to pull a quantity+unit out of one segment.
-/// [unit] is the raw matched letters (not yet normalized/validated) or
-/// `null` when no unit token was present.
+/// [unit] is one of the [_unitSymbol] symbols, lower-cased, or `null` when
+/// the segment stated no unit.
 class _Extracted {
   final String query;
   final double? quantity;
@@ -98,56 +110,32 @@ class _Extracted {
   const _Extracted({required this.query, this.quantity, this.unit});
 }
 
-/// Tries [_leadingQuantity] then [_trailingQuantity]. A unit token that
-/// doesn't match a recognized symbol (see [_normalizeUnitSymbol]) is
-/// treated as part of the food name instead of a unit, since a run of
-/// letters glued to a number is more often a product code than a unit
-/// this parser doesn't know — leaving it in the query keeps the segment
-/// searchable rather than silently discarding it.
+/// Tries [_leadingQuantity] then [_trailingQuantity]. Because the unit
+/// group only ever matches a known symbol, a letter run that is not a unit
+/// stays in the food name instead of being mistaken for one — `2 chicken
+/// breasts` keeps its quantity, and `100xyz toast` (letters glued to the
+/// number, more often a product code than anything else) is left whole for
+/// the search rather than silently losing the `100xyz`.
 _Extracted _extractQuantityAndUnit(String segment) {
   final leading = _leadingQuantity.firstMatch(segment);
   if (leading != null) {
-    final rawUnit = leading.group(2)!;
-    final unit = rawUnit.isEmpty ? null : _normalizeUnitSymbol(rawUnit);
-    if (rawUnit.isEmpty || unit != null) {
-      return _Extracted(
-        query: leading.group(3)!,
-        quantity: double.parse(leading.group(1)!),
-        unit: unit,
-      );
-    }
+    return _Extracted(
+      query: leading.group(3)!,
+      quantity: _parseQuantity(leading.group(1)!),
+      unit: leading.group(2)?.toLowerCase(),
+    );
   }
 
   final trailing = _trailingQuantity.firstMatch(segment);
   if (trailing != null) {
-    final rawUnit = trailing.group(3)!;
-    final unit = rawUnit.isEmpty ? null : _normalizeUnitSymbol(rawUnit);
-    if (rawUnit.isEmpty || unit != null) {
-      return _Extracted(
-        query: trailing.group(1)!,
-        quantity: double.parse(trailing.group(2)!),
-        unit: unit,
-      );
-    }
+    return _Extracted(
+      query: trailing.group(1)!,
+      quantity: _parseQuantity(trailing.group(2)!),
+      unit: trailing.group(3)?.toLowerCase(),
+    );
   }
 
   return _Extracted(query: segment);
-}
-
-/// `null` when [raw] (case-insensitive) isn't one of the five symbols this
-/// parser recognizes as input. Deliberately just `g`/`kg`/`ml`/`l`/`oz` —
-/// see the file doc comment for why word-based units are out of scope.
-String? _normalizeUnitSymbol(String raw) {
-  switch (raw.toLowerCase()) {
-    case 'g':
-    case 'kg':
-    case 'ml':
-    case 'l':
-    case 'oz':
-      return raw.toLowerCase();
-    default:
-      return null;
-  }
 }
 
 /// The app's [UnitDropdownItem] (`meal_detail_bloc.dart`) has no `kg` or
