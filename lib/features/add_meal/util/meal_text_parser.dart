@@ -73,7 +73,14 @@ const _unitSymbol = r'(?:kg|ml|oz|g|l)';
 
 /// A number, accepting either decimal separator. `JsonMealImporter` takes
 /// both the same way; [_parseQuantity] does the conversion.
-const _number = r'\d+(?:[.,]\d+)?';
+///
+/// The leading `-` is matched deliberately even though a negative quantity
+/// is never valid. Refusing it here does not reject the input — it just
+/// stops the number being recognized as a quantity at all, so `-5g sugar`
+/// would fall through to the food search as a literal query and the user
+/// would silently get the default amount instead of the bounds error that
+/// `0g water` produces. Matching it lets the `> 0` check below do its job.
+const _number = r'-?\d+(?:[.,]\d+)?';
 
 /// A quantity+unit token immediately before or after the food name, e.g.
 /// `100g toast` or `toast 100g`. `\s*` (not `\s+`) between the number and

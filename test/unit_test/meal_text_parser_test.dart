@@ -152,17 +152,49 @@ void main() {
       expect(item.unit, isNull);
     });
 
-    test('a negative number is not recognized as a quantity', () {
-      // Neither quantity regex matches a leading '-' (the spec only
-      // describes unsigned digits), so the whole segment falls through to
-      // the query as-is rather than being parsed as quantity -5. It still
-      // passes FoodNameValidator (it contains letters), so this is
-      // accepted as an odd-looking but valid item, not an error.
-      final item = parseMealText('-5g sugar').items.single;
+    test('a negative quantity is rejected, not swallowed into the query', () {
+      // The number pattern matches the leading '-' on purpose. If it did
+      // not, the segment would fall through to the food search as the
+      // literal query '-5g sugar' and the review row would quietly apply
+      // the default amount — the user typed -5 and would get 100. Matching
+      // it routes the input into the same bound that rejects '0g water'.
+      final result = parseMealText('-5g sugar');
 
-      expect(item.query, '-5g sugar');
-      expect(item.quantity, isNull);
-      expect(item.unit, isNull);
+      expect(result.items, isEmpty);
+      expect(result.errors, ['Item 1: quantity must be greater than 0']);
+    });
+
+    test('a negative trailing quantity is rejected too', () {
+      final result = parseMealText('sugar -5g');
+
+      expect(result.items, isEmpty);
+      expect(result.errors, ['Item 1: quantity must be greater than 0']);
+    });
+
+    test('a negative kg quantity is rejected after conversion', () {
+      final result = parseMealText('-5kg flour');
+
+      expect(result.items, isEmpty);
+      expect(result.errors, ['Item 1: quantity must be greater than 0']);
+    });
+
+    test('a lone negative number is still an invalid food name', () {
+      // No whitespace, so neither quantity regex matches and the segment
+      // reaches FoodNameValidator whole — which rejects it for having no
+      // letters, not for its sign.
+      final result = parseMealText('-123');
+
+      expect(result.items, isEmpty);
+      expect(result.errors, ['Item 1: not a valid food name']);
+    });
+
+    test('a hyphen inside a food name is left alone', () {
+      // The '-' only reads as a sign when it is glued to the digits of a
+      // quantity; hyphenated names must not be disturbed.
+      final result = parseMealText('low-fat milk, 100g Coca-Cola');
+
+      expect(result.errors, isEmpty);
+      expect(result.items.map((i) => i.query), ['low-fat milk', 'Coca-Cola']);
     });
   });
 
