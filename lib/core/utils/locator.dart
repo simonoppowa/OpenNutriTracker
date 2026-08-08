@@ -79,6 +79,7 @@ import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_so
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
@@ -205,7 +206,8 @@ Future<void> initLocator() async {
   // Singleton so a unit change in Settings can refresh the live Trends page
   // (it lives in the main IndexedStack and isn't recreated on tab switch).
   locator.registerLazySingleton<TrendsBloc>(
-      () => TrendsBloc(locator(), locator(), locator(), locator(), locator()));
+    () => TrendsBloc(locator(), locator(), locator(), locator(), locator()),
+  );
   locator.registerFactory<RecipeBuilderBloc>(
     () => RecipeBuilderBloc(locator(), locator()),
   );
@@ -239,13 +241,8 @@ Future<void> initLocator() async {
   // create-from-popup flow on the same tab — both must mutate / observe the
   // same instance so the list refreshes after a new entry is created.
   locator.registerLazySingleton<CustomMealsBloc>(
-    () => CustomMealsBloc(
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-    ),
+    () =>
+        CustomMealsBloc(locator(), locator(), locator(), locator(), locator()),
   );
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
@@ -342,6 +339,12 @@ Future<void> initLocator() async {
       locator(),
       locator(),
     ),
+  );
+  // Per-navigation, matching how the AddMeal / Products / Food blocs that
+  // drive the same screens are registered — it holds no state worth reusing
+  // between one bulk-add session and the next.
+  locator.registerFactory<ResolveParsedMealsUseCase>(
+    () => ResolveParsedMealsUseCase(locator()),
   );
   locator.registerLazySingleton<SearchProductByBarcodeUseCase>(
     () => SearchProductByBarcodeUseCase(locator(), locator(), locator()),
