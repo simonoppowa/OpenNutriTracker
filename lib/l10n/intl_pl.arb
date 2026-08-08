@@ -1103,5 +1103,16 @@
   "quickAddActivityAddedSnack": "Dodano aktywność",
   "quickAddActivityNameLabel": "Nazwa (opcjonalnie)",
   "scannerLockOrientationTooltip": "Zablokuj w pionie",
-  "scannerUnlockOrientationTooltip": "Zezwól na obrót"
+  "scannerUnlockOrientationTooltip": "Zezwól na obrót",
+  "bulkAddTitle": "Dodaj kilka pozycji",
+  "bulkAddInputHint": "2 jajka, 100g tost, czarna kawa",
+  "bulkAddParseLabel": "Znajdź produkty",
+  "bulkAddSubmitLabel": "Zapisz {count} pozycji",
+  "bulkAddNoMatchLabel": "Brak dopasowania dla tej pozycji",
+  "bulkAddUncertainLabel": "Sprawdź dopasowanie",
+  "bulkAddSkipLabel": "Pomiń",
+  "bulkAddIncludeLabel": "Uwzględnij",
+  "bulkAddChooseFoodLabel": "Wybierz inny produkt",
+  "bulkAddNothingToLogLabel": "Nie ma jeszcze nic do zapisania",
+  "bulkAddSearchFailedLabel": "Nie udało się wyszukać produktów"
 }

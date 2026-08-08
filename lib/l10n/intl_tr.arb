@@ -1134,5 +1134,16 @@
   "quickAddActivityAddedSnack": "Aktivite eklendi",
   "quickAddActivityNameLabel": "Ad (isteğe bağlı)",
   "scannerLockOrientationTooltip": "Dikey kilitle",
-  "scannerUnlockOrientationTooltip": "Döndürmeye izin ver"
+  "scannerUnlockOrientationTooltip": "Döndürmeye izin ver",
+  "bulkAddTitle": "Birden fazla öğe ekle",
+  "bulkAddInputHint": "2 yumurta, 100g tost, sade kahve",
+  "bulkAddParseLabel": "Yiyecekleri bul",
+  "bulkAddSubmitLabel": "{count} öğeyi kaydet",
+  "bulkAddNoMatchLabel": "Bu öğe için eşleşme bulunamadı",
+  "bulkAddUncertainLabel": "Bu eşleşmeyi kontrol edin",
+  "bulkAddSkipLabel": "Atla",
+  "bulkAddIncludeLabel": "Dahil et",
+  "bulkAddChooseFoodLabel": "Başka bir yiyecek seç",
+  "bulkAddNothingToLogLabel": "Henüz kaydedilecek bir şey yok",
+  "bulkAddSearchFailedLabel": "Bu yiyecekler aranamadı"
 }

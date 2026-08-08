@@ -1134,5 +1134,16 @@
   "quickAddActivityAddedSnack": "Aktivität hinzugefügt",
   "quickAddActivityNameLabel": "Name (optional)",
   "scannerLockOrientationTooltip": "Auf Hochformat sperren",
-  "scannerUnlockOrientationTooltip": "Drehung erlauben"
+  "scannerUnlockOrientationTooltip": "Drehung erlauben",
+  "bulkAddTitle": "Mehrere Einträge hinzufügen",
+  "bulkAddInputHint": "2 Eier, 100g Toast, schwarzer Kaffee",
+  "bulkAddParseLabel": "Lebensmittel suchen",
+  "bulkAddSubmitLabel": "{count} Einträge speichern",
+  "bulkAddNoMatchLabel": "Kein Treffer für diesen Eintrag",
+  "bulkAddUncertainLabel": "Treffer prüfen",
+  "bulkAddSkipLabel": "Überspringen",
+  "bulkAddIncludeLabel": "Einschließen",
+  "bulkAddChooseFoodLabel": "Anderes Lebensmittel wählen",
+  "bulkAddNothingToLogLabel": "Noch nichts zu speichern",
+  "bulkAddSearchFailedLabel": "Suche nach diesen Lebensmitteln fehlgeschlagen"
 }

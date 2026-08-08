@@ -1103,5 +1103,16 @@
   "quickAddActivityAddedSnack": "Aktivita přidána",
   "quickAddActivityNameLabel": "Název (volitelné)",
   "scannerLockOrientationTooltip": "Uzamknout na výšku",
-  "scannerUnlockOrientationTooltip": "Povolit otáčení"
+  "scannerUnlockOrientationTooltip": "Povolit otáčení",
+  "bulkAddTitle": "Přidat více položek",
+  "bulkAddInputHint": "2 vejce, 100g toustový chléb, černá káva",
+  "bulkAddParseLabel": "Najít potraviny",
+  "bulkAddSubmitLabel": "Zaznamenat {count} položek",
+  "bulkAddNoMatchLabel": "Pro tuto položku nebyla nalezena shoda",
+  "bulkAddUncertainLabel": "Zkontrolujte shodu",
+  "bulkAddSkipLabel": "Přeskočit",
+  "bulkAddIncludeLabel": "Zahrnout",
+  "bulkAddChooseFoodLabel": "Vybrat jinou potravinu",
+  "bulkAddNothingToLogLabel": "Zatím není co zaznamenat",
+  "bulkAddSearchFailedLabel": "Vyhledávání potravin selhalo"
 }

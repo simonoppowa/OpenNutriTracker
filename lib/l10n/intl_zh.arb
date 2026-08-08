@@ -1104,5 +1104,16 @@
   "quickAddActivityAddedSnack": "已添加活动",
   "quickAddActivityNameLabel": "名称（可选）",
   "scannerLockOrientationTooltip": "锁定为竖屏",
-  "scannerUnlockOrientationTooltip": "允许旋转"
+  "scannerUnlockOrientationTooltip": "允许旋转",
+  "bulkAddTitle": "批量添加",
+  "bulkAddInputHint": "2个鸡蛋、100克吐司、黑咖啡",
+  "bulkAddParseLabel": "查找食物",
+  "bulkAddSubmitLabel": "记录 {count} 项",
+  "bulkAddNoMatchLabel": "未找到匹配的食物",
+  "bulkAddUncertainLabel": "请核对此匹配",
+  "bulkAddSkipLabel": "跳过",
+  "bulkAddIncludeLabel": "包含",
+  "bulkAddChooseFoodLabel": "选择其他食物",
+  "bulkAddNothingToLogLabel": "暂无可记录的内容",
+  "bulkAddSearchFailedLabel": "无法搜索这些食物"
 }

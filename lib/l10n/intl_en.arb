@@ -1187,5 +1187,17 @@
   "quickAddActivityAddedSnack": "Activity added",
   "quickAddActivityNameLabel": "Name (optional)",
   "scannerLockOrientationTooltip": "Lock to portrait",
-  "scannerUnlockOrientationTooltip": "Allow rotation"
+  "scannerUnlockOrientationTooltip": "Allow rotation",
+  "bulkAddTitle": "Add several items",
+  "bulkAddInputHint": "2 eggs, 100g toast, black coffee",
+  "bulkAddParseLabel": "Find foods",
+  "bulkAddSubmitLabel": "Log {count} items",
+  "bulkAddNoMatchLabel": "Couldn't match this item",
+  "bulkAddUncertainLabel": "Check this match",
+  "bulkAddSkipLabel": "Skip",
+  "bulkAddIncludeLabel": "Include",
+  "bulkAddChooseFoodLabel": "Choose another food",
+  "bulkAddNothingToLogLabel": "Nothing to log yet",
+  "bulkAddSearchFailedLabel": "Couldn't search for these foods",
+  "@bulkAddSubmitLabel": {"placeholders": {"count": {"type": "int"}}}
 }
