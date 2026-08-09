@@ -206,8 +206,7 @@ Future<void> initLocator() async {
   // Singleton so a unit change in Settings can refresh the live Trends page
   // (it lives in the main IndexedStack and isn't recreated on tab switch).
   locator.registerLazySingleton<TrendsBloc>(
-    () => TrendsBloc(locator(), locator(), locator(), locator(), locator()),
-  );
+      () => TrendsBloc(locator(), locator(), locator(), locator(), locator()));
   locator.registerFactory<RecipeBuilderBloc>(
     () => RecipeBuilderBloc(locator(), locator()),
   );
@@ -241,8 +240,13 @@ Future<void> initLocator() async {
   // create-from-popup flow on the same tab — both must mutate / observe the
   // same instance so the list refreshes after a new entry is created.
   locator.registerLazySingleton<CustomMealsBloc>(
-    () =>
-        CustomMealsBloc(locator(), locator(), locator(), locator(), locator()),
+    () => CustomMealsBloc(
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+    ),
   );
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
