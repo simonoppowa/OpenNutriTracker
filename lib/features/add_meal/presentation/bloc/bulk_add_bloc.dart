@@ -31,12 +31,17 @@ class BulkAddRow extends Equatable {
   /// decision stays visible and reversible until the batch is logged.
   final bool skipped;
 
+  /// True when the user typed a bare count the app could not interpret —
+  /// see `_amountNeedsCheck`. Purely advisory: the row is still loggable.
+  final bool amountNeedsCheck;
+
   const BulkAddRow({
     required this.resolved,
     required this.selectedIndex,
     required this.amountText,
     required this.unit,
     this.skipped = false,
+    this.amountNeedsCheck = false,
   });
 
   bool get isResolved => resolved.isResolved;
@@ -87,6 +92,7 @@ class BulkAddRow extends Equatable {
     amountText: amountText ?? this.amountText,
     unit: unit ?? this.unit,
     skipped: skipped ?? this.skipped,
+    amountNeedsCheck: amountNeedsCheck,
   );
 
   @override
@@ -96,6 +102,7 @@ class BulkAddRow extends Equatable {
     amountText,
     unit,
     skipped,
+    amountNeedsCheck,
   ];
 }
 
@@ -146,6 +153,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
                 selectedIndex: item.selectedIndex,
                 amountText: _initialAmount(item, event.usesImperialUnits),
                 unit: _initialUnit(item, event.usesImperialUnits),
+                amountNeedsCheck: _amountNeedsCheck(item),
               ),
           ],
           parseErrors: parsed.errors,
@@ -179,13 +187,37 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     if (parsedUnit != null) return parsedUnit;
 
     final meal = item.selected;
-    if (meal != null && meal.hasServingValues) {
+    final hasServing = meal != null && meal.hasServingValues;
+
+    // A bare count means "N of them", and when the food carries serving
+    // data that is precisely what a serving is — so `2 eggs` is two
+    // servings. Falling through to grams instead turned a count into a
+    // weight and logged two grams of egg (#622).
+    if (item.parsed.quantity != null && hasServing) {
+      return UnitDropdownItem.serving.toString();
+    }
+
+    if (hasServing) {
       return meal.servingUnit ?? UnitDropdownItem.gml.toString();
     }
     return usesImperialUnits
         ? UnitDropdownItem.oz.toString()
         : UnitDropdownItem.gml.toString();
   }
+
+  /// A stated count the app cannot interpret: no unit was typed and the
+  /// matched food carries no serving data, so there is nothing for "2" to
+  /// count. The row still logs — the amount and unit are editable — but it
+  /// is marked so the user's eye lands on the one row that needs a decision
+  /// rather than on a plausible-looking wrong number.
+  bool _amountNeedsCheck(ResolvedMealItem item) =>
+      // An unresolved row has no food to count, and already says so. Adding
+      // a second complaint about its amount is noise on a row that cannot
+      // be logged anyway.
+      item.isResolved &&
+      item.parsed.quantity != null &&
+      item.parsed.unit == null &&
+      !(item.selected?.hasServingValues ?? false);
 
   static String _trimZeros(double value) => value == value.roundToDouble()
       ? value.toInt().toString()

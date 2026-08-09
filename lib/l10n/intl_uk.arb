@@ -1114,5 +1114,6 @@
   "bulkAddIncludeLabel": "Включити",
   "bulkAddChooseFoodLabel": "Вибрати інший продукт",
   "bulkAddNothingToLogLabel": "Поки що нічого записувати",
-  "bulkAddSearchFailedLabel": "Не вдалося виконати пошук продуктів"
+  "bulkAddSearchFailedLabel": "Не вдалося виконати пошук продуктів",
+  "bulkAddCheckAmountLabel": "Перевірте одиницю для цієї кількості"
 }

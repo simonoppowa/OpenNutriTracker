@@ -133,6 +133,72 @@ void main() {
     expect(state.rows.single.effectiveUnit, 'g/ml');
   });
 
+  group('a bare count (#622)', () {
+    test('counts a food that has serving data as servings', () async {
+      // "2 eggs" means two of them. When the record carries serving data
+      // that is exactly a serving, so the unit must be `serving` and not
+      // grams — logging 2 g of egg was the bug.
+      final bloc = blocWith({
+        'eggs': [meal('Egg', servingQuantity: 50)],
+      });
+
+      final row = (await parse(bloc, '2 eggs')).rows.single;
+
+      expect(row.amountText, '2');
+      expect(row.unit, 'serving');
+      expect(row.amountNeedsCheck, isFalse);
+    });
+
+    test('flags a count when the food has no serving data', () async {
+      // Nothing to count, so the amount falls back to a weight. The row
+      // still logs — it is editable — but it is marked.
+      final bloc = blocWith({
+        'eggs': [meal('Egg')],
+      });
+
+      final row = (await parse(bloc, '2 eggs')).rows.single;
+
+      expect(row.amountText, '2');
+      expect(row.amountNeedsCheck, isTrue);
+      expect(row.willBeLogged, isTrue);
+    });
+
+    test('a stated unit is never second-guessed', () async {
+      final bloc = blocWith({
+        'toast': [meal('Toast', servingQuantity: 30)],
+      });
+
+      final row = (await parse(bloc, '100g toast')).rows.single;
+
+      expect(row.unit, 'g');
+      expect(row.amountNeedsCheck, isFalse);
+    });
+
+    test('no quantity at all keeps the serving default, not a count', () async {
+      // Distinct from a bare count: nothing was stated, so the row falls
+      // back to one serving expressed the way the record expresses it.
+      final bloc = blocWith({
+        'yoghurt': [meal('Yoghurt', servingQuantity: 125, servingUnit: 'g')],
+      });
+
+      final row = (await parse(bloc, 'yoghurt')).rows.single;
+
+      expect(row.amountText, '125');
+      expect(row.unit, 'g');
+      expect(row.amountNeedsCheck, isFalse);
+    });
+
+    test('an unresolved row is never flagged for its amount', () async {
+      final bloc = blocWith({});
+
+      final row = (await parse(bloc, '2 unicorn steaks')).rows.single;
+
+      expect(row.isResolved, isFalse);
+      expect(row.amountNeedsCheck, isFalse);
+      expect(row.willBeLogged, isFalse);
+    });
+  });
+
   test('unresolved rows are kept and are not loggable', () async {
     final bloc = blocWith({
       'toast': [meal('Toast')],
