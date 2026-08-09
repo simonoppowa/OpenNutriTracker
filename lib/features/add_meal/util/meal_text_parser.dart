@@ -54,10 +54,22 @@ class MealTextParseResult {
 /// `Omega 3,6,9 capsules` reached the food search with characters the user
 /// never typed. The decimal comma is now converted only inside the number
 /// actually parsed, in [_parseQuantity].
-final _separator = RegExp(r'[;+\n]|(?<!\d),|,(?!\d)');
+///
+/// The CJK separators — `、` (ideographic comma), `，` and `；` (fullwidth
+/// comma and semicolon) — are here because a Chinese, Japanese or Korean
+/// keyboard emits them by default. Without them a user typing a list the
+/// only way their keyboard offers gets a single unparsed row no matter what
+/// the placeholder demonstrates.
+///
+/// They are punctuation, not vocabulary, so this does not reintroduce the
+/// per-locale word lists this parser was designed to avoid: the set is
+/// fixed, tiny, and does not grow when a language is added. None of them
+/// carries a decimal meaning, so unlike `,` they need no lookaround.
+final _separator = RegExp(r'[;+\n、，；]|(?<!\d),|,(?!\d)');
 
 /// Splits [input] into trimmed, non-empty pieces on `,` / `;` / newline /
-/// `+`, subject to the comma rule on [_separator].
+/// `+` and their CJK equivalents, subject to the comma rule on
+/// [_separator].
 List<String> _segment(String input) => input
     .split(_separator)
     .map((s) => s.trim())
