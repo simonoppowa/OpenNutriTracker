@@ -13,10 +13,10 @@ import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
-import 'package:opennutritracker/features/meal_detail/util/meal_quantity_converter.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/meal_detail/util/meal_quantity_converter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'meal_detail_event.dart';
@@ -42,11 +42,11 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     this._productsRepository,
     this._remoteSearchCacheDataSource,
   ) : super(
-        MealDetailInitial(
-          totalQuantityConverted: '100',
-          selectedUnit: UnitDropdownItem.gml.toString(),
-        ),
-      ) {
+          MealDetailInitial(
+            totalQuantityConverted: '100',
+            selectedUnit: UnitDropdownItem.gml.toString(),
+          ),
+        ) {
     on<UpdateKcalEvent>((event, emit) async {
       try {
         final selectedTotalQuantity =
@@ -101,7 +101,12 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
           );
         } else {
           final goal = await _getKcalGoalUsecase.getKcalGoal();
-          emit(state.copyWith(dayKcalConsumed: 0, dayKcalGoal: goal));
+          emit(
+            state.copyWith(
+              dayKcalConsumed: 0,
+              dayKcalGoal: goal,
+            ),
+          );
         }
       } catch (e) {
         log.severe('Error loading daily totals: $e');
