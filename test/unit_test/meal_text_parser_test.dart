@@ -91,6 +91,52 @@ void main() {
     });
   });
 
+  group('parseMealText CJK separators', () {
+    // A Chinese, Japanese or Korean keyboard emits these by default, so
+    // without them a user typing a list the only way their keyboard offers
+    // gets one unparsed row regardless of what the placeholder shows.
+    test('the ideographic comma separates items', () {
+      final result = parseMealText('100g 吐司、250ml 牛奶、黑咖啡');
+
+      expect(result.errors, isEmpty);
+      expect(result.items.map((i) => i.query), ['吐司', '牛奶', '黑咖啡']);
+      expect(result.items.map((i) => i.quantity), [100, 250, null]);
+    });
+
+    test('the fullwidth comma and semicolon separate items', () {
+      expect(parseMealText('100g 吐司，250ml 牛奶').items, hasLength(2));
+      expect(parseMealText('100g 吐司；250ml 牛奶').items, hasLength(2));
+    });
+
+    test('the ideographic space is treated as whitespace', () {
+      // U+3000 is matched by \\s, so a quantity separated from the food by
+      // one is still recognised.
+      final item = parseMealText('100g\u3000吐司').items.single;
+
+      expect(item.query, '吐司');
+      expect(item.quantity, 100);
+      expect(item.unit, 'g');
+    });
+
+    test('CJK and ASCII separators mix in one line', () {
+      final result = parseMealText('100g toast，2 eggs、200ml milk');
+
+      expect(result.items.map((i) => i.query), ['toast', 'eggs', 'milk']);
+    });
+
+    test('none of them carries a decimal meaning', () {
+      // Unlike ',' these never need the digit-on-both-sides guard, so a
+      // number on both sides must still split. The leading '1' then has no
+      // letters and is reported rather than logged, which is the proof the
+      // split happened at all.
+      final result = parseMealText('1，5 l milk');
+
+      expect(result.items.single.quantity, 5000);
+      expect(result.items.single.unit, 'ml');
+      expect(result.errors, ['Item 1: not a valid food name']);
+    });
+  });
+
   group('parseMealText quantity/unit extraction', () {
     test('leading quantity with no space before the unit (100g toast)', () {
       final item = parseMealText('100g toast').items.single;
