@@ -13,10 +13,10 @@ import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
-import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/meal_detail/util/meal_quantity_converter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'meal_detail_event.dart';
@@ -66,18 +66,12 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
           selectedTotalQuantity.replaceAll(',', '.'),
         );
 
-        // Convert quantity based on selected unit
-        double convertedQuantity = quantity;
-        if (selectedUnit == UnitDropdownItem.serving.toString()) {
-          // For serving size, multiply by the product's serving quantity
-          if (event.meal.servingQuantity != null) {
-            convertedQuantity = quantity * event.meal.servingQuantity!;
-          }
-        } else if (selectedUnit == UnitDropdownItem.oz.toString()) {
-          convertedQuantity = UnitCalc.ozToG(quantity);
-        } else if (selectedUnit == UnitDropdownItem.flOz.toString()) {
-          convertedQuantity = UnitCalc.flOzToMl(quantity);
-        }
+        // Shared with the bulk-add screen so the two paths cannot drift.
+        final convertedQuantity = convertQuantityToBaseUnit(
+          quantity,
+          selectedUnit,
+          event.meal,
+        );
 
         emit(
           state.copyWith(
@@ -153,7 +147,12 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     });
   }
 
-  void addIntake(
+  /// Returns a future so callers writing more than one intake can await
+  /// each in turn. The tracked-day totals are accumulated with a
+  /// read-modify-write (`TrackedDayDataSource.addDayCaloriesTracked`), so
+  /// overlapping calls interleave their reads and silently lose updates —
+  /// a batch logged concurrently under-counts the day.
+  Future<void> addIntake(
     BuildContext context,
     String unit,
     String amountText,
@@ -178,7 +177,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     // data in the intake is fine; nutrition values rarely change, and
     // the cache update means the next search shows the freshest data.
     await _addIntakeUseCase.addIntake(intakeEntity);
-    _updateTrackedDay(intakeEntity, day);
+    await _updateTrackedDay(intakeEntity, day);
     unawaited(_refreshCacheForSelectedMeal(meal));
   }
 
@@ -197,8 +196,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     }
     try {
       final fresh = await _productsRepository.getOFFProductByBarcode(code);
-      await _remoteSearchCacheDataSource
-          .cache(MealDBO.fromMealEntity(fresh));
+      await _remoteSearchCacheDataSource.cache(MealDBO.fromMealEntity(fresh));
     } catch (e, st) {
       log.warning(
         'Background OFF refresh failed for $code; touching cache instead',
@@ -235,8 +233,11 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       );
     }
 
-    _addTrackedDayUsecase.addDayCaloriesTracked(day, intakeEntity.totalKcal);
-    _addTrackedDayUsecase.addDayMacrosTracked(
+    await _addTrackedDayUsecase.addDayCaloriesTracked(
+      day,
+      intakeEntity.totalKcal,
+    );
+    await _addTrackedDayUsecase.addDayMacrosTracked(
       day,
       carbsTracked: intakeEntity.totalCarbsGram,
       fatTracked: intakeEntity.totalFatsGram,

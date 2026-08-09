@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/search_debounce.dart';
@@ -91,10 +92,24 @@ class _AddMealScreenState extends State<AddMealScreen> {
             bloc: locator<AddMealBloc>()..add(InitializeAddMealEvent()),
             builder: (BuildContext context, AddMealState state) {
               if (state is AddMealLoadedState) {
-                return IconButton(
-                  onPressed: () =>
-                      _onCustomAddButtonPressed(state.usesImperialUnits),
-                  icon: const Icon(Icons.add_circle_outline),
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Semantics(
+                      identifier: 'add-meal-bulk-add',
+                      child: IconButton(
+                        onPressed: () =>
+                            _onBulkAddPressed(state.usesImperialUnits),
+                        icon: const Icon(Icons.playlist_add),
+                        tooltip: S.of(context).bulkAddTitle,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () =>
+                          _onCustomAddButtonPressed(state.usesImperialUnits),
+                      icon: const Icon(Icons.add_circle_outline),
+                    ),
+                  ],
                 );
               }
               return const SizedBox();
@@ -485,6 +500,17 @@ class _AddMealScreenState extends State<AddMealScreen> {
     Navigator.of(context).pushNamed(
       NavigationOptions.scannerRoute,
       arguments: ScannerScreenArguments(_day, _mealType.getIntakeType()),
+    );
+  }
+
+  void _onBulkAddPressed(bool usesImperialUnits) {
+    Navigator.of(context).pushNamed(
+      NavigationOptions.bulkAddRoute,
+      arguments: BulkAddScreenArguments(
+        _mealType.getIntakeType(),
+        _day,
+        usesImperialUnits,
+      ),
     );
   }
 

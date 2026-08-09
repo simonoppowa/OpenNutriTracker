@@ -1134,5 +1134,16 @@
   "quickAddActivityAddedSnack": "Aktivita pridaná",
   "quickAddActivityNameLabel": "Názov (voliteľné)",
   "scannerLockOrientationTooltip": "Uzamknúť na výšku",
-  "scannerUnlockOrientationTooltip": "Povoliť otáčanie"
+  "scannerUnlockOrientationTooltip": "Povoliť otáčanie",
+  "bulkAddTitle": "Pridať viac položiek",
+  "bulkAddInputHint": "2 vajcia, 100g toastový chlieb, čierna káva",
+  "bulkAddParseLabel": "Nájsť potraviny",
+  "bulkAddSubmitLabel": "Zaznamenať {count} položiek",
+  "bulkAddNoMatchLabel": "Pre túto položku sa nenašla zhoda",
+  "bulkAddUncertainLabel": "Skontrolujte zhodu",
+  "bulkAddSkipLabel": "Preskočiť",
+  "bulkAddIncludeLabel": "Zahrnúť",
+  "bulkAddChooseFoodLabel": "Vybrať inú potravinu",
+  "bulkAddNothingToLogLabel": "Zatiaľ nie je čo zaznamenať",
+  "bulkAddSearchFailedLabel": "Vyhľadávanie potravín zlyhalo"
 }

@@ -82,6 +82,7 @@ import 'package:opennutritracker/features/add_meal/data/repository/products_repo
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
@@ -280,6 +281,7 @@ Future<void> initLocator() async {
     () => EditMealBloc(locator(), locator(), locator()),
   );
   locator.registerFactory<AddMealBloc>(() => AddMealBloc(locator()));
+  locator.registerFactory<BulkAddBloc>(() => BulkAddBloc(locator()));
   locator.registerFactory<ProductsBloc>(
     () => ProductsBloc(locator(), locator()),
   );

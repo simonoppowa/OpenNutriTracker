@@ -1103,5 +1103,16 @@
   "quickAddActivityAddedSnack": "Attività aggiunta",
   "quickAddActivityNameLabel": "Nome (facoltativo)",
   "scannerLockOrientationTooltip": "Blocca in verticale",
-  "scannerUnlockOrientationTooltip": "Consenti rotazione"
+  "scannerUnlockOrientationTooltip": "Consenti rotazione",
+  "bulkAddTitle": "Aggiungi più alimenti",
+  "bulkAddInputHint": "2 uova, 100g pane tostato, caffè nero",
+  "bulkAddParseLabel": "Cerca alimenti",
+  "bulkAddSubmitLabel": "Registra {count} alimenti",
+  "bulkAddNoMatchLabel": "Nessuna corrispondenza per questo alimento",
+  "bulkAddUncertainLabel": "Verifica questa corrispondenza",
+  "bulkAddSkipLabel": "Salta",
+  "bulkAddIncludeLabel": "Includi",
+  "bulkAddChooseFoodLabel": "Scegli un altro alimento",
+  "bulkAddNothingToLogLabel": "Niente da registrare",
+  "bulkAddSearchFailedLabel": "Ricerca degli alimenti non riuscita"
 }
