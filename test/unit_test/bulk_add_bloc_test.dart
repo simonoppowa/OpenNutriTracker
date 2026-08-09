@@ -54,6 +54,11 @@ class _FakeSearch implements SearchProductsUseCase {
 BulkAddBloc blocWith(Map<String, List<MealEntity>> results) =>
     BulkAddBloc(ResolveParsedMealsUseCase(_FakeSearch(results)));
 
+/// Candidates come back ranked, not in the order they were faked, so tests
+/// that switch candidates have to look the wanted one up by name.
+int _indexOf(BulkAddRow row, String name) =>
+    row.resolved.candidates.indexWhere((c) => c.name == name);
+
 Future<BulkAddLoadedState> parse(
   BulkAddBloc bloc,
   String text, {
@@ -196,6 +201,66 @@ void main() {
       expect(row.isResolved, isFalse);
       expect(row.amountNeedsCheck, isFalse);
       expect(row.willBeLogged, isFalse);
+    });
+
+    test('unparseable serving text is not read as a count', () async {
+      // OFF derives `serving_quantity` by parsing the `serving_size` text;
+      // strings like "1 egg" do not parse, so quantity stays null while
+      // hasServingValues is still true. convertQuantityToBaseUnit cannot
+      // scale such a record, so calling the unit `serving` would leave
+      // "2 eggs" logging 2 g under a label that reads correct.
+      final bloc = blocWith({
+        'eggs': [meal('Egg', servingSize: '1 egg')],
+      });
+
+      final row = (await parse(bloc, '2 eggs')).rows.single;
+
+      expect(row.unit, isNot('serving'));
+      expect(row.amountNeedsCheck, isTrue);
+    });
+
+    test('switching to a countable candidate clears the flag', () async {
+      final bloc = blocWith({
+        'eggs': [meal('Eggs plain'), meal('Eggs boxed', servingQuantity: 60)],
+      });
+      final before = (await parse(bloc, '2 eggs')).rows.single;
+      // Guard the premise: the ranker, not the list order, decides what is
+      // selected, and the test only means anything from the flagged one.
+      expect(before.meal?.name, 'Eggs plain');
+      expect(before.amountNeedsCheck, isTrue);
+
+      bloc.add(ChangeRowCandidateEvent(0, _indexOf(before, 'Eggs boxed')));
+      final after = (await bloc.stream.first as BulkAddLoadedState).rows.single;
+
+      expect(after.amountNeedsCheck, isFalse);
+    });
+
+    test('switching to an uncountable candidate raises the flag', () async {
+      // The direction that matters: correcting the food must not carry a
+      // stale "all clear" forward and leave 2 g unmarked.
+      final bloc = blocWith({
+        'eggs': [meal('Eggs boxed', servingQuantity: 60), meal('Eggs plain')],
+      });
+      final before = (await parse(bloc, '2 eggs')).rows.single;
+      expect(before.meal?.name, 'Eggs boxed');
+      expect(before.amountNeedsCheck, isFalse);
+
+      bloc.add(ChangeRowCandidateEvent(0, _indexOf(before, 'Eggs plain')));
+      final after = (await bloc.stream.first as BulkAddLoadedState).rows.single;
+
+      expect(after.amountNeedsCheck, isTrue);
+    });
+
+    test('choosing a unit settles the flag', () async {
+      final bloc = blocWith({
+        'eggs': [meal('Egg')],
+      });
+      await parse(bloc, '2 eggs');
+
+      bloc.add(const ChangeRowUnitEvent(0, 'oz'));
+      final state = await bloc.stream.first as BulkAddLoadedState;
+
+      expect(state.rows.single.amountNeedsCheck, isFalse);
     });
   });
 

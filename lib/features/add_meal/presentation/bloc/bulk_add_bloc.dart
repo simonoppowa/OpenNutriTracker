@@ -31,9 +31,9 @@ class BulkAddRow extends Equatable {
   /// decision stays visible and reversible until the batch is logged.
   final bool skipped;
 
-  /// True when the user typed a bare count the app could not interpret —
-  /// see `_amountNeedsCheck`. Purely advisory: the row is still loggable.
-  final bool amountNeedsCheck;
+  /// Set once the user picks a unit from the dropdown themselves, which
+  /// settles [amountNeedsCheck] — they have made the call it was asking for.
+  final bool unitChosenByUser;
 
   const BulkAddRow({
     required this.resolved,
@@ -41,7 +41,7 @@ class BulkAddRow extends Equatable {
     required this.amountText,
     required this.unit,
     this.skipped = false,
-    this.amountNeedsCheck = false,
+    this.unitChosenByUser = false,
   });
 
   bool get isResolved => resolved.isResolved;
@@ -55,6 +55,30 @@ class BulkAddRow extends Equatable {
 
   MealEntity? get meal =>
       isResolved ? resolved.candidates[selectedIndex] : null;
+
+  /// The user stated a count the app cannot interpret: no unit was typed and
+  /// the matched food has no scalable serving, so there is nothing for the
+  /// "2" in `2 eggs` to count. The row still logs — both fields are editable
+  /// — but it is marked so the eye lands on the one row needing a decision
+  /// rather than on a plausible-looking wrong number (#622).
+  ///
+  /// Derived rather than stored, so picking a different candidate
+  /// re-evaluates it against the food actually selected. A stored flag
+  /// survived the switch and could leave a wrong number unflagged.
+  ///
+  /// [MealEntity.hasServingValues] is deliberately *not* the gate: it is
+  /// also true for a record carrying only unparseable `servingSize` text
+  /// ("1 egg"), which `convertQuantityToBaseUnit` cannot scale. Only
+  /// `servingQuantity` makes a count convertible.
+  bool get amountNeedsCheck =>
+      !unitChosenByUser &&
+      // An unresolved row has no food to count, and already says so. A
+      // second complaint about its amount is noise on a row that cannot be
+      // logged anyway.
+      isResolved &&
+      resolved.parsed.quantity != null &&
+      resolved.parsed.unit == null &&
+      meal?.servingQuantity == null;
 
   List<String> get allowedUnits => [
     if (meal?.hasServingValues ?? false) UnitDropdownItem.serving.toString(),
@@ -86,13 +110,14 @@ class BulkAddRow extends Equatable {
     String? amountText,
     String? unit,
     bool? skipped,
+    bool? unitChosenByUser,
   }) => BulkAddRow(
     resolved: resolved,
     selectedIndex: selectedIndex ?? this.selectedIndex,
     amountText: amountText ?? this.amountText,
     unit: unit ?? this.unit,
     skipped: skipped ?? this.skipped,
-    amountNeedsCheck: amountNeedsCheck,
+    unitChosenByUser: unitChosenByUser ?? this.unitChosenByUser,
   );
 
   @override
@@ -102,7 +127,7 @@ class BulkAddRow extends Equatable {
     amountText,
     unit,
     skipped,
-    amountNeedsCheck,
+    unitChosenByUser,
   ];
 }
 
@@ -153,7 +178,6 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
                 selectedIndex: item.selectedIndex,
                 amountText: _initialAmount(item, event.usesImperialUnits),
                 unit: _initialUnit(item, event.usesImperialUnits),
-                amountNeedsCheck: _amountNeedsCheck(item),
               ),
           ],
           parseErrors: parsed.errors,
@@ -187,37 +211,31 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     if (parsedUnit != null) return parsedUnit;
 
     final meal = item.selected;
-    final hasServing = meal != null && meal.hasServingValues;
+    final fallback = usesImperialUnits
+        ? UnitDropdownItem.oz.toString()
+        : UnitDropdownItem.gml.toString();
+    if (meal == null) return fallback;
 
-    // A bare count means "N of them", and when the food carries serving
-    // data that is precisely what a serving is — so `2 eggs` is two
+    // A bare count means "N of them", and when the record's serving can be
+    // scaled that is precisely what a serving is — so `2 eggs` is two
     // servings. Falling through to grams instead turned a count into a
     // weight and logged two grams of egg (#622).
-    if (item.parsed.quantity != null && hasServing) {
+    //
+    // Gate on `servingQuantity`, not `hasServingValues`: the latter is also
+    // true for a record with only unparseable `servingSize` text, which
+    // `convertQuantityToBaseUnit` leaves unscaled. Labelling those `serving`
+    // would rename the bug rather than fix it — the row would read
+    // "2 serving" and still log 2 g. Those fall through to the weight
+    // default below and are marked by `BulkAddRow.amountNeedsCheck`.
+    if (item.parsed.quantity != null && meal.servingQuantity != null) {
       return UnitDropdownItem.serving.toString();
     }
 
-    if (hasServing) {
+    if (meal.hasServingValues) {
       return meal.servingUnit ?? UnitDropdownItem.gml.toString();
     }
-    return usesImperialUnits
-        ? UnitDropdownItem.oz.toString()
-        : UnitDropdownItem.gml.toString();
+    return fallback;
   }
-
-  /// A stated count the app cannot interpret: no unit was typed and the
-  /// matched food carries no serving data, so there is nothing for "2" to
-  /// count. The row still logs — the amount and unit are editable — but it
-  /// is marked so the user's eye lands on the one row that needs a decision
-  /// rather than on a plausible-looking wrong number.
-  bool _amountNeedsCheck(ResolvedMealItem item) =>
-      // An unresolved row has no food to count, and already says so. Adding
-      // a second complaint about its amount is noise on a row that cannot
-      // be logged anyway.
-      item.isResolved &&
-      item.parsed.quantity != null &&
-      item.parsed.unit == null &&
-      !(item.selected?.hasServingValues ?? false);
 
   static String _trimZeros(double value) => value == value.roundToDouble()
       ? value.toInt().toString()
@@ -243,7 +261,13 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
   }
 
   void _onChangeUnit(ChangeRowUnitEvent event, Emitter<BulkAddState> emit) {
-    _updateRow(event.rowIndex, emit, (row) => row.copyWith(unit: event.unit));
+    _updateRow(
+      event.rowIndex,
+      emit,
+      // Picking a unit answers the question `amountNeedsCheck` was asking,
+      // so the row stops asking it.
+      (row) => row.copyWith(unit: event.unit, unitChosenByUser: true),
+    );
   }
 
   void _onToggleSkipped(
