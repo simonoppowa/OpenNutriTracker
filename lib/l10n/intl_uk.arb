@@ -1105,7 +1105,7 @@
   "scannerLockOrientationTooltip": "Зафіксувати вертикально",
   "scannerUnlockOrientationTooltip": "Дозволити обертання",
   "bulkAddTitle": "Додати кілька позицій",
-  "bulkAddInputHint": "2 яйця, 100г тост, чорна кава",
+  "bulkAddInputHint": "2 яйця, 100g тост, чорна кава",
   "bulkAddParseLabel": "Знайти продукти",
   "bulkAddSubmitLabel": "Записати {count} позицій",
   "bulkAddNoMatchLabel": "Не вдалося знайти відповідник",

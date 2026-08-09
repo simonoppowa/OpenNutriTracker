@@ -1106,7 +1106,7 @@
   "scannerLockOrientationTooltip": "锁定为竖屏",
   "scannerUnlockOrientationTooltip": "允许旋转",
   "bulkAddTitle": "批量添加",
-  "bulkAddInputHint": "2个鸡蛋、100克吐司、黑咖啡",
+  "bulkAddInputHint": "100g 吐司, 250ml 牛奶, 黑咖啡",
   "bulkAddParseLabel": "查找食物",
   "bulkAddSubmitLabel": "记录 {count} 项",
   "bulkAddNoMatchLabel": "未找到匹配的食物",
