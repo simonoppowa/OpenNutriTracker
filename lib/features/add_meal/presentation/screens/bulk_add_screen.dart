@@ -1,4 +1,7 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:logging/logging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -8,6 +11,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/util/meal_quantity_converter.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class BulkAddScreenArguments {
@@ -37,7 +41,16 @@ class BulkAddScreen extends StatefulWidget {
   State<BulkAddScreen> createState() => _BulkAddScreenState();
 }
 
+/// Same shape the manual-entry quantity field enforces
+/// (`meal_detail_bottom_sheet.dart`), so the bulk path accepts exactly what
+/// manual entry does — no scientific notation, at most two decimals.
+final _quantityPattern = RegExp(r'^\d+([.,]\d{0,2})?$');
+
+/// Matches the manual-entry upper bound.
+const _maxQuantity = 10000;
+
 class _BulkAddScreenState extends State<BulkAddScreen> {
+  final _log = Logger('BulkAddScreen');
   final _bloc = locator<BulkAddBloc>();
   final _textController = TextEditingController();
 
@@ -57,6 +70,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
   @override
   void dispose() {
+    // registerFactory hands out a new instance per navigation, so this
+    // screen owns it and has to close it.
+    _bloc.close();
     _textController.dispose();
     for (final controller in _amountControllers.values) {
       controller.dispose();
@@ -194,8 +210,13 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        // User content inside a Row: shrink to fit before
+                        // ellipsizing, never wrap (AGENTS.md).
+                        AutoSizeText(
                           title,
+                          maxLines: 1,
+                          minFontSize: 12,
+                          overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleSmall?.copyWith(
                             decoration: row.skipped
                                 ? TextDecoration.lineThrough
@@ -222,6 +243,11 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                     ),
                   ),
                 ),
+                if (!row.isResolved)
+                  TextButton(
+                    onPressed: _onQuickAddPressed,
+                    child: Text(S.of(context).quickAddCardLabel),
+                  ),
                 TextButton(
                   onPressed: () => _bloc.add(ToggleRowSkippedEvent(index)),
                   child: Text(
@@ -264,6 +290,11 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              // Same shape the manual-entry field enforces, so the two
+              // paths accept exactly the same input.
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(_quantityPattern),
+              ],
               decoration: InputDecoration(
                 labelText: S.of(context).quantityLabel,
                 isDense: true,
@@ -286,9 +317,28 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
               if (value != null) _bloc.add(ChangeRowUnitEvent(index, value));
             },
           ),
+          const Spacer(),
+          // What this row will actually cost. Without it the user is asked
+          // to confirm a batch without seeing its size.
+          Text(
+            _kcalLabel(context, row),
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
         ],
       ),
     );
+  }
+
+  /// Empty when the amount is not yet a usable number or the food carries no
+  /// energy value — a half-typed field should not flash an error.
+  String _kcalLabel(BuildContext context, BulkAddRow row) {
+    final meal = row.meal;
+    if (meal == null) return '';
+    final quantity = double.tryParse(row.amountText.replaceAll(',', '.'));
+    if (quantity == null || quantity <= 0) return '';
+    final kcal = kcalForQuantity(quantity, row.unit, meal);
+    if (kcal == null) return '';
+    return '${kcal.round()} ${S.of(context).kcalLabel}';
   }
 
   Widget _buildSubmitBar(BuildContext context, BulkAddLoadedState state) {
@@ -325,32 +375,44 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     );
   }
 
+  /// An item the search could not match is a dead end without this — the
+  /// user would have to leave, add it by hand and start over. Pops back to
+  /// the meal screen, whose Quick Add sheet already handles free-form entry.
+  void _onQuickAddPressed() {
+    Navigator.of(context).pop();
+  }
+
   Future<void> _showCandidatePicker(int index, BulkAddRow row) async {
     final chosen = await showModalBottomSheet<int>(
       context: context,
       builder: (context) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                S.of(context).bulkAddChooseFoodLabel,
-                style: Theme.of(context).textTheme.titleMedium,
+        // Label the surface, not each row — identifiers would churn with
+        // the candidate count.
+        child: Semantics(
+          identifier: 'bulk-add-candidate-list',
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  S.of(context).bulkAddChooseFoodLabel,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
-            ),
-            for (var i = 0; i < row.resolved.candidates.length; i++)
-              ListTile(
-                title: Text(row.resolved.candidates[i].name ?? ''),
-                subtitle: row.resolved.candidates[i].brands != null
-                    ? Text(row.resolved.candidates[i].brands!)
-                    : null,
-                trailing: i == row.selectedIndex
-                    ? const Icon(Icons.check)
-                    : null,
-                onTap: () => Navigator.of(context).pop(i),
-              ),
-          ],
+              for (var i = 0; i < row.resolved.candidates.length; i++)
+                ListTile(
+                  title: Text(row.resolved.candidates[i].name ?? ''),
+                  subtitle: row.resolved.candidates[i].brands != null
+                      ? Text(row.resolved.candidates[i].brands!)
+                      : null,
+                  trailing: i == row.selectedIndex
+                      ? const Icon(Icons.check)
+                      : null,
+                  onTap: () => Navigator.of(context).pop(i),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -366,9 +428,18 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   Future<void> _onSubmitPressed(BulkAddLoadedState state) async {
     final rows = state.loggableRows.toList();
 
+    // Validate the whole batch before writing any of it. addIntake parses
+    // the amount with `double.parse` and no guard, so one bad row would
+    // otherwise throw mid-loop and leave the rows before it already
+    // written, with no rollback.
+    final amounts = <double>[];
     for (final row in rows) {
-      final quantity = double.tryParse(row.amountText.replaceAll(',', '.'));
-      if (quantity == null || quantity <= 0 || quantity > 10000) {
+      final text = row.amountText.trim();
+      final quantity = double.tryParse(text.replaceAll(',', '.'));
+      if (!_quantityPattern.hasMatch(text) ||
+          quantity == null ||
+          quantity <= 0 ||
+          quantity > _maxQuantity) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -379,21 +450,37 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         );
         return;
       }
+      // Store the value the intake is actually written with: nutriment
+      // values are per gram/millilitre, so oz / fl.oz / serving have to be
+      // converted first. Logging the raw amount stores 4 g for 4 oz.
+      amounts.add(convertQuantityToBaseUnit(quantity, row.unit, row.meal!));
     }
 
     setState(() => _submitting = true);
 
     final mealDetailBloc = locator<MealDetailBloc>();
-    for (final row in rows) {
+    try {
+      // Sequential, not concurrent. The tracked-day totals are accumulated
+      // with a read-modify-write, so overlapping writes lose updates and
+      // the day silently under-counts.
+      for (var i = 0; i < rows.length; i++) {
+        await mealDetailBloc.addIntake(
+          context,
+          rows[i].unit,
+          amounts[i].toString(),
+          _args.intakeTypeEntity,
+          rows[i].meal!,
+          _args.day,
+        );
+      }
+    } catch (e, stackTrace) {
+      _log.severe('Bulk intake write failed', e, stackTrace);
       if (!mounted) return;
-      mealDetailBloc.addIntake(
-        context,
-        row.unit,
-        row.amountText,
-        _args.intakeTypeEntity,
-        row.meal!,
-        _args.day,
+      setState(() => _submitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).bulkAddSearchFailedLabel)),
       );
+      return;
     }
 
     if (!mounted) return;
