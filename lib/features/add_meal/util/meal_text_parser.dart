@@ -102,6 +102,10 @@ final _trailingQuantity = RegExp(
   '^(.+?)\\s+($_number)\\s*($_unitSymbol)?\\s*\$',
   caseSensitive: false,
 );
+final _quantityAndUnitOnly = RegExp(
+  '^($_number)\\s*($_unitSymbol)\\s*\$',
+  caseSensitive: false,
+);
 
 /// Both decimal separators reach here; `double.parse` only accepts `.`.
 double _parseQuantity(String raw) => double.parse(raw.replaceAll(',', '.'));
@@ -124,6 +128,15 @@ class _Extracted {
 /// number, more often a product code than anything else) is left whole for
 /// the search rather than silently losing the `100xyz`.
 _Extracted _extractQuantityAndUnit(String segment) {
+  final quantityOnly = _quantityAndUnitOnly.firstMatch(segment);
+  if (quantityOnly != null) {
+    return _Extracted(
+      query: '',
+      quantity: _parseQuantity(quantityOnly.group(1)!),
+      unit: quantityOnly.group(2)!.toLowerCase(),
+    );
+  }
+
   final leading = _leadingQuantity.firstMatch(segment);
   if (leading != null) {
     return _Extracted(

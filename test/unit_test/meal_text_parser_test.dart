@@ -314,6 +314,13 @@ void main() {
   });
 
   group('parseMealText food-name validation', () {
+    test('a quantity and unit without a food name is rejected', () {
+      final result = parseMealText('100g');
+
+      expect(result.items, isEmpty);
+      expect(result.errors, ['Item 1: not a valid food name']);
+    });
+
     test('a segment with no letters (123) is rejected', () {
       final result = parseMealText('123');
 
