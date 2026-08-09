@@ -15,6 +15,15 @@ on:
     branches:
       - main
       - develop
+      # Long-lived integration branches, where a multi-PR feature is staged
+      # before it reaches `develop` as one merge. Without an entry here a PR
+      # retargeted onto one of these silently gets *no* checks at all — the
+      # PR still reports mergeable, so the absence is easy to miss.
+      #
+      # This is scoped to `feature/**` rather than `**` on purpose: it should
+      # cover deliberate integration branches without firing a full CI run on
+      # every PR between two arbitrary topic branches.
+      - 'feature/**'
   workflow_dispatch:
 
 jobs:
