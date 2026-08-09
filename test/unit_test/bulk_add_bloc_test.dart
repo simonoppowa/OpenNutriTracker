@@ -116,6 +116,23 @@ void main() {
     expect(state.rows.single.unit, 'g');
   });
 
+  test('changing candidates falls back from unsupported units', () async {
+    final bloc = blocWith({
+      'drink': [
+        meal('Drink', servingQuantity: 330, servingUnit: 'ml'),
+        meal('Alternative'),
+      ],
+    });
+    await parse(bloc, 'drink');
+
+    bloc.add(const ChangeRowUnitEvent(0, 'serving'));
+    await bloc.stream.first;
+    bloc.add(const ChangeRowCandidateEvent(0, 1));
+    final state = await bloc.stream.first as BulkAddLoadedState;
+
+    expect(state.rows.single.effectiveUnit, 'g/ml');
+  });
+
   test('unresolved rows are kept and are not loggable', () async {
     final bloc = blocWith({
       'toast': [meal('Toast')],

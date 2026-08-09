@@ -4,9 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -33,7 +35,7 @@ class BulkAddScreenArguments {
 /// against the food database and invents no numbers, so today that is a
 /// correctness concern; once a model tier lands it also becomes the human
 /// review that AI Act Art. 50(4) and both providers' usage policies expect.
-/// See #599 and `docs/ai-legal-constraints.md` before removing it.
+/// See #599 before removing it.
 class BulkAddScreen extends StatefulWidget {
   const BulkAddScreen({super.key});
 
@@ -245,7 +247,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                 ),
                 if (!row.isResolved)
                   TextButton(
-                    onPressed: _onQuickAddPressed,
+                    onPressed: _showQuickAdd,
                     child: Text(S.of(context).quickAddCardLabel),
                   ),
                 TextButton(
@@ -306,22 +308,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           ),
           const SizedBox(width: 12),
           DropdownButton<String>(
-            value: MealDetailUnits.all.contains(row.unit)
-                ? row.unit
-                : MealDetailUnits.gml,
-            items: [
-              for (final unit in MealDetailUnits.all)
-                DropdownMenuItem(value: unit, child: Text(unit)),
-            ],
+            value: row.effectiveUnit,
+            items: _unitItems(context, row),
             onChanged: (value) {
               if (value != null) _bloc.add(ChangeRowUnitEvent(index, value));
             },
           ),
           const Spacer(),
-          // What this row will actually cost. Without it the user is asked
-          // to confirm a batch without seeing its size.
           Text(
-            _kcalLabel(context, row),
+            _energyLabel(context, row),
             style: Theme.of(context).textTheme.titleSmall,
           ),
         ],
@@ -329,17 +324,37 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     );
   }
 
-  /// Empty when the amount is not yet a usable number or the food carries no
-  /// energy value — a half-typed field should not flash an error.
-  String _kcalLabel(BuildContext context, BulkAddRow row) {
+  /// Empty when the amount is not yet usable or the food has no energy value.
+  String _energyLabel(BuildContext context, BulkAddRow row) {
     final meal = row.meal;
     if (meal == null) return '';
     final quantity = double.tryParse(row.amountText.replaceAll(',', '.'));
     if (quantity == null || quantity <= 0) return '';
-    final kcal = kcalForQuantity(quantity, row.unit, meal);
-    if (kcal == null) return '';
-    return '${kcal.round()} ${S.of(context).kcalLabel}';
+    final kcal = kcalForQuantity(quantity, row.effectiveUnit, meal);
+    return kcal == null ? '' : EnergyDisplay.formatWithUnit(context, kcal);
   }
+
+  List<DropdownMenuItem<String>> _unitItems(
+    BuildContext context,
+    BulkAddRow row,
+  ) => [
+    for (final unit in row.allowedUnits)
+      DropdownMenuItem(
+        value: unit,
+        child: Text(
+          switch (UnitDropdownItem.g.fromString(unit)) {
+            UnitDropdownItem.g => S.of(context).gramUnit,
+            UnitDropdownItem.ml => S.of(context).milliliterUnit,
+            UnitDropdownItem.gml => S.of(context).gramMilliliterUnit,
+            UnitDropdownItem.oz => S.of(context).ozUnit,
+            UnitDropdownItem.flOz => S.of(context).flOzUnit,
+            UnitDropdownItem.serving => S.of(context).servingLabel,
+          },
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+  ];
 
   Widget _buildSubmitBar(BuildContext context, BulkAddLoadedState state) {
     final count = state.loggableCount;
@@ -373,13 +388,6 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         usesImperialUnits: _args.usesImperialUnits,
       ),
     );
-  }
-
-  /// An item the search could not match is a dead end without this — the
-  /// user would have to leave, add it by hand and start over. Pops back to
-  /// the meal screen, whose Quick Add sheet already handles free-form entry.
-  void _onQuickAddPressed() {
-    Navigator.of(context).pop();
   }
 
   Future<void> _showCandidatePicker(int index, BulkAddRow row) async {
@@ -419,6 +427,18 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     if (chosen != null) _bloc.add(ChangeRowCandidateEvent(index, chosen));
   }
 
+  void _showQuickAdd() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => QuickAddBottomSheet(
+        intakeType: _args.intakeTypeEntity,
+        day: _args.day,
+      ),
+    );
+  }
+
   /// Validate the whole batch, then write it.
   ///
   /// `MealDetailBloc.addIntake` calls `double.parse` with no guard, so a
@@ -453,7 +473,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       // Store the value the intake is actually written with: nutriment
       // values are per gram/millilitre, so oz / fl.oz / serving have to be
       // converted first. Logging the raw amount stores 4 g for 4 oz.
-      amounts.add(convertQuantityToBaseUnit(quantity, row.unit, row.meal!));
+      amounts.add(
+        convertQuantityToBaseUnit(quantity, row.effectiveUnit, row.meal!),
+      );
     }
 
     setState(() => _submitting = true);
@@ -466,7 +488,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       for (var i = 0; i < rows.length; i++) {
         await mealDetailBloc.addIntake(
           context,
-          rows[i].unit,
+          rows[i].effectiveUnit,
           amounts[i].toString(),
           _args.intakeTypeEntity,
           rows[i].meal!,

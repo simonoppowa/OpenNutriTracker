@@ -4,6 +4,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 
 part 'bulk_add_event.dart';
 part 'bulk_add_state.dart';
@@ -49,6 +50,28 @@ class BulkAddRow extends Equatable {
 
   MealEntity? get meal =>
       isResolved ? resolved.candidates[selectedIndex] : null;
+
+  List<String> get allowedUnits => [
+    if (meal?.hasServingValues ?? false) UnitDropdownItem.serving.toString(),
+    if (meal?.isSolid ?? false) ...[
+      UnitDropdownItem.g.toString(),
+      UnitDropdownItem.oz.toString(),
+    ],
+    if (meal?.isLiquid ?? false) ...[
+      UnitDropdownItem.ml.toString(),
+      UnitDropdownItem.flOz.toString(),
+    ],
+    if (!(meal?.isSolid ?? false) && !(meal?.isLiquid ?? false)) ...[
+      UnitDropdownItem.g.toString(),
+      UnitDropdownItem.oz.toString(),
+      UnitDropdownItem.ml.toString(),
+      UnitDropdownItem.flOz.toString(),
+    ],
+    UnitDropdownItem.gml.toString(),
+  ];
+
+  String get effectiveUnit =>
+      allowedUnits.contains(unit) ? unit : UnitDropdownItem.gml.toString();
 
   /// Rows that will actually be written when the user confirms.
   bool get willBeLogged => isResolved && !skipped;
@@ -157,9 +180,11 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
 
     final meal = item.selected;
     if (meal != null && meal.hasServingValues) {
-      return meal.servingUnit ?? MealDetailUnits.gml;
+      return meal.servingUnit ?? UnitDropdownItem.gml.toString();
     }
-    return usesImperialUnits ? MealDetailUnits.oz : MealDetailUnits.gml;
+    return usesImperialUnits
+        ? UnitDropdownItem.oz.toString()
+        : UnitDropdownItem.gml.toString();
   }
 
   static String _trimZeros(double value) => value == value.roundToDouble()
@@ -213,20 +238,4 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     rows[index] = change(rows[index]);
     emit(current.copyWith(rows: rows));
   }
-}
-
-/// The six values `UnitDropdownItem.toString()` produces. Duplicated as
-/// plain strings rather than importing the meal-detail bloc: the rows carry
-/// units as text all the way to `addIntake`, which takes a String.
-class MealDetailUnits {
-  const MealDetailUnits._();
-
-  static const g = 'g';
-  static const ml = 'ml';
-  static const gml = 'g/ml';
-  static const oz = 'oz';
-  static const flOz = 'fl.oz';
-  static const serving = 'serving';
-
-  static const all = [g, ml, gml, oz, flOz, serving];
 }
