@@ -90,7 +90,13 @@ class BulkAddRow extends Equatable {
       meal?.servingQuantity == null;
 
   List<String> get allowedUnits => [
-    if (meal?.hasServingValues ?? false) UnitDropdownItem.serving.toString(),
+    // Only when the serving can actually be scaled. `hasServingValues` is
+    // also true for a record carrying nothing but `servingSize` text, and
+    // `convertQuantityToBaseUnit` leaves those unscaled — so offering
+    // `serving` there is a no-op dressed as a fix. Worse, it is the option
+    // a user reaches for after reading `amountNeedsCheck`: picking it
+    // relabels the row, clears the warning and logs the same wrong number.
+    if (meal?.servingQuantity != null) UnitDropdownItem.serving.toString(),
     if (meal?.isSolid ?? false) ...[
       UnitDropdownItem.g.toString(),
       UnitDropdownItem.oz.toString(),

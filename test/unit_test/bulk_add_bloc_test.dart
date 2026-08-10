@@ -203,6 +203,21 @@ void main() {
       expect(row.willBeLogged, isFalse);
     });
 
+    test('a serving that cannot be scaled is not offered as a unit', () async {
+      // The trap this closes: the row is flagged, the user reads "check the
+      // unit", picks the one that obviously means "two of them" — and the
+      // app relabels the row, drops the warning and logs the same 2 g.
+      final bloc = blocWith({
+        'eggs': [meal('Egg', servingSize: '1 egg')],
+        'yoghurt': [meal('Yoghurt', servingQuantity: 125)],
+      });
+
+      final rows = (await parse(bloc, '2 eggs, yoghurt')).rows;
+
+      expect(rows[0].allowedUnits, isNot(contains('serving')));
+      expect(rows[1].allowedUnits, contains('serving'));
+    });
+
     test('unparseable serving text is not read as a count', () async {
       // OFF derives `serving_quantity` by parsing the `serving_size` text;
       // strings like "1 egg" do not parse, so quantity stays null while
