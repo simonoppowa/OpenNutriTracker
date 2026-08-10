@@ -1115,5 +1115,8 @@
   "bulkAddChooseFoodLabel": "Вибрати інший продукт",
   "bulkAddNothingToLogLabel": "Поки що нічого записувати",
   "bulkAddSearchFailedLabel": "Не вдалося виконати пошук продуктів",
-  "bulkAddCheckAmountLabel": "Перевірте одиницю для цієї кількості"
+  "bulkAddCheckAmountLabel": "Перевірте одиницю для цієї кількості",
+  "bulkAddErrorInvalidName": "Пункт {number}: некоректна назва продукту",
+  "bulkAddErrorQuantityTooSmall": "Пункт {number}: кількість має бути більшою за 0",
+  "bulkAddErrorQuantityTooLarge": "Пункт {number}: кількість не може перевищувати {bound}"
 }

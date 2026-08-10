@@ -148,7 +148,7 @@ Future<void> _register(
 /// The screen reads its arguments off the route and pops back to
 /// `mainRoute`, so it needs a real navigator with that route named. The
 /// rows render kcal through `EnergyDisplay`, which reads the provider.
-Widget _app({bool imperial = false}) =>
+Widget _app({bool imperial = false, Locale? locale}) =>
     ChangeNotifierProvider<EnergyUnitProvider>(
       create: (_) => EnergyUnitProvider(usesKilojoules: false),
       child: MaterialApp(
@@ -159,6 +159,7 @@ Widget _app({bool imperial = false}) =>
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: S.supportedLocales,
+        locale: locale,
         initialRoute: NavigationOptions.mainRoute,
         onGenerateRoute: (settings) {
           if (settings.name == NavigationOptions.mainRoute) {
@@ -189,7 +190,9 @@ Future<void> _parse(WidgetTester tester, String text) async {
   await tester.pumpAndSettle();
 
   await tester.enterText(find.byType(TextField).first, text);
-  await tester.tap(find.text(l10nEn.bulkAddParseLabel));
+  // By icon, not label: these tests also pump a German locale, where the
+  // button reads something else entirely.
+  await tester.tap(find.widgetWithIcon(FilledButton, Icons.search));
   await tester.pumpAndSettle();
 }
 
@@ -334,9 +337,10 @@ void main() {
     await _parse(tester, '100g toast, 123');
 
     // The good row survives and the bad one is named by its position, so a
-    // rejected item is never a silent drop.
+    // rejected item is never a silent drop. Asserted through the ARB string
+    // rather than a literal, so the localized text is what is checked.
     expect(find.text('Toast'), findsOneWidget);
-    expect(find.text('Item 2: not a valid food name'), findsOneWidget);
+    expect(find.text(l10nEn.bulkAddErrorInvalidName(2)), findsOneWidget);
 
     await tester.tap(_submitButton());
     await tester.pumpAndSettle();
@@ -384,5 +388,34 @@ void main() {
 
     expect(find.text('Egg, boxed'), findsOneWidget);
     expect(find.text(l10nEn.bulkAddCheckAmountLabel), findsNothing);
+  });
+
+  testWidgets('parse errors render in the app locale, not English', (
+    tester,
+  ) async {
+    // #631. These were built as English literals inside the parser, so a
+    // German user saw "Item 2: not a valid food name" in an otherwise
+    // translated screen. The parser now reports a kind and an index and the
+    // screen builds the sentence, so this asserts the German text.
+    await _register({
+      'toast': [_meal('Toast')],
+    });
+    await tester.pumpWidget(_app(locale: const Locale('de')));
+    await _parse(tester, '100g toast, 123');
+
+    final de = lookupS(const Locale('de'));
+    expect(find.text(de.bulkAddErrorInvalidName(2)), findsOneWidget);
+    expect(find.text('Item 2: not a valid food name'), findsNothing);
+  });
+
+  testWidgets('a rejected bound is reported with its number', (tester) async {
+    await _register({});
+    await tester.pumpWidget(_app());
+    await _parse(tester, '15kg flour');
+
+    expect(
+      find.text(l10nEn.bulkAddErrorQuantityTooLarge(1, 10000)),
+      findsOneWidget,
+    );
   });
 }

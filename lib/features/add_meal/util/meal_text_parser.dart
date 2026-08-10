@@ -26,13 +26,93 @@ class ParsedMealItem {
       'ParsedMealItem(query: $query, quantity: $quantity, unit: $unit)';
 }
 
-/// Result of [parseMealText]. [errors] holds a one-line, item-indexed
-/// reason for each segment that could not be turned into a [ParsedMealItem]
-/// — empty segments (e.g. a trailing comma) are skipped silently and never
-/// produce an error.
+/// One rejected segment, identified by its position in the input.
+///
+/// Deliberately not a message. [parseMealText] is a pure function with no
+/// `BuildContext`, so it cannot reach `S.of(context)`; building the string
+/// here shipped English into all nine locales (#631). The reason and the
+/// numbers travel instead, and the render site localizes them.
+///
+/// Sealed, with the data each reason needs on the subtype rather than a
+/// nullable field beside a kind. Only [QuantityTooLargeError] has a bound,
+/// so only it carries one — which means a bound can never be missing where
+/// it is needed, and the render site never has to invent a stand-in. An
+/// earlier shape allowed `quantityTooLarge` with no bound, and the screen
+/// defaulted it to 0 and told the user their quantity had to be "0 or
+/// less".
+sealed class MealTextParseError {
+  /// 1-based position among the segments the parser actually attempted.
+  /// Empty segments never consume a number.
+  final int itemNumber;
+
+  const MealTextParseError(this.itemNumber);
+}
+
+/// The segment carried no unicode letter, so there is no food to search
+/// for — a bare `123`, or punctuation on its own.
+final class InvalidFoodNameError extends MealTextParseError {
+  const InvalidFoodNameError(super.itemNumber);
+
+  @override
+  String toString() => 'InvalidFoodNameError(item: $itemNumber)';
+
+  @override
+  bool operator ==(Object other) =>
+      other is InvalidFoodNameError && other.itemNumber == itemNumber;
+
+  @override
+  int get hashCode => Object.hash(InvalidFoodNameError, itemNumber);
+}
+
+/// A quantity was stated but is zero or negative.
+final class QuantityTooSmallError extends MealTextParseError {
+  const QuantityTooSmallError(super.itemNumber);
+
+  @override
+  String toString() => 'QuantityTooSmallError(item: $itemNumber)';
+
+  @override
+  bool operator ==(Object other) =>
+      other is QuantityTooSmallError && other.itemNumber == itemNumber;
+
+  @override
+  int get hashCode => Object.hash(QuantityTooSmallError, itemNumber);
+}
+
+/// A quantity was stated but exceeds [bound]. Checked after kg/l
+/// conversion, so `15 kg` is rejected as 15000 g rather than a
+/// valid-looking 15.
+final class QuantityTooLargeError extends MealTextParseError {
+  /// The limit that was exceeded. An `int` because it is a cap rather than
+  /// a measurement, and because the string it feeds takes an integer
+  /// placeholder — keeping the types equal removes a lossy conversion at
+  /// the render site.
+  final int bound;
+
+  const QuantityTooLargeError(super.itemNumber, this.bound);
+
+  @override
+  String toString() =>
+      'QuantityTooLargeError(item: $itemNumber, '
+      'bound: $bound)';
+
+  @override
+  bool operator ==(Object other) =>
+      other is QuantityTooLargeError &&
+      other.itemNumber == itemNumber &&
+      other.bound == bound;
+
+  @override
+  int get hashCode => Object.hash(QuantityTooLargeError, itemNumber, bound);
+}
+
+/// Result of [parseMealText]. [errors] holds an item-indexed reason for
+/// each segment that could not be turned into a [ParsedMealItem] — empty
+/// segments (e.g. a trailing comma) are skipped silently and never produce
+/// an error.
 class MealTextParseResult {
   final List<ParsedMealItem> items;
-  final List<String> errors;
+  final List<MealTextParseError> errors;
 
   const MealTextParseResult({required this.items, required this.errors});
 
@@ -207,7 +287,7 @@ MealTextParseResult parseMealText(String input) {
   final segments = _segment(input.trim());
 
   final items = <ParsedMealItem>[];
-  final errors = <String>[];
+  final errors = <MealTextParseError>[];
 
   // Numbers only the segments actually attempted, matching "empty segments
   // are skipped, not errors" — a trailing comma doesn't consume an index.
@@ -219,7 +299,7 @@ MealTextParseResult parseMealText(String input) {
     final query = extracted.query.trim();
 
     if (!FoodNameValidator.isValid(query)) {
-      errors.add('Item $itemNum: not a valid food name');
+      errors.add(InvalidFoodNameError(itemNum));
       continue;
     }
 
@@ -234,11 +314,11 @@ MealTextParseResult parseMealText(String input) {
     // rather than silently becoming a valid-looking 15.
     if (quantity != null) {
       if (quantity <= 0) {
-        errors.add('Item $itemNum: quantity must be greater than 0');
+        errors.add(QuantityTooSmallError(itemNum));
         continue;
       }
       if (quantity > _maxQuantity) {
-        errors.add('Item $itemNum: quantity must be $_maxQuantity or less');
+        errors.add(QuantityTooLargeError(itemNum, _maxQuantity));
         continue;
       }
     }

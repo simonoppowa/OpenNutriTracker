@@ -75,4 +75,34 @@ void main() {
       }
     }
   });
+
+  test('every locale keeps the placeholders in its parser-error strings', () {
+    // #631 moved these out of the parser and into the ARBs. A translation
+    // that drops {number} still compiles and still renders — it just stops
+    // telling the user *which* item was rejected, which is the only part
+    // that makes the message actionable on a multi-item line.
+    for (final file in Directory('lib/l10n').listSync().whereType<File>()) {
+      final locale = file.path.split('intl_').last.replaceAll('.arb', '');
+      final arb = json.decode(file.readAsStringSync()) as Map<String, dynamic>;
+
+      for (final key in const [
+        'bulkAddErrorInvalidName',
+        'bulkAddErrorQuantityTooSmall',
+        'bulkAddErrorQuantityTooLarge',
+      ]) {
+        final value = arb[key] as String?;
+        expect(value, isNotNull, reason: '$locale is missing $key');
+        expect(
+          value,
+          contains('{number}'),
+          reason: '$locale dropped {number} from $key',
+        );
+      }
+      expect(
+        arb['bulkAddErrorQuantityTooLarge'] as String,
+        contains('{bound}'),
+        reason: '$locale dropped {bound} from the upper-bound message',
+      );
+    }
+  });
 }
