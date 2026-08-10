@@ -1200,5 +1200,32 @@
   "bulkAddNothingToLogLabel": "Nothing to log yet",
   "bulkAddSearchFailedLabel": "Couldn't search for these foods",
   "@bulkAddSubmitLabel": {"placeholders": {"count": {"type": "int"}}},
-  "bulkAddCheckAmountLabel": "Check the unit for this amount"
+  "bulkAddCheckAmountLabel": "Check the unit for this amount",
+  "bulkAddErrorInvalidName": "Item {number}: not a valid food name",
+  "@bulkAddErrorInvalidName": {
+      "placeholders": {
+          "number": {
+              "type": "int"
+          }
+      }
+  },
+  "bulkAddErrorQuantityTooSmall": "Item {number}: quantity must be greater than 0",
+  "@bulkAddErrorQuantityTooSmall": {
+      "placeholders": {
+          "number": {
+              "type": "int"
+          }
+      }
+  },
+  "bulkAddErrorQuantityTooLarge": "Item {number}: quantity must be {bound} or less",
+  "@bulkAddErrorQuantityTooLarge": {
+      "placeholders": {
+          "number": {
+              "type": "int"
+          },
+          "bound": {
+              "type": "int"
+          }
+      }
+  }
 }

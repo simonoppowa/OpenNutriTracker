@@ -1115,5 +1115,8 @@
   "bulkAddChooseFoodLabel": "Wybierz inny produkt",
   "bulkAddNothingToLogLabel": "Nie ma jeszcze nic do zapisania",
   "bulkAddSearchFailedLabel": "Nie udało się wyszukać produktów",
-  "bulkAddCheckAmountLabel": "Sprawdź jednostkę tej ilości"
+  "bulkAddCheckAmountLabel": "Sprawdź jednostkę tej ilości",
+  "bulkAddErrorInvalidName": "Pozycja {number}: nieprawidłowa nazwa produktu",
+  "bulkAddErrorQuantityTooSmall": "Pozycja {number}: ilość musi być większa niż 0",
+  "bulkAddErrorQuantityTooLarge": "Pozycja {number}: ilość nie może przekraczać {bound}"
 }

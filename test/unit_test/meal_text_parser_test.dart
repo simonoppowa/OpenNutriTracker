@@ -133,7 +133,12 @@ void main() {
 
       expect(result.items.single.quantity, 5000);
       expect(result.items.single.unit, 'ml');
-      expect(result.errors, ['Item 1: not a valid food name']);
+      expect(result.errors, [
+        const MealTextParseError(
+          itemNumber: 1,
+          kind: MealTextParseErrorKind.invalidName,
+        ),
+      ]);
     });
   });
 
@@ -207,21 +212,36 @@ void main() {
       final result = parseMealText('-5g sugar');
 
       expect(result.items, isEmpty);
-      expect(result.errors, ['Item 1: quantity must be greater than 0']);
+      expect(result.errors, [
+        const MealTextParseError(
+          itemNumber: 1,
+          kind: MealTextParseErrorKind.quantityTooSmall,
+        ),
+      ]);
     });
 
     test('a negative trailing quantity is rejected too', () {
       final result = parseMealText('sugar -5g');
 
       expect(result.items, isEmpty);
-      expect(result.errors, ['Item 1: quantity must be greater than 0']);
+      expect(result.errors, [
+        const MealTextParseError(
+          itemNumber: 1,
+          kind: MealTextParseErrorKind.quantityTooSmall,
+        ),
+      ]);
     });
 
     test('a negative kg quantity is rejected after conversion', () {
       final result = parseMealText('-5kg flour');
 
       expect(result.items, isEmpty);
-      expect(result.errors, ['Item 1: quantity must be greater than 0']);
+      expect(result.errors, [
+        const MealTextParseError(
+          itemNumber: 1,
+          kind: MealTextParseErrorKind.quantityTooSmall,
+        ),
+      ]);
     });
 
     test('a lone negative number is still an invalid food name', () {
@@ -231,7 +251,12 @@ void main() {
       final result = parseMealText('-123');
 
       expect(result.items, isEmpty);
-      expect(result.errors, ['Item 1: not a valid food name']);
+      expect(result.errors, [
+        const MealTextParseError(
+          itemNumber: 1,
+          kind: MealTextParseErrorKind.invalidName,
+        ),
+      ]);
     });
 
     test('a hyphen inside a food name is left alone', () {
@@ -364,13 +389,23 @@ void main() {
       final result = parseMealText('123');
 
       expect(result.items, isEmpty);
-      expect(result.errors, ['Item 1: not a valid food name']);
+      expect(result.errors, [
+        const MealTextParseError(
+          itemNumber: 1,
+          kind: MealTextParseErrorKind.invalidName,
+        ),
+      ]);
     });
 
     test('a valid segment after a rejected one keeps its own item number', () {
       final result = parseMealText('123, toast');
 
-      expect(result.errors, ['Item 1: not a valid food name']);
+      expect(result.errors, [
+        const MealTextParseError(
+          itemNumber: 1,
+          kind: MealTextParseErrorKind.invalidName,
+        ),
+      ]);
       expect(result.items.single.query, 'toast');
     });
 
@@ -379,7 +414,12 @@ void main() {
       // so the invalid '123' is still 'Item 1', not 'Item 2'.
       final result = parseMealText(',123');
 
-      expect(result.errors, ['Item 1: not a valid food name']);
+      expect(result.errors, [
+        const MealTextParseError(
+          itemNumber: 1,
+          kind: MealTextParseErrorKind.invalidName,
+        ),
+      ]);
     });
   });
 
@@ -388,14 +428,25 @@ void main() {
       final result = parseMealText('0g water');
 
       expect(result.items, isEmpty);
-      expect(result.errors, ['Item 1: quantity must be greater than 0']);
+      expect(result.errors, [
+        const MealTextParseError(
+          itemNumber: 1,
+          kind: MealTextParseErrorKind.quantityTooSmall,
+        ),
+      ]);
     });
 
     test('a quantity over 10000 is rejected', () {
       final result = parseMealText('10001g flour');
 
       expect(result.items, isEmpty);
-      expect(result.errors, ['Item 1: quantity must be 10000 or less']);
+      expect(result.errors, [
+        const MealTextParseError(
+          itemNumber: 1,
+          kind: MealTextParseErrorKind.quantityTooLarge,
+          bound: 10000,
+        ),
+      ]);
     });
 
     test('exactly 10000 is accepted', () {
@@ -411,7 +462,13 @@ void main() {
       final result = parseMealText('15kg flour');
 
       expect(result.items, isEmpty);
-      expect(result.errors, ['Item 1: quantity must be 10000 or less']);
+      expect(result.errors, [
+        const MealTextParseError(
+          itemNumber: 1,
+          kind: MealTextParseErrorKind.quantityTooLarge,
+          bound: 10000,
+        ),
+      ]);
     });
   });
 

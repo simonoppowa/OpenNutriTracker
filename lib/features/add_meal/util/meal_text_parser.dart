@@ -26,13 +26,66 @@ class ParsedMealItem {
       'ParsedMealItem(query: $query, quantity: $quantity, unit: $unit)';
 }
 
-/// Result of [parseMealText]. [errors] holds a one-line, item-indexed
-/// reason for each segment that could not be turned into a [ParsedMealItem]
-/// — empty segments (e.g. a trailing comma) are skipped silently and never
-/// produce an error.
+/// Why a segment could not be turned into a [ParsedMealItem].
+enum MealTextParseErrorKind {
+  /// The segment carried no unicode letter, so there is no food to search
+  /// for — a bare `123`, or punctuation on its own.
+  invalidName,
+
+  /// A quantity was stated but is zero or negative.
+  quantityTooSmall,
+
+  /// A quantity was stated but exceeds [MealTextParseError.bound]. Checked
+  /// after kg/l conversion, so `15 kg` is rejected as 15000 g.
+  quantityTooLarge,
+}
+
+/// One rejected segment, identified by its position in the input.
+///
+/// Deliberately not a message. [parseMealText] is a pure function with no
+/// `BuildContext`, so it cannot reach `S.of(context)`; building the string
+/// here shipped English into all nine locales (#631). The kind and the
+/// numbers travel instead, and the render site localizes them.
+class MealTextParseError {
+  /// 1-based position among the segments the parser actually attempted.
+  /// Empty segments never consume a number.
+  final int itemNumber;
+
+  final MealTextParseErrorKind kind;
+
+  /// The limit that was exceeded, set only for
+  /// [MealTextParseErrorKind.quantityTooLarge].
+  final double? bound;
+
+  const MealTextParseError({
+    required this.itemNumber,
+    required this.kind,
+    this.bound,
+  });
+
+  @override
+  String toString() =>
+      'MealTextParseError(item: $itemNumber, kind: ${kind.name}, '
+      'bound: $bound)';
+
+  @override
+  bool operator ==(Object other) =>
+      other is MealTextParseError &&
+      other.itemNumber == itemNumber &&
+      other.kind == kind &&
+      other.bound == bound;
+
+  @override
+  int get hashCode => Object.hash(itemNumber, kind, bound);
+}
+
+/// Result of [parseMealText]. [errors] holds an item-indexed reason for
+/// each segment that could not be turned into a [ParsedMealItem] — empty
+/// segments (e.g. a trailing comma) are skipped silently and never produce
+/// an error.
 class MealTextParseResult {
   final List<ParsedMealItem> items;
-  final List<String> errors;
+  final List<MealTextParseError> errors;
 
   const MealTextParseResult({required this.items, required this.errors});
 
@@ -207,7 +260,7 @@ MealTextParseResult parseMealText(String input) {
   final segments = _segment(input.trim());
 
   final items = <ParsedMealItem>[];
-  final errors = <String>[];
+  final errors = <MealTextParseError>[];
 
   // Numbers only the segments actually attempted, matching "empty segments
   // are skipped, not errors" — a trailing comma doesn't consume an index.
@@ -219,7 +272,12 @@ MealTextParseResult parseMealText(String input) {
     final query = extracted.query.trim();
 
     if (!FoodNameValidator.isValid(query)) {
-      errors.add('Item $itemNum: not a valid food name');
+      errors.add(
+        MealTextParseError(
+          itemNumber: itemNum,
+          kind: MealTextParseErrorKind.invalidName,
+        ),
+      );
       continue;
     }
 
@@ -234,11 +292,22 @@ MealTextParseResult parseMealText(String input) {
     // rather than silently becoming a valid-looking 15.
     if (quantity != null) {
       if (quantity <= 0) {
-        errors.add('Item $itemNum: quantity must be greater than 0');
+        errors.add(
+          MealTextParseError(
+            itemNumber: itemNum,
+            kind: MealTextParseErrorKind.quantityTooSmall,
+          ),
+        );
         continue;
       }
       if (quantity > _maxQuantity) {
-        errors.add('Item $itemNum: quantity must be $_maxQuantity or less');
+        errors.add(
+          MealTextParseError(
+            itemNumber: itemNum,
+            kind: MealTextParseErrorKind.quantityTooLarge,
+            bound: _maxQuantity.toDouble(),
+          ),
+        );
         continue;
       }
     }

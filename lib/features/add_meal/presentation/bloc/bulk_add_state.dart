@@ -24,10 +24,12 @@ class BulkAddErrorState extends BulkAddState {
 class BulkAddLoadedState extends BulkAddState {
   final List<BulkAddRow> rows;
 
-  /// Per-segment complaints from the parser, already indexed ("Item 2: ...").
-  /// Shown alongside the rows rather than replacing them — a line with one
-  /// bad segment and three good ones should still log the three.
-  final List<String> parseErrors;
+  /// Per-segment complaints from the parser, carrying the item number and
+  /// the reason rather than a message — the string is built at the render
+  /// site so it can be localized (#631). Shown alongside the rows rather
+  /// than replacing them: a line with one bad segment and three good ones
+  /// should still log the three.
+  final List<MealTextParseError> parseErrors;
 
   final bool usesImperialUnits;
 

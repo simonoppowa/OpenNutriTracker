@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
+import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
@@ -149,7 +150,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         context,
         state.parseErrors.isEmpty
             ? S.of(context).bulkAddNothingToLogLabel
-            : state.parseErrors.join('\n'),
+            : _parseErrorsText(context, state.parseErrors),
       );
     }
 
@@ -176,16 +177,41 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     child: Center(child: Text(message, textAlign: TextAlign.center)),
   );
 
-  Widget _buildParseErrors(BuildContext context, List<String> errors) =>
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        child: Text(
-          errors.join('\n'),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.error,
-          ),
-        ),
-      );
+  /// The parser reports *what* was wrong with *which* item; the sentence is
+  /// built here, where there is a `BuildContext` to localize it with. See
+  /// #631 — these read in English on every locale until they moved.
+  String _parseErrorText(BuildContext context, MealTextParseError error) =>
+      switch (error.kind) {
+        MealTextParseErrorKind.invalidName =>
+          S.of(context).bulkAddErrorInvalidName(error.itemNumber),
+        MealTextParseErrorKind.quantityTooSmall =>
+          S.of(context).bulkAddErrorQuantityTooSmall(error.itemNumber),
+        MealTextParseErrorKind.quantityTooLarge =>
+          S
+              .of(context)
+              .bulkAddErrorQuantityTooLarge(
+                error.itemNumber,
+                (error.bound ?? 0).toInt(),
+              ),
+      };
+
+  String _parseErrorsText(
+    BuildContext context,
+    List<MealTextParseError> errors,
+  ) => errors.map((e) => _parseErrorText(context, e)).join('\n');
+
+  Widget _buildParseErrors(
+    BuildContext context,
+    List<MealTextParseError> errors,
+  ) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+    child: Text(
+      _parseErrorsText(context, errors),
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: Theme.of(context).colorScheme.error,
+      ),
+    ),
+  );
 
   Widget _buildRow(BuildContext context, BulkAddLoadedState state, int index) {
     final row = state.rows[index];
