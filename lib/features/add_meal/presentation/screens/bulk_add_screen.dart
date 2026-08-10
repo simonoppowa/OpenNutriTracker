@@ -181,18 +181,16 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// built here, where there is a `BuildContext` to localize it with. See
   /// #631 — these read in English on every locale until they moved.
   String _parseErrorText(BuildContext context, MealTextParseError error) =>
-      switch (error.kind) {
-        MealTextParseErrorKind.invalidName =>
+      switch (error) {
+        InvalidFoodNameError() =>
           S.of(context).bulkAddErrorInvalidName(error.itemNumber),
-        MealTextParseErrorKind.quantityTooSmall =>
+        QuantityTooSmallError() =>
           S.of(context).bulkAddErrorQuantityTooSmall(error.itemNumber),
-        MealTextParseErrorKind.quantityTooLarge =>
-          S
-              .of(context)
-              .bulkAddErrorQuantityTooLarge(
-                error.itemNumber,
-                (error.bound ?? 0).toInt(),
-              ),
+        // `bound` is non-null here by construction, so there is nothing to
+        // fall back to and no chance of telling the user their quantity has
+        // to be "0 or less".
+        QuantityTooLargeError(:final bound) =>
+          S.of(context).bulkAddErrorQuantityTooLarge(error.itemNumber, bound),
       };
 
   String _parseErrorsText(

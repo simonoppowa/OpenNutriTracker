@@ -26,57 +26,84 @@ class ParsedMealItem {
       'ParsedMealItem(query: $query, quantity: $quantity, unit: $unit)';
 }
 
-/// Why a segment could not be turned into a [ParsedMealItem].
-enum MealTextParseErrorKind {
-  /// The segment carried no unicode letter, so there is no food to search
-  /// for — a bare `123`, or punctuation on its own.
-  invalidName,
-
-  /// A quantity was stated but is zero or negative.
-  quantityTooSmall,
-
-  /// A quantity was stated but exceeds [MealTextParseError.bound]. Checked
-  /// after kg/l conversion, so `15 kg` is rejected as 15000 g.
-  quantityTooLarge,
-}
-
 /// One rejected segment, identified by its position in the input.
 ///
 /// Deliberately not a message. [parseMealText] is a pure function with no
 /// `BuildContext`, so it cannot reach `S.of(context)`; building the string
-/// here shipped English into all nine locales (#631). The kind and the
+/// here shipped English into all nine locales (#631). The reason and the
 /// numbers travel instead, and the render site localizes them.
-class MealTextParseError {
+///
+/// Sealed, with the data each reason needs on the subtype rather than a
+/// nullable field beside a kind. Only [QuantityTooLargeError] has a bound,
+/// so only it carries one — which means a bound can never be missing where
+/// it is needed, and the render site never has to invent a stand-in. An
+/// earlier shape allowed `quantityTooLarge` with no bound, and the screen
+/// defaulted it to 0 and told the user their quantity had to be "0 or
+/// less".
+sealed class MealTextParseError {
   /// 1-based position among the segments the parser actually attempted.
   /// Empty segments never consume a number.
   final int itemNumber;
 
-  final MealTextParseErrorKind kind;
+  const MealTextParseError(this.itemNumber);
+}
 
-  /// The limit that was exceeded, set only for
-  /// [MealTextParseErrorKind.quantityTooLarge].
-  final double? bound;
+/// The segment carried no unicode letter, so there is no food to search
+/// for — a bare `123`, or punctuation on its own.
+final class InvalidFoodNameError extends MealTextParseError {
+  const InvalidFoodNameError(super.itemNumber);
 
-  const MealTextParseError({
-    required this.itemNumber,
-    required this.kind,
-    this.bound,
-  });
+  @override
+  String toString() => 'InvalidFoodNameError(item: $itemNumber)';
+
+  @override
+  bool operator ==(Object other) =>
+      other is InvalidFoodNameError && other.itemNumber == itemNumber;
+
+  @override
+  int get hashCode => Object.hash(InvalidFoodNameError, itemNumber);
+}
+
+/// A quantity was stated but is zero or negative.
+final class QuantityTooSmallError extends MealTextParseError {
+  const QuantityTooSmallError(super.itemNumber);
+
+  @override
+  String toString() => 'QuantityTooSmallError(item: $itemNumber)';
+
+  @override
+  bool operator ==(Object other) =>
+      other is QuantityTooSmallError && other.itemNumber == itemNumber;
+
+  @override
+  int get hashCode => Object.hash(QuantityTooSmallError, itemNumber);
+}
+
+/// A quantity was stated but exceeds [bound]. Checked after kg/l
+/// conversion, so `15 kg` is rejected as 15000 g rather than a
+/// valid-looking 15.
+final class QuantityTooLargeError extends MealTextParseError {
+  /// The limit that was exceeded. An `int` because it is a cap rather than
+  /// a measurement, and because the string it feeds takes an integer
+  /// placeholder — keeping the types equal removes a lossy conversion at
+  /// the render site.
+  final int bound;
+
+  const QuantityTooLargeError(super.itemNumber, this.bound);
 
   @override
   String toString() =>
-      'MealTextParseError(item: $itemNumber, kind: ${kind.name}, '
+      'QuantityTooLargeError(item: $itemNumber, '
       'bound: $bound)';
 
   @override
   bool operator ==(Object other) =>
-      other is MealTextParseError &&
+      other is QuantityTooLargeError &&
       other.itemNumber == itemNumber &&
-      other.kind == kind &&
       other.bound == bound;
 
   @override
-  int get hashCode => Object.hash(itemNumber, kind, bound);
+  int get hashCode => Object.hash(QuantityTooLargeError, itemNumber, bound);
 }
 
 /// Result of [parseMealText]. [errors] holds an item-indexed reason for
@@ -272,12 +299,7 @@ MealTextParseResult parseMealText(String input) {
     final query = extracted.query.trim();
 
     if (!FoodNameValidator.isValid(query)) {
-      errors.add(
-        MealTextParseError(
-          itemNumber: itemNum,
-          kind: MealTextParseErrorKind.invalidName,
-        ),
-      );
+      errors.add(InvalidFoodNameError(itemNum));
       continue;
     }
 
@@ -292,22 +314,11 @@ MealTextParseResult parseMealText(String input) {
     // rather than silently becoming a valid-looking 15.
     if (quantity != null) {
       if (quantity <= 0) {
-        errors.add(
-          MealTextParseError(
-            itemNumber: itemNum,
-            kind: MealTextParseErrorKind.quantityTooSmall,
-          ),
-        );
+        errors.add(QuantityTooSmallError(itemNum));
         continue;
       }
       if (quantity > _maxQuantity) {
-        errors.add(
-          MealTextParseError(
-            itemNumber: itemNum,
-            kind: MealTextParseErrorKind.quantityTooLarge,
-            bound: _maxQuantity.toDouble(),
-          ),
-        );
+        errors.add(QuantityTooLargeError(itemNum, _maxQuantity));
         continue;
       }
     }
