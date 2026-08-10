@@ -251,6 +251,59 @@ void main() {
       expect(after.amountNeedsCheck, isTrue);
     });
 
+    test(
+      'switching candidates re-derives the unit, not just the flag',
+      () async {
+        // Found on a Pixel 6: clearing the warning while the row kept the
+        // previous candidate's weight unit left "2 chicken breasts" reading
+        // 2 oz with no warning — #622 again, minus the signal.
+        final bloc = blocWith({
+          'eggs': [meal('Eggs plain'), meal('Eggs boxed', servingQuantity: 60)],
+        });
+        final before = (await parse(bloc, '2 eggs')).rows.single;
+        expect(before.unit, isNot('serving'));
+
+        bloc.add(ChangeRowCandidateEvent(0, _indexOf(before, 'Eggs boxed')));
+        final after =
+            (await bloc.stream.first as BulkAddLoadedState).rows.single;
+
+        expect(after.unit, 'serving');
+        expect(after.amountText, '2');
+        expect(after.amountNeedsCheck, isFalse);
+      },
+    );
+
+    test('a hand-typed amount is never reinterpreted as a count', () async {
+      // The dangerous case: re-deriving the unit under an amount the user
+      // typed would turn "150" grams into 150 servings.
+      final bloc = blocWith({
+        'eggs': [meal('Eggs plain'), meal('Eggs boxed', servingQuantity: 60)],
+      });
+      final before = (await parse(bloc, '2 eggs')).rows.single;
+
+      bloc.add(const ChangeRowAmountEvent(0, '150'));
+      await bloc.stream.first;
+      bloc.add(ChangeRowCandidateEvent(0, _indexOf(before, 'Eggs boxed')));
+      final after = (await bloc.stream.first as BulkAddLoadedState).rows.single;
+
+      expect(after.amountText, '150');
+      expect(after.unit, isNot('serving'));
+    });
+
+    test('a chosen unit survives a candidate switch', () async {
+      final bloc = blocWith({
+        'eggs': [meal('Eggs plain'), meal('Eggs boxed', servingQuantity: 60)],
+      });
+      final before = (await parse(bloc, '2 eggs')).rows.single;
+
+      bloc.add(const ChangeRowUnitEvent(0, 'oz'));
+      await bloc.stream.first;
+      bloc.add(ChangeRowCandidateEvent(0, _indexOf(before, 'Eggs boxed')));
+      final after = (await bloc.stream.first as BulkAddLoadedState).rows.single;
+
+      expect(after.unit, 'oz');
+    });
+
     test('choosing a unit settles the flag', () async {
       final bloc = blocWith({
         'eggs': [meal('Egg')],
