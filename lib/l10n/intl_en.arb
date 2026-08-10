@@ -1199,5 +1199,6 @@
   "bulkAddChooseFoodLabel": "Choose another food",
   "bulkAddNothingToLogLabel": "Nothing to log yet",
   "bulkAddSearchFailedLabel": "Couldn't search for these foods",
-  "@bulkAddSubmitLabel": {"placeholders": {"count": {"type": "int"}}}
+  "@bulkAddSubmitLabel": {"placeholders": {"count": {"type": "int"}}},
+  "bulkAddCheckAmountLabel": "Check the unit for this amount"
 }

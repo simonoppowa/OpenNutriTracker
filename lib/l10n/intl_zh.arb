@@ -1115,5 +1115,6 @@
   "bulkAddIncludeLabel": "包含",
   "bulkAddChooseFoodLabel": "选择其他食物",
   "bulkAddNothingToLogLabel": "暂无可记录的内容",
-  "bulkAddSearchFailedLabel": "无法搜索这些食物"
+  "bulkAddSearchFailedLabel": "无法搜索这些食物",
+  "bulkAddCheckAmountLabel": "请核对此数量的单位"
 }

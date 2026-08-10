@@ -239,6 +239,16 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                               color: theme.colorScheme.tertiary,
                             ),
                           )
+                        // A bare count the app could not interpret. Shown
+                        // below a doubtful match, because a wrong food
+                        // matters more than a wrong unit on the right one.
+                        else if (row.amountNeedsCheck)
+                          Text(
+                            S.of(context).bulkAddCheckAmountLabel,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.tertiary,
+                            ),
+                          )
                         else if (meal?.brands != null)
                           Text(meal!.brands!, style: theme.textTheme.bodySmall),
                       ],

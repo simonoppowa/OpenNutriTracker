@@ -1114,5 +1114,6 @@
   "bulkAddIncludeLabel": "Zahrnout",
   "bulkAddChooseFoodLabel": "Vybrat jinou potravinu",
   "bulkAddNothingToLogLabel": "Zatím není co zaznamenat",
-  "bulkAddSearchFailedLabel": "Vyhledávání potravin selhalo"
+  "bulkAddSearchFailedLabel": "Vyhledávání potravin selhalo",
+  "bulkAddCheckAmountLabel": "Zkontrolujte jednotku množství"
 }

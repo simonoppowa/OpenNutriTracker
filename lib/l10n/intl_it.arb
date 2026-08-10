@@ -1114,5 +1114,6 @@
   "bulkAddIncludeLabel": "Includi",
   "bulkAddChooseFoodLabel": "Scegli un altro alimento",
   "bulkAddNothingToLogLabel": "Niente da registrare",
-  "bulkAddSearchFailedLabel": "Ricerca degli alimenti non riuscita"
+  "bulkAddSearchFailedLabel": "Ricerca degli alimenti non riuscita",
+  "bulkAddCheckAmountLabel": "Controlla l'unità di questa quantità"
 }

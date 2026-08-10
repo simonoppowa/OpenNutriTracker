@@ -1145,5 +1145,6 @@
   "bulkAddIncludeLabel": "Dahil et",
   "bulkAddChooseFoodLabel": "Başka bir yiyecek seç",
   "bulkAddNothingToLogLabel": "Henüz kaydedilecek bir şey yok",
-  "bulkAddSearchFailedLabel": "Bu yiyecekler aranamadı"
+  "bulkAddSearchFailedLabel": "Bu yiyecekler aranamadı",
+  "bulkAddCheckAmountLabel": "Bu miktarın birimini kontrol edin"
 }

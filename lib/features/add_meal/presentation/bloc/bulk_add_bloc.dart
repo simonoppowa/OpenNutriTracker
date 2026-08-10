@@ -31,12 +31,26 @@ class BulkAddRow extends Equatable {
   /// decision stays visible and reversible until the batch is logged.
   final bool skipped;
 
+  /// Set once the user picks a unit from the dropdown themselves, which
+  /// settles [amountNeedsCheck] — they have made the call it was asking for.
+  final bool unitChosenByUser;
+
+  /// Set once the user types in the amount field.
+  final bool amountEditedByUser;
+
+  /// True while the amount and unit are still what the bloc derived, so
+  /// re-deriving them against a newly picked candidate cannot overwrite
+  /// anything the user typed or chose.
+  bool get isPristine => !unitChosenByUser && !amountEditedByUser;
+
   const BulkAddRow({
     required this.resolved,
     required this.selectedIndex,
     required this.amountText,
     required this.unit,
     this.skipped = false,
+    this.unitChosenByUser = false,
+    this.amountEditedByUser = false,
   });
 
   bool get isResolved => resolved.isResolved;
@@ -51,8 +65,38 @@ class BulkAddRow extends Equatable {
   MealEntity? get meal =>
       isResolved ? resolved.candidates[selectedIndex] : null;
 
+  /// The user stated a count the app cannot interpret: no unit was typed and
+  /// the matched food has no scalable serving, so there is nothing for the
+  /// "2" in `2 eggs` to count. The row still logs — both fields are editable
+  /// — but it is marked so the eye lands on the one row needing a decision
+  /// rather than on a plausible-looking wrong number (#622).
+  ///
+  /// Derived rather than stored, so picking a different candidate
+  /// re-evaluates it against the food actually selected. A stored flag
+  /// survived the switch and could leave a wrong number unflagged.
+  ///
+  /// [MealEntity.hasServingValues] is deliberately *not* the gate: it is
+  /// also true for a record carrying only unparseable `servingSize` text
+  /// ("1 egg"), which `convertQuantityToBaseUnit` cannot scale. Only
+  /// `servingQuantity` makes a count convertible.
+  bool get amountNeedsCheck =>
+      !unitChosenByUser &&
+      // An unresolved row has no food to count, and already says so. A
+      // second complaint about its amount is noise on a row that cannot be
+      // logged anyway.
+      isResolved &&
+      resolved.parsed.quantity != null &&
+      resolved.parsed.unit == null &&
+      meal?.servingQuantity == null;
+
   List<String> get allowedUnits => [
-    if (meal?.hasServingValues ?? false) UnitDropdownItem.serving.toString(),
+    // Only when the serving can actually be scaled. `hasServingValues` is
+    // also true for a record carrying nothing but `servingSize` text, and
+    // `convertQuantityToBaseUnit` leaves those unscaled — so offering
+    // `serving` there is a no-op dressed as a fix. Worse, it is the option
+    // a user reaches for after reading `amountNeedsCheck`: picking it
+    // relabels the row, clears the warning and logs the same wrong number.
+    if (meal?.servingQuantity != null) UnitDropdownItem.serving.toString(),
     if (meal?.isSolid ?? false) ...[
       UnitDropdownItem.g.toString(),
       UnitDropdownItem.oz.toString(),
@@ -81,12 +125,16 @@ class BulkAddRow extends Equatable {
     String? amountText,
     String? unit,
     bool? skipped,
+    bool? unitChosenByUser,
+    bool? amountEditedByUser,
   }) => BulkAddRow(
     resolved: resolved,
     selectedIndex: selectedIndex ?? this.selectedIndex,
     amountText: amountText ?? this.amountText,
     unit: unit ?? this.unit,
     skipped: skipped ?? this.skipped,
+    unitChosenByUser: unitChosenByUser ?? this.unitChosenByUser,
+    amountEditedByUser: amountEditedByUser ?? this.amountEditedByUser,
   );
 
   @override
@@ -96,6 +144,8 @@ class BulkAddRow extends Equatable {
     amountText,
     unit,
     skipped,
+    unitChosenByUser,
+    amountEditedByUser,
   ];
 }
 
@@ -144,8 +194,16 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
               BulkAddRow(
                 resolved: item,
                 selectedIndex: item.selectedIndex,
-                amountText: _initialAmount(item, event.usesImperialUnits),
-                unit: _initialUnit(item, event.usesImperialUnits),
+                amountText: _initialAmount(
+                  item.parsed,
+                  item.selected,
+                  event.usesImperialUnits,
+                ),
+                unit: _initialUnit(
+                  item.parsed,
+                  item.selected,
+                  event.usesImperialUnits,
+                ),
               ),
           ],
           parseErrors: parsed.errors,
@@ -162,11 +220,14 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
   /// The parser leaves quantity null when the user stated none. Fall back to
   /// the same defaults the meal-detail screen already applies, so a bulk row
   /// and a hand-added row of the same food start from the same number.
-  String _initialAmount(ResolvedMealItem item, bool usesImperialUnits) {
-    final parsedQuantity = item.parsed.quantity;
+  String _initialAmount(
+    ParsedMealItem parsed,
+    MealEntity? meal,
+    bool usesImperialUnits,
+  ) {
+    final parsedQuantity = parsed.quantity;
     if (parsedQuantity != null) return _trimZeros(parsedQuantity);
 
-    final meal = item.selected;
     if (meal != null && meal.hasServingValues) {
       final serving = meal.servingQuantity;
       if (serving != null) return _trimZeros(serving);
@@ -174,17 +235,38 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     return usesImperialUnits ? '1' : '100';
   }
 
-  String _initialUnit(ResolvedMealItem item, bool usesImperialUnits) {
-    final parsedUnit = item.parsed.unit;
+  String _initialUnit(
+    ParsedMealItem parsed,
+    MealEntity? meal,
+    bool usesImperialUnits,
+  ) {
+    final parsedUnit = parsed.unit;
     if (parsedUnit != null) return parsedUnit;
 
-    final meal = item.selected;
-    if (meal != null && meal.hasServingValues) {
-      return meal.servingUnit ?? UnitDropdownItem.gml.toString();
-    }
-    return usesImperialUnits
+    final fallback = usesImperialUnits
         ? UnitDropdownItem.oz.toString()
         : UnitDropdownItem.gml.toString();
+    if (meal == null) return fallback;
+
+    // A bare count means "N of them", and when the record's serving can be
+    // scaled that is precisely what a serving is — so `2 eggs` is two
+    // servings. Falling through to grams instead turned a count into a
+    // weight and logged two grams of egg (#622).
+    //
+    // Gate on `servingQuantity`, not `hasServingValues`: the latter is also
+    // true for a record with only unparseable `servingSize` text, which
+    // `convertQuantityToBaseUnit` leaves unscaled. Labelling those `serving`
+    // would rename the bug rather than fix it — the row would read
+    // "2 serving" and still log 2 g. Those fall through to the weight
+    // default below and are marked by `BulkAddRow.amountNeedsCheck`.
+    if (parsed.quantity != null && meal.servingQuantity != null) {
+      return UnitDropdownItem.serving.toString();
+    }
+
+    if (meal.hasServingValues) {
+      return meal.servingUnit ?? UnitDropdownItem.gml.toString();
+    }
+    return fallback;
   }
 
   static String _trimZeros(double value) => value == value.roundToDouble()
@@ -195,23 +277,42 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     ChangeRowCandidateEvent event,
     Emitter<BulkAddState> emit,
   ) {
-    _updateRow(
-      event.rowIndex,
-      emit,
-      (row) => row.copyWith(selectedIndex: event.candidateIndex),
-    );
+    final current = state;
+    final imperial = current is BulkAddLoadedState && current.usesImperialUnits;
+
+    _updateRow(event.rowIndex, emit, (row) {
+      final moved = row.copyWith(selectedIndex: event.candidateIndex);
+      // A different food means different defaults. Re-derive them, or the
+      // row keeps the previous candidate's unit — picking a countable
+      // record after an uncountable one cleared the "check the unit"
+      // warning while the amount stayed a weight, which is the #622
+      // failure again with the warning switched off. Only for a pristine
+      // row: anything the user typed or chose outranks a default.
+      if (!moved.isPristine) return moved;
+      return moved.copyWith(
+        amountText: _initialAmount(row.resolved.parsed, moved.meal, imperial),
+        unit: _initialUnit(row.resolved.parsed, moved.meal, imperial),
+      );
+    });
   }
 
   void _onChangeAmount(ChangeRowAmountEvent event, Emitter<BulkAddState> emit) {
     _updateRow(
       event.rowIndex,
       emit,
-      (row) => row.copyWith(amountText: event.amountText),
+      (row) =>
+          row.copyWith(amountText: event.amountText, amountEditedByUser: true),
     );
   }
 
   void _onChangeUnit(ChangeRowUnitEvent event, Emitter<BulkAddState> emit) {
-    _updateRow(event.rowIndex, emit, (row) => row.copyWith(unit: event.unit));
+    _updateRow(
+      event.rowIndex,
+      emit,
+      // Picking a unit answers the question `amountNeedsCheck` was asking,
+      // so the row stops asking it.
+      (row) => row.copyWith(unit: event.unit, unitChosenByUser: true),
+    );
   }
 
   void _onToggleSkipped(

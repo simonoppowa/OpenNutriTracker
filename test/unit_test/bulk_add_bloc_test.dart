@@ -54,6 +54,11 @@ class _FakeSearch implements SearchProductsUseCase {
 BulkAddBloc blocWith(Map<String, List<MealEntity>> results) =>
     BulkAddBloc(ResolveParsedMealsUseCase(_FakeSearch(results)));
 
+/// Candidates come back ranked, not in the order they were faked, so tests
+/// that switch candidates have to look the wanted one up by name.
+int _indexOf(BulkAddRow row, String name) =>
+    row.resolved.candidates.indexWhere((c) => c.name == name);
+
 Future<BulkAddLoadedState> parse(
   BulkAddBloc bloc,
   String text, {
@@ -131,6 +136,200 @@ void main() {
     final state = await bloc.stream.first as BulkAddLoadedState;
 
     expect(state.rows.single.effectiveUnit, 'g/ml');
+  });
+
+  group('a bare count (#622)', () {
+    test('counts a food that has serving data as servings', () async {
+      // "2 eggs" means two of them. When the record carries serving data
+      // that is exactly a serving, so the unit must be `serving` and not
+      // grams — logging 2 g of egg was the bug.
+      final bloc = blocWith({
+        'eggs': [meal('Egg', servingQuantity: 50)],
+      });
+
+      final row = (await parse(bloc, '2 eggs')).rows.single;
+
+      expect(row.amountText, '2');
+      expect(row.unit, 'serving');
+      expect(row.amountNeedsCheck, isFalse);
+    });
+
+    test('flags a count when the food has no serving data', () async {
+      // Nothing to count, so the amount falls back to a weight. The row
+      // still logs — it is editable — but it is marked.
+      final bloc = blocWith({
+        'eggs': [meal('Egg')],
+      });
+
+      final row = (await parse(bloc, '2 eggs')).rows.single;
+
+      expect(row.amountText, '2');
+      expect(row.amountNeedsCheck, isTrue);
+      expect(row.willBeLogged, isTrue);
+    });
+
+    test('a stated unit is never second-guessed', () async {
+      final bloc = blocWith({
+        'toast': [meal('Toast', servingQuantity: 30)],
+      });
+
+      final row = (await parse(bloc, '100g toast')).rows.single;
+
+      expect(row.unit, 'g');
+      expect(row.amountNeedsCheck, isFalse);
+    });
+
+    test('no quantity at all keeps the serving default, not a count', () async {
+      // Distinct from a bare count: nothing was stated, so the row falls
+      // back to one serving expressed the way the record expresses it.
+      final bloc = blocWith({
+        'yoghurt': [meal('Yoghurt', servingQuantity: 125, servingUnit: 'g')],
+      });
+
+      final row = (await parse(bloc, 'yoghurt')).rows.single;
+
+      expect(row.amountText, '125');
+      expect(row.unit, 'g');
+      expect(row.amountNeedsCheck, isFalse);
+    });
+
+    test('an unresolved row is never flagged for its amount', () async {
+      final bloc = blocWith({});
+
+      final row = (await parse(bloc, '2 unicorn steaks')).rows.single;
+
+      expect(row.isResolved, isFalse);
+      expect(row.amountNeedsCheck, isFalse);
+      expect(row.willBeLogged, isFalse);
+    });
+
+    test('a serving that cannot be scaled is not offered as a unit', () async {
+      // The trap this closes: the row is flagged, the user reads "check the
+      // unit", picks the one that obviously means "two of them" — and the
+      // app relabels the row, drops the warning and logs the same 2 g.
+      final bloc = blocWith({
+        'eggs': [meal('Egg', servingSize: '1 egg')],
+        'yoghurt': [meal('Yoghurt', servingQuantity: 125)],
+      });
+
+      final rows = (await parse(bloc, '2 eggs, yoghurt')).rows;
+
+      expect(rows[0].allowedUnits, isNot(contains('serving')));
+      expect(rows[1].allowedUnits, contains('serving'));
+    });
+
+    test('unparseable serving text is not read as a count', () async {
+      // OFF derives `serving_quantity` by parsing the `serving_size` text;
+      // strings like "1 egg" do not parse, so quantity stays null while
+      // hasServingValues is still true. convertQuantityToBaseUnit cannot
+      // scale such a record, so calling the unit `serving` would leave
+      // "2 eggs" logging 2 g under a label that reads correct.
+      final bloc = blocWith({
+        'eggs': [meal('Egg', servingSize: '1 egg')],
+      });
+
+      final row = (await parse(bloc, '2 eggs')).rows.single;
+
+      expect(row.unit, isNot('serving'));
+      expect(row.amountNeedsCheck, isTrue);
+    });
+
+    test('switching to a countable candidate clears the flag', () async {
+      final bloc = blocWith({
+        'eggs': [meal('Eggs plain'), meal('Eggs boxed', servingQuantity: 60)],
+      });
+      final before = (await parse(bloc, '2 eggs')).rows.single;
+      // Guard the premise: the ranker, not the list order, decides what is
+      // selected, and the test only means anything from the flagged one.
+      expect(before.meal?.name, 'Eggs plain');
+      expect(before.amountNeedsCheck, isTrue);
+
+      bloc.add(ChangeRowCandidateEvent(0, _indexOf(before, 'Eggs boxed')));
+      final after = (await bloc.stream.first as BulkAddLoadedState).rows.single;
+
+      expect(after.amountNeedsCheck, isFalse);
+    });
+
+    test('switching to an uncountable candidate raises the flag', () async {
+      // The direction that matters: correcting the food must not carry a
+      // stale "all clear" forward and leave 2 g unmarked.
+      final bloc = blocWith({
+        'eggs': [meal('Eggs boxed', servingQuantity: 60), meal('Eggs plain')],
+      });
+      final before = (await parse(bloc, '2 eggs')).rows.single;
+      expect(before.meal?.name, 'Eggs boxed');
+      expect(before.amountNeedsCheck, isFalse);
+
+      bloc.add(ChangeRowCandidateEvent(0, _indexOf(before, 'Eggs plain')));
+      final after = (await bloc.stream.first as BulkAddLoadedState).rows.single;
+
+      expect(after.amountNeedsCheck, isTrue);
+    });
+
+    test(
+      'switching candidates re-derives the unit, not just the flag',
+      () async {
+        // Found on a Pixel 6: clearing the warning while the row kept the
+        // previous candidate's weight unit left "2 chicken breasts" reading
+        // 2 oz with no warning — #622 again, minus the signal.
+        final bloc = blocWith({
+          'eggs': [meal('Eggs plain'), meal('Eggs boxed', servingQuantity: 60)],
+        });
+        final before = (await parse(bloc, '2 eggs')).rows.single;
+        expect(before.unit, isNot('serving'));
+
+        bloc.add(ChangeRowCandidateEvent(0, _indexOf(before, 'Eggs boxed')));
+        final after =
+            (await bloc.stream.first as BulkAddLoadedState).rows.single;
+
+        expect(after.unit, 'serving');
+        expect(after.amountText, '2');
+        expect(after.amountNeedsCheck, isFalse);
+      },
+    );
+
+    test('a hand-typed amount is never reinterpreted as a count', () async {
+      // The dangerous case: re-deriving the unit under an amount the user
+      // typed would turn "150" grams into 150 servings.
+      final bloc = blocWith({
+        'eggs': [meal('Eggs plain'), meal('Eggs boxed', servingQuantity: 60)],
+      });
+      final before = (await parse(bloc, '2 eggs')).rows.single;
+
+      bloc.add(const ChangeRowAmountEvent(0, '150'));
+      await bloc.stream.first;
+      bloc.add(ChangeRowCandidateEvent(0, _indexOf(before, 'Eggs boxed')));
+      final after = (await bloc.stream.first as BulkAddLoadedState).rows.single;
+
+      expect(after.amountText, '150');
+      expect(after.unit, isNot('serving'));
+    });
+
+    test('a chosen unit survives a candidate switch', () async {
+      final bloc = blocWith({
+        'eggs': [meal('Eggs plain'), meal('Eggs boxed', servingQuantity: 60)],
+      });
+      final before = (await parse(bloc, '2 eggs')).rows.single;
+
+      bloc.add(const ChangeRowUnitEvent(0, 'oz'));
+      await bloc.stream.first;
+      bloc.add(ChangeRowCandidateEvent(0, _indexOf(before, 'Eggs boxed')));
+      final after = (await bloc.stream.first as BulkAddLoadedState).rows.single;
+
+      expect(after.unit, 'oz');
+    });
+
+    test('choosing a unit settles the flag', () async {
+      final bloc = blocWith({
+        'eggs': [meal('Egg')],
+      });
+      await parse(bloc, '2 eggs');
+
+      bloc.add(const ChangeRowUnitEvent(0, 'oz'));
+      final state = await bloc.stream.first as BulkAddLoadedState;
+
+      expect(state.rows.single.amountNeedsCheck, isFalse);
+    });
   });
 
   test('unresolved rows are kept and are not loggable', () async {
