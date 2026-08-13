@@ -163,7 +163,16 @@ MealTextParseResult validateParsedMealItems(List<ParsedMealItem> candidates) {
     // is still usable, and the review row's own default is a better answer
     // than refusing to log the item at all. A *stated* quantity survives
     // with it, since the row shows both and the user can correct the unit.
-    final unit = _validUnits.contains(candidate.unit) ? candidate.unit : null;
+    //
+    // A unit with no quantity is dropped too. [ParsedMealItem] documents the
+    // two as stated together, and `parseMealText` cannot produce one without
+    // the other, so downstream code was written against that. A model can
+    // produce it, and honouring a unit nobody attached a number to would
+    // present a guess as though the user had typed it.
+    final unit =
+        candidate.quantity != null && _validUnits.contains(candidate.unit)
+        ? candidate.unit
+        : null;
 
     items.add(ParsedMealItem(query: query, quantity: quantity, unit: unit));
   }

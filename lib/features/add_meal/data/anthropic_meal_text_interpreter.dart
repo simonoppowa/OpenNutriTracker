@@ -33,6 +33,11 @@ class AnthropicMealTextInterpreter implements MealTextInterpreter {
   /// budget only buys a longer runaway before it is cut off.
   static const _maxTokens = 1024;
 
+  /// Matches the other remote data sources in this repo. Without it a
+  /// stalled connection hangs until the OS gives up, which in #635 means the
+  /// user waits instead of falling back to the deterministic parser.
+  static const _timeout = Duration(seconds: 20);
+
   final http.Client _client;
   final String Function() _apiKey;
   final String model;
@@ -137,15 +142,17 @@ Rules:
 
     final http.Response response;
     try {
-      response = await _client.post(
-        Uri.parse(_endpoint),
-        headers: {
-          'content-type': 'application/json',
-          'x-api-key': _apiKey(),
-          'anthropic-version': _apiVersion,
-        },
-        body: body,
-      );
+      response = await _client
+          .post(
+            Uri.parse(_endpoint),
+            headers: {
+              'content-type': 'application/json',
+              'x-api-key': _apiKey(),
+              'anthropic-version': _apiVersion,
+            },
+            body: body,
+          )
+          .timeout(_timeout);
     } catch (e) {
       // Deliberately not logging `e`: a socket error can carry the request
       // URL and, on some platforms, part of the payload.
@@ -183,7 +190,11 @@ Rules:
       if (block is! Map) continue;
       if (block['type'] != 'tool_use' || block['name'] != _toolName) continue;
 
-      final rawItems = (block['input'] as Map?)?['items'];
+      // Checked rather than cast: a provider returning something other than
+      // an object here would otherwise throw a TypeError straight past the
+      // exception surface that #635 relies on to fall back.
+      final input = block['input'];
+      final rawItems = input is Map ? input['items'] : null;
       if (rawItems is! List) {
         throw const MealTextInterpreterException('tool call has no items');
       }

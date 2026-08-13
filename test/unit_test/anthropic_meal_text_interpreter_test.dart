@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -13,14 +14,23 @@ class FakeClient extends http.BaseClient {
   final String body;
   final Object? throwOnSend;
 
+  /// Never completes, standing in for a connection that stalls.
+  final bool hangs;
+
   Map<String, dynamic>? sentBody;
   Map<String, String>? sentHeaders;
 
-  FakeClient({this.status = 200, this.body = '{}', this.throwOnSend});
+  FakeClient({
+    this.status = 200,
+    this.body = '{}',
+    this.throwOnSend,
+    this.hangs = false,
+  });
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     if (throwOnSend != null) throw throwOnSend!;
+    if (hangs) return Completer<http.StreamedResponse>().future;
     sentHeaders = request.headers;
     sentBody =
         jsonDecode((request as http.Request).body) as Map<String, dynamic>;
@@ -297,6 +307,32 @@ void main() {
           ],
         }),
       );
+
+      await expectLater(
+        interpreterWith(client).interpret('toast'),
+        throwsA(isA<MealTextInterpreterException>()),
+      );
+    });
+
+    test('an unexpected tool-input shape raises, not a TypeError', () async {
+      // Must arrive as MealTextInterpreterException, or #635 cannot fall
+      // back to the deterministic parser and the caller crashes instead.
+      final client = FakeClient(
+        body: jsonEncode({
+          'content': [
+            {'type': 'tool_use', 'name': 'log_meal_items', 'input': 'oops'},
+          ],
+        }),
+      );
+
+      await expectLater(
+        interpreterWith(client).interpret('toast'),
+        throwsA(isA<MealTextInterpreterException>()),
+      );
+    });
+
+    test('a stalled connection does not hang forever', () async {
+      final client = FakeClient(hangs: true);
 
       await expectLater(
         interpreterWith(client).interpret('toast'),

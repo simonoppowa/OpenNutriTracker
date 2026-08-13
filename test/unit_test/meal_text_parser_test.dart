@@ -520,6 +520,18 @@ void main() {
       expect(result.items.single.unit, isNull);
     });
 
+    test('a unit with no quantity is dropped, not presented as stated', () {
+      // parseMealText cannot produce this pair, so downstream code was
+      // written assuming it never happens. A model can produce it.
+      final result = validateParsedMealItems(const [
+        ParsedMealItem(query: 'milk', unit: 'ml'),
+      ]);
+
+      expect(result.items.single.unit, isNull);
+      expect(result.items.single.quantity, isNull);
+      expect(result.errors, isEmpty);
+    });
+
     test('trims the query so a padded name still reaches the search', () {
       final result = validateParsedMealItems(const [
         ParsedMealItem(query: '  toast  '),
