@@ -165,4 +165,25 @@ void main() {
 
     expect(backing.store, isEmpty);
   });
+
+  testWidgets('a long saved-key label does not overflow its row', (
+    tester,
+  ) async {
+    // AGENTS.md: a title in a Row has to survive a long localized string and
+    // a large system font without RenderFlex stripes.
+    await storage.writeApiKey('sk-test');
+    tester.view.physicalSize = const Size(320 * 3, 640 * 3);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+        child: _app(storage),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+  });
 }

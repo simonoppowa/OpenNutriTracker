@@ -19,9 +19,15 @@ class AiAssistDialog extends StatefulWidget {
 
   /// Returns true when the stored state changed, so the caller can refresh
   /// its subtitle.
+  ///
+  /// Not barrier-dismissible: the switch and the remove button write
+  /// immediately, so a tap outside would drop the "something changed" answer
+  /// on the floor and leave the settings tile describing the old state.
+  /// Leaving is via Cancel, which reports honestly.
   static Future<bool> show(BuildContext context, AiCredentialStorage storage) =>
       showDialog<bool>(
         context: context,
+        barrierDismissible: false,
         builder: (_) => AiAssistDialog(storage: storage),
       ).then((changed) => changed ?? false);
 
@@ -119,10 +125,17 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                       children: [
                         const Icon(Icons.key_rounded, size: 18),
                         const SizedBox(width: 8),
-                        Text(
-                          '${s.aiAssistKeySavedLabel}  '
-                          '${AiCredentialStorage.maskedPlaceholder}',
-                          style: theme.textTheme.bodyMedium,
+                        // Flex-constrained per AGENTS.md: "Ключ збережено"
+                        // and a large system font both run much wider than
+                        // the English label.
+                        Expanded(
+                          child: Text(
+                            '${s.aiAssistKeySavedLabel}  '
+                            '${AiCredentialStorage.maskedPlaceholder}',
+                            style: theme.textTheme.bodyMedium,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),

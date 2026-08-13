@@ -892,8 +892,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       };
 
   Future<void> _openAiAssistDialog(BuildContext context) async {
-    final changed = await AiAssistDialog.show(context, _aiCredentials);
-    if (changed) await _refreshAiAssistState();
+    await AiAssistDialog.show(context, _aiCredentials);
+    // Unconditionally, not only when the dialog reports a change: the
+    // subtitle is cheap to recompute and a stale one misdescribes what
+    // leaves the device.
+    await _refreshAiAssistState();
   }
 
   void _openFoodSourcesScreen(BuildContext context) {
