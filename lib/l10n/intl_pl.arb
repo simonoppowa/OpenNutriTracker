@@ -1118,5 +1118,14 @@
   "bulkAddCheckAmountLabel": "Sprawdź jednostkę tej ilości",
   "bulkAddErrorInvalidName": "Pozycja {number}: nieprawidłowa nazwa produktu",
   "bulkAddErrorQuantityTooSmall": "Pozycja {number}: ilość musi być większa niż 0",
-  "bulkAddErrorQuantityTooLarge": "Pozycja {number}: ilość nie może przekraczać {bound}"
+  "bulkAddErrorQuantityTooLarge": "Pozycja {number}: ilość nie może przekraczać {bound}",
+  "settingsAiAssistLabel": "Wsparcie AI",
+  "settingsAiAssistNotConfiguredLabel": "Wyłączone — brak zapisanego klucza",
+  "settingsAiAssistOnLabel": "Włączone",
+  "settingsAiAssistPausedLabel": "Wstrzymane — klucz zapisany",
+  "settingsAiAssistEnabledLabel": "Używaj wsparcia AI",
+  "aiAssistDisclosureLabel": "Po zapisaniu klucza tekst wpisany na ekranie dodawania wielu pozycji jest wysyłany do Anthropic w celu odczytania. Twój dziennik nigdy nie jest wysyłany. Wartości odżywcze zawsze pochodzą z baz danych żywności, nigdy z modelu. Klucz jest przechowywany tylko na tym urządzeniu: OpenNutriTracker nigdy go nie widzi i nie płaci za jego użycie.",
+  "aiAssistKeyFieldLabel": "Klucz API Anthropic",
+  "aiAssistKeySavedLabel": "Klucz zapisany",
+  "aiAssistRemoveKeyLabel": "Usuń klucz"
 }

@@ -1118,5 +1118,14 @@
   "bulkAddCheckAmountLabel": "Zkontrolujte jednotku množství",
   "bulkAddErrorInvalidName": "Položka {number}: neplatný název potraviny",
   "bulkAddErrorQuantityTooSmall": "Položka {number}: množství musí být větší než 0",
-  "bulkAddErrorQuantityTooLarge": "Položka {number}: množství smí být nejvýše {bound}"
+  "bulkAddErrorQuantityTooLarge": "Položka {number}: množství smí být nejvýše {bound}",
+  "settingsAiAssistLabel": "Asistence AI",
+  "settingsAiAssistNotConfiguredLabel": "Vypnuto — klíč není uložen",
+  "settingsAiAssistOnLabel": "Zapnuto",
+  "settingsAiAssistPausedLabel": "Pozastaveno — klíč uložen",
+  "settingsAiAssistEnabledLabel": "Používat asistenci AI",
+  "aiAssistDisclosureLabel": "S uloženým klíčem se text, který zadáte na obrazovce hromadného přidání, odešle ke zpracování společnosti Anthropic. Váš deník se neodesílá nikdy. Nutriční hodnoty vždy pocházejí z databází potravin, nikdy z modelu. Klíč je uložen pouze v tomto zařízení: OpenNutriTracker jej nikdy nevidí a neplatí za jeho použití.",
+  "aiAssistKeyFieldLabel": "Klíč API Anthropic",
+  "aiAssistKeySavedLabel": "Klíč uložen",
+  "aiAssistRemoveKeyLabel": "Odebrat klíč"
 }
