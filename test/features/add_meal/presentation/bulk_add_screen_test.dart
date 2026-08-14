@@ -1,8 +1,10 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_photo_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:get_it/get_it.dart';
@@ -15,6 +17,7 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
+import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add_screen.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
@@ -164,6 +167,26 @@ Future<void> _register(
   getIt.registerFactory<CalendarDayBloc>(() => _FakeCalendarDayBloc());
 }
 
+/// Same graph, but the bloc is a singleton over a stubbed photo reader so a
+/// test can hold the instance the screen holds and drive a photo read
+/// without a picker. Returns that bloc.
+Future<BulkAddBloc> _registerWithPhotoReading(
+  MealPhotoReadResult reading,
+) async {
+  await _register(const {});
+  final bloc = BulkAddBloc(
+    ResolveParsedMealsUseCase(_FakeSearch(const {})),
+    ReadMealTextUseCase(
+      AiCredentialStorage(_EmptyStorage()),
+      (_) => throw StateError('must not be built without a key'),
+    ),
+    _StubPhotoReader(reading),
+  );
+  getIt.unregister<BulkAddBloc>();
+  getIt.registerSingleton<BulkAddBloc>(bloc);
+  return bloc;
+}
+
 /// The screen reads its arguments off the route and pops back to
 /// `mainRoute`, so it needs a real navigator with that route named. The
 /// rows render kcal through `EnergyDisplay`, which reads the provider.
@@ -219,6 +242,50 @@ Finder _submitButton() => find.widgetWithIcon(FilledButton, Icons.add_rounded);
 
 void main() {
   tearDown(() async => getIt.reset());
+
+  testWidgets('a photo with no food says so, not "nothing to log yet"', (
+    tester,
+  ) async {
+    // Driving this on a Pixel 6, a photo the model found no food in landed
+    // on the same line an untouched screen shows. The user had just handed
+    // the app a photograph and got back a message that reads as though
+    // nothing happened — and the notice saying a model answered is not
+    // drawn on the empty branch, so nothing on screen mentioned the photo.
+    final bloc = await _registerWithPhotoReading(
+      const MealPhotoRead(MealTextParseResult(items: [], errors: [])),
+    );
+    await tester.pumpWidget(_app());
+    tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    bloc.add(
+      ReadMealPhotoEvent(
+        photo: MealPhoto(
+          bytes: Uint8List.fromList([1, 2, 3]),
+          mediaType: 'image/webp',
+        ),
+        usesImperialUnits: false,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final l10n = await S.delegate.load(const Locale('en'));
+    expect(find.text(l10n.bulkAddPhotoNoFoodLabel), findsOneWidget);
+    expect(find.text(l10n.bulkAddNothingToLogLabel), findsNothing);
+  });
+
+  testWidgets('an empty text parse still shows the generic line', (
+    tester,
+  ) async {
+    // The photo wording must not leak onto the path it was not written for.
+    await _register(const {});
+    await tester.pumpWidget(_app());
+    await _parse(tester, '');
+
+    final l10n = await S.delegate.load(const Locale('en'));
+    expect(find.text(l10n.bulkAddNothingToLogLabel), findsOneWidget);
+    expect(find.text(l10n.bulkAddPhotoNoFoodLabel), findsNothing);
+  });
 
   testWidgets('writes one intake per loggable row, in order', (tester) async {
     await _register({
@@ -439,6 +506,22 @@ void main() {
   });
 }
 
+
+/// Returns a fixed reading without touching a credential or a network.
+class _StubPhotoReader implements ReadMealPhotoUseCase {
+  final MealPhotoReadResult reading;
+
+  _StubPhotoReader(this.reading);
+
+  @override
+  Future<MealPhotoReadResult> read(
+    MealPhoto photo, {
+    String? localeCode,
+  }) async => reading;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 /// A keystore with nothing in it, so the read use case always takes the
 /// deterministic path.

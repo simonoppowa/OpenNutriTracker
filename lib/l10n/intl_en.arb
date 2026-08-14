@@ -1244,5 +1244,6 @@
   "bulkAddPhotoUnavailableLabel": "Turn on AI meal assistance in Settings to read photos",
   "bulkAddPhotoKeyRejectedLabel": "Your API key was rejected. Check it in Settings.",
   "bulkAddPhotoFailedLabel": "Couldn't read the photo. Check your connection and try again.",
-  "bulkAddPhotoUnreadableLabel": "Couldn't use that image. Try another photo."
+  "bulkAddPhotoUnreadableLabel": "Couldn't use that image. Try another photo.",
+  "bulkAddPhotoNoFoodLabel": "No food found in that photo. Try another photo, or type the items instead."
 }

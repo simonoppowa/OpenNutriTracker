@@ -187,12 +187,21 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       return const SizedBox();
     }
     if (state.rows.isEmpty) {
-      return _centeredMessage(
-        context,
-        state.parseErrors.isEmpty
-            ? S.of(context).bulkAddNothingToLogLabel
-            : _parseErrorsText(context, state.parseErrors),
-      );
+      return _centeredMessage(context, switch (state) {
+        // A bad segment explains itself; that outranks either generic line.
+        _ when state.parseErrors.isNotEmpty => _parseErrorsText(
+          context,
+          state.parseErrors,
+        ),
+        // The model looked at a photograph and reported no food. "Nothing to
+        // log yet" is true but reads as though nothing happened, and the
+        // notice that would have said a photo was read is not drawn on this
+        // branch — so the one screen where the user most needs to know a
+        // machine answered was the one screen that never said so.
+        _ when state.source == BulkAddReadSource.photo =>
+          S.of(context).bulkAddPhotoNoFoodLabel,
+        _ => S.of(context).bulkAddNothingToLogLabel,
+      });
     }
 
     // The list is the labelled surface, not each child — row identifiers

@@ -1166,5 +1166,6 @@
   "bulkAddPhotoUnavailableLabel": "Aktiviere die KI-Mahlzeitenhilfe in den Einstellungen, um Fotos auszulesen",
   "bulkAddPhotoKeyRejectedLabel": "Dein API-Schlüssel wurde abgelehnt. Prüfe ihn in den Einstellungen.",
   "bulkAddPhotoFailedLabel": "Das Foto konnte nicht gelesen werden. Prüfe deine Verbindung und versuche es erneut.",
-  "bulkAddPhotoUnreadableLabel": "Dieses Bild konnte nicht verwendet werden. Versuche ein anderes Foto."
+  "bulkAddPhotoUnreadableLabel": "Dieses Bild konnte nicht verwendet werden. Versuche ein anderes Foto.",
+  "bulkAddPhotoNoFoodLabel": "Auf diesem Foto wurden keine Lebensmittel erkannt. Versuche ein anderes Foto oder tippe die Einträge ein."
 }
