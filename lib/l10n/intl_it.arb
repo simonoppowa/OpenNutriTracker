@@ -1118,5 +1118,14 @@
   "bulkAddCheckAmountLabel": "Controlla l'unità di questa quantità",
   "bulkAddErrorInvalidName": "Voce {number}: nome dell'alimento non valido",
   "bulkAddErrorQuantityTooSmall": "Voce {number}: la quantità deve essere maggiore di 0",
-  "bulkAddErrorQuantityTooLarge": "Voce {number}: la quantità non può superare {bound}"
+  "bulkAddErrorQuantityTooLarge": "Voce {number}: la quantità non può superare {bound}",
+  "settingsAiAssistLabel": "Assistenza AI",
+  "settingsAiAssistNotConfiguredLabel": "Disattivata — nessuna chiave salvata",
+  "settingsAiAssistOnLabel": "Attiva",
+  "settingsAiAssistPausedLabel": "In pausa — chiave salvata",
+  "settingsAiAssistEnabledLabel": "Usa l'assistenza AI",
+  "aiAssistDisclosureLabel": "Con una chiave salvata, il testo digitato nella schermata di aggiunta multipla viene inviato ad Anthropic per essere letto. Il tuo diario non viene mai inviato. I valori nutrizionali provengono sempre dai database alimentari, mai dal modello. La chiave è memorizzata solo su questo dispositivo: OpenNutriTracker non la vede e non ne paga l'uso.",
+  "aiAssistKeyFieldLabel": "Chiave API Anthropic",
+  "aiAssistKeySavedLabel": "Chiave salvata",
+  "aiAssistRemoveKeyLabel": "Rimuovi chiave"
 }

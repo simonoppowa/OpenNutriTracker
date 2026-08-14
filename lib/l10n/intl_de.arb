@@ -1149,5 +1149,14 @@
   "bulkAddCheckAmountLabel": "Einheit für diese Menge prüfen",
   "bulkAddErrorInvalidName": "Eintrag {number}: kein gültiger Lebensmittelname",
   "bulkAddErrorQuantityTooSmall": "Eintrag {number}: Menge muss größer als 0 sein",
-  "bulkAddErrorQuantityTooLarge": "Eintrag {number}: Menge darf höchstens {bound} betragen"
+  "bulkAddErrorQuantityTooLarge": "Eintrag {number}: Menge darf höchstens {bound} betragen",
+  "settingsAiAssistLabel": "KI-Unterstützung",
+  "settingsAiAssistNotConfiguredLabel": "Aus — kein Schlüssel gespeichert",
+  "settingsAiAssistOnLabel": "An",
+  "settingsAiAssistPausedLabel": "Pausiert — Schlüssel gespeichert",
+  "settingsAiAssistEnabledLabel": "KI-Unterstützung verwenden",
+  "aiAssistDisclosureLabel": "Mit gespeichertem Schlüssel wird der Text, den du im Mehrfach-Eintrag-Bildschirm eingibst, zum Lesen an Anthropic gesendet. Dein Tagebuch wird nie gesendet. Nährwerte stammen immer aus den Lebensmitteldatenbanken, nie vom Modell. Der Schlüssel wird nur auf diesem Gerät gespeichert: OpenNutriTracker sieht ihn nie und zahlt nicht für seine Nutzung.",
+  "aiAssistKeyFieldLabel": "Anthropic-API-Schlüssel",
+  "aiAssistKeySavedLabel": "Schlüssel gespeichert",
+  "aiAssistRemoveKeyLabel": "Schlüssel entfernen"
 }

@@ -1119,5 +1119,14 @@
   "bulkAddCheckAmountLabel": "请核对此数量的单位",
   "bulkAddErrorInvalidName": "第 {number} 项：食物名称无效",
   "bulkAddErrorQuantityTooSmall": "第 {number} 项：数量必须大于 0",
-  "bulkAddErrorQuantityTooLarge": "第 {number} 项：数量不能超过 {bound}"
+  "bulkAddErrorQuantityTooLarge": "第 {number} 项：数量不能超过 {bound}",
+  "settingsAiAssistLabel": "AI 辅助",
+  "settingsAiAssistNotConfiguredLabel": "已关闭 — 未保存密钥",
+  "settingsAiAssistOnLabel": "已开启",
+  "settingsAiAssistPausedLabel": "已暂停 — 密钥已保存",
+  "settingsAiAssistEnabledLabel": "使用 AI 辅助",
+  "aiAssistDisclosureLabel": "保存密钥后，您在多项添加界面输入的文字会发送给 Anthropic 进行解析。您的日记永远不会被发送。营养数值始终来自食物数据库，而非模型。密钥仅保存在本设备上：OpenNutriTracker 从不查看，也不为其使用付费。",
+  "aiAssistKeyFieldLabel": "Anthropic API 密钥",
+  "aiAssistKeySavedLabel": "密钥已保存",
+  "aiAssistRemoveKeyLabel": "移除密钥"
 }
