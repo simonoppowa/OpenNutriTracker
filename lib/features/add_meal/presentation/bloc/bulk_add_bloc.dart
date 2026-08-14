@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
@@ -153,8 +154,10 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
   final log = Logger('BulkAddBloc');
 
   final ResolveParsedMealsUseCase _resolveParsedMealsUseCase;
+  final ReadMealTextUseCase _readMealTextUseCase;
 
-  BulkAddBloc(this._resolveParsedMealsUseCase) : super(const BulkAddInitial()) {
+  BulkAddBloc(this._resolveParsedMealsUseCase, this._readMealTextUseCase)
+    : super(const BulkAddInitial()) {
     on<ParseBulkTextEvent>(_onParse);
     on<ChangeRowCandidateEvent>(_onChangeCandidate);
     on<ChangeRowAmountEvent>(_onChangeAmount);
@@ -166,7 +169,17 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     ParseBulkTextEvent event,
     Emitter<BulkAddState> emit,
   ) async {
-    final parsed = parseMealText(event.text);
+    // Emitted before the read, not after: with a key configured this waits
+    // on a network round trip, and a screen that does nothing for two
+    // seconds reads as broken.
+    emit(const BulkAddLoadingState());
+
+    final reading = await _readMealTextUseCase.read(
+      event.text,
+      localeCode: event.localeCode,
+    );
+    if (emit.isDone) return;
+    final parsed = reading.result;
 
     if (parsed.items.isEmpty) {
       // Nothing usable. The parser's own errors still go through so the
@@ -176,12 +189,11 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
           rows: const [],
           parseErrors: parsed.errors,
           usesImperialUnits: event.usesImperialUnits,
+          readByModel: reading.usedModel,
         ),
       );
       return;
     }
-
-    emit(const BulkAddLoadingState());
 
     try {
       final resolved = await _resolveParsedMealsUseCase.resolve(parsed.items);
@@ -208,6 +220,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
           ],
           parseErrors: parsed.errors,
           usesImperialUnits: event.usesImperialUnits,
+          readByModel: reading.usedModel,
         ),
       );
     } catch (e, stackTrace) {

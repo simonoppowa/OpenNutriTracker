@@ -1127,5 +1127,6 @@
   "aiAssistDisclosureLabel": "Con una chiave salvata, il testo digitato nella schermata di aggiunta multipla viene inviato ad Anthropic per essere letto. Il tuo diario non viene mai inviato. I valori nutrizionali provengono sempre dai database alimentari, mai dal modello. La chiave è memorizzata solo su questo dispositivo: OpenNutriTracker non la vede e non ne paga l'uso.",
   "aiAssistKeyFieldLabel": "Chiave API Anthropic",
   "aiAssistKeySavedLabel": "Chiave salvata",
-  "aiAssistRemoveKeyLabel": "Rimuovi chiave"
+  "aiAssistRemoveKeyLabel": "Rimuovi chiave",
+  "bulkAddReadByModelLabel": "Letto dall'AI — controlla ogni riga"
 }

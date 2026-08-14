@@ -156,7 +156,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
     // The list is the labelled surface, not each child — row identifiers
     // would churn every time the row count changes.
-    return Semantics(
+    final list = Semantics(
       identifier: 'bulk-add-row-list',
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -169,6 +169,39 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           return _buildRow(context, state, index);
         },
       ),
+    );
+
+    if (!state.readByModel) return list;
+
+    // Shown above the rows, not inside one. A model read the whole line, so
+    // the caution belongs to the batch — and the confirmation step is only
+    // meaningful if the user knows what did the reading.
+    return Column(
+      children: [
+        Semantics(
+          identifier: 'bulk-add-model-notice',
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Row(
+              children: [
+                const Icon(Icons.auto_awesome_rounded, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    S.of(context).bulkAddReadByModelLabel,
+                    style: Theme.of(context).textTheme.bodySmall,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Expanded(child: list),
+      ],
     );
   }
 
@@ -420,6 +453,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       ParseBulkTextEvent(
         text: _textController.text,
         usesImperialUnits: _args.usesImperialUnits,
+        localeCode: Localizations.localeOf(context).languageCode,
       ),
     );
   }

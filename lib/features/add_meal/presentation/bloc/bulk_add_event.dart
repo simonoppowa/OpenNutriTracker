@@ -11,13 +11,19 @@ class ParseBulkTextEvent extends BulkAddEvent {
   final String text;
   final bool usesImperialUnits;
 
+  /// The app's language, passed to the model so food names come back in the
+  /// language the food search is querying. Null leaves the model to infer it
+  /// from the input.
+  final String? localeCode;
+
   const ParseBulkTextEvent({
     required this.text,
     required this.usesImperialUnits,
+    this.localeCode,
   });
 
   @override
-  List<Object?> get props => [text, usesImperialUnits];
+  List<Object?> get props => [text, usesImperialUnits, localeCode];
 }
 
 class ChangeRowCandidateEvent extends BulkAddEvent {

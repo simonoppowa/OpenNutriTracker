@@ -1158,5 +1158,6 @@
   "aiAssistDisclosureLabel": "S uloženým kľúčom sa text, ktorý zadáte na obrazovke hromadného pridávania, odošle na spracovanie spoločnosti Anthropic. Váš denník sa neodosiela nikdy. Nutričné hodnoty vždy pochádzajú z databáz potravín, nikdy z modelu. Kľúč je uložený iba v tomto zariadení: OpenNutriTracker ho nikdy nevidí a neplatí za jeho použitie.",
   "aiAssistKeyFieldLabel": "Kľúč API Anthropic",
   "aiAssistKeySavedLabel": "Kľúč uložený",
-  "aiAssistRemoveKeyLabel": "Odstrániť kľúč"
+  "aiAssistRemoveKeyLabel": "Odstrániť kľúč",
+  "bulkAddReadByModelLabel": "Prečítané AI — skontrolujte každý riadok"
 }

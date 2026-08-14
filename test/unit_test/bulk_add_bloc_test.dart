@@ -1,4 +1,7 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
@@ -51,8 +54,17 @@ class _FakeSearch implements SearchProductsUseCase {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-BulkAddBloc blocWith(Map<String, List<MealEntity>> results) =>
-    BulkAddBloc(ResolveParsedMealsUseCase(_FakeSearch(results)));
+/// No credential stored, so the use case always takes the parser path —
+/// these tests are about the bloc, not about which reader produced the items.
+ReadMealTextUseCase parserOnlyReader() => ReadMealTextUseCase(
+  AiCredentialStorage(_EmptyStorage()),
+  (_) => throw StateError('must not be built without a key'),
+);
+
+BulkAddBloc blocWith(Map<String, List<MealEntity>> results) => BulkAddBloc(
+  ResolveParsedMealsUseCase(_FakeSearch(results)),
+  parserOnlyReader(),
+);
 
 /// Candidates come back ranked, not in the order they were faked, so tests
 /// that switch candidates have to look the wanted one up by name.
@@ -422,6 +434,7 @@ void main() {
   test('a resolution failure surfaces as an error state', () async {
     final bloc = BulkAddBloc(
       ResolveParsedMealsUseCase(_FakeSearch({}, throws: true)),
+      parserOnlyReader(),
     );
 
     bloc.add(const ParseBulkTextEvent(text: 'toast', usesImperialUnits: false));
@@ -447,4 +460,23 @@ void main() {
     expect(state.rows, isEmpty);
     expect(state.parseErrors, hasLength(1));
   });
+}
+
+
+/// A keystore with nothing in it, so the read use case always takes the
+/// deterministic path.
+class _EmptyStorage implements FlutterSecureStorage {
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

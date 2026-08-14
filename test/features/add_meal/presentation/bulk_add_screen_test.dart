@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
@@ -137,7 +140,13 @@ Future<void> _register(
   _mealDetailBloc = _FakeMealDetailBloc(failOnSecondWrite: failOnSecondWrite);
   _homeBloc = _FakeHomeBloc();
   getIt.registerFactory<BulkAddBloc>(
-    () => BulkAddBloc(ResolveParsedMealsUseCase(_FakeSearch(results))),
+    () => BulkAddBloc(
+      ResolveParsedMealsUseCase(_FakeSearch(results)),
+      ReadMealTextUseCase(
+        AiCredentialStorage(_EmptyStorage()),
+        (_) => throw StateError('must not be built without a key'),
+      ),
+    ),
   );
   getIt.registerFactory<MealDetailBloc>(() => _mealDetailBloc);
   getIt.registerFactory<HomeBloc>(() => _homeBloc);
@@ -418,4 +427,23 @@ void main() {
       findsOneWidget,
     );
   });
+}
+
+
+/// A keystore with nothing in it, so the read use case always takes the
+/// deterministic path.
+class _EmptyStorage implements FlutterSecureStorage {
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

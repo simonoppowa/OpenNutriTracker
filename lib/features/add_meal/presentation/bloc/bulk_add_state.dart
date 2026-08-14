@@ -33,10 +33,15 @@ class BulkAddLoadedState extends BulkAddState {
 
   final bool usesImperialUnits;
 
+  /// True when a model read the line rather than the deterministic parser.
+  /// Surfaced so the user can see what they are being asked to confirm.
+  final bool readByModel;
+
   const BulkAddLoadedState({
     required this.rows,
     required this.parseErrors,
     required this.usesImperialUnits,
+    this.readByModel = false,
   });
 
   Iterable<BulkAddRow> get loggableRows =>
@@ -50,8 +55,14 @@ class BulkAddLoadedState extends BulkAddState {
     rows: rows ?? this.rows,
     parseErrors: parseErrors,
     usesImperialUnits: usesImperialUnits,
+    readByModel: readByModel,
   );
 
   @override
-  List<Object?> get props => [rows, parseErrors, usesImperialUnits];
+  List<Object?> get props => [
+    rows,
+    parseErrors,
+    usesImperialUnits,
+    readByModel,
+  ];
 }
