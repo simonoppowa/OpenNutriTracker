@@ -1,7 +1,9 @@
 import 'dart:io' show Platform;
+import 'dart:math' show max;
 
 import 'package:health/health.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
 
@@ -50,7 +52,7 @@ class HealthPackageService implements HealthService {
   /// several years ago doesn't drive it.
   static const _bodyFatLookback = Duration(days: 365);
 
-  final _log = Logger('HealthPackageService');
+  static final _log = Logger('HealthPackageService');
   final Health _health;
 
   HealthPackageService(this._health);
@@ -103,6 +105,19 @@ class HealthPackageService implements HealthService {
       startTime: from,
       endTime: to,
     );
+    // On Android a workout's totalEnergyBurned is the plugin's sum of EVERY
+    // calorie record overlapping the session, whoever wrote it — see
+    // [androidWorkoutEnergyKcal] for why that double-counts. Read the raw
+    // calorie records once for the whole window and attribute them per
+    // workout instead. HealthKit workouts carry their own total, so iOS
+    // keeps the plugin's value.
+    final calorieRecords = Platform.isAndroid
+        ? await _health.getHealthDataFromTypes(
+            types: const [HealthDataType.TOTAL_CALORIES_BURNED],
+            startTime: from,
+            endTime: to,
+          )
+        : const <HealthDataPoint>[];
     final workouts = <ExternalWorkout>[];
     for (final point in points) {
       final value = point.value;
@@ -121,15 +136,68 @@ class HealthPackageService implements HealthService {
           start: point.dateFrom,
           end: point.dateTo,
           activityTypeName: value.workoutActivityType.name,
-          energyBurnedKcal: _energyInKcal(
-            value.totalEnergyBurned,
-            value.totalEnergyBurnedUnit,
-          ),
+          energyBurnedKcal: Platform.isAndroid
+              ? androidWorkoutEnergyKcal(
+                  start: point.dateFrom,
+                  end: point.dateTo,
+                  sourceName: point.sourceName,
+                  calorieRecords: calorieRecords,
+                )
+              : _energyInKcal(
+                  value.totalEnergyBurned,
+                  value.totalEnergyBurnedUnit,
+                ),
           sourceAppName: point.sourceName,
         ),
       );
     }
     return workouts;
+  }
+
+  /// Energy attributable to one Android workout session.
+  ///
+  /// A Health Connect session record carries no calories of its own; apps
+  /// write separate TOTAL_CALORIES_BURNED records, and the plugin fills a
+  /// workout's total by summing every such record overlapping the session
+  /// window regardless of who wrote it. Alongside an all-day calorie stream
+  /// (Fitbit and Google Fit write basal+activity in 15-minute buckets —
+  /// energy the calorie goal already models) that inflates a real workout by
+  /// whatever the background stream put into the same window. Only the
+  /// records the session's own writer produced are the workout's energy, so
+  /// the sum is per-source: [sourceName]'s own records when it wrote any,
+  /// otherwise the largest single-source sum in the window (some setups
+  /// track sessions in one app and calories in another) — never the
+  /// cross-source total.
+  ///
+  /// A record belongs to the window when it STARTS inside it ([start]
+  /// inclusive, [end] exclusive) — the same startTime-based semantics Health
+  /// Connect's own between() filter applies.
+  @visibleForTesting
+  static double? androidWorkoutEnergyKcal({
+    required DateTime start,
+    required DateTime end,
+    required String sourceName,
+    required List<HealthDataPoint> calorieRecords,
+  }) {
+    final kcalBySource = <String, double>{};
+    for (final record in calorieRecords) {
+      if (record.dateFrom.isBefore(start) || !record.dateFrom.isBefore(end)) {
+        continue;
+      }
+      final value = record.value;
+      if (value is! NumericHealthValue) continue;
+      final kcal = _energyInKcal(value.numericValue, record.unit);
+      if (kcal == null) continue;
+      kcalBySource.update(
+        record.sourceName,
+        (sum) => sum + kcal,
+        ifAbsent: () => kcal,
+      );
+    }
+    final ownKcal = kcalBySource[sourceName] ?? 0;
+    if (ownKcal > 0) return ownKcal;
+    final largestKcal = kcalBySource.values.fold(0.0, max);
+    return largestKcal > 0 ? largestKcal : null;
   }
 
   @override
@@ -156,7 +224,7 @@ class HealthPackageService implements HealthService {
   /// energy unit we can't convert is dropped: a workout with no usable
   /// figure is skipped upstream, which is safer than importing a number that
   /// is off by a factor of four thousand.
-  double? _energyInKcal(int? energy, HealthDataUnit? unit) {
+  static double? _energyInKcal(num? energy, HealthDataUnit? unit) {
     if (energy == null) return null;
     switch (unit) {
       case null:
