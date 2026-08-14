@@ -56,6 +56,9 @@ enum BulkAddPhotoError {
   /// No network, a rate limit, a provider error — worth another attempt.
   transient,
 
+  /// The camera could not be opened, commonly because permission was denied.
+  camera,
+
   /// The photo itself could not be encoded or was too large to send.
   unreadable,
 }

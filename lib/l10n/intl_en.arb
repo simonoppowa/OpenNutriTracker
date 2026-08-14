@@ -1243,6 +1243,7 @@
   "bulkAddReadFromPhotoLabel": "Read from a photo — check every food and amount",
   "bulkAddPhotoUnavailableLabel": "Turn on AI meal assistance in Settings to read photos",
   "bulkAddPhotoKeyRejectedLabel": "Your API key was rejected. Check it in Settings.",
+  "bulkAddPhotoCameraFailedLabel": "Couldn't open the camera. Check camera permission and try again.",
   "bulkAddPhotoFailedLabel": "Couldn't read the photo. Check your connection and try again.",
   "bulkAddPhotoUnreadableLabel": "Couldn't use that image. Try another photo.",
   "bulkAddPhotoNoFoodLabel": "No food found in that photo. Try another photo, or type the items instead."

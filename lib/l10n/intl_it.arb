@@ -1134,6 +1134,7 @@
   "bulkAddReadFromPhotoLabel": "Letto da una foto — controlla ogni alimento e quantità",
   "bulkAddPhotoUnavailableLabel": "Attiva l'assistenza AI ai pasti nelle impostazioni per leggere le foto",
   "bulkAddPhotoKeyRejectedLabel": "La tua chiave API è stata rifiutata. Controllala nelle impostazioni.",
+  "bulkAddPhotoCameraFailedLabel": "Impossibile aprire la fotocamera. Controlla l'autorizzazione della fotocamera e riprova.",
   "bulkAddPhotoFailedLabel": "Impossibile leggere la foto. Controlla la connessione e riprova.",
   "bulkAddPhotoUnreadableLabel": "Impossibile usare quell'immagine. Prova un'altra foto.",
   "bulkAddPhotoNoFoodLabel": "Nessun alimento riconosciuto in questa foto. Prova un'altra foto o digita le voci."

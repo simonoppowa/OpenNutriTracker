@@ -1134,6 +1134,7 @@
   "bulkAddReadFromPhotoLabel": "Odczytane ze zdjęcia — sprawdź każdy produkt i ilość",
   "bulkAddPhotoUnavailableLabel": "Włącz asystenta AI dla posiłków w ustawieniach, aby odczytywać zdjęcia",
   "bulkAddPhotoKeyRejectedLabel": "Twój klucz API został odrzucony. Sprawdź go w ustawieniach.",
+  "bulkAddPhotoCameraFailedLabel": "Nie udało się otworzyć aparatu. Sprawdź uprawnienia aparatu i spróbuj ponownie.",
   "bulkAddPhotoFailedLabel": "Nie udało się odczytać zdjęcia. Sprawdź połączenie i spróbuj ponownie.",
   "bulkAddPhotoUnreadableLabel": "Nie można użyć tego obrazu. Spróbuj innego zdjęcia.",
   "bulkAddPhotoNoFoodLabel": "Nie rozpoznano żadnych produktów na tym zdjęciu. Spróbuj innego zdjęcia lub wpisz pozycje ręcznie."

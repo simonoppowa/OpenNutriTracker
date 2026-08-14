@@ -1165,6 +1165,7 @@
   "bulkAddReadFromPhotoLabel": "Fotoğraftan okundu — her yiyeceği ve miktarı kontrol edin",
   "bulkAddPhotoUnavailableLabel": "Fotoğraf okumak için Ayarlar’dan yapay zekâ öğün yardımını açın",
   "bulkAddPhotoKeyRejectedLabel": "API anahtarınız reddedildi. Ayarlar’dan kontrol edin.",
+  "bulkAddPhotoCameraFailedLabel": "Kamera açılamadı. Kamera iznini kontrol edip tekrar deneyin.",
   "bulkAddPhotoFailedLabel": "Fotoğraf okunamadı. Bağlantınızı kontrol edip tekrar deneyin.",
   "bulkAddPhotoUnreadableLabel": "Bu görsel kullanılamadı. Başka bir fotoğraf deneyin.",
   "bulkAddPhotoNoFoodLabel": "Bu fotoğrafta yiyecek bulunamadı. Başka bir fotoğraf deneyin veya öğeleri yazın."

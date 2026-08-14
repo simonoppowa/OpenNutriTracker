@@ -68,19 +68,10 @@ Rules:
     String? localeCode,
   }) async {
     final result = await _api.requestItems(
-      content: [
-        // Image before text: Anthropic's vision guidance is that the image
-        // should precede the instruction that refers to it.
-        {
-          'type': 'image',
-          'source': {
-            'type': 'base64',
-            'media_type': photo.mediaType,
-            'data': base64Encode(photo.bytes),
-          },
-        },
-        {'type': 'text', 'text': 'List the foods in this photo.'},
-      ],
+      content: AnthropicMealPhotoContent(
+        mediaType: photo.mediaType,
+        base64Data: base64Encode(photo.bytes),
+      ),
       system: localeCode == null
           ? _systemPrompt
           : '$_systemPrompt\nThe user\'s app language is "$localeCode".',

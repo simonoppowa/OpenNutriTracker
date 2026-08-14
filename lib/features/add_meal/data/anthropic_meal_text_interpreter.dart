@@ -68,7 +68,7 @@ Rules:
     }
 
     return _api.requestItems(
-      content: trimmed,
+      content: AnthropicMealTextContent(trimmed),
       system: localeCode == null
           ? _systemPrompt
           : '$_systemPrompt\nThe user\'s app language is "$localeCode".',

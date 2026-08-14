@@ -179,6 +179,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           S.of(context).bulkAddPhotoUnavailableLabel,
         BulkAddPhotoError.auth => S.of(context).bulkAddPhotoKeyRejectedLabel,
         BulkAddPhotoError.transient => S.of(context).bulkAddPhotoFailedLabel,
+        BulkAddPhotoError.camera => S.of(context).bulkAddPhotoCameraFailedLabel,
         BulkAddPhotoError.unreadable =>
           S.of(context).bulkAddPhotoUnreadableLabel,
       });
@@ -508,10 +509,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
   void _onParsePressed() {
     FocusScope.of(context).unfocus();
-    for (final controller in _amountControllers.values) {
-      controller.dispose();
-    }
-    _amountControllers.clear();
+    _resetAmountControllers();
     _bloc.add(
       ParseBulkTextEvent(
         text: _textController.text,
@@ -521,10 +519,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     );
   }
 
-  /// Offers camera or gallery, then reads whichever the user picks.
   Future<void> _onPhotoPressed() async {
     FocusScope.of(context).unfocus();
-    final source = await showModalBottomSheet<ImageSource>(
+    final shouldOpenCamera = await showModalBottomSheet<bool>(
       context: context,
       builder: (sheetContext) => SafeArea(
         child: Wrap(
@@ -544,29 +541,29 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
               child: ListTile(
                 leading: const Icon(Icons.photo_camera_rounded),
                 title: Text(S.of(sheetContext).mealImageTakePhoto),
-                onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
-              ),
-            ),
-            Semantics(
-              identifier: 'bulk-add-photo-gallery',
-              child: ListTile(
-                leading: const Icon(Icons.photo_library_rounded),
-                title: Text(S.of(sheetContext).mealImagePickFromGallery),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(ImageSource.gallery),
+                onTap: () => Navigator.of(sheetContext).pop(true),
               ),
             ),
           ],
         ),
       ),
     );
-    if (source == null || !mounted) return;
+    if (shouldOpenCamera != true || !mounted) return;
+
+    final XFile? picked;
+    try {
+      picked = await ImagePicker().pickImage(source: ImageSource.camera);
+    } catch (e, stackTrace) {
+      _log.warning('Opening the meal photo camera failed', e, stackTrace);
+      if (!mounted) return;
+      _bloc.add(const ReadMealPhotoFailedEvent(BulkAddPhotoError.camera));
+      return;
+    }
+    // A cancelled picker is not a failure and says nothing to the user.
+    if (picked == null || !mounted) return;
 
     final MealPhoto? photo;
     try {
-      final picked = await ImagePicker().pickImage(source: source);
-      // A cancelled picker is not a failure and says nothing to the user.
-      if (picked == null) return;
       // Discards the picker's cache copy once it has been encoded — see
       // [MealPhotoEncoder.encodeAndDiscardSource]. Without it the app leaves
       // the photo on disk, which the settings disclosure says it does not.
@@ -574,7 +571,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     } catch (e, stackTrace) {
       // Never logged with the path: on Android the picker's temp filename
       // can carry the original image name.
-      _log.warning('Picking a meal photo failed', e, stackTrace);
+      _log.warning('Encoding a meal photo failed', e, stackTrace);
       if (!mounted) return;
       _bloc.add(const ReadMealPhotoFailedEvent(BulkAddPhotoError.unreadable));
       return;
@@ -587,10 +584,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     }
 
     // A photo replaces the previous batch, so the old controllers go with it.
-    for (final controller in _amountControllers.values) {
-      controller.dispose();
-    }
-    _amountControllers.clear();
+    _resetAmountControllers();
 
     _bloc.add(
       ReadMealPhotoEvent(
@@ -599,6 +593,13 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         localeCode: Localizations.localeOf(context).languageCode,
       ),
     );
+  }
+
+  void _resetAmountControllers() {
+    for (final controller in _amountControllers.values) {
+      controller.dispose();
+    }
+    _amountControllers.clear();
   }
 
   Future<void> _showCandidatePicker(int index, BulkAddRow row) async {

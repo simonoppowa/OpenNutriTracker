@@ -5,6 +5,41 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_interpreter_exception.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
+/// A user message body accepted by the meal-items request.
+sealed class AnthropicMealContent {
+  const AnthropicMealContent();
+
+  Object toJson();
+}
+
+class AnthropicMealTextContent extends AnthropicMealContent {
+  final String text;
+
+  const AnthropicMealTextContent(this.text);
+
+  @override
+  String toJson() => text;
+}
+
+class AnthropicMealPhotoContent extends AnthropicMealContent {
+  final String mediaType;
+  final String base64Data;
+
+  const AnthropicMealPhotoContent({
+    required this.mediaType,
+    required this.base64Data,
+  });
+
+  @override
+  List<Map<String, Object>> toJson() => [
+    {
+      'type': 'image',
+      'source': {'type': 'base64', 'media_type': mediaType, 'data': base64Data},
+    },
+    {'type': 'text', 'text': 'List the foods in this photo.'},
+  ];
+}
+
 /// The one place this app asks Claude for a list of food items, whether the
 /// question came from a line of text or a photograph.
 ///
@@ -115,12 +150,8 @@ class AnthropicMealItemsApi {
 
   /// Sends one forced tool call and returns the validated items.
   ///
-  /// [content] is the user message body — a plain string for the text path,
-  /// a list of content blocks for the photo path. The Messages API accepts
-  /// either, and keeping it untyped here is what lets the two paths share
-  /// every line below it.
   Future<MealTextParseResult> requestItems({
-    required Object content,
+    required AnthropicMealContent content,
     required String system,
   }) async {
     final body = jsonEncode({
@@ -138,7 +169,7 @@ class AnthropicMealItemsApi {
       // model may answer in prose and every caller needs a fallback parser.
       'tool_choice': {'type': 'tool', 'name': toolName},
       'messages': [
-        {'role': 'user', 'content': content},
+        {'role': 'user', 'content': content.toJson()},
       ],
     });
 

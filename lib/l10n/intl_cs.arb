@@ -1134,6 +1134,7 @@
   "bulkAddReadFromPhotoLabel": "Přečteno z fotky — zkontrolujte každou potravinu i množství",
   "bulkAddPhotoUnavailableLabel": "Chcete-li načítat fotky, zapněte v nastavení AI asistenci pro jídla",
   "bulkAddPhotoKeyRejectedLabel": "Váš API klíč byl odmítnut. Zkontrolujte jej v nastavení.",
+  "bulkAddPhotoCameraFailedLabel": "Kameru se nepodařilo otevřít. Zkontrolujte oprávnění ke kameře a zkuste to znovu.",
   "bulkAddPhotoFailedLabel": "Fotku se nepodařilo načíst. Zkontrolujte připojení a zkuste to znovu.",
   "bulkAddPhotoUnreadableLabel": "Tento obrázek nelze použít. Zkuste jinou fotku.",
   "bulkAddPhotoNoFoodLabel": "Na této fotce nebyly rozpoznány žádné potraviny. Zkuste jinou fotku nebo položky zadejte ručně."
