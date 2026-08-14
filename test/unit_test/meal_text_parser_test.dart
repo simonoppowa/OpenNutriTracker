@@ -558,6 +558,18 @@ void main() {
       expect(result.errors, isEmpty);
     });
 
+    test('a non-finite quantity takes its unit with it', () {
+      // The sanitized quantity is what the unit hangs off. Reading the raw
+      // value would leave `g` beside a null quantity — the very state the
+      // unit-dropping rule above exists to prevent.
+      final result = validateParsedMealItems(const [
+        ParsedMealItem(query: 'toast', quantity: double.nan, unit: 'g'),
+      ]);
+
+      expect(result.items.single.quantity, isNull);
+      expect(result.items.single.unit, isNull);
+    });
+
     test('trims the query so a padded name still reaches the search', () {
       final result = validateParsedMealItems(const [
         ParsedMealItem(query: '  toast  '),

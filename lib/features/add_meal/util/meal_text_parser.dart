@@ -179,8 +179,12 @@ MealTextParseResult validateParsedMealItems(List<ParsedMealItem> candidates) {
     // the other, so downstream code was written against that. A model can
     // produce it, and honouring a unit nobody attached a number to would
     // present a guess as though the user had typed it.
-    final unit =
-        candidate.quantity != null && _validUnits.contains(candidate.unit)
+    // Gated on the *sanitized* quantity, not the raw one. A candidate of
+    // `{quantity: NaN, unit: 'g'}` sanitizes to a null quantity, and reading
+    // the raw value here would have kept the `g` beside it — reintroducing
+    // exactly the unit-without-quantity state the paragraph above exists to
+    // prevent.
+    final unit = quantity != null && _validUnits.contains(candidate.unit)
         ? candidate.unit
         : null;
 
