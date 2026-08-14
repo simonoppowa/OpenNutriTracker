@@ -11,6 +11,13 @@ import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart'
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
+/// A number immediately followed by a metric mass or volume unit, as it
+/// appears inside an Open Food Facts `serving_size` string.
+final _servingSizeMetric = RegExp(
+  r'(\d+(?:[.,]\d+)?)\s*(?:g|ml)\b',
+  caseSensitive: false,
+);
+
 class MealEntity extends Equatable {
   static const liquidUnits = {'ml', 'l', 'dl', 'cl', 'fl oz', 'fl.oz'};
   static const solidUnits = {'kg', 'g', 'mg', 'µg', 'oz'};
@@ -38,6 +45,31 @@ class MealEntity extends Equatable {
   // OFF data is present — the dropdown text in `_getServingDropdownItem`
   // already falls back to `servingSize` when `servingUnit` is missing.
   bool get hasServingValues => servingQuantity != null || servingSize != null;
+
+  /// A number of grams or millilitres per serving, or null when the record
+  /// carries none that can be scaled.
+  ///
+  /// [servingQuantity] is Open Food Facts' parsed numeric, and it is often
+  /// absent while `serving_size` carries the same figure as text — "30 g",
+  /// "2 Tbsp (32 g)", "1 slice (25g)". Reading it back matters because
+  /// [hasServingValues] is true for those records while nothing can scale
+  /// them: the meal-detail screen defaulted them to "1 serving" and logged
+  /// one *gram* (#629).
+  ///
+  /// The last `g`/`ml` figure wins, so a parenthesised metric equivalent
+  /// beats the imperial measure in front of it ("12 oz (355 ml)" is 355).
+  /// A serving with no metric figure at all — "1 egg" — yields null, and
+  /// the caller falls back to a weight the user can see.
+  double? get scalableServingQuantity {
+    final parsed = servingQuantity;
+    if (parsed != null) return parsed;
+
+    final text = servingSize;
+    if (text == null) return null;
+    final matches = _servingSizeMetric.allMatches(text);
+    if (matches.isEmpty) return null;
+    return double.tryParse(matches.last.group(1)!.replaceAll(',', '.'));
+  }
 
   final MealSourceEntity source;
 

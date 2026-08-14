@@ -125,7 +125,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   /// re-run after hydration reveals serving values.
   void _applyInitialSelection() {
     if (_initialUnit == "") {
-      if (meal.hasServingValues) {
+      // `scalableServingQuantity`, not `hasServingValues` (#629): the latter
+      // is true for a record whose serving is unparseable text, and nothing
+      // can scale those — they defaulted to "1 serving" and logged 1 g.
+      if (meal.scalableServingQuantity != null) {
         _initialUnit = UnitDropdownItem.serving.toString();
       } else if (meal.isLiquid) {
         _initialUnit = _usesImperialUnits
@@ -144,7 +147,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     }
 
     if (_initialQuantity == "") {
-      if (meal.hasServingValues) {
+      // Gated the same way as the unit above, so a bare "1" can never end
+      // up beside a weight unit.
+      if (meal.scalableServingQuantity != null) {
         _initialQuantity = "1";
         quantityTextController.text = "1";
       } else if (_usesImperialUnits) {
@@ -191,7 +196,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       child: SafeArea(
         child: Scaffold(
           backgroundColor:
-              (Theme.of(context).brightness == Brightness.dark ? AppPalette.dark : AppPalette.light).canvas,
+              (Theme.of(context).brightness == Brightness.dark
+                      ? AppPalette.dark
+                      : AppPalette.light)
+                  .canvas,
           body: BlocBuilder<MealDetailBloc, MealDetailState>(
             bloc: _mealDetailBloc,
             builder: (context, state) {
@@ -212,20 +220,20 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               return const Center(child: CircularProgressIndicator());
             },
           ),
-        bottomSheet: BlocSelector<MealDetailBloc, MealDetailState, String>(
-          bloc: _mealDetailBloc,
-          selector: (state) => state.selectedUnit,
-          builder: (context, selectedUnit) {
-            return MealDetailBottomSheet(
-              product: meal,
-              day: _day,
-              intakeTypeEntity: intakeTypeEntity,
-              selectedUnit: selectedUnit,
-              mealDetailBloc: _mealDetailBloc,
-              quantityTextController: quantityTextController,
-              onQuantityOrUnitChanged: onQuantityOrUnitChanged,
-            );
-          },
+          bottomSheet: BlocSelector<MealDetailBloc, MealDetailState, String>(
+            bloc: _mealDetailBloc,
+            selector: (state) => state.selectedUnit,
+            builder: (context, selectedUnit) {
+              return MealDetailBottomSheet(
+                product: meal,
+                day: _day,
+                intakeTypeEntity: intakeTypeEntity,
+                selectedUnit: selectedUnit,
+                mealDetailBloc: _mealDetailBloc,
+                quantityTextController: quantityTextController,
+                onQuantityOrUnitChanged: onQuantityOrUnitChanged,
+              );
+            },
           ),
         ),
       ),
@@ -264,10 +272,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             duration: const Duration(milliseconds: 200),
             child: Text(
               meal.name ?? '',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -281,9 +288,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           ),
           flexibleSpace: FlexibleSpaceBar(
             background: Padding(
-              padding: EdgeInsets.only(
-                bottom: dayKcalGoal > 0 ? 68 : 0,
-              ),
+              padding: EdgeInsets.only(bottom: dayKcalGoal > 0 ? 68 : 0),
               child: MealTitleExpanded(
                 meal: meal,
                 usesImperialUnits: _usesImperialUnits,
@@ -350,9 +355,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     children: [
                       Text(
                         EnergyDisplay.formatWithUnit(context, totalKcal),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
+                        style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       MealValueUnitText(
@@ -360,8 +363,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                         meal: meal,
                         displayUnit:
                             selectedUnit == UnitDropdownItem.serving.toString()
-                                ? meal.servingUnit
-                                : selectedUnit,
+                            ? meal.servingUnit
+                            : selectedUnit,
                         usesImperialUnits: _usesImperialUnits,
                         textStyle: Theme.of(context).textTheme.bodyMedium,
                         prefix: ' / ',
@@ -464,4 +467,3 @@ class MealDetailScreenArguments {
     this.usesImperialUnits,
   );
 }
-
