@@ -237,11 +237,15 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     switch (reading) {
       case MealPhotoUnavailable():
         emit(const BulkAddPhotoErrorState(BulkAddPhotoError.unavailable));
-      case MealPhotoFailed(:final isAuthFailure):
+      case MealPhotoFailed(:final failure):
         emit(
-          BulkAddPhotoErrorState(
-            isAuthFailure ? BulkAddPhotoError.auth : BulkAddPhotoError.transient,
-          ),
+          BulkAddPhotoErrorState(switch (failure) {
+            MealPhotoFailure.auth => BulkAddPhotoError.auth,
+            // The provider will refuse this picture every time, so it lands
+            // on "try another photo" rather than on "try again".
+            MealPhotoFailure.rejectedImage => BulkAddPhotoError.unreadable,
+            MealPhotoFailure.transient => BulkAddPhotoError.transient,
+          }),
         );
       case MealPhotoRead(:final result):
         // An empty list is an answer, not a failure: the model looked and

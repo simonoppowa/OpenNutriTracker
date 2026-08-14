@@ -27,6 +27,15 @@ class MealInterpreterException implements Exception {
   /// [AiCredentialStorage] already goes out of its way to avoid.
   bool get isAuthFailure => statusCode == 401 || statusCode == 403;
 
+  /// True when the provider rejected the request itself rather than failing
+  /// to serve it. On the photo path that means the image.
+  ///
+  /// Found by running a corpus of real photographs: JPEGs carrying Adobe
+  /// APP14 markers were refused with a 400 on every attempt, while the same
+  /// picture re-encoded went through. Retrying one of those never succeeds,
+  /// so it must not be offered to the user as retryable.
+  bool get isRejectedRequest => statusCode == 400 || statusCode == 422;
+
   @override
   String toString() =>
       'MealInterpreterException($reason${statusCode == null ? '' : ', '

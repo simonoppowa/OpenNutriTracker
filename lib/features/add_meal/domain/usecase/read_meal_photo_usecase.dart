@@ -29,14 +29,27 @@ final class MealPhotoUnavailable extends MealPhotoReadResult {
   const MealPhotoUnavailable();
 }
 
-/// The call failed.
-final class MealPhotoFailed extends MealPhotoReadResult {
+/// Why a call failed, in the only three flavours the user can act on.
+enum MealPhotoFailure {
   /// The provider rejected the credential. Told apart from a transient
   /// failure because "try again later" is the wrong advice for a wrong key,
   /// and following it forever is a bad afternoon.
-  final bool isAuthFailure;
+  auth,
 
-  const MealPhotoFailed({required this.isAuthFailure});
+  /// The provider refused this image. A corpus run found real photographs
+  /// that are rejected on every attempt but succeed once re-encoded, so the
+  /// useful advice is "try another photo", not "try again".
+  rejectedImage,
+
+  /// Network, rate limit, provider error. Worth another attempt.
+  transient,
+}
+
+/// The call failed.
+final class MealPhotoFailed extends MealPhotoReadResult {
+  final MealPhotoFailure failure;
+
+  const MealPhotoFailed(this.failure);
 }
 
 /// Reads a meal photo, when the user has asked for that.
@@ -79,14 +92,18 @@ class ReadMealPhotoUseCase {
       return MealPhotoRead(result);
     } on MealInterpreterException catch (e) {
       _log.info('Photo interpreter failed: ${e.reason}');
-      return MealPhotoFailed(isAuthFailure: e.isAuthFailure);
+      return MealPhotoFailed(switch (e) {
+        _ when e.isAuthFailure => MealPhotoFailure.auth,
+        _ when e.isRejectedRequest => MealPhotoFailure.rejectedImage,
+        _ => MealPhotoFailure.transient,
+      });
     } catch (e, stackTrace) {
       // An interpreter that throws something unexpected is a bug. Report it
       // as a transient failure rather than as a rejected key — telling the
       // user to check a credential that is fine sends them to fix the one
       // thing that is not broken.
       _log.severe('Photo interpreter failed unexpectedly', e, stackTrace);
-      return const MealPhotoFailed(isAuthFailure: false);
+      return const MealPhotoFailed(MealPhotoFailure.transient);
     }
   }
 }

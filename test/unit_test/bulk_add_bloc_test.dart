@@ -621,7 +621,7 @@ void main() {
     test('a rejected key says so rather than "try again"', () async {
       final state = await readPhoto(
         {},
-        const MealPhotoFailed(isAuthFailure: true),
+        const MealPhotoFailed(MealPhotoFailure.auth),
       );
 
       expect(
@@ -633,7 +633,7 @@ void main() {
     test('a transient failure is offered as retryable', () async {
       final state = await readPhoto(
         {},
-        const MealPhotoFailed(isAuthFailure: false),
+        const MealPhotoFailed(MealPhotoFailure.transient),
       );
 
       expect(

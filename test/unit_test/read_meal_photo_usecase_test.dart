@@ -173,7 +173,25 @@ void main() {
       final reading = await s.useCase.read(_photo);
 
       expect(reading, isA<MealPhotoFailed>());
-      expect((reading as MealPhotoFailed).isAuthFailure, isTrue);
+      expect((reading as MealPhotoFailed).failure, MealPhotoFailure.auth);
+    });
+
+    test('a refused image is not offered as retryable', () async {
+      // Found by running a corpus of real photographs: a JPEG carrying Adobe
+      // APP14 markers is refused with a 400 every single time, while the same
+      // picture re-encoded goes through. "Check your connection and try
+      // again" is advice that can never work here; "try another photo" can.
+      final s = subject(
+        apiKey: 'k',
+        throws: const MealInterpreterException('bad image', statusCode: 400),
+      );
+
+      final reading = await s.useCase.read(_photo);
+
+      expect(
+        (reading as MealPhotoFailed).failure,
+        MealPhotoFailure.rejectedImage,
+      );
     });
 
     test('a server error is not reported as an auth failure', () async {
@@ -184,7 +202,7 @@ void main() {
 
       final reading = await s.useCase.read(_photo);
 
-      expect((reading as MealPhotoFailed).isAuthFailure, isFalse);
+      expect((reading as MealPhotoFailed).failure, MealPhotoFailure.transient);
     });
 
     test('a network failure with no status is not an auth failure', () async {
@@ -195,7 +213,7 @@ void main() {
 
       final reading = await s.useCase.read(_photo);
 
-      expect((reading as MealPhotoFailed).isAuthFailure, isFalse);
+      expect((reading as MealPhotoFailed).failure, MealPhotoFailure.transient);
     });
 
     test(
@@ -208,7 +226,7 @@ void main() {
         final reading = await s.useCase.read(_photo);
 
         expect(reading, isA<MealPhotoFailed>());
-        expect((reading as MealPhotoFailed).isAuthFailure, isFalse);
+        expect((reading as MealPhotoFailed).failure, MealPhotoFailure.transient);
       },
     );
 
