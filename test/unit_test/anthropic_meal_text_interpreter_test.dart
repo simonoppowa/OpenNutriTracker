@@ -57,8 +57,10 @@ String toolReply(List<Map<String, dynamic>> items) => jsonEncode({
   ],
 });
 
-AnthropicMealTextInterpreter interpreterWith(FakeClient client) =>
-    AnthropicMealTextInterpreter(client, () => 'test-key');
+AnthropicMealTextInterpreter interpreterWith(
+  FakeClient client, {
+  Duration timeout = AnthropicMealTextInterpreter.defaultTimeout,
+}) => AnthropicMealTextInterpreter(client, () => 'test-key', timeout: timeout);
 
 void main() {
   group('the request', () {
@@ -332,11 +334,24 @@ void main() {
     });
 
     test('a stalled connection does not hang forever', () async {
+      // A short timeout so this costs milliseconds rather than the real
+      // twenty seconds; `defaultTimeout` is asserted separately.
       final client = FakeClient(hangs: true);
 
       await expectLater(
-        interpreterWith(client).interpret('toast'),
+        interpreterWith(
+          client,
+          timeout: const Duration(milliseconds: 50),
+        ).interpret('toast'),
         throwsA(isA<MealTextInterpreterException>()),
+      );
+    });
+
+    test('the shipped timeout matches the other remote data sources', () {
+      // The injectable timeout is for tests; this pins what production uses.
+      expect(
+        AnthropicMealTextInterpreter.defaultTimeout,
+        const Duration(seconds: 20),
       );
     });
 
