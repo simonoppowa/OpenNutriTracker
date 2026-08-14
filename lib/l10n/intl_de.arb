@@ -1155,9 +1155,16 @@
   "settingsAiAssistOnLabel": "An",
   "settingsAiAssistPausedLabel": "Pausiert — Schlüssel gespeichert",
   "settingsAiAssistEnabledLabel": "KI-Unterstützung verwenden",
-  "aiAssistDisclosureLabel": "Mit gespeichertem Schlüssel wird der Text, den du im Mehrfach-Eintrag-Bildschirm eingibst, zum Lesen an Anthropic gesendet. Dein Tagebuch wird nie gesendet. Nährwerte stammen immer aus den Lebensmitteldatenbanken, nie vom Modell. Der Schlüssel wird nur auf diesem Gerät gespeichert: OpenNutriTracker sieht ihn nie und zahlt nicht für seine Nutzung.",
+  "aiAssistDisclosureLabel": "Mit gespeichertem Schlüssel werden der Text, den du im Mehrfach-Eintrag-Bildschirm eingibst, und jedes Foto, das du dort auslesen lässt, an Anthropic gesendet. Fotos werden nur für diese eine Anfrage gesendet und nie gespeichert. Dein Tagebuch wird nie gesendet. Nährwerte stammen immer aus den Lebensmitteldatenbanken, nie vom Modell. Der Schlüssel wird nur auf diesem Gerät gespeichert: OpenNutriTracker sieht ihn nie und zahlt nicht für seine Nutzung.",
   "aiAssistKeyFieldLabel": "Anthropic-API-Schlüssel",
   "aiAssistKeySavedLabel": "Schlüssel gespeichert",
   "aiAssistRemoveKeyLabel": "Schlüssel entfernen",
-  "bulkAddReadByModelLabel": "Von KI gelesen — prüfe jede Zeile"
+  "bulkAddReadByModelLabel": "Von KI gelesen — prüfe jede Zeile",
+  "bulkAddPhotoLabel": "Foto auslesen",
+  "bulkAddPhotoDisclosureLabel": "Das Foto wird an Anthropic gesendet, um die darauf abgebildeten Lebensmittel zu erkennen. Es wird nur für diese eine Anfrage gesendet und nie gespeichert — weder auf diesem Gerät noch von OpenNutriTracker.",
+  "bulkAddReadFromPhotoLabel": "Aus einem Foto gelesen — prüfe jedes Lebensmittel und jede Menge",
+  "bulkAddPhotoUnavailableLabel": "Aktiviere die KI-Mahlzeitenhilfe in den Einstellungen, um Fotos auszulesen",
+  "bulkAddPhotoKeyRejectedLabel": "Dein API-Schlüssel wurde abgelehnt. Prüfe ihn in den Einstellungen.",
+  "bulkAddPhotoFailedLabel": "Das Foto konnte nicht gelesen werden. Prüfe deine Verbindung und versuche es erneut.",
+  "bulkAddPhotoUnreadableLabel": "Dieses Bild konnte nicht verwendet werden. Versuche ein anderes Foto."
 }

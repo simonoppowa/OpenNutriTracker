@@ -1125,9 +1125,16 @@
   "settingsAiAssistOnLabel": "已开启",
   "settingsAiAssistPausedLabel": "已暂停 — 密钥已保存",
   "settingsAiAssistEnabledLabel": "使用 AI 辅助",
-  "aiAssistDisclosureLabel": "保存密钥后，您在多项添加界面输入的文字会发送给 Anthropic 进行解析。您的日记永远不会被发送。营养数值始终来自食物数据库，而非模型。密钥仅保存在本设备上：OpenNutriTracker 从不查看，也不为其使用付费。",
+  "aiAssistDisclosureLabel": "保存密钥后，您在多项添加界面输入的文字，以及您在该界面选择解析的照片，会发送给 Anthropic。照片仅为该次请求发送，不会保存。您的日记永远不会被发送。营养数值始终来自食物数据库，而非模型。密钥仅保存在本设备上：OpenNutriTracker 从不查看，也不为其使用付费。",
   "aiAssistKeyFieldLabel": "Anthropic API 密钥",
   "aiAssistKeySavedLabel": "密钥已保存",
   "aiAssistRemoveKeyLabel": "移除密钥",
-  "bulkAddReadByModelLabel": "由 AI 解析 — 请检查每一行"
+  "bulkAddReadByModelLabel": "由 AI 解析 — 请检查每一行",
+  "bulkAddPhotoLabel": "解析照片",
+  "bulkAddPhotoDisclosureLabel": "照片会发送给 Anthropic 以识别其中的食物。仅为该次请求发送，不会保存 — 本设备不保存，OpenNutriTracker 也不保存。",
+  "bulkAddReadFromPhotoLabel": "由照片解析 — 请检查每种食物和分量",
+  "bulkAddPhotoUnavailableLabel": "请在设置中开启 AI 用餐助手以解析照片",
+  "bulkAddPhotoKeyRejectedLabel": "API 密钥被拒绝。请在设置中检查。",
+  "bulkAddPhotoFailedLabel": "无法解析照片。请检查网络连接后重试。",
+  "bulkAddPhotoUnreadableLabel": "无法使用该图片。请换一张照片。"
 }

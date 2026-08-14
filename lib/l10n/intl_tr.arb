@@ -1155,9 +1155,16 @@
   "settingsAiAssistOnLabel": "Açık",
   "settingsAiAssistPausedLabel": "Duraklatıldı — anahtar kayıtlı",
   "settingsAiAssistEnabledLabel": "Yapay zekâ desteğini kullan",
-  "aiAssistDisclosureLabel": "Bir anahtar kaydedildiğinde, çoklu ekleme ekranına yazdığınız metin okunmak üzere Anthropic'e gönderilir. Günlüğünüz asla gönderilmez. Besin değerleri her zaman besin veri tabanlarından gelir, modelden değil. Anahtar yalnızca bu cihazda saklanır: OpenNutriTracker onu hiçbir zaman görmez ve kullanımı için ödeme yapmaz.",
+  "aiAssistDisclosureLabel": "Bir anahtar kaydedildiğinde, çoklu ekleme ekranına yazdığınız metin — ve orada okutmayı seçtiğiniz her fotoğraf — Anthropic'e gönderilir. Fotoğraflar yalnızca o istek için gönderilir ve asla kaydedilmez. Günlüğünüz asla gönderilmez. Besin değerleri her zaman besin veri tabanlarından gelir, modelden değil. Anahtar yalnızca bu cihazda saklanır: OpenNutriTracker onu hiçbir zaman görmez ve kullanımı için ödeme yapmaz.",
   "aiAssistKeyFieldLabel": "Anthropic API anahtarı",
   "aiAssistKeySavedLabel": "Anahtar kaydedildi",
   "aiAssistRemoveKeyLabel": "Anahtarı kaldır",
-  "bulkAddReadByModelLabel": "Yapay zekâ okudu — her satırı kontrol edin"
+  "bulkAddReadByModelLabel": "Yapay zekâ okudu — her satırı kontrol edin",
+  "bulkAddPhotoLabel": "Fotoğraf oku",
+  "bulkAddPhotoDisclosureLabel": "Fotoğraf, içindeki yiyecekleri tanımak için Anthropic'e gönderilir. Yalnızca bu istek için gönderilir ve asla kaydedilmez — ne bu cihazda ne de OpenNutriTracker tarafından.",
+  "bulkAddReadFromPhotoLabel": "Fotoğraftan okundu — her yiyeceği ve miktarı kontrol edin",
+  "bulkAddPhotoUnavailableLabel": "Fotoğraf okumak için Ayarlar’dan yapay zekâ öğün yardımını açın",
+  "bulkAddPhotoKeyRejectedLabel": "API anahtarınız reddedildi. Ayarlar’dan kontrol edin.",
+  "bulkAddPhotoFailedLabel": "Fotoğraf okunamadı. Bağlantınızı kontrol edip tekrar deneyin.",
+  "bulkAddPhotoUnreadableLabel": "Bu görsel kullanılamadı. Başka bir fotoğraf deneyin."
 }

@@ -1124,9 +1124,16 @@
   "settingsAiAssistOnLabel": "Zapnuto",
   "settingsAiAssistPausedLabel": "Pozastaveno — klíč uložen",
   "settingsAiAssistEnabledLabel": "Používat asistenci AI",
-  "aiAssistDisclosureLabel": "S uloženým klíčem se text, který zadáte na obrazovce hromadného přidání, odešle ke zpracování společnosti Anthropic. Váš deník se neodesílá nikdy. Nutriční hodnoty vždy pocházejí z databází potravin, nikdy z modelu. Klíč je uložen pouze v tomto zařízení: OpenNutriTracker jej nikdy nevidí a neplatí za jeho použití.",
+  "aiAssistDisclosureLabel": "S uloženým klíčem se text, který zadáte na obrazovce hromadného přidání, a každá fotka, kterou zde necháte načíst, odešle společnosti Anthropic. Fotky se odesílají pouze pro tento jeden požadavek a nikdy se neukládají. Váš deník se neodesílá nikdy. Nutriční hodnoty vždy pocházejí z databází potravin, nikdy z modelu. Klíč je uložen pouze v tomto zařízení: OpenNutriTracker jej nikdy nevidí a neplatí za jeho použití.",
   "aiAssistKeyFieldLabel": "Klíč API Anthropic",
   "aiAssistKeySavedLabel": "Klíč uložen",
   "aiAssistRemoveKeyLabel": "Odebrat klíč",
-  "bulkAddReadByModelLabel": "Přečteno AI — zkontrolujte každý řádek"
+  "bulkAddReadByModelLabel": "Přečteno AI — zkontrolujte každý řádek",
+  "bulkAddPhotoLabel": "Načíst fotku",
+  "bulkAddPhotoDisclosureLabel": "Fotka se odešle společnosti Anthropic, aby rozpoznala potraviny na ní. Odesílá se pouze pro tento jeden požadavek a nikdy se neukládá — ani v tomto zařízení, ani v OpenNutriTrackeru.",
+  "bulkAddReadFromPhotoLabel": "Přečteno z fotky — zkontrolujte každou potravinu i množství",
+  "bulkAddPhotoUnavailableLabel": "Chcete-li načítat fotky, zapněte v nastavení AI asistenci pro jídla",
+  "bulkAddPhotoKeyRejectedLabel": "Váš API klíč byl odmítnut. Zkontrolujte jej v nastavení.",
+  "bulkAddPhotoFailedLabel": "Fotku se nepodařilo načíst. Zkontrolujte připojení a zkuste to znovu.",
+  "bulkAddPhotoUnreadableLabel": "Tento obrázek nelze použít. Zkuste jinou fotku."
 }

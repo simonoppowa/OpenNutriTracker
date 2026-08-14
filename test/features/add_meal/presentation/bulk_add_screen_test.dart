@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_photo_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
@@ -139,10 +140,19 @@ Future<void> _register(
   await getIt.reset();
   _mealDetailBloc = _FakeMealDetailBloc(failOnSecondWrite: failOnSecondWrite);
   _homeBloc = _FakeHomeBloc();
+  // The screen asks this directly, to decide whether to offer the camera at
+  // all. Empty storage means no key, so the action stays hidden.
+  getIt.registerLazySingleton<AiCredentialStorage>(
+    () => AiCredentialStorage(_EmptyStorage()),
+  );
   getIt.registerFactory<BulkAddBloc>(
     () => BulkAddBloc(
       ResolveParsedMealsUseCase(_FakeSearch(results)),
       ReadMealTextUseCase(
+        AiCredentialStorage(_EmptyStorage()),
+        (_) => throw StateError('must not be built without a key'),
+      ),
+      ReadMealPhotoUseCase(
         AiCredentialStorage(_EmptyStorage()),
         (_) => throw StateError('must not be built without a key'),
       ),

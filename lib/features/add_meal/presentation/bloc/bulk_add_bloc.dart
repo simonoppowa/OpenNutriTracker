@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_photo_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
@@ -173,10 +175,18 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
 
   final ResolveParsedMealsUseCase _resolveParsedMealsUseCase;
   final ReadMealTextUseCase _readMealTextUseCase;
+  final ReadMealPhotoUseCase _readMealPhotoUseCase;
 
-  BulkAddBloc(this._resolveParsedMealsUseCase, this._readMealTextUseCase)
-    : super(const BulkAddInitial()) {
+  BulkAddBloc(
+    this._resolveParsedMealsUseCase,
+    this._readMealTextUseCase,
+    this._readMealPhotoUseCase,
+  ) : super(const BulkAddInitial()) {
     on<ParseBulkTextEvent>(_onParse);
+    on<ReadMealPhotoEvent>(_onReadPhoto);
+    on<ReadMealPhotoFailedEvent>(
+      (event, emit) => emit(BulkAddPhotoErrorState(event.error)),
+    );
     on<ChangeRowCandidateEvent>(_onChangeCandidate);
     on<ChangeRowAmountEvent>(_onChangeAmount);
     on<ChangeRowUnitEvent>(_onChangeUnit);
@@ -197,8 +207,66 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
       localeCode: event.localeCode,
     );
     if (emit.isDone) return;
-    final parsed = reading.result;
 
+    await _resolveAndEmit(
+      reading.result,
+      emit,
+      usesImperialUnits: event.usesImperialUnits,
+      source: reading.usedModel
+          ? BulkAddReadSource.model
+          : BulkAddReadSource.parser,
+    );
+  }
+
+  /// A photo has no deterministic reader underneath it, so unlike the text
+  /// path every failure here reaches the user. Saying "that did not work" is
+  /// the honest outcome; quietly emitting no rows would leave the screen
+  /// looking broken with nothing to act on.
+  Future<void> _onReadPhoto(
+    ReadMealPhotoEvent event,
+    Emitter<BulkAddState> emit,
+  ) async {
+    emit(const BulkAddLoadingState());
+
+    final reading = await _readMealPhotoUseCase.read(
+      event.photo,
+      localeCode: event.localeCode,
+    );
+    if (emit.isDone) return;
+
+    switch (reading) {
+      case MealPhotoUnavailable():
+        emit(const BulkAddPhotoErrorState(BulkAddPhotoError.unavailable));
+      case MealPhotoFailed(:final isAuthFailure):
+        emit(
+          BulkAddPhotoErrorState(
+            isAuthFailure ? BulkAddPhotoError.auth : BulkAddPhotoError.transient,
+          ),
+        );
+      case MealPhotoRead(:final result):
+        // An empty list is an answer, not a failure: the model looked and
+        // found no food. It lands on the same "nothing to log" message the
+        // text path uses rather than on an error, because nothing went
+        // wrong — the photo just was not of a meal.
+        await _resolveAndEmit(
+          result,
+          emit,
+          usesImperialUnits: event.usesImperialUnits,
+          source: BulkAddReadSource.photo,
+        );
+    }
+  }
+
+  /// Shared by both readers: resolve whatever was extracted against the food
+  /// database and emit the review rows. Which reader produced the items only
+  /// changes [source] — everything downstream of here treats all three the
+  /// same, which is what keeps the review screen honest about all of them.
+  Future<void> _resolveAndEmit(
+    MealTextParseResult parsed,
+    Emitter<BulkAddState> emit, {
+    required bool usesImperialUnits,
+    required BulkAddReadSource source,
+  }) async {
     if (parsed.items.isEmpty) {
       // Nothing usable. The parser's own errors still go through so the
       // user is told why, rather than the screen just doing nothing.
@@ -206,8 +274,8 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
         BulkAddLoadedState(
           rows: const [],
           parseErrors: parsed.errors,
-          usesImperialUnits: event.usesImperialUnits,
-          readByModel: reading.usedModel,
+          usesImperialUnits: usesImperialUnits,
+          source: source,
         ),
       );
       return;
@@ -227,18 +295,18 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
                 amountText: _initialAmount(
                   item.parsed,
                   item.selected,
-                  event.usesImperialUnits,
+                  usesImperialUnits,
                 ),
                 unit: _initialUnit(
                   item.parsed,
                   item.selected,
-                  event.usesImperialUnits,
+                  usesImperialUnits,
                 ),
               ),
           ],
           parseErrors: parsed.errors,
-          usesImperialUnits: event.usesImperialUnits,
-          readByModel: reading.usedModel,
+          usesImperialUnits: usesImperialUnits,
+          source: source,
         ),
       );
     } catch (e, stackTrace) {
