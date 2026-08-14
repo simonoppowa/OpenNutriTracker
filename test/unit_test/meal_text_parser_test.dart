@@ -458,4 +458,94 @@ void main() {
       },
     );
   });
+
+  group('validateParsedMealItems', () {
+    // The gate every non-deterministic source passes through, so a model
+    // can never reach the diary under looser rules than the regex does.
+    test('keeps a well-formed item unchanged', () {
+      final result = validateParsedMealItems(const [
+        ParsedMealItem(query: 'toast', quantity: 100, unit: 'g'),
+      ]);
+
+      expect(result.items.single.query, 'toast');
+      expect(result.items.single.quantity, 100);
+      expect(result.items.single.unit, 'g');
+      expect(result.errors, isEmpty);
+    });
+
+    test('applies the same bounds parseMealText applies', () {
+      final result = validateParsedMealItems(const [
+        ParsedMealItem(query: '123'),
+        ParsedMealItem(query: 'water', quantity: 0, unit: 'ml'),
+        ParsedMealItem(query: 'flour', quantity: 15000, unit: 'g'),
+      ]);
+
+      expect(result.items, isEmpty);
+      expect(result.errors, const [
+        InvalidFoodNameError(1),
+        QuantityTooSmallError(2),
+        QuantityTooLargeError(3, 10000),
+      ]);
+    });
+
+    test('numbers errors by position so the user can find the item', () {
+      final result = validateParsedMealItems(const [
+        ParsedMealItem(query: 'toast', quantity: 100, unit: 'g'),
+        ParsedMealItem(query: '456'),
+      ]);
+
+      expect(result.items.single.query, 'toast');
+      expect(result.errors, const [InvalidFoodNameError(2)]);
+    });
+
+    test('drops an unconvertible unit but keeps the food and the amount', () {
+      // Refusing the row outright would lose a usable food over a unit the
+      // review row can default better than we can guess.
+      final result = validateParsedMealItems(const [
+        ParsedMealItem(query: 'flour', quantity: 2, unit: 'cups'),
+      ]);
+
+      expect(result.items.single.unit, isNull);
+      expect(result.items.single.quantity, 2);
+      expect(result.errors, isEmpty);
+    });
+
+    test('does not accept kg or l, which nothing has normalized here', () {
+      // parseMealText converts these itself; this entry point does no
+      // extraction, so accepting them would log 2 g for 2 kg.
+      final result = validateParsedMealItems(const [
+        ParsedMealItem(query: 'flour', quantity: 2, unit: 'kg'),
+      ]);
+
+      expect(result.items.single.unit, isNull);
+    });
+
+    test('a unit with no quantity is dropped, not presented as stated', () {
+      // parseMealText cannot produce this pair, so downstream code was
+      // written assuming it never happens. A model can produce it.
+      final result = validateParsedMealItems(const [
+        ParsedMealItem(query: 'milk', unit: 'ml'),
+      ]);
+
+      expect(result.items.single.unit, isNull);
+      expect(result.items.single.quantity, isNull);
+      expect(result.errors, isEmpty);
+    });
+
+    test('trims the query so a padded name still reaches the search', () {
+      final result = validateParsedMealItems(const [
+        ParsedMealItem(query: '  toast  '),
+      ]);
+
+      expect(result.items.single.query, 'toast');
+    });
+
+    test('an empty list is not an error', () {
+      final result = validateParsedMealItems(const []);
+
+      expect(result.items, isEmpty);
+      expect(result.errors, isEmpty);
+      expect(result.hasErrors, isFalse);
+    });
+  });
 }

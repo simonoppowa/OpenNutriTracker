@@ -119,6 +119,67 @@ class MealTextParseResult {
   bool get hasErrors => errors.isNotEmpty;
 }
 
+/// Applies the bounds [parseMealText] enforces to items that were extracted
+/// somewhere else.
+///
+/// Exists so a non-deterministic source — a model, an import — can never
+/// reach the diary under looser rules than a regex does. Everything a
+/// caller supplies is treated as untrusted: the food name must satisfy
+/// [FoodNameValidator], a stated quantity must be `> 0` and `<= 10000`, and
+/// a stated unit must be one the app can actually convert. Anything else is
+/// rejected with the same item-indexed reason the parser produces, so the
+/// review screen renders both sources identically.
+///
+/// Unlike [parseMealText] this does no extraction and no kg/l conversion:
+/// the caller is expected to have arrived at a quantity already, and
+/// `kg`/`l` are not accepted here because nothing has normalized them.
+MealTextParseResult validateParsedMealItems(List<ParsedMealItem> candidates) {
+  final items = <ParsedMealItem>[];
+  final errors = <MealTextParseError>[];
+
+  for (var i = 0; i < candidates.length; i++) {
+    final itemNum = i + 1;
+    final candidate = candidates[i];
+    final query = candidate.query.trim();
+
+    if (!FoodNameValidator.isValid(query)) {
+      errors.add(InvalidFoodNameError(itemNum));
+      continue;
+    }
+
+    final quantity = candidate.quantity;
+    if (quantity != null) {
+      if (quantity <= 0) {
+        errors.add(QuantityTooSmallError(itemNum));
+        continue;
+      }
+      if (quantity > _maxQuantity) {
+        errors.add(QuantityTooLargeError(itemNum, _maxQuantity));
+        continue;
+      }
+    }
+
+    // An unrecognized unit is dropped rather than rejected: the food name
+    // is still usable, and the review row's own default is a better answer
+    // than refusing to log the item at all. A *stated* quantity survives
+    // with it, since the row shows both and the user can correct the unit.
+    //
+    // A unit with no quantity is dropped too. [ParsedMealItem] documents the
+    // two as stated together, and `parseMealText` cannot produce one without
+    // the other, so downstream code was written against that. A model can
+    // produce it, and honouring a unit nobody attached a number to would
+    // present a guess as though the user had typed it.
+    final unit =
+        candidate.quantity != null && _validUnits.contains(candidate.unit)
+        ? candidate.unit
+        : null;
+
+    items.add(ParsedMealItem(query: query, quantity: quantity, unit: unit));
+  }
+
+  return MealTextParseResult(items: items, errors: errors);
+}
+
 /// A comma with a digit immediately before it *and* immediately after it
 /// is a decimal point; every other comma separates items. The lookarounds
 /// express that as "a comma not preceded by a digit, or not followed by
