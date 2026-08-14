@@ -180,34 +180,36 @@ void main() {
       },
     );
 
-    test(
-      'prefers the parser when the model found nothing it did not',
-      () async {
-        // `100g toast` is unambiguous; an empty screen after a round trip is
-        // worse than the offline answer.
-        final interpreter = _FakeInterpreter(
-          result: const MealTextParseResult(items: [], errors: []),
-        );
+    test('an empty answer is trusted, not overridden by the parser', () async {
+      // Found on a Pixel 6: "meine Steuererklärung und ein Tacker" made the
+      // model correctly return nothing, and the old rule replaced that with
+      // the parser — which turns any sentence into a query and produced a
+      // cheese-roll match the user had to skip. An empty list is a judgment
+      // the model was asked to make.
+      final interpreter = _FakeInterpreter(
+        result: const MealTextParseResult(items: [], errors: []),
+      );
 
-        final reading = await useCaseWith(interpreter).read('100g toast');
+      final reading = await useCaseWith(
+        interpreter,
+      ).read('my tax return and a stapler');
 
-        expect(reading.usedModel, isFalse);
-        expect(reading.result.items.single.query, 'toast');
-      },
-    );
+      expect(reading.result.items, isEmpty);
+      expect(reading.usedModel, isTrue);
+    });
 
-    test(
-      'keeps an empty model result when the parser also found nothing',
-      () async {
-        final interpreter = _FakeInterpreter(
-          result: const MealTextParseResult(items: [], errors: []),
-        );
+    test('a failure still falls back, unlike an empty answer', () async {
+      // The distinction the old rule missed: a model that could not answer
+      // is not a model that answered "nothing".
+      final interpreter = _FakeInterpreter(
+        throws: const MealTextInterpreterException('request failed'),
+      );
 
-        final reading = await useCaseWith(interpreter).read('   ');
+      final reading = await useCaseWith(interpreter).read('100g toast');
 
-        expect(reading.result.items, isEmpty);
-      },
-    );
+      expect(reading.usedModel, isFalse);
+      expect(reading.result.items.single.query, 'toast');
+    });
 
     test('reads text the parser cannot segment at all', () async {
       // #623: a language with no spaces between words. The deterministic

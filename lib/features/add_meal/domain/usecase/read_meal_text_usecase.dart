@@ -54,12 +54,14 @@ class ReadMealTextUseCase {
         apiKey,
       ).interpret(input, localeCode: localeCode);
 
-      // A model that found nothing is not better than a parser that found
-      // something: `100g toast` is unambiguous, and an empty screen after a
-      // network round trip is worse than the offline answer.
-      if (interpreted.items.isEmpty && parsed.items.isNotEmpty) {
-        return MealTextReading(parsed, usedModel: false);
-      }
+      // An empty list is an *answer*, not a failure: the model was asked to
+      // find food and reported there is none. Overriding it with the parser
+      // discards that judgment, and the parser will happily turn any
+      // sentence into a query — on a Pixel 6, "meine Steuererklärung und
+      // ein Tacker" came back as a cheese-roll match the user had to skip.
+      //
+      // The fallback below is for a model that could not answer. This is a
+      // model that did.
       return MealTextReading(interpreted, usedModel: true);
     } on MealTextInterpreterException catch (e) {
       // Logged without the input: the line the user typed is the one thing
