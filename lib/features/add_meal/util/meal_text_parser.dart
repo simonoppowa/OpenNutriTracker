@@ -130,9 +130,18 @@ class MealTextParseResult {
 /// rejected with the same item-indexed reason the parser produces, so the
 /// review screen renders both sources identically.
 ///
-/// Unlike [parseMealText] this does no extraction and no kg/l conversion:
-/// the caller is expected to have arrived at a quantity already, and
-/// `kg`/`l` are not accepted here because nothing has normalized them.
+/// Unlike [parseMealText] this does no extraction — the caller is expected
+/// to have arrived at a quantity already — but it *does* apply the same
+/// kg/l normalization, so `1.5 l` becomes 1500 ml here exactly as it does
+/// there. A model can report a litre, and dropping it silently was worse
+/// than converting it.
+///
+/// A unit outside the set the app can convert is dropped while the number
+/// is kept, turning the item into a bare count for the review row's
+/// existing handling. That is deliberately not the same as mapping it to a
+/// near-miss: `2 tbsp` becoming `2 g` is a thirteenfold under-count nobody
+/// is shown, whereas a bare `2` is a number the row already knows how to
+/// question.
 MealTextParseResult validateParsedMealItems(List<ParsedMealItem> candidates) {
   final items = <ParsedMealItem>[];
   final errors = <MealTextParseError>[];
@@ -155,9 +164,16 @@ MealTextParseResult validateParsedMealItems(List<ParsedMealItem> candidates) {
     // unrecognized unit is handled: the food is still usable and the row's
     // own default is a better answer than refusing to log it.
     final rawQuantity = candidate.quantity;
-    final quantity = (rawQuantity != null && rawQuantity.isFinite)
+    var quantity = (rawQuantity != null && rawQuantity.isFinite)
         ? rawQuantity
         : null;
+    // Normalized before the bounds are applied, matching parseMealText, so
+    // `15 kg` is rejected as 15000 g rather than passing as a harmless 15.
+    var unit = candidate.unit;
+    if (quantity != null && unit != null) {
+      (quantity, unit) = _normalizeUnitAndQuantity(quantity, unit);
+    }
+
     if (quantity != null) {
       if (quantity <= 0) {
         errors.add(QuantityTooSmallError(itemNum));
@@ -184,11 +200,11 @@ MealTextParseResult validateParsedMealItems(List<ParsedMealItem> candidates) {
     // the raw value here would have kept the `g` beside it — reintroducing
     // exactly the unit-without-quantity state the paragraph above exists to
     // prevent.
-    final unit = quantity != null && _validUnits.contains(candidate.unit)
-        ? candidate.unit
+    final keptUnit = quantity != null && _validUnits.contains(unit)
+        ? unit
         : null;
 
-    items.add(ParsedMealItem(query: query, quantity: quantity, unit: unit));
+    items.add(ParsedMealItem(query: query, quantity: quantity, unit: keptUnit));
   }
 
   return MealTextParseResult(items: items, errors: errors);
@@ -345,6 +361,11 @@ _Extracted _extractQuantityAndUnit(String segment) {
     // shared across the Han-using locales rather than one entry per
     // language. Without them `100克吐司` parses as a bare *count* of 100,
     // which the review row can read as 100 servings.
+    // A pound is 16 ounces. Without it in the enum the model mapped
+    // `1 pound of mince` onto `oz` and kept the number — a sixteenfold
+    // under-count that no flag caught, because a unit *was* stated.
+    case 'lb':
+      return (quantity * 453.59237, 'g');
     case '克':
       return (quantity, 'g');
     case '毫升':

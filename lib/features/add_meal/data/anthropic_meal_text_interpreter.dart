@@ -74,8 +74,12 @@ Rules:
 - Only include "quantity" if the user stated an amount, including as a word
   ("two eggs" -> 2) or a counter ("2个鸡蛋" -> 2). If no amount is stated,
   omit both "quantity" and "unit".
-- Only include "unit" if the user stated one. A bare count has no unit.
-- Never convert between units. Report what was written.
+- Only include "unit" if the user stated one, and only when it is one of
+  the listed values. A bare count has no unit.
+- If the user's unit is not in the list (tbsp, tsp, cup, slice...),
+  give the "quantity" and leave "unit" out. Do not substitute a different
+  unit: reporting 2 tbsp as 2 g is worse than reporting 2 with no unit.
+- Never convert a quantity between units. Report the number as written.
 - If nothing in the input is food, return an empty list.''';
 
   /// No nutrition fields, by construction. Adding one here is the only way a
@@ -102,8 +106,17 @@ Rules:
             },
             'unit': {
               'type': 'string',
-              'enum': ['g', 'ml', 'g/ml', 'oz', 'fl.oz', 'serving'],
-              'description': 'Only if the user stated a unit.',
+              // `l` and `kg` are here because the app converts them
+              // (validateParsedMealItems normalizes to ml and g). Leaving
+              // them out did not stop the model answering — it mapped a
+              // litre to `ml` and kept the number, turning 1.5 l of milk
+              // into 1.5 ml. A thousandfold under-count with no warning,
+              // because a unit *was* stated so nothing flagged the row.
+              'enum': ['g', 'kg', 'ml', 'l', 'g/ml', 'oz', 'fl.oz', 'serving'],
+              'description':
+                  'Only if the user stated a unit, and only '
+                  'one of these. Never map a different unit onto one of '
+                  'them.',
             },
           },
           'required': ['query'],

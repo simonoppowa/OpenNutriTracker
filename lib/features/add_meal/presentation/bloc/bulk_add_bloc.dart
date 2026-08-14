@@ -87,8 +87,16 @@ class BulkAddRow extends Equatable {
       // logged anyway.
       isResolved &&
       resolved.parsed.quantity != null &&
-      resolved.parsed.unit == null &&
-      meal?.servingQuantity == null;
+      (resolved.parsed.unit == null
+          // Nothing stated, and nothing for the number to count.
+          ? meal?.servingQuantity == null
+          // A unit *was* stated but this food cannot honour it, so
+          // `effectiveUnit` quietly substituted another. Live probing found
+          // a model answering "three slices of bread" as `3 serving`; on a
+          // record with no scalable serving that becomes 3 g/ml with no
+          // warning, because the old condition only looked at a *missing*
+          // unit. A substituted one is just as wrong and less visible.
+          : effectiveUnit != unit);
 
   List<String> get allowedUnits => [
     // Only when the serving can actually be scaled. `hasServingValues` is

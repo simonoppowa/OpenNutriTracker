@@ -7,6 +7,7 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
+import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
 MealEntity meal(
   String name, {
@@ -213,6 +214,65 @@ void main() {
       expect(row.isResolved, isFalse);
       expect(row.amountNeedsCheck, isFalse);
       expect(row.willBeLogged, isFalse);
+    });
+
+    test('a stated unit the food cannot honour is flagged', () async {
+      // Found by live probing: the model answers "three slices of bread"
+      // as `3 serving`. On a record with no scalable serving that becomes
+      // 3 g/ml — and the old condition only looked at a *missing* unit, so
+      // nothing warned. A substituted unit is just as wrong and less
+      // visible than a missing one.
+      final bloc = blocWith({
+        'bread': [meal('Sliced bread')],
+      });
+      final row = (await parse(bloc, 'bread')).rows.single;
+
+      // The parser never emits `serving` as a unit, so build the row the
+      // model produces.
+      final modelRow = BulkAddRow(
+        resolved: ResolvedMealItem(
+          parsed: const ParsedMealItem(
+            query: 'bread',
+            quantity: 3,
+            unit: 'serving',
+          ),
+          candidates: row.resolved.candidates,
+          selectedIndex: 0,
+          confidence: 0.9,
+        ),
+        selectedIndex: 0,
+        amountText: '3',
+        unit: 'serving',
+      );
+
+      expect(modelRow.effectiveUnit, isNot('serving'));
+      expect(modelRow.amountNeedsCheck, isTrue);
+    });
+
+    test('a stated unit the food can honour is not flagged', () async {
+      final bloc = blocWith({
+        'bread': [meal('Sliced bread', servingQuantity: 30)],
+      });
+      final base = (await parse(bloc, 'bread')).rows.single;
+
+      final modelRow = BulkAddRow(
+        resolved: ResolvedMealItem(
+          parsed: const ParsedMealItem(
+            query: 'bread',
+            quantity: 3,
+            unit: 'serving',
+          ),
+          candidates: base.resolved.candidates,
+          selectedIndex: 0,
+          confidence: 0.9,
+        ),
+        selectedIndex: 0,
+        amountText: '3',
+        unit: 'serving',
+      );
+
+      expect(modelRow.effectiveUnit, 'serving');
+      expect(modelRow.amountNeedsCheck, isFalse);
     });
 
     test('a serving that cannot be scaled is not offered as a unit', () async {
@@ -461,7 +521,6 @@ void main() {
     expect(state.parseErrors, hasLength(1));
   });
 }
-
 
 /// A keystore with nothing in it, so the read use case always takes the
 /// deterministic path.
