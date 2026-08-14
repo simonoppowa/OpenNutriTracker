@@ -297,6 +297,18 @@ class ConfigDataSource {
     await _update((c) => c.foodSourceToggles = Map<String, bool>.from(toggles));
   }
 
+  Future<void> setConfigHealthImportEnabled(bool enabled) async {
+    await _update((c) => c.healthImportEnabled = enabled);
+  }
+
+  Future<void> setConfigHealthWorkoutKcalMultiplier(double multiplier) async {
+    await _update((c) => c.healthWorkoutKcalMultiplier = multiplier);
+  }
+
+  Future<void> setConfigHealthLastImportAt(DateTime? importedAt) async {
+    await _update((c) => c.healthLastImportAt = importedAt);
+  }
+
   Future<ConfigDBO> getConfig() async => _readMerged();
 
   Future<bool> getHasAcceptedAnonymousData() async =>

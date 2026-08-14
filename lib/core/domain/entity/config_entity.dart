@@ -93,6 +93,32 @@ class ConfigEntity extends Equatable {
   /// `lib/core/utils/demo/demo_seeder.dart`.
   final bool isDemoData;
 
+  /// Whether workouts are imported from Health Connect / Apple Health.
+  /// Off until the user opts in, so no health data is read by default.
+  final bool healthImportEnabled;
+
+  /// Share of an imported workout's device-reported energy that counts
+  /// toward the daily goal, as a fraction in [minHealthWorkoutKcalMultiplier]
+  /// .. [maxHealthWorkoutKcalMultiplier]. Null means the user has not been
+  /// given a suggestion yet — read it through
+  /// [effectiveHealthWorkoutKcalMultiplier], never directly.
+  final double? healthWorkoutKcalMultiplier;
+
+  /// End of the window covered by the last successful import, or null if
+  /// nothing has been imported yet (which backfills
+  /// [healthImportBackfillDays] on the first run).
+  final DateTime? healthLastImportAt;
+
+  /// Bounds on the calorie-credit multiplier. The floor sits at 50% because
+  /// even the most compensating decile in Careau et al. 2021 keeps roughly
+  /// half of the exercise deficit; the ceiling is "credit every calorie",
+  /// which is what the app did before the setting existed.
+  static const double minHealthWorkoutKcalMultiplier = 0.5;
+  static const double maxHealthWorkoutKcalMultiplier = 1.0;
+
+  /// How far back the very first import reaches when there is no watermark.
+  static const int healthImportBackfillDays = 30;
+
   /// Default daily water goal in millilitres for the home chip when the
   /// user has not picked one yet.
   ///
@@ -165,7 +191,16 @@ class ConfigEntity extends Equatable {
     this.scannerPortraitLock,
     this.foodSourceToggles = const <String, bool>{},
     this.isDemoData = false,
+    this.healthImportEnabled = false,
+    this.healthWorkoutKcalMultiplier,
+    this.healthLastImportAt,
   });
+
+  /// The multiplier the importer actually applies. Falls back to crediting
+  /// every device-reported calorie, which is what a user who has never seen
+  /// the setting would expect from the rest of the app.
+  double get effectiveHealthWorkoutKcalMultiplier =>
+      healthWorkoutKcalMultiplier ?? maxHealthWorkoutKcalMultiplier;
 
   /// Resolves the daily water goal for the home chip. Returns the user's
   /// stored override if one exists, otherwise the gendered seed default
@@ -268,6 +303,11 @@ class ConfigEntity extends Equatable {
         ? Map<String, bool>.from(dbo.foodSourceToggles!)
         : const <String, bool>{},
     isDemoData: dbo.isDemoData ?? false,
+    healthImportEnabled: dbo.healthImportEnabled ?? false,
+    healthWorkoutKcalMultiplier: _normaliseHealthMultiplier(
+      dbo.healthWorkoutKcalMultiplier,
+    ),
+    healthLastImportAt: dbo.healthLastImportAt,
   );
 
   /// Returns the recommended kcal target for [mealKey] given a daily goal.
@@ -308,6 +348,20 @@ class ConfigEntity extends Equatable {
   static int? _normaliseWaterGoal(int? raw) {
     if (raw == null) return null;
     if (raw < 100 || raw > 10000) return null;
+    return raw;
+  }
+
+  // Defensive clamp on the persisted calorie-credit multiplier. Null means
+  // "no suggestion stored" — [effectiveHealthWorkoutKcalMultiplier] then
+  // credits the full device figure. A stored value outside the supported
+  // range is treated as corrupt and dropped to null rather than silently
+  // scaling every future import by a nonsense factor.
+  static double? _normaliseHealthMultiplier(double? raw) {
+    if (raw == null) return null;
+    if (raw < minHealthWorkoutKcalMultiplier ||
+        raw > maxHealthWorkoutKcalMultiplier) {
+      return null;
+    }
     return raw;
   }
 
@@ -352,5 +406,8 @@ class ConfigEntity extends Equatable {
     scannerPortraitLock,
     foodSourceToggles,
     isDemoData,
+    healthImportEnabled,
+    healthWorkoutKcalMultiplier,
+    healthLastImportAt,
   ];
 }

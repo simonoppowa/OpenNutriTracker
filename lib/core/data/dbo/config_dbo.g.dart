@@ -47,6 +47,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         bodyWeightUnitIndex: (fields[30] as num?)?.toInt(),
         foodSourceToggles: (fields[31] as Map?)?.cast<String, bool>(),
         isDemoData: fields[32] as bool?,
+        healthImportEnabled: fields[33] as bool?,
+        healthWorkoutKcalMultiplier: (fields[34] as num?)?.toDouble(),
+        healthLastImportAt: fields[35] as DateTime?,
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -56,7 +59,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(33)
+      ..writeByte(36)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -122,7 +125,13 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(31)
       ..write(obj.foodSourceToggles)
       ..writeByte(32)
-      ..write(obj.isDemoData);
+      ..write(obj.isDemoData)
+      ..writeByte(33)
+      ..write(obj.healthImportEnabled)
+      ..writeByte(34)
+      ..write(obj.healthWorkoutKcalMultiplier)
+      ..writeByte(35)
+      ..write(obj.healthLastImportAt);
   }
 
   @override
@@ -180,6 +189,12 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
         foodSourceToggles: (json['foodSourceToggles'] as Map<String, dynamic>?)
             ?.map((k, e) => MapEntry(k, e as bool)),
         isDemoData: json['isDemoData'] as bool?,
+        healthImportEnabled: json['healthImportEnabled'] as bool?,
+        healthWorkoutKcalMultiplier:
+            (json['healthWorkoutKcalMultiplier'] as num?)?.toDouble(),
+        healthLastImportAt: json['healthLastImportAt'] == null
+            ? null
+            : DateTime.parse(json['healthLastImportAt'] as String),
       )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -219,6 +234,9 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'bodyWeightUnitIndex': instance.bodyWeightUnitIndex,
   'foodSourceToggles': instance.foodSourceToggles,
   'isDemoData': instance.isDemoData,
+  'healthImportEnabled': instance.healthImportEnabled,
+  'healthWorkoutKcalMultiplier': instance.healthWorkoutKcalMultiplier,
+  'healthLastImportAt': instance.healthLastImportAt?.toIso8601String(),
 };
 
 const _$AppThemeDBOEnumMap = {
