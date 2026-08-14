@@ -1104,5 +1104,21 @@
   "quickAddActivityAddedSnack": "已添加活动",
   "quickAddActivityNameLabel": "名称（可选）",
   "scannerLockOrientationTooltip": "锁定为竖屏",
-  "scannerUnlockOrientationTooltip": "允许旋转"
+  "scannerUnlockOrientationTooltip": "允许旋转",
+  "settingsHealthSyncLabel": "健康同步",
+  "settingsHealthSyncSubtitle": "从{platform}导入锻炼",
+  "healthSyncAutoImportLabel": "自动从{platform}导入锻炼",
+  "healthSyncKcalMultiplierLabel": "锻炼热量计入比例",
+  "healthSyncKcalMultiplierSubtitle": "身体通常会在一天中的其余时间少消耗一些热量来补偿运动。设为 100% 时，锻炼消耗的每一卡路里都会计入你的每日目标。",
+  "healthSyncKcalMultiplierValueLabel": "{percent}%",
+  "healthSyncSuggestedLabel": "为你推荐：{percent}%",
+  "healthSyncImportNowLabel": "立即导入",
+  "healthSyncLastImportLabel": "上次导入：{time}",
+  "healthSyncNeverImportedLabel": "尚未导入任何锻炼",
+  "healthSyncImportedCountLabel": "{count, plural, =0{没有新的锻炼} other{已导入 {count} 项锻炼}}",
+  "healthSyncPermissionDeniedLabel": "未获得{platform}的访问权限。请允许 OpenNutriTracker 读取锻炼和体脂数据后再导入。",
+  "healthSyncUnavailableLabel": "此设备上无法使用健康数据。导入锻炼需要 Android 上的 Health Connect 或 iOS 上的 Apple Health。",
+  "activityImportedWorkout": "导入的锻炼",
+  "sourcesEnergyCompensationTitle": "锻炼热量计入比例",
+  "sourcesEnergyCompensationDescription": "导入的锻炼计入的热量少于设备报告的数值。人体会在一天中的其余时间少消耗热量来补偿运动，平均约为 28%，体脂率越高补偿越多。建议值来自该研究，你可以在设置 → 健康同步中修改。热量数值由记录该锻炼的应用或设备提供，并非由应用内的 MET 公式计算。"
 }

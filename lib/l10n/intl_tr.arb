@@ -1134,5 +1134,21 @@
   "quickAddActivityAddedSnack": "Aktivite eklendi",
   "quickAddActivityNameLabel": "Ad (isteğe bağlı)",
   "scannerLockOrientationTooltip": "Dikey kilitle",
-  "scannerUnlockOrientationTooltip": "Döndürmeye izin ver"
+  "scannerUnlockOrientationTooltip": "Döndürmeye izin ver",
+  "settingsHealthSyncLabel": "Sağlık senkronizasyonu",
+  "settingsHealthSyncSubtitle": "Antrenmanları {platform} uygulamasından içe aktar",
+  "healthSyncAutoImportLabel": "Antrenmanları {platform} uygulamasından otomatik olarak içe aktar",
+  "healthSyncKcalMultiplierLabel": "Antrenman kalori payı",
+  "healthSyncKcalMultiplierSubtitle": "Vücut genellikle egzersizi, günün geri kalanında daha az kalori yakarak dengeler. %100 değeri, her antrenman kalorisini günlük hedefine ekler.",
+  "healthSyncKcalMultiplierValueLabel": "%{percent}",
+  "healthSyncSuggestedLabel": "Senin için önerilen: %{percent}",
+  "healthSyncImportNowLabel": "Şimdi içe aktar",
+  "healthSyncLastImportLabel": "Son içe aktarma: {time}",
+  "healthSyncNeverImportedLabel": "Henüz antrenman içe aktarılmadı",
+  "healthSyncImportedCountLabel": "{count, plural, =0{Yeni antrenman yok} other{{count} antrenman içe aktarıldı}}",
+  "healthSyncPermissionDeniedLabel": "{platform} erişimi verilmedi. Antrenmanları içe aktarmak için OpenNutriTracker’ın antrenman ve vücut yağı verilerini okumasına izin ver.",
+  "healthSyncUnavailableLabel": "Bu cihazda sağlık verileri kullanılamıyor. Antrenman içe aktarma, Android’de Health Connect veya iOS’ta Apple Health gerektirir.",
+  "activityImportedWorkout": "İçe aktarılan antrenman",
+  "sourcesEnergyCompensationTitle": "Antrenman kalori payı",
+  "sourcesEnergyCompensationDescription": "İçe aktarılan antrenmanlar, cihazın bildirdiği enerjinin tamamından daha azıyla sayılır. İnsanlar egzersizi, günün geri kalanında daha az kalori yakarak dengeler; ortalama olarak yaklaşık %28, vücut yağ oranı yüksek olanlarda daha fazla. Önerilen pay bu araştırmadan gelir ve Ayarlar → Sağlık senkronizasyonu bölümünden değiştirebilirsin. Enerjinin kendisi antrenmanı kaydeden uygulama veya cihaz tarafından bildirilir; uygulamadaki MET formülüyle hesaplanmaz."
 }
