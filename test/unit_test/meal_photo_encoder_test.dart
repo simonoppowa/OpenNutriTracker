@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_photo_encoder.dart';
 
@@ -42,6 +44,38 @@ void main() {
 
     test('a directory containing a dot does not become the extension', () {
       expect(MealPhotoEncoder.mediaTypeForPath('/tmp/v1.2/photo'), isNull);
+    });
+  });
+
+  group('encodeAndDiscardSource', () {
+    late Directory dir;
+
+    setUp(() async {
+      dir = await Directory.systemTemp.createTemp('ont_photo_test');
+    });
+    tearDown(() async {
+      if (await dir.exists()) await dir.delete(recursive: true);
+    });
+
+    test('deletes the source even though encoding fails in a unit test', () async {
+      // `image_picker` returns a copy it made in the app cache and never
+      // cleans it up — on a Pixel 6 the full JPEG was still there after a
+      // pick. Leaving it makes the settings disclosure false.
+      final file = File('${dir.path}/picked.jpg')
+        ..writeAsBytesSync(List.filled(2000, 0));
+
+      // No platform channel here, so the encode itself returns null. The
+      // point is that the file goes regardless.
+      await MealPhotoEncoder.encodeAndDiscardSource(file.path);
+
+      expect(file.existsSync(), isFalse);
+    });
+
+    test('a missing source is not an error', () async {
+      await expectLater(
+        MealPhotoEncoder.encodeAndDiscardSource('${dir.path}/gone.jpg'),
+        completion(isNull),
+      );
     });
   });
 

@@ -558,7 +558,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       final picked = await ImagePicker().pickImage(source: source);
       // A cancelled picker is not a failure and says nothing to the user.
       if (picked == null) return;
-      photo = await MealPhotoEncoder.encode(picked.path);
+      // Discards the picker's cache copy once it has been encoded — see
+      // [MealPhotoEncoder.encodeAndDiscardSource]. Without it the app leaves
+      // the photo on disk, which the settings disclosure says it does not.
+      photo = await MealPhotoEncoder.encodeAndDiscardSource(picked.path);
     } catch (e, stackTrace) {
       // Never logged with the path: on Android the picker's temp filename
       // can carry the original image name.

@@ -40,10 +40,38 @@ class MealPhotoEncoder {
     'gif': 'image/gif',
   };
 
+  /// Encodes the file at [sourcePath] and then deletes it.
+  ///
+  /// Use this for anything that came from the image picker. `image_picker`
+  /// does not hand back the user's original: it copies the chosen photo into
+  /// the app's cache directory and returns that path, and it never cleans the
+  /// copy up. Verified on a Pixel 6 — after one pick, the full JPEG was still
+  /// sitting in `cache/` byte for byte.
+  ///
+  /// That copy is what makes "the app keeps no photo" false, so the app
+  /// removes it. The deletion runs even when encoding failed, because a photo
+  /// the provider rejected is exactly as unwelcome on disk as one it read.
+  static Future<MealPhoto?> encodeAndDiscardSource(String sourcePath) async {
+    try {
+      return await encode(sourcePath);
+    } finally {
+      try {
+        final file = File(sourcePath);
+        if (await file.exists()) await file.delete();
+      } catch (_) {
+        // Best effort. A cache file we could not remove is not worth
+        // failing the user's meal entry over, and the OS clears it later.
+      }
+    }
+  }
+
   /// Encodes the file at [sourcePath], or null when it cannot produce
   /// something sendable. Null is a normal outcome the caller shows a message
   /// for — it is not worth an exception, because there is exactly one thing
   /// the user can do about any of its causes: pick a different photo.
+  ///
+  /// Leaves [sourcePath] alone. Callers holding a picker temp file want
+  /// [encodeAndDiscardSource] instead.
   static Future<MealPhoto?> encode(String sourcePath) async {
     final compressed = await _compressToWebP(sourcePath);
     if (compressed != null) {
