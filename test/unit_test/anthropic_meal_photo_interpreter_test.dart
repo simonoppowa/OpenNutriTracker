@@ -234,6 +234,37 @@ void main() {
       },
     );
 
+    test('a fractional amount is not a count, so it goes too', () async {
+      // You cannot see one and a half of something and call it counting.
+      // `1.5` with no unit would otherwise sail through and become
+      // "1.5 serving" downstream — a proportion the model estimated,
+      // presented with the confidence of something it counted.
+      final client = FakeClient(
+        body: toolReply([
+          {'query': 'pizza', 'quantity': 1.5},
+        ]),
+      );
+
+      final result = await interpreterWith(client).interpret(_photo);
+
+      expect(result.items.single.query, 'pizza');
+      expect(result.items.single.quantity, isNull);
+    });
+
+    test('a whole number expressed as a decimal still counts', () async {
+      // JSON gives no way to tell 2 from 2.0, so the check has to be on the
+      // value, not on how it was written.
+      final client = FakeClient(
+        body: toolReply([
+          {'query': 'egg', 'quantity': 2.0},
+        ]),
+      );
+
+      final result = await interpreterWith(client).interpret(_photo);
+
+      expect(result.items.single.quantity, 2);
+    });
+
     test('a serving is a measurement here, not a count', () async {
       // `serving` scales against the food record, so it is exactly the kind
       // of amount a photo cannot establish.

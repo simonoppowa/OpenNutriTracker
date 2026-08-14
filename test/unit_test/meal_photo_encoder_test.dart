@@ -71,6 +71,17 @@ void main() {
       expect(file.existsSync(), isFalse);
     });
 
+    test('an oversized source is rejected without being read', () async {
+      // The fallback path exists for devices with no WebP encoder, where the
+      // file is the camera's raw output. Reading eight megabytes into memory
+      // only to discard it is a burst of allocation on the device least able
+      // to absorb one, so the length is checked first.
+      final file = File('${dir.path}/huge.jpg')
+        ..writeAsBytesSync(List.filled(MealPhotoEncoder.maxBytes + 1, 0));
+
+      expect(await MealPhotoEncoder.encode(file.path), isNull);
+    });
+
     test('a missing source is not an error', () async {
       await expectLater(
         MealPhotoEncoder.encodeAndDiscardSource('${dir.path}/gone.jpg'),

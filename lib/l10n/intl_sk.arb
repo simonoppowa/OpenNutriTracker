@@ -1161,7 +1161,7 @@
   "aiAssistRemoveKeyLabel": "Odstrániť kľúč",
   "bulkAddReadByModelLabel": "Prečítané AI — skontrolujte každý riadok",
   "bulkAddPhotoLabel": "Načítať fotku",
-  "bulkAddPhotoDisclosureLabel": "Fotka sa odošle spoločnosti Anthropic, aby rozpoznala potraviny na nej. Odosiela sa iba pre túto jednu požiadavku a nikdy sa neukladá — ani v tomto zariadení, ani v OpenNutriTrackeri.",
+  "bulkAddPhotoDisclosureLabel": "Fotka sa odošle spoločnosti Anthropic, aby rozpoznala potraviny na nej. OpenNutriTracker si nenecháva vlastnú kópiu a fotka sa nikdy nedostane do vašich exportov.",
   "bulkAddReadFromPhotoLabel": "Prečítané z fotky — skontrolujte každú potravinu aj množstvo",
   "bulkAddPhotoUnavailableLabel": "Ak chcete načítavať fotky, zapnite v nastaveniach AI asistenciu pre jedlá",
   "bulkAddPhotoKeyRejectedLabel": "Váš API kľúč bol odmietnutý. Skontrolujte ho v nastaveniach.",

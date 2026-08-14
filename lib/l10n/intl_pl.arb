@@ -1130,7 +1130,7 @@
   "aiAssistRemoveKeyLabel": "Usuń klucz",
   "bulkAddReadByModelLabel": "Odczytane przez AI — sprawdź każdy wiersz",
   "bulkAddPhotoLabel": "Odczytaj zdjęcie",
-  "bulkAddPhotoDisclosureLabel": "Zdjęcie jest wysyłane do Anthropic w celu rozpoznania produktów, które się na nim znajdują. Jest wysyłane tylko na potrzeby tego jednego zapytania i nigdy nie jest zapisywane — ani na tym urządzeniu, ani przez OpenNutriTracker.",
+  "bulkAddPhotoDisclosureLabel": "Zdjęcie jest wysyłane do Anthropic w celu rozpoznania produktów, które się na nim znajdują. OpenNutriTracker nie zachowuje własnej kopii, a zdjęcie nigdy nie trafia do Twoich eksportów.",
   "bulkAddReadFromPhotoLabel": "Odczytane ze zdjęcia — sprawdź każdy produkt i ilość",
   "bulkAddPhotoUnavailableLabel": "Włącz asystenta AI dla posiłków w ustawieniach, aby odczytywać zdjęcia",
   "bulkAddPhotoKeyRejectedLabel": "Twój klucz API został odrzucony. Sprawdź go w ustawieniach.",

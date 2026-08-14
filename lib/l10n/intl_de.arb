@@ -1161,7 +1161,7 @@
   "aiAssistRemoveKeyLabel": "Schlüssel entfernen",
   "bulkAddReadByModelLabel": "Von KI gelesen — prüfe jede Zeile",
   "bulkAddPhotoLabel": "Foto auslesen",
-  "bulkAddPhotoDisclosureLabel": "Das Foto wird an Anthropic gesendet, um die darauf abgebildeten Lebensmittel zu erkennen. Es wird nur für diese eine Anfrage gesendet und nie gespeichert — weder auf diesem Gerät noch von OpenNutriTracker.",
+  "bulkAddPhotoDisclosureLabel": "Das Foto wird an Anthropic gesendet, um die darauf abgebildeten Lebensmittel zu erkennen. OpenNutriTracker behält keine eigene Kopie davon, und es landet nie in deinen Exporten.",
   "bulkAddReadFromPhotoLabel": "Aus einem Foto gelesen — prüfe jedes Lebensmittel und jede Menge",
   "bulkAddPhotoUnavailableLabel": "Aktiviere die KI-Mahlzeitenhilfe in den Einstellungen, um Fotos auszulesen",
   "bulkAddPhotoKeyRejectedLabel": "Dein API-Schlüssel wurde abgelehnt. Prüfe ihn in den Einstellungen.",

@@ -89,24 +89,40 @@ Rules:
     return _countsOnly(result);
   }
 
-  /// Drops any amount that arrived with a unit.
+  /// Drops any amount that is not a whole count of visible things.
   ///
-  /// The prompt already forbids it, but a prompt is a request and this is a
-  /// guarantee. Dropping only the *unit* would be worse than useless: an
-  /// estimated `200 g` of rice stripped to a bare `200` reads downstream as
-  /// a count, and `BulkAddBloc._initialUnit` turns a bare count into
-  /// *servings*. That would convert a wrong guess into a far wronger one
-  /// while looking tidier. So the quantity goes with it, and the row falls
-  /// back to the same default an unquantified item gets.
+  /// Two ways an amount fails that, and both drop the *number* as well as
+  /// whatever came with it.
+  ///
+  /// **It arrived with a unit.** The prompt already forbids it, but a prompt
+  /// is a request and this is a guarantee. Dropping only the unit would be
+  /// worse than useless: an estimated `200 g` of rice stripped to a bare
+  /// `200` reads downstream as a count, and `BulkAddBloc._initialUnit` turns
+  /// a bare count into *servings*. That converts a wrong guess into a far
+  /// wronger one while looking tidier.
+  ///
+  /// **It is not a whole number.** You cannot see one and a half of
+  /// something and call it counting — `1.5` is an estimate of a proportion,
+  /// which is the measuring this path does not do. A 447-call corpus never
+  /// once produced a fraction, so this guards nothing today; it guards the
+  /// day the model changes, which is the only reason the unit rule is here
+  /// either.
+  ///
+  /// Either way the row falls back to the same default an unquantified item
+  /// gets, and the user sets the amount.
   MealTextParseResult _countsOnly(MealTextParseResult result) =>
       MealTextParseResult(
         items: [
           for (final item in result.items)
-            if (item.unit == null)
+            if (item.unit == null && _isWholeCount(item.quantity))
               item
             else
               ParsedMealItem(query: item.query, quantity: null, unit: null),
         ],
         errors: result.errors,
       );
+
+  /// Null counts as fine — an item with no amount is the normal case here.
+  static bool _isWholeCount(double? quantity) =>
+      quantity == null || quantity == quantity.roundToDouble();
 }

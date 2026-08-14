@@ -1130,7 +1130,7 @@
   "aiAssistRemoveKeyLabel": "Rimuovi chiave",
   "bulkAddReadByModelLabel": "Letto dall'AI — controlla ogni riga",
   "bulkAddPhotoLabel": "Leggi una foto",
-  "bulkAddPhotoDisclosureLabel": "La foto viene inviata ad Anthropic per identificare gli alimenti che contiene. Viene inviata solo per quella richiesta e non viene mai salvata — né su questo dispositivo né da OpenNutriTracker.",
+  "bulkAddPhotoDisclosureLabel": "La foto viene inviata ad Anthropic per identificare gli alimenti che contiene. OpenNutriTracker non ne conserva una propria copia e non finisce mai nelle tue esportazioni.",
   "bulkAddReadFromPhotoLabel": "Letto da una foto — controlla ogni alimento e quantità",
   "bulkAddPhotoUnavailableLabel": "Attiva l'assistenza AI ai pasti nelle impostazioni per leggere le foto",
   "bulkAddPhotoKeyRejectedLabel": "La tua chiave API è stata rifiutata. Controllala nelle impostazioni.",

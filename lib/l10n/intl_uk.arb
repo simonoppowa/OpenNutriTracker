@@ -1130,7 +1130,7 @@
   "aiAssistRemoveKeyLabel": "Видалити ключ",
   "bulkAddReadByModelLabel": "Прочитано ШІ — перевірте кожен рядок",
   "bulkAddPhotoLabel": "Зчитати фото",
-  "bulkAddPhotoDisclosureLabel": "Фото надсилається до Anthropic, щоб розпізнати продукти на ньому. Воно надсилається лише для цього одного запиту й ніколи не зберігається — ані на цьому пристрої, ані OpenNutriTracker.",
+  "bulkAddPhotoDisclosureLabel": "Фото надсилається до Anthropic, щоб розпізнати продукти на ньому. OpenNutriTracker не зберігає власної копії, і фото ніколи не потрапляє до ваших експортів.",
   "bulkAddReadFromPhotoLabel": "Зчитано з фото — перевірте кожен продукт і кількість",
   "bulkAddPhotoUnavailableLabel": "Увімкніть ШІ-помічник для страв у налаштуваннях, щоб зчитувати фото",
   "bulkAddPhotoKeyRejectedLabel": "Ваш API-ключ відхилено. Перевірте його в налаштуваннях.",

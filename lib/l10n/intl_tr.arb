@@ -1161,7 +1161,7 @@
   "aiAssistRemoveKeyLabel": "Anahtarı kaldır",
   "bulkAddReadByModelLabel": "Yapay zekâ okudu — her satırı kontrol edin",
   "bulkAddPhotoLabel": "Fotoğraf oku",
-  "bulkAddPhotoDisclosureLabel": "Fotoğraf, içindeki yiyecekleri tanımak için Anthropic'e gönderilir. Yalnızca bu istek için gönderilir ve asla kaydedilmez — ne bu cihazda ne de OpenNutriTracker tarafından.",
+  "bulkAddPhotoDisclosureLabel": "Fotoğraf, içindeki yiyecekleri tanımak için Anthropic'e gönderilir. OpenNutriTracker kendi kopyasını saklamaz ve fotoğraf hiçbir zaman dışa aktarmalarınıza girmez.",
   "bulkAddReadFromPhotoLabel": "Fotoğraftan okundu — her yiyeceği ve miktarı kontrol edin",
   "bulkAddPhotoUnavailableLabel": "Fotoğraf okumak için Ayarlar’dan yapay zekâ öğün yardımını açın",
   "bulkAddPhotoKeyRejectedLabel": "API anahtarınız reddedildi. Ayarlar’dan kontrol edin.",

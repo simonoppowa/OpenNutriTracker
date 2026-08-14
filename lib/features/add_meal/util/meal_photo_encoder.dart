@@ -122,7 +122,14 @@ class MealPhotoEncoder {
 
   static Future<Uint8List?> _rawBytes(String sourcePath) async {
     try {
-      return await File(sourcePath).readAsBytes();
+      final file = File(sourcePath);
+      // Checked before reading, not after. This path exists for devices with
+      // no WebP encoder, where the file is the camera's own output — a
+      // recent phone produces eight megabytes of it, and pulling all of that
+      // into memory only to hand it to `_fitting` and have it thrown away is
+      // a burst of allocation on the device least able to absorb one.
+      if (await file.length() > maxBytes) return null;
+      return await file.readAsBytes();
     } catch (_) {
       return null;
     }
