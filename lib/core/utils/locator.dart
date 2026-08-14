@@ -138,7 +138,8 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<HiveDBProvider>(() => hiveDBProvider);
   locator.registerLazySingleton<AiCredentialStorage>(
-      () => AiCredentialStorage());
+    () => AiCredentialStorage(),
+  );
   locator.registerLazySingleton<DeleteAllUserDataUsecase>(
     () => DeleteAllUserDataUsecase(locator()),
   );
