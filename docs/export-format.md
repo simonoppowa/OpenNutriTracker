@@ -119,6 +119,12 @@ Array of logged physical-activity records:
 ]
 ```
 
+Records also carry the optional `userKcal`, plus `externalId` (the health-store
+record an imported workout came from, which is what stops a re-import
+duplicating it) and `sourceReportedKcal` (the energy the device reported before
+the workout calorie credit); all three are `null` on manually logged activities
+and round-trip on import.
+
 ### `user_tracked_day.json`
 
 Array of per-day calorie/macro totals:
