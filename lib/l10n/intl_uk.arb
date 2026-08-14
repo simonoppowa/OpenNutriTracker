@@ -1118,5 +1118,14 @@
   "bulkAddCheckAmountLabel": "Перевірте одиницю для цієї кількості",
   "bulkAddErrorInvalidName": "Пункт {number}: некоректна назва продукту",
   "bulkAddErrorQuantityTooSmall": "Пункт {number}: кількість має бути більшою за 0",
-  "bulkAddErrorQuantityTooLarge": "Пункт {number}: кількість не може перевищувати {bound}"
+  "bulkAddErrorQuantityTooLarge": "Пункт {number}: кількість не може перевищувати {bound}",
+  "settingsAiAssistLabel": "Підтримка ШІ",
+  "settingsAiAssistNotConfiguredLabel": "Вимкнено — ключ не збережено",
+  "settingsAiAssistOnLabel": "Увімкнено",
+  "settingsAiAssistPausedLabel": "Призупинено — ключ збережено",
+  "settingsAiAssistEnabledLabel": "Використовувати підтримку ШІ",
+  "aiAssistDisclosureLabel": "Якщо ключ збережено, текст, який ви вводите на екрані додавання кількох записів, надсилається до Anthropic для зчитування. Ваш щоденник ніколи не надсилається. Значення поживності завжди беруться з баз даних продуктів, а не з моделі. Ключ зберігається лише на цьому пристрої: OpenNutriTracker ніколи його не бачить і не оплачує його використання.",
+  "aiAssistKeyFieldLabel": "Ключ API Anthropic",
+  "aiAssistKeySavedLabel": "Ключ збережено",
+  "aiAssistRemoveKeyLabel": "Видалити ключ"
 }

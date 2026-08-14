@@ -27,6 +27,8 @@ import 'package:opennutritracker/features/settings/presentation/widgets/export_i
 import 'package:opennutritracker/features/settings/presentation/widgets/import_custom_food_data_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/food_sources_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_visibility_screen.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/ai_assist_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -58,9 +60,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late DiaryBloc _diaryBloc;
   late CalendarDayBloc _calendarDayBloc;
   late TrendsBloc _trendsBloc;
+  late AiCredentialStorage _aiCredentials;
+
+  /// Null until the first read completes; the tile shows no subtitle rather
+  /// than briefly claiming the feature is off.
+  bool? _aiHasKey;
+  bool _aiEnabled = false;
 
   @override
   void initState() {
+    _aiCredentials = locator<AiCredentialStorage>();
     _settingsBloc = locator<SettingsBloc>();
     _profileBloc = locator<ProfileBloc>();
     _homeBloc = locator<HomeBloc>();
@@ -68,6 +77,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _calendarDayBloc = locator<CalendarDayBloc>();
     _trendsBloc = locator<TrendsBloc>();
     super.initState();
+    _refreshAiAssistState();
     // SettingsBloc is registered as a singleton so the previous
     // SettingsLoadedState survives across screen visits. The cache
     // count and on-disk size in particular are written in the
@@ -367,6 +377,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: S.of(context).settingsFoodSourcesLabel,
                       subtitle: S.of(context).settingsFoodSourcesSubtitle,
                       onTap: () => _openFoodSourcesScreen(context),
+                    ),
+                    _SettingsTile(
+                      identifier: 'settings-ai-assist',
+                      palette: palette,
+                      icon: Icons.auto_awesome_rounded,
+                      title: S.of(context).settingsAiAssistLabel,
+                      subtitle: _aiAssistSubtitle(context),
+                      onTap: () => _openAiAssistDialog(context),
                     ),
                     _SettingsTile(
                       identifier: 'settings-import-custom-food',
@@ -854,6 +872,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => const NutrientVisibilityScreen()),
     );
+  }
+
+  Future<void> _refreshAiAssistState() async {
+    final hasKey = await _aiCredentials.hasApiKey();
+    final enabled = await _aiCredentials.isEnabled();
+    if (!mounted) return;
+    setState(() {
+      _aiHasKey = hasKey;
+      _aiEnabled = enabled;
+    });
+  }
+
+  String? _aiAssistSubtitle(BuildContext context) => switch (_aiHasKey) {
+        null => null,
+        false => S.of(context).settingsAiAssistNotConfiguredLabel,
+        true when _aiEnabled => S.of(context).settingsAiAssistOnLabel,
+        true => S.of(context).settingsAiAssistPausedLabel,
+      };
+
+  Future<void> _openAiAssistDialog(BuildContext context) async {
+    await AiAssistDialog.show(context, _aiCredentials);
+    // Unconditionally, not only when the dialog reports a change: the
+    // subtitle is cheap to recompute and a stale one misdescribes what
+    // leaves the device.
+    await _refreshAiAssistState();
   }
 
   void _openFoodSourcesScreen(BuildContext context) {

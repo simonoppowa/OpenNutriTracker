@@ -1227,5 +1227,14 @@
               "type": "int"
           }
       }
-  }
+  },
+  "settingsAiAssistLabel": "AI meal assistance",
+  "settingsAiAssistNotConfiguredLabel": "Off — no key saved",
+  "settingsAiAssistOnLabel": "On",
+  "settingsAiAssistPausedLabel": "Paused — key saved",
+  "settingsAiAssistEnabledLabel": "Use AI assistance",
+  "aiAssistDisclosureLabel": "With a key saved, the text you type on the multi-item add screen is sent to Anthropic to be read. Your diary is never sent. Nutrition values always come from the food databases, never from the model. The key is stored on this device only: OpenNutriTracker never sees it and does not pay for its use.",
+  "aiAssistKeyFieldLabel": "Anthropic API key",
+  "aiAssistKeySavedLabel": "Key saved",
+  "aiAssistRemoveKeyLabel": "Remove key"
 }
