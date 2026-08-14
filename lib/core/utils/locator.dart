@@ -68,7 +68,9 @@ import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/data/anthropic_meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/data/anthropic_meal_text_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_photo_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
@@ -153,6 +155,13 @@ Future<void> initLocator() async {
       locator<AiCredentialStorage>(),
       (apiKey) =>
           AnthropicMealTextInterpreter(locator<http.Client>(), () => apiKey),
+    ),
+  );
+  locator.registerLazySingleton<ReadMealPhotoUseCase>(
+    () => ReadMealPhotoUseCase(
+      locator<AiCredentialStorage>(),
+      (apiKey) =>
+          AnthropicMealPhotoInterpreter(locator<http.Client>(), () => apiKey),
     ),
   );
   locator.registerLazySingleton<DeleteAllUserDataUsecase>(
@@ -296,7 +305,9 @@ Future<void> initLocator() async {
     () => EditMealBloc(locator(), locator(), locator()),
   );
   locator.registerFactory<AddMealBloc>(() => AddMealBloc(locator()));
-  locator.registerFactory<BulkAddBloc>(() => BulkAddBloc(locator(), locator()));
+  locator.registerFactory<BulkAddBloc>(
+    () => BulkAddBloc(locator(), locator(), locator()),
+  );
   locator.registerFactory<ProductsBloc>(
     () => ProductsBloc(locator(), locator()),
   );

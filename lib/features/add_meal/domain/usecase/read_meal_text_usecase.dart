@@ -63,7 +63,7 @@ class ReadMealTextUseCase {
       // The fallback below is for a model that could not answer. This is a
       // model that did.
       return MealTextReading(interpreted, usedModel: true);
-    } on MealTextInterpreterException catch (e) {
+    } on MealInterpreterException catch (e) {
       // Logged without the input: the line the user typed is the one thing
       // in this flow that should not reach a log.
       _log.info('Interpreter unavailable, using the parser: ${e.reason}');

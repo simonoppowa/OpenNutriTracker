@@ -1124,9 +1124,18 @@
   "settingsAiAssistOnLabel": "Włączone",
   "settingsAiAssistPausedLabel": "Wstrzymane — klucz zapisany",
   "settingsAiAssistEnabledLabel": "Używaj wsparcia AI",
-  "aiAssistDisclosureLabel": "Po zapisaniu klucza tekst wpisany na ekranie dodawania wielu pozycji jest wysyłany do Anthropic w celu odczytania. Twój dziennik nigdy nie jest wysyłany. Wartości odżywcze zawsze pochodzą z baz danych żywności, nigdy z modelu. Klucz jest przechowywany tylko na tym urządzeniu: OpenNutriTracker nigdy go nie widzi i nie płaci za jego użycie.",
+  "aiAssistDisclosureLabel": "Po zapisaniu klucza tekst wpisany na ekranie dodawania wielu pozycji — oraz każde zdjęcie, które zdecydujesz się tam odczytać — jest wysyłany do Anthropic. Zdjęcia są wysyłane tylko na potrzeby tego jednego zapytania i nigdy nie są zapisywane. Twój dziennik nigdy nie jest wysyłany. Wartości odżywcze zawsze pochodzą z baz danych żywności, nigdy z modelu. Klucz jest przechowywany tylko na tym urządzeniu: OpenNutriTracker nigdy go nie widzi i nie płaci za jego użycie.",
   "aiAssistKeyFieldLabel": "Klucz API Anthropic",
   "aiAssistKeySavedLabel": "Klucz zapisany",
   "aiAssistRemoveKeyLabel": "Usuń klucz",
-  "bulkAddReadByModelLabel": "Odczytane przez AI — sprawdź każdy wiersz"
+  "bulkAddReadByModelLabel": "Odczytane przez AI — sprawdź każdy wiersz",
+  "bulkAddPhotoLabel": "Odczytaj zdjęcie",
+  "bulkAddPhotoDisclosureLabel": "Zdjęcie jest wysyłane do Anthropic w celu rozpoznania produktów, które się na nim znajdują. OpenNutriTracker nie zachowuje własnej kopii, a zdjęcie nigdy nie trafia do Twoich eksportów.",
+  "bulkAddReadFromPhotoLabel": "Odczytane ze zdjęcia — sprawdź każdy produkt i ilość",
+  "bulkAddPhotoUnavailableLabel": "Włącz asystenta AI dla posiłków w ustawieniach, aby odczytywać zdjęcia",
+  "bulkAddPhotoKeyRejectedLabel": "Twój klucz API został odrzucony. Sprawdź go w ustawieniach.",
+  "bulkAddPhotoCameraFailedLabel": "Nie udało się otworzyć aparatu. Sprawdź uprawnienia aparatu i spróbuj ponownie.",
+  "bulkAddPhotoFailedLabel": "Nie udało się odczytać zdjęcia. Sprawdź połączenie i spróbuj ponownie.",
+  "bulkAddPhotoUnreadableLabel": "Nie można użyć tego obrazu. Spróbuj innego zdjęcia.",
+  "bulkAddPhotoNoFoodLabel": "Nie rozpoznano żadnych produktów na tym zdjęciu. Spróbuj innego zdjęcia lub wpisz pozycje ręcznie."
 }

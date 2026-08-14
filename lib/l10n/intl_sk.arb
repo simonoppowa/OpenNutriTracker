@@ -1155,9 +1155,18 @@
   "settingsAiAssistOnLabel": "Zapnuté",
   "settingsAiAssistPausedLabel": "Pozastavené — kľúč uložený",
   "settingsAiAssistEnabledLabel": "Používať asistenciu AI",
-  "aiAssistDisclosureLabel": "S uloženým kľúčom sa text, ktorý zadáte na obrazovke hromadného pridávania, odošle na spracovanie spoločnosti Anthropic. Váš denník sa neodosiela nikdy. Nutričné hodnoty vždy pochádzajú z databáz potravín, nikdy z modelu. Kľúč je uložený iba v tomto zariadení: OpenNutriTracker ho nikdy nevidí a neplatí za jeho použitie.",
+  "aiAssistDisclosureLabel": "S uloženým kľúčom sa text, ktorý zadáte na obrazovke hromadného pridávania, a každá fotka, ktorú tu necháte načítať, odošle spoločnosti Anthropic. Fotky sa odosielajú iba pre túto jednu požiadavku a nikdy sa neukladajú. Váš denník sa neodosiela nikdy. Nutričné hodnoty vždy pochádzajú z databáz potravín, nikdy z modelu. Kľúč je uložený iba v tomto zariadení: OpenNutriTracker ho nikdy nevidí a neplatí za jeho použitie.",
   "aiAssistKeyFieldLabel": "Kľúč API Anthropic",
   "aiAssistKeySavedLabel": "Kľúč uložený",
   "aiAssistRemoveKeyLabel": "Odstrániť kľúč",
-  "bulkAddReadByModelLabel": "Prečítané AI — skontrolujte každý riadok"
+  "bulkAddReadByModelLabel": "Prečítané AI — skontrolujte každý riadok",
+  "bulkAddPhotoLabel": "Načítať fotku",
+  "bulkAddPhotoDisclosureLabel": "Fotka sa odošle spoločnosti Anthropic, aby rozpoznala potraviny na nej. OpenNutriTracker si nenecháva vlastnú kópiu a fotka sa nikdy nedostane do vašich exportov.",
+  "bulkAddReadFromPhotoLabel": "Prečítané z fotky — skontrolujte každú potravinu aj množstvo",
+  "bulkAddPhotoUnavailableLabel": "Ak chcete načítavať fotky, zapnite v nastaveniach AI asistenciu pre jedlá",
+  "bulkAddPhotoKeyRejectedLabel": "Váš API kľúč bol odmietnutý. Skontrolujte ho v nastaveniach.",
+  "bulkAddPhotoCameraFailedLabel": "Fotoaparát sa nepodarilo otvoriť. Skontrolujte povolenie fotoaparátu a skúste to znova.",
+  "bulkAddPhotoFailedLabel": "Fotku sa nepodarilo načítať. Skontrolujte pripojenie a skúste to znova.",
+  "bulkAddPhotoUnreadableLabel": "Tento obrázok sa nedá použiť. Skúste inú fotku.",
+  "bulkAddPhotoNoFoodLabel": "Na tejto fotke sa nerozpoznali žiadne potraviny. Skúste inú fotku alebo položky zadajte ručne."
 }

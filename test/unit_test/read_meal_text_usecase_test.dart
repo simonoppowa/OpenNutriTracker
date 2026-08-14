@@ -143,7 +143,7 @@ void main() {
       // dependency of it: no network must land the user exactly where tier 0
       // left them, with nothing to dismiss.
       final interpreter = _FakeInterpreter(
-        throws: const MealTextInterpreterException('request failed'),
+        throws: const MealInterpreterException('request failed'),
       );
 
       final reading = await useCaseWith(interpreter).read('100g toast');
@@ -155,7 +155,7 @@ void main() {
 
     test('falls back when the key is rejected', () async {
       final interpreter = _FakeInterpreter(
-        throws: const MealTextInterpreterException(
+        throws: const MealInterpreterException(
           'unauthorized',
           statusCode: 401,
         ),
@@ -202,7 +202,7 @@ void main() {
       // The distinction the old rule missed: a model that could not answer
       // is not a model that answered "nothing".
       final interpreter = _FakeInterpreter(
-        throws: const MealTextInterpreterException('request failed'),
+        throws: const MealInterpreterException('request failed'),
       );
 
       final reading = await useCaseWith(interpreter).read('100g toast');

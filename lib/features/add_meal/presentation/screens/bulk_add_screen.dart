@@ -1,13 +1,17 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:logging/logging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
+import 'package:opennutritracker/features/add_meal/util/meal_photo_encoder.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -61,6 +65,13 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// parse produces a different set of rows.
   final _amountControllers = <int, TextEditingController>{};
 
+  /// Whether the photo action is offered at all. Read once and held, rather
+  /// than resolved inside `build` — a future rebuilt on every frame would
+  /// re-read the keystore continuously for an answer that changes only when
+  /// the user visits settings, which closes this screen anyway.
+  late final Future<bool> _photoAvailable = locator<AiCredentialStorage>()
+      .isEnabled();
+
   late BulkAddScreenArguments _args;
   bool _submitting = false;
 
@@ -86,7 +97,27 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(S.of(context).bulkAddTitle)),
+      appBar: AppBar(
+        title: Text(S.of(context).bulkAddTitle),
+        actions: [
+          // Only offered when the user has a key enabled. There is no
+          // offline way to read a photo, so showing the action to everyone
+          // would advertise a button that can only ever apologise.
+          FutureBuilder<bool>(
+            future: _photoAvailable,
+            builder: (context, snapshot) => snapshot.data == true
+                ? Semantics(
+                    identifier: 'bulk-add-photo',
+                    child: IconButton(
+                      onPressed: _onPhotoPressed,
+                      icon: const Icon(Icons.photo_camera_rounded),
+                      tooltip: S.of(context).bulkAddPhotoLabel,
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: BlocBuilder<BulkAddBloc, BulkAddState>(
           bloc: _bloc,
@@ -142,16 +173,36 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     if (state is BulkAddErrorState) {
       return _centeredMessage(context, S.of(context).bulkAddSearchFailedLabel);
     }
+    if (state is BulkAddPhotoErrorState) {
+      return _centeredMessage(context, switch (state.error) {
+        BulkAddPhotoError.unavailable =>
+          S.of(context).bulkAddPhotoUnavailableLabel,
+        BulkAddPhotoError.auth => S.of(context).bulkAddPhotoKeyRejectedLabel,
+        BulkAddPhotoError.transient => S.of(context).bulkAddPhotoFailedLabel,
+        BulkAddPhotoError.camera => S.of(context).bulkAddPhotoCameraFailedLabel,
+        BulkAddPhotoError.unreadable =>
+          S.of(context).bulkAddPhotoUnreadableLabel,
+      });
+    }
     if (state is! BulkAddLoadedState) {
       return const SizedBox();
     }
     if (state.rows.isEmpty) {
-      return _centeredMessage(
-        context,
-        state.parseErrors.isEmpty
-            ? S.of(context).bulkAddNothingToLogLabel
-            : _parseErrorsText(context, state.parseErrors),
-      );
+      return _centeredMessage(context, switch (state) {
+        // A bad segment explains itself; that outranks either generic line.
+        _ when state.parseErrors.isNotEmpty => _parseErrorsText(
+          context,
+          state.parseErrors,
+        ),
+        // The model looked at a photograph and reported no food. "Nothing to
+        // log yet" is true but reads as though nothing happened, and the
+        // notice that would have said a photo was read is not drawn on this
+        // branch — so the one screen where the user most needs to know a
+        // machine answered was the one screen that never said so.
+        _ when state.source == BulkAddReadSource.photo =>
+          S.of(context).bulkAddPhotoNoFoodLabel,
+        _ => S.of(context).bulkAddNothingToLogLabel,
+      });
     }
 
     // The list is the labelled surface, not each child — row identifiers
@@ -171,11 +222,17 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       ),
     );
 
-    if (!state.readByModel) return list;
+    if (state.source == BulkAddReadSource.parser) return list;
 
-    // Shown above the rows, not inside one. A model read the whole line, so
+    // Shown above the rows, not inside one. A model read the whole input, so
     // the caution belongs to the batch — and the confirmation step is only
     // meaningful if the user knows what did the reading.
+    //
+    // The photo wording is stronger on purpose. Reading typed text, the user
+    // can compare a row against what they wrote; reading a photograph there
+    // is nothing to compare against, and the food itself may be misidentified
+    // rather than merely mis-measured.
+    final photo = state.source == BulkAddReadSource.photo;
     return Column(
       children: [
         Semantics(
@@ -186,11 +243,18 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
             child: Row(
               children: [
-                const Icon(Icons.auto_awesome_rounded, size: 16),
+                Icon(
+                  photo
+                      ? Icons.photo_camera_rounded
+                      : Icons.auto_awesome_rounded,
+                  size: 16,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    S.of(context).bulkAddReadByModelLabel,
+                    photo
+                        ? S.of(context).bulkAddReadFromPhotoLabel
+                        : S.of(context).bulkAddReadByModelLabel,
                     style: Theme.of(context).textTheme.bodySmall,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -445,10 +509,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
   void _onParsePressed() {
     FocusScope.of(context).unfocus();
-    for (final controller in _amountControllers.values) {
-      controller.dispose();
-    }
-    _amountControllers.clear();
+    _resetAmountControllers();
     _bloc.add(
       ParseBulkTextEvent(
         text: _textController.text,
@@ -456,6 +517,89 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         localeCode: Localizations.localeOf(context).languageCode,
       ),
     );
+  }
+
+  Future<void> _onPhotoPressed() async {
+    FocusScope.of(context).unfocus();
+    final shouldOpenCamera = await showModalBottomSheet<bool>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Wrap(
+          children: [
+            // The disclosure sits here rather than in a dialog the user has
+            // to dismiss: this is the moment a photograph would leave the
+            // device, and it is the last moment they can decline.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                S.of(sheetContext).bulkAddPhotoDisclosureLabel,
+                style: Theme.of(sheetContext).textTheme.bodySmall,
+              ),
+            ),
+            Semantics(
+              identifier: 'bulk-add-photo-camera',
+              child: ListTile(
+                leading: const Icon(Icons.photo_camera_rounded),
+                title: Text(S.of(sheetContext).mealImageTakePhoto),
+                onTap: () => Navigator.of(sheetContext).pop(true),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (shouldOpenCamera != true || !mounted) return;
+
+    final XFile? picked;
+    try {
+      picked = await ImagePicker().pickImage(source: ImageSource.camera);
+    } catch (e, stackTrace) {
+      _log.warning('Opening the meal photo camera failed', e, stackTrace);
+      if (!mounted) return;
+      _bloc.add(const ReadMealPhotoFailedEvent(BulkAddPhotoError.camera));
+      return;
+    }
+    // A cancelled picker is not a failure and says nothing to the user.
+    if (picked == null || !mounted) return;
+
+    final MealPhoto? photo;
+    try {
+      // Discards the picker's cache copy once it has been encoded — see
+      // [MealPhotoEncoder.encodeAndDiscardSource]. Without it the app leaves
+      // the photo on disk, which the settings disclosure says it does not.
+      photo = await MealPhotoEncoder.encodeAndDiscardSource(picked.path);
+    } catch (e, stackTrace) {
+      // Never logged with the path: on Android the picker's temp filename
+      // can carry the original image name.
+      _log.warning('Encoding a meal photo failed', e, stackTrace);
+      if (!mounted) return;
+      _bloc.add(const ReadMealPhotoFailedEvent(BulkAddPhotoError.unreadable));
+      return;
+    }
+    if (!mounted) return;
+
+    if (photo == null) {
+      _bloc.add(const ReadMealPhotoFailedEvent(BulkAddPhotoError.unreadable));
+      return;
+    }
+
+    // A photo replaces the previous batch, so the old controllers go with it.
+    _resetAmountControllers();
+
+    _bloc.add(
+      ReadMealPhotoEvent(
+        photo: photo,
+        usesImperialUnits: _args.usesImperialUnits,
+        localeCode: Localizations.localeOf(context).languageCode,
+      ),
+    );
+  }
+
+  void _resetAmountControllers() {
+    for (final controller in _amountControllers.values) {
+      controller.dispose();
+    }
+    _amountControllers.clear();
   }
 
   Future<void> _showCandidatePicker(int index, BulkAddRow row) async {

@@ -1,5 +1,9 @@
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
+// Re-exported so a caller that only cares about the text path still has one
+// import, even though the failure type is now shared with the photo path.
+export 'package:opennutritracker/features/add_meal/domain/meal_interpreter_exception.dart';
+
 /// Turns a free-text meal description into items the existing food search
 /// can resolve.
 ///
@@ -21,30 +25,7 @@ abstract interface class MealTextInterpreter {
   ///
   /// Implementations must not throw for ordinary failure — no network, a
   /// rejected key, a rate limit, a malformed reply. Those raise
-  /// [MealTextInterpreterException] so the caller can fall back to the
+  /// [MealInterpreterException] so the caller can fall back to the
   /// deterministic parser rather than showing the user an error.
   Future<MealTextParseResult> interpret(String input, {String? localeCode});
-}
-
-/// Raised when an interpreter cannot produce a result. Carries no response
-/// body: provider payloads can echo the submitted text, and this ends up in
-/// logs.
-class MealTextInterpreterException implements Exception {
-  final String reason;
-
-  /// Set when the provider answered with an HTTP status, so a caller can
-  /// tell "your key is wrong" (401/403) from "try again later" (429/5xx).
-  final int? statusCode;
-
-  const MealTextInterpreterException(this.reason, {this.statusCode});
-
-  /// True for failures that a retry might survive. An auth failure is not
-  /// one of them.
-  bool get isTransient =>
-      statusCode == null || statusCode == 429 || (statusCode! >= 500);
-
-  @override
-  String toString() =>
-      'MealTextInterpreterException($reason${statusCode == null ? '' : ', '
-                'status: $statusCode'})';
 }

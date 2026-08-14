@@ -319,7 +319,7 @@ void main() {
       await expectLater(
         interpreterWith(client).interpret('toast'),
         throwsA(
-          isA<MealTextInterpreterException>().having(
+          isA<MealInterpreterException>().having(
             (e) => e.isTransient,
             'isTransient',
             isFalse,
@@ -334,7 +334,7 @@ void main() {
       await expectLater(
         interpreterWith(client).interpret('toast'),
         throwsA(
-          isA<MealTextInterpreterException>().having(
+          isA<MealInterpreterException>().having(
             (e) => e.isTransient,
             'isTransient',
             isTrue,
@@ -349,7 +349,7 @@ void main() {
       await expectLater(
         interpreterWith(client).interpret('my private meal note'),
         throwsA(
-          isA<MealTextInterpreterException>().having(
+          isA<MealInterpreterException>().having(
             (e) => e.toString(),
             'toString',
             isNot(contains('private')),
@@ -369,12 +369,12 @@ void main() {
 
       await expectLater(
         interpreterWith(client).interpret('toast'),
-        throwsA(isA<MealTextInterpreterException>()),
+        throwsA(isA<MealInterpreterException>()),
       );
     });
 
     test('an unexpected tool-input shape raises, not a TypeError', () async {
-      // Must arrive as MealTextInterpreterException, or #635 cannot fall
+      // Must arrive as MealInterpreterException, or #635 cannot fall
       // back to the deterministic parser and the caller crashes instead.
       final client = FakeClient(
         body: jsonEncode({
@@ -386,7 +386,7 @@ void main() {
 
       await expectLater(
         interpreterWith(client).interpret('toast'),
-        throwsA(isA<MealTextInterpreterException>()),
+        throwsA(isA<MealInterpreterException>()),
       );
     });
 
@@ -400,7 +400,7 @@ void main() {
           client,
           timeout: const Duration(milliseconds: 50),
         ).interpret('toast'),
-        throwsA(isA<MealTextInterpreterException>()),
+        throwsA(isA<MealInterpreterException>()),
       );
     });
 
@@ -417,7 +417,7 @@ void main() {
 
       await expectLater(
         interpreterWith(client).interpret('toast'),
-        throwsA(isA<MealTextInterpreterException>()),
+        throwsA(isA<MealInterpreterException>()),
       );
     });
   });

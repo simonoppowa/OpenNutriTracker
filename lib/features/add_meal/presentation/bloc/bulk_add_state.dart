@@ -21,6 +21,57 @@ class BulkAddErrorState extends BulkAddState {
   const BulkAddErrorState();
 }
 
+/// Which reader produced the rows on screen.
+///
+/// A bool would not survive the third case, and the third case is the one
+/// that most needs saying out loud: rows read off a photograph rest on the
+/// model having recognised the food correctly, with no typed text to check
+/// it against.
+enum BulkAddReadSource {
+  /// The deterministic parser. Nothing to disclose — the user's own words,
+  /// matched against the food database.
+  parser,
+
+  /// A model read the text the user typed.
+  model,
+
+  /// A model read a photograph.
+  photo,
+}
+
+/// Why a photo could not be turned into rows.
+///
+/// Separate from [BulkAddErrorState] because the photo path has no
+/// deterministic fallback, so its failures reach the user instead of being
+/// absorbed — and each one wants different advice.
+enum BulkAddPhotoError {
+  /// No key stored, or the feature was switched off while the screen was
+  /// open. A setting, not a fault.
+  unavailable,
+
+  /// The provider rejected the credential. "Try again later" is the wrong
+  /// advice here and following it never stops being wrong.
+  auth,
+
+  /// No network, a rate limit, a provider error — worth another attempt.
+  transient,
+
+  /// The camera could not be opened, commonly because permission was denied.
+  camera,
+
+  /// The photo itself could not be encoded or was too large to send.
+  unreadable,
+}
+
+class BulkAddPhotoErrorState extends BulkAddState {
+  final BulkAddPhotoError error;
+
+  const BulkAddPhotoErrorState(this.error);
+
+  @override
+  List<Object?> get props => [error];
+}
+
 class BulkAddLoadedState extends BulkAddState {
   final List<BulkAddRow> rows;
 
@@ -33,15 +84,15 @@ class BulkAddLoadedState extends BulkAddState {
 
   final bool usesImperialUnits;
 
-  /// True when a model read the line rather than the deterministic parser.
-  /// Surfaced so the user can see what they are being asked to confirm.
-  final bool readByModel;
+  /// What produced these rows. Surfaced so the user can see what they are
+  /// being asked to confirm.
+  final BulkAddReadSource source;
 
   const BulkAddLoadedState({
     required this.rows,
     required this.parseErrors,
     required this.usesImperialUnits,
-    this.readByModel = false,
+    this.source = BulkAddReadSource.parser,
   });
 
   Iterable<BulkAddRow> get loggableRows =>
@@ -55,14 +106,9 @@ class BulkAddLoadedState extends BulkAddState {
     rows: rows ?? this.rows,
     parseErrors: parseErrors,
     usesImperialUnits: usesImperialUnits,
-    readByModel: readByModel,
+    source: source,
   );
 
   @override
-  List<Object?> get props => [
-    rows,
-    parseErrors,
-    usesImperialUnits,
-    readByModel,
-  ];
+  List<Object?> get props => [rows, parseErrors, usesImperialUnits, source];
 }

@@ -1124,9 +1124,18 @@
   "settingsAiAssistOnLabel": "Attiva",
   "settingsAiAssistPausedLabel": "In pausa — chiave salvata",
   "settingsAiAssistEnabledLabel": "Usa l'assistenza AI",
-  "aiAssistDisclosureLabel": "Con una chiave salvata, il testo digitato nella schermata di aggiunta multipla viene inviato ad Anthropic per essere letto. Il tuo diario non viene mai inviato. I valori nutrizionali provengono sempre dai database alimentari, mai dal modello. La chiave è memorizzata solo su questo dispositivo: OpenNutriTracker non la vede e non ne paga l'uso.",
+  "aiAssistDisclosureLabel": "Con una chiave salvata, il testo digitato nella schermata di aggiunta multipla — e ogni foto che scegli di far leggere lì — viene inviato ad Anthropic. Le foto vengono inviate solo per quella richiesta e non vengono mai salvate. Il tuo diario non viene mai inviato. I valori nutrizionali provengono sempre dai database alimentari, mai dal modello. La chiave è memorizzata solo su questo dispositivo: OpenNutriTracker non la vede e non ne paga l'uso.",
   "aiAssistKeyFieldLabel": "Chiave API Anthropic",
   "aiAssistKeySavedLabel": "Chiave salvata",
   "aiAssistRemoveKeyLabel": "Rimuovi chiave",
-  "bulkAddReadByModelLabel": "Letto dall'AI — controlla ogni riga"
+  "bulkAddReadByModelLabel": "Letto dall'AI — controlla ogni riga",
+  "bulkAddPhotoLabel": "Leggi una foto",
+  "bulkAddPhotoDisclosureLabel": "La foto viene inviata ad Anthropic per identificare gli alimenti che contiene. OpenNutriTracker non ne conserva una propria copia e non finisce mai nelle tue esportazioni.",
+  "bulkAddReadFromPhotoLabel": "Letto da una foto — controlla ogni alimento e quantità",
+  "bulkAddPhotoUnavailableLabel": "Attiva l'assistenza AI ai pasti nelle impostazioni per leggere le foto",
+  "bulkAddPhotoKeyRejectedLabel": "La tua chiave API è stata rifiutata. Controllala nelle impostazioni.",
+  "bulkAddPhotoCameraFailedLabel": "Impossibile aprire la fotocamera. Controlla l'autorizzazione della fotocamera e riprova.",
+  "bulkAddPhotoFailedLabel": "Impossibile leggere la foto. Controlla la connessione e riprova.",
+  "bulkAddPhotoUnreadableLabel": "Impossibile usare quell'immagine. Prova un'altra foto.",
+  "bulkAddPhotoNoFoodLabel": "Nessun alimento riconosciuto in questa foto. Prova un'altra foto o digita le voci."
 }
