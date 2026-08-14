@@ -36,16 +36,22 @@ class AnthropicMealTextInterpreter implements MealTextInterpreter {
   /// Matches the other remote data sources in this repo. Without it a
   /// stalled connection hangs until the OS gives up, which in #635 means the
   /// user waits instead of falling back to the deterministic parser.
-  static const _timeout = Duration(seconds: 20);
+  static const defaultTimeout = Duration(seconds: 20);
 
   final http.Client _client;
   final String Function() _apiKey;
   final String model;
 
+  /// Injectable so the stalled-connection test does not spend the real
+  /// twenty seconds proving it. Raising the production value should not
+  /// quietly make the suite slower.
+  final Duration timeout;
+
   AnthropicMealTextInterpreter(
     this._client,
     this._apiKey, {
     this.model = defaultModel,
+    this.timeout = defaultTimeout,
   });
 
   /// The whole contract with the model, in one place.
@@ -152,7 +158,7 @@ Rules:
             },
             body: body,
           )
-          .timeout(_timeout);
+          .timeout(timeout);
     } catch (e) {
       // Deliberately not logging `e`: a socket error can carry the request
       // URL and, on some platforms, part of the payload.
