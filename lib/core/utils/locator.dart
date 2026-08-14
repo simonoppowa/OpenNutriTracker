@@ -141,10 +141,14 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<HiveDBProvider>(() => hiveDBProvider);
   locator.registerLazySingleton<AiCredentialStorage>(
-      () => AiCredentialStorage());
-  locator.registerLazySingleton<ReadMealTextUseCase>(() => ReadMealTextUseCase(
+    () => AiCredentialStorage(),
+  );
+  locator.registerLazySingleton<ReadMealTextUseCase>(
+    () => ReadMealTextUseCase(
       locator<AiCredentialStorage>(),
-      (apiKey) => AnthropicMealTextInterpreter(http.Client(), () => apiKey)));
+      (apiKey) => AnthropicMealTextInterpreter(http.Client(), () => apiKey),
+    ),
+  );
   locator.registerLazySingleton<DeleteAllUserDataUsecase>(
     () => DeleteAllUserDataUsecase(locator()),
   );
