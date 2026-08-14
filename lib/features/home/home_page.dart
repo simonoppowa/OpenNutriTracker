@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
@@ -16,8 +18,11 @@ import 'package:opennutritracker/core/presentation/widgets/edit_activity_dialog.
 import 'package:opennutritracker/core/presentation/widgets/edit_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
+import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
@@ -114,6 +119,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       log.info('App resumed');
       _refreshPageOnDayChange();
+      unawaited(_importHealthWorkouts());
     }
     super.didChangeAppLifecycleState(state);
   }
@@ -521,5 +527,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// and it is correct under any boundary setting.
   void _refreshPageOnDayChange() {
     _homeBloc.add(const LoadItemsEvent());
+  }
+
+  /// Picks up workouts that landed in the platform health store while the app
+  /// was away. Debounced and opt-in inside the use case, so this costs
+  /// nothing on an ordinary resume; the diary only reloads when something
+  /// actually came in.
+  Future<void> _importHealthWorkouts() async {
+    final imported = await locator<ImportWorkoutsUsecase>().importIfDue();
+    if (imported == 0) return;
+    _homeBloc.add(const LoadItemsEvent());
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+    locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
   }
 }

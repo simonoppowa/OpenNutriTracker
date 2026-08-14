@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/presentation/splash_screen.dart';
 import 'package:opennutritracker/core/presentation/storage_recovery_app.dart';
@@ -75,6 +76,11 @@ Future<void> _bootstrapApp() async {
   unawaited(
     locator<RemoteSearchCacheDataSource>().pruneStale(const Duration(days: 90)),
   );
+
+  // Pull in any workouts logged since the last run. Inert unless the user has
+  // opted in, self-debouncing, and it swallows its own failures — the app
+  // must never wait on, or fail to start because of, the health store.
+  unawaited(locator<ImportWorkoutsUsecase>().importIfDue());
 
   final isUserInitialized = await locator<UserDataSource>().hasUserData();
   final configRepo = locator<ConfigRepository>();
