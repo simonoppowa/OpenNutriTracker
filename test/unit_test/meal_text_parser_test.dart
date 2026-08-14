@@ -532,6 +532,32 @@ void main() {
       expect(result.errors, isEmpty);
     });
 
+    test('a non-finite quantity is dropped, not carried into the row', () {
+      // Both bounds are false for NaN, so without an explicit check it
+      // survives validation and renders as the literal text "NaN".
+      // `double.tryParse('NaN')` returns NaN, so a model answering with
+      // that string is all it takes to get here.
+      final result = validateParsedMealItems(const [
+        ParsedMealItem(query: 'toast', quantity: double.nan, unit: 'g'),
+        ParsedMealItem(query: 'milk', quantity: double.infinity, unit: 'ml'),
+        ParsedMealItem(
+          query: 'flour',
+          quantity: double.negativeInfinity,
+          unit: 'g',
+        ),
+      ]);
+
+      expect(result.items, hasLength(3));
+      for (final item in result.items) {
+        expect(
+          item.quantity,
+          isNull,
+          reason: '${item.query} kept a non-finite',
+        );
+      }
+      expect(result.errors, isEmpty);
+    });
+
     test('trims the query so a padded name still reaches the search', () {
       final result = validateParsedMealItems(const [
         ParsedMealItem(query: '  toast  '),

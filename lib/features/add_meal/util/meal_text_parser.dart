@@ -147,7 +147,17 @@ MealTextParseResult validateParsedMealItems(List<ParsedMealItem> candidates) {
       continue;
     }
 
-    final quantity = candidate.quantity;
+    // A non-finite quantity is treated as no quantity at all. Both bounds
+    // below are *false* for NaN, so it would otherwise pass validation
+    // untouched and surface as the literal text "NaN" in the amount field.
+    // `double.tryParse('NaN')` returns NaN, so a model answering with that
+    // string is all it takes. Dropped rather than rejected, matching how an
+    // unrecognized unit is handled: the food is still usable and the row's
+    // own default is a better answer than refusing to log it.
+    final rawQuantity = candidate.quantity;
+    final quantity = (rawQuantity != null && rawQuantity.isFinite)
+        ? rawQuantity
+        : null;
     if (quantity != null) {
       if (quantity <= 0) {
         errors.add(QuantityTooSmallError(itemNum));

@@ -188,6 +188,21 @@ void main() {
       expect(result.items[1].quantity, 2.5);
     });
 
+    test('a quantity of "NaN" does not reach the row', () async {
+      // double.tryParse('NaN') succeeds, so this is a shape a model can
+      // actually produce.
+      final client = FakeClient(
+        body: toolReply([
+          {'query': 'toast', 'quantity': 'NaN', 'unit': 'g'},
+        ]),
+      );
+
+      final result = await interpreterWith(client).interpret('anything');
+
+      expect(result.items.single.query, 'toast');
+      expect(result.items.single.quantity, isNull);
+    });
+
     test('drops an unusable entry without failing the batch', () async {
       final client = FakeClient(
         body: toolReply([
