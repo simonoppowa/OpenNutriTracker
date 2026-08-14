@@ -373,10 +373,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       identifier: 'settings-health-sync',
                       palette: palette,
                       icon: Icons.favorite_rounded,
-                      title: S.of(context).settingsHealthSyncLabel,
-                      subtitle: S.of(context).settingsHealthSyncSubtitle(
-                        healthPlatformName,
-                      ),
+                      // The platform's own product name, so the row reads as
+                      // the thing users already know ("Health Connect"), not
+                      // as a generic feature label.
+                      title: healthPlatformName,
+                      subtitle: S.of(context).settingsHealthSyncSubtitle,
                       showChevron: true,
                       onTap: () => _openHealthSyncScreen(context),
                     ),

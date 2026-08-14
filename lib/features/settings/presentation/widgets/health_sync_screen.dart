@@ -254,7 +254,7 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     final textTheme = Theme.of(context).textTheme;
     final canEdit = _isAvailable && _importEnabled && !_busy;
     return Scaffold(
-      appBar: AppBar(title: Text(s.settingsHealthSyncLabel)),
+      appBar: AppBar(title: Text(healthPlatformName)),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
