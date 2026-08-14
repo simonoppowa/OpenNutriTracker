@@ -231,9 +231,10 @@ List<String> _segment(String input) => input
     .where((s) => s.isNotEmpty)
     .toList();
 
-/// The five unit symbols this parser recognizes as *input*, longest-first
-/// so a two-character symbol is never shadowed by its first letter. Naming
-/// them explicitly (rather than matching any run of letters) is what lets
+/// The unit symbols this parser recognizes as *input*, longest-first so a
+/// longer symbol is never shadowed by one that starts the same way: `毫升`
+/// before `升`, `千克` before `克`. Naming them explicitly (rather than
+/// matching any run of letters) is what lets
 /// the regex engine backtrack to the no-unit reading when the word after
 /// the number simply belongs to the food name — see [_leadingQuantity].
 const _unitSymbol = r'(?:kg|ml|oz|g|l|毫升|千克|克|升)';
