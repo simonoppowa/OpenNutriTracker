@@ -574,4 +574,69 @@ void main() {
       expect(result.hasErrors, isFalse);
     });
   });
+
+  group('scripts without spaces between words (#623)', () {
+    // Chinese, Japanese and Korean write a number flush against the thing
+    // it counts. The parser found quantities by looking for whitespace, so
+    // none of this parsed at all — including weights written with the very
+    // Latin unit symbols the placeholder used to demonstrate.
+    test('a count reads even with no space after it', () {
+      final result = parseMealText('2个鸡蛋');
+
+      expect(result.items.single.quantity, 2);
+      // The counter stays on the query. `resolver_relevance` matches CJK by
+      // character bigrams, so `个鸡蛋` still finds `鸡蛋` — which is why no
+      // list of measure words is needed.
+      expect(result.items.single.query, contains('鸡蛋'));
+    });
+
+    test('a Latin unit symbol works without a space', () {
+      final result = parseMealText('100g吐司');
+
+      expect(result.items.single.query, '吐司');
+      expect(result.items.single.quantity, 100);
+      expect(result.items.single.unit, 'g');
+    });
+
+    test('the Han forms of gram and millilitre are units', () {
+      final grams = parseMealText('100克吐司').items.single;
+      expect(grams.query, '吐司');
+      expect(grams.quantity, 100);
+      expect(grams.unit, 'g');
+
+      final millis = parseMealText('200毫升牛奶').items.single;
+      expect(millis.quantity, 200);
+      expect(millis.unit, 'ml');
+    });
+
+    test('the Han kilogram and litre convert like kg and l', () {
+      expect(parseMealText('1千克面粉').items.single.quantity, 1000);
+      expect(parseMealText('1升水').items.single.unit, 'ml');
+      expect(parseMealText('1升水').items.single.quantity, 1000);
+    });
+
+    test('a full line splits into its items', () {
+      final result = parseMealText('2个鸡蛋，200ml牛奶，黑咖啡');
+
+      expect(result.items, hasLength(3));
+      expect(result.items[1].quantity, 200);
+      expect(result.items[1].unit, 'ml');
+      expect(result.items[2].quantity, isNull);
+    });
+
+    test('a trailing quantity works without a space too', () {
+      expect(parseMealText('鸡蛋2').items.single.quantity, 2);
+    });
+
+    test('Latin parsing is unchanged by the script boundary', () {
+      // The boundary rule touches the same regex the #616 backtracking bug
+      // lived in, so the cases that bug produced are re-checked here.
+      expect(parseMealText('100g toast').items.single.query, 'toast');
+      expect(parseMealText('2 chicken breasts').items.single.quantity, 2);
+      expect(parseMealText('1,5 l Milch').items.single.quantity, 1500);
+      expect(parseMealText('toast 100g').items.single.unit, 'g');
+      // Still not a unit, so still not a quantity.
+      expect(parseMealText('100xyz Toast').items.single.quantity, isNull);
+    });
+  });
 }
