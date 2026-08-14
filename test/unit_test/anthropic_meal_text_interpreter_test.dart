@@ -214,9 +214,13 @@ void main() {
                       as Map)['items']
                   as Map)['properties']
               as Map;
+      // Every entry must be one `validateParsedMealItems` can normalize or
+      // pass through; offering a unit the app cannot convert is what made
+      // the model map a litre onto `ml` and keep the number.
       expect((unitEnum['unit'] as Map)['enum'], [
         'g',
         'kg',
+        'lb',
         'ml',
         'l',
         'g/ml',

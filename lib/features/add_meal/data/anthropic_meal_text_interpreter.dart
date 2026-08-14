@@ -112,7 +112,17 @@ Rules:
               // litre to `ml` and kept the number, turning 1.5 l of milk
               // into 1.5 ml. A thousandfold under-count with no warning,
               // because a unit *was* stated so nothing flagged the row.
-              'enum': ['g', 'kg', 'ml', 'l', 'g/ml', 'oz', 'fl.oz', 'serving'],
+              'enum': [
+                'g',
+                'kg',
+                'lb',
+                'ml',
+                'l',
+                'g/ml',
+                'oz',
+                'fl.oz',
+                'serving',
+              ],
               'description':
                   'Only if the user stated a unit, and only '
                   'one of these. Never map a different unit onto one of '
