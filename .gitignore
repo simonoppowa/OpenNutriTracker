@@ -68,9 +68,3 @@ result
 
 # Fastlane / Bundler — local gem install path (bundle config set path vendor/bundle)
 ios/vendor/
-
-# Output of tool/live_interpreter_*.dart: point-in-time snapshots of a
-# non-deterministic model, regenerated on demand and stale as soon as the
-# model, prompt or schema moves. The tools are the durable artifact; the
-# findings belong in the PR that caused them.
-docs/live-interpreter-*.md
