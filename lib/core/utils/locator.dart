@@ -143,10 +143,16 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<AiCredentialStorage>(
     () => AiCredentialStorage(),
   );
+  // One client for the app rather than one per interpret call: a fresh
+  // http.Client carries its own connection pool and is never closed here,
+  // so building one each time the user taps Search would accumulate
+  // sockets for the life of the process.
+  locator.registerLazySingleton<http.Client>(() => http.Client());
   locator.registerLazySingleton<ReadMealTextUseCase>(
     () => ReadMealTextUseCase(
       locator<AiCredentialStorage>(),
-      (apiKey) => AnthropicMealTextInterpreter(http.Client(), () => apiKey),
+      (apiKey) =>
+          AnthropicMealTextInterpreter(locator<http.Client>(), () => apiKey),
     ),
   );
   locator.registerLazySingleton<DeleteAllUserDataUsecase>(
@@ -220,7 +226,8 @@ Future<void> initLocator() async {
   // Singleton so a unit change in Settings can refresh the live Trends page
   // (it lives in the main IndexedStack and isn't recreated on tab switch).
   locator.registerLazySingleton<TrendsBloc>(
-      () => TrendsBloc(locator(), locator(), locator(), locator(), locator()));
+    () => TrendsBloc(locator(), locator(), locator(), locator(), locator()),
+  );
   locator.registerFactory<RecipeBuilderBloc>(
     () => RecipeBuilderBloc(locator(), locator()),
   );
@@ -254,13 +261,8 @@ Future<void> initLocator() async {
   // create-from-popup flow on the same tab — both must mutate / observe the
   // same instance so the list refreshes after a new entry is created.
   locator.registerLazySingleton<CustomMealsBloc>(
-    () => CustomMealsBloc(
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-    ),
+    () =>
+        CustomMealsBloc(locator(), locator(), locator(), locator(), locator()),
   );
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));

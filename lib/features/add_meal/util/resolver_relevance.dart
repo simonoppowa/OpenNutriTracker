@@ -41,10 +41,46 @@ const _minPrefix = 3;
 const _detailedBonus = 0.03;
 const _machineTranslatedPenalty = 0.03;
 
+/// Characters from scripts that do not separate words with spaces. A
+/// Unicode script property rather than a vocabulary list, so it does not
+/// grow when a language is added.
+final _unspacedScript = RegExp(
+  r'[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}'
+  r'\p{Script=Hangul}]',
+  unicode: true,
+);
+
+/// The character pairs in [text], or the text itself when it is too short
+/// to have any.
+Set<String> _bigrams(String text) {
+  if (text.length < 2) return {text};
+  return {for (var i = 0; i < text.length - 1; i++) text.substring(i, i + 2)};
+}
+
 /// How far [a] and [b] agree, 0.0-1.0. 1.0 only for an exact match; a
 /// suffix difference costs a little rather than everything.
 double _tokenSimilarity(String a, String b) {
   if (a == b) return 1.0;
+
+  // Chinese, Japanese and Korean write without spaces, so `_tokenize`
+  // hands the whole phrase over as one token and the shared-prefix rule
+  // below reads it as a single long word. That scored `鸡蛋` against
+  // `土鸡蛋` — a superstring of the query — at exactly 0.0, and it is why
+  // a `zh` search could miss the product it was looking at.
+  //
+  // Character bigrams compare these the way whitespace tokens compare in
+  // Latin scripts: `鸡蛋` and `土鸡蛋` share one pair out of three, so they
+  // agree rather than disagree. It also makes a leading counter harmless —
+  // `个鸡蛋` still matches `鸡蛋` — which is what removes any need for a
+  // list of measure words.
+  if (_unspacedScript.hasMatch(a) || _unspacedScript.hasMatch(b)) {
+    final aGrams = _bigrams(a);
+    final bGrams = _bigrams(b);
+    final shared = aGrams.intersection(bGrams).length;
+    if (shared == 0) return 0.0;
+    return 2 * shared / (aGrams.length + bGrams.length);
+  }
+
   final shorter = a.length < b.length ? a.length : b.length;
   final longer = a.length > b.length ? a.length : b.length;
 

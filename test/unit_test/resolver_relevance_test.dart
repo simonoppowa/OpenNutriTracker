@@ -164,4 +164,41 @@ void main() {
       expect(weak, lessThan(0.5));
     });
   });
+
+  group('scripts without spaces between words (#623)', () {
+    // `_tokenize` splits on non-letters, so a CJK phrase arrives as one
+    // token and the shared-prefix rule read it as a single long word.
+    test('a longer product name still matches the query', () {
+      // Scored 0.0 before: `土鸡蛋` contains `鸡蛋` but does not start with
+      // it, so a `zh` search could miss the product it was looking at.
+      expect(scoreMealForResolution(meal('土鸡蛋'), '鸡蛋'), greaterThan(0.3));
+    });
+
+    test('a leading counter does not stop the match', () {
+      // This is what removes any need for a list of measure words: the
+      // parser leaves `个` on the query and the ranker copes.
+      expect(scoreMealForResolution(meal('鸡蛋'), '个鸡蛋'), greaterThan(0.3));
+    });
+
+    test('an exact match still scores highest', () {
+      final exact = scoreMealForResolution(meal('鸡蛋'), '鸡蛋');
+      final partial = scoreMealForResolution(meal('土鸡蛋'), '鸡蛋');
+      expect(exact, greaterThan(partial));
+    });
+
+    test('unrelated foods still score nothing', () {
+      expect(scoreMealForResolution(meal('牛奶'), '鸡蛋'), 0.0);
+    });
+
+    test('Latin scoring is unchanged', () {
+      // The property #601 was built for: a plain food outranks a branded
+      // name that happens to contain the query exactly.
+      final plain = scoreMealForResolution(meal('Egg'), 'eggs');
+      final branded = scoreMealForResolution(
+        meal('Cadbury Creme Eggs'),
+        'eggs',
+      );
+      expect(plain, greaterThan(branded));
+    });
+  });
 }

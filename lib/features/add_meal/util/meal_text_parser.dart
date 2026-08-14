@@ -147,7 +147,17 @@ MealTextParseResult validateParsedMealItems(List<ParsedMealItem> candidates) {
       continue;
     }
 
-    final quantity = candidate.quantity;
+    // A non-finite quantity is treated as no quantity at all. Both bounds
+    // below are *false* for NaN, so it would otherwise pass validation
+    // untouched and surface as the literal text "NaN" in the amount field.
+    // `double.tryParse('NaN')` returns NaN, so a model answering with that
+    // string is all it takes. Dropped rather than rejected, matching how an
+    // unrecognized unit is handled: the food is still usable and the row's
+    // own default is a better answer than refusing to log it.
+    final rawQuantity = candidate.quantity;
+    final quantity = (rawQuantity != null && rawQuantity.isFinite)
+        ? rawQuantity
+        : null;
     if (quantity != null) {
       if (quantity <= 0) {
         errors.add(QuantityTooSmallError(itemNum));
@@ -169,8 +179,12 @@ MealTextParseResult validateParsedMealItems(List<ParsedMealItem> candidates) {
     // the other, so downstream code was written against that. A model can
     // produce it, and honouring a unit nobody attached a number to would
     // present a guess as though the user had typed it.
-    final unit =
-        candidate.quantity != null && _validUnits.contains(candidate.unit)
+    // Gated on the *sanitized* quantity, not the raw one. A candidate of
+    // `{quantity: NaN, unit: 'g'}` sanitizes to a null quantity, and reading
+    // the raw value here would have kept the `g` beside it — reintroducing
+    // exactly the unit-without-quantity state the paragraph above exists to
+    // prevent.
+    final unit = quantity != null && _validUnits.contains(candidate.unit)
         ? candidate.unit
         : null;
 
@@ -217,12 +231,25 @@ List<String> _segment(String input) => input
     .where((s) => s.isNotEmpty)
     .toList();
 
-/// The five unit symbols this parser recognizes as *input*, longest-first
-/// so a two-character symbol is never shadowed by its first letter. Naming
-/// them explicitly (rather than matching any run of letters) is what lets
+/// The unit symbols this parser recognizes as *input*, longest-first so a
+/// longer symbol is never shadowed by one that starts the same way: `毫升`
+/// before `升`, `千克` before `克`. Naming them explicitly (rather than
+/// matching any run of letters) is what lets
 /// the regex engine backtrack to the no-unit reading when the word after
 /// the number simply belongs to the food name — see [_leadingQuantity].
-const _unitSymbol = r'(?:kg|ml|oz|g|l)';
+const _unitSymbol = r'(?:kg|ml|oz|g|l|毫升|千克|克|升)';
+
+/// Scripts that do not put spaces between words. A number and the food it
+/// counts sit flush against each other in all of them, so the whitespace
+/// this parser otherwise requires never appears.
+///
+/// A Unicode *script* property, not a vocabulary list: it does not grow when
+/// a language is added, which is the objection that ruled out number-words
+/// in #600. `2个鸡蛋` splits here for the same reason `2 eggs` splits on a
+/// space.
+const _unspacedScript =
+    r'[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}'
+    r'\p{Script=Hangul}]';
 
 /// A number, accepting either decimal separator. `JsonMealImporter` takes
 /// both the same way; [_parseQuantity] does the conversion.
@@ -248,12 +275,14 @@ const _number = r'-?\d+(?:[.,]\d+)?';
 /// trailing word forced the engine to backtrack. Restricting the group
 /// makes the engine find the no-unit reading itself.
 final _leadingQuantity = RegExp(
-  '^($_number)\\s*($_unitSymbol)?\\s+(.+)\$',
+  '^($_number)\\s*($_unitSymbol)?(?:\\s+|(?=$_unspacedScript))(.+)\$',
   caseSensitive: false,
+  unicode: true,
 );
 final _trailingQuantity = RegExp(
-  '^(.+?)\\s+($_number)\\s*($_unitSymbol)?\\s*\$',
+  '^(.+?)(?:\\s+|(?<=$_unspacedScript))($_number)\\s*($_unitSymbol)?\\s*\$',
   caseSensitive: false,
+  unicode: true,
 );
 
 /// Both decimal separators reach here; `double.parse` only accepts `.`.
@@ -306,9 +335,20 @@ _Extracted _extractQuantityAndUnit(String segment) {
 (double, String) _normalizeUnitAndQuantity(double quantity, String unit) {
   switch (unit) {
     case 'kg':
+    case '千克':
       return (quantity * 1000, 'g');
     case 'l':
+    case '升':
       return (quantity * 1000, 'ml');
+    // The Han forms of gram and millilitre. Symbols with one fixed meaning,
+    // like `g` and `ml`, rather than words that need translating — and
+    // shared across the Han-using locales rather than one entry per
+    // language. Without them `100克吐司` parses as a bare *count* of 100,
+    // which the review row can read as 100 servings.
+    case '克':
+      return (quantity, 'g');
+    case '毫升':
+      return (quantity, 'ml');
     default:
       return (quantity, unit);
   }
