@@ -510,13 +510,63 @@ void main() {
       expect(result.errors, isEmpty);
     });
 
-    test('does not accept kg or l, which nothing has normalized here', () {
-      // parseMealText converts these itself; this entry point does no
-      // extraction, so accepting them would log 2 g for 2 kg.
-      final result = validateParsedMealItems(const [
+    test('normalizes kg and l the way parseMealText does', () {
+      // Previously dropped, on the reasoning that nothing had normalized
+      // them. A model reports litres, and dropping the unit silently was
+      // worse than converting it — the model answered `1.5 l` as `1.5 ml`
+      // when the enum offered no litre, a thousandfold under-count.
+      final kg = validateParsedMealItems(const [
         ParsedMealItem(query: 'flour', quantity: 2, unit: 'kg'),
+      ]).items.single;
+      expect(kg.quantity, 2000);
+      expect(kg.unit, 'g');
+
+      final litres = validateParsedMealItems(const [
+        ParsedMealItem(query: 'milk', quantity: 1.5, unit: 'l'),
+      ]).items.single;
+      expect(litres.quantity, 1500);
+      expect(litres.unit, 'ml');
+    });
+
+    test('bounds are applied after normalizing, not before', () {
+      // 15 kg is 15000 g, over the maximum. Checking first would let it
+      // through as a harmless-looking 15.
+      final result = validateParsedMealItems(const [
+        ParsedMealItem(query: 'flour', quantity: 15, unit: 'kg'),
       ]);
 
+      expect(result.items, isEmpty);
+      expect(result.errors, [const QuantityTooLargeError(1, 10000)]);
+    });
+
+    test('is not fooled by the casing a caller sends', () {
+      // parseMealText lower-cases what it extracts; this entry point takes
+      // whatever a caller supplies. A model answering `KG` would otherwise
+      // lose its unit and keep its number as a bare count — 2 instead of
+      // 2000 g, through casing alone.
+      for (final written in ['KG', 'Kg', 'kg']) {
+        final result = validateParsedMealItems([
+          ParsedMealItem(query: 'flour', quantity: 2, unit: written),
+        ]);
+        expect(result.items.single.quantity, 2000, reason: written);
+        expect(result.items.single.unit, 'g', reason: written);
+      }
+      expect(
+        validateParsedMealItems(const [
+          ParsedMealItem(query: 'milk', quantity: 1, unit: 'L'),
+        ]).items.single.quantity,
+        1000,
+      );
+    });
+
+    test('a unit the app cannot convert is dropped, the number kept', () {
+      // `2 tbsp` becoming `2 g` is a thirteenfold under-count nobody is
+      // shown. A bare `2` is a number the review row already questions.
+      final result = validateParsedMealItems(const [
+        ParsedMealItem(query: 'olive oil', quantity: 2, unit: 'tbsp'),
+      ]);
+
+      expect(result.items.single.quantity, 2);
       expect(result.items.single.unit, isNull);
     });
 
@@ -608,6 +658,23 @@ void main() {
       expect(result.items.single.query, '吐司');
       expect(result.items.single.quantity, 100);
       expect(result.items.single.unit, 'g');
+    });
+
+    test('pounds are extracted, not stranded in the food name', () {
+      // `lb` was normalizable but not extractable, so `2 lb chicken` sent
+      // "lb chicken" to the food search with the amount as a bare count.
+      final result = parseMealText('2 lb chicken').items.single;
+
+      expect(result.query, 'chicken');
+      expect(result.quantity, closeTo(907.18, 0.01));
+      expect(result.unit, 'g');
+    });
+
+    test('lb is matched before the single-letter l', () {
+      // Alternation order matters: `l` first would match the `l` of `lb`
+      // and leave a stray `b` on the food name.
+      expect(parseMealText('1 lb mince').items.single.query, 'mince');
+      expect(parseMealText('1 l milk').items.single.quantity, 1000);
     });
 
     test('the Han forms of gram and millilitre are units', () {

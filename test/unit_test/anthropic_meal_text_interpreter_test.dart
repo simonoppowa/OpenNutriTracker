@@ -188,6 +188,48 @@ void main() {
       expect(result.items[1].quantity, 2.5);
     });
 
+    test('a litre is converted, not silently downgraded', () async {
+      // The model can now say `l`. Before the enum offered one it answered
+      // `1.5 l milk` as 1.5 *ml* and kept the number.
+      final client = FakeClient(
+        body: toolReply([
+          {'query': 'milk', 'quantity': 1.5, 'unit': 'l'},
+        ]),
+      );
+
+      final result = await interpreterWith(client).interpret('1.5 l milk');
+
+      expect(result.items.single.quantity, 1500);
+      expect(result.items.single.unit, 'ml');
+    });
+
+    test('the schema offers only units the app can convert', () async {
+      final client = FakeClient(body: toolReply(const []));
+      await interpreterWith(client).interpret('toast');
+
+      final schema =
+          (client.sentBody!['tools'] as List).single as Map<String, dynamic>;
+      final unitEnum =
+          ((((schema['input_schema'] as Map)['properties'] as Map)['items']
+                      as Map)['items']
+                  as Map)['properties']
+              as Map;
+      // Every entry must be one `validateParsedMealItems` can normalize or
+      // pass through; offering a unit the app cannot convert is what made
+      // the model map a litre onto `ml` and keep the number.
+      expect((unitEnum['unit'] as Map)['enum'], [
+        'g',
+        'kg',
+        'lb',
+        'ml',
+        'l',
+        'g/ml',
+        'oz',
+        'fl.oz',
+        'serving',
+      ]);
+    });
+
     test('a quantity of "NaN" does not reach the row', () async {
       // double.tryParse('NaN') succeeds, so this is a shape a model can
       // actually produce.
