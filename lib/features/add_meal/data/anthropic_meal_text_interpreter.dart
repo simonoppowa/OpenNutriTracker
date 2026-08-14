@@ -106,7 +106,7 @@ Rules:
             },
             'unit': {
               'type': 'string',
-              // `l` and `kg` are here because the app converts them
+              // `l`, `kg` and `lb` are here because the app converts them
               // (validateParsedMealItems normalizes to ml and g). Leaving
               // them out did not stop the model answering — it mapped a
               // litre to `ml` and kept the number, turning 1.5 l of milk

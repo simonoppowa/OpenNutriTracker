@@ -66,11 +66,21 @@ class BulkAddRow extends Equatable {
   MealEntity? get meal =>
       isResolved ? resolved.candidates[selectedIndex] : null;
 
-  /// The user stated a count the app cannot interpret: no unit was typed and
-  /// the matched food has no scalable serving, so there is nothing for the
-  /// "2" in `2 eggs` to count. The row still logs — both fields are editable
-  /// — but it is marked so the eye lands on the one row needing a decision
-  /// rather than on a plausible-looking wrong number (#622).
+  /// The row's amount cannot be trusted to mean what the user typed, for
+  /// either of two reasons.
+  ///
+  /// **No unit was stated** and the matched food has no scalable serving, so
+  /// there is nothing for the "2" in `2 eggs` to count (#622).
+  ///
+  /// **A unit was stated but this food cannot honour it**, so
+  /// [effectiveUnit] quietly substituted another. A model answers "three
+  /// slices of bread" as `3 serving`; against a record with no scalable
+  /// serving that becomes 3 g/ml, and looking only for a *missing* unit
+  /// would let it through unmarked.
+  ///
+  /// Either way the row still logs — both fields are editable — but it is
+  /// marked so the eye lands on the one row needing a decision rather than
+  /// on a plausible-looking wrong number.
   ///
   /// Derived rather than stored, so picking a different candidate
   /// re-evaluates it against the food actually selected. A stored flag

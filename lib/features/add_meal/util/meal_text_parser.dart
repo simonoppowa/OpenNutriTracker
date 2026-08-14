@@ -169,7 +169,13 @@ MealTextParseResult validateParsedMealItems(List<ParsedMealItem> candidates) {
         : null;
     // Normalized before the bounds are applied, matching parseMealText, so
     // `15 kg` is rejected as 15000 g rather than passing as a harmless 15.
-    var unit = candidate.unit;
+    //
+    // Lower-cased first. `parseMealText` already does this when it extracts,
+    // but this entry point takes whatever a caller supplies, and a model
+    // answering `KG` would otherwise have its unit dropped and its number
+    // survive as a bare count — 2 instead of 2000 g, the thousandfold
+    // under-count this function exists to prevent, reached through casing.
+    var unit = candidate.unit?.toLowerCase();
     if (quantity != null && unit != null) {
       (quantity, unit) = _normalizeUnitAndQuantity(quantity, unit);
     }
@@ -253,7 +259,7 @@ List<String> _segment(String input) => input
 /// matching any run of letters) is what lets
 /// the regex engine backtrack to the no-unit reading when the word after
 /// the number simply belongs to the food name — see [_leadingQuantity].
-const _unitSymbol = r'(?:kg|ml|oz|g|l|毫升|千克|克|升)';
+const _unitSymbol = r'(?:kg|lb|ml|oz|g|l|毫升|千克|克|升)';
 
 /// Scripts that do not put spaces between words. A number and the food it
 /// counts sit flush against each other in all of them, so the whitespace
