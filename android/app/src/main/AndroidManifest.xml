@@ -9,6 +9,12 @@
          enabled in Settings → Health sync. Nothing is ever written back. -->
     <uses-permission android:name="android.permission.health.READ_EXERCISE"/>
     <uses-permission android:name="android.permission.health.READ_BODY_FAT"/>
+    <!-- The health plugin populates a workout's totals by reading the
+         session's associated records; without these three the whole workout
+         query throws SecurityException and no workout can be imported. -->
+    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED"/>
+    <uses-permission android:name="android.permission.health.READ_DISTANCE"/>
+    <uses-permission android:name="android.permission.health.READ_STEPS"/>
 
     <!-- Provide required visibility configuration for API level 30 and above -->
     <queries>

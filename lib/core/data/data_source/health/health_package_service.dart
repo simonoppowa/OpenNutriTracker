@@ -12,11 +12,36 @@ import 'package:opennutritracker/core/data/data_source/health/health_service.dar
 /// feature needs, hands back plain [ExternalWorkout] records, and leaves
 /// every decision about what to do with them to the import use case.
 class HealthPackageService implements HealthService {
-  /// Read-only, and only these two: workouts to import, body fat to
-  /// personalise the calorie-credit suggestion. Nothing is ever written back.
-  static const _readTypes = [
+  /// Read-only: workouts to import, body fat to personalise the
+  /// calorie-credit suggestion. Nothing is ever written back.
+  static const _coreReadTypes = [
     HealthDataType.WORKOUT,
     HealthDataType.BODY_FAT_PERCENTAGE,
+  ];
+
+  /// On Android the plugin fills a workout's energy/distance/step totals by
+  /// reading the records associated with each session, and Health Connect
+  /// rejects the whole workout query with a SecurityException when any of
+  /// those reads is not granted. HealthKit carries the totals on the workout
+  /// itself, so requesting these on iOS would only add permission rows the
+  /// feature never uses.
+  static const _androidWorkoutDetailTypes = [
+    HealthDataType.TOTAL_CALORIES_BURNED,
+    HealthDataType.DISTANCE_DELTA,
+    HealthDataType.STEPS,
+  ];
+
+  static List<HealthDataType> get _readTypes => [
+    ..._coreReadTypes,
+    if (Platform.isAndroid) ..._androidWorkoutDetailTypes,
+  ];
+
+  /// The types a workout read touches — [requestPermissions] asks for all of
+  /// [_readTypes], but a revoked body-fat grant only costs the suggestion,
+  /// so the workout guard must not fail on it.
+  static List<HealthDataType> get _workoutReadTypes => [
+    HealthDataType.WORKOUT,
+    if (Platform.isAndroid) ..._androidWorkoutDetailTypes,
   ];
 
   /// How far back to look for the latest body fat reading. A year is long
@@ -58,6 +83,21 @@ class HealthPackageService implements HealthService {
     required DateTime from,
     required DateTime to,
   }) async {
+    // The plugin swallows a SecurityException from a partially-revoked grant
+    // and answers with an empty list, which upstream would file as "nothing
+    // new" and advance the watermark. Check first and fail loudly instead.
+    // hasPermissions answers null where the platform will not say (iOS never
+    // reports read grants); only a definite refusal aborts.
+    final hasPermissions = await _health.hasPermissions(
+      _workoutReadTypes,
+      permissions: List.filled(_workoutReadTypes.length, HealthDataAccess.READ),
+    );
+    if (hasPermissions == false) {
+      throw StateError(
+        'Missing health read permissions for a workout import; '
+        'needed: $_workoutReadTypes',
+      );
+    }
     final points = await _health.getHealthDataFromTypes(
       types: const [HealthDataType.WORKOUT],
       startTime: from,
