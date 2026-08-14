@@ -68,6 +68,18 @@ class SourcesScreen extends StatelessWidget {
         ],
       ),
       _SourceEntry(
+        title: l10n.sourcesEnergyCompensationTitle,
+        description: l10n.sourcesEnergyCompensationDescription,
+        sources: const [
+          _SourceLink(
+            citation:
+                'Careau V, et al. (2021). Energy compensation and adiposity '
+                'in humans. Current Biology, 31(20):4659–4666.e2.',
+            url: URLConst.sourceEnergyCompensationCareau2021URL,
+          ),
+        ],
+      ),
+      _SourceEntry(
         title: l10n.sourcesNonBinaryTitle,
         description: l10n.sourcesNonBinaryDescription,
         sources: const [
