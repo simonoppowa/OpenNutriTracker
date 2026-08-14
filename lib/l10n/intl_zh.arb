@@ -1128,5 +1128,6 @@
   "aiAssistDisclosureLabel": "保存密钥后，您在多项添加界面输入的文字会发送给 Anthropic 进行解析。您的日记永远不会被发送。营养数值始终来自食物数据库，而非模型。密钥仅保存在本设备上：OpenNutriTracker 从不查看，也不为其使用付费。",
   "aiAssistKeyFieldLabel": "Anthropic API 密钥",
   "aiAssistKeySavedLabel": "密钥已保存",
-  "aiAssistRemoveKeyLabel": "移除密钥"
+  "aiAssistRemoveKeyLabel": "移除密钥",
+  "bulkAddReadByModelLabel": "由 AI 解析 — 请检查每一行"
 }

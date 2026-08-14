@@ -1158,5 +1158,6 @@
   "aiAssistDisclosureLabel": "Bir anahtar kaydedildiğinde, çoklu ekleme ekranına yazdığınız metin okunmak üzere Anthropic'e gönderilir. Günlüğünüz asla gönderilmez. Besin değerleri her zaman besin veri tabanlarından gelir, modelden değil. Anahtar yalnızca bu cihazda saklanır: OpenNutriTracker onu hiçbir zaman görmez ve kullanımı için ödeme yapmaz.",
   "aiAssistKeyFieldLabel": "Anthropic API anahtarı",
   "aiAssistKeySavedLabel": "Anahtar kaydedildi",
-  "aiAssistRemoveKeyLabel": "Anahtarı kaldır"
+  "aiAssistRemoveKeyLabel": "Anahtarı kaldır",
+  "bulkAddReadByModelLabel": "Yapay zekâ okudu — her satırı kontrol edin"
 }
