@@ -1117,7 +1117,6 @@
   "healthSyncImportedCountLabel": "{count, plural, =0{Žádné nové tréninky} one{Importován 1 trénink} few{Importovány {count} tréninky} many{Importováno {count} tréninku} other{Importováno {count} tréninků}}",
   "healthSyncPermissionDeniedLabel": "Přístup k {platform} nebyl udělen. Povol aplikaci OpenNutriTracker číst tréninky a podíl tělesného tuku, aby je mohla importovat.",
   "healthSyncUnavailableLabel": "Zdravotní data nejsou na tomto zařízení dostupná. Import tréninků vyžaduje Health Connect v Androidu nebo Apple Health v iOS.",
-  "activityImportedWorkout": "Importovaný trénink",
   "sourcesEnergyCompensationTitle": "Započítání kalorií z tréninku",
   "sourcesEnergyCompensationDescription": "Importované tréninky se započítávají s nižší energií, než jakou hlásí zařízení. Lidé cvičení kompenzují tím, že po zbytek dne spálí méně kalorií – v průměru asi 28 %, při vyšším podílu tělesného tuku více. Doporučená hodnota vychází z tohoto výzkumu a lze ji změnit v Nastavení → Synchronizace zdravotních dat. Samotnou energii hlásí aplikace nebo zařízení, které trénink zaznamenalo; nepočítá se vzorcem MET v aplikaci."
 }

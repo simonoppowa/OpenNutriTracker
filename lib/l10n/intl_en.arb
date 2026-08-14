@@ -1208,7 +1208,6 @@
   "healthSyncPermissionDeniedLabel": "{platform} access was not granted. Allow OpenNutriTracker to read workouts and body fat to import them.",
   "@healthSyncPermissionDeniedLabel": {"placeholders": {"platform": {"type": "String"}}},
   "healthSyncUnavailableLabel": "Health data is not available on this device. Workout import needs Health Connect on Android or Apple Health on iOS.",
-  "activityImportedWorkout": "Imported workout",
   "sourcesEnergyCompensationTitle": "Workout calorie credit",
   "sourcesEnergyCompensationDescription": "Imported workouts are credited with less than the energy your device reports. People compensate for exercise by burning fewer calories through the rest of the day — about 28% on average, and more at a higher body fat percentage. The suggested credit comes from that research and you can override it under Settings → Health sync. The energy itself is reported by the app or device that recorded the workout, not calculated with the app’s MET formula."
 }
