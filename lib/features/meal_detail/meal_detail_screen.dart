@@ -196,10 +196,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       child: SafeArea(
         child: Scaffold(
           backgroundColor:
-              (Theme.of(context).brightness == Brightness.dark
-                      ? AppPalette.dark
-                      : AppPalette.light)
-                  .canvas,
+              (Theme.of(context).brightness == Brightness.dark ? AppPalette.dark : AppPalette.light).canvas,
           body: BlocBuilder<MealDetailBloc, MealDetailState>(
             bloc: _mealDetailBloc,
             builder: (context, state) {
@@ -220,20 +217,20 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               return const Center(child: CircularProgressIndicator());
             },
           ),
-          bottomSheet: BlocSelector<MealDetailBloc, MealDetailState, String>(
-            bloc: _mealDetailBloc,
-            selector: (state) => state.selectedUnit,
-            builder: (context, selectedUnit) {
-              return MealDetailBottomSheet(
-                product: meal,
-                day: _day,
-                intakeTypeEntity: intakeTypeEntity,
-                selectedUnit: selectedUnit,
-                mealDetailBloc: _mealDetailBloc,
-                quantityTextController: quantityTextController,
-                onQuantityOrUnitChanged: onQuantityOrUnitChanged,
-              );
-            },
+        bottomSheet: BlocSelector<MealDetailBloc, MealDetailState, String>(
+          bloc: _mealDetailBloc,
+          selector: (state) => state.selectedUnit,
+          builder: (context, selectedUnit) {
+            return MealDetailBottomSheet(
+              product: meal,
+              day: _day,
+              intakeTypeEntity: intakeTypeEntity,
+              selectedUnit: selectedUnit,
+              mealDetailBloc: _mealDetailBloc,
+              quantityTextController: quantityTextController,
+              onQuantityOrUnitChanged: onQuantityOrUnitChanged,
+            );
+          },
           ),
         ),
       ),
@@ -272,9 +269,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             duration: const Duration(milliseconds: 200),
             child: Text(
               meal.name ?? '',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w800),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -288,7 +286,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           ),
           flexibleSpace: FlexibleSpaceBar(
             background: Padding(
-              padding: EdgeInsets.only(bottom: dayKcalGoal > 0 ? 68 : 0),
+              padding: EdgeInsets.only(
+                bottom: dayKcalGoal > 0 ? 68 : 0,
+              ),
               child: MealTitleExpanded(
                 meal: meal,
                 usesImperialUnits: _usesImperialUnits,
@@ -355,7 +355,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     children: [
                       Text(
                         EnergyDisplay.formatWithUnit(context, totalKcal),
-                        style: Theme.of(context).textTheme.headlineSmall
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       MealValueUnitText(
@@ -363,8 +365,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                         meal: meal,
                         displayUnit:
                             selectedUnit == UnitDropdownItem.serving.toString()
-                            ? meal.servingUnit
-                            : selectedUnit,
+                                ? meal.servingUnit
+                                : selectedUnit,
                         usesImperialUnits: _usesImperialUnits,
                         textStyle: Theme.of(context).textTheme.bodyMedium,
                         prefix: ' / ',
@@ -467,3 +469,4 @@ class MealDetailScreenArguments {
     this.usesImperialUnits,
   );
 }
+

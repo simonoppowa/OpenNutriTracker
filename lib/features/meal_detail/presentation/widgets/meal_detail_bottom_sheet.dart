@@ -152,8 +152,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                               items: <DropdownMenuItem<String>>[
                                 // #629: a serving the app cannot scale
                                 // is a no-op dressed as a unit.
-                                if (widget.product.scalableServingQuantity !=
-                                    null)
+                                if (widget.product.scalableServingQuantity != null)
                                   _getServingDropdownItem(context),
                                 if (widget.product.isSolid ||
                                     !widget.product.isLiquid &&
@@ -184,18 +183,11 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                             children: [
                               // Quick-quantity presets — one tap to a common
                               // serving size instead of typing.
-                              for (final preset in const [
-                                50,
-                                100,
-                                150,
-                                200,
-                                250,
-                              ])
+                              for (final preset in const [50, 100, 150, 200, 250])
                                 ActionChip(
                                   label: Text('$preset'),
                                   onPressed: () {
-                                    widget.quantityTextController.text =
-                                        '$preset';
+                                    widget.quantityTextController.text = '$preset';
                                     widget.onQuantityOrUnitChanged(
                                       '$preset',
                                       widget.selectedUnit,
@@ -395,7 +387,11 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
         : '${S.of(context).servingLabel} (${widget.product.servingQuantity} ${widget.product.servingUnit})';
     return DropdownMenuItem(
       value: UnitDropdownItem.serving.toString(),
-      child: Text(servingText, overflow: TextOverflow.ellipsis, maxLines: 1),
+      child: Text(
+        servingText,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      ),
     );
   }
 

@@ -42,11 +42,11 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     this._productsRepository,
     this._remoteSearchCacheDataSource,
   ) : super(
-        MealDetailInitial(
-          totalQuantityConverted: '100',
-          selectedUnit: UnitDropdownItem.gml.toString(),
-        ),
-      ) {
+          MealDetailInitial(
+            totalQuantityConverted: '100',
+            selectedUnit: UnitDropdownItem.gml.toString(),
+          ),
+        ) {
     on<UpdateKcalEvent>((event, emit) async {
       try {
         final selectedTotalQuantity =
@@ -72,8 +72,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
           // `scalableServingQuantity`, not `servingQuantity`: OFF often
           // leaves the numeric field empty while `serving_size` carries the
           // figure as text. Reading only the numeric one left this branch
-          // silently doing nothing, so "1 serving" was logged as one gram
-          // (#629).
+          // silently doing nothing, so "1 serving" logged one gram (#629).
           final serving = event.meal.scalableServingQuantity;
           if (serving != null) {
             convertedQuantity = quantity * serving;
@@ -112,7 +111,12 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
           );
         } else {
           final goal = await _getKcalGoalUsecase.getKcalGoal();
-          emit(state.copyWith(dayKcalConsumed: 0, dayKcalGoal: goal));
+          emit(
+            state.copyWith(
+              dayKcalConsumed: 0,
+              dayKcalGoal: goal,
+            ),
+          );
         }
       } catch (e) {
         log.severe('Error loading daily totals: $e');
@@ -197,7 +201,8 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     }
     try {
       final fresh = await _productsRepository.getOFFProductByBarcode(code);
-      await _remoteSearchCacheDataSource.cache(MealDBO.fromMealEntity(fresh));
+      await _remoteSearchCacheDataSource
+          .cache(MealDBO.fromMealEntity(fresh));
     } catch (e, st) {
       log.warning(
         'Background OFF refresh failed for $code; touching cache instead',
