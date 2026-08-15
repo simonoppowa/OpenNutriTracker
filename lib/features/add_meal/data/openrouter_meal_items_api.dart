@@ -74,7 +74,27 @@ class OpenRouterMealItemsApi implements MealItemsApi {
             'name': mealItemsToolName,
             'description': mealItemsToolDescription,
             'parameters': mealItemsToolSchema,
-            'strict': true,
+            // **No `strict: true`.** It looks like free rigour and is not.
+            //
+            // OpenAI's strict mode requires every key in `properties` to
+            // also appear in `required`, and refuses the whole request
+            // otherwise: "'required' is required to be supplied and to be an
+            // array including every key in properties. Missing 'quantity'."
+            // Measured — every call to every `openai/*` model failed with a
+            // 400, text included.
+            //
+            // The optionality it objects to is the point. `quantity` and
+            // `unit` are omitted when the user stated no amount, and making
+            // them required would oblige the model to produce a number for
+            // every item, which is the estimation this whole design exists
+            // to prevent. So the schema cannot bend, and `strict` has to go.
+            //
+            // Nothing is lost. The guarantee was never `strict`: it is that
+            // the schema has no macro fields at all, and that everything
+            // returned goes through `validateParsedMealItems`. OpenRouter
+            // documents no uniform enforcement of `strict` across providers
+            // anyway, so it was buying a promise it could not keep while
+            // costing an entire vendor.
           },
         },
       ],

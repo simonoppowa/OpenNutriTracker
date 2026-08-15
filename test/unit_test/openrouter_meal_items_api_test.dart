@@ -254,6 +254,21 @@ void main() {
       expect(itemProps['additionalProperties'], isFalse);
     });
 
+    test('does not ask for strict mode, which the schema cannot satisfy', () async {
+      // OpenAI's strict mode requires every property to appear in
+      // `required`, and rejects the whole request otherwise — measured, a
+      // 400 on every openai/* call including text-only ones. `quantity` and
+      // `unit` are optional on purpose, because a required amount is an
+      // invented amount, so the schema cannot bend and this flag must not
+      // be sent. The guarantee lives in the absent macro fields and in
+      // validateParsedMealItems, never here.
+      final client = FakeClient(body: toolReply(const []));
+      await request(apiWith(client));
+
+      final tool = (client.sentBody!['tools'] as List).single as Map;
+      expect((tool['function'] as Map).containsKey('strict'), isFalse);
+    });
+
     test('sends the shared schema, not a copy of it', () async {
       final client = FakeClient(body: toolReply(const []));
       await request(apiWith(client));
