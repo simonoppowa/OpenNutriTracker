@@ -1138,6 +1138,8 @@
   "aiAssistKeySavedLabel": "密钥已保存",
   "aiAssistRemoveKeyLabel": "移除密钥",
   "bulkAddReadByModelLabel": "由 AI 解析 — 请检查每一行",
+  "bulkAddModelKeyRejectedLabel": "未使用 AI：您的 API 密钥被拒绝。这些条目来自离线解析器——请在设置中检查密钥。",
+  "bulkAddModelUnsupportedLabel": "未使用 AI：无法使用所选模型。这些条目来自离线解析器——请在设置中选择其他模型。",
   "bulkAddPhotoLabel": "解析照片",
   "bulkAddPhotoDisclosureLabel": "照片会发送给 Anthropic 以识别其中的食物。OpenNutriTracker 不会保留自己的副本，照片也不会进入你的导出文件。",
   "bulkAddReadFromPhotoLabel": "由照片解析 — 请检查每种食物和分量",

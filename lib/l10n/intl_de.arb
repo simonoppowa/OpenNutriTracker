@@ -1168,6 +1168,8 @@
   "aiAssistKeySavedLabel": "Schlüssel gespeichert",
   "aiAssistRemoveKeyLabel": "Schlüssel entfernen",
   "bulkAddReadByModelLabel": "Von KI gelesen — prüfe jede Zeile",
+  "bulkAddModelKeyRejectedLabel": "KI nicht verwendet: Dein API-Schlüssel wurde abgelehnt. Diese Zeilen stammen vom Offline-Parser — prüfe den Schlüssel in den Einstellungen.",
+  "bulkAddModelUnsupportedLabel": "KI nicht verwendet: Das gewählte Modell konnte nicht genutzt werden. Diese Zeilen stammen vom Offline-Parser — wähle in den Einstellungen ein anderes Modell.",
   "bulkAddPhotoLabel": "Foto auslesen",
   "bulkAddPhotoDisclosureLabel": "Das Foto wird an Anthropic gesendet, um die darauf abgebildeten Lebensmittel zu erkennen. OpenNutriTracker behält keine eigene Kopie davon, und es landet nie in deinen Exporten.",
   "bulkAddReadFromPhotoLabel": "Aus einem Foto gelesen — prüfe jedes Lebensmittel und jede Menge",

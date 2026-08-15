@@ -1168,6 +1168,8 @@
   "aiAssistKeySavedLabel": "Anahtar kaydedildi",
   "aiAssistRemoveKeyLabel": "Anahtarı kaldır",
   "bulkAddReadByModelLabel": "Yapay zekâ okudu — her satırı kontrol edin",
+  "bulkAddModelKeyRejectedLabel": "Yapay zekâ çalışmadı: API anahtarınız reddedildi. Bu satırlar çevrimdışı ayrıştırıcıdan geliyor — anahtarı Ayarlar'da kontrol edin.",
+  "bulkAddModelUnsupportedLabel": "Yapay zekâ çalışmadı: seçilen model kullanılamadı. Bu satırlar çevrimdışı ayrıştırıcıdan geliyor — Ayarlar'dan başka bir model seçin.",
   "bulkAddPhotoLabel": "Fotoğraf oku",
   "bulkAddPhotoDisclosureLabel": "Fotoğraf, içindeki yiyecekleri tanımak için Anthropic'e gönderilir. OpenNutriTracker kendi kopyasını saklamaz ve fotoğraf hiçbir zaman dışa aktarmalarınıza girmez.",
   "bulkAddReadFromPhotoLabel": "Fotoğraftan okundu — her yiyeceği ve miktarı kontrol edin",

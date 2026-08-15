@@ -1137,6 +1137,8 @@
   "aiAssistKeySavedLabel": "Klucz zapisany",
   "aiAssistRemoveKeyLabel": "Usuń klucz",
   "bulkAddReadByModelLabel": "Odczytane przez AI — sprawdź każdy wiersz",
+  "bulkAddModelKeyRejectedLabel": "SI nie zadziałała: Twój klucz API został odrzucony. Te pozycje pochodzą z parsera offline — sprawdź klucz w ustawieniach.",
+  "bulkAddModelUnsupportedLabel": "SI nie zadziałała: nie można użyć wybranego modelu. Te pozycje pochodzą z parsera offline — wybierz inny model w ustawieniach.",
   "bulkAddPhotoLabel": "Odczytaj zdjęcie",
   "bulkAddPhotoDisclosureLabel": "Zdjęcie jest wysyłane do Anthropic w celu rozpoznania produktów, które się na nim znajdują. OpenNutriTracker nie zachowuje własnej kopii, a zdjęcie nigdy nie trafia do Twoich eksportów.",
   "bulkAddReadFromPhotoLabel": "Odczytane ze zdjęcia — sprawdź każdy produkt i ilość",

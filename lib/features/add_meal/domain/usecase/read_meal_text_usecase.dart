@@ -3,6 +3,25 @@ import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_text_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
+/// A model failure the user can act on, and which will not fix itself.
+///
+/// **Transient failures are deliberately absent.** A dropped connection or a
+/// rate limit resolves on its own, and a notice that fires for those becomes
+/// noise people learn to ignore — which would cost it the value it has for
+/// the two that never resolve on their own. Silence is the right answer to a
+/// blip and the wrong answer to a wrong key.
+enum MealTextModelFailure {
+  /// The provider rejected the credential. Permanent until the key changes.
+  ///
+  /// Found on a Pixel 6: a mistyped key produced a plausible screen of
+  /// parser rows and no indication whatsoever, discoverable only in
+  /// `adb logcat`. Every request still made the round trip.
+  auth,
+
+  /// Nothing can serve the configured model. Permanent until it changes.
+  unsupported,
+}
+
 /// What a line of meal text turned into, and which reader produced it.
 class MealTextReading {
   final MealTextParseResult result;
@@ -12,7 +31,19 @@ class MealTextReading {
   /// step is only meaningful if you know what you are confirming.
   final bool usedModel;
 
-  const MealTextReading(this.result, {required this.usedModel});
+  /// Set when the model was asked and could not answer for a reason worth
+  /// reporting. Null covers both "it answered" and "it failed in a way that
+  /// may well work next time".
+  ///
+  /// The rows are the parser's either way: this reports *why the better
+  /// reader was not used*, and never withholds a result.
+  final MealTextModelFailure? modelFailure;
+
+  const MealTextReading(
+    this.result, {
+    required this.usedModel,
+    this.modelFailure,
+  });
 }
 
 /// Decides whether a line is read by the model or the deterministic parser,
@@ -64,7 +95,18 @@ class ReadMealTextUseCase {
       // Logged without the input: the line the user typed is the one thing
       // in this flow that should not reach a log.
       _log.info('Interpreter unavailable, using the parser: ${e.reason}');
-      return MealTextReading(parsed, usedModel: false);
+      // The rows are the parser's regardless. What changes is whether the
+      // user is told why the model did not produce them — and that is worth
+      // saying exactly when saying it again tomorrow would not help.
+      return MealTextReading(
+        parsed,
+        usedModel: false,
+        modelFailure: switch (e) {
+          _ when e.isAuthFailure => MealTextModelFailure.auth,
+          _ when e.isCapabilityRefusal => MealTextModelFailure.unsupported,
+          _ => null,
+        },
+      );
     } catch (e, stackTrace) {
       // An interpreter that throws something unexpected is a bug, but it
       // must not cost the user their meal entry.

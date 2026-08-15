@@ -1137,6 +1137,8 @@
   "aiAssistKeySavedLabel": "Chiave salvata",
   "aiAssistRemoveKeyLabel": "Rimuovi chiave",
   "bulkAddReadByModelLabel": "Letto dall'AI — controlla ogni riga",
+  "bulkAddModelKeyRejectedLabel": "IA non usata: la tua chiave API è stata rifiutata. Queste righe vengono dal parser offline — controlla la chiave nelle impostazioni.",
+  "bulkAddModelUnsupportedLabel": "IA non usata: il modello scelto non è utilizzabile. Queste righe vengono dal parser offline — scegli un altro modello nelle impostazioni.",
   "bulkAddPhotoLabel": "Leggi una foto",
   "bulkAddPhotoDisclosureLabel": "La foto viene inviata ad Anthropic per identificare gli alimenti che contiene. OpenNutriTracker non ne conserva una propria copia e non finisce mai nelle tue esportazioni.",
   "bulkAddReadFromPhotoLabel": "Letto da una foto — controlla ogni alimento e quantità",

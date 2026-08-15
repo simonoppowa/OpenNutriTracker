@@ -1248,6 +1248,8 @@
   "aiAssistKeySavedLabel": "Key saved",
   "aiAssistRemoveKeyLabel": "Remove key",
   "bulkAddReadByModelLabel": "Read by AI — check each row",
+  "bulkAddModelKeyRejectedLabel": "AI didn't run: your API key was rejected. These rows came from the offline parser — check the key in Settings.",
+  "bulkAddModelUnsupportedLabel": "AI didn't run: the selected model couldn't be used. These rows came from the offline parser — choose another model in Settings.",
   "bulkAddPhotoLabel": "Read a photo",
   "bulkAddPhotoDisclosureLabel": "The photo is sent to Anthropic to identify the foods in it. OpenNutriTracker keeps no copy of its own, and it is never included in your exports.",
   "bulkAddReadFromPhotoLabel": "Read from a photo — check every food and amount",

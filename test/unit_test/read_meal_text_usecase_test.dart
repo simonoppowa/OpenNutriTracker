@@ -155,16 +155,59 @@ void main() {
 
     test('falls back when the key is rejected', () async {
       final interpreter = _FakeInterpreter(
-        throws: const MealInterpreterException(
-          'unauthorized',
-          statusCode: 401,
-        ),
+        throws: const MealInterpreterException('unauthorized', statusCode: 401),
       );
 
       final reading = await useCaseWith(interpreter).read('100g toast');
 
       expect(reading.usedModel, isFalse);
       expect(reading.result.items, hasLength(1));
+      // ...and says why. On a Pixel 6 a mistyped key produced a plausible
+      // screen of parser rows with no indication at all, discoverable only
+      // in `adb logcat`, while every request still made the round trip.
+      expect(reading.modelFailure, MealTextModelFailure.auth);
+    });
+
+    test('reports a model nothing can serve', () async {
+      final interpreter = _FakeInterpreter(
+        throws: const MealInterpreterException('no endpoints', statusCode: 404),
+      );
+
+      final reading = await useCaseWith(interpreter).read('100g toast');
+
+      expect(reading.result.items, hasLength(1));
+      expect(reading.modelFailure, MealTextModelFailure.unsupported);
+    });
+
+    test('stays quiet about failures that may fix themselves', () async {
+      // The notice is only worth anything if it is rare. A dropped
+      // connection resolves on its own, and a banner that fires for those is
+      // one people learn to scroll past — which would cost it the value it
+      // has for a wrong key.
+      for (final e in const [
+        MealInterpreterException('timeout'),
+        MealInterpreterException('rate limited', statusCode: 429),
+        MealInterpreterException('server error', statusCode: 503),
+        MealInterpreterException('bad request', statusCode: 400),
+      ]) {
+        final reading = await useCaseWith(
+          _FakeInterpreter(throws: e),
+        ).read('100g toast');
+
+        expect(reading.result.items, hasLength(1), reason: '$e');
+        expect(reading.modelFailure, isNull, reason: '$e');
+      }
+    });
+
+    test('says nothing when the model answered', () async {
+      final reading = await useCaseWith(
+        _FakeInterpreter(
+          result: const MealTextParseResult(items: [], errors: []),
+        ),
+      ).read('100g toast');
+
+      expect(reading.usedModel, isTrue);
+      expect(reading.modelFailure, isNull);
     });
 
     test(

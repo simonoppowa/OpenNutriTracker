@@ -1137,6 +1137,8 @@
   "aiAssistKeySavedLabel": "Klíč uložen",
   "aiAssistRemoveKeyLabel": "Odebrat klíč",
   "bulkAddReadByModelLabel": "Přečteno AI — zkontrolujte každý řádek",
+  "bulkAddModelKeyRejectedLabel": "AI se nepoužila: Váš API klíč byl odmítnut. Tyto řádky pocházejí z offline parseru — zkontrolujte klíč v nastavení.",
+  "bulkAddModelUnsupportedLabel": "AI se nepoužila: Vybraný model nebylo možné použít. Tyto řádky pocházejí z offline parseru — vyberte v nastavení jiný model.",
   "bulkAddPhotoLabel": "Načíst fotku",
   "bulkAddPhotoDisclosureLabel": "Fotka se odešle společnosti Anthropic, aby rozpoznala potraviny na ní. OpenNutriTracker si nenechává vlastní kopii a fotka se nikdy nedostane do vašich exportů.",
   "bulkAddReadFromPhotoLabel": "Přečteno z fotky — zkontrolujte každou potravinu i množství",

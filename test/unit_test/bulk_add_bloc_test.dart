@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_text_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_photo_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -71,6 +72,40 @@ ReadMealTextUseCase parserOnlyReader() => ReadMealTextUseCase(
 ReadMealPhotoUseCase photoReaderWithoutKey() => ReadMealPhotoUseCase(
   AiCredentialStorage(_EmptyStorage()),
   (_) => throw StateError('must not be built without a key'),
+);
+
+/// A key *is* stored here, so the use case really builds an interpreter and
+/// really takes the model path — which is the only way to exercise what
+/// happens when that path fails.
+ReadMealTextUseCase readerFailingWith(MealInterpreterException failure) {
+  return ReadMealTextUseCase(
+    AiCredentialStorage(
+      _MapStorage({
+        'AiApiKeyTag.anthropic': 'sk-test',
+        'AiAssistEnabledTag': 'true',
+      }),
+    ),
+    (_) => _AlwaysFailsInterpreter(failure),
+  );
+}
+
+class _AlwaysFailsInterpreter implements MealTextInterpreter {
+  final MealInterpreterException failure;
+
+  _AlwaysFailsInterpreter(this.failure);
+
+  @override
+  Future<MealTextParseResult> interpret(String input, {String? localeCode}) =>
+      throw failure;
+}
+
+BulkAddBloc blocWithFailingReader(
+  Map<String, List<MealEntity>> results,
+  MealInterpreterException failure,
+) => BulkAddBloc(
+  ResolveParsedMealsUseCase(_FakeSearch(results)),
+  readerFailingWith(failure),
+  photoReaderWithoutKey(),
 );
 
 BulkAddBloc blocWith(
@@ -542,13 +577,8 @@ void main() {
       Map<String, List<MealEntity>> results,
       MealPhotoReadResult reading,
     ) async {
-      final bloc = blocWith(
-        results,
-        photoReader: _StubPhotoReader(reading),
-      );
-      bloc.add(
-        ReadMealPhotoEvent(photo: _photo, usesImperialUnits: false),
-      );
+      final bloc = blocWith(results, photoReader: _StubPhotoReader(reading));
+      bloc.add(ReadMealPhotoEvent(photo: _photo, usesImperialUnits: false));
       return bloc.stream.firstWhere((s) => s is! BulkAddLoadingState);
     }
 
@@ -596,27 +626,78 @@ void main() {
       );
     });
 
-    test('a photo with no food lands on the empty state, not an error',
-        () async {
-      final state = await readPhoto(
-        {},
-        const MealPhotoRead(MealTextParseResult(items: [], errors: [])),
-      );
+    test('a rejected key reaches the state, not just the log', () async {
+      // Before this, a wrong key produced a screen indistinguishable from a
+      // working one. The rows are still the parser's — what changes is that
+      // the user is told the better reader never ran.
+      final bloc = blocWithFailingReader({
+        'toast': [meal('Toast')],
+      }, const MealInterpreterException('unauthorized', statusCode: 401));
+      addTearDown(bloc.close);
 
-      expect(state, isA<BulkAddLoadedState>());
-      expect((state as BulkAddLoadedState).rows, isEmpty);
-    });
+      final state = await parse(bloc, '100g toast');
 
-    test('the feature being off is its own error, not a generic failure',
-        () async {
-      final state = await readPhoto({}, const MealPhotoUnavailable());
-
-      expect(state, isA<BulkAddPhotoErrorState>());
+      expect(state.modelFailure, MealTextModelFailure.auth);
+      expect(state.source, BulkAddReadSource.parser);
       expect(
-        (state as BulkAddPhotoErrorState).error,
-        BulkAddPhotoError.unavailable,
+        state.rows,
+        isNotEmpty,
+        reason: 'reporting the failure must not cost the user their rows',
       );
     });
+
+    test('a model nothing can serve reaches the state', () async {
+      final bloc = blocWithFailingReader({
+        'toast': [meal('Toast')],
+      }, const MealInterpreterException('no endpoints', statusCode: 404));
+      addTearDown(bloc.close);
+
+      final state = await parse(bloc, '100g toast');
+
+      expect(state.modelFailure, MealTextModelFailure.unsupported);
+      expect(state.rows, isNotEmpty);
+    });
+
+    test('a transient failure stays out of the state', () async {
+      // Deliberate. A banner that fires on a dropped connection is one
+      // people learn to scroll past, and it would cost the notice the value
+      // it has for the failures that never fix themselves.
+      final bloc = blocWithFailingReader({
+        'toast': [meal('Toast')],
+      }, const MealInterpreterException('rate limited', statusCode: 429));
+      addTearDown(bloc.close);
+
+      final state = await parse(bloc, '100g toast');
+
+      expect(state.modelFailure, isNull);
+      expect(state.rows, isNotEmpty);
+    });
+
+    test(
+      'a photo with no food lands on the empty state, not an error',
+      () async {
+        final state = await readPhoto(
+          {},
+          const MealPhotoRead(MealTextParseResult(items: [], errors: [])),
+        );
+
+        expect(state, isA<BulkAddLoadedState>());
+        expect((state as BulkAddLoadedState).rows, isEmpty);
+      },
+    );
+
+    test(
+      'the feature being off is its own error, not a generic failure',
+      () async {
+        final state = await readPhoto({}, const MealPhotoUnavailable());
+
+        expect(state, isA<BulkAddPhotoErrorState>());
+        expect(
+          (state as BulkAddPhotoErrorState).error,
+          BulkAddPhotoError.unavailable,
+        );
+      },
+    );
 
     test('a rejected key says so rather than "try again"', () async {
       final state = await readPhoto(
@@ -624,10 +705,7 @@ void main() {
         const MealPhotoFailed(MealPhotoFailure.auth),
       );
 
-      expect(
-        (state as BulkAddPhotoErrorState).error,
-        BulkAddPhotoError.auth,
-      );
+      expect((state as BulkAddPhotoErrorState).error, BulkAddPhotoError.auth);
     });
 
     test('a transient failure is offered as retryable', () async {
@@ -642,12 +720,9 @@ void main() {
       );
     });
 
-    test('a photo that never encoded reaches the same error surface',
-        () async {
+    test('a photo that never encoded reaches the same error surface', () async {
       final bloc = blocWith({});
-      bloc.add(
-        const ReadMealPhotoFailedEvent(BulkAddPhotoError.unreadable),
-      );
+      bloc.add(const ReadMealPhotoFailedEvent(BulkAddPhotoError.unreadable));
 
       final state = await bloc.stream.first;
 
@@ -682,6 +757,28 @@ class _StubPhotoReader implements ReadMealPhotoUseCase {
 
 /// A keystore with nothing in it, so the read use case always takes the
 /// deterministic path.
+/// Holds what it is given, so a test can put the use case on the model path
+/// instead of the parser one.
+class _MapStorage implements FlutterSecureStorage {
+  final Map<String, String> values;
+
+  _MapStorage(this.values);
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => values[key];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _EmptyStorage implements FlutterSecureStorage {
   @override
   Future<String?> read({

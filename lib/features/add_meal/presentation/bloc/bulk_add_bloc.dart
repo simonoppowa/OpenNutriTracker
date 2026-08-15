@@ -215,6 +215,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
       source: reading.usedModel
           ? BulkAddReadSource.model
           : BulkAddReadSource.parser,
+      modelFailure: reading.modelFailure,
     );
   }
 
@@ -271,6 +272,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     Emitter<BulkAddState> emit, {
     required bool usesImperialUnits,
     required BulkAddReadSource source,
+    MealTextModelFailure? modelFailure,
   }) async {
     if (parsed.items.isEmpty) {
       // Nothing usable. The parser's own errors still go through so the
@@ -281,6 +283,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
           parseErrors: parsed.errors,
           usesImperialUnits: usesImperialUnits,
           source: source,
+          modelFailure: modelFailure,
         ),
       );
       return;
@@ -312,6 +315,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
           parseErrors: parsed.errors,
           usesImperialUnits: usesImperialUnits,
           source: source,
+          modelFailure: modelFailure,
         ),
       );
     } catch (e, stackTrace) {

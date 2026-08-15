@@ -92,11 +92,17 @@ class BulkAddLoadedState extends BulkAddState {
   /// being asked to confirm.
   final BulkAddReadSource source;
 
+  /// Set when the model was asked, could not answer, and the reason will
+  /// still be true tomorrow. The rows below are the parser's — this says why
+  /// the better reader was not used, rather than withholding anything.
+  final MealTextModelFailure? modelFailure;
+
   const BulkAddLoadedState({
     required this.rows,
     required this.parseErrors,
     required this.usesImperialUnits,
     this.source = BulkAddReadSource.parser,
+    this.modelFailure,
   });
 
   Iterable<BulkAddRow> get loggableRows =>
@@ -111,8 +117,15 @@ class BulkAddLoadedState extends BulkAddState {
     parseErrors: parseErrors,
     usesImperialUnits: usesImperialUnits,
     source: source,
+    modelFailure: modelFailure,
   );
 
   @override
-  List<Object?> get props => [rows, parseErrors, usesImperialUnits, source];
+  List<Object?> get props => [
+    rows,
+    parseErrors,
+    usesImperialUnits,
+    source,
+    modelFailure,
+  ];
 }
