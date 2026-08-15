@@ -51,6 +51,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     _homeBloc = locator<HomeBloc>();
+    // Workouts that landed in the health store while the app was closed. Run
+    // from here rather than from bootstrap so a launch import reaches the
+    // same diary refresh a resume import does.
+    unawaited(_importHealthWorkouts());
     super.initState();
   }
 
@@ -530,12 +534,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   /// Picks up workouts that landed in the platform health store while the app
-  /// was away. Debounced and opt-in inside the use case, so this costs
-  /// nothing on an ordinary resume; the diary only reloads when something
-  /// actually came in.
+  /// was away — at launch and on every resume. Debounced, serialized and
+  /// opt-in inside the use case, so this costs nothing on an ordinary resume;
+  /// the diary only reloads when something actually came in. Failures are
+  /// swallowed by [ImportWorkoutsUsecase.importIfDue]: there is no user
+  /// waiting on this and nowhere to show an error.
   Future<void> _importHealthWorkouts() async {
     final imported = await locator<ImportWorkoutsUsecase>().importIfDue();
-    if (imported == 0) return;
+    if (imported == 0 || !mounted) return;
     _homeBloc.add(const LoadItemsEvent());
     locator<DiaryBloc>().add(const LoadDiaryYearEvent());
     locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
