@@ -230,6 +230,9 @@ Header lookup is case-insensitive.
 | `mets`              | number | yes      | MET value.                                                             |
 | `tags`              | string | no       | Pipe-separated (`outdoor|cardio`) so the cell stays single-field.      |
 | `type`              | enum   | yes      | `bicycling` / `conditioningExercise` / `dancing` / `running` / `sport` / `waterActivities` / `winterActivities`. |
+| `user_kcal`            | number | no       | Set when the kcal figure is the user's own or a device's rather than the MET formula's. |
+| `external_id`          | string | no       | Health Connect / Apple Health record id for an imported workout; empty for a manually logged one. |
+| `source_reported_kcal` | number | no       | What the device reported for an imported workout, before the calorie-credit multiplier. |
 
 ### `user_tracked_day.csv`
 
