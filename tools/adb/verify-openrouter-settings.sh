@@ -17,6 +17,19 @@
 # Reads exact bounds from the accessibility tree for every tap. Never taps a
 # remembered coordinate: the layout shifts between screens and once, doing
 # that, this driver opened somebody's mail app.
+#
+# KNOWN LIMITATION — this script cannot navigate to the dialog on its own.
+# Two things defeat it, both in the You tab rather than in this feature:
+#
+#   * `uiautomator dump` truncates the tree. Scrolling the settings list
+#     never reports past `settings-day-boundary`, so `settings-ai-assist` is
+#     unfindable by resource-id even while it is on screen and tappable.
+#   * The nested scroll has no usable middle gear. A swipe fast enough to
+#     register flings past the whole band; a slower drag does not move the
+#     list at all; DPAD focus traversal is inert.
+#
+# So the dialog has to be opened by hand, and this script run against it.
+# Everything below assumes it is already on screen.
 
 set -uo pipefail
 cd "$(dirname "$0")/../.."

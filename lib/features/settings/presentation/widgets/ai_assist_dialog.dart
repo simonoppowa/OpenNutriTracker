@@ -45,6 +45,7 @@ class AiAssistDialog extends StatefulWidget {
 
 class _AiAssistDialogState extends State<AiAssistDialog> {
   final _controller = TextEditingController();
+  final _scrollController = ScrollController();
 
   bool _loading = true;
   bool _changed = false;
@@ -63,6 +64,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -151,123 +153,138 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
               height: 64,
               child: Center(child: CircularProgressIndicator()),
             )
-          : SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _label(theme, s.aiAssistProviderLabel),
-                  // Per-tile groupValue/onChanged rather than a RadioGroup
-                  // ancestor, matching CaloriesProfileInfoDialog: inside a
-                  // dialog the ancestor form does not reliably propagate
-                  // taps to RadioListTile children, and the bug it produced
-                  // there was a selection that silently stayed on its
-                  // initial value. Deprecated, and still the form that works
-                  // here.
-                  ...AiProvider.values.map(
-                    (provider) => Semantics(
-                      identifier: 'ai-assist-provider-${provider.name}',
-                      // ignore: deprecated_member_use
-                      child: RadioListTile<AiProvider>(
-                        contentPadding: EdgeInsets.zero,
-                        dense: true,
-                        title: Text(_providerName(provider)),
-                        value: provider,
+          // The content is taller than a phone dialog and cannot be made to
+          // fit: the OpenRouter disclosure alone runs past the fold, and
+          // every sentence in it is load-bearing. So rather than pretend,
+          // show the scrollbar permanently. Without it the last paragraph
+          // is clipped mid-word against the bottom edge and reads as the
+          // end of the text.
+          : Scrollbar(
+              controller: _scrollController,
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                // The thumb is drawn over the content, so the text needs a
+                // gutter or it is clipped by the very affordance added to
+                // stop it being clipped.
+                padding: const EdgeInsets.only(right: 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _label(theme, s.aiAssistProviderLabel),
+                    // Per-tile groupValue/onChanged rather than a RadioGroup
+                    // ancestor, matching CaloriesProfileInfoDialog: inside a
+                    // dialog the ancestor form does not reliably propagate
+                    // taps to RadioListTile children, and the bug it produced
+                    // there was a selection that silently stayed on its
+                    // initial value. Deprecated, and still the form that works
+                    // here.
+                    ...AiProvider.values.map(
+                      (provider) => Semantics(
+                        identifier: 'ai-assist-provider-${provider.name}',
                         // ignore: deprecated_member_use
-                        groupValue: _provider,
-                        // ignore: deprecated_member_use
-                        onChanged: (value) =>
-                            value == null ? null : _selectProvider(value),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildModelSection(context, s, theme),
-                  const SizedBox(height: 12),
-                  // The credential block sits above the disclosure, which
-                  // reverses what this dialog originally did. On a Pixel 6
-                  // the other way round put the key field *entirely below
-                  // the fold* on the OpenRouter path: the disclosure there
-                  // is three sentences longer, and the dialog ended with a
-                  // paragraph cut off mid-word and no scroll affordance. A
-                  // first-time user saw a wall of text and an OK button and
-                  // no way to enter anything.
-                  //
-                  // The original reasoning — that the disclosure must not be
-                  // behind a link, because saving a key adds a destination —
-                  // survives this. It is still in the dialog, unavoidable,
-                  // and still above the OK button, which is the act that
-                  // actually enables the feature. What it is no longer above
-                  // is a text field the user could not see.
-                  if (_hasKey) ...[
-                    Row(
-                      children: [
-                        const Icon(Icons.key_rounded, size: 18),
-                        const SizedBox(width: 8),
-                        // Flex-constrained per AGENTS.md: "Ключ збережено"
-                        // and a large system font both run much wider than
-                        // the English label.
-                        Expanded(
-                          child: Text(
-                            '${s.aiAssistKeySavedLabel}  '
-                            '${AiCredentialStorage.maskedPlaceholder}',
-                            style: theme.textTheme.bodyMedium,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        child: RadioListTile<AiProvider>(
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                          title: Text(_providerName(provider)),
+                          value: provider,
+                          // ignore: deprecated_member_use
+                          groupValue: _provider,
+                          // ignore: deprecated_member_use
+                          onChanged: (value) =>
+                              value == null ? null : _selectProvider(value),
                         ),
-                      ],
-                    ),
-                    Semantics(
-                      identifier: 'ai-assist-enabled',
-                      child: SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(s.settingsAiAssistEnabledLabel),
-                        value: _enabled,
-                        onChanged: _setEnabled,
-                      ),
-                    ),
-                    Semantics(
-                      identifier: 'ai-assist-remove-key',
-                      child: TextButton.icon(
-                        onPressed: _remove,
-                        icon: const Icon(Icons.delete_outline_rounded),
-                        label: Text(s.aiAssistRemoveKeyLabel),
-                      ),
-                    ),
-                  ] else ...[
-                    Text(
-                      s.aiAssistNoKeyForProviderLabel,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Semantics(
-                      identifier: 'ai-assist-key-field',
-                      child: TextField(
-                        controller: _controller,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: s.aiAssistKeyFieldLabel(
-                            _providerName(_provider),
+                    _buildModelSection(context, s, theme),
+                    const SizedBox(height: 12),
+                    // The credential block sits above the disclosure, which
+                    // reverses what this dialog originally did. On a Pixel 6
+                    // the other way round put the key field *entirely below
+                    // the fold* on the OpenRouter path: the disclosure there
+                    // is three sentences longer, and the dialog ended with a
+                    // paragraph cut off mid-word and no scroll affordance. A
+                    // first-time user saw a wall of text and an OK button and
+                    // no way to enter anything.
+                    //
+                    // The original reasoning — that the disclosure must not be
+                    // behind a link, because saving a key adds a destination —
+                    // survives this. It is still in the dialog, unavoidable,
+                    // and still above the OK button, which is the act that
+                    // actually enables the feature. What it is no longer above
+                    // is a text field the user could not see.
+                    if (_hasKey) ...[
+                      Row(
+                        children: [
+                          const Icon(Icons.key_rounded, size: 18),
+                          const SizedBox(width: 8),
+                          // Flex-constrained per AGENTS.md: "Ключ збережено"
+                          // and a large system font both run much wider than
+                          // the English label.
+                          Expanded(
+                            child: Text(
+                              '${s.aiAssistKeySavedLabel}  '
+                              '${AiCredentialStorage.maskedPlaceholder}',
+                              style: theme.textTheme.bodyMedium,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          border: const OutlineInputBorder(),
+                        ],
+                      ),
+                      Semantics(
+                        identifier: 'ai-assist-enabled',
+                        child: SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(s.settingsAiAssistEnabledLabel),
+                          value: _enabled,
+                          onChanged: _setEnabled,
                         ),
                       ),
+                      Semantics(
+                        identifier: 'ai-assist-remove-key',
+                        child: TextButton.icon(
+                          onPressed: _remove,
+                          icon: const Icon(Icons.delete_outline_rounded),
+                          label: Text(s.aiAssistRemoveKeyLabel),
+                        ),
+                      ),
+                    ] else ...[
+                      Text(
+                        s.aiAssistNoKeyForProviderLabel,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Semantics(
+                        identifier: 'ai-assist-key-field',
+                        child: TextField(
+                          controller: _controller,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            labelText: s.aiAssistKeyFieldLabel(
+                              _providerName(_provider),
+                            ),
+                            border: const OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    // Provider paragraph first — it names the destination,
+                    // which is the fact that changes — then the sentences that
+                    // are true whichever provider is chosen.
+                    Text(
+                      '${_disclosureFor(s)}\n\n${s.aiAssistDisclosureCommon}',
+                      style: theme.textTheme.bodySmall,
                     ),
                   ],
-                  const SizedBox(height: 16),
-                  // Provider paragraph first — it names the destination,
-                  // which is the fact that changes — then the sentences that
-                  // are true whichever provider is chosen.
-                  Text(
-                    '${_disclosureFor(s)}\n\n${s.aiAssistDisclosureCommon}',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ],
+                ),
               ),
             ),
       actions: [
@@ -303,17 +320,33 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   ///
   /// The direct path offers one model and says so rather than rendering a
   /// list of one, which would imply a choice that does not exist. Either way
-  /// the serving vendor is named here — once, beside the model — rather than
-  /// on every batch, because a curated entry is pinned and so the vendor is
+  /// the serving vendor is named here — beside the model — rather than on
+  /// every batch, because a curated entry is pinned and so the vendor is
   /// guaranteed rather than likely.
+  ///
+  /// When every model on the list is served by the same vendor — which is
+  /// the case today and, while #656 holds, the only case there can be — that
+  /// is said once for the group instead of repeated on each row. Repeating
+  /// it cost two wrapped lines in German and pushed the disclosure further
+  /// past the fold, for a fact that did not change between the rows.
   Widget _buildModelSection(BuildContext context, S s, ThemeData theme) {
     final models = AiModelCatalogue.forProvider(_provider);
     final single = models.length == 1;
+    final vendors = {for (final m in models) m.servedBy};
+    final sharedVendor = vendors.length == 1 ? vendors.single : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _label(theme, s.aiAssistModelLabel),
+        if (!single && sharedVendor != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              s.aiAssistServedByLabel(sharedVendor),
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
         if (single)
           Padding(
             padding: const EdgeInsets.only(bottom: 4),
@@ -334,8 +367,13 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                 dense: true,
                 title: Text(model.id, style: theme.textTheme.bodyMedium),
                 subtitle: Text(
-                  '${s.aiAssistServedByLabel(model.servedBy)} · '
-                  '${model.id == models.first.id ? s.aiAssistModelRecommendedLabel : s.aiAssistModelCheaperLabel}',
+                  [
+                    if (sharedVendor == null)
+                      s.aiAssistServedByLabel(model.servedBy),
+                    model.id == models.first.id
+                        ? s.aiAssistModelRecommendedLabel
+                        : s.aiAssistModelCheaperLabel,
+                  ].join(' · '),
                   style: theme.textTheme.bodySmall,
                 ),
                 value: model.id,

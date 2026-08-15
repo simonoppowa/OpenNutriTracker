@@ -242,9 +242,20 @@ void main() {
     await tester.pumpWidget(_app(storage));
     await tester.pumpAndSettle();
 
+    // Stated once for the group, not per row. Every curated model is served
+    // by the same vendor — necessarily so while #656 restricts the list to
+    // Anthropic — and repeating it cost two wrapped lines in German for a
+    // fact that does not change between the rows.
     expect(
       find.textContaining(l10nEn.aiAssistServedByLabel('Anthropic')),
-      findsNWidgets(AiModelCatalogue.openrouter.length),
+      findsOneWidget,
+    );
+    // The claim itself has to survive the deduplication: every model on the
+    // list must still be one this vendor actually serves, or the single
+    // line is a lie about some of them.
+    expect(
+      AiModelCatalogue.openrouter.map((m) => m.servedBy).toSet(),
+      {'Anthropic'},
     );
   });
 
@@ -276,6 +287,31 @@ void main() {
       lessThanOrEqualTo(viewport),
       reason: 'the key field must be reachable without scrolling: it is the '
           'one thing this dialog exists for',
+    );
+  });
+
+  testWidgets('says that the content scrolls, rather than clipping it', (
+    tester,
+  ) async {
+    // The disclosure cannot be made to fit a phone dialog — every sentence
+    // in the OpenRouter one is load-bearing, and on a Pixel 6 the shared
+    // paragraph starts below the fold. Clipped against the bottom edge with
+    // no affordance it reads as the end of the text, which is the one thing
+    // a disclosure must not do.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    final scrollbar = tester.widget<Scrollbar>(find.byType(Scrollbar));
+    expect(
+      scrollbar.thumbVisibility,
+      isTrue,
+      reason: 'a disclosure that silently continues below the fold is a '
+          'disclosure the reader thinks they have finished',
     );
   });
 
