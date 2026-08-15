@@ -2,6 +2,34 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:health/health.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_package_service.dart';
 
+/// Stands in for the plugin's own entry point so the grant bookkeeping can be
+/// exercised without a platform channel.
+class _FakeHealth extends Fake implements Health {
+  bool authorizationGranted = true;
+  bool? workoutPermissions;
+
+  List<HealthDataType>? requestedTypes;
+  List<HealthDataType>? recheckedTypes;
+
+  @override
+  Future<bool> requestAuthorization(
+    List<HealthDataType> types, {
+    List<HealthDataAccess>? permissions,
+  }) async {
+    requestedTypes = types;
+    return authorizationGranted;
+  }
+
+  @override
+  Future<bool?> hasPermissions(
+    List<HealthDataType> types, {
+    List<HealthDataAccess>? permissions,
+  }) async {
+    recheckedTypes = types;
+    return workoutPermissions;
+  }
+}
+
 /// A raw TOTAL_CALORIES_BURNED record as Health Connect reports it. The
 /// plugin's data classes are plain Dart, so building them here exercises the
 /// real attribution code without touching a platform channel.
@@ -139,6 +167,64 @@ void main() {
       ];
 
       expect(energy(calorieRecords: records), closeTo(100, 0.001));
+    });
+  });
+
+  group('HealthPackageService.requestPermissions', () {
+    late _FakeHealth health;
+    late HealthPackageService service;
+
+    setUp(() {
+      health = _FakeHealth();
+      service = HealthPackageService(health);
+    });
+
+    test('a refused request is a refusal, without a second question', () async {
+      health.authorizationGranted = false;
+
+      expect(await service.requestPermissions(), isFalse);
+      expect(health.recheckedTypes, isNull);
+    });
+
+    test('a grant that left the workout rows out is not success', () async {
+      // Android's requestAuthorization answers true as soon as *anything* was
+      // granted — body fat alone would otherwise switch the feature on with
+      // nothing importable behind it.
+      health.workoutPermissions = false;
+
+      expect(await service.requestPermissions(), isFalse);
+    });
+
+    test('a grant covering the workout rows is success', () async {
+      health.workoutPermissions = true;
+
+      expect(await service.requestPermissions(), isTrue);
+    });
+
+    test(
+      'a platform that will not report read grants is not a refusal',
+      () async {
+        // iOS never answers hasPermissions for reads.
+        health.workoutPermissions = null;
+
+        expect(await service.requestPermissions(), isTrue);
+      },
+    );
+
+    test('body fat is asked for, but never re-checked', () async {
+      health.workoutPermissions = true;
+
+      await service.requestPermissions();
+
+      expect(
+        health.requestedTypes,
+        contains(HealthDataType.BODY_FAT_PERCENTAGE),
+      );
+      expect(health.recheckedTypes, contains(HealthDataType.WORKOUT));
+      expect(
+        health.recheckedTypes,
+        isNot(contains(HealthDataType.BODY_FAT_PERCENTAGE)),
+      );
     });
   });
 }

@@ -74,10 +74,23 @@ class HealthPackageService implements HealthService {
 
   @override
   Future<bool> requestPermissions() async {
-    return await _health.requestAuthorization(
+    final granted = await _health.requestAuthorization(
       _readTypes,
       permissions: List.filled(_readTypes.length, HealthDataAccess.READ),
     );
+    if (!granted) return false;
+    // Android answers the request with "was anything at all granted", so a
+    // user who ticked body fat and left the workout rows unticked would switch
+    // the feature on with nothing importable behind it. Re-check the types a
+    // workout read actually needs; body fat only costs the suggestion, so a
+    // refusal there is not a failure. hasPermissions answers null where the
+    // platform will not say (iOS never reports read grants) — same rule as
+    // [readWorkouts], only a definite refusal counts.
+    final hasWorkoutPermissions = await _health.hasPermissions(
+      _workoutReadTypes,
+      permissions: List.filled(_workoutReadTypes.length, HealthDataAccess.READ),
+    );
+    return hasWorkoutPermissions != false;
   }
 
   @override
