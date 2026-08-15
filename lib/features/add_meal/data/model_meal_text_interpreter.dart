@@ -1,33 +1,20 @@
-import 'package:http/http.dart' as http;
-import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_text_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
-/// Reads a free-text meal line with Claude, and returns only what the food
+/// Reads a free-text meal line with a model, and returns only what the food
 /// search needs: a query per item, plus a quantity when the user stated one.
 ///
-/// Everything about the request except the prompt lives in
-/// [AnthropicMealItemsApi], including the tool schema that has no macro
-/// fields. This class is the prompt and nothing else.
-class AnthropicMealTextInterpreter implements MealTextInterpreter {
-  /// Re-exported so callers and tests have one name to reach for, whichever
-  /// interpreter they hold.
-  static const defaultModel = AnthropicMealItemsApi.defaultModel;
-  static const defaultTimeout = AnthropicMealItemsApi.defaultTimeout;
+/// Everything about the request lives in the [MealItemsApi] it is given, and
+/// everything about the schema lives in [mealItemsToolSchema]. This class is
+/// the prompt and nothing else — which is why it takes any provider rather
+/// than naming one. The contract with the model does not change because the
+/// destination did, and writing it twice is how two versions of it end up
+/// disagreeing.
+class ModelMealTextInterpreter implements MealTextInterpreter {
+  final MealItemsApi _api;
 
-  final AnthropicMealItemsApi _api;
-
-  AnthropicMealTextInterpreter(
-    http.Client client,
-    String Function() apiKey, {
-    String model = defaultModel,
-    Duration timeout = defaultTimeout,
-  }) : _api = AnthropicMealItemsApi(
-         client,
-         apiKey,
-         model: model,
-         timeout: timeout,
-       );
+  ModelMealTextInterpreter(this._api);
 
   /// The whole contract with the model, in one place.
   ///
@@ -68,7 +55,7 @@ Rules:
     }
 
     return _api.requestItems(
-      content: AnthropicMealTextContent(trimmed),
+      content: MealTextContent(trimmed),
       system: localeCode == null
           ? _systemPrompt
           : '$_systemPrompt\nThe user\'s app language is "$localeCode".',

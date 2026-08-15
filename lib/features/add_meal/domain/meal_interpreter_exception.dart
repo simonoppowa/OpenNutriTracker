@@ -36,6 +36,23 @@ class MealInterpreterException implements Exception {
   /// so it must not be offered to the user as retryable.
   bool get isRejectedRequest => statusCode == 400 || statusCode == 422;
 
+  /// True when nothing on the other end can serve this kind of request at
+  /// all — the chosen model takes no images, or no provider of it honours a
+  /// forced tool call.
+  ///
+  /// A probe of OpenRouter with `provider.require_parameters` set returned
+  /// **404** for both, with the messages "No endpoints found that support
+  /// image input" and "No endpoints found that can handle the requested
+  /// parameters". Neither improves on a retry, and neither is anything to do
+  /// with the connection — so this must be told apart from a transient
+  /// failure, or the user is sent to check their network forever over a
+  /// choice they made in settings.
+  ///
+  /// Anthropic direct cannot produce this: its model is pinned and takes
+  /// images. It exists because a broker can be pointed at a model that does
+  /// not.
+  bool get isCapabilityRefusal => statusCode == 404;
+
   @override
   String toString() =>
       'MealInterpreterException($reason${statusCode == null ? '' : ', '

@@ -1137,5 +1137,6 @@
   "bulkAddPhotoCameraFailedLabel": "Nie udało się otworzyć aparatu. Sprawdź uprawnienia aparatu i spróbuj ponownie.",
   "bulkAddPhotoFailedLabel": "Nie udało się odczytać zdjęcia. Sprawdź połączenie i spróbuj ponownie.",
   "bulkAddPhotoUnreadableLabel": "Nie można użyć tego obrazu. Spróbuj innego zdjęcia.",
+  "bulkAddPhotoUnsupportedLabel": "Ten model nie odczytuje zdjęć. Wybierz inny w ustawieniach lub wpisz pozycje ręcznie.",
   "bulkAddPhotoNoFoodLabel": "Nie rozpoznano żadnych produktów na tym zdjęciu. Spróbuj innego zdjęcia lub wpisz pozycje ręcznie."
 }

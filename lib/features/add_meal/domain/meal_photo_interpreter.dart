@@ -35,7 +35,7 @@ class MealPhoto {
 /// picture of a plate is a guess, and a guess the user cannot check is the
 /// thing #250 was closed over. Counting discrete items is different in kind
 /// — two eggs are two eggs — so a count is allowed and a mass is not. See
-/// [AnthropicMealPhotoInterpreter], which enforces that rather than asking
+/// [ModelMealPhotoInterpreter], which enforces that rather than asking
 /// for it.
 abstract interface class MealPhotoInterpreter {
   /// Interprets [photo], optionally hinted with the user's [localeCode] so

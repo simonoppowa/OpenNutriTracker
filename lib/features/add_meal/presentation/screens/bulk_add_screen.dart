@@ -182,6 +182,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         BulkAddPhotoError.camera => S.of(context).bulkAddPhotoCameraFailedLabel,
         BulkAddPhotoError.unreadable =>
           S.of(context).bulkAddPhotoUnreadableLabel,
+        BulkAddPhotoError.unsupported =>
+          S.of(context).bulkAddPhotoUnsupportedLabel,
       });
     }
     if (state is! BulkAddLoadedState) {

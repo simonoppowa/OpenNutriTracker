@@ -68,8 +68,10 @@ import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
-import 'package:opennutritracker/features/add_meal/data/anthropic_meal_photo_interpreter.dart';
-import 'package:opennutritracker/features/add_meal/data/anthropic_meal_text_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
+import 'package:opennutritracker/features/add_meal/data/model_meal_photo_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/data/model_meal_text_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_photo_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
@@ -153,15 +155,13 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<ReadMealTextUseCase>(
     () => ReadMealTextUseCase(
       locator<AiCredentialStorage>(),
-      (apiKey) =>
-          AnthropicMealTextInterpreter(locator<http.Client>(), () => apiKey),
+      (apiKey) => ModelMealTextInterpreter(_itemsApiFor(apiKey)),
     ),
   );
   locator.registerLazySingleton<ReadMealPhotoUseCase>(
     () => ReadMealPhotoUseCase(
       locator<AiCredentialStorage>(),
-      (apiKey) =>
-          AnthropicMealPhotoInterpreter(locator<http.Client>(), () => apiKey),
+      (apiKey) => ModelMealPhotoInterpreter(_itemsApiFor(apiKey)),
     ),
   );
   locator.registerLazySingleton<DeleteAllUserDataUsecase>(
@@ -588,3 +588,13 @@ Future<void> initLocator() async {
 
   await ensureConfigInitialized(locator());
 }
+
+/// The client both interpreters are built on, in one place so the text and
+/// photo paths can never end up pointed at different providers.
+///
+/// Anthropic today, because that is the only provider the settings surface
+/// can name. When a second one is selectable this reads the stored choice —
+/// and the interpreters above do not change, because the prompt and the
+/// schema never depended on the destination.
+MealItemsApi _itemsApiFor(String apiKey) =>
+    AnthropicMealItemsApi(locator<http.Client>(), () => apiKey);

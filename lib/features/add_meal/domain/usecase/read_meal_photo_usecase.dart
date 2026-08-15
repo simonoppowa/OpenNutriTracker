@@ -41,6 +41,12 @@ enum MealPhotoFailure {
   /// useful advice is "try another photo", not "try again".
   rejectedImage,
 
+  /// Nothing on the other end can read an image for this configuration —
+  /// the chosen model has no vision, or no provider of it will honour a
+  /// forced tool call. Kept apart from [transient] because retrying is
+  /// hopeless and the fix is in settings, not in the network.
+  unsupported,
+
   /// Network, rate limit, provider error. Worth another attempt.
   transient,
 }
@@ -95,6 +101,7 @@ class ReadMealPhotoUseCase {
       return MealPhotoFailed(switch (e) {
         _ when e.isAuthFailure => MealPhotoFailure.auth,
         _ when e.isRejectedRequest => MealPhotoFailure.rejectedImage,
+        _ when e.isCapabilityRefusal => MealPhotoFailure.unsupported,
         _ => MealPhotoFailure.transient,
       });
     } catch (e, stackTrace) {

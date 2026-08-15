@@ -1137,5 +1137,6 @@
   "bulkAddPhotoCameraFailedLabel": "Kameru se nepodařilo otevřít. Zkontrolujte oprávnění ke kameře a zkuste to znovu.",
   "bulkAddPhotoFailedLabel": "Fotku se nepodařilo načíst. Zkontrolujte připojení a zkuste to znovu.",
   "bulkAddPhotoUnreadableLabel": "Tento obrázek nelze použít. Zkuste jinou fotku.",
+  "bulkAddPhotoUnsupportedLabel": "Tento model neumí číst fotky. Vyberte v nastavení jiný nebo položky zadejte ručně.",
   "bulkAddPhotoNoFoodLabel": "Na této fotce nebyly rozpoznány žádné potraviny. Zkuste jinou fotku nebo položky zadejte ručně."
 }
