@@ -184,14 +184,21 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                   const SizedBox(height: 8),
                   _buildModelSection(context, s, theme),
                   const SizedBox(height: 12),
-                  // Provider paragraph first — it names the destination,
-                  // which is the fact that changes — then the sentences that
-                  // are true whichever provider is chosen.
-                  Text(
-                    '${_disclosureFor(s)}\n\n${s.aiAssistDisclosureCommon}',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 16),
+                  // The credential block sits above the disclosure, which
+                  // reverses what this dialog originally did. On a Pixel 6
+                  // the other way round put the key field *entirely below
+                  // the fold* on the OpenRouter path: the disclosure there
+                  // is three sentences longer, and the dialog ended with a
+                  // paragraph cut off mid-word and no scroll affordance. A
+                  // first-time user saw a wall of text and an OK button and
+                  // no way to enter anything.
+                  //
+                  // The original reasoning — that the disclosure must not be
+                  // behind a link, because saving a key adds a destination —
+                  // survives this. It is still in the dialog, unavoidable,
+                  // and still above the OK button, which is the act that
+                  // actually enables the feature. What it is no longer above
+                  // is a text field the user could not see.
                   if (_hasKey) ...[
                     Row(
                       children: [
@@ -252,6 +259,14 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                       ),
                     ),
                   ],
+                  const SizedBox(height: 16),
+                  // Provider paragraph first — it names the destination,
+                  // which is the fact that changes — then the sentences that
+                  // are true whichever provider is chosen.
+                  Text(
+                    '${_disclosureFor(s)}\n\n${s.aiAssistDisclosureCommon}',
+                    style: theme.textTheme.bodySmall,
+                  ),
                 ],
               ),
             ),

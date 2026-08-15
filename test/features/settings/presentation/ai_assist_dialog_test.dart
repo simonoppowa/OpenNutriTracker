@@ -248,6 +248,37 @@ void main() {
     );
   });
 
+  testWidgets('the key field is on screen without scrolling, on a phone', (
+    tester,
+  ) async {
+    // Found on a Pixel 6, not here. The original layout put the disclosure
+    // above the field, and on the OpenRouter path — whose disclosure is
+    // three sentences longer — that pushed the field entirely below the
+    // fold. The dialog ended with a paragraph cut off mid-word and no
+    // scroll affordance, so a first-time user saw a wall of text, ABBRECHEN
+    // and OK, and no way to enter anything.
+    //
+    // `find.byType(TextField)` passed throughout, because a widget scrolled
+    // out of view is still in the tree. Only its rect tells the truth.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    final field = tester.getRect(find.byType(TextField));
+    final viewport = tester.view.physicalSize.height / tester.view.devicePixelRatio;
+
+    expect(
+      field.bottom,
+      lessThanOrEqualTo(viewport),
+      reason: 'the key field must be reachable without scrolling: it is the '
+          'one thing this dialog exists for',
+    );
+  });
+
   testWidgets('the key field is obscured while typing', (tester) async {
     await tester.pumpWidget(_app(storage));
     await tester.pumpAndSettle();
