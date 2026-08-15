@@ -34,24 +34,21 @@ class ReadMealTextUseCase {
   /// Builds an interpreter around a key. A factory rather than an instance
   /// because the credential is read per call and should not be captured for
   /// the lifetime of a singleton.
-  final MealTextInterpreter Function(String apiKey) _interpreterFactory;
+  final MealTextInterpreter Function(AiSelection selection) _interpreterFactory;
 
   ReadMealTextUseCase(this._credentials, this._interpreterFactory);
 
   Future<MealTextReading> read(String input, {String? localeCode}) async {
     final parsed = parseMealText(input);
 
-    if (!await _credentials.isEnabled()) {
-      return MealTextReading(parsed, usedModel: false);
-    }
-    final apiKey = await _credentials.readApiKey();
-    if (apiKey == null) {
+    final selection = await _credentials.readSelection();
+    if (selection == null) {
       return MealTextReading(parsed, usedModel: false);
     }
 
     try {
       final interpreted = await _interpreterFactory(
-        apiKey,
+        selection,
       ).interpret(input, localeCode: localeCode);
 
       // An empty list is an *answer*, not a failure: the model was asked to

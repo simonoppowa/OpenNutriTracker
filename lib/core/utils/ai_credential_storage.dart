@@ -20,6 +20,27 @@ enum AiProvider {
   );
 }
 
+/// Everything one request needs in order to be addressed: who is answering,
+/// with which credential, using which model.
+///
+/// Read as a unit rather than field by field, so a provider switch that
+/// lands between two reads cannot produce a request that sends one
+/// provider's key to another provider's endpoint.
+class AiSelection {
+  final AiProvider provider;
+  final String apiKey;
+
+  /// Null means "this provider's default". Resolved by `AiModelCatalogue`
+  /// rather than here, so retiring a model is a change in one file.
+  final String? modelId;
+
+  const AiSelection({
+    required this.provider,
+    required this.apiKey,
+    this.modelId,
+  });
+}
+
 /// Holds the user's own model-provider API keys, which one is in use, and
 /// whether they currently want it used.
 ///
@@ -52,9 +73,13 @@ class AiCredentialStorage {
 
   static const _enabledTag = 'AiAssistEnabledTag';
   static const _providerTag = 'AiProviderTag';
+  static const _modelTag = 'AiModelTag';
 
   static String _slotTag(AiProvider provider) =>
       '$_legacyApiKeyTag.${provider.name}';
+
+  static String _modelSlotTag(AiProvider provider) =>
+      '$_modelTag.${provider.name}';
 
   final FlutterSecureStorage _storage;
 
@@ -77,6 +102,43 @@ class AiCredentialStorage {
   /// is not a fault.
   Future<void> setActiveProvider(AiProvider provider) =>
       _storage.write(key: _providerTag, value: provider.name);
+
+  /// What the AI features should do right now, or null when they should do
+  /// nothing — the feature is off, or the active provider has no key.
+  ///
+  /// One method rather than three calls at each site: both use cases used to
+  /// ask `isEnabled()` then `readApiKey()`, and adding a provider and a model
+  /// would have made that four questions asked separately in two places.
+  Future<AiSelection?> readSelection() async {
+    if (!await isEnabled()) return null;
+    final provider = await activeProvider();
+    final apiKey = await readApiKey(provider: provider);
+    if (apiKey == null) return null;
+    return AiSelection(
+      provider: provider,
+      apiKey: apiKey,
+      modelId: await readModel(provider: provider),
+    );
+  }
+
+  /// Which model [provider] should use, or null for its default.
+  ///
+  /// Kept here rather than in `ConfigDBO` for the same reason as the provider
+  /// tag: it is meaningless apart from the provider it belongs to, and one
+  /// store means one place where the three can disagree instead of two. It
+  /// is deliberately *not* validated on read — [AiModelCatalogue.resolve]
+  /// decides what an unknown id means, so retiring a model is a change in
+  /// one file rather than a migration here.
+  Future<String?> readModel({AiProvider? provider}) async {
+    final target = provider ?? await activeProvider();
+    final value = await _storage.read(key: _modelSlotTag(target));
+    return (value == null || value.isEmpty) ? null : value;
+  }
+
+  Future<void> writeModel(String modelId, {AiProvider? provider}) async {
+    final target = provider ?? await activeProvider();
+    await _storage.write(key: _modelSlotTag(target), value: modelId);
+  }
 
   /// The stored key for [provider], defaulting to the active one, or null
   /// when none is set. Read at call time rather than cached — nothing should
