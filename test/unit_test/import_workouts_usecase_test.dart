@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
@@ -39,6 +41,9 @@ class _FakeHealthService extends Fake implements HealthService {
   double? bodyFatPercent;
   bool throwOnRead = false;
 
+  /// Holds a read open so a second caller can arrive mid-import.
+  Completer<void>? readGate;
+
   int readWorkoutsCalls = 0;
   DateTime? lastFrom;
   DateTime? lastTo;
@@ -57,6 +62,8 @@ class _FakeHealthService extends Fake implements HealthService {
     readWorkoutsCalls++;
     lastFrom = from;
     lastTo = to;
+    final gate = readGate;
+    if (gate != null) await gate.future;
     if (throwOnRead) {
       throw StateError('Health Connect permission revoked');
     }
@@ -386,6 +393,52 @@ void main() {
 
       expect(await usecase.importIfDue(), equals(0));
       expect(() => usecase.importNow(), throwsStateError);
+    });
+  });
+
+  group('ImportWorkoutsUsecase serialization', () {
+    test('two overlapping runs import the workout once', () async {
+      // Startup and a resume landing on top of each other: without a guard
+      // both read the same window, both find nothing filed against the
+      // record yet, and both write it — one session, two diary rows, the
+      // day's goal raised twice.
+      healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 7, 0))];
+      healthService.readGate = Completer<void>();
+
+      final first = usecase.importNow();
+      final second = usecase.importNow();
+      healthService.readGate!.complete();
+
+      expect(await first, equals(1));
+      expect(await second, equals(1));
+      expect(healthService.readWorkoutsCalls, equals(1));
+      expect(
+        await userActivityRepository.getAllUserActivityDBO(),
+        hasLength(1),
+      );
+    });
+
+    test('a background run joins the manual one already in flight', () async {
+      healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 7, 0))];
+      healthService.readGate = Completer<void>();
+
+      final manual = usecase.importNow();
+      final background = usecase.importIfDue();
+      healthService.readGate!.complete();
+
+      expect(await manual, equals(1));
+      expect(await background, equals(1));
+      expect(healthService.readWorkoutsCalls, equals(1));
+    });
+
+    test('a failed run does not wedge the next one', () async {
+      healthService.throwOnRead = true;
+      await expectLater(usecase.importNow(), throwsStateError);
+
+      healthService.throwOnRead = false;
+      healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 7, 0))];
+
+      expect(await usecase.importNow(), equals(1));
     });
   });
 

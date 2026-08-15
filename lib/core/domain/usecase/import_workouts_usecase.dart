@@ -42,6 +42,18 @@ class ImportWorkoutsUsecase {
 
   final _log = Logger('ImportWorkoutsUsecase');
 
+  /// The run currently in flight, if any.
+  ///
+  /// App start, every app resume and the settings screen's "import now" all
+  /// land in [importNow], and there are several awaits between reading the
+  /// window and writing the watermark. Two overlapping runs would each read
+  /// the same workouts, each find nothing filed against them yet, and each
+  /// write them — the same session logged twice, raising the day's goal
+  /// twice. A caller arriving while a run is under way waits on that run
+  /// instead of starting a second one, so the whole read → dedupe → write →
+  /// watermark sequence is effectively serialized.
+  Future<int>? _inFlight;
+
   final HealthImportRepository _healthImportRepository;
   final ConfigRepository _configRepository;
   final UserActivityRepository _userActivityRepository;
@@ -64,6 +76,10 @@ class ImportWorkoutsUsecase {
   /// user-initiated path calls [importNow] instead and gets the exception.
   Future<int> importIfDue() async {
     try {
+      // A run already under way covers this call too, and joining it beats
+      // reading the platform again the moment it finishes.
+      final inFlight = _inFlight;
+      if (inFlight != null) return await inFlight;
       final config = await _configRepository.getConfig();
       if (!config.healthImportEnabled) return 0;
       final lastImportAt = config.healthLastImportAt;
@@ -85,7 +101,21 @@ class ImportWorkoutsUsecase {
   /// Throws whatever the health store throws — a revoked permission or an
   /// uninstalled Health Connect is something the user needs to be told about,
   /// not something to silently absorb.
-  Future<int> importNow() async {
+  ///
+  /// Serialized against every other entry point — a call made while a run is
+  /// in flight answers with that run's outcome rather than importing the same
+  /// window a second time (see [_inFlight]).
+  Future<int> importNow() {
+    final inFlight = _inFlight;
+    if (inFlight != null) return inFlight;
+    final run = _import();
+    _inFlight = run;
+    return run.whenComplete(() {
+      if (identical(_inFlight, run)) _inFlight = null;
+    });
+  }
+
+  Future<int> _import() async {
     final config = await _configRepository.getConfig();
     if (!config.healthImportEnabled) return 0;
 
