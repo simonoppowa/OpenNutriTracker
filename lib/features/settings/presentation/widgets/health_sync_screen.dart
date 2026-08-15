@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
@@ -325,19 +326,28 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
           Row(
             children: [
               Expanded(
-                child: Text(
+                // A long localized label shares this row with the percentage
+                // and the sources button, so it shrinks to stay on one line
+                // rather than wrapping or striping the Row.
+                child: AutoSizeText(
                   s.healthSyncKcalMultiplierLabel,
                   style: textTheme.titleMedium,
+                  maxLines: 1,
+                  minFontSize: 11,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
                 s.healthSyncKcalMultiplierValueLabel(_percentOf(_multiplier)),
                 style: textTheme.titleMedium,
               ),
-              IconButton(
-                icon: const Icon(Icons.info_outline_rounded),
-                tooltip: s.sourcesIconTooltip,
-                onPressed: _openSources,
+              Semantics(
+                identifier: 'health-sync-sources',
+                child: IconButton(
+                  icon: const Icon(Icons.info_outline_rounded),
+                  tooltip: s.sourcesIconTooltip,
+                  onPressed: _openSources,
+                ),
               ),
             ],
           ),
@@ -361,9 +371,18 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
           if (canEdit && suggested != null)
             Align(
               alignment: AlignmentDirectional.centerStart,
-              child: TextButton(
-                onPressed: () => _applyMultiplier(suggested),
-                child: Text(s.healthSyncSuggestedLabel(_percentOf(suggested))),
+              child: Semantics(
+                identifier: 'health-sync-apply-suggestion',
+                // Align fills the row, and the Semantics node would inherit
+                // those bounds — see AGENTS.md "The `container: true`
+                // gotcha" — leaving a coordinate tap short of the button.
+                container: true,
+                child: TextButton(
+                  onPressed: () => _applyMultiplier(suggested),
+                  child: Text(
+                    s.healthSyncSuggestedLabel(_percentOf(suggested)),
+                  ),
+                ),
               ),
             ),
         ],

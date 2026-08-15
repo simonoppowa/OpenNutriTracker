@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
@@ -251,5 +252,43 @@ void main() {
       find.text(l10nEn.healthSyncSuggestedLabel(suggestedPercent)),
       findsNothing,
     );
+  });
+
+  testWidgets('every interactive widget carries an accessibility identifier', (
+    tester,
+  ) async {
+    storeConfig(
+      healthImportEnabled: true,
+      healthWorkoutKcalMultiplier: ConfigEntity.maxHealthWorkoutKcalMultiplier,
+    );
+
+    await pumpScreen(tester);
+
+    expect(_byIdentifier('health-sync-auto-import'), findsOneWidget);
+    expect(_byIdentifier('health-sync-import-now'), findsOneWidget);
+    expect(_byIdentifier('health-sync-kcal-multiplier'), findsOneWidget);
+    expect(_byIdentifier('health-sync-sources'), findsOneWidget);
+    expect(_byIdentifier('health-sync-apply-suggestion'), findsOneWidget);
+  });
+
+  testWidgets('the credit section title cannot overflow its row', (
+    tester,
+  ) async {
+    storeConfig(healthImportEnabled: true);
+
+    // Narrow enough that the label, the percentage and the sources button
+    // genuinely compete for the width.
+    await tester.binding.setSurfaceSize(const Size(320, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_wrap(const HealthSyncScreen()));
+    await tester.pumpAndSettle();
+
+    final title = tester.widget<AutoSizeText>(
+      find.widgetWithText(AutoSizeText, l10nEn.healthSyncKcalMultiplierLabel),
+    );
+    expect(title.maxLines, 1);
+    expect(title.minFontSize, lessThan(title.style?.fontSize ?? 16));
+    expect(title.overflow, TextOverflow.ellipsis);
+    expect(tester.takeException(), isNull);
   });
 }
