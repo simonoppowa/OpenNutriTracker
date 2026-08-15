@@ -77,6 +77,14 @@ class SourcesScreen extends StatelessWidget {
                 'in humans. Current Biology, 31(20):4659–4666.e2.',
             url: URLConst.sourceEnergyCompensationCareau2021URL,
           ),
+          _SourceLink(
+            citation:
+                'Borrud LG, et al. (2010). Body composition data for '
+                'individuals 8 years of age and older: U.S. population, '
+                '1999–2004. National Center for Health Statistics, Vital and '
+                'Health Statistics Series 11, No. 250.',
+            url: URLConst.sourceBodyCompositionBorrud2010URL,
+          ),
         ],
       ),
       _SourceEntry(

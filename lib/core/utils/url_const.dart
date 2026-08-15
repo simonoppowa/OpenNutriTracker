@@ -30,6 +30,8 @@ class URLConst {
       "https://link.springer.com/article/10.1186/s12937-020-00590-4";
   static const sourceEnergyCompensationCareau2021URL =
       "https://pubmed.ncbi.nlm.nih.gov/34453886/";
+  static const sourceBodyCompositionBorrud2010URL =
+      "https://www.cdc.gov/nchs/data/series/sr_11/sr11_250.pdf";
 
   // Wiki page documenting every in-app calculation in full — linked from
   // the calorie-goal transparency screen for people who want the complete
