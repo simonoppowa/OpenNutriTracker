@@ -59,6 +59,7 @@ class ConfigDataSource {
       merged.healthImportEnabled = profile.healthImportEnabled;
       merged.healthWorkoutKcalMultiplier = profile.healthWorkoutKcalMultiplier;
       merged.healthLastImportAt = profile.healthLastImportAt;
+      merged.healthDeletedExternalIds = profile.healthDeletedExternalIds;
     } else {
       // Explicitly clear personal fields so they don't leak from the
       // app box after a profile reset. A fresh profile therefore reads as
@@ -73,6 +74,7 @@ class ConfigDataSource {
       merged.healthImportEnabled = null;
       merged.healthWorkoutKcalMultiplier = null;
       merged.healthLastImportAt = null;
+      merged.healthDeletedExternalIds = null;
     }
     return merged;
   }
@@ -320,6 +322,17 @@ class ConfigDataSource {
 
   Future<void> setConfigHealthLastImportAt(DateTime? importedAt) async {
     await _update((c) => c.healthLastImportAt = importedAt);
+  }
+
+  /// Records that the imported workout behind [externalId] was deleted, so
+  /// the importer stops re-creating it. Appends into a fresh list so Hive
+  /// sees a distinct object reference on save.
+  Future<void> addConfigHealthDeletedExternalId(String externalId) async {
+    await _update((c) {
+      final current = c.healthDeletedExternalIds;
+      if (current != null && current.contains(externalId)) return;
+      c.healthDeletedExternalIds = <String>[...?current, externalId];
+    });
   }
 
   Future<ConfigDBO> getConfig() async => _readMerged();

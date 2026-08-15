@@ -144,6 +144,14 @@ class ConfigDBO extends HiveObject {
   // as the debounce timestamp so a resume storm can't hammer the platform.
   @HiveField(35)
   DateTime? healthLastImportAt;
+  // External record ids of imported workouts the user has deleted. The
+  // importer's dedupe set is built from the activities actually on file, so
+  // without this the next overlapping read would file a deleted workout all
+  // over again. Kept indefinitely — it only grows by one entry per deletion,
+  // and forgetting an entry resurrects the workout it stands for. Null means
+  // nothing has been deleted.
+  @HiveField(36)
+  List<String>? healthDeletedExternalIds;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -179,6 +187,7 @@ class ConfigDBO extends HiveObject {
     this.healthImportEnabled,
     this.healthWorkoutKcalMultiplier,
     this.healthLastImportAt,
+    this.healthDeletedExternalIds,
   });
 
   factory ConfigDBO.empty() =>

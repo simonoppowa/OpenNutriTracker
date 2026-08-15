@@ -191,4 +191,8 @@ class ConfigRepository {
   Future<void> setConfigHealthLastImportAt(DateTime? importedAt) async {
     await _configDataSource.setConfigHealthLastImportAt(importedAt);
   }
+
+  Future<void> addConfigHealthDeletedExternalId(String externalId) async {
+    await _configDataSource.addConfigHealthDeletedExternalId(externalId);
+  }
 }

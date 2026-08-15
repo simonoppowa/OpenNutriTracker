@@ -20,8 +20,10 @@ import 'package:opennutritracker/core/data/repository/tracked_day_repository.dar
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_physical_activity_usecase.dart';
@@ -107,6 +109,7 @@ void main() {
   late GetMacroGoalUsecase getMacroGoalUsecase;
   late _FakeHealthService healthService;
   late ImportWorkoutsUsecase usecase;
+  late DeleteUserActivityUsecase deleteUsecase;
 
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -172,6 +175,11 @@ void main() {
         getKcalGoalUsecase,
         getMacroGoalUsecase,
       ),
+    );
+
+    deleteUsecase = DeleteUserActivityUsecase(
+      userActivityRepository,
+      configRepository,
     );
 
     ImportWorkoutsUsecase.clock = () => now;
@@ -439,6 +447,72 @@ void main() {
       healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 7, 0))];
 
       expect(await usecase.importNow(), equals(1));
+    });
+  });
+
+  group('ImportWorkoutsUsecase deletion', () {
+    test('a deleted workout is not imported again', () async {
+      // The window deliberately overlaps the last one, and the dedupe set is
+      // built from the activities on file — so without a tombstone the very
+      // next run would hand the user back the workout they just deleted.
+      healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 7, 0))];
+      expect(await usecase.importNow(), equals(1));
+
+      final imported =
+          (await userActivityRepository.getAllUserActivityDBO()).single;
+      await deleteUsecase.deleteUserActivity(
+        UserActivityEntity.fromUserActivityDBO(imported),
+      );
+
+      ImportWorkoutsUsecase.clock = () => now.add(const Duration(hours: 2));
+
+      expect(await usecase.importNow(), equals(0));
+      expect(await userActivityRepository.getAllUserActivityDBO(), isEmpty);
+    });
+
+    test('the tombstone outlives a re-import of the whole window', () async {
+      healthService.workouts = [
+        _workout(id: 'kept', start: DateTime(2026, 5, 23, 7, 0)),
+        _workout(id: 'unwanted', start: DateTime(2026, 5, 23, 9, 0)),
+      ];
+      await usecase.importNow();
+
+      final unwanted = (await userActivityRepository.getAllUserActivityDBO())
+          .firstWhere((activity) => activity.externalId == 'unwanted');
+      await deleteUsecase.deleteUserActivity(
+        UserActivityEntity.fromUserActivityDBO(unwanted),
+      );
+
+      // Back to a full backfill, as a fresh watermark-less run would do.
+      await configRepository.setConfigHealthLastImportAt(null);
+      ImportWorkoutsUsecase.clock = () => now.add(const Duration(hours: 2));
+
+      expect(await usecase.importNow(), equals(0));
+      final remaining = await userActivityRepository.getAllUserActivityDBO();
+      expect(remaining, hasLength(1));
+      expect(remaining.single.externalId, equals('kept'));
+    });
+
+    test('deleting a manually logged activity records nothing', () async {
+      await userActivityRepository.addUserActivity(
+        UserActivityEntity(
+          'manual-1',
+          30,
+          200,
+          DateTime(2026, 5, 23, 7, 0),
+          PhysicalActivityEntity.custom,
+          userKcal: 200,
+        ),
+      );
+
+      await deleteUsecase.deleteUserActivity(
+        UserActivityEntity.fromUserActivityDBO(
+          (await userActivityRepository.getAllUserActivityDBO()).single,
+        ),
+      );
+
+      final config = await configRepository.getConfig();
+      expect(config.healthDeletedExternalIds, isEmpty);
     });
   });
 

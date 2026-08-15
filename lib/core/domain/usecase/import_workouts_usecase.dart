@@ -132,6 +132,11 @@ class ImportWorkoutsUsecase {
       to: to,
     );
     final seenIds = await _userActivityRepository.getExternalIdsSince(from);
+    // Deleting an imported workout has to stick. The dedupe set above is
+    // built from the activities on file, so a deleted one leaves nothing
+    // behind to recognise it by and the overlapping re-read would file it
+    // all over again.
+    seenIds.addAll(config.healthDeletedExternalIds);
     final activityByCode = {
       for (final activity
           in await _getPhysicalActivityUsecase.getAllPhysicalActivities())

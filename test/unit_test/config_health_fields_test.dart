@@ -177,6 +177,26 @@ void main() {
       expect(await profileB.getAppTheme(), equals(AppThemeDBO.dark));
     });
 
+    test('deletion tombstones stay with the profile that made them', () async {
+      final profileA = sourceFor(profileABox);
+      await profileA.initializeConfig();
+      await profileA.addConfigHealthDeletedExternalId('record-1');
+      // Recording the same deletion twice must not grow the list.
+      await profileA.addConfigHealthDeletedExternalId('record-1');
+      await profileA.addConfigHealthDeletedExternalId('record-2');
+
+      final profileB = sourceFor(profileBBox);
+      await profileB.initializeConfig();
+
+      expect(
+        (await profileA.getConfig()).healthDeletedExternalIds,
+        equals(<String>['record-1', 'record-2']),
+      );
+      // The other profile never imported that workout, so it has nothing to
+      // remember about it either.
+      expect((await profileB.getConfig()).healthDeletedExternalIds, isNull);
+    });
+
     test(
       'a profile with no config box of its own reads as opted out',
       () async {

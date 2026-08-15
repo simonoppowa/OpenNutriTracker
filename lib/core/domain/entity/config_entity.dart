@@ -109,6 +109,11 @@ class ConfigEntity extends Equatable {
   /// [healthImportBackfillDays] on the first run).
   final DateTime? healthLastImportAt;
 
+  /// External record ids of imported workouts the user deleted. The importer
+  /// skips them, so a deletion sticks instead of being undone by the next
+  /// overlapping read. Empty when nothing has been deleted.
+  final Set<String> healthDeletedExternalIds;
+
   /// Bounds on the calorie-credit multiplier. The floor sits at 50% because
   /// even the most compensating decile in Careau et al. 2021 keeps roughly
   /// half of the exercise deficit; the ceiling is "credit every calorie",
@@ -194,6 +199,7 @@ class ConfigEntity extends Equatable {
     this.healthImportEnabled = false,
     this.healthWorkoutKcalMultiplier,
     this.healthLastImportAt,
+    this.healthDeletedExternalIds = const <String>{},
   });
 
   /// The multiplier the importer actually applies. Falls back to crediting
@@ -308,6 +314,9 @@ class ConfigEntity extends Equatable {
       dbo.healthWorkoutKcalMultiplier,
     ),
     healthLastImportAt: dbo.healthLastImportAt,
+    healthDeletedExternalIds: dbo.healthDeletedExternalIds != null
+        ? Set<String>.from(dbo.healthDeletedExternalIds!)
+        : const <String>{},
   );
 
   /// Returns the recommended kcal target for [mealKey] given a daily goal.
@@ -409,5 +418,6 @@ class ConfigEntity extends Equatable {
     healthImportEnabled,
     healthWorkoutKcalMultiplier,
     healthLastImportAt,
+    healthDeletedExternalIds,
   ];
 }
