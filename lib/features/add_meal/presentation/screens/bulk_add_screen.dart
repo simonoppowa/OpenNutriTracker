@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -72,6 +73,26 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// the user visits settings, which closes this screen anyway.
   late final Future<bool> _photoAvailable = locator<AiCredentialStorage>()
       .isEnabled();
+
+  /// Where a photo would actually go. The sheet below is the last moment the
+  /// user can decline, so it has to name the real destination — it named
+  /// Anthropic unconditionally until a Pixel 6 showed it saying so while
+  /// OpenRouter was selected.
+  ///
+  /// Deliberately not `readSelection()`: that carries the API key, and
+  /// nothing in the widget layer has any business holding it.
+  late final Future<({AiProvider provider, AiModel model})> _photoDestination =
+      () async {
+        final storage = locator<AiCredentialStorage>();
+        final provider = await storage.activeProvider();
+        return (
+          provider: provider,
+          model: AiModelCatalogue.resolve(
+            provider,
+            await storage.readModel(provider: provider),
+          ),
+        );
+      }();
 
   late BulkAddScreenArguments _args;
   bool _submitting = false;
@@ -571,6 +592,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
   Future<void> _onPhotoPressed() async {
     FocusScope.of(context).unfocus();
+    final destination = await _photoDestination;
+    if (!mounted) return;
+    final disclosure = switch (destination.provider) {
+      AiProvider.anthropic => S.of(context).bulkAddPhotoDisclosureAnthropic,
+      AiProvider.openrouter =>
+        S
+            .of(context)
+            .bulkAddPhotoDisclosureOpenRouter(destination.model.servedBy),
+    };
     final shouldOpenCamera = await showModalBottomSheet<bool>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -582,7 +612,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
-                S.of(sheetContext).bulkAddPhotoDisclosureLabel,
+                '$disclosure '
+                '${S.of(sheetContext).bulkAddPhotoDisclosureCommon}',
                 style: Theme.of(sheetContext).textTheme.bodySmall,
               ),
             ),

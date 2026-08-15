@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_photo_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_text_interpreter.dart';
@@ -331,6 +332,49 @@ void main() {
       tester.takeException(),
       isNull,
       reason: 'the notice must not overflow its row',
+    );
+  });
+
+  testWidgets('the photo sheet names the destination that is actually used', (
+    tester,
+  ) async {
+    // The sheet is the last moment a user can decline sending a photograph.
+    // It named Anthropic unconditionally until a Pixel 6 showed it doing so
+    // while OpenRouter was selected — a false statement at exactly the
+    // moment the statement matters.
+    await _register(const {});
+    getIt.unregister<AiCredentialStorage>();
+    getIt.registerLazySingleton<AiCredentialStorage>(
+      () => AiCredentialStorage(
+        _MapStorage({
+          'AiApiKeyTag.openrouter': 'sk-or-test',
+          'AiAssistEnabledTag': 'true',
+          'AiProviderTag': 'openrouter',
+        }),
+      ),
+    );
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.photo_camera_rounded).first);
+    await tester.pumpAndSettle();
+
+    final vendor = AiModelCatalogue.defaultFor(AiProvider.openrouter).servedBy;
+    expect(
+      find.textContaining(l10nEn.bulkAddPhotoDisclosureOpenRouter(vendor)),
+      findsOneWidget,
+    );
+    // A broker hop has two ends and the sheet has to name both.
+    expect(find.textContaining('OpenRouter'), findsWidgets);
+    expect(find.textContaining(vendor), findsWidgets);
+    // The sentence true either way is still there, once.
+    expect(
+      find.textContaining(l10nEn.bulkAddPhotoDisclosureCommon),
+      findsOneWidget,
     );
   });
 
