@@ -11,9 +11,14 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 ///   notifications, anonymous-data consent, legal acceptances, and the
 ///   various view toggles), so it stays consistent whichever profile is
 ///   active;
-/// - the **per-profile** [HiveDBProvider.configBox] holds only the personal
+/// - the **per-profile** [HiveDBProvider.configBox] holds the personal
 ///   nutrition goals (kcal adjustment, macro split, per-meal kcal shares and
-///   the daily water goal), which differ from one profile to the next.
+///   the daily water goal) plus the health-import settings (opt-in flag,
+///   calorie-credit multiplier, import watermark), which differ from one
+///   profile to the next. The health settings belong here because the
+///   activity box they write into is itself per-profile
+///   ([HiveDBProvider.perProfileBoxNames]): each profile opts in for itself,
+///   imports its own copy of a workout, and tracks its own watermark.
 ///
 /// Reads merge the two — shared fields from the app box, personal fields
 /// from the active profile's box. Writes store a detached copy of the merged
@@ -51,15 +56,23 @@ class ConfigDataSource {
       merged.userFatGoalPct = profile.userFatGoalPct;
       merged.mealKcalSharesPct = profile.mealKcalSharesPct;
       merged.dailyWaterGoalMl = profile.dailyWaterGoalMl;
+      merged.healthImportEnabled = profile.healthImportEnabled;
+      merged.healthWorkoutKcalMultiplier = profile.healthWorkoutKcalMultiplier;
+      merged.healthLastImportAt = profile.healthLastImportAt;
     } else {
       // Explicitly clear personal fields so they don't leak from the
-      // app box after a profile reset.
+      // app box after a profile reset. A fresh profile therefore reads as
+      // opted out of the health import with no watermark of its own, which
+      // is what it is.
       merged.userKcalAdjustment = null;
       merged.userCarbGoalPct = null;
       merged.userProteinGoalPct = null;
       merged.userFatGoalPct = null;
       merged.mealKcalSharesPct = null;
       merged.dailyWaterGoalMl = null;
+      merged.healthImportEnabled = null;
+      merged.healthWorkoutKcalMultiplier = null;
+      merged.healthLastImportAt = null;
     }
     return merged;
   }
