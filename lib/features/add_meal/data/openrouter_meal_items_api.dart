@@ -111,6 +111,15 @@ class OpenRouterMealItemsApi implements MealItemsApi {
         // capability problem it is. With it, an unfit provider is refused up
         // front with a 404 the user can be told about.
         'require_parameters': true,
+        // Routing default is `allow`, meaning providers that store input
+        // non-transiently and may train on it are eligible. The app cannot
+        // promise a destination's behaviour it never asked for.
+        //
+        // Enforced here as a policy field rather than by reading the slug:
+        // free *usage* triggers the training clauses, not the `:free`
+        // suffix, so slug inspection would be a check that looks like one
+        // and is not.
+        'data_collection': 'deny',
         if (providers != null) ...{'only': providers, 'allow_fallbacks': false},
       },
     });
@@ -123,6 +132,12 @@ class OpenRouterMealItemsApi implements MealItemsApi {
             headers: {
               'content-type': 'application/json',
               'authorization': 'Bearer ${_apiKey()}',
+              // Opts the reply into `openrouter_metadata`, which names the
+              // provider that actually served the request. Without it the
+              // response says nothing about who received the payload, and a
+              // project that invites you to verify its destination list
+              // cannot be structurally unable to name one.
+              'x-openrouter-metadata': 'enabled',
               // Deliberately no HTTP-Referer or X-Title. Those are
               // OpenRouter's app-attribution headers and they put the app on
               // a public leaderboard, which is not something to opt a user
@@ -146,7 +161,54 @@ class OpenRouterMealItemsApi implements MealItemsApi {
       );
     }
 
-    return validateParsedMealItems(_itemsFrom(response.body));
+    final Map<String, dynamic> decoded;
+    try {
+      decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (_) {
+      throw const MealInterpreterException('malformed response');
+    }
+
+    _warnIfThePinDidNotHold(decoded);
+
+    return validateParsedMealItems(_itemsFrom(decoded));
+  }
+
+  /// Checks that the provider named in the app is the one that answered.
+  ///
+  /// Settings states the serving vendor as a guarantee rather than a guess,
+  /// and `only` + `allow_fallbacks: false` is what earns that word. This is
+  /// the only way to find out at runtime whether it held — otherwise the app
+  /// makes a claim about where a photograph went and never once checks it.
+  ///
+  /// Logged, never thrown. The reply is a valid answer to the user's
+  /// question, and costing them their meal entry over a routing discrepancy
+  /// would be a worse outcome than the discrepancy. The metadata is also
+  /// absent on cache hits and on failures that never reached the router, so
+  /// absence is not a finding.
+  void _warnIfThePinDidNotHold(Map<String, dynamic> decoded) {
+    final pinned = providers;
+    if (pinned == null) return;
+
+    final metadata = decoded['openrouter_metadata'];
+    final endpoints = metadata is Map ? metadata['endpoints'] : null;
+    final available = endpoints is Map ? endpoints['available'] : null;
+    if (available is! List) return;
+
+    for (final endpoint in available) {
+      if (endpoint is! Map || endpoint['selected'] != true) continue;
+      final servedBy = endpoint['provider'];
+      if (servedBy is! String) continue;
+
+      // Case-insensitive because the metadata names a provider in display
+      // form ("Anthropic") while the pin is a slug ("anthropic"). That is a
+      // heuristic and it can mismatch for a vendor whose display name is not
+      // its slug — acceptable when the only consequence is a log line.
+      final held = pinned.any(
+        (provider) => provider.toLowerCase() == servedBy.toLowerCase(),
+      );
+      if (!held) _log.warning('Pinned to $pinned but served by $servedBy');
+      return;
+    }
   }
 
   /// OpenRouter's message content. **Text before image**, which its own image
@@ -170,14 +232,7 @@ class OpenRouterMealItemsApi implements MealItemsApi {
   /// `finish_reason: "error"` and the real status inside the choice, so the
   /// status line alone cannot be trusted. And `arguments` is a JSON string
   /// rather than an object, so it is decoded a second time.
-  List<ParsedMealItem> _itemsFrom(String responseBody) {
-    final Map<String, dynamic> decoded;
-    try {
-      decoded = jsonDecode(responseBody) as Map<String, dynamic>;
-    } catch (_) {
-      throw const MealInterpreterException('malformed response');
-    }
-
+  List<ParsedMealItem> _itemsFrom(Map<String, dynamic> decoded) {
     final choices = decoded['choices'];
     if (choices is! List || choices.isEmpty) {
       throw const MealInterpreterException('response has no choices');
