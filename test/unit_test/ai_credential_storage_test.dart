@@ -338,4 +338,110 @@ void main() {
       expect(await storage.activeProvider(), AiProvider.anthropic);
     });
   });
+
+  group('the model slot', () {
+    test('is per provider, like the key', () async {
+      await storage.writeModel('a/one', provider: AiProvider.anthropic);
+      await storage.writeModel('b/two', provider: AiProvider.openrouter);
+
+      expect(await storage.readModel(provider: AiProvider.anthropic), 'a/one');
+      expect(await storage.readModel(provider: AiProvider.openrouter), 'b/two');
+    });
+
+    test('defaults to the active provider when none is named', () async {
+      await storage.setActiveProvider(AiProvider.openrouter);
+      await storage.writeModel('b/two');
+
+      expect(await storage.readModel(), 'b/two');
+      expect(await storage.readModel(provider: AiProvider.anthropic), isNull);
+    });
+
+    test('reads as null when unset or blank', () async {
+      // Null is "use the default", which `AiModelCatalogue.resolve` decides.
+      // An empty string reaching it would resolve to the default anyway, but
+      // only by accident — collapsing it here means the absent case has one
+      // representation instead of two.
+      expect(await storage.readModel(), isNull);
+
+      backing.store['AiModelTag.anthropic'] = '';
+      expect(await storage.readModel(provider: AiProvider.anthropic), isNull);
+    });
+
+    test('is stored under a tag of its own, not beside the key', () async {
+      await storage.writeModel('a/one', provider: AiProvider.anthropic);
+
+      expect(backing.store['AiModelTag.anthropic'], 'a/one');
+      expect(backing.store.containsKey('AiApiKeyTag.anthropic'), isFalse);
+    });
+  });
+
+  group('readSelection', () {
+    test('is null while the feature is off, key or no key', () async {
+      await storage.writeApiKey('sk-test');
+      await storage.setEnabled(false);
+
+      expect(await storage.readSelection(), isNull);
+    });
+
+    test('is null when the active provider has no key', () async {
+      expect(await storage.readSelection(), isNull);
+    });
+
+    test('carries the active provider, its key and its model', () async {
+      await storage.setActiveProvider(AiProvider.openrouter);
+      await storage.writeApiKey('sk-or', provider: AiProvider.openrouter);
+      await storage.writeModel('b/two', provider: AiProvider.openrouter);
+
+      final selection = await storage.readSelection();
+
+      expect(selection!.provider, AiProvider.openrouter);
+      expect(selection.apiKey, 'sk-or');
+      expect(selection.modelId, 'b/two');
+    });
+
+    test('hands over the active provider\'s key when both are stored', () async {
+      // The reason this is read as a unit rather than field by field. A key
+      // is scoped to the account that issued it: sending the Anthropic one
+      // to OpenRouter would hand a working credential to a company the user
+      // never gave it to, and it would come back as a puzzling 401 rather
+      // than as anything that says what happened.
+      //
+      // Both slots are filled on purpose. With only one key stored the
+      // wrong-key bug is unreachable — `isEnabled` is itself scoped to the
+      // active provider, so it returns false and `readSelection` gives up
+      // before it ever reads a key. A test written that way passes against
+      // an implementation that always reads Anthropic's slot.
+      await storage.writeApiKey('sk-anthropic', provider: AiProvider.anthropic);
+      await storage.writeApiKey('sk-or', provider: AiProvider.openrouter);
+      await storage.setActiveProvider(AiProvider.openrouter);
+
+      final selection = await storage.readSelection();
+
+      expect(selection!.apiKey, 'sk-or');
+      expect(selection.provider, AiProvider.openrouter);
+    });
+
+    test('is null when only the other provider has a key', () async {
+      // Via `isEnabled`, which asks `hasApiKey()` for the *active* provider.
+      // Worth pinning because it is not obvious from the name: the feature
+      // reads as off — not merely unconfigured — the moment the user selects
+      // a provider they have no credential for.
+      await storage.writeApiKey('sk-anthropic', provider: AiProvider.anthropic);
+      await storage.setActiveProvider(AiProvider.openrouter);
+
+      expect(await storage.isEnabled(), isFalse);
+      expect(await storage.readSelection(), isNull);
+    });
+
+    test('leaves the model null when the provider has none stored', () async {
+      // Not an error: the catalogue turns null into that provider's default,
+      // so a user who never opened the model list still gets a request.
+      await storage.writeApiKey('sk-test');
+
+      final selection = await storage.readSelection();
+
+      expect(selection!.modelId, isNull);
+      expect(selection.provider, AiProvider.anthropic);
+    });
+  });
 }
