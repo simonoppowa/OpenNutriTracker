@@ -1138,5 +1138,6 @@
   "bulkAddPhotoCameraFailedLabel": "无法打开相机。请检查相机权限后重试。",
   "bulkAddPhotoFailedLabel": "无法解析照片。请检查网络连接后重试。",
   "bulkAddPhotoUnreadableLabel": "无法使用该图片。请换一张照片。",
+  "bulkAddPhotoUnsupportedLabel": "该模型无法读取照片。请在设置中选择其他模型，或手动输入条目。",
   "bulkAddPhotoNoFoodLabel": "未在该照片中识别到食物。请换一张照片，或手动输入条目。"
 }

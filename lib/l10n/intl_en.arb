@@ -1246,5 +1246,6 @@
   "bulkAddPhotoCameraFailedLabel": "Couldn't open the camera. Check camera permission and try again.",
   "bulkAddPhotoFailedLabel": "Couldn't read the photo. Check your connection and try again.",
   "bulkAddPhotoUnreadableLabel": "Couldn't use that image. Try another photo.",
+  "bulkAddPhotoUnsupportedLabel": "That model can't read photos. Choose a different one in Settings, or type the items instead.",
   "bulkAddPhotoNoFoodLabel": "No food found in that photo. Try another photo, or type the items instead."
 }

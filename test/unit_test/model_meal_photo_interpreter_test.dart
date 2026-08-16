@@ -5,7 +5,8 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
-import 'package:opennutritracker/features/add_meal/data/anthropic_meal_photo_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/data/model_meal_photo_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
 
 /// Captures the outgoing request and replays a canned reply. Nothing in this
@@ -57,10 +58,12 @@ String toolReply(List<Map<String, dynamic>> items) => jsonEncode({
   ],
 });
 
-AnthropicMealPhotoInterpreter interpreterWith(
+ModelMealPhotoInterpreter interpreterWith(
   http.Client client, {
-  Duration timeout = AnthropicMealPhotoInterpreter.defaultTimeout,
-}) => AnthropicMealPhotoInterpreter(client, () => 'test-key', timeout: timeout);
+  Duration timeout = AnthropicMealItemsApi.defaultTimeout,
+}) => ModelMealPhotoInterpreter(
+  AnthropicMealItemsApi(client, () => 'test-key', timeout: timeout),
+);
 
 final _photo = MealPhoto(
   bytes: Uint8List.fromList([1, 2, 3, 4]),
@@ -136,7 +139,7 @@ void main() {
 
   group('the schema cannot carry nutrition', () {
     test('no macro or energy field exists anywhere in it', () {
-      final schema = jsonEncode(AnthropicMealItemsApi.toolSchema);
+      final schema = jsonEncode(mealItemsToolSchema);
 
       for (final banned in [
         'kcal',
@@ -166,7 +169,7 @@ void main() {
         await interpreterWith(client).interpret(_photo);
 
         final tool = (client.sentBody!['tools'] as List).single as Map;
-        expect(tool['input_schema'], AnthropicMealItemsApi.toolSchema);
+        expect(tool['input_schema'], mealItemsToolSchema);
       },
     );
   });

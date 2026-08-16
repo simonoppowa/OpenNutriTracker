@@ -1168,5 +1168,6 @@
   "bulkAddPhotoCameraFailedLabel": "Kamera açılamadı. Kamera iznini kontrol edip tekrar deneyin.",
   "bulkAddPhotoFailedLabel": "Fotoğraf okunamadı. Bağlantınızı kontrol edip tekrar deneyin.",
   "bulkAddPhotoUnreadableLabel": "Bu görsel kullanılamadı. Başka bir fotoğraf deneyin.",
+  "bulkAddPhotoUnsupportedLabel": "Bu model fotoğrafları okuyamıyor. Ayarlar'dan başka bir model seçin veya öğeleri yazın.",
   "bulkAddPhotoNoFoodLabel": "Bu fotoğrafta yiyecek bulunamadı. Başka bir fotoğraf deneyin veya öğeleri yazın."
 }

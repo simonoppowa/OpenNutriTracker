@@ -61,6 +61,10 @@ enum BulkAddPhotoError {
 
   /// The photo itself could not be encoded or was too large to send.
   unreadable,
+
+  /// The configured model cannot read images at all. Sent to settings rather
+  /// than offered a retry: nothing about trying again changes the answer.
+  unsupported,
 }
 
 class BulkAddPhotoErrorState extends BulkAddState {

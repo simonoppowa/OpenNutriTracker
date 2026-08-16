@@ -3,7 +3,8 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:opennutritracker/features/add_meal/data/anthropic_meal_text_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
+import 'package:opennutritracker/features/add_meal/data/model_meal_text_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_text_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
@@ -57,10 +58,15 @@ String toolReply(List<Map<String, dynamic>> items) => jsonEncode({
   ],
 });
 
-AnthropicMealTextInterpreter interpreterWith(
+/// The interpreter over the Anthropic wire format. The prompt is
+/// provider-neutral, so these tests pin the Anthropic request shape; the
+/// OpenRouter shape has its own file.
+ModelMealTextInterpreter interpreterWith(
   FakeClient client, {
-  Duration timeout = AnthropicMealTextInterpreter.defaultTimeout,
-}) => AnthropicMealTextInterpreter(client, () => 'test-key', timeout: timeout);
+  Duration timeout = AnthropicMealItemsApi.defaultTimeout,
+}) => ModelMealTextInterpreter(
+  AnthropicMealItemsApi(client, () => 'test-key', timeout: timeout),
+);
 
 void main() {
   group('the request', () {
@@ -87,10 +93,7 @@ void main() {
       final client = FakeClient(body: toolReply(const []));
       await interpreterWith(client).interpret('toast');
 
-      expect(
-        client.sentBody!['model'],
-        AnthropicMealTextInterpreter.defaultModel,
-      );
+      expect(client.sentBody!['model'], AnthropicMealItemsApi.defaultModel);
       expect(client.sentBody!['model'], isNot(contains('latest')));
     });
 
@@ -406,10 +409,7 @@ void main() {
 
     test('the shipped timeout matches the other remote data sources', () {
       // The injectable timeout is for tests; this pins what production uses.
-      expect(
-        AnthropicMealTextInterpreter.defaultTimeout,
-        const Duration(seconds: 20),
-      );
+      expect(AnthropicMealItemsApi.defaultTimeout, const Duration(seconds: 20));
     });
 
     test('a malformed body raises rather than guessing', () async {

@@ -2,58 +2,15 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:opennutritracker/features/add_meal/domain/meal_interpreter_exception.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
-/// A user message body accepted by the meal-items request.
-sealed class AnthropicMealContent {
-  const AnthropicMealContent();
-
-  Object toJson();
-}
-
-class AnthropicMealTextContent extends AnthropicMealContent {
-  final String text;
-
-  const AnthropicMealTextContent(this.text);
-
-  @override
-  String toJson() => text;
-}
-
-class AnthropicMealPhotoContent extends AnthropicMealContent {
-  final String mediaType;
-  final String base64Data;
-
-  const AnthropicMealPhotoContent({
-    required this.mediaType,
-    required this.base64Data,
-  });
-
-  @override
-  List<Map<String, Object>> toJson() => [
-    {
-      'type': 'image',
-      'source': {'type': 'base64', 'media_type': mediaType, 'data': base64Data},
-    },
-    {'type': 'text', 'text': 'List the foods in this photo.'},
-  ];
-}
-
-/// The one place this app asks Claude for a list of food items, whether the
-/// question came from a line of text or a photograph.
+/// Asks Claude directly, over the Messages API, for a list of food items.
 ///
-/// **The provenance guarantee lives here, and only here.** [toolSchema] has
-/// no macro fields, so the model has nowhere to put a calorie count and
-/// cannot supply one. Both interpreters share this single schema on purpose:
-/// a second copy is a second thing to audit, and the whole value of a
-/// structural guarantee is that reviewing it is one question — "did anyone
-/// add a field to this schema?" — rather than one question per caller.
-///
-/// Everything the model returns then goes through [validateParsedMealItems],
-/// the same bounds `parseMealText` enforces, so no model can write to the
-/// diary under looser rules than a regex.
-class AnthropicMealItemsApi {
+/// One of two [MealItemsApi] implementations. This one holds nothing but
+/// Anthropic's wire format: the prompts, the counts-only rule and
+/// [mealItemsToolSchema] live above the seam, shared with every provider.
+class AnthropicMealItemsApi implements MealItemsApi {
   static final _log = Logger('AnthropicMealItemsApi');
 
   static const _endpoint = 'https://api.anthropic.com/v1/messages';
@@ -66,8 +23,6 @@ class AnthropicMealItemsApi {
 
   /// The API version header Anthropic requires. Pinned for the same reason.
   static const _apiVersion = '2023-06-01';
-
-  static const toolName = 'log_meal_items';
 
   /// Small on purpose. This returns a short list of short strings; a large
   /// budget only buys a longer runaway before it is cut off.
@@ -94,64 +49,10 @@ class AnthropicMealItemsApi {
     this.timeout = defaultTimeout,
   });
 
-  /// No nutrition fields, by construction. Adding one here is the only way a
-  /// model could return a macro through either path.
-  static const toolSchema = {
-    'type': 'object',
-    'properties': {
-      'items': {
-        'type': 'array',
-        'items': {
-          'type': 'object',
-          'properties': {
-            'query': {
-              'type': 'string',
-              'description':
-                  'Food name only, no amount, in the user\'s '
-                  'language.',
-            },
-            'quantity': {
-              'type': 'number',
-              'description': 'Only if the user stated an amount.',
-            },
-            'unit': {
-              'type': 'string',
-              // `l`, `kg` and `lb` are here because the app converts them
-              // (validateParsedMealItems normalizes to ml and g). Leaving
-              // them out did not stop the model answering — it mapped a
-              // litre to `ml` and kept the number, turning 1.5 l of milk
-              // into 1.5 ml. A thousandfold under-count with no warning,
-              // because a unit *was* stated so nothing flagged the row.
-              'enum': [
-                'g',
-                'kg',
-                'lb',
-                'ml',
-                'l',
-                'g/ml',
-                'oz',
-                'fl.oz',
-                'serving',
-              ],
-              'description':
-                  'Only if the user stated a unit, and only '
-                  'one of these. Never map a different unit onto one of '
-                  'them.',
-            },
-          },
-          'required': ['query'],
-          'additionalProperties': false,
-        },
-      },
-    },
-    'required': ['items'],
-    'additionalProperties': false,
-  };
-
   /// Sends one forced tool call and returns the validated items.
-  ///
+  @override
   Future<MealTextParseResult> requestItems({
-    required AnthropicMealContent content,
+    required MealContent content,
     required String system,
   }) async {
     final body = jsonEncode({
@@ -160,16 +61,16 @@ class AnthropicMealItemsApi {
       'system': system,
       'tools': [
         {
-          'name': toolName,
-          'description': 'Record the food items found.',
-          'input_schema': toolSchema,
+          'name': mealItemsToolName,
+          'description': mealItemsToolDescription,
+          'input_schema': mealItemsToolSchema,
         },
       ],
       // Forcing the tool is what makes the reply parseable. Without it the
       // model may answer in prose and every caller needs a fallback parser.
-      'tool_choice': {'type': 'tool', 'name': toolName},
+      'tool_choice': {'type': 'tool', 'name': mealItemsToolName},
       'messages': [
-        {'role': 'user', 'content': content.toJson()},
+        {'role': 'user', 'content': _contentJson(content)},
       ],
     });
 
@@ -204,6 +105,25 @@ class AnthropicMealItemsApi {
     return validateParsedMealItems(_itemsFrom(response.body));
   }
 
+  /// Anthropic's message content. **Image before text**, which is what
+  /// Anthropic's own vision guidance recommends — and the opposite of what
+  /// OpenRouter recommends, which is why this rendering is per-client rather
+  /// than on [MealContent].
+  Object _contentJson(MealContent content) => switch (content) {
+    MealTextContent(:final text) => text,
+    MealPhotoContent(:final mediaType, :final base64Data) => [
+      {
+        'type': 'image',
+        'source': {
+          'type': 'base64',
+          'media_type': mediaType,
+          'data': base64Data,
+        },
+      },
+      {'type': 'text', 'text': mealPhotoContentPrompt},
+    ],
+  };
+
   /// Pulls the tool input out of the reply. Every shape that is not the one
   /// expected raises rather than guessing, so a changed API surfaces as a
   /// handled failure instead of silent nonsense.
@@ -222,48 +142,16 @@ class AnthropicMealItemsApi {
 
     for (final block in content) {
       if (block is! Map) continue;
-      if (block['type'] != 'tool_use' || block['name'] != toolName) continue;
+      if (block['type'] != 'tool_use') continue;
+      if (block['name'] != mealItemsToolName) continue;
 
       // Checked rather than cast: a provider returning something other than
       // an object here would otherwise throw a TypeError straight past the
       // exception surface the callers rely on.
       final input = block['input'];
-      final rawItems = input is Map ? input['items'] : null;
-      if (rawItems is! List) {
-        throw const MealInterpreterException('tool call has no items');
-      }
-
-      return [
-        for (final item in rawItems)
-          if (item is Map) _itemFrom(item),
-      ].nonNulls.toList();
+      return mealItemsFromJson(input is Map ? input['items'] : null);
     }
 
     throw const MealInterpreterException('response has no tool call');
-  }
-
-  /// One item, or null when it carries no usable query. A malformed entry is
-  /// dropped rather than failing the batch — the other items are still worth
-  /// showing, and `validateParsedMealItems` reports what it rejects.
-  ParsedMealItem? _itemFrom(Map<dynamic, dynamic> raw) {
-    final query = raw['query'];
-    if (query is! String) return null;
-
-    // Numbers arrive as int or double depending on how the model wrote
-    // them; a string is accepted too rather than dropping an otherwise fine
-    // item over its JSON type.
-    final rawQuantity = raw['quantity'];
-    final quantity = switch (rawQuantity) {
-      num n => n.toDouble(),
-      String s => double.tryParse(s.replaceAll(',', '.')),
-      _ => null,
-    };
-
-    final rawUnit = raw['unit'];
-    return ParsedMealItem(
-      query: query,
-      quantity: quantity,
-      unit: rawUnit is String ? rawUnit : null,
-    );
   }
 }

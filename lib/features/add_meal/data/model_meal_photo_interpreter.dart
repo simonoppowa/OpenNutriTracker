@@ -1,17 +1,16 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
-/// Reads a photograph of a meal with Claude and returns the foods it can
+/// Reads a photograph of a meal with a model and returns the foods it can
 /// identify, so the existing search can resolve each one against Open Food
 /// Facts / USDA / BLS.
 ///
-/// Shares [AnthropicMealItemsApi] — and therefore the tool schema with no
-/// macro fields — with the text path. What differs is the prompt, and one
-/// extra rule this class enforces in code.
+/// Shares [MealItemsApi] — and therefore [mealItemsToolSchema], which has no
+/// macro fields — with the text path, and with every provider. What differs
+/// is the prompt, and one extra rule this class enforces in code.
 ///
 /// **A photograph may produce a count, never a measurement.** The text path
 /// can return `100 g` because the user typed it. Nothing in a photo is
@@ -22,23 +21,14 @@ import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 /// count is right. So the prompt asks for counts only and [_countsOnly]
 /// discards anything that came back with a unit, which is the tell that the
 /// model measured instead of counted.
-class AnthropicMealPhotoInterpreter implements MealPhotoInterpreter {
-  static const defaultModel = AnthropicMealItemsApi.defaultModel;
-  static const defaultTimeout = AnthropicMealItemsApi.defaultTimeout;
+///
+/// That rule lives here rather than in either client because it is a
+/// property of reading photographs, not of a provider. A provider added
+/// later inherits it without being asked to.
+class ModelMealPhotoInterpreter implements MealPhotoInterpreter {
+  final MealItemsApi _api;
 
-  final AnthropicMealItemsApi _api;
-
-  AnthropicMealPhotoInterpreter(
-    http.Client client,
-    String Function() apiKey, {
-    String model = defaultModel,
-    Duration timeout = defaultTimeout,
-  }) : _api = AnthropicMealItemsApi(
-         client,
-         apiKey,
-         model: model,
-         timeout: timeout,
-       );
+  ModelMealPhotoInterpreter(this._api);
 
   static const _systemPrompt = '''
 You identify the foods visible in a photograph of a meal so they can be
@@ -68,7 +58,7 @@ Rules:
     String? localeCode,
   }) async {
     final result = await _api.requestItems(
-      content: AnthropicMealPhotoContent(
+      content: MealPhotoContent(
         mediaType: photo.mediaType,
         base64Data: base64Encode(photo.bytes),
       ),
@@ -97,7 +87,7 @@ Rules:
   /// which is the measuring this path does not do. A 447-call corpus never
   /// once produced a fraction, so this guards nothing today; it guards the
   /// day the model changes, which is the only reason the unit rule is here
-  /// either.
+  /// either — and adding a provider is exactly that day arriving.
   ///
   /// Either way the row falls back to the same default an unquantified item
   /// gets, and the user sets the amount.
