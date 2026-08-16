@@ -955,9 +955,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     null => null,
     false => S.of(context).settingsAiAssistNotConfiguredLabel,
     true when _aiEnabled =>
+      // Exhaustive, deliberately. A wildcard here would name Anthropic for
+      // any provider added later, and this tile is the only place the
+      // destination is visible without opening the dialog — the same shape
+      // of defect as the photo sheet that said "an Anthropic gesendet" while
+      // OpenRouter was selected. Listing both makes the compiler ask.
       '${S.of(context).settingsAiAssistOnLabel} — ${switch (_aiProvider) {
+        AiProvider.anthropic => 'Anthropic',
         AiProvider.openrouter => 'OpenRouter',
-        _ => 'Anthropic',
       }}',
     true => S.of(context).settingsAiAssistPausedLabel,
   };

@@ -39,6 +39,20 @@ class AiAssistDialog extends StatefulWidget {
         builder: (_) => AiAssistDialog(storage: storage),
       ).then((changed) => changed ?? false);
 
+  /// The accessibility identifier for a model row.
+  ///
+  /// A model id is not kebab-case — `anthropic/claude-haiku-4.5` carries a
+  /// slash and a dot — and AGENTS.md asks these identifiers to be, so the id
+  /// is folded rather than pasted in. Not cosmetic: these are what the adb
+  /// verifier matches on, and a slash inside a value it greps and quotes is
+  /// a footgun waiting for whoever writes the next driver.
+  ///
+  /// Public so a test can pin that the curated catalogue folds to distinct
+  /// identifiers. Two models colliding here would make the driver tap a row
+  /// it was not asked for and report success.
+  static String modelIdentifier(String modelId) =>
+      'ai-assist-model-${modelId.replaceAll(RegExp('[^a-z0-9]+'), '-')}';
+
   @override
   State<AiAssistDialog> createState() => _AiAssistDialogState();
 }
@@ -360,7 +374,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
           ...models.map(
             // Same deprecated-but-working form as the provider radios above.
             (model) => Semantics(
-              identifier: 'ai-assist-model-${model.id}',
+              identifier: AiAssistDialog.modelIdentifier(model.id),
               // ignore: deprecated_member_use
               child: RadioListTile<String>(
                 contentPadding: EdgeInsets.zero,

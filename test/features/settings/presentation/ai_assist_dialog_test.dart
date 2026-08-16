@@ -429,6 +429,38 @@ void main() {
           )))
       .toList();
 
+  test('model identifiers are kebab-case and one per model', () {
+    // AGENTS.md asks for kebab-case, and a model id is not: it carries a
+    // slash and a dot. The fold has to keep them apart as well as tidy —
+    // two models landing on one identifier would make the adb verifier tap
+    // a row it was not asked for and then report that it passed.
+    final identifiers = [
+      ...AiModelCatalogue.openrouter,
+      ...AiModelCatalogue.anthropic,
+    ].map((model) => AiAssistDialog.modelIdentifier(model.id)).toList();
+
+    for (final identifier in identifiers) {
+      expect(identifier, matches(RegExp(r'^[a-z0-9]+(-[a-z0-9]+)*$')));
+    }
+    expect(identifiers.toSet(), hasLength(identifiers.length));
+  });
+
+  testWidgets('the model rows carry the identifier the verifier looks for', (
+    tester,
+  ) async {
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    for (final model in AiModelCatalogue.openrouter) {
+      expect(
+        find.bySemanticsIdentifier(AiAssistDialog.modelIdentifier(model.id)),
+        findsOneWidget,
+        reason: '${model.id} has no row the driver can find',
+      );
+    }
+  });
+
   testWidgets('a model row stays inside its two-line bound', (tester) async {
     // 320dp at a 2.0 text scale leaves the title 156dp, which no model id
     // fits under any setting. What has to hold there is that it stops at the
