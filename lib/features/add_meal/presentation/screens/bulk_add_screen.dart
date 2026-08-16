@@ -6,10 +6,12 @@ import 'package:logging/logging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_photo_encoder.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
@@ -71,6 +73,26 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// the user visits settings, which closes this screen anyway.
   late final Future<bool> _photoAvailable = locator<AiCredentialStorage>()
       .isEnabled();
+
+  /// Where a photo would actually go. The sheet below is the last moment the
+  /// user can decline, so it has to name the real destination — it named
+  /// Anthropic unconditionally until a Pixel 6 showed it saying so while
+  /// OpenRouter was selected.
+  ///
+  /// Deliberately not `readSelection()`: that carries the API key, and
+  /// nothing in the widget layer has any business holding it.
+  late final Future<({AiProvider provider, AiModel model})> _photoDestination =
+      () async {
+        final storage = locator<AiCredentialStorage>();
+        final provider = await storage.activeProvider();
+        return (
+          provider: provider,
+          model: AiModelCatalogue.resolve(
+            provider,
+            await storage.readModel(provider: provider),
+          ),
+        );
+      }();
 
   late BulkAddScreenArguments _args;
   bool _submitting = false;
@@ -224,6 +246,29 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       ),
     );
 
+    // A model failure that will still be true tomorrow gets said out loud,
+    // even though the rows below are perfectly usable parser output. The
+    // alternative is what a Pixel 6 actually did with a mistyped key: a
+    // plausible screen, a silent 401 on every request, and nothing anywhere
+    // to suggest the feature was not running.
+    final failure = state.modelFailure;
+    if (failure != null) {
+      return _noticeAbove(
+        context,
+        list,
+        icon: Icons.key_off_rounded,
+        text: switch (failure) {
+          MealTextModelFailure.auth =>
+            S.of(context).bulkAddModelKeyRejectedLabel,
+          MealTextModelFailure.unsupported =>
+            S.of(context).bulkAddModelUnsupportedLabel,
+        },
+        // Coloured as a warning, unlike the neutral "read by AI" banner:
+        // this one is asking the user to go and change something.
+        emphasised: true,
+      );
+    }
+
     if (state.source == BulkAddReadSource.parser) return list;
 
     // Shown above the rows, not inside one. A model read the whole input, so
@@ -235,6 +280,26 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     // is nothing to compare against, and the food itself may be misidentified
     // rather than merely mis-measured.
     final photo = state.source == BulkAddReadSource.photo;
+    return _noticeAbove(
+      context,
+      list,
+      icon: photo ? Icons.photo_camera_rounded : Icons.auto_awesome_rounded,
+      text: photo
+          ? S.of(context).bulkAddReadFromPhotoLabel
+          : S.of(context).bulkAddReadByModelLabel,
+    );
+  }
+
+  /// A one-line banner above the rows. The caution belongs to the batch, not
+  /// to any single row, so it sits above the list rather than inside it.
+  Widget _noticeAbove(
+    BuildContext context,
+    Widget list, {
+    required IconData icon,
+    required String text,
+    bool emphasised = false,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
     return Column(
       children: [
         Semantics(
@@ -242,23 +307,27 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            color: emphasised
+                ? scheme.errorContainer
+                : scheme.surfaceContainerHighest,
             child: Row(
               children: [
                 Icon(
-                  photo
-                      ? Icons.photo_camera_rounded
-                      : Icons.auto_awesome_rounded,
+                  icon,
                   size: 16,
+                  color: emphasised ? scheme.onErrorContainer : null,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    photo
-                        ? S.of(context).bulkAddReadFromPhotoLabel
-                        : S.of(context).bulkAddReadByModelLabel,
-                    style: Theme.of(context).textTheme.bodySmall,
-                    maxLines: 2,
+                    text,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: emphasised ? scheme.onErrorContainer : null,
+                    ),
+                    // Three lines: the failure notices carry two facts and
+                    // run long in German, and truncating the half that says
+                    // where the rows came from would be the worse loss.
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -523,6 +592,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
   Future<void> _onPhotoPressed() async {
     FocusScope.of(context).unfocus();
+    final destination = await _photoDestination;
+    if (!mounted) return;
+    final disclosure = switch (destination.provider) {
+      AiProvider.anthropic => S.of(context).bulkAddPhotoDisclosureAnthropic,
+      AiProvider.openrouter =>
+        S
+            .of(context)
+            .bulkAddPhotoDisclosureOpenRouter(destination.model.servedBy),
+    };
     final shouldOpenCamera = await showModalBottomSheet<bool>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -534,7 +612,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
-                S.of(sheetContext).bulkAddPhotoDisclosureLabel,
+                '$disclosure '
+                '${S.of(sheetContext).bulkAddPhotoDisclosureCommon}',
                 style: Theme.of(sheetContext).textTheme.bodySmall,
               ),
             ),

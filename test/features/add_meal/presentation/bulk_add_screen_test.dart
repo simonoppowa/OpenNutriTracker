@@ -4,8 +4,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_photo_usecase.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_text_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
@@ -187,6 +189,64 @@ Future<BulkAddBloc> _registerWithPhotoReading(
   return bloc;
 }
 
+/// Same graph, but the text reader always fails the given way and a key *is*
+/// present, so the screen renders the "the model was skipped" notice.
+Future<BulkAddBloc> _registerWithFailingReader(
+  Map<String, List<MealEntity>> results,
+  MealInterpreterException failure,
+) async {
+  await _register(results);
+  final bloc = BulkAddBloc(
+    ResolveParsedMealsUseCase(_FakeSearch(results)),
+    ReadMealTextUseCase(
+      AiCredentialStorage(
+        _MapStorage({
+          'AiApiKeyTag.anthropic': 'sk-test',
+          'AiAssistEnabledTag': 'true',
+        }),
+      ),
+      (_) => _AlwaysFailsInterpreter(failure),
+    ),
+    ReadMealPhotoUseCase(
+      AiCredentialStorage(_EmptyStorage()),
+      (_) => throw StateError('must not be built without a key'),
+    ),
+  );
+  getIt.unregister<BulkAddBloc>();
+  getIt.registerSingleton<BulkAddBloc>(bloc);
+  return bloc;
+}
+
+class _AlwaysFailsInterpreter implements MealTextInterpreter {
+  final MealInterpreterException failure;
+
+  _AlwaysFailsInterpreter(this.failure);
+
+  @override
+  Future<MealTextParseResult> interpret(String input, {String? localeCode}) =>
+      throw failure;
+}
+
+class _MapStorage implements FlutterSecureStorage {
+  final Map<String, String> values;
+
+  _MapStorage(this.values);
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => values[key];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// The screen reads its arguments off the route and pops back to
 /// `mainRoute`, so it needs a real navigator with that route named. The
 /// rows render kcal through `EnergyDisplay`, which reads the provider.
@@ -242,6 +302,81 @@ Finder _submitButton() => find.widgetWithIcon(FilledButton, Icons.add_rounded);
 
 void main() {
   tearDown(() async => getIt.reset());
+
+  testWidgets('a rejected key is stated, and fits a phone in German', (
+    tester,
+  ) async {
+    // The German string is 139 characters against a three-line cap. The two
+    // layout bugs already found on this feature were both "fits the test
+    // viewport, not the handset", so this pins the real one.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await _registerWithFailingReader({
+      'toast': [_meal('Toast')],
+    }, const MealInterpreterException('unauthorized', statusCode: 401));
+
+    await tester.pumpWidget(_app(locale: const Locale('de')));
+    await tester.pumpAndSettle();
+    // Through the real navigator: a widget test that asserts against a
+    // screen it never pushed is the failure this project has already had
+    // once, and it passes for the wrong reason rather than failing.
+    await _parse(tester, '100g toast');
+
+    final de = lookupS(const Locale('de'));
+    expect(find.text(de.bulkAddModelKeyRejectedLabel), findsOneWidget);
+    // The rows survive: reporting the failure must not cost the entry.
+    expect(find.textContaining('Toast'), findsWidgets);
+    expect(
+      tester.takeException(),
+      isNull,
+      reason: 'the notice must not overflow its row',
+    );
+  });
+
+  testWidgets('the photo sheet names the destination that is actually used', (
+    tester,
+  ) async {
+    // The sheet is the last moment a user can decline sending a photograph.
+    // It named Anthropic unconditionally until a Pixel 6 showed it doing so
+    // while OpenRouter was selected — a false statement at exactly the
+    // moment the statement matters.
+    await _register(const {});
+    getIt.unregister<AiCredentialStorage>();
+    getIt.registerLazySingleton<AiCredentialStorage>(
+      () => AiCredentialStorage(
+        _MapStorage({
+          'AiApiKeyTag.openrouter': 'sk-or-test',
+          'AiAssistEnabledTag': 'true',
+          'AiProviderTag': 'openrouter',
+        }),
+      ),
+    );
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.photo_camera_rounded).first);
+    await tester.pumpAndSettle();
+
+    final vendor = AiModelCatalogue.defaultFor(AiProvider.openrouter).servedBy;
+    expect(
+      find.textContaining(l10nEn.bulkAddPhotoDisclosureOpenRouter(vendor)),
+      findsOneWidget,
+    );
+    // A broker hop has two ends and the sheet has to name both.
+    expect(find.textContaining('OpenRouter'), findsWidgets);
+    expect(find.textContaining(vendor), findsWidgets);
+    // The sentence true either way is still there, once.
+    expect(
+      find.textContaining(l10nEn.bulkAddPhotoDisclosureCommon),
+      findsOneWidget,
+    );
+  });
 
   testWidgets('a photo with no food says so, not "nothing to log yet"', (
     tester,
@@ -505,7 +640,6 @@ void main() {
     );
   });
 }
-
 
 /// Returns a fixed reading without touching a credential or a network.
 class _StubPhotoReader implements ReadMealPhotoUseCase {

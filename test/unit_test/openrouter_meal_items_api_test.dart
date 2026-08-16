@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/add_meal/data/model_meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/data/openrouter_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
@@ -53,8 +54,28 @@ class FakeClient extends http.BaseClient {
 String toolReply(
   List<Map<String, dynamic>> items, {
   String name = mealItemsToolName,
+  String? servedBy,
 }) => jsonEncode({
   'id': 'gen_1',
+  // Present only when the router reported one. It is absent on cache hits
+  // and on failures that never reached the router, so the client has to cope
+  // with a reply that carries no routing information at all.
+  if (servedBy != null)
+    'openrouter_metadata': {
+      'requested': 'anthropic/claude-haiku-4.5',
+      'strategy': 'direct',
+      'attempt': 1,
+      'endpoints': {
+        'total': 1,
+        'available': [
+          {
+            'provider': servedBy,
+            'model': 'anthropic/claude-haiku-4.5',
+            'selected': true,
+          },
+        ],
+      },
+    },
   'choices': [
     {
       'finish_reason': 'tool_calls',
@@ -92,6 +113,27 @@ Future<MealTextParseResult> request(
   OpenRouterMealItemsApi api, {
   MealContent content = const MealTextContent('toast'),
 }) => api.requestItems(content: content, system: 'system prompt');
+
+/// Everything the client logged while [body] ran.
+///
+/// The pin check reports by logging rather than by throwing or returning, so
+/// the log is the only place its behaviour is observable — and a test that
+/// cannot see it would pass just as happily if the check were deleted.
+Future<List<String>> logsDuring(Future<void> Function() body) async {
+  final logged = <String>[];
+  final previousLevel = Logger.root.level;
+  Logger.root.level = Level.ALL;
+  final subscription = Logger.root.onRecord.listen(
+    (record) => logged.add(record.message),
+  );
+  try {
+    await body();
+  } finally {
+    await subscription.cancel();
+    Logger.root.level = previousLevel;
+  }
+  return logged;
+}
 
 void main() {
   group('the request', () {
@@ -175,6 +217,31 @@ void main() {
 
       expect((client.sentBody!['provider'] as Map)['require_parameters'], true);
     });
+
+    test('refuses providers that may keep and train on the input', () async {
+      // Routing default is `allow`: providers that store input
+      // non-transiently and may train on it are eligible unless the request
+      // says otherwise. Nothing else in this request says otherwise — the
+      // pin below narrows *who*, not *what they may do with it*.
+      final client = FakeClient(body: toolReply(const []));
+      await request(apiWith(client, providers: const ['anthropic']));
+
+      expect((client.sentBody!['provider'] as Map)['data_collection'], 'deny');
+    });
+
+    test('asks the reply to name the provider that served it', () async {
+      // Without this header the 200 carries no `openrouter_metadata`, and
+      // the app cannot say which company received the payload. It is a
+      // per-request opt-in, so it has to ride on every request or the answer
+      // is unavailable exactly when it is wanted.
+      final client = FakeClient(body: toolReply(const []));
+      await request(apiWith(client));
+
+      expect(
+        client.sentHeaders!.map((k, v) => MapEntry(k.toLowerCase(), v)),
+        containsPair('x-openrouter-metadata', 'enabled'),
+      );
+    });
   });
 
   group('provider pinning', () {
@@ -197,6 +264,82 @@ void main() {
       final provider = client.sentBody!['provider'] as Map;
       expect(provider.containsKey('only'), isFalse);
       expect(provider.containsKey('allow_fallbacks'), isFalse);
+    });
+
+    test('says nothing when the pinned provider is the one that served',
+        () async {
+      // Display form against slug. The metadata says "Anthropic" where the
+      // pin says "anthropic", and treating that as a mismatch would make the
+      // warning fire on every successful request — which is the fastest way
+      // to make a warning worthless.
+      final client = FakeClient(
+        body: toolReply(const [], servedBy: 'Anthropic'),
+      );
+
+      final logged = await logsDuring(
+        () => request(apiWith(client, providers: const ['anthropic'])),
+      );
+
+      expect(logged, isEmpty);
+    });
+
+    test('warns when a different provider served the request', () async {
+      // The settings screen names the vendor as a guarantee. This is the
+      // only runtime check that the guarantee held; without it the app
+      // states where a photograph went and never verifies the claim.
+      final client = FakeClient(
+        body: toolReply(const [], servedBy: 'Amazon Bedrock'),
+      );
+
+      final logged = await logsDuring(
+        () => request(apiWith(client, providers: const ['anthropic'])),
+      );
+
+      expect(logged.single, contains('Amazon Bedrock'));
+    });
+
+    test('a broken pin still returns the answer', () async {
+      // Logged, never thrown. The reply is a valid answer to what the user
+      // asked, and losing their meal entry to a routing discrepancy is a
+      // worse outcome than the discrepancy.
+      final client = FakeClient(
+        body: toolReply(
+          const [
+            {'query': 'toast'},
+          ],
+          servedBy: 'Amazon Bedrock',
+        ),
+      );
+
+      final result = await request(
+        apiWith(client, providers: const ['anthropic']),
+      );
+
+      expect(result.items.single.query, 'toast');
+    });
+
+    test('stays quiet when the reply carries no routing metadata', () async {
+      // Cache replays strip the field by design, and failures that never
+      // reached the router never had it. Absence is not evidence the pin
+      // broke, and warning on it would train the reader to ignore the line.
+      final client = FakeClient(body: toolReply(const []));
+
+      final logged = await logsDuring(
+        () => request(apiWith(client, providers: const ['anthropic'])),
+      );
+
+      expect(logged, isEmpty);
+    });
+
+    test('checks nothing when nothing was pinned', () async {
+      // No pin is no claim, so there is nothing to be wrong about.
+      final client = FakeClient(
+        body: toolReply(const [], servedBy: 'Amazon Bedrock'),
+      );
+
+      final logged = await logsDuring(() => request(apiWith(client)));
+
+      expect(logged, isEmpty);
     });
   });
 

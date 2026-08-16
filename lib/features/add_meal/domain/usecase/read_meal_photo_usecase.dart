@@ -75,7 +75,8 @@ class ReadMealPhotoUseCase {
   /// Builds an interpreter around a key. A factory rather than an instance
   /// because the credential is read per call and should not be captured for
   /// the lifetime of a singleton.
-  final MealPhotoInterpreter Function(String apiKey) _interpreterFactory;
+  final MealPhotoInterpreter Function(AiSelection selection)
+  _interpreterFactory;
 
   ReadMealPhotoUseCase(this._credentials, this._interpreterFactory);
 
@@ -83,17 +84,14 @@ class ReadMealPhotoUseCase {
     MealPhoto photo, {
     String? localeCode,
   }) async {
-    if (!await _credentials.isEnabled()) {
-      return const MealPhotoUnavailable();
-    }
-    final apiKey = await _credentials.readApiKey();
-    if (apiKey == null) {
+    final selection = await _credentials.readSelection();
+    if (selection == null) {
       return const MealPhotoUnavailable();
     }
 
     try {
       final result = await _interpreterFactory(
-        apiKey,
+        selection,
       ).interpret(photo, localeCode: localeCode);
       return MealPhotoRead(result);
     } on MealInterpreterException catch (e) {

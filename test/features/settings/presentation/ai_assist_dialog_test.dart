@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/ai_assist_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -83,8 +85,235 @@ void main() {
     await tester.pumpWidget(_app(storage));
     await tester.pumpAndSettle();
 
-    expect(find.text(l10nEn.aiAssistDisclosureLabel), findsOneWidget);
+    // The provider paragraph and the shared sentences are concatenated into
+    // one Text, so this asserts on the substrings rather than on equality —
+    // the split is an implementation detail, the words reaching the user
+    // are not.
+    expect(
+      find.textContaining(l10nEn.aiAssistDisclosureAnthropic),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining(l10nEn.aiAssistDisclosureCommon),
+      findsOneWidget,
+    );
     expect(find.byType(TextField), findsOneWidget);
+  });
+
+  testWidgets('names the destination that is actually selected', (
+    tester,
+  ) async {
+    // The whole reason the disclosure is split: with OpenRouter selected it
+    // must state a broker, a forwarded identity and a retention carve-out,
+    // none of which is true of the direct path.
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining(l10nEn.aiAssistDisclosureOpenRouter),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining(l10nEn.aiAssistDisclosureAnthropic),
+      findsNothing,
+    );
+    // And the shared sentences survive the switch rather than being
+    // duplicated into each variant.
+    expect(
+      find.textContaining(l10nEn.aiAssistDisclosureCommon),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('switching provider swaps the disclosure with it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('OpenRouter'));
+    await tester.pumpAndSettle();
+
+    expect(await storage.activeProvider(), AiProvider.openrouter);
+    expect(
+      find.textContaining(l10nEn.aiAssistDisclosureOpenRouter),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the key field names the provider it belongs to', (tester) async {
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(l10nEn.aiAssistKeyFieldLabel('Anthropic')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('OpenRouter'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(l10nEn.aiAssistKeyFieldLabel('OpenRouter')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a key saved for one provider is not offered for the other', (
+    tester,
+  ) async {
+    await storage.writeApiKey('sk-ant', provider: AiProvider.anthropic);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+    expect(find.textContaining(l10nEn.aiAssistKeySavedLabel), findsOneWidget);
+
+    await tester.tap(find.text('OpenRouter'));
+    await tester.pumpAndSettle();
+
+    // Quietly unavailable, not an error: a setting the user can change.
+    expect(find.text(l10nEn.aiAssistNoKeyForProviderLabel), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
+    expect(
+      await storage.readApiKey(provider: AiProvider.anthropic),
+      'sk-ant',
+      reason: 'and the other key is untouched',
+    );
+  });
+
+  testWidgets('offers a model choice only where one exists', (tester) async {
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    // The direct path pins one model. Rendering a list of one would imply a
+    // choice that is not there.
+    expect(
+      find.textContaining(AiModelCatalogue.anthropic.single.id),
+      findsOneWidget,
+    );
+    expect(find.byType(RadioListTile<String>), findsNothing);
+
+    await tester.tap(find.text('OpenRouter'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byType(RadioListTile<String>),
+      findsNWidgets(AiModelCatalogue.openrouter.length),
+    );
+  });
+
+  testWidgets('the default model is the one measurement chose', (tester) async {
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    final selected = tester
+        .widgetList<RadioListTile<String>>(find.byType(RadioListTile<String>))
+        // ignore: deprecated_member_use
+        .where((tile) => tile.value == tile.groupValue)
+        .single;
+    expect(selected.value, 'anthropic/claude-sonnet-5');
+  });
+
+  testWidgets('choosing a model stores it against that provider', (
+    tester,
+  ) async {
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('anthropic/claude-haiku-4.5'));
+    await tester.pumpAndSettle();
+
+    expect(
+      await storage.readModel(provider: AiProvider.openrouter),
+      'anthropic/claude-haiku-4.5',
+    );
+    expect(
+      await storage.readModel(provider: AiProvider.anthropic),
+      isNull,
+      reason: 'the other provider keeps its own model',
+    );
+  });
+
+  testWidgets('names the vendor that will actually serve the request', (
+    tester,
+  ) async {
+    // Pinned with fallbacks off, so this is guaranteed rather than likely —
+    // which is why it is stated once here instead of on every batch.
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    // Stated once for the group, not per row. Every curated model is served
+    // by the same vendor — necessarily so while #656 restricts the list to
+    // Anthropic — and repeating it cost two wrapped lines in German for a
+    // fact that does not change between the rows.
+    expect(
+      find.textContaining(l10nEn.aiAssistServedByLabel('Anthropic')),
+      findsOneWidget,
+    );
+    // The claim itself has to survive the deduplication: every model on the
+    // list must still be one this vendor actually serves, or the single
+    // line is a lie about some of them.
+    expect(
+      AiModelCatalogue.openrouter.map((m) => m.servedBy).toSet(),
+      {'Anthropic'},
+    );
+  });
+
+  testWidgets('the key field is on screen without scrolling, on a phone', (
+    tester,
+  ) async {
+    // Found on a Pixel 6, not here. The original layout put the disclosure
+    // above the field, and on the OpenRouter path — whose disclosure is
+    // three sentences longer — that pushed the field entirely below the
+    // fold. The dialog ended with a paragraph cut off mid-word and no
+    // scroll affordance, so a first-time user saw a wall of text, ABBRECHEN
+    // and OK, and no way to enter anything.
+    //
+    // `find.byType(TextField)` passed throughout, because a widget scrolled
+    // out of view is still in the tree. Only its rect tells the truth.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    final field = tester.getRect(find.byType(TextField));
+    final viewport = tester.view.physicalSize.height / tester.view.devicePixelRatio;
+
+    expect(
+      field.bottom,
+      lessThanOrEqualTo(viewport),
+      reason: 'the key field must be reachable without scrolling: it is the '
+          'one thing this dialog exists for',
+    );
+  });
+
+  testWidgets('says that the content scrolls, rather than clipping it', (
+    tester,
+  ) async {
+    // The disclosure cannot be made to fit a phone dialog — every sentence
+    // in the OpenRouter one is load-bearing, and on a Pixel 6 the shared
+    // paragraph starts below the fold. Clipped against the bottom edge with
+    // no affordance it reads as the end of the text, which is the one thing
+    // a disclosure must not do.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    final scrollbar = tester.widget<Scrollbar>(find.byType(Scrollbar));
+    expect(
+      scrollbar.thumbVisibility,
+      isTrue,
+      reason: 'a disclosure that silently continues below the fold is a '
+          'disclosure the reader thinks they have finished',
+    );
   });
 
   testWidgets('the key field is obscured while typing', (tester) async {
@@ -134,6 +363,8 @@ void main() {
     await tester.pumpWidget(_app(storage));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.byType(Switch));
+    await tester.pumpAndSettle();
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
 
@@ -148,6 +379,8 @@ void main() {
     await tester.pumpWidget(_app(storage));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text(l10nEn.aiAssistRemoveKeyLabel));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(l10nEn.aiAssistRemoveKeyLabel));
     await tester.pumpAndSettle();
 
@@ -185,5 +418,118 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
+  });
+
+  /// The model rows, and the paragraph each one actually painted.
+  List<(String, RenderParagraph)> modelTitles(WidgetTester tester) => tester
+      .widgetList<RadioListTile<String>>(find.byType(RadioListTile<String>))
+      .map((tile) => (tile.title as Text).data!)
+      .map((data) => (data, tester.renderObject<RenderParagraph>(
+            find.text(data),
+          )))
+      .toList();
+
+  test('model identifiers are kebab-case and one per model', () {
+    // AGENTS.md asks for kebab-case, and a model id is not: it carries a
+    // slash and a dot. The fold has to keep them apart as well as tidy —
+    // two models landing on one identifier would make the adb verifier tap
+    // a row it was not asked for and then report that it passed.
+    final identifiers = [
+      ...AiModelCatalogue.openrouter,
+      ...AiModelCatalogue.anthropic,
+    ].map((model) => AiAssistDialog.modelIdentifier(model.id)).toList();
+
+    for (final identifier in identifiers) {
+      expect(identifier, matches(RegExp(r'^[a-z0-9]+(-[a-z0-9]+)*$')));
+    }
+    expect(identifiers.toSet(), hasLength(identifiers.length));
+  });
+
+  testWidgets('the model rows carry the identifier the verifier looks for', (
+    tester,
+  ) async {
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    for (final model in AiModelCatalogue.openrouter) {
+      expect(
+        find.bySemanticsIdentifier(AiAssistDialog.modelIdentifier(model.id)),
+        findsOneWidget,
+        reason: '${model.id} has no row the driver can find',
+      );
+    }
+  });
+
+  testWidgets('a model row stays inside its two-line bound', (tester) async {
+    // 320dp at a 2.0 text scale leaves the title 156dp, which no model id
+    // fits under any setting. What has to hold there is that it stops at the
+    // bound rather than running down the dialog.
+    //
+    // Counted in painted lines rather than checked for overflow stripes: a
+    // wrapping ListTile title throws nothing at all, so the exception check
+    // the test above stays green through exactly this bug.
+    tester.view.physicalSize = const Size(320 * 3, 640 * 3);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+        child: _app(storage),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final titles = modelTitles(tester);
+    expect(titles, hasLength(AiModelCatalogue.openrouter.length));
+
+    for (final (data, paragraph) in titles) {
+      final lines = paragraph
+          .getBoxesForSelection(
+            TextSelection(baseOffset: 0, extentOffset: data.length),
+          )
+          .map((box) => box.top)
+          .toSet();
+      expect(lines.length, lessThanOrEqualTo(2), reason: '$data ran past two');
+    }
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('on a real phone the ids are whole and tell the rows apart', (
+    tester,
+  ) async {
+    // A Pixel 6, which is the phone this was driven on. The ellipsis eats
+    // the *end* of the string and the curated ids are identical until their
+    // last few characters, so a title with too little room fails by painting
+    // the same visible text in both rows — worse than wrapping, and just as
+    // silent.
+    //
+    // This is what pins the vendor prefix in place. Dropping it looks like
+    // it buys width and instead removes the `/`, which is the only point in
+    // a model id where a line can break at all — so the shortened form
+    // cannot use the second line, and truncates here where the full id fits.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    final titles = modelTitles(tester);
+    for (final (data, paragraph) in titles) {
+      expect(
+        paragraph.didExceedMaxLines,
+        isFalse,
+        reason: '$data was truncated on the phone this app is developed on',
+      );
+    }
+    expect(
+      titles.map((title) => title.$1).toSet(),
+      hasLength(titles.length),
+      reason: 'two rows painted the same text',
+    );
   });
 }
