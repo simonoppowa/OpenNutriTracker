@@ -365,7 +365,35 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
               child: RadioListTile<String>(
                 contentPadding: EdgeInsets.zero,
                 dense: true,
-                title: Text(model.id, style: theme.textTheme.bodyMedium),
+                // Reclaimed from the gap between the radio and the text, all
+                // of it. The title is a model id; the longest wants 228dp on
+                // a Pixel 6 and the default gap leaves it 215.4, so the row
+                // showed `claude-haiku-4.…` for want of thirteen points.
+                // Radio draws its own padding, so the gap was buying nothing
+                // the eye can see, and the id is the one thing in this row
+                // the user has to be able to read.
+                horizontalTitleGap: 0,
+                // Two lines, not the usual one, and the id keeps its vendor
+                // prefix — both for the same measured reason. `/` is the
+                // only line-break opportunity a model id has: on its own,
+                // `claude-sonnet-5` reports an identical 423.75 for minimum
+                // and maximum intrinsic width, meaning nothing in it can
+                // break. Shortening the title to it would look like it was
+                // buying room and would instead remove the only place the
+                // text can wrap, so a one-line bound would ellipsize
+                // `anthropic/claude-…` — and the curated ids differ only
+                // after that point, leaving two rows reading the same.
+                //
+                // `AutoSizeText`, which AGENTS.md would prefer for a title
+                // like this, is not available: it builds a `LayoutBuilder`,
+                // the dialog asks this row for an intrinsic height, and
+                // `LayoutBuilder` throws rather than answering one.
+                title: Text(
+                  model.id,
+                  style: theme.textTheme.bodyMedium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 subtitle: Text(
                   [
                     if (sharedVendor == null)

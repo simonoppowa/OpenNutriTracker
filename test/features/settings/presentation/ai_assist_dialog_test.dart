@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -417,5 +418,86 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
+  });
+
+  /// The model rows, and the paragraph each one actually painted.
+  List<(String, RenderParagraph)> modelTitles(WidgetTester tester) => tester
+      .widgetList<RadioListTile<String>>(find.byType(RadioListTile<String>))
+      .map((tile) => (tile.title as Text).data!)
+      .map((data) => (data, tester.renderObject<RenderParagraph>(
+            find.text(data),
+          )))
+      .toList();
+
+  testWidgets('a model row stays inside its two-line bound', (tester) async {
+    // 320dp at a 2.0 text scale leaves the title 156dp, which no model id
+    // fits under any setting. What has to hold there is that it stops at the
+    // bound rather than running down the dialog.
+    //
+    // Counted in painted lines rather than checked for overflow stripes: a
+    // wrapping ListTile title throws nothing at all, so the exception check
+    // the test above stays green through exactly this bug.
+    tester.view.physicalSize = const Size(320 * 3, 640 * 3);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+        child: _app(storage),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final titles = modelTitles(tester);
+    expect(titles, hasLength(AiModelCatalogue.openrouter.length));
+
+    for (final (data, paragraph) in titles) {
+      final lines = paragraph
+          .getBoxesForSelection(
+            TextSelection(baseOffset: 0, extentOffset: data.length),
+          )
+          .map((box) => box.top)
+          .toSet();
+      expect(lines.length, lessThanOrEqualTo(2), reason: '$data ran past two');
+    }
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('on a real phone the ids are whole and tell the rows apart', (
+    tester,
+  ) async {
+    // A Pixel 6, which is the phone this was driven on. The ellipsis eats
+    // the *end* of the string and the curated ids are identical until their
+    // last few characters, so a title with too little room fails by painting
+    // the same visible text in both rows — worse than wrapping, and just as
+    // silent.
+    //
+    // This is what pins the vendor prefix in place. Dropping it looks like
+    // it buys width and instead removes the `/`, which is the only point in
+    // a model id where a line can break at all — so the shortened form
+    // cannot use the second line, and truncates here where the full id fits.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    final titles = modelTitles(tester);
+    for (final (data, paragraph) in titles) {
+      expect(
+        paragraph.didExceedMaxLines,
+        isFalse,
+        reason: '$data was truncated on the phone this app is developed on',
+      );
+    }
+    expect(
+      titles.map((title) => title.$1).toSet(),
+      hasLength(titles.length),
+      reason: 'two rows painted the same text',
+    );
   });
 }
