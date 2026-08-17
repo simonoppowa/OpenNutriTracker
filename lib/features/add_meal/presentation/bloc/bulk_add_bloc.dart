@@ -246,6 +246,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
             // on "try another photo" rather than on "try again".
             MealPhotoFailure.rejectedImage => BulkAddPhotoError.unreadable,
             MealPhotoFailure.unsupported => BulkAddPhotoError.unsupported,
+            MealPhotoFailure.billing => BulkAddPhotoError.billing,
             MealPhotoFailure.transient => BulkAddPhotoError.transient,
           }),
         );

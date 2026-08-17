@@ -340,6 +340,39 @@ void main() {
       );
     });
 
+    test('no credit is told apart from a rate limit', () async {
+      final client = FakeClient(status: 402, body: '{}');
+
+      await expectLater(
+        interpreterWith(client).interpret(_photo),
+        throwsA(
+          isA<MealInterpreterException>().having(
+            (e) => e.failure,
+            'failure',
+            MealInterpreterFailure.billing,
+          ),
+        ),
+      );
+    });
+
+    test('403 is still a key problem on the direct path', () async {
+      // `permission_error` here, so it belongs with 401 — the opposite of
+      // OpenRouter, where 403 is a guardrail block. The divergence is the
+      // reason each client owns its own mapping.
+      final client = FakeClient(status: 403, body: '{}');
+
+      await expectLater(
+        interpreterWith(client).interpret(_photo),
+        throwsA(
+          isA<MealInterpreterException>().having(
+            (e) => e.failure,
+            'failure',
+            MealInterpreterFailure.auth,
+          ),
+        ),
+      );
+    });
+
     test('a rate limit is transient, not an auth failure', () async {
       final client = FakeClient(status: 429, body: '{}');
 

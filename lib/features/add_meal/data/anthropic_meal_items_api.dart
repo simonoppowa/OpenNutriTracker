@@ -124,8 +124,14 @@ class AnthropicMealItemsApi implements MealItemsApi {
   /// not, which is where that case actually comes from.
   static MealInterpreterFailure _failureFor(int statusCode) =>
       switch (statusCode) {
+        // 403 is `permission_error` here — "your API key does not have
+        // permission" — so it genuinely belongs with 401. That is *not* true
+        // of every provider, which is why this switch is per client.
         401 || 403 => MealInterpreterFailure.auth,
         400 || 422 => MealInterpreterFailure.rejected,
+        // `billing_error`. Distinct from the 429 below, which is
+        // `rate_limit_error` — going too fast, not unable to pay.
+        402 => MealInterpreterFailure.billing,
         404 => MealInterpreterFailure.unsupported,
         _ => MealInterpreterFailure.transient,
       };

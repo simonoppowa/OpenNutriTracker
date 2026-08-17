@@ -306,8 +306,18 @@ class OpenRouterMealItemsApi implements MealItemsApi {
   /// went through.
   static MealInterpreterFailure _failureFor(int statusCode) =>
       switch (statusCode) {
-        401 || 403 => MealInterpreterFailure.auth,
-        400 || 422 => MealInterpreterFailure.rejected,
+        401 => MealInterpreterFailure.auth,
+        // **403 is not auth here**, unlike on the direct client, where it is
+        // `permission_error`. OpenRouter documents 403 as a guardrail block
+        // or moderation flag, so treating it as a credential problem tells a
+        // user whose photo tripped a filter to go and check a key that works.
+        // It is the request being refused, which is what `rejected` means —
+        // and on the photo path "try another photo" is the right advice.
+        400 || 403 || 422 => MealInterpreterFailure.rejected,
+        // `payment_required`: "Your account or API key has insufficient
+        // credits." Separate from the 429 below, `rate_limit_exceeded`,
+        // which clears on its own where this one does not.
+        402 => MealInterpreterFailure.billing,
         404 => MealInterpreterFailure.unsupported,
         _ => MealInterpreterFailure.transient,
       };

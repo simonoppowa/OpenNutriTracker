@@ -206,6 +206,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           S.of(context).bulkAddPhotoUnreadableLabel,
         BulkAddPhotoError.unsupported =>
           S.of(context).bulkAddPhotoUnsupportedLabel,
+        BulkAddPhotoError.billing => S.of(context).bulkAddPhotoNoCreditLabel,
       });
     }
     if (state is! BulkAddLoadedState) {
@@ -262,6 +263,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             S.of(context).bulkAddModelKeyRejectedLabel,
           MealTextModelFailure.unsupported =>
             S.of(context).bulkAddModelUnsupportedLabel,
+          MealTextModelFailure.billing =>
+            S.of(context).bulkAddModelNoCreditLabel,
         },
         // Coloured as a warning, unlike the neutral "read by AI" banner:
         // this one is asking the user to go and change something.

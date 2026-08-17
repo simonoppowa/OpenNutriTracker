@@ -26,6 +26,19 @@ enum MealInterpreterFailure {
   /// chosen model takes no images, or no provider of it honours a forced
   /// tool call. Points the user at their settings, not at their network.
   unsupported,
+
+  /// The account cannot pay: no credit, or a spend cap reached.
+  ///
+  /// Its own meaning because both of the alternatives are actively wrong.
+  /// [transient] tells someone to retry, which is a loop with no exit —
+  /// OpenRouter states that retrying "billing, spend, or quota errors won't
+  /// restore API access". [auth] sends them to check a key that works, which
+  /// is exactly the misdirection this vocabulary exists to prevent.
+  ///
+  /// Both shipped providers answer **402** for it and **429** for an
+  /// ordinary rate limit, so the two are separable on status alone with no
+  /// body parsing.
+  billing,
 }
 
 /// Raised when an interpreter cannot produce a result. Carries no response
