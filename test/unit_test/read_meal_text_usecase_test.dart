@@ -155,7 +155,11 @@ void main() {
 
     test('falls back when the key is rejected', () async {
       final interpreter = _FakeInterpreter(
-        throws: const MealInterpreterException('unauthorized', statusCode: 401),
+        throws: const MealInterpreterException(
+          'unauthorized',
+          failure: MealInterpreterFailure.auth,
+          statusCode: 401,
+        ),
       );
 
       final reading = await useCaseWith(interpreter).read('100g toast');
@@ -170,7 +174,11 @@ void main() {
 
     test('reports a model nothing can serve', () async {
       final interpreter = _FakeInterpreter(
-        throws: const MealInterpreterException('no endpoints', statusCode: 404),
+        throws: const MealInterpreterException(
+          'no endpoints',
+          failure: MealInterpreterFailure.unsupported,
+          statusCode: 404,
+        ),
       );
 
       final reading = await useCaseWith(interpreter).read('100g toast');
@@ -186,9 +194,21 @@ void main() {
       // has for a wrong key.
       for (final e in const [
         MealInterpreterException('timeout'),
-        MealInterpreterException('rate limited', statusCode: 429),
-        MealInterpreterException('server error', statusCode: 503),
-        MealInterpreterException('bad request', statusCode: 400),
+        MealInterpreterException(
+          'rate limited',
+          failure: MealInterpreterFailure.transient,
+          statusCode: 429,
+        ),
+        MealInterpreterException(
+          'server error',
+          failure: MealInterpreterFailure.transient,
+          statusCode: 503,
+        ),
+        MealInterpreterException(
+          'bad request',
+          failure: MealInterpreterFailure.rejected,
+          statusCode: 400,
+        ),
       ]) {
         final reading = await useCaseWith(
           _FakeInterpreter(throws: e),

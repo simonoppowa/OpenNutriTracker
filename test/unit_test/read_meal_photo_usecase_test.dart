@@ -167,7 +167,11 @@ void main() {
     test('a rejected key is reported as an auth failure', () async {
       final s = subject(
         apiKey: 'k',
-        throws: const MealInterpreterException('nope', statusCode: 401),
+        throws: const MealInterpreterException(
+          'nope',
+          failure: MealInterpreterFailure.auth,
+          statusCode: 401,
+        ),
       );
 
       final reading = await s.useCase.read(_photo);
@@ -183,7 +187,11 @@ void main() {
       // again" is advice that can never work here; "try another photo" can.
       final s = subject(
         apiKey: 'k',
-        throws: const MealInterpreterException('bad image', statusCode: 400),
+        throws: const MealInterpreterException(
+          'bad image',
+          failure: MealInterpreterFailure.rejected,
+          statusCode: 400,
+        ),
       );
 
       final reading = await s.useCase.read(_photo);
@@ -197,7 +205,11 @@ void main() {
     test('a server error is not reported as an auth failure', () async {
       final s = subject(
         apiKey: 'k',
-        throws: const MealInterpreterException('boom', statusCode: 503),
+        throws: const MealInterpreterException(
+          'boom',
+          failure: MealInterpreterFailure.transient,
+          statusCode: 503,
+        ),
       );
 
       final reading = await s.useCase.read(_photo);

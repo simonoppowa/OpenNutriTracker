@@ -316,12 +316,29 @@ void main() {
           throwsA(
             isA<MealInterpreterException>()
                 .having((e) => e.statusCode, 'statusCode', 401)
-                .having((e) => e.isAuthFailure, 'isAuthFailure', isTrue)
-                .having((e) => e.isTransient, 'isTransient', isFalse),
+                .having((e) => e.failure, 'failure', MealInterpreterFailure.auth),
           ),
         );
       },
     );
+
+    test('a refused image is not offered as retryable', () async {
+      // Measured, not assumed: a JPEG carrying Adobe APP14 markers is
+      // refused with a 400 every single time, while the same picture
+      // re-encoded goes through. "Try again" is advice that can never work.
+      final client = FakeClient(status: 400, body: '{}');
+
+      await expectLater(
+        interpreterWith(client).interpret(_photo),
+        throwsA(
+          isA<MealInterpreterException>().having(
+            (e) => e.failure,
+            'failure',
+            MealInterpreterFailure.rejected,
+          ),
+        ),
+      );
+    });
 
     test('a rate limit is transient, not an auth failure', () async {
       final client = FakeClient(status: 429, body: '{}');
@@ -330,8 +347,11 @@ void main() {
         interpreterWith(client).interpret(_photo),
         throwsA(
           isA<MealInterpreterException>()
-              .having((e) => e.isAuthFailure, 'isAuthFailure', isFalse)
-              .having((e) => e.isTransient, 'isTransient', isTrue),
+              .having(
+                (e) => e.failure,
+                'failure',
+                MealInterpreterFailure.transient,
+              ),
         ),
       );
     });
@@ -368,7 +388,15 @@ void main() {
         throwsA(
           isA<MealInterpreterException>()
               .having((e) => e.reason, 'reason', 'request failed')
-              .having((e) => e.statusCode, 'statusCode', isNull),
+              .having((e) => e.statusCode, 'statusCode', isNull)
+              // Pins the default. A socket failure classified as anything
+              // else would tell the user their key is wrong every time
+              // their connection drops.
+              .having(
+                (e) => e.failure,
+                'failure',
+                MealInterpreterFailure.transient,
+              ),
         ),
       );
     });

@@ -625,8 +625,7 @@ void main() {
         request(apiWith(client)),
         throwsA(
           isA<MealInterpreterException>()
-              .having((e) => e.isAuthFailure, 'isAuthFailure', isTrue)
-              .having((e) => e.isTransient, 'isTransient', isFalse),
+              .having((e) => e.failure, 'failure', MealInterpreterFailure.auth),
         ),
       );
     });
@@ -645,11 +644,10 @@ void main() {
         throwsA(
           isA<MealInterpreterException>()
               .having(
-                (e) => e.isCapabilityRefusal,
-                'isCapabilityRefusal',
-                isTrue,
-              )
-              .having((e) => e.isTransient, 'isTransient', isFalse),
+                (e) => e.failure,
+                'failure',
+                MealInterpreterFailure.unsupported,
+              ),
         ),
       );
     });
@@ -661,9 +659,9 @@ void main() {
         request(apiWith(client)),
         throwsA(
           isA<MealInterpreterException>().having(
-            (e) => e.isAuthFailure,
-            'isAuthFailure',
-            isTrue,
+            (e) => e.failure,
+            'failure',
+            MealInterpreterFailure.auth,
           ),
         ),
       );
@@ -676,8 +674,11 @@ void main() {
         request(apiWith(client)),
         throwsA(
           isA<MealInterpreterException>()
-              .having((e) => e.isRejectedRequest, 'isRejectedRequest', isTrue)
-              .having((e) => e.isTransient, 'isTransient', isFalse),
+              .having(
+                (e) => e.failure,
+                'failure',
+                MealInterpreterFailure.rejected,
+              ),
         ),
       );
     });
@@ -689,9 +690,9 @@ void main() {
         request(apiWith(client)),
         throwsA(
           isA<MealInterpreterException>().having(
-            (e) => e.isTransient,
-            'isTransient',
-            isTrue,
+            (e) => e.failure,
+            'failure',
+            MealInterpreterFailure.transient,
           ),
         ),
       );

@@ -323,9 +323,9 @@ void main() {
         interpreterWith(client).interpret('toast'),
         throwsA(
           isA<MealInterpreterException>().having(
-            (e) => e.isTransient,
-            'isTransient',
-            isFalse,
+            (e) => e.failure,
+            'failure',
+            MealInterpreterFailure.auth,
           ),
         ),
       );
@@ -338,9 +338,9 @@ void main() {
         interpreterWith(client).interpret('toast'),
         throwsA(
           isA<MealInterpreterException>().having(
-            (e) => e.isTransient,
-            'isTransient',
-            isTrue,
+            (e) => e.failure,
+            'failure',
+            MealInterpreterFailure.transient,
           ),
         ),
       );

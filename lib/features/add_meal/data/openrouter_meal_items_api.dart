@@ -157,6 +157,7 @@ class OpenRouterMealItemsApi implements MealItemsApi {
       _log.warning('Interpreter call failed with ${response.statusCode}');
       throw MealInterpreterException(
         'provider returned ${response.statusCode}',
+        failure: _failureFor(response.statusCode),
         statusCode: response.statusCode,
       );
     }
@@ -278,9 +279,38 @@ class OpenRouterMealItemsApi implements MealItemsApi {
     _log.warning('Interpreter generation failed with $code');
     throw MealInterpreterException(
       'generation failed',
+      failure: code is int
+          ? _failureFor(code)
+          : MealInterpreterFailure.transient,
       statusCode: code is int ? code : null,
     );
   }
+
+  /// What OpenRouter's status codes mean here.
+  ///
+  /// Lives in this client rather than on [MealInterpreterException] because
+  /// the same number does not mean the same thing to every provider, and a
+  /// shared reading of it would have to be right for all of them at once.
+  ///
+  /// **404 was probed, not assumed.** With `provider.require_parameters`
+  /// set, OpenRouter answered 404 for both "No endpoints found that support
+  /// image input" and "No endpoints found that can handle the requested
+  /// parameters". Neither improves on a retry and neither is anything to do
+  /// with the connection, so both must be told apart from a transient
+  /// failure — otherwise the user is sent to check their network forever
+  /// over a choice they made in settings.
+  ///
+  /// 400 is a rejected request for the same measured reason as on the direct
+  /// client: a corpus of real photographs found JPEGs carrying Adobe APP14
+  /// markers refused with a 400 every time, while the same picture re-encoded
+  /// went through.
+  static MealInterpreterFailure _failureFor(int statusCode) =>
+      switch (statusCode) {
+        401 || 403 => MealInterpreterFailure.auth,
+        400 || 422 => MealInterpreterFailure.rejected,
+        404 => MealInterpreterFailure.unsupported,
+        _ => MealInterpreterFailure.transient,
+      };
 
   /// `arguments` is documented as a string of JSON. An object is accepted too
   /// rather than failing a reply that is otherwise exactly right — some

@@ -98,12 +98,37 @@ class AnthropicMealItemsApi implements MealItemsApi {
       _log.warning('Interpreter call failed with ${response.statusCode}');
       throw MealInterpreterException(
         'provider returned ${response.statusCode}',
+        failure: _failureFor(response.statusCode),
         statusCode: response.statusCode,
       );
     }
 
     return validateParsedMealItems(_itemsFrom(response.body));
   }
+
+  /// What Anthropic's status codes mean here.
+  ///
+  /// Lives in this client rather than on [MealInterpreterException] because
+  /// the same number does not mean the same thing to every provider, and a
+  /// shared reading of it would have to be right for all of them at once.
+  ///
+  /// **400 was measured, not assumed.** Running a corpus of real photographs
+  /// found that JPEGs carrying Adobe APP14 markers were refused with a 400
+  /// on every attempt, while the same picture re-encoded went through.
+  /// Retrying one of those never succeeds, so it must not be offered to the
+  /// user as retryable.
+  ///
+  /// 404 is kept as a capability refusal so this move changes no behaviour,
+  /// but it is not reachable on this path: the direct client's model is
+  /// pinned and takes images. A broker can be pointed at a model that does
+  /// not, which is where that case actually comes from.
+  static MealInterpreterFailure _failureFor(int statusCode) =>
+      switch (statusCode) {
+        401 || 403 => MealInterpreterFailure.auth,
+        400 || 422 => MealInterpreterFailure.rejected,
+        404 => MealInterpreterFailure.unsupported,
+        _ => MealInterpreterFailure.transient,
+      };
 
   /// Anthropic's message content. **Image before text**, which is what
   /// Anthropic's own vision guidance recommends — and the opposite of what

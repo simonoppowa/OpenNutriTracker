@@ -315,7 +315,11 @@ void main() {
 
     await _registerWithFailingReader({
       'toast': [_meal('Toast')],
-    }, const MealInterpreterException('unauthorized', statusCode: 401));
+    }, const MealInterpreterException(
+      'unauthorized',
+      failure: MealInterpreterFailure.auth,
+      statusCode: 401,
+    ));
 
     await tester.pumpWidget(_app(locale: const Locale('de')));
     await tester.pumpAndSettle();

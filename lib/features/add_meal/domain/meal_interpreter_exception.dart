@@ -1,3 +1,33 @@
+/// What a caller can usefully do about a failed interpretation.
+///
+/// Provider-neutral on purpose. The same HTTP status means different things
+/// to different providers — 404 is a capability refusal on a broker that
+/// could not find an endpoint, and merely a wrong URL somewhere else — so
+/// the mapping from status to meaning belongs in each client, where the
+/// evidence for it lives. Callers switch on the meaning and never see the
+/// number.
+enum MealInterpreterFailure {
+  /// A retry might survive this: no network, a rate limit, a 5xx, a reply
+  /// that did not parse. The default, because anything unrecognised is
+  /// better offered as retryable than declared permanent.
+  transient,
+
+  /// The provider rejected the credential itself. Shown differently from a
+  /// transient failure: telling someone to "try again later" when their key
+  /// is wrong is the puzzle [AiCredentialStorage] already goes out of its
+  /// way to avoid.
+  auth,
+
+  /// The provider rejected the request rather than failing to serve it. On
+  /// the photo path that means the image.
+  rejected,
+
+  /// Nothing on the other end can serve this kind of request at all — the
+  /// chosen model takes no images, or no provider of it honours a forced
+  /// tool call. Points the user at their settings, not at their network.
+  unsupported,
+}
+
 /// Raised when an interpreter cannot produce a result. Carries no response
 /// body: provider payloads can echo the submitted text, and this ends up in
 /// logs.
@@ -10,51 +40,28 @@
 class MealInterpreterException implements Exception {
   final String reason;
 
-  /// Set when the provider answered with an HTTP status, so a caller can
-  /// tell "your key is wrong" (401/403) from "try again later" (429/5xx).
+  /// What the caller should do about it, decided by the client that threw.
+  ///
+  /// Defaults to [MealInterpreterFailure.transient] so a failure with no
+  /// status behind it — a socket error, a reply that did not parse — stays
+  /// retryable without every throw site having to say so.
+  final MealInterpreterFailure failure;
+
+  /// The provider's HTTP status, when there was one. **Diagnostic only.**
+  ///
+  /// Nothing decides anything from this: a raw number is what a reader of a
+  /// log wants, and what a caller must not have, because interpreting it
+  /// correctly needs to know which provider answered.
   final int? statusCode;
 
-  const MealInterpreterException(this.reason, {this.statusCode});
-
-  /// True for failures that a retry might survive. An auth failure is not
-  /// one of them.
-  bool get isTransient =>
-      statusCode == null || statusCode == 429 || (statusCode! >= 500);
-
-  /// True when the provider rejected the credential itself. The photo path
-  /// shows this differently from a transient failure: telling someone to
-  /// "try again later" when their key is wrong is the puzzle
-  /// [AiCredentialStorage] already goes out of its way to avoid.
-  bool get isAuthFailure => statusCode == 401 || statusCode == 403;
-
-  /// True when the provider rejected the request itself rather than failing
-  /// to serve it. On the photo path that means the image.
-  ///
-  /// Found by running a corpus of real photographs: JPEGs carrying Adobe
-  /// APP14 markers were refused with a 400 on every attempt, while the same
-  /// picture re-encoded went through. Retrying one of those never succeeds,
-  /// so it must not be offered to the user as retryable.
-  bool get isRejectedRequest => statusCode == 400 || statusCode == 422;
-
-  /// True when nothing on the other end can serve this kind of request at
-  /// all — the chosen model takes no images, or no provider of it honours a
-  /// forced tool call.
-  ///
-  /// A probe of OpenRouter with `provider.require_parameters` set returned
-  /// **404** for both, with the messages "No endpoints found that support
-  /// image input" and "No endpoints found that can handle the requested
-  /// parameters". Neither improves on a retry, and neither is anything to do
-  /// with the connection — so this must be told apart from a transient
-  /// failure, or the user is sent to check their network forever over a
-  /// choice they made in settings.
-  ///
-  /// Anthropic direct cannot produce this: its model is pinned and takes
-  /// images. It exists because a broker can be pointed at a model that does
-  /// not.
-  bool get isCapabilityRefusal => statusCode == 404;
+  const MealInterpreterException(
+    this.reason, {
+    this.failure = MealInterpreterFailure.transient,
+    this.statusCode,
+  });
 
   @override
   String toString() =>
-      'MealInterpreterException($reason${statusCode == null ? '' : ', '
-                'status: $statusCode'})';
+      'MealInterpreterException($reason, ${failure.name}'
+      '${statusCode == null ? '' : ', status: $statusCode'})';
 }

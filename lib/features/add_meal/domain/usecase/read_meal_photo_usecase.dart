@@ -96,11 +96,11 @@ class ReadMealPhotoUseCase {
       return MealPhotoRead(result);
     } on MealInterpreterException catch (e) {
       _log.info('Photo interpreter failed: ${e.reason}');
-      return MealPhotoFailed(switch (e) {
-        _ when e.isAuthFailure => MealPhotoFailure.auth,
-        _ when e.isRejectedRequest => MealPhotoFailure.rejectedImage,
-        _ when e.isCapabilityRefusal => MealPhotoFailure.unsupported,
-        _ => MealPhotoFailure.transient,
+      return MealPhotoFailed(switch (e.failure) {
+        MealInterpreterFailure.auth => MealPhotoFailure.auth,
+        MealInterpreterFailure.rejected => MealPhotoFailure.rejectedImage,
+        MealInterpreterFailure.unsupported => MealPhotoFailure.unsupported,
+        MealInterpreterFailure.transient => MealPhotoFailure.transient,
       });
     } catch (e, stackTrace) {
       // An interpreter that throws something unexpected is a bug. Report it
