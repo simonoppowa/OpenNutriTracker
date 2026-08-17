@@ -1170,6 +1170,7 @@
   "bulkAddReadByModelLabel": "Prečítané AI — skontrolujte každý riadok",
   "bulkAddModelKeyRejectedLabel": "AI sa nepoužila: Váš API kľúč bol odmietnutý. Tieto riadky pochádzajú z offline parsera — skontrolujte kľúč v nastaveniach.",
   "bulkAddModelUnsupportedLabel": "AI sa nepoužila: Vybraný model sa nedal použiť. Tieto riadky pochádzajú z offline parsera — vyberte v nastaveniach iný model.",
+  "bulkAddModelNoCreditLabel": "AI sa nespustila: na účte u poskytovateľa nemáš kredit. Tieto riadky pochádzajú z offline analyzátora — dobi kredit u poskytovateľa, aby si mohol AI znova používať.",
   "bulkAddPhotoLabel": "Načítať fotku",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker si neponecháva vlastnú kópiu a fotka sa nikdy nedostane do vašich exportov.",
   "bulkAddPhotoDisclosureAnthropic": "Fotka sa odošle spoločnosti Anthropic, aby rozpoznala potraviny na nej.",
@@ -1181,5 +1182,6 @@
   "bulkAddPhotoFailedLabel": "Fotku sa nepodarilo načítať. Skontrolujte pripojenie a skúste to znova.",
   "bulkAddPhotoUnreadableLabel": "Tento obrázok sa nedá použiť. Skúste inú fotku.",
   "bulkAddPhotoUnsupportedLabel": "Tento model nevie čítať fotky. Vyberte v nastaveniach iný alebo položky zadajte ručne.",
+  "bulkAddPhotoNoCreditLabel": "Túto požiadavku nebolo možné zaplatiť: na účte u poskytovateľa nemáš kredit. Dobi ho u poskytovateľa, alebo položky zadaj ručne.",
   "bulkAddPhotoNoFoodLabel": "Na tejto fotke sa nerozpoznali žiadne potraviny. Skúste inú fotku alebo položky zadajte ručne."
 }

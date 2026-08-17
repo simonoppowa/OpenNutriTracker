@@ -20,6 +20,11 @@ enum MealTextModelFailure {
 
   /// Nothing can serve the configured model. Permanent until it changes.
   unsupported,
+
+  /// The account cannot pay. Announced rather than swallowed: the parser
+  /// still produced the rows, but this one is actionable and will not clear
+  /// on its own, so saying nothing means the model silently stays off.
+  billing,
 }
 
 /// What a line of meal text turned into, and which reader produced it.
@@ -105,6 +110,7 @@ class ReadMealTextUseCase {
           MealInterpreterFailure.auth => MealTextModelFailure.auth,
           MealInterpreterFailure.unsupported =>
             MealTextModelFailure.unsupported,
+          MealInterpreterFailure.billing => MealTextModelFailure.billing,
           // Silent by design: the parser already produced the rows, and a
           // notice that would say the same thing tomorrow is not worth
           // interrupting for.

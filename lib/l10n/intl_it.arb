@@ -1139,6 +1139,7 @@
   "bulkAddReadByModelLabel": "Letto dall'AI — controlla ogni riga",
   "bulkAddModelKeyRejectedLabel": "IA non usata: la tua chiave API è stata rifiutata. Queste righe vengono dal parser offline — controlla la chiave nelle impostazioni.",
   "bulkAddModelUnsupportedLabel": "IA non usata: il modello scelto non è utilizzabile. Queste righe vengono dal parser offline — scegli un altro modello nelle impostazioni.",
+  "bulkAddModelNoCreditLabel": "L'IA non è stata eseguita: il credito del tuo account provider è esaurito. Queste righe provengono dall'analizzatore offline — ricarica il credito presso il provider per usare di nuovo l'IA.",
   "bulkAddPhotoLabel": "Leggi una foto",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker non ne conserva alcuna copia e la foto non finisce mai nelle tue esportazioni.",
   "bulkAddPhotoDisclosureAnthropic": "La foto viene inviata ad Anthropic per riconoscere gli alimenti che contiene.",
@@ -1150,5 +1151,6 @@
   "bulkAddPhotoFailedLabel": "Impossibile leggere la foto. Controlla la connessione e riprova.",
   "bulkAddPhotoUnreadableLabel": "Impossibile usare quell'immagine. Prova un'altra foto.",
   "bulkAddPhotoUnsupportedLabel": "Questo modello non può leggere le foto. Scegline un altro nelle impostazioni o digita le voci.",
+  "bulkAddPhotoNoCreditLabel": "Impossibile pagare questa richiesta: il credito del tuo account provider è esaurito. Ricaricalo presso il provider, oppure inserisci gli alimenti manualmente.",
   "bulkAddPhotoNoFoodLabel": "Nessun alimento riconosciuto in questa foto. Prova un'altra foto o digita le voci."
 }

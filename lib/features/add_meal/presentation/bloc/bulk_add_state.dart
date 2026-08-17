@@ -56,6 +56,11 @@ enum BulkAddPhotoError {
   /// No network, a rate limit, a provider error — worth another attempt.
   transient,
 
+  /// The account is out of credit, or has hit a spend cap. Kept apart from
+  /// [transient] because retrying never resolves it, and from [auth] because
+  /// the key is fine.
+  billing,
+
   /// The camera could not be opened, commonly because permission was denied.
   camera,
 
