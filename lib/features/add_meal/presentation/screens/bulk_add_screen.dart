@@ -257,7 +257,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       return _noticeAbove(
         context,
         list,
-        icon: Icons.key_off_rounded,
+        // The icon tracks the text. A key-off glyph beside "you are out of
+        // credit" contradicts the sentence next to it, and the whole point
+        // of telling these failures apart is not to send someone to fix the
+        // one thing that is not broken.
+        icon: switch (failure) {
+          MealTextModelFailure.auth => Icons.key_off_rounded,
+          MealTextModelFailure.unsupported => Icons.block_rounded,
+          MealTextModelFailure.billing => Icons.credit_card_off_rounded,
+        },
         text: switch (failure) {
           MealTextModelFailure.auth =>
             S.of(context).bulkAddModelKeyRejectedLabel,

@@ -339,6 +339,39 @@ void main() {
     );
   });
 
+  testWidgets('an out-of-credit notice does not wear a broken-key icon', (
+    tester,
+  ) async {
+    // The icon was hardcoded to key_off for every model failure, so the
+    // billing notice read "you are out of credit" beside a glyph saying the
+    // key is broken. Telling these failures apart is worth nothing if the
+    // icon still sends the user to the one thing that is not wrong.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await _registerWithFailingReader({
+      'toast': [_meal('Toast')],
+    }, const MealInterpreterException(
+      'no credit',
+      failure: MealInterpreterFailure.billing,
+      statusCode: 402,
+    ));
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    await _parse(tester, '100g toast');
+
+    final s = lookupS(const Locale('en'));
+    expect(find.text(s.bulkAddModelNoCreditLabel), findsOneWidget);
+    expect(find.byIcon(Icons.credit_card_off_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.key_off_rounded), findsNothing);
+    // The parser rows still stand: saying why the model did not run must
+    // not cost the user their entry.
+    expect(find.textContaining('Toast'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('the photo sheet names the destination that is actually used', (
     tester,
   ) async {
