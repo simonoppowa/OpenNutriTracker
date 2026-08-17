@@ -83,18 +83,29 @@ class OpenRouterMealItemsApi implements MealItemsApi {
             // Measured — every call to every `openai/*` model failed with a
             // 400, text included.
             //
-            // The optionality it objects to is the point. `quantity` and
-            // `unit` are omitted when the user stated no amount, and making
-            // them required would oblige the model to produce a number for
-            // every item, which is the estimation this whole design exists
-            // to prevent. So the schema cannot bend, and `strict` has to go.
+            // That constraint is *not* the reason to skip it, though this
+            // comment used to say so. A nullable union satisfies strict
+            // while keeping the field optional — OpenAI sanctions exactly
+            // that: "it is possible to emulate an optional parameter by
+            // using a union type with `null`" — and `_mealItemFrom` already
+            // maps an explicit null to null, so absent and null already
+            // produce the identical item. The option exists; it was
+            // rejected for a reason that did not hold.
             //
-            // Nothing is lost. The guarantee was never `strict`: it is that
-            // the schema has no macro fields at all, and that everything
-            // returned goes through `validateParsedMealItems`. OpenRouter
-            // documents no uniform enforcement of `strict` across providers
-            // anyway, so it was buying a promise it could not keep while
-            // costing an entire vendor.
+            // The real reason is that strict buys this design nothing.
+            // Enforcement is in Dart: `_mealItemFrom` reads three keys and
+            // drops the rest, so a model emitting a calorie field loses it
+            // regardless. And what strict would add — constraining the unit
+            // enum, forbidding a missing `query` — `validateParsedMealItems`
+            // already handles *better*, dropping an unrecognised unit and
+            // keeping the food rather than refusing the whole reply.
+            //
+            // Settled in #683, which generalised it: the app never relies on
+            // provider-side constrained decoding. See `mealItemsToolSchema`.
+            //
+            // A direct OpenAI client would have to send `strict: false`
+            // explicitly — on the Responses API, omitting it normalises the
+            // schema into strict mode rather than leaving it alone.
           },
         },
       ],
