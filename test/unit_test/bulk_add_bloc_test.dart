@@ -632,7 +632,11 @@ void main() {
       // the user is told the better reader never ran.
       final bloc = blocWithFailingReader({
         'toast': [meal('Toast')],
-      }, const MealInterpreterException('unauthorized', statusCode: 401));
+      }, const MealInterpreterException(
+        'unauthorized',
+        failure: MealInterpreterFailure.auth,
+        statusCode: 401,
+      ));
       addTearDown(bloc.close);
 
       final state = await parse(bloc, '100g toast');
@@ -649,7 +653,11 @@ void main() {
     test('a model nothing can serve reaches the state', () async {
       final bloc = blocWithFailingReader({
         'toast': [meal('Toast')],
-      }, const MealInterpreterException('no endpoints', statusCode: 404));
+      }, const MealInterpreterException(
+        'no endpoints',
+        failure: MealInterpreterFailure.unsupported,
+        statusCode: 404,
+      ));
       addTearDown(bloc.close);
 
       final state = await parse(bloc, '100g toast');
@@ -664,7 +672,11 @@ void main() {
       // it has for the failures that never fix themselves.
       final bloc = blocWithFailingReader({
         'toast': [meal('Toast')],
-      }, const MealInterpreterException('rate limited', statusCode: 429));
+      }, const MealInterpreterException(
+        'rate limited',
+        failure: MealInterpreterFailure.transient,
+        statusCode: 429,
+      ));
       addTearDown(bloc.close);
 
       final state = await parse(bloc, '100g toast');
@@ -706,6 +718,18 @@ void main() {
       );
 
       expect((state as BulkAddPhotoErrorState).error, BulkAddPhotoError.auth);
+    });
+
+    test('exhausted credit is not offered as retryable or an auth fix', () async {
+      final state = await readPhoto(
+        {},
+        const MealPhotoFailed(MealPhotoFailure.billing),
+      );
+
+      expect(
+        (state as BulkAddPhotoErrorState).error,
+        BulkAddPhotoError.billing,
+      );
     });
 
     test('a transient failure is offered as retryable', () async {

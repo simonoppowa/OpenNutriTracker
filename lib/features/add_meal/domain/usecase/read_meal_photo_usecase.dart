@@ -29,8 +29,13 @@ final class MealPhotoUnavailable extends MealPhotoReadResult {
   const MealPhotoUnavailable();
 }
 
-/// Why a call failed, in the only three flavours the user can act on.
+/// Why a call failed, in the flavours the user can act on.
 enum MealPhotoFailure {
+  /// The account cannot pay — no credit, or a spend cap reached. Neither
+  /// "try again later" nor "check your key" is true of it, and both send the
+  /// user somewhere that cannot help.
+  billing,
+
   /// The provider rejected the credential. Told apart from a transient
   /// failure because "try again later" is the wrong advice for a wrong key,
   /// and following it forever is a bad afternoon.
@@ -96,11 +101,12 @@ class ReadMealPhotoUseCase {
       return MealPhotoRead(result);
     } on MealInterpreterException catch (e) {
       _log.info('Photo interpreter failed: ${e.reason}');
-      return MealPhotoFailed(switch (e) {
-        _ when e.isAuthFailure => MealPhotoFailure.auth,
-        _ when e.isRejectedRequest => MealPhotoFailure.rejectedImage,
-        _ when e.isCapabilityRefusal => MealPhotoFailure.unsupported,
-        _ => MealPhotoFailure.transient,
+      return MealPhotoFailed(switch (e.failure) {
+        MealInterpreterFailure.auth => MealPhotoFailure.auth,
+        MealInterpreterFailure.rejected => MealPhotoFailure.rejectedImage,
+        MealInterpreterFailure.unsupported => MealPhotoFailure.unsupported,
+        MealInterpreterFailure.billing => MealPhotoFailure.billing,
+        MealInterpreterFailure.transient => MealPhotoFailure.transient,
       });
     } catch (e, stackTrace) {
       // An interpreter that throws something unexpected is a bug. Report it

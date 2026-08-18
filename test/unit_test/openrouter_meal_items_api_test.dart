@@ -625,8 +625,7 @@ void main() {
         request(apiWith(client)),
         throwsA(
           isA<MealInterpreterException>()
-              .having((e) => e.isAuthFailure, 'isAuthFailure', isTrue)
-              .having((e) => e.isTransient, 'isTransient', isFalse),
+              .having((e) => e.failure, 'failure', MealInterpreterFailure.auth),
         ),
       );
     });
@@ -645,11 +644,10 @@ void main() {
         throwsA(
           isA<MealInterpreterException>()
               .having(
-                (e) => e.isCapabilityRefusal,
-                'isCapabilityRefusal',
-                isTrue,
-              )
-              .having((e) => e.isTransient, 'isTransient', isFalse),
+                (e) => e.failure,
+                'failure',
+                MealInterpreterFailure.unsupported,
+              ),
         ),
       );
     });
@@ -661,9 +659,9 @@ void main() {
         request(apiWith(client)),
         throwsA(
           isA<MealInterpreterException>().having(
-            (e) => e.isAuthFailure,
-            'isAuthFailure',
-            isTrue,
+            (e) => e.failure,
+            'failure',
+            MealInterpreterFailure.auth,
           ),
         ),
       );
@@ -676,8 +674,47 @@ void main() {
         request(apiWith(client)),
         throwsA(
           isA<MealInterpreterException>()
-              .having((e) => e.isRejectedRequest, 'isRejectedRequest', isTrue)
-              .having((e) => e.isTransient, 'isTransient', isFalse),
+              .having(
+                (e) => e.failure,
+                'failure',
+                MealInterpreterFailure.rejected,
+              ),
+        ),
+      );
+    });
+
+    test('no credit is told apart from a rate limit', () async {
+      // OpenRouter answers 402 "insufficient credits" and 429 for going too
+      // fast. Folding the first into the second tells a user whose balance
+      // is empty to keep retrying, which never resolves.
+      final client = FakeClient(status: 402, body: '{}');
+
+      await expectLater(
+        request(apiWith(client)),
+        throwsA(
+          isA<MealInterpreterException>().having(
+            (e) => e.failure,
+            'failure',
+            MealInterpreterFailure.billing,
+          ),
+        ),
+      );
+    });
+
+    test('403 is a guardrail block here, not a bad key', () async {
+      // Unlike the direct client, where 403 is `permission_error`,
+      // OpenRouter documents 403 as a moderation or guardrail refusal.
+      // Calling it an auth failure sends someone to check a working key.
+      final client = FakeClient(status: 403, body: '{}');
+
+      await expectLater(
+        request(apiWith(client)),
+        throwsA(
+          isA<MealInterpreterException>().having(
+            (e) => e.failure,
+            'failure',
+            MealInterpreterFailure.rejected,
+          ),
         ),
       );
     });
@@ -689,9 +726,9 @@ void main() {
         request(apiWith(client)),
         throwsA(
           isA<MealInterpreterException>().having(
-            (e) => e.isTransient,
-            'isTransient',
-            isTrue,
+            (e) => e.failure,
+            'failure',
+            MealInterpreterFailure.transient,
           ),
         ),
       );

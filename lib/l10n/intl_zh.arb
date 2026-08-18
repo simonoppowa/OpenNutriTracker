@@ -1140,6 +1140,7 @@
   "bulkAddReadByModelLabel": "由 AI 解析 — 请检查每一行",
   "bulkAddModelKeyRejectedLabel": "未使用 AI：您的 API 密钥被拒绝。这些条目来自离线解析器——请在设置中检查密钥。",
   "bulkAddModelUnsupportedLabel": "未使用 AI：无法使用所选模型。这些条目来自离线解析器——请在设置中选择其他模型。",
+  "bulkAddModelNoCreditLabel": "未运行 AI：您的服务商账户余额不足。这些条目来自离线解析器——请在服务商处充值后再使用 AI。",
   "bulkAddPhotoLabel": "解析照片",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker 不会自行保留副本，该照片也绝不会出现在您的导出中。",
   "bulkAddPhotoDisclosureAnthropic": "该照片将发送给 Anthropic，以识别其中的食物。",
@@ -1151,5 +1152,6 @@
   "bulkAddPhotoFailedLabel": "无法解析照片。请检查网络连接后重试。",
   "bulkAddPhotoUnreadableLabel": "无法使用该图片。请换一张照片。",
   "bulkAddPhotoUnsupportedLabel": "该模型无法读取照片。请在设置中选择其他模型，或手动输入条目。",
+  "bulkAddPhotoNoCreditLabel": "此请求无法支付：您的服务商账户余额不足。请在服务商处充值，或手动输入食物。",
   "bulkAddPhotoNoFoodLabel": "未在该照片中识别到食物。请换一张照片，或手动输入条目。"
 }

@@ -1170,6 +1170,7 @@
   "bulkAddReadByModelLabel": "Von KI gelesen — prüfe jede Zeile",
   "bulkAddModelKeyRejectedLabel": "KI nicht verwendet: Dein API-Schlüssel wurde abgelehnt. Diese Zeilen stammen vom Offline-Parser — prüfe den Schlüssel in den Einstellungen.",
   "bulkAddModelUnsupportedLabel": "KI nicht verwendet: Das gewählte Modell konnte nicht genutzt werden. Diese Zeilen stammen vom Offline-Parser — wähle in den Einstellungen ein anderes Modell.",
+  "bulkAddModelNoCreditLabel": "KI nicht ausgeführt: Das Guthaben deines Anbieterkontos ist aufgebraucht. Diese Zeilen stammen vom Offline-Parser — lade dein Guthaben beim Anbieter auf, um die KI wieder zu nutzen.",
   "bulkAddPhotoLabel": "Foto auslesen",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker behält keine eigene Kopie davon, und es landet nie in deinen Exporten.",
   "bulkAddPhotoDisclosureAnthropic": "Das Foto wird an Anthropic gesendet, um die darauf abgebildeten Lebensmittel zu erkennen.",
@@ -1181,5 +1182,6 @@
   "bulkAddPhotoFailedLabel": "Das Foto konnte nicht gelesen werden. Prüfe deine Verbindung und versuche es erneut.",
   "bulkAddPhotoUnreadableLabel": "Dieses Bild konnte nicht verwendet werden. Versuche ein anderes Foto.",
   "bulkAddPhotoUnsupportedLabel": "Dieses Modell kann keine Fotos lesen. Wähle in den Einstellungen ein anderes aus oder tippe die Einträge ein.",
+  "bulkAddPhotoNoCreditLabel": "Diese Anfrage konnte nicht bezahlt werden: Das Guthaben deines Anbieterkontos ist aufgebraucht. Lade es beim Anbieter auf oder gib die Einträge selbst ein.",
   "bulkAddPhotoNoFoodLabel": "Auf diesem Foto wurden keine Lebensmittel erkannt. Versuche ein anderes Foto oder tippe die Einträge ein."
 }

@@ -1250,6 +1250,7 @@
   "bulkAddReadByModelLabel": "Read by AI — check each row",
   "bulkAddModelKeyRejectedLabel": "AI didn't run: your API key was rejected. These rows came from the offline parser — check the key in Settings.",
   "bulkAddModelUnsupportedLabel": "AI didn't run: the selected model couldn't be used. These rows came from the offline parser — choose another model in Settings.",
+  "bulkAddModelNoCreditLabel": "AI didn't run: your provider account is out of credit. These rows came from the offline parser — top up with your provider to use AI again.",
   "bulkAddPhotoLabel": "Read a photo",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker keeps no copy of its own, and it is never included in your exports.",
   "bulkAddPhotoDisclosureAnthropic": "The photo is sent to Anthropic to identify the foods in it.",
@@ -1262,5 +1263,6 @@
   "bulkAddPhotoFailedLabel": "Couldn't read the photo. Check your connection and try again.",
   "bulkAddPhotoUnreadableLabel": "Couldn't use that image. Try another photo.",
   "bulkAddPhotoUnsupportedLabel": "That model can't read photos. Choose a different one in Settings, or type the items instead.",
+  "bulkAddPhotoNoCreditLabel": "That request couldn't be paid for: your provider account is out of credit. Top up with your provider, or type the items instead.",
   "bulkAddPhotoNoFoodLabel": "No food found in that photo. Try another photo, or type the items instead."
 }

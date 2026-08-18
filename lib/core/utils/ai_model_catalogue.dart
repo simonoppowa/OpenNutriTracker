@@ -34,9 +34,9 @@ class AiModel {
 /// the property the list is selected on, so there is nothing useful to fetch.
 ///
 /// A stale entry fails loudly rather than silently: a withdrawn model and a
-/// pin whose provider stopped serving it both answer **404**, which
-/// [MealInterpreterException.isCapabilityRefusal] turns into advice pointing
-/// at this screen.
+/// pin whose provider stopped serving it both answer **404**, which the
+/// OpenRouter client classifies as [MealInterpreterFailure.unsupported] —
+/// turning it into advice pointing at this screen.
 ///
 /// Every entry is Anthropic-served, and that is a consequence rather than a
 /// preference. #656 found the policy fit survives only under

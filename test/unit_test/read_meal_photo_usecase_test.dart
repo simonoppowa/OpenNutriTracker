@@ -167,13 +167,33 @@ void main() {
     test('a rejected key is reported as an auth failure', () async {
       final s = subject(
         apiKey: 'k',
-        throws: const MealInterpreterException('nope', statusCode: 401),
+        throws: const MealInterpreterException(
+          'nope',
+          failure: MealInterpreterFailure.auth,
+          statusCode: 401,
+        ),
       );
 
       final reading = await s.useCase.read(_photo);
 
       expect(reading, isA<MealPhotoFailed>());
       expect((reading as MealPhotoFailed).failure, MealPhotoFailure.auth);
+    });
+
+    test('an exhausted credit is reported as billing, not auth', () async {
+      final s = subject(
+        apiKey: 'k',
+        throws: const MealInterpreterException(
+          'no credit',
+          failure: MealInterpreterFailure.billing,
+          statusCode: 402,
+        ),
+      );
+
+      final reading = await s.useCase.read(_photo);
+
+      expect(reading, isA<MealPhotoFailed>());
+      expect((reading as MealPhotoFailed).failure, MealPhotoFailure.billing);
     });
 
     test('a refused image is not offered as retryable', () async {
@@ -183,7 +203,11 @@ void main() {
       // again" is advice that can never work here; "try another photo" can.
       final s = subject(
         apiKey: 'k',
-        throws: const MealInterpreterException('bad image', statusCode: 400),
+        throws: const MealInterpreterException(
+          'bad image',
+          failure: MealInterpreterFailure.rejected,
+          statusCode: 400,
+        ),
       );
 
       final reading = await s.useCase.read(_photo);
@@ -197,7 +221,11 @@ void main() {
     test('a server error is not reported as an auth failure', () async {
       final s = subject(
         apiKey: 'k',
-        throws: const MealInterpreterException('boom', statusCode: 503),
+        throws: const MealInterpreterException(
+          'boom',
+          failure: MealInterpreterFailure.transient,
+          statusCode: 503,
+        ),
       );
 
       final reading = await s.useCase.read(_photo);

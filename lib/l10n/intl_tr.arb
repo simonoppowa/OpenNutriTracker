@@ -1170,6 +1170,7 @@
   "bulkAddReadByModelLabel": "Yapay zekâ okudu — her satırı kontrol edin",
   "bulkAddModelKeyRejectedLabel": "Yapay zekâ çalışmadı: API anahtarınız reddedildi. Bu satırlar çevrimdışı ayrıştırıcıdan geliyor — anahtarı Ayarlar'da kontrol edin.",
   "bulkAddModelUnsupportedLabel": "Yapay zekâ çalışmadı: seçilen model kullanılamadı. Bu satırlar çevrimdışı ayrıştırıcıdan geliyor — Ayarlar'dan başka bir model seçin.",
+  "bulkAddModelNoCreditLabel": "Yapay zekâ çalışmadı: sağlayıcı hesabınızda kredi kalmamış. Bu satırlar çevrimdışı ayrıştırıcıdan geldi — yapay zekâyı yeniden kullanmak için sağlayıcınızdan kredi yükleyin.",
   "bulkAddPhotoLabel": "Fotoğraf oku",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker kendi kopyasını saklamaz ve fotoğraf dışa aktarımlarınıza asla dahil edilmez.",
   "bulkAddPhotoDisclosureAnthropic": "Fotoğraf, içindeki yiyecekleri tanımak için Anthropic'e gönderilir.",
@@ -1181,5 +1182,6 @@
   "bulkAddPhotoFailedLabel": "Fotoğraf okunamadı. Bağlantınızı kontrol edip tekrar deneyin.",
   "bulkAddPhotoUnreadableLabel": "Bu görsel kullanılamadı. Başka bir fotoğraf deneyin.",
   "bulkAddPhotoUnsupportedLabel": "Bu model fotoğrafları okuyamıyor. Ayarlar'dan başka bir model seçin veya öğeleri yazın.",
+  "bulkAddPhotoNoCreditLabel": "Bu istek ödenemedi: sağlayıcı hesabınızda kredi kalmamış. Sağlayıcınızdan kredi yükleyin veya öğeleri elle yazın.",
   "bulkAddPhotoNoFoodLabel": "Bu fotoğrafta yiyecek bulunamadı. Başka bir fotoğraf deneyin veya öğeleri yazın."
 }
