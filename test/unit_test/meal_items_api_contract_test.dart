@@ -51,7 +51,7 @@ void main() {
           );
         });
 
-        final raised = await _raisedBy(contract, client);
+        final raised = await _raisedBy(contract, client, const MealTextContent(_secret));
         expect(
           raised.toString(),
           isNot(contains(_secret)),
@@ -68,20 +68,26 @@ void main() {
         final client = _FakeClient(
           throwOnSend: _LeakyException('send failed: $_photoBytes'),
         );
+        const photo = MealPhotoContent(
+          mediaType: 'image/webp',
+          base64Data: _photoBytes,
+        );
 
         final logged = await _logsDuring(() async {
           await expectLater(
-            contract.build(client).requestItems(
-              content: const MealPhotoContent(
-                mediaType: 'image/webp',
-                base64Data: _photoBytes,
-              ),
-              system: 'system',
-            ),
+            contract.build(client).requestItems(content: photo, system: 'system'),
             throwsA(isA<MealInterpreterException>()),
           );
         });
 
+        // Mirrors the text case above: a leaky transport error must not
+        // surface the payload via the exception either, not just the log.
+        final raised = await _raisedBy(contract, client, photo);
+        expect(
+          raised.toString(),
+          isNot(contains(_photoBytes)),
+          reason: 'the exception must not carry the photo bytes',
+        );
         expect(logged.join('\n'), isNot(contains(_photoBytes)));
       });
 
@@ -116,12 +122,23 @@ void main() {
       test('a stalled connection gives up instead of hanging', () async {
         final client = _FakeClient(hangs: true);
 
+        // Wrapped in an explicit short timeout so a client that regresses
+        // its own `.timeout(...)` wiring fails this assertion in ~2s rather
+        // than hanging until the test runner's own default timeout — which
+        // grows every time a provider is added to this suite.
         await expectLater(
           contract
               .build(client, timeout: const Duration(milliseconds: 20))
               .requestItems(
                 content: const MealTextContent('toast'),
                 system: 'system',
+              )
+              .timeout(
+                const Duration(seconds: 2),
+                onTimeout: () => fail(
+                  '${contract.name} did not honour its own timeout — the '
+                  'request should have failed in ~20ms',
+                ),
               ),
           throwsA(isA<MealInterpreterException>()),
         );
@@ -280,13 +297,15 @@ Future<List<String>> _logsDuring(Future<void> Function() body) async {
   return logged;
 }
 
-/// The exception a client raises for [client], for asserting on directly.
-Future<Object> _raisedBy(_ClientContract contract, _FakeClient client) async {
+/// The exception a client raises for [client] against [content], for
+/// asserting on directly.
+Future<Object> _raisedBy(
+  _ClientContract contract,
+  _FakeClient client,
+  MealContent content,
+) async {
   try {
-    await contract.build(client).requestItems(
-      content: const MealTextContent(_secret),
-      system: 'system',
-    );
+    await contract.build(client).requestItems(content: content, system: 'system');
   } catch (e) {
     return e;
   }
