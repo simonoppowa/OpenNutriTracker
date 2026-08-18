@@ -10,28 +10,25 @@ void main() {
     late _FakeSearchUseCase searchUseCase;
     late ScannerBloc bloc;
 
-    setUp(() {
-      searchUseCase = _FakeSearchUseCase();
+    /// Builds the bloc under test around a search that always fails with
+    /// [error], and returns the failure state one scan settles on.
+    Future<ScannerFailedState> scanFailingWith(Object error) {
+      searchUseCase = _FakeSearchUseCase(error);
       bloc = ScannerBloc(searchUseCase, _FakeGetConfigUsecase());
-    });
+      return _failureFor(bloc, searchUseCase, '03299289');
+    }
 
     tearDown(() => bloc.close());
 
-    test(
-      'a not-found barcode reports productNotFound, not a fetch error',
-      () async {
-        searchUseCase.error = ProductNotFoundException();
+    test('a not-found barcode reports productNotFound, not a fetch error',
+        () async {
+      final state = await scanFailingWith(ProductNotFoundException());
 
-        final state = await _failureFor(bloc, '03299289');
-
-        expect(state.type, ScannerFailedStateType.productNotFound);
-      },
-    );
+      expect(state.type, ScannerFailedStateType.productNotFound);
+    });
 
     test('any other failure reports a generic error', () async {
-      searchUseCase.error = Exception('OFF HTTP 500');
-
-      final state = await _failureFor(bloc, '03299289');
+      final state = await scanFailingWith(Exception('OFF HTTP 500'));
 
       expect(state.type, ScannerFailedStateType.error);
     });
@@ -39,22 +36,40 @@ void main() {
 }
 
 /// Drives one scan and returns the [ScannerFailedState] it settles on.
-Future<ScannerFailedState> _failureFor(ScannerBloc bloc, String barcode) async {
-  final failed = bloc.stream.whereType<ScannerFailedState>().first;
+///
+/// Asserts the settled state is a failure rather than filtering for one, so a
+/// bloc that loads a product — or emits nothing at all — fails with a readable
+/// diff instead of hanging until the suite-level timeout. Also asserts the
+/// barcode actually reached [searchUseCase], so a throw from anywhere else —
+/// a misused fake, or a future reordering that queries config first — cannot
+/// masquerade as the classification under test.
+Future<ScannerFailedState> _failureFor(
+  ScannerBloc bloc,
+  _FakeSearchUseCase searchUseCase,
+  String barcode,
+) async {
+  final settled = bloc.stream
+      .firstWhere((state) => state is! ScannerLoadingState)
+      .timeout(const Duration(seconds: 5));
   bloc.add(ScannerLoadProductEvent(barcode: barcode));
-  return failed;
-}
+  final state = await settled;
 
-extension _WhereType on Stream<ScannerState> {
-  Stream<T> whereType<T>() => where((state) => state is T).cast<T>();
+  expect(searchUseCase.calls, [barcode],
+      reason: 'the barcode should have reached the search use case');
+  expect(state, isA<ScannerFailedState>());
+  return state as ScannerFailedState;
 }
 
 class _FakeSearchUseCase implements SearchProductByBarcodeUseCase {
-  Object? error;
+  _FakeSearchUseCase(this.error);
+
+  final Object error;
+  final List<String> calls = [];
 
   @override
   Future<MealEntity> searchProductByBarcode(String barcode) async {
-    throw error!;
+    calls.add(barcode);
+    throw error;
   }
 
   @override
