@@ -7,25 +7,33 @@ import 'package:opennutritracker/features/scanner/data/product_not_found_excepti
 import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
 
-/// Only ever reached if the bloc stops emitting altogether: every fake here
-/// completes on the next microtask, so this is slack against a hung stream,
-/// not a budget the machine can lose a race against.
-const _settleTimeout = Duration(seconds: 30);
+/// Only ever reached if the bloc stops emitting altogether. Every fake here
+/// settles on the next microtask, so this is slack against a hung stream
+/// rather than a budget the machine can lose a race against — and it stays
+/// strictly under `package:test`'s 30s default per-test timeout, so such a
+/// hang surfaces as this file's own diagnostic instead of the harness's
+/// generic one.
+const _settleTimeout = Duration(seconds: 5);
 
 void main() {
   group('ScannerBloc failure classification', () {
-    ScannerBloc? bloc;
+    final blocs = <ScannerBloc>[];
 
     /// Builds the bloc under test around a search that always fails with
     /// [error], and returns the failure state one scan settles on.
     Future<ScannerFailedState> scanFailingWith(Object error) {
       final searchUseCase = _FakeSearchUseCase(error);
       final subject = ScannerBloc(searchUseCase, _FakeGetConfigUsecase());
-      bloc = subject;
+      blocs.add(subject);
       return _failureFor(subject, searchUseCase, '03299289');
     }
 
-    tearDown(() => bloc?.close());
+    tearDown(() async {
+      for (final bloc in blocs) {
+        await bloc.close();
+      }
+      blocs.clear();
+    });
 
     test('a not-found barcode reports productNotFound, not a fetch error',
         () async {
@@ -88,6 +96,10 @@ class _FakeSearchUseCase implements SearchProductByBarcodeUseCase {
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
+/// Succeeds so the bloc's success path stays reachable — see [_failureFor].
+/// The values are placeholders: these tests never reach that path, and the
+/// only field the bloc reads there is `usesImperialFoodUnits`, left at its
+/// default.
 class _FakeGetConfigUsecase implements GetConfigUsecase {
   @override
   Future<ConfigEntity> getConfig() async => const ConfigEntity(
