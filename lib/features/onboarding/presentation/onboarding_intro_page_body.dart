@@ -228,8 +228,12 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   }
 
   Future<void> _launchUrl() async {
+    // Read the locale before the await; the context must not be touched after.
+    final policy = URLConst.privacyPolicyFor(
+      Localizations.localeOf(context).languageCode,
+    );
     if (!await launchUrl(
-      Uri.parse(URLConst.privacyPolicyURLEn),
+      Uri.parse(policy),
       mode: LaunchMode.externalApplication,
     )) {}
   }

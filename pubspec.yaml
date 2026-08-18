@@ -101,6 +101,9 @@ dev_dependencies:
   # Transitively required by image_picker; declared explicitly so tests
   # can stub PathProviderPlatform.instance for filesystem round-trips.
   path_provider_platform_interface: ^2.1.2
+  # Transitively required by url_launcher; declared explicitly so tests can
+  # stub UrlLauncherPlatform.instance and assert which URL was requested.
+  url_launcher_platform_interface: ^2.3.2
   plugin_platform_interface: ^2.1.8
 
 flutter:
