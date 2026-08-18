@@ -81,8 +81,12 @@ void main() {
     final offenders = <String>[];
     for (final entity in Directory('lib').listSync(recursive: true)) {
       if (entity is! File || !entity.path.endsWith('.dart')) continue;
-      if (entity.path.endsWith('url_const.dart')) continue;
-      if (entity.path.contains('/generated/')) continue;
+      // Separators are normalised so the two skips below behave the same on
+      // Windows, where listSync yields `lib\generated\...`. Without this the
+      // generated sources would be scanned on one platform and not another.
+      final path = entity.path.replaceAll(r'\', '/');
+      if (path.endsWith('url_const.dart')) continue;
+      if (path.contains('/generated/')) continue;
 
       final source = entity.readAsStringSync();
       if (source.contains('privacyPolicyURLEn') ||
