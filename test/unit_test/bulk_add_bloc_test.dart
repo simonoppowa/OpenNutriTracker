@@ -720,6 +720,18 @@ void main() {
       expect((state as BulkAddPhotoErrorState).error, BulkAddPhotoError.auth);
     });
 
+    test('exhausted credit is not offered as retryable or an auth fix', () async {
+      final state = await readPhoto(
+        {},
+        const MealPhotoFailed(MealPhotoFailure.billing),
+      );
+
+      expect(
+        (state as BulkAddPhotoErrorState).error,
+        BulkAddPhotoError.billing,
+      );
+    });
+
     test('a transient failure is offered as retryable', () async {
       final state = await readPhoto(
         {},

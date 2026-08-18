@@ -180,6 +180,22 @@ void main() {
       expect((reading as MealPhotoFailed).failure, MealPhotoFailure.auth);
     });
 
+    test('an exhausted credit is reported as billing, not auth', () async {
+      final s = subject(
+        apiKey: 'k',
+        throws: const MealInterpreterException(
+          'no credit',
+          failure: MealInterpreterFailure.billing,
+          statusCode: 402,
+        ),
+      );
+
+      final reading = await s.useCase.read(_photo);
+
+      expect(reading, isA<MealPhotoFailed>());
+      expect((reading as MealPhotoFailed).failure, MealPhotoFailure.billing);
+    });
+
     test('a refused image is not offered as retryable', () async {
       // Found by running a corpus of real photographs: a JPEG carrying Adobe
       // APP14 markers is refused with a 400 every single time, while the same
