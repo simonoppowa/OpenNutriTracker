@@ -29,7 +29,7 @@ final class MealPhotoUnavailable extends MealPhotoReadResult {
   const MealPhotoUnavailable();
 }
 
-/// Why a call failed, in the only three flavours the user can act on.
+/// Why a call failed, in the flavours the user can act on.
 enum MealPhotoFailure {
   /// The account cannot pay — no credit, or a spend cap reached. Neither
   /// "try again later" nor "check your key" is true of it, and both send the
