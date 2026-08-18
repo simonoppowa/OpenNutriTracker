@@ -51,6 +51,20 @@ const mealItemsToolDescription = 'Record the food items found.';
 /// The shape is plain JSON Schema, which is what Anthropic's `input_schema`
 /// and OpenAI-compatible `function.parameters` both take, so one constant
 /// serves both wire formats unchanged.
+///
+/// **The app never relies on provider-side constrained decoding.** This
+/// schema is a hint to the model; [_mealItemFrom] and
+/// `validateParsedMealItems` are the enforcement. Every guarantee the app
+/// makes about model output must be checkable in Dart, against a reply that
+/// ignored the schema entirely — which is why `additionalProperties: false`
+/// below is documentation of intent rather than a defence, and why a reply
+/// carrying a `calories` field loses it whether or not any provider agreed
+/// to forbid one.
+///
+/// That is a standing rule for new providers, not a description of one. A
+/// provider offering strict or constrained output may be given it, but
+/// nothing may be *moved* onto it: the checks stay. Settled in #683, which
+/// also records why adopting OpenAI's strict mode buys this design nothing.
 const mealItemsToolSchema = {
   'type': 'object',
   'properties': {
