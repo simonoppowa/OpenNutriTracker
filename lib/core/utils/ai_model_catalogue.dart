@@ -33,17 +33,28 @@ class AiModel {
 /// slice — and the app cannot run that screen. The catalogue does not carry
 /// the property the list is selected on, so there is nothing useful to fetch.
 ///
-/// A stale entry fails loudly rather than silently: a withdrawn model and a
-/// pin whose provider stopped serving it both answer **404**, which the
-/// OpenRouter client classifies as [MealInterpreterFailure.unsupported] —
-/// turning it into advice pointing at this screen.
+/// A stale entry fails loudly rather than silently — but **how** it says so is
+/// provider-specific, and one provider had to be made to. A withdrawn model
+/// answers 404 on the Anthropic and OpenRouter paths, which those clients
+/// classify as [MealInterpreterFailure.unsupported] and turn into advice
+/// pointing at this screen. OpenAI answers **400**, and reuses 400 for a
+/// rejected image, so status alone cannot separate "this model is gone" from
+/// "this photo cannot be read". `OpenAiMealItemsApi` reads `model_not_found`
+/// out of the error body to keep the guarantee. Measured in #684 and #686.
 ///
-/// Every entry is Anthropic-served, and that is a consequence rather than a
-/// preference. #656 found the policy fit survives only under
-/// `provider.only: ["anthropic"]`: OpenAI's usage policy covers "promoting
-/// unhealthy dieting or exercise behavior to minors" with no wellness
-/// carve-out, and Google Cloud's terms forbid use in a service "likely to be
-/// accessed by individuals under the age of 18".
+/// **The all-Anthropic ruling this comment used to record has been reversed.**
+/// It read: *every entry is Anthropic-served … #656 found the policy fit
+/// survives only under `provider.only: ["anthropic"]`*, naming OpenAI's clause
+/// about promoting unhealthy dieting to minors as the cause. #679 re-read all
+/// three usage policies and found that conflated two different rejections:
+/// Anthropic's own disordered-eating prohibition is *broader* than OpenAI's,
+/// so it cannot be what separates them, and Google's is a distribution test
+/// that OpenAI has no equivalent of. OpenAI offers no carve-out, only the
+/// absence of a prohibition, so the defence is factual — the app gives no
+/// advice — and it dies the day a feature says something evaluative.
+///
+/// Google is still out, on the distribution test and on a training clause
+/// that covers free-tier submissions.
 abstract final class AiModelCatalogue {
   /// The direct path has never offered a choice, and this does not add one.
   /// Changing which model an existing user's requests go to is exactly the
@@ -73,9 +84,35 @@ abstract final class AiModelCatalogue {
     ),
   ];
 
+  /// Ordered: the default is first.
+  ///
+  /// Both were screened behaviourally over 90 live calls (#684, #686) — 18/18
+  /// forced tool calls each, no measurement ever leaked from a photo, no
+  /// duplicate rows, no unit invented on a bare count. Every candidate passed
+  /// those; what separated them was quality. `gpt-5.4-mini` turned one photo
+  /// of a bunch of bananas into **twelve** `banana` rows, and `gpt-5.4-nano`
+  /// duplicated on two photos and attached a `serving` to a bare count. Both
+  /// advertise the same capabilities as these two, which is the second time
+  /// this project has measured that a capability flag is not fitness.
+  ///
+  /// luna leads because it is the more conservative reader: on the same plate
+  /// it returned 3 rows where terra returned 7. Neither is wrong, and terra is
+  /// offered for exactly that reason.
+  ///
+  /// **No pricing claim is made here**, because none was measured. Do not add
+  /// one without measuring it.
+  ///
+  /// `providers` stays empty: that field pins an OpenRouter route, and a
+  /// direct path has no broker to constrain.
+  static const openai = <AiModel>[
+    AiModel(id: 'gpt-5.6-luna', servedBy: 'OpenAI'),
+    AiModel(id: 'gpt-5.6-terra', servedBy: 'OpenAI'),
+  ];
+
   static List<AiModel> forProvider(AiProvider provider) => switch (provider) {
     AiProvider.anthropic => anthropic,
     AiProvider.openrouter => openrouter,
+    AiProvider.openai => openai,
   };
 
   static AiModel defaultFor(AiProvider provider) => forProvider(provider).first;

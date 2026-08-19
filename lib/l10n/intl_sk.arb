@@ -1164,6 +1164,7 @@
   "aiAssistServedByLabel": "Poskytuje {provider}",
   "aiAssistModelRecommendedLabel": "Odporúčané",
   "aiAssistModelCheaperLabel": "Lacnejší, ale slabší pri fotkách nízkej kvality",
+  "aiAssistModelMoreItemsLabel": "Z fotky vypíše viac položiek",
   "aiAssistNoKeyForProviderLabel": "Pre tohto poskytovateľa nie je uložený žiadny kľúč.",
   "aiAssistKeyFieldLabel": "API kľúč {provider}",
   "aiAssistKeySavedLabel": "Kľúč uložený",

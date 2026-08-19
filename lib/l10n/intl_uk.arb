@@ -1133,6 +1133,7 @@
   "aiAssistServedByLabel": "Обслуговує {provider}",
   "aiAssistModelRecommendedLabel": "Рекомендовано",
   "aiAssistModelCheaperLabel": "Дешевша, але слабша на фото низької якості",
+  "aiAssistModelMoreItemsLabel": "Перелічує більше позицій із фото",
   "aiAssistNoKeyForProviderLabel": "Для цього постачальника ключ не збережено.",
   "aiAssistKeyFieldLabel": "Ключ API {provider}",
   "aiAssistKeySavedLabel": "Ключ збережено",

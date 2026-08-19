@@ -49,6 +49,15 @@ class CapturingClient extends http.BaseClient {
                 },
               },
             ],
+            // OpenAI's Responses shape, so one canned body satisfies all
+            // three clients and the assertions stay on the way out.
+            'output': [
+              {
+                'type': 'function_call',
+                'name': 'log_meal_items',
+                'arguments': '{"items":[]}',
+              },
+            ],
           }),
         ),
       ),
@@ -90,7 +99,23 @@ void main() {
       expect(client.headers!.containsKey('x-api-key'), isFalse);
     });
 
-    test('one provider\'s key never reaches the other\'s endpoint', () async {
+    test('OpenAI goes direct, with a bearer token', () async {
+      final client = await send(
+        const AiSelection(provider: AiProvider.openai, apiKey: 'sk-oa'),
+      );
+
+      expect(client.url!.host, 'api.openai.com');
+      expect(client.url!.path, '/v1/responses');
+      expect(client.headers!['authorization'], 'Bearer sk-oa');
+      expect(client.headers!.containsKey('x-api-key'), isFalse);
+      expect(
+        client.headers!.containsKey('x-openrouter-metadata'),
+        isFalse,
+        reason: 'there is no broker on this path to ask about',
+      );
+    });
+
+    test('one provider\'s key never reaches another\'s endpoint', () async {
       // The reason AiSelection is read as a unit: a provider switch landing
       // between two reads must not be able to produce this.
       final anthropic = await send(
@@ -99,9 +124,16 @@ void main() {
       final openrouter = await send(
         const AiSelection(provider: AiProvider.openrouter, apiKey: 'sk-or'),
       );
+      final openai = await send(
+        const AiSelection(provider: AiProvider.openai, apiKey: 'sk-oa'),
+      );
 
       expect(jsonEncode(anthropic.headers), isNot(contains('sk-or')));
+      expect(jsonEncode(anthropic.headers), isNot(contains('sk-oa')));
       expect(jsonEncode(openrouter.headers), isNot(contains('sk-ant')));
+      expect(jsonEncode(openrouter.headers), isNot(contains('sk-oa')));
+      expect(jsonEncode(openai.headers), isNot(contains('sk-ant')));
+      expect(jsonEncode(openai.headers), isNot(contains('sk-or')));
     });
   });
 
@@ -113,6 +145,18 @@ void main() {
 
       expect(client.body!['model'], AiModelCatalogue.openrouter.first.id);
       expect(client.body!['model'], 'anthropic/claude-sonnet-5');
+    });
+
+    test('OpenAI defaults to the screened conservative reader', () async {
+      // luna leads because #686 measured it as the more conservative of the
+      // two clean candidates: 3 rows where terra returned 7 on the same
+      // plate. Pinned here so a reordering of the list is a visible change.
+      final client = await send(
+        const AiSelection(provider: AiProvider.openai, apiKey: 'sk-oa'),
+      );
+
+      expect(client.body!['model'], AiModelCatalogue.openai.first.id);
+      expect(client.body!['model'], 'gpt-5.6-luna');
     });
 
     test('honours a stored choice', () async {
@@ -190,6 +234,28 @@ void main() {
           reason: model.id,
         );
       }
+    });
+
+    test('no OpenAI entry is pinned', () async {
+      // `providers` pins an OpenRouter route. A direct path has no broker to
+      // constrain, and a non-empty list here would be a routing instruction
+      // sent to something that cannot honour it.
+      for (final model in AiModelCatalogue.openai) {
+        expect(model.providers, isEmpty, reason: model.id);
+      }
+    });
+
+    test('the OpenAI client carries no routing block either', () async {
+      final client = await send(
+        const AiSelection(provider: AiProvider.openai, apiKey: 'sk-oa'),
+      );
+
+      expect(client.body!.containsKey('provider'), isFalse);
+      expect(client.body!['store'], isFalse);
+      expect(client.body!['tool_choice'], {
+        'type': 'function',
+        'name': 'log_meal_items',
+      });
     });
 
     test('the direct client carries no OpenRouter routing block', () async {

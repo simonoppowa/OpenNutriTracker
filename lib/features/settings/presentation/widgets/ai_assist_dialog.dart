@@ -153,6 +153,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // Brand names, deliberately not localized.
     AiProvider.anthropic => 'Anthropic',
     AiProvider.openrouter => 'OpenRouter',
+    AiProvider.openai => 'OpenAI',
   };
 
   @override
@@ -315,9 +316,25 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     );
   }
 
+  /// What the row below the default says.
+  ///
+  /// OpenRouter's second entry genuinely is cheaper and weaker — #668
+  /// measured haiku at 12/16 against sonnet's 16/16 on hard photos, at half
+  /// the price. **OpenAI's is neither.** #686 measured no price at all and no
+  /// quality gap between luna and terra; the one difference it did find is
+  /// that terra splits a plate into more rows. Reusing the cheaper label here
+  /// would assert two things nobody measured, in nine languages.
+  ///
+  /// Anthropic never reaches this: a single-entry list has no second row.
+  String _alternativeLabel(S s) => switch (_provider) {
+    AiProvider.openai => s.aiAssistModelMoreItemsLabel,
+    AiProvider.anthropic || AiProvider.openrouter => s.aiAssistModelCheaperLabel,
+  };
+
   String _disclosureFor(S s) => switch (_provider) {
     AiProvider.anthropic => s.aiAssistDisclosureAnthropic,
     AiProvider.openrouter => s.aiAssistDisclosureOpenRouter,
+    AiProvider.openai => s.aiAssistDisclosureOpenAI,
   };
 
   Widget _label(ThemeData theme, String text) => Padding(
@@ -414,7 +431,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                       s.aiAssistServedByLabel(model.servedBy),
                     model.id == models.first.id
                         ? s.aiAssistModelRecommendedLabel
-                        : s.aiAssistModelCheaperLabel,
+                        : _alternativeLabel(s),
                   ].join(' · '),
                   style: theme.textTheme.bodySmall,
                 ),

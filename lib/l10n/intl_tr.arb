@@ -1164,6 +1164,7 @@
   "aiAssistServedByLabel": "{provider} tarafından sunulur",
   "aiAssistModelRecommendedLabel": "Önerilen",
   "aiAssistModelCheaperLabel": "Daha ucuz, ancak düşük kaliteli fotoğraflarda daha zayıf",
+  "aiAssistModelMoreItemsLabel": "Bir fotoğraftan daha fazla öğe listeler",
   "aiAssistNoKeyForProviderLabel": "Bu sağlayıcı için kayıtlı anahtar yok.",
   "aiAssistKeyFieldLabel": "{provider} API anahtarı",
   "aiAssistKeySavedLabel": "Anahtar kaydedildi",

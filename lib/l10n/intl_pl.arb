@@ -1133,6 +1133,7 @@
   "aiAssistServedByLabel": "Obsługiwane przez {provider}",
   "aiAssistModelRecommendedLabel": "Zalecane",
   "aiAssistModelCheaperLabel": "Tańszy, ale słabszy przy zdjęciach niskiej jakości",
+  "aiAssistModelMoreItemsLabel": "Wypisuje więcej pozycji ze zdjęcia",
   "aiAssistNoKeyForProviderLabel": "Brak zapisanego klucza dla tego dostawcy.",
   "aiAssistKeyFieldLabel": "Klucz API {provider}",
   "aiAssistKeySavedLabel": "Klucz zapisany",

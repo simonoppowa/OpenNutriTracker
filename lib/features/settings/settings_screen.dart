@@ -963,6 +963,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       '${S.of(context).settingsAiAssistOnLabel} — ${switch (_aiProvider) {
         AiProvider.anthropic => 'Anthropic',
         AiProvider.openrouter => 'OpenRouter',
+        AiProvider.openai => 'OpenAI',
       }}',
     true => S.of(context).settingsAiAssistPausedLabel,
   };

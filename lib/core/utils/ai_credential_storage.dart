@@ -7,7 +7,8 @@ import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
 /// one silently orphans every key stored under the old spelling.
 enum AiProvider {
   anthropic,
-  openrouter;
+  openrouter,
+  openai;
 
   /// Anything unrecognised — including nothing at all — reads as Anthropic.
   ///
