@@ -1,32 +1,49 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-import 'package:url_launcher_platform_interface/link.dart';
-import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import '../../../helpers/test_l10n.dart';
 
+/// url_launcher's platform channel. `launchUrl` reaches it as a `launch` call
+/// carrying the URL under `'url'`.
+const _urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
+
 /// Records the URLs the widget asks the platform to open, and opens nothing.
-class _RecordingLauncher extends UrlLauncherPlatform
-    with MockPlatformInterfaceMixin {
+///
+/// Mocks the method channel rather than swapping `UrlLauncherPlatform.instance`.
+/// The latter reads better, but the types it needs live in
+/// `url_launcher_platform_interface`, which is only a transitive dependency —
+/// importing it means declaring it, and this is not worth a dependency. The
+/// channel name and its `launch`/`canLaunch` methods are the plugin's own
+/// stable surface.
+class _RecordingLauncher {
   final launched = <String>[];
 
-  @override
-  LinkDelegate? get linkDelegate => null;
+  void install() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(_urlLauncherChannel, (call) async {
+      switch (call.method) {
+        case 'canLaunch':
+          return true;
+        case 'launch':
+          launched.add(
+            (call.arguments as Map<Object?, Object?>)['url'] as String,
+          );
+          return true;
+      }
+      return null;
+    });
+  }
 
-  @override
-  Future<bool> canLaunch(String url) async => true;
-
-  @override
-  Future<bool> launchUrl(String url, LaunchOptions options) async {
-    launched.add(url);
-    return true;
+  static void remove() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(_urlLauncherChannel, null);
   }
 }
 
@@ -192,15 +209,9 @@ void main() {
 
   group('the privacy policy link follows the device language', () {
     late _RecordingLauncher launcher;
-    late UrlLauncherPlatform original;
 
-    setUp(() {
-      original = UrlLauncherPlatform.instance;
-      launcher = _RecordingLauncher();
-      UrlLauncherPlatform.instance = launcher;
-    });
-
-    tearDown(() => UrlLauncherPlatform.instance = original);
+    setUp(() => launcher = _RecordingLauncher()..install());
+    tearDown(_RecordingLauncher.remove);
 
     /// Fires the recognizer on the policy link for [locale].
     ///
