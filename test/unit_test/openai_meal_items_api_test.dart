@@ -233,6 +233,35 @@ void main() {
       );
     });
 
+    test('a call by another name is not read as meal items', () async {
+      // Only one tool is offered and tool_choice names it, so this should be
+      // impossible — but "impossible" here means parsing whatever arrived as
+      // though it were food. Both other clients check the name; so does this.
+      final s = subject(
+        responseBody: jsonEncode({
+          'output': [
+            {
+              'type': 'function_call',
+              'name': 'some_other_tool',
+              'arguments': jsonEncode({
+                'items': [
+                  {'query': 'not food', 'quantity': 99},
+                ],
+              }),
+            },
+          ],
+        }),
+      );
+
+      expect(
+        () => s.api.requestItems(
+          content: const MealTextContent('2 eggs'),
+          system: 'rules',
+        ),
+        throwsA(isA<MealInterpreterException>()),
+      );
+    });
+
     test('an empty item list is a reading, not a failure', () async {
       final s = subject(responseBody: _toolReply([]));
 

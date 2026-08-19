@@ -164,6 +164,12 @@ class OpenAiMealItemsApi implements MealItemsApi {
 
     for (final entry in output) {
       if (entry is! Map || entry['type'] != 'function_call') continue;
+      // Checked, not assumed, and both other clients check it too. Only one
+      // tool is offered and `tool_choice` names it, so a call by another name
+      // should be impossible — but "impossible" here means parsing whatever
+      // arrived as though it were a meal, and the cost of the check is a
+      // line.
+      if (entry['name'] != mealItemsToolName) continue;
       final arguments = entry['arguments'];
       if (arguments is! String) {
         throw const MealInterpreterException('tool call has no arguments');
