@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
+import 'package:opennutritracker/features/add_meal/data/openai_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/data/openrouter_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 
@@ -273,6 +274,47 @@ final _contracts = <_ClientContract>[
         {
           'finish_reason': 'stop',
           'message': {'role': 'assistant', 'content': 'Here are the foods.'},
+        },
+      ],
+    }),
+  ),
+  _ClientContract(
+    name: 'OpenAiMealItemsApi',
+    build: (client, {required timeout}) => OpenAiMealItemsApi(
+      client,
+      () => 'test-key',
+      model: 'gpt-5.6-luna',
+      timeout: timeout,
+    ),
+    // Responses returns a list to search rather than a slot to index, and
+    // the reasoning entry is here on purpose: the client must find the tool
+    // call past it, not assume it is first.
+    toolReply: (items) => jsonEncode({
+      'id': 'resp_1',
+      'object': 'response',
+      'status': 'completed',
+      'output': [
+        {'type': 'reasoning', 'id': 'rs_1', 'summary': []},
+        {
+          'type': 'function_call',
+          'id': 'fc_1',
+          'call_id': 'call_1',
+          'name': mealItemsToolName,
+          'arguments': jsonEncode({'items': items}),
+        },
+      ],
+    }),
+    noToolCall: jsonEncode({
+      'id': 'resp_1',
+      'object': 'response',
+      'status': 'completed',
+      'output': [
+        {
+          'type': 'message',
+          'role': 'assistant',
+          'content': [
+            {'type': 'output_text', 'text': 'Here are the foods I can see.'},
+          ],
         },
       ],
     }),
