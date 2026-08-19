@@ -1243,6 +1243,7 @@
   "@aiAssistServedByLabel": {"placeholders": {"provider": {"type": "String"}}},
   "aiAssistModelRecommendedLabel": "Recommended",
   "aiAssistModelCheaperLabel": "Cheaper, and weaker on poor-quality photos",
+  "aiAssistModelMoreItemsLabel": "Lists more items from a photo",
   "aiAssistNoKeyForProviderLabel": "No key saved for this provider.",
   "aiAssistKeyFieldLabel": "{provider} API key",
   "@aiAssistKeyFieldLabel": {"placeholders": {"provider": {"type": "String"}}},

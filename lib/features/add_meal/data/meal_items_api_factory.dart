@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
+import 'package:opennutritracker/features/add_meal/data/openai_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/data/openrouter_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 
@@ -34,6 +35,13 @@ MealItemsApi mealItemsApiFor(http.Client client, AiSelection selection) {
       // to mention. Unpinned, `anthropic/claude-haiku-4.5` was answered by
       // Amazon Bedrock on every attempt of a three-run probe.
       providers: model.providers,
+    ),
+    // No pin and no metadata header: reached directly, so there is no broker
+    // to constrain and nobody in between to name.
+    AiProvider.openai => OpenAiMealItemsApi(
+      client,
+      () => selection.apiKey,
+      model: model.id,
     ),
   };
 }

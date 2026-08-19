@@ -142,6 +142,51 @@ void main() {
     );
   });
 
+  testWidgets('OpenAI is offered, and says what it does with content', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('OpenAI'));
+    await tester.pumpAndSettle();
+
+    expect(await storage.activeProvider(), AiProvider.openai);
+    expect(
+      find.textContaining(l10nEn.aiAssistDisclosureOpenAI),
+      findsOneWidget,
+    );
+    // The retention sentence is the whole reason this paragraph differs from
+    // Anthropic's, so it is worth asserting it survived rather than only
+    // that some OpenAI text rendered.
+    expect(find.textContaining('30 days'), findsOneWidget);
+    expect(
+      find.textContaining(l10nEn.aiAssistDisclosureAnthropic),
+      findsNothing,
+    );
+    expect(
+      find.textContaining(l10nEn.aiAssistDisclosureOpenRouter),
+      findsNothing,
+    );
+  });
+
+  testWidgets('the OpenAI alternative is not labelled cheaper', (tester) async {
+    // #686 measured no price and no quality gap between luna and terra — only
+    // that terra lists more items. Reusing the cheaper/weaker label here
+    // would assert two things nobody measured, in nine languages.
+    await storage.setActiveProvider(AiProvider.openai);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining(l10nEn.aiAssistModelMoreItemsLabel), findsOne);
+    expect(find.textContaining(l10nEn.aiAssistModelCheaperLabel), findsNothing);
+    expect(
+      find.textContaining(l10nEn.aiAssistModelRecommendedLabel),
+      findsOne,
+      reason: 'the conservative reader still leads',
+    );
+  });
+
   testWidgets('the key field names the provider it belongs to', (tester) async {
     await tester.pumpWidget(_app(storage));
     await tester.pumpAndSettle();

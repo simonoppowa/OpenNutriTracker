@@ -1134,6 +1134,7 @@
   "aiAssistServedByLabel": "由 {provider} 提供",
   "aiAssistModelRecommendedLabel": "推荐",
   "aiAssistModelCheaperLabel": "更便宜，但在低质量照片上表现较弱",
+  "aiAssistModelMoreItemsLabel": "从照片中列出更多项目",
   "aiAssistNoKeyForProviderLabel": "尚未为该服务商保存密钥。",
   "aiAssistKeyFieldLabel": "{provider} API 密钥",
   "aiAssistKeySavedLabel": "密钥已保存",

@@ -611,6 +611,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         S
             .of(context)
             .bulkAddPhotoDisclosureOpenRouter(destination.model.servedBy),
+      // No placeholder: a direct path has no serving vendor to name, so this
+      // string is flat where OpenRouter's is parameterised.
+      AiProvider.openai => S.of(context).bulkAddPhotoDisclosureOpenAI,
     };
     final shouldOpenCamera = await showModalBottomSheet<bool>(
       context: context,
