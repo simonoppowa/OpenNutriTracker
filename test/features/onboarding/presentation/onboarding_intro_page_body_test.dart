@@ -7,38 +7,57 @@ import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-import 'package:url_launcher_platform_interface/link.dart';
-import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import '../../../helpers/test_l10n.dart';
 
+/// url_launcher's platform channel. `launchUrl` reaches it as a `launch` call
+/// carrying the URL under `'url'`.
+const _urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
+
 /// Records the URLs the widget asks the platform to open, and opens nothing.
 ///
-/// [succeeds] models a device with no browser — `launchUrl` reporting false
+/// Mocks the method channel rather than swapping `UrlLauncherPlatform.instance`.
+/// The latter reads better, but the types it needs live in
+/// `url_launcher_platform_interface`, which is only a transitive dependency —
+/// importing it means declaring it, and this is not worth a dependency. The
+/// channel name and its `launch`/`canLaunch` methods are the plugin's own
+/// stable surface.
+///
+/// [succeeds] models a device with no browser — the launch reporting false
 /// rather than throwing. [throwsPlatformException] models the other shape the
 /// same failure takes, where no activity can handle the intent at all.
-class _RecordingLauncher extends UrlLauncherPlatform
-    with MockPlatformInterfaceMixin {
-  _RecordingLauncher({this.succeeds = true, this.throwsPlatformException = false});
+class _RecordingLauncher {
+  _RecordingLauncher({
+    this.succeeds = true,
+    this.throwsPlatformException = false,
+  });
 
   final bool succeeds;
   final bool throwsPlatformException;
   final launched = <String>[];
 
-  @override
-  LinkDelegate? get linkDelegate => null;
+  void install() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(_urlLauncherChannel, (call) async {
+      switch (call.method) {
+        case 'canLaunch':
+          return succeeds;
+        case 'launch':
+          launched.add(
+            (call.arguments as Map<Object?, Object?>)['url'] as String,
+          );
+          if (throwsPlatformException) {
+            throw PlatformException(code: 'ACTIVITY_NOT_FOUND');
+          }
+          return succeeds;
+      }
+      return null;
+    });
+  }
 
-  @override
-  Future<bool> canLaunch(String url) async => succeeds;
-
-  @override
-  Future<bool> launchUrl(String url, LaunchOptions options) async {
-    launched.add(url);
-    if (throwsPlatformException) {
-      throw PlatformException(code: 'ACTIVITY_NOT_FOUND');
-    }
-    return succeeds;
+  static void remove() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(_urlLauncherChannel, null);
   }
 }
 
@@ -239,15 +258,9 @@ void main() {
 
   group('the privacy policy link follows the device language', () {
     late _RecordingLauncher launcher;
-    late UrlLauncherPlatform original;
 
-    setUp(() {
-      original = UrlLauncherPlatform.instance;
-      launcher = _RecordingLauncher();
-      UrlLauncherPlatform.instance = launcher;
-    });
-
-    tearDown(() => UrlLauncherPlatform.instance = original);
+    setUp(() => launcher = _RecordingLauncher()..install());
+    tearDown(_RecordingLauncher.remove);
 
     testWidgets('a German device opens the German document', (tester) async {
       await tapPolicyLink(tester, const Locale('de'));
@@ -282,15 +295,12 @@ void main() {
   });
 
   group('a policy link that cannot open says so', () {
-    late UrlLauncherPlatform original;
-
-    setUp(() => original = UrlLauncherPlatform.instance);
-    tearDown(() => UrlLauncherPlatform.instance = original);
+    tearDown(_RecordingLauncher.remove);
 
     testWidgets('a device with no browser reports it', (tester) async {
       // This link is the only way to read the policy the checkbox below asks
       // you to accept, so a tap that does nothing reads as broken.
-      UrlLauncherPlatform.instance = _RecordingLauncher(succeeds: false);
+      _RecordingLauncher(succeeds: false).install();
 
       await tapPolicyLink(tester, const Locale('en'));
 
@@ -301,9 +311,7 @@ void main() {
       // The same failure arrives as a throw when no activity can handle the
       // intent at all. It must reach the user as the same message rather than
       // as an unhandled async error nobody sees.
-      UrlLauncherPlatform.instance = _RecordingLauncher(
-        throwsPlatformException: true,
-      );
+      _RecordingLauncher(throwsPlatformException: true).install();
 
       await tapPolicyLink(tester, const Locale('en'));
 
@@ -312,7 +320,7 @@ void main() {
     });
 
     testWidgets('the failure notice is localized', (tester) async {
-      UrlLauncherPlatform.instance = _RecordingLauncher(succeeds: false);
+      _RecordingLauncher(succeeds: false).install();
 
       await tapPolicyLink(tester, const Locale('de'));
 
