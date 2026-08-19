@@ -22,7 +22,18 @@ const _urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
 /// importing it means declaring it, and this is not worth a dependency. The
 /// channel name and its `launch`/`canLaunch` methods are the plugin's own
 /// stable surface.
+///
+/// [succeeds] models a device with no browser — the launch reporting false
+/// rather than throwing. [throwsPlatformException] models the other shape the
+/// same failure takes, where no activity can handle the intent at all.
 class _RecordingLauncher {
+  _RecordingLauncher({
+    this.succeeds = true,
+    this.throwsPlatformException = false,
+  });
+
+  final bool succeeds;
+  final bool throwsPlatformException;
   final launched = <String>[];
 
   void install() {
@@ -30,12 +41,15 @@ class _RecordingLauncher {
         .setMockMethodCallHandler(_urlLauncherChannel, (call) async {
       switch (call.method) {
         case 'canLaunch':
-          return true;
+          return succeeds;
         case 'launch':
           launched.add(
             (call.arguments as Map<Object?, Object?>)['url'] as String,
           );
-          return true;
+          if (throwsPlatformException) {
+            throw PlatformException(code: 'ACTIVITY_NOT_FOUND');
+          }
+          return succeeds;
       }
       return null;
     });
@@ -85,6 +99,41 @@ void main() {
       ),
     ));
     // Let the version-number FutureBuilder resolve before continuing.
+    await tester.pumpAndSettle();
+  }
+
+  /// Pumps the page for [locale] and fires the recognizer on the policy link.
+  ///
+  /// Driven through the recognizer the widget installed rather than through
+  /// `tapOnText`, because the label is not unique on the page in every
+  /// language — German renders "Datenschutzrichtlinie" twice, and `tapOnText`
+  /// requires a single match.
+  Future<void> tapPolicyLink(WidgetTester tester, Locale locale) async {
+    await pumpIntroPage(tester, onSetPageContent: (_, _) {}, locale: locale);
+
+    final policyTile = find.ancestor(
+      of: find.byType(Checkbox).first,
+      matching: find.byType(ListTile),
+    );
+    final richText = tester.widget<RichText>(
+      find.descendant(of: policyTile, matching: find.byType(RichText)).first,
+    );
+
+    TapGestureRecognizer? link;
+    richText.text.visitChildren((span) {
+      if (span is TextSpan && span.recognizer is TapGestureRecognizer) {
+        link = span.recognizer as TapGestureRecognizer;
+        return false;
+      }
+      return true;
+    });
+
+    expect(
+      link?.onTap,
+      isNotNull,
+      reason: 'the policy label should carry a tappable link',
+    );
+    link!.onTap!();
     await tester.pumpAndSettle();
   }
 
@@ -213,41 +262,6 @@ void main() {
     setUp(() => launcher = _RecordingLauncher()..install());
     tearDown(_RecordingLauncher.remove);
 
-    /// Fires the recognizer on the policy link for [locale].
-    ///
-    /// Driven through the recognizer the widget installed rather than through
-    /// `tapOnText`, because the label is not unique on the page in every
-    /// language — German renders "Datenschutzrichtlinie" twice, and
-    /// `tapOnText` requires a single match.
-    Future<void> tapPolicyLink(WidgetTester tester, Locale locale) async {
-      await pumpIntroPage(tester, onSetPageContent: (_, _) {}, locale: locale);
-
-      final policyTile = find.ancestor(
-        of: find.byType(Checkbox).first,
-        matching: find.byType(ListTile),
-      );
-      final richText = tester.widget<RichText>(
-        find.descendant(of: policyTile, matching: find.byType(RichText)).first,
-      );
-
-      TapGestureRecognizer? link;
-      richText.text.visitChildren((span) {
-        if (span is TextSpan && span.recognizer is TapGestureRecognizer) {
-          link = span.recognizer as TapGestureRecognizer;
-          return false;
-        }
-        return true;
-      });
-
-      expect(
-        link?.onTap,
-        isNotNull,
-        reason: 'the policy label should carry a tappable link',
-      );
-      link!.onTap!();
-      await tester.pumpAndSettle();
-    }
-
     testWidgets('a German device opens the German document', (tester) async {
       await tapPolicyLink(tester, const Locale('de'));
 
@@ -267,6 +281,53 @@ void main() {
       await tapPolicyLink(tester, const Locale('cs'));
 
       expect(launcher.launched, [URLConst.privacyPolicyURLEn]);
+    });
+
+    testWidgets('a link that opens says nothing', (tester) async {
+      await tapPolicyLink(tester, const Locale('en'));
+
+      expect(
+        find.byType(SnackBar),
+        findsNothing,
+        reason: 'the happy path must stay silent',
+      );
+    });
+  });
+
+  group('a policy link that cannot open says so', () {
+    tearDown(_RecordingLauncher.remove);
+
+    testWidgets('a device with no browser reports it', (tester) async {
+      // This link is the only way to read the policy the checkbox below asks
+      // you to accept, so a tap that does nothing reads as broken.
+      _RecordingLauncher(succeeds: false).install();
+
+      await tapPolicyLink(tester, const Locale('en'));
+
+      expect(find.text(l10nEn.errorOpeningBrowser), findsOneWidget);
+    });
+
+    testWidgets('a platform exception is reported, not thrown', (tester) async {
+      // The same failure arrives as a throw when no activity can handle the
+      // intent at all. It must reach the user as the same message rather than
+      // as an unhandled async error nobody sees.
+      _RecordingLauncher(throwsPlatformException: true).install();
+
+      await tapPolicyLink(tester, const Locale('en'));
+
+      expect(find.text(l10nEn.errorOpeningBrowser), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the failure notice is localized', (tester) async {
+      _RecordingLauncher(succeeds: false).install();
+
+      await tapPolicyLink(tester, const Locale('de'));
+
+      expect(
+        find.text(lookupS(const Locale('de')).errorOpeningBrowser),
+        findsOneWidget,
+      );
     });
   });
 }
