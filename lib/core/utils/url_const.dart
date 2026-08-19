@@ -5,6 +5,21 @@ class URLConst {
   static const privacyPolicyURLDe =
       "https://www.iubenda.com/privacy-policy/53922100";
 
+  /// The privacy policy to open for [languageCode], English by default.
+  ///
+  /// Nine locales ship and exactly two policy documents exist, so this is a
+  /// deliberately narrow rule rather than a lookup table: German has its own
+  /// document, and every other language gets the English one because there is
+  /// nothing else to send them to. Do not add a locale here without a policy
+  /// actually existing for it — pointing a Czech user at a German document is
+  /// worse than the English fallback.
+  ///
+  /// Both entry points route through here so the two cannot drift; before
+  /// this existed they each hardcoded the English URL and the German document
+  /// was maintained for nobody.
+  static String privacyPolicyFor(String languageCode) =>
+      languageCode == 'de' ? privacyPolicyURLDe : privacyPolicyURLEn;
+
   // Citations for the in-app medical/health calculations. Surfaced on the
   // Sources & References screen (see `sources_screen.dart`) so that users
   // can verify each number we show against its peer-reviewed source.
