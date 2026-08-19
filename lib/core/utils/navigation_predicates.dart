@@ -8,11 +8,13 @@ import 'package:flutter/widgets.dart';
 /// route — leaving an empty navigator, which renders as a black screen.
 ///
 /// A stack without the expected name is a normal situation, not a bug to
-/// assert on: the same screen can be reached from the Add Meal flow (which
-/// pushes `addMealRoute`), from the home shortcut's scanner, and from the
-/// voice-add flow, and only the first of those has that route below it.
-/// So the predicates here stop at the first route instead — after the
-/// splash screen replaces itself, the first route is the main screen, which
-/// is exactly the floor these unwinds are aiming for.
+/// assert on: a screen reached through more than one entry point only has
+/// the named route below it on some of those paths — Edit Meal sits under
+/// `addMealRoute` when opened from Add Meal, and directly under the route
+/// that pushed it otherwise. So this predicate stops at the first route as
+/// well: after the splash screen replaces itself the first route is the
+/// main screen, the floor these unwinds are aiming for. Landing there is a
+/// worse-case outcome worth having — an empty navigator renders as a black
+/// screen with nothing to navigate back to.
 RoutePredicate namedRouteOrFirst(String routeName) =>
     (route) => route.isFirst || route.settings.name == routeName;

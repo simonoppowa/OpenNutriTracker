@@ -7,8 +7,8 @@ import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 /// `popUntil(ModalRoute.withName(x))` and `pushNamedAndRemoveUntil(...,
 /// ModalRoute.withName(x))` remove *every* route when `x` is not on the
 /// stack, leaving an empty navigator that renders as a black screen. Both
-/// unwinds can run on a stack that never had the route they name — the
-/// scanner reached from the home shortcut has no Add Meal route below it.
+/// unwinds can run on a stack that never had the route they name, because
+/// the screens running them are reachable from more than one entry point.
 void main() {
   /// Pumps a navigator seeded with [routeNames] (first entry is the bottom
   /// route) and hands back its state. Each route renders its own name.
@@ -51,8 +51,8 @@ void main() {
 
     testWidgets('stops at the first route when the named one is absent',
         (tester) async {
-      // The home shortcut's scanner flow: no addMeal route was ever pushed,
-      // and the unwind that wiped `main` left this stack behind.
+      // What Edit Meal's own unwind leaves behind when it runs on a stack
+      // with no addMeal route: `main` is gone, and this pops next.
       final navigator = await pumpStack(tester, ['scanner', 'mealDetail']);
 
       navigator.popUntil(namedRouteOrFirst('main'));
