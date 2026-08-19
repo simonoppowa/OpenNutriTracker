@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
@@ -228,13 +229,30 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   }
 
   Future<void> _launchUrl() async {
-    // Read the locale before the await; the context must not be touched after.
+    // Read the locale before the await; the context must not be touched
+    // afterwards without a mounted check.
     final policy = URLConst.privacyPolicyFor(
       Localizations.localeOf(context).languageCode,
     );
-    if (!await launchUrl(
-      Uri.parse(policy),
-      mode: LaunchMode.externalApplication,
-    )) {}
+
+    // A device with no browser is the case worth reporting: this link is the
+    // only way to read the policy the checkbox below asks you to accept, and
+    // silently doing nothing reads as a broken tap.
+    var opened = false;
+    try {
+      opened = await launchUrl(
+        Uri.parse(policy),
+        mode: LaunchMode.externalApplication,
+      );
+    } on PlatformException {
+      // No activity able to handle the intent — a failure to open, not a crash.
+      opened = false;
+    }
+
+    if (opened || !mounted) return;
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(S.of(context).errorOpeningBrowser)));
   }
 }
