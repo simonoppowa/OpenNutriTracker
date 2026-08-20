@@ -1509,27 +1509,40 @@ class _SettingsTile extends StatelessWidget {
 
   /// The title, with [badge] beside it when one is set.
   ///
-  /// `Flexible` on the title rather than the badge: a long localised title
-  /// should wrap or ellipsize, and the badge — two words at most — should
-  /// stay whole. The other way round, "Experimental" ellipsizes to "Exper…"
-  /// on a narrow phone in German, which says nothing.
+  /// Follows AGENTS.md's "Row titles must not overflow": the title is
+  /// flex-constrained *and* line-bounded, because `Flexible` alone stops the
+  /// overflow stripes without stopping the silent wrap the rule is actually
+  /// about.
+  ///
+  /// The constraint goes on the title rather than the badge. The other way
+  /// round, "Experimental" ellipsizes to "Exper…" on a narrow phone, which
+  /// says nothing — where a clipped title is still recognisable beside its
+  /// icon, and the subtitle underneath repeats the state.
+  ///
+  /// Untouched when there is no badge: that path is a bare `Text` outside any
+  /// `Row`, exactly as before, so the rule does not apply and existing tiles
+  /// keep wrapping as they always have.
   Widget _titleWithBadge(
     BuildContext context,
     TextTheme text,
     AppPalette palette,
   ) {
-    final label = Text(
-      title,
-      style: text.titleMedium?.copyWith(
-        fontWeight: FontWeight.w700,
-        color: titleColor,
-      ),
+    final style = text.titleMedium?.copyWith(
+      fontWeight: FontWeight.w700,
+      color: titleColor,
     );
-    if (badge == null) return label;
+    if (badge == null) return Text(title, style: style);
 
     return Row(
       children: [
-        Flexible(child: label),
+        Flexible(
+          child: Text(
+            title,
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
         const SizedBox(width: 8),
         _SettingsBadge(text: badge!, palette: palette),
       ],
@@ -1603,7 +1616,6 @@ class _SettingsSwitchTile extends StatelessWidget {
   }
 }
 
-/// The soft rounded leading chip shared by every settings row.
 /// A short status word beside a tile title, e.g. "Experimental".
 ///
 /// Muted rather than accented on purpose: this is a statement about the
@@ -1634,6 +1646,7 @@ class _SettingsBadge extends StatelessWidget {
   }
 }
 
+/// The soft rounded leading chip shared by every settings row.
 class _SettingsIconChip extends StatelessWidget {
   final AppPalette palette;
   final IconData icon;
