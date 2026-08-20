@@ -344,9 +344,17 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// would assert two things nobody measured, in nine languages.
   ///
   /// Anthropic never reaches this: a single-entry list has no second row.
-  String _alternativeLabel(S s) => switch (_provider) {
-    AiProvider.openai => s.aiAssistModelMoreItemsLabel,
-    AiProvider.anthropic || AiProvider.openrouter => s.aiAssistModelCheaperLabel,
+  /// Keyed on the model, not on the provider it is reached through.
+  ///
+  /// It used to be the latter, which held only while every list was two
+  /// entries differing the same way. The OpenRouter list is four, and the
+  /// per-provider string reached `openai/gpt-5.6-terra` claiming it was
+  /// cheaper — it matches `claude-sonnet-5` on input and is dearer on output.
+  /// #726.
+  String _noteLabel(S s, AiModelNote note) => switch (note) {
+    AiModelNote.cheaper => s.aiAssistModelCheaperLabel,
+    AiModelNote.moreItems => s.aiAssistModelMoreItemsLabel,
+    AiModelNote.cheapest => s.aiAssistModelCheapestLabel,
   };
 
   String _disclosureFor(S s) => switch (_provider) {
@@ -373,11 +381,16 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// every batch, because a curated entry is pinned and so the vendor is
   /// guaranteed rather than likely.
   ///
-  /// When every model on the list is served by the same vendor — which is
-  /// the case today and, while #656 holds, the only case there can be — that
-  /// is said once for the group instead of repeated on each row. Repeating
-  /// it cost two wrapped lines in German and pushed the disclosure further
-  /// past the fold, for a fact that did not change between the rows.
+  /// When every model on the list is served by the same vendor, that is said
+  /// once for the group instead of repeated on each row. Repeating it cost
+  /// two wrapped lines in German and pushed the disclosure further past the
+  /// fold, for a fact that did not change between the rows.
+  ///
+  /// This comment used to add that the shared-vendor case was "while #656
+  /// holds, the only case there can be". #679 reversed #656, and #726 put two
+  /// OpenAI-served entries on the OpenRouter list — so the per-row branch
+  /// below is reachable in production for the first time, and the grouped
+  /// line is now the special case rather than the rule.
   Widget _buildModelSection(BuildContext context, S s, ThemeData theme) {
     final models = AiModelCatalogue.forProvider(_provider);
     final single = models.length == 1;
@@ -447,9 +460,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                   [
                     if (sharedVendor == null)
                       s.aiAssistServedByLabel(model.servedBy),
-                    model.id == models.first.id
-                        ? s.aiAssistModelRecommendedLabel
-                        : _alternativeLabel(s),
+                    if (model.id == models.first.id)
+                      s.aiAssistModelRecommendedLabel
+                    else if (model.note case final note?)
+                      _noteLabel(s, note),
                   ].join(' · '),
                   style: theme.textTheme.bodySmall,
                 ),

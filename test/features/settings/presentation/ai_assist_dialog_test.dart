@@ -325,30 +325,94 @@ void main() {
     );
   });
 
-  testWidgets('names the vendor that will actually serve the request', (
+  testWidgets('names the vendor that will actually serve each row', (
     tester,
   ) async {
-    // Pinned with fallbacks off, so this is guaranteed rather than likely —
-    // which is why it is stated once here instead of on every batch.
+    // Pinned with fallbacks off, so this is guaranteed rather than likely.
+    //
+    // Said **per row**, which is new. It was said once for the group until
+    // #726 put OpenAI-served entries on this list, and that grouped line was
+    // only ever a deduplication of a fact that did not vary between rows. It
+    // varies now, so one line would be a lie about half of them.
     await storage.setActiveProvider(AiProvider.openrouter);
     await tester.pumpWidget(_app(storage));
     await tester.pumpAndSettle();
 
-    // Stated once for the group, not per row. Every curated model is served
-    // by the same vendor — necessarily so while #656 restricts the list to
-    // Anthropic — and repeating it cost two wrapped lines in German for a
-    // fact that does not change between the rows.
+    final vendors = AiModelCatalogue.openrouter.map((m) => m.servedBy).toSet();
     expect(
-      find.textContaining(l10nEn.aiAssistServedByLabel('Anthropic')),
+      vendors,
+      {'Anthropic', 'OpenAI'},
+      reason: 'the mixed-vendor branch is what this test exists to cover',
+    );
+
+    for (final vendor in vendors) {
+      final rows = AiModelCatalogue.openrouter
+          .where((m) => m.servedBy == vendor)
+          .length;
+      expect(
+        find.textContaining(l10nEn.aiAssistServedByLabel(vendor)),
+        findsNWidgets(rows),
+        reason: 'one per row it serves; a grouped line would show exactly one',
+      );
+    }
+  });
+
+  testWidgets('the broker disclosure covers the vendor behind the broker', (
+    tester,
+  ) async {
+    // Every other disclosure assertion in this file compares the rendered
+    // text against the ARB value, so it stays green whatever the ARB says.
+    // This one asserts the *content*, because the fact is load-bearing and
+    // was missing: until #726 every curated OpenRouter model was
+    // Anthropic-served, so the broker path always reached the vendor with the
+    // strongest retention promise, and the paragraph only ever described
+    // OpenRouter's own handling. With OpenAI on the list a user could be told
+    // less about the same company than the direct path tells them.
+    expect(
+      l10nEn.aiAssistDisclosureOpenRouter,
+      contains('under its own policy'),
+      reason: 'the serving vendor retains on its own terms, not OpenRouter\'s',
+    );
+
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('under its own policy'),
       findsOneWidget,
+      reason: 'stated in the dialog, not only in the ARB',
     );
-    // The claim itself has to survive the deduplication: every model on the
-    // list must still be one this vendor actually serves, or the single
-    // line is a lie about some of them.
+  });
+
+  testWidgets('no OpenRouter row claims to be cheaper than it is', (
+    tester,
+  ) async {
+    // The label was keyed on the *provider*, so every non-default row on a
+    // list got the same string. That held while each list was two entries
+    // differing the same way. On four it reached `openai/gpt-5.6-terra`,
+    // which matches claude-sonnet-5 on input price and is dearer on output —
+    // the row asserted something the price table contradicts. #726.
+    await storage.setActiveProvider(AiProvider.openrouter);
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
     expect(
-      AiModelCatalogue.openrouter.map((m) => m.servedBy).toSet(),
-      {'Anthropic'},
+      find.textContaining(l10nEn.aiAssistModelCheaperLabel),
+      findsOne,
+      reason: 'only claude-haiku-4.5, where #668 measured it',
     );
+    expect(
+      find.textContaining(l10nEn.aiAssistModelCheapestLabel),
+      findsOne,
+      reason: 'only gpt-5.6-luna, which is 5x below the next on both axes',
+    );
+    expect(
+      find.textContaining(l10nEn.aiAssistModelMoreItemsLabel),
+      findsOne,
+      reason: 'only gpt-5.6-terra, where #686 measured 7 rows against 3',
+    );
+    expect(find.textContaining(l10nEn.aiAssistModelRecommendedLabel), findsOne);
   });
 
   testWidgets('the key field is on screen without scrolling, on a phone', (
