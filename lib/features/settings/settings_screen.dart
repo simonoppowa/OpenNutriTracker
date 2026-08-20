@@ -415,6 +415,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.auto_awesome_rounded,
                     title: S.of(context).settingsAiAssistLabel,
                     subtitle: _aiAssistSubtitle(context),
+                    badge: S.of(context).aiAssistExperimentalLabel,
                     onTap: () => _openAiAssistDialog(context),
                   ),
                   _SettingsTile(
@@ -1483,6 +1484,9 @@ class _SettingsTile extends StatelessWidget {
   final Color? titleColor;
   final String title;
   final String? subtitle;
+
+  /// A short status word shown beside the title, e.g. "Experimental".
+  final String? badge;
   final Widget? trailing;
   final bool showChevron;
   final bool enabled;
@@ -1497,10 +1501,53 @@ class _SettingsTile extends StatelessWidget {
     this.iconColor,
     this.titleColor,
     this.subtitle,
+    this.badge,
     this.trailing,
     this.showChevron = false,
     this.enabled = true,
   });
+
+  /// The title, with [badge] beside it when one is set.
+  ///
+  /// Follows AGENTS.md's "Row titles must not overflow": the title is
+  /// flex-constrained *and* line-bounded, because `Flexible` alone stops the
+  /// overflow stripes without stopping the silent wrap the rule is actually
+  /// about.
+  ///
+  /// The constraint goes on the title rather than the badge. The other way
+  /// round, "Experimental" ellipsizes to "Exper…" on a narrow phone, which
+  /// says nothing — where a clipped title is still recognisable beside its
+  /// icon, and the subtitle underneath repeats the state.
+  ///
+  /// Untouched when there is no badge: that path is a bare `Text` outside any
+  /// `Row`, exactly as before, so the rule does not apply and existing tiles
+  /// keep wrapping as they always have.
+  Widget _titleWithBadge(
+    BuildContext context,
+    TextTheme text,
+    AppPalette palette,
+  ) {
+    final style = text.titleMedium?.copyWith(
+      fontWeight: FontWeight.w700,
+      color: titleColor,
+    );
+    if (badge == null) return Text(title, style: style);
+
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
+            title,
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 8),
+        _SettingsBadge(text: badge!, palette: palette),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1510,13 +1557,7 @@ class _SettingsTile extends StatelessWidget {
     final tile = ListTile(
       enabled: enabled,
       leading: _SettingsIconChip(palette: palette, icon: icon, color: tint),
-      title: Text(
-        title,
-        style: text.titleMedium?.copyWith(
-          fontWeight: FontWeight.w700,
-          color: titleColor,
-        ),
-      ),
+      title: _titleWithBadge(context, text, palette),
       subtitle: subtitle != null
           ? Text(
               subtitle!,
@@ -1571,6 +1612,36 @@ class _SettingsSwitchTile extends StatelessWidget {
           : null,
       value: value,
       onChanged: onChanged,
+    );
+  }
+}
+
+/// A short status word beside a tile title, e.g. "Experimental".
+///
+/// Muted rather than accented on purpose: this is a statement about the
+/// feature's stability, not a call to action, and an accent-coloured pill
+/// beside a title reads as "new — try this".
+class _SettingsBadge extends StatelessWidget {
+  final String text;
+  final AppPalette palette;
+
+  const _SettingsBadge({required this.text, required this.palette});
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = palette.textMuted;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: muted.withValues(alpha: 0.12),
+        borderRadius: Dimens.borderRadiusS,
+      ),
+      child: Text(
+        text,
+        style: Theme.of(
+          context,
+        ).textTheme.labelSmall?.copyWith(color: muted, height: 1.2),
+      ),
     );
   }
 }

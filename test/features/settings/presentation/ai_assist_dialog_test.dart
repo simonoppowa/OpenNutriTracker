@@ -142,6 +142,52 @@ void main() {
     );
   });
 
+  testWidgets('the dialog says the feature is experimental, and why', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    // A bare word invites the reader to supply their own meaning, and the two
+    // obvious readings — might break, might be wrong — lead to different
+    // decisions about whether to pay for an API key. So the dialog states it.
+    expect(find.text(l10nEn.aiAssistExperimentalNote), findsOneWidget);
+  });
+
+  testWidgets('the marker is not appended to the dialog title', (tester) async {
+    // Not an oversight. At textScaler 2.0 on a 320px phone, a title of
+    // "AI meal assistance · Experimental" squeezes the content area and
+    // overflows the dialog by 48px — the bound the model-row test pins. The
+    // badge lives on the tile that opens this, and the note states the
+    // meaning, so the title does not need to carry it too.
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    final title = tester.widget<Text>(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text(l10nEn.settingsAiAssistLabel),
+      ),
+    );
+    expect(title.data, l10nEn.settingsAiAssistLabel);
+  });
+
+  testWidgets('experimental is about stability, not model accuracy', (
+    tester,
+  ) async {
+    // The check-your-rows caution already exists, fires only when a model ran,
+    // and #661 settled that it must not accumulate status text. So the note
+    // here must not repeat it.
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    expect(
+      l10nEn.aiAssistExperimentalNote,
+      isNot(contains(l10nEn.bulkAddReadByModelLabel)),
+    );
+    expect(find.textContaining(l10nEn.bulkAddReadByModelLabel), findsNothing);
+  });
+
   testWidgets('OpenAI is offered, and says what it does with content', (
     tester,
   ) async {

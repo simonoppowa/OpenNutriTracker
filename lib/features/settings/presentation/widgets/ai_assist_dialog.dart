@@ -162,6 +162,11 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     final theme = Theme.of(context);
 
     return AlertDialog(
+      // The Experimental marker is deliberately *not* appended here. At a 2x
+      // text scale on a 320px phone it makes this title tall enough to squeeze
+      // the content area and overflow the dialog by 48px — the bound the
+      // model-row test pins. Nothing is lost: the tile that opens this dialog
+      // carries the badge, and the note below states what it means.
       title: Text(s.settingsAiAssistLabel),
       content: _loading
           ? const SizedBox(
@@ -297,6 +302,19 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                     Text(
                       '${_disclosureFor(s)}\n\n${s.aiAssistDisclosureCommon}',
                       style: theme.textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 12),
+                    // What the badge in the title means, spelled out once
+                    // where the user is deciding whether to turn this on. It
+                    // is a statement about the feature's stability, not about
+                    // the model's accuracy — that caution already appears
+                    // above the rows a model produced, where it can be acted
+                    // on.
+                    Text(
+                      s.aiAssistExperimentalNote,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ],
                 ),
