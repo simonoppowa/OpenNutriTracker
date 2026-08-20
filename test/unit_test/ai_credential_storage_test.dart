@@ -3,8 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 
 /// In-memory stand-in for the platform keystore.
+///
+/// [reads] counts round trips, because on a real device each one is a
+/// platform channel call and the cost is invisible from the call site — the
+/// defect #730 recorded.
 class _MemoryStorage implements FlutterSecureStorage {
   final store = <String, String>{};
+  final reads = <String>[];
 
   @override
   Future<String?> read({
@@ -15,7 +20,10 @@ class _MemoryStorage implements FlutterSecureStorage {
     WebOptions? webOptions,
     AppleOptions? mOptions,
     WindowsOptions? wOptions,
-  }) async => store[key];
+  }) async {
+    reads.add(key);
+    return store[key];
+  }
 
   @override
   Future<void> write({
@@ -372,6 +380,98 @@ void main() {
 
       expect(backing.store['AiModelTag.anthropic'], 'a/one');
       expect(backing.store.containsKey('AiApiKeyTag.anthropic'), isFalse);
+    });
+  });
+
+  group('readSummary', () {
+    // Everything a row shows about the feature, resolved in one pass. The
+    // three getters it replaces are each other's dependencies — `isEnabled`
+    // opens by calling `hasApiKey`, which resolves `activeProvider` before it
+    // can name a slot — so asking them separately resolved the provider three
+    // times over. #730.
+
+    test('reports the provider, the key and the flag together', () async {
+      await storage.setActiveProvider(AiProvider.openai);
+      await storage.writeApiKey('sk-test', provider: AiProvider.openai);
+      await storage.setEnabled(true);
+
+      final summary = await storage.readSummary();
+
+      expect(summary.provider, AiProvider.openai);
+      expect(summary.hasKey, isTrue);
+      expect(summary.enabled, isTrue);
+    });
+
+    test('a key with the flag off reads as paused, not as absent', () async {
+      // The distinction the settings row is built on: "Paused — key saved"
+      // against "Off — no key saved".
+      await storage.writeApiKey('sk-test');
+      await storage.setEnabled(false);
+
+      final summary = await storage.readSummary();
+
+      expect(summary.hasKey, isTrue);
+      expect(summary.enabled, isFalse);
+    });
+
+    test('enabled is never true without a key for the active provider', () async {
+      // The invariant `isEnabled` has always enforced, now stated in one
+      // place: the flag alone never means "on". Set the flag against a
+      // provider that holds a key, then switch to one that does not.
+      await storage.writeApiKey('sk-test', provider: AiProvider.anthropic);
+      await storage.setEnabled(true);
+      await storage.setActiveProvider(AiProvider.openai);
+
+      final summary = await storage.readSummary();
+
+      expect(summary.provider, AiProvider.openai);
+      expect(summary.hasKey, isFalse);
+      expect(summary.enabled, isFalse);
+    });
+
+    test('resolves the active provider once, not once per value', () async {
+      await storage.setActiveProvider(AiProvider.openai);
+      await storage.writeApiKey('sk-test', provider: AiProvider.openai);
+      backing.reads.clear();
+
+      await storage.readSummary();
+
+      expect(
+        backing.reads.where((k) => k == 'AiProviderTag').length,
+        1,
+        reason: 'the provider decides which slot to read; it is not per value',
+      );
+      expect(
+        backing.reads.length,
+        lessThanOrEqualTo(4),
+        reason: 'four distinct keys exist; asking the three getters '
+            'separately took 6-8 round trips. Got: ${backing.reads}',
+      );
+    });
+
+    test('agrees with the getters it replaces', () async {
+      // The refactor is only safe if it is not a behaviour change. Checked
+      // across the states the row distinguishes rather than on one happy
+      // path.
+      for (final (provider, key, enabled) in [
+        (AiProvider.anthropic, null, true),
+        (AiProvider.anthropic, 'sk-a', true),
+        (AiProvider.anthropic, 'sk-a', false),
+        (AiProvider.openai, 'sk-o', true),
+        (AiProvider.openrouter, null, false),
+      ]) {
+        final fresh = _MemoryStorage();
+        final store = AiCredentialStorage(fresh);
+        await store.setActiveProvider(provider);
+        if (key != null) await store.writeApiKey(key, provider: provider);
+        await store.setEnabled(enabled);
+
+        final summary = await store.readSummary();
+
+        expect(summary.provider, await store.activeProvider());
+        expect(summary.hasKey, await store.hasApiKey());
+        expect(summary.enabled, await store.isEnabled());
+      }
     });
   });
 

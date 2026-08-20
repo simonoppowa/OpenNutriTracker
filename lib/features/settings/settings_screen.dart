@@ -940,14 +940,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _refreshAiAssistState() async {
-    final hasKey = await _aiCredentials.hasApiKey();
-    final enabled = await _aiCredentials.isEnabled();
-    final provider = await _aiCredentials.activeProvider();
+    final summary = await _aiCredentials.readSummary();
     if (!mounted) return;
     setState(() {
-      _aiHasKey = hasKey;
-      _aiEnabled = enabled;
-      _aiProvider = provider;
+      _aiHasKey = summary.hasKey;
+      _aiEnabled = summary.enabled;
+      _aiProvider = summary.provider;
     });
   }
 

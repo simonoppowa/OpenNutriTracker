@@ -42,6 +42,28 @@ class AiSelection {
   });
 }
 
+/// What a row needs to describe the feature without opening it: who would
+/// answer, whether a credential exists for them, and whether the user
+/// currently wants it used.
+///
+/// Deliberately carries no key. Three screens show this and none of them
+/// sends a request, so the credential is read to test its existence and
+/// dropped — the same thing [AiCredentialStorage.hasApiKey] has always done,
+/// kept that way now that the read is shared.
+class AiAssistSummary {
+  final AiProvider provider;
+  final bool hasKey;
+
+  /// False whenever [hasKey] is false, so a caller never has to check both.
+  final bool enabled;
+
+  const AiAssistSummary({
+    required this.provider,
+    required this.hasKey,
+    required this.enabled,
+  });
+}
+
 /// Holds the user's own model-provider API keys, which one is in use, and
 /// whether they currently want it used.
 ///
@@ -104,6 +126,41 @@ class AiCredentialStorage {
   Future<void> setActiveProvider(AiProvider provider) =>
       _storage.write(key: _providerTag, value: provider.name);
 
+  /// Resolves the active provider **once** and answers everything that hangs
+  /// off it, for the callers that want more than one of these values.
+  ///
+  /// The public getters are each other's dependencies — [isEnabled] begins by
+  /// calling [hasApiKey], which resolves [activeProvider] before it can name a
+  /// slot — so asking all three separately resolved the provider three times
+  /// and re-read the key slot twice, for 6-8 platform-channel round trips
+  /// against four distinct keys. Nothing was wrong with any answer; the cost
+  /// was simply invisible from the call site, because each method reads like
+  /// one lookup. #730.
+  ///
+  /// Not fixable by running the three concurrently: they are not independent,
+  /// so overlapping them hides the duplicate reads rather than removing them.
+  Future<({AiProvider provider, String? apiKey, bool enabled})>
+  _readState() async {
+    final provider = await activeProvider();
+    final apiKey = await readApiKey(provider: provider);
+    // The invariant [isEnabled] has always enforced, stated here once: the
+    // flag alone never means "on" — a provider with no key is off whatever
+    // the tag says.
+    final enabled =
+        apiKey != null && await _storage.read(key: _enabledTag) != 'false';
+    return (provider: provider, apiKey: apiKey, enabled: enabled);
+  }
+
+  /// What a row shows for the feature, in one read of the store.
+  Future<AiAssistSummary> readSummary() async {
+    final state = await _readState();
+    return AiAssistSummary(
+      provider: state.provider,
+      hasKey: state.apiKey != null,
+      enabled: state.enabled,
+    );
+  }
+
   /// What the AI features should do right now, or null when they should do
   /// nothing — the feature is off, or the active provider has no key.
   ///
@@ -111,14 +168,14 @@ class AiCredentialStorage {
   /// ask `isEnabled()` then `readApiKey()`, and adding a provider and a model
   /// would have made that four questions asked separately in two places.
   Future<AiSelection?> readSelection() async {
-    if (!await isEnabled()) return null;
-    final provider = await activeProvider();
-    final apiKey = await readApiKey(provider: provider);
+    final state = await _readState();
+    if (!state.enabled) return null;
+    final apiKey = state.apiKey;
     if (apiKey == null) return null;
     return AiSelection(
-      provider: provider,
+      provider: state.provider,
       apiKey: apiKey,
-      modelId: await readModel(provider: provider),
+      modelId: await readModel(provider: state.provider),
     );
   }
 
@@ -229,10 +286,7 @@ class AiCredentialStorage {
   /// Whether the user currently wants the key used. False whenever the
   /// *active* provider has no key, so a caller never has to check both — the
   /// same invariant as before providers existed, restated for two slots.
-  Future<bool> isEnabled() async {
-    if (!await hasApiKey()) return false;
-    return await _storage.read(key: _enabledTag) != 'false';
-  }
+  Future<bool> isEnabled() async => (await _readState()).enabled;
 
   /// Turns the feature off without forgetting the keys, so switching it back
   /// on does not mean finding a credential again. Enabling with no key for
