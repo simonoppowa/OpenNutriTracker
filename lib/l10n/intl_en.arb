@@ -1043,6 +1043,8 @@
   "settingsVolumeLabel": "Volume",
   "shareActivityLabel": "Share workout",
   "shareCodeLabel": "Share code",
+  "shareJsonImportContent": "These meals will be added to your diary.",
+  "shareJsonImportErrorLabel": "Could not read shared JSON. Check that it matches the expected format.",
   "shareMealLabel": "Share meal",
   "shareRecipeLabel": "Share recipe",
   "snackExample": "e.g. apple, ice cream, chocolate ...",

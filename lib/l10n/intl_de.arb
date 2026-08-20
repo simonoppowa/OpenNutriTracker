@@ -991,6 +991,8 @@
   "settingsVolumeLabel": "Volumen",
   "shareActivityLabel": "Training teilen",
   "shareCodeLabel": "Code teilen",
+  "shareJsonImportContent": "Diese Mahlzeiten werden deinem Tagebuch hinzugefügt.",
+  "shareJsonImportErrorLabel": "JSON konnte nicht gelesen werden. Überprüfe, ob das Format korrekt ist.",
   "shareMealLabel": "Mahlzeit teilen",
   "shareRecipeLabel": "Rezept teilen",
   "snackExample": "z. B. Apfel, Eiscreme, Schokolade ...",

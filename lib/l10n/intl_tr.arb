@@ -991,6 +991,8 @@
   "settingsVolumeLabel": "Hacim",
   "shareActivityLabel": "Antrenmanı paylaş",
   "shareCodeLabel": "Kodu paylaş",
+  "shareJsonImportContent": "Bu öğünler günlüğünüze eklenecektir.",
+  "shareJsonImportErrorLabel": "Paylaşılan JSON okunamadı. Beklenen formatla eşleşip eşleşmediğini kontrol edin.",
   "shareMealLabel": "Share meal",
   "shareRecipeLabel": "Tarifi paylaş",
   "snackExample": "ör. elma, dondurma, çikolata ...",
