@@ -135,8 +135,8 @@ No account, no sign-in, no analytics, no ads. Your profile, diary, activities, w
 | [Open Food Facts](https://world.openfoodfacts.org/) | Food search or barcode scan | The search term or barcode, plus a country tag from your device locale for ranking |
 | Supabase reference backend | Food search | The search term |
 | [Anthropic](https://www.anthropic.com/) | **Only if you save your own API key and pick Anthropic** | The meal line you type on the multi-item add screen, or a meal photo you choose to read there, and your app language |
-| [OpenAI](https://openai.com/) | **Only if you save your own API key and pick OpenAI** | The same, plus the model you chose |
-| [OpenRouter](https://openrouter.ai/) | **Only if you save your own API key and pick OpenRouter** | The same, plus the model you chose |
+| [OpenAI](https://openai.com/) | **Only if you save your own API key and pick OpenAI** | As the Anthropic row, plus the model you chose |
+| [OpenRouter](https://openrouter.ai/) | **Only if you save your own API key and pick OpenRouter** | As the Anthropic row, plus the model you chose |
 | └ the vendor serving it | | Named in Settings; pinned, so it is the vendor the model names |
 | [Sentry](https://sentry.io) | **Only if you opt in** | Crash traces, app and OS version, device model |
 
