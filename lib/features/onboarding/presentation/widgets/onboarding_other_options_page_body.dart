@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/section_group.dart';
+import 'package:opennutritracker/core/presentation/ai_assist_summary.dart';
+import 'package:opennutritracker/core/presentation/widgets/badged_title.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/ai_assist_dialog.dart';
 import 'package:opennutritracker/core/styles/accent_colors.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
@@ -10,10 +14,19 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
 /// Onboarding "Other options" page: app theme, the food databases used by
-/// search, and the daily logging reminder. Everything here is optional —
-/// the page is pre-filled with the defaults (system theme, all sources on,
-/// no reminder) and can be skipped by tapping next; each choice can be
-/// revisited later in Settings.
+/// search, the daily logging reminder, and AI meal assistance. Everything
+/// here is optional — the page is pre-filled with the defaults (system theme,
+/// all sources on, no reminder, no AI key) and can be skipped by tapping next;
+/// each choice can be revisited later in Settings.
+///
+/// **AI meal assistance is the one row that does not follow the page's staging
+/// model**, and deliberately. Every other control publishes to the bloc and is
+/// written only when onboarding completes; the AI dialog persists a provider,
+/// a model and a keystore credential the moment they are touched. Staging a
+/// credential to write later would mean holding it in memory across the rest
+/// of onboarding for no benefit, and the dialog is shared with Settings, where
+/// immediate writes are correct. So the row reads its state directly and
+/// refreshes after the dialog closes. See #728.
 class OnboardingOtherOptionsPageBody extends StatefulWidget {
   final Function(
     AppThemeEntity selectedTheme,
@@ -29,6 +42,12 @@ class OnboardingOtherOptionsPageBody extends StatefulWidget {
   final bool initialUseMaterialYou;
   final int? initialAccentColor;
 
+  /// Injected rather than pulled from the locator inside `build`, matching how
+  /// every other value on this page arrives. Reaching for the locator here
+  /// would make the existing tests on this page need one registered, for a
+  /// dependency none of them exercise.
+  final AiCredentialStorage? aiCredentials;
+
   const OnboardingOtherOptionsPageBody({
     super.key,
     required this.setPageContent,
@@ -37,6 +56,7 @@ class OnboardingOtherOptionsPageBody extends StatefulWidget {
     required this.initialDailyReminderEnabled,
     required this.initialUseMaterialYou,
     required this.initialAccentColor,
+    this.aiCredentials,
   });
 
   @override
@@ -52,6 +72,41 @@ class _OnboardingOtherOptionsPageBodyState
   late bool _dailyReminderEnabled = widget.initialDailyReminderEnabled;
   late bool _useMaterialYou = widget.initialUseMaterialYou;
   late int? _accentColor = widget.initialAccentColor;
+
+  /// Null until the first read completes, so the row shows no subtitle rather
+  /// than briefly claiming the feature is off. Same three fields Settings
+  /// keeps, read from the same store.
+  bool? _aiHasKey;
+  bool _aiEnabled = false;
+  AiProvider _aiProvider = AiProvider.anthropic;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshAiState();
+  }
+
+  Future<void> _refreshAiState() async {
+    final storage = widget.aiCredentials;
+    if (storage == null) return;
+    final hasKey = await storage.hasApiKey();
+    final enabled = await storage.isEnabled();
+    final provider = await storage.activeProvider();
+    if (!mounted) return;
+    setState(() {
+      _aiHasKey = hasKey;
+      _aiEnabled = enabled;
+      _aiProvider = provider;
+    });
+  }
+
+  /// Refreshed unconditionally rather than only when the dialog reports a
+  /// change: the subtitle is cheap to recompute and a stale one misdescribes
+  /// what leaves the device.
+  Future<void> _openAiDialog(AiCredentialStorage storage) async {
+    await AiAssistDialog.show(context, storage);
+    await _refreshAiState();
+  }
 
   void _publish() {
     widget.setPageContent(
@@ -266,10 +321,60 @@ class _OnboardingOtherOptionsPageBodyState
                 ),
               ],
             ),
+            ...?_buildAiAssistSection(context, s),
           ],
         ),
       ),
     );
+  }
+
+  /// Last on the page on purpose: it is the least likely of these to be
+  /// usable at first run — it needs an account and a card at Anthropic,
+  /// OpenAI or OpenRouter — and the most consequential, since it is the only
+  /// option here that changes what leaves the device.
+  ///
+  /// Opens the Settings dialog rather than restating it. The disclosure, the
+  /// provider list and the per-provider retention text are the load-bearing
+  /// part, and a second onboarding-shaped copy would be a second thing to
+  /// keep true in nine languages.
+  ///
+  /// Absent when no storage was injected, which is the case for tests that
+  /// predate this row and do not exercise it.
+  List<Widget>? _buildAiAssistSection(BuildContext context, S s) {
+    final storage = widget.aiCredentials;
+    if (storage == null) return null;
+
+    return [
+      const SizedBox(height: Dimens.spacing24),
+      SectionHeader(label: s.settingsAiAssistLabel),
+      const SizedBox(height: Dimens.spacing12),
+      SectionGroup(
+        tiles: [
+          Semantics(
+            identifier: 'onboarding-ai-assist',
+            child: ListTile(
+              dense: true,
+              title: BadgedTitle(
+                title: s.settingsAiAssistLabel,
+                badge: s.aiAssistExperimentalLabel,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              subtitle: Text(
+                aiAssistSubtitle(
+                      s,
+                      hasKey: _aiHasKey,
+                      enabled: _aiEnabled,
+                      provider: _aiProvider,
+                    ) ??
+                    '',
+              ),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => _openAiDialog(storage),
+            ),
+          ),
+        ],
+      ),
+    ];
   }
 
   /// The database list is long and every entry is already set sensibly for

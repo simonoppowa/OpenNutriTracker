@@ -5,6 +5,8 @@ import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/presentation/ai_assist_summary.dart';
+import 'package:opennutritracker/core/presentation/widgets/badged_title.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
@@ -950,24 +952,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// The tile is the only place the destination is visible without opening
-  /// the dialog, so the "on" state names it. Brand names are not localized,
-  /// and the em-dash slot is free in that state.
-  String? _aiAssistSubtitle(BuildContext context) => switch (_aiHasKey) {
-    null => null,
-    false => S.of(context).settingsAiAssistNotConfiguredLabel,
-    true when _aiEnabled =>
-      // Exhaustive, deliberately. A wildcard here would name Anthropic for
-      // any provider added later, and this tile is the only place the
-      // destination is visible without opening the dialog — the same shape
-      // of defect as the photo sheet that said "an Anthropic gesendet" while
-      // OpenRouter was selected. Listing both makes the compiler ask.
-      '${S.of(context).settingsAiAssistOnLabel} — ${switch (_aiProvider) {
-        AiProvider.anthropic => 'Anthropic',
-        AiProvider.openrouter => 'OpenRouter',
-        AiProvider.openai => 'OpenAI',
-      }}',
-    true => S.of(context).settingsAiAssistPausedLabel,
-  };
+  /// the dialog, so the "on" state names it.
+  ///
+  /// The switch itself lives in [aiAssistSubtitle], shared with onboarding's
+  /// Other options page since #728 — one exhaustive site rather than two that
+  /// can disagree about who is being sent to.
+  String? _aiAssistSubtitle(BuildContext context) => aiAssistSubtitle(
+    S.of(context),
+    hasKey: _aiHasKey,
+    enabled: _aiEnabled,
+    provider: _aiProvider,
+  );
 
   Future<void> _openAiAssistDialog(BuildContext context) async {
     await AiAssistDialog.show(context, _aiCredentials);
@@ -1509,45 +1504,24 @@ class _SettingsTile extends StatelessWidget {
 
   /// The title, with [badge] beside it when one is set.
   ///
-  /// Follows AGENTS.md's "Row titles must not overflow": the title is
-  /// flex-constrained *and* line-bounded, because `Flexible` alone stops the
-  /// overflow stripes without stopping the silent wrap the rule is actually
-  /// about.
-  ///
-  /// The constraint goes on the title rather than the badge. The other way
-  /// round, "Experimental" ellipsizes to "Exper…" on a narrow phone, which
-  /// says nothing — where a clipped title is still recognisable beside its
-  /// icon, and the subtitle underneath repeats the state.
-  ///
-  /// Untouched when there is no badge: that path is a bare `Text` outside any
-  /// `Row`, exactly as before, so the rule does not apply and existing tiles
-  /// keep wrapping as they always have.
+  /// The overflow discipline moved into [BadgedTitle] for #728, when
+  /// onboarding needed the same marker — it is a rule rather than a layout,
+  /// and re-deriving it at a second site was the obvious way to get it subtly
+  /// wrong. The typography stays here, so a settings row still looks like a
+  /// settings row.
   Widget _titleWithBadge(
     BuildContext context,
     TextTheme text,
     AppPalette palette,
-  ) {
-    final style = text.titleMedium?.copyWith(
+  ) => BadgedTitle(
+    title: title,
+    badge: badge,
+    palette: palette,
+    style: text.titleMedium?.copyWith(
       fontWeight: FontWeight.w700,
       color: titleColor,
-    );
-    if (badge == null) return Text(title, style: style);
-
-    return Row(
-      children: [
-        Flexible(
-          child: Text(
-            title,
-            style: style,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const SizedBox(width: 8),
-        _SettingsBadge(text: badge!, palette: palette),
-      ],
-    );
-  }
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -1612,36 +1586,6 @@ class _SettingsSwitchTile extends StatelessWidget {
           : null,
       value: value,
       onChanged: onChanged,
-    );
-  }
-}
-
-/// A short status word beside a tile title, e.g. "Experimental".
-///
-/// Muted rather than accented on purpose: this is a statement about the
-/// feature's stability, not a call to action, and an accent-coloured pill
-/// beside a title reads as "new — try this".
-class _SettingsBadge extends StatelessWidget {
-  final String text;
-  final AppPalette palette;
-
-  const _SettingsBadge({required this.text, required this.palette});
-
-  @override
-  Widget build(BuildContext context) {
-    final muted = palette.textMuted;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: muted.withValues(alpha: 0.12),
-        borderRadius: Dimens.borderRadiusS,
-      ),
-      child: Text(
-        text,
-        style: Theme.of(
-          context,
-        ).textTheme.labelSmall?.copyWith(color: muted, height: 1.2),
-      ),
     );
   }
 }
