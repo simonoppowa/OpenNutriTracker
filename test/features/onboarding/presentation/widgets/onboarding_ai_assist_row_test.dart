@@ -61,6 +61,25 @@ class _MemoryStorage implements FlutterSecureStorage {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Reads land after a delay, which the in-memory store cannot reproduce: its
+/// future resolves in the same microtask drain as the first `pump`, so the row
+/// is already populated by the time a test can look at it. The real keystore
+/// is a platform channel and takes frames.
+class _DelayedStorage extends _MemoryStorage {
+  static const delay = Duration(milliseconds: 50);
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) => Future.delayed(delay, () => store[key]);
+}
+
 /// The AI row on onboarding's Other options page. #728.
 void main() {
   late AiCredentialStorage storage;
@@ -75,6 +94,7 @@ void main() {
     Locale locale = const Locale('en'),
     double textScale = 1.0,
     Size size = const Size(411, 891),
+    bool settle = true,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1.0;
@@ -109,8 +129,47 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      // One frame: the keystore read is still in flight, which is the state
+      // the loading case needs to observe.
+      await tester.pump();
+    }
   }
+
+  testWidgets('before the keystore read lands the row has no subtitle line', (
+    tester,
+  ) async {
+    // `aiAssistSubtitle` returns null while `hasKey` is unread so the row says
+    // nothing rather than something wrong. Rendering that null as `Text('')`
+    // honours the letter and loses the point — an empty Text still occupies
+    // its line, so the row resizes under the user as the read comes back.
+    // Caught by review on #729.
+    await pumpPage(
+      tester,
+      credentials: AiCredentialStorage(_DelayedStorage()),
+      settle: false,
+    );
+
+    final tile = tester.widget<ListTile>(
+      find.descendant(
+        of: find.bySemanticsIdentifier('onboarding-ai-assist'),
+        matching: find.byType(ListTile),
+      ),
+    );
+    expect(tile.subtitle, isNull);
+
+    // Stepped rather than `pumpAndSettle`: the three keystore reads are
+    // sequential delays and settling races them.
+    await tester.pump(_DelayedStorage.delay * 10);
+    await tester.pump();
+    expect(
+      find.text(l10nEn.settingsAiAssistNotConfiguredLabel),
+      findsOneWidget,
+      reason: 'and it arrives once the read completes',
+    );
+  });
 
   testWidgets('the row is absent when no storage is wired', (tester) async {
     // The dependency is injected rather than fetched from the locator, so a

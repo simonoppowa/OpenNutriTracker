@@ -344,6 +344,17 @@ class _OnboardingOtherOptionsPageBodyState
     final storage = widget.aiCredentials;
     if (storage == null) return null;
 
+    // Null until the keystore read lands, and it stays a null *widget* rather
+    // than an empty `Text`: the point of the null is that the row says nothing
+    // instead of something wrong, and a blank `Text` still occupies its line,
+    // so the row would resize under the user as the read came back.
+    final subtitle = aiAssistSubtitle(
+      s,
+      hasKey: _aiHasKey,
+      enabled: _aiEnabled,
+      provider: _aiProvider,
+    );
+
     return [
       const SizedBox(height: Dimens.spacing24),
       SectionHeader(label: s.settingsAiAssistLabel),
@@ -359,15 +370,7 @@ class _OnboardingOtherOptionsPageBodyState
                 badge: s.aiAssistExperimentalLabel,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
-              subtitle: Text(
-                aiAssistSubtitle(
-                      s,
-                      hasKey: _aiHasKey,
-                      enabled: _aiEnabled,
-                      provider: _aiProvider,
-                    ) ??
-                    '',
-              ),
+              subtitle: subtitle == null ? null : Text(subtitle),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () => _openAiDialog(storage),
             ),
