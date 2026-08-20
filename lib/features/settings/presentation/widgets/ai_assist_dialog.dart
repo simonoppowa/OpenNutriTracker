@@ -86,16 +86,16 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// provider switch, because every field below the selector belongs to the
   /// provider rather than to the dialog.
   Future<void> _load() async {
-    final provider = await widget.storage.activeProvider();
-    final hasKey = await widget.storage.hasApiKey(provider: provider);
-    final enabled = await widget.storage.isEnabled();
-    final modelId = await widget.storage.readModel(provider: provider);
+    final summary = await widget.storage.readSummary();
+    final modelId = await widget.storage.readModel(
+      provider: summary.provider,
+    );
     if (!mounted) return;
     setState(() {
-      _provider = provider;
-      _hasKey = hasKey;
-      _enabled = enabled;
-      _model = AiModelCatalogue.resolve(provider, modelId);
+      _provider = summary.provider;
+      _hasKey = summary.hasKey;
+      _enabled = summary.enabled;
+      _model = AiModelCatalogue.resolve(summary.provider, modelId);
       _loading = false;
     });
   }

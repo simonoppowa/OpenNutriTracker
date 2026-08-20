@@ -89,14 +89,12 @@ class _OnboardingOtherOptionsPageBodyState
   Future<void> _refreshAiState() async {
     final storage = widget.aiCredentials;
     if (storage == null) return;
-    final hasKey = await storage.hasApiKey();
-    final enabled = await storage.isEnabled();
-    final provider = await storage.activeProvider();
+    final summary = await storage.readSummary();
     if (!mounted) return;
     setState(() {
-      _aiHasKey = hasKey;
-      _aiEnabled = enabled;
-      _aiProvider = provider;
+      _aiHasKey = summary.hasKey;
+      _aiEnabled = summary.enabled;
+      _aiProvider = summary.provider;
     });
   }
 
