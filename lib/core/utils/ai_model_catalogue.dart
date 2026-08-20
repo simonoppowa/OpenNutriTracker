@@ -1,5 +1,38 @@
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 
+/// The one measured thing a non-default model's row says about it.
+///
+/// A key rather than a string, because the catalogue is a `const` with no
+/// `BuildContext` to localize against; the dialog maps this to an ARB key.
+///
+/// It sits on the model rather than on the provider, which is how it was
+/// written first. That worked only while every provider's list was two
+/// entries whose difference was the same difference: with a third and fourth
+/// on one list, a single per-provider string reached
+/// `openai/gpt-5.6-terra` and said "cheaper", which is false — it matches
+/// `claude-sonnet-5` on input and is dearer on output. #726.
+enum AiModelNote {
+  /// Measured in #668: over 21 low-quality photos the cheaper Anthropic model
+  /// identified the staple in 12 of the 16 that were scorable, against 16.
+  cheaper,
+
+  /// Measured in #686: on the same plate `luna` returned 3 rows to `terra`'s
+  /// 7. Neither is wrong, which is why both are offered.
+  moreItems,
+
+  /// A superlative on purpose. The row above it on the OpenRouter list
+  /// already claims to be *cheaper*, so a second comparative would be
+  /// ambiguous about its referent; this entry sits 5x below the next cheapest
+  /// **on both the prompt and the completion axis**, so no request shape can
+  /// invert it.
+  ///
+  /// This is a relative ordering read off the provider's own endpoint data,
+  /// not a cost estimate — the standing "no pricing claim without measuring
+  /// it" rule below is intact. It does go stale silently if OpenRouter
+  /// reprices, and nothing in the app checks.
+  cheapest,
+}
+
 /// One model the app is willing to send a meal to.
 class AiModel {
   /// Exactly as the provider's API expects it.
@@ -18,10 +51,17 @@ class AiModel {
   /// The company that actually answers, for the settings screen to name.
   final String servedBy;
 
+  /// What this row says about itself when it is not the default.
+  ///
+  /// Null on the first entry of every list, which is labelled *Recommended*
+  /// by position, and on a list of one, which has nothing to compare to.
+  final AiModelNote? note;
+
   const AiModel({
     required this.id,
     required this.servedBy,
     this.providers = const [],
+    this.note,
   });
 }
 
@@ -71,6 +111,29 @@ abstract final class AiModelCatalogue {
   /// (`banh mi` for a basket of tacos), which resolve to *something* in the
   /// food search and have to be caught in review. At roughly $0.0033 against
   /// $0.0017 a photo, cost does not defend the weaker one.
+  ///
+  /// **The OpenAI pair is appended, and that placement is the decision.**
+  /// `luna` is a tenth of sonnet's per-token price and would be a defensible
+  /// default on cost — but [AiCredentialStorage.writeModel] is only ever
+  /// called from an explicit tap in the dialog, so everyone who saved a key
+  /// without opening the model list has no stored id and resolves to
+  /// `.first`. Reordering would therefore send their food photographs to a
+  /// different company with no interaction, after the photo sheet had named
+  /// the old one — it interpolates [AiModel.servedBy]. That is what #688
+  /// refused when it declined to let an unrecognised provider tag fall back
+  /// silently "to a company they never chose"; the cost here is only that the
+  /// cheapest entry sits third, which the row label answers. #726.
+  ///
+  /// This is the first list to hold more than one vendor, so it is also the
+  /// first time the dialog's per-row *Served by* branch is reachable in
+  /// production.
+  ///
+  /// Screened through the broker before landing, because the direct-path
+  /// measurements in #684/#719 do not transfer on their own: #669 measured
+  /// `openai/gpt-5.4-nano` *through OpenRouter* and got the opposite result
+  /// from the direct API. 22 live calls, no invariant violations, and a
+  /// withdrawn `openai/*` id answered 404 rather than OpenAI's native 400 —
+  /// so the loud-failure promise above needs no `error.code` reader here.
   static const openrouter = <AiModel>[
     AiModel(
       id: 'anthropic/claude-sonnet-5',
@@ -81,6 +144,19 @@ abstract final class AiModelCatalogue {
       id: 'anthropic/claude-haiku-4.5',
       servedBy: 'Anthropic',
       providers: ['anthropic'],
+      note: AiModelNote.cheaper,
+    ),
+    AiModel(
+      id: 'openai/gpt-5.6-luna',
+      servedBy: 'OpenAI',
+      providers: ['openai'],
+      note: AiModelNote.cheapest,
+    ),
+    AiModel(
+      id: 'openai/gpt-5.6-terra',
+      servedBy: 'OpenAI',
+      providers: ['openai'],
+      note: AiModelNote.moreItems,
     ),
   ];
 
@@ -106,7 +182,11 @@ abstract final class AiModelCatalogue {
   /// direct path has no broker to constrain.
   static const openai = <AiModel>[
     AiModel(id: 'gpt-5.6-luna', servedBy: 'OpenAI'),
-    AiModel(id: 'gpt-5.6-terra', servedBy: 'OpenAI'),
+    AiModel(
+      id: 'gpt-5.6-terra',
+      servedBy: 'OpenAI',
+      note: AiModelNote.moreItems,
+    ),
   ];
 
   static List<AiModel> forProvider(AiProvider provider) => switch (provider) {
