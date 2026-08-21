@@ -233,6 +233,30 @@ void main() {
       expect((reading as MealPhotoFailed).failure, MealPhotoFailure.transient);
     });
 
+    test('a timeout folds into transient rather than crashing', () async {
+      // #774 gave the taxonomy a `timeout` member for the text path. This
+      // path deliberately did not gain a user-facing string for it: the only
+      // configuration that reports a timeout that way is a server the user
+      // runs, and that provider has no photo path at all — `_photoDestination`
+      // is null for it, so the camera hides itself until #747 settles which
+      // image formats a local runtime can decode.
+      //
+      // Pinned rather than left implicit because the arm is unreachable
+      // today, which is exactly the kind of code that rots into a crash the
+      // moment the camera is offered there.
+      final s = subject(
+        apiKey: 'k',
+        throws: const MealInterpreterException(
+          'request timed out',
+          failure: MealInterpreterFailure.timeout,
+        ),
+      );
+
+      final reading = await s.useCase.read(_photo);
+
+      expect((reading as MealPhotoFailed).failure, MealPhotoFailure.transient);
+    });
+
     test('a network failure with no status is not an auth failure', () async {
       final s = subject(
         apiKey: 'k',

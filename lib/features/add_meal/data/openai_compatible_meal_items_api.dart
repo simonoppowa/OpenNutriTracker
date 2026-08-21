@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -115,6 +116,21 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
 
   final Duration timeout;
 
+  /// What running out of [timeout] means here.
+  ///
+  /// A parameter for the same reason [failureFor] is one: the fact is
+  /// identical everywhere — the client stopped waiting — and what the user
+  /// should do about it is not. Missing a 20s budget at a hosted API is a
+  /// blip, and [MealInterpreterFailure.transient] correctly says "try
+  /// again". Missing a 120s budget at a machine in the user's house is not,
+  /// and #774 measured what the wrong answer costs: two of three requests to
+  /// a real Ollama failed on a cold model load, and every one of them told
+  /// the user to go and check a connection that was working.
+  ///
+  /// Defaults to [MealInterpreterFailure.transient] so the hosted three keep
+  /// the behaviour that was deliberate for them.
+  final MealInterpreterFailure timeoutFailure;
+
   OpenAiCompatibleMealItemsApi(
     this._client,
     this._apiKey, {
@@ -124,6 +140,7 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
     this.toolChoice = ToolChoiceMode.namedFunction,
     this.failureFor = openRouterFailureFor,
     this.timeout = defaultTimeout,
+    this.timeoutFailure = MealInterpreterFailure.transient,
   });
 
   /// The OpenRouter configuration, named so call sites read as intent rather
@@ -255,6 +272,16 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
             body: body,
           )
           .timeout(timeout);
+    } on TimeoutException {
+      // Ahead of the catch-all below, which is the whole point: until #774
+      // this arrived here as an ordinary socket failure and was reported as
+      // `transient` along with everything else, so a model that was merely
+      // still loading was indistinguishable from a network that had dropped.
+      _log.info('Interpreter call exceeded ${timeout.inSeconds}s');
+      throw MealInterpreterException(
+        'request timed out',
+        failure: timeoutFailure,
+      );
     } catch (e) {
       // Not logging `e`, for the same reason as the Anthropic client: a
       // socket error can carry part of the payload, and on the photo path

@@ -273,6 +273,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           MealTextModelFailure.auth => Icons.key_off_rounded,
           MealTextModelFailure.unsupported => Icons.block_rounded,
           MealTextModelFailure.billing => Icons.credit_card_off_rounded,
+          // Not a network glyph, for the same reason the sentence is not
+          // about a network: the connection was fine and the clock ran out.
+          MealTextModelFailure.timeout => Icons.timer_off_rounded,
         },
         text: switch (failure) {
           MealTextModelFailure.auth =>
@@ -281,6 +284,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             S.of(context).bulkAddModelUnsupportedLabel,
           MealTextModelFailure.billing =>
             S.of(context).bulkAddModelNoCreditLabel,
+          MealTextModelFailure.timeout =>
+            S.of(context).bulkAddModelTimedOutLabel,
         },
         // Coloured as a warning, unlike the neutral "read by AI" banner:
         // this one is asking the user to go and change something.

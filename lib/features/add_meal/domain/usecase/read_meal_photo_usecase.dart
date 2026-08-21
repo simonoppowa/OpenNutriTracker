@@ -106,6 +106,14 @@ class ReadMealPhotoUseCase {
         MealInterpreterFailure.rejected => MealPhotoFailure.rejectedImage,
         MealInterpreterFailure.unsupported => MealPhotoFailure.unsupported,
         MealInterpreterFailure.billing => MealPhotoFailure.billing,
+        // Unreachable today, and deliberately not given a member of its own.
+        // A server the user runs is the only configuration that reports a
+        // timeout as its own kind of failure, and that provider has no photo
+        // path at all — `_photoDestination` is null for it, so the camera
+        // hides itself (#747 is where the image-format question is settled).
+        // Folding it in here keeps the honest "try again" rather than adding
+        // a user-facing string no build can currently show.
+        MealInterpreterFailure.timeout ||
         MealInterpreterFailure.transient => MealPhotoFailure.transient,
       });
     } catch (e, stackTrace) {

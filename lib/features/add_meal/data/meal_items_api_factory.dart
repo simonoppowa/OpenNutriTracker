@@ -22,6 +22,27 @@ import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 /// list's first entry — and for a server the user runs it is prevented one
 /// layer up, because the model is part of what "configured" means there
 /// (#738) and an unconfigured provider never reaches this function.
+/// How long a server the user runs is given to answer.
+///
+/// Six times the hosted budget, and not a guess. #774 measured a real Ollama
+/// on an **M4 Mac mini, 16 GB** — good hardware for this, not a stress case —
+/// serving an 8B model: **22–24s from cold, 8–17s warm**. The 20s the hosted
+/// clients use failed two of three requests after the model was unloaded, and
+/// Ollama unloads after five idle minutes by default, so "the first request
+/// of the meal" is the ordinary case rather than an edge one.
+///
+/// The margin is deliberately generous because the measurement came from the
+/// fast end of the range this provider exists to serve. Someone running the
+/// same model on an older laptop or a Raspberry Pi is the *point* of "your
+/// own server", and a budget tuned to an M4 would quietly exclude them.
+///
+/// It costs nothing when the server is quick: the timeout is a ceiling on
+/// waiting, not a delay. What it does cost is how long the bulk-add screen
+/// can sit in its progress state, which is the open half of #774 — the fix
+/// there is a progress state that does not read as a hang, not a shorter
+/// ceiling.
+const ownServerTimeout = Duration(seconds: 120);
+
 MealItemsApi mealItemsApiFor(http.Client client, AiSelection selection) {
   final model = AiModelCatalogue.resolve(selection.provider, selection.modelId);
   final modelId = model?.id ?? selection.modelId;
@@ -59,6 +80,13 @@ MealItemsApi mealItemsApiFor(http.Client client, AiSelection selection) {
       model: modelId,
       endpoint: Uri.parse(selection.endpoint!),
       toolChoice: ToolChoiceMode.anyTool,
+      // The two halves of #774, and they only make sense together. The
+      // longer budget is what stops a cold model load being reported as a
+      // failure at all; the classification is what stops the failures that
+      // remain — a machine that genuinely cannot serve this model in two
+      // minutes — from being described as a network problem.
+      timeout: ownServerTimeout,
+      timeoutFailure: MealInterpreterFailure.timeout,
     ),
   };
 }
