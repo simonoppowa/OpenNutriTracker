@@ -11,14 +11,27 @@ void main() {
     // cosmetic one, and these tests exist because #726 added a model that is
     // a tenth of the default's price and would have been tempting to promote.
 
-    test('an unset model resolves to the head of the list, per provider', () {
+    test('an unset model resolves to the head of the curated lists', () {
       for (final provider in AiProvider.values) {
+        final models = AiModelCatalogue.forProvider(provider);
+        if (models.isEmpty) continue;
         expect(
-          AiModelCatalogue.resolve(provider, null).id,
-          AiModelCatalogue.forProvider(provider).first.id,
+          AiModelCatalogue.resolve(provider, null)?.id,
+          models.first.id,
           reason: '${provider.name} must not need a stored choice to work',
         );
       }
+    });
+
+    test('a server the user runs has no default, and that is the answer', () {
+      // #738: there is no curated list to take a first element from, and
+      // defaulting to something would mean choosing on the user's behalf from
+      // models nobody has screened — on Ollama the first pulled entry could
+      // be an embedding model. The model is part of what "configured" means
+      // there instead, so "none" has to be representable. #755.
+      expect(AiModelCatalogue.forProvider(AiProvider.ownServer), isEmpty);
+      expect(AiModelCatalogue.defaultFor(AiProvider.ownServer), isNull);
+      expect(AiModelCatalogue.resolve(AiProvider.ownServer, 'gemma3:4b'), isNull);
     });
 
     test('adding cheaper OpenAI models did not move the OpenRouter default', () {
@@ -26,14 +39,14 @@ void main() {
       // opened the picker to a different company, with no interaction, after
       // the photo sheet had named the old one — it interpolates `servedBy`.
       // #688 refused a smaller version of this.
-      final unchosen = AiModelCatalogue.resolve(AiProvider.openrouter, null);
+      final unchosen = AiModelCatalogue.resolve(AiProvider.openrouter, null)!;
       expect(unchosen.id, 'anthropic/claude-sonnet-5');
       expect(unchosen.servedBy, 'Anthropic');
     });
 
     test('a retired id falls back rather than 404ing forever', () {
       expect(
-        AiModelCatalogue.resolve(AiProvider.openrouter, 'anthropic/gone').id,
+        AiModelCatalogue.resolve(AiProvider.openrouter, 'anthropic/gone')!.id,
         'anthropic/claude-sonnet-5',
       );
     });
@@ -43,6 +56,7 @@ void main() {
     test('the head of every list carries no note, and the rest carry one', () {
       for (final provider in AiProvider.values) {
         final models = AiModelCatalogue.forProvider(provider);
+        if (models.isEmpty) continue;
         expect(
           models.first.note,
           isNull,

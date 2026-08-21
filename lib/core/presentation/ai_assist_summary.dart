@@ -23,10 +23,11 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// rather than naming a company the user never chose. #753.
 String? aiAssistSubtitle(
   S s, {
-  required bool? hasKey,
+  required bool? configured,
   required bool enabled,
   required AiProvider? provider,
-}) => switch (hasKey) {
+  String? endpoint,
+}) => switch (configured) {
   null => null,
   false => s.settingsAiAssistNotConfiguredLabel,
   true when enabled && provider != null =>
@@ -36,6 +37,9 @@ String? aiAssistSubtitle(
       AiProvider.anthropic => 'Anthropic',
       AiProvider.openrouter => 'OpenRouter',
       AiProvider.openai => 'OpenAI',
+      // No brand to print. #736: the row names where the data goes, and for a
+      // server the user runs that is the address they typed.
+      AiProvider.ownServer => endpoint ?? '',
     }}',
   true => s.settingsAiAssistPausedLabel,
 };

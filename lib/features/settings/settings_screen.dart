@@ -66,7 +66,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Null until the first read completes; the tile shows no subtitle rather
   /// than briefly claiming the feature is off.
-  bool? _aiHasKey;
+  bool? _aiConfigured;
+  String? _aiEndpoint;
   bool _aiEnabled = false;
   /// Null when the stored name is unrecognised — see #753.
   AiProvider? _aiProvider;
@@ -944,8 +945,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final summary = await _aiCredentials.readSummary();
     if (!mounted) return;
     setState(() {
-      _aiHasKey = summary.hasKey;
+      _aiConfigured = summary.configured;
       _aiEnabled = summary.enabled;
+      _aiEndpoint = summary.endpoint;
       _aiProvider = summary.provider;
     });
   }
@@ -958,7 +960,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// can disagree about who is being sent to.
   String? _aiAssistSubtitle(BuildContext context) => aiAssistSubtitle(
     S.of(context),
-    hasKey: _aiHasKey,
+    configured: _aiConfigured,
+    endpoint: _aiEndpoint,
     enabled: _aiEnabled,
     provider: _aiProvider,
   );
