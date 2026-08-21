@@ -266,9 +266,12 @@ class AddItemBottomSheet extends StatelessWidget {
   Widget? _suggestedChip(BuildContext context, IntakeTypeEntity tileType) {
     if (suggestedType != tileType) return null;
     final scheme = Theme.of(context).colorScheme;
+    // The chip's own Text would otherwise be announced alongside this
+    // label, so the tile reads "Breakfast, Suggested, Suggested".
     return Semantics(
       identifier: 'add-item-suggested-chip',
       label: S.of(context).suggestedLabel,
+      excludeSemantics: true,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
@@ -102,6 +103,43 @@ void main() {
   // #580: launched from a specific meal section (or when the caller has
   // already committed to a meal type), no suggestion is passed and no chip
   // should render, so nothing feels "preselected".
+  // The chip carries its own Semantics label so the ADB rig can find it by
+  // identifier. Without excludeSemantics the Text underneath contributes a
+  // second node, and the merged tile reads "Lunch, Suggested, Suggested" to
+  // anyone using TalkBack or VoiceOver.
+  testWidgets(
+    'announces the suggestion once, not once per node',
+    (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(_wrapWithMaterial(
+        AddItemBottomSheet(
+          day: DateTime(2026, 1, 1),
+          suggestedType: IntakeTypeEntity.lunch,
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      final matches = <String>[];
+      void visit(SemanticsNode node) {
+        if (node.label.contains(l10nEn.suggestedLabel)) matches.add(node.label);
+        node.visitChildren((child) {
+          visit(child);
+          return true;
+        });
+      }
+
+      visit(tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!);
+
+      expect(matches, hasLength(1),
+          reason: 'exactly one node should carry the suggestion');
+      expect(l10nEn.suggestedLabel.allMatches(matches.single), hasLength(1),
+          reason: 'the label should not repeat within the node: '
+              '"${matches.single}"');
+
+      handle.dispose();
+    },
+  );
+
   testWidgets(
     'renders no Suggested chip when suggestedType is null',
     (tester) async {
