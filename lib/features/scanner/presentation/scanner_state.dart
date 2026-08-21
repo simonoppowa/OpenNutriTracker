@@ -25,7 +25,7 @@ class ScannerLoadedState extends ScannerState {
   });
 
   @override
-  List<Object?> get props => [product];
+  List<Object?> get props => [product, usesImperialUnits];
 }
 
 class ScannerFailedState extends ScannerState {
@@ -33,8 +33,13 @@ class ScannerFailedState extends ScannerState {
 
   const ScannerFailedState(this.type);
 
+  // The type has to be part of equality. `emit` drops a state equal to the
+  // current one, so leaving it out means a scan that fails a different way
+  // than the last one keeps showing the old message. Nothing hits that today
+  // because a loading state always separates two failures, but it is a quiet
+  // trap to leave lying in the way of the next person here.
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [type];
 }
 
 enum ScannerFailedStateType { productNotFound, error }
