@@ -81,10 +81,14 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   ///
   /// Deliberately not `readSelection()`: that carries the API key, and
   /// nothing in the widget layer has any business holding it.
-  late final Future<({AiProvider provider, AiModel model})> _photoDestination =
+  /// Null when the stored provider is a name this build does not know. The
+  /// sheet cannot name a destination it cannot identify, so it does not open
+  /// — the same outcome as a provider with no key, and the point of #753.
+  late final Future<({AiProvider provider, AiModel model})?> _photoDestination =
       () async {
         final storage = locator<AiCredentialStorage>();
         final provider = await storage.activeProvider();
+        if (provider == null) return null;
         return (
           provider: provider,
           model: AiModelCatalogue.resolve(
@@ -605,6 +609,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     FocusScope.of(context).unfocus();
     final destination = await _photoDestination;
     if (!mounted) return;
+    // Refusing rather than guessing: with no identifiable destination there
+    // is no honest sentence to put in the sheet, and the sheet is the last
+    // moment the user can decline.
+    if (destination == null) return;
     final disclosure = switch (destination.provider) {
       AiProvider.anthropic => S.of(context).bulkAddPhotoDisclosureAnthropic,
       AiProvider.openrouter =>

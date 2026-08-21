@@ -10,15 +10,33 @@ enum AiProvider {
   openrouter,
   openai;
 
-  /// Anything unrecognised — including nothing at all — reads as Anthropic.
+  /// **Nothing stored** reads as Anthropic; **a name this build does not
+  /// know** reads as null.
   ///
-  /// That is what makes an existing install valid without writing to it:
-  /// before this existed every key was an Anthropic key, so the absence of a
-  /// pointer already means the right thing and no migration has to run.
-  static AiProvider fromTag(String? value) => AiProvider.values.firstWhere(
-    (provider) => provider.name == value,
-    orElse: () => AiProvider.anthropic,
-  );
+  /// The first half is what makes an existing install valid without writing
+  /// to it: before providers existed every key was an Anthropic key, so the
+  /// absence of a pointer already means the right thing and no migration has
+  /// to run.
+  ///
+  /// The second half used to be the same as the first, and that was the
+  /// defect #688 resolved and #753 fixed. A newer build writes a provider
+  /// name, the user downgrades, and this build reads a word it does not know
+  /// — reading that as Anthropic **silently redirects their requests to a
+  /// company they did not choose**, which in an app that enumerates its
+  /// destinations and names the serving vendor as a guarantee is the one
+  /// failure that cannot be quiet. It sends for real, too: the person most
+  /// likely to be here tried a hosted provider first and moved away from it,
+  /// so their Anthropic key is still in the slot.
+  ///
+  /// Null makes the feature quietly unavailable instead, which is not a new
+  /// state to design — it is what a provider with no key already does.
+  static AiProvider? fromTag(String? value) {
+    if (value == null || value.isEmpty) return AiProvider.anthropic;
+    for (final provider in AiProvider.values) {
+      if (provider.name == value) return provider;
+    }
+    return null;
+  }
 }
 
 /// Everything one request needs in order to be addressed: who is answering,
@@ -51,7 +69,10 @@ class AiSelection {
 /// dropped — the same thing [AiCredentialStorage.hasApiKey] has always done,
 /// kept that way now that the read is shared.
 class AiAssistSummary {
-  final AiProvider provider;
+  /// Null when the stored provider name is one this build does not know, so
+  /// a row can report the feature unavailable without naming a company that
+  /// was never chosen. #753.
+  final AiProvider? provider;
   final bool hasKey;
 
   /// False whenever [hasKey] is false, so a caller never has to check both.
@@ -109,8 +130,13 @@ class AiCredentialStorage {
   AiCredentialStorage([FlutterSecureStorage? storage])
     : _storage = storage ?? SecureAppStorageProvider.secureAppStorage;
 
-  /// Which provider the AI features currently use.
-  Future<AiProvider> activeProvider() async =>
+  /// Which provider the AI features currently use, or **null when the stored
+  /// name is one this build does not know** — see [AiProvider.fromTag].
+  ///
+  /// Null is not "none selected". It is "a selection this build cannot
+  /// honour", and every read below treats it as unusable rather than
+  /// substituting a default.
+  Future<AiProvider?> activeProvider() async =>
       AiProvider.fromTag(await _storage.read(key: _providerTag));
 
   /// Points the AI features at [provider].
@@ -139,9 +165,14 @@ class AiCredentialStorage {
   ///
   /// Not fixable by running the three concurrently: they are not independent,
   /// so overlapping them hides the duplicate reads rather than removing them.
-  Future<({AiProvider provider, String? apiKey, bool enabled})>
+  /// A null provider short-circuits the whole thing: there is no slot to read
+  /// a key from, so there is nothing to enable. #753.
+  Future<({AiProvider? provider, String? apiKey, bool enabled})>
   _readState() async {
     final provider = await activeProvider();
+    if (provider == null) {
+      return (provider: null, apiKey: null, enabled: false);
+    }
     final apiKey = await readApiKey(provider: provider);
     // The invariant [isEnabled] has always enforced, stated here once: the
     // flag alone never means "on" — a provider with no key is off whatever
@@ -150,6 +181,18 @@ class AiCredentialStorage {
         apiKey != null && await _storage.read(key: _enabledTag) != 'false';
     return (provider: provider, apiKey: apiKey, enabled: enabled);
   }
+
+  /// The provider these per-provider methods should act on: the one named,
+  /// or the active one — and **null when the active one is a name this build
+  /// does not know**.
+  ///
+  /// Every read below then answers "nothing" rather than substituting a
+  /// default, which is the whole point of #753: an unknown selection must not
+  /// resolve to somebody. The writes answer nothing too, and that path is
+  /// unreachable in practice — choosing a provider in the dialog passes one
+  /// explicitly and clears the unknown state on the way.
+  Future<AiProvider?> _target(AiProvider? provider) async =>
+      provider ?? await activeProvider();
 
   /// What a row shows for the feature, in one read of the store.
   Future<AiAssistSummary> readSummary() async {
@@ -171,11 +214,14 @@ class AiCredentialStorage {
     final state = await _readState();
     if (!state.enabled) return null;
     final apiKey = state.apiKey;
-    if (apiKey == null) return null;
+    final provider = state.provider;
+    // Both are already implied by `enabled`, which is false without a
+    // provider and without a key. Stated so the types carry it too.
+    if (apiKey == null || provider == null) return null;
     return AiSelection(
-      provider: state.provider,
+      provider: provider,
       apiKey: apiKey,
-      modelId: await readModel(provider: state.provider),
+      modelId: await readModel(provider: provider),
     );
   }
 
@@ -188,13 +234,15 @@ class AiCredentialStorage {
   /// decides what an unknown id means, so retiring a model is a change in
   /// one file rather than a migration here.
   Future<String?> readModel({AiProvider? provider}) async {
-    final target = provider ?? await activeProvider();
+    final target = await _target(provider);
+    if (target == null) return null;
     final value = await _storage.read(key: _modelSlotTag(target));
     return (value == null || value.isEmpty) ? null : value;
   }
 
   Future<void> writeModel(String modelId, {AiProvider? provider}) async {
-    final target = provider ?? await activeProvider();
+    final target = await _target(provider);
+    if (target == null) return;
     await _storage.write(key: _modelSlotTag(target), value: modelId);
   }
 
@@ -207,7 +255,8 @@ class AiCredentialStorage {
   /// moment where a credential exists half-moved, and an older build rolled
   /// back onto the same device still finds the key where it expects it.
   Future<String?> readApiKey({AiProvider? provider}) async {
-    final target = provider ?? await activeProvider();
+    final target = await _target(provider);
+    if (target == null) return null;
 
     final value = await _storage.read(key: _slotTag(target));
     if (value != null && value.isNotEmpty) return value;
@@ -223,7 +272,8 @@ class AiCredentialStorage {
   /// value clears instead of writing an empty credential that would later
   /// fail as a puzzling 401.
   Future<void> writeApiKey(String apiKey, {AiProvider? provider}) async {
-    final target = provider ?? await activeProvider();
+    final target = await _target(provider);
+    if (target == null) return;
     final trimmed = apiKey.trim();
     if (trimmed.isEmpty) {
       await clear(provider: target);
@@ -250,7 +300,8 @@ class AiCredentialStorage {
   /// key they just deleted. Pressing "remove key" and still having a working
   /// key afterwards is the worst failure this class can produce.
   Future<void> clear({AiProvider? provider}) async {
-    final target = provider ?? await activeProvider();
+    final target = await _target(provider);
+    if (target == null) return;
 
     await _storage.delete(key: _slotTag(target));
     await _retireLegacyTagFor(target);

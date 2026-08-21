@@ -68,7 +68,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// than briefly claiming the feature is off.
   bool? _aiHasKey;
   bool _aiEnabled = false;
-  AiProvider _aiProvider = AiProvider.anthropic;
+  /// Null when the stored name is unrecognised — see #753.
+  AiProvider? _aiProvider;
 
   @override
   void initState() {

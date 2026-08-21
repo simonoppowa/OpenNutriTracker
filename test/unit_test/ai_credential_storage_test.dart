@@ -338,12 +338,85 @@ void main() {
       expect(backing.store['AiProviderTag'], 'openrouter');
     });
 
-    test('reads as Anthropic when it holds something unrecognised', () async {
-      // A downgrade, or a provider removed in a later build. Falling back to
-      // the default beats refusing to start.
+    test('reads as unknown when it holds something unrecognised', () async {
+      // **This is a deliberate reversal of shipped behaviour, not a bug fix.**
+      // This test used to assert the opposite — "reads as Anthropic" — with
+      // the reasoning "falling back to the default beats refusing to start".
+      // #688 rejected exactly that and was never implemented; #753 implements
+      // it. A newer build writes a provider name, the user downgrades, and
+      // reading that word as Anthropic sends their meals to a company they
+      // did not choose.
       backing.store['AiProviderTag'] = 'some-provider-we-dropped';
 
+      expect(await storage.activeProvider(), isNull);
+    });
+
+    test('reads as Anthropic when nothing is stored at all', () async {
+      // The other half of #688, unchanged: absent still defaults. That is what
+      // keeps an install from before providers existed valid without writing
+      // to it, and it is not what this reversal touches.
       expect(await storage.activeProvider(), AiProvider.anthropic);
+    });
+  });
+
+  group('a provider name this build does not know', () {
+    // The scenario is a downgrade after picking a provider a later build
+    // added. The person most likely to be in it tried a hosted provider
+    // first and moved away from it, so the old key is still in its slot —
+    // which is what makes the redirect send for real rather than fail.
+
+    setUp(() async {
+      await storage.writeApiKey('sk-anthropic', provider: AiProvider.anthropic);
+      await storage.setEnabled(true);
+      backing.store['AiProviderTag'] = 'a-provider-from-a-later-build';
+    });
+
+    test('sends nothing, rather than sending to Anthropic', () async {
+      expect(
+        await storage.readSelection(),
+        isNull,
+        reason: 'the one failure #688 said cannot be allowed to be quiet',
+      );
+    });
+
+    test('reports the feature unavailable rather than configured', () async {
+      final summary = await storage.readSummary();
+
+      expect(summary.provider, isNull);
+      expect(summary.enabled, isFalse);
+      expect(
+        summary.hasKey,
+        isFalse,
+        reason: 'there is no active provider whose key this could be',
+      );
+      expect(await storage.isEnabled(), isFalse);
+    });
+
+    test('does not hand back the stranded key through the default path', () async {
+      // `readApiKey()` with no argument resolves the active provider. With
+      // that unknown there is no slot to read, and answering with Anthropic's
+      // key would be the same defect wearing a different method name.
+      expect(await storage.readApiKey(), isNull);
+      expect(await storage.readModel(), isNull);
+    });
+
+    test('leaves the tag in place, so re-upgrading restores the choice', () async {
+      await storage.readSelection();
+      await storage.readSummary();
+
+      expect(
+        backing.store['AiProviderTag'],
+        'a-provider-from-a-later-build',
+        reason: 'destroying the selection makes re-upgrading a second surprise',
+      );
+    });
+
+    test('the key itself survives, and is reachable when named', () async {
+      // Nothing is deleted — only refused while the selection is unreadable.
+      expect(
+        await storage.readApiKey(provider: AiProvider.anthropic),
+        'sk-anthropic',
+      );
     });
   });
 
