@@ -292,6 +292,31 @@ class AiCredentialStorage {
     return uri.replace(path: path);
   }
 
+  /// The part of [endpoint] that names the destination, and **nothing else** —
+  /// or null when there is no host in it to name.
+  ///
+  /// Host and port, deliberately not `Uri.authority`. Authority carries
+  /// `userInfo`, so a reverse-proxied server entered as
+  /// `http://ollama:hunter2@192.168.1.5:11434` printed the password: in the
+  /// disclosure paragraph the user is agreeing to, and on the settings row,
+  /// in an app that masks the API key precisely so a stored credential is not
+  /// readable off a screen someone else can see. Naming where the data goes
+  /// never needed the credential that gets it in.
+  ///
+  /// The path is dropped too. `/v1/chat/completions` is on every one of these
+  /// addresses and distinguishes none of them, and the row and the disclosure
+  /// exist to be read at a glance.
+  ///
+  /// Null rather than a best effort when nothing parses: a caller showing
+  /// this is naming a destination, and text that is not yet an address names
+  /// none — echoing it back is how a half-typed credential would reach the
+  /// screen anyway.
+  static String? displayHost(String endpoint) {
+    final uri = Uri.tryParse(endpoint.trim());
+    if (uri == null || uri.host.isEmpty) return null;
+    return uri.hasPort ? '${uri.host}:${uri.port}' : uri.host;
+  }
+
   /// Whether [provider] has what it needs to be used at all.
   ///
   /// The generalisation #755 exists for. The rule was never really about

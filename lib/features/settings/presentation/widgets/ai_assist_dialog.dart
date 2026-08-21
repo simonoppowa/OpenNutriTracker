@@ -537,12 +537,17 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// and a sentence naming nothing would be worse than none.
   String _ownServerDisclosure(S s) {
     final typed = _endpointController.text.trim();
-    if (typed.isEmpty) return '';
-    final host = Uri.tryParse(typed)?.authority;
-    final display = (host == null || host.isEmpty) ? typed : host;
-    // `https` is permitted anywhere; plain `http` only reaches here for a
-    // private address (#758), and this is the only place the user can learn
-    // which of the two their own address is.
+    // Nothing to name yet, which half-typed text also counts as. It used to
+    // fall back to echoing whatever was in the field, and that is a paragraph
+    // rendering a credential the moment someone pastes an address with one
+    // in it.
+    final display = AiCredentialStorage.displayHost(typed);
+    if (display == null) return '';
+    // Which of the two this connection is, read off the scheme as typed, and
+    // nothing beyond that. It deliberately does **not** say the address is
+    // private: nothing checks that today — #758 may — and the string it picks
+    // states what is true of any plaintext connection instead of claiming a
+    // boundary has been enforced.
     return Uri.tryParse(typed)?.scheme == 'https'
         ? s.aiAssistDisclosureOwnServerSecure(display)
         : s.aiAssistDisclosureOwnServerPlaintext(display);

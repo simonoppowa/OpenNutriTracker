@@ -491,6 +491,36 @@ void main() {
       expect(disclosure, contains('192.168.1.5:11434'));
     });
 
+    testWidgets('a password in the address never reaches the disclosure', (
+      tester,
+    ) async {
+      // A reverse-proxied Ollama or vLLM behind basic auth is an ordinary
+      // setup, and `Uri.authority` is `userInfo@host:port` — so the paragraph
+      // the user is agreeing to printed their password back at them, in the
+      // dialog whose whole premise is that a stored credential is not
+      // readable off the screen.
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        'http://ollama:hunter2@192.168.1.5:11434',
+      );
+      await tester.pumpAndSettle();
+
+      final disclosure = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((t) => t.data)
+          .whereType<String>()
+          .firstWhere((d) => d.contains(l10nEn.aiAssistDisclosureCommon));
+      expect(disclosure, contains('192.168.1.5:11434'));
+      expect(
+        disclosure,
+        isNot(contains('hunter2')),
+        reason: 'the destination is nameable without the credential',
+      );
+    });
+
     testWidgets('the encryption clause follows the scheme, not a guess', (
       tester,
     ) async {

@@ -735,6 +735,55 @@ void main() {
       }
     });
 
+    test('the destination is named without the credential in it', () async {
+      // `Uri.authority` is `userInfo@host:port`, so a server behind basic
+      // auth put the password into the disclosure paragraph and onto the
+      // settings row — in an app that masks the API key so that a stored
+      // credential is not readable off a screen someone else can see.
+      const withPassword = 'http://ollama:hunter2@192.168.1.5:11434';
+
+      expect(
+        AiCredentialStorage.displayHost(withPassword),
+        '192.168.1.5:11434',
+      );
+      expect(
+        AiCredentialStorage.displayHost(withPassword),
+        isNot(contains('hunter2')),
+      );
+      expect(
+        Uri.parse(withPassword).authority,
+        contains('hunter2'),
+        reason: 'the trap this exists to avoid, stated so it stays visible',
+      );
+    });
+
+    test('the destination is host and port, without the route', () async {
+      for (final (endpoint, expected) in [
+        ('http://192.168.1.5:11434', '192.168.1.5:11434'),
+        ('http://192.168.1.5:11434/v1/chat/completions', '192.168.1.5:11434'),
+        // No port typed is no port shown, rather than the scheme's default.
+        ('https://ollama.example.com/v1/chat/completions', 'ollama.example.com'),
+      ]) {
+        expect(
+          AiCredentialStorage.displayHost(endpoint),
+          expected,
+          reason: endpoint,
+        );
+      }
+    });
+
+    test('text that is not yet an address names nothing', () async {
+      // Echoing the field back is how a half-pasted credential reaches the
+      // screen; a caller with nothing to name shows nothing.
+      for (final typed in ['', 'htt', '192.168.1.5:11434', 'ollama:hunter2@']) {
+        expect(
+          AiCredentialStorage.displayHost(typed),
+          isNull,
+          reason: typed,
+        );
+      }
+    });
+
     test('an address without a usable scheme and host is rejected', () async {
       // The scheme is never guessed: the disclosure derives its encryption
       // clause from it, so choosing plaintext on the user's behalf would put
