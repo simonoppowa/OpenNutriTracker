@@ -71,7 +71,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// than resolved inside `build` — a future rebuilt on every frame would
   /// re-read the keystore continuously for an answer that changes only when
   /// the user visits settings, which closes this screen anyway.
-  /// Derived from the destination rather than from `isEnabled()` alone.
+  /// **Both halves are load-bearing, and neither implies the other.**
   ///
   /// Found on a Pixel 6: with a server the user runs configured, the feature
   /// *is* enabled, so the camera icon appeared — and did nothing, because
@@ -79,9 +79,17 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// which image formats survive; the encoder emits WebP and llama.cpp cannot
   /// decode it). A button that is present and inert is worse than one that is
   /// absent.
-  late final Future<bool> _photoAvailable = _photoDestination.then(
-    (destination) => destination != null,
-  );
+  ///
+  /// The destination alone is not the answer either. It resolves for an
+  /// install that has never opened settings: nothing stored reads as
+  /// Anthropic (#688), and an absent model id falls back to the list's first
+  /// entry — so gating on it alone offered the camera to every user with no
+  /// key at all, and to every user who had deliberately switched the feature
+  /// off.
+  late final Future<bool> _photoAvailable = () async {
+    if (!await locator<AiCredentialStorage>().isEnabled()) return false;
+    return await _photoDestination != null;
+  }();
 
   /// Where a photo would actually go. The sheet below is the last moment the
   /// user can decline, so it has to name the real destination — it named

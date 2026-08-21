@@ -516,9 +516,12 @@ void main() {
       );
       expect(
         backing.reads.length,
-        lessThanOrEqualTo(4),
-        reason: 'four distinct keys exist; asking the three getters '
-            'separately took 6-8 round trips. Got: ${backing.reads}',
+        lessThanOrEqualTo(5),
+        reason: 'five distinct keys exist; asking the three getters '
+            'separately took 6-8 round trips. The model joined them when it '
+            'became part of what "configured" means for a server the user '
+            'runs, and `readSelection` stopped reading it a second time in '
+            'exchange. Got: ${backing.reads}',
       );
     });
 
@@ -554,19 +557,116 @@ void main() {
 
     setUp(() => storage.setActiveProvider(AiProvider.ownServer));
 
-    test('an endpoint round-trips and makes the provider usable', () async {
+    test('an endpoint and a model round-trip and make it usable', () async {
       await storage.writeEndpoint('http://192.168.1.5:11434');
+      await storage.writeModel('gemma3:4b');
 
-      expect(await storage.readEndpoint(), 'http://192.168.1.5:11434');
+      expect(
+        await storage.readEndpoint(),
+        'http://192.168.1.5:11434/v1/chat/completions',
+        reason: 'stored as it will be requested, not as it was typed',
+      );
 
       final summary = await storage.readSummary();
       expect(summary.provider, AiProvider.ownServer);
       expect(
         summary.configured,
         isTrue,
-        reason: 'an address is what makes this one usable, not a key',
+        reason: 'an address and a model are what make this one usable, '
+            'not a key',
       );
       expect(summary.enabled, isTrue);
+    });
+
+    test('an address with no model is not configured', () async {
+      // #738 said the model is part of what "configured" means here, and
+      // nothing enforced it: the address alone flipped the flag, and then the
+      // request builder had no model to name and threw — into a catch-all
+      // that reports "the parser answered". The row said On and every meal
+      // silently took the offline path.
+      await storage.writeEndpoint('http://192.168.1.5:11434');
+
+      final summary = await storage.readSummary();
+      expect(summary.configured, isFalse);
+      expect(summary.enabled, isFalse);
+      expect(await storage.readSelection(), isNull);
+    });
+
+    test('an address that cannot be requested is refused outright', () async {
+      // `192.168.1.5:11434` is the form Ollama's own documentation shows and
+      // is not a URL. Stored, it reached `Uri.parse` inside the request
+      // builder as a FormatException and was swallowed the same way.
+      await storage.writeEndpoint('192.168.1.5:11434');
+
+      expect(await storage.readEndpoint(), isNull);
+      expect(
+        await storage.isEnabled(),
+        isFalse,
+        reason: 'writing an address is what turns the feature on, so a '
+            'refused one must not',
+      );
+    });
+
+    test('an address stored before it was checked stays refused', () async {
+      // Not hypothetical: the earlier commits on this branch stored whatever
+      // was typed, so an install that saved `192.168.1.5:11434` already holds
+      // it. Nothing rewrites the keystore on upgrade, so the read side has to
+      // refuse it independently — otherwise that install is exactly where it
+      // started, reported on and throwing a FormatException one layer below
+      // anything the user can see.
+      backing.store['AiEndpointTag.ownServer'] = '192.168.1.5:11434';
+      backing.store['AiModelTag.ownServer'] = 'gemma3:4b';
+      backing.store['AiAssistEnabledTag'] = 'true';
+
+      final summary = await storage.readSummary();
+      expect(summary.configured, isFalse);
+      expect(summary.enabled, isFalse);
+      expect(await storage.readSelection(), isNull);
+    });
+
+    test('a base address is completed to the chat route', () async {
+      // Ollama, llama.cpp, vLLM and LM Studio all answer at
+      // /v1/chat/completions and 404 at the root, and the field's hint is a
+      // base address. Completing it is the OpenAI-compatible contract rather
+      // than a guess about the server.
+      for (final (typed, expected) in [
+        ('http://192.168.1.5:11434', 'http://192.168.1.5:11434/v1/chat/completions'),
+        ('http://192.168.1.5:11434/', 'http://192.168.1.5:11434/v1/chat/completions'),
+        ('http://192.168.1.5:11434/v1', 'http://192.168.1.5:11434/v1/chat/completions'),
+        ('http://192.168.1.5:11434/v1/', 'http://192.168.1.5:11434/v1/chat/completions'),
+        // Already a route: left exactly as typed.
+        ('https://ollama.example.com/v1/chat/completions',
+            'https://ollama.example.com/v1/chat/completions'),
+        // Something else entirely is the user's business, not ours.
+        ('https://ollama.example.com/proxy/chat',
+            'https://ollama.example.com/proxy/chat'),
+      ]) {
+        expect(
+          AiCredentialStorage.resolveEndpoint(typed).toString(),
+          expected,
+          reason: typed,
+        );
+      }
+    });
+
+    test('an address without a usable scheme and host is rejected', () async {
+      // The scheme is never guessed: the disclosure derives its encryption
+      // clause from it, so choosing plaintext on the user's behalf would put
+      // a sentence on screen they never agreed to. #736.
+      for (final typed in [
+        '192.168.1.5:11434',
+        'ollama.local:11434',
+        'my server',
+        'http://',
+        'ftp://192.168.1.5',
+        '',
+      ]) {
+        expect(
+          AiCredentialStorage.resolveEndpoint(typed),
+          isNull,
+          reason: typed,
+        );
+      }
     });
 
     test('no key is needed, and none is invented', () async {
@@ -576,13 +676,37 @@ void main() {
       final selection = await storage.readSelection();
 
       expect(selection!.apiKey, isNull);
-      expect(selection.endpoint, 'http://192.168.1.5:11434');
+      expect(selection.endpoint, 'http://192.168.1.5:11434/v1/chat/completions');
       expect(selection.modelId, 'gemma3:4b');
+    });
+
+    test('pausing it is not a one-way door', () async {
+      // `setEnabled` guarded on `hasApiKey`, which #755 replaced everywhere
+      // else and missed here — so the switch turned this provider off and
+      // then refused to turn it back on, for want of a key it never needs.
+      await storage.writeEndpoint('http://192.168.1.5:11434');
+      await storage.writeModel('gemma3:4b');
+
+      await storage.setEnabled(false);
+      expect(await storage.isEnabled(), isFalse);
+
+      await storage.setEnabled(true);
+      expect(await storage.isEnabled(), isTrue);
+    });
+
+    test('a key alone still cannot enable it', () async {
+      // The guard is generalised, not removed: what it asks is now "is this
+      // provider usable", and for this one a key is not the answer.
+      await storage.writeApiKey('sk-local');
+      await storage.setEnabled(true);
+
+      expect(await storage.isEnabled(), isFalse);
     });
 
     test('an optional key is carried when the user supplied one', () async {
       // vLLM and llama.cpp both take an optional `--api-key`.
       await storage.writeEndpoint('http://192.168.1.5:8000');
+      await storage.writeModel('gemma3:4b');
       await storage.writeApiKey('sk-local');
 
       expect((await storage.readSelection())!.apiKey, 'sk-local');
@@ -650,12 +774,13 @@ void main() {
 
     test('the address is reported so a row can name the destination', () async {
       // #736: this destination has no brand, so the only honest name is the
-      // host the user typed.
+      // address itself — reported as it will be requested, which is what the
+      // row and the disclosure are for.
       await storage.writeEndpoint('http://192.168.1.5:11434');
 
       expect(
         (await storage.readSummary()).endpoint,
-        'http://192.168.1.5:11434',
+        'http://192.168.1.5:11434/v1/chat/completions',
       );
     });
 

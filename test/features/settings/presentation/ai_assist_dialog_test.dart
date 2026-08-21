@@ -502,9 +502,15 @@ void main() {
         'http://192.168.1.5:11434',
       );
       await tester.pumpAndSettle();
+      // Asserted against the string itself rather than the words "not
+      // encrypted". The literal was a `findsNothing` that would have gone on
+      // passing through any rewording — including the one that removed the
+      // "stays on your own network" claim from this very sentence.
       expect(
-        find.textContaining('not encrypted'),
-        findsWidgets,
+        find.textContaining(
+          l10nEn.aiAssistDisclosureOwnServerPlaintext('192.168.1.5:11434'),
+        ),
+        findsOneWidget,
         reason: 'the dialog is the only place a user learns this',
       );
 
@@ -513,7 +519,18 @@ void main() {
         'https://ollama.example.com',
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining('not encrypted'), findsNothing);
+      expect(
+        find.textContaining(
+          l10nEn.aiAssistDisclosureOwnServerSecure('ollama.example.com'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(
+          l10nEn.aiAssistDisclosureOwnServerPlaintext('ollama.example.com'),
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('saving stores the address and the model together', (
@@ -534,8 +551,11 @@ void main() {
       await tester.tap(find.text(l10nEn.dialogOKLabel));
       await tester.pumpAndSettle();
 
-      expect(await storage.readEndpoint(provider: AiProvider.ownServer),
-          'http://192.168.1.5:11434');
+      expect(
+        await storage.readEndpoint(provider: AiProvider.ownServer),
+        'http://192.168.1.5:11434/v1/chat/completions',
+        reason: 'a base address is completed to the route runtimes answer on',
+      );
       expect(await storage.readModel(provider: AiProvider.ownServer),
           'gemma3:4b');
       expect(
@@ -545,19 +565,276 @@ void main() {
       );
     });
 
+    testWidgets('an address that is not a URL is refused, and says so', (
+      tester,
+    ) async {
+      // `192.168.1.5:11434` is the form Ollama's own documentation shows, so
+      // it is the likeliest thing to be typed here. It was stored happily,
+      // turned the feature on, and then threw a FormatException inside the
+      // request builder — into the catch-all that turns anything unexpected
+      // into "the parser answered". The row said On and nothing ever ran.
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        '192.168.1.5:11434',
+      );
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-model-field'),
+        'gemma3:4b',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.aiAssistEndpointInvalidLabel), findsOneWidget);
+      expect(await storage.readEndpoint(provider: AiProvider.ownServer), isNull);
+      expect(
+        find.byType(AiAssistDialog),
+        findsOneWidget,
+        reason: 'a refused save must not close the dialog',
+      );
+    });
+
+    testWidgets('an address with no model is refused, and says so', (
+      tester,
+    ) async {
+      // #738 made the model part of what "configured" means here, and nothing
+      // enforced it: the address alone flipped the flag, and the request
+      // builder then had no model to name and threw — swallowed the same way.
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        'http://192.168.1.5:11434',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.aiAssistModelRequiredLabel), findsOneWidget);
+      expect(await storage.readEndpoint(provider: AiProvider.ownServer), isNull);
+      expect(
+        await storage.isEnabled(),
+        isFalse,
+        reason: 'nothing was stored, so nothing may have turned it on',
+      );
+    });
+
+    testWidgets('a refusal clears as soon as the field is edited', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      // A model with nowhere to send it is still a refusal, and it lands on
+      // the field that is missing rather than the one that is filled in.
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-model-field'),
+        'gemma3:4b',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nEn.aiAssistEndpointInvalidLabel), findsOneWidget);
+
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        'h',
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(l10nEn.aiAssistEndpointInvalidLabel), findsNothing);
+    });
+
+    testWidgets('an untouched dialog closes rather than refusing', (
+      tester,
+    ) async {
+      // Typing nothing is not an error — it is the same "not setting this up
+      // right now" that an empty key field means for the hosted three, and
+      // erroring on it would make OK a trap for anyone who opened the dialog
+      // to look.
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AiAssistDialog), findsNothing);
+      expect(find.text(l10nEn.aiAssistEndpointInvalidLabel), findsNothing);
+    });
+
+    testWidgets('the address stays editable after it is saved', (
+      tester,
+    ) async {
+      // The dialog rendered the address and model fields unconditionally but
+      // hung OK off "has a credential", which for this provider is true as
+      // soon as an address exists. Reopening therefore showed two editable
+      // fields, a disclosure that followed every keystroke, and nothing to
+      // commit any of it — the only exit was Remove, which discards the
+      // address too. Changing the machine you run Ollama on should not mean
+      // tearing the whole setting down.
+      await storage.writeEndpoint(
+        'http://192.168.1.5:11434',
+        provider: AiProvider.ownServer,
+      );
+      await storage.writeModel('gemma3:4b', provider: AiProvider.ownServer);
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        'http://192.168.1.9:11434',
+      );
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-model-field'),
+        'qwen3:8b',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(await storage.readEndpoint(provider: AiProvider.ownServer),
+          'http://192.168.1.9:11434/v1/chat/completions');
+      expect(
+        await storage.readModel(provider: AiProvider.ownServer),
+        'qwen3:8b',
+        reason: 'a changed address forgets the model, so order is load-bearing',
+      );
+    });
+
+    testWidgets('the address stays editable once a key is stored too', (
+      tester,
+    ) async {
+      // The case the OK gate is really for, and the one a first version of
+      // the test above missed: with no key stored, splitting "has a key" from
+      // "is configured" already brings OK back, so the mutation walked
+      // through. It is a server the user runs that *also* holds an optional
+      // key — a reverse-proxied one — where the credential row appears, OK
+      // disappeared with it, and the address underneath was frozen.
+      await storage.writeEndpoint(
+        'http://192.168.1.5:11434',
+        provider: AiProvider.ownServer,
+      );
+      await storage.writeModel('gemma3:4b', provider: AiProvider.ownServer);
+      await storage.writeApiKey('sk-proxy', provider: AiProvider.ownServer);
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining(l10nEn.aiAssistKeySavedLabel),
+        findsOneWidget,
+        reason: 'this one really does hold a key',
+      );
+
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        'http://192.168.1.9:11434',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(await storage.readEndpoint(provider: AiProvider.ownServer),
+          'http://192.168.1.9:11434/v1/chat/completions');
+    });
+
+    testWidgets('no key stored is not reported as a key saved', (
+      tester,
+    ) async {
+      // "Key saved ••••••••••••" over a slot holding nothing, in the one
+      // dialog whose whole job is to be checkable on sight. `configured` and
+      // `has a key` are the same fact for the hosted three and different for
+      // this one.
+      await storage.writeEndpoint(
+        'http://192.168.1.5:11434',
+        provider: AiProvider.ownServer,
+      );
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      expect(await storage.readApiKey(provider: AiProvider.ownServer), isNull);
+      expect(find.textContaining(l10nEn.aiAssistKeySavedLabel), findsNothing);
+      // Still offered, because the key here is optional rather than absent —
+      // a reverse-proxied server may want one after the address is working.
+      expect(
+        find.bySemanticsIdentifier('ai-assist-key-field'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('OK on an unchanged address does not un-pause it', (
+      tester,
+    ) async {
+      // The switch and OK are on screen together for this provider, and
+      // `writeEndpoint` reads an address as the user asking for the feature —
+      // right for a new one, wrong for the one already stored. Pausing and
+      // then confirming the dialog must not undo the pause.
+      await storage.writeEndpoint(
+        'http://192.168.1.5:11434',
+        provider: AiProvider.ownServer,
+      );
+      await storage.writeModel('gemma3:4b', provider: AiProvider.ownServer);
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byType(Switch));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+      expect(await storage.isEnabled(), isFalse);
+
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(await storage.isEnabled(), isFalse);
+    });
+
+    testWidgets('pausing is offered with no key stored', (tester) async {
+      // The switch and Remove follow "is this usable", which for this
+      // provider is an address and a model rather than a key. They used to
+      // ride on the same flag as the masked key row.
+      await storage.writeEndpoint(
+        'http://192.168.1.5:11434',
+        provider: AiProvider.ownServer,
+      );
+      await storage.writeModel('gemma3:4b', provider: AiProvider.ownServer);
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsIdentifier('ai-assist-enabled'), findsOneWidget);
+      expect(
+        find.bySemanticsIdentifier('ai-assist-remove-key'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('survives 2x German on a narrow phone', (tester) async {
       // Where this dialog's title lost its Experimental badge for
       // overflowing by 48px. A user-supplied hostname is less bounded than
       // anything else it renders, so this is measured rather than assumed.
-      tester.view.physicalSize = const Size(320, 800);
-      tester.view.devicePixelRatio = 1.0;
+      //
+      // The 2x was in the name and nowhere else: this set the viewport and
+      // stopped, so it measured a narrow phone at the default font and said
+      // "2x German" about it. The scaler has to be wrapped round the widget
+      // the way the two tests below do it — `tester.view` carries no text
+      // scale.
+      tester.view.physicalSize = const Size(320 * 3, 640 * 3);
+      tester.view.devicePixelRatio = 3.0;
       addTearDown(tester.view.reset);
 
       await storage.writeEndpoint(
         'http://ein-sehr-langer-servername.fritz.box:11434',
         provider: AiProvider.ownServer,
       );
-      await tester.pumpWidget(_app(storage, locale: const Locale('de')));
+      await storage.writeModel('gemma3:4b', provider: AiProvider.ownServer);
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+          child: _app(storage, locale: const Locale('de')),
+        ),
+      );
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);

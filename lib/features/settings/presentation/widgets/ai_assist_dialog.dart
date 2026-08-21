@@ -67,9 +67,33 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   bool _changed = false;
 
   AiProvider _provider = AiProvider.anthropic;
+
+  /// A key is really stored, so the field is replaced by a mask.
   bool _hasKey = false;
+
+  /// This provider has what it needs to be used — a key for the hosted three,
+  /// an **address** for a server the user runs.
+  ///
+  /// One flag used to answer both questions, which held only while every
+  /// provider's credential was a key. For a server the user runs it made the
+  /// dialog say *"Key saved"* over a slot that holds none, and — because the
+  /// OK button hangs off it — left the address and model fields rendered,
+  /// editable, and with nothing to commit them.
+  bool _configured = false;
+
   bool _enabled = false;
   AiModel? _model = AiModelCatalogue.defaultFor(AiProvider.anthropic);
+
+  /// Set when OK was pressed on something that cannot be stored, and cleared
+  /// as soon as the user touches the field again.
+  ///
+  /// Both refusals are silent failures brought up to where they can be acted
+  /// on: an address the request builder cannot parse, and a server with no
+  /// model to ask for, each of which used to be accepted here and then throw
+  /// two layers down into a catch-all that turned it into "the parser
+  /// answered".
+  String? _endpointError;
+  String? _modelError;
 
   @override
   void initState() {
@@ -99,10 +123,16 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // refuses independently of what this dialog is showing. #753.
     final provider = summary.provider ?? AiProvider.anthropic;
     final modelId = await widget.storage.readModel(provider: provider);
+    // Asked separately from `configured`, because for a server the user runs
+    // they are different questions and only this one may mask a field.
+    final hasKey = summary.provider == null
+        ? false
+        : await widget.storage.hasApiKey(provider: provider);
     if (!mounted) return;
     setState(() {
       _provider = provider;
-      _hasKey = summary.provider == null ? false : summary.configured;
+      _hasKey = hasKey;
+      _configured = summary.provider == null ? false : summary.configured;
       _enabled = summary.enabled;
       _model = AiModelCatalogue.resolve(provider, modelId);
       _endpointController.text = summary.endpoint ?? '';
@@ -132,6 +162,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   }
 
   Future<void> _save() async {
+    final s = S.of(context);
     var changed = _changed;
 
     if (_provider == AiProvider.ownServer) {
@@ -140,15 +171,48 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       // neither alone turns the feature on.
       final endpoint = _endpointController.text.trim();
       final model = _modelController.text.trim();
-      if (endpoint.isNotEmpty) {
-        // Order matters: writing the address clears the stored model when it
-        // changed (#755), so the model is written after it rather than being
-        // wiped by it.
-        await widget.storage.writeEndpoint(endpoint, provider: _provider);
-        if (model.isNotEmpty) {
-          await widget.storage.writeModel(model, provider: _provider);
+
+      // Checked against the store's own rule rather than a second opinion
+      // about what an address is, and checked *before* either is written, so
+      // a rejected pair never leaves the provider half-configured.
+      final resolved = endpoint.isEmpty
+          ? null
+          : AiCredentialStorage.resolveEndpoint(endpoint);
+
+      // Nothing typed at all is not an error. It is the same "I am not
+      // setting this up right now" that an empty key field means for the
+      // hosted three, and the provider is already selected either way.
+      if (endpoint.isNotEmpty || model.isNotEmpty) {
+        if (resolved == null || model.isEmpty) {
+          setState(() {
+            _endpointError = resolved == null
+                ? s.aiAssistEndpointInvalidLabel
+                : null;
+            _modelError = model.isEmpty ? s.aiAssistModelRequiredLabel : null;
+          });
+          return;
         }
-        changed = true;
+
+        // Compared in its **resolved** form, which is what the store holds:
+        // the address as typed is a base and the stored one carries the chat
+        // route, so comparing the raw text would call every unchanged address
+        // a change. That matters because OK now sits beside the pause switch
+        // and `writeEndpoint` reads an address as asking for the feature —
+        // re-saving an untouched setting would undo a pause made seconds
+        // earlier.
+        final stored = await widget.storage.readEndpoint(provider: _provider);
+        if (resolved.toString() != stored) {
+          await widget.storage.writeEndpoint(endpoint, provider: _provider);
+          changed = true;
+        }
+        // After the address, never before: writing a *changed* address
+        // forgets the stored model (#755), so the order is what keeps an edit
+        // to both from wiping the half it just saved. Read back rather than
+        // compared to what was loaded, for the same reason.
+        if (model != await widget.storage.readModel(provider: _provider)) {
+          await widget.storage.writeModel(model, provider: _provider);
+          changed = true;
+        }
       }
     }
 
@@ -265,13 +329,19 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                           autocorrect: false,
                           decoration: InputDecoration(
                             labelText: s.aiAssistEndpointFieldLabel,
+                            // A base address, which the store completes to
+                            // the chat route the runtimes actually answer on.
                             hintText: 'http://192.168.1.5:11434',
+                            errorText: _endpointError,
                             border: const OutlineInputBorder(),
                           ),
                           // The disclosure below names this host and derives
                           // its encryption clause from the scheme, so it has
-                          // to follow the field as it is typed.
-                          onChanged: (_) => setState(() {}),
+                          // to follow the field as it is typed. A refusal
+                          // clears with the same keystroke, because it was
+                          // about text that no longer exists.
+                          onChanged: (_) =>
+                              setState(() => _endpointError = null),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -291,7 +361,14 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                     // and still above the OK button, which is the act that
                     // actually enables the feature. What it is no longer above
                     // is a text field the user could not see.
-                    if (_hasKey) ...[
+                    //
+                    // Keyed on **whether a key is stored**, which is not the
+                    // same question as whether the provider is usable. A
+                    // server the user runs is usable on an address alone, and
+                    // its key stays optional afterwards — so the field has to
+                    // remain reachable there rather than being replaced by a
+                    // mask over an empty slot.
+                    if (_hasKey)
                       Row(
                         children: [
                           const Icon(Icons.key_rounded, size: 18),
@@ -309,25 +386,8 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                             ),
                           ),
                         ],
-                      ),
-                      Semantics(
-                        identifier: 'ai-assist-enabled',
-                        child: SwitchListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(s.settingsAiAssistEnabledLabel),
-                          value: _enabled,
-                          onChanged: _setEnabled,
-                        ),
-                      ),
-                      Semantics(
-                        identifier: 'ai-assist-remove-key',
-                        child: TextButton.icon(
-                          onPressed: _remove,
-                          icon: const Icon(Icons.delete_outline_rounded),
-                          label: Text(s.aiAssistRemoveKeyLabel),
-                        ),
-                      ),
-                    ] else ...[
+                      )
+                    else ...[
                       Text(
                         s.aiAssistNoKeyForProviderLabel,
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -348,6 +408,29 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                             ),
                             border: const OutlineInputBorder(),
                           ),
+                        ),
+                      ),
+                    ],
+                    // Pausing and removing act on the provider as a whole, so
+                    // they follow "is it usable" rather than "is there a key".
+                    // Identical for the hosted three, where the two are the
+                    // same fact.
+                    if (_configured) ...[
+                      Semantics(
+                        identifier: 'ai-assist-enabled',
+                        child: SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(s.settingsAiAssistEnabledLabel),
+                          value: _enabled,
+                          onChanged: _setEnabled,
+                        ),
+                      ),
+                      Semantics(
+                        identifier: 'ai-assist-remove-key',
+                        child: TextButton.icon(
+                          onPressed: _remove,
+                          icon: const Icon(Icons.delete_outline_rounded),
+                          label: Text(s.aiAssistRemoveKeyLabel),
                         ),
                       ),
                     ],
@@ -392,7 +475,14 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
           onPressed: () => Navigator.of(context).pop(_changed),
           child: Text(s.dialogCancelLabel),
         ),
-        if (!_hasKey && !_loading)
+        // Offered whenever something on screen can still be typed into. For
+        // the hosted three that is exactly "before a key exists", which is
+        // what this used to say. A server the user runs keeps an address and
+        // a model name editable for as long as the dialog is open, and
+        // hanging OK off the credential left both fields rendered with no way
+        // to commit a change — the only exit was Remove, which discards the
+        // address as well.
+        if (!_loading && (!_hasKey || _provider == AiProvider.ownServer))
           Semantics(
             identifier: 'ai-assist-save-key',
             child: TextButton(onPressed: _save, child: Text(s.dialogOKLabel)),
@@ -499,8 +589,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
               decoration: InputDecoration(
                 labelText: s.aiAssistModelFieldLabel,
                 hintText: 'gemma3:4b',
+                errorText: _modelError,
                 border: const OutlineInputBorder(),
               ),
+              onChanged: (_) => setState(() => _modelError = null),
             ),
           ),
         ],

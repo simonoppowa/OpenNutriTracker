@@ -202,26 +202,94 @@ class AiCredentialStorage {
   /// A null provider short-circuits the whole thing: there is no slot to read
   /// a key from, so there is nothing to enable. #753.
   Future<
-    ({AiProvider? provider, String? apiKey, String? endpoint, bool enabled})
+    ({
+      AiProvider? provider,
+      String? apiKey,
+      String? endpoint,
+      String? modelId,
+      bool enabled,
+    })
   >
   _readState() async {
     final provider = await activeProvider();
     if (provider == null) {
-      return (provider: null, apiKey: null, endpoint: null, enabled: false);
+      return (
+        provider: null,
+        apiKey: null,
+        endpoint: null,
+        modelId: null,
+        enabled: false,
+      );
     }
     final apiKey = await readApiKey(provider: provider);
     final endpoint = await readEndpoint(provider: provider);
+    // Read here rather than only in `readSelection`, because usability now
+    // depends on it for one provider. That call gets no more expensive — it
+    // was reading the model separately anyway — and a summary costs one more
+    // round trip than it did, which is the price of the row and the request
+    // agreeing about whether this provider can answer.
+    final modelId = await readModel(provider: provider);
     // The invariant, stated here once: the flag alone never means "on" — a
     // provider that is not usable is off whatever the tag says.
     final enabled =
-        _isUsable(provider, apiKey: apiKey, endpoint: endpoint) &&
+        _isUsable(
+          provider,
+          apiKey: apiKey,
+          endpoint: endpoint,
+          modelId: modelId,
+        ) &&
         await _storage.read(key: _enabledTag) != 'false';
     return (
       provider: provider,
       apiKey: apiKey,
       endpoint: endpoint,
+      modelId: modelId,
       enabled: enabled,
     );
+  }
+
+  /// The route every OpenAI-compatible runtime answers on. Fixed by the
+  /// protocol this provider is named for, not chosen by the app.
+  static const _chatCompletionsPath = '/v1/chat/completions';
+
+  /// What [endpoint] will actually be requested as, or **null when what was
+  /// typed cannot be requested at all**.
+  ///
+  /// Public so the dialog validates against exactly what the store accepts,
+  /// rather than keeping a second opinion about what a usable address is.
+  ///
+  /// **Rejects** anything without an `http`/`https` scheme and a host. A bare
+  /// `192.168.1.5:11434` is the form Ollama's own documentation shows and is
+  /// not a URL: `Uri.parse` throws on it, and that landed as a
+  /// `FormatException` inside the request builder, where the use case's
+  /// catch-all swallowed it — so the row said the feature was on while every
+  /// meal quietly went to the parser instead. The scheme is deliberately
+  /// **not** guessed on the user's behalf: the disclosure derives its
+  /// encryption clause from it (#736), and picking plaintext for someone is
+  /// the one thing that sentence must never say without them having said it.
+  ///
+  /// **Completes** a base address to the chat route. Ollama, llama.cpp, vLLM
+  /// and LM Studio all answer at [_chatCompletionsPath] and 404 at the root,
+  /// and a base URL plus a fixed route is the OpenAI-compatible contract
+  /// itself — so this is the protocol rather than a guess about it, which is
+  /// what separates it from the scheme above. The field's own hint is a base
+  /// address, and it has to work. A path the user typed is kept as typed.
+  static Uri? resolveEndpoint(String endpoint) {
+    final uri = Uri.tryParse(endpoint.trim());
+    if (uri == null) return null;
+    if (uri.scheme != 'http' && uri.scheme != 'https') return null;
+    if (uri.host.isEmpty) return null;
+
+    final path = uri.path.endsWith('/')
+        ? uri.path.substring(0, uri.path.length - 1)
+        : uri.path;
+    if (path.isEmpty) return uri.replace(path: _chatCompletionsPath);
+    // `http://host:11434/v1` is what LM Studio prints and what the OpenAI
+    // SDKs call the base URL, so it is a base rather than a route.
+    if (path.endsWith('/v1')) {
+      return uri.replace(path: '$path/chat/completions');
+    }
+    return uri.replace(path: path);
   }
 
   /// Whether [provider] has what it needs to be used at all.
@@ -238,11 +306,18 @@ class AiCredentialStorage {
     AiProvider provider, {
     required String? apiKey,
     required String? endpoint,
+    required String? modelId,
   }) => switch (provider) {
     AiProvider.anthropic ||
     AiProvider.openrouter ||
     AiProvider.openai => apiKey != null,
-    AiProvider.ownServer => endpoint != null,
+    // **And the model**, which is where #738's "the model is part of what
+    // configured means here" is finally enforced rather than asserted. The
+    // three hosted providers fall back to a curated default; this one has no
+    // list, so a missing id leaves the request builder with nothing to name
+    // and it throws — silently, one layer below anything the user can see.
+    AiProvider.ownServer =>
+      endpoint != null && resolveEndpoint(endpoint) != null && modelId != null,
   };
 
   /// Where [AiProvider.ownServer] points, or null when nothing is stored.
@@ -276,11 +351,24 @@ class AiCredentialStorage {
       return;
     }
 
+    // Refused rather than stored, because the write below also turns the
+    // feature on — keeping an address that can never be requested would leave
+    // the flag set over a provider that cannot answer, which is the state
+    // this class exists to make unrepresentable. The dialog checks the same
+    // function first and says why; this is the floor under it, not the
+    // message.
+    final resolved = resolveEndpoint(trimmed);
+    if (resolved == null) return;
+    // Stored as it will be requested. The row and the dialog then show the
+    // address the app will really use, which is the point of naming a
+    // destination at all.
+    final value = resolved.toString();
+
     final previous = await _storage.read(key: _endpointSlotTag(target));
-    if (previous != trimmed) {
+    if (previous != value) {
       await _storage.delete(key: _modelSlotTag(target));
     }
-    await _storage.write(key: _endpointSlotTag(target), value: trimmed);
+    await _storage.write(key: _endpointSlotTag(target), value: value);
 
     // Same reasoning as `writeApiKey`: supplying the thing that makes the
     // provider usable is the user asking for the feature.
@@ -307,7 +395,12 @@ class AiCredentialStorage {
       provider: provider,
       configured:
           provider != null &&
-          _isUsable(provider, apiKey: state.apiKey, endpoint: state.endpoint),
+          _isUsable(
+            provider,
+            apiKey: state.apiKey,
+            endpoint: state.endpoint,
+            modelId: state.modelId,
+          ),
       enabled: state.enabled,
       endpoint: state.endpoint,
     );
@@ -331,7 +424,7 @@ class AiCredentialStorage {
       provider: provider,
       apiKey: state.apiKey,
       endpoint: state.endpoint,
-      modelId: await readModel(provider: provider),
+      modelId: state.modelId,
     );
   }
 
@@ -452,11 +545,27 @@ class AiCredentialStorage {
   Future<bool> isEnabled() async => (await _readState()).enabled;
 
   /// Turns the feature off without forgetting the keys, so switching it back
-  /// on does not mean finding a credential again. Enabling with no key for
-  /// the active provider is a no-op rather than a state the UI would have to
-  /// explain.
+  /// on does not mean finding a credential again. Enabling an **unusable**
+  /// provider is a no-op rather than a state the UI would have to explain.
+  ///
+  /// The guard asks [_isUsable] rather than [hasApiKey], which is the same
+  /// generalisation #755 made everywhere else and missed here. A server the
+  /// user runs is usable on an address and a model, so the key test made the
+  /// pause switch a one-way door: it turned off, and then refused to turn
+  /// back on for the one provider whose credential is not a key.
   Future<void> setEnabled(bool enabled) async {
-    if (enabled && !await hasApiKey()) return;
+    if (enabled) {
+      final provider = await activeProvider();
+      if (provider == null) return;
+      if (!_isUsable(
+        provider,
+        apiKey: await readApiKey(provider: provider),
+        endpoint: await readEndpoint(provider: provider),
+        modelId: await readModel(provider: provider),
+      )) {
+        return;
+      }
+    }
     await _storage.write(key: _enabledTag, value: enabled ? 'true' : 'false');
   }
 

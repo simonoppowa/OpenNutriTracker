@@ -21,6 +21,10 @@ void main() {
     'aiAssistModelFieldLabel',
     'aiAssistDisclosureOwnServerSecure',
     'aiAssistDisclosureOwnServerPlaintext',
+    // What the dialog says instead of storing an address that can never be
+    // requested, or a server with no model to ask for.
+    'aiAssistEndpointInvalidLabel',
+    'aiAssistModelRequiredLabel',
   ];
 
   final arb = {
@@ -132,6 +136,42 @@ void main() {
             reason: '$locale/${entry.key} claims on-device processing',
           );
         }
+      }
+    }
+  });
+
+  test('the plaintext clause promises no boundary nobody enforces', () {
+    // It used to end *"it is only permitted because it stays on your own
+    // network"*, which asserts two things the app does not do: it permits
+    // plain HTTP to any host, and it cannot know where that host is. On a
+    // LAN address the sentence was accidentally reassuring; on
+    // `http://example.com` it was simply false, in nine languages, at the
+    // moment the user is agreeing to send their meals there.
+    //
+    // #758 may yet restrict plain HTTP to private addresses. Until something
+    // checks, nothing here may say it has been checked — and if #758 lands,
+    // the sentence it earns is a new one rather than this one returning.
+    //
+    // Narrow in the same way the on-device guard above is narrow, and for the
+    // same reason: these are the two languages this repo can vouch for
+    // phrase by phrase. The parity test keeps the key present everywhere; a
+    // reviewer keeps the other seven honest.
+    const forbidden = [
+      'your own network',
+      'stays on your network',
+      'only permitted because',
+      'deinem eigenen netzwerk',
+      'nur erlaubt, weil',
+    ];
+    for (final locale in locales) {
+      final value =
+          arb[locale]!['aiAssistDisclosureOwnServerPlaintext'] as String;
+      for (final phrase in forbidden) {
+        expect(
+          value.toLowerCase(),
+          isNot(contains(phrase)),
+          reason: '$locale claims a network boundary the app never checks',
+        );
       }
     }
   });

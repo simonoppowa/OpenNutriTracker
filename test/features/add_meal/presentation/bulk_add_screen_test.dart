@@ -677,6 +677,53 @@ void main() {
     );
   });
 
+  testWidgets('the camera is hidden with no credential at all', (
+    tester,
+  ) async {
+    // The other half of the gate, and the one a destination-only check let
+    // through: an install that has never opened settings resolves a
+    // destination anyway, because nothing stored reads as Anthropic (#688)
+    // and an absent model id falls back to the list's first entry. Every
+    // such user was offered a camera whose sheet names Anthropic and whose
+    // request cannot be signed.
+    await _register(const {});
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    expect(await getIt<AiCredentialStorage>().isEnabled(), isFalse);
+    expect(find.byIcon(Icons.photo_camera_rounded), findsNothing);
+  });
+
+  testWidgets('the camera is hidden once the user switches the feature off', (
+    tester,
+  ) async {
+    // Pausing is the cheap act `setEnabled` exists for, and it has to reach
+    // the camera as well as the text path — a destination stays perfectly
+    // resolvable while the user is telling the app not to use it.
+    await _register(const {});
+    getIt.unregister<AiCredentialStorage>();
+    final storage = AiCredentialStorage(
+      _MapStorage({
+        'AiProviderTag': 'anthropic',
+        'AiApiKeyTag.anthropic': 'sk-test',
+        'AiAssistEnabledTag': 'false',
+      }),
+    );
+    getIt.registerLazySingleton<AiCredentialStorage>(() => storage);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.photo_camera_rounded), findsNothing);
+  });
+
   testWidgets('the camera is hidden for a server the user runs', (
     tester,
   ) async {
