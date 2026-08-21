@@ -57,7 +57,8 @@ class _MemoryStorage implements FlutterSecureStorage {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _app(AiCredentialStorage storage) => MaterialApp(
+Widget _app(AiCredentialStorage storage, {Locale? locale}) => MaterialApp(
+  locale: locale,
   localizationsDelegates: const [
     S.delegate,
     GlobalMaterialLocalizations.delegate,
@@ -311,6 +312,10 @@ void main() {
     await tester.pumpWidget(_app(storage));
     await tester.pumpAndSettle();
 
+    // The model section sits below the credential block now, so it can be
+    // off-screen on a phone-sized viewport.
+    await tester.ensureVisible(find.text('anthropic/claude-haiku-4.5'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('anthropic/claude-haiku-4.5'));
     await tester.pumpAndSettle();
 
@@ -413,6 +418,150 @@ void main() {
       reason: 'only gpt-5.6-terra, where #686 measured 7 rows against 3',
     );
     expect(find.textContaining(l10nEn.aiAssistModelRecommendedLabel), findsOne);
+  });
+
+  group('a server the user runs', () {
+    setUp(() => storage.setActiveProvider(AiProvider.ownServer));
+
+    testWidgets('is offered, and is never called "local"', (tester) async {
+      // #736: *local* is simultaneously what the ecosystem calls Ollama and
+      // what a user reads as *on my phone* — the claim reserved for
+      // on-device inference, which this app does not do. Someone who came
+      // here for privacy and picked something labelled "Local AI" would have
+      // been told the one thing that is not true, by the label alone.
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.aiAssistProviderOwnServerLabel), findsOneWidget);
+      expect(l10nEn.aiAssistProviderOwnServerLabel.toLowerCase(),
+          isNot(contains('local')));
+    });
+
+    testWidgets('takes an address and a typed model name', (tester) async {
+      // No curated list to pick from, so the model is typed. #757 adds the
+      // fetch; this is what works until then.
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+          findsOneWidget);
+      expect(find.bySemanticsIdentifier('ai-assist-model-field'),
+          findsOneWidget);
+    });
+
+    testWidgets('offers no curated model rows, and no served-by line', (
+      tester,
+    ) async {
+      // #738: *Recommended* and the row notes are measured comparisons
+      // between curated siblings, and nothing about a user's own models has
+      // been measured by anyone. `servedBy` asserts a guarantee about a third
+      // party, and there is not one.
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RadioListTile<String>), findsNothing);
+      expect(find.textContaining(l10nEn.aiAssistModelRecommendedLabel),
+          findsNothing);
+      expect(find.textContaining('Served by'), findsNothing);
+    });
+
+    testWidgets('the disclosure names the host once one is typed', (
+      tester,
+    ) async {
+      // #736: "sent to the server you configured" is not checkable at the
+      // moment a user is agreeing to it.
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        'http://192.168.1.5:11434',
+      );
+      await tester.pumpAndSettle();
+
+      // Asserted against the **disclosure**, not against any widget holding
+      // that text. A first draft used `findsWidgets` and a mutation walked
+      // through it: the endpoint field itself contains the host, so the test
+      // passed while the disclosure named nothing at all.
+      final disclosure = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((t) => t.data)
+          .whereType<String>()
+          .firstWhere((d) => d.contains(l10nEn.aiAssistDisclosureCommon));
+      expect(disclosure, contains('192.168.1.5:11434'));
+    });
+
+    testWidgets('the encryption clause follows the scheme, not a guess', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        'http://192.168.1.5:11434',
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('not encrypted'),
+        findsWidgets,
+        reason: 'the dialog is the only place a user learns this',
+      );
+
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        'https://ollama.example.com',
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('not encrypted'), findsNothing);
+    });
+
+    testWidgets('saving stores the address and the model together', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        'http://192.168.1.5:11434',
+      );
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-model-field'),
+        'gemma3:4b',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(await storage.readEndpoint(provider: AiProvider.ownServer),
+          'http://192.168.1.5:11434');
+      expect(await storage.readModel(provider: AiProvider.ownServer),
+          'gemma3:4b');
+      expect(
+        (await storage.readSummary()).configured,
+        isTrue,
+        reason: 'no key was entered, and none is needed',
+      );
+    });
+
+    testWidgets('survives 2x German on a narrow phone', (tester) async {
+      // Where this dialog's title lost its Experimental badge for
+      // overflowing by 48px. A user-supplied hostname is less bounded than
+      // anything else it renders, so this is measured rather than assumed.
+      tester.view.physicalSize = const Size(320, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await storage.writeEndpoint(
+        'http://ein-sehr-langer-servername.fritz.box:11434',
+        provider: AiProvider.ownServer,
+      );
+      await tester.pumpWidget(_app(storage, locale: const Locale('de')));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
   });
 
   testWidgets('the key field is on screen without scrolling, on a phone', (

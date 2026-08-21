@@ -15,6 +15,12 @@ void main() {
   const touched = [
     'aiAssistModelCheapestLabel',
     'aiAssistDisclosureOpenRouter',
+    // #756
+    'aiAssistProviderOwnServerLabel',
+    'aiAssistEndpointFieldLabel',
+    'aiAssistModelFieldLabel',
+    'aiAssistDisclosureOwnServerSecure',
+    'aiAssistDisclosureOwnServerPlaintext',
   ];
 
   final arb = {
@@ -72,6 +78,61 @@ void main() {
             'row on this list and telling that user less than the direct path '
             'tells them',
       );
+    }
+  });
+
+  test('the provider is never called "local", in any language', () {
+    // #736: *local* is what the ecosystem calls Ollama **and** what a user
+    // reads as *on my phone*. Labelling this provider with it would promise
+    // on-device inference, which this app does not do and which was ruled
+    // out of scope. The word may appear descriptively in prose; it may not be
+    // the name of the thing.
+    for (final locale in locales) {
+      final label =
+          arb[locale]!['aiAssistProviderOwnServerLabel'] as String;
+      expect(
+        label.toLowerCase(),
+        isNot(contains('local')),
+        reason: '$locale labels the provider "local"',
+      );
+    }
+  });
+
+  test('no AI string claims the data stays on the device', () {
+    // The other half of the same trap. Data does leave — it goes to a machine
+    // the user controls, which is "no third party", not "never leaves".
+    // Deliberately narrow. A first draft forbade "on this device" and fired
+    // on `aiAssistDisclosureCommon` — *"the key is stored on this device
+    // only"* — which is true, load-bearing, and about the **key** rather than
+    // the meal. The trap is claiming the *content* never leaves; saying where
+    // a credential lives is the opposite of the problem.
+    const forbidden = [
+      'never leaves your device',
+      'never leaves this device',
+      'stays on your device',
+      'stays on this device',
+      'processed on your device',
+      'processed on-device',
+      'verlässt dein gerät nie',
+      'bleibt auf deinem gerät',
+      'auf deinem gerät verarbeitet',
+    ];
+    for (final locale in locales) {
+      for (final entry in arb[locale]!.entries) {
+        if (!entry.key.startsWith('aiAssist') &&
+            !entry.key.startsWith('bulkAddPhoto')) {
+          continue;
+        }
+        final value = entry.value;
+        if (value is! String) continue;
+        for (final phrase in forbidden) {
+          expect(
+            value.toLowerCase(),
+            isNot(contains(phrase)),
+            reason: '$locale/${entry.key} claims on-device processing',
+          );
+        }
+      }
     }
   });
 

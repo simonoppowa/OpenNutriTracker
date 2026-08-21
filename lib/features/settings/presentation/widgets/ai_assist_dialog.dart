@@ -59,6 +59,8 @@ class AiAssistDialog extends StatefulWidget {
 
 class _AiAssistDialogState extends State<AiAssistDialog> {
   final _controller = TextEditingController();
+  final _endpointController = TextEditingController();
+  final _modelController = TextEditingController();
   final _scrollController = ScrollController();
 
   bool _loading = true;
@@ -78,6 +80,8 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   @override
   void dispose() {
     _controller.dispose();
+    _endpointController.dispose();
+    _modelController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -101,6 +105,8 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _hasKey = summary.provider == null ? false : summary.configured;
       _enabled = summary.enabled;
       _model = AiModelCatalogue.resolve(provider, modelId);
+      _endpointController.text = summary.endpoint ?? '';
+      _modelController.text = modelId ?? '';
       _loading = false;
     });
   }
@@ -126,14 +132,34 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   }
 
   Future<void> _save() async {
-    final typed = _controller.text.trim();
-    if (typed.isEmpty) {
-      Navigator.of(context).pop(_changed);
-      return;
+    var changed = _changed;
+
+    if (_provider == AiProvider.ownServer) {
+      // The address is this provider's credential, and the model is part of
+      // what "configured" means for it (#738) — so both are saved here, and
+      // neither alone turns the feature on.
+      final endpoint = _endpointController.text.trim();
+      final model = _modelController.text.trim();
+      if (endpoint.isNotEmpty) {
+        // Order matters: writing the address clears the stored model when it
+        // changed (#755), so the model is written after it rather than being
+        // wiped by it.
+        await widget.storage.writeEndpoint(endpoint, provider: _provider);
+        if (model.isNotEmpty) {
+          await widget.storage.writeModel(model, provider: _provider);
+        }
+        changed = true;
+      }
     }
-    await widget.storage.writeApiKey(typed, provider: _provider);
+
+    final typed = _controller.text.trim();
+    if (typed.isNotEmpty) {
+      await widget.storage.writeApiKey(typed, provider: _provider);
+      changed = true;
+    }
+
     if (!mounted) return;
-    Navigator.of(context).pop(true);
+    Navigator.of(context).pop(changed);
   }
 
   Future<void> _remove() async {
@@ -154,14 +180,17 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     });
   }
 
-  String _providerName(AiProvider provider) => switch (provider) {
+  String _providerName(BuildContext context, AiProvider provider) =>
+      switch (provider) {
     // Brand names, deliberately not localized.
     AiProvider.anthropic => 'Anthropic',
     AiProvider.openrouter => 'OpenRouter',
     AiProvider.openai => 'OpenAI',
-    // Not a brand, so not a constant — #756 replaces this with a localized
-    // label. Unreachable until then: the radio is filtered out above.
-    AiProvider.ownServer => 'Your own server',
+    // The only one that is not a brand, so the only one that is localized.
+    // **Never "local"**: that word is simultaneously what the ecosystem calls
+    // Ollama and what a user reads as *on my phone* — the claim reserved for
+    // on-device inference, which this app does not do. #736.
+    AiProvider.ownServer => S.of(context).aiAssistProviderOwnServerLabel,
   };
 
   @override
@@ -208,20 +237,14 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                     // there was a selection that silently stayed on its
                     // initial value. Deprecated, and still the form that works
                     // here.
-                    // #756 adds this provider's label, disclosure and
-                    // address field. Until then the enum member exists for
-                    // storage and is not offered, rather than appearing as a
-                    // radio with nothing behind it.
-                    ...AiProvider.values
-                        .where((p) => p != AiProvider.ownServer)
-                        .map(
+                    ...AiProvider.values.map(
                       (provider) => Semantics(
                         identifier: 'ai-assist-provider-${provider.name}',
                         // ignore: deprecated_member_use
                         child: RadioListTile<AiProvider>(
                           contentPadding: EdgeInsets.zero,
                           dense: true,
-                          title: Text(_providerName(provider)),
+                          title: Text(_providerName(context, provider)),
                           value: provider,
                           // ignore: deprecated_member_use
                           groupValue: _provider,
@@ -232,8 +255,27 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _buildModelSection(context, s, theme),
-                    const SizedBox(height: 12),
+                    if (_provider == AiProvider.ownServer) ...[
+                      _label(theme, s.aiAssistEndpointFieldLabel),
+                      Semantics(
+                        identifier: 'ai-assist-endpoint-field',
+                        child: TextField(
+                          controller: _endpointController,
+                          keyboardType: TextInputType.url,
+                          autocorrect: false,
+                          decoration: InputDecoration(
+                            labelText: s.aiAssistEndpointFieldLabel,
+                            hintText: 'http://192.168.1.5:11434',
+                            border: const OutlineInputBorder(),
+                          ),
+                          // The disclosure below names this host and derives
+                          // its encryption clause from the scheme, so it has
+                          // to follow the field as it is typed.
+                          onChanged: (_) => setState(() {}),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     // The credential block sits above the disclosure, which
                     // reverses what this dialog originally did. On a Pixel 6
                     // the other way round put the key field *entirely below
@@ -302,13 +344,24 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                           obscureText: true,
                           decoration: InputDecoration(
                             labelText: s.aiAssistKeyFieldLabel(
-                              _providerName(_provider),
+                              _providerName(context, _provider),
                             ),
                             border: const OutlineInputBorder(),
                           ),
                         ),
                       ),
                     ],
+                    const SizedBox(height: 12),
+                    // **Model below the credential**, which is new and is a
+                    // fix rather than a preference. A fourth provider added a
+                    // radio row and pushed the key field 17.7dp below the
+                    // fold on a Pixel 6 — the same defect the "key field is
+                    // on screen" test above was written for, returning for a
+                    // different reason. The credential is what this dialog
+                    // exists for, so it sits directly under the choice of who
+                    // to send to; picking a model is the step after deciding
+                    // you can talk to them at all.
+                    _buildModelSection(context, s, theme),
                     const SizedBox(height: 16),
                     // Provider paragraph first — it names the destination,
                     // which is the fact that changes — then the sentences that
@@ -375,10 +428,28 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     AiProvider.anthropic => s.aiAssistDisclosureAnthropic,
     AiProvider.openrouter => s.aiAssistDisclosureOpenRouter,
     AiProvider.openai => s.aiAssistDisclosureOpenAI,
-    // #756 writes this one: it names the configured host and derives an
-    // encryption clause from the scheme (#736). Unreachable until then.
-    AiProvider.ownServer => s.aiAssistDisclosureCommon,
+    // Named host, and an encryption clause derived from the scheme rather
+    // than guessed. #736: "sent to the server you configured" is not
+    // checkable at the moment a user is agreeing to it, where
+    // `sent to 192.168.1.5:11434` is verifiable on sight — and it catches a
+    // stale address pointing somewhere they had forgotten.
+    AiProvider.ownServer => _ownServerDisclosure(s),
   };
+
+  /// Empty while no address is stored: there is no destination to name yet,
+  /// and a sentence naming nothing would be worse than none.
+  String _ownServerDisclosure(S s) {
+    final typed = _endpointController.text.trim();
+    if (typed.isEmpty) return '';
+    final host = Uri.tryParse(typed)?.authority;
+    final display = (host == null || host.isEmpty) ? typed : host;
+    // `https` is permitted anywhere; plain `http` only reaches here for a
+    // private address (#758), and this is the only place the user can learn
+    // which of the two their own address is.
+    return Uri.tryParse(typed)?.scheme == 'https'
+        ? s.aiAssistDisclosureOwnServerSecure(display)
+        : s.aiAssistDisclosureOwnServerPlaintext(display);
+  }
 
   Widget _label(ThemeData theme, String text) => Padding(
     padding: const EdgeInsets.only(bottom: 4),
@@ -410,6 +481,31 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// line is now the special case rather than the rule.
   Widget _buildModelSection(BuildContext context, S s, ThemeData theme) {
     final models = AiModelCatalogue.forProvider(_provider);
+    if (models.isEmpty) {
+      // No curated list, so nothing to pick from and nothing measured to say
+      // about what the user pulled. #738: no *Recommended*, no row notes, and
+      // no `servedBy` — that line asserts a guarantee about a third party,
+      // and the whole point here is that there is not one. #757 adds a fetch
+      // from the server; typing the name is what works until then.
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _label(theme, s.aiAssistModelLabel),
+          Semantics(
+            identifier: 'ai-assist-model-field',
+            child: TextField(
+              controller: _modelController,
+              autocorrect: false,
+              decoration: InputDecoration(
+                labelText: s.aiAssistModelFieldLabel,
+                hintText: 'gemma3:4b',
+                border: const OutlineInputBorder(),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
     final single = models.length == 1;
     final vendors = {for (final m in models) m.servedBy};
     final sharedVendor = vendors.length == 1 ? vendors.single : null;
