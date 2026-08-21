@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
@@ -10,6 +12,7 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
+import 'package:opennutritracker/core/utils/app_locale_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -1079,6 +1082,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () {
                 final locale = selectedCode.isEmpty ? null : selectedCode;
                 _settingsBloc.setSelectedLocale(locale);
+                // Keep Android's per-app language picker in step, so someone
+                // who later looks there finds the language they chose here
+                // rather than a stale one. A no-op off Android and below
+                // API 33.
+                unawaited(AppLocaleService.setApplicationLocale(locale));
                 _settingsBloc.add(LoadSettingsEvent());
                 Provider.of<LocaleProvider>(
                   context,
