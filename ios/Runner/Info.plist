@@ -63,6 +63,8 @@
 	<string>Camera permission is used to scan barcodes and to attach a photo to a custom meal so it's easier to recognise in your saved list.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
     <string>Used to attach a photo to a custom meal so it's easier to recognise in your saved list, and for exporting data.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Read access to your workouts and body fat percentage is used to import workouts into your diary and to suggest how much of their energy to credit toward your daily goal. Nothing is written back to Health, and the data stays on your device.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

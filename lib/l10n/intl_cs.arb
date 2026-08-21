@@ -981,6 +981,7 @@
   "sourcesOpenSourceLabel": "Otevřít zdroj",
   "sourcesScreenIntro": "OpenNutriTracker používá pro každý zobrazený výpočet zavedené, recenzované metody. Následující odkazy vedou na původní zdroje, takže si můžeš každé číslo sám ověřit.",
   "sugarLabel": "cukry",
+  "suggestedLabel": "Navrženo",
   "suppliedLabel": "přijato",
   "transFatLabel": "trans tuky",
   "unitLabel": "Jednotka",
@@ -1103,5 +1104,19 @@
   "quickAddActivityAddedSnack": "Aktivita přidána",
   "quickAddActivityNameLabel": "Název (volitelné)",
   "scannerLockOrientationTooltip": "Uzamknout na výšku",
-  "scannerUnlockOrientationTooltip": "Povolit otáčení"
+  "scannerUnlockOrientationTooltip": "Povolit otáčení",
+  "settingsHealthSyncSubtitle": "Importovat tréninky",
+  "healthSyncAutoImportLabel": "Automaticky importovat tréninky z {platform}",
+  "healthSyncKcalMultiplierLabel": "Započítání kalorií z tréninku",
+  "healthSyncKcalMultiplierSubtitle": "Tělo obvykle cvičení kompenzuje tím, že po zbytek dne spálí méně kalorií. Hodnota 100 % započítá do denního cíle každou kalorii z tréninku.",
+  "healthSyncKcalMultiplierValueLabel": "{percent} %",
+  "healthSyncSuggestedLabel": "Doporučeno pro tebe: {percent} %",
+  "healthSyncImportNowLabel": "Importovat nyní",
+  "healthSyncLastImportLabel": "Poslední import: {time}",
+  "healthSyncNeverImportedLabel": "Zatím nebyly importovány žádné tréninky",
+  "healthSyncImportedCountLabel": "{count, plural, =0{Žádné nové tréninky} one{Importován 1 trénink} few{Importovány {count} tréninky} many{Importováno {count} tréninku} other{Importováno {count} tréninků}}",
+  "healthSyncPermissionDeniedLabel": "Přístup k {platform} nebyl udělen. Povol aplikaci OpenNutriTracker číst tréninky a podíl tělesného tuku, aby je mohla importovat.",
+  "healthSyncUnavailableLabel": "Zdravotní data nejsou na tomto zařízení dostupná. Import tréninků vyžaduje Health Connect v Androidu nebo Apple Health v iOS.",
+  "sourcesEnergyCompensationTitle": "Započítání kalorií z tréninku",
+  "sourcesEnergyCompensationDescription": "Importované tréninky se započítávají s nižší energií, než jakou hlásí zařízení. Lidé cvičení kompenzují tím, že po zbytek dne spálí méně kalorií – v průměru asi 28 %, při vyšším podílu tělesného tuku více. Doporučená hodnota vychází z tohoto výzkumu a lze ji změnit v Nastavení → Synchronizace zdravotních dat. Samotnou energii hlásí aplikace nebo zařízení, které trénink zaznamenalo; nepočítá se vzorcem MET v aplikaci."
 }

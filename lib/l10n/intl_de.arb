@@ -1012,6 +1012,7 @@
   "sourcesOpenSourceLabel": "Quelle öffnen",
   "sourcesScreenIntro": "OpenNutriTracker verwendet für alle Berechnungen etablierte, peer-reviewed Methoden. Die folgenden Quellenangaben verlinken auf die Originaltexte, damit du jede Zahl selbst überprüfen kannst.",
   "sugarLabel": "Zucker",
+  "suggestedLabel": "Vorschlag",
   "suppliedLabel": "zugeführt",
   "transFatLabel": "Transfettsäuren",
   "unitLabel": "Einheit",
@@ -1134,5 +1135,19 @@
   "quickAddActivityAddedSnack": "Aktivität hinzugefügt",
   "quickAddActivityNameLabel": "Name (optional)",
   "scannerLockOrientationTooltip": "Auf Hochformat sperren",
-  "scannerUnlockOrientationTooltip": "Drehung erlauben"
+  "scannerUnlockOrientationTooltip": "Drehung erlauben",
+  "settingsHealthSyncSubtitle": "Trainings importieren",
+  "healthSyncAutoImportLabel": "Trainings automatisch aus {platform} importieren",
+  "healthSyncKcalMultiplierLabel": "Anrechnung von Trainingskalorien",
+  "healthSyncKcalMultiplierSubtitle": "Dein Körper gleicht Sport meist aus, indem er den Rest des Tages weniger Kalorien verbrennt. 100 % rechnet jede Trainingskalorie voll auf dein Tagesziel an.",
+  "healthSyncKcalMultiplierValueLabel": "{percent} %",
+  "healthSyncSuggestedLabel": "Für dich empfohlen: {percent} %",
+  "healthSyncImportNowLabel": "Jetzt importieren",
+  "healthSyncLastImportLabel": "Letzter Import: {time}",
+  "healthSyncNeverImportedLabel": "Noch keine Trainings importiert",
+  "healthSyncImportedCountLabel": "{count, plural, =0{Keine neuen Trainings} one{1 Training importiert} other{{count} Trainings importiert}}",
+  "healthSyncPermissionDeniedLabel": "Kein Zugriff auf {platform} erteilt. Erlaube OpenNutriTracker, Trainings und Körperfettanteil zu lesen, um sie zu importieren.",
+  "healthSyncUnavailableLabel": "Gesundheitsdaten sind auf diesem Gerät nicht verfügbar. Der Trainingsimport benötigt Health Connect unter Android oder Apple Health unter iOS.",
+  "sourcesEnergyCompensationTitle": "Anrechnung von Trainingskalorien",
+  "sourcesEnergyCompensationDescription": "Importierte Trainings werden mit weniger Energie angerechnet, als dein Gerät meldet. Menschen gleichen Sport aus, indem sie den Rest des Tages weniger Kalorien verbrennen – im Mittel etwa 28 %, bei höherem Körperfettanteil mehr. Der Vorschlag stammt aus dieser Forschung und lässt sich unter Einstellungen → Gesundheitsdaten-Sync ändern. Die Energie selbst meldet die App oder das Gerät, das das Training aufgezeichnet hat; sie wird nicht mit der MET-Formel der App berechnet."
 }

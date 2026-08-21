@@ -981,6 +981,7 @@
   "sourcesOpenSourceLabel": "Apri la fonte",
   "sourcesScreenIntro": "OpenNutriTracker utilizza per ogni calcolo metodologie consolidate e sottoposte a peer review. I riferimenti seguenti rimandano alle fonti originali, così puoi verificare ogni numero in autonomia.",
   "sugarLabel": "zuccheri",
+  "suggestedLabel": "Suggerito",
   "suppliedLabel": "assunte",
   "transFatLabel": "grassi trans",
   "unitLabel": "Unità",
@@ -1103,5 +1104,19 @@
   "quickAddActivityAddedSnack": "Attività aggiunta",
   "quickAddActivityNameLabel": "Nome (facoltativo)",
   "scannerLockOrientationTooltip": "Blocca in verticale",
-  "scannerUnlockOrientationTooltip": "Consenti rotazione"
+  "scannerUnlockOrientationTooltip": "Consenti rotazione",
+  "settingsHealthSyncSubtitle": "Importa gli allenamenti",
+  "healthSyncAutoImportLabel": "Importa automaticamente gli allenamenti da {platform}",
+  "healthSyncKcalMultiplierLabel": "Credito calorico degli allenamenti",
+  "healthSyncKcalMultiplierSubtitle": "Il corpo di solito compensa l’attività fisica bruciando meno calorie nel resto della giornata. Con il 100% ogni caloria dell’allenamento viene accreditata sull’obiettivo giornaliero.",
+  "healthSyncKcalMultiplierValueLabel": "{percent}%",
+  "healthSyncSuggestedLabel": "Consigliato per te: {percent}%",
+  "healthSyncImportNowLabel": "Importa ora",
+  "healthSyncLastImportLabel": "Ultima importazione: {time}",
+  "healthSyncNeverImportedLabel": "Nessun allenamento importato finora",
+  "healthSyncImportedCountLabel": "{count, plural, =0{Nessun nuovo allenamento} one{1 allenamento importato} other{{count} allenamenti importati}}",
+  "healthSyncPermissionDeniedLabel": "Accesso a {platform} non concesso. Consenti a OpenNutriTracker di leggere allenamenti e massa grassa per importarli.",
+  "healthSyncUnavailableLabel": "I dati sulla salute non sono disponibili su questo dispositivo. L’importazione degli allenamenti richiede Health Connect su Android o Apple Health su iOS.",
+  "sourcesEnergyCompensationTitle": "Credito calorico degli allenamenti",
+  "sourcesEnergyCompensationDescription": "Gli allenamenti importati vengono accreditati con un’energia inferiore a quella riportata dal dispositivo. Le persone compensano l’attività fisica bruciando meno calorie nel resto della giornata: in media circa il 28%, di più con una massa grassa elevata. Il valore consigliato deriva da questa ricerca e puoi modificarlo in Impostazioni → Sincronizzazione salute. L’energia è quella riportata dall’app o dal dispositivo che ha registrato l’allenamento, non è calcolata con la formula MET dell’app."
 }

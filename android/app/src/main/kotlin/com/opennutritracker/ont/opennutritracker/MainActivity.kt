@@ -3,11 +3,14 @@ package com.opennutritracker.ont.opennutritracker
 import android.app.LocaleManager
 import android.os.Build
 import android.os.LocaleList
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : FlutterActivity() {
+// FlutterFragmentActivity (rather than FlutterActivity) is required by the
+// health plugin: Health Connect permission requests go through
+// registerForActivityResult, which needs a ComponentActivity host.
+class MainActivity : FlutterFragmentActivity() {
     private val localeChannelName = "com.opennutritracker/locale"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -20,11 +23,11 @@ class MainActivity : FlutterActivity() {
         // reads its locale from our saved config rather than from the system.
         //
         // The framework LocaleManager is used rather than AppCompatDelegate:
-        // FlutterActivity extends FragmentActivity, not AppCompatActivity, so
-        // AppCompatDelegate.setApplicationLocales would silently do nothing.
-        // Below API 33 there is no OS picker to stay in step with, so both
-        // calls answer harmlessly and the in-app picker remains the only way
-        // to change language.
+        // FlutterFragmentActivity extends FragmentActivity, not
+        // AppCompatActivity, so AppCompatDelegate.setApplicationLocales would
+        // silently do nothing. Below API 33 there is no OS picker to stay in
+        // step with, so both calls answer harmlessly and the in-app picker
+        // remains the only way to change language.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, localeChannelName)
             .setMethodCallHandler { call, result ->
                 when (call.method) {

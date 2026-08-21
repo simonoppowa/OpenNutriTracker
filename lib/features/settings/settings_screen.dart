@@ -29,6 +29,7 @@ import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.d
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/import_custom_food_data_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/food_sources_screen.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_visibility_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -370,6 +371,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: S.of(context).settingsFoodSourcesLabel,
                       subtitle: S.of(context).settingsFoodSourcesSubtitle,
                       onTap: () => _openFoodSourcesScreen(context),
+                    ),
+                    _SettingsTile(
+                      identifier: 'settings-health-sync',
+                      palette: palette,
+                      icon: Icons.favorite_rounded,
+                      // The platform's own product name, so the row reads as
+                      // the thing users already know ("Health Connect"), not
+                      // as a generic feature label.
+                      title: healthPlatformName,
+                      subtitle: S.of(context).settingsHealthSyncSubtitle,
+                      showChevron: true,
+                      onTap: () => _openHealthSyncScreen(context),
                     ),
                     _SettingsTile(
                       identifier: 'settings-import-custom-food',
@@ -862,6 +875,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _openFoodSourcesScreen(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => const FoodSourcesScreen()),
+    );
+  }
+
+  void _openHealthSyncScreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const HealthSyncScreen()),
     );
   }
 
