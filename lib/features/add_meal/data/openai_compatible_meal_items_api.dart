@@ -16,23 +16,40 @@ import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 /// generation arrives as HTTP 200. Every one of those is a place a shared
 /// class would need a provider check, and a class that is a chain of provider
 /// checks is two classes with extra steps.
-class OpenRouterMealItemsApi implements MealItemsApi {
-  static final _log = Logger('OpenRouterMealItemsApi');
+/// How hard the request insists on a tool call, which is the one thing the
+/// OpenAI-compatible runtimes genuinely disagree about.
+///
+/// Measured in #733: only vLLM honours a named function. llama.cpp parses
+/// `tool_choice` as a *string* and silently downgrades an object to `"auto"`
+/// — no error, the forcing simply discarded. **Ollama has no such field at
+/// all.** With one tool defined, `"required"` says what the app means
+/// wherever it exists.
+///
+/// An explicit mode rather than an `if`, because this is a behavioural fork
+/// and not a formatting one: it changes what the model is asked to do, and a
+/// shared class is exactly where that would otherwise grow into a chain of
+/// provider checks.
+enum ToolChoiceMode {
+  /// `{"type": "function", "function": {"name": ...}}`.
+  namedFunction,
 
-  static const _endpoint = 'https://openrouter.ai/api/v1/chat/completions';
+  /// `"required"` — any tool, and there is only one.
+  anyTool,
 
-  static const _maxTokens = 1024;
+  /// Omitted. The model may answer in prose, which surfaces as the existing
+  /// *no tool call* failure rather than as a wrong number.
+  unforced,
+}
 
-  static const defaultTimeout = Duration(seconds: 20);
-
-  final http.Client _client;
-  final String Function() _apiKey;
-
-  /// No default. Which model is fit for this is a curation question with an
-  /// answer that will change, and a constant here would quietly become that
-  /// answer.
-  final String model;
-
+/// The facts that are true only when OpenRouter is in the path.
+///
+/// Grouped rather than passed as three parameters because they are one
+/// thing: the routing block, the metadata header and the pin check all exist
+/// to constrain and then verify a **broker**. Pointed at a machine in the
+/// user's house there is no broker, and a request asserting
+/// `data_collection: "deny"` to their own server is a claim the app cannot
+/// mean.
+class OpenRouterBroker {
   /// Providers this request may be served by, or null to let OpenRouter
   /// route freely.
   ///
@@ -43,15 +60,88 @@ class OpenRouterMealItemsApi implements MealItemsApi {
   /// Bedrock on all three attempts.
   final List<String>? providers;
 
+  const OpenRouterBroker({this.providers});
+}
+
+/// Asks a model for food items over the OpenAI-compatible wire format.
+///
+/// One class for OpenRouter **and** for a server the user runs, because #733
+/// measured that everything below the wire format is byte-identical across
+/// OpenRouter, Ollama, LM Studio, llama.cpp and vLLM: the tool wrapper, the
+/// data-URI image, arguments-as-a-string, and every guarantee enforced in
+/// Dart afterwards. Only *policy* differs, and policy is what a parameter is
+/// for.
+///
+/// That is the opposite of the split from [AnthropicMealItemsApi], which
+/// exists because those two agree on nothing about shape.
+class OpenAiCompatibleMealItemsApi implements MealItemsApi {
+  static final _log = Logger('OpenAiCompatibleMealItemsApi');
+
+  static final openRouterEndpoint = Uri.parse(
+    'https://openrouter.ai/api/v1/chat/completions',
+  );
+
+  static const _maxTokens = 1024;
+
+  static const defaultTimeout = Duration(seconds: 20);
+
+  final http.Client _client;
+
+  /// Null when the destination wants no credential, which is the normal state
+  /// for a locally-run server. No `authorization` header is sent then — the
+  /// runtimes ignore a stray one, but sending a bearer token to a machine
+  /// that never asked for one is not something to do by accident.
+  final String Function()? _apiKey;
+
+  /// Where the request goes. A field rather than a constant, which is the
+  /// whole of what makes a user-supplied server reachable.
+  final Uri endpoint;
+
+  /// Null when nothing is brokering the request.
+  final OpenRouterBroker? broker;
+
+  final ToolChoiceMode toolChoice;
+
+  /// What a status code means here. A parameter because the same number does
+  /// not mean the same thing to every destination — #695 — and a local
+  /// runtime's 404 is "that model is not pulled", not "that model was
+  /// retired".
+  final MealInterpreterFailure Function(int statusCode) failureFor;
+
+  /// No default. Which model is fit for this is a curation question with an
+  /// answer that will change, and a constant here would quietly become that
+  /// answer.
+  final String model;
+
   final Duration timeout;
 
-  OpenRouterMealItemsApi(
+  OpenAiCompatibleMealItemsApi(
     this._client,
     this._apiKey, {
     required this.model,
-    this.providers,
+    required this.endpoint,
+    this.broker,
+    this.toolChoice = ToolChoiceMode.namedFunction,
+    this.failureFor = openRouterFailureFor,
     this.timeout = defaultTimeout,
   });
+
+  /// The OpenRouter configuration, named so call sites read as intent rather
+  /// than as five arguments.
+  factory OpenAiCompatibleMealItemsApi.openRouter(
+    http.Client client,
+    String Function() apiKey, {
+    required String model,
+    List<String>? providers,
+    Duration timeout = defaultTimeout,
+  }) => OpenAiCompatibleMealItemsApi(
+    client,
+    apiKey,
+    model: model,
+    endpoint: openRouterEndpoint,
+    broker: OpenRouterBroker(providers: providers),
+    timeout: timeout,
+  );
 
   @override
   Future<MealTextParseResult> requestItems({
@@ -109,11 +199,14 @@ class OpenRouterMealItemsApi implements MealItemsApi {
           },
         },
       ],
-      'tool_choice': {
-        'type': 'function',
-        'function': {'name': mealItemsToolName},
-      },
-      'provider': {
+      if (toolChoice == ToolChoiceMode.namedFunction)
+        'tool_choice': {
+          'type': 'function',
+          'function': {'name': mealItemsToolName},
+        }
+      else if (toolChoice == ToolChoiceMode.anyTool)
+        'tool_choice': 'required',
+      if (broker != null) 'provider': {
         // Without this, OpenRouter documents that a provider which does not
         // support a parameter still receives the request and ignores it —
         // and `tool_choice` is not in the set it steers by. A dropped
@@ -131,7 +224,10 @@ class OpenRouterMealItemsApi implements MealItemsApi {
         // suffix, so slug inspection would be a check that looks like one
         // and is not.
         'data_collection': 'deny',
-        if (providers != null) ...{'only': providers, 'allow_fallbacks': false},
+        if (broker?.providers case final only?) ...{
+          'only': only,
+          'allow_fallbacks': false,
+        },
       },
     });
 
@@ -139,16 +235,18 @@ class OpenRouterMealItemsApi implements MealItemsApi {
     try {
       response = await _client
           .post(
-            Uri.parse(_endpoint),
+            endpoint,
             headers: {
               'content-type': 'application/json',
-              'authorization': 'Bearer ${_apiKey()}',
+              if (_apiKey?.call() case final key? when key.isNotEmpty)
+                'authorization': 'Bearer $key',
               // Opts the reply into `openrouter_metadata`, which names the
               // provider that actually served the request. Without it the
               // response says nothing about who received the payload, and a
               // project that invites you to verify its destination list
-              // cannot be structurally unable to name one.
-              'x-openrouter-metadata': 'enabled',
+              // cannot be structurally unable to name one. Meaningless to a
+              // server the user runs, so it is not sent there.
+              if (broker != null) 'x-openrouter-metadata': 'enabled',
               // Deliberately no HTTP-Referer or X-Title. Those are
               // OpenRouter's app-attribution headers and they put the app on
               // a public leaderboard, which is not something to opt a user
@@ -168,7 +266,7 @@ class OpenRouterMealItemsApi implements MealItemsApi {
       _log.warning('Interpreter call failed with ${response.statusCode}');
       throw MealInterpreterException(
         'provider returned ${response.statusCode}',
-        failure: _failureFor(response.statusCode),
+        failure: failureFor(response.statusCode),
         statusCode: response.statusCode,
       );
     }
@@ -198,7 +296,7 @@ class OpenRouterMealItemsApi implements MealItemsApi {
   /// absent on cache hits and on failures that never reached the router, so
   /// absence is not a finding.
   void _warnIfThePinDidNotHold(Map<String, dynamic> decoded) {
-    final pinned = providers;
+    final pinned = broker?.providers;
     if (pinned == null) return;
 
     final metadata = decoded['openrouter_metadata'];
@@ -291,7 +389,7 @@ class OpenRouterMealItemsApi implements MealItemsApi {
     throw MealInterpreterException(
       'generation failed',
       failure: code is int
-          ? _failureFor(code)
+          ? failureFor(code)
           : MealInterpreterFailure.transient,
       statusCode: code is int ? code : null,
     );
@@ -315,7 +413,7 @@ class OpenRouterMealItemsApi implements MealItemsApi {
   /// client: a corpus of real photographs found JPEGs carrying Adobe APP14
   /// markers refused with a 400 every time, while the same picture re-encoded
   /// went through.
-  static MealInterpreterFailure _failureFor(int statusCode) =>
+  static MealInterpreterFailure openRouterFailureFor(int statusCode) =>
       switch (statusCode) {
         401 => MealInterpreterFailure.auth,
         // **403 is not auth here**, unlike on the direct client, where it is

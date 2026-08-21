@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/data/openai_meal_items_api.dart';
-import 'package:opennutritracker/features/add_meal/data/openrouter_meal_items_api.dart';
+import 'package:opennutritracker/features/add_meal/data/openai_compatible_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 
 /// The rules every [MealItemsApi] must obey, whatever wire format it speaks.
@@ -240,11 +240,56 @@ final _contracts = <_ClientContract>[
     }),
   ),
   _ClientContract(
-    name: 'OpenRouterMealItemsApi',
-    build: (client, {required timeout}) => OpenRouterMealItemsApi(
+    name: 'OpenAiCompatibleMealItemsApi (OpenRouter)',
+    build: (client, {required timeout}) => OpenAiCompatibleMealItemsApi.openRouter(
       client,
       () => 'test-key',
       model: 'anthropic/claude-haiku-4.5',
+      timeout: timeout,
+    ),
+    toolReply: (items) => jsonEncode({
+      'id': 'gen_1',
+      'choices': [
+        {
+          'finish_reason': 'tool_calls',
+          'message': {
+            'role': 'assistant',
+            'tool_calls': [
+              {
+                'id': 'call_1',
+                'type': 'function',
+                'function': {
+                  'name': mealItemsToolName,
+                  'arguments': jsonEncode({'items': items}),
+                },
+              },
+            ],
+          },
+        },
+      ],
+    }),
+    noToolCall: jsonEncode({
+      'id': 'gen_1',
+      'choices': [
+        {
+          'finish_reason': 'stop',
+          'message': {'role': 'assistant', 'content': 'Here are the foods.'},
+        },
+      ],
+    }),
+  ),
+  _ClientContract(
+    name: 'OpenAiCompatibleMealItemsApi (a server the user runs)',
+    // No broker, no credential, and no forcing by name — the configuration
+    // #733 measured against Ollama, which has no `tool_choice` field at all.
+    // The guarantees below must hold identically, because none of them was
+    // ever the destination's to keep. #754.
+    build: (client, {required timeout}) => OpenAiCompatibleMealItemsApi(
+      client,
+      null,
+      model: 'gemma3:4b',
+      endpoint: Uri.parse('http://192.168.1.5:11434/v1/chat/completions'),
+      toolChoice: ToolChoiceMode.unforced,
       timeout: timeout,
     ),
     toolReply: (items) => jsonEncode({
