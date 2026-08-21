@@ -341,9 +341,14 @@ void main() {
               )
               as OpenAiMealItemsApi;
 
-      expect(anthropic.timeout, AnthropicMealItemsApi.defaultTimeout);
-      expect(openrouter.timeout, OpenAiCompatibleMealItemsApi.defaultTimeout);
-      expect(openai.timeout, OpenAiMealItemsApi.defaultTimeout);
+      // The literal, not each class's own `defaultTimeout` — comparing a
+      // client against the constant it was built from is a tautology, and
+      // #774's constraint is specifically that this number does not move
+      // under the hosted three as a side effect of the fourth.
+      const hosted = Duration(seconds: 20);
+      expect(anthropic.timeout, hosted);
+      expect(openrouter.timeout, hosted);
+      expect(openai.timeout, hosted);
     });
 
     test('only the user\'s own server calls a timeout a timeout', () {
