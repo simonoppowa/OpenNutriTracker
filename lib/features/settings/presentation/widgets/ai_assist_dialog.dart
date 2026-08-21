@@ -194,10 +194,22 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
           ? null
           : AiCredentialStorage.resolveEndpoint(endpoint);
 
-      // Nothing typed at all is not an error. It is the same "I am not
-      // setting this up right now" that an empty key field means for the
-      // hosted three, and the provider is already selected either way.
-      if (endpoint.isNotEmpty || model.isNotEmpty) {
+      // Two empty fields mean different things depending on whether there is
+      // anything behind them.
+      //
+      // On an unconfigured provider it is "I am not setting this up right
+      // now" — the same as an empty key field for the hosted three — and
+      // erroring would make OK a trap for someone who opened the dialog to
+      // read the disclosure.
+      //
+      // On a **configured** one it is someone clearing the address to get rid
+      // of it, and that used to fall straight through this branch: nothing
+      // written, dialog closed, row still reading "On — 192.168.1.5:11434".
+      // Refused rather than obeyed, because Remove is on screen and is the
+      // deliberate way to delete an address, a model and any key together —
+      // two paths to a destructive act, one of them a side effect of blanking
+      // a text field, is worse than one that says what it does.
+      if (endpoint.isNotEmpty || model.isNotEmpty || _configured) {
         if (resolved == null || model.isEmpty) {
           setState(() {
             _endpointError = resolved == null

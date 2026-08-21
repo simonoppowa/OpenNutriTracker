@@ -695,6 +695,41 @@ void main() {
       expect(find.text(l10nEn.aiAssistEndpointInvalidLabel), findsNothing);
     });
 
+    testWidgets('clearing a configured address is refused, not ignored', (
+      tester,
+    ) async {
+      // The fields are editable and prefilled, so emptying them is an obvious
+      // way to try to get rid of a server. It fell through the save branch
+      // entirely: nothing written, dialog closed, and the row still naming
+      // the address the user believed they had just deleted.
+      await storage.writeOwnServerConfiguration(
+        endpoint: 'http://192.168.1.5:11434',
+        model: 'gemma3:4b',
+      );
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        '',
+      );
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-model-field'),
+        '',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AiAssistDialog), findsOneWidget);
+      expect(find.text(l10nEn.aiAssistEndpointInvalidLabel), findsOneWidget);
+      expect(
+        await storage.readEndpoint(provider: AiProvider.ownServer),
+        'http://192.168.1.5:11434/v1/chat/completions',
+        reason: 'refusing must not delete it either — Remove does that',
+      );
+    });
+
     testWidgets('the address stays editable after it is saved', (
       tester,
     ) async {
