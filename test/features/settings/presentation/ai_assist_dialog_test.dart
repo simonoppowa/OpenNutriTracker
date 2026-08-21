@@ -1010,6 +1010,26 @@ void main() {
           )))
       .toList();
 
+  test('provider identifiers are kebab-case, and one per provider', () {
+    // `ownServer` shipped as `ai-assist-provider-ownServer`. Three of the
+    // four enum names are a single lowercase word, so they satisfied
+    // AGENTS.md by accident and nothing was watching when the fourth did
+    // not — the adb verifier greps these, and a fifth provider is likelier
+    // to be two words than one.
+    final identifiers = AiProvider.values
+        .map(AiAssistDialog.providerIdentifier)
+        .toList();
+
+    for (final identifier in identifiers) {
+      expect(identifier, matches(RegExp(r'^[a-z0-9]+(-[a-z0-9]+)*$')));
+    }
+    expect(identifiers.toSet(), hasLength(identifiers.length));
+    expect(
+      AiAssistDialog.providerIdentifier(AiProvider.ownServer),
+      'ai-assist-provider-own-server',
+    );
+  });
+
   test('model identifiers are kebab-case and one per model', () {
     // AGENTS.md asks for kebab-case, and a model id is not: it carries a
     // slash and a dot. The fold has to keep them apart as well as tidy —

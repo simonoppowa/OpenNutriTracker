@@ -53,12 +53,26 @@ class AiAssistDialog extends StatefulWidget {
   static String modelIdentifier(String modelId) =>
       'ai-assist-model-${modelId.replaceAll(RegExp('[^a-z0-9]+'), '-')}';
 
+  /// The accessibility identifier for a provider row.
+  ///
+  /// `AiProvider.name` is Dart-cased, and for three of the four that happens
+  /// to be kebab-case already — which is why nothing caught `ownServer`
+  /// shipping as `ai-assist-provider-ownServer`. Folded rather than mapped,
+  /// so a fifth provider is named right without anyone remembering to.
+  ///
+  /// Not the same fold as [modelIdentifier]: that one replaces runs of
+  /// non-alphanumerics in an already-lowercase id, and applied here it eats
+  /// the capital rather than splitting on it — `own-erver`.
+  static String providerIdentifier(AiProvider provider) =>
+      'ai-assist-provider-'
+      '${provider.name.replaceAllMapped(RegExp('[A-Z]'), (m) => '-${m[0]!.toLowerCase()}')}';
+
   @override
   State<AiAssistDialog> createState() => _AiAssistDialogState();
 }
 
 class _AiAssistDialogState extends State<AiAssistDialog> {
-  final _controller = TextEditingController();
+  final _apiKeyController = TextEditingController();
   final _endpointController = TextEditingController();
   final _modelController = TextEditingController();
   final _scrollController = ScrollController();
@@ -103,7 +117,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _apiKeyController.dispose();
     _endpointController.dispose();
     _modelController.dispose();
     _scrollController.dispose();
@@ -147,7 +161,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // Selecting one with no key is allowed: the feature goes quietly
     // unavailable, which is a setting rather than a fault.
     await widget.storage.setActiveProvider(provider);
-    _controller.clear();
+    _apiKeyController.clear();
     _changed = true;
     await _load();
   }
@@ -216,7 +230,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       }
     }
 
-    final typed = _controller.text.trim();
+    final typed = _apiKeyController.text.trim();
     if (typed.isNotEmpty) {
       await widget.storage.writeApiKey(typed, provider: _provider);
       changed = true;
@@ -229,7 +243,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   Future<void> _remove() async {
     await widget.storage.clear(provider: _provider);
     if (!mounted) return;
-    _controller.clear();
+    _apiKeyController.clear();
     _changed = true;
     await _load();
   }
@@ -303,7 +317,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                     // here.
                     ...AiProvider.values.map(
                       (provider) => Semantics(
-                        identifier: 'ai-assist-provider-${provider.name}',
+                        identifier: AiAssistDialog.providerIdentifier(provider),
                         // ignore: deprecated_member_use
                         child: RadioListTile<AiProvider>(
                           contentPadding: EdgeInsets.zero,
@@ -398,7 +412,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                       Semantics(
                         identifier: 'ai-assist-key-field',
                         child: TextField(
-                          controller: _controller,
+                          controller: _apiKeyController,
                           autocorrect: false,
                           enableSuggestions: false,
                           obscureText: true,
