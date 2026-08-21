@@ -48,6 +48,91 @@ void main() {
       expect(state.type, ScannerFailedStateType.error);
     });
   });
+
+  // `emit` silently drops a state that compares equal to the current one, so
+  // any field the screen reads has to be part of `props`. Neither omission
+  // below is reachable today — a loading state always sits between two
+  // failures, and a rescan always rebuilds the product — but both would turn
+  // into a stale message on screen the moment that stopped being true, and
+  // the failure would look like a rendering bug rather than an equality one.
+  group('scanner state equality', () {
+    test('two failures of different kinds are not equal', () {
+      expect(
+        const ScannerFailedState(ScannerFailedStateType.productNotFound),
+        isNot(const ScannerFailedState(ScannerFailedStateType.error)),
+        reason: 'the failure type decides which message the screen shows',
+      );
+    });
+
+    test('two failures of the same kind are equal', () {
+      expect(
+        const ScannerFailedState(ScannerFailedStateType.productNotFound),
+        const ScannerFailedState(ScannerFailedStateType.productNotFound),
+      );
+    });
+
+    test('the same product in different units is not equal', () {
+      final product = MealEntity.empty();
+
+      expect(
+        ScannerLoadedState(product: product, usesImperialUnits: true),
+        isNot(ScannerLoadedState(product: product, usesImperialUnits: false)),
+        reason: 'the unit decides how the serving reads',
+      );
+    });
+  });
+
+  // Pins the reason the equality bug is latent rather than live: the loading
+  // state the bloc emits first is what separates two failures today, so both
+  // arrive even with the old `props`. Deliberately not a guard for the fix
+  // above — the equality group is that — but the thing that would have to
+  // change for the fix to start mattering, and worth failing loudly if it
+  // ever does.
+  test('a second failure of a different kind reaches the screen', () async {
+    final searchUseCase = _SwitchableSearchUseCase(ProductNotFoundException());
+    final bloc = ScannerBloc(searchUseCase, _FakeGetConfigUsecase());
+    addTearDown(bloc.close);
+
+    final seen = <ScannerState>[];
+    final subscription = bloc.stream.listen(seen.add);
+
+    bloc.add(const ScannerLoadProductEvent(barcode: '03299289'));
+    await bloc.stream
+        .firstWhere((state) => state is ScannerFailedState)
+        .timeout(_settleTimeout);
+
+    searchUseCase.error = Exception('OFF HTTP 500');
+    bloc.add(const ScannerLoadProductEvent(barcode: '03299289'));
+    await bloc.stream
+        .firstWhere((state) =>
+            state is ScannerFailedState &&
+            state.type == ScannerFailedStateType.error)
+        .timeout(_settleTimeout);
+
+    await subscription.cancel();
+
+    expect(
+      seen.whereType<ScannerFailedState>().map((state) => state.type),
+      [ScannerFailedStateType.productNotFound, ScannerFailedStateType.error],
+    );
+  });
+}
+
+/// A search whose failure can be swapped between scans, so one bloc can be
+/// driven through two different failures in a row.
+class _SwitchableSearchUseCase implements SearchProductByBarcodeUseCase {
+  _SwitchableSearchUseCase(this.error);
+
+  Object error;
+
+  @override
+  Future<MealEntity> searchProductByBarcode(String barcode) async {
+    throw error;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
 /// Drives one scan and returns the [ScannerFailedState] it settles on.
