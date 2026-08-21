@@ -196,6 +196,21 @@ void main() {
       expect(pounds, lessThan(14.0),
           reason: 'pounds should never reach 14.0 after rollover guard');
     });
+
+    test('poundsDecimals: 1 rolls over a remainder the default keeps', () {
+      // 63.49 kg is 9 st 13.978 lb. At two decimals that is 13.97, which
+      // clears the guard; at the one decimal every screen prints, it is a
+      // full stone and has to roll over.
+      const kg = 63.49;
+      expect(UnitCalc.kgToStLb(kg), equals((9, 13.97)));
+      expect(UnitCalc.kgToStLb(kg, poundsDecimals: 1), equals((10, 0.0)));
+    });
+
+    test('poundsDecimals: 1 keeps a normal remainder at one decimal', () {
+      final (stones, pounds) = UnitCalc.kgToStLb(70.0, poundsDecimals: 1);
+      expect(stones, equals(11));
+      expect(pounds, closeTo(0.3, 0.05));
+    });
   });
 
   group('UnitCalc.cmToFeetInches / feetInchesToCm', () {
