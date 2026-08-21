@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
@@ -103,12 +102,13 @@ void main() {
   // #580: launched from a specific meal section (or when the caller has
   // already committed to a meal type), no suggestion is passed and no chip
   // should render, so nothing feels "preselected".
-  // The chip carries its own Semantics label so the ADB rig can find it by
-  // identifier. Without excludeSemantics the Text underneath contributes a
-  // second node, and the merged tile reads "Lunch, Suggested, Suggested" to
-  // anyone using TalkBack or VoiceOver.
+  // The chip is its own semantics node rather than part of the tile's, so
+  // someone swiping through with TalkBack or VoiceOver lands on it directly.
+  // Its Semantics wrapper sets a label and the Text inside says the same
+  // word again; without excludeSemantics they both reach the node and it is
+  // announced twice in a row.
   testWidgets(
-    'announces the suggestion once, not once per node',
+    'announces the suggestion once, not twice',
     (tester) async {
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(_wrapWithMaterial(
@@ -119,22 +119,15 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      final matches = <String>[];
-      void visit(SemanticsNode node) {
-        if (node.label.contains(l10nEn.suggestedLabel)) matches.add(node.label);
-        node.visitChildren((child) {
-          visit(child);
-          return true;
-        });
-      }
+      final chip = find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.identifier == 'add-item-suggested-chip',
+      );
+      final label = tester.semantics.find(chip).label;
 
-      visit(tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!);
-
-      expect(matches, hasLength(1),
-          reason: 'exactly one node should carry the suggestion');
-      expect(l10nEn.suggestedLabel.allMatches(matches.single), hasLength(1),
-          reason: 'the label should not repeat within the node: '
-              '"${matches.single}"');
+      expect(label, equals(l10nEn.suggestedLabel),
+          reason: 'the chip should say it once and only once');
 
       handle.dispose();
     },
