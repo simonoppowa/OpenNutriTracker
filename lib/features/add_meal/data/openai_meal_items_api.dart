@@ -8,7 +8,7 @@ import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 /// Asks an OpenAI model for food items, reached directly.
 ///
 /// A third sibling rather than a shared OpenAI-dialect base with
-/// [OpenRouterMealItemsApi], settled in #685 by measurement: only three
+/// [OpenAiCompatibleMealItemsApi], settled in #685 by measurement: only three
 /// elements transfer between them. OpenRouter speaks *Chat Completions*,
 /// where tools nest inside a `function` object and the system prompt is the
 /// first message; this speaks *Responses*, where tools are flat and the

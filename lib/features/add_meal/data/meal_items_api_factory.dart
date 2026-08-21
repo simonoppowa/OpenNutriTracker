@@ -3,7 +3,7 @@ import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/data/openai_meal_items_api.dart';
-import 'package:opennutritracker/features/add_meal/data/openrouter_meal_items_api.dart';
+import 'package:opennutritracker/features/add_meal/data/openai_compatible_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 
 /// Turns a stored selection into the client that will carry it.
@@ -26,7 +26,7 @@ MealItemsApi mealItemsApiFor(http.Client client, AiSelection selection) {
       () => selection.apiKey,
       model: model.id,
     ),
-    AiProvider.openrouter => OpenRouterMealItemsApi(
+    AiProvider.openrouter => OpenAiCompatibleMealItemsApi.openRouter(
       client,
       () => selection.apiKey,
       model: model.id,

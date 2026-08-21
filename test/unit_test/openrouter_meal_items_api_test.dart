@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/add_meal/data/model_meal_photo_interpreter.dart';
-import 'package:opennutritracker/features/add_meal/data/openrouter_meal_items_api.dart';
+import 'package:opennutritracker/features/add_meal/data/openai_compatible_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
@@ -96,12 +96,12 @@ String toolReply(
   ],
 });
 
-OpenRouterMealItemsApi apiWith(
+OpenAiCompatibleMealItemsApi apiWith(
   FakeClient client, {
   String model = 'anthropic/claude-haiku-4.5',
   List<String>? providers,
-  Duration timeout = OpenRouterMealItemsApi.defaultTimeout,
-}) => OpenRouterMealItemsApi(
+  Duration timeout = OpenAiCompatibleMealItemsApi.defaultTimeout,
+}) => OpenAiCompatibleMealItemsApi.openRouter(
   client,
   () => 'test-key',
   model: model,
@@ -110,7 +110,7 @@ OpenRouterMealItemsApi apiWith(
 );
 
 Future<MealTextParseResult> request(
-  OpenRouterMealItemsApi api, {
+  OpenAiCompatibleMealItemsApi api, {
   MealContent content = const MealTextContent('toast'),
 }) => api.requestItems(content: content, system: 'system prompt');
 
