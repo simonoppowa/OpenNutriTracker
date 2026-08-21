@@ -682,7 +682,12 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       // Discards the picker's cache copy once it has been encoded — see
       // [MealPhotoEncoder.encodeAndDiscardSource]. Without it the app leaves
       // the photo on disk, which the settings disclosure says it does not.
-      photo = await MealPhotoEncoder.encodeAndDiscardSource(picked.path);
+      photo = await MealPhotoEncoder.encodeAndDiscardSource(
+        picked.path,
+        // Per destination, not per app: a server the user runs may be
+        // llama.cpp, which cannot decode WebP at all (#747).
+        format: MealPhotoFormat.forProvider(destination.provider),
+      );
     } catch (e, stackTrace) {
       // Never logged with the path: on Android the picker's temp filename
       // can carry the original image name.
