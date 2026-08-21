@@ -186,9 +186,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       final endpoint = _endpointController.text.trim();
       final model = _modelController.text.trim();
 
-      // Checked against the store's own rule rather than a second opinion
-      // about what an address is, and checked *before* either is written, so
-      // a rejected pair never leaves the provider half-configured.
+      // Asked against the store's own rule rather than a second opinion about
+      // what an address is. The store refuses the pair too; the reason to ask
+      // again here is that a refusal has to land on a field, and only this
+      // side knows which one the user is looking at.
       final resolved = endpoint.isEmpty
           ? null
           : AiCredentialStorage.resolveEndpoint(endpoint);
@@ -207,24 +208,16 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
           return;
         }
 
-        // Compared in its **resolved** form, which is what the store holds:
-        // the address as typed is a base and the stored one carries the chat
-        // route, so comparing the raw text would call every unchanged address
-        // a change. That matters because OK now sits beside the pause switch
-        // and `writeEndpoint` reads an address as asking for the feature —
-        // re-saving an untouched setting would undo a pause made seconds
-        // earlier.
-        final stored = await widget.storage.readEndpoint(provider: _provider);
-        if (resolved.toString() != stored) {
-          await widget.storage.writeEndpoint(endpoint, provider: _provider);
-          changed = true;
-        }
-        // After the address, never before: writing a *changed* address
-        // forgets the stored model (#755), so the order is what keeps an edit
-        // to both from wiping the half it just saved. Read back rather than
-        // compared to what was loaded, for the same reason.
-        if (model != await widget.storage.readModel(provider: _provider)) {
-          await widget.storage.writeModel(model, provider: _provider);
+        // One act, and the store's act. The order the two writes have to go
+        // in, the both-or-neither rule, and whether any of it differs from
+        // what is already stored are all facts about the storage format —
+        // this widget knowing them is how the order came to be documented in
+        // a comment beside a button.
+        if (await widget.storage.writeOwnServerConfiguration(
+          endpoint: endpoint,
+          model: model,
+          provider: _provider,
+        )) {
           changed = true;
         }
       }

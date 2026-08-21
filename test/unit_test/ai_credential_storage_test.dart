@@ -607,6 +607,92 @@ void main() {
       );
     });
 
+    group('written as one configuration', () {
+      test('stores both and reports the change', () async {
+        final changed = await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+        );
+
+        expect(changed, isTrue);
+        expect(
+          await storage.readEndpoint(),
+          'http://192.168.1.5:11434/v1/chat/completions',
+        );
+        expect(await storage.readModel(), 'gemma3:4b');
+        expect((await storage.readSummary()).configured, isTrue);
+      });
+
+      test('changing the address keeps the model that came with it', () async {
+        // The invariant this method exists to own. A changed address forgets
+        // the stored model on purpose (#738), so the two writes have an order
+        // — model last — and getting it backwards silently drops the model
+        // the user just typed. It used to be a comment beside a button.
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+        );
+
+        final changed = await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.9:11434',
+          model: 'qwen3:8b',
+        );
+
+        expect(changed, isTrue);
+        expect(
+          await storage.readEndpoint(),
+          'http://192.168.1.9:11434/v1/chat/completions',
+        );
+        expect(await storage.readModel(), 'qwen3:8b');
+      });
+
+      test('refuses a pair rather than storing half of it', () async {
+        expect(
+          await storage.writeOwnServerConfiguration(
+            endpoint: 'http://192.168.1.5:11434',
+            model: '  ',
+          ),
+          isFalse,
+        );
+        expect(
+          await storage.writeOwnServerConfiguration(
+            endpoint: '192.168.1.5:11434',
+            model: 'gemma3:4b',
+          ),
+          isFalse,
+        );
+
+        expect(await storage.readEndpoint(), isNull);
+        expect(await storage.readModel(), isNull);
+        expect(
+          await storage.isEnabled(),
+          isFalse,
+          reason: 'a refused pair must not have turned anything on',
+        );
+      });
+
+      test('re-saving an untouched configuration resumes nothing', () async {
+        // The settings dialog offers OK beside the pause switch, and
+        // supplying an address is how a user asks for the feature — so
+        // confirming a dialog they only paused in would undo the pause.
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+        );
+        await storage.setEnabled(false);
+
+        final changed = await storage.writeOwnServerConfiguration(
+          // The base form, as it would be typed; the store holds the resolved
+          // one, so a raw-text comparison would call this a change.
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+        );
+
+        expect(changed, isFalse);
+        expect(await storage.isEnabled(), isFalse);
+      });
+    });
+
     test('an address stored before it was checked stays refused', () async {
       // Not hypothetical: the earlier commits on this branch stored whatever
       // was typed, so an install that saved `192.168.1.5:11434` already holds

@@ -328,8 +328,58 @@ class AiCredentialStorage {
     return (value == null || value.isEmpty) ? null : value;
   }
 
+  /// Points [provider] at [endpoint] with [model], **as one act**, and
+  /// reports whether anything actually changed.
+  ///
+  /// An address and a model are one configuration for this provider rather
+  /// than two settings that happen to sit together: neither is usable without
+  /// the other ([_isUsable]), and writing a *changed* address deliberately
+  /// forgets the stored model (#738). That makes the order load-bearing —
+  /// model last, or it is wiped by the address it belongs to — and until this
+  /// existed the order lived in the settings dialog, one caller away from
+  /// somebody writing them the other way round and watching the model
+  /// disappear.
+  ///
+  /// **Both or neither.** A pair that cannot be stored is refused here rather
+  /// than half-written; the dialog checks the same two things first so it can
+  /// name the field at fault, and this is the floor under that, not the
+  /// message.
+  ///
+  /// **Nothing is written when nothing differs.** Supplying an address is how
+  /// a user asks for the feature ([writeEndpoint] sets the flag), so an
+  /// unconditional write would silently resume a provider they had just
+  /// paused. The comparison is against the **resolved** form, because what
+  /// they typed is a base and what is stored carries the chat route.
+  Future<bool> writeOwnServerConfiguration({
+    required String endpoint,
+    required String model,
+    AiProvider? provider,
+  }) async {
+    final target = await _target(provider);
+    if (target == null) return false;
+
+    final resolved = resolveEndpoint(endpoint);
+    final trimmedModel = model.trim();
+    if (resolved == null || trimmedModel.isEmpty) return false;
+
+    var changed = false;
+    if (resolved.toString() != await readEndpoint(provider: target)) {
+      await writeEndpoint(endpoint, provider: target);
+      changed = true;
+    }
+    if (trimmedModel != await readModel(provider: target)) {
+      await writeModel(trimmedModel, provider: target);
+      changed = true;
+    }
+    return changed;
+  }
+
   /// Points [provider] at [endpoint], and **forgets the stored model when the
   /// address changes**.
+  ///
+  /// The primitive under [writeOwnServerConfiguration], which is what a
+  /// caller configuring this provider should reach for — this one on its own
+  /// leaves it unusable until a model follows.
   ///
   /// A model id is a statement about a server: `llama3.2:8b` means something
   /// only relative to the machine answering, and this provider has no curated
