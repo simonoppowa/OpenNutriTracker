@@ -189,23 +189,38 @@ abstract final class AiModelCatalogue {
     ),
   ];
 
+  /// Empty for [AiProvider.ownServer], and that is the answer rather than a
+  /// gap. Membership of the lists above requires a behavioural screen the
+  /// project cannot run against a machine it has never seen, and the user
+  /// pulled whatever they pulled — so there is no curated list, and #738
+  /// settled that the model is fetched from the server instead.
   static List<AiModel> forProvider(AiProvider provider) => switch (provider) {
     AiProvider.anthropic => anthropic,
     AiProvider.openrouter => openrouter,
     AiProvider.openai => openai,
+    AiProvider.ownServer => const [],
   };
 
-  static AiModel defaultFor(AiProvider provider) => forProvider(provider).first;
+  /// Null where there is no curated list to take a first element from.
+  ///
+  /// #738: defaulting to something for [AiProvider.ownServer] would mean
+  /// choosing on the user's behalf from a list nobody has screened — on
+  /// Ollama the first pulled entry could be an embedding model. The model is
+  /// part of what "configured" means there instead.
+  static AiModel? defaultFor(AiProvider provider) {
+    final models = forProvider(provider);
+    return models.isEmpty ? null : models.first;
+  }
 
   /// The stored choice, or the default when nothing is stored — and also
   /// when the stored id is no longer on the list, which is what a user sees
   /// after an update that retires a model. Falling back beats leaving them
   /// pointed at an id that can only 404.
-  static AiModel resolve(AiProvider provider, String? id) {
+  static AiModel? resolve(AiProvider provider, String? id) {
     final models = forProvider(provider);
     for (final model in models) {
       if (model.id == id) return model;
     }
-    return models.first;
+    return models.isEmpty ? null : models.first;
   }
 }

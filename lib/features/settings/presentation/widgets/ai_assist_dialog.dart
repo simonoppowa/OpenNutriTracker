@@ -67,7 +67,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   AiProvider _provider = AiProvider.anthropic;
   bool _hasKey = false;
   bool _enabled = false;
-  late AiModel _model = AiModelCatalogue.defaultFor(_provider);
+  AiModel? _model = AiModelCatalogue.defaultFor(AiProvider.anthropic);
 
   @override
   void initState() {
@@ -98,7 +98,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     if (!mounted) return;
     setState(() {
       _provider = provider;
-      _hasKey = summary.provider == null ? false : summary.hasKey;
+      _hasKey = summary.provider == null ? false : summary.configured;
       _enabled = summary.enabled;
       _model = AiModelCatalogue.resolve(provider, modelId);
       _loading = false;
@@ -159,6 +159,9 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     AiProvider.anthropic => 'Anthropic',
     AiProvider.openrouter => 'OpenRouter',
     AiProvider.openai => 'OpenAI',
+    // Not a brand, so not a constant — #756 replaces this with a localized
+    // label. Unreachable until then: the radio is filtered out above.
+    AiProvider.ownServer => 'Your own server',
   };
 
   @override
@@ -205,7 +208,13 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                     // there was a selection that silently stayed on its
                     // initial value. Deprecated, and still the form that works
                     // here.
-                    ...AiProvider.values.map(
+                    // #756 adds this provider's label, disclosure and
+                    // address field. Until then the enum member exists for
+                    // storage and is not offered, rather than appearing as a
+                    // radio with nothing behind it.
+                    ...AiProvider.values
+                        .where((p) => p != AiProvider.ownServer)
+                        .map(
                       (provider) => Semantics(
                         identifier: 'ai-assist-provider-${provider.name}',
                         // ignore: deprecated_member_use
@@ -366,6 +375,9 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     AiProvider.anthropic => s.aiAssistDisclosureAnthropic,
     AiProvider.openrouter => s.aiAssistDisclosureOpenRouter,
     AiProvider.openai => s.aiAssistDisclosureOpenAI,
+    // #756 writes this one: it names the configured host and derives an
+    // encryption clause from the scheme (#736). Unreachable until then.
+    AiProvider.ownServer => s.aiAssistDisclosureCommon,
   };
 
   Widget _label(ThemeData theme, String text) => Padding(
@@ -474,7 +486,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                 ),
                 value: model.id,
                 // ignore: deprecated_member_use
-                groupValue: _model.id,
+                groupValue: _model?.id,
                 // ignore: deprecated_member_use
                 onChanged: (value) => value == null
                     ? null

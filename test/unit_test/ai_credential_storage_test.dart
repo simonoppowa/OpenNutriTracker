@@ -385,7 +385,7 @@ void main() {
       expect(summary.provider, isNull);
       expect(summary.enabled, isFalse);
       expect(
-        summary.hasKey,
+        summary.configured,
         isFalse,
         reason: 'there is no active provider whose key this could be',
       );
@@ -471,7 +471,7 @@ void main() {
       final summary = await storage.readSummary();
 
       expect(summary.provider, AiProvider.openai);
-      expect(summary.hasKey, isTrue);
+      expect(summary.configured, isTrue);
       expect(summary.enabled, isTrue);
     });
 
@@ -483,7 +483,7 @@ void main() {
 
       final summary = await storage.readSummary();
 
-      expect(summary.hasKey, isTrue);
+      expect(summary.configured, isTrue);
       expect(summary.enabled, isFalse);
     });
 
@@ -498,7 +498,7 @@ void main() {
       final summary = await storage.readSummary();
 
       expect(summary.provider, AiProvider.openai);
-      expect(summary.hasKey, isFalse);
+      expect(summary.configured, isFalse);
       expect(summary.enabled, isFalse);
     });
 
@@ -542,8 +542,140 @@ void main() {
         final summary = await store.readSummary();
 
         expect(summary.provider, await store.activeProvider());
-        expect(summary.hasKey, await store.hasApiKey());
+        expect(summary.configured, await store.hasApiKey());
         expect(summary.enabled, await store.isEnabled());
+      }
+    });
+  });
+
+  group('a server the user runs', () {
+    // The provider whose credential is an address. Everything here exists
+    // because "has a key" stopped being the test of usability. #755.
+
+    setUp(() => storage.setActiveProvider(AiProvider.ownServer));
+
+    test('an endpoint round-trips and makes the provider usable', () async {
+      await storage.writeEndpoint('http://192.168.1.5:11434');
+
+      expect(await storage.readEndpoint(), 'http://192.168.1.5:11434');
+
+      final summary = await storage.readSummary();
+      expect(summary.provider, AiProvider.ownServer);
+      expect(
+        summary.configured,
+        isTrue,
+        reason: 'an address is what makes this one usable, not a key',
+      );
+      expect(summary.enabled, isTrue);
+    });
+
+    test('no key is needed, and none is invented', () async {
+      await storage.writeEndpoint('http://192.168.1.5:11434');
+      await storage.writeModel('gemma3:4b');
+
+      final selection = await storage.readSelection();
+
+      expect(selection!.apiKey, isNull);
+      expect(selection.endpoint, 'http://192.168.1.5:11434');
+      expect(selection.modelId, 'gemma3:4b');
+    });
+
+    test('an optional key is carried when the user supplied one', () async {
+      // vLLM and llama.cpp both take an optional `--api-key`.
+      await storage.writeEndpoint('http://192.168.1.5:8000');
+      await storage.writeApiKey('sk-local');
+
+      expect((await storage.readSelection())!.apiKey, 'sk-local');
+    });
+
+    test('a key alone never makes it usable', () async {
+      // The mirror of the invariant for the hosted three: the thing that
+      // makes this provider work is the address, so a key without one is not
+      // a configured provider.
+      await storage.writeApiKey('sk-local');
+
+      final summary = await storage.readSummary();
+      expect(summary.configured, isFalse);
+      expect(summary.enabled, isFalse);
+      expect(await storage.readSelection(), isNull);
+    });
+
+    test('the flag alone never means on', () async {
+      await storage.setEnabled(true);
+
+      expect(await storage.isEnabled(), isFalse);
+      expect(await storage.readSelection(), isNull);
+    });
+
+    test('changing the address forgets the model', () async {
+      // A model id is a statement about a server. `gemma3:4b` means something
+      // only relative to the machine answering, and there is no curated list
+      // to fall back to when it names nothing there. #738.
+      await storage.writeEndpoint('http://192.168.1.5:11434');
+      await storage.writeModel('gemma3:4b');
+
+      await storage.writeEndpoint('http://192.168.1.9:11434');
+
+      expect(await storage.readModel(), isNull);
+    });
+
+    test('rewriting the same address keeps the model', () async {
+      // Only a *change* invalidates the claim. Re-saving the same address is
+      // not a change, and dropping the model there would be a papercut every
+      // time the user re-opened settings.
+      await storage.writeEndpoint('http://192.168.1.5:11434');
+      await storage.writeModel('gemma3:4b');
+
+      await storage.writeEndpoint('http://192.168.1.5:11434');
+
+      expect(await storage.readModel(), 'gemma3:4b');
+    });
+
+    test('clearing forgets the address, the model and the key together', () async {
+      await storage.writeEndpoint('http://192.168.1.5:11434');
+      await storage.writeModel('gemma3:4b');
+      await storage.writeApiKey('sk-local');
+
+      await storage.clear();
+
+      expect(await storage.readEndpoint(), isNull);
+      expect(await storage.readModel(), isNull);
+      expect(
+        await storage.readApiKey(),
+        isNull,
+        reason: 'a key that outlives its endpoint means nothing',
+      );
+      expect(await storage.readSummary().then((s) => s.configured), isFalse);
+    });
+
+    test('the address is reported so a row can name the destination', () async {
+      // #736: this destination has no brand, so the only honest name is the
+      // host the user typed.
+      await storage.writeEndpoint('http://192.168.1.5:11434');
+
+      expect(
+        (await storage.readSummary()).endpoint,
+        'http://192.168.1.5:11434',
+      );
+    });
+
+    test('the hosted providers are untouched by any of this', () async {
+      // The generalisation must not have loosened the rule for the three that
+      // still need a key.
+      for (final provider in [
+        AiProvider.anthropic,
+        AiProvider.openrouter,
+        AiProvider.openai,
+      ]) {
+        final fresh = AiCredentialStorage(_MemoryStorage());
+        await fresh.setActiveProvider(provider);
+        await fresh.writeEndpoint('http://192.168.1.5:11434');
+
+        expect(
+          (await fresh.readSummary()).configured,
+          isFalse,
+          reason: '${provider.name} is not usable without a key',
+        );
       }
     });
   });

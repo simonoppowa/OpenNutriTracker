@@ -400,7 +400,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.photo_camera_rounded).first);
     await tester.pumpAndSettle();
 
-    final vendor = AiModelCatalogue.defaultFor(AiProvider.openrouter).servedBy;
+    final vendor = AiModelCatalogue.defaultFor(AiProvider.openrouter)!.servedBy;
     expect(
       find.textContaining(l10nEn.bulkAddPhotoDisclosureOpenRouter(vendor)),
       findsOneWidget,

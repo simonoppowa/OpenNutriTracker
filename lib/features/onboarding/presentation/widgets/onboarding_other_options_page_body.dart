@@ -76,7 +76,8 @@ class _OnboardingOtherOptionsPageBodyState
   /// Null until the first read completes, so the row shows no subtitle rather
   /// than briefly claiming the feature is off. Same three fields Settings
   /// keeps, read from the same store.
-  bool? _aiHasKey;
+  bool? _aiConfigured;
+  String? _aiEndpoint;
   bool _aiEnabled = false;
   /// Null when the stored name is unrecognised — see #753.
   AiProvider? _aiProvider;
@@ -93,8 +94,9 @@ class _OnboardingOtherOptionsPageBodyState
     final summary = await storage.readSummary();
     if (!mounted) return;
     setState(() {
-      _aiHasKey = summary.hasKey;
+      _aiConfigured = summary.configured;
       _aiEnabled = summary.enabled;
+      _aiEndpoint = summary.endpoint;
       _aiProvider = summary.provider;
     });
   }
@@ -349,7 +351,8 @@ class _OnboardingOtherOptionsPageBodyState
     // so the row would resize under the user as the read came back.
     final subtitle = aiAssistSubtitle(
       s,
-      hasKey: _aiHasKey,
+      configured: _aiConfigured,
+    endpoint: _aiEndpoint,
       enabled: _aiEnabled,
       provider: _aiProvider,
     );

@@ -89,13 +89,17 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         final storage = locator<AiCredentialStorage>();
         final provider = await storage.activeProvider();
         if (provider == null) return null;
-        return (
-          provider: provider,
-          model: AiModelCatalogue.resolve(
-            provider,
-            await storage.readModel(provider: provider),
-          ),
+        final model = AiModelCatalogue.resolve(
+          provider,
+          await storage.readModel(provider: provider),
         );
+        // Null for a server the user runs: it has no curated list, and the
+        // photo path there is unresolved — #747 needs a real runtime to
+        // settle which image formats survive, since the encoder emits WebP
+        // and llama.cpp cannot decode it. Until then the camera hides itself,
+        // which is a state this screen already models.
+        if (model == null) return null;
+        return (provider: provider, model: model);
       }();
 
   late BulkAddScreenArguments _args;
@@ -622,6 +626,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       // No placeholder: a direct path has no serving vendor to name, so this
       // string is flat where OpenRouter's is parameterised.
       AiProvider.openai => S.of(context).bulkAddPhotoDisclosureOpenAI,
+      // Unreachable: `_photoDestination` is null for this provider, so the
+      // sheet never opens. Stated rather than wildcarded so a fifth provider
+      // still has to answer the question.
+      AiProvider.ownServer => throw StateError('no photo path for ownServer'),
     };
     final shouldOpenCamera = await showModalBottomSheet<bool>(
       context: context,

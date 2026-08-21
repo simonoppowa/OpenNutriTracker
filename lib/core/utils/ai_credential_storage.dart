@@ -8,7 +8,15 @@ import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
 enum AiProvider {
   anthropic,
   openrouter,
-  openai;
+  openai,
+
+  /// A server the user runs — Ollama, LM Studio, llama.cpp, vLLM — reached at
+  /// an address they supply.
+  ///
+  /// The odd one out in this store: its credential is an **address**, not a
+  /// key, and a key is optional. Everything below that treats "has a key" as
+  /// the test of usability had to learn a broader question. #755.
+  ownServer;
 
   /// **Nothing stored** reads as Anthropic; **a name this build does not
   /// know** reads as null.
@@ -47,7 +55,14 @@ enum AiProvider {
 /// provider's key to another provider's endpoint.
 class AiSelection {
   final AiProvider provider;
-  final String apiKey;
+
+  /// Null for a destination that wants no credential, which is the normal
+  /// state for a server the user runs. #755.
+  final String? apiKey;
+
+  /// Where the request goes, for the one provider whose address the user
+  /// supplies. Null for the three reached at a compiled-in endpoint.
+  final String? endpoint;
 
   /// Null means "this provider's default". Resolved by `AiModelCatalogue`
   /// rather than here, so retiring a model is a change in one file.
@@ -55,7 +70,8 @@ class AiSelection {
 
   const AiSelection({
     required this.provider,
-    required this.apiKey,
+    this.apiKey,
+    this.endpoint,
     this.modelId,
   });
 }
@@ -73,15 +89,26 @@ class AiAssistSummary {
   /// a row can report the feature unavailable without naming a company that
   /// was never chosen. #753.
   final AiProvider? provider;
-  final bool hasKey;
 
-  /// False whenever [hasKey] is false, so a caller never has to check both.
+  /// Whether this provider has what it needs — a key for the hosted three, an
+  /// address for a server the user runs. Named for the question rather than
+  /// for one provider's answer to it. #755.
+  final bool configured;
+
+  /// False whenever [configured] is false, so a caller never has to check
+  /// both.
   final bool enabled;
+
+  /// The address, for the one provider whose destination has no brand name to
+  /// print. #736 settled that this row must name where the data goes, and for
+  /// a server the user runs the only honest answer is the host they typed.
+  final String? endpoint;
 
   const AiAssistSummary({
     required this.provider,
-    required this.hasKey,
+    required this.configured,
     required this.enabled,
+    this.endpoint,
   });
 }
 
@@ -119,11 +146,18 @@ class AiCredentialStorage {
   static const _providerTag = 'AiProviderTag';
   static const _modelTag = 'AiModelTag';
 
+  /// Where [AiProvider.ownServer] points. Slot-shaped like the others for
+  /// consistency, though only one provider will ever hold one.
+  static const _endpointTag = 'AiEndpointTag';
+
   static String _slotTag(AiProvider provider) =>
       '$_legacyApiKeyTag.${provider.name}';
 
   static String _modelSlotTag(AiProvider provider) =>
       '$_modelTag.${provider.name}';
+
+  static String _endpointSlotTag(AiProvider provider) =>
+      '$_endpointTag.${provider.name}';
 
   final FlutterSecureStorage _storage;
 
@@ -167,19 +201,90 @@ class AiCredentialStorage {
   /// so overlapping them hides the duplicate reads rather than removing them.
   /// A null provider short-circuits the whole thing: there is no slot to read
   /// a key from, so there is nothing to enable. #753.
-  Future<({AiProvider? provider, String? apiKey, bool enabled})>
+  Future<
+    ({AiProvider? provider, String? apiKey, String? endpoint, bool enabled})
+  >
   _readState() async {
     final provider = await activeProvider();
     if (provider == null) {
-      return (provider: null, apiKey: null, enabled: false);
+      return (provider: null, apiKey: null, endpoint: null, enabled: false);
     }
     final apiKey = await readApiKey(provider: provider);
-    // The invariant [isEnabled] has always enforced, stated here once: the
-    // flag alone never means "on" — a provider with no key is off whatever
-    // the tag says.
+    final endpoint = await readEndpoint(provider: provider);
+    // The invariant, stated here once: the flag alone never means "on" — a
+    // provider that is not usable is off whatever the tag says.
     final enabled =
-        apiKey != null && await _storage.read(key: _enabledTag) != 'false';
-    return (provider: provider, apiKey: apiKey, enabled: enabled);
+        _isUsable(provider, apiKey: apiKey, endpoint: endpoint) &&
+        await _storage.read(key: _enabledTag) != 'false';
+    return (
+      provider: provider,
+      apiKey: apiKey,
+      endpoint: endpoint,
+      enabled: enabled,
+    );
+  }
+
+  /// Whether [provider] has what it needs to be used at all.
+  ///
+  /// The generalisation #755 exists for. The rule was never really about
+  /// keys — it is *a provider that is not usable is off whatever the flag
+  /// says* — and what makes one usable differs: a key for the three hosted
+  /// ones, an **address** for a server the user runs, whose key is optional
+  /// and usually absent.
+  ///
+  /// Exhaustive on purpose. A fifth provider must answer this question
+  /// deliberately rather than inherit "has a key" by default.
+  static bool _isUsable(
+    AiProvider provider, {
+    required String? apiKey,
+    required String? endpoint,
+  }) => switch (provider) {
+    AiProvider.anthropic ||
+    AiProvider.openrouter ||
+    AiProvider.openai => apiKey != null,
+    AiProvider.ownServer => endpoint != null,
+  };
+
+  /// Where [AiProvider.ownServer] points, or null when nothing is stored.
+  Future<String?> readEndpoint({AiProvider? provider}) async {
+    final target = await _target(provider);
+    if (target == null) return null;
+    final value = await _storage.read(key: _endpointSlotTag(target));
+    return (value == null || value.isEmpty) ? null : value;
+  }
+
+  /// Points [provider] at [endpoint], and **forgets the stored model when the
+  /// address changes**.
+  ///
+  /// A model id is a statement about a server: `llama3.2:8b` means something
+  /// only relative to the machine answering, and this provider has no curated
+  /// list to fall back to when the id names nothing there. Keeping it would
+  /// carry a claim that is no longer known to be true into the next request —
+  /// the same reason #688 refused to let an unknown provider tag keep meaning
+  /// Anthropic.
+  ///
+  /// Per-endpoint model slots were the consistent-looking alternative and were
+  /// refused: they accumulate one keystore entry per address the user ever
+  /// typed, kept forever, which is a durable record of every machine on their
+  /// network. #738.
+  Future<void> writeEndpoint(String endpoint, {AiProvider? provider}) async {
+    final target = await _target(provider);
+    if (target == null) return;
+    final trimmed = endpoint.trim();
+    if (trimmed.isEmpty) {
+      await clear(provider: target);
+      return;
+    }
+
+    final previous = await _storage.read(key: _endpointSlotTag(target));
+    if (previous != trimmed) {
+      await _storage.delete(key: _modelSlotTag(target));
+    }
+    await _storage.write(key: _endpointSlotTag(target), value: trimmed);
+
+    // Same reasoning as `writeApiKey`: supplying the thing that makes the
+    // provider usable is the user asking for the feature.
+    await _storage.write(key: _enabledTag, value: 'true');
   }
 
   /// The provider these per-provider methods should act on: the one named,
@@ -197,10 +302,14 @@ class AiCredentialStorage {
   /// What a row shows for the feature, in one read of the store.
   Future<AiAssistSummary> readSummary() async {
     final state = await _readState();
+    final provider = state.provider;
     return AiAssistSummary(
-      provider: state.provider,
-      hasKey: state.apiKey != null,
+      provider: provider,
+      configured:
+          provider != null &&
+          _isUsable(provider, apiKey: state.apiKey, endpoint: state.endpoint),
       enabled: state.enabled,
+      endpoint: state.endpoint,
     );
   }
 
@@ -213,14 +322,15 @@ class AiCredentialStorage {
   Future<AiSelection?> readSelection() async {
     final state = await _readState();
     if (!state.enabled) return null;
-    final apiKey = state.apiKey;
     final provider = state.provider;
-    // Both are already implied by `enabled`, which is false without a
-    // provider and without a key. Stated so the types carry it too.
-    if (apiKey == null || provider == null) return null;
+    // Implied by `enabled`, which is false without a usable provider. Stated
+    // so the types carry it too. The **key** is no longer implied: a server
+    // the user runs is usable without one.
+    if (provider == null) return null;
     return AiSelection(
       provider: provider,
-      apiKey: apiKey,
+      apiKey: state.apiKey,
+      endpoint: state.endpoint,
       modelId: await readModel(provider: provider),
     );
   }
@@ -304,6 +414,8 @@ class AiCredentialStorage {
     if (target == null) return;
 
     await _storage.delete(key: _slotTag(target));
+    await _storage.delete(key: _endpointSlotTag(target));
+    await _storage.delete(key: _modelSlotTag(target));
     await _retireLegacyTagFor(target);
 
     // Only once nothing is left: with two slots, clearing one key is often
