@@ -69,6 +69,12 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
             weekendStyle: textTheme.labelSmall?.copyWith(color: palette.textMuted) ?? const TextStyle(),
           ),
           focusedDay: widget.focusedDate,
+          // Without this, table_calendar rings "today" from DateTime.now()
+          // while the rest of the page works from the configured logical
+          // day. Between midnight and the day-start offset those disagree,
+          // so the circled cell was tomorrow and tapping it was treated as
+          // editing a future date (#586).
+          currentDay: widget.currentDate,
           firstDay: widget.currentDate.subtract(widget.calendarDurationDays),
           lastDay: widget.currentDate.add(widget.calendarDurationDays),
           startingDayOfWeek: StartingDayOfWeek.monday,

@@ -26,6 +26,13 @@ import 'package:provider/provider.dart';
 
 class DayInfoWidget extends StatefulWidget {
   final DateTime selectedDay;
+
+  /// The user's logical "today", already resolved through the configured
+  /// day-start offset by [DiaryBloc]. Asking `DateTime.now()` instead meant
+  /// that between midnight and the offset the diary decided you were looking
+  /// at a past day while you were looking at today, and offered to copy the
+  /// entries you were already editing (#586).
+  final DateTime currentDay;
   final TrackedDayEntity? trackedDayEntity;
   final List<UserActivityEntity> userActivities;
   final List<IntakeEntity> breakfastIntake;
@@ -80,6 +87,7 @@ class DayInfoWidget extends StatefulWidget {
   const DayInfoWidget({
     super.key,
     required this.selectedDay,
+    required this.currentDay,
     required this.trackedDayEntity,
     required this.userActivities,
     required this.breakfastIntake,
@@ -277,7 +285,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onItemLongPressedCallback: onActivityItemLongPressed,
                 onItemTappedCallback: widget.onEditActivity,
                 onCopyActivityCallback:
-                    DateUtils.isSameDay(widget.selectedDay, DateTime.now())
+                    DateUtils.isSameDay(widget.selectedDay, widget.currentDay)
                         ? null
                         : (activity) =>
                             widget.onCopyActivity(activity, widget.trackedDayEntity),
@@ -299,7 +307,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
                 onCopyIntakeCallback:
-                    DateUtils.isSameDay(widget.selectedDay, DateTime.now())
+                    DateUtils.isSameDay(widget.selectedDay, widget.currentDay)
                         ? null
                         : widget.onCopyIntake,
                 usesImperialUnits: widget.usesImperialUnits,
@@ -324,7 +332,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
                 onCopyIntakeCallback:
-                    DateUtils.isSameDay(widget.selectedDay, DateTime.now())
+                    DateUtils.isSameDay(widget.selectedDay, widget.currentDay)
                         ? null
                         : widget.onCopyIntake,
                 trackedDayEntity: trackedDay,
@@ -345,7 +353,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
                 onCopyIntakeCallback:
-                    DateUtils.isSameDay(widget.selectedDay, DateTime.now())
+                    DateUtils.isSameDay(widget.selectedDay, widget.currentDay)
                         ? null
                         : widget.onCopyIntake,
                 usesImperialUnits: widget.usesImperialUnits,
@@ -369,7 +377,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
                 onCopyIntakeCallback:
-                    DateUtils.isSameDay(widget.selectedDay, DateTime.now())
+                    DateUtils.isSameDay(widget.selectedDay, widget.currentDay)
                         ? null
                         : widget.onCopyIntake,
                 trackedDayEntity: trackedDay,
@@ -463,7 +471,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
     BuildContext context,
     IntakeEntity intakeEntity,
   ) async {
-    if (DateUtils.isSameDay(widget.selectedDay, DateTime.now())) {
+    if (DateUtils.isSameDay(widget.selectedDay, widget.currentDay)) {
       showDeleteIntakeDialog(context, intakeEntity);
     } else {
       showCopyOrDeleteIntakeDialog(context, intakeEntity);
@@ -474,7 +482,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
     BuildContext context,
     UserActivityEntity activityEntity,
   ) async {
-    if (DateUtils.isSameDay(widget.selectedDay, DateTime.now())) {
+    if (DateUtils.isSameDay(widget.selectedDay, widget.currentDay)) {
       final shouldDelete = await showDialog<bool>(
         context: context,
         builder: (context) => const DeleteDialog(),

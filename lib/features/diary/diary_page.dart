@@ -41,8 +41,19 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   // clamp honour the configured day-start offset (otherwise between midnight
   // and e.g. 4 am Home and Diary disagree on which day is "today").
   DateTime get _currentDate => _diaryBloc.currentDay;
-  var _selectedDate = DateTime.now();
-  var _focusedDate = DateTime.now();
+
+  // Null until the user picks a day, so both fall back to the logical
+  // today rather than to the wall clock. Seeding them from DateTime.now()
+  // meant that between midnight and the day-start offset the diary opened
+  // on an empty tomorrow while Home was still showing today, with the
+  // "jump to today" button already offering to undo a jump nobody made
+  // (#586).
+  DateTime? _selectedDateOverride;
+  DateTime? _focusedDateOverride;
+
+  DateTime get _selectedDate => _selectedDateOverride ?? _currentDate;
+
+  DateTime get _focusedDate => _focusedDateOverride ?? _currentDate;
 
   @override
   void initState() {
@@ -140,6 +151,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
                 return DayInfoWidget(
                 trackedDayEntity: state.trackedDayEntity,
                 selectedDay: _selectedDate,
+                currentDay: _currentDate,
                 userActivities: state.userActivityList,
                 breakfastIntake: state.breakfastIntakeList,
                 lunchIntake: state.lunchIntakeList,
@@ -347,11 +359,14 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     Map<String, TrackedDayEntity> trackedDaysMap,
   ) {
     setState(() {
-      _selectedDate = newDate;
-      _focusedDate = newDate;
+      _selectedDateOverride = newDate;
+      _focusedDateOverride = newDate;
       _calendarDayBloc.add(LoadCalendarDayEvent(newDate));
     });
-    if (newDate.isAfter(_currentDate) && !DateUtils.isSameDay(newDate, _currentDate)) {
+    // table_calendar hands back a UTC midnight while the logical day is a
+    // local one, so comparing the two as instants asks a question about
+    // time zones rather than about dates. Compare the calendar dates.
+    if (DateUtils.dateOnly(newDate).isAfter(DateUtils.dateOnly(_currentDate))) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(S.of(context).diaryFutureDateWarning)),
       );
