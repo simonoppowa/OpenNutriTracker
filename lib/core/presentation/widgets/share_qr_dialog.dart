@@ -13,6 +13,8 @@ class ShareQrDialog extends StatefulWidget {
   final String title;
   final String code;
   final String fileBaseName;
+  final SharePlus? sharePlus;
+  final Future<List<int>> Function(String data)? qrImageRenderer;
 
   /// Optional "Copy to profile" action shown beneath the share buttons.
   /// Only the meal-share flow supplies it (and only when more than one
@@ -24,6 +26,8 @@ class ShareQrDialog extends StatefulWidget {
     required this.title,
     required this.code,
     required this.fileBaseName,
+    this.sharePlus,
+    this.qrImageRenderer,
     this.onCopyToProfile,
   });
 
@@ -37,7 +41,9 @@ class _ShareQrDialogState extends State<ShareQrDialog> {
 
   final GlobalKey _shareButtonKey = GlobalKey();
 
-  static final ButtonStyle _pillStyle = OutlinedButton.styleFrom(shape: const StadiumBorder());
+  static final ButtonStyle _pillStyle = OutlinedButton.styleFrom(
+    shape: const StadiumBorder(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -114,17 +120,23 @@ class _ShareQrDialogState extends State<ShareQrDialog> {
   Future<void> _share() async {
     final origin = _shareButtonOrigin();
     try {
-      final qrBytes = await _renderQrToImage(widget.code);
+      final qrBytes = await (widget.qrImageRenderer ?? _renderQrToImage)(
+        widget.code,
+      );
       final tempDir = await getTemporaryDirectory();
       final file = File('${tempDir.path}/${widget.fileBaseName}.png');
       await file.writeAsBytes(qrBytes);
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: widget.code,
-        sharePositionOrigin: origin,
+      await (widget.sharePlus ?? SharePlus.instance).share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: widget.code,
+          sharePositionOrigin: origin,
+        ),
       );
     } catch (_) {
-      await Share.share(widget.code, sharePositionOrigin: origin);
+      await (widget.sharePlus ?? SharePlus.instance).share(
+        ShareParams(text: widget.code, sharePositionOrigin: origin),
+      );
     }
   }
 
@@ -148,9 +160,13 @@ class _ShareQrDialogState extends State<ShareQrDialog> {
     final painter = QrPainter.withQr(
       qr: qrCode,
       eyeStyle: const QrEyeStyle(
-          color: Color(0xFF000000), eyeShape: QrEyeShape.square),
+        color: Color(0xFF000000),
+        eyeShape: QrEyeShape.square,
+      ),
       dataModuleStyle: const QrDataModuleStyle(
-          color: Color(0xFF000000), dataModuleShape: QrDataModuleShape.square),
+        color: Color(0xFF000000),
+        dataModuleShape: QrDataModuleShape.square,
+      ),
     );
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder);
