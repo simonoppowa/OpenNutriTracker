@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -24,10 +25,30 @@ class _FakePathProvider extends PathProviderPlatform
 class _FakeSharePlatform extends SharePlatform with MockPlatformInterfaceMixin {
   final calls = <ShareParams>[];
   bool failFileShares = false;
+  Completer<void>? _callsCompleter;
+  int _expectedCalls = 0;
+
+  Future<void> waitForCalls(int expectedCalls) {
+    if (calls.length >= expectedCalls) return Future<void>.value();
+    _expectedCalls = expectedCalls;
+    _callsCompleter = Completer<void>();
+    return _callsCompleter!.future;
+  }
+
+  void reset() {
+    calls.clear();
+    failFileShares = false;
+    _callsCompleter = null;
+    _expectedCalls = 0;
+  }
 
   @override
   Future<ShareResult> share(ShareParams params) async {
     calls.add(params);
+    if (calls.length >= _expectedCalls &&
+        _callsCompleter?.isCompleted == false) {
+      _callsCompleter!.complete();
+    }
     if (failFileShares && params.files?.isNotEmpty == true) {
       throw StateError('file sharing unavailable');
     }
@@ -74,14 +95,9 @@ Future<void> _tapShareAndWait(
   );
   final onPressed = tester.widget<OutlinedButton>(shareButton).onPressed!;
   await tester.runAsync(() async {
+    final callsCompleted = sharePlatform.waitForCalls(expectedCalls);
     onPressed();
-    for (
-      var attempt = 0;
-      attempt < 50 && sharePlatform.calls.length < expectedCalls;
-      attempt++
-    ) {
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-    }
+    await callsCompleted.timeout(const Duration(seconds: 1));
   });
 }
 
@@ -89,16 +105,18 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Directory tempRoot;
+  late PathProviderPlatform originalPathProvider;
   final sharePlatform = _FakeSharePlatform();
 
   setUp(() async {
     tempRoot = await Directory.systemTemp.createTemp('ont_share_qr_test_');
+    originalPathProvider = PathProviderPlatform.instance;
     PathProviderPlatform.instance = _FakePathProvider(tempRoot.path);
-    sharePlatform.calls.clear();
-    sharePlatform.failFileShares = false;
+    sharePlatform.reset();
   });
 
   tearDown(() async {
+    PathProviderPlatform.instance = originalPathProvider;
     if (await tempRoot.exists()) {
       await tempRoot.delete(recursive: true);
     }
