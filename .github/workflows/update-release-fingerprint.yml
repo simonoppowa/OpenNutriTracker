@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout develop
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: develop
           # Use a token that can push a branch and open a PR; GITHUB_TOKEN is
@@ -73,7 +73,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Android build tools (for apksigner)
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Extract signing certificate SHA-256
         id: cert
@@ -153,7 +153,7 @@ jobs:
           CERT_CN:  ${{ steps.cert.outputs.cn }}
 
       - name: Open PR if release-info changed
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: chore/update-release-fingerprint-${{ steps.tag.outputs.tag }}

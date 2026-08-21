@@ -15,12 +15,19 @@ class FeetInchesInput extends StatefulWidget {
   final String identifierPrefix;
   final bool autofocus;
 
+  /// Error to show beneath the pair. The widget has no validator of its own.
+  /// It reports null upward and lets the caller decide when an invalid entry
+  /// is worth complaining about, which is how the onboarding page keeps
+  /// quiet until the user leaves the field.
+  final String? errorText;
+
   const FeetInchesInput({
     super.key,
     required this.initialCm,
     required this.onChangedCm,
     required this.identifierPrefix,
     this.autofocus = false,
+    this.errorText,
   });
 
   @override
@@ -59,6 +66,29 @@ class _FeetInchesInputState extends State<FeetInchesInput> {
 
   @override
   Widget build(BuildContext context) {
+    final errorText = widget.errorText;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildFields(context),
+        // The message belongs to the feet/inches pair rather than to either
+        // field, so it is rendered once beneath them, styled the way a
+        // TextField renders its own error.
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 8),
+            child: Text(
+              errorText,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildFields(BuildContext context) {
     return Row(
       children: [
         Expanded(

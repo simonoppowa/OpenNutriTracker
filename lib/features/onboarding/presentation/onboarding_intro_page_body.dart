@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
@@ -114,9 +115,19 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                   child: SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: (_seedingDemo || !_acceptedPolicy)
+                      // Stays tappable without the policy so the tap can
+                      // explain itself; only the in-flight seed truly
+                      // disables it.
+                      onPressed: _seedingDemo
                           ? null
-                          : _tryDemo,
+                          : (_acceptedPolicy ? _tryDemo : _policyRequired),
+                      style: _acceptedPolicy
+                          ? null
+                          : OutlinedButton.styleFrom(
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.38),
+                            ),
                       icon: _seedingDemo
                           ? const SizedBox(
                               width: 16,
@@ -178,6 +189,17 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
     ).push(MaterialPageRoute(builder: (_) => const SourcesScreen()));
   }
 
+  /// Says why the demo is unavailable instead of letting the tap fall on the
+  /// floor. The subtitle under the button already states the requirement;
+  /// this is for the user who tapped anyway.
+  void _policyRequired() {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(S.of(context).onboardingBlockedDemoPolicySnack)),
+      );
+  }
+
   /// Seeds the active profile with sample data and jumps straight to Home.
   /// Requires the privacy-policy checkbox (same bar as Start) so demo entry
   /// still records legal acceptance; anonymous crash reporting stays off
@@ -207,9 +229,30 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   }
 
   Future<void> _launchUrl() async {
-    if (!await launchUrl(
-      Uri.parse(URLConst.privacyPolicyURLEn),
-      mode: LaunchMode.externalApplication,
-    )) {}
+    // Read the locale before the await; the context must not be touched
+    // afterwards without a mounted check.
+    final policy = URLConst.privacyPolicyFor(
+      Localizations.localeOf(context).languageCode,
+    );
+
+    // A device with no browser is the case worth reporting: this link is the
+    // only way to read the policy the checkbox below asks you to accept, and
+    // silently doing nothing reads as a broken tap.
+    var opened = false;
+    try {
+      opened = await launchUrl(
+        Uri.parse(policy),
+        mode: LaunchMode.externalApplication,
+      );
+    } on PlatformException {
+      // No activity able to handle the intent — a failure to open, not a crash.
+      opened = false;
+    }
+
+    if (opened || !mounted) return;
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(S.of(context).errorOpeningBrowser)));
   }
 }

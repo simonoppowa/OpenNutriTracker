@@ -32,7 +32,11 @@ walk_onboarding() {
   wait_for_id 'onboarding-gender-genderFemale' 10 || return 1
   tap_id 'onboarding-gender-genderFemale' || return 1; sleep 0.5
   tap_id 'onboarding-birthday-field'      || return 1; sleep 1
-  # Material DatePicker OK — check both text and content-desc (system vs Flutter dialog)
+  # Material DatePicker OK — check both text and content-desc (system vs Flutter dialog).
+  # The picker opens on the year grid preselected to today minus 30 years, and the
+  # dialog's actions show in every mode, so confirming without picking gives a
+  # deterministic adult birthday rather than the near-zero age the old
+  # yesterday-preselect produced.
   _tap_text 'OK' || _tap_text 'Ok' || _tap_text 'ok' || return 1; sleep 0.8
   tap_id 'onboarding-button' || return 1; sleep 1
 
@@ -61,14 +65,25 @@ walk_onboarding() {
   tap_id 'onboarding-goal-maintain' || return 1; sleep 0.4
   tap_id 'onboarding-button'        || return 1; sleep 1
 
-  echo "  page 5 — overview, tapping START"
+  # Theme, accent colour, food databases and the daily reminder. Everything
+  # is pre-filled — the databases default to the locale's set and stay
+  # collapsed behind a summary row — so the walker just moves past it.
+  echo "  page 5 — other options"
+  wait_for_id 'onboarding-button' 10 || return 1
+  tap_id 'onboarding-button' || return 1; sleep 1
+
+  echo "  page 6 — overview, tapping START"
   wait_for_id 'onboarding-button' 10 || return 1
   tap_id 'onboarding-button' || return 1; sleep 3
 
-  # Dismiss the first-launch disclaimer dialog if it appears.
+  # Dismiss the first-launch disclaimer dialog if it appears. Its button
+  # reads "I understand"; the OK spellings stay as a fallback so the walker
+  # also drives builds from before that change.
   echo "  dismissing disclaimer dialog (if present)"
   for _ in 1 2 3; do
-    if _tap_text 'OK'; then sleep 1; break; fi
+    if _tap_text 'I understand' || _tap_text 'OK' || _tap_text 'Ok'; then
+      sleep 1; break
+    fi
     sleep 1
   done
 

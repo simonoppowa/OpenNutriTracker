@@ -1,5 +1,6 @@
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 
 class GetUserActivityUsecase {
   final UserActivityRepository _userActivityRepository;
@@ -14,8 +15,11 @@ class GetUserActivityUsecase {
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
   }) {
-    return _userActivityRepository.getAllUserActivityByDate(
-      DateTime.now(),
+    return getUserActivityByDay(
+      DayBoundaryCalc.currentLogicalDayLabel(
+        dayStartOffsetHours,
+        dayStartOffsetMinutes,
+      ),
       dayStartOffsetHours: dayStartOffsetHours,
       dayStartOffsetMinutes: dayStartOffsetMinutes,
     );

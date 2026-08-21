@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/section_group.dart';
 import 'package:opennutritracker/core/styles/accent_colors.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
@@ -192,51 +194,111 @@ class _OnboardingOtherOptionsPageBodyState
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
-    return SizedBox(
-      width: double.infinity,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            s.onboardingOtherOptionsLabel,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          Text(
-            s.onboardingOtherOptionsSubtitle,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 16.0),
-          Text(
-            s.settingsThemeLabel,
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          const SizedBox(height: 8.0),
-          SegmentedButton<AppThemeEntity>(
-            segments: [
-              for (final theme in AppThemeEntity.values)
-                ButtonSegment(
-                  value: theme,
-                  label: Text(_themeLabel(context, theme)),
+    return SingleChildScrollView(
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              s.onboardingOtherOptionsLabel,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            Text(
+              s.onboardingOtherOptionsSubtitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: Dimens.spacing24),
+            SectionHeader(label: s.settingsThemeLabel),
+            const SizedBox(height: Dimens.spacing12),
+            SectionGroup(
+              tiles: [
+                Padding(
+                  padding: const EdgeInsets.all(Dimens.spacing12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SegmentedButton<AppThemeEntity>(
+                        segments: [
+                          for (final theme in AppThemeEntity.values)
+                            ButtonSegment(
+                              value: theme,
+                              label: Text(_themeLabel(context, theme)),
+                            ),
+                        ],
+                        selected: {_selectedTheme},
+                        onSelectionChanged: (selection) =>
+                            _onThemeSelected(selection.first),
+                      ),
+                      const SizedBox(height: Dimens.spacing16),
+                      Text(
+                        s.settingsAccentColourTitle,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: Dimens.spacing8),
+                      _buildAccentColorRow(context),
+                    ],
+                  ),
                 ),
-            ],
-            selected: {_selectedTheme},
-            onSelectionChanged: (selection) =>
-                _onThemeSelected(selection.first),
-          ),
-          const SizedBox(height: 16.0),
-          Text(
-            s.settingsAccentColourTitle,
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          const SizedBox(height: 8.0),
-          _buildAccentColorRow(context),
-          const SizedBox(height: 16.0),
-          Text(
-            s.settingsFoodSourcesLabel,
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
+              ],
+            ),
+            const SizedBox(height: Dimens.spacing24),
+            SectionHeader(label: s.settingsFoodSourcesLabel),
+            const SizedBox(height: Dimens.spacing12),
+            SectionGroup(tiles: [_buildFoodSourcesTile(context)]),
+            const SizedBox(height: Dimens.spacing24),
+            SectionHeader(label: s.settingsNotificationsLabel),
+            const SizedBox(height: Dimens.spacing12),
+            SectionGroup(
+              tiles: [
+                Semantics(
+                  identifier: 'onboarding-daily-reminder',
+                  child: SwitchListTile(
+                    dense: true,
+                    title: Text(s.settingsNotificationsLabel),
+                    subtitle: Text(s.notificationsDailyReminderBody),
+                    value: _dailyReminderEnabled,
+                    onChanged: (value) {
+                      setState(() => _dailyReminderEnabled = value);
+                      _publish();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// The database list is long and every entry is already set sensibly for
+  /// the user's region, so it collapses. The subtitle reports the state
+  /// while closed, which is the only thing most users need from it.
+  Widget _buildFoodSourcesTile(BuildContext context) {
+    final s = S.of(context);
+    // Open Food Facts is always searched and has no switch, so it counts
+    // towards both sides of the summary.
+    const alwaysOnCount = 1;
+    final enabled =
+        alwaysOnCount +
+        SPConst.settingsSelectableFoodSources
+            .where((source) => _foodSourceToggles[source] ?? true)
+            .length;
+    final total = alwaysOnCount + SPConst.settingsSelectableFoodSources.length;
+
+    return Semantics(
+      identifier: 'onboarding-food-sources',
+      child: ExpansionTile(
+        shape: const Border(),
+        collapsedShape: const Border(),
+        title: Text(
+          s.settingsFoodSourcesLabel,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        subtitle: Text(s.onboardingFoodSourcesEnabledCount(enabled, total)),
+        children: [
           SwitchListTile(
-            contentPadding: EdgeInsets.zero,
             dense: true,
             title: const Text(OFFConst.offSourceName),
             subtitle: Text(s.foodSourcesAlwaysEnabledLabel),
@@ -244,31 +306,17 @@ class _OnboardingOtherOptionsPageBodyState
             onChanged: null,
           ),
           for (final sourceCode in SPConst.settingsSelectableFoodSources)
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              dense: true,
-              title: Text(
-                SPConst.foodSourceDisplayNames[sourceCode] ?? sourceCode,
+            Semantics(
+              identifier: 'onboarding-food-source-${sourceCode.replaceAll('_', '-')}',
+              child: SwitchListTile(
+                dense: true,
+                title: Text(
+                  SPConst.foodSourceDisplayNames[sourceCode] ?? sourceCode,
+                ),
+                value: _foodSourceToggles[sourceCode] ?? true,
+                onChanged: (value) => _onSourceToggled(sourceCode, value),
               ),
-              value: _foodSourceToggles[sourceCode] ?? true,
-              onChanged: (value) => _onSourceToggled(sourceCode, value),
             ),
-          const SizedBox(height: 16.0),
-          Text(
-            s.settingsNotificationsLabel,
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-            title: Text(s.settingsNotificationsLabel),
-            subtitle: Text(s.notificationsDailyReminderBody),
-            value: _dailyReminderEnabled,
-            onChanged: (value) {
-              setState(() => _dailyReminderEnabled = value);
-              _publish();
-            },
-          ),
         ],
       ),
     );

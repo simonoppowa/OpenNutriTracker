@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 
 /// Fake repository whose every write returns a Future controlled by an
@@ -94,6 +95,7 @@ void main() {
       bloc = OnboardingBloc(
         AddUserUsecase(userRepo),
         AddConfigUsecase(configRepo),
+        GetConfigUsecase(configRepo),
       );
     });
 
