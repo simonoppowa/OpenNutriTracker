@@ -358,7 +358,17 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
     final message = choice['message'];
     final toolCalls = message is Map ? message['tool_calls'] : null;
     if (toolCalls is! List) {
-      throw const MealInterpreterException('response has no tool call');
+      throw MealInterpreterException(
+      'response has no tool call',
+      // Not the default `transient`, which would send the user to check a
+      // connection that just delivered a 200. A model that will not call the
+      // tool will not call it next time either, and `unsupported` already
+      // names exactly this: "no provider of it honours a forced tool call".
+      // Ollama has no `tool_choice` field at all (#733), so on the most
+      // popular local runtime this is the expected failure rather than a
+      // rare one, and #779's probe has to be able to tell it from a blip.
+      failure: MealInterpreterFailure.unsupported,
+    );
     }
 
     for (final call in toolCalls) {
@@ -370,7 +380,17 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
       return mealItemsFromJson(_argumentsFrom(function['arguments']));
     }
 
-    throw const MealInterpreterException('response has no tool call');
+    throw MealInterpreterException(
+      'response has no tool call',
+      // Not the default `transient`, which would send the user to check a
+      // connection that just delivered a 200. A model that will not call the
+      // tool will not call it next time either, and `unsupported` already
+      // names exactly this: "no provider of it honours a forced tool call".
+      // Ollama has no `tool_choice` field at all (#733), so on the most
+      // popular local runtime this is the expected failure rather than a
+      // rare one, and #779's probe has to be able to tell it from a blip.
+      failure: MealInterpreterFailure.unsupported,
+    );
   }
 
   /// A 200 that is not a success.

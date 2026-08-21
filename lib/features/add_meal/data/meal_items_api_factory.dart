@@ -22,7 +22,26 @@ import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 /// list's first entry — and for a server the user runs it is prevented one
 /// layer up, because the model is part of what "configured" means there
 /// (#738) and an unconfigured provider never reaches this function.
-MealItemsApi mealItemsApiFor(http.Client client, AiSelection selection) {
+/// How long a setup-time probe waits for an endpoint the user just typed.
+///
+/// The same measurement the request path needs, for the same reason: #779's
+/// probe is the *first* request a machine ever sees, so its model is cold by
+/// definition — 22–24s on an M4 Mac mini, and the provider exists to serve
+/// slower hardware than that. A budget tuned to a warm model would fail every
+/// endpoint on the one call that decides whether the feature is offered.
+const aiEndpointProbeTimeout = Duration(seconds: 120);
+
+/// Turns a stored selection into the client that will carry it.
+///
+/// [timeout] overrides the per-provider default. It exists for the probe,
+/// which is not an ordinary request: it runs once at setup, against an
+/// address nobody has spoken to yet, and giving up on it early is how a
+/// perfectly good server gets recorded as unfit.
+MealItemsApi mealItemsApiFor(
+  http.Client client,
+  AiSelection selection, {
+  Duration? timeout,
+}) {
   final model = AiModelCatalogue.resolve(selection.provider, selection.modelId);
   final modelId = model?.id ?? selection.modelId;
   if (modelId == null) {
@@ -33,7 +52,12 @@ MealItemsApi mealItemsApiFor(http.Client client, AiSelection selection) {
   String key() => selection.apiKey ?? '';
 
   return switch (selection.provider) {
-    AiProvider.anthropic => AnthropicMealItemsApi(client, key, model: modelId),
+    AiProvider.anthropic => AnthropicMealItemsApi(
+      client,
+      key,
+      model: modelId,
+      timeout: timeout ?? AnthropicMealItemsApi.defaultTimeout,
+    ),
     AiProvider.openrouter => OpenAiCompatibleMealItemsApi.openRouter(
       client,
       key,
@@ -43,10 +67,16 @@ MealItemsApi mealItemsApiFor(http.Client client, AiSelection selection) {
       // to mention. Unpinned, `anthropic/claude-haiku-4.5` was answered by
       // Amazon Bedrock on every attempt of a three-run probe.
       providers: model?.providers,
+      timeout: timeout ?? OpenAiCompatibleMealItemsApi.defaultTimeout,
     ),
     // No pin and no metadata header: reached directly, so there is no broker
     // to constrain and nobody in between to name.
-    AiProvider.openai => OpenAiMealItemsApi(client, key, model: modelId),
+    AiProvider.openai => OpenAiMealItemsApi(
+      client,
+      key,
+      model: modelId,
+      timeout: timeout ?? OpenAiMealItemsApi.defaultTimeout,
+    ),
     // The user's own address, no broker, and **no forcing by name**: #733
     // measured that Ollama has no `tool_choice` field at all and llama.cpp
     // silently downgrades an object to "auto", so asking for a named function
@@ -59,6 +89,7 @@ MealItemsApi mealItemsApiFor(http.Client client, AiSelection selection) {
       model: modelId,
       endpoint: Uri.parse(selection.endpoint!),
       toolChoice: ToolChoiceMode.anyTool,
+      timeout: timeout ?? OpenAiCompatibleMealItemsApi.defaultTimeout,
     ),
   };
 }
