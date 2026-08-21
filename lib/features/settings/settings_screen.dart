@@ -1270,8 +1270,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _launchPrivacyPolicyUrl(BuildContext context) async {
-    final sourceCodeUri = Uri.parse(URLConst.privacyPolicyURLEn);
-    _launchUrl(context, sourceCodeUri);
+    final privacyPolicyUri = Uri.parse(
+      URLConst.privacyPolicyFor(Localizations.localeOf(context).languageCode),
+    );
+    _launchUrl(context, privacyPolicyUri);
   }
 
   void _launchUrl(BuildContext context, Uri url) async {

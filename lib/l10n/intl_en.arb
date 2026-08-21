@@ -1064,6 +1064,7 @@
   "sourcesOpenSourceLabel": "View source",
   "sourcesScreenIntro": "OpenNutriTracker uses well-established, peer-reviewed methodologies for every calculation it shows. The citations below link to the original sources so you can verify any number yourself.",
   "sugarLabel": "sugar",
+  "suggestedLabel": "Suggested",
   "suppliedLabel": "supplied",
   "transFatLabel": "trans fat",
   "unitLabel": "Unit",

@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_info_button.dart';
@@ -320,7 +321,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     );
     Navigator.of(
       context,
-    ).popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
+    ).popUntil(namedRouteOrFirst(NavigationOptions.mainRoute));
   }
 }
 

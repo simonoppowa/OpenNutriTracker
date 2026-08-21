@@ -40,7 +40,6 @@ PODS:
   - Flutter (1.0.0)
   - flutter_image_compress_common (1.0.0):
     - Flutter
-    - Mantle
     - SDWebImage
     - SDWebImageWebPCoder
   - flutter_keyboard_visibility_temp_fork (0.0.1):
@@ -70,9 +69,6 @@ PODS:
   - libwebp/sharpyuv (1.5.0)
   - libwebp/webp (1.5.0):
     - libwebp/sharpyuv
-  - Mantle (2.2.0):
-    - Mantle/extobjc (= 2.2.0)
-  - Mantle/extobjc (2.2.0)
   - mobile_scanner (7.0.0):
     - Flutter
     - FlutterMacOS
@@ -87,11 +83,11 @@ PODS:
   - SDWebImageWebPCoder (0.15.0):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
-  - Sentry/HybridSDK (8.58.1)
-  - sentry_flutter (9.19.0):
+  - Sentry/HybridSDK (8.58.4)
+  - sentry_flutter (9.26.0):
     - Flutter
     - FlutterMacOS
-    - Sentry/HybridSDK (= 8.58.1)
+    - Sentry/HybridSDK (= 8.58.4)
   - share_plus (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -131,7 +127,6 @@ SPEC REPOS:
     - DKImagePickerController
     - DKPhotoGallery
     - libwebp
-    - Mantle
     - SDWebImage
     - SDWebImageWebPCoder
     - Sentry
@@ -186,23 +181,22 @@ SPEC CHECKSUMS:
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_image_compress_common: 1697a328fd72bfb335507c6bca1a65fa5ad87df1
+  flutter_image_compress_common: 11d5dcfb36f4ded92320bfa896261813a073240e
   flutter_keyboard_visibility_temp_fork: 95b2d534bacf6ac62e7fcbe5c2a9e2c2a17ce06f
   flutter_local_notifications: a5a732f069baa862e728d839dd2ebb904737effb
   flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23
-  flutter_timezone: ee50ce7786b5fde27e2fe5375bbc8c9661ffc13f
+  flutter_timezone: 7c838e17ffd4645d261e87037e5bebf6d38fe544
   health: 32d2fbc7f26f9a2388d1a514ce168adbfa5bda65
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
-  Mantle: c5aa8794a29a022dfbbfc9799af95f477a69b62d
   mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   SDWebImageWebPCoder: 0e06e365080397465cc73a7a9b472d8a3bd0f377
-  Sentry: 958d9619ceccf6abb8c4736003fa336dac1a80a7
-  sentry_flutter: bdfd7a7b8931c4ecefa37fde9e44a15cd0af30b1
+  Sentry: 5321d74bdd28d6f6f8beaa1ca06f1fdc746bff49
+  sentry_flutter: 01a996130a18996b59600c51e68b0e6364cde8b3
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0

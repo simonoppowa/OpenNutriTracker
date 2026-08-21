@@ -69,9 +69,13 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         // Convert quantity based on selected unit
         double convertedQuantity = quantity;
         if (selectedUnit == UnitDropdownItem.serving.toString()) {
-          // For serving size, multiply by the product's serving quantity
-          if (event.meal.servingQuantity != null) {
-            convertedQuantity = quantity * event.meal.servingQuantity!;
+          // `scalableServingQuantity`, not `servingQuantity`: OFF often
+          // leaves the numeric field empty while `serving_size` carries the
+          // figure as text. Reading only the numeric one left this branch
+          // silently doing nothing, so "1 serving" logged one gram (#629).
+          final serving = event.meal.scalableServingQuantity;
+          if (serving != null) {
+            convertedQuantity = quantity * serving;
           }
         } else if (selectedUnit == UnitDropdownItem.oz.toString()) {
           convertedQuantity = UnitCalc.ozToG(quantity);

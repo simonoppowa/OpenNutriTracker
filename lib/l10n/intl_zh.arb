@@ -982,6 +982,7 @@
   "sourcesOpenSourceLabel": "打开来源",
   "sourcesScreenIntro": "OpenNutriTracker 的每一项计算都采用成熟的、经同行评审的方法。以下引用直接链接到原始文献，你可以自行核对其中的每一个数值。",
   "sugarLabel": "糖",
+  "suggestedLabel": "建议",
   "suppliedLabel": "提供",
   "transFatLabel": "反式脂肪",
   "unitLabel": "单位",
