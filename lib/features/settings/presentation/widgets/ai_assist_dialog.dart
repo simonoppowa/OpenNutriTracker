@@ -87,15 +87,20 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// provider rather than to the dialog.
   Future<void> _load() async {
     final summary = await widget.storage.readSummary();
-    final modelId = await widget.storage.readModel(
-      provider: summary.provider,
-    );
+    // A stored name this build does not know leaves nothing to select, so the
+    // radios fall back to the first provider **for display only**. Nothing is
+    // written here — `_load` only reads — so the unrecognised tag survives
+    // until the user chooses, and re-upgrading restores what they picked.
+    // Meanwhile the feature stays unavailable, because `readSelection()`
+    // refuses independently of what this dialog is showing. #753.
+    final provider = summary.provider ?? AiProvider.anthropic;
+    final modelId = await widget.storage.readModel(provider: provider);
     if (!mounted) return;
     setState(() {
-      _provider = summary.provider;
-      _hasKey = summary.hasKey;
+      _provider = provider;
+      _hasKey = summary.provider == null ? false : summary.hasKey;
       _enabled = summary.enabled;
-      _model = AiModelCatalogue.resolve(summary.provider, modelId);
+      _model = AiModelCatalogue.resolve(provider, modelId);
       _loading = false;
     });
   }

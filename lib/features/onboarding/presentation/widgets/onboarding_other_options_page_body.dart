@@ -78,7 +78,8 @@ class _OnboardingOtherOptionsPageBodyState
   /// keeps, read from the same store.
   bool? _aiHasKey;
   bool _aiEnabled = false;
-  AiProvider _aiProvider = AiProvider.anthropic;
+  /// Null when the stored name is unrecognised — see #753.
+  AiProvider? _aiProvider;
 
   @override
   void initState() {

@@ -17,15 +17,19 @@ import 'package:opennutritracker/generated/l10n.dart';
 ///
 /// [hasKey] null means "not read yet", which renders no subtitle rather than
 /// a wrong one.
+/// [provider] is null when the stored name is one this build does not know.
+/// That state can only reach the `false` arm — [AiAssistSummary] reports no
+/// key without a provider to hold one — so the row says "not configured"
+/// rather than naming a company the user never chose. #753.
 String? aiAssistSubtitle(
   S s, {
   required bool? hasKey,
   required bool enabled,
-  required AiProvider provider,
+  required AiProvider? provider,
 }) => switch (hasKey) {
   null => null,
   false => s.settingsAiAssistNotConfiguredLabel,
-  true when enabled =>
+  true when enabled && provider != null =>
     // Brand names are not localized, and the em-dash slot is free in this
     // state.
     '${s.settingsAiAssistOnLabel} — ${switch (provider) {
