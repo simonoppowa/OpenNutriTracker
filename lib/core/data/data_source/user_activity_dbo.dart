@@ -29,6 +29,20 @@ class UserActivityDBO extends HiveObject {
   @HiveField(5)
   final double? userKcal;
 
+  /// Stable id of the platform record this activity was imported from
+  /// (Health Connect / Apple Health). Doubles as the dedupe key: a record
+  /// whose id is already present is never imported twice. Null for every
+  /// manually logged activity, which is what old rows read as.
+  @HiveField(6)
+  final String? externalId;
+
+  /// The energy the exporting app or device reported for an imported
+  /// workout, before the user's calorie-credit multiplier was applied.
+  /// Kept so the multiplier stays inspectable after the fact; [burnedKcal]
+  /// remains the value the daily budget is computed from.
+  @HiveField(7)
+  final double? sourceReportedKcal;
+
   UserActivityDBO(
     this.id,
     this.duration,
@@ -36,6 +50,8 @@ class UserActivityDBO extends HiveObject {
     this.date,
     this.physicalActivityDBO, {
     this.userKcal,
+    this.externalId,
+    this.sourceReportedKcal,
   });
 
   factory UserActivityDBO.fromUserActivityEntity(
@@ -50,6 +66,8 @@ class UserActivityDBO extends HiveObject {
         userActivityEntity.physicalActivityEntity,
       ),
       userKcal: userActivityEntity.userKcal,
+      externalId: userActivityEntity.externalId,
+      sourceReportedKcal: userActivityEntity.sourceReportedKcal,
     );
   }
 

@@ -1104,5 +1104,19 @@
   "quickAddActivityAddedSnack": "Dodano aktywność",
   "quickAddActivityNameLabel": "Nazwa (opcjonalnie)",
   "scannerLockOrientationTooltip": "Zablokuj w pionie",
-  "scannerUnlockOrientationTooltip": "Zezwól na obrót"
+  "scannerUnlockOrientationTooltip": "Zezwól na obrót",
+  "settingsHealthSyncSubtitle": "Importuj treningi",
+  "healthSyncAutoImportLabel": "Automatycznie importuj treningi z {platform}",
+  "healthSyncKcalMultiplierLabel": "Zaliczanie kalorii z treningu",
+  "healthSyncKcalMultiplierSubtitle": "Organizm zwykle kompensuje wysiłek, spalając mniej kalorii przez resztę dnia. Wartość 100% zalicza każdą kalorię z treningu do dziennego celu.",
+  "healthSyncKcalMultiplierValueLabel": "{percent}%",
+  "healthSyncSuggestedLabel": "Sugerowane dla Ciebie: {percent}%",
+  "healthSyncImportNowLabel": "Importuj teraz",
+  "healthSyncLastImportLabel": "Ostatni import: {time}",
+  "healthSyncNeverImportedLabel": "Nie zaimportowano jeszcze żadnych treningów",
+  "healthSyncImportedCountLabel": "{count, plural, =0{Brak nowych treningów} one{Zaimportowano 1 trening} few{Zaimportowano {count} treningi} many{Zaimportowano {count} treningów} other{Zaimportowano {count} treningu}}",
+  "healthSyncPermissionDeniedLabel": "Nie przyznano dostępu do {platform}. Zezwól aplikacji OpenNutriTracker na odczyt treningów i tkanki tłuszczowej, aby je zaimportować.",
+  "healthSyncUnavailableLabel": "Dane zdrowotne nie są dostępne na tym urządzeniu. Import treningów wymaga Health Connect na Androidzie lub Apple Health na iOS.",
+  "sourcesEnergyCompensationTitle": "Zaliczanie kalorii z treningu",
+  "sourcesEnergyCompensationDescription": "Zaimportowane treningi są zaliczane z mniejszą energią, niż raportuje urządzenie. Ludzie kompensują wysiłek, spalając mniej kalorii przez resztę dnia — średnio około 28%, a przy wyższej zawartości tkanki tłuszczowej więcej. Sugerowana wartość pochodzi z tych badań i możesz ją zmienić w Ustawieniach → Synchronizacja zdrowia. Sama energia pochodzi z aplikacji lub urządzenia, które zarejestrowało trening, i nie jest obliczana wzorem MET w aplikacji."
 }

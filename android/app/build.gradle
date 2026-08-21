@@ -60,7 +60,9 @@ android {
 
     defaultConfig {
         applicationId "com.opennutritracker.ont.opennutritracker"
-        minSdkVersion flutter.minSdkVersion
+        // The health package's Health Connect client requires API 26; Flutter's
+        // default is lower, so the floor is pinned here.
+        minSdkVersion 26
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

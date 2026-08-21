@@ -179,4 +179,20 @@ class ConfigRepository {
   Future<void> setConfigFoodSourceToggles(Map<String, bool> toggles) async {
     await _configDataSource.setConfigFoodSourceToggles(toggles);
   }
+
+  Future<void> setConfigHealthImportEnabled(bool enabled) async {
+    await _configDataSource.setConfigHealthImportEnabled(enabled);
+  }
+
+  Future<void> setConfigHealthWorkoutKcalMultiplier(double multiplier) async {
+    await _configDataSource.setConfigHealthWorkoutKcalMultiplier(multiplier);
+  }
+
+  Future<void> setConfigHealthLastImportAt(DateTime? importedAt) async {
+    await _configDataSource.setConfigHealthLastImportAt(importedAt);
+  }
+
+  Future<void> addConfigHealthDeletedExternalId(String externalId) async {
+    await _configDataSource.addConfigHealthDeletedExternalId(externalId);
+  }
 }
