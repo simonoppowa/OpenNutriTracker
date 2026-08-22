@@ -1270,6 +1270,115 @@ void main() {
         expect(server.requests, isEmpty);
       });
 
+      testWidgets('Cancel asks nothing, even with a half-changed address in '
+          'the field', (tester) async {
+        // Leaving is not an explicit ask. Cancel takes focus off the address
+        // field, and a focus-loss fetch fires on the way out — a request the
+        // user never asked for, at the one moment they cannot see the answer,
+        // to a machine on their own network. #738 allows exactly two moments
+        // and this is neither.
+        final server = _Server.listing(['gemma3:4b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        // Changed, so the only thing standing between this and a request is
+        // the dialog knowing it is closing.
+        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await tester.tap(find.text(l10nEn.dialogCancelLabel));
+        await tester.pumpAndSettle();
+
+        expect(
+          server.requests,
+          isEmpty,
+          reason: 'a dialog being dismissed must not contact the address on '
+              'its way out',
+        );
+      });
+
+      testWidgets('moving an already-configured server to a new address saves '
+          'both fields', (tester) async {
+        // The third exit, and the one where suppressing the fetch has to not
+        // break anything: OK must still commit what is on screen. If leaving
+        // the address field cleared the model on the way to the button, this
+        // would refuse with "name the model" over a name the user just typed.
+        final server = _Server.listing(['gemma3:4b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-model-field'),
+          'qwen3:8b',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.bySemanticsIdentifier('ai-assist-save-key'));
+        await tester.pumpAndSettle();
+
+        expect(
+          await storage.readEndpoint(provider: AiProvider.ownServer),
+          'http://192.168.1.9:11434/v1/chat/completions',
+        );
+        expect(
+          await storage.readModel(provider: AiProvider.ownServer),
+          'qwen3:8b',
+        );
+      });
+
+      testWidgets('the system back button asks nothing either', (tester) async {
+        // The same hole as Cancel, reached by the one exit that runs no
+        // handler of ours at all. Driven through the real `show()` route,
+        // because a dialog embedded in a body has nothing to pop.
+        final server = _Server.listing(['gemma3:4b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: const [
+              S.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: S.supportedLocales,
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () => AiAssistDialog.show(
+                    context,
+                    storage,
+                    modelList: server.api,
+                  ),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        // What Android's back gesture delivers. `pageBack` looks for a back
+        // button widget, and a dialog route has none.
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+
+        expect(server.requests, isEmpty);
+      });
+
       testWidgets('an address that is not a URL is refused before anything is '
           'sent', (tester) async {
         // The form Ollama's own documentation shows, and not a URL. The same

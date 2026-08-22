@@ -41,12 +41,15 @@ class AiAssistDialog extends StatefulWidget {
   /// remove button write immediately, so a tap outside would drop the
   /// "something changed" answer on the floor and leave the settings tile
   /// describing the old state. Leaving is via Cancel, which reports honestly.
-  static Future<bool> show(BuildContext context, AiCredentialStorage storage) =>
-      showDialog<bool>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => AiAssistDialog(storage: storage),
-      ).then((changed) => changed ?? false);
+  static Future<bool> show(
+    BuildContext context,
+    AiCredentialStorage storage, {
+    AiModelListApi? modelList,
+  }) => showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => AiAssistDialog(storage: storage, modelList: modelList),
+  ).then((changed) => changed ?? false);
 
   /// The accessibility identifier for a model row.
   ///
@@ -244,6 +247,13 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// `http://ht`, and every other prefix of what someone is typing.
   void _endpointCommitted() {
     if (!mounted || _closing || _provider != AiProvider.ownServer) return;
+    // The other way out, and the one no handler of ours runs on: the system
+    // back button pops this route without touching [_closing]. A route on its
+    // way out stops being current the moment `pop` is called, which is before
+    // it takes focus off the address field — so this catches the teardown
+    // that the flag above cannot see. Both are needed: the flag covers the
+    // buttons, this covers everything else.
+    if (ModalRoute.of(context)?.isCurrent == false) return;
     final resolved = AiCredentialStorage.resolveEndpoint(
       _endpointController.text.trim(),
     );
@@ -672,7 +682,14 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
             ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(_changed),
+          // Marked as leaving *before* the pop, because tearing the route
+          // down takes focus off the address field and the focus listener
+          // would answer that by contacting the server. Dismissing a dialog
+          // is not one of the two moments #738 allows.
+          onPressed: () {
+            _closing = true;
+            Navigator.of(context).pop(_changed);
+          },
           child: Text(s.dialogCancelLabel),
         ),
         // Offered whenever something on screen can still be typed into. For

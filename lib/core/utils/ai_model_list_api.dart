@@ -112,9 +112,11 @@ class AiModelListApi {
       return const AiModelListResult.failed(
         AiModelListFailure.insecureDestination,
       );
-    } catch (e) {
-      // `e` is not logged: a socket error can carry the request back with it,
-      // and the request names a machine on the user's network.
+    } catch (_) {
+      // The error is deliberately not bound, let alone logged: a socket
+      // failure can carry the request back with it, and the request names a
+      // machine on somebody's home network. Nothing here needs to know which
+      // way it failed — every one of them means the same thing to the user.
       _log.info('Could not reach the endpoint for a model list');
       return const AiModelListResult.failed(AiModelListFailure.unreachable);
     }
