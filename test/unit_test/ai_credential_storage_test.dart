@@ -791,6 +791,54 @@ void main() {
       expect(probe.photo, AiCapability.failed);
     });
 
+    test('an inconclusive retry does not revoke what is known', () async {
+      // Copilot caught this on #784: `writeProbe` wrote whatever it was
+      // handed, so a retry against a sleeping server replaced "photos work
+      // here" with "we could not tell" — revoking a pass that was still
+      // perfectly true, because nothing about the endpoint or the model had
+      // changed and the only thing that learned anything was the network.
+      await configure();
+      await storage.writeProbe(passed, provider: own);
+
+      await storage.writeProbe(AiEndpointProbe.unknown, provider: own);
+
+      final probe = await storage.readProbe(provider: own);
+      expect(probe.text, AiCapability.passed);
+      expect(probe.photo, AiCapability.passed);
+    });
+
+    test('but a conclusive one does, in both directions', () async {
+      // The half that has to keep working: a use-time capability refusal
+      // retracts a stale pass (#782). Only `unknown` is inert.
+      await configure();
+      await storage.writeProbe(passed, provider: own);
+
+      await storage.writeProbe(
+        const AiEndpointProbe(
+          text: AiCapability.unknown,
+          photo: AiCapability.failed,
+        ),
+        provider: own,
+      );
+
+      final probe = await storage.readProbe(provider: own);
+      expect(probe.photo, AiCapability.failed, reason: 'retracted');
+      expect(probe.text, AiCapability.passed, reason: 'untouched');
+    });
+
+    test('nothing conclusive leaves no record at all', () async {
+      // "Stored as absence" is now literally true rather than a `"--"` that
+      // merely reads like absence.
+      await configure();
+
+      await storage.writeProbe(AiEndpointProbe.unknown, provider: own);
+
+      expect(
+        backing.store.keys.where((k) => k.startsWith('AiProbeTag')),
+        isEmpty,
+      );
+    });
+
     test('changing the address discards it', () async {
       // A pass was a fact about a machine. This is a different machine, and
       // "photos work here" has never been asked of it.

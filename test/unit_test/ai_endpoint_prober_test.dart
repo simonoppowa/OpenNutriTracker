@@ -236,6 +236,22 @@ void main() {
     },
   );
 
+  test('two overlapping probes do not share a temp file', () async {
+    // Copilot caught this on #784: the probe photo was written to a fixed
+    // path and then deleted by `encodeAndDiscardSource`, so two probes in
+    // flight at once — a user saving twice quickly, a retry overlapping one
+    // still running — would race on the same file.
+    //
+    // Asserted on the paths rather than by provoking the race: a
+    // scheduling-dependent test that passes on a fast machine and fails in
+    // CI is worse than no test.
+    final paths = <String>{
+      for (var i = 0; i < 50; i++) probePhotoTempPath('/tmp'),
+    };
+
+    expect(paths, hasLength(50));
+  });
+
   test('the probe budget clears a cold model load with room over', () async {
     // The probe is by definition the first request a machine ever sees, so
     // its model is cold every time. Measured against a real Ollama on an M4
