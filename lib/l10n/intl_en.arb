@@ -1264,6 +1264,8 @@
   "bulkAddModelKeyRejectedLabel": "AI didn't run: your API key was rejected. These rows came from the offline parser — check the key in Settings.",
   "bulkAddModelUnsupportedLabel": "AI didn't run: the selected model couldn't be used. These rows came from the offline parser — choose another model in Settings.",
   "bulkAddModelNoCreditLabel": "AI didn't run: your provider account is out of credit. These rows came from the offline parser — top up with your provider to use AI again.",
+  "bulkAddModelInsecureServerLabel": "AI didn't run: that address is public and unencrypted. Use https.",
+  "bulkAddModelTimedOutLabel": "AI didn't run: your server didn't answer in time. These rows came from the offline parser — a smaller model, or a faster machine, will answer sooner.",
   "bulkAddPhotoLabel": "Read a photo",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker keeps no copy of its own, and it is never included in your exports.",
   "bulkAddPhotoDisclosureAnthropic": "The photo is sent to Anthropic to identify the foods in it.",

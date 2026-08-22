@@ -187,13 +187,56 @@ void main() {
       expect(reading.modelFailure, MealTextModelFailure.unsupported);
     });
 
+    test('reports a destination the app refused to send to', () async {
+      // #758. The one failure in this list the *app* caused, which makes it
+      // the most important to say out loud: silence would leave someone
+      // whose server is at plain `http://` on the open internet with parser
+      // rows forever and no hint that the configuration will never be
+      // honoured.
+      final interpreter = _FakeInterpreter(
+        throws: const MealInterpreterException(
+          'plaintext to a public address',
+          failure: MealInterpreterFailure.insecureDestination,
+        ),
+      );
+
+      final reading = await useCaseWith(interpreter).read('100g toast');
+
+      expect(reading.usedModel, isFalse);
+      expect(reading.result.items, hasLength(1));
+      expect(reading.modelFailure, MealTextModelFailure.insecureDestination);
+    });
+
+    test('reports a server that ran out of time', () async {
+      // #774. This one is not silent, and the budget is why: only a server
+      // the user runs classifies a timeout this way, and only after 120s —
+      // six times what a hosted API gets. A cold model load finishes well
+      // inside that; hardware that cannot serve the chosen model does not,
+      // and will not tomorrow either.
+      final interpreter = _FakeInterpreter(
+        throws: const MealInterpreterException(
+          'request timed out',
+          failure: MealInterpreterFailure.timeout,
+        ),
+      );
+
+      final reading = await useCaseWith(interpreter).read('100g toast');
+
+      // The rows are still the parser's: saying why must not cost the entry.
+      expect(reading.usedModel, isFalse);
+      expect(reading.result.items, hasLength(1));
+      expect(reading.modelFailure, MealTextModelFailure.timeout);
+    });
+
     test('stays quiet about failures that may fix themselves', () async {
       // The notice is only worth anything if it is rare. A dropped
       // connection resolves on its own, and a banner that fires for those is
       // one people learn to scroll past — which would cost it the value it
       // has for a wrong key.
       for (final e in const [
-        MealInterpreterException('timeout'),
+        // Named for what it is now that a timeout has a meaning of its own:
+        // this is the default, a socket failure with no status behind it.
+        MealInterpreterException('connection closed'),
         MealInterpreterException(
           'rate limited',
           failure: MealInterpreterFailure.transient,

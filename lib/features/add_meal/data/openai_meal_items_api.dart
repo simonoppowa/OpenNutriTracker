@@ -193,7 +193,17 @@ class OpenAiMealItemsApi implements MealItemsApi {
     // photograph of a meal is the failure #669 found to be worse than a
     // wrong answer, because the review screen makes a wrong answer visible
     // and makes an empty one look like a broken feature.
-    throw const MealInterpreterException('response carried no tool call');
+    throw MealInterpreterException(
+      'response carried no tool call',
+      // Not the default `transient`, which would send the user to check a
+      // connection that just delivered a 200. A model that will not call the
+      // tool will not call it next time either, and `unsupported` already
+      // names exactly this: "no provider of it honours a forced tool call".
+      // Ollama has no `tool_choice` field at all (#733), so on the most
+      // popular local runtime this is the expected failure rather than a
+      // rare one, and #779's probe has to be able to tell it from a blip.
+      failure: MealInterpreterFailure.unsupported,
+    );
   }
 
   /// The provider's machine-readable error code, or null.

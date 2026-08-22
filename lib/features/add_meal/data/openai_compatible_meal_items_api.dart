@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
@@ -115,6 +117,21 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
 
   final Duration timeout;
 
+  /// What running out of [timeout] means here.
+  ///
+  /// A parameter for the same reason [failureFor] is one: the fact is
+  /// identical everywhere — the client stopped waiting — and what the user
+  /// should do about it is not. Missing a 20s budget at a hosted API is a
+  /// blip, and [MealInterpreterFailure.transient] correctly says "try
+  /// again". Missing a 120s budget at a machine in the user's house is not,
+  /// and #774 measured what the wrong answer costs: two of three requests to
+  /// a real Ollama failed on a cold model load, and every one of them told
+  /// the user to go and check a connection that was working.
+  ///
+  /// Defaults to [MealInterpreterFailure.transient] so the hosted three keep
+  /// the behaviour that was deliberate for them.
+  final MealInterpreterFailure timeoutFailure;
+
   OpenAiCompatibleMealItemsApi(
     this._client,
     this._apiKey, {
@@ -124,6 +141,7 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
     this.toolChoice = ToolChoiceMode.namedFunction,
     this.failureFor = openRouterFailureFor,
     this.timeout = defaultTimeout,
+    this.timeoutFailure = MealInterpreterFailure.transient,
   });
 
   /// The OpenRouter configuration, named so call sites read as intent rather
@@ -255,6 +273,27 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
             body: body,
           )
           .timeout(timeout);
+    } on InsecureDestinationException {
+      // Ahead of the catch-all, which would report this as `transient` and
+      // send the user to check a connection the app deliberately never
+      // opened. The host is not logged: it is the address of a machine in
+      // somebody's house, and this exception is raised on requests that may
+      // carry a photograph of their dinner.
+      _log.warning('Refused a plaintext request to a public address');
+      throw const MealInterpreterException(
+        'plaintext to a public address',
+        failure: MealInterpreterFailure.insecureDestination,
+      );
+    } on TimeoutException {
+      // Ahead of the catch-all below, which is the whole point: until #774
+      // this arrived here as an ordinary socket failure and was reported as
+      // `transient` along with everything else, so a model that was merely
+      // still loading was indistinguishable from a network that had dropped.
+      _log.info('Interpreter call exceeded ${timeout.inSeconds}s');
+      throw MealInterpreterException(
+        'request timed out',
+        failure: timeoutFailure,
+      );
     } catch (e) {
       // Not logging `e`, for the same reason as the Anthropic client: a
       // socket error can carry part of the payload, and on the photo path
@@ -358,7 +397,17 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
     final message = choice['message'];
     final toolCalls = message is Map ? message['tool_calls'] : null;
     if (toolCalls is! List) {
-      throw const MealInterpreterException('response has no tool call');
+      throw MealInterpreterException(
+        'response has no tool call',
+        // Not the default `transient`, which would send the user to check a
+        // connection that just delivered a 200. A model that will not call the
+        // tool will not call it next time either, and `unsupported` already
+        // names exactly this: "no provider of it honours a forced tool call".
+        // Ollama has no `tool_choice` field at all (#733), so on the most
+        // popular local runtime this is the expected failure rather than a
+        // rare one, and #779's probe has to be able to tell it from a blip.
+        failure: MealInterpreterFailure.unsupported,
+      );
     }
 
     for (final call in toolCalls) {
@@ -370,7 +419,17 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
       return mealItemsFromJson(_argumentsFrom(function['arguments']));
     }
 
-    throw const MealInterpreterException('response has no tool call');
+    throw MealInterpreterException(
+      'response has no tool call',
+      // Not the default `transient`, which would send the user to check a
+      // connection that just delivered a 200. A model that will not call the
+      // tool will not call it next time either, and `unsupported` already
+      // names exactly this: "no provider of it honours a forced tool call".
+      // Ollama has no `tool_choice` field at all (#733), so on the most
+      // popular local runtime this is the expected failure rather than a
+      // rare one, and #779's probe has to be able to tell it from a blip.
+      failure: MealInterpreterFailure.unsupported,
+    );
   }
 
   /// A 200 that is not a success.

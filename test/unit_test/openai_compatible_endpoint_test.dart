@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 import 'package:opennutritracker/features/add_meal/data/openai_compatible_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 
@@ -42,6 +43,8 @@ void main() {
     String Function()? apiKey,
     ToolChoiceMode toolChoice = ToolChoiceMode.anyTool,
     MealInterpreterFailure Function(int)? failureFor,
+    MealInterpreterFailure? timeoutFailure,
+    Duration timeout = OpenAiCompatibleMealItemsApi.defaultTimeout,
   }) => OpenAiCompatibleMealItemsApi(
     client,
     apiKey,
@@ -50,6 +53,8 @@ void main() {
     toolChoice: toolChoice,
     failureFor:
         failureFor ?? OpenAiCompatibleMealItemsApi.openRouterFailureFor,
+    timeoutFailure: timeoutFailure ?? MealInterpreterFailure.transient,
+    timeout: timeout,
   );
 
   Future<void> send(OpenAiCompatibleMealItemsApi api) => api.requestItems(
@@ -192,6 +197,128 @@ void main() {
     expect(
       (item['properties'] as Map).keys,
       unorderedEquals(['query', 'quantity', 'unit']),
+    );
+  });
+
+  group('running out of time is not the same fact as losing the connection', () {
+    // #774. Both used to arrive here as "request failed" and leave as
+    // `transient`, whose advice is to check the network — measured against a
+    // real Ollama, that sent the user to debug a connection that was working
+    // while their model was still loading.
+    Future<MealInterpreterFailure> failureFrom(
+      OpenAiCompatibleMealItemsApi api,
+    ) async {
+      try {
+        await send(api);
+      } on MealInterpreterException catch (e) {
+        return e.failure;
+      }
+      fail('expected the request to fail');
+    }
+
+    test('a stalled server is reported the way the caller asked', () async {
+      final client = FakeClient(hangs: true);
+
+      expect(
+        await failureFrom(
+          apiFor(
+            client,
+            timeout: const Duration(milliseconds: 20),
+            timeoutFailure: MealInterpreterFailure.timeout,
+          ),
+        ),
+        MealInterpreterFailure.timeout,
+      );
+    });
+
+    test('and stays transient when nobody asked otherwise', () async {
+      // The guard on the hosted three: 20s was deliberate there and a miss
+      // really is a blip, so this must not change under them.
+      final client = FakeClient(hangs: true);
+
+      expect(
+        await failureFrom(
+          apiFor(client, timeout: const Duration(milliseconds: 20)),
+        ),
+        MealInterpreterFailure.transient,
+      );
+    });
+
+    test('a dropped connection is still transient, even here', () async {
+      // The mutation this exists for: classifying in the catch-all instead of
+      // in the timeout arm would relabel every socket error as a timeout and
+      // tell someone with no wifi to go and buy a faster computer.
+      final client = FakeClient(throwOnSend: Exception('connection closed'));
+
+      expect(
+        await failureFrom(
+          apiFor(client, timeoutFailure: MealInterpreterFailure.timeout),
+        ),
+        MealInterpreterFailure.transient,
+      );
+    });
+
+    test('the reason carries no payload, whatever it is called', () async {
+      // The rule the whole file is held to: a timeout on the photo path must
+      // not put the photograph in a log line.
+      final client = FakeClient(hangs: true);
+
+      await expectLater(
+        send(
+          apiFor(
+            client,
+            timeout: const Duration(milliseconds: 20),
+            timeoutFailure: MealInterpreterFailure.timeout,
+          ),
+        ),
+        throwsA(
+          isA<MealInterpreterException>().having(
+            (e) => e.reason,
+            'reason',
+            isNot(contains('two eggs')),
+          ),
+        ),
+      );
+    });
+  });
+
+  test('a refused plaintext destination is not a network problem', () async {
+    // #758. The guard raises before anything is sent, and folding that into
+    // the catch-all would report it as `transient` — telling the user to
+    // check a connection the app deliberately never opened. Nothing about
+    // their network will fix it; the address will.
+    final client = FakeClient(
+      throwOnSend: const InsecureDestinationException('ollama.example.com'),
+    );
+
+    await expectLater(
+      send(apiFor(client)),
+      throwsA(
+        isA<MealInterpreterException>().having(
+          (e) => e.failure,
+          'failure',
+          MealInterpreterFailure.insecureDestination,
+        ),
+      ),
+    );
+  });
+
+  test('and the refusal carries no host into a log line', () async {
+    // Raised on requests that may be a photograph of somebody's dinner, and
+    // the host is the address of a machine in their house.
+    final client = FakeClient(
+      throwOnSend: const InsecureDestinationException('ollama.example.com'),
+    );
+
+    await expectLater(
+      send(apiFor(client)),
+      throwsA(
+        isA<MealInterpreterException>().having(
+          (e) => e.toString(),
+          'toString',
+          isNot(contains('ollama.example.com')),
+        ),
+      ),
     );
   });
 

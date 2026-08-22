@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// The two keys #726 touched, checked against the ARB files themselves.
+/// The keys the AI work has added, checked against the ARB files themselves.
 ///
 /// The generated `S` class only exposes the locale the test binding picks, so
 /// a widget test can assert English and nothing else. Eight files could lose a
@@ -15,6 +15,10 @@ void main() {
   const touched = [
     'aiAssistModelCheapestLabel',
     'aiAssistDisclosureOpenRouter',
+    // #774.
+    'bulkAddModelTimedOutLabel',
+    // #758.
+    'bulkAddModelInsecureServerLabel',
     // #756
     'aiAssistProviderOwnServerLabel',
     'aiAssistEndpointFieldLabel',

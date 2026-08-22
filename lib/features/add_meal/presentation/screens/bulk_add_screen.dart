@@ -290,6 +290,12 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           MealTextModelFailure.auth => Icons.key_off_rounded,
           MealTextModelFailure.unsupported => Icons.block_rounded,
           MealTextModelFailure.billing => Icons.credit_card_off_rounded,
+          // Not a network glyph, for the same reason the sentence is not
+          // about a network: the connection was fine and the clock ran out.
+          MealTextModelFailure.timeout => Icons.timer_off_rounded,
+          // A lock, not a broken plug. Nothing failed to connect — the app
+          // declined to send in the clear.
+          MealTextModelFailure.insecureDestination => Icons.lock_outline,
         },
         text: switch (failure) {
           MealTextModelFailure.auth =>
@@ -298,6 +304,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             S.of(context).bulkAddModelUnsupportedLabel,
           MealTextModelFailure.billing =>
             S.of(context).bulkAddModelNoCreditLabel,
+          MealTextModelFailure.timeout =>
+            S.of(context).bulkAddModelTimedOutLabel,
+          MealTextModelFailure.insecureDestination =>
+            S.of(context).bulkAddModelInsecureServerLabel,
         },
         // Coloured as a warning, unlike the neutral "read by AI" banner:
         // this one is asking the user to go and change something.
@@ -699,7 +709,12 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       // Discards the picker's cache copy once it has been encoded — see
       // [MealPhotoEncoder.encodeAndDiscardSource]. Without it the app leaves
       // the photo on disk, which the settings disclosure says it does not.
-      photo = await MealPhotoEncoder.encodeAndDiscardSource(picked.path);
+      photo = await MealPhotoEncoder.encodeAndDiscardSource(
+        picked.path,
+        // Per destination, not per app: a server the user runs may be
+        // llama.cpp, which cannot decode WebP at all (#747).
+        format: MealPhotoFormat.forProvider(destination.provider),
+      );
     } catch (e, stackTrace) {
       // Never logged with the path: on Android the picker's temp filename
       // can carry the original image name.

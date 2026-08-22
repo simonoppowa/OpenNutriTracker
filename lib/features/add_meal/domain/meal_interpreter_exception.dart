@@ -39,6 +39,39 @@ enum MealInterpreterFailure {
   /// ordinary rate limit, so the two are separable on status alone with no
   /// body parsing.
   billing,
+
+  /// The destination did not answer inside the budget the client allowed.
+  ///
+  /// Told apart from [transient] because they are different facts about
+  /// different things. A transient failure is the *connection* — dropped,
+  /// rate limited, refused — and checking the network is sensible advice for
+  /// it. This one is the *server*: the connection worked, the request
+  /// arrived, and the answer was still not finished when the client stopped
+  /// waiting. Advice about a network fixes nothing.
+  ///
+  /// **Which destinations use it is a per-client policy, not a property of
+  /// timing out** — see `OpenAiCompatibleMealItemsApi.timeoutFailure`. A
+  /// hosted API that misses a 20s budget really has had a blip and really
+  /// should be retried, so those clients keep reporting [transient]. A
+  /// machine in the user's house that misses a 120s budget has told them
+  /// something durable about that machine (#774).
+  timeout,
+
+  /// The request was **not sent**: it was plaintext, and the address it
+  /// resolved to is not private.
+  ///
+  /// The only member that describes something the app did rather than
+  /// something a provider answered, and it has to be told apart from
+  /// [transient] for the usual reason: nothing is wrong with the network,
+  /// and checking it will not help. The fix is in settings — `https://`, or
+  /// an address on the user's own network.
+  ///
+  /// It exists because #746 and #748 measured that **neither platform blocks
+  /// cleartext for this app's stack**: `dart:io` is BSD sockets rather than
+  /// NSURLSession, so ATS and Android's cleartext policy never see these
+  /// requests. Nothing outside the app enforces this, which makes this
+  /// refusal the whole of the enforcement rather than a second line of it.
+  insecureDestination,
 }
 
 /// Raised when an interpreter cannot produce a result. Carries no response

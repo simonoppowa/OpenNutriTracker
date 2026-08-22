@@ -2,7 +2,47 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
+
+/// The container a photo is encoded into. **Quality and size are identical
+/// either way** — only the container changes.
+///
+/// It is a per-destination choice because the destinations genuinely
+/// disagree, and #747 measured where: llama.cpp decodes with `stb_image`,
+/// whose format list has no WebP, and ships a WebP-to-PNG converter in its
+/// own web UI to work around exactly that. Ollama accepts WebP but refuses a
+/// GIF; vLLM opens whatever Pillow opens.
+enum MealPhotoFormat {
+  /// What the hosted three get. Anthropic accepts it natively so nothing
+  /// transcodes on arrival, and the payload crosses the internet, where the
+  /// smaller of two lossy formats is worth having.
+  webp(CompressFormat.webp, 'image/webp'),
+
+  /// What a server the user runs gets. **All four runtimes decode JPEG**, so
+  /// choosing it removes the incompatibility rather than detecting it.
+  ///
+  /// It costs roughly 1.5-2x the bytes at the same quality. That is the
+  /// cheapest resource in this picture: the request crosses a LAN to hardware
+  /// the user owns, to a model that will then spend twenty seconds thinking
+  /// about it (#774).
+  jpeg(CompressFormat.jpeg, 'image/jpeg');
+
+  final CompressFormat compress;
+
+  final String mediaType;
+
+  const MealPhotoFormat(this.compress, this.mediaType);
+
+  /// Exhaustive on purpose. A fifth provider has to answer this question
+  /// rather than inherit whichever answer a wildcard happened to give it.
+  static MealPhotoFormat forProvider(AiProvider provider) => switch (provider) {
+    AiProvider.anthropic ||
+    AiProvider.openrouter ||
+    AiProvider.openai => webp,
+    AiProvider.ownServer => jpeg,
+  };
+}
 
 /// Turns a photo the user just picked into bytes that can be sent, without
 /// ever writing it to disk.
@@ -14,20 +54,21 @@ import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter
 /// the documents directory is a photo the export zip picks up and the user
 /// never asked to keep.
 ///
-/// The encoding — WebP, quality 80, longest edge 1024 px — matches
+/// The encoding — quality 80, longest edge 1024 px — matches
 /// `UserImageStorage` on purpose. It is the pipeline this app already trusts
-/// for food photography, the provider accepts WebP natively so nothing
-/// transcodes it on arrival, and a 1024 px image is about 1400 visual tokens,
-/// which is what makes this cost fractions of a cent.
+/// for food photography, and a 1024 px image is about 1400 visual tokens,
+/// which is what makes this cost fractions of a cent where anyone is charging
+/// for it. Only the container varies, per [MealPhotoFormat].
 class MealPhotoEncoder {
   /// Raw bytes we will hand to the provider, before base64 inflates them by
   /// a third. Chosen to stay comfortably inside the per-image limit rather
   /// than to sit on it.
   ///
-  /// In practice a 1024 px WebP is 80–200 KB, so this never fires on the
-  /// normal path. It exists for [_rawBytes], where a device with no WebP
-  /// encoder sends the camera's original file — which on a recent phone can
-  /// be eight megabytes of full-resolution JPEG.
+  /// In practice a 1024 px WebP is 80–200 KB and a JPEG at the same quality
+  /// is under half a megabyte, so this never fires on the normal path. It
+  /// exists for [_rawBytes], where a device whose encoder failed sends the
+  /// camera's original file — which on a recent phone can be eight megabytes
+  /// of full-resolution JPEG.
   @visibleForTesting
   static const maxBytes = 3 * 1024 * 1024;
 
@@ -51,9 +92,12 @@ class MealPhotoEncoder {
   /// That copy is what makes "the app keeps no photo" false, so the app
   /// removes it. The deletion runs even when encoding failed, because a photo
   /// the provider rejected is exactly as unwelcome on disk as one it read.
-  static Future<MealPhoto?> encodeAndDiscardSource(String sourcePath) async {
+  static Future<MealPhoto?> encodeAndDiscardSource(
+    String sourcePath, {
+    required MealPhotoFormat format,
+  }) async {
     try {
-      return await encode(sourcePath);
+      return await encode(sourcePath, format: format);
     } finally {
       try {
         final file = File(sourcePath);
@@ -72,15 +116,24 @@ class MealPhotoEncoder {
   ///
   /// Leaves [sourcePath] alone. Callers holding a picker temp file want
   /// [encodeAndDiscardSource] instead.
-  static Future<MealPhoto?> encode(String sourcePath) async {
-    final compressed = await _compressToWebP(sourcePath);
+  /// [format] has no default. Which container a destination can read is the
+  /// whole of what #747 settled, and a default here would quietly become the
+  /// answer for a caller that forgot to ask — which is precisely how a
+  /// llama.cpp user ends up sent a WebP it cannot decode.
+  static Future<MealPhoto?> encode(
+    String sourcePath, {
+    required MealPhotoFormat format,
+  }) async {
+    final compressed = await _compress(sourcePath, format);
     if (compressed != null) {
-      return _fitting(compressed, 'image/webp');
+      return _fitting(compressed, format.mediaType);
     }
 
-    // No WebP encoder on this device. Send the original if the provider
-    // takes that format, rather than failing over an encoder the user has
-    // no way to install.
+    // The encoder failed. Send the original if the destination takes that
+    // format, rather than failing over an encoder the user has no way to
+    // install. Far rarer on the JPEG path — JPEG encoders are universal
+    // where WebP's are not — which is why Ollama's refusal of a GIF here
+    // stops being a problem worth its own rule (#747).
     final mediaType = mediaTypeForPath(sourcePath);
     if (mediaType == null) return null;
     final raw = await _rawBytes(sourcePath);
@@ -103,11 +156,18 @@ class MealPhotoEncoder {
     return MealPhoto(bytes: bytes, mediaType: mediaType);
   }
 
-  static Future<Uint8List?> _compressToWebP(String sourcePath) async {
+  static Future<Uint8List?> _compress(
+    String sourcePath,
+    MealPhotoFormat format,
+  ) async {
     try {
       return await FlutterImageCompress.compressWithFile(
         sourcePath,
-        format: CompressFormat.webp,
+        format: format.compress,
+        // Identical for both containers. A photo that reads well at q80 as a
+        // WebP is not a different photograph because it went to a machine in
+        // the user's house, and varying quality per destination would make
+        // "the model misread it" unanswerable.
         quality: 80,
         minWidth: 1024,
         minHeight: 1024,
@@ -123,8 +183,8 @@ class MealPhotoEncoder {
   static Future<Uint8List?> _rawBytes(String sourcePath) async {
     try {
       final file = File(sourcePath);
-      // Checked before reading, not after. This path exists for devices with
-      // no WebP encoder, where the file is the camera's own output — a
+      // Checked before reading, not after. This path exists for a device
+      // whose encoder failed, where the file is the camera's own output — a
       // recent phone produces eight megabytes of it, and pulling all of that
       // into memory only to hand it to `_fitting` and have it thrown away is
       // a burst of allocation on the device least able to absorb one.

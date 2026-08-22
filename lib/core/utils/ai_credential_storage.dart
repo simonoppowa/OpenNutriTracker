@@ -76,6 +76,85 @@ class AiSelection {
   });
 }
 
+/// What a probe established about one capability of one destination.
+///
+/// Three-valued rather than a bool, because "we asked and it cannot" and "we
+/// never got an answer" call for different words in front of the user, and
+/// collapsing them would make a sleeping server read as a broken model.
+enum AiCapability {
+  /// The endpoint answered with a parseable tool call carrying at least one
+  /// item. The only state that opens a capability up.
+  passed,
+
+  /// The endpoint answered, and the answer was not usable — refused the
+  /// request, would not call the tool, or reported nothing at all in a
+  /// picture of food. Will not change on its own.
+  failed,
+
+  /// Nothing conclusive. Never probed, or probed and the answer said more
+  /// about the network than about the model.
+  ///
+  /// **The default in every ambiguous case**, on purpose: recording a
+  /// verdict that cannot be justified is worse than recording none, because
+  /// a wrong `failed` hides a working camera and a wrong `passed` offers a
+  /// dead end.
+  unknown,
+}
+
+/// What the last probe found for a destination.
+///
+/// Stored per `(endpoint, model)` by construction rather than by carrying a
+/// composite key: [AiCredentialStorage.writeEndpoint] and
+/// [AiCredentialStorage.writeModel] each discard it when their value changes,
+/// so a stored record can only ever describe the pair currently configured.
+class AiEndpointProbe {
+  /// Whether a meal line came back as usable items.
+  final AiCapability text;
+
+  /// Whether a photograph did. This is the one that gates a camera.
+  final AiCapability photo;
+
+  const AiEndpointProbe({required this.text, required this.photo});
+
+  static const unknown = AiEndpointProbe(
+    text: AiCapability.unknown,
+    photo: AiCapability.unknown,
+  );
+
+  /// `text` and `photo` as one character each — `p`, `f`, or absent as `-`.
+  ///
+  /// A fixed two-character form rather than JSON. This is a *storage format*
+  /// like [AiProvider] is, so it is worth being explicit that widening it
+  /// later means handling what an older build wrote; two positions with a
+  /// documented alphabet make that obvious, where a JSON blob invites fields
+  /// to be added as though nothing were reading the old ones.
+  String encode() => '${_code(text)}${_code(photo)}';
+
+  static String _code(AiCapability capability) => switch (capability) {
+    AiCapability.passed => 'p',
+    AiCapability.failed => 'f',
+    AiCapability.unknown => '-',
+  };
+
+  /// Anything unrecognised reads as [unknown] rather than raising. A keystore
+  /// value the app cannot parse is not worth failing a settings screen over,
+  /// and the safe reading of "I do not know what this says" is "I do not
+  /// know what this endpoint can do".
+  static AiEndpointProbe decode(String? value) {
+    if (value == null || value.length != 2) return unknown;
+    return AiEndpointProbe(
+      text: _capability(value[0]),
+      photo: _capability(value[1]),
+    );
+  }
+
+  static AiCapability _capability(String code) => switch (code) {
+    'p' => AiCapability.passed,
+    'f' => AiCapability.failed,
+    _ => AiCapability.unknown,
+  };
+}
+
 /// What a row needs to describe the feature without opening it: who would
 /// answer, whether a credential exists for them, and whether the user
 /// currently wants it used.
@@ -150,6 +229,9 @@ class AiCredentialStorage {
   /// consistency, though only one provider will ever hold one.
   static const _endpointTag = 'AiEndpointTag';
 
+  /// What a setup-time probe found this destination could do (#735).
+  static const _probeTag = 'AiProbeTag';
+
   static String _slotTag(AiProvider provider) =>
       '$_legacyApiKeyTag.${provider.name}';
 
@@ -158,6 +240,9 @@ class AiCredentialStorage {
 
   static String _endpointSlotTag(AiProvider provider) =>
       '$_endpointTag.${provider.name}';
+
+  static String _probeSlotTag(AiProvider provider) =>
+      '$_probeTag.${provider.name}';
 
   final FlutterSecureStorage _storage;
 
@@ -442,6 +527,10 @@ class AiCredentialStorage {
     final previous = await _storage.read(key: _endpointSlotTag(target));
     if (previous != value) {
       await _storage.delete(key: _modelSlotTag(target));
+      // And what the probe found, for the same reason and one step further:
+      // "photos work here" was a fact about a machine, and this is a
+      // different machine. #779.
+      await _storage.delete(key: _probeSlotTag(target));
     }
     await _storage.write(key: _endpointSlotTag(target), value: value);
 
@@ -518,10 +607,73 @@ class AiCredentialStorage {
     return (value == null || value.isEmpty) ? null : value;
   }
 
+  /// Stores the model, and **forgets what the probe found when the model
+  /// changes**.
+  ///
+  /// The mirror of the rule in [writeEndpoint], and the other half of what
+  /// makes a probe result a fact about `(endpoint, model)` rather than about
+  /// an address. Without it, pulling a text-only model under the same tag
+  /// leaves a camera that passed once and now fails on every photograph —
+  /// the resurrection trap #688 closed, reopened under a different key.
   Future<void> writeModel(String modelId, {AiProvider? provider}) async {
     final target = await _target(provider);
     if (target == null) return;
+
+    final previous = await _storage.read(key: _modelSlotTag(target));
+    if (previous != modelId) {
+      await _storage.delete(key: _probeSlotTag(target));
+    }
     await _storage.write(key: _modelSlotTag(target), value: modelId);
+  }
+
+  /// What the last probe found for [provider], or [AiEndpointProbe.unknown]
+  /// when none has run against this `(endpoint, model)` pair.
+  ///
+  /// Never throws on a value it cannot read. A corrupt or unrecognised record
+  /// reads as unknown, which is the same conservative direction as everything
+  /// else here: an unproven capability is not offered.
+  Future<AiEndpointProbe> readProbe({AiProvider? provider}) async {
+    final target = await _target(provider);
+    if (target == null) return AiEndpointProbe.unknown;
+    return AiEndpointProbe.decode(
+      await _storage.read(key: _probeSlotTag(target)),
+    );
+  }
+
+  /// Records what a probe found. **Only conclusive verdicts are written.**
+  ///
+  /// An [AiCapability.unknown] result leaves whatever was already known
+  /// alone, per capability. Without that, a retry against a sleeping server
+  /// would revoke a pass that is still perfectly true: nothing about the
+  /// `(endpoint, model)` changed, and the only thing that learned anything
+  /// was the network. The rule this store already applies to a wrong
+  /// `failed` — it hides a working camera — applies just as much to an
+  /// inconclusive one overwriting a good answer.
+  ///
+  /// A conclusive verdict does overwrite, in both directions, which is what
+  /// lets a use-time capability refusal retract a stale pass (#782).
+  ///
+  /// With nothing conclusive on either side the slot is **deleted** rather
+  /// than written as `"--"`, so "we could not tell" and "nobody has asked
+  /// yet" really are one state rather than two that merely read alike.
+  Future<void> writeProbe(AiEndpointProbe probe, {AiProvider? provider}) async {
+    final target = await _target(provider);
+    if (target == null) return;
+
+    final stored = AiEndpointProbe.decode(
+      await _storage.read(key: _probeSlotTag(target)),
+    );
+    final merged = AiEndpointProbe(
+      text: probe.text == AiCapability.unknown ? stored.text : probe.text,
+      photo: probe.photo == AiCapability.unknown ? stored.photo : probe.photo,
+    );
+
+    if (merged.text == AiCapability.unknown &&
+        merged.photo == AiCapability.unknown) {
+      await _storage.delete(key: _probeSlotTag(target));
+      return;
+    }
+    await _storage.write(key: _probeSlotTag(target), value: merged.encode());
   }
 
   /// The stored key for [provider], defaulting to the active one, or null
@@ -584,6 +736,7 @@ class AiCredentialStorage {
     await _storage.delete(key: _slotTag(target));
     await _storage.delete(key: _endpointSlotTag(target));
     await _storage.delete(key: _modelSlotTag(target));
+    await _storage.delete(key: _probeSlotTag(target));
     await _retireLegacyTagFor(target);
 
     // Only once nothing is left: with two slots, clearing one key is often
