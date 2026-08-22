@@ -73,9 +73,9 @@ bool _isV4Mapped(List<int> raw) {
 /// outside this app is enforcing anything. This is the whole of the
 /// enforcement.
 ///
-/// A real case from this project's own network shows why both families have
-/// to be considered: `Simons-Mac-mini.fritz.box` reverse-resolves to
-/// `192.168.188.46`, while its **forward lookup returns only a public-scope
+/// A measured dual-stack case shows why both families have to be considered:
+/// `example-server.home.arpa` reverse-resolves to
+/// `192.168.1.46`, while its **forward lookup returns only a public-scope
 /// IPv6 address**. An IPv4-only check would never see where the connection
 /// actually went.
 class PlaintextDestinationGuard {

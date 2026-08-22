@@ -779,15 +779,16 @@ void main() {
       // whose entire job is to name the destination truthfully at the moment
       // the user decides whether to send a photograph.
       //
-      // Reachable on this feature's own network rather than in theory: #758
-      // measured `Simons-Mac-mini.fritz.box` resolving to a ULA `fd55:f894:…`
+      // Seen in a measured dual-stack setup rather than only in theory: #758
+      // used `example-server.home.arpa` resolving to a ULA
+      // `fd00:1234:5678:…`
       // beside a private v4, and the plaintext guard accepts whichever
       // private answer it finds.
       for (final (endpoint, expected) in [
         ('http://[2001:db8::1]:11434', '[2001:db8::1]:11434'),
         (
-          'http://[fd55:f894:aa11::22]:11434/v1/chat/completions',
-          '[fd55:f894:aa11::22]:11434',
+          'http://[fd00:1234:5678::22]:11434/v1/chat/completions',
+          '[fd00:1234:5678::22]:11434',
         ),
         ('http://[::1]:11434', '[::1]:11434'),
         // No port, nothing to separate: the brackets are there to keep the
@@ -815,11 +816,12 @@ void main() {
       // above. It also carries `userInfo`, which is the whole reason this
       // function does not use it — so the two rules are checked together
       // rather than each on an address the other never sees.
-      const withPassword = 'http://ollama:hunter2@[fd55:f894:aa11::22]:11434';
+      const withPassword =
+          'http://ollama:hunter2@[fd00:1234:5678::22]:11434';
 
       expect(
         AiCredentialStorage.displayHost(withPassword),
-        '[fd55:f894:aa11::22]:11434',
+        '[fd00:1234:5678::22]:11434',
       );
       expect(
         AiCredentialStorage.displayHost(withPassword),

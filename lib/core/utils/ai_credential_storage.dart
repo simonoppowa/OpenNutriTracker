@@ -401,8 +401,8 @@ class AiCredentialStorage {
   /// back `2001:db8::1` with the brackets stripped, so pasting a port onto it
   /// produced `2001:db8::1:11434` — an address a reader cannot separate into
   /// host and port and cannot type back in. This is not a hypothetical shape
-  /// on this feature's own network: #758 measured `Simons-Mac-mini.fritz.box`
-  /// resolving to a ULA `fd55:f894:…` alongside a private v4, and the
+  /// in a dual-stack home network: #758 measured `example-server.home.arpa`
+  /// resolving to a ULA `fd00:1234:5678:…` alongside a private v4, and the
   /// plaintext guard deliberately accepts whichever private answer it finds,
   /// v6 included. A string whose whole job is to name the destination at the
   /// moment the user decides whether to send a photograph fails at it if the
@@ -411,7 +411,7 @@ class AiCredentialStorage {
   /// Bracketed **only** when there is a port, because that is the only case
   /// that is ambiguous — the brackets exist in a URI to separate the address
   /// from the port colon, and with no port there is nothing to separate. A
-  /// bare `fd55:f894::22` reads better in a sentence than a bracketed one.
+  /// bare `fd00:1234:5678::22` reads better in a sentence than a bracketed one.
   ///
   /// Not `Uri.authority`, which brackets correctly and would have been the
   /// short way to fix this: it also carries the `userInfo` this function
