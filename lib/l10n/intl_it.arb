@@ -1145,6 +1145,7 @@
   "bulkAddModelUnsupportedLabel": "IA non usata: il modello scelto non è utilizzabile. Queste righe vengono dal parser offline — scegli un altro modello nelle impostazioni.",
   "bulkAddModelNoCreditLabel": "L'IA non è stata eseguita: il credito del tuo account provider è esaurito. Queste righe provengono dall'analizzatore offline — ricarica il credito presso il provider per usare di nuovo l'IA.",
   "bulkAddModelInsecureServerLabel": "L'IA non è stata eseguita: indirizzo pubblico e non cifrato. Usa https.",
+  "bulkAddModelTimedOutLabel": "L'IA non è stata eseguita: il tuo server non ha risposto in tempo. Queste righe provengono dall'analizzatore offline — un modello più piccolo o una macchina più veloce risponderà prima.",
   "bulkAddPhotoLabel": "Leggi una foto",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker non ne conserva alcuna copia e la foto non finisce mai nelle tue esportazioni.",
   "bulkAddPhotoDisclosureAnthropic": "La foto viene inviata ad Anthropic per riconoscere gli alimenti che contiene.",

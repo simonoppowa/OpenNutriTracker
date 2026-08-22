@@ -1145,6 +1145,7 @@
   "bulkAddModelUnsupportedLabel": "SI nie zadziałała: nie można użyć wybranego modelu. Te pozycje pochodzą z parsera offline — wybierz inny model w ustawieniach.",
   "bulkAddModelNoCreditLabel": "Nie uruchomiono AI: na koncie u dostawcy brakuje środków. Te wiersze pochodzą z parsera offline — doładuj konto u dostawcy, aby znów korzystać z AI.",
   "bulkAddModelInsecureServerLabel": "Nie uruchomiono AI: adres jest publiczny i nieszyfrowany. Użyj https.",
+  "bulkAddModelTimedOutLabel": "Nie uruchomiono AI: twój serwer nie odpowiedział na czas. Te wiersze pochodzą z parsera offline — mniejszy model lub szybszy komputer odpowie prędzej.",
   "bulkAddPhotoLabel": "Odczytaj zdjęcie",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker nie zachowuje własnej kopii, a zdjęcie nigdy nie trafia do Twoich eksportów.",
   "bulkAddPhotoDisclosureAnthropic": "Zdjęcie jest wysyłane do Anthropic w celu rozpoznania produktów na nim.",

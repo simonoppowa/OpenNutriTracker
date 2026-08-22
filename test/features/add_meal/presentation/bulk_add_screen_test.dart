@@ -373,6 +373,98 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a timed-out server is not dressed up as a network problem', (
+    tester,
+  ) async {
+    // #774. Measured against a real Ollama: two of three requests failed on
+    // a cold model load, and every one of them was reported as `transient`,
+    // whose advice is to check the connection. The connection was fine — the
+    // model was loading — so the user was sent to debug a network problem
+    // that did not exist, about a server on their own desk.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await _registerWithFailingReader({
+      'toast': [_meal('Toast')],
+    }, const MealInterpreterException(
+      'request timed out',
+      failure: MealInterpreterFailure.timeout,
+    ));
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    await _parse(tester, '100g toast');
+
+    expect(find.text(l10nEn.bulkAddModelTimedOutLabel), findsOneWidget);
+    // The sentence must not send the user to their router, and neither must
+    // the glyph beside it.
+    expect(find.byIcon(Icons.timer_off_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.wifi_off_rounded), findsNothing);
+    // Reporting it must not cost the entry: the parser rows still stand.
+    expect(find.textContaining('Toast'), findsWidgets);
+  });
+
+  testWidgets('the cause survives the three-line cap, in German', (
+    tester,
+  ) async {
+    // The notice ellipsises past three lines, and at 355dp of bodySmall that
+    // is about 85 German characters — which every one of these strings
+    // exceeds, the three shipped ones included (`bulkAddModelNoCreditLabel`
+    // is 181). So "the whole sentence is visible" is not a promise this
+    // surface currently makes to anybody, and asserting it here would fail
+    // for a reason that predates #774.
+    //
+    // What is worth pinning is weaker and still useful: whatever the string
+    // opens with, that opening sentence has to finish inside the cap. The
+    // reader then always gets one complete thought rather than a fragment,
+    // and a translation that runs the whole notice together as a single
+    // unbroken sentence — the shape that truncates worst — fails here.
+    //
+    // It does not check that the opening sentence is the *cause*; nothing
+    // short of hardcoding the German would. Ordering is a copy review.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await _registerWithFailingReader({
+      'toast': [_meal('Toast')],
+    }, const MealInterpreterException(
+      'request timed out',
+      failure: MealInterpreterFailure.timeout,
+    ));
+
+    await tester.pumpWidget(_app(locale: const Locale('de')));
+    await tester.pumpAndSettle();
+    await _parse(tester, '100g toast');
+
+    final de = lookupS(const Locale('de'));
+    final notice = tester.renderObject<RenderParagraph>(
+      find.text(de.bulkAddModelTimedOutLabel),
+    );
+
+    // Measured through the notice's own style and width rather than a
+    // guessed geometry, so this tracks the widget if either changes.
+    final full = de.bulkAddModelTimedOutLabel;
+    final cause = full.substring(0, full.indexOf('.') + 1);
+    expect(cause.length, lessThan(full.length), reason: 'no sentence found');
+
+    final painter = TextPainter(
+      text: TextSpan(text: cause, style: notice.text.style),
+      maxLines: 3,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: notice.size.width);
+
+    expect(
+      painter.didExceedMaxLines,
+      isFalse,
+      reason:
+          'the German sentence naming why the model was skipped is cut off '
+          'before it finishes — put the cause first',
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a refused destination is not dressed as a network fault', (
     tester,
   ) async {

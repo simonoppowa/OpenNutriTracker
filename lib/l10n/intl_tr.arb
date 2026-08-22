@@ -1176,6 +1176,7 @@
   "bulkAddModelUnsupportedLabel": "Yapay zekâ çalışmadı: seçilen model kullanılamadı. Bu satırlar çevrimdışı ayrıştırıcıdan geliyor — Ayarlar'dan başka bir model seçin.",
   "bulkAddModelNoCreditLabel": "Yapay zekâ çalışmadı: sağlayıcı hesabınızda kredi kalmamış. Bu satırlar çevrimdışı ayrıştırıcıdan geldi — yapay zekâyı yeniden kullanmak için sağlayıcınızdan kredi yükleyin.",
   "bulkAddModelInsecureServerLabel": "Yapay zekâ çalışmadı: adres herkese açık ve şifresiz. https kullanın.",
+  "bulkAddModelTimedOutLabel": "Yapay zekâ çalışmadı: sunucunuz zamanında yanıt vermedi. Bu satırlar çevrimdışı ayrıştırıcıdan geldi — daha küçük bir model ya da daha hızlı bir makine daha çabuk yanıt verir.",
   "bulkAddPhotoLabel": "Fotoğraf oku",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker kendi kopyasını saklamaz ve fotoğraf dışa aktarımlarınıza asla dahil edilmez.",
   "bulkAddPhotoDisclosureAnthropic": "Fotoğraf, içindeki yiyecekleri tanımak için Anthropic'e gönderilir.",

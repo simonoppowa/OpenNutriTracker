@@ -1145,6 +1145,7 @@
   "bulkAddModelUnsupportedLabel": "AI se nepoužila: Vybraný model nebylo možné použít. Tyto řádky pocházejí z offline parseru — vyberte v nastavení jiný model.",
   "bulkAddModelNoCreditLabel": "AI se nespustila: na účtu u poskytovatele nemáte kredit. Tyto řádky pocházejí z offline analyzátoru — dobijte kredit u poskytovatele, abyste mohli AI zase používat.",
   "bulkAddModelInsecureServerLabel": "AI se nespustila: adresa je veřejná a nešifrovaná. Použijte https.",
+  "bulkAddModelTimedOutLabel": "AI se nespustila: váš server neodpověděl včas. Tyto řádky pocházejí z offline analyzátoru — menší model nebo rychlejší počítač odpoví dříve.",
   "bulkAddPhotoLabel": "Načíst fotku",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker si neponechává vlastní kopii a fotka se nikdy nedostane do vašich exportů.",
   "bulkAddPhotoDisclosureAnthropic": "Fotka se odešle společnosti Anthropic, aby rozpoznala potraviny na ní.",

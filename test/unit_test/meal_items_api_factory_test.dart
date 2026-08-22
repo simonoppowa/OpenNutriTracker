@@ -7,6 +7,8 @@ import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/data/meal_items_api_factory.dart';
+import 'package:opennutritracker/features/add_meal/data/openai_compatible_meal_items_api.dart';
+import 'package:opennutritracker/features/add_meal/data/openai_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 
 /// Records where a request actually went. Everything else in this suite
@@ -268,6 +270,104 @@ void main() {
         'type': 'tool',
         'name': 'log_meal_items',
       });
+    });
+  });
+
+  group('how long each destination is given to answer', () {
+    // #774. One constant for all four was wrong in a way that only showed up
+    // against real hardware: 20s failed two of three requests to an Ollama on
+    // an M4 Mac mini whose model had been unloaded, and Ollama unloads after
+    // five idle minutes, so that is the ordinary first request of a meal.
+    const ownServer = AiSelection(
+      provider: AiProvider.ownServer,
+      endpoint: 'http://192.168.1.5:11434/v1/chat/completions',
+      modelId: 'gemma3:4b',
+    );
+
+    OpenAiCompatibleMealItemsApi ownServerApi() =>
+        mealItemsApiFor(CapturingClient(), ownServer)
+            as OpenAiCompatibleMealItemsApi;
+
+    test('a server the user runs gets the measured budget', () {
+      expect(ownServerApi().timeout, ownServerTimeout);
+    });
+
+    test('which clears a cold load by a margin, not by a whisker', () {
+      // 22-24s was the cold measurement on an M4 — good hardware for this.
+      // The provider exists to serve people running the same model on an old
+      // laptop or a Pi, so a budget tuned to the fast end excludes exactly
+      // the users it was built for. Asserted as a floor rather than as the
+      // exact number so tuning it upward does not have to touch this test.
+      expect(ownServerTimeout.inSeconds, greaterThan(24 * 2));
+    });
+
+    test('and it is longer than the hosted one, not merely different', () {
+      // The relation, not the pair of literals: dropping `defaultTimeout` to
+      // 10s or raising it to 200s must not silently invert this.
+      expect(
+        ownServerTimeout,
+        greaterThan(OpenAiCompatibleMealItemsApi.defaultTimeout),
+      );
+    });
+
+    test('the hosted three keep the 20s that was deliberate for them', () {
+      // A slow answer from a hosted API means something is wrong, and a
+      // two-minute wait for one would be a regression dressed as a fix.
+      final anthropic =
+          mealItemsApiFor(
+                CapturingClient(),
+                const AiSelection(
+                  provider: AiProvider.anthropic,
+                  apiKey: 'sk-ant',
+                ),
+              )
+              as AnthropicMealItemsApi;
+      final openrouter =
+          mealItemsApiFor(
+                CapturingClient(),
+                const AiSelection(
+                  provider: AiProvider.openrouter,
+                  apiKey: 'sk-or',
+                ),
+              )
+              as OpenAiCompatibleMealItemsApi;
+      final openai =
+          mealItemsApiFor(
+                CapturingClient(),
+                const AiSelection(
+                  provider: AiProvider.openai,
+                  apiKey: 'sk-oa',
+                ),
+              )
+              as OpenAiMealItemsApi;
+
+      // The literal, not each class's own `defaultTimeout` — comparing a
+      // client against the constant it was built from is a tautology, and
+      // #774's constraint is specifically that this number does not move
+      // under the hosted three as a side effect of the fourth.
+      const hosted = Duration(seconds: 20);
+      expect(anthropic.timeout, hosted);
+      expect(openrouter.timeout, hosted);
+      expect(openai.timeout, hosted);
+    });
+
+    test('only the user\'s own server calls a timeout a timeout', () {
+      // The classification travels with the budget, and only together do
+      // they mean anything: the longer wait stops a cold load failing at
+      // all, and the label stops what is left being described as a network
+      // problem. On the hosted three both stay as they were.
+      expect(ownServerApi().timeoutFailure, MealInterpreterFailure.timeout);
+
+      final openrouter =
+          mealItemsApiFor(
+                CapturingClient(),
+                const AiSelection(
+                  provider: AiProvider.openrouter,
+                  apiKey: 'sk-or',
+                ),
+              )
+              as OpenAiCompatibleMealItemsApi;
+      expect(openrouter.timeoutFailure, MealInterpreterFailure.transient);
     });
   });
 

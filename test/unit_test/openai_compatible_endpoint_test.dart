@@ -43,6 +43,8 @@ void main() {
     String Function()? apiKey,
     ToolChoiceMode toolChoice = ToolChoiceMode.anyTool,
     MealInterpreterFailure Function(int)? failureFor,
+    MealInterpreterFailure? timeoutFailure,
+    Duration timeout = OpenAiCompatibleMealItemsApi.defaultTimeout,
   }) => OpenAiCompatibleMealItemsApi(
     client,
     apiKey,
@@ -51,6 +53,8 @@ void main() {
     toolChoice: toolChoice,
     failureFor:
         failureFor ?? OpenAiCompatibleMealItemsApi.openRouterFailureFor,
+    timeoutFailure: timeoutFailure ?? MealInterpreterFailure.transient,
+    timeout: timeout,
   );
 
   Future<void> send(OpenAiCompatibleMealItemsApi api) => api.requestItems(
@@ -194,6 +198,88 @@ void main() {
       (item['properties'] as Map).keys,
       unorderedEquals(['query', 'quantity', 'unit']),
     );
+  });
+
+  group('running out of time is not the same fact as losing the connection', () {
+    // #774. Both used to arrive here as "request failed" and leave as
+    // `transient`, whose advice is to check the network — measured against a
+    // real Ollama, that sent the user to debug a connection that was working
+    // while their model was still loading.
+    Future<MealInterpreterFailure> failureFrom(
+      OpenAiCompatibleMealItemsApi api,
+    ) async {
+      try {
+        await send(api);
+      } on MealInterpreterException catch (e) {
+        return e.failure;
+      }
+      fail('expected the request to fail');
+    }
+
+    test('a stalled server is reported the way the caller asked', () async {
+      final client = FakeClient(hangs: true);
+
+      expect(
+        await failureFrom(
+          apiFor(
+            client,
+            timeout: const Duration(milliseconds: 20),
+            timeoutFailure: MealInterpreterFailure.timeout,
+          ),
+        ),
+        MealInterpreterFailure.timeout,
+      );
+    });
+
+    test('and stays transient when nobody asked otherwise', () async {
+      // The guard on the hosted three: 20s was deliberate there and a miss
+      // really is a blip, so this must not change under them.
+      final client = FakeClient(hangs: true);
+
+      expect(
+        await failureFrom(
+          apiFor(client, timeout: const Duration(milliseconds: 20)),
+        ),
+        MealInterpreterFailure.transient,
+      );
+    });
+
+    test('a dropped connection is still transient, even here', () async {
+      // The mutation this exists for: classifying in the catch-all instead of
+      // in the timeout arm would relabel every socket error as a timeout and
+      // tell someone with no wifi to go and buy a faster computer.
+      final client = FakeClient(throwOnSend: Exception('connection closed'));
+
+      expect(
+        await failureFrom(
+          apiFor(client, timeoutFailure: MealInterpreterFailure.timeout),
+        ),
+        MealInterpreterFailure.transient,
+      );
+    });
+
+    test('the reason carries no payload, whatever it is called', () async {
+      // The rule the whole file is held to: a timeout on the photo path must
+      // not put the photograph in a log line.
+      final client = FakeClient(hangs: true);
+
+      await expectLater(
+        send(
+          apiFor(
+            client,
+            timeout: const Duration(milliseconds: 20),
+            timeoutFailure: MealInterpreterFailure.timeout,
+          ),
+        ),
+        throwsA(
+          isA<MealInterpreterException>().having(
+            (e) => e.reason,
+            'reason',
+            isNot(contains('two eggs')),
+          ),
+        ),
+      );
+    });
   });
 
   test('a refused plaintext destination is not a network problem', () async {
