@@ -38,8 +38,13 @@ String? aiAssistSubtitle(
       AiProvider.openrouter => 'OpenRouter',
       AiProvider.openai => 'OpenAI',
       // No brand to print. #736: the row names where the data goes, and for a
-      // server the user runs that is the address they typed.
-      AiProvider.ownServer => endpoint ?? '',
+      // server the user runs that is the machine they pointed it at — host
+      // and port, not the stored URL. That string carries the chat route,
+      // which is on every one of these addresses and tells them apart not at
+      // all, and it carries `userInfo` when the server sits behind basic
+      // auth, which would put a password on the settings row.
+      AiProvider.ownServer =>
+        AiCredentialStorage.displayHost(endpoint ?? '') ?? '',
     }}',
   true => s.settingsAiAssistPausedLabel,
 };

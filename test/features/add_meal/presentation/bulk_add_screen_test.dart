@@ -835,6 +835,112 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('the camera is hidden with no credential at all', (
+    tester,
+  ) async {
+    // The other half of the gate, and the one a destination-only check let
+    // through: an install that has never opened settings resolves a
+    // destination anyway, because nothing stored reads as Anthropic (#688)
+    // and an absent model id falls back to the list's first entry. Every
+    // such user was offered a camera whose sheet names Anthropic and whose
+    // request cannot be signed.
+    await _register(const {});
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    expect(await getIt<AiCredentialStorage>().isEnabled(), isFalse);
+    expect(find.byIcon(Icons.photo_camera_rounded), findsNothing);
+  });
+
+  testWidgets('the camera is hidden once the user switches the feature off', (
+    tester,
+  ) async {
+    // Pausing is the cheap act `setEnabled` exists for, and it has to reach
+    // the camera as well as the text path — a destination stays perfectly
+    // resolvable while the user is telling the app not to use it.
+    await _register(const {});
+    getIt.unregister<AiCredentialStorage>();
+    final storage = AiCredentialStorage(
+      _MapStorage({
+        'AiProviderTag': 'anthropic',
+        'AiApiKeyTag.anthropic': 'sk-test',
+        'AiAssistEnabledTag': 'false',
+      }),
+    );
+    getIt.registerLazySingleton<AiCredentialStorage>(() => storage);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.photo_camera_rounded), findsNothing);
+  });
+
+  testWidgets('the camera is hidden for a server the user runs', (
+    tester,
+  ) async {
+    // Found on a Pixel 6, not here. With an address configured the feature
+    // *is* enabled, so gating the icon on `isEnabled()` alone put a camera in
+    // the app bar that did nothing — there is no identifiable photo
+    // destination for this provider until #747 settles which image formats
+    // survive (the encoder emits WebP; llama.cpp cannot decode it). A button
+    // that is present and inert is worse than one that is absent.
+    await _register(const {});
+    getIt.unregister<AiCredentialStorage>();
+    // Seeded rather than written, so the assertion is about what the screen
+    // does with stored state and does not depend on the writer.
+    final storage = AiCredentialStorage(
+      _MapStorage({
+        'AiProviderTag': 'ownServer',
+        'AiEndpointTag.ownServer': 'http://192.168.1.5:11434',
+        'AiModelTag.ownServer': 'gemma3:4b',
+      }),
+    );
+    getIt.registerLazySingleton<AiCredentialStorage>(() => storage);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    expect(
+      await storage.isEnabled(),
+      isTrue,
+      reason: 'the feature is on; only the photo path is unavailable',
+    );
+    expect(find.byIcon(Icons.photo_camera_rounded), findsNothing);
+  });
+
+  testWidgets('the same harness does show the camera for a hosted provider', (
+    tester,
+  ) async {
+    await _register(const {});
+    getIt.unregister<AiCredentialStorage>();
+    final storage = AiCredentialStorage(
+      _MapStorage({
+        'AiProviderTag': 'anthropic',
+        'AiApiKeyTag.anthropic': 'sk-test',
+      }),
+    );
+    getIt.registerLazySingleton<AiCredentialStorage>(() => storage);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    expect(await storage.isEnabled(), isTrue);
+    expect(find.byIcon(Icons.photo_camera_rounded), findsOneWidget);
+  });
 }
 
 /// Returns a fixed reading without touching a credential or a network.

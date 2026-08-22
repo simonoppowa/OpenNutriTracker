@@ -19,6 +19,16 @@ void main() {
     'bulkAddModelTimedOutLabel',
     // #758.
     'bulkAddModelInsecureServerLabel',
+    // #756
+    'aiAssistProviderOwnServerLabel',
+    'aiAssistEndpointFieldLabel',
+    'aiAssistModelFieldLabel',
+    'aiAssistDisclosureOwnServerSecure',
+    'aiAssistDisclosureOwnServerPlaintext',
+    // What the dialog says instead of storing an address that can never be
+    // requested, or a server with no model to ask for.
+    'aiAssistEndpointInvalidLabel',
+    'aiAssistModelRequiredLabel',
   ];
 
   final arb = {
@@ -76,6 +86,97 @@ void main() {
             'row on this list and telling that user less than the direct path '
             'tells them',
       );
+    }
+  });
+
+  test('the provider is never called "local", in any language', () {
+    // #736: *local* is what the ecosystem calls Ollama **and** what a user
+    // reads as *on my phone*. Labelling this provider with it would promise
+    // on-device inference, which this app does not do and which was ruled
+    // out of scope. The word may appear descriptively in prose; it may not be
+    // the name of the thing.
+    for (final locale in locales) {
+      final label =
+          arb[locale]!['aiAssistProviderOwnServerLabel'] as String;
+      expect(
+        label.toLowerCase(),
+        isNot(contains('local')),
+        reason: '$locale labels the provider "local"',
+      );
+    }
+  });
+
+  test('no AI string claims the data stays on the device', () {
+    // The other half of the same trap. Data does leave — it goes to a machine
+    // the user controls, which is "no third party", not "never leaves".
+    // Deliberately narrow. A first draft forbade "on this device" and fired
+    // on `aiAssistDisclosureCommon` — *"the key is stored on this device
+    // only"* — which is true, load-bearing, and about the **key** rather than
+    // the meal. The trap is claiming the *content* never leaves; saying where
+    // a credential lives is the opposite of the problem.
+    const forbidden = [
+      'never leaves your device',
+      'never leaves this device',
+      'stays on your device',
+      'stays on this device',
+      'processed on your device',
+      'processed on-device',
+      'verlässt dein gerät nie',
+      'bleibt auf deinem gerät',
+      'auf deinem gerät verarbeitet',
+    ];
+    for (final locale in locales) {
+      for (final entry in arb[locale]!.entries) {
+        if (!entry.key.startsWith('aiAssist') &&
+            !entry.key.startsWith('bulkAddPhoto')) {
+          continue;
+        }
+        final value = entry.value;
+        if (value is! String) continue;
+        for (final phrase in forbidden) {
+          expect(
+            value.toLowerCase(),
+            isNot(contains(phrase)),
+            reason: '$locale/${entry.key} claims on-device processing',
+          );
+        }
+      }
+    }
+  });
+
+  test('the plaintext clause promises no boundary nobody enforces', () {
+    // It used to end *"it is only permitted because it stays on your own
+    // network"*, which asserts two things the app does not do: it permits
+    // plain HTTP to any host, and it cannot know where that host is. On a
+    // LAN address the sentence was accidentally reassuring; on
+    // `http://example.com` it was simply false, in nine languages, at the
+    // moment the user is agreeing to send their meals there.
+    //
+    // #758 may yet restrict plain HTTP to private addresses. Until something
+    // checks, nothing here may say it has been checked — and if #758 lands,
+    // the sentence it earns is a new one rather than this one returning.
+    //
+    // Narrow in the same way the on-device guard above is narrow, and for the
+    // same reason: these are the two languages this repo can vouch for
+    // phrase by phrase. The parity test keeps the key present everywhere; a
+    // reviewer keeps the other seven honest.
+    const forbidden = [
+      'your own network',
+      'stays on your network',
+      'only permitted because',
+      'deinem eigenen netzwerk',
+      'nur erlaubt, weil',
+    ];
+    for (final locale in locales) {
+      final value =
+          arb[locale]!['aiAssistDisclosureOwnServerPlaintext'] as String;
+      for (final phrase in forbidden) {
+        expect(
+          value.toLowerCase(),
+          isNot(contains(phrase)),
+          reason: '$locale claims a network boundary the app never checks',
+        );
+      }
     }
   });
 
