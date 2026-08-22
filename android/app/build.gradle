@@ -97,11 +97,11 @@ android {
 
     // Preserve the historic `app-<buildType>.apk` / `app-<buildType>.aab`
     // filenames for the `full` flavor so the public-facing artifacts stay
-    // named `app-release.apk` and `app-release.aab`, matching the website's
-    // "verify your download" instructions, the update-release-fingerprint
-    // workflow, and the fastlane Android lane's default path. The develop
-    // flavor keeps Gradle's default `app-develop-<buildType>.{apk,aab}` so
-    // a sideloaded build is easy to spot in the output directory.
+    // named `app-release.apk` and `app-release.aab`, matching the GitHub
+    // release asset names and the fastlane Android lane's default path. The
+    // develop flavor keeps Gradle's default
+    // `app-develop-<buildType>.{apk,aab}` so a sideloaded build is easy to
+    // spot in the output directory.
     applicationVariants.all { variant ->
         if (variant.flavorName == 'full') {
             // APK rename — AGP exposes this directly via Variant.outputs.

@@ -28,8 +28,6 @@
 </p>
 
 <p align="center">
-  <a href="https://simonoppowa.github.io/OpenNutriTracker/">Website</a>
-  ·
   <a href="GettingStarted.md">Getting started</a>
   ·
   <a href="CONTRIBUTING.md">Contributing</a>
@@ -54,9 +52,9 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 
 <table align="center">
   <tr>
-    <td align="center" width="33%"><img alt="Home screen showing calories left on a progress ring, carbs, fat and protein against their targets, and the day's logged activity" src="docs/site/screenshots/1_en-US.png" /></td>
-    <td align="center" width="33%"><img alt="Adding food to lunch, with recently logged items ready to re-add in one tap and a barcode scanner in the search field" src="docs/site/screenshots/2_en-US.png" /></td>
-    <td align="center" width="33%"><img alt="Food detail showing the full nutrition table with saturated fat, sugar and fibre, plus an expanded micronutrient panel" src="docs/site/screenshots/3_en-US.png" /></td>
+    <td align="center" width="33%"><img alt="Home screen showing calories left on a progress ring, carbs, fat and protein against their targets, and the day's logged activity" src="docs/screenshots/1_en-US.png" /></td>
+    <td align="center" width="33%"><img alt="Adding food to lunch, with recently logged items ready to re-add in one tap and a barcode scanner in the search field" src="docs/screenshots/2_en-US.png" /></td>
+    <td align="center" width="33%"><img alt="Food detail showing the full nutrition table with saturated fat, sugar and fibre, plus an expanded micronutrient panel" src="docs/screenshots/3_en-US.png" /></td>
   </tr>
   <tr>
     <td align="center"><sub><b>Home</b><br />where the day stands</sub></td>
@@ -64,9 +62,9 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
     <td align="center"><sub><b>Food detail</b><br />down to the micronutrient</sub></td>
   </tr>
   <tr>
-    <td align="center"><img alt="Diary showing a month calendar with each day marked by how it went, and the selected day's calories and macro rings below" src="docs/site/screenshots/4_en-US.png" /></td>
-    <td align="center"><img alt="Trends showing a seven-day streak, calories charted against the goal line, and daily macro averages" src="docs/site/screenshots/5_en-US.png" /></td>
-    <td align="center"><img alt="Profile screen showing BMI, activity level, weight goal and weekly rate" src="docs/site/screenshots/6_en-US.png" /></td>
+    <td align="center"><img alt="Diary showing a month calendar with each day marked by how it went, and the selected day's calories and macro rings below" src="docs/screenshots/4_en-US.png" /></td>
+    <td align="center"><img alt="Trends showing a seven-day streak, calories charted against the goal line, and daily macro averages" src="docs/screenshots/5_en-US.png" /></td>
+    <td align="center"><img alt="Profile screen showing BMI, activity level, weight goal and weekly rate" src="docs/screenshots/6_en-US.png" /></td>
   </tr>
   <tr>
     <td align="center"><sub><b>Diary</b><br />every day you've logged</sub></td>

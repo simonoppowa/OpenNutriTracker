@@ -866,9 +866,8 @@ jobs:
         # Gradle's native output directory (apk/<flavor>/<buildType>/).
         # Flutter's post-build copy at build/app/outputs/flutter-apk/
         # bypasses the rename and writes `app-full-release.apk` there,
-        # so we point the upload at the Gradle dir where the name is
-        # what the website and update-release-fingerprint workflow
-        # expect.
+        # so we point the upload at the Gradle dir where the name matches
+        # the historic GitHub release asset.
         uses: actions/upload-artifact@v7
         with:
           name: android-apk
