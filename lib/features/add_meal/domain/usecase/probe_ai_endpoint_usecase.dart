@@ -183,8 +183,7 @@ class AiEndpointProber {
 /// user's own photograph gets, and for the identical reason (#758's
 /// disclosure says the app keeps no copy).
 Future<MealPhoto?> loadProbePhoto(MealPhotoFormat format) async {
-  final bytes = (await rootBundle.load(aiProbePhotoAsset)).buffer
-      .asUint8List();
+  final bytes = (await rootBundle.load(aiProbePhotoAsset)).buffer.asUint8List();
   final directory = await getTemporaryDirectory();
   final file = File('${directory.path}/ai_probe_sample.jpg');
   await file.writeAsBytes(bytes, flush: true);

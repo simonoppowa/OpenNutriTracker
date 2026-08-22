@@ -25,9 +25,10 @@ class _ScriptedClient extends http.BaseClient {
     requests.add(
       jsonDecode((request as http.Request).body) as Map<String, dynamic>,
     );
-    final step = _script[requests.length - 1 < _script.length
-        ? requests.length - 1
-        : _script.length - 1];
+    final step =
+        _script[requests.length - 1 < _script.length
+            ? requests.length - 1
+            : _script.length - 1];
     return step(request);
   }
 }
@@ -35,11 +36,12 @@ class _ScriptedClient extends http.BaseClient {
 http.StreamedResponse Function(http.BaseRequest) _reply(
   String body, {
   int status = 200,
-}) => (request) => http.StreamedResponse(
-  Stream.value(utf8.encode(body)),
-  status,
-  request: request,
-);
+}) =>
+    (request) => http.StreamedResponse(
+      Stream.value(utf8.encode(body)),
+      status,
+      request: request,
+    );
 
 http.StreamedResponse Function(http.BaseRequest) _throws(Object error) =>
     (request) => throw error;
@@ -207,29 +209,32 @@ void main() {
     expect(formats, [MealPhotoFormat.jpeg]);
   });
 
-  test('it probes with the shipping schema, carrying no macro fields', () async {
-    // The provenance guarantee does not get a holiday because this request
-    // is a probe rather than a meal.
-    final client = _ScriptedClient([
-      _reply(
-        _toolReply([
-          {'query': 'bread'},
-        ]),
-      ),
-    ]);
+  test(
+    'it probes with the shipping schema, carrying no macro fields',
+    () async {
+      // The provenance guarantee does not get a holiday because this request
+      // is a probe rather than a meal.
+      final client = _ScriptedClient([
+        _reply(
+          _toolReply([
+            {'query': 'bread'},
+          ]),
+        ),
+      ]);
 
-    await _prober(client).probe(_selection);
+      await _prober(client).probe(_selection);
 
-    final tool = (client.requests.first['tools'] as List).single as Map;
-    final params =
-        (tool['function'] as Map)['parameters'] as Map<String, dynamic>;
-    final item =
-        ((params['properties'] as Map)['items'] as Map)['items'] as Map;
-    expect(
-      (item['properties'] as Map).keys,
-      unorderedEquals(['query', 'quantity', 'unit']),
-    );
-  });
+      final tool = (client.requests.first['tools'] as List).single as Map;
+      final params =
+          (tool['function'] as Map)['parameters'] as Map<String, dynamic>;
+      final item =
+          ((params['properties'] as Map)['items'] as Map)['items'] as Map;
+      expect(
+        (item['properties'] as Map).keys,
+        unorderedEquals(['query', 'quantity', 'unit']),
+      );
+    },
+  );
 
   test('the probe budget clears a cold model load with room over', () async {
     // The probe is by definition the first request a machine ever sees, so

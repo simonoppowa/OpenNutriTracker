@@ -37,55 +37,61 @@ void main() {
   const endpoint = String.fromEnvironment('PROBE_ENDPOINT');
   const model = String.fromEnvironment('PROBE_MODEL');
 
-  test('the prober agrees with what the model actually does', () async {
-    final photoBytes = await File(aiProbePhotoAsset).readAsBytes();
-    final client = http.Client();
-    addTearDown(client.close);
+  test(
+    'the prober agrees with what the model actually does',
+    () async {
+      final photoBytes = await File(aiProbePhotoAsset).readAsBytes();
+      final client = http.Client();
+      addTearDown(client.close);
 
-    final prober = AiEndpointProber(
-      client,
-      sampleImage: (format) async =>
-          MealPhoto(bytes: photoBytes, mediaType: format.mediaType),
-    );
-    final selection = AiSelection(
-      provider: AiProvider.ownServer,
-      endpoint: '${endpoint.replaceAll(RegExp(r'/+$'), '')}/v1/chat/completions',
-      modelId: model,
-    );
+      final prober = AiEndpointProber(
+        client,
+        sampleImage: (format) async =>
+            MealPhoto(bytes: photoBytes, mediaType: format.mediaType),
+      );
+      final selection = AiSelection(
+        provider: AiProvider.ownServer,
+        endpoint:
+            '${endpoint.replaceAll(RegExp(r'/+$'), '')}/v1/chat/completions',
+        modelId: model,
+      );
 
-    final started = DateTime.now();
-    final text = await prober.probeText(selection, localeCode: 'en');
-    final afterText = DateTime.now();
-    final photo = await prober.probePhoto(selection, localeCode: 'en');
-    final afterPhoto = DateTime.now();
+      final started = DateTime.now();
+      final text = await prober.probeText(selection, localeCode: 'en');
+      final afterText = DateTime.now();
+      final photo = await prober.probePhoto(selection, localeCode: 'en');
+      final afterPhoto = DateTime.now();
 
-    final result = AiEndpointProbe(text: text, photo: photo);
-    // ignore: avoid_print
-    print(
-      '\nendpoint : $endpoint\n'
-      'model    : $model\n'
-      'photo    : $aiProbePhotoAsset (${(photoBytes.length / 1024).round()} KB)\n'
-      'text     : ${text.name} in ${afterText.difference(started).inSeconds}s\n'
-      'photo    : ${photo.name} in '
-      '${afterPhoto.difference(afterText).inSeconds}s\n'
-      'stored   : "${result.encode()}"\n'
-      'camera   : ${photo == AiCapability.passed ? 'offered' : 'hidden'}',
-    );
+      final result = AiEndpointProbe(text: text, photo: photo);
+      // ignore: avoid_print
+      print(
+        '\nendpoint : $endpoint\n'
+        'model    : $model\n'
+        'photo    : $aiProbePhotoAsset (${(photoBytes.length / 1024).round()} KB)\n'
+        'text     : ${text.name} in ${afterText.difference(started).inSeconds}s\n'
+        'photo    : ${photo.name} in '
+        '${afterPhoto.difference(afterText).inSeconds}s\n'
+        'stored   : "${result.encode()}"\n'
+        'camera   : ${photo == AiCapability.passed ? 'offered' : 'hidden'}',
+      );
 
-    // The endpoint was reachable, so neither verdict may be inconclusive —
-    // that is the state reserved for a server that did not answer, and
-    // recording it for one that did would hide a capability the user has.
-    expect(
-      text,
-      isNot(AiCapability.unknown),
-      reason: 'a reachable endpoint must produce a verdict for text',
-    );
-    expect(
-      photo,
-      isNot(AiCapability.unknown),
-      reason: 'a reachable endpoint must produce a verdict for photos',
-    );
-  }, timeout: const Timeout(Duration(minutes: 6)), skip: endpoint.isEmpty || model.isEmpty
-      ? 'set --dart-define=PROBE_ENDPOINT and PROBE_MODEL to run this'
-      : false);
+      // The endpoint was reachable, so neither verdict may be inconclusive —
+      // that is the state reserved for a server that did not answer, and
+      // recording it for one that did would hide a capability the user has.
+      expect(
+        text,
+        isNot(AiCapability.unknown),
+        reason: 'a reachable endpoint must produce a verdict for text',
+      );
+      expect(
+        photo,
+        isNot(AiCapability.unknown),
+        reason: 'a reachable endpoint must produce a verdict for photos',
+      );
+    },
+    timeout: const Timeout(Duration(minutes: 6)),
+    skip: endpoint.isEmpty || model.isEmpty
+        ? 'set --dart-define=PROBE_ENDPOINT and PROBE_MODEL to run this'
+        : false,
+  );
 }

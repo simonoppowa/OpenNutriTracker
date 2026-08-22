@@ -476,10 +476,7 @@ class AiCredentialStorage {
   /// [AiCapability.unknown] result is stored as absence, so "we could not
   /// tell" and "nobody has asked yet" are the same state, which is what the
   /// camera gate treats them as anyway.
-  Future<void> writeProbe(
-    AiEndpointProbe probe, {
-    AiProvider? provider,
-  }) async {
+  Future<void> writeProbe(AiEndpointProbe probe, {AiProvider? provider}) async {
     final target = await _target(provider);
     if (target == null) return;
     await _storage.write(key: _probeSlotTag(target), value: probe.encode());
