@@ -187,6 +187,26 @@ void main() {
       expect(reading.modelFailure, MealTextModelFailure.unsupported);
     });
 
+    test('reports a destination the app refused to send to', () async {
+      // #758. The one failure in this list the *app* caused, which makes it
+      // the most important to say out loud: silence would leave someone
+      // whose server is at plain `http://` on the open internet with parser
+      // rows forever and no hint that the configuration will never be
+      // honoured.
+      final interpreter = _FakeInterpreter(
+        throws: const MealInterpreterException(
+          'plaintext to a public address',
+          failure: MealInterpreterFailure.insecureDestination,
+        ),
+      );
+
+      final reading = await useCaseWith(interpreter).read('100g toast');
+
+      expect(reading.usedModel, isFalse);
+      expect(reading.result.items, hasLength(1));
+      expect(reading.modelFailure, MealTextModelFailure.insecureDestination);
+    });
+
     test('reports a server that ran out of time', () async {
       // #774. This one is not silent, and the budget is why: only a server
       // the user runs classifies a timeout this way, and only after 120s —

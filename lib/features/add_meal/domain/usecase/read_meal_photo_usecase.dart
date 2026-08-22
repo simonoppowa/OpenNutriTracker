@@ -106,13 +106,20 @@ class ReadMealPhotoUseCase {
         MealInterpreterFailure.rejected => MealPhotoFailure.rejectedImage,
         MealInterpreterFailure.unsupported => MealPhotoFailure.unsupported,
         MealInterpreterFailure.billing => MealPhotoFailure.billing,
-        // Unreachable today, and deliberately not given a member of its own.
-        // A server the user runs is the only configuration that reports a
-        // timeout as its own kind of failure, and that provider has no photo
-        // path at all — `_photoDestination` is null for it, so the camera
-        // hides itself (#747 is where the image-format question is settled).
-        // Folding it in here keeps the honest "try again" rather than adding
-        // a user-facing string no build can currently show.
+        // Points at settings rather than at the network, which is the half
+        // of the message that matters — the connection is fine and the app
+        // chose not to use it. Unreachable today: a server the user runs is
+        // the only provider that can be plaintext, and it has no photo path
+        // until #781. That ticket should give this its own wording; folding
+        // it into "choose a different model" is close enough to be honest
+        // while nothing can reach it, and wrong once something can.
+        MealInterpreterFailure.insecureDestination =>
+          MealPhotoFailure.unsupported,
+        // Also unreachable, and for the mirror-image reason: a server the
+        // user runs is the only configuration that reports a timeout as its
+        // own kind of failure, and it has no photo path either. Folding it
+        // in keeps the honest "try again" rather than adding a string no
+        // build can currently show (#774).
         MealInterpreterFailure.timeout ||
         MealInterpreterFailure.transient => MealPhotoFailure.transient,
       });

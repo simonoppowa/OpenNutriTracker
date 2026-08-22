@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
+import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/data/openai_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/data/openai_compatible_meal_items_api.dart';
@@ -107,7 +108,11 @@ MealItemsApi mealItemsApiFor(
     // what the app means with one tool defined, and where it is unsupported
     // the reply lands as the existing no-tool-call refusal.
     AiProvider.ownServer => OpenAiCompatibleMealItemsApi(
-      client,
+      // The only provider whose address the user supplies, so the only one
+      // where plaintext is possible at all — the other three are compiled-in
+      // `https://`. Wrapping here rather than at the call site means any
+      // future caller of this factory is covered without knowing to ask.
+      GuardedPlaintextClient(client),
       selection.apiKey == null ? null : key,
       model: modelId,
       endpoint: Uri.parse(selection.endpoint!),

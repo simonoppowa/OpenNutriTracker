@@ -465,6 +465,72 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a refused destination is not dressed as a network fault', (
+    tester,
+  ) async {
+    // #758. The app declined to send; nothing failed to connect. A wifi
+    // glyph or "try again later" here would send the user to fix the one
+    // thing that is working.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await _registerWithFailingReader({
+      'toast': [_meal('Toast')],
+    }, const MealInterpreterException(
+      'plaintext to a public address',
+      failure: MealInterpreterFailure.insecureDestination,
+    ));
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    await _parse(tester, '100g toast');
+
+    expect(find.text(l10nEn.bulkAddModelInsecureServerLabel), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.byIcon(Icons.wifi_off_rounded), findsNothing);
+    // The rows survive: refusing to send must not cost the entry.
+    expect(find.textContaining('Toast'), findsWidgets);
+  });
+
+  testWidgets('and it fits the notice in German, unlike its siblings', (
+    tester,
+  ) async {
+    // #777 found every string in this family is ellipsised at three lines on
+    // a handset — `bulkAddModelNoCreditLabel` is 181 German characters
+    // against a budget of roughly 80. This one was written to the measured
+    // budget instead of to the family's length, so it is the first that can
+    // actually be read to the end.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await _registerWithFailingReader({
+      'toast': [_meal('Toast')],
+    }, const MealInterpreterException(
+      'plaintext to a public address',
+      failure: MealInterpreterFailure.insecureDestination,
+    ));
+
+    await tester.pumpWidget(_app(locale: const Locale('de')));
+    await tester.pumpAndSettle();
+    await _parse(tester, '100g toast');
+
+    final de = lookupS(const Locale('de'));
+    final notice = tester.renderObject<RenderParagraph>(
+      find.text(de.bulkAddModelInsecureServerLabel),
+    );
+
+    expect(
+      notice.didExceedMaxLines,
+      isFalse,
+      reason:
+          'the German string is ellipsised — it must stay inside the '
+          'three-line cap, which is about 80 characters at this size',
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('the photo sheet names the destination that is actually used', (
     tester,
   ) async {
