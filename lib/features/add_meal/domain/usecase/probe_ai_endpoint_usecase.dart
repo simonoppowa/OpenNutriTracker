@@ -170,6 +170,16 @@ class AiEndpointProber {
       // Asleep, loading, rate limited, or a reply that did not parse. The
       // whole reason `unknown` exists.
       MealInterpreterFailure.transient => AiCapability.unknown,
+      // Answered on merging #774, which added this member and broke this
+      // switch on purpose — it has no default, so a new failure has to be
+      // ruled on rather than inherit whichever answer a wildcard gave it.
+      //
+      // `unknown`, not `failed`. A timeout says the app stopped waiting; it
+      // does not say the model cannot see. The two are only distinguishable
+      // in what the settings dialog reports, because neither opens the
+      // camera — so the honest wording wins, and "we could not tell" is what
+      // actually happened.
+      MealInterpreterFailure.timeout => AiCapability.unknown,
     };
   }
 }

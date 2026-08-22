@@ -22,14 +22,37 @@ import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 /// list's first entry — and for a server the user runs it is prevented one
 /// layer up, because the model is part of what "configured" means there
 /// (#738) and an unconfigured provider never reaches this function.
+/// How long a server the user runs is given to answer.
+///
+/// Six times the hosted budget, and not a guess. #774 measured a real Ollama
+/// on an **M4 Mac mini, 16 GB** — good hardware for this, not a stress case —
+/// serving an 8B model: **22–24s from cold, 8–17s warm**. The 20s the hosted
+/// clients use failed two of three requests after the model was unloaded, and
+/// Ollama unloads after five idle minutes by default, so "the first request
+/// of the meal" is the ordinary case rather than an edge one.
+///
+/// The margin is deliberately generous because the measurement came from the
+/// fast end of the range this provider exists to serve. Someone running the
+/// same model on an older laptop or a Raspberry Pi is the *point* of "your
+/// own server", and a budget tuned to an M4 would quietly exclude them.
+///
+/// It costs nothing when the server is quick: the timeout is a ceiling on
+/// waiting, not a delay. What it does cost is how long the bulk-add screen
+/// can sit in its progress state, which is the open half of #774 — the fix
+/// there is a progress state that does not read as a hang, not a shorter
+/// ceiling.
+const ownServerTimeout = Duration(seconds: 120);
+
 /// How long a setup-time probe waits for an endpoint the user just typed.
 ///
-/// The same measurement the request path needs, for the same reason: #779's
-/// probe is the *first* request a machine ever sees, so its model is cold by
-/// definition — 22–24s on an M4 Mac mini, and the provider exists to serve
-/// slower hardware than that. A budget tuned to a warm model would fail every
-/// endpoint on the one call that decides whether the feature is offered.
-const aiEndpointProbeTimeout = Duration(seconds: 120);
+/// **Defined as [ownServerTimeout] rather than as its own number, and that
+/// is the point.** A probe that gave up sooner than a real request would
+/// certify an endpoint the app then fails against; one that waited longer
+/// would pass an endpoint every real request times out on. Either way the
+/// verdict describes a request nobody will ever make. #779's probe is also
+/// the *first* request a machine ever sees, so its model is cold by
+/// definition — exactly the case #774 measured at 22–24s.
+const aiEndpointProbeTimeout = ownServerTimeout;
 
 /// Turns a stored selection into the client that will carry it.
 ///
@@ -89,7 +112,13 @@ MealItemsApi mealItemsApiFor(
       model: modelId,
       endpoint: Uri.parse(selection.endpoint!),
       toolChoice: ToolChoiceMode.anyTool,
-      timeout: timeout ?? OpenAiCompatibleMealItemsApi.defaultTimeout,
+      // The two halves of #774, and they only make sense together. The
+      // longer budget is what stops a cold model load being reported as a
+      // failure at all; the classification is what stops the failures that
+      // remain — a machine that genuinely cannot serve this model in two
+      // minutes — from being described as a network problem.
+      timeout: timeout ?? ownServerTimeout,
+      timeoutFailure: MealInterpreterFailure.timeout,
     ),
   };
 }

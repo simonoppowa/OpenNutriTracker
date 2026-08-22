@@ -39,6 +39,23 @@ enum MealInterpreterFailure {
   /// ordinary rate limit, so the two are separable on status alone with no
   /// body parsing.
   billing,
+
+  /// The destination did not answer inside the budget the client allowed.
+  ///
+  /// Told apart from [transient] because they are different facts about
+  /// different things. A transient failure is the *connection* — dropped,
+  /// rate limited, refused — and checking the network is sensible advice for
+  /// it. This one is the *server*: the connection worked, the request
+  /// arrived, and the answer was still not finished when the client stopped
+  /// waiting. Advice about a network fixes nothing.
+  ///
+  /// **Which destinations use it is a per-client policy, not a property of
+  /// timing out** — see `OpenAiCompatibleMealItemsApi.timeoutFailure`. A
+  /// hosted API that misses a 20s budget really has had a blip and really
+  /// should be retried, so those clients keep reporting [transient]. A
+  /// machine in the user's house that misses a 120s budget has told them
+  /// something durable about that machine (#774).
+  timeout,
 }
 
 /// Raised when an interpreter cannot produce a result. Carries no response

@@ -1175,6 +1175,7 @@
   "bulkAddModelKeyRejectedLabel": "KI nicht verwendet: Dein API-Schlüssel wurde abgelehnt. Diese Zeilen stammen vom Offline-Parser — prüfe den Schlüssel in den Einstellungen.",
   "bulkAddModelUnsupportedLabel": "KI nicht verwendet: Das gewählte Modell konnte nicht genutzt werden. Diese Zeilen stammen vom Offline-Parser — wähle in den Einstellungen ein anderes Modell.",
   "bulkAddModelNoCreditLabel": "KI nicht ausgeführt: Das Guthaben deines Anbieterkontos ist aufgebraucht. Diese Zeilen stammen vom Offline-Parser — lade dein Guthaben beim Anbieter auf, um die KI wieder zu nutzen.",
+  "bulkAddModelTimedOutLabel": "KI nicht ausgeführt: Dein Server hat nicht rechtzeitig geantwortet. Diese Zeilen stammen vom Offline-Parser — ein kleineres Modell oder ein schnellerer Rechner antwortet früher.",
   "bulkAddPhotoLabel": "Foto auslesen",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker behält keine eigene Kopie davon, und es landet nie in deinen Exporten.",
   "bulkAddPhotoDisclosureAnthropic": "Das Foto wird an Anthropic gesendet, um die darauf abgebildeten Lebensmittel zu erkennen.",
