@@ -9,6 +9,15 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoin
 class _MemoryStorage implements FlutterSecureStorage {
   final store = <String, String>{};
 
+  /// Reads held open until the test releases them.
+  ///
+  /// The window this runner has to survive is not the 66 seconds of the probe
+  /// — it is the few milliseconds around the reads that decide what to send,
+  /// while the dialog that started it still has a live provider selector. A
+  /// map that answers in a microtask closes that window before a test can
+  /// reach it.
+  final readGates = <String, Completer<void>>{};
+
   @override
   Future<String?> read({
     required String key,
@@ -18,7 +27,11 @@ class _MemoryStorage implements FlutterSecureStorage {
     WebOptions? webOptions,
     AppleOptions? mOptions,
     WindowsOptions? wOptions,
-  }) async => store[key];
+  }) async {
+    final gate = readGates[key];
+    if (gate != null) await gate.future;
+    return store[key];
+  }
 
   @override
   Future<void> write({
@@ -235,6 +248,80 @@ void main() {
 
     expect(result.text, AiCapability.unknown);
     expect(runner.current(own), isNull);
+  });
+
+  test('a verdict about a configuration that has moved is dropped', () async {
+    // #735: a pass is a fact about `(endpoint, model)`. `writeModel` clears
+    // the stored verdict when the model changes — and a probe already in
+    // flight would quietly fill it back in, certifying the new model with the
+    // old one's evidence. Sixty-six seconds is a long time to hold that door
+    // open: picking another model from the fetched list is two taps.
+    await configure();
+    prober.gate = Completer<void>();
+
+    final running = runner.start(own);
+    await pumpEventQueue();
+    expect(prober.calls, 1, reason: 'the probe should be under way');
+
+    await storage.writeModel('gemma3:12b', provider: own);
+    prober.gate!.complete();
+    final result = await running;
+
+    expect(result.text, AiCapability.unknown);
+    expect(
+      backing.store.keys.where((k) => k.startsWith('AiProbeTag')),
+      isEmpty,
+      reason: 'the slot the model change cleared must stay cleared',
+    );
+  });
+
+  test('a join whose configuration moved probes again instead', () async {
+    // The other half of the same window. Saving starts a probe (#780), and
+    // joining is what makes pressing OK twice free — but only while the
+    // running probe is still testing what is stored. Otherwise the second
+    // save is answered with the first save's verdict and the new
+    // configuration is never checked at all.
+    await configure();
+    prober.gate = Completer<void>();
+
+    final first = runner.start(own);
+    await pumpEventQueue();
+    await storage.writeModel('gemma3:12b', provider: own);
+    final second = runner.start(own);
+
+    prober.gate!.complete();
+    await Future.wait([first, second]);
+
+    expect(prober.calls, 2);
+    expect(prober.lastSelection?.modelId, 'gemma3:12b');
+    final stored = await storage.readProbe(provider: own);
+    expect(stored.photo, AiCapability.passed);
+  });
+
+  test('a provider switch while it is starting does not cancel it', () async {
+    // A check is a question about the provider it was started for, not about
+    // whoever happens to be selected when it gets around to asking. The
+    // dialog writes the active provider on the tap and keeps the radios live
+    // across the configuration write that precedes the check, so a tap
+    // landing in between used to make the check read a provider nobody had
+    // asked it about, find nothing configured there, and quietly do nothing —
+    // right after telling the user it had started.
+    //
+    // Held at the provider tag rather than gating the probe itself: reading
+    // the active provider is the step that should no longer happen at all.
+    await configure();
+    backing.readGates['AiProviderTag'] = Completer<void>();
+
+    final running = runner.start(own);
+    await pumpEventQueue();
+    await storage.setActiveProvider(AiProvider.anthropic);
+    backing.readGates.remove('AiProviderTag')!.complete();
+    await running;
+
+    expect(prober.calls, 1);
+    final stored = await storage.readProbe(provider: own);
+    expect(stored.text, AiCapability.passed);
+    expect(stored.photo, AiCapability.passed);
   });
 
   test('the language the user reads in reaches the request', () async {
