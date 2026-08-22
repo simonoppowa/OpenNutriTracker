@@ -744,6 +744,18 @@ void main() {
       );
     });
 
+    test('a refused plaintext photo points at the address, not the model', () async {
+      final state = await readPhoto(
+        {},
+        const MealPhotoFailed(MealPhotoFailure.insecureDestination),
+      );
+
+      expect(
+        (state as BulkAddPhotoErrorState).error,
+        BulkAddPhotoError.insecureDestination,
+      );
+    });
+
     test('a photo that never encoded reaches the same error surface', () async {
       final bloc = blocWith({});
       bloc.add(const ReadMealPhotoFailedEvent(BulkAddPhotoError.unreadable));

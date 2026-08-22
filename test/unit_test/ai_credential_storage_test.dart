@@ -763,6 +763,10 @@ void main() {
         ('http://192.168.1.5:11434/v1/chat/completions', '192.168.1.5:11434'),
         // No port typed is no port shown, rather than the scheme's default.
         ('https://ollama.example.com/v1/chat/completions', 'ollama.example.com'),
+        // `Uri` canonicalizes an explicitly typed scheme-default port, so it
+        // is omitted as redundant while non-default ports above remain.
+        ('http://example-server.home.arpa:80', 'example-server.home.arpa'),
+        ('https://example-server.home.arpa:443', 'example-server.home.arpa'),
       ]) {
         expect(
           AiCredentialStorage.displayHost(endpoint),
@@ -795,7 +799,7 @@ void main() {
         // address away from the port colon, and a bare literal reads better
         // in a sentence.
         ('http://[2001:db8::1]', '2001:db8::1'),
-        // A default port is not a typed port, for v6 as for everything else.
+        // An explicitly typed default is canonicalized away, for v6 too.
         ('https://[2001:db8::1]:443', '2001:db8::1'),
         // v4 and a hostname are untouched by the bracketing rule.
         ('http://192.168.1.5:11434', '192.168.1.5:11434'),

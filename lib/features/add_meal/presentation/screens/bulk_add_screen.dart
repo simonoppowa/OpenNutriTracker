@@ -267,6 +267,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           S.of(context).bulkAddPhotoUnreadableLabel,
         BulkAddPhotoError.unsupported =>
           S.of(context).bulkAddPhotoUnsupportedLabel,
+        BulkAddPhotoError.insecureDestination =>
+          S.of(context).bulkAddModelInsecureServerLabel,
         BulkAddPhotoError.billing => S.of(context).bulkAddPhotoNoCreditLabel,
       });
     }

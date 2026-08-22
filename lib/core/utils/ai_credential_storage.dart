@@ -419,6 +419,9 @@ class AiCredentialStorage {
   static String? displayHost(String endpoint) {
     final uri = Uri.tryParse(endpoint.trim());
     if (uri == null || uri.host.isEmpty) return null;
+    // `Uri` canonicalizes an explicitly typed scheme-default port (`:80` for
+    // http, `:443` for https), so `hasPort` is false and the redundant port is
+    // omitted here too. Non-default ports remain explicit.
     if (!uri.hasPort) return uri.host;
     // A registered name can never contain a colon, so this identifies an
     // IPv6 literal without a second parse of it.

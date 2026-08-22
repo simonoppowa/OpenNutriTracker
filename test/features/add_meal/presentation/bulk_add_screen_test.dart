@@ -605,6 +605,32 @@ void main() {
     expect(find.text(l10n.bulkAddNothingToLogLabel), findsNothing);
   });
 
+  testWidgets('a refused photo destination points at the address, not the model', (
+    tester,
+  ) async {
+    final bloc = await _registerWithPhotoReading(
+      const MealPhotoFailed(MealPhotoFailure.insecureDestination),
+    );
+    await tester.pumpWidget(_app());
+    tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    bloc.add(
+      ReadMealPhotoEvent(
+        photo: MealPhoto(
+          bytes: Uint8List.fromList([1, 2, 3]),
+          mediaType: 'image/webp',
+        ),
+        usesImperialUnits: false,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final l10n = await S.delegate.load(const Locale('en'));
+    expect(find.text(l10n.bulkAddModelInsecureServerLabel), findsOneWidget);
+    expect(find.text(l10n.bulkAddPhotoUnsupportedLabel), findsNothing);
+  });
+
   testWidgets('an empty text parse still shows the generic line', (
     tester,
   ) async {
