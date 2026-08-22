@@ -187,6 +187,29 @@ void main() {
       expect(reading.modelFailure, MealTextModelFailure.unsupported);
     });
 
+    test('reports a destination the app refused to send to', () async {
+      // #758. The one failure in this list the *app* caused, which makes it
+      // the most important to say out loud: silence would leave someone
+      // whose server is at plain `http://` on the open internet with parser
+      // rows forever and no hint that the configuration will never be
+      // honoured.
+      final interpreter = _FakeInterpreter(
+        throws: const MealInterpreterException(
+          'plaintext to a public address',
+          failure: MealInterpreterFailure.insecureDestination,
+        ),
+      );
+
+      final reading = await useCaseWith(interpreter).read('100g toast');
+
+      expect(reading.usedModel, isFalse);
+      expect(reading.result.items, hasLength(1));
+      expect(
+        reading.modelFailure,
+        MealTextModelFailure.insecureDestination,
+      );
+    });
+
     test('stays quiet about failures that may fix themselves', () async {
       // The notice is only worth anything if it is rare. A dropped
       // connection resolves on its own, and a banner that fires for those is

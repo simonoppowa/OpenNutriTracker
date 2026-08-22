@@ -15,6 +15,8 @@ void main() {
   const touched = [
     'aiAssistModelCheapestLabel',
     'aiAssistDisclosureOpenRouter',
+    // #758.
+    'bulkAddModelInsecureServerLabel',
   ];
 
   final arb = {

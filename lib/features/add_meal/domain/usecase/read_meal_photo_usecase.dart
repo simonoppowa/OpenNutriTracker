@@ -106,6 +106,15 @@ class ReadMealPhotoUseCase {
         MealInterpreterFailure.rejected => MealPhotoFailure.rejectedImage,
         MealInterpreterFailure.unsupported => MealPhotoFailure.unsupported,
         MealInterpreterFailure.billing => MealPhotoFailure.billing,
+        // Points at settings rather than at the network, which is the half
+        // of the message that matters — the connection is fine and the app
+        // chose not to use it. Unreachable today: a server the user runs is
+        // the only provider that can be plaintext, and it has no photo path
+        // until #781. That ticket should give this its own wording; folding
+        // it into "choose a different model" is close enough to be honest
+        // while nothing can reach it, and wrong once something can.
+        MealInterpreterFailure.insecureDestination =>
+          MealPhotoFailure.unsupported,
         MealInterpreterFailure.transient => MealPhotoFailure.transient,
       });
     } catch (e, stackTrace) {

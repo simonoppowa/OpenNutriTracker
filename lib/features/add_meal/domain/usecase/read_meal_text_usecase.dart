@@ -25,6 +25,14 @@ enum MealTextModelFailure {
   /// still produced the rows, but this one is actionable and will not clear
   /// on its own, so saying nothing means the model silently stays off.
   billing,
+
+  /// The app refused to send: plaintext, to an address that is not private.
+  ///
+  /// The most important one in this list to say out loud, because it is the
+  /// only failure here the *app* caused. Silence would mean a user whose
+  /// server is at `http://` on the open internet gets parser rows forever
+  /// and never learns their configuration is one the app will not honour.
+  insecureDestination,
 }
 
 /// What a line of meal text turned into, and which reader produced it.
@@ -111,6 +119,8 @@ class ReadMealTextUseCase {
           MealInterpreterFailure.unsupported =>
             MealTextModelFailure.unsupported,
           MealInterpreterFailure.billing => MealTextModelFailure.billing,
+          MealInterpreterFailure.insecureDestination =>
+            MealTextModelFailure.insecureDestination,
           // Silent by design: the parser already produced the rows, and a
           // notice that would say the same thing tomorrow is not worth
           // interrupting for.

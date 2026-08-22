@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 import 'package:opennutritracker/features/add_meal/data/openai_compatible_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 
@@ -192,6 +193,46 @@ void main() {
     expect(
       (item['properties'] as Map).keys,
       unorderedEquals(['query', 'quantity', 'unit']),
+    );
+  });
+
+  test('a refused plaintext destination is not a network problem', () async {
+    // #758. The guard raises before anything is sent, and folding that into
+    // the catch-all would report it as `transient` — telling the user to
+    // check a connection the app deliberately never opened. Nothing about
+    // their network will fix it; the address will.
+    final client = FakeClient(
+      throwOnSend: const InsecureDestinationException('ollama.example.com'),
+    );
+
+    await expectLater(
+      send(apiFor(client)),
+      throwsA(
+        isA<MealInterpreterException>().having(
+          (e) => e.failure,
+          'failure',
+          MealInterpreterFailure.insecureDestination,
+        ),
+      ),
+    );
+  });
+
+  test('and the refusal carries no host into a log line', () async {
+    // Raised on requests that may be a photograph of somebody's dinner, and
+    // the host is the address of a machine in their house.
+    final client = FakeClient(
+      throwOnSend: const InsecureDestinationException('ollama.example.com'),
+    );
+
+    await expectLater(
+      send(apiFor(client)),
+      throwsA(
+        isA<MealInterpreterException>().having(
+          (e) => e.toString(),
+          'toString',
+          isNot(contains('ollama.example.com')),
+        ),
+      ),
     );
   });
 

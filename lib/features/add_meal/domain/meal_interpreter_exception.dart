@@ -39,6 +39,22 @@ enum MealInterpreterFailure {
   /// ordinary rate limit, so the two are separable on status alone with no
   /// body parsing.
   billing,
+
+  /// The request was **not sent**: it was plaintext, and the address it
+  /// resolved to is not private.
+  ///
+  /// The only member that describes something the app did rather than
+  /// something a provider answered, and it has to be told apart from
+  /// [transient] for the usual reason: nothing is wrong with the network,
+  /// and checking it will not help. The fix is in settings — `https://`, or
+  /// an address on the user's own network.
+  ///
+  /// It exists because #746 and #748 measured that **neither platform blocks
+  /// cleartext for this app's stack**: `dart:io` is BSD sockets rather than
+  /// NSURLSession, so ATS and Android's cleartext policy never see these
+  /// requests. Nothing outside the app enforces this, which makes this
+  /// refusal the whole of the enforcement rather than a second line of it.
+  insecureDestination,
 }
 
 /// Raised when an interpreter cannot produce a result. Carries no response

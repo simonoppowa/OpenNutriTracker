@@ -1145,6 +1145,7 @@
   "bulkAddModelKeyRejectedLabel": "未使用 AI：您的 API 密钥被拒绝。这些条目来自离线解析器——请在设置中检查密钥。",
   "bulkAddModelUnsupportedLabel": "未使用 AI：无法使用所选模型。这些条目来自离线解析器——请在设置中选择其他模型。",
   "bulkAddModelNoCreditLabel": "未运行 AI：您的服务商账户余额不足。这些条目来自离线解析器——请在服务商处充值后再使用 AI。",
+  "bulkAddModelInsecureServerLabel": "未运行 AI：该地址是公网地址且未加密。请使用 https。",
   "bulkAddPhotoLabel": "解析照片",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker 不会自行保留副本，该照片也绝不会出现在您的导出中。",
   "bulkAddPhotoDisclosureAnthropic": "该照片将发送给 Anthropic，以识别其中的食物。",

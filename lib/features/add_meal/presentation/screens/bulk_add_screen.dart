@@ -273,6 +273,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           MealTextModelFailure.auth => Icons.key_off_rounded,
           MealTextModelFailure.unsupported => Icons.block_rounded,
           MealTextModelFailure.billing => Icons.credit_card_off_rounded,
+          // A lock, not a broken plug. Nothing failed to connect — the app
+          // declined to send in the clear.
+          MealTextModelFailure.insecureDestination => Icons.lock_outline,
         },
         text: switch (failure) {
           MealTextModelFailure.auth =>
@@ -281,6 +284,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             S.of(context).bulkAddModelUnsupportedLabel,
           MealTextModelFailure.billing =>
             S.of(context).bulkAddModelNoCreditLabel,
+          MealTextModelFailure.insecureDestination =>
+            S.of(context).bulkAddModelInsecureServerLabel,
         },
         // Coloured as a warning, unlike the neutral "read by AI" banner:
         // this one is asking the user to go and change something.
