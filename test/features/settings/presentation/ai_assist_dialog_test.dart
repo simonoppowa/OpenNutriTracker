@@ -1,10 +1,16 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
+import 'package:opennutritracker/core/utils/ai_model_list_api.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/ai_assist_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -57,7 +63,11 @@ class _MemoryStorage implements FlutterSecureStorage {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _app(AiCredentialStorage storage, {Locale? locale}) => MaterialApp(
+Widget _app(
+  AiCredentialStorage storage, {
+  Locale? locale,
+  AiModelListApi? modelList,
+}) => MaterialApp(
   locale: locale,
   localizationsDelegates: const [
     S.delegate,
@@ -66,8 +76,45 @@ Widget _app(AiCredentialStorage storage, {Locale? locale}) => MaterialApp(
     GlobalCupertinoLocalizations.delegate,
   ],
   supportedLocales: S.supportedLocales,
-  home: Scaffold(body: AiAssistDialog(storage: storage)),
+  home: Scaffold(
+    body: AiAssistDialog(storage: storage, modelList: modelList),
+  ),
 );
+
+/// Every URL the dialog asked for, and what it got back.
+///
+/// A recorder rather than a stub, because the load-bearing assertion in #738
+/// is about a request that must **not** happen: opening AI settings sends
+/// nothing anywhere, for every provider. Only something that would have
+/// noticed can pin that.
+class _Server {
+  final requests = <Uri>[];
+  final http.Response Function(Uri url) _respond;
+
+  _Server(this._respond);
+
+  /// Answers with a `/v1/models` body in the shape all four runtimes serve.
+  factory _Server.listing(List<String> ids) => _Server(
+    (_) => http.Response(
+      jsonEncode({
+        'object': 'list',
+        'data': [for (final id in ids) {'id': id, 'object': 'model'}],
+      }),
+      200,
+    ),
+  );
+
+  /// Nothing is listening — asleep, on another network, or a VPN that is off.
+  factory _Server.unreachable() =>
+      _Server((_) => throw const SocketException('connection refused'));
+
+  late final AiModelListApi api = AiModelListApi(
+    client: MockClient((request) async {
+      requests.add(request.url);
+      return _respond(request.url);
+    }),
+  );
+}
 
 void main() {
   late _MemoryStorage backing;
@@ -903,6 +950,417 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+    });
+
+    group('the model list', () {
+      /// Puts the address on screen without going near the store, so a test
+      /// starts where a user who has just typed one does.
+      Future<void> typeEndpoint(
+        WidgetTester tester,
+        String endpoint,
+      ) async {
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+          endpoint,
+        );
+        await tester.pumpAndSettle();
+      }
+
+      Future<void> pressLoad(WidgetTester tester) async {
+        final button = find.bySemanticsIdentifier('ai-assist-load-models');
+        // The dialog is taller than a phone by design, so the control may
+        // well be past the fold — which is a scroll, not a failure.
+        await tester.ensureVisible(button);
+        await tester.pumpAndSettle();
+        await tester.tap(button);
+        await tester.pumpAndSettle();
+      }
+
+      /// Every sentence the model list can produce for [host].
+      ///
+      /// Named all at once so that "this was not reported as an error" is an
+      /// assertion with teeth rather than one that happens to check the
+      /// message nobody was going to show anyway.
+      List<String> messagesFor(String host) => [
+        l10nEn.aiAssistModelsUnreachableLabel(host),
+        l10nEn.aiAssistModelsEmptyLabel(host),
+        l10nEn.aiAssistModelsRejectedLabel(host),
+        l10nEn.aiAssistModelsInsecureLabel,
+      ];
+
+      testWidgets('opening the dialog asks the server nothing', (tester) async {
+        // The promise the README is built on is about what leaves the device
+        // **and when**. For the three hosted providers, opening AI settings
+        // sends nothing anywhere; this provider's address is a machine on the
+        // user's own network, reached from a screen they may have opened to
+        // change the theme. #738: never on open.
+        final server = _Server.listing(['gemma3:4b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        expect(
+          server.requests,
+          isEmpty,
+          reason: 'a configured server must not be contacted by a dialog '
+              'simply being opened',
+        );
+      });
+
+      testWidgets('switching to this provider asks the server nothing', (
+        tester,
+      ) async {
+        // The other silent moment. A user comparing providers should be able
+        // to read this row's disclosure without a request leaving for the
+        // address stored behind it.
+        final server = _Server.listing(['gemma3:4b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await storage.setActiveProvider(AiProvider.anthropic);
+
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(l10nEn.aiAssistProviderOwnServerLabel));
+        await tester.pumpAndSettle();
+
+        expect(server.requests, isEmpty);
+      });
+
+      testWidgets('Load models asks the address that is on screen', (
+        tester,
+      ) async {
+        final server = _Server.listing(['qwen3:8b', 'gemma3:4b']);
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.5:11434');
+        await pressLoad(tester);
+
+        expect(server.requests, [
+          Uri.parse('http://192.168.1.5:11434/v1/models'),
+        ]);
+        expect(
+          find.bySemanticsIdentifier('ai-assist-model-picker'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('picking a fetched model stores it', (tester) async {
+        final server = _Server.listing(['qwen3:8b', 'gemma3:4b']);
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.5:11434');
+        await pressLoad(tester);
+
+        await tester.ensureVisible(find.byType(DropdownButton<String>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byType(DropdownButton<String>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('qwen3:8b').last);
+        await tester.pumpAndSettle();
+
+        // OK is the one commit point for this provider: the address is typed
+        // text and a model belongs to an address, so writing one against an
+        // address that is not stored yet would be wiped by the endpoint write
+        // that followed it.
+        await tester.tap(find.bySemanticsIdentifier('ai-assist-save-key'));
+        await tester.pumpAndSettle();
+
+        expect(
+          await storage.readModel(provider: AiProvider.ownServer),
+          'qwen3:8b',
+        );
+        expect(
+          await storage.readEndpoint(provider: AiProvider.ownServer),
+          'http://192.168.1.5:11434/v1/chat/completions',
+        );
+      });
+
+      testWidgets('an unreachable server leaves the model typeable', (
+        tester,
+      ) async {
+        // **The fallback, and the reason it exists.** Settings get opened
+        // while the server is asleep, on another network, or behind a VPN
+        // that is off. A dialog that could only offer what it can reach would
+        // be unconfigurable exactly when someone is setting it up ahead of
+        // time.
+        final server = _Server.unreachable();
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.5:11434');
+        await pressLoad(tester);
+
+        expect(
+          find.bySemanticsIdentifier('ai-assist-model-field'),
+          findsOneWidget,
+          reason: 'the field a user can type into must survive the fetch '
+              'failing, or the feature is unconfigurable off the network',
+        );
+
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-model-field'),
+          'gemma3:4b',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.bySemanticsIdentifier('ai-assist-save-key'));
+        await tester.pumpAndSettle();
+
+        expect(
+          await storage.readModel(provider: AiProvider.ownServer),
+          'gemma3:4b',
+        );
+      });
+
+      testWidgets('a server that cannot be reached says so, and an empty one '
+          'says something else', (tester) async {
+        // Both produce a blank picker and they want opposite fixes: wake the
+        // machine, or pull a model. One message covering both would send half
+        // its readers to the wrong place.
+        final unreachable = _Server.unreachable();
+        await tester.pumpWidget(_app(storage, modelList: unreachable.api));
+        await tester.pumpAndSettle();
+        await typeEndpoint(tester, 'http://192.168.1.5:11434');
+        await pressLoad(tester);
+
+        expect(
+          find.text(
+            l10nEn.aiAssistModelsUnreachableLabel('192.168.1.5:11434'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.text(l10nEn.aiAssistModelsEmptyLabel('192.168.1.5:11434')),
+          findsNothing,
+        );
+
+        final empty = _Server.listing([]);
+        await tester.pumpWidget(_app(storage, modelList: empty.api));
+        await tester.pumpAndSettle();
+        await typeEndpoint(tester, 'http://192.168.1.5:11434');
+        await pressLoad(tester);
+
+        expect(
+          find.text(l10nEn.aiAssistModelsEmptyLabel('192.168.1.5:11434')),
+          findsOneWidget,
+        );
+        expect(
+          find.text(
+            l10nEn.aiAssistModelsUnreachableLabel('192.168.1.5:11434'),
+          ),
+          findsNothing,
+        );
+      });
+
+      testWidgets('one model is an ordinary choice, not an error', (
+        tester,
+      ) async {
+        // llama.cpp serves exactly the one file it was started with. If a
+        // single-element list read as a failure, the runtime with the
+        // smallest footprint would be the one this dialog cannot configure.
+        final server = _Server.listing(['Meta-Llama-3.1-8B-Q4_K_M']);
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.5:8080');
+        await pressLoad(tester);
+
+        expect(
+          find.bySemanticsIdentifier('ai-assist-model-picker'),
+          findsOneWidget,
+        );
+        for (final message in messagesFor('192.168.1.5:8080')) {
+          expect(find.text(message), findsNothing);
+        }
+      });
+
+      testWidgets('the list says what exists, never what works', (
+        tester,
+      ) async {
+        // `/v1/models` reports an `id` and little else, and none of the four
+        // runtimes flags vision or tool support there. Nothing measured has
+        // ever been said about a model somebody pulled, so no row may carry
+        // *Recommended*, a comparison note, or a serving vendor. #738.
+        final server = _Server.listing(['qwen3:8b', 'gemma3:4b']);
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.5:11434');
+        await pressLoad(tester);
+
+        expect(
+          find.textContaining(l10nEn.aiAssistModelRecommendedLabel),
+          findsNothing,
+        );
+        expect(find.textContaining('Served by'), findsNothing);
+        expect(
+          find.textContaining(l10nEn.aiAssistModelCheaperLabel),
+          findsNothing,
+        );
+      });
+
+      testWidgets('changing the address fetches, and drops the model that '
+          'belonged to the old one', (tester) async {
+        // #755 clears the stored model whenever the address changes, because
+        // `gemma3:4b` is a claim about one machine and says nothing about the
+        // next. This is that rule where the user can see it happen — someone
+        // alternating between a laptop and a desktop re-picks every time.
+        final server = _Server.listing(['qwen3:8b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        expect(server.requests, isEmpty, reason: 'nothing on open');
+
+        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+
+        expect(server.requests, [
+          Uri.parse('http://192.168.1.9:11434/v1/models'),
+        ]);
+        expect(
+          tester
+              .widget<TextField>(
+                find.descendant(
+                  of: find.bySemanticsIdentifier('ai-assist-model-field'),
+                  matching: find.byType(TextField),
+                ),
+              )
+              .controller
+              ?.text,
+          isEmpty,
+          reason: 'the model belonged to the address that just changed',
+        );
+      });
+
+      testWidgets('returning to a configured server and leaving the address '
+          'alone asks nothing', (tester) async {
+        // The other half of the same rule. Focus crossing the field is not a
+        // URL change, or every glance at this dialog would be a request.
+        final server = _Server.listing(['gemma3:4b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await tester.showKeyboard(
+          find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        );
+        await tester.pumpAndSettle();
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+
+        expect(server.requests, isEmpty);
+      });
+
+      testWidgets('an address that is not a URL is refused before anything is '
+          'sent', (tester) async {
+        // The form Ollama's own documentation shows, and not a URL. The same
+        // refusal OK gives, on the same field.
+        final server = _Server.listing(['gemma3:4b']);
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, '192.168.1.5:11434');
+        await pressLoad(tester);
+
+        expect(server.requests, isEmpty);
+        expect(find.text(l10nEn.aiAssistEndpointInvalidLabel), findsOneWidget);
+      });
+
+      testWidgets('a fetched list survives 2x German on a narrow phone', (
+        tester,
+      ) async {
+        // The dialog has already overflowed once at this size, which is why a
+        // fetched list is a dropdown rather than a row per model: an Ollama
+        // host with twenty pulled models would otherwise push the disclosure
+        // and the OK button off the screen.
+        tester.view.physicalSize = const Size(320 * 3, 640 * 3);
+        tester.view.devicePixelRatio = 3.0;
+        addTearDown(tester.view.reset);
+
+        final server = _Server.listing([
+          'hf.co/unsloth/Qwen3-30B-A3B-Instruct-GGUF:Q4_K_XL',
+          'gemma3:4b',
+        ]);
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+            child: _app(
+              storage,
+              locale: const Locale('de'),
+              modelList: server.api,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // `https://`, so the guard passes it through without a DNS lookup —
+        // a plaintext name would be resolved for real, and #758's refusal is
+        // not what this test is measuring.
+        await typeEndpoint(
+          tester,
+          'https://ein-sehr-langer-name.fritz.box:11434',
+        );
+        await pressLoad(tester);
+
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('a fetched list survives 2x German on a Pixel 6', (
+        tester,
+      ) async {
+        // The device this dialog's overflows have actually been found on, at
+        // the text scale that found them. Two model ids at the length people
+        // really pull, and the status line underneath them, are the widest
+        // thing this section can be asked to render.
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 2.625;
+        addTearDown(tester.view.reset);
+
+        final server = _Server.listing([
+          'hf.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF:Q4_K_XL',
+          'qwen2.5-coder:14b-instruct-q4_K_M',
+        ]);
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+            child: _app(
+              storage,
+              locale: const Locale('de'),
+              modelList: server.api,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(
+          tester,
+          'https://ein-sehr-langer-servername.fritz.box:11434',
+        );
+        await pressLoad(tester);
+        await tester.ensureVisible(find.byType(DropdownButton<String>));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+      });
     });
   });
 

@@ -335,7 +335,7 @@ class AiCredentialStorage {
 
   /// The route every OpenAI-compatible runtime answers on. Fixed by the
   /// protocol this provider is named for, not chosen by the app.
-  static const _chatCompletionsPath = '/v1/chat/completions';
+  static const _chatCompletionsPath = '/v1$_chatCompletionsSuffix';
 
   /// What [endpoint] will actually be requested as, or **null when what was
   /// typed cannot be requested at all**.
@@ -375,6 +375,38 @@ class AiCredentialStorage {
       return uri.replace(path: '$path/chat/completions');
     }
     return uri.replace(path: path);
+  }
+
+  /// The suffix [resolveEndpoint] completes a base address to.
+  static const _chatCompletionsSuffix = '/chat/completions';
+
+  /// Where to ask [endpoint] what models it serves, or null when what was
+  /// typed cannot be requested at all.
+  ///
+  /// Derived from [resolveEndpoint] rather than resolved a second time, so the
+  /// two routes can never disagree about what the user typed. Whatever
+  /// completion, trimming or pass-through that function applied has already
+  /// happened; this only swaps the last segment of the OpenAI-compatible pair.
+  ///
+  /// `/v1/models` is fixed by the protocol in the same way `/v1/chat/
+  /// completions` is — Ollama, LM Studio, llama.cpp and vLLM all answer on
+  /// it — so this is the contract rather than a guess about it.
+  ///
+  /// An address whose path is neither the chat route nor a base gets `/models`
+  /// appended. That is a best effort over something already unusual, and the
+  /// worst case is the same 404 the user would get from typing it themselves —
+  /// reported as `AiModelListFailure.rejected`, which says the server answered
+  /// with something else rather than that it could not be reached.
+  static Uri? resolveModelsEndpoint(String endpoint) {
+    final chat = resolveEndpoint(endpoint);
+    if (chat == null) return null;
+    final path = chat.path;
+    return chat.replace(
+      path: path.endsWith(_chatCompletionsSuffix)
+          ? '${path.substring(0, path.length - _chatCompletionsSuffix.length)}'
+                '/models'
+          : '$path/models',
+    );
   }
 
   /// The part of [endpoint] that names the destination, and **nothing else** —

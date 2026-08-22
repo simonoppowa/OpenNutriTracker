@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
+import 'package:opennutritracker/core/utils/ai_model_list_api.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Where the user chooses a provider, supplies a key for it, picks a model,
@@ -23,7 +24,15 @@ import 'package:opennutritracker/generated/l10n.dart';
 class AiAssistDialog extends StatefulWidget {
   final AiCredentialStorage storage;
 
-  const AiAssistDialog({super.key, required this.storage});
+  /// Asks a server the user runs what models it has. Injected so a test can
+  /// answer without a network, and — more to the point — so a test can assert
+  /// that **nothing was asked**: opening this dialog must send no request,
+  /// and the only way to pin that is to hand it something that would notice.
+  ///
+  /// Null builds one over a client this dialog owns and closes.
+  final AiModelListApi? modelList;
+
+  const AiAssistDialog({super.key, required this.storage, this.modelList});
 
   /// Returns true when the stored state changed, so the caller can refresh
   /// its subtitle.
@@ -77,6 +86,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   final _modelController = TextEditingController();
   final _scrollController = ScrollController();
 
+  /// Watched so that finishing with the address is a moment the app can act
+  /// on. See [_endpointCommitted] for why that moment and no other.
+  final _endpointFocus = FocusNode();
+
   bool _loading = true;
   bool _changed = false;
 
@@ -109,10 +122,58 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   String? _endpointError;
   String? _modelError;
 
+  /// What the server last said it has, or **null when nothing has been
+  /// asked** — which is the state this dialog opens in and stays in until the
+  /// user asks. An empty list is not the same thing: it means a server
+  /// answered and has nothing, and the two get different sentences.
+  List<String>? _modelIds;
+
+  /// Why the last ask did not produce a list, or null when it did.
+  AiModelListFailure? _modelListFailure;
+
+  /// The host the message is about, frozen at the moment of the ask. Read off
+  /// the field instead, a message would rename itself as the user edits the
+  /// address underneath it and end up blaming a machine nobody contacted.
+  String? _modelListHost;
+
+  bool _fetchingModels = false;
+
+  /// The dialog is on its way out, so the address field losing focus is the
+  /// route closing rather than the user moving on. Without it, editing the
+  /// address and pressing OK fires a request on the way out — one the user
+  /// never asked for, at the one moment they cannot see the answer.
+  bool _closing = false;
+
+  /// The address the model on screen belongs to: what was stored when the
+  /// dialog opened, then whatever was last asked.
+  ///
+  /// Kept so that "the URL changed" is a question with an answer. Without it
+  /// every unfocus of the address field would be a fresh request to a machine
+  /// on someone's home network, which is the behaviour #738 ruled out.
+  Uri? _lastEndpoint;
+
+  /// Built lazily and only if [AiAssistDialog.modelList] was not supplied, so
+  /// a dialog nobody asks for models in never constructs an HTTP client.
+  AiModelListApi? _ownedModelList;
+
+  AiModelListApi get _modelList =>
+      widget.modelList ?? (_ownedModelList ??= AiModelListApi());
+
   @override
   void initState() {
     super.initState();
+    // **Deliberately only this.** No fetch here, and none in
+    // [_selectProvider]: for the three hosted providers opening AI settings
+    // sends nothing anywhere, and the README's promise is about what leaves
+    // the device *and when*. A fourth provider whose address is on the user's
+    // own LAN does not get to quietly break that from a screen they may have
+    // opened to change the theme. #738.
     _load();
+    _endpointFocus.addListener(_onEndpointFocusChanged);
+  }
+
+  void _onEndpointFocusChanged() {
+    if (!_endpointFocus.hasFocus) _endpointCommitted();
   }
 
   @override
@@ -121,6 +182,11 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     _endpointController.dispose();
     _modelController.dispose();
     _scrollController.dispose();
+    // Removed before the node goes, or tearing the dialog down unfocuses the
+    // field and the listener answers by calling setState on a dead State.
+    _endpointFocus.removeListener(_onEndpointFocusChanged);
+    _endpointFocus.dispose();
+    _ownedModelList?.close();
     super.dispose();
   }
 
@@ -151,7 +217,95 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _model = AiModelCatalogue.resolve(provider, modelId);
       _endpointController.text = summary.endpoint ?? '';
       _modelController.text = modelId ?? '';
+      // The stored address counts as already asked-about, so returning to a
+      // configured server and leaving the field alone is not a URL change.
+      _lastEndpoint = summary.endpoint == null
+          ? null
+          : AiCredentialStorage.resolveEndpoint(summary.endpoint!);
+      // A provider switch reloads through here, so this is also what stops a
+      // list fetched from one server being offered as another server's.
+      _modelIds = null;
+      _modelListFailure = null;
+      _modelListHost = null;
       _loading = false;
+    });
+  }
+
+  /// The user has finished with the address field.
+  ///
+  /// **A URL change is the second of the two moments a fetch may happen**
+  /// (#738), because typing an address and moving on is the user unambiguously
+  /// pointing the app at that machine. Every other moment — opening the
+  /// dialog, switching provider, coming back to a configured server — is
+  /// silent, and the guard that keeps it silent is [_lastEndpoint]: unchanged
+  /// text asks nothing, however many times focus crosses this field.
+  ///
+  /// Not on every keystroke, which would send a request to `http://h`,
+  /// `http://ht`, and every other prefix of what someone is typing.
+  void _endpointCommitted() {
+    if (!mounted || _closing || _provider != AiProvider.ownServer) return;
+    final resolved = AiCredentialStorage.resolveEndpoint(
+      _endpointController.text.trim(),
+    );
+    if (resolved == null || resolved == _lastEndpoint) return;
+    // The model belonged to the address that just changed. #755 drops the
+    // stored one on write for the same reason — `llama3.2:8b` is a claim
+    // about one machine and says nothing about the next — and this is that
+    // rule where the user can see it happen rather than discover it later.
+    setState(() {
+      _modelController.text = '';
+      _modelError = null;
+    });
+    _loadModels();
+  }
+
+  /// Asks the configured server what it has.
+  ///
+  /// **A picker's contents and nothing else.** `/v1/models` reports an `id`,
+  /// and none of the four runtimes flags vision or tool support there — so
+  /// appearing in this list says a model exists on that machine and never
+  /// that it works for this app. Whether it works is #735's probe, which
+  /// finds out by sending a real request.
+  Future<void> _loadModels() async {
+    // The button disables itself while one is in flight; this covers the
+    // other caller. Finishing with the address field and pressing the button
+    // can land in the same gesture — tapping a control moves focus off the
+    // field — and two requests to somebody's server for one act is one too
+    // many.
+    if (_fetchingModels) return;
+    final s = S.of(context);
+    final typed = _endpointController.text.trim();
+    final url = AiCredentialStorage.resolveModelsEndpoint(typed);
+    if (url == null) {
+      // The same refusal OK gives, on the same field, for the same text.
+      setState(() => _endpointError = s.aiAssistEndpointInvalidLabel);
+      return;
+    }
+
+    setState(() {
+      _fetchingModels = true;
+      _modelIds = null;
+      _modelListFailure = null;
+      _modelListHost = AiCredentialStorage.displayHost(typed);
+      _lastEndpoint = AiCredentialStorage.resolveEndpoint(typed);
+    });
+
+    // None of the four runtimes wants one by default; a reverse proxy in
+    // front of one will. Typed beats stored, so a key entered in this dialog
+    // is usable before OK commits it.
+    final typedKey = _apiKeyController.text.trim();
+    final result = await _modelList.list(
+      url,
+      apiKey: typedKey.isNotEmpty
+          ? typedKey
+          : await widget.storage.readApiKey(provider: _provider),
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _fetchingModels = false;
+      _modelIds = result.failure == null ? result.ids : null;
+      _modelListFailure = result.failure;
     });
   }
 
@@ -175,9 +329,25 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     });
   }
 
+  /// Picking from the fetched list fills the field the user could have typed
+  /// into, rather than writing straight to the store.
+  ///
+  /// **One commit point for this provider, and it is OK.** The address is
+  /// typed text that commits there (#756), and a model belongs to an address:
+  /// writing one against an address that has not been stored yet is exactly
+  /// the ordering hazard [AiCredentialStorage.writeOwnServerConfiguration]
+  /// exists to prevent — the model would be wiped by the endpoint write that
+  /// followed it. It also keeps the picker and the free text as one value
+  /// rather than two that can disagree.
+  void _pickModel(String id) => setState(() {
+    _modelController.text = id;
+    _modelError = null;
+  });
+
   Future<void> _save() async {
     final s = S.of(context);
     var changed = _changed;
+    _closing = true;
 
     if (_provider == AiProvider.ownServer) {
       // The address is this provider's credential, and the model is part of
@@ -212,6 +382,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       if (endpoint.isNotEmpty || model.isNotEmpty || _configured) {
         if (resolved == null || model.isEmpty) {
           setState(() {
+            // Nothing is closing after all — the dialog stays open on the
+            // refusal, and the address field goes back to being one the user
+            // can finish and have fetched from.
+            _closing = false;
             _endpointError = resolved == null
                 ? s.aiAssistEndpointInvalidLabel
                 : null;
@@ -344,8 +518,15 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                         identifier: 'ai-assist-endpoint-field',
                         child: TextField(
                           controller: _endpointController,
+                          focusNode: _endpointFocus,
                           keyboardType: TextInputType.url,
                           autocorrect: false,
+                          // Finishing with the address is the second of the
+                          // two moments a fetch may happen (#738). The focus
+                          // node covers moving on to another field; this
+                          // covers the keyboard's own done key, which never
+                          // moves focus anywhere.
+                          onSubmitted: (_) => _endpointCommitted(),
                           decoration: InputDecoration(
                             labelText: s.aiAssistEndpointFieldLabel,
                             // A base address, which the store completes to
@@ -533,6 +714,33 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     AiModelNote.cheapest => s.aiAssistModelCheapestLabel,
   };
 
+  /// What to say about the last ask, or null when there is nothing to say —
+  /// nothing asked yet, or a list came back with something in it.
+  ///
+  /// **Four outcomes, four sentences, and the point is that they differ.** An
+  /// unreachable server and a server with nothing pulled produce the same
+  /// empty picker and want opposite fixes: wake the machine, or pull a model.
+  /// A message that covered both with "no models found" would send half its
+  /// readers to the wrong place. The app refusing to send is a third thing
+  /// again — the server was never contacted and may be perfectly healthy —
+  /// and something answering with a 404 is a fourth.
+  ///
+  /// Every one of them ends by pointing at the field above, because none of
+  /// them stops the user configuring this provider.
+  String? _modelListMessage(S s) {
+    final host = _modelListHost ?? '';
+    return switch (_modelListFailure) {
+      AiModelListFailure.unreachable => s.aiAssistModelsUnreachableLabel(host),
+      AiModelListFailure.insecureDestination => s.aiAssistModelsInsecureLabel,
+      AiModelListFailure.rejected => s.aiAssistModelsRejectedLabel(host),
+      // A list did come back. Only its being empty is worth a sentence — a
+      // list with entries in it speaks for itself, in the picker below.
+      null => _modelIds != null && _modelIds!.isEmpty
+          ? s.aiAssistModelsEmptyLabel(host)
+          : null,
+    };
+  }
+
   String _disclosureFor(S s) => switch (_provider) {
     AiProvider.anthropic => s.aiAssistDisclosureAnthropic,
     AiProvider.openrouter => s.aiAssistDisclosureOpenRouter,
@@ -596,11 +804,18 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   Widget _buildModelSection(BuildContext context, S s, ThemeData theme) {
     final models = AiModelCatalogue.forProvider(_provider);
     if (models.isEmpty) {
-      // No curated list, so nothing to pick from and nothing measured to say
-      // about what the user pulled. #738: no *Recommended*, no row notes, and
-      // no `servedBy` — that line asserts a guarantee about a third party,
-      // and the whole point here is that there is not one. #757 adds a fetch
-      // from the server; typing the name is what works until then.
+      // No curated list, so nothing measured to say about what the user
+      // pulled. #738: no *Recommended*, no row notes, and no `servedBy` —
+      // that line asserts a guarantee about a third party, and the whole
+      // point here is that there is not one.
+      //
+      // **The field comes first and never goes away.** #757 adds a fetch, and
+      // the fetch has a real failure mode — settings opened while the server
+      // is asleep, on another network, or behind a VPN that is off. A dialog
+      // that could only offer what it can reach would be unconfigurable
+      // exactly when someone is setting it up ahead of time, so the list
+      // fills this field in rather than replacing it: one value, typed or
+      // picked, and the picker is an input method for it rather than a rival.
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -619,6 +834,71 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
               onChanged: (_) => setState(() => _modelError = null),
             ),
           ),
+          // The **only** control that starts a fetch, alongside finishing with
+          // the address field. Never on open, never on a provider switch,
+          // never on a timer. #738.
+          Semantics(
+            identifier: 'ai-assist-load-models',
+            child: TextButton.icon(
+              onPressed: _fetchingModels ? null : _loadModels,
+              // The spinner replaces the icon rather than sitting beside it,
+              // so waiting does not add a widget to a Row that already has to
+              // survive 2x German on a 320px phone.
+              icon: _fetchingModels
+                  ? const SizedBox.square(
+                      dimension: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.cloud_download_outlined),
+              label: Text(s.aiAssistLoadModelsLabel),
+            ),
+          ),
+          if (_modelListMessage(s) case final message?)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                message,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          // A **dropdown**, not a row per model: an Ollama host with twenty
+          // pulled models would otherwise push the disclosure and the OK
+          // button off a phone screen, and this dialog has already overflowed
+          // once for less. One entry is an ordinary list here rather than a
+          // special case — llama.cpp serves exactly the one file it was
+          // started with, so a single-element reply is the normal shape and
+          // gets the ordinary picker.
+          if (_modelIds case final ids? when ids.isNotEmpty)
+            Semantics(
+              identifier: 'ai-assist-model-picker',
+              child: DropdownButton<String>(
+                // Long ids ellipsize instead of overflowing the dialog.
+                isExpanded: true,
+                hint: Text(s.aiAssistPickModelLabel),
+                // Null rather than a guess when the field holds something the
+                // server did not offer: a typed id is still a valid answer,
+                // and `DropdownButton` asserts on a value that is not in its
+                // items.
+                value: ids.contains(_modelController.text)
+                    ? _modelController.text
+                    : null,
+                items: [
+                  for (final id in ids)
+                    DropdownMenuItem(
+                      value: id,
+                      child: Text(
+                        id,
+                        style: theme.textTheme.bodyMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+                onChanged: (id) => id == null ? null : _pickModel(id),
+              ),
+            ),
         ],
       );
     }

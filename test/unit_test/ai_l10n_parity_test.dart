@@ -29,6 +29,16 @@ void main() {
     // requested, or a server with no model to ask for.
     'aiAssistEndpointInvalidLabel',
     'aiAssistModelRequiredLabel',
+    // #757. The four outcomes of asking a server what it has, which have to
+    // stay four different sentences in every language: an unreachable server
+    // and one with nothing pulled produce the same empty picker and want
+    // opposite fixes.
+    'aiAssistLoadModelsLabel',
+    'aiAssistPickModelLabel',
+    'aiAssistModelsUnreachableLabel',
+    'aiAssistModelsEmptyLabel',
+    'aiAssistModelsRejectedLabel',
+    'aiAssistModelsInsecureLabel',
   ];
 
   final arb = {
