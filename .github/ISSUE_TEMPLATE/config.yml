@@ -1,8 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: OpenNutriTracker website
-    url: https://simonoppowa.github.io/OpenNutriTracker/
-    about: Project website, screenshots, and overview.
   - name: Privacy policy
     url: https://www.iubenda.com/privacy-policy/53501884
     about: How OpenNutriTracker handles personal data.
