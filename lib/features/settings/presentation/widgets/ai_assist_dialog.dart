@@ -153,10 +153,20 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     super.dispose();
   }
 
+  /// Which read is the current one.
+  ///
+  /// Every field below the provider selector is read from the keystore across
+  /// four awaits, and a second provider switch can start a second read before
+  /// the first has finished. The keystore is a platform channel, so the two
+  /// are free to land in either order — and the loser used to win, repainting
+  /// the dialog with the provider the user had already moved off.
+  int _loadGeneration = 0;
+
   /// Reads everything for whichever provider is active. Called again after a
   /// provider switch, because every field below the selector belongs to the
   /// provider rather than to the dialog.
   Future<void> _load() async {
+    final generation = ++_loadGeneration;
     final summary = await widget.storage.readSummary();
     // A stored name this build does not know leaves nothing to select, so the
     // radios fall back to the first provider **for display only**. Nothing is
@@ -180,7 +190,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // yet" over a request that is in flight, and offer a button that joins it
     // and looks like it did nothing.
     final running = widget.probeRunner?.current(provider);
-    if (!mounted) return;
+    // A newer read has started since this one did, and it is reading the
+    // provider the user actually chose. Dropping this snapshot loses nothing:
+    // the newer one writes every field this one would have.
+    if (!mounted || generation != _loadGeneration) return;
     setState(() {
       _provider = provider;
       _hasKey = hasKey;
@@ -193,7 +206,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _probing = running != null;
       _loading = false;
     });
-    if (running != null) unawaited(_showWhenItLands(running));
+    if (running != null) unawaited(_showWhenItLands(provider, running));
   }
 
   /// Starts a check and shows the answer if the user is still here.
@@ -205,20 +218,40 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   void _runProbe() {
     final runner = widget.probeRunner;
     if (runner == null) return;
+    final provider = _provider;
     setState(() => _probing = true);
     unawaited(
       _showWhenItLands(
+        provider,
         runner.start(
-          _provider,
+          provider,
           localeCode: Localizations.localeOf(context).languageCode,
         ),
       ),
     );
   }
 
-  Future<void> _showWhenItLands(Future<AiEndpointProbe> probe) async {
+  /// Shows what a check found, **for the provider it was started against**.
+  ///
+  /// The longest await in this dialog by two orders of magnitude — about 66
+  /// seconds — against a selector that takes two taps to move. So a completion
+  /// has to prove it still belongs before it writes: [_probe] is a verdict
+  /// about one destination, and [_probing] is a claim that *this* provider has
+  /// a request outstanding. Neither is true of whoever the user picked in the
+  /// meantime.
+  ///
+  /// Today the section is only rendered for a server the user runs, so a stale
+  /// write lands where nothing displays it and `_load` overwrites it on the way
+  /// back. That makes this a guard on an invariant rather than a fix for a
+  /// visible symptom — which is the moment to add it, not a reason to skip it:
+  /// the invariant is what the next reader will assume, and the containment is
+  /// a coincidence of the current layout.
+  Future<void> _showWhenItLands(
+    AiProvider provider,
+    Future<AiEndpointProbe> probe,
+  ) async {
     final found = await probe;
-    if (!mounted) return;
+    if (!mounted || provider != _provider) return;
     setState(() {
       _probe = found;
       _probing = false;
@@ -236,9 +269,14 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     await _load();
   }
 
+  /// The write names the provider explicitly, so it always lands in the right
+  /// slot. What needed guarding is the *display*: the selected radio is a
+  /// statement about whoever is on screen now, and a switch during the write
+  /// would leave one provider's model ticked under another's list.
   Future<void> _selectModel(AiModel model) async {
-    await widget.storage.writeModel(model.id, provider: _provider);
-    if (!mounted) return;
+    final provider = _provider;
+    await widget.storage.writeModel(model.id, provider: provider);
+    if (!mounted || provider != _provider) return;
     setState(() {
       _model = model;
       _changed = true;
@@ -250,9 +288,14 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // Read before the first `await`, because the check below is started after
     // one and `context` may no longer be usable by then.
     final localeCode = Localizations.localeOf(context).languageCode;
+    // Captured for the same reason, and it matters more here than anywhere
+    // else in this dialog: the radios stay live while these writes are in
+    // flight, and re-reading `_provider` after an await is how a typed API key
+    // would end up in the slot of a provider the user tapped on the way past.
+    final provider = _provider;
     var changed = _changed;
 
-    if (_provider == AiProvider.ownServer) {
+    if (provider == AiProvider.ownServer) {
       // The address is this provider's credential, and the model is part of
       // what "configured" means for it (#738) — so both are saved here, and
       // neither alone turns the feature on.
@@ -305,7 +348,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
         if (await widget.storage.writeOwnServerConfiguration(
           endpoint: endpoint,
           model: model,
-          provider: _provider,
+          provider: provider,
         )) {
           changed = true;
         }
@@ -325,14 +368,14 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
         // already running, so pressing OK twice costs nothing.
         final runner = widget.probeRunner;
         if (runner != null) {
-          unawaited(runner.start(_provider, localeCode: localeCode));
+          unawaited(runner.start(provider, localeCode: localeCode));
         }
       }
     }
 
     final typed = _apiKeyController.text.trim();
     if (typed.isNotEmpty) {
-      await widget.storage.writeApiKey(typed, provider: _provider);
+      await widget.storage.writeApiKey(typed, provider: provider);
       changed = true;
     }
 
@@ -340,6 +383,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     Navigator.of(context).pop(changed);
   }
 
+  /// Already safe, and worth saying so: `_provider` is read to build the call
+  /// rather than after it, so the destructive act names the provider the user
+  /// was looking at when they pressed it. Everything this writes afterwards
+  /// goes through [_load], which carries its own guard.
   Future<void> _remove() async {
     await widget.storage.clear(provider: _provider);
     if (!mounted) return;
@@ -348,10 +395,15 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     await _load();
   }
 
+  /// The flag itself is not per provider, so the *write* is safe whoever is
+  /// selected. The read-back is not: `isEnabled` is false for a provider with
+  /// nothing configured, so a switch landing between the two turns this into
+  /// one provider's answer painted onto another's switch.
   Future<void> _setEnabled(bool value) async {
+    final provider = _provider;
     await widget.storage.setEnabled(value);
     final enabled = await widget.storage.isEnabled();
-    if (!mounted) return;
+    if (!mounted || provider != _provider) return;
     setState(() {
       _enabled = enabled;
       _changed = true;

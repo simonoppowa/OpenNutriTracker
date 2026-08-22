@@ -17,6 +17,14 @@ import '../../../helpers/test_l10n.dart';
 class _MemoryStorage implements FlutterSecureStorage {
   final store = <String, String>{};
 
+  /// Reads held open until the test releases them.
+  ///
+  /// The real store is a platform channel, so two reads issued in order are
+  /// free to answer out of order — which is the whole of the race the dialog
+  /// guards against. A map that answers in a microtask can never reproduce
+  /// that on its own.
+  final readGates = <String, Completer<void>>{};
+
   @override
   Future<String?> read({
     required String key,
@@ -26,7 +34,11 @@ class _MemoryStorage implements FlutterSecureStorage {
     WebOptions? webOptions,
     AppleOptions? mOptions,
     WindowsOptions? wOptions,
-  }) async => store[key];
+  }) async {
+    final gate = readGates[key];
+    if (gate != null) await gate.future;
+    return store[key];
+  }
 
   @override
   Future<void> write({
@@ -190,6 +202,53 @@ void main() {
     expect(
       find.textContaining(l10nEn.aiAssistDisclosureOpenRouter),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('a slower earlier read cannot repaint over a later choice', (
+    tester,
+  ) async {
+    // Copilot raised this on #788 against the probe completion, and it is the
+    // same question for every await in this dialog — `_load` is where it
+    // actually bites. One provider switch is four keystore reads, the keystore
+    // is a platform channel, and two switches in quick succession are free to
+    // answer out of order. The loser used to win: the dialog repainted itself
+    // with the provider the user had already moved off, while storage said
+    // otherwise, which is precisely the "the row and the store disagree about
+    // who is being sent to" failure this feature keeps having to close.
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    // Hold OpenRouter's last read open, so its snapshot is still in flight
+    // when the next choice lands on top of it.
+    final held = Completer<void>();
+    backing.readGates['AiProbeTag.openrouter'] = held;
+
+    await tester.tap(find.text('OpenRouter'));
+    await tester.pump();
+    await tester.tap(find.text(l10nEn.aiAssistProviderOwnServerLabel));
+    await tester.pumpAndSettle();
+
+    expect(await storage.activeProvider(), AiProvider.ownServer);
+    expect(
+      find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+      findsOneWidget,
+      reason: 'the later choice is the one on screen',
+    );
+
+    held.complete();
+    await tester.pumpAndSettle();
+
+    expect(
+      find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+      findsOneWidget,
+      reason: 'the OpenRouter snapshot landed last and must not repaint',
+    );
+    expect(
+      find.textContaining(l10nEn.aiAssistDisclosureOpenRouter),
+      findsNothing,
+      reason: 'naming a destination the user is not configured for is the '
+          'one thing this dialog must never do',
     );
   });
 
