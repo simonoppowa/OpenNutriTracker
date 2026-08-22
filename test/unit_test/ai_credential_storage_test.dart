@@ -749,4 +749,187 @@ void main() {
       expect(selection.provider, AiProvider.anthropic);
     });
   });
+
+  group('what the probe found (#779)', () {
+    const own = AiProvider.ownServer;
+    const passed = AiEndpointProbe(
+      text: AiCapability.passed,
+      photo: AiCapability.passed,
+    );
+
+    Future<void> configure({
+      String endpoint = 'http://192.168.1.5:11434',
+      String model = 'gemma3:4b',
+    }) async {
+      await storage.setActiveProvider(own);
+      await storage.writeEndpoint(endpoint, provider: own);
+      await storage.writeModel(model, provider: own);
+    }
+
+    test('nothing has been established before anything is asked', () async {
+      await configure();
+
+      final probe = await storage.readProbe(provider: own);
+
+      expect(probe.text, AiCapability.unknown);
+      expect(probe.photo, AiCapability.unknown);
+    });
+
+    test('a verdict survives a round trip', () async {
+      await configure();
+      await storage.writeProbe(
+        const AiEndpointProbe(
+          text: AiCapability.passed,
+          photo: AiCapability.failed,
+        ),
+        provider: own,
+      );
+
+      final probe = await storage.readProbe(provider: own);
+
+      expect(probe.text, AiCapability.passed);
+      expect(probe.photo, AiCapability.failed);
+    });
+
+    test('an inconclusive retry does not revoke what is known', () async {
+      // Copilot caught this on #784: `writeProbe` wrote whatever it was
+      // handed, so a retry against a sleeping server replaced "photos work
+      // here" with "we could not tell" — revoking a pass that was still
+      // perfectly true, because nothing about the endpoint or the model had
+      // changed and the only thing that learned anything was the network.
+      await configure();
+      await storage.writeProbe(passed, provider: own);
+
+      await storage.writeProbe(AiEndpointProbe.unknown, provider: own);
+
+      final probe = await storage.readProbe(provider: own);
+      expect(probe.text, AiCapability.passed);
+      expect(probe.photo, AiCapability.passed);
+    });
+
+    test('but a conclusive one does, in both directions', () async {
+      // The half that has to keep working: a use-time capability refusal
+      // retracts a stale pass (#782). Only `unknown` is inert.
+      await configure();
+      await storage.writeProbe(passed, provider: own);
+
+      await storage.writeProbe(
+        const AiEndpointProbe(
+          text: AiCapability.unknown,
+          photo: AiCapability.failed,
+        ),
+        provider: own,
+      );
+
+      final probe = await storage.readProbe(provider: own);
+      expect(probe.photo, AiCapability.failed, reason: 'retracted');
+      expect(probe.text, AiCapability.passed, reason: 'untouched');
+    });
+
+    test('nothing conclusive leaves no record at all', () async {
+      // "Stored as absence" is now literally true rather than a `"--"` that
+      // merely reads like absence.
+      await configure();
+
+      await storage.writeProbe(AiEndpointProbe.unknown, provider: own);
+
+      expect(
+        backing.store.keys.where((k) => k.startsWith('AiProbeTag')),
+        isEmpty,
+      );
+    });
+
+    test('changing the address discards it', () async {
+      // A pass was a fact about a machine. This is a different machine, and
+      // "photos work here" has never been asked of it.
+      await configure();
+      await storage.writeProbe(passed, provider: own);
+
+      await storage.writeEndpoint('http://192.168.1.9:11434', provider: own);
+
+      expect(
+        (await storage.readProbe(provider: own)).photo,
+        AiCapability.unknown,
+      );
+    });
+
+    test('re-saving the same address keeps it', () async {
+      // Otherwise every visit to settings costs the user their camera and a
+      // two-minute re-probe to get it back.
+      await configure();
+      await storage.writeProbe(passed, provider: own);
+
+      await storage.writeEndpoint('http://192.168.1.5:11434', provider: own);
+
+      expect(
+        (await storage.readProbe(provider: own)).photo,
+        AiCapability.passed,
+      );
+    });
+
+    test('changing the model discards it too', () async {
+      // The half that keeps this a fact about `(endpoint, model)` rather
+      // than about an address. Without it, pulling a text-only model under
+      // the same tag leaves a camera that passed once and now fails on
+      // every photograph — #688's resurrection trap under another key.
+      await configure();
+      await storage.writeProbe(passed, provider: own);
+
+      await storage.writeModel('llama3.2:1b', provider: own);
+
+      expect(
+        (await storage.readProbe(provider: own)).photo,
+        AiCapability.unknown,
+      );
+    });
+
+    test('re-saving the same model keeps it', () async {
+      await configure();
+      await storage.writeProbe(passed, provider: own);
+
+      await storage.writeModel('gemma3:4b', provider: own);
+
+      expect(
+        (await storage.readProbe(provider: own)).photo,
+        AiCapability.passed,
+      );
+    });
+
+    test('clearing the provider takes it with everything else', () async {
+      await configure();
+      await storage.writeProbe(passed, provider: own);
+
+      await storage.clear(provider: own);
+
+      expect(
+        (await storage.readProbe(provider: own)).photo,
+        AiCapability.unknown,
+      );
+    });
+
+    test('a value this build cannot read means "not established"', () async {
+      // A keystore entry an older or newer build wrote is not worth failing
+      // a settings screen over, and the safe reading of "I cannot parse
+      // this" is "I do not know what this endpoint can do".
+      for (final corrupt in ['', 'x', 'ppp', '{"text":true}', 'zz']) {
+        expect(
+          AiEndpointProbe.decode(corrupt).photo,
+          AiCapability.unknown,
+          reason: 'decoding "$corrupt"',
+        );
+      }
+      expect(AiEndpointProbe.decode(null).text, AiCapability.unknown);
+    });
+
+    test('every verdict encodes to something the decoder reads back', () {
+      for (final text in AiCapability.values) {
+        for (final photo in AiCapability.values) {
+          final probe = AiEndpointProbe(text: text, photo: photo);
+          final round = AiEndpointProbe.decode(probe.encode());
+          expect(round.text, text, reason: probe.encode());
+          expect(round.photo, photo, reason: probe.encode());
+        }
+      }
+    });
+  });
 }
