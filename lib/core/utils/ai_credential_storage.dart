@@ -472,14 +472,40 @@ class AiCredentialStorage {
     );
   }
 
-  /// Records what a probe found. Only conclusive verdicts are kept — an
-  /// [AiCapability.unknown] result is stored as absence, so "we could not
-  /// tell" and "nobody has asked yet" are the same state, which is what the
-  /// camera gate treats them as anyway.
+  /// Records what a probe found. **Only conclusive verdicts are written.**
+  ///
+  /// An [AiCapability.unknown] result leaves whatever was already known
+  /// alone, per capability. Without that, a retry against a sleeping server
+  /// would revoke a pass that is still perfectly true: nothing about the
+  /// `(endpoint, model)` changed, and the only thing that learned anything
+  /// was the network. The rule this store already applies to a wrong
+  /// `failed` — it hides a working camera — applies just as much to an
+  /// inconclusive one overwriting a good answer.
+  ///
+  /// A conclusive verdict does overwrite, in both directions, which is what
+  /// lets a use-time capability refusal retract a stale pass (#782).
+  ///
+  /// With nothing conclusive on either side the slot is **deleted** rather
+  /// than written as `"--"`, so "we could not tell" and "nobody has asked
+  /// yet" really are one state rather than two that merely read alike.
   Future<void> writeProbe(AiEndpointProbe probe, {AiProvider? provider}) async {
     final target = await _target(provider);
     if (target == null) return;
-    await _storage.write(key: _probeSlotTag(target), value: probe.encode());
+
+    final stored = AiEndpointProbe.decode(
+      await _storage.read(key: _probeSlotTag(target)),
+    );
+    final merged = AiEndpointProbe(
+      text: probe.text == AiCapability.unknown ? stored.text : probe.text,
+      photo: probe.photo == AiCapability.unknown ? stored.photo : probe.photo,
+    );
+
+    if (merged.text == AiCapability.unknown &&
+        merged.photo == AiCapability.unknown) {
+      await _storage.delete(key: _probeSlotTag(target));
+      return;
+    }
+    await _storage.write(key: _probeSlotTag(target), value: merged.encode());
   }
 
   /// The stored key for [provider], defaulting to the active one, or null

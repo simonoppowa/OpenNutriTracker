@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
@@ -192,10 +193,28 @@ class AiEndpointProber {
 /// then discarded by the same call that reads it — the identical treatment a
 /// user's own photograph gets, and for the identical reason (#758's
 /// disclosure says the app keeps no copy).
+/// Distinguishes two calls landing inside the same microsecond.
+int _probeSeq = 0;
+
+/// A temp path for the probe image that no concurrent probe will pick.
+///
+/// A fixed name races when two probes overlap — a user saving twice
+/// quickly, or a retry landing on top of one still running — and the loser
+/// reads a half-written file or has its own deleted from under it by
+/// `encodeAndDiscardSource`.
+///
+/// Extracted so the uniqueness is assertable without provoking a race: a
+/// scheduling-dependent test that passes on a fast machine and fails in CI
+/// would be worse than none.
+@visibleForTesting
+String probePhotoTempPath(String directory) =>
+    '$directory/ai_probe_sample_'
+    '${DateTime.now().microsecondsSinceEpoch}_${_probeSeq++}.jpg';
+
 Future<MealPhoto?> loadProbePhoto(MealPhotoFormat format) async {
   final bytes = (await rootBundle.load(aiProbePhotoAsset)).buffer.asUint8List();
   final directory = await getTemporaryDirectory();
-  final file = File('${directory.path}/ai_probe_sample.jpg');
+  final file = File(probePhotoTempPath(directory.path));
   await file.writeAsBytes(bytes, flush: true);
   return MealPhotoEncoder.encodeAndDiscardSource(file.path, format: format);
 }
