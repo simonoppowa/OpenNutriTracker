@@ -75,10 +75,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   ///
   /// Found on a Pixel 6: with a server the user runs configured, the feature
   /// *is* enabled, so the camera icon appeared — and did nothing, because
-  /// there is no identifiable photo destination for it (#747 has not settled
-  /// which image formats survive; the encoder emits WebP and llama.cpp cannot
-  /// decode it). A button that is present and inert is worse than one that is
-  /// absent.
+  /// nothing had established that the model on the other end can see. A
+  /// button that is present and inert is worse than one that is absent.
   ///
   /// The destination alone is not the answer either. It resolves for an
   /// install that has never opened settings: nothing stored reads as
@@ -91,33 +89,71 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     return await _photoDestination != null;
   }();
 
-  /// Where a photo would actually go. The sheet below is the last moment the
-  /// user can decline, so it has to name the real destination — it named
-  /// Anthropic unconditionally until a Pixel 6 showed it saying so while
-  /// OpenRouter was selected.
+  /// Where a photo would actually go, **and the name the sheet gives it**.
+  ///
+  /// The sheet below is the last moment the user can decline, so it has to
+  /// name the real destination — it named Anthropic unconditionally until a
+  /// Pixel 6 showed it saying so while OpenRouter was selected.
+  ///
+  /// The name is one field rather than two because there is one question:
+  /// *who is at the far end?* For the three providers reached at a
+  /// compiled-in endpoint that is a company, taken from the curated model's
+  /// [AiModel.servedBy]; for a server the user runs there is no company to
+  /// name and the only honest answer is **the address they configured**,
+  /// which is what #736 settled and what #781 makes this record able to
+  /// express. Two of the four sentences carry the name inside themselves
+  /// rather than as a placeholder, which does not make the field less true
+  /// for them.
   ///
   /// Deliberately not `readSelection()`: that carries the API key, and
   /// nothing in the widget layer has any business holding it.
   /// Null when the stored provider is a name this build does not know. The
   /// sheet cannot name a destination it cannot identify, so it does not open
   /// — the same outcome as a provider with no key, and the point of #753.
-  late final Future<({AiProvider provider, AiModel model})?> _photoDestination =
+  late final Future<({AiProvider provider, String name})?> _photoDestination =
       () async {
         final storage = locator<AiCredentialStorage>();
         final provider = await storage.activeProvider();
         if (provider == null) return null;
+        if (provider == AiProvider.ownServer) {
+          return await _ownServerDestination(storage);
+        }
         final model = AiModelCatalogue.resolve(
           provider,
           await storage.readModel(provider: provider),
         );
-        // Null for a server the user runs: it has no curated list, and the
-        // photo path there is unresolved — #747 needs a real runtime to
-        // settle which image formats survive, since the encoder emits WebP
-        // and llama.cpp cannot decode it. Until then the camera hides itself,
-        // which is a state this screen already models.
         if (model == null) return null;
-        return (provider: provider, model: model);
+        return (provider: provider, name: model.servedBy);
       }();
+
+  /// A server the user runs, **only once a photo probe has passed against the
+  /// pair currently configured** — and null otherwise.
+  ///
+  /// The stored pass is the whole gate (#735). There is no curated list here
+  /// and no behavioural screen the project can run against a machine it has
+  /// never seen, so the app's own setup-time test is what stands in for one;
+  /// and unlike the text path there is nothing underneath a photo to fall
+  /// back to, so offering the camera to a model that cannot see is offering a
+  /// dead end. [AiCredentialStorage.writeEndpoint] and
+  /// [AiCredentialStorage.writeModel] each discard the record when their
+  /// value changes, so a pass read here can only describe the address and
+  /// model in use right now.
+  ///
+  /// A missing host is a second, independent null: the sheet's whole job for
+  /// this provider is to say the address out loud, and it cannot do that from
+  /// text that is not one.
+  Future<({AiProvider provider, String name})?> _ownServerDestination(
+    AiCredentialStorage storage,
+  ) async {
+    const provider = AiProvider.ownServer;
+    final probe = await storage.readProbe(provider: provider);
+    if (probe.photo != AiCapability.passed) return null;
+    final endpoint = await storage.readEndpoint(provider: provider);
+    if (endpoint == null) return null;
+    final host = AiCredentialStorage.displayHost(endpoint);
+    if (host == null) return null;
+    return (provider: provider, name: host);
+  }
 
   late BulkAddScreenArguments _args;
   bool _submitting = false;
@@ -647,16 +683,17 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     final disclosure = switch (destination.provider) {
       AiProvider.anthropic => S.of(context).bulkAddPhotoDisclosureAnthropic,
       AiProvider.openrouter =>
-        S
-            .of(context)
-            .bulkAddPhotoDisclosureOpenRouter(destination.model.servedBy),
+        S.of(context).bulkAddPhotoDisclosureOpenRouter(destination.name),
       // No placeholder: a direct path has no serving vendor to name, so this
       // string is flat where OpenRouter's is parameterised.
       AiProvider.openai => S.of(context).bulkAddPhotoDisclosureOpenAI,
-      // Unreachable: `_photoDestination` is null for this provider, so the
-      // sheet never opens. Stated rather than wildcarded so a fifth provider
-      // still has to answer the question.
-      AiProvider.ownServer => throw StateError('no photo path for ownServer'),
+      // The address, and nothing beyond it. Not "no third party receives it",
+      // however tempting: the app cannot tell a local runtime from a
+      // self-hosted proxy forwarding to OpenAI, and #732 ruled those out of
+      // scope by making no claim about them rather than by detecting them.
+      // The no-copy sentence below is about this app and still holds.
+      AiProvider.ownServer =>
+        S.of(context).bulkAddPhotoDisclosureOwnServer(destination.name),
     };
     final shouldOpenCamera = await showModalBottomSheet<bool>(
       context: context,

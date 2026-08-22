@@ -1191,6 +1191,7 @@
   "bulkAddPhotoDisclosureAnthropic": "Fotoğraf, içindeki yiyecekleri tanımak için Anthropic'e gönderilir.",
   "bulkAddPhotoDisclosureOpenRouter": "Fotoğraf OpenRouter'a gönderilir; OpenRouter da içindeki yiyecekleri tanımak için onu {provider} sağlayıcısına iletir.",
   "bulkAddPhotoDisclosureOpenAI": "Fotoğraf, içindeki yiyecekleri tanımak için OpenAI'ye gönderilir. OpenAI fotoğrafı kötüye kullanım tespiti için 30 güne kadar saklar; yasa gerektiriyorsa ya da kendi hizmetlerini veya üçüncü tarafları zarardan korumak için makul ölçüde gerekliyse daha uzun süre saklar.",
+  "bulkAddPhotoDisclosureOwnServer": "Fotoğraf, içindeki yiyecekleri tanımak için {host} adresine gönderilir.",
   "bulkAddReadFromPhotoLabel": "Fotoğraftan okundu — her yiyeceği ve miktarı kontrol edin",
   "bulkAddPhotoUnavailableLabel": "Fotoğraf okumak için Ayarlar’dan yapay zekâ öğün yardımını açın",
   "bulkAddPhotoKeyRejectedLabel": "API anahtarınız reddedildi. Ayarlar’dan kontrol edin.",

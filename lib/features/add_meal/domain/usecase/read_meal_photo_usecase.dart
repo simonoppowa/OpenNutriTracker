@@ -108,18 +108,24 @@ class ReadMealPhotoUseCase {
         MealInterpreterFailure.billing => MealPhotoFailure.billing,
         // Points at settings rather than at the network, which is the half
         // of the message that matters — the connection is fine and the app
-        // chose not to use it. Unreachable today: a server the user runs is
-        // the only provider that can be plaintext, and it has no photo path
-        // until #781. That ticket should give this its own wording; folding
-        // it into "choose a different model" is close enough to be honest
-        // while nothing can reach it, and wrong once something can.
+        // chose not to use it. **No longer unreachable**: #781 opened the
+        // photo path to a server the user runs, which is the only provider
+        // that can be plaintext, and the address is checked per request
+        // against what it resolves to now (#737) — so a hostname that was
+        // private when the probe passed can be public by the time a
+        // photograph is taken. The folding is now a known wrong turn rather
+        // than a harmless one: it says "choose a different model" about a
+        // model that is fine, and #782 is about to read `unsupported` as
+        // *nothing on the other end can see* and retract a pass over it — so
+        // this member has to be told apart before that lands, or a refused
+        // plaintext request will take a working camera away.
         MealInterpreterFailure.insecureDestination =>
           MealPhotoFailure.unsupported,
-        // Also unreachable, and for the mirror-image reason: a server the
-        // user runs is the only configuration that reports a timeout as its
-        // own kind of failure, and it has no photo path either. Folding it
-        // in keeps the honest "try again" rather than adding a string no
-        // build can currently show (#774).
+        // Reachable for the same reason and still folded on purpose: a
+        // server the user runs is the only configuration that reports a
+        // timeout as its own kind of failure, and "try again" is honest
+        // advice for one — a cold Ollama can spend the whole budget loading
+        // the model. #774.
         MealInterpreterFailure.timeout ||
         MealInterpreterFailure.transient => MealPhotoFailure.transient,
       });

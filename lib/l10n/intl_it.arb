@@ -1160,6 +1160,7 @@
   "bulkAddPhotoDisclosureAnthropic": "La foto viene inviata ad Anthropic per riconoscere gli alimenti che contiene.",
   "bulkAddPhotoDisclosureOpenRouter": "La foto viene inviata a OpenRouter, che la inoltra a {provider} per riconoscere gli alimenti che contiene.",
   "bulkAddPhotoDisclosureOpenAI": "La foto viene inviata a OpenAI per riconoscere gli alimenti che contiene. OpenAI la conserva fino a 30 giorni per il rilevamento degli abusi, e più a lungo se lo richiede la legge o se è ragionevolmente necessario per proteggere i propri servizi o terzi da danni.",
+  "bulkAddPhotoDisclosureOwnServer": "La foto viene inviata a {host} per riconoscere gli alimenti che contiene.",
   "bulkAddReadFromPhotoLabel": "Letto da una foto — controlla ogni alimento e quantità",
   "bulkAddPhotoUnavailableLabel": "Attiva l'assistenza AI ai pasti nelle impostazioni per leggere le foto",
   "bulkAddPhotoKeyRejectedLabel": "La tua chiave API è stata rifiutata. Controllala nelle impostazioni.",
