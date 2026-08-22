@@ -17,6 +17,8 @@ void main() {
     'aiAssistDisclosureOpenRouter',
     // #774.
     'bulkAddModelTimedOutLabel',
+    // #758.
+    'bulkAddModelInsecureServerLabel',
   ];
 
   final arb = {

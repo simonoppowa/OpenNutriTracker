@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
@@ -272,6 +273,17 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
             body: body,
           )
           .timeout(timeout);
+    } on InsecureDestinationException {
+      // Ahead of the catch-all, which would report this as `transient` and
+      // send the user to check a connection the app deliberately never
+      // opened. The host is not logged: it is the address of a machine in
+      // somebody's house, and this exception is raised on requests that may
+      // carry a photograph of their dinner.
+      _log.warning('Refused a plaintext request to a public address');
+      throw const MealInterpreterException(
+        'plaintext to a public address',
+        failure: MealInterpreterFailure.insecureDestination,
+      );
     } on TimeoutException {
       // Ahead of the catch-all below, which is the whole point: until #774
       // this arrived here as an ordinary socket failure and was reported as

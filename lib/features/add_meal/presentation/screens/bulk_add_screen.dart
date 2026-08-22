@@ -276,6 +276,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           // Not a network glyph, for the same reason the sentence is not
           // about a network: the connection was fine and the clock ran out.
           MealTextModelFailure.timeout => Icons.timer_off_rounded,
+          // A lock, not a broken plug. Nothing failed to connect — the app
+          // declined to send in the clear.
+          MealTextModelFailure.insecureDestination => Icons.lock_outline,
         },
         text: switch (failure) {
           MealTextModelFailure.auth =>
@@ -286,6 +289,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             S.of(context).bulkAddModelNoCreditLabel,
           MealTextModelFailure.timeout =>
             S.of(context).bulkAddModelTimedOutLabel,
+          MealTextModelFailure.insecureDestination =>
+            S.of(context).bulkAddModelInsecureServerLabel,
         },
         // Coloured as a warning, unlike the neutral "read by AI" banner:
         // this one is asking the user to go and change something.
