@@ -181,6 +181,12 @@ class AiEndpointProber {
       // camera — so the honest wording wins, and "we could not tell" is what
       // actually happened.
       MealInterpreterFailure.timeout => AiCapability.unknown,
+      // #758 landed first, so this switch had to rule on its member too —
+      // the same forced question, and the same answer. The app refused to
+      // send, so nothing was learned about the model. What needs fixing is
+      // the address, and #758's own notice says that far better than a
+      // capability verdict could.
+      MealInterpreterFailure.insecureDestination => AiCapability.unknown,
     };
   }
 }
