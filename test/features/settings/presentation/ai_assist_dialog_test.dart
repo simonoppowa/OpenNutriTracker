@@ -1300,6 +1300,34 @@ void main() {
         );
       });
 
+      testWidgets('moving on from a changed address fetches, without pressing '
+          'anything', (tester) async {
+        // The positive half of the two exit tests above. They prove the fetch
+        // is *suppressed* while the route is going away; without this, they
+        // would all still pass if the trigger were deleted outright and no
+        // URL change ever fetched again.
+        //
+        // Focus moving to the model field, which is where someone goes next.
+        final server = _Server.listing(['gemma3:4b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await tester.showKeyboard(
+          find.bySemanticsIdentifier('ai-assist-model-field'),
+        );
+        await tester.pumpAndSettle();
+
+        expect(server.requests, [
+          Uri.parse('http://192.168.1.9:11434/v1/models'),
+        ]);
+      });
+
       testWidgets('moving an already-configured server to a new address saves '
           'both fields', (tester) async {
         // The third exit, and the one where suppressing the fetch has to not

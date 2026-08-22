@@ -141,12 +141,6 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
 
   bool _fetchingModels = false;
 
-  /// The dialog is on its way out, so the address field losing focus is the
-  /// route closing rather than the user moving on. Without it, editing the
-  /// address and pressing OK fires a request on the way out — one the user
-  /// never asked for, at the one moment they cannot see the answer.
-  bool _closing = false;
-
   /// The address the model on screen belongs to: what was stored when the
   /// dialog opened, then whatever was last asked.
   ///
@@ -246,13 +240,18 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// Not on every keystroke, which would send a request to `http://h`,
   /// `http://ht`, and every other prefix of what someone is typing.
   void _endpointCommitted() {
-    if (!mounted || _closing || _provider != AiProvider.ownServer) return;
-    // The other way out, and the one no handler of ours runs on: the system
-    // back button pops this route without touching [_closing]. A route on its
-    // way out stops being current the moment `pop` is called, which is before
-    // it takes focus off the address field — so this catches the teardown
-    // that the flag above cannot see. Both are needed: the flag covers the
-    // buttons, this covers everything else.
+    if (!mounted || _provider != AiProvider.ownServer) return;
+    // **Leaving is not an explicit ask.** Tearing this route down takes focus
+    // off the address field, and answering that with a request would contact
+    // a machine on the user's network at the one moment they cannot see the
+    // answer. A route stops being current the moment `pop` is called, which
+    // is before it moves focus — so this catches every way out at once:
+    // Cancel, OK, and the system back button, which runs no handler of ours
+    // at all.
+    //
+    // One check rather than a flag set on each exit. A flag was tried first
+    // and could not see the back button; adding this made every one of its
+    // own writes dead, and a fifth exit would have had to remember it.
     if (ModalRoute.of(context)?.isCurrent == false) return;
     final resolved = AiCredentialStorage.resolveEndpoint(
       _endpointController.text.trim(),
@@ -357,7 +356,6 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   Future<void> _save() async {
     final s = S.of(context);
     var changed = _changed;
-    _closing = true;
 
     if (_provider == AiProvider.ownServer) {
       // The address is this provider's credential, and the model is part of
@@ -392,10 +390,6 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       if (endpoint.isNotEmpty || model.isNotEmpty || _configured) {
         if (resolved == null || model.isEmpty) {
           setState(() {
-            // Nothing is closing after all — the dialog stays open on the
-            // refusal, and the address field goes back to being one the user
-            // can finish and have fetched from.
-            _closing = false;
             _endpointError = resolved == null
                 ? s.aiAssistEndpointInvalidLabel
                 : null;
@@ -682,14 +676,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
             ),
       actions: [
         TextButton(
-          // Marked as leaving *before* the pop, because tearing the route
-          // down takes focus off the address field and the focus listener
-          // would answer that by contacting the server. Dismissing a dialog
-          // is not one of the two moments #738 allows.
-          onPressed: () {
-            _closing = true;
-            Navigator.of(context).pop(_changed);
-          },
+          onPressed: () => Navigator.of(context).pop(_changed),
           child: Text(s.dialogCancelLabel),
         ),
         // Offered whenever something on screen can still be typed into. For
