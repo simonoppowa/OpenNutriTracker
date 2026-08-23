@@ -1,0 +1,1351 @@
+{
+  "activityExample": "ej. salir a correr, ir en bicicleta, yoga ...",
+  "activityLabel": "Actividad",
+  "addItemLabel": "Agregar nuevo elemento:",
+  "addLabel": "Agregar",
+  "additionalInfoLabelCompendium2011": "Información proporcionada\npor el\nCompendio de Actividades\nFísicas de 2024",
+  "additionalInfoLabelCustom": "Alimento personalizado",
+  "additionalInfoLabelFDC": "Más información en\nFoodData Central",
+  "additionalInfoLabelSource": "Más información en\n{sourceName}",
+  "@additionalInfoLabelSource": {
+    "placeholders": {
+      "sourceName": {
+        "type": "String"
+      }
+    }
+  },
+  "foodSourcesAlwaysEnabledLabel": "Siempre activado",
+  "foodSourcesHelpText": "Los resultados de búsqueda provienen de estas bases de datos de alimentos. Open Food Facts se usa para la búsqueda de productos y códigos de barras y está siempre activado.",
+  "machineTranslatedNameHint": "Nombre traducido automáticamente",
+  "measureUnitBar": "{count, plural, one{barrita} other{barras}}",
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitBottle": "{count, plural, one{botella} other{botellas}}",
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCan": "{count, plural, one{bote} other{botes}}",
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCup": "{count, plural, one{taza} other{tazas}}",
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitEgg": "{count, plural, one{huevo} other{huevos}}",
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPackage": "{count, plural, one{paquete} other{paquetes}}",
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPiece": "{count, plural, one{trozo} other{trozos}}",
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPortion": "{count, plural, one{porción} other{porciones}}",
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitServing": "{count, plural, one{ración} other{raciones}}",
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitSlice": "{count, plural, one{rebanada} other{rebanadas}}",
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTablespoon": "{count, plural, one{cucharada} other{cucharadas}}",
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTeaspoon": "{count, plural, one{cucharadita} other{cucharaditas}}",
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "settingsFoodSourcesLabel": "Bases de datos de alimentos",
+  "settingsFoodSourcesSubtitle": "Elige de dónde provienen los resultados de la búsqueda de alimentos",
+  "onboardingOtherOptionsLabel": "Otras opciones",
+  "onboardingOtherOptionsSubtitle": "Personaliza la aplicación — podrás cambiarlo todo más tarde en Opciones",
+  "additionalInfoLabelOFF": "Más información en\nOpenFoodFacts",
+  "additionalInfoLabelRecipe": "Receta personalizada",
+  "additionalInfoLabelUnknown": "Alimento desconocido",
+  "ageLabel": "Edad",
+  "allItemsLabel": "Todo",
+  "alphaVersionName": "[Alfa]",
+  "appDescription": "OpenNutriTracker es un contador gratuito y de código abierto de calorías y nutrientes que respeta tu privacidad.",
+  "appLicenseLabel": "Licencia GPL-3.0",
+  "appTitle": "OpenNutriTracker",
+  "appVersionName": "Versión {versionNumber}",
+  "@appVersionName": {
+    "placeholders": {
+      "versionNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "barcodeInvalidEan13CheckDigit": "Este código de barras de 13 dígitos parece erróneo: el último dígito no se corresponde con los demás",
+  "baseQuantityLabel": "Valor nutricional por",
+  "betaVersionName": "[Beta]",
+  "bmiInfo": "El Índice de Masa Corporal (IMC) es un índice utilizado para clasificar el sobrepeso y la obesidad en adultos. Se define como el peso en kilogramos dividido por el cuadrado de la estatura en metros (kg/m²).\n\nEl IMC no diferencia entre la masa grasa y la masa muscular, por lo que puede resultar engañoso para algunas personas.",
+  "bmiInfoClassificationSection": "Clasificación de la OMS",
+  "bmiInfoFormulaSection": "Fórmula",
+  "bmiInfoScreenTitle": "Cómo se calcula tu IMC",
+  "bmiLabel": "IMC",
+  "breakfastExample": "ej. cereales, leche, café ...",
+  "breakfastLabel": "Desayuno",
+  "burnedLabel": "quemadas",
+  "buttonNextLabel": "SIGUIENTE",
+  "buttonResetLabel": "Reiniciar",
+  "buttonSaveLabel": "Guardar",
+  "buttonStartLabel": "COMENZAR",
+  "buttonYesLabel": "SÍ",
+  "calciumLabel": "calcio",
+  "calculationsMacronutrientsDistributionLabel": "Distribución de macros",
+  "calculationsMacrosDistribution": "{pctCarbs}% hidratos, {pctFats}% grasas, {pctProteins}% proteínas",
+  "@calculationsMacrosDistribution": {
+    "placeholders": {
+      "pctCarbs": {},
+      "pctFats": {},
+      "pctProteins": {}
+    }
+  },
+  "calculationsRecommendedLabel": "(recomendado)",
+  "calculationsTDEEIOM2006Label": "Ecuación del instituto de Medicina (2005)",
+  "calculationsTDEELabel": "Ecuación del GETD (TDEE)",
+  "caloriesProfileAveragedLabel": "Referencia promediada (predeterminada)",
+  "caloriesProfileEstrogenTypicalLabel": "Referencia de tipo estrogénico",
+  "caloriesProfileInfoBody": "No existe una referencia base de calorías para personas no binarias; las ecuaciones de referencia están creadas a partir de muestras masculinas y femeninas. Por defecto, utilizamos un promedio de ambas: un punto de partida neutral que no te pide revelar más información sobre tu cuerpo. En Ajustes siempre está disponible la configuración de kcal para hacer ajustes finos; esto es solo un punto de partida, no una estimación exacta.",
+  "caloriesProfileInfoTitle": "Referencia calórica",
+  "caloriesProfileTestosteroneTypicalLabel": "Referencia de tipo testosterónico",
+  "carbohydrateLabel": "Carbohidrato",
+  "carbsLabel": "hidratos",
+  "carbsLabelShort": "c",
+  "cholesterolLabel": "colesterol",
+  "chooseWeeklyWeightGoalLabel": "Ratio de peso semanal",
+  "chooseWeightGoalLabel": "Elige tu objetivo de peso",
+  "clearOffCacheConfirmContent": "Elimina los resultados de búsqueda y escaneo guardados localmente en la caché de Open Food Facts y FDC. La caché se volverá a crear automáticamente a medida que busques y escanees productos. Tus comidas personalizadas no se verán afectadas.",
+  "clearOffCacheConfirmTitle": "¿Limpiar elementos de la caché?",
+  "clearOffCacheLabel": "Borrar elementos de la caché",
+  "clearOffCacheSubtitle": "{count} elemento(s) · {size}",
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "cmLabel": "cm",
+  "codeCopiedLabel": "Código copiado",
+  "copyCodeLabel": "Copiar código",
+  "copyDialogTitle": "¿A qué tipo de comida quieres copiarlo?",
+  "copyOrDeleteTimeDialogContent": "Con \"Copiar a hoy\" puedes copiar la comida a hoy. Con \"Borrar\" puedes borrar la comida.",
+  "copyOrDeleteTimeDialogTitle": "¿Qué quieres hacer?",
+  "createCustomDialogContent": "¿Quieres crear un alimento personalizado?",
+  "createCustomDialogTitle": "¿Crear alimento personalizado?",
+  "createRecipeTitle": "Crear receta",
+  "csvImportContributeOffAndroidLink": "Android",
+  "csvImportContributeOffIosLink": "iOS",
+  "csvImportContributeOffPrefix": "¿Tienes un código de barras? Ayuda a todo el mundo añadiendo el producto a Open Food Facts:",
+  "csvImportErrorLabel": "No se pudo leer el fichero CSV. Comprueba el formato e inténtalo de nuevo.",
+  "csvImportPartialLabel": "{imported} comida(s) importadas; {skipped} fila(s) ignoradas por datos inválidos.",
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "csvImportSuccessLabel": "{count} comida(s) importada(s).",
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "customActivityDescription": "Introduce las calorías quemadas directamente, para entrenamientos que no están en la lista o lecturas de una banda o reloj de fitness",
+  "customActivityDescriptionKj": "Introduce los kilojulios quemados directamente, para entrenamientos que no están en la lista o lecturas de una banda o reloj de fitness",
+  "customActivityKcalHint": "ej. 250",
+  "customActivityKcalLabel": "Calorías quemadas",
+  "customActivityName": "Actividad personalizada",
+  "customActivityNameFieldHint": "ej. Regreso a casa en bicicleta",
+  "customActivityNameFieldLabel": "Nombre (opcional)",
+  "customActivityPickFromTemplate": "Elegir de las plantillas guardadas",
+  "customActivitySaveAsTemplate": "Guardar como plantilla para la próxima vez",
+  "customActivityTemplatesEmpty": "No has guardado ninguna plantilla todavía. Marca \"Guardar como plantilla para la próxima vez\" para recordar esta actividad personalizada.",
+  "customMealBarcodeHint": "Escanear o escribir un código de barras para recordar esta comida",
+  "customMealBarcodeInvalid": "El código de barras tiene entre 8 y 14 dígitos",
+  "customMealBarcodeLabel": "Código de barras",
+  "customMealBarcodeScanButton": "Escanear código de barras",
+  "customMealFormAdvanced": "Avanzado",
+  "customMealFormAdvancedHelp": "Ajusta raciones y valores por 100 g para escalar con precisión.",
+  "customMealFormModeLabel": "Vista de formulario",
+  "customMealFormSimple": "Simple",
+  "customMealFormSimpleHelp": "Escribe el total para una ración.",
+  "customMealFormSimpleFieldHelper": "{unit} en una ración",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsDeleteConfirmContent": "Se borrarán los registros del diario asociados a esta comida.",
+  "customMealsDeleteConfirmTitle": "¿Borrar comida personalizada?",
+  "customMealsEmptyLabel": "No tienes comidas personalizadas.",
+  "dailyKcalAdjustmentLabel": "Ajuste diario de Kcal:",
+  "dailyKjAdjustmentLabel": "Ajuste diario de kJ:",
+  "dataCollectionLabel": "Enviar reportes anónimos de errores para ayudar a arreglar bugs e incidencias. En ningún caso se enviará el peso, la comida u otros datos personales.",
+  "deleteAllLabel": "Eliminar todo",
+  "settingsDeleteAllDataLabel": "Reiniciar datos del perfil",
+  "settingsDeleteAllDataSubtitle": "Perfil, comidas, actividades, historial de peso y sesiones de ayuno",
+  "settingsDeleteAllDataConfirmTitle": "Reiniciar datos del perfil?",
+  "settingsDeleteAllDataConfirmContent": "Esto eliminará tu perfil, comidas, actividades, historial de peso y sesiones de ayuno solo para el perfil actual. El contenido compartido (comidas personalizadas, recetas, plantillas de actividad) y los catálogos de Open Food Facts y USDA FoodData Central no se verán afectados. Esta acción no se puede deshacer.",
+  "settingsDeleteAllDataConfirmAction": "Reiniciar perfil",
+  "lowKcalWarningTitle": "Este objetivo diario es algo bajo",
+  "lowKcalWarningBody": "La mayoría de los adultos no deberían consumir menos de {threshold} kcal al día durante ningún período de tiempo sin supervisión médica. Considera hablar con un profesional de la salud antes de mantener un objetivo tan bajo.",
+  "@lowKcalWarningBody": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "lowKcalWarningViewDisclaimer": "Ver aviso",
+  "deleteSelectedRecipesConfirmTitle": "¿Borrar {count} receta(s)?",
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteTimeDialogContent": "¿Quieres borrar el elemento seleccionado?",
+  "deleteTimeDialogPluralContent": "¿Quieres borrar todos los alimentos de esta comida?",
+  "deleteTimeDialogPluralTitle": "¿Borrar elementos?",
+  "deleteTimeDialogTitle": "¿Borrar elemento?",
+  "dialogCancelLabel": "CANCELAR",
+  "dialogCopyLabel": "Copiar a hoy",
+  "dialogDeleteLabel": "ELIMINAR",
+  "dialogOKLabel": "OK",
+  "diaryFutureDateWarning": "Estás editando una fecha futura",
+  "diaryLabel": "Diario",
+  "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryNutrientPanelDataDisclaimer": "Aquí solo se suman los nutrientes registrados en las comidas que anotaste. Si a una comida le falta un valor, no aportará nada a ese nutriente, por lo que estos totales podrían ser inferiores a la realidad.",
+  "diaryNutrientPanelTitle": "Nutrientes de hoy",
+  "driPanelInfoTitle": "Ingesta de referencia",
+  "driPanelInfoBody": "Estos valores de referencia provienen de las Ingestas Dietéticas de Referencia del IOM para adultos y varían según la edad y el género. Son un punto de referencia, no un objetivo, tus necesidades personales pueden ser diferentes.",
+  "driPanelInfoLinkLabel": "Fuente: IOM Dietary Reference Intakes",
+  "driPanelReferenceLabel": "ref {value}",
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diarySortByCarbs": "Hidratos (más a menos)",
+  "diarySortByFat": "Grasas (más a menos)",
+  "diarySortByKcal": "Calorías (más a menos)",
+  "diarySortByLabel": "Ordenar por",
+  "diarySortByProtein": "Proteínas (más a menos)",
+  "diarySortByTime": "Tiempo añadido",
+  "dinnerExample": "ej. sopa, pollo, vino …",
+  "dinnerLabel": "Cena",
+  "discardChangesConfirmLabel": "Descartar",
+  "discardChangesContent": "Tus cambios no guardados se perderán.",
+  "discardChangesTitle": "¿Descartar cambios?",
+  "disclaimerAcknowledgeLabel": "Entiendo",
+  "disclaimerText": "OpenNutriTracker no es una aplicación médica. Todos los datos proporcionados no están validados y deben usarse con precaución. Mantén un estilo de vida saludable y consulta a un profesional si tienes algún problema. No se recomienda su uso durante enfermedades, embarazo o lactancia. Para consultar las fuentes revisadas por pares que respaldan cada cálculo, toca el icono de información en la pantalla de Inicio o Perfil.",
+  "downloadSampleCsvAction": "Comidas de ejemplo (csv)",
+  "downloadSampleJsonAction": "Comidas de ejemplo (json)",
+  "downloadSampleRecipesCsvAction": "Recetas de ejemplo (csv)",
+  "downloadSampleRecipesJsonAction": "Recetas de ejemplo (json)",
+  "duplicateMealDialogContent": "Este alimento ya se ha añadido a esta comida hoy. ¿Añadir de nuevo?",
+  "duplicateRecipeLabel": "Duplicar",
+  "duplicateRecipeNameSuffix": "(copiar)",
+  "editItemDialogTitle": "Editar elemento",
+  "editMealLabel": "Editar comida",
+  "editRecipeTitle": "Editar receta",
+  "energyLabel": "energía",
+  "energyLeftLabel": "restante",
+  "energyTooMuchLabel": "demasiada",
+  "energyUnitKcalLabel": "Kilocalorías (kcal)",
+  "energyUnitKjLabel": "Kilojulios (kJ)",
+  "errorFetchingProductData": "Error al cargar el producto",
+  "errorLoadingActivities": "Error cargando actividades",
+  "errorMealSave": "Error al guardar la comida. ¿Introdujiste la información correcta?",
+  "errorOpeningBrowser": "Error al abrir el navegador",
+  "errorOpeningEmail": "Error al abrir el gestor de correos",
+  "errorProductNotFound": "Producto no encontrado",
+  "exportAction": "Exportar",
+  "exportImportAppDataLabel": "Exportar / Importar datos de la aplicación",
+  "exportImportCsvRecipesNote": "El CSV guarda tu actividad, el registro de comidas y los días supervisados. Las recetas y las fotos que hayas adjuntado están solo en JSON; cambia a JSON si quieres incluirlas en tu copia de seguridad.",
+  "exportImportDescription": "Puedes exportar los datos de la aplicación a un archivo zip e importarlos más tarde. Esto es útil si quieres hacer una copia de seguridad de tus datos o transferirlos a otro dispositivo.\n\nLa aplicación no utiliza ningún servicio en la nube para almacenar tus datos.",
+  "exportImportErrorLabel": "Error al importar/exportar",
+  "exportImportSuccessLabel": "Éxito al importar/exportar",
+  "fatLabel": "grasas",
+  "fatLabelShort": "g",
+  "fiberLabel": "fibra",
+  "flOzUnit": "oz fl",
+  "ftLabel": "ft",
+  "inLabel": "in",
+  "genderFemaleLabel": "mujer",
+  "genderLabel": "Sexo",
+  "genderMaleLabel": "hombre",
+  "genderNonBinaryLabel": "no binario",
+  "goalGainWeight": "Ganar peso",
+  "goalLabel": "Objetivo",
+  "goalLoseWeight": "Perder peso",
+  "goalMaintainWeight": "Mantener el peso actual",
+  "gramMilliliterUnit": "g/ml",
+  "gramUnit": "g",
+  "heightLabel": "Altura",
+  "homeLabel": "Casa",
+  "homeFirstMealHint": "Pulsa + para añadir tu primera comida o actividad",
+  "homeDemoBannerLabel": "Estás viendo datos de ejemplo",
+  "homeDemoBannerAction": "Configura tu perfil",
+  "homeDemoBannerConfirmTitle": "¿Configurar tu propio perfil?",
+  "homeDemoBannerConfirmContent": "Los datos de ejemplo se eliminarán y se configurará tu propio perfil. Esto no se puede deshacer.",
+  "homeDemoBannerConfirmAction": "Continuar",
+  "trendsDailyAverageLabel": "Media diaria",
+  "trendsLabel": "Tendencia",
+  "youLabel": "Tú",
+  "trendsCaloriesLabel": "Calorías",
+  "trendsDaysOnTrack": "días logrados esta semana",
+  "trendsDayStreakLabel": "racha de días",
+  "trendsBestStreakLabel": "mejor",
+  "trendsPerWeekSuffix": "/semana",
+  "trendsWeeksToGoalLabel": "semanas para el objetivo",
+  "trendsWaterLabel": "Agua",
+  "importAction": "Importar",
+  "importActivityConfirmContent": "Estas actividades se añadirán a hoy.",
+  "importActivityConfirmTitle": "¿Importar {count} actividades?",
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importActivityLabel": "Importar entrenamiento compartido",
+  "importActivitySuccessLabel": "Entrenamiento importado",
+  "importCustomFoodDataDescription": "Importa tus propias comidas desde un archivo CSV o pegando JSON. Descarga un ejemplo para ver el formato esperado y los campos obligatorios.",
+  "importCustomFoodDataLabel": "Importar datos personalizados de alimentos",
+  "importMealConfirmContent": "Estos elementos se añadirán a tu {mealType}.",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "importMealConfirmTitle": "¿Importar {count} elementos?",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importMealErrorLabel": "Código QR no válido",
+  "importMealLabel": "Importar comida compartida",
+  "importMealSuccessLabel": "Comida importada",
+  "importMealsCsvAction": "Importar comidas (csv)",
+  "importMealsJsonAction": "Importar comidas (json)",
+  "importOffFetchFailedLabel": "No se pudieron obtener {count} elemento(s) de OpenFoodFacts.",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importRecipeConfirmContent": "¿Importar esta receta con {count} ingrediente(s)?",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importRecipeErrorLabel": "No se pudo interpretar el código de la receta",
+  "importRecipeLabel": "Importar receta",
+  "importRecipeSuccessLabel": "Receta importada",
+  "importRecipesCsvAction": "Importar recetas (csv)",
+  "importRecipesJsonAction": "Importar recetas (json)",
+  "inconsistentNutritionWarningBody": "Estos valores no acaban de cuadrar: las calorías introducidas no coinciden con la energía de los hidratos, las grasas y las proteínas de abajo. ¿Guardar igualmente o revisarlos otra vez?",
+  "inconsistentNutritionWarningEdit": "Revisar de nuevo",
+  "inconsistentNutritionWarningSaveAnyway": "Guardar igualmente",
+  "inconsistentNutritionWarningTitle": "Las cifras no acaban de cuadrar",
+  "infoAddedActivityLabel": "Nueva actividad añadida",
+  "infoAddedIntakeLabel": "Nuevo registro añadido",
+  "ironLabel": "hierro",
+  "itemDeletedSnackbar": "Elemento eliminado",
+  "itemUpdatedSnackbar": "Elemento actualizado",
+  "kcalGoalInfoActivityExplanation": "Las calorías quemadas por las actividades registradas se suman a tu objetivo, así tu déficit o superávit previsto se mantiene igual los días de entrenamiento.",
+  "kcalGoalInfoActivitySection": "Paso 4 · Ejercicio de hoy",
+  "kcalGoalInfoAdjustmentExplanationFlat": "Tu objetivo de peso aplica un ajuste diario fijo: −500 kcal para perder, +500 kcal para ganar, 0 para mantener.",
+  "kcalGoalInfoAdjustmentExplanationWeekly": "Tu ritmo semanal determina el ajuste diario. Un kilo de grasa corporal almacena unas 7700 kcal, así que cada kg por semana desplaza el objetivo unas 1100 kcal al día.",
+  "kcalGoalInfoAdjustmentSection": "Paso 2 · Ajuste por objetivo de peso",
+  "kcalGoalInfoAppliedAdjustmentLabel": "Ajuste aplicado",
+  "kcalGoalInfoAveragedNote": "Con la referencia promediada, tu TDEE es el punto medio entre los resultados de las referencias masculina y femenina.",
+  "kcalGoalInfoBaseAdjustmentLabel": "Ajuste del objetivo",
+  "kcalGoalInfoEstimateNote": "Todas las fórmulas son estimaciones poblacionales — las necesidades individuales varían. Tu objetivo es un punto de partida, no un consejo médico.",
+  "kcalGoalInfoFemaleReferenceLabel": "Referencia femenina",
+  "kcalGoalInfoInputsSection": "Tus datos",
+  "kcalGoalInfoIntro": "Tu objetivo diario de calorías se calcula con ecuaciones científicas publicadas usando solo los valores siguientes. Esta página muestra cada número que interviene en el objetivo de hoy.",
+  "kcalGoalInfoLearnMoreLabel": "Documentación completa del cálculo",
+  "kcalGoalInfoMacroExplanation": "Tu objetivo calórico se reparte entre hidratos, grasas y proteínas según tu distribución de macros (por defecto: 60 % hidratos, 25 % grasas, 15 % proteínas — ajustable en Ajustes). Los gramos se deducen de las densidades energéticas: los hidratos y las proteínas aportan 4 kcal por gramo, y las grasas 9 kcal por gramo.",
+  "kcalGoalInfoMacroSection": "Distribución de macronutrientes",
+  "kcalGoalInfoMaleReferenceLabel": "Referencia masculina",
+  "kcalGoalInfoManualExplanation": "Un ajuste fijo que tú mismo defines en Ajustes, para cuando sabes que tus necesidades difieren de la estimación.",
+  "kcalGoalInfoManualSection": "Paso 3 · Ajuste manual",
+  "kcalGoalInfoPaRowLabel": "Coeficiente de actividad (PA)",
+  "kcalGoalInfoPalRowLabel": "Nivel de actividad física (PAL)",
+  "kcalGoalInfoResultSection": "Objetivo calórico de hoy",
+  "kcalGoalInfoTaperNote": "Como la reducción progresiva hacia el peso objetivo está activada, el ajuste se atenúa a medida que te aproximas a tu peso objetivo (efecto completo por encima de 5 kg, mantenimiento dentro de 1 kg).",
+  "kcalGoalInfoTdeeExplanation": "Tu gasto energético total diario (TDEE) — la energía que gastas en un día típico — se estima con la ecuación IOM 2005 a partir de tu edad, peso, altura y nivel de actividad.",
+  "kcalGoalInfoTdeeResultLabel": "Tu TDEE",
+  "kcalGoalInfoTdeeSection": "Paso 1 · Energía de mantenimiento (TDEE)",
+  "kcalLabel": "kcal",
+  "kcalLeftLabel": "kcal restantes",
+  "kcalTooMuchLabel": "kcal de más",
+  "kgLabel": "kg",
+  "kjLabel": "kJ",
+  "lbsLabel": "lbs",
+  "stLabel": "st",
+  "lunchExample": "ej. pizza, ensalada, arroz ...",
+  "lunchLabel": "Almuerzo",
+  "macroDistributionLabel": "Distribución de macronutrientes:",
+  "magnesiumLabel": "magnesio",
+  "mealBrandsLabel": "Marcas",
+  "mealCarbsLabel": "Hidratos de carbono",
+  "mealDetailCurrentSelectionLabel": "(+{kcal} kcal de la selección actual)",
+  "@mealDetailCurrentSelectionLabel": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      }
+    }
+  },
+  "mealDetailDayTotalLabel": "Total del día: {consumed} / {goal}",
+  "@mealDetailDayTotalLabel": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "mealEnergyLabel": "Energía",
+  "mealFatLabel": "Grasas",
+  "mealImageLabel": "Añadir una foto",
+  "mealImagePickFromGallery": "Elegir de la galería",
+  "mealImageRemove": "Quitar foto",
+  "mealImageReplace": "Cambiar foto",
+  "mealImageTakePhoto": "Hacer una foto",
+  "mealKcalLabel": "kcal",
+  "mealNameLabel": "Nombre de la comida",
+  "mealNameValidationError": "El nombre de la comida debe contener al menos una letra",
+  "mealNutrientsPerQtyLabel": "Por {qty} {unit}",
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "mealNutrientsTotalLabel": "Cantidad total",
+  "mealPatternFiveSmall": "Cinco comidas pequeñas",
+  "mealPatternMediterranean": "Mediterránea",
+  "mealPatternOmad": "OMAD",
+  "mealPatternPresetsLabel": "Preajustes rápidos",
+  "mealPatternStandard": "Estándar",
+  "mealPatternTwoMeal": "Dos comidas",
+  "mealProteinLabel": "Proteínas",
+  "mealSizeLabel": "Tamaño del envase",
+  "mealSizeLabelImperial": "Tamaño del envase (oz/fl oz)",
+  "mealUnitLabel": "Unidad de la comida",
+  "micronutrientsLabel": "Micronutrientes",
+  "milliliterUnit": "ml",
+  "missingProductInfo": "Al producto le falta información obligatoria de kcal o de macronutrientes",
+  "monounsaturatedFatLabel": "grasas monoinsaturadas",
+  "newCustomMealLabel": "Nuevo alimento personalizado",
+  "niacinLabel": "niacina (B3)",
+  "noActivityRecentlyAddedLabel": "No hay actividades añadidas recientemente",
+  "noMealsRecentlyAddedLabel": "No hay comidas añadidas recientemente",
+  "noResultsFound": "Sin resultados",
+  "notAvailableLabel": "N/D",
+  "nothingAddedLabel": "Nada añadido",
+  "notificationsDailyReminderBody": "¡No olvides registrar tus comidas hoy!",
+  "notificationsDailyReminderChannelName": "Recordatorios diarios",
+  "notificationsDailyReminderChannelDescription": "Recordatorio diario para registrar las comidas",
+  "notificationsDailyReminderTitle": "OpenNutriTracker",
+  "notificationsPermissionDeniedSnack": "Permiso de notificaciones denegado.",
+  "nutrientPanelAllHiddenLabel": "Todos los nutrientes están ocultos — activa alguno en Ajustes → Nutrientes.",
+  "nutrientPanelLimitLabel": "límite",
+  "nutrientPanelDayLabel": "Día",
+  "nutrientPanelWeekLabel": "Semana",
+  "nutritionInfoLabel": "Información nutricional",
+  "nutritionalStatusNormalWeight": "Peso normal",
+  "nutritionalStatusObeseClassI": "Obesidad grado I",
+  "nutritionalStatusObeseClassII": "Obesidad grado II",
+  "nutritionalStatusObeseClassIII": "Obesidad grado III",
+  "nutritionalStatusPreObesity": "Preobesidad",
+  "nutritionalStatusRiskAverage": "Medio",
+  "nutritionalStatusRiskIncreased": "Aumentado",
+  "nutritionalStatusRiskLabel": "Riesgo de comorbilidades: {riskValue}",
+  "@nutritionalStatusRiskLabel": {
+    "placeholders": {
+      "riskValue": {
+        "type": "String"
+      }
+    }
+  },
+  "nutritionalStatusRiskLow": "Bajo \n(aunque aumenta el riesgo de otros \nproblemas clínicos)",
+  "nutritionalStatusRiskModerate": "Moderado",
+  "nutritionalStatusRiskSevere": "Grave",
+  "nutritionalStatusRiskVerySevere": "Muy grave",
+  "nutritionalStatusUnderweight": "Bajo peso",
+  "offDisclaimer": "Los datos que esta aplicación te proporciona proceden de la base de datos de Open Food Facts. No se puede garantizar la exactitud, la integridad ni la fiabilidad de la información facilitada. Los datos se ofrecen «tal cual» y la fuente originaria de los datos (Open Food Facts) no se hace responsable de los daños derivados de su uso.",
+  "onboardingActivityQuestionSubtitle": "¿Cuánta actividad haces? (sin contar entrenamientos)",
+  "onboardingAdultEquationNotice": "Los objetivos calóricos se calculan con ecuaciones de referencia para adultos. Con menos de 18 años, contrasta el resultado con un médico o dietista.",
+  "onboardingBirthdayHint": "Introduce la fecha",
+  "onboardingBirthdayQuestionSubtitle": "¿Cuándo es tu cumpleaños?",
+  "onboardingBlockedActivitySnack": "Selecciona tu nivel de actividad para continuar",
+  "onboardingBlockedBodySnack": "Introduce una altura y un peso válidos para continuar",
+  "onboardingBlockedDemoPolicySnack": "Acepta la política de privacidad para probar la demo",
+  "onboardingBlockedGoalSnack": "Selecciona tu objetivo de peso para continuar",
+  "onboardingBlockedOverviewSnack": "Faltan algunos datos. Vuelve atrás y completa los pasos anteriores.",
+  "onboardingBlockedPolicySnack": "Acepta la política de privacidad para continuar",
+  "onboardingBlockedProfileSnack": "Selecciona tu sexo e introduce tu fecha de nacimiento para continuar",
+  "onboardingEnterBirthdayLabel": "Fecha de nacimiento",
+  "onboardingGenderQuestionSubtitle": "¿Cuál es tu sexo?",
+  "onboardingGoalQuestionSubtitle": "¿Cuál es tu objetivo de peso actual?",
+  "onboardingFoodSourcesEnabledCount": "{enabled} de {total} activadas",
+  "@onboardingFoodSourcesEnabledCount": {
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingGoalSuggestedBadge": "Sugerido",
+  "onboardingGoalSuggestionBmi": "Tu IMC es {bmi} — OMS: {status}.",
+  "@onboardingGoalSuggestionBmi": {
+    "placeholders": {
+      "bmi": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingGoalSuggestionTarget": "Basado en el peso objetivo que introdujiste.",
+  "onboardingHeightExampleHintCm": "ej. 170",
+  "onboardingHeightExampleHintFt": "ej. 5.8",
+  "onboardingHeightQuestionSubtitle": "¿Cuál es tu altura actual?",
+  "onboardingHealthyRangeApply": "Usar {weight}",
+  "@onboardingHealthyRangeApply": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingHealthyRangeLabel": "Rango saludable para {height}: {range}",
+  "@onboardingHealthyRangeLabel": {
+    "placeholders": {
+      "height": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingHealthyRangeSource": "OMS, IMC 18,5–24,9",
+  "onboardingImplausibleChange": "Cambiar",
+  "onboardingImplausibleHeightBody": "{value} es una altura poco habitual. ¿La mantienes?",
+  "@onboardingImplausibleHeightBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingImplausibleKeep": "Mantener",
+  "onboardingImplausibleTitle": "Comprueba este valor",
+  "onboardingImplausibleWeightBody": "{value} es un peso poco habitual. ¿Lo mantienes?",
+  "@onboardingImplausibleWeightBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingIntroDescription": "Para empezar, la aplicación necesita algunos datos sobre ti para calcular tu objetivo diario de calorías.\nToda tu información se guarda de forma segura en tu dispositivo.",
+  "onboardingIntroSourcesLinkLabel": "Leer nuestras fuentes médicas de cálculo",
+  "onboardingKcalPerDayLabel": "kcal al día",
+  "onboardingKjPerDayLabel": "kJ al día",
+  "onboardingNonBinaryDisclaimer": "No existe una referencia calórica publicada para personas no binarias, así que por defecto usamos el promedio de las fórmulas masculina y femenina — un punto de partida, no una estimación precisa. Puedes ajustarlo cuando quieras en Ajustes → Cálculos.",
+  "onboardingOverviewLabel": "Resumen",
+  "onboardingSaveUserError": "Datos incorrectos, inténtalo de nuevo",
+  "onboardingTargetWeightHintOptional": "Opcional",
+  "onboardingTargetWeightSubtitle": "¿Hay un peso al que quieras llegar? Puedes dejarlo en blanco o cambiarlo más tarde en Perfil.",
+  "onboardingTryDemoLabel": "Probar demo",
+  "onboardingTryDemoSubtitle": "Salta la configuración y explora la app con datos de ejemplo. Acepta antes la política de privacidad.",
+  "onboardingTryDemoDisclaimer": "Usa solo datos ficticios de ejemplo. Los reportes de errores permanecen desactivados salvo que los actives después. Las fotos de ejemplo y la búsqueda de alimentos pueden usar la red.",
+  "onboardingTryDemoError": "No se pudo configurar la demo. Inténtalo de nuevo.",
+  "onboardingWeightExampleHintKg": "ej. 60",
+  "onboardingWeightExampleHintLbs": "ej. 132",
+  "onboardingWeightQuestionSubtitle": "¿Cuál es tu peso actual?",
+  "onboardingFoodUnitsSubtitle": "Cómo registras alimentos y bebidas",
+  "onboardingWelcomeLabel": "Bienvenido a",
+  "onboardingWrongHeightLabel": "Introduce una altura correcta",
+  "onboardingWrongWeightLabel": "Introduce un peso correcto",
+  "onboardingYourGoalLabel": "Tu objetivo calórico:",
+  "onboardingYourMacrosGoalLabel": "Tus objetivos de macronutrientes:",
+  "ozUnit": "oz",
+  "paActiveVideoGames": "videojuegos activos",
+  "paActiveVideoGamesDesc": "Wii Sports, Dance Dance Revolution, en general",
+  "paAmericanFootballGeneral": "fútbol americano",
+  "paAmericanFootballGeneralDesc": "touch, flag, en general",
+  "paArcheryGeneral": "tiro con arco",
+  "paArcheryGeneralDesc": "no de caza",
+  "paAutoRacing": "automovilismo",
+  "paAutoRacingDesc": "monoplazas",
+  "paBackpackingGeneral": "senderismo con mochila",
+  "paBackpackingGeneralDesc": "en general",
+  "paBadmintonGeneral": "bádminton",
+  "paBadmintonGeneralDesc": "individuales y dobles informales, en general",
+  "paBasketballGeneral": "baloncesto",
+  "paBasketballGeneralDesc": "en general",
+  "paBicyclingGeneral": "ciclismo",
+  "paBicyclingGeneralDesc": "en general",
+  "paBicyclingMountainGeneral": "ciclismo de montaña",
+  "paBicyclingMountainGeneralDesc": "en general",
+  "paBicyclingStationaryGeneral": "ciclismo estático",
+  "paBicyclingStationaryGeneralDesc": "en general",
+  "paBilliardsGeneral": "billar",
+  "paBilliardsGeneralDesc": "en general",
+  "paBowlingGeneral": "bolos",
+  "paBowlingGeneralDesc": "en general",
+  "paBoxingBag": "boxeo",
+  "paBoxingBagDesc": "saco de boxeo",
+  "paBoxingGeneral": "boxeo",
+  "paBoxingGeneralDesc": "en ring, en general",
+  "paBroomball": "broomball",
+  "paBroomballDesc": "en general",
+  "paCalisthenicsGeneral": "calistenia",
+  "paCalisthenicsGeneralDesc": "esfuerzo ligero o moderado, en general (p. ej., ejercicios de espalda)",
+  "paCanoeingGeneral": "piragüismo",
+  "paCanoeingGeneralDesc": "remo por placer, en general",
+  "paCatch": "fútbol americano o béisbol",
+  "paCatchDesc": "jugar a pasar la pelota",
+  "paCheerleading": "cheerleading (animación deportiva)",
+  "paCheerleadingDesc": "movimientos gimnásticos, competitivo",
+  "paChildrenGame": "juegos infantiles",
+  "paChildrenGameDesc": "(p. ej., rayuela, cuatro esquinas, balón prisionero, aparatos de parque, béisbol tee, tetherball, canicas, máquinas recreativas), esfuerzo moderado",
+  "paClimbingHillsNoLoadGeneral": "subir cuestas sin carga",
+  "paClimbingHillsNoLoadGeneralDesc": "sin carga",
+  "paCricket": "cricket",
+  "paCricketDesc": "bateo, lanzamiento, fildeo",
+  "paCroquet": "croquet",
+  "paCroquetDesc": "en general",
+  "paCrossCountrySkiing": "esquí de fondo",
+  "paCrossCountrySkiingDesc": "campo a través, en general",
+  "paCurling": "curling",
+  "paCurlingDesc": "en general",
+  "paDancingAerobicGeneral": "aeróbic",
+  "paDancingAerobicGeneralDesc": "en general",
+  "paDancingGeneral": "baile general",
+  "paDancingGeneralDesc": "p. ej., disco, folclore, danza irlandesa, bailes en línea, polka, contra, country",
+  "paDartsWall": "dardos",
+  "paDartsWallDesc": "en pared o césped",
+  "paDivingGeneral": "buceo",
+  "paDivingGeneralDesc": "apnea, buceo con botella, en general",
+  "paDivingSpringboardPlatform": "saltos de trampolín",
+  "paDivingSpringboardPlatformDesc": "trampolín o plataforma",
+  "paFencing": "esgrima",
+  "paFencingDesc": "en general",
+  "paFrisbee": "frisbee",
+  "paFrisbeeDesc": "en general",
+  "paGeneralDesc": "en general",
+  "paGolfGeneral": "golf",
+  "paGolfGeneralDesc": "en general",
+  "paGymnasticsGeneral": "gimnasia",
+  "paGymnasticsGeneralDesc": "en general",
+  "paHackySack": "hacky sack",
+  "paHackySackDesc": "en general",
+  "paHandballGeneral": "balonmano",
+  "paHandballGeneralDesc": "en general",
+  "paHangGliding": "ala delta",
+  "paHangGlidingDesc": "en general",
+  "paHeadingBicycling": "ciclismo",
+  "paHeadingConditionalExercise": "ejercicios de acondicionamiento",
+  "paHeadingDancing": "baile",
+  "paHeadingRunning": "carrera",
+  "paHeadingSports": "deportes",
+  "paHeadingWalking": "caminata",
+  "paHeadingWaterActivities": "actividades acuáticas",
+  "paHeadingWinterActivities": "actividades de invierno",
+  "paHighIntensityIntervalExercise": "ejercicio interválico de alta intensidad",
+  "paHighIntensityIntervalExerciseDesc": "esfuerzo moderado",
+  "paHighIntensityIntervalExerciseVigorous": "ejercicio interválico de alta intensidad",
+  "paHighIntensityIntervalExerciseVigorousDesc": "burpees, escaladores, sentadillas con salto, Tabata, esfuerzo vigoroso",
+  "paHikingCrossCountry": "senderismo",
+  "paHikingCrossCountryDesc": "campo a través",
+  "paHockeyField": "hockey hierba",
+  "paHockeyFieldDesc": "en general",
+  "paHorseRidingGeneral": "equitación",
+  "paHorseRidingGeneralDesc": "en general",
+  "paIceHockeyGeneral": "hockey sobre hielo",
+  "paIceHockeyGeneralDesc": "en general",
+  "paIceSkatingGeneral": "patinaje sobre hielo",
+  "paIceSkatingGeneralDesc": "en general",
+  "paJaiAlai": "jai alai (pelota vasca)",
+  "paJaiAlaiDesc": "en general",
+  "paJoggingGeneral": "trote suave",
+  "paJoggingGeneralDesc": "en general",
+  "paJuggling": "malabares",
+  "paJugglingDesc": "en general",
+  "paKayakingModerate": "kayak",
+  "paKayakingModerateDesc": "esfuerzo moderado",
+  "paKickball": "kickball",
+  "paKickballDesc": "en general",
+  "paLacrosse": "lacrosse",
+  "paLacrosseDesc": "en general",
+  "paLawnBowling": "bochas sobre césped",
+  "paLawnBowlingDesc": "bochas, al aire libre",
+  "paMartialArtsModerate": "artes marciales",
+  "paMartialArtsModerateDesc": "varios tipos, ritmo moderado (p. ej., judo, jujitsu, kárate, kick boxing, taekwondo, tai-bo, boxeo Muay Thai)",
+  "paMartialArtsSlower": "artes marciales",
+  "paMartialArtsSlowerDesc": "varios tipos, ritmo más lento, principiantes, práctica",
+  "paMotoCross": "motocross",
+  "paMotoCrossDesc": "deportes de motor todoterreno, quad, en general",
+  "paMountainClimbing": "escalada",
+  "paMountainClimbingDesc": "escalada en roca o montañismo",
+  "paNordicWalking": "marcha nórdica",
+  "paOrienteering": "orientación",
+  "paOrienteeringDesc": "en general",
+  "paPaddleBoarding": "paddle surf",
+  "paPaddleBoardingDesc": "de pie",
+  "paPaddleBoat": "pedaló",
+  "paPaddleBoatDesc": "en general",
+  "paPaddleball": "pádel",
+  "paPaddleballDesc": "informal, en general",
+  "paPickleball": "pickleball",
+  "paPilates": "pilates",
+  "paPoloHorse": "polo",
+  "paPoloHorseDesc": "a caballo",
+  "paRacquetball": "racquetball",
+  "paRacquetballDesc": "en general",
+  "paResistanceTraining": "entrenamiento de fuerza",
+  "paResistanceTrainingDesc": "halterofilia, pesas libres, nautilus o multiestación",
+  "paResistanceTrainingVigorous": "entrenamiento de fuerza (intenso)",
+  "paResistanceTrainingVigorousDesc": "esfuerzo vigoroso, powerlifting o culturismo",
+  "paRodeoSportGeneralModerate": "deportes de rodeo",
+  "paRodeoSportGeneralModerateDesc": "en general, esfuerzo moderado",
+  "paRollerbladingLight": "patinaje en línea",
+  "paRollerbladingLightDesc": "patinaje en línea",
+  "paRopeJumpingGeneral": "salto a la comba",
+  "paRopeJumpingGeneralDesc": "ritmo moderado, 100-120 saltos/min, en general, con los dos pies, rebote simple",
+  "paRopeSkippingGeneral": "comba",
+  "paRopeSkippingGeneralDesc": "en general",
+  "paRugbyCompetitive": "rugby",
+  "paRugbyCompetitiveDesc": "unión, equipo, competitivo",
+  "paRugbyNonCompetitive": "rugby",
+  "paRugbyNonCompetitiveDesc": "touch, no competitivo",
+  "paRunningGeneral": "correr",
+  "paRunningGeneralDesc": "en general",
+  "paSailingGeneral": "vela",
+  "paSailingGeneralDesc": "vela en barco y tabla, windsurf, vela sobre hielo, en general",
+  "paShuffleboard": "shuffleboard",
+  "paShuffleboardDesc": "en general",
+  "paSkateboardingGeneral": "skateboard",
+  "paSkateboardingGeneralDesc": "en general, esfuerzo moderado",
+  "paSkatingRoller": "patinaje sobre ruedas",
+  "paSkatingRollerDesc": "en general",
+  "paSkiingGeneral": "esquí",
+  "paSkiingGeneralDesc": "en general",
+  "paSkiingWaterWakeboarding": "esquí acuático",
+  "paSkiingWaterWakeboardingDesc": "acuático o wakeboard",
+  "paSkydiving": "paracaidismo",
+  "paSkydivingDesc": "paracaidismo, salto base, puenting",
+  "paSnorkeling": "snorkel",
+  "paSnorkelingDesc": "en general",
+  "paSnowShovingModerate": "quitar nieve",
+  "paSnowShovingModerateDesc": "a mano, esfuerzo moderado",
+  "paSnowshoeing": "raquetas de nieve",
+  "paSoccerGeneral": "fútbol",
+  "paSoccerGeneralDesc": "informal, en general",
+  "paSoftballBaseballGeneral": "softbol / béisbol",
+  "paSoftballBaseballGeneralDesc": "lanzamiento rápido o lento, en general",
+  "paSquashGeneral": "squash",
+  "paSquashGeneralDesc": "en general",
+  "paStretching": "estiramientos",
+  "paStretchingDesc": "suave, en general",
+  "paSurfing": "surf",
+  "paSurfingDesc": "bodyboard o tabla, en general",
+  "paSwimmingGeneral": "natación",
+  "paSwimmingGeneralDesc": "flotación vertical, esfuerzo moderado, en general",
+  "paTableTennisGeneral": "tenis de mesa",
+  "paTableTennisGeneralDesc": "tenis de mesa, ping-pong",
+  "paTaiChiQiGongGeneral": "taichí, chi kung",
+  "paTaiChiQiGongGeneralDesc": "en general",
+  "paTennisGeneral": "tenis",
+  "paTennisGeneralDesc": "en general",
+  "paTrackField": "atletismo",
+  "paTrackField1Desc": "(p. ej., peso, disco, martillo)",
+  "paTrackField2Desc": "(p. ej., salto de altura, salto de longitud, triple salto, jabalina, pértiga)",
+  "paTrackField3Desc": "(p. ej., 3000 m obstáculos, vallas)",
+  "paTrampolineLight": "trampolín",
+  "paTrampolineLightDesc": "recreativo",
+  "paTreadmillRunning": "correr en cinta",
+  "paTreadmillRunningDesc": "en cinta de correr, en general",
+  "paUnicyclingGeneral": "monociclo",
+  "paUnicyclingGeneralDesc": "en general",
+  "paVolleyballGeneral": "voleibol",
+  "paVolleyballGeneralDesc": "no competitivo, equipo de 6 - 9 personas, en general",
+  "paWalkingForPleasure": "caminar",
+  "paWalkingForPleasureDesc": "por placer",
+  "paWalkingTheDog": "pasear al perro",
+  "paWalkingTheDogDesc": "en general",
+  "paWallyball": "wallyball",
+  "paWallyballDesc": "en general",
+  "paWaterAerobics": "ejercicio acuático",
+  "paWaterAerobicsDesc": "aeróbic acuático, gimnasia acuática",
+  "paWaterPolo": "waterpolo",
+  "paWaterPoloDesc": "en general",
+  "paWaterVolleyball": "vóley acuático",
+  "paWaterVolleyballDesc": "en general",
+  "paWateraerobicsCalisthenics": "aeróbic acuático",
+  "paWateraerobicsCalisthenicsDesc": "aeróbic acuático, gimnasia acuática",
+  "paWrestling": "lucha",
+  "paWrestlingDesc": "en general",
+  "palActiveDescriptionLabel": "Trabajo mayormente de pie o caminando, con tiempo libre activo",
+  "palActiveLabel": "Activo",
+  "palLowActiveDescriptionLabel": "p. ej., trabajo sentado o de pie y actividades ligeras en el tiempo libre",
+  "palLowLActiveLabel": "Poco activo",
+  "palSedentaryDescriptionLabel": "p. ej., trabajo de oficina y tiempo libre mayormente sentado",
+  "palSedentaryLabel": "Sedentario",
+  "palVeryActiveDescriptionLabel": "Trabajo caminando, corriendo o cargando peso la mayor parte del tiempo, con tiempo libre activo",
+  "palVeryActiveLabel": "Muy activo",
+  "pasteCodeHint": "Pega aquí el código de la comida compartida",
+  "pasteCodeLabel": "Pegar código",
+  "per100gmlLabel": "Por 100 g/ml",
+  "perServingLabel": "Por ración",
+  "phosphorusLabel": "fósforo",
+  "polyunsaturatedFatLabel": "grasas poliinsaturadas",
+  "potassiumLabel": "potasio",
+  "privacyPolicyLabel": "Política de privacidad",
+  "profileLabel": "Perfil",
+  "profileTargetWeightClearAction": "Borrar",
+  "profileTargetWeightLabel": "Peso objetivo",
+  "profileTargetWeightNotSetLabel": "Sin fijar",
+  "profileTargetWeightReached": "Has alcanzado tu objetivo",
+  "profileTargetWeightToGo": "{value} hasta tu objetivo",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "profileWeightHistoryTitle": "Historial de peso",
+  "proteinLabel": "proteínas",
+  "proteinLabelShort": "p",
+  "quantityLabel": "Cantidad",
+  "quickAddAddedSnack": "Añadido a {mealType}",
+  "@quickAddAddedSnack": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "quickAddBottomSheetTitle": "Añadido rápido",
+  "quickAddCardLabel": "Añadido rápido",
+  "quickAddCarbsHint": "Hidratos (g, opcional)",
+  "quickAddDefaultName": "Añadido rápido",
+  "quickAddEnergyLabelKcal": "Energía (kcal)",
+  "quickAddEnergyLabelKj": "Energía (kJ)",
+  "quickAddFatHint": "Grasas (g, opcional)",
+  "quickAddProteinHint": "Proteínas (g, opcional)",
+  "quickAddSubmitLabel": "Añadir",
+  "quickAddTitleHint": "Título",
+  "readLabel": "He leído y acepto la política de privacidad.",
+  "recentlyAddedLabel": "Recientes",
+  "recipeAddIngredientLabel": "Añadir ingrediente",
+  "recipeDeleteConfirmContent": "Los registros anteriores del diario hechos desde esta receta se conservarán.",
+  "recipeDeleteConfirmTitle": "¿Eliminar receta?",
+  "recipeDescriptionLabel": "Descripción (opcional)",
+  "recipeImageLabel": "Añadir una foto",
+  "recipeImagePickFromGallery": "Elegir de la galería",
+  "recipeImageRemove": "Quitar foto",
+  "recipeImageReplace": "Cambiar foto",
+  "recipeImageTakePhoto": "Hacer una foto",
+  "recipeIngredientAmountLabel": "Cantidad",
+  "recipeIngredientCountLabel": "{count} ingrediente(s)",
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeIngredientUnitLabel": "Unidad",
+  "recipeIngredientsLabel": "Ingredientes",
+  "recipeInvalidTotalWeightLabel": "El peso total debe ser mayor que cero",
+  "recipeLogCtaLabel": "Registrar esta receta",
+  "recipeNameLabel": "Nombre de la receta",
+  "recipeNameRequiredLabel": "La receta necesita un nombre",
+  "recipeNeedsIngredientsLabel": "Añade al menos un ingrediente",
+  "recipeNoIngredientsLabel": "Aún no hay ingredientes",
+  "recipeNutritionPer100Label": "Por 100 g",
+  "recipeNutritionPreviewLabel": "Nutrición (total)",
+  "recipeSaveErrorLabel": "No se pudo guardar la receta.",
+  "recipeSaveForLaterDescription": "Actívalo para conservar esta comida en tu lista guardada para la próxima vez. Déjalo desactivado si es algo puntual que no volverás a comer.",
+  "recipeSaveForLaterLabel": "Guardar para la próxima vez",
+  "recipeSaveLabel": "Guardar receta",
+  "recipeServingsCountHelper": "Permite registrar esta receta por raciones en lugar de por gramos.",
+  "recipeServingsCountLabel": "Raciones (opcional)",
+  "recipeTagsHelper": "Separadas por comas, p. ej. \"desayuno, vegano\"",
+  "recipeTagsLabel": "Etiquetas",
+  "recipeTotalWeightHelper": "Por defecto, la suma de los ingredientes. Los líquidos se aproximan como 1 ml ≈ 1 g.",
+  "recipeTotalWeightLabel": "Peso total (g)",
+  "recipesEmptyHint": "Compón una comida con varios ingredientes y reutilízala como cualquier otro alimento.",
+  "recipesEmptyLabel": "Aún no hay recetas",
+  "recipesFilterAllLabel": "Todas",
+  "recipesLabel": "Recetas",
+  "recipesLoadErrorLabel": "No se pudieron cargar las recetas. Prueba más tarde.",
+  "reportErrorDialogText": "¿Quieres informar de un error al desarrollador?",
+  "retryLabel": "Reintentar",
+  "saturatedFatLabel": "grasas saturadas",
+  "scanProductLabel": "Escanear producto",
+  "scannerManualEntryButton": "Escribir código manualmente",
+  "scannerManualEntryCancel": "Cancelar",
+  "scannerManualEntryDialogTitle": "Introducir código de barras",
+  "scannerManualEntryFieldHint": "8 a 14 dígitos",
+  "scannerManualEntryInvalid": "Ese código de barras no parece válido. Comprueba los dígitos e inténtalo de nuevo.",
+  "scannerManualEntrySubmit": "Buscar",
+  "searchDefaultLabel": "Introduce una palabra de búsqueda",
+  "searchFoodPage": "Alimentos",
+  "searchLabel": "Buscar",
+  "searchProductsPage": "Productos",
+  "searchResultsLabel": "Resultados de búsqueda",
+  "selectGenderDialogLabel": "Seleccionar sexo",
+  "selectHeightDialogLabel": "Seleccionar altura",
+  "selectPalCategoryLabel": "Seleccionar nivel de actividad",
+  "selectWeightDialogLabel": "Seleccionar peso",
+  "selectionCountLabel": "{count} seleccionados",
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sendAnonymousUserData": "Enviar datos anónimos de uso",
+  "servingLabel": "Ración",
+  "servingSizeLabelImperial": "Una ración (oz/fl oz)",
+  "servingSizeLabelMetric": "Una ración",
+  "settingAboutLabel": "Acerca de",
+  "settingFeedbackLabel": "Sugerencias",
+  "settingsCalciumGoalDescription": "Objetivo diario de calcio en miligramos. La referencia por defecto es 1000 mg.",
+  "settingsCalciumGoalLabel": "Objetivo de calcio",
+  "settingsCaloriesTaperDescription": "Reduce el déficit diario gradualmente para que los últimos kilos no se hagan una montaña.",
+  "settingsCaloriesTaperLabel": "Ajustar el objetivo calórico al acercarte al peso objetivo",
+  "settingsCustomMealsLabel": "Comidas personalizadas",
+  "settingsDayStartDescription": "Elige la hora a la que empieza tu día. Las comidas y actividades registradas antes de esa hora cuentan para el día anterior — útil si trabajas de noche o cenas tarde.",
+  "settingsDayStartHourLabel": "{hour}:00",
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDayStartHoursPickerLabel": "Horas",
+  "settingsDayStartLabel": "El día empieza a las",
+  "settingsDayStartMinutesPickerLabel": "Minutos",
+  "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsDisclaimerLabel": "Aviso legal",
+  "settingsDistanceLabel": "Distancia",
+  "settingsEnergyUnitLabel": "Unidad de energía",
+  "settingsFibreGoalDescription": "Objetivo diario de fibra en gramos. La referencia por defecto es 30 g.",
+  "settingsFibreGoalLabel": "Objetivo de fibra",
+  "settingsImperialLabel": "Imperial (lbs, ft, oz)",
+  "settingsKcalAdjustmentLabel": "Ajuste diario de kcal",
+  "settingsKcalGoalInfoLabel": "Cómo se calcula tu objetivo",
+  "settingsIronGoalDescription": "Objetivo diario de hierro en miligramos. Por defecto varía según el sexo (8 mg hombres, 18 mg mujeres, 14 mg resto).",
+  "settingsIronGoalLabel": "Objetivo de hierro",
+  "settingsCategoryAbout": "Acerca de",
+  "settingsCategoryAppearance": "Apariencia",
+  "settingsCategoryData": "Datos",
+  "settingsCategoryDisplay": "Pantalla",
+  "settingsCategoryGoals": "Objetivos y nutrición",
+  "settingsCategoryUnits": "Unidades y energía",
+  "settingsLabel": "Ajustes",
+  "settingsLanguageLabel": "Idioma",
+  "settingsMaterialYouTitle": "Usar colores del sistema",
+  "settingsMaterialYouSubtitle": "Iguala el color de acento al de tu fondo de pantalla en Android 12 y posteriores.",
+  "settingsAccentColourTitle": "Color de acento",
+  "settingsAccentSubtitleMaterialYou": "Material You",
+  "settingsAccentSubtitleCustom": "Personalizado",
+  "settingsAccentSubtitleDefault": "Predeterminado",
+  "settingsAccentPresetsHeader": "Elige un color",
+  "settingsAccentCustomColour": "Color personalizado…",
+  "settingsAccentCustomSubtitle": "Abre el selector de tonos para una elección precisa",
+  "settingsAccentHexLabel": "Código hexadecimal",
+  "settingsAccentHexInvalid": "Ese código hexadecimal no parece correcto — seis dígitos, de 0-9 y A-F.",
+  "settingsAccentHueTitle": "Color de acento",
+  "settingsAccentHueDisabledHint": "Desactiva los colores del sistema para elegir un acento personalizado.",
+  "settingsAccentHueReset": "Restablecer",
+  "settingsMacroSplitLabel": "Reparto de macros",
+  "settingsLicensesLabel": "Licencias",
+  "settingsMagnesiumGoalDescription": "Objetivo diario de magnesio en miligramos. Por defecto varía según el sexo (400 mg hombres, 310 mg mujeres, 355 mg resto).",
+  "settingsMagnesiumGoalLabel": "Objetivo de magnesio",
+  "settingsMassLabel": "Masa",
+  "settingsMetricLabel": "Métrico (kg, cm, ml)",
+  "settingsNotificationsLabel": "Recordatorio diario",
+  "settingsNotificationsTimeLabel": "Hora del recordatorio: {time}",
+  "@settingsNotificationsTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsNutrientGoalsHint": "Objetivos personalizados para cada nutriente del panel diario. El diario usa estos en lugar de las referencias diarias por defecto cuando defines uno.",
+  "settingsNutrientGoalsLabel": "Objetivos de nutrientes",
+  "settingsNutrientsHelp": "Elige qué nutrientes se ven en el panel diario. Los ocultos puedes volver a activarlos en cualquier momento.",
+  "settingsNutrientsLabel": "Nutrientes",
+  "settingsNutrientsSubtitle": "Elige qué nutrientes aparecen en el panel del diario",
+  "settingsPerMealKcalShareBreakfast": "Desayuno",
+  "settingsPerMealKcalShareDescription": "Reparte tu objetivo diario de kcal entre desayuno, almuerzo, cena y tentempiés. Los porcentajes deben sumar 100 %.",
+  "settingsPerMealKcalShareDinner": "Cena",
+  "settingsPerMealKcalShareLabel": "Reparto de kcal por comida",
+  "settingsPerMealKcalShareLunch": "Almuerzo",
+  "settingsPerMealKcalShareSnack": "Tentempié",
+  "settingsPotassiumGoalDescription": "Objetivo diario de potasio en miligramos. La referencia por defecto es 3500 mg.",
+  "settingsPotassiumGoalLabel": "Objetivo de potasio",
+  "settingsPrivacySettings": "Ajustes de privacidad",
+  "settingsDemoPrivacyNote": "Los reportes de errores no están disponibles mientras ves datos de ejemplo. Configura antes tu propio perfil.",
+  "settingsReportErrorLabel": "Informar de un error",
+  "settingsSaturatedFatGoalDescription": "Límite diario de grasas saturadas en gramos. La referencia por defecto es 20 g.",
+  "settingsSaturatedFatGoalLabel": "Objetivo de grasas saturadas",
+  "settingsShowActivityTracking": "Mostrar registro de actividades",
+  "settingsShowMealMacros": "Mostrar macros de las comidas",
+  "settingsShowMicronutrientsLabel": "Mostrar micronutrientes",
+  "settingsSodiumGoalDescription": "Límite diario de sodio en miligramos. La referencia por defecto es 2300 mg.",
+  "settingsSodiumGoalLabel": "Objetivo de sodio",
+  "settingsSourceCodeLabel": "Código fuente",
+  "settingsSourcesLabel": "Fuentes y referencias",
+  "settingsSugarsGoalDescription": "Límite diario de azúcares en gramos. La referencia por defecto es 50 g.",
+  "settingsSugarsGoalLabel": "Objetivo de azúcares",
+  "settingsSystemLabel": "Sistema",
+  "settingsThemeDarkLabel": "Oscuro",
+  "settingsThemeLabel": "Tema",
+  "settingsThemeLightLabel": "Claro",
+  "settingsThemeSystemDefaultLabel": "Predeterminado del sistema",
+  "settingsUnitsLabel": "Unidades",
+  "settingsFoodUnitsLabel": "Unidades de alimentos",
+  "settingsHeightUnitsLabel": "Unidades de altura",
+  "settingsBodyWeightUnitLabel": "Unidad de peso corporal",
+  "settingsFoodUnitsMetric": "Métrico (g, kg, ml, l)",
+  "settingsFoodUnitsImperial": "Imperial (lbs, oz, fl oz)",
+  "settingsHeightUnitsMetric": "Métrico (mm, cm, m)",
+  "settingsHeightUnitsImperial": "Imperial (ft, in)",
+  "settingsVitaminB12GoalDescription": "Objetivo diario de vitamina B12 en microgramos. La referencia por defecto es 2,4 µg.",
+  "settingsVitaminB12GoalLabel": "Objetivo de vitamina B12",
+  "settingsVitaminDGoalDescription": "Objetivo diario de vitamina D en microgramos. La referencia por defecto es 15 µg.",
+  "settingsVitaminDGoalLabel": "Objetivo de vitamina D",
+  "settingsVolumeLabel": "Volumen",
+  "shareActivityLabel": "Compartir entrenamiento",
+  "shareCodeLabel": "Compartir código",
+  "shareMealLabel": "Compartir comida",
+  "shareRecipeLabel": "Compartir receta",
+  "snackExample": "ej. manzana, helado, chocolate ...",
+  "snackLabel": "Tentempié",
+  "sodiumLabel": "sodio",
+  "sourcesActivityDescription": "Las calorías quemadas durante una actividad se estiman como MET × peso corporal (kg) × duración (horas), usando los valores del Adult Compendium of Physical Activities.",
+  "sourcesActivityTitle": "Calorías de las actividades (valores MET)",
+  "sourcesBmiDescription": "El IMC se calcula como el peso (kg) dividido por la altura al cuadrado (m²). Las categorías de salud (bajo peso, normal, preobesidad, obesidad grado I–III) siguen la clasificación de IMC para adultos de la Organización Mundial de la Salud.",
+  "sourcesBmiTitle": "Índice de masa corporal (IMC)",
+  "sourcesEnergyDescription": "Los objetivos calóricos diarios, la tasa metabólica basal y los coeficientes de actividad física usan las ecuaciones del Institute of Medicine. Fuente: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, capítulo 5 y tabla 5-5.",
+  "sourcesEnergyTitle": "Necesidades energéticas (TDEE, BMR y nivel de actividad)",
+  "sourcesIconTooltip": "Ver fuentes",
+  "sourcesMacrosDescription": "El reparto por defecto de 60 % hidratos, 25 % grasas y 15 % proteínas entra dentro de los rangos de ingesta de nutrientes para la población publicados por la OMS. Puedes ajustarlo en Ajustes → Cálculos. Fuente: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
+  "sourcesMacrosTitle": "Distribución de macronutrientes",
+  "sourcesNonBinaryDescription": "La investigación sobre el gasto energético ha usado históricamente categorías binarias de sexo, por lo que no existe una única fórmula validada de TDEE para personas no binarias. Por eso OpenNutriTracker permite elegir entre una referencia promediada, una de tipo estrogénico o una de tipo testosterónico en Ajustes → Cálculos. Si un número preciso es realmente importante para tu atención, consulta a un profesional sanitario familiarizado con tu situación hormonal.",
+  "sourcesNutrientReferenceTitle": "Ingestas de referencia de nutrientes",
+  "sourcesNutrientReferenceDescription": "Las cantidades de referencia diarias que muestra el panel de nutrientes del diario provienen del resumen de Dietary Reference Intakes del Institute of Medicine, que recoge los objetivos por nutriente para adultos.",
+  "sourcesNonBinaryTitle": "Estimación calórica no binaria",
+  "sourcesOpenSourceLabel": "Ver código fuente",
+  "sourcesScreenIntro": "OpenNutriTracker usa metodologías consolidadas y revisadas por pares en todos sus cálculos. Las citas siguientes enlazan a las fuentes originales para que puedas verificar cualquier número.",
+  "sugarLabel": "azúcar",
+  "suppliedLabel": "consumidas",
+  "transFatLabel": "grasas trans",
+  "unitLabel": "Unidad",
+  "vitaminALabel": "vitamina A",
+  "vitaminB12Label": "vitamina B12",
+  "vitaminB6Label": "vitamina B6",
+  "vitaminCLabel": "vitamina C",
+  "vitaminDLabel": "vitamina D",
+  "warningLabel": "Aviso",
+  "weeklyWeightGoalKgPerWeek": "{rate} kg/semana",
+  "@weeklyWeightGoalKgPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyWeightGoalLabel": "Ritmo semanal",
+  "weeklyWeightGoalLbsPerWeek": "{rate} lbs/semana",
+  "@weeklyWeightGoalLbsPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyWeightGoalNoneLabel": "Sin fijar",
+  "weightHistoryAddEntry": "Añadir registro",
+  "weightHistoryChartEmptyState": "Registra al menos dos días para ver tu tendencia.",
+  "weightHistoryDateLabel": "Fecha",
+  "weightHistoryNoEntries": "Aún no hay registros de peso. Añade el primero para empezar a seguir una tendencia.",
+  "weightHistoryNoteLabel": "Nota (opcional)",
+  "weightHistoryWeightLabel": "Peso",
+  "weightLabel": "Peso",
+  "yearsLabel": "{age} años",
+  "@yearsLabel": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "logWaterAmountLabel": "Añadir {amount} ml",
+  "@logWaterAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "logWaterDialogTitle": "Registrar agua",
+  "logWaterNothingToUndoLabel": "Nada que deshacer",
+  "logWaterUndoLabel": "Deshacer el último",
+  "mlLabel": "ml",
+  "settingsWaterGoalDescription": "Lo usa el indicador de agua de la pantalla de inicio.",
+  "settingsWaterGoalLabel": "Objetivo diario de agua",
+  "waterChipLabel": "{current} / {goal} ml",
+  "@waterChipLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "zincLabel": "zinc",
+  "profileFastingEntry": "Temporizador de ayuno",
+  "fastingTitle": "Temporizador de ayuno",
+  "fastingSubtitle": "Un temporizador sencillo para medir el tiempo entre comidas. Sin rachas ni objetivos, solo el reloj.",
+  "fastingWarningTitle": "Antes de empezar",
+  "fastingWarningBody": "Medir el tiempo de ayuno puede ser útil para algunas personas y angustiante para otras, especialmente si has tenido trastornos alimentarios. Si es tu caso, cuídate primero. Hay apoyo disponible en BEAT (Reino Unido) y NEDA (EE. UU.).",
+  "fastingWarningDecline": "No es para mí",
+  "fastingWarningAccept": "Entiendo, activar el temporizador",
+  "fastingPresetCustom": "Personalizado",
+  "fastingStart": "Iniciar temporizador",
+  "fastingCancel": "Terminar ayuno",
+  "fastingCancelConfirmTitle": "¿Terminar el ayuno ahora?",
+  "fastingCancelConfirmBody": "Esto cerrará la sesión actual.",
+  "fastingComplete": "Sesión completada",
+  "fastingLinkBeat": "BEAT (Reino Unido)",
+  "fastingLinkNeda": "NEDA (EE. UU.)",
+  "fastingElapsedLabel": "Transcurrido",
+  "fastingRemainingValue": "Quedan {value}",
+  "@fastingRemainingValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingTargetValue": "Objetivo: {value}",
+  "@fastingTargetValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "hoursLabel": "horas",
+  "dialogCloseLabel": "Cerrar",
+  "customMealsRowMoreTooltip": "Más acciones",
+  "customMealsMergeAction": "Fusionar con otro alimento personalizado",
+  "customMealsMergePickerTitle": "Elige el alimento personalizado con el que fusionar",
+  "customMealsMergeChooseSurvivorTitle": "¿Cuál se conserva?",
+  "customMealsMergeContinueAction": "Continuar",
+  "customMealsMergeConfirmTitle": "¿Fusionar alimentos personalizados?",
+  "customMealsMergeConfirmContent": "Se sustituirán todos los registros de {loser} para que muestren {winner} en su lugar, y se eliminará {loser} de tus alimentos personalizados. Esto no se puede deshacer.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsMergeConfirmAction": "Fusionar",
+  "customMealsMergeSuccessSnackbarOne": "Fusionado — {winner} tiene ahora 1 registro.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Fusionado — {winner} tiene ahora {count} registros.",
+  "@customMealsMergeSuccessSnackbarOther": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingHomeChipBody": "Ayuno · quedan {remaining}",
+  "@fastingHomeChipBody": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingNotificationChannelName": "Temporizador de ayuno",
+  "fastingNotificationChannelDescription": "Avisos puntuales cuando una sesión de ayuno alcanza su objetivo.",
+  "fastingNotificationCompleteTitle": "Sesión de ayuno completada",
+  "fastingNotificationCompleteBody": "Has alcanzado tu tiempo objetivo.",
+  "profileImageLabel": "Añadir una foto",
+  "profileImageReplace": "Cambiar foto",
+  "profileImageRemove": "Quitar foto",
+  "switchProfileLabel": "Cambiar de perfil",
+  "addProfileLabel": "Añadir perfil",
+  "manageProfilesLabel": "Gestionar perfiles",
+  "editProfileTitle": "Editar perfil",
+  "profileNameLabel": "Nombre",
+  "profileNameHint": "Nombre del perfil",
+  "defaultProfileName": "Perfil 1",
+  "profileActiveLabel": "Activo",
+  "deleteProfileConfirmTitle": "¿Eliminar perfil?",
+  "deleteProfileConfirmContent": "Esto elimina permanentemente el perfil y todos sus datos y no se puede deshacer.",
+  "copyToProfileLabel": "Copiar a otro perfil",
+  "copiedToProfileSnackbar": "Comida copiada al perfil",
+  "copyActionLabel": "Copiar",
+  "quickAddActivityTitleLabel": "Añadir actividad rápido",
+  "quickAddActivityDurationLabel": "Duración (min, opcional)",
+  "quickAddActivityEnergyLabelKcal": "Energía quemada (kcal)",
+  "quickAddActivityEnergyLabelKj": "Energía quemada (kJ)",
+  "quickAddActivityAddedSnack": "Actividad añadida",
+  "quickAddActivityNameLabel": "Nombre (opcional)",
+  "scannerLockOrientationTooltip": "Bloquear en vertical",
+  "scannerUnlockOrientationTooltip": "Permitir rotación"
+}
