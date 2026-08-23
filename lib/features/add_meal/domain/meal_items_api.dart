@@ -126,19 +126,42 @@ const mealItemsToolSchema = {
 /// Raises when the array itself is missing or the wrong type, because that
 /// means the provider answered something other than what was asked for and
 /// guessing at it is how silent nonsense gets into a diary.
+///
+/// **And raises when it held entries and none of them survived**, which is
+/// the same sentence one level down. An empty array is a model saying "no
+/// food here", and `ReadMealTextUseCase` honours that by showing no rows —
+/// so a reply of `{"items": [{"name": "egg"}]}`, where every entry is
+/// dropped for carrying no `query`, used to arrive at that use case wearing
+/// the same clothes as a deliberate answer. The user got nothing: not the
+/// model's rows, which never existed, and not the parser's, which were
+/// suppressed by a judgement the model never made.
+///
+/// The distinction can only be drawn here, because this is the only place
+/// that sees both counts. It stays [MealInterpreterFailure.transient], like
+/// the wrong-type case above and for the same reason — nothing about a
+/// malformed reply says the next one will be, and the text path falls back
+/// to the parser in silence rather than blaming a model over one bad batch.
 List<ParsedMealItem> mealItemsFromJson(Object? rawItems) {
   if (rawItems is! List) {
     throw const MealInterpreterException('tool call has no items');
   }
-  return [
+  final items = [
     for (final item in rawItems)
       if (item is Map) _mealItemFrom(item),
   ].nonNulls.toList();
+  if (items.isEmpty && rawItems.isNotEmpty) {
+    throw const MealInterpreterException('every item in the tool call dropped');
+  }
+  return items;
 }
 
 /// One item, or null when it carries no usable query. A malformed entry is
 /// dropped rather than failing the batch — the other items are still worth
 /// showing, and `validateParsedMealItems` reports what it rejects.
+///
+/// "The other items" is load-bearing: [mealItemsFromJson] raises when there
+/// are none, because dropping every entry is not a batch with holes in it,
+/// it is a reply that was not the one asked for.
 ParsedMealItem? _mealItemFrom(Map<dynamic, dynamic> raw) {
   final query = raw['query'];
   if (query is! String) return null;
