@@ -129,6 +129,29 @@ class ConfigDBO extends HiveObject {
   // leaving demo mode clears this for free.
   @HiveField(32)
   bool? isDemoData;
+  // Opt-in workout import from Health Connect (Android) / Apple Health (iOS).
+  // Null means the user has never enabled it, which reads as off — no health
+  // data is touched until they say so.
+  @HiveField(33)
+  bool? healthImportEnabled;
+  // Share of an imported workout's device-reported energy that counts toward
+  // the daily goal, stored as a fraction in 0.50–1.00. Null means "not chosen
+  // yet"; the settings flow writes a body-composition-derived suggestion the
+  // moment import is switched on (see WorkoutCompensationCalc).
+  @HiveField(34)
+  double? healthWorkoutKcalMultiplier;
+  // Watermark: the end of the window the last successful import read. Doubles
+  // as the debounce timestamp so a resume storm can't hammer the platform.
+  @HiveField(35)
+  DateTime? healthLastImportAt;
+  // External record ids of imported workouts the user has deleted. The
+  // importer's dedupe set is built from the activities actually on file, so
+  // without this the next overlapping read would file a deleted workout all
+  // over again. Kept indefinitely — it only grows by one entry per deletion,
+  // and forgetting an entry resurrects the workout it stands for. Null means
+  // nothing has been deleted.
+  @HiveField(36)
+  List<String>? healthDeletedExternalIds;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -161,6 +184,10 @@ class ConfigDBO extends HiveObject {
     this.bodyWeightUnitIndex,
     this.foodSourceToggles,
     this.isDemoData,
+    this.healthImportEnabled,
+    this.healthWorkoutKcalMultiplier,
+    this.healthLastImportAt,
+    this.healthDeletedExternalIds,
   });
 
   factory ConfigDBO.empty() =>

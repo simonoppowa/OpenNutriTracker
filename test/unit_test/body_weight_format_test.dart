@@ -91,13 +91,33 @@ void main() {
 
     test('kgToStLb raw pounds value never reaches 14.0', () {
       // The rollover guard in kgToStLb ensures the raw pounds value stays
-      // strictly below 14.0 before formatProfileWeight sees it. Note that
-      // formatProfileWeight may round 13.99 up to 14.0 for display — that is
-      // a separate display concern and not tested here.
+      // strictly below 14.0 before formatProfileWeight sees it.
       for (final kg in const [50.0, 63.5, 70.0, 80.0, 100.0]) {
         final (_, pounds) = UnitCalc.kgToStLb(kg);
         expect(pounds, lessThan(14.0),
             reason: 'raw pounds from kgToStLb($kg) should be less than 14, got $pounds');
+      }
+    });
+
+    test('a remainder that rounds to 14 lb is shown as the next stone', () {
+      // 10 st is 63.5029 kg. Just under that, the raw remainder is 13.97 lb,
+      // which clears the two-decimal rollover guard but prints as '14' once
+      // formatProfileWeight rounds it to one decimal.
+      const justUnderTenStoneKg = 63.49;
+      expect(
+        formatBodyWeight(justUnderTenStoneKg, BodyWeightUnit.st, kgLabel: kgLabel, lbLabel: lbLabel, stLabel: stLabel),
+        equals('10 st 0 lbs'),
+      );
+    });
+
+    test('no weight in the supported range prints 14 lb', () {
+      // Sweep 30-250 kg in 10 g steps: the pounds component must never read
+      // as a whole stone, whatever the stones count is.
+      for (var grams = 30000; grams <= 250000; grams += 10) {
+        final kg = grams / 1000.0;
+        final result =
+            formatBodyWeight(kg, BodyWeightUnit.st, kgLabel: kgLabel, lbLabel: lbLabel, stLabel: stLabel);
+        expect(result, isNot(endsWith(' 14 $lbLabel')), reason: '$kg kg formatted as "$result"');
       }
     });
   });

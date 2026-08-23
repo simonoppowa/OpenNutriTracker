@@ -629,7 +629,9 @@ class _ProfilePageState extends State<ProfilePage> {
         formatted =
             '${(deltaKg * 2.20462).toStringAsFixed(1)} ${S.of(context).lbsLabel}';
       case BodyWeightUnit.st:
-        final (stones, pounds) = UnitCalc.kgToStLb(deltaKg);
+        // Split at the one decimal this line prints, so a remainder that
+        // rounds to 14 lb lands as the next whole stone instead.
+        final (stones, pounds) = UnitCalc.kgToStLb(deltaKg, poundsDecimals: 1);
         formatted =
             '$stones ${S.of(context).stLabel} ${pounds.toStringAsFixed(1)} ${S.of(context).lbsLabel}';
     }

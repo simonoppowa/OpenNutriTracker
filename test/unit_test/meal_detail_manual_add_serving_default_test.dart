@@ -39,14 +39,14 @@ class _FakeRemoteSearchCacheDataSource extends Fake
     implements RemoteSearchCacheDataSource {}
 
 MealDetailBloc _buildBloc() => MealDetailBloc(
-      _FakeAddIntakeUsecase(),
-      _FakeAddTrackedDayUsecase(),
-      _FakeGetKcalGoalUsecase(),
-      _FakeGetMacroGoalUsecase(),
-      _FakeGetTrackedDayUsecase(),
-      _FakeProductsRepository(),
-      _FakeRemoteSearchCacheDataSource(),
-    );
+  _FakeAddIntakeUsecase(),
+  _FakeAddTrackedDayUsecase(),
+  _FakeGetKcalGoalUsecase(),
+  _FakeGetMacroGoalUsecase(),
+  _FakeGetTrackedDayUsecase(),
+  _FakeProductsRepository(),
+  _FakeRemoteSearchCacheDataSource(),
+);
 
 MealEntity _meal({
   double? servingQuantity,
@@ -82,7 +82,7 @@ MealEntity _meal({
 // than importing it means the screen and the test can drift only with
 // an explicit code change here.
 String _initialUnitForManualAdd(MealEntity meal) {
-  if (meal.hasServingValues) {
+  if (meal.scalableServingQuantity != null) {
     return UnitDropdownItem.serving.toString();
   } else if (meal.isLiquid) {
     return UnitDropdownItem.ml.toString();
@@ -103,7 +103,10 @@ void main() {
         // tapped this result from the search list, not the barcode
         // scanner. The bottom sheet should still open on "serving".
         final meal = _meal(servingSize: '2 Tbsp (32 g)');
-        expect(meal.hasServingValues, isTrue);
+        // #629: what makes this work is that the 32 g is readable out of
+        // the text. Without it the unit would be "serving" while nothing
+        // could scale it, and the row would log one gram.
+        expect(meal.scalableServingQuantity, 32);
 
         final initialUnit = _initialUnitForManualAdd(meal);
         expect(initialUnit, UnitDropdownItem.serving.toString());
@@ -126,7 +129,7 @@ void main() {
         // servingUnit is derived as null. Before the fix this case
         // dropped through to gml on the manual-add path.
         final meal = _meal(servingQuantity: 30.0);
-        expect(meal.hasServingValues, isTrue);
+        expect(meal.scalableServingQuantity, 30);
 
         final initialUnit = _initialUnitForManualAdd(meal);
         expect(initialUnit, UnitDropdownItem.serving.toString());
@@ -148,7 +151,7 @@ void main() {
         // 100 g/ml baseline so nothing changes for entries where
         // "serving" doesn't make sense.
         final meal = _meal();
-        expect(meal.hasServingValues, isFalse);
+        expect(meal.scalableServingQuantity, isNull);
 
         final initialUnit = _initialUnitForManualAdd(meal);
         expect(initialUnit, UnitDropdownItem.gml.toString());
@@ -161,5 +164,56 @@ void main() {
         await bloc.close();
       },
     );
+  });
+
+  group('a serving the app cannot scale (#629)', () {
+    test('serving text with no metric figure yields no serving', () {
+      // "1 egg" is a serving nobody can convert. hasServingValues is still
+      // true, which is why the screen used to default to "1 serving" and
+      // log one gram.
+      final meal = _meal(servingSize: '1 egg');
+
+      expect(meal.hasServingValues, isTrue);
+      expect(meal.scalableServingQuantity, isNull);
+    });
+
+    test('such a meal falls back to a weight, not to "1 serving"', () {
+      final meal = _meal(servingSize: '1 egg');
+
+      expect(_initialUnitForManualAdd(meal), UnitDropdownItem.gml.toString());
+    });
+
+    test('the metric figure in parentheses wins over the imperial one', () {
+      expect(_meal(servingSize: '12 oz (355 ml)').scalableServingQuantity, 355);
+      expect(_meal(servingSize: '1 slice (25g)').scalableServingQuantity, 25);
+      expect(_meal(servingSize: '30 g').scalableServingQuantity, 30);
+      expect(_meal(servingSize: '240ml').scalableServingQuantity, 240);
+    });
+
+    test('a numeric servingQuantity always wins over the text', () {
+      final meal = _meal(servingQuantity: 40, servingSize: '2 Tbsp (32 g)');
+
+      expect(meal.scalableServingQuantity, 40);
+    });
+
+    test('one serving of a scalable record converts to its grams', () async {
+      // The half that made the bug invisible: the unit said "serving" and
+      // the conversion left the amount alone.
+      final meal = _meal(servingSize: '2 Tbsp (32 g)');
+      final bloc = _buildBloc();
+
+      bloc.add(
+        UpdateKcalEvent(
+          meal: meal,
+          selectedUnit: UnitDropdownItem.serving.toString(),
+          totalQuantity: '1',
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.totalQuantityConverted, '32.0');
+      expect(bloc.state.totalKcal, 32.0);
+      await bloc.close();
+    });
   });
 }

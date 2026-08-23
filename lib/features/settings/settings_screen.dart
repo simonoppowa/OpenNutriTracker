@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
@@ -12,6 +14,7 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
+import 'package:opennutritracker/core/utils/app_locale_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -28,6 +31,7 @@ import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.d
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/import_custom_food_data_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/food_sources_screen.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_visibility_screen.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
@@ -415,6 +419,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: S.of(context).settingsFoodSourcesLabel,
                     subtitle: S.of(context).settingsFoodSourcesSubtitle,
                     onTap: () => _openFoodSourcesScreen(context),
+                  ),
+                  _SettingsTile(
+                    identifier: 'settings-health-sync',
+                    palette: palette,
+                    icon: Icons.favorite_rounded,
+                    // The platform's own product name, so the row reads as
+                    // the thing users already know ("Health Connect"), not
+                    // as a generic feature label.
+                    title: healthPlatformName,
+                    subtitle: S.of(context).settingsHealthSyncSubtitle,
+                    showChevron: true,
+                    onTap: () => _openHealthSyncScreen(context),
                   ),
                   _SettingsTile(
                     identifier: 'settings-ai-assist',
@@ -987,6 +1003,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ).push(MaterialPageRoute<void>(builder: (_) => const FoodSourcesScreen()));
   }
 
+  void _openHealthSyncScreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const HealthSyncScreen()),
+    );
+  }
+
   Future<void> _confirmClearOffCache(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -1185,6 +1207,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () {
                 final locale = selectedCode.isEmpty ? null : selectedCode;
                 _settingsBloc.setSelectedLocale(locale);
+                // Keep Android's per-app language picker in step, so someone
+                // who later looks there finds the language they chose here
+                // rather than a stale one. A no-op off Android and below
+                // API 33.
+                unawaited(AppLocaleService.setApplicationLocale(locale));
                 _settingsBloc.add(LoadSettingsEvent());
                 Provider.of<LocaleProvider>(
                   context,
@@ -1376,8 +1403,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _launchPrivacyPolicyUrl(BuildContext context) async {
-    final sourceCodeUri = Uri.parse(URLConst.privacyPolicyURLEn);
-    _launchUrl(context, sourceCodeUri);
+    final privacyPolicyUri = Uri.parse(
+      URLConst.privacyPolicyFor(Localizations.localeOf(context).languageCode),
+    );
+    _launchUrl(context, privacyPolicyUri);
   }
 
   void _launchUrl(BuildContext context, Uri url) async {

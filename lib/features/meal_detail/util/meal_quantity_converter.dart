@@ -21,7 +21,13 @@ double convertQuantityToBaseUnit(
   MealEntity meal,
 ) {
   if (unit == UnitDropdownItem.serving.toString()) {
-    final servingQuantity = meal.servingQuantity;
+    // `scalableServingQuantity`, not `servingQuantity` (#629): OFF often
+    // leaves the numeric field empty while `serving_size` carries the figure
+    // as text, and reading only the numeric one left this branch silently
+    // doing nothing — "1 serving" logged one gram. The extraction of this
+    // helper and that fix crossed on separate branches, so the rule lives
+    // here now rather than in the two call sites it was lifted out of.
+    final servingQuantity = meal.scalableServingQuantity;
     // A meal with no serving data can't be scaled — leave the amount alone
     // rather than guessing, matching UpdateKcalEvent.
     return servingQuantity != null ? quantity * servingQuantity : quantity;

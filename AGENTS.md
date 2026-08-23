@@ -412,7 +412,7 @@ Issue forms and the PR template live under `.github/`:
 | `.github/ISSUE_TEMPLATE/bug_report.yml` | Structured bug reports (repro steps, platform, app/OS version, feature area, logs) |
 | `.github/ISSUE_TEMPLATE/feature_request.yml` | Feature proposals (problem, solution, alternatives, area/platform) |
 | `.github/ISSUE_TEMPLATE/question.yml` | Usage / contributor questions |
-| `.github/ISSUE_TEMPLATE/config.yml` | Disables blank issues; contact links (website, privacy, Open Food Facts, Discussions) |
+| `.github/ISSUE_TEMPLATE/config.yml` | Disables blank issues; contact links (privacy, Open Food Facts, Discussions) |
 | `.github/PULL_REQUEST_TEMPLATE.md` | PR checklist: summary, type, test plan, semantics IDs, l10n, codegen, no secrets |
 
 When filing issues or opening PRs, prefer these templates. Product/food-database data errors belong on Open Food Facts (or the backend repo), not app bug reports — the forms call this out in their checklists.

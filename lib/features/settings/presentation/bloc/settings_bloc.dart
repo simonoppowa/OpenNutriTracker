@@ -74,6 +74,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           useMaterialYou: userConfig.useMaterialYou,
           accentColor: userConfig.accentColor,
           isDemoData: userConfig.isDemoData,
+          healthImportEnabled: userConfig.healthImportEnabled,
+          healthWorkoutKcalMultiplier: userConfig.healthWorkoutKcalMultiplier,
         ),
       );
     });
@@ -112,6 +114,17 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   void setShowActivityTracking(bool showActivityTracking) {
     _addConfigUsecase.setConfigShowActivityTracking(showActivityTracking);
+  }
+
+  Future<void> setHealthImportEnabled(bool enabled) {
+    return _addConfigUsecase.setConfigHealthImportEnabled(enabled);
+  }
+
+  /// Persists the share of an imported workout's reported energy that counts
+  /// toward the daily goal, as a fraction. Applies to future imports only —
+  /// activities already filed keep the calories they were written with.
+  Future<void> setHealthWorkoutKcalMultiplier(double multiplier) {
+    return _addConfigUsecase.setConfigHealthWorkoutKcalMultiplier(multiplier);
   }
 
   void setShowMealMacros(bool showMealMacros) {

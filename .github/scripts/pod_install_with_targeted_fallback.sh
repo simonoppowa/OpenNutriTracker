@@ -63,15 +63,31 @@ while IFS= read -r line; do
   [ -n "$line" ] && parsed_pods+=("$line")
 done < <(extract_pods)
 
-declare -A seen=()
+# Deduplicated with a nested loop rather than an associative array.
+# `declare -A` is a bash 4 feature and this script only ever runs on the
+# macOS runners, whose /bin/bash is 3.2 — so it failed with "declare: -A:
+# invalid option" the first time a CocoaPods CDN hiccup actually took the
+# fallback path. The test suite did not catch it because linux-checks runs
+# on bash 5, the one platform this script never executes on. Keep this file
+# POSIX-ish and bash-3.2 clean; see the guard in the test script.
+#
+# The pod lists here are a handful of names at most, so the quadratic
+# comparison costs nothing.
 root_pods=()
 for pod in "${parsed_pods[@]:-}"; do
   root="${pod%%/*}"
   [ -z "$root" ] && continue
-  if [ -z "${seen[$root]:-}" ]; then
-    seen[$root]=1
-    root_pods+=("$root")
+  duplicate=""
+  for existing in "${root_pods[@]:-}"; do
+    if [ "$existing" = "$root" ]; then
+      duplicate=1
+      break
+    fi
+  done
+  if [ -n "$duplicate" ]; then
+    continue
   fi
+  root_pods+=("$root")
 done
 
 if [ "${#root_pods[@]}" -gt 0 ]; then

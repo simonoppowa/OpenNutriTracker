@@ -5,6 +5,21 @@ class URLConst {
   static const privacyPolicyURLDe =
       "https://www.iubenda.com/privacy-policy/53922100";
 
+  /// The privacy policy to open for [languageCode], English by default.
+  ///
+  /// Nine locales ship and exactly two policy documents exist, so this is a
+  /// deliberately narrow rule rather than a lookup table: German has its own
+  /// document, and every other language gets the English one because there is
+  /// nothing else to send them to. Do not add a locale here without a policy
+  /// actually existing for it — pointing a Czech user at a German document is
+  /// worse than the English fallback.
+  ///
+  /// Both entry points route through here so the two cannot drift; before
+  /// this existed they each hardcoded the English URL and the German document
+  /// was maintained for nobody.
+  static String privacyPolicyFor(String languageCode) =>
+      languageCode == 'de' ? privacyPolicyURLDe : privacyPolicyURLEn;
+
   // Citations for the in-app medical/health calculations. Surfaced on the
   // Sources & References screen (see `sources_screen.dart`) so that users
   // can verify each number we show against its peer-reviewed source.
@@ -28,6 +43,10 @@ class URLConst {
       "https://pmc.ncbi.nlm.nih.gov/articles/PMC6046513/";
   static const sourceTransNutritionLinsenmeyer2020URL =
       "https://link.springer.com/article/10.1186/s12937-020-00590-4";
+  static const sourceEnergyCompensationCareau2021URL =
+      "https://pubmed.ncbi.nlm.nih.gov/34453886/";
+  static const sourceBodyCompositionBorrud2010URL =
+      "https://www.cdc.gov/nchs/data/series/sr_11/sr11_250.pdf";
 
   // Wiki page documenting every in-app calculation in full — linked from
   // the calorie-goal transparency screen for people who want the complete

@@ -11,9 +11,9 @@
 #
 # `labeled` is in the trigger list alongside `opened` so an issue that earns
 # `help wanted` weeks after it was filed still reaches the Contributors board.
-# `transferred` is there because an issue moved in from OpenNutriTracker-Backend
-# or -Website arrives with its labels already attached, so it fires neither
-# `opened` nor `labeled` and would otherwise never reach a board.
+# `transferred` is there because an issue moved in from another repository
+# arrives with its labels already attached, so it fires neither `opened` nor
+# `labeled` and would otherwise never reach a board.
 #
 # Re-adding an item that is already on a board is a no-op (the underlying
 # addProjectV2ItemById mutation returns the existing item), so the repeated

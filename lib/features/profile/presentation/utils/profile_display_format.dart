@@ -45,7 +45,9 @@ String formatBodyWeight(
     case BodyWeightUnit.lb:
       return '${formatProfileWeight(UnitCalc.kgToLbs(weightKg))} $lbLabel';
     case BodyWeightUnit.st:
-      final (stones, pounds) = UnitCalc.kgToStLb(weightKg);
+      // One decimal, because that is what formatProfileWeight prints: at the
+      // two-decimal default a 13.99 lb remainder renders as a full stone.
+      final (stones, pounds) = UnitCalc.kgToStLb(weightKg, poundsDecimals: 1);
       return '$stones $stLabel ${formatProfileWeight(pounds)} $lbLabel';
   }
 }

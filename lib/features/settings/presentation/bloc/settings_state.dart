@@ -40,6 +40,12 @@ class SettingsLoadedState extends SettingsState {
   /// Privacy settings lock Sentry opt-in for that session.
   final bool isDemoData;
 
+  /// Whether workouts are imported from Health Connect / Apple Health, and
+  /// the share of their reported energy that is credited. The multiplier is
+  /// null until the user first opts in.
+  final bool healthImportEnabled;
+  final double? healthWorkoutKcalMultiplier;
+
   const SettingsLoadedState(
     this.versionNumber,
     this.sendAnonymousData,
@@ -63,6 +69,8 @@ class SettingsLoadedState extends SettingsState {
     this.useMaterialYou = true,
     this.accentColor,
     this.isDemoData = false,
+    this.healthImportEnabled = false,
+    this.healthWorkoutKcalMultiplier,
   });
 
   @override
@@ -89,5 +97,7 @@ class SettingsLoadedState extends SettingsState {
         useMaterialYou,
         accentColor,
         isDemoData,
+        healthImportEnabled,
+        healthWorkoutKcalMultiplier,
       ];
 }

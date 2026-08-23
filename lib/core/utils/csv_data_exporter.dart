@@ -79,6 +79,11 @@ class CsvDataExporter {
     'mets',
     'tags',
     'type',
+    // Appended after the original ten so an older CSV still parses: the
+    // parser is header-driven and reads a missing column as null.
+    'user_kcal',
+    'external_id',
+    'source_reported_kcal',
   ];
 
   static const trackedDayColumns = <String>[
@@ -171,6 +176,9 @@ class CsvDataExporter {
         _num(pa.mets),
         _cell(tagsCell),
         _cell(pa.type.name),
+        _num(activity.userKcal),
+        _cell(activity.externalId),
+        _num(activity.sourceReportedKcal),
       ];
       buf.writeln(cells.join(','));
     }
@@ -297,6 +305,10 @@ class CsvDataExporter {
           CsvRowParser.parseDoubleOrNull(row['burned_kcal']) ?? 0,
           DateTime.parse(row['date'] ?? ''),
           pa,
+          userKcal: CsvRowParser.parseDoubleOrNull(row['user_kcal']),
+          externalId: _nullable(row['external_id']),
+          sourceReportedKcal:
+              CsvRowParser.parseDoubleOrNull(row['source_reported_kcal']),
         ),
       );
     }

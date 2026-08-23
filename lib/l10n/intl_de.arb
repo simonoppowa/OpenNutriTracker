@@ -1011,6 +1011,7 @@
   "sourcesOpenSourceLabel": "Quelle öffnen",
   "sourcesScreenIntro": "OpenNutriTracker verwendet für alle Berechnungen etablierte, peer-reviewed Methoden. Die folgenden Quellenangaben verlinken auf die Originaltexte, damit du jede Zahl selbst überprüfen kannst.",
   "sugarLabel": "Zucker",
+  "suggestedLabel": "Vorschlag",
   "suppliedLabel": "zugeführt",
   "transFatLabel": "Transfettsäuren",
   "unitLabel": "Einheit",
@@ -1216,5 +1217,19 @@
   "bulkAddPhotoUnreadableLabel": "Dieses Bild konnte nicht verwendet werden. Versuche ein anderes Foto.",
   "bulkAddPhotoUnsupportedLabel": "Dieses Modell kann keine Fotos lesen. Wähle in den Einstellungen ein anderes aus oder tippe die Einträge ein.",
   "bulkAddPhotoNoCreditLabel": "Diese Anfrage konnte nicht bezahlt werden: Das Guthaben deines Anbieterkontos ist aufgebraucht. Lade es beim Anbieter auf oder gib die Einträge selbst ein.",
-  "bulkAddPhotoNoFoodLabel": "Auf diesem Foto wurden keine Lebensmittel erkannt. Versuche ein anderes Foto oder tippe die Einträge ein."
+  "bulkAddPhotoNoFoodLabel": "Auf diesem Foto wurden keine Lebensmittel erkannt. Versuche ein anderes Foto oder tippe die Einträge ein.",
+  "settingsHealthSyncSubtitle": "Trainings importieren",
+  "healthSyncAutoImportLabel": "Trainings automatisch aus {platform} importieren",
+  "healthSyncKcalMultiplierLabel": "Anrechnung von Trainingskalorien",
+  "healthSyncKcalMultiplierSubtitle": "Dein Körper gleicht Sport meist aus, indem er den Rest des Tages weniger Kalorien verbrennt. 100 % rechnet jede Trainingskalorie voll auf dein Tagesziel an.",
+  "healthSyncKcalMultiplierValueLabel": "{percent} %",
+  "healthSyncSuggestedLabel": "Für dich empfohlen: {percent} %",
+  "healthSyncImportNowLabel": "Jetzt importieren",
+  "healthSyncLastImportLabel": "Letzter Import: {time}",
+  "healthSyncNeverImportedLabel": "Noch keine Trainings importiert",
+  "healthSyncImportedCountLabel": "{count, plural, =0{Keine neuen Trainings} one{1 Training importiert} other{{count} Trainings importiert}}",
+  "healthSyncPermissionDeniedLabel": "Kein Zugriff auf {platform} erteilt. Erlaube OpenNutriTracker, Trainings und Körperfettanteil zu lesen, um sie zu importieren.",
+  "healthSyncUnavailableLabel": "Gesundheitsdaten sind auf diesem Gerät nicht verfügbar. Der Trainingsimport benötigt Health Connect unter Android oder Apple Health unter iOS.",
+  "sourcesEnergyCompensationTitle": "Anrechnung von Trainingskalorien",
+  "sourcesEnergyCompensationDescription": "Importierte Trainings werden mit weniger Energie angerechnet, als dein Gerät meldet. Menschen gleichen Sport aus, indem sie den Rest des Tages weniger Kalorien verbrennen – im Mittel etwa 28 %, bei höherem Körperfettanteil mehr. Der Vorschlag stammt aus dieser Forschung und lässt sich unter Einstellungen → Gesundheitsdaten-Sync ändern. Die Energie selbst meldet die App oder das Gerät, das das Training aufgezeichnet hat; sie wird nicht mit der MET-Formel der App berechnet."
 }

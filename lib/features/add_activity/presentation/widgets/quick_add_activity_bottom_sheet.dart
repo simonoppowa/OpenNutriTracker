@@ -3,13 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
-import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
@@ -100,8 +96,10 @@ class _QuickAddActivityBottomSheetState
             : PhysicalActivityEntity.customNamed(name),
         userKcal: kcal,
       );
-      await locator<AddUserActivityUsecase>().addUserActivity(activity);
-      await _updateTrackedDay(kcal);
+      await locator<LogUserActivityUsecase>().logActivity(
+        activity,
+        day: widget.day,
+      );
 
       locator<HomeBloc>().add(const LoadItemsEvent());
       locator<DiaryBloc>().add(const LoadDiaryYearEvent());
@@ -123,33 +121,6 @@ class _QuickAddActivityBottomSheetState
       if (!mounted) return;
       setState(() => _saving = false);
     }
-  }
-
-  /// Burned calories raise the day's goal ceiling, mirroring
-  /// `ActivityDetailBloc._updateTrackedDay`.
-  Future<void> _updateTrackedDay(double caloriesBurned) async {
-    final addTrackedDay = locator<AddTrackedDayUsecase>();
-    final hasTrackedDay = await addTrackedDay.hasTrackedDay(widget.day);
-    if (!hasTrackedDay) {
-      final kcalGoal = await locator<GetKcalGoalUsecase>().getKcalGoal(
-        totalKcalActivitiesParam: 0,
-      );
-      final macroGoal = locator<GetMacroGoalUsecase>();
-      await addTrackedDay.addNewTrackedDay(
-        widget.day,
-        kcalGoal,
-        await macroGoal.getCarbsGoal(kcalGoal),
-        await macroGoal.getFatsGoal(kcalGoal),
-        await macroGoal.getProteinsGoal(kcalGoal),
-      );
-    }
-    await addTrackedDay.increaseDayCalorieGoal(widget.day, caloriesBurned);
-    await addTrackedDay.increaseDayMacroGoals(
-      widget.day,
-      carbsAmount: MacroCalc.getTotalCarbsGoal(caloriesBurned),
-      fatAmount: MacroCalc.getTotalFatsGoal(caloriesBurned),
-      proteinAmount: MacroCalc.getTotalProteinsGoal(caloriesBurned),
-    );
   }
 
   @override
