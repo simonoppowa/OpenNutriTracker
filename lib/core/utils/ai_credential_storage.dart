@@ -286,6 +286,9 @@ class AiCredentialStorage {
   /// so overlapping them hides the duplicate reads rather than removing them.
   /// A null provider short-circuits the whole thing: there is no slot to read
   /// a key from, so there is nothing to enable. #753.
+  ///
+  /// Naming a [provider] skips the resolution and answers about that one
+  /// instead. The pause flag is not per provider, so it still applies.
   Future<
     ({
       AiProvider? provider,
@@ -295,8 +298,8 @@ class AiCredentialStorage {
       bool enabled,
     })
   >
-  _readState() async {
-    final provider = await activeProvider();
+  _readState({AiProvider? provider}) async {
+    provider ??= await activeProvider();
     if (provider == null) {
       return (
         provider: null,
@@ -603,8 +606,34 @@ class AiCredentialStorage {
   /// One method rather than three calls at each site: both use cases used to
   /// ask `isEnabled()` then `readApiKey()`, and adding a provider and a model
   /// would have made that four questions asked separately in two places.
-  Future<AiSelection?> readSelection() async {
-    final state = await _readState();
+  Future<AiSelection?> readSelection() async =>
+      _selectionFrom(await _readState());
+
+  /// The same question asked about a **named** provider rather than whichever
+  /// one is selected right now.
+  ///
+  /// For work that outlives the moment it was started: the setup check runs
+  /// for about 66 seconds against a dialog whose provider selector stays
+  /// live, and it is a check of the configuration it was started for. Asking
+  /// [readSelection] instead made a two-tap switch during the run silently
+  /// cancel it — the check would read back a provider nobody had asked it
+  /// about and conclude there was nothing to do. #780.
+  ///
+  /// The pause flag is shared, so pausing still answers null here: pause
+  /// means nothing is sent, and a check is a request like any other.
+  Future<AiSelection?> selectionFor(AiProvider provider) async =>
+      _selectionFrom(await _readState(provider: provider));
+
+  AiSelection? _selectionFrom(
+    ({
+      AiProvider? provider,
+      String? apiKey,
+      String? endpoint,
+      String? modelId,
+      bool enabled,
+    })
+    state,
+  ) {
     if (!state.enabled) return null;
     final provider = state.provider;
     // Implied by `enabled`, which is false without a usable provider. Stated

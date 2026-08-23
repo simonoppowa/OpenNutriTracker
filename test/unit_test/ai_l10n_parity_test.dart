@@ -29,6 +29,18 @@ void main() {
     // requested, or a server with no model to ask for.
     'aiAssistEndpointInvalidLabel',
     'aiAssistModelRequiredLabel',
+    // #780. The setup check, reported per capability — and the save-time
+    // refusal folded in from #758.
+    'aiAssistEndpointPublicPlaintextLabel',
+    'aiAssistProbeSectionLabel',
+    'aiAssistProbeRunningLabel',
+    'aiAssistProbeCheckLabel',
+    'aiAssistProbeTextLabel',
+    'aiAssistProbePhotoLabel',
+    'aiAssistProbePassedLabel',
+    'aiAssistProbeUnknownLabel',
+    'aiAssistProbeTextFailedLabel',
+    'aiAssistProbePhotoFailedLabel',
     // #781. The one sheet that names a destination the app cannot name by
     // company, so it names the address instead.
     'bulkAddPhotoDisclosureOwnServer',
@@ -206,6 +218,45 @@ void main() {
           reason: '$locale claims a network boundary the app never checks',
         );
       }
+    }
+  });
+
+  test('"never ran" and "checked and failed" read differently everywhere', () {
+    // #735 settled that these are two states rather than one, and the widget
+    // test can only vouch for English. A translator handed nine near-identical
+    // short sentences is exactly who would collapse them, and the result would
+    // be a user told their model cannot see when nobody has asked it yet.
+    for (final locale in locales) {
+      final unknown = arb[locale]!['aiAssistProbeUnknownLabel'] as String;
+      for (final key in [
+        'aiAssistProbeTextFailedLabel',
+        'aiAssistProbePhotoFailedLabel',
+        'aiAssistProbePassedLabel',
+      ]) {
+        expect(
+          unknown,
+          isNot(arb[locale]![key]),
+          reason: '$locale: "not checked yet" reads the same as $key',
+        );
+      }
+    }
+  });
+
+  test('the two capabilities are named apart in every locale', () {
+    // The other half of the same decision. Two rows carrying the same label
+    // is one combined verdict wearing a disguise.
+    for (final locale in locales) {
+      expect(
+        arb[locale]!['aiAssistProbeTextLabel'],
+        isNot(arb[locale]!['aiAssistProbePhotoLabel']),
+        reason: '$locale names both capabilities the same',
+      );
+      expect(
+        arb[locale]!['aiAssistProbeTextFailedLabel'],
+        isNot(arb[locale]!['aiAssistProbePhotoFailedLabel']),
+        reason: '$locale: a failed photo and a failed text mean different '
+            'things — one hides the camera, the other turns nothing off',
+      );
     }
   });
 

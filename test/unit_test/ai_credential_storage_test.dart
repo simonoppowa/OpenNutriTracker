@@ -1071,6 +1071,49 @@ void main() {
     });
   });
 
+  group('selectionFor', () {
+    test('answers about the provider named, not the one selected', () async {
+      // For work that outlives the moment it started. The setup check runs
+      // for about a minute against a dialog whose provider selector stays
+      // live, and it is a check of the configuration it was started for —
+      // asking about the *active* provider let a switch in the meantime
+      // cancel it silently. #780.
+      await storage.writeOwnServerConfiguration(
+        endpoint: 'http://192.168.1.5:11434',
+        model: 'gemma3:4b',
+        provider: AiProvider.ownServer,
+      );
+      await storage.setActiveProvider(AiProvider.anthropic);
+
+      final selection = await storage.selectionFor(AiProvider.ownServer);
+
+      expect(selection!.provider, AiProvider.ownServer);
+      expect(selection.endpoint, 'http://192.168.1.5:11434/v1/chat/completions');
+      expect(selection.modelId, 'gemma3:4b');
+      // The active one is genuinely unusable, so this is the discriminating
+      // pair rather than two ways of asking the same thing.
+      expect(await storage.readSelection(), isNull);
+    });
+
+    test('is still silenced by pause, like every other request', () async {
+      // Pause is not per provider, and naming one must not be a way around
+      // it: pause means nothing is sent, and a check is a request like any
+      // other.
+      await storage.writeOwnServerConfiguration(
+        endpoint: 'http://192.168.1.5:11434',
+        model: 'gemma3:4b',
+        provider: AiProvider.ownServer,
+      );
+      await storage.setEnabled(false);
+
+      expect(await storage.selectionFor(AiProvider.ownServer), isNull);
+    });
+
+    test('is null for a provider with nothing configured', () async {
+      expect(await storage.selectionFor(AiProvider.openrouter), isNull);
+    });
+  });
+
   group('what the probe found (#779)', () {
     const own = AiProvider.ownServer;
     const passed = AiEndpointProbe(
