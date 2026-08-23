@@ -281,6 +281,59 @@ void main() {
 
       expect(result.items, isEmpty);
     });
+
+    test('items that all drop are a failure, not an empty reading', () async {
+      // The pair to the case above, and until now indistinguishable from it.
+      // An entry with no usable `query` is dropped, so a model answering in
+      // the wrong shape produced an empty list — which `ReadMealTextUseCase`
+      // reads as "the model looked, and there is no food here" and shows in
+      // place of the parser's rows. The user got neither: not the model's,
+      // which never existed, and not the parser's, which a judgement the
+      // model never made had suppressed.
+      final s = subject(
+        responseBody: _toolReply([
+          {'name': 'egg', 'quantity': 2},
+          {'quantity': 1, 'unit': 'slice'},
+        ]),
+      );
+
+      await expectLater(
+        () => s.api.requestItems(
+          content: const MealTextContent('2 eggs and a slice of toast'),
+          system: 'rules',
+        ),
+        // Transient, so the text path falls back to the parser without a
+        // notice and the photo path says "try again" — one malformed batch
+        // is not evidence about the next one, and `unsupported` would be:
+        // #782 reads that member as grounds to take a working camera away.
+        throwsA(
+          isA<MealInterpreterException>().having(
+            (e) => e.failure,
+            'failure',
+            MealInterpreterFailure.transient,
+          ),
+        ),
+      );
+    });
+
+    test('one usable item among malformed ones is still a reading', () async {
+      // The drop rule itself is unchanged. A batch with holes in it is worth
+      // showing; only a batch that is entirely holes is a failure.
+      final s = subject(
+        responseBody: _toolReply([
+          {'name': 'egg', 'quantity': 2},
+          {'query': 'toast', 'quantity': 1, 'unit': 'slice'},
+        ]),
+      );
+
+      final result = await s.api.requestItems(
+        content: const MealTextContent('2 eggs and a slice of toast'),
+        system: 'rules',
+      );
+
+      expect(result.items, hasLength(1));
+      expect(result.items.single.query, 'toast');
+    });
   });
 
   group('classifying failures', () {
