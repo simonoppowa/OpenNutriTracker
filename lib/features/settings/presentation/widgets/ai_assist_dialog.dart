@@ -1,6 +1,11 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
+import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Where the user chooses a provider, supplies a key for it, picks a model,
@@ -23,7 +28,17 @@ import 'package:opennutritracker/generated/l10n.dart';
 class AiAssistDialog extends StatefulWidget {
   final AiCredentialStorage storage;
 
-  const AiAssistDialog({super.key, required this.storage});
+  /// Starts the setup check and remembers what it found (#780).
+  ///
+  /// Injected rather than pulled from the locator, matching how [storage]
+  /// arrives — and null in the tests that predate the check and do not
+  /// exercise it, which is also what keeps them from firing a real request at
+  /// `192.168.1.5` the moment they press OK. Null means the section is not
+  /// shown at all rather than shown inert: an affordance that cannot act is
+  /// worse than none.
+  final AiEndpointProbeRunner? probeRunner;
+
+  const AiAssistDialog({super.key, required this.storage, this.probeRunner});
 
   /// Returns true when the stored state changed, so the caller can refresh
   /// its subtitle.
@@ -32,12 +47,15 @@ class AiAssistDialog extends StatefulWidget {
   /// remove button write immediately, so a tap outside would drop the
   /// "something changed" answer on the floor and leave the settings tile
   /// describing the old state. Leaving is via Cancel, which reports honestly.
-  static Future<bool> show(BuildContext context, AiCredentialStorage storage) =>
-      showDialog<bool>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => AiAssistDialog(storage: storage),
-      ).then((changed) => changed ?? false);
+  static Future<bool> show(
+    BuildContext context,
+    AiCredentialStorage storage, {
+    AiEndpointProbeRunner? probeRunner,
+  }) => showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => AiAssistDialog(storage: storage, probeRunner: probeRunner),
+  ).then((changed) => changed ?? false);
 
   /// The accessibility identifier for a model row.
   ///
@@ -109,6 +127,17 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   String? _endpointError;
   String? _modelError;
 
+  /// What the setup check last established about this `(endpoint, model)`,
+  /// **per capability**. #735: two independent results collapsed into one
+  /// sentence cannot express "text works, photos do not", which is the common
+  /// case for a small local model.
+  AiEndpointProbe _probe = AiEndpointProbe.unknown;
+
+  /// A check is running right now — either one this dialog started, or one a
+  /// previous visit started and which is still going. The user is expected to
+  /// have left: 66 seconds is longer than anyone waits at a settings screen.
+  bool _probing = false;
+
   @override
   void initState() {
     super.initState();
@@ -124,10 +153,20 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     super.dispose();
   }
 
+  /// Which read is the current one.
+  ///
+  /// Every field below the provider selector is read from the keystore across
+  /// four awaits, and a second provider switch can start a second read before
+  /// the first has finished. The keystore is a platform channel, so the two
+  /// are free to land in either order — and the loser used to win, repainting
+  /// the dialog with the provider the user had already moved off.
+  int _loadGeneration = 0;
+
   /// Reads everything for whichever provider is active. Called again after a
   /// provider switch, because every field below the selector belongs to the
   /// provider rather than to the dialog.
   Future<void> _load() async {
+    final generation = ++_loadGeneration;
     final summary = await widget.storage.readSummary();
     // A stored name this build does not know leaves nothing to select, so the
     // radios fall back to the first provider **for display only**. Nothing is
@@ -142,7 +181,19 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     final hasKey = summary.provider == null
         ? false
         : await widget.storage.hasApiKey(provider: provider);
-    if (!mounted) return;
+    // Read, not run. Opening settings must not start a 66-second request at
+    // somebody's server; what lands here is whatever the last check found,
+    // which is the whole point of storing it.
+    final probe = await widget.storage.readProbe(provider: provider);
+    // A check this dialog is too late to have started, from a save the user
+    // has already walked away from. Without this it would read "not checked
+    // yet" over a request that is in flight, and offer a button that joins it
+    // and looks like it did nothing.
+    final running = widget.probeRunner?.current(provider);
+    // A newer read has started since this one did, and it is reading the
+    // provider the user actually chose. Dropping this snapshot loses nothing:
+    // the newer one writes every field this one would have.
+    if (!mounted || generation != _loadGeneration) return;
     setState(() {
       _provider = provider;
       _hasKey = hasKey;
@@ -151,7 +202,59 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _model = AiModelCatalogue.resolve(provider, modelId);
       _endpointController.text = summary.endpoint ?? '';
       _modelController.text = modelId ?? '';
+      _probe = probe;
+      _probing = running != null;
       _loading = false;
+    });
+    if (running != null) unawaited(_showWhenItLands(provider, running));
+  }
+
+  /// Starts a check and shows the answer if the user is still here.
+  ///
+  /// Nothing is announced when it lands — no snackbar, no dialog reopening.
+  /// #735 settled that the user has moved on long before a probe finishes, so
+  /// the result has to be *readable when they come back* rather than shouted
+  /// at whatever screen they are on by then.
+  void _runProbe() {
+    final runner = widget.probeRunner;
+    if (runner == null) return;
+    final provider = _provider;
+    setState(() => _probing = true);
+    unawaited(
+      _showWhenItLands(
+        provider,
+        runner.start(
+          provider,
+          localeCode: Localizations.localeOf(context).languageCode,
+        ),
+      ),
+    );
+  }
+
+  /// Shows what a check found, **for the provider it was started against**.
+  ///
+  /// The longest await in this dialog by two orders of magnitude — about 66
+  /// seconds — against a selector that takes two taps to move. So a completion
+  /// has to prove it still belongs before it writes: [_probe] is a verdict
+  /// about one destination, and [_probing] is a claim that *this* provider has
+  /// a request outstanding. Neither is true of whoever the user picked in the
+  /// meantime.
+  ///
+  /// Today the section is only rendered for a server the user runs, so a stale
+  /// write lands where nothing displays it and `_load` overwrites it on the way
+  /// back. That makes this a guard on an invariant rather than a fix for a
+  /// visible symptom — which is the moment to add it, not a reason to skip it:
+  /// the invariant is what the next reader will assume, and the containment is
+  /// a coincidence of the current layout.
+  Future<void> _showWhenItLands(
+    AiProvider provider,
+    Future<AiEndpointProbe> probe,
+  ) async {
+    final found = await probe;
+    if (!mounted || provider != _provider) return;
+    setState(() {
+      _probe = found;
+      _probing = false;
     });
   }
 
@@ -166,9 +269,14 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     await _load();
   }
 
+  /// The write names the provider explicitly, so it always lands in the right
+  /// slot. What needed guarding is the *display*: the selected radio is a
+  /// statement about whoever is on screen now, and a switch during the write
+  /// would leave one provider's model ticked under another's list.
   Future<void> _selectModel(AiModel model) async {
-    await widget.storage.writeModel(model.id, provider: _provider);
-    if (!mounted) return;
+    final provider = _provider;
+    await widget.storage.writeModel(model.id, provider: provider);
+    if (!mounted || provider != _provider) return;
     setState(() {
       _model = model;
       _changed = true;
@@ -177,9 +285,17 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
 
   Future<void> _save() async {
     final s = S.of(context);
+    // Read before the first `await`, because the check below is started after
+    // one and `context` may no longer be usable by then.
+    final localeCode = Localizations.localeOf(context).languageCode;
+    // Captured for the same reason, and it matters more here than anywhere
+    // else in this dialog: the radios stay live while these writes are in
+    // flight, and re-reading `_provider` after an await is how a typed API key
+    // would end up in the slot of a provider the user tapped on the way past.
+    final provider = _provider;
     var changed = _changed;
 
-    if (_provider == AiProvider.ownServer) {
+    if (provider == AiProvider.ownServer) {
       // The address is this provider's credential, and the model is part of
       // what "configured" means for it (#738) — so both are saved here, and
       // neither alone turns the feature on.
@@ -210,12 +326,16 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       // two paths to a destructive act, one of them a side effect of blanking
       // a text field, is worse than one that says what it does.
       if (endpoint.isNotEmpty || model.isNotEmpty || _configured) {
-        if (resolved == null || model.isEmpty) {
+        final endpointError = resolved == null
+            ? s.aiAssistEndpointInvalidLabel
+            : _refusedBeforeItLeaves(resolved)
+            ? s.aiAssistEndpointPublicPlaintextLabel
+            : null;
+        final modelError = model.isEmpty ? s.aiAssistModelRequiredLabel : null;
+        if (endpointError != null || modelError != null) {
           setState(() {
-            _endpointError = resolved == null
-                ? s.aiAssistEndpointInvalidLabel
-                : null;
-            _modelError = model.isEmpty ? s.aiAssistModelRequiredLabel : null;
+            _endpointError = endpointError;
+            _modelError = modelError;
           });
           return;
         }
@@ -228,16 +348,34 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
         if (await widget.storage.writeOwnServerConfiguration(
           endpoint: endpoint,
           model: model,
-          provider: _provider,
+          provider: provider,
         )) {
           changed = true;
+        }
+
+        // **Started, never awaited.** #735: saving succeeds on syntax exactly
+        // as it did before this existed, and the check runs behind it — so
+        // someone configuring the app on a train, away from their server,
+        // saves fine and the camera turns up later once a check has passed
+        // against a reachable box. Awaiting it here would make the server's
+        // availability a precondition for saving an address, which would also
+        // stop them configuring the text path that would have worked.
+        //
+        // On every valid save rather than only on a changed one. The address
+        // and the model can be identical and the machine behind them
+        // different — a runtime restarted with another model pulled under the
+        // same tag is the ordinary case — and the runner joins a check
+        // already running, so pressing OK twice costs nothing.
+        final runner = widget.probeRunner;
+        if (runner != null) {
+          unawaited(runner.start(provider, localeCode: localeCode));
         }
       }
     }
 
     final typed = _apiKeyController.text.trim();
     if (typed.isNotEmpty) {
-      await widget.storage.writeApiKey(typed, provider: _provider);
+      await widget.storage.writeApiKey(typed, provider: provider);
       changed = true;
     }
 
@@ -245,6 +383,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     Navigator.of(context).pop(changed);
   }
 
+  /// Already safe, and worth saying so: `_provider` is read to build the call
+  /// rather than after it, so the destructive act names the provider the user
+  /// was looking at when they pressed it. Everything this writes afterwards
+  /// goes through [_load], which carries its own guard.
   Future<void> _remove() async {
     await widget.storage.clear(provider: _provider);
     if (!mounted) return;
@@ -253,14 +395,40 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     await _load();
   }
 
+  /// The flag itself is not per provider, so the *write* is safe whoever is
+  /// selected. The read-back is not: `isEnabled` is false for a provider with
+  /// nothing configured, so a switch landing between the two turns this into
+  /// one provider's answer painted onto another's switch.
   Future<void> _setEnabled(bool value) async {
+    final provider = _provider;
     await widget.storage.setEnabled(value);
     final enabled = await widget.storage.isEnabled();
-    if (!mounted) return;
+    if (!mounted || provider != _provider) return;
     setState(() {
       _enabled = enabled;
       _changed = true;
     });
+  }
+
+  /// Whether every request to [resolved] will be refused before it leaves the
+  /// phone, and the user can be told that now rather than after saving.
+  ///
+  /// **Ergonomics only.** The guarantee is [PlaintextDestinationGuard], which
+  /// refuses per request, resolves names, and pins the connection to the
+  /// address it approved — #758 shipped that and nothing here weakens or
+  /// duplicates it. What this adds is that a literal address needs no lookup
+  /// to judge, so the one refusal that *can* be shown at save time is, instead
+  /// of storing a configuration the user only discovers is dead when their
+  /// meals come back from the offline parser forever.
+  ///
+  /// Literals only, deliberately. A name is what DNS says today, which is a
+  /// question with a network round trip in it, and #735's whole rule is that
+  /// saving never waits on the network. `http://ollama.lan` is saved, and the
+  /// guard refuses it per request if it turns out to point somewhere public.
+  bool _refusedBeforeItLeaves(Uri resolved) {
+    if (resolved.scheme != 'http') return false;
+    final literal = InternetAddress.tryParse(resolved.host);
+    return literal != null && !isPrivateDestination(literal);
   }
 
   String _providerName(BuildContext context, AiProvider provider) =>
@@ -464,6 +632,22 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                     // to send to; picking a model is the step after deciding
                     // you can talk to them at all.
                     _buildModelSection(context, s, theme),
+                    // Directly under the pair it is a fact about. A stored
+                    // verdict describes `(endpoint, model)` and is discarded
+                    // when either changes, so reading it anywhere further from
+                    // those two fields would invite it to be read as a
+                    // property of the provider.
+                    //
+                    // Only for a server the user runs. The other three were
+                    // screened behaviourally over live calls before they were
+                    // ever offered (#735), so there is nothing here a check
+                    // would establish that the curated list does not already
+                    // carry — and an inert "not checked yet" on the Anthropic
+                    // path would imply otherwise.
+                    if (_provider == AiProvider.ownServer && _configured) ...[
+                      const SizedBox(height: 16),
+                      _buildProbeSection(s, theme),
+                    ],
                     const SizedBox(height: 16),
                     // Provider paragraph first — it names the destination,
                     // which is the fact that changes — then the sentences that
@@ -564,6 +748,142 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
         ? s.aiAssistDisclosureOwnServerSecure(display)
         : s.aiAssistDisclosureOwnServerPlaintext(display);
   }
+
+  /// What the setup check found, **one row per capability**.
+  ///
+  /// #735 settled that this reports per capability rather than as one combined
+  /// verdict, and the reason is not tidiness: "text works, photos do not" is
+  /// the common case for a small local model, and one sentence cannot say it.
+  /// It is also the only place a hidden camera becomes explainable rather than
+  /// mysterious, and the only home the text-path warning has — the alternative
+  /// is the silent-parser-forever trap this project has already been bitten
+  /// by, where a mistyped key produced a plausible screen of parser rows on a
+  /// Pixel 6 and no indication whatsoever outside `adb logcat`.
+  Widget _buildProbeSection(S s, ThemeData theme) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _label(theme, s.aiAssistProbeSectionLabel),
+      if (_probing)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          // Words rather than a spinner. A progress indicator promises
+          // something worth waiting for, and this is measured at about 66
+          // seconds against a cold Ollama — 29s text, 37s photo — so the
+          // honest affordance says how long it takes and that leaving is
+          // fine.
+          child: Text(
+            s.aiAssistProbeRunningLabel,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      _probeRow(
+        theme,
+        s.aiAssistProbeTextLabel,
+        _probe.text,
+        // A failed text check is **reported and disables nothing.** The
+        // deterministic parser still produces the rows, one sample line is
+        // thin evidence about a real meal, and taking the feature away over
+        // it would remove something that costs nothing. #735.
+        switch (_probe.text) {
+          AiCapability.passed => s.aiAssistProbePassedLabel,
+          AiCapability.failed => s.aiAssistProbeTextFailedLabel,
+          AiCapability.unknown => s.aiAssistProbeUnknownLabel,
+        },
+      ),
+      _probeRow(
+        theme,
+        s.aiAssistProbePhotoLabel,
+        _probe.photo,
+        // The asymmetric half: a failed photo check hides the camera, because
+        // there is nothing underneath it the way the parser is underneath the
+        // text path, and offering a dead end is worse than not offering it.
+        switch (_probe.photo) {
+          AiCapability.passed => s.aiAssistProbePassedLabel,
+          AiCapability.failed => s.aiAssistProbePhotoFailedLabel,
+          AiCapability.unknown => s.aiAssistProbeUnknownLabel,
+        },
+      ),
+      // Offered while the feature is on, and not while it is paused: paused
+      // means nothing is sent, and a check is a request like any other. The
+      // switch is directly above, so the way to get the button back is on
+      // screen.
+      if (widget.probeRunner != null && _enabled)
+        Semantics(
+          identifier: 'ai-assist-probe-run',
+          child: TextButton.icon(
+            // Disabled only while one is running. Re-running from here
+            // updates what is shown **without a re-save**, which is what
+            // makes an unreachable server a state the user can act on rather
+            // than a verdict they are stuck with.
+            onPressed: _probing ? null : _runProbe,
+            icon: const Icon(Icons.refresh_rounded),
+            label: Text(s.aiAssistProbeCheckLabel),
+          ),
+        ),
+    ],
+  );
+
+  /// One capability, its verdict, and what that verdict means for the user.
+  ///
+  /// Name above status rather than `"$name: $status"`. The separator would be
+  /// a punctuation mark chosen in English and pasted into nine locales — `：`
+  /// in Chinese, spaced differently in French-influenced typography — for a
+  /// join the layout already expresses.
+  Widget _probeRow(
+    ThemeData theme,
+    String name,
+    AiCapability capability,
+    String status,
+  ) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          // **Never `failed`'s icon for `unknown`.** "We have not asked" and
+          // "we asked and it cannot" are different states, and the first is
+          // not an error: nothing went wrong, there is nothing to dismiss,
+          // and the answer is the button below rather than a fix.
+          switch (capability) {
+            AiCapability.passed => Icons.check_circle_outline_rounded,
+            AiCapability.failed => Icons.error_outline_rounded,
+            AiCapability.unknown => Icons.help_outline_rounded,
+          },
+          size: 18,
+          color: switch (capability) {
+            AiCapability.passed => theme.colorScheme.primary,
+            AiCapability.failed => theme.colorScheme.error,
+            AiCapability.unknown => theme.colorScheme.onSurfaceVariant,
+          },
+        ),
+        const SizedBox(width: 8),
+        // Flex-constrained per AGENTS.md. The status sentences are the
+        // longest strings this dialog renders after the disclosure, and this
+        // row sits beside a fixed-width icon.
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                style: theme.textTheme.bodyMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                status,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 
   Widget _label(ThemeData theme, String text) => Padding(
     padding: const EdgeInsets.only(bottom: 4),
