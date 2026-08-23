@@ -363,7 +363,7 @@ class _OnboardingOtherOptionsPageBodyState
     final subtitle = aiAssistSubtitle(
       s,
       configured: _aiConfigured,
-    endpoint: _aiEndpoint,
+      endpoint: _aiEndpoint,
       enabled: _aiEnabled,
       provider: _aiProvider,
     );
