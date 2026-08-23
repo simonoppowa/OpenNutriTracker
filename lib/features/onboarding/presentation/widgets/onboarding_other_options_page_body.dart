@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/presentation/widgets/section_group.dart';
 import 'package:opennutritracker/core/presentation/ai_assist_summary.dart';
 import 'package:opennutritracker/core/presentation/widgets/badged_title.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/ai_assist_dialog.dart';
 import 'package:opennutritracker/core/styles/accent_colors.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -48,6 +49,11 @@ class OnboardingOtherOptionsPageBody extends StatefulWidget {
   /// dependency none of them exercise.
   final AiCredentialStorage? aiCredentials;
 
+  /// Injected for the same reason and on the same terms as [aiCredentials]:
+  /// the dialog this row opens runs the setup check behind a save (#780), and
+  /// a test that does not exercise it should not have to register one.
+  final AiEndpointProbeRunner? aiProbeRunner;
+
   const OnboardingOtherOptionsPageBody({
     super.key,
     required this.setPageContent,
@@ -57,6 +63,7 @@ class OnboardingOtherOptionsPageBody extends StatefulWidget {
     required this.initialUseMaterialYou,
     required this.initialAccentColor,
     this.aiCredentials,
+    this.aiProbeRunner,
   });
 
   @override
@@ -105,7 +112,11 @@ class _OnboardingOtherOptionsPageBodyState
   /// change: the subtitle is cheap to recompute and a stale one misdescribes
   /// what leaves the device.
   Future<void> _openAiDialog(AiCredentialStorage storage) async {
-    await AiAssistDialog.show(context, storage);
+    await AiAssistDialog.show(
+      context,
+      storage,
+      probeRunner: widget.aiProbeRunner,
+    );
     await _refreshAiState();
   }
 

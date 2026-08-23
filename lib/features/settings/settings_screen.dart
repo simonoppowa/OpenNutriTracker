@@ -30,6 +30,7 @@ import 'package:opennutritracker/features/settings/presentation/widgets/import_c
 import 'package:opennutritracker/features/settings/presentation/widgets/food_sources_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_visibility_screen.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/ai_assist_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -63,6 +64,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late CalendarDayBloc _calendarDayBloc;
   late TrendsBloc _trendsBloc;
   late AiCredentialStorage _aiCredentials;
+  late AiEndpointProbeRunner _aiProbeRunner;
 
   /// Null until the first read completes; the tile shows no subtitle rather
   /// than briefly claiming the feature is off.
@@ -75,6 +77,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     _aiCredentials = locator<AiCredentialStorage>();
+    _aiProbeRunner = locator<AiEndpointProbeRunner>();
     _settingsBloc = locator<SettingsBloc>();
     _profileBloc = locator<ProfileBloc>();
     _homeBloc = locator<HomeBloc>();
@@ -967,7 +970,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   );
 
   Future<void> _openAiAssistDialog(BuildContext context) async {
-    await AiAssistDialog.show(context, _aiCredentials);
+    await AiAssistDialog.show(
+      context,
+      _aiCredentials,
+      probeRunner: _aiProbeRunner,
+    );
     // Unconditionally, not only when the dialog reports a change: the
     // subtitle is cheap to recompute and a stale one misdescribes what
     // leaves the device.

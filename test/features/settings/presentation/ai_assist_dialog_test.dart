@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -11,6 +12,8 @@ import 'package:http/testing.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/ai_model_list_api.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/probe_ai_endpoint_usecase.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/ai_assist_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -18,6 +21,14 @@ import '../../../helpers/test_l10n.dart';
 
 class _MemoryStorage implements FlutterSecureStorage {
   final store = <String, String>{};
+
+  /// Reads held open until the test releases them.
+  ///
+  /// The real store is a platform channel, so two reads issued in order are
+  /// free to answer out of order — which is the whole of the race the dialog
+  /// guards against. A map that answers in a microtask can never reproduce
+  /// that on its own.
+  final readGates = <String, Completer<void>>{};
 
   @override
   Future<String?> read({
@@ -28,7 +39,11 @@ class _MemoryStorage implements FlutterSecureStorage {
     WebOptions? webOptions,
     AppleOptions? mOptions,
     WindowsOptions? wOptions,
-  }) async => store[key];
+  }) async {
+    final gate = readGates[key];
+    if (gate != null) await gate.future;
+    return store[key];
+  }
 
   @override
   Future<void> write({
@@ -63,30 +78,46 @@ class _MemoryStorage implements FlutterSecureStorage {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _app(
-  AiCredentialStorage storage, {
-  Locale? locale,
-  AiModelListApi? modelList,
-}) => MaterialApp(
-  locale: locale,
-  localizationsDelegates: const [
-    S.delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-  ],
-  supportedLocales: S.supportedLocales,
-  home: Scaffold(
-    body: AiAssistDialog(storage: storage, modelList: modelList),
-  ),
-);
-
-/// Every URL the dialog asked for, and what it got back.
+/// Stands in for the real prober, which needs a server on the other end.
 ///
-/// A recorder rather than a stub, because the load-bearing assertion in #738
-/// is about a request that must **not** happen: opening AI settings sends
-/// nothing anywhere, for every provider. Only something that would have
-/// noticed can pin that.
+/// The dialog is given a **real** [AiEndpointProbeRunner] built around this,
+/// not a fake runner: the thing worth asserting is that pressing OK does not
+/// wait on a check, and a fake runner that returned instantly would make that
+/// true by construction.
+class _FakeProber implements AiEndpointProber {
+  AiEndpointProbe result;
+
+  /// Held open so a check can be observed mid-flight. A real one takes about
+  /// 66 seconds, which is the whole reason the dialog has a running state.
+  Completer<void>? gate;
+
+  int calls = 0;
+
+  _FakeProber(this.result);
+
+  @override
+  Future<AiEndpointProbe> probe(
+    AiSelection selection, {
+    String? localeCode,
+  }) async {
+    calls++;
+    if (gate != null) await gate!.future;
+    return result;
+  }
+
+  @override
+  Future<AiCapability> probeText(
+    AiSelection selection, {
+    String? localeCode,
+  }) async => result.text;
+
+  @override
+  Future<AiCapability> probePhoto(
+    AiSelection selection, {
+    String? localeCode,
+  }) async => result.photo;
+}
+
 class _Server {
   final requests = <Uri>[];
   final http.Response Function(Uri url) _respond;
@@ -115,6 +146,29 @@ class _Server {
     }),
   );
 }
+
+Widget _app(
+  AiCredentialStorage storage, {
+  Locale? locale,
+  AiModelListApi? modelList,
+  AiEndpointProbeRunner? probeRunner,
+}) => MaterialApp(
+  locale: locale,
+  localizationsDelegates: const [
+    S.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+  supportedLocales: S.supportedLocales,
+  home: Scaffold(
+    body: AiAssistDialog(
+      storage: storage,
+      modelList: modelList,
+      probeRunner: probeRunner,
+    ),
+  ),
+);
 
 void main() {
   late _MemoryStorage backing;
@@ -187,6 +241,53 @@ void main() {
     expect(
       find.textContaining(l10nEn.aiAssistDisclosureOpenRouter),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('a slower earlier read cannot repaint over a later choice', (
+    tester,
+  ) async {
+    // Copilot raised this on #788 against the probe completion, and it is the
+    // same question for every await in this dialog — `_load` is where it
+    // actually bites. One provider switch is four keystore reads, the keystore
+    // is a platform channel, and two switches in quick succession are free to
+    // answer out of order. The loser used to win: the dialog repainted itself
+    // with the provider the user had already moved off, while storage said
+    // otherwise, which is precisely the "the row and the store disagree about
+    // who is being sent to" failure this feature keeps having to close.
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    // Hold OpenRouter's last read open, so its snapshot is still in flight
+    // when the next choice lands on top of it.
+    final held = Completer<void>();
+    backing.readGates['AiProbeTag.openrouter'] = held;
+
+    await tester.tap(find.text('OpenRouter'));
+    await tester.pump();
+    await tester.tap(find.text(l10nEn.aiAssistProviderOwnServerLabel));
+    await tester.pumpAndSettle();
+
+    expect(await storage.activeProvider(), AiProvider.ownServer);
+    expect(
+      find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+      findsOneWidget,
+      reason: 'the later choice is the one on screen',
+    );
+
+    held.complete();
+    await tester.pumpAndSettle();
+
+    expect(
+      find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+      findsOneWidget,
+      reason: 'the OpenRouter snapshot landed last and must not repaint',
+    );
+    expect(
+      find.textContaining(l10nEn.aiAssistDisclosureOpenRouter),
+      findsNothing,
+      reason: 'naming a destination the user is not configured for is the '
+          'one thing this dialog must never do',
     );
   });
 
@@ -1499,6 +1600,383 @@ void main() {
         expect(tester.takeException(), isNull);
       });
     });
+
+    group('the setup check (#780)', () {
+      late _FakeProber prober;
+      late AiEndpointProbeRunner runner;
+
+      const textOnly = AiEndpointProbe(
+        text: AiCapability.passed,
+        photo: AiCapability.failed,
+      );
+
+      setUp(() {
+        prober = _FakeProber(textOnly);
+        runner = AiEndpointProbeRunner(storage, prober);
+      });
+
+      /// A saved, usable server, so the section is on screen without going
+      /// through the save path first.
+      Future<void> configure() => storage.writeOwnServerConfiguration(
+        endpoint: 'http://192.168.1.5:11434',
+        model: 'gemma3:4b',
+        provider: AiProvider.ownServer,
+      );
+
+      /// The section sits below the model fields, so on the default test
+      /// viewport the button is inside the dialog's scroll view and off
+      /// screen. An unscrolled `tap` only warns about missing it, which would
+      /// leave every assertion below describing a button nobody pressed.
+      Future<void> tapRetry(WidgetTester tester) async {
+        final retry = find.bySemanticsIdentifier('ai-assist-probe-run');
+        await tester.ensureVisible(retry);
+        await tester.pumpAndSettle();
+        await tester.tap(retry);
+        await tester.pumpAndSettle();
+      }
+
+      Future<void> fillAndSave(WidgetTester tester) async {
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+          'http://192.168.1.5:11434',
+        );
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-model-field'),
+          'gemma3:4b',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(l10nEn.dialogOKLabel));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('saving does not wait on the check', (tester) async {
+        // The acceptance criterion this whole design hangs off. #735: saving
+        // succeeds on syntax exactly as it did before the check existed, and
+        // the check runs behind it — otherwise the server's availability
+        // becomes a precondition for saving an address, and someone
+        // configuring the app away from their server cannot even set up the
+        // text path that would have worked.
+        //
+        // The prober is held open for the entire test, so an `await` in
+        // `_save` would leave the dialog on screen forever. `pumpAndSettle`
+        // does not wait on futures, so this fails fast rather than hanging.
+        prober.gate = Completer<void>();
+
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+        await fillAndSave(tester);
+
+        expect(
+          find.byType(AiAssistDialog),
+          findsNothing,
+          reason: 'OK closed the dialog while the check was still running',
+        );
+        expect(
+          await storage.readEndpoint(provider: AiProvider.ownServer),
+          'http://192.168.1.5:11434/v1/chat/completions',
+        );
+        expect(prober.calls, 1, reason: 'and it really did start one');
+      });
+
+      testWidgets('the text result and the photo result are separate', (
+        tester,
+      ) async {
+        // #735 reports per capability rather than as one combined verdict,
+        // because "text works, photos do not" is the common case for a small
+        // local model and one sentence cannot express it. Collapsing the two
+        // into a single line fails here.
+        await configure();
+        await storage.writeProbe(textOnly, provider: AiProvider.ownServer);
+
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(l10nEn.aiAssistProbePassedLabel),
+          findsOneWidget,
+          reason: 'the text capability passed and says so on its own',
+        );
+        expect(
+          find.text(l10nEn.aiAssistProbePhotoFailedLabel),
+          findsOneWidget,
+          reason: 'and the photo capability failed, in the same breath',
+        );
+        expect(find.text(l10nEn.aiAssistProbeTextLabel), findsOneWidget);
+        expect(find.text(l10nEn.aiAssistProbePhotoLabel), findsOneWidget);
+      });
+
+      testWidgets('"not checked yet" reads differently from "checked and '
+          'failed"', (tester) async {
+        // Two states, not one. Nothing about never having asked is an error:
+        // there is nothing to dismiss and nothing to fix, and the answer is
+        // the retry below rather than a change of configuration.
+        await configure();
+
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+
+        expect(find.text(l10nEn.aiAssistProbeUnknownLabel), findsNWidgets(2));
+        expect(find.text(l10nEn.aiAssistProbeTextFailedLabel), findsNothing);
+        expect(find.text(l10nEn.aiAssistProbePhotoFailedLabel), findsNothing);
+        expect(
+          find.bySemanticsIdentifier('ai-assist-probe-run'),
+          findsOneWidget,
+          reason: '"never ran" gets a retry',
+        );
+      });
+
+      testWidgets('an unreachable server stays a state with a retry', (
+        tester,
+      ) async {
+        // The endpoint may be perfectly capable and merely asleep, so nothing
+        // conclusive is recorded and nothing is presented as a fault. What
+        // the user gets back is the same offer to try again.
+        await configure();
+        prober.result = AiEndpointProbe.unknown;
+
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+        await tapRetry(tester);
+
+        expect(prober.calls, 1, reason: 'the retry really did run one');
+        expect(find.text(l10nEn.aiAssistProbeUnknownLabel), findsNWidgets(2));
+        expect(find.text(l10nEn.aiAssistProbeTextFailedLabel), findsNothing);
+        final retry = tester.widget<TextButton>(
+          find.descendant(
+            of: find.bySemanticsIdentifier('ai-assist-probe-run'),
+            matching: find.byType(TextButton),
+          ),
+        );
+        expect(
+          retry.onPressed,
+          isNotNull,
+          reason: 'an inconclusive answer must not consume the retry',
+        );
+      });
+
+      testWidgets('a failed text check is reported and turns nothing off', (
+        tester,
+      ) async {
+        // #735's asymmetry. The deterministic parser still produces the rows,
+        // one sample line is thin evidence about a real meal, and taking the
+        // feature away over it would remove something that costs nothing.
+        // What it must not do is stay silent — that is the
+        // silent-parser-forever trap a mistyped key already sprang on a
+        // Pixel 6.
+        await configure();
+        await storage.writeProbe(
+          const AiEndpointProbe(
+            text: AiCapability.failed,
+            photo: AiCapability.passed,
+          ),
+          provider: AiProvider.ownServer,
+        );
+
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+
+        expect(find.text(l10nEn.aiAssistProbeTextFailedLabel), findsOneWidget);
+        expect(await storage.isEnabled(), isTrue);
+        expect((await storage.readSummary()).configured, isTrue);
+        expect(
+          find.bySemanticsIdentifier('ai-assist-enabled'),
+          findsOneWidget,
+          reason: 'the feature is still on, and still the user\'s to pause',
+        );
+      });
+
+      testWidgets('re-running updates what is shown without a re-save', (
+        tester,
+      ) async {
+        await configure();
+        final saved = await storage.readEndpoint(
+          provider: AiProvider.ownServer,
+        );
+
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+        expect(find.text(l10nEn.aiAssistProbeUnknownLabel), findsNWidgets(2));
+
+        await tapRetry(tester);
+
+        expect(find.text(l10nEn.aiAssistProbePassedLabel), findsOneWidget);
+        expect(find.text(l10nEn.aiAssistProbePhotoFailedLabel), findsOneWidget);
+        expect(
+          await storage.readEndpoint(provider: AiProvider.ownServer),
+          saved,
+          reason: 'nothing was re-saved to get a fresh answer',
+        );
+      });
+
+      testWidgets('a check still running is not reported as never run', (
+        tester,
+      ) async {
+        // The reopened-mid-check case, which is the ordinary one: the user
+        // pressed OK, walked away, and came back inside the 66 seconds.
+        // Saying "not checked yet" here would offer a retry that silently
+        // joins the running probe and looks like it did nothing.
+        await configure();
+        prober.gate = Completer<void>();
+        unawaited(runner.start(AiProvider.ownServer));
+
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+
+        expect(find.text(l10nEn.aiAssistProbeRunningLabel), findsOneWidget);
+        final retry = tester.widget<TextButton>(
+          find.descendant(
+            of: find.bySemanticsIdentifier('ai-assist-probe-run'),
+            matching: find.byType(TextButton),
+          ),
+        );
+        expect(retry.onPressed, isNull, reason: 'one at a time');
+
+        // And it catches up live if they are still looking when it lands.
+        prober.gate!.complete();
+        await tester.pumpAndSettle();
+        expect(find.text(l10nEn.aiAssistProbeRunningLabel), findsNothing);
+        expect(find.text(l10nEn.aiAssistProbePassedLabel), findsOneWidget);
+      });
+
+      testWidgets('an address that will be refused says so before saving', (
+        tester,
+      ) async {
+        // #758's guard is the guarantee and refuses this per request. What is
+        // folded in here is only that a *literal* address needs no lookup to
+        // judge, so the one refusal that can be shown at save time is —
+        // instead of storing a configuration whose only symptom is offline
+        // parser rows forever.
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+          'http://93.184.216.34:11434',
+        );
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-model-field'),
+          'gemma3:4b',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(l10nEn.dialogOKLabel));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(l10nEn.aiAssistEndpointPublicPlaintextLabel),
+          findsOneWidget,
+        );
+        expect(await storage.readEndpoint(provider: AiProvider.ownServer),
+            isNull);
+        expect(prober.calls, 0, reason: 'nothing was configured to check');
+      });
+
+      testWidgets('a private address is not refused, and https is not '
+          'either', (tester) async {
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+        await fillAndSave(tester);
+
+        expect(
+          find.text(l10nEn.aiAssistEndpointPublicPlaintextLabel),
+          findsNothing,
+        );
+        expect(
+          await storage.readEndpoint(provider: AiProvider.ownServer),
+          'http://192.168.1.5:11434/v1/chat/completions',
+        );
+      });
+
+      testWidgets('a name is left to the guard rather than judged here', (
+        tester,
+      ) async {
+        // `http://ollama.lan` is what people configure, and where it points
+        // is a question with a network round trip in it. Answering it at save
+        // time would make saving wait on the network, which is the one thing
+        // #735 forbids — so the name is saved and refused per request if it
+        // turns out to resolve somewhere public.
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+          'http://ollama.lan:11434',
+        );
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-model-field'),
+          'gemma3:4b',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(l10nEn.dialogOKLabel));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(l10nEn.aiAssistEndpointPublicPlaintextLabel),
+          findsNothing,
+        );
+        expect(
+          await storage.readEndpoint(provider: AiProvider.ownServer),
+          'http://ollama.lan:11434/v1/chat/completions',
+        );
+      });
+
+      testWidgets('2x German on a handset viewport does not overflow', (
+        tester,
+      ) async {
+        // The dialog has already overflowed once at 2x German, which is why
+        // its title carries no Experimental badge. Two failure sentences are
+        // the longest thing this section can render, so they are what gets
+        // measured.
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 2.625;
+        addTearDown(tester.view.reset);
+
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://ein-sehr-langer-servername.fritz.box:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await storage.writeProbe(
+          const AiEndpointProbe(
+            text: AiCapability.failed,
+            photo: AiCapability.failed,
+          ),
+          provider: AiProvider.ownServer,
+        );
+
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+            child: _app(
+              storage,
+              locale: const Locale('de'),
+              probeRunner: runner,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+      });
+    });
+  });
+
+  testWidgets('the check belongs to the server the user runs, and nowhere '
+      'else', (tester) async {
+    // The hosted three were screened behaviourally over live calls before
+    // they were ever offered (#735), so there is nothing here a check would
+    // establish that the curated list does not already carry — and an inert
+    // "not checked yet" on the Anthropic path would imply otherwise.
+    final runner = AiEndpointProbeRunner(
+      storage,
+      _FakeProber(AiEndpointProbe.unknown),
+    );
+    await storage.writeApiKey('sk-test', provider: AiProvider.anthropic);
+
+    await tester.pumpWidget(_app(storage, probeRunner: runner));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10nEn.aiAssistProbeSectionLabel), findsNothing);
+    expect(find.bySemanticsIdentifier('ai-assist-probe-run'), findsNothing);
   });
 
   testWidgets('the key field is on screen without scrolling, on a phone', (

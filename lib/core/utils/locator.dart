@@ -71,8 +71,10 @@ import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/data/meal_items_api_factory.dart';
 import 'package:opennutritracker/features/add_meal/data/model_meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/data/model_meal_text_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/probe_ai_endpoint_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_photo_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/profile_bootstrap.dart';
@@ -163,6 +165,16 @@ Future<void> initLocator() async {
       locator<AiCredentialStorage>(),
       (selection) =>
           ModelMealPhotoInterpreter(mealItemsApiFor(locator(), selection)),
+    ),
+  );
+  // A singleton because it is the thing that outlives the settings dialog:
+  // a check runs for about a minute after the user pressed OK and walked
+  // away, and a per-navigation instance would lose both the result and the
+  // "one at a time" rule the moment the dialog was disposed.
+  locator.registerLazySingleton<AiEndpointProbeRunner>(
+    () => AiEndpointProbeRunner(
+      locator<AiCredentialStorage>(),
+      AiEndpointProber(locator<http.Client>()),
     ),
   );
   locator.registerLazySingleton<DeleteAllUserDataUsecase>(
