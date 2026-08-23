@@ -122,7 +122,34 @@ class _Server {
   final requests = <Uri>[];
   final http.Response Function(Uri url) _respond;
 
+  /// Answers held open, per host, until the test releases them.
+  ///
+  /// A machine on someone's LAN answers when it answers, and everything this
+  /// dialog gets wrong about model lists happens in that window. A fixture
+  /// that replies in a microtask closes it before a test can reach it.
+  ///
+  /// **Per host, so they can be released out of order.** Two requests that
+  /// always land in the order they were sent let a guard that drops a stale
+  /// answer pass for the wrong reason — the newest answer would have been
+  /// written last regardless.
+  final gates = <String, Completer<void>>{};
+
   _Server(this._respond);
+
+  /// A different list per host, so one server's answer can be told apart
+  /// from the answer of the server asked before it.
+  factory _Server.perHost(Map<String, List<String>> byHost) => _Server(
+    (url) => http.Response(
+      jsonEncode({
+        'object': 'list',
+        'data': [
+          for (final id in byHost[url.host] ?? const <String>[])
+            {'id': id, 'object': 'model'},
+        ],
+      }),
+      200,
+    ),
+  );
 
   /// Answers with a `/v1/models` body in the shape all four runtimes serve.
   factory _Server.listing(List<String> ids) => _Server(
@@ -142,6 +169,8 @@ class _Server {
   late final AiModelListApi api = AiModelListApi(
     client: MockClient((request) async {
       requests.add(request.url);
+      final held = gates[request.url.host];
+      if (held != null) await held.future;
       return _respond(request.url);
     }),
   );
@@ -1067,6 +1096,24 @@ void main() {
         await tester.pumpAndSettle();
       }
 
+      /// Commits an address **without letting the clock run**.
+      ///
+      /// `pumpAndSettle` advances the fake clock until nothing is scheduled,
+      /// and `AiModelListApi` carries a 15-second timeout — so a request held
+      /// open by [_Server.gate] times out instead of staying in flight, and
+      /// the window these cases are about never exists. Two sequential
+      /// fetches look exactly like the bug being tested for, which is how the
+      /// first version of this passed against the unfixed code.
+      Future<void> commitEndpoint(WidgetTester tester, String endpoint) async {
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+          endpoint,
+        );
+        await tester.pump();
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pump();
+      }
+
       Future<void> pressLoad(WidgetTester tester) async {
         final button = find.bySemanticsIdentifier('ai-assist-load-models');
         // The dialog is taller than a phone by design, so the control may
@@ -1345,6 +1392,142 @@ void main() {
               ?.text,
           isEmpty,
           reason: 'the model belonged to the address that just changed',
+        );
+      });
+
+      testWidgets('a second address committed while the first is still out '
+          'is asked too', (tester) async {
+        // #796. The one-request-per-act rule was read as "one at a time", so
+        // committing a second address while the first was still out cleared
+        // the model field and then sent nothing. The user is left looking at
+        // an address nothing was ever asked about.
+        final server = _Server.perHost({
+          '192.168.1.9': ['qwen3:8b'],
+          '192.168.1.7': ['llama3.2:3b'],
+        });
+        server.gates['192.168.1.9'] = Completer<void>();
+        server.gates['192.168.1.7'] = Completer<void>();
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await commitEndpoint(tester, 'http://192.168.1.9:11434');
+        await commitEndpoint(tester, 'http://192.168.1.7:11434');
+
+        expect(server.requests, [
+          Uri.parse('http://192.168.1.9:11434/v1/models'),
+          Uri.parse('http://192.168.1.7:11434/v1/models'),
+        ]);
+
+        for (final gate in server.gates.values) {
+          gate.complete();
+        }
+        await tester.pumpAndSettle();
+      });
+
+      testWidgets('the first server\'s list is not shown under the second '
+          'server\'s address', (tester) async {
+        // The visible half of the same bug, and the one that costs something:
+        // `_pickModel` writes the chosen id into the model field, so a list
+        // belonging to another machine is a model that does not exist on the
+        // one being configured — stored, and left for the setup check to fail
+        // on for a reason the dialog has already said is fine.
+        final server = _Server.perHost({
+          '192.168.1.9': ['qwen3:8b'],
+          '192.168.1.7': ['llama3.2:3b'],
+        });
+        server.gates['192.168.1.9'] = Completer<void>();
+        server.gates['192.168.1.7'] = Completer<void>();
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await commitEndpoint(tester, 'http://192.168.1.9:11434');
+        await commitEndpoint(tester, 'http://192.168.1.7:11434');
+
+        // **The newer answer first, then the older one.** Released in the
+        // order they were sent, the right list would be written last by
+        // accident and a missing guard would pass.
+        server.gates['192.168.1.7']!.complete();
+        await tester.pump();
+        await tester.pump();
+        server.gates['192.168.1.9']!.complete();
+        await tester.pumpAndSettle();
+
+        // The picker is closed, so it renders its hint rather than its items
+        // — `find.text` on an id would pass whatever the list held. Read the
+        // items off the widget instead.
+        final picker = tester.widget<DropdownButton<String>>(
+          find.descendant(
+            of: find.bySemanticsIdentifier('ai-assist-model-picker'),
+            matching: find.byType(DropdownButton<String>),
+          ),
+        );
+        expect(
+          picker.items?.map((item) => item.value),
+          ['llama3.2:3b'],
+          reason: 'the list on screen must belong to the address on screen',
+        );
+      });
+
+      testWidgets('a list that lands after a provider switch changes '
+          'nothing', (tester) async {
+        // Every other await in this dialog drops a write that no longer
+        // belongs (#788); this one arrived with #757 and did not. Contained
+        // today only because the picker renders for this provider alone —
+        // which is a fact about the current layout, not about the invariant.
+        final server = _Server.perHost({
+          '192.168.1.9': ['qwen3:8b'],
+        });
+        server.gates['192.168.1.9'] = Completer<void>();
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await commitEndpoint(tester, 'http://192.168.1.9:11434');
+
+        // **Away and back before the answer lands**, which is the case a
+        // provider check alone cannot see: by the time this request returns,
+        // the provider it was started for is selected again. What makes it
+        // stale is the reload in between, not who is on screen.
+        await tester.tap(find.text('Anthropic'));
+        await tester.pump();
+        await tester.pump();
+        await tester.tap(find.text(l10nEn.aiAssistProviderOwnServerLabel));
+        await tester.pump();
+        await tester.pump();
+
+        server.gates['192.168.1.9']!.complete();
+        await tester.pumpAndSettle();
+
+        // No picker at all rather than an empty one: `_load` clears the list
+        // on a switch, and nothing may put it back.
+        expect(
+          find.bySemanticsIdentifier('ai-assist-model-picker'),
+          findsNothing,
+        );
+        final button = find.bySemanticsIdentifier('ai-assist-load-models');
+        await tester.ensureVisible(button);
+        await tester.pumpAndSettle();
+        expect(
+          tester.widget<TextButton>(
+            find.descendant(of: button, matching: find.byType(TextButton)),
+          ).onPressed,
+          isNotNull,
+          reason: 'a request nobody wants any more must not disable the '
+              'button for the rest of the dialog',
         );
       });
 
