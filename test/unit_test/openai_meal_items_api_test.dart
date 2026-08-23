@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:opennutritracker/features/add_meal/data/openai_meal_items_api.dart';
-import 'package:opennutritracker/features/add_meal/domain/meal_interpreter_exception.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 
 /// What the client sent, so a rule about the request can actually fail.
