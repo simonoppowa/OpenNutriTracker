@@ -166,6 +166,14 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
 
   bool _fetchingModels = false;
 
+  /// Which model-list request is the current one.
+  ///
+  /// The same job [_loadGeneration] does for the keystore reads, for the same
+  /// reason one level out: a request to a machine on someone's network can
+  /// take as long as it likes, and what it answers about is the address that
+  /// was in the field when it left — not whatever is there when it lands.
+  int _modelsGeneration = 0;
+
   /// The address the model on screen belongs to: what was stored when the
   /// dialog opened, then whatever was last asked.
   ///
@@ -282,6 +290,15 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _modelIds = null;
       _modelListFailure = null;
       _modelListHost = null;
+      // Part of the same block, and easy to leave out of it. Bumping the
+      // generation is what makes a request that was in flight across the
+      // reload drop its own answer — including one started before a switch
+      // away and back, where the provider it belongs to is selected again by
+      // the time it lands. Clearing the flag is the other half: nothing is
+      // left to turn it off, and left set it disables the button for the
+      // rest of the dialog's life over a request nobody wants any more.
+      _modelsGeneration++;
+      _fetchingModels = false;
       _probe = probe;
       _probing = running != null;
       _loading = false;
@@ -386,12 +403,6 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// that it works for this app. Whether it works is #735's probe, which
   /// finds out by sending a real request.
   Future<void> _loadModels() async {
-    // The button disables itself while one is in flight; this covers the
-    // other caller. Finishing with the address field and pressing the button
-    // can land in the same gesture — tapping a control moves focus off the
-    // field — and two requests to somebody's server for one act is one too
-    // many.
-    if (_fetchingModels) return;
     final s = S.of(context);
     final typed = _endpointController.text.trim();
     final url = AiCredentialStorage.resolveModelsEndpoint(typed);
@@ -400,13 +411,31 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       setState(() => _endpointError = s.aiAssistEndpointInvalidLabel);
       return;
     }
+    final asking = AiCredentialStorage.resolveEndpoint(typed);
+
+    // **One request per address, not one at a time.** Finishing with the
+    // address field and pressing the button can land in the same gesture —
+    // tapping a control moves focus off the field — and two requests to
+    // somebody's server for one act is one too many. That is a statement
+    // about *this* address, though, and reading it as "busy" swallowed the
+    // next one: typing a second address while the first was still out
+    // cleared the model field, sent nothing, and then filled the picker with
+    // the first server's models under the second server's address.
+    if (_fetchingModels && asking == _lastEndpoint) return;
+
+    final generation = ++_modelsGeneration;
+    // Captured for the read below rather than for the guard: a key belongs to
+    // the provider that was selected when the request was built, and
+    // re-reading `_provider` after an await is how one provider's credential
+    // reaches another's endpoint.
+    final provider = _provider;
 
     setState(() {
       _fetchingModels = true;
       _modelIds = null;
       _modelListFailure = null;
       _modelListHost = AiCredentialStorage.displayHost(typed);
-      _lastEndpoint = AiCredentialStorage.resolveEndpoint(typed);
+      _lastEndpoint = asking;
     });
 
     // None of the four runtimes wants one by default; a reverse proxy in
@@ -417,10 +446,12 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       url,
       apiKey: typedKey.isNotEmpty
           ? typedKey
-          : await widget.storage.readApiKey(provider: _provider),
+          : await widget.storage.readApiKey(provider: provider),
     );
 
-    if (!mounted) return;
+    // Dropping this one loses nothing: a newer request writes every field it
+    // would have, and a provider switch has already cleared them.
+    if (!mounted || generation != _modelsGeneration) return;
     setState(() {
       _fetchingModels = false;
       _modelIds = result.failure == null ? result.ids : null;
