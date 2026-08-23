@@ -52,7 +52,7 @@ dependencies:
   flutter_cache_manager: ^3.4.2
   envied: ^1.3.8
   archive: 4.0.9
-  file_picker: ^11.0.2
+  file_picker: ^11.0.3
 
   flutter_bloc: ^9.1.1
   bloc_concurrency: ^0.3.0
