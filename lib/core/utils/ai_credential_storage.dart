@@ -362,15 +362,31 @@ class AiCredentialStorage {
   /// itself — so this is the protocol rather than a guess about it, which is
   /// what separates it from the scheme above. The field's own hint is a base
   /// address, and it has to work. A path the user typed is kept as typed.
+  ///
+  /// **The model-list route names a base too.** `…/v1/models` is the URL these
+  /// runtimes print in their own docs and the one a user checking their server
+  /// is alive has in the clipboard, so it is an easy thing to paste into a
+  /// field asking for an address — and it is not a chat route. Left as typed
+  /// it was stored as the destination every meal request would be POSTed to,
+  /// and #757's Load models then appended a second `/models` to it and asked
+  /// `…/v1/models/models`. Both halves of that come from the same wrong
+  /// premise, and both are fixed by reading the segment for what it is: the
+  /// list route, sitting on the base this address really names.
   static Uri? resolveEndpoint(String endpoint) {
     final uri = Uri.tryParse(endpoint.trim());
     if (uri == null) return null;
     if (uri.scheme != 'http' && uri.scheme != 'https') return null;
     if (uri.host.isEmpty) return null;
 
-    final path = uri.path.endsWith('/')
+    final typed = uri.path.endsWith('/')
         ? uri.path.substring(0, uri.path.length - 1)
         : uri.path;
+    // Safe to strip before anything else looks at the path: `/models` is
+    // fixed by the protocol as the list route, so no OpenAI-compatible server
+    // serves chat on a path ending in it.
+    final path = typed.endsWith(_modelsSuffix)
+        ? typed.substring(0, typed.length - _modelsSuffix.length)
+        : typed;
     if (path.isEmpty) return uri.replace(path: _chatCompletionsPath);
     // `http://host:11434/v1` is what LM Studio prints and what the OpenAI
     // SDKs call the base URL, so it is a base rather than a route.
@@ -382,6 +398,10 @@ class AiCredentialStorage {
 
   /// The suffix [resolveEndpoint] completes a base address to.
   static const _chatCompletionsSuffix = '/chat/completions';
+
+  /// The other half of the OpenAI-compatible pair, and the segment
+  /// [resolveEndpoint] reads as naming a base rather than a route.
+  static const _modelsSuffix = '/models';
 
   /// Where to ask [endpoint] what models it serves, or null when what was
   /// typed cannot be requested at all.
@@ -407,8 +427,8 @@ class AiCredentialStorage {
     return chat.replace(
       path: path.endsWith(_chatCompletionsSuffix)
           ? '${path.substring(0, path.length - _chatCompletionsSuffix.length)}'
-                '/models'
-          : '$path/models',
+                '$_modelsSuffix'
+          : '$path$_modelsSuffix',
     );
   }
 

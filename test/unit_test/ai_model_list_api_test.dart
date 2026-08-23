@@ -47,6 +47,80 @@ void main() {
       );
     });
 
+    test('the models URL names the base it sits on, not a route', () {
+      // The URL these runtimes print in their own docs, and the one in the
+      // clipboard of anyone who has just checked their server is alive — so
+      // it is an easy thing to paste into a field asking for an address.
+      //
+      // Two failures came out of taking it literally, and the second is the
+      // quiet one: Load models asked `/v1/models/models` and reported that
+      // the server answered with something else, *and* the address was
+      // stored as the chat route, so every meal request would have been
+      // POSTed to `/v1/models` for as long as it stayed configured.
+      expect(
+        AiCredentialStorage.resolveModelsEndpoint(
+          'http://192.168.1.5:11434/v1/models',
+        ),
+        Uri.parse('http://192.168.1.5:11434/v1/models'),
+      );
+      expect(
+        AiCredentialStorage.resolveEndpoint(
+          'http://192.168.1.5:11434/v1/models',
+        ),
+        Uri.parse('http://192.168.1.5:11434/v1/chat/completions'),
+        reason: 'the half that would have been wrong in silence',
+      );
+    });
+
+    test('a trailing slash on the models URL changes nothing', () {
+      expect(
+        AiCredentialStorage.resolveModelsEndpoint(
+          'http://127.0.0.1:1234/v1/models/',
+        ),
+        Uri.parse('http://127.0.0.1:1234/v1/models'),
+      );
+    });
+
+    test('a reverse-proxied models URL keeps its prefix', () {
+      // The prefix is the user's, and stripping the last segment must not
+      // take the rest of their routing with it.
+      expect(
+        AiCredentialStorage.resolveModelsEndpoint(
+          'https://ollama.example.com/api/v1/models',
+        ),
+        Uri.parse('https://ollama.example.com/api/v1/models'),
+      );
+      expect(
+        AiCredentialStorage.resolveEndpoint(
+          'https://ollama.example.com/api/v1/models',
+        ),
+        Uri.parse('https://ollama.example.com/api/v1/chat/completions'),
+      );
+    });
+
+    test('a path that merely ends in models is still not doubled', () {
+      // Nothing here claims the remainder is a `/v1` base — it is not, so it
+      // is kept as typed, which is what an unrecognised path has always got.
+      expect(
+        AiCredentialStorage.resolveModelsEndpoint(
+          'https://ollama.example.com/proxy/models',
+        ),
+        Uri.parse('https://ollama.example.com/proxy/models'),
+      );
+    });
+
+    test('a segment that merely ends in the word is left alone', () {
+      // The suffix is `/models`, not `models`. Without the slash this would
+      // eat the tail of any segment ending in those six letters and quietly
+      // send meals to a path the user never typed.
+      expect(
+        AiCredentialStorage.resolveEndpoint(
+          'https://ollama.example.com/v1/supermodels',
+        ),
+        Uri.parse('https://ollama.example.com/v1/supermodels'),
+      );
+    });
+
     test('what cannot be requested at all has nowhere to ask', () {
       // The form Ollama's own documentation shows, and not a URL.
       expect(AiCredentialStorage.resolveModelsEndpoint('192.168.1.5:11434'),
