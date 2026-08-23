@@ -118,7 +118,7 @@ class OpenAiMealItemsApi implements MealItemsApi {
       _log.warning('Interpreter call failed with ${response.statusCode}');
       throw MealInterpreterException(
         'provider returned ${response.statusCode}',
-        failure: _failureFor(response.statusCode, _errorCode(response.body)),
+        failure: _failureFor(response.statusCode, _errorFields(response.body)),
         statusCode: response.statusCode,
       );
     }
@@ -206,23 +206,33 @@ class OpenAiMealItemsApi implements MealItemsApi {
     );
   }
 
-  /// The provider's machine-readable error code, or null.
+  /// The provider's machine-readable error fields, or nulls.
   ///
-  /// Only the code — never the message. OpenAI's 401 body echoes the key in
+  /// Only the codes — never the message. OpenAI's 401 body echoes the key in
   /// a partially masked form that still carries its real last four
   /// characters, so the message is not a safe thing to keep hold of.
-  static String? _errorCode(String body) {
+  ///
+  /// **Both `code` and `type`**, because they are not the same question and
+  /// billing is where the difference shows. OpenAI's guidance is to *"inspect
+  /// `error.code` to identify the specific cause"* while *"the broader
+  /// `error.type` can still be `insufficient_quota`"* — so `code` may carry
+  /// something narrower than the state the app has to act on, and reading it
+  /// alone would miss exactly the accounts whose cause is spelled out.
+  static ({String? code, String? type}) _errorFields(String body) {
     try {
       final decoded = jsonDecode(body);
       if (decoded is Map && decoded['error'] is Map) {
-        final code = (decoded['error'] as Map)['code'];
-        return code is String ? code : null;
+        final error = decoded['error'] as Map;
+        return (
+          code: error['code'] is String ? error['code'] as String : null,
+          type: error['type'] is String ? error['type'] as String : null,
+        );
       }
     } catch (_) {
       // Not JSON, or not the shape documented. Classification falls back to
       // the status alone, which is the pre-#686 behaviour.
     }
-    return null;
+    return (code: null, type: null);
   }
 
   /// What a status means here — #695 put this in each client precisely so a
@@ -236,17 +246,35 @@ class OpenAiMealItemsApi implements MealItemsApi {
   /// second catalogue entry makes actionable. Classifying it as `rejected`
   /// instead would tell someone whose model was retired to go and retake
   /// their photograph, forever. Measured in #684 and #686.
-  static MealInterpreterFailure _failureFor(int statusCode, String? errorCode) =>
-      switch (statusCode) {
-        401 || 403 => MealInterpreterFailure.auth,
-        400 when errorCode == 'model_not_found' =>
-          MealInterpreterFailure.unsupported,
-        400 || 422 => MealInterpreterFailure.rejected,
-        // `insufficient_quota` arrives as 429 rather than 402 on some
-        // accounts, but 429 is also ordinary rate limiting and retrying is
-        // right for that. Only an explicit 402 is called billing.
-        402 => MealInterpreterFailure.billing,
-        404 => MealInterpreterFailure.unsupported,
-        _ => MealInterpreterFailure.transient,
-      };
+  /// **A 429 is two different failures wearing one status.** Both other
+  /// providers separate an empty balance from going too fast by status alone
+  /// — 402 against 429 — and this one does not: an exhausted prepaid balance
+  /// arrives as 429 on many accounts. The status line is therefore not enough
+  /// here, which is why this client reads the body at all. OpenAI says as
+  /// much itself about retrying: *"Don't retry quota, billing, or other
+  /// errors that require you to take action."*
+  ///
+  /// A bare 429 stays `transient`, because ordinary rate limiting is the
+  /// common case and does clear on its own. A 429 that names
+  /// `insufficient_quota` does not clear, and calling it transient told a
+  /// user with an empty balance to try again later — forever, with the
+  /// interpreter silently falling back on every attempt and nothing on screen
+  /// ever naming the one thing that would fix it.
+  static MealInterpreterFailure _failureFor(
+    int statusCode,
+    ({String? code, String? type}) error,
+  ) => switch (statusCode) {
+    401 || 403 => MealInterpreterFailure.auth,
+    400 when error.code == 'model_not_found' =>
+      MealInterpreterFailure.unsupported,
+    400 || 422 => MealInterpreterFailure.rejected,
+    402 => MealInterpreterFailure.billing,
+    429 when error.code == _quotaCode || error.type == _quotaCode =>
+      MealInterpreterFailure.billing,
+    404 => MealInterpreterFailure.unsupported,
+    _ => MealInterpreterFailure.transient,
+  };
+
+  /// What OpenAI calls an exhausted balance, in either field.
+  static const _quotaCode = 'insufficient_quota';
 }
