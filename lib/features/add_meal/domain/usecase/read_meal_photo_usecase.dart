@@ -106,6 +106,9 @@ class ReadMealPhotoUseCase {
       return MealPhotoRead(result);
     } on MealInterpreterException catch (e) {
       _log.info('Photo interpreter failed: ${e.reason}');
+      if (e.failure == MealInterpreterFailure.unsupported) {
+        await _retractPhotoPass(selection.provider);
+      }
       return MealPhotoFailed(switch (e.failure) {
         MealInterpreterFailure.auth => MealPhotoFailure.auth,
         MealInterpreterFailure.rejected => MealPhotoFailure.rejectedImage,
@@ -128,6 +131,51 @@ class ReadMealPhotoUseCase {
       // thing that is not broken.
       _log.severe('Photo interpreter failed unexpectedly', e, stackTrace);
       return const MealPhotoFailed(MealPhotoFailure.transient);
+    }
+  }
+
+  /// Forgets that photos ever worked here, so the camera stops being offered
+  /// until a fresh check passes. #782.
+  ///
+  /// A stored pass is a fact about one `(endpoint, model)`, and it can stop
+  /// being true without the user touching anything: pull a different model
+  /// under the same tag and the camera is still offered, still says photos
+  /// work, and fails on every photograph taken.
+  ///
+  /// **Only [MealInterpreterFailure.unsupported].** It is the one member that
+  /// means *nothing on the other end can serve this kind of request* — a
+  /// durable fact about the destination. `transient`, `timeout`, `auth` and
+  /// `billing` say something about the network, the load, the credential or
+  /// the bill, and none of them about whether the model has eyes; retracting
+  /// over any of those would take a working feature away for a reason that
+  /// clears on its own. `insecureDestination` is the same shape and the one
+  /// this rule had to wait for — [#790] separated it out precisely so that a
+  /// photo the app *refused to send* could not be read as a model that cannot
+  /// see. No counter and no threshold: a rule that waits for repetition needs
+  /// state whose only job is to delay a conclusion `unsupported` already
+  /// states outright, plus a rule for when that state resets.
+  ///
+  /// Recorded as `failed` rather than as "not checked", because something was
+  /// learned. `unknown` would also be a no-op: [AiCredentialStorage.writeProbe]
+  /// merges, and an inconclusive verdict deliberately leaves a conclusive one
+  /// alone — so writing it here would leave the pass exactly where it was.
+  ///
+  /// The text verdict is left as it stands. This photograph says nothing
+  /// about whether a meal line still reads, and the same merge is what keeps
+  /// it: `unknown` for text means "no opinion", not "forget".
+  Future<void> _retractPhotoPass(AiProvider provider) async {
+    try {
+      await _credentials.writeProbe(
+        const AiEndpointProbe(
+          text: AiCapability.unknown,
+          photo: AiCapability.failed,
+        ),
+        provider: provider,
+      );
+    } catch (e, stackTrace) {
+      // A keystore that will not answer must not turn a failure the user
+      // could have read into a crash on the way to reporting it.
+      _log.severe('Could not retract the photo pass', e, stackTrace);
     }
   }
 }

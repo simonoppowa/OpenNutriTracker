@@ -89,11 +89,18 @@ const _oneItem = MealTextParseResult(
 );
 
 /// A use case over storage that already holds [apiKey], or nothing.
-({ReadMealPhotoUseCase useCase, _FakeInterpreter interpreter}) subject({
+({
+  ReadMealPhotoUseCase useCase,
+  _FakeInterpreter interpreter,
+  AiCredentialStorage credentials,
+  _MemoryStorage store,
+})
+subject({
   String? apiKey,
   bool enabled = true,
   MealTextParseResult? result,
   Object? throws,
+  AiEndpointProbe? probe,
 }) {
   final storage = _MemoryStorage();
   final credentials = AiCredentialStorage(storage);
@@ -101,10 +108,17 @@ const _oneItem = MealTextParseResult(
     storage.store['AiApiKeyTag'] = apiKey;
     storage.store['AiAssistEnabledTag'] = enabled ? 'true' : 'false';
   }
+  if (probe != null) {
+    // Written straight into the slot the active provider reads, so a case
+    // about retraction starts where a user with a passing check starts.
+    storage.store['AiProbeTag.anthropic'] = probe.encode();
+  }
   final interpreter = _FakeInterpreter(result: result, throws: throws);
   return (
     useCase: ReadMealPhotoUseCase(credentials, (_) => interpreter),
     interpreter: interpreter,
+    credentials: credentials,
+    store: storage,
   );
 }
 
@@ -248,6 +262,110 @@ void main() {
         (reading as MealPhotoFailed).failure,
         MealPhotoFailure.insecureDestination,
       );
+    });
+
+    group('a pass that has stopped being true (#782)', () {
+      const passedBoth = AiEndpointProbe(
+        text: AiCapability.passed,
+        photo: AiCapability.passed,
+      );
+
+      test('an unsupported photo retracts the stored pass', () async {
+        // A pass says photos worked once, and it can stop being true without
+        // the user touching anything: pull a different model under the same
+        // tag and the camera is still offered, still says photos work, and
+        // fails on every photograph taken.
+        final s = subject(
+          apiKey: 'k',
+          probe: passedBoth,
+          throws: const MealInterpreterException(
+            'this model cannot see',
+            failure: MealInterpreterFailure.unsupported,
+          ),
+        );
+
+        await s.useCase.read(_photo);
+
+        expect((await s.credentials.readProbe()).photo, AiCapability.failed);
+      });
+
+      test('the text verdict is left where it stands', () async {
+        // This photograph says nothing about whether a meal line still reads,
+        // and the two are stored together — so a retraction that took the
+        // text result with it would turn one fact into two losses.
+        final s = subject(
+          apiKey: 'k',
+          probe: passedBoth,
+          throws: const MealInterpreterException(
+            'this model cannot see',
+            failure: MealInterpreterFailure.unsupported,
+          ),
+        );
+
+        await s.useCase.read(_photo);
+
+        expect((await s.credentials.readProbe()).text, AiCapability.passed);
+      });
+
+      test('nothing else in the taxonomy retracts it', () async {
+        // The narrowness is the whole design. Each of these says something
+        // about the network, the load, the credential, the bill, the picture
+        // or the address — and none of them about whether the model has eyes.
+        // `insecureDestination` is the one this rule had to wait for: #790
+        // separated it out precisely so a photo the app *refused to send*
+        // could not be read as a model that cannot see.
+        for (final failure in [
+          MealInterpreterFailure.transient,
+          MealInterpreterFailure.timeout,
+          MealInterpreterFailure.auth,
+          MealInterpreterFailure.billing,
+          MealInterpreterFailure.rejected,
+          MealInterpreterFailure.insecureDestination,
+        ]) {
+          final s = subject(
+            apiKey: 'k',
+            probe: passedBoth,
+            throws: MealInterpreterException('nope', failure: failure),
+          );
+
+          await s.useCase.read(_photo);
+
+          expect(
+            (await s.credentials.readProbe()).photo,
+            AiCapability.passed,
+            reason: '$failure must not cost the user a working camera',
+          );
+        }
+      });
+
+      test('a fresh pass puts the camera back', () async {
+        // The way out, and the reason `failed` is not a dead end: the dialog
+        // reports per capability and offers the retry on the same surface.
+        final s = subject(
+          apiKey: 'k',
+          probe: passedBoth,
+          throws: const MealInterpreterException(
+            'this model cannot see',
+            failure: MealInterpreterFailure.unsupported,
+          ),
+        );
+        await s.useCase.read(_photo);
+        expect((await s.credentials.readProbe()).photo, AiCapability.failed);
+
+        await s.credentials.writeProbe(passedBoth);
+
+        expect((await s.credentials.readProbe()).photo, AiCapability.passed);
+      });
+
+      test('a photo that succeeds leaves the pass alone', () async {
+        // Guard against a retraction that fires on the way through rather
+        // than on the failure — the assertions above would all still pass.
+        final s = subject(apiKey: 'k', probe: passedBoth, result: _oneItem);
+
+        await s.useCase.read(_photo);
+
+        expect((await s.credentials.readProbe()).photo, AiCapability.passed);
+      });
     });
 
     test('a timeout folds into transient rather than crashing', () async {
