@@ -47,14 +47,23 @@ String _toolReply(List<Map<String, Object?>> items) => jsonEncode({
 });
 
 /// The failure a call classifies as, for a given status and error body.
+///
+/// `type` as well as `code`, because OpenAI does not always put the state the
+/// app must act on in the same field: the code names the specific cause and
+/// the broader type is what stays `insufficient_quota`.
 Future<MealInterpreterException> _failureFrom(
   int status, {
   String? code,
+  String? type,
 }) async {
   final client = MockClient(
     (_) async => http.Response(
       jsonEncode({
-        'error': {'message': 'something went wrong', 'code': ?code},
+        'error': {
+          'message': 'something went wrong',
+          'code': ?code,
+          'type': ?type,
+        },
       }),
       status,
     ),
@@ -328,13 +337,40 @@ void main() {
       );
     });
 
-    test('429 is transient, not billing', () async {
-      // `insufficient_quota` can arrive as 429, but so does ordinary rate
-      // limiting, and retrying is right for that. Only an explicit 402 is
-      // called billing.
+    test('a bare 429 is transient', () async {
+      // Ordinary rate limiting: it clears on its own, and retrying is right.
+      // A 429 that says why is a different matter — see below.
       expect(
         (await _failureFrom(429)).failure,
         MealInterpreterFailure.transient,
+      );
+    });
+
+    test('a 429 that names an exhausted balance is billing', () async {
+      // Both other providers separate this from a rate limit by status alone,
+      // 402 against 429. OpenAI does not, so an empty prepaid balance used to
+      // be told to try again later — forever, with the interpreter falling
+      // back silently every time and nothing on screen ever naming the one
+      // thing that would fix it.
+      expect(
+        (await _failureFrom(429, code: 'insufficient_quota')).failure,
+        MealInterpreterFailure.billing,
+      );
+    });
+
+    test('the broader type carries it when the code is narrower', () async {
+      // OpenAI's own guidance: inspect `error.code` for the specific cause,
+      // while the broader `error.type` can still be `insufficient_quota`. So
+      // the account whose cause *is* spelled out is exactly the one a
+      // code-only read would miss, which would be the same bug with a
+      // smaller blast radius.
+      expect(
+        (await _failureFrom(
+          429,
+          code: 'billing_hard_limit_reached',
+          type: 'insufficient_quota',
+        )).failure,
+        MealInterpreterFailure.billing,
       );
     });
 
