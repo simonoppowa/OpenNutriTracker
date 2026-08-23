@@ -1291,6 +1291,8 @@
   "bulkAddPhotoDisclosureOpenRouter": "The photo is sent to OpenRouter, which forwards it to {provider} to identify the foods in it.",
   "@bulkAddPhotoDisclosureOpenRouter": {"placeholders": {"provider": {"type": "String"}}},
   "bulkAddPhotoDisclosureOpenAI": "The photo is sent to OpenAI to identify the foods in it. OpenAI keeps it for up to 30 days to monitor for abuse, and longer if the law requires it or it is reasonably necessary to protect its services or a third party from harm.",
+  "bulkAddPhotoDisclosureOwnServer": "The photo is sent to {host} to identify the foods in it.",
+  "@bulkAddPhotoDisclosureOwnServer": {"placeholders": {"host": {"type": "String"}}},
   "bulkAddReadFromPhotoLabel": "Read from a photo — check every food and amount",
   "bulkAddPhotoUnavailableLabel": "Turn on AI meal assistance in Settings to read photos",
   "bulkAddPhotoKeyRejectedLabel": "Your API key was rejected. Check it in Settings.",

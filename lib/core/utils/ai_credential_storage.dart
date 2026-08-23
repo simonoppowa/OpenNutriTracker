@@ -431,10 +431,37 @@ class AiCredentialStorage {
   /// this is naming a destination, and text that is not yet an address names
   /// none — echoing it back is how a half-typed credential would reach the
   /// screen anyway.
+  ///
+  /// **An IPv6 literal is bracketed once a port is shown.** `Uri.host` hands
+  /// back `2001:db8::1` with the brackets stripped, so pasting a port onto it
+  /// produced `2001:db8::1:11434` — an address a reader cannot separate into
+  /// host and port and cannot type back in. This is not a hypothetical shape
+  /// in a dual-stack home network: #758 measured `example-server.home.arpa`
+  /// resolving to a ULA `fd00:1234:5678:…` alongside a private v4, and the
+  /// plaintext guard deliberately accepts whichever private answer it finds,
+  /// v6 included. A string whose whole job is to name the destination at the
+  /// moment the user decides whether to send a photograph fails at it if the
+  /// address cannot be read back.
+  ///
+  /// Bracketed **only** when there is a port, because that is the only case
+  /// that is ambiguous — the brackets exist in a URI to separate the address
+  /// from the port colon, and with no port there is nothing to separate. A
+  /// bare `fd00:1234:5678::22` reads better in a sentence than a bracketed one.
+  ///
+  /// Not `Uri.authority`, which brackets correctly and would have been the
+  /// short way to fix this: it also carries the `userInfo` this function
+  /// exists to strip.
   static String? displayHost(String endpoint) {
     final uri = Uri.tryParse(endpoint.trim());
     if (uri == null || uri.host.isEmpty) return null;
-    return uri.hasPort ? '${uri.host}:${uri.port}' : uri.host;
+    // `Uri` canonicalizes an explicitly typed scheme-default port (`:80` for
+    // http, `:443` for https), so `hasPort` is false and the redundant port is
+    // omitted here too. Non-default ports remain explicit.
+    if (!uri.hasPort) return uri.host;
+    // A registered name can never contain a colon, so this identifies an
+    // IPv6 literal without a second parse of it.
+    final host = uri.host.contains(':') ? '[${uri.host}]' : uri.host;
+    return '$host:${uri.port}';
   }
 
   /// Whether [provider] has what it needs to be used at all.

@@ -58,8 +58,8 @@ void main() {
     test('IPv6 unique-local, and global-scope v6 is not', () {
       expect(isPrivateDestination(_v6('fd00::1')), isTrue);
       expect(isPrivateDestination(_v6('fc00::1')), isTrue);
-      // The address family this project's own Mac mini forward-resolves to.
-      expect(isPrivateDestination(_v6('2001:16e0::1')), isFalse);
+      // A global address from the measured dual-stack case.
+      expect(isPrivateDestination(_v6('2001:db8::1')), isFalse);
       expect(isPrivateDestination(_v6('2606:4700::1111')), isFalse);
     });
 
@@ -118,14 +118,14 @@ void main() {
     });
 
     test('a name resolving only to a public v6 is refused', () async {
-      // The measured case from this project's own network:
-      // `Simons-Mac-mini.fritz.box` reverse-resolves to 192.168.188.46, but
+      // A measured dual-stack case:
+      // `example-server.home.arpa` reverse-resolves to 192.168.1.46, but
       // its forward lookup returns only a global-scope v6. An IPv4-only
       // check would never see where the connection actually went.
-      final guard = guardResolving([_v6('2001:16e0::1')]);
+      final guard = guardResolving([_v6('2001:db8::1')]);
 
       await expectLater(
-        guard.approve(Uri.parse('http://mac-mini.fritz.box:11434/v1')),
+        guard.approve(Uri.parse('http://example-server.home.arpa:11434/v1')),
         throwsA(isA<InsecureDestinationException>()),
       );
     });

@@ -1177,6 +1177,7 @@
   "bulkAddPhotoDisclosureAnthropic": "该照片将发送给 Anthropic，以识别其中的食物。",
   "bulkAddPhotoDisclosureOpenRouter": "该照片将发送给 OpenRouter，再由其转发给 {provider} 以识别其中的食物。",
   "bulkAddPhotoDisclosureOpenAI": "该照片将发送给 OpenAI，以识别其中的食物。OpenAI 会将其保留最多 30 天以进行滥用检测；若法律要求，或为保护其服务或第三方免受损害而属合理必要，则保留更久。",
+  "bulkAddPhotoDisclosureOwnServer": "该照片将发送到 {host}，以识别其中的食物。",
   "bulkAddReadFromPhotoLabel": "由照片解析 — 请检查每种食物和分量",
   "bulkAddPhotoUnavailableLabel": "请在设置中开启 AI 用餐助手以解析照片",
   "bulkAddPhotoKeyRejectedLabel": "API 密钥被拒绝。请在设置中检查。",

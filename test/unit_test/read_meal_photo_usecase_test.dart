@@ -233,6 +233,23 @@ void main() {
       expect((reading as MealPhotoFailed).failure, MealPhotoFailure.transient);
     });
 
+    test('a refused plaintext destination is not blamed on the model', () async {
+      final s = subject(
+        apiKey: 'k',
+        throws: const MealInterpreterException(
+          'plaintext to a public address',
+          failure: MealInterpreterFailure.insecureDestination,
+        ),
+      );
+
+      final reading = await s.useCase.read(_photo);
+
+      expect(
+        (reading as MealPhotoFailed).failure,
+        MealPhotoFailure.insecureDestination,
+      );
+    });
+
     test('a timeout folds into transient rather than crashing', () async {
       // #774 gave the taxonomy a `timeout` member for the text path. This
       // path deliberately did not gain a user-facing string for it: the only

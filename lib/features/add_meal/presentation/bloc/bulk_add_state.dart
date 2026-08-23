@@ -70,6 +70,10 @@ enum BulkAddPhotoError {
   /// The configured model cannot read images at all. Sent to settings rather
   /// than offered a retry: nothing about trying again changes the answer.
   unsupported,
+
+  /// The app declined to send a photograph in plaintext to a public address.
+  /// The fix is the destination or its scheme, not the model or the network.
+  insecureDestination,
 }
 
 class BulkAddPhotoErrorState extends BulkAddState {

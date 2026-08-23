@@ -763,6 +763,10 @@ void main() {
         ('http://192.168.1.5:11434/v1/chat/completions', '192.168.1.5:11434'),
         // No port typed is no port shown, rather than the scheme's default.
         ('https://ollama.example.com/v1/chat/completions', 'ollama.example.com'),
+        // `Uri` canonicalizes an explicitly typed scheme-default port, so it
+        // is omitted as redundant while non-default ports above remain.
+        ('http://example-server.home.arpa:80', 'example-server.home.arpa'),
+        ('https://example-server.home.arpa:443', 'example-server.home.arpa'),
       ]) {
         expect(
           AiCredentialStorage.displayHost(endpoint),
@@ -770,6 +774,63 @@ void main() {
           reason: endpoint,
         );
       }
+    });
+
+    test('an IPv6 destination is bracketed once it carries a port', () async {
+      // `Uri.host` strips the brackets, so the old concatenation produced
+      // `2001:db8::1:11434` — which a reader cannot split into an address and
+      // a port, and cannot type back into a browser or a curl. The one string
+      // whose entire job is to name the destination truthfully at the moment
+      // the user decides whether to send a photograph.
+      //
+      // Seen in a measured dual-stack setup rather than only in theory: #758
+      // used `example-server.home.arpa` resolving to a ULA
+      // `fd00:1234:5678:…`
+      // beside a private v4, and the plaintext guard accepts whichever
+      // private answer it finds.
+      for (final (endpoint, expected) in [
+        ('http://[2001:db8::1]:11434', '[2001:db8::1]:11434'),
+        (
+          'http://[fd00:1234:5678::22]:11434/v1/chat/completions',
+          '[fd00:1234:5678::22]:11434',
+        ),
+        ('http://[::1]:11434', '[::1]:11434'),
+        // No port, nothing to separate: the brackets are there to keep the
+        // address away from the port colon, and a bare literal reads better
+        // in a sentence.
+        ('http://[2001:db8::1]', '2001:db8::1'),
+        // An explicitly typed default is canonicalized away, for v6 too.
+        ('https://[2001:db8::1]:443', '2001:db8::1'),
+        // v4 and a hostname are untouched by the bracketing rule.
+        ('http://192.168.1.5:11434', '192.168.1.5:11434'),
+        ('http://192.168.1.5', '192.168.1.5'),
+        ('https://ollama.example.com:8443/v1', 'ollama.example.com:8443'),
+        ('https://ollama.example.com/v1/chat/completions', 'ollama.example.com'),
+      ]) {
+        expect(
+          AiCredentialStorage.displayHost(endpoint),
+          expected,
+          reason: endpoint,
+        );
+      }
+    });
+
+    test('a bracketed IPv6 destination still hides the credential', () async {
+      // `Uri.authority` brackets correctly and was the short way to fix the
+      // above. It also carries `userInfo`, which is the whole reason this
+      // function does not use it — so the two rules are checked together
+      // rather than each on an address the other never sees.
+      const withPassword =
+          'http://ollama:hunter2@[fd00:1234:5678::22]:11434';
+
+      expect(
+        AiCredentialStorage.displayHost(withPassword),
+        '[fd00:1234:5678::22]:11434',
+      );
+      expect(
+        AiCredentialStorage.displayHost(withPassword),
+        isNot(contains('hunter2')),
+      );
     });
 
     test('text that is not yet an address names nothing', () async {

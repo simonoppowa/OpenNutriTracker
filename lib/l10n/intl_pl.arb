@@ -1176,6 +1176,7 @@
   "bulkAddPhotoDisclosureAnthropic": "Zdjęcie jest wysyłane do Anthropic w celu rozpoznania produktów na nim.",
   "bulkAddPhotoDisclosureOpenRouter": "Zdjęcie jest wysyłane do OpenRouter, który przekazuje je do {provider} w celu rozpoznania produktów na nim.",
   "bulkAddPhotoDisclosureOpenAI": "Zdjęcie jest wysyłane do OpenAI w celu rozpoznania produktów na nim. OpenAI przechowuje je do 30 dni w celu wykrywania nadużyć, a dłużej, jeśli wymaga tego prawo lub jest to racjonalnie niezbędne do ochrony jej usług albo osób trzecich przed szkodą.",
+  "bulkAddPhotoDisclosureOwnServer": "Zdjęcie jest wysyłane na adres {host} w celu rozpoznania produktów na nim.",
   "bulkAddReadFromPhotoLabel": "Odczytane ze zdjęcia — sprawdź każdy produkt i ilość",
   "bulkAddPhotoUnavailableLabel": "Włącz asystenta AI dla posiłków w ustawieniach, aby odczytywać zdjęcia",
   "bulkAddPhotoKeyRejectedLabel": "Twój klucz API został odrzucony. Sprawdź go w ustawieniach.",

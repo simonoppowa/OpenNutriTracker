@@ -41,6 +41,9 @@ void main() {
     'aiAssistProbeUnknownLabel',
     'aiAssistProbeTextFailedLabel',
     'aiAssistProbePhotoFailedLabel',
+    // #781. The one sheet that names a destination the app cannot name by
+    // company, so it names the address instead.
+    'bulkAddPhotoDisclosureOwnServer',
     // #757. The four outcomes of asking a server what it has, which have to
     // stay four different sentences in every language: an unreachable server
     // and one with nothing pulled produce the same empty picker and want
@@ -125,6 +128,32 @@ void main() {
         isNot(contains('local')),
         reason: '$locale labels the provider "local"',
       );
+    }
+  });
+
+  test('the photo sheet names the address, and no company', () {
+    // #781. This is the one destination the app can name *exactly* rather
+    // than by company — and the one it must not name by company, because
+    // there is no company: the address is the whole of what is known. A
+    // locale that dropped the placeholder would send a photograph after
+    // showing a sentence with a hole in it; one that pasted a vendor in
+    // would name a party that may have nothing to do with the machine.
+    for (final locale in locales) {
+      final value = arb[locale]!['bulkAddPhotoDisclosureOwnServer'] as String;
+      expect(
+        value,
+        contains('{host}'),
+        reason: '$locale drops the address the sentence exists to name',
+      );
+      for (final company in ['Anthropic', 'OpenAI', 'OpenRouter', 'Google']) {
+        expect(
+          value,
+          isNot(contains(company)),
+          reason:
+              '$locale names $company for a machine the app knows nothing '
+              'about',
+        );
+      }
     }
   });
 

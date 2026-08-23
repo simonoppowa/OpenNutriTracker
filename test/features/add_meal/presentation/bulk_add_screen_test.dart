@@ -605,6 +605,32 @@ void main() {
     expect(find.text(l10n.bulkAddNothingToLogLabel), findsNothing);
   });
 
+  testWidgets('a refused photo destination points at the address, not the model', (
+    tester,
+  ) async {
+    final bloc = await _registerWithPhotoReading(
+      const MealPhotoFailed(MealPhotoFailure.insecureDestination),
+    );
+    await tester.pumpWidget(_app());
+    tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    bloc.add(
+      ReadMealPhotoEvent(
+        photo: MealPhoto(
+          bytes: Uint8List.fromList([1, 2, 3]),
+          mediaType: 'image/webp',
+        ),
+        usesImperialUnits: false,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final l10n = await S.delegate.load(const Locale('en'));
+    expect(find.text(l10n.bulkAddModelInsecureServerLabel), findsOneWidget);
+    expect(find.text(l10n.bulkAddPhotoUnsupportedLabel), findsNothing);
+  });
+
   testWidgets('an empty text parse still shows the generic line', (
     tester,
   ) async {
@@ -883,15 +909,16 @@ void main() {
     expect(find.byIcon(Icons.photo_camera_rounded), findsNothing);
   });
 
-  testWidgets('the camera is hidden for a server the user runs', (
+  testWidgets('the camera is hidden for a server nobody has probed', (
     tester,
   ) async {
     // Found on a Pixel 6, not here. With an address configured the feature
     // *is* enabled, so gating the icon on `isEnabled()` alone put a camera in
-    // the app bar that did nothing — there is no identifiable photo
-    // destination for this provider until #747 settles which image formats
-    // survive (the encoder emits WebP; llama.cpp cannot decode it). A button
-    // that is present and inert is worse than one that is absent.
+    // the app bar that did nothing. #735 settled what stands in for the
+    // behavioural screen the project cannot run against a machine it has
+    // never seen — a setup-time self-test — and until one has passed, nothing
+    // has established that the model on the other end can see. The photo path
+    // has no deterministic fallback, so offering it is offering a dead end.
     await _register(const {});
     getIt.unregister<AiCredentialStorage>();
     // Seeded rather than written, so the assertion is about what the screen
@@ -914,9 +941,136 @@ void main() {
     expect(
       await storage.isEnabled(),
       isTrue,
-      reason: 'the feature is on; only the photo path is unavailable',
+      reason: 'the feature is on; only the photo path is unproven',
+    );
+    expect(
+      (await storage.readProbe()).photo,
+      AiCapability.unknown,
+      reason: 'guard against asserting on a state the seed did not create',
     );
     expect(find.byIcon(Icons.photo_camera_rounded), findsNothing);
+  });
+
+  testWidgets('the camera is hidden when the photo probe failed', (
+    tester,
+  ) async {
+    // The gate is the *photo* half and only that half. This seed passes the
+    // text probe, which is the state a text-only model on the user's own
+    // hardware produces — the commonest thing they will have pulled. #735
+    // made the two consequences deliberately asymmetric: a failed text probe
+    // only warns, because the deterministic parser is still underneath it,
+    // and a failed photo probe takes the camera away, because nothing is.
+    await _register(const {});
+    getIt.unregister<AiCredentialStorage>();
+    final storage = AiCredentialStorage(
+      _MapStorage({
+        'AiProviderTag': 'ownServer',
+        'AiEndpointTag.ownServer': 'http://192.168.1.5:11434',
+        'AiModelTag.ownServer': 'gemma3:4b',
+        // `text` first, `photo` second — see `AiEndpointProbe.encode`.
+        'AiProbeTag.ownServer': 'pf',
+      }),
+    );
+    getIt.registerLazySingleton<AiCredentialStorage>(() => storage);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    expect(
+      (await storage.readProbe()).text,
+      AiCapability.passed,
+      reason: 'the text half passed, so this is the photo half being read',
+    );
+    expect(find.byIcon(Icons.photo_camera_rounded), findsNothing);
+  });
+
+  testWidgets('the camera appears once the photo probe has passed', (
+    tester,
+  ) async {
+    // #781. The strongest privacy story the feature has, and the only
+    // destination the app can name exactly rather than by company — but the
+    // stored pass is the whole gate, and nothing else opens it.
+    await _register(const {});
+    getIt.unregister<AiCredentialStorage>();
+    final storage = AiCredentialStorage(
+      _MapStorage({
+        'AiProviderTag': 'ownServer',
+        'AiEndpointTag.ownServer': 'http://192.168.1.5:11434',
+        'AiModelTag.ownServer': 'gemma3:4b',
+        // Photo passed, text never established. The photo half is what this
+        // screen reads, and it does not need the other one.
+        'AiProbeTag.ownServer': '-p',
+      }),
+    );
+    getIt.registerLazySingleton<AiCredentialStorage>(() => storage);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.photo_camera_rounded), findsOneWidget);
+  });
+
+  testWidgets('the photo sheet names the address and no company', (
+    tester,
+  ) async {
+    // The address is the whole of what the app knows about this destination,
+    // and #736 settled that it is also the whole of what the sheet may claim.
+    // Not "no third party receives it", however tempting: a self-hosted proxy
+    // forwarding to OpenAI looks identical from here.
+    await _register(const {});
+    getIt.unregister<AiCredentialStorage>();
+    getIt.registerLazySingleton<AiCredentialStorage>(
+      () => AiCredentialStorage(
+        _MapStorage({
+          'AiProviderTag': 'ownServer',
+          // Stored as `writeEndpoint` really stores it — resolved, with the
+          // chat route on the end — so this also pins that the sheet shows
+          // the host and drops a path that distinguishes nothing.
+          'AiEndpointTag.ownServer':
+              'http://192.168.1.5:11434/v1/chat/completions',
+          'AiModelTag.ownServer': 'gemma3:4b',
+          'AiProbeTag.ownServer': '-p',
+        }),
+      ),
+    );
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.photo_camera_rounded).first);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining(
+        l10nEn.bulkAddPhotoDisclosureOwnServer('192.168.1.5:11434'),
+      ),
+      findsOneWidget,
+    );
+    // Every company this app has ever sent a photograph to. None of them is
+    // known to be involved here, and saying one would be a false statement
+    // at exactly the moment the statement matters.
+    for (final company in ['Anthropic', 'OpenAI', 'OpenRouter']) {
+      expect(
+        find.textContaining(company),
+        findsNothing,
+        reason: 'the sheet names $company for a machine it knows nothing about',
+      );
+    }
+    // The app's own no-copy sentence is about this app, so it survives
+    // unchanged — and appears once, not twice.
+    expect(
+      find.textContaining(l10nEn.bulkAddPhotoDisclosureCommon),
+      findsOneWidget,
+    );
   });
 
   testWidgets('the same harness does show the camera for a hosted provider', (
