@@ -1201,6 +1201,7 @@
   "bulkAddPhotoDisclosureAnthropic": "Das Foto wird an Anthropic gesendet, um die darauf abgebildeten Lebensmittel zu erkennen.",
   "bulkAddPhotoDisclosureOpenRouter": "Das Foto wird an OpenRouter gesendet und von dort an {provider} weitergeleitet, um die darauf abgebildeten Lebensmittel zu erkennen.",
   "bulkAddPhotoDisclosureOpenAI": "Das Foto wird an OpenAI gesendet, um die darauf abgebildeten Lebensmittel zu erkennen. OpenAI bewahrt es bis zu 30 Tage zur Missbrauchserkennung auf, und länger, wenn das Gesetz es verlangt oder es vernünftigerweise erforderlich ist, um die eigenen Dienste oder Dritte vor Schaden zu bewahren.",
+  "bulkAddPhotoDisclosureOwnServer": "Das Foto wird an {host} gesendet, um die darauf abgebildeten Lebensmittel zu erkennen.",
   "bulkAddReadFromPhotoLabel": "Aus einem Foto gelesen — prüfe jedes Lebensmittel und jede Menge",
   "bulkAddPhotoUnavailableLabel": "Aktiviere die KI-Mahlzeitenhilfe in den Einstellungen, um Fotos auszulesen",
   "bulkAddPhotoKeyRejectedLabel": "Dein API-Schlüssel wurde abgelehnt. Prüfe ihn in den Einstellungen.",

@@ -1170,6 +1170,7 @@
   "bulkAddPhotoDisclosureAnthropic": "Fotka se odešle společnosti Anthropic, aby rozpoznala potraviny na ní.",
   "bulkAddPhotoDisclosureOpenRouter": "Fotka se odešle do OpenRouteru, který ji předá poskytovateli {provider}, aby rozpoznal potraviny na ní.",
   "bulkAddPhotoDisclosureOpenAI": "Fotka se odešle společnosti OpenAI, aby rozpoznala potraviny na ní. OpenAI ji uchovává až 30 dní kvůli detekci zneužití, a déle, pokud to vyžaduje zákon nebo je to přiměřeně nezbytné k ochraně jejích služeb či třetích stran před újmou.",
+  "bulkAddPhotoDisclosureOwnServer": "Fotka se odešle na adresu {host}, aby se rozpoznaly potraviny na ní.",
   "bulkAddReadFromPhotoLabel": "Přečteno z fotky — zkontrolujte každou potravinu i množství",
   "bulkAddPhotoUnavailableLabel": "Chcete-li načítat fotky, zapněte v nastavení AI asistenci pro jídla",
   "bulkAddPhotoKeyRejectedLabel": "Váš API klíč byl odmítnut. Zkontrolujte jej v nastavení.",

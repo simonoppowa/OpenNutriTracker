@@ -1170,6 +1170,7 @@
   "bulkAddPhotoDisclosureAnthropic": "Фото надсилається до Anthropic, щоб розпізнати продукти на ньому.",
   "bulkAddPhotoDisclosureOpenRouter": "Фото надсилається до OpenRouter, який передає його до {provider}, щоб розпізнати продукти на ньому.",
   "bulkAddPhotoDisclosureOpenAI": "Фото надсилається до OpenAI, щоб розпізнати продукти на ньому. OpenAI зберігає його до 30 днів для виявлення зловживань, а довше — якщо цього вимагає закон або це обґрунтовано необхідно для захисту її сервісів чи третіх осіб від шкоди.",
+  "bulkAddPhotoDisclosureOwnServer": "Фото надсилається на адресу {host}, щоб розпізнати продукти на ньому.",
   "bulkAddReadFromPhotoLabel": "Зчитано з фото — перевірте кожен продукт і кількість",
   "bulkAddPhotoUnavailableLabel": "Увімкніть ШІ-помічник для страв у налаштуваннях, щоб зчитувати фото",
   "bulkAddPhotoKeyRejectedLabel": "Ваш API-ключ відхилено. Перевірте його в налаштуваннях.",

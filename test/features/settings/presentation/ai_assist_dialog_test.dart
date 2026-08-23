@@ -999,7 +999,7 @@ void main() {
       addTearDown(tester.view.reset);
 
       await storage.writeEndpoint(
-        'http://ein-sehr-langer-servername.fritz.box:11434',
+        'http://very-long-server-name.home.arpa:11434',
         provider: AiProvider.ownServer,
       );
       await storage.writeModel('gemma3:4b', provider: AiProvider.ownServer);
