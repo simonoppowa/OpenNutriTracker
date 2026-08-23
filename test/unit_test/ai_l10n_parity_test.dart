@@ -44,6 +44,16 @@ void main() {
     // #781. The one sheet that names a destination the app cannot name by
     // company, so it names the address instead.
     'bulkAddPhotoDisclosureOwnServer',
+    // #757. The four outcomes of asking a server what it has, which have to
+    // stay four different sentences in every language: an unreachable server
+    // and one with nothing pulled produce the same empty picker and want
+    // opposite fixes.
+    'aiAssistLoadModelsLabel',
+    'aiAssistPickModelLabel',
+    'aiAssistModelsUnreachableLabel',
+    'aiAssistModelsEmptyLabel',
+    'aiAssistModelsRejectedLabel',
+    'aiAssistModelsInsecureLabel',
   ];
 
   final arb = {
