@@ -18,6 +18,15 @@ class UserActivityEntity extends Equatable {
   /// reasoning.
   final double? userKcal;
 
+  /// Stable id of the platform record this activity was imported from
+  /// (Health Connect / Apple Health), or null for a manually logged one.
+  /// See `UserActivityDBO.externalId` for how it is used to dedupe.
+  final String? externalId;
+
+  /// Device-reported energy of an imported workout, before the calorie-credit
+  /// multiplier. See `UserActivityDBO.sourceReportedKcal`.
+  final double? sourceReportedKcal;
+
   const UserActivityEntity(
     this.id,
     this.duration,
@@ -25,6 +34,8 @@ class UserActivityEntity extends Equatable {
     this.date,
     this.physicalActivityEntity, {
     this.userKcal,
+    this.externalId,
+    this.sourceReportedKcal,
   });
 
   factory UserActivityEntity.fromUserActivityDBO(UserActivityDBO activityDBO) {
@@ -37,6 +48,8 @@ class UserActivityEntity extends Equatable {
         activityDBO.physicalActivityDBO,
       ),
       userKcal: activityDBO.userKcal,
+      externalId: activityDBO.externalId,
+      sourceReportedKcal: activityDBO.sourceReportedKcal,
     );
   }
 
@@ -46,7 +59,15 @@ class UserActivityEntity extends Equatable {
   double get effectiveBurnedKcal => userKcal ?? burnedKcal;
 
   @override
-  List<Object?> get props => [id, duration, burnedKcal, date, userKcal];
+  List<Object?> get props => [
+        id,
+        duration,
+        burnedKcal,
+        date,
+        userKcal,
+        externalId,
+        sourceReportedKcal,
+      ];
 
   static IconData getIconData() => Icons.directions_run_outlined;
 }

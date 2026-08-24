@@ -62,6 +62,10 @@ class UserActivityRepository {
         .toList();
   }
 
+  Future<Set<String>> getExternalIdsSince(DateTime from) async {
+    return await _userActivityDataSource.getExternalIdsSince(from);
+  }
+
   Future<List<UserActivityEntity>> getRecentUserActivity() async {
     final userActivityDBOList =
         await _userActivityDataSource.getRecentlyAddedUserActivity();

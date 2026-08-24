@@ -245,6 +245,13 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// provider rather than to the dialog.
   Future<void> _load() async {
     final generation = ++_loadGeneration;
+    // Bumped here rather than with the clears below, because the four reads
+    // that follow are platform channels and a model list can land while they
+    // are still out. Superseding the request at the moment the reload starts
+    // is what stops that answer being written at all; done further down it is
+    // written first and cleared a frame later, which is the same end state
+    // reached the long way round.
+    _modelsGeneration++;
     final summary = await widget.storage.readSummary();
     // A stored name this build does not know leaves nothing to select, so the
     // radios fall back to the first provider **for display only**. Nothing is
@@ -290,14 +297,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _modelIds = null;
       _modelListFailure = null;
       _modelListHost = null;
-      // Part of the same block, and easy to leave out of it. Bumping the
-      // generation is what makes a request that was in flight across the
-      // reload drop its own answer — including one started before a switch
-      // away and back, where the provider it belongs to is selected again by
-      // the time it lands. Clearing the flag is the other half: nothing is
-      // left to turn it off, and left set it disables the button for the
-      // rest of the dialog's life over a request nobody wants any more.
-      _modelsGeneration++;
+      // The other half of the supersede above, and easy to leave out: a
+      // request abandoned across the reload no longer turns this off itself,
+      // and left set it disables the button for the rest of the dialog's
+      // life over an answer nobody wants any more.
       _fetchingModels = false;
       _probe = probe;
       _probing = running != null;

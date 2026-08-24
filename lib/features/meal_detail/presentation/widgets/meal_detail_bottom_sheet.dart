@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/serving_label_localizer.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
@@ -150,7 +151,9 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                                 labelText: S.of(context).unitLabel,
                               ),
                               items: <DropdownMenuItem<String>>[
-                                if (widget.product.hasServingValues)
+                                // #629: a serving the app cannot scale
+                                // is a no-op dressed as a unit.
+                                if (widget.product.scalableServingQuantity != null)
                                   _getServingDropdownItem(context),
                                 if (widget.product.isSolid ||
                                     !widget.product.isLiquid &&
@@ -314,7 +317,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     ).showSnackBar(SnackBar(content: Text(S.of(context).infoAddedIntakeLabel)));
     Navigator.of(
       context,
-    ).popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
+    ).popUntil(namedRouteOrFirst(NavigationOptions.mainRoute));
   }
 
   // #212: Check if this meal was already added today for the same meal type

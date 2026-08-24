@@ -1,10 +1,51 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(tzdata.initializeTimeZones);
+
+  test(
+    'initialize uses the native timezone identifier and initializes notifications',
+    () async {
+      const timezoneChannel = MethodChannel('flutter_timezone');
+      const notificationsChannel = MethodChannel(
+        'dexterous.com/flutter/local_notifications',
+      );
+      final notificationCalls = <MethodCall>[];
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      FlutterLocalNotificationsPlatform.instance =
+          AndroidFlutterLocalNotificationsPlugin();
+      messenger.setMockMethodCallHandler(timezoneChannel, (call) async {
+        expect(call.method, 'getLocalTimezone');
+        return <String, Object>{'identifier': 'Europe/Berlin'};
+      });
+      messenger.setMockMethodCallHandler(notificationsChannel, (call) async {
+        notificationCalls.add(call);
+        return true;
+      });
+
+      try {
+        await NotificationService().initialize();
+
+        expect(tz.local.name, 'Europe/Berlin');
+        expect(notificationCalls.map((call) => call.method), ['initialize']);
+      } finally {
+        messenger.setMockMethodCallHandler(timezoneChannel, null);
+        messenger.setMockMethodCallHandler(notificationsChannel, null);
+        debugDefaultTargetPlatformOverride = null;
+        tz.setLocalLocation(tz.UTC);
+      }
+    },
+  );
 
   group('NotificationService.computeNextOccurrence', () {
     test('returns today when the slot is later today', () {
@@ -25,8 +66,7 @@ void main() {
       final now = tz.TZDateTime(ny, 2026, 6, 15, 21, 0); // 21:00
       final next = NotificationService.computeNextOccurrence(now, 20, 30);
 
-      expect(next.day, equals(16),
-          reason: 'past slot should roll to next day');
+      expect(next.day, equals(16), reason: 'past slot should roll to next day');
       expect(next.hour, equals(20));
       expect(next.minute, equals(30));
     });
@@ -85,8 +125,14 @@ void main() {
       // it to 03:30 EDT. Verify the next-occurrence helper still produces a
       // valid future TZDateTime in this case.
       final ny = tz.getLocation('America/New_York');
-      final beforeJump =
-          tz.TZDateTime(ny, 2026, 3, 8, 1, 0); // 01:00, well before the gap
+      final beforeJump = tz.TZDateTime(
+        ny,
+        2026,
+        3,
+        8,
+        1,
+        0,
+      ); // 01:00, well before the gap
       final next = NotificationService.computeNextOccurrence(beforeJump, 2, 30);
 
       // The helper should return *some* later TZDateTime (it canonicalises
@@ -103,10 +149,16 @@ void main() {
       final after = tz.TZDateTime(ny, 2026, 11, 1, 3, 0);
       final next = NotificationService.computeNextOccurrence(after, 1, 30);
 
-      expect(next.isAfter(after), isTrue,
-          reason: 'must always return a future timestamp even across DST');
-      expect(next.day, equals(2),
-          reason: 'past slot should roll to next day across DST boundary');
+      expect(
+        next.isAfter(after),
+        isTrue,
+        reason: 'must always return a future timestamp even across DST',
+      );
+      expect(
+        next.day,
+        equals(2),
+        reason: 'past slot should roll to next day across DST boundary',
+      );
     });
 
     test('handles midnight (00:00) slot', () {

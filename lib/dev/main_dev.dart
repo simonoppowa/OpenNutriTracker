@@ -1,9 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/utils/app_locale_service.dart';
+import 'package:opennutritracker/core/utils/app_locale_sync.dart';
 import 'package:opennutritracker/core/utils/demo/demo_seeder.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 import 'package:opennutritracker/main.dart';
 
 /// Dev-only entry point: wipes the active profile and reseeds it with
@@ -29,9 +32,16 @@ Future<void> main() async {
 
   final configRepo = locator<ConfigRepository>();
   final config = await configRepo.getConfig();
-  final savedLocaleCode = await configRepo.getSelectedLocale();
-  final savedLocale =
-      savedLocaleCode != null ? Locale(savedLocaleCode) : null;
+  // Mirrors the reconciliation in main.dart so a dev build behaves the same
+  // way when the OS holds a per-app language.
+  final localeCode = await reconcileAppLocale(
+    savedLocaleCode: await configRepo.getSelectedLocale(),
+    systemLocaleTag: await AppLocaleService.getApplicationLocale(),
+    supportedLocales: S.supportedLocales,
+    persistSelectedLocale: configRepo.setSelectedLocale,
+    pushToSystem: AppLocaleService.setApplicationLocale,
+  );
+  final savedLocale = localeCode != null ? Locale(localeCode) : null;
   final savedAppTheme = await configRepo.getConfigAppTheme();
 
   runAppWithChangeNotifiers(

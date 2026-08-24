@@ -42,6 +42,10 @@ class UserActivityDataSource {
       existing.date,
       existing.physicalActivityDBO,
       userKcal: userKcal ?? existing.userKcal,
+      // Carried over rather than dropped: losing the external id would make
+      // an edited imported workout eligible for a second import.
+      externalId: existing.externalId,
+      sourceReportedKcal: existing.sourceReportedKcal,
     );
     await existing.delete();
     await _userActivityBox.add(updated);
@@ -84,6 +88,21 @@ class UserActivityDataSource {
           ),
         )
         .toList();
+  }
+
+  /// External record ids of activities dated at or after [from].
+  ///
+  /// The workout importer checks membership in this set before writing, so
+  /// re-reading an overlapping window from Health Connect / Apple Health
+  /// cannot produce a duplicate entry.
+  Future<Set<String>> getExternalIdsSince(DateTime from) async {
+    return _userActivityBox.values
+        .where(
+          (activity) =>
+              activity.externalId != null && !activity.date.isBefore(from),
+        )
+        .map((activity) => activity.externalId!)
+        .toSet();
   }
 
   Future<List<UserActivityDBO>> getRecentlyAddedUserActivity(
