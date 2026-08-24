@@ -168,6 +168,20 @@ class NotificationService {
     _log.fine('Fasting-complete notification cancelled');
   }
 
+  /// Cancels every notification this app has scheduled.
+  ///
+  /// For the delete-all path, which must not leave an alarm behind that
+  /// outlives the record of it. Deliberately not a list of the ids above: a
+  /// notification added later would not be on such a list, and the omission
+  /// would surface as a ping on a stranger's phone weeks afterwards rather
+  /// than as anything a test or a reviewer would catch. `cancelAll` reaches
+  /// only this app's own notifications.
+  Future<void> cancelAllScheduled() async {
+    await _ensureInitialized();
+    await _plugin.cancelAll();
+    _log.fine('All scheduled notifications cancelled');
+  }
+
   Future<void> _ensureInitialized() async {
     if (!_initialized) await initialize();
   }

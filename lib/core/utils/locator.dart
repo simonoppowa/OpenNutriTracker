@@ -140,7 +140,7 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<HiveDBProvider>(() => hiveDBProvider);
   locator.registerLazySingleton<DeleteAllUserDataUsecase>(
-    () => DeleteAllUserDataUsecase(locator()),
+    () => DeleteAllUserDataUsecase(locator(), locator(), locator()),
   );
 
   // Backend
