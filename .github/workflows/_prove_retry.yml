@@ -1,0 +1,29 @@
+# Throwaway. Proves the retry semantics #823 depends on, without spending a
+# macOS runner: a step that HANGS must end as `outcome == failure` so the
+# retry step fires, and the job must still be able to go green.
+name: prove-retry-on-hang
+on: push
+
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Attempt 1 (hangs)
+        id: attempt1
+        continue-on-error: true
+        timeout-minutes: 1
+        run: |
+          echo "pretending to be a hung integration test"
+          sleep 300
+
+      - name: Report attempt 1
+        run: |
+          echo "outcome=${{ steps.attempt1.outcome }}"
+          echo "conclusion=${{ steps.attempt1.conclusion }}"
+
+      - name: Retry once
+        if: steps.attempt1.outcome == 'failure'
+        run: echo "::warning::retry fired after a hang"
+
+      - name: Prove the job can still pass
+        run: echo "job reached its end with the retry having run"
