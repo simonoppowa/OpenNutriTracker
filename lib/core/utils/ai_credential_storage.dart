@@ -556,16 +556,29 @@ class AiCredentialStorage {
     final trimmedModel = model.trim();
     if (resolved == null || trimmedModel.isEmpty) return false;
 
-    var changed = false;
-    if (resolved.toString() != await readEndpoint(provider: target)) {
-      await writeEndpoint(endpoint, provider: target);
-      changed = true;
-    }
-    if (trimmedModel != await readModel(provider: target)) {
-      await writeModel(trimmedModel, provider: target);
-      changed = true;
-    }
-    return changed;
+    // **One critical section for the pair.** Taking the lock once per write
+    // let two overlapping saves interleave — endpoint A, endpoint B, model B,
+    // model A — and land a server paired with another save's model. Worse
+    // here than the general case: `_writeEndpointLocked` clears the model
+    // when the address changes, so the older save's model write is what
+    // repopulates it, and the identity check then reads that pair as the
+    // configuration a verdict belongs to.
+    //
+    // The reads are inside too. Comparing outside and writing inside would
+    // decide "unchanged" against a state another save could replace before
+    // the write.
+    return _probeConfigurationLock.synchronized(() async {
+      var changed = false;
+      if (resolved.toString() != await readEndpoint(provider: target)) {
+        await _writeEndpointLocked(resolved.toString(), target);
+        changed = true;
+      }
+      if (trimmedModel != await readModel(provider: target)) {
+        await _writeModelLocked(trimmedModel, target);
+        changed = true;
+      }
+      return changed;
+    });
   }
 
   /// Points [provider] at [endpoint], and **forgets the stored model when the
@@ -608,21 +621,37 @@ class AiCredentialStorage {
     // destination at all.
     final value = resolved.toString();
 
-    await _probeConfigurationLock.synchronized(() async {
-      final previous = await _storage.read(key: _endpointSlotTag(target));
-      if (previous != value) {
-        await _storage.delete(key: _modelSlotTag(target));
-        // And what the probe found, for the same reason and one step further:
-        // "photos work here" was a fact about a machine, and this is a
-        // different machine. #779.
-        await _storage.delete(key: _probeSlotTag(target));
-      }
-      await _storage.write(key: _endpointSlotTag(target), value: value);
+    await _probeConfigurationLock.synchronized(
+      () => _writeEndpointLocked(value, target),
+    );
+  }
 
-      // Same reasoning as `writeApiKey`: supplying the thing that makes the
-      // provider usable is the user asking for the feature.
-      await _storage.write(key: _enabledTag, value: 'true');
-    });
+  /// [writeEndpoint]'s write, without taking the lock.
+  ///
+  /// Split out so [writeOwnServerConfiguration] can put the endpoint and the
+  /// model in **one** critical section. Two overlapping saves that each took
+  /// the lock twice could interleave as endpoint A, endpoint B, model B,
+  /// model A — leaving one server paired with another save's model, which is
+  /// the row-and-store-disagree failure this class exists to prevent. Raised
+  /// by Copilot on #800.
+  ///
+  /// The lock is not reentrant, so nothing in here may call a method that
+  /// takes it. That rules out `clear`, which is why the empty-address branch
+  /// stays with the caller.
+  Future<void> _writeEndpointLocked(String value, AiProvider target) async {
+    final previous = await _storage.read(key: _endpointSlotTag(target));
+    if (previous != value) {
+      await _storage.delete(key: _modelSlotTag(target));
+      // And what the probe found, for the same reason and one step further:
+      // "photos work here" was a fact about a machine, and this is a
+      // different machine. #779.
+      await _storage.delete(key: _probeSlotTag(target));
+    }
+    await _storage.write(key: _endpointSlotTag(target), value: value);
+
+    // Same reasoning as `writeApiKey`: supplying the thing that makes the
+    // provider usable is the user asking for the feature.
+    await _storage.write(key: _enabledTag, value: 'true');
   }
 
   /// The provider these per-provider methods should act on: the one named,
@@ -731,13 +760,19 @@ class AiCredentialStorage {
     final target = await _target(provider);
     if (target == null) return;
 
-    await _probeConfigurationLock.synchronized(() async {
-      final previous = await _storage.read(key: _modelSlotTag(target));
-      if (previous != modelId) {
-        await _storage.delete(key: _probeSlotTag(target));
-      }
-      await _storage.write(key: _modelSlotTag(target), value: modelId);
-    });
+    await _probeConfigurationLock.synchronized(
+      () => _writeModelLocked(modelId, target),
+    );
+  }
+
+  /// [writeModel]'s write, without taking the lock. See
+  /// [_writeEndpointLocked] for why the pair needs one.
+  Future<void> _writeModelLocked(String modelId, AiProvider target) async {
+    final previous = await _storage.read(key: _modelSlotTag(target));
+    if (previous != modelId) {
+      await _storage.delete(key: _probeSlotTag(target));
+    }
+    await _storage.write(key: _modelSlotTag(target), value: modelId);
   }
 
   /// What the last probe found for [provider], or [AiEndpointProbe.unknown]
