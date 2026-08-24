@@ -88,9 +88,11 @@ Future<void> _bootstrapApp() async {
   final localeCode = await reconcileAppLocale(
     savedLocaleCode: await configRepo.getSelectedLocale(),
     systemLocaleTag: await AppLocaleService.getApplicationLocale(),
+    localeSyncSeeded: await configRepo.getLocaleSyncSeeded(),
     supportedLocales: S.supportedLocales,
     persistSelectedLocale: configRepo.setSelectedLocale,
     pushToSystem: AppLocaleService.setApplicationLocale,
+    markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
   );
   final savedLocale = localeCode != null ? Locale(localeCode) : null;
 
@@ -236,13 +238,24 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
   }
 
   Future<void> _adoptSystemLocale() async {
-    final systemCode = supportedLanguageCode(
-      await AppLocaleService.getApplicationLocale(),
-      S.supportedLocales,
-    );
-    if (systemCode == null || !mounted) return;
+    final systemTag = await AppLocaleService.getApplicationLocale();
+    final systemCode = supportedLanguageCode(systemTag, S.supportedLocales);
+    if (!mounted) return;
 
     final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
+
+    if (systemCode == null) {
+      // A tag we do not ship is ignored, same as at launch. No tag at all
+      // means the user picked "System default" in Android's picker — follow
+      // it, or that picker appears to do nothing in the clearing direction.
+      if (systemTag != null && systemTag.isNotEmpty) return;
+      if (localeProvider.locale == null) return;
+
+      localeProvider.updateLocale(null);
+      await locator<ConfigRepository>().setSelectedLocale(null);
+      return;
+    }
+
     if (localeProvider.locale?.languageCode == systemCode) return;
 
     localeProvider.updateLocale(Locale(systemCode));

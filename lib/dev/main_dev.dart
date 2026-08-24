@@ -37,9 +37,11 @@ Future<void> main() async {
   final localeCode = await reconcileAppLocale(
     savedLocaleCode: await configRepo.getSelectedLocale(),
     systemLocaleTag: await AppLocaleService.getApplicationLocale(),
+    localeSyncSeeded: await configRepo.getLocaleSyncSeeded(),
     supportedLocales: S.supportedLocales,
     persistSelectedLocale: configRepo.setSelectedLocale,
     pushToSystem: AppLocaleService.setApplicationLocale,
+    markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
   );
   final savedLocale = localeCode != null ? Locale(localeCode) : null;
   final savedAppTheme = await configRepo.getConfigAppTheme();
