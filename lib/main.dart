@@ -85,9 +85,11 @@ Future<void> _bootstrapApp() async {
   // Android's own per-app language picker and ours are two doors into the
   // same setting, so ask the system what it holds before trusting what we
   // saved. See [reconcileAppLocale] for which side wins and why.
+  final systemLocale = await AppLocaleService.getApplicationLocale();
   final localeCode = await reconcileAppLocale(
     savedLocaleCode: await configRepo.getSelectedLocale(),
-    systemLocaleTag: await AppLocaleService.getApplicationLocale(),
+    systemLocaleTag: systemLocale.tag,
+    systemTagReadFailed: systemLocale.readFailed,
     localeSyncSeeded: await configRepo.getLocaleSyncSeeded(),
     supportedLocales: S.supportedLocales,
     persistSelectedLocale: configRepo.setSelectedLocale,
@@ -237,29 +239,31 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
     unawaited(_adoptSystemLocale());
   }
 
+  /// The same [reconcileAppLocale] the launch path runs, deliberately: this
+  /// fires for any locale change — the per-app picker, but also a plain
+  /// system-language change on platforms with no per-app override — and a
+  /// second hand-rolled copy of the decision table here could disagree with
+  /// the launch one about the same OS state within one session. Only the
+  /// screen update is local; every persistence decision stays in one place.
   Future<void> _adoptSystemLocale() async {
-    final systemTag = await AppLocaleService.getApplicationLocale();
-    final systemCode = supportedLanguageCode(systemTag, S.supportedLocales);
+    final configRepo = locator<ConfigRepository>();
+    final systemLocale = await AppLocaleService.getApplicationLocale();
+    final localeCode = await reconcileAppLocale(
+      savedLocaleCode: await configRepo.getSelectedLocale(),
+      systemLocaleTag: systemLocale.tag,
+      systemTagReadFailed: systemLocale.readFailed,
+      localeSyncSeeded: await configRepo.getLocaleSyncSeeded(),
+      supportedLocales: S.supportedLocales,
+      persistSelectedLocale: configRepo.setSelectedLocale,
+      pushToSystem: AppLocaleService.setApplicationLocale,
+      markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
+    );
     if (!mounted) return;
 
     final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
+    if (localeProvider.locale?.languageCode == localeCode) return;
 
-    if (systemCode == null) {
-      // A tag we do not ship is ignored, same as at launch. No tag at all
-      // means the user picked "System default" in Android's picker — follow
-      // it, or that picker appears to do nothing in the clearing direction.
-      if (systemTag != null && systemTag.isNotEmpty) return;
-      if (localeProvider.locale == null) return;
-
-      localeProvider.updateLocale(null);
-      await locator<ConfigRepository>().setSelectedLocale(null);
-      return;
-    }
-
-    if (localeProvider.locale?.languageCode == systemCode) return;
-
-    localeProvider.updateLocale(Locale(systemCode));
-    await locator<ConfigRepository>().setSelectedLocale(systemCode);
+    localeProvider.updateLocale(localeCode != null ? Locale(localeCode) : null);
   }
 
   @override

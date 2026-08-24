@@ -35,9 +35,11 @@ Future<String?> _reconcile(
   String? saved,
   String? system,
   bool seeded = false,
+  bool readFailed = false,
 }) => reconcileAppLocale(
   savedLocaleCode: saved,
   systemLocaleTag: system,
+  systemTagReadFailed: readFailed,
   localeSyncSeeded: seeded,
   supportedLocales: _supported,
   persistSelectedLocale: recorder.persist,
@@ -93,7 +95,7 @@ void main() {
     // The upgrade path: someone chose a language in the app long before this
     // wiring existed, so the OS has no override yet. Their choice is what
     // they meant, and it seeds the system rather than being overwritten by it.
-    test('with no override, a saved choice seeds the system once', () async {
+    test('with no override, a saved choice seeds the system', () async {
       final recorder = _Recorder();
 
       final result = await _reconcile(recorder, saved: 'uk', system: null);
@@ -103,11 +105,31 @@ void main() {
       expect(recorder.persisted, isEmpty);
       expect(
         recorder.seededMarks,
-        1,
+        0,
         reason:
-            'unrecorded, this push would repeat on every launch and '
-            'silently reinstate an override the user cleared',
+            'seeded means the OS was SEEN holding a value; recording it on '
+            'the attempt would turn a platform that cannot hold one — where '
+            'this branch repeats forever — into a user who cleared it',
       );
+    });
+
+    // The observation that completes the migration: the pushed value comes
+    // back on the next read, which is when seeded may be recorded. On a
+    // platform with no per-app override the push no-ops, this never fires,
+    // and the saved choice survives every launch.
+    test('a saved choice on an override-less platform survives', () async {
+      final recorder = _Recorder();
+
+      await _reconcile(recorder, saved: 'uk', system: null);
+      final result = await _reconcile(recorder, saved: 'uk', system: null);
+
+      expect(result, 'uk');
+      expect(
+        recorder.persisted,
+        isEmpty,
+        reason: 'nothing may clear a choice the user never cleared',
+      );
+      expect(recorder.seededMarks, 0);
     });
 
     // The other reading of "no override": it was seeded before, so its
@@ -146,11 +168,7 @@ void main() {
       expect(result, isNull);
       expect(recorder.pushed, isEmpty);
       expect(recorder.persisted, isEmpty);
-      expect(
-        recorder.seededMarks,
-        1,
-        reason: 'there is nothing to migrate, so the migration is done',
-      );
+      expect(recorder.seededMarks, 0);
     });
 
     test('a region-qualified tag resolves to the language we ship', () async {
@@ -194,8 +212,11 @@ void main() {
       );
       expect(
         recorder.seededMarks,
-        0,
-        reason: 'nothing was reconciled; the migration question stays open',
+        1,
+        reason:
+            'the OS demonstrably holds an override, so its later absence '
+            'must read as the user clearing it — not as never-seeded, which '
+            'would re-push the saved code over their System default',
       );
     });
 
@@ -206,7 +227,27 @@ void main() {
 
       expect(result, 'it');
       expect(recorder.pushed, ['it']);
-      expect(recorder.seededMarks, 1);
+      expect(recorder.seededMarks, 0);
+    });
+
+    // A channel failure is not an answer. Deciding anything on it — most of
+    // all the seeded+absent clear below — would destroy a language the user
+    // never touched.
+    test('a failed read changes nothing, even when seeded', () async {
+      final recorder = _Recorder();
+
+      final result = await _reconcile(
+        recorder,
+        saved: 'de',
+        system: null,
+        seeded: true,
+        readFailed: true,
+      );
+
+      expect(result, 'de');
+      expect(recorder.pushed, isEmpty);
+      expect(recorder.persisted, isEmpty);
+      expect(recorder.seededMarks, 0);
     });
   });
 
