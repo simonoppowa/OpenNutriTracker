@@ -324,18 +324,20 @@ void main() {
     expect(stored.photo, AiCapability.passed);
   });
 
-  test('a verdict is validated against the configuration it probed', () async {
-    // Two reads of the same store with a gap between them: the identity was
-    // taken by `_configurationOf`, and the configuration actually sent came
-    // from `selectionFor` a moment later. A change landing in that gap probed
-    // the new machine and validated the old — so a good verdict was thrown
-    // away, and if the configuration changed *back* before the probe
-    // returned, the new machine's verdict was written against the old one.
-    // Raised by Copilot on #800.
+  test('a save landing as a check starts cannot mislead it', () async {
+    // Two guarantees composed, and neither is enough alone.
+    //
+    // #813 makes the selection read atomic, so a save cannot slip between the
+    // address read and the model read and hand the check a pair that was
+    // never configured — it waits, and the check is sent to the machine that
+    // was configured when it started.
+    //
+    // #800 makes the verdict conditional on that same pair, so the answer
+    // about the old machine is not written against the new one after the save
+    // lands.
     await configure();
-    // Held between the two reads: the key slot is the first thing
-    // `selectionFor` asks for, so the identity is already taken and the
-    // address is not yet.
+    // Held on the first read the selection makes, so the save arrives while
+    // the check is deciding where to go.
     final betweenReads = Completer<void>();
     backing.readGates['AiApiKeyTag.ownServer'] = betweenReads;
     prober.gate = Completer<void>();
@@ -343,36 +345,29 @@ void main() {
     final running = runner.start(own);
     await pumpEventQueue();
 
-    // The user re-points at another box while the check is starting.
-    await storage.writeOwnServerConfiguration(
+    // Started, not awaited: the read holds the lock, so awaiting here would
+    // wait on a save that is waiting on us.
+    backing.readGates.remove('AiApiKeyTag.ownServer');
+    final saved = storage.writeOwnServerConfiguration(
       endpoint: 'http://192.168.1.9:11434',
       model: 'gemma3:4b',
       provider: own,
     );
-    backing.readGates.remove('AiApiKeyTag.ownServer');
     betweenReads.complete();
-    await pumpEventQueue();
-
-    // And back again before the answer lands, which is what made the old
-    // identity match and let the wrong verdict through.
-    await storage.writeOwnServerConfiguration(
-      endpoint: 'http://192.168.1.5:11434',
-      model: 'gemma3:4b',
-      provider: own,
-    );
+    await saved;
 
     prober.gate!.complete();
     await running;
 
     expect(
       prober.lastSelection?.endpoint,
-      contains('192.168.1.9'),
-      reason: 'the probe was sent to the machine configured at the time',
+      contains('192.168.1.5'),
+      reason: 'the save may not tear the pair the check was sent to',
     );
     expect(
       (await storage.readProbe(provider: own)).photo,
       AiCapability.unknown,
-      reason: 'that verdict is about a machine this configuration is not',
+      reason: 'that verdict is about the machine the user has moved off',
     );
   });
 

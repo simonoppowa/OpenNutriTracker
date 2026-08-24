@@ -107,13 +107,15 @@ class AiEndpointProbeRunner {
     String? localeCode,
   }) async {
     try {
-      // A provisional identity, for the case where there turns out to be
-      // nothing to send: it lets a caller joining later tell "tested nothing,
-      // because paused" from "tested a configuration that has since changed".
-      // When there *is* something to send it is replaced below by the
-      // identity of the selection actually probed, which is the only one a
-      // verdict may be validated against.
-      running.testing = await _configurationOf(provider);
+      // Read the configuration **once**, and take the identity from it.
+      //
+      // This used to ask `_configurationOf` first and `selectionFor` after,
+      // which is two reads with a gap between them: a save landing in the gap
+      // probed one machine and validated another. #813 made the selection
+      // read atomic, and asking only it removes the gap as well as the
+      // disagreement. `_configurationOf` is now reached only when there is
+      // nothing to send, where the identity is a hint for a later join rather
+      // than something a verdict is judged against.
       // Named rather than active: this is a probe of *this* provider's stored
       // configuration, not of whoever happens to be selected when it gets
       // around to asking. Reading the active selection instead put a window
@@ -125,15 +127,14 @@ class AiEndpointProbeRunner {
       // is sent, and a probe is a request like any other.
       final selection = await _credentials.selectionFor(provider);
       if (selection == null) {
+        running.testing = await _configurationOf(provider);
         _log.info('Nothing to probe for ${provider.name}');
       } else {
-        // **The identity of what is about to be sent**, taken from the
-        // selection itself rather than from the read above it. Those are two
-        // reads of the same store with a gap between them: a change landing
-        // in that gap probed the new configuration and validated the old, so
-        // a good verdict was thrown away — and if the configuration changed
-        // back before the probe returned, the new machine's verdict was
-        // stored against the old one. Raised by Copilot on #800.
+        // The identity of what is about to be sent, taken from the selection
+        // itself. #800: validating against a separately-read snapshot threw
+        // good verdicts away, and stored the new machine's verdict against
+        // the old one when the configuration changed back before the probe
+        // returned.
         final tested = (
           endpoint: selection.endpoint,
           modelId: selection.modelId,

@@ -557,6 +557,64 @@ void main() {
   });
 
   group('a server the user runs', () {
+    test('a selection is never one save\'s address beside another\'s model', () async {
+      // The read side of the same rule. `writeOwnServerConfiguration` commits
+      // the pair as one act; reading the fields one at a time let a save land
+      // between them and hand back `(endpoint A, model B)` — a pair the user
+      // never configured and no machine was ever asked about.
+      //
+      // Worse than a wasted round trip, because it is a *request* to that
+      // pair: a photo sent to one box asking for another box's model is a
+      // `model_not_found`, which is `unsupported`, which #782 reads as
+      // grounds to take the camera away from a configuration that works.
+      // #813.
+      await storage.setActiveProvider(AiProvider.ownServer);
+      await storage.writeOwnServerConfiguration(
+        endpoint: 'http://192.168.1.5:11434',
+        model: 'model-a',
+        provider: AiProvider.ownServer,
+      );
+
+      // Held after the address has been read and before the model is.
+      const modelKey = 'AiModelTag.ownServer';
+      final held = Completer<void>();
+      backing.readGates[modelKey] = held;
+
+      final reading = storage.selectionFor(AiProvider.ownServer);
+      for (var i = 0; i < 50 && !backing.reads.contains(modelKey); i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      // Started, not awaited: with the fix the read holds the lock, so this
+      // save waits — and awaiting it here would wait on ourselves.
+      backing.readGates.remove(modelKey);
+      final saved = storage.writeOwnServerConfiguration(
+        endpoint: 'http://192.168.1.9:11434',
+        model: 'model-b',
+        provider: AiProvider.ownServer,
+      );
+      held.complete();
+      final selection = await reading;
+      await saved;
+
+      expect(
+        [selection?.endpoint, selection?.modelId],
+        anyOf(
+          equals([
+            'http://192.168.1.5:11434/v1/chat/completions',
+            'model-a',
+          ]),
+          equals([
+            'http://192.168.1.9:11434/v1/chat/completions',
+            'model-b',
+          ]),
+        ),
+        reason: 'a torn read is not only a crossed pair: writing an address '
+            'clears the model, so the half-read state can also come back as '
+            'not configured at all and the feature go quietly unavailable',
+      );
+    });
+
     test('two overlapping saves cannot cross their endpoint and model', () async {
       // The pair commits as one act or not at all. Taking the lock once per
       // write let two saves interleave — endpoint A, endpoint B, model B,
