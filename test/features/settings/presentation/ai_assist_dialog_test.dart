@@ -1100,7 +1100,7 @@ void main() {
       ///
       /// `pumpAndSettle` advances the fake clock until nothing is scheduled,
       /// and `AiModelListApi` carries a 15-second timeout — so a request held
-      /// open by [_Server.gate] times out instead of staying in flight, and
+      /// open by [_Server.gates] times out instead of staying in flight, and
       /// the window these cases are about never exists. Two sequential
       /// fetches look exactly like the bug being tested for, which is how the
       /// first version of this passed against the unfixed code.
