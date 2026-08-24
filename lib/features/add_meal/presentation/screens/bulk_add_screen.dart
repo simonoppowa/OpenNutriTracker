@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -554,93 +556,166 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     final title = meal?.name ?? row.resolved.parsed.query;
     final faded = row.skipped || !row.isResolved;
 
+    // Both rows below decide between one line and two, so they need the width
+    // they were actually given rather than the screen's.
     return Opacity(
       opacity: row.skipped ? 0.5 : 1.0,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: row.isResolved
-                        ? () => _showCandidatePicker(index, row)
-                        : null,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // User content inside a Row: shrink to fit before
-                        // ellipsizing, never wrap (AGENTS.md).
-                        AutoSizeText(
-                          title,
-                          maxLines: 1,
-                          minFontSize: 12,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            decoration: row.skipped
-                                ? TextDecoration.lineThrough
-                                : null,
-                          ),
-                        ),
-                        if (!row.isResolved)
-                          Text(
-                            S.of(context).bulkAddNoMatchLabel,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.error,
-                            ),
-                          )
-                        else if (row.isLowConfidence)
-                          Text(
-                            S.of(context).bulkAddUncertainLabel,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.tertiary,
-                            ),
-                          )
-                        // A bare count the app could not interpret. Shown
-                        // below a doubtful match, because a wrong food
-                        // matters more than a wrong unit on the right one.
-                        else if (row.amountNeedsCheck)
-                          Text(
-                            S.of(context).bulkAddCheckAmountLabel,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.tertiary,
-                            ),
-                          )
-                        else if (meal?.brands != null)
-                          Text(meal!.brands!, style: theme.textTheme.bodySmall),
-                      ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final available = constraints.maxWidth;
+            final actions = _rowActions(context, index, row);
+            // A `TextButton` is its label plus Material's padding, floored at
+            // its minimum size. At 2x on a 320dp screen the German "skip"
+            // alone measures 353px of the 288 this row gets, and a `Row`
+            // answers that by squeezing the name to nothing and overflowing
+            // by 65 anyway. #824.
+            final actionsWidth = actions.fold<double>(
+              0,
+              (sum, action) => sum + _actionWidth(context, action.label),
+            );
+            // Below this the name has no share of the line worth reading, so
+            // the controls take a line of their own and leave it the width.
+            final stacked =
+                available - actionsWidth <
+                MediaQuery.textScalerOf(context).scale(72);
+
+            final buttons = [
+              for (final action in actions)
+                TextButton(
+                  onPressed: action.onPressed,
+                  child: Text(action.label),
+                ),
+            ];
+
+            final titleBlock = InkWell(
+              onTap: row.isResolved
+                  ? () => _showCandidatePicker(index, row)
+                  : null,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // User content inside a Row: shrink to fit before
+                  // ellipsizing, never wrap (AGENTS.md).
+                  AutoSizeText(
+                    title,
+                    maxLines: 1,
+                    minFontSize: 12,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      decoration: row.skipped
+                          ? TextDecoration.lineThrough
+                          : null,
                     ),
                   ),
-                ),
-                if (!row.isResolved)
-                  TextButton(
-                    onPressed: _showQuickAdd,
-                    child: Text(S.of(context).quickAddCardLabel),
+                  if (!row.isResolved)
+                    Text(
+                      S.of(context).bulkAddNoMatchLabel,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.error,
+                      ),
+                    )
+                  else if (row.isLowConfidence)
+                    Text(
+                      S.of(context).bulkAddUncertainLabel,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.tertiary,
+                      ),
+                    )
+                  // A bare count the app could not interpret. Shown
+                  // below a doubtful match, because a wrong food
+                  // matters more than a wrong unit on the right one.
+                  else if (row.amountNeedsCheck)
+                    Text(
+                      S.of(context).bulkAddCheckAmountLabel,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.tertiary,
+                      ),
+                    )
+                  else if (meal?.brands != null)
+                    Text(meal!.brands!, style: theme.textTheme.bodySmall),
+                ],
+              ),
+            );
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (stacked)
+                  // Stretched, so each label is bounded by the line rather
+                  // than by whatever is left of it.
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [titleBlock, ...buttons],
+                  )
+                else
+                  // Unchanged wherever they fit, which is every ordinary
+                  // text size: name on the left, controls on the right.
+                  Row(
+                    children: [
+                      Expanded(child: titleBlock),
+                      ...buttons,
+                    ],
                   ),
-                TextButton(
-                  onPressed: () => _bloc.add(ToggleRowSkippedEvent(index)),
-                  child: Text(
-                    row.skipped
-                        ? S.of(context).bulkAddIncludeLabel
-                        : S.of(context).bulkAddSkipLabel,
-                  ),
-                ),
+                if (!faded)
+                  _buildAmountRow(context, state, index, row, available),
               ],
-            ),
-            if (!faded) _buildAmountRow(context, state, index, row),
-          ],
+            );
+          },
         ),
       ),
     );
   }
+
+  /// The controls on a row, as label and action rather than as widgets, so
+  /// that what is measured cannot drift from what is drawn.
+  List<({String label, VoidCallback onPressed})> _rowActions(
+    BuildContext context,
+    int index,
+    BulkAddRow row,
+  ) => [
+    if (!row.isResolved)
+      (label: S.of(context).quickAddCardLabel, onPressed: _showQuickAdd),
+    (
+      label: row.skipped
+          ? S.of(context).bulkAddIncludeLabel
+          : S.of(context).bulkAddSkipLabel,
+      onPressed: () => _bloc.add(ToggleRowSkippedEvent(index)),
+    ),
+  ];
+
+  /// The width a text button needs for [label]: the label itself, Material's
+  /// horizontal padding at its widest, and never less than the narrowest a
+  /// button is allowed to be.
+  double _actionWidth(BuildContext context, String label) => math.max(
+    _minButtonWidth,
+    _textWidth(context, label, Theme.of(context).textTheme.labelLarge) +
+        _buttonPadding,
+  );
+
+  static const _buttonPadding = 24.0;
+  static const _minButtonWidth = 64.0;
+
+  /// The width [text] needs at the current text scale.
+  ///
+  /// Measured rather than estimated. These rows have to choose between one
+  /// line and two, and an estimate wide enough to be safe for the widest
+  /// possible glyphs is about twice too wide for a real font — it would
+  /// stack the controls on screens where they comfortably fit.
+  double _textWidth(BuildContext context, String text, TextStyle? style) =>
+      (TextPainter(
+        text: TextSpan(text: text, style: style),
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+      )..layout()).width;
 
   Widget _buildAmountRow(
     BuildContext context,
     BulkAddLoadedState state,
     int index,
     BulkAddRow row,
+    double available,
   ) {
     final controller = _amountControllers.putIfAbsent(
       index,
@@ -650,48 +725,94 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       controller.text = row.amountText;
     }
 
+    final theme = Theme.of(context);
+    // The quantity box was a flat 110px while every label beside it grew with
+    // the text scale, so at 2x on a 320dp screen this row wanted 532px of a
+    // 288px slot and overflowed by 244. It scales now, like the other fixed
+    // widths in the app. #824.
+    final fieldWidth = MediaQuery.textScalerOf(context).scale(110);
+    final unitWidth = _unitDropdownWidth(context, row);
+    final energyText = _energyLabel(context, row);
+    final energyWidth = _textWidth(
+      context,
+      energyText,
+      theme.textTheme.titleSmall,
+    );
+    // Nothing flexes 532px into 288px. Where the three do not fit, they take
+    // a line each rather than share one: the unit is a whole word in some
+    // locales, and a clipped unit is not a narrower reading of the amount,
+    // it is a wrong one.
+    final stacked = available < fieldWidth + 12 + unitWidth + 8 + energyWidth;
+
+    final field = TextField(
+      controller: controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      // Same shape the manual-entry field enforces, so the two paths accept
+      // exactly the same input.
+      inputFormatters: [FilteringTextInputFormatter.allow(_quantityPattern)],
+      decoration: InputDecoration(
+        labelText: S.of(context).quantityLabel,
+        isDense: true,
+        border: const OutlineInputBorder(),
+      ),
+      onChanged: (value) => _bloc.add(ChangeRowAmountEvent(index, value)),
+    );
+
+    final unit = DropdownButton<String>(
+      value: row.effectiveUnit,
+      items: _unitItems(context, row),
+      // Only when it has a line to fill; on a shared line it takes the width
+      // its longest unit needs, which is what `stacked` was measured against.
+      isExpanded: stacked,
+      onChanged: (value) {
+        if (value != null) _bloc.add(ChangeRowUnitEvent(index, value));
+      },
+    );
+
+    final energy = Text(energyText, style: theme.textTheme.titleSmall);
+
     return Padding(
       padding: const EdgeInsets.only(top: 8),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 110,
-            child: TextField(
-              controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              // Same shape the manual-entry field enforces, so the two
-              // paths accept exactly the same input.
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(_quantityPattern),
+      child: stacked
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                field,
+                const SizedBox(height: 8),
+                unit,
+                const SizedBox(height: 4),
+                Align(alignment: AlignmentDirectional.centerEnd, child: energy),
               ],
-              decoration: InputDecoration(
-                labelText: S.of(context).quantityLabel,
-                isDense: true,
-                border: const OutlineInputBorder(),
-              ),
-              onChanged: (value) =>
-                  _bloc.add(ChangeRowAmountEvent(index, value)),
+            )
+          // Unchanged wherever it fits, which is every ordinary text size:
+          // the figure stays on the same line, pushed to the trailing edge.
+          : Row(
+              children: [
+                SizedBox(width: fieldWidth, child: field),
+                const SizedBox(width: 12),
+                unit,
+                const Spacer(),
+                energy,
+              ],
             ),
-          ),
-          const SizedBox(width: 12),
-          DropdownButton<String>(
-            value: row.effectiveUnit,
-            items: _unitItems(context, row),
-            onChanged: (value) {
-              if (value != null) _bloc.add(ChangeRowUnitEvent(index, value));
-            },
-          ),
-          const Spacer(),
-          Text(
-            _energyLabel(context, row),
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-        ],
-      ),
     );
   }
+
+  /// What the unit dropdown needs to show its longest unit without clipping
+  /// it: the dropdown sizes itself to its widest item, plus its arrow.
+  double _unitDropdownWidth(BuildContext context, BulkAddRow row) {
+    final style = Theme.of(context).textTheme.titleMedium;
+    var widest = 0.0;
+    for (final unit in row.allowedUnits) {
+      widest = math.max(
+        widest,
+        _textWidth(context, _unitLabel(context, unit), style),
+      );
+    }
+    return widest + _dropdownArrowWidth;
+  }
+
+  static const _dropdownArrowWidth = 24.0;
 
   /// Empty when the amount is not yet usable or the food has no energy value.
   String _energyLabel(BuildContext context, BulkAddRow row) {
@@ -711,19 +832,22 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       DropdownMenuItem(
         value: unit,
         child: Text(
-          switch (UnitDropdownItem.g.fromString(unit)) {
-            UnitDropdownItem.g => S.of(context).gramUnit,
-            UnitDropdownItem.ml => S.of(context).milliliterUnit,
-            UnitDropdownItem.gml => S.of(context).gramMilliliterUnit,
-            UnitDropdownItem.oz => S.of(context).ozUnit,
-            UnitDropdownItem.flOz => S.of(context).flOzUnit,
-            UnitDropdownItem.serving => S.of(context).servingLabel,
-          },
+          _unitLabel(context, unit),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
       ),
   ];
+
+  String _unitLabel(BuildContext context, String unit) =>
+      switch (UnitDropdownItem.g.fromString(unit)) {
+        UnitDropdownItem.g => S.of(context).gramUnit,
+        UnitDropdownItem.ml => S.of(context).milliliterUnit,
+        UnitDropdownItem.gml => S.of(context).gramMilliliterUnit,
+        UnitDropdownItem.oz => S.of(context).ozUnit,
+        UnitDropdownItem.flOz => S.of(context).flOzUnit,
+        UnitDropdownItem.serving => S.of(context).servingLabel,
+      };
 
   Widget _buildSubmitBar(BuildContext context, BulkAddLoadedState state) {
     final count = state.loggableCount;
