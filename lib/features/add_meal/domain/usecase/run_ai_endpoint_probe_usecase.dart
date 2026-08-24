@@ -126,15 +126,18 @@ class AiEndpointProbeRunner {
         _log.info('Nothing to probe for ${provider.name}');
       } else {
         final found = await _prober.probe(selection, localeCode: localeCode);
-        // Asked again on the way out, for the same reason `start` asks: what
-        // was tested has to still be what is stored, or this writes a verdict
-        // about one machine into the slot describing another. `writeEndpoint`
-        // and `writeModel` clear the slot when their value changes; without
-        // this, a probe already in flight would quietly fill it back in.
-        final settled = await _configurationOf(provider);
-        if (settled != null && settled == testing) {
-          await _credentials.writeProbe(found, provider: provider);
-        } else {
+        // Compare and write in the store as one serialized operation. A check
+        // here would leave a window where a configuration change clears the
+        // slot before this stale verdict fills it back in.
+        final stored =
+            testing != null &&
+            await _credentials.writeProbeIfConfigurationMatches(
+              found,
+              provider: provider,
+              endpoint: testing.endpoint,
+              modelId: testing.modelId,
+            );
+        if (!stored) {
           _log.info('Dropped a verdict about a configuration that has moved');
         }
       }

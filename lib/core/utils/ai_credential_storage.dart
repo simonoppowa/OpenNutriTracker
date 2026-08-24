@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
+import 'package:synchronized/synchronized.dart';
 
 /// A model provider the user can point the AI features at.
 ///
@@ -245,6 +246,7 @@ class AiCredentialStorage {
       '$_probeTag.${provider.name}';
 
   final FlutterSecureStorage _storage;
+  final _probeConfigurationLock = Lock();
 
   AiCredentialStorage([FlutterSecureStorage? storage])
     : _storage = storage ?? SecureAppStorageProvider.secureAppStorage;
@@ -606,19 +608,21 @@ class AiCredentialStorage {
     // destination at all.
     final value = resolved.toString();
 
-    final previous = await _storage.read(key: _endpointSlotTag(target));
-    if (previous != value) {
-      await _storage.delete(key: _modelSlotTag(target));
-      // And what the probe found, for the same reason and one step further:
-      // "photos work here" was a fact about a machine, and this is a
-      // different machine. #779.
-      await _storage.delete(key: _probeSlotTag(target));
-    }
-    await _storage.write(key: _endpointSlotTag(target), value: value);
+    await _probeConfigurationLock.synchronized(() async {
+      final previous = await _storage.read(key: _endpointSlotTag(target));
+      if (previous != value) {
+        await _storage.delete(key: _modelSlotTag(target));
+        // And what the probe found, for the same reason and one step further:
+        // "photos work here" was a fact about a machine, and this is a
+        // different machine. #779.
+        await _storage.delete(key: _probeSlotTag(target));
+      }
+      await _storage.write(key: _endpointSlotTag(target), value: value);
 
-    // Same reasoning as `writeApiKey`: supplying the thing that makes the
-    // provider usable is the user asking for the feature.
-    await _storage.write(key: _enabledTag, value: 'true');
+      // Same reasoning as `writeApiKey`: supplying the thing that makes the
+      // provider usable is the user asking for the feature.
+      await _storage.write(key: _enabledTag, value: 'true');
+    });
   }
 
   /// The provider these per-provider methods should act on: the one named,
@@ -727,11 +731,13 @@ class AiCredentialStorage {
     final target = await _target(provider);
     if (target == null) return;
 
-    final previous = await _storage.read(key: _modelSlotTag(target));
-    if (previous != modelId) {
-      await _storage.delete(key: _probeSlotTag(target));
-    }
-    await _storage.write(key: _modelSlotTag(target), value: modelId);
+    await _probeConfigurationLock.synchronized(() async {
+      final previous = await _storage.read(key: _modelSlotTag(target));
+      if (previous != modelId) {
+        await _storage.delete(key: _probeSlotTag(target));
+      }
+      await _storage.write(key: _modelSlotTag(target), value: modelId);
+    });
   }
 
   /// What the last probe found for [provider], or [AiEndpointProbe.unknown]
@@ -768,6 +774,36 @@ class AiCredentialStorage {
     final target = await _target(provider);
     if (target == null) return;
 
+    await _probeConfigurationLock.synchronized(
+      () => _writeProbe(probe, target),
+    );
+  }
+
+  /// Records [probe] only while [endpoint] and [modelId] still identify
+  /// [provider]'s current destination.
+  ///
+  /// The comparison and write share the same lock as [writeEndpoint] and
+  /// [writeModel]. Keeping the check here is load-bearing: a request can
+  /// finish after settings move, and a check in its caller leaves a window
+  /// where the configuration write clears the slot before the stale result
+  /// recreates it. The lock makes either ordering safe — an older verdict is
+  /// written before the move and then cleared, or observes the move and is
+  /// dropped.
+  Future<bool> writeProbeIfConfigurationMatches(
+    AiEndpointProbe probe, {
+    required AiProvider provider,
+    required String? endpoint,
+    required String? modelId,
+  }) => _probeConfigurationLock.synchronized(() async {
+    final currentEndpoint = await readEndpoint(provider: provider);
+    final currentModel = await readModel(provider: provider);
+    if (currentEndpoint != endpoint || currentModel != modelId) return false;
+
+    await _writeProbe(probe, provider);
+    return true;
+  });
+
+  Future<void> _writeProbe(AiEndpointProbe probe, AiProvider target) async {
     final stored = AiEndpointProbe.decode(
       await _storage.read(key: _probeSlotTag(target)),
     );
@@ -841,19 +877,21 @@ class AiCredentialStorage {
     final target = await _target(provider);
     if (target == null) return;
 
-    await _storage.delete(key: _slotTag(target));
-    await _storage.delete(key: _endpointSlotTag(target));
-    await _storage.delete(key: _modelSlotTag(target));
-    await _storage.delete(key: _probeSlotTag(target));
-    await _retireLegacyTagFor(target);
+    await _probeConfigurationLock.synchronized(() async {
+      await _storage.delete(key: _slotTag(target));
+      await _storage.delete(key: _endpointSlotTag(target));
+      await _storage.delete(key: _modelSlotTag(target));
+      await _storage.delete(key: _probeSlotTag(target));
+      await _retireLegacyTagFor(target);
 
-    // Only once nothing is left: with two slots, clearing one key is often
-    // "I am dropping this provider", not "I am done with the feature". The
-    // invariant that matters is narrower — the flag may never be on with no
-    // credential behind it at all.
-    if (!await _hasAnyKey()) {
-      await _storage.delete(key: _enabledTag);
-    }
+      // Only once nothing is left: with two slots, clearing one key is often
+      // "I am dropping this provider", not "I am done with the feature". The
+      // invariant that matters is narrower — the flag may never be on with no
+      // credential behind it at all.
+      if (!await _hasAnyKey()) {
+        await _storage.delete(key: _enabledTag);
+      }
+    });
   }
 
   /// The legacy tag is the Anthropic slot under an older name, so it is

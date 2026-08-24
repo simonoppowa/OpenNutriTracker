@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
@@ -10,6 +12,7 @@ import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 class _MemoryStorage implements FlutterSecureStorage {
   final store = <String, String>{};
   final reads = <String>[];
+  final readGates = <String, Completer<void>>{};
 
   @override
   Future<String?> read({
@@ -22,6 +25,8 @@ class _MemoryStorage implements FlutterSecureStorage {
     WindowsOptions? wOptions,
   }) async {
     reads.add(key);
+    final gate = readGates[key];
+    if (gate != null) await gate.future;
     return store[key];
   }
 
@@ -1188,6 +1193,39 @@ void main() {
       final probe = await storage.readProbe(provider: own);
       expect(probe.photo, AiCapability.failed, reason: 'retracted');
       expect(probe.text, AiCapability.passed, reason: 'untouched');
+    });
+
+    test('a configuration move cannot land inside a conditional write', () async {
+      // The endpoint/model comparison and probe write must be indivisible.
+      // Holding the probe read opens the exact old check-then-write window:
+      // without serialization, the endpoint change clears the slot and the
+      // stale write recreates it afterwards.
+      await configure();
+      backing.readGates['AiProbeTag.ownServer'] = Completer<void>();
+
+      final staleWrite = storage.writeProbeIfConfigurationMatches(
+        const AiEndpointProbe(
+          text: AiCapability.unknown,
+          photo: AiCapability.failed,
+        ),
+        provider: own,
+        endpoint: 'http://192.168.1.5:11434/v1/chat/completions',
+        modelId: 'gemma3:4b',
+      );
+      await pumpEventQueue();
+      expect(backing.reads.last, 'AiProbeTag.ownServer');
+
+      final move = storage.writeEndpoint(
+        'http://192.168.1.9:11434',
+        provider: own,
+      );
+      backing.readGates.remove('AiProbeTag.ownServer')!.complete();
+      await Future.wait([staleWrite, move]);
+
+      expect(
+        (await storage.readProbe(provider: own)).photo,
+        AiCapability.unknown,
+      );
     });
 
     test('nothing conclusive leaves no record at all', () async {
