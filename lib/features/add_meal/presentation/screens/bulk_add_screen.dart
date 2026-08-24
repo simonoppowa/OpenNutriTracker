@@ -204,25 +204,49 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       body: SafeArea(
         child: BlocBuilder<BulkAddBloc, BulkAddState>(
           bloc: _bloc,
-          builder: (context, state) => Column(
-            children: [
-              _buildInput(context),
-              const Divider(height: 1),
-              Expanded(child: _buildBody(context, state)),
-              if (state is BulkAddLoadedState) _buildSubmitBar(context, state),
-            ],
+          builder: (context, state) => LayoutBuilder(
+            builder: (context, constraints) => Column(
+              children: [
+                // The **field** is bounded, not the block. At 2x on a 320dp
+                // screen the entry block measured 388px — a four-line field
+                // plus a full-height button — against about 595px of body,
+                // and with the submit bar's 192 that left the rows nothing
+                // and overflowed by 14px. #820.
+                //
+                // Capping the whole block was tried first and is worse: the
+                // Search button falls below the fold inside the scroll view,
+                // so the primary action of the screen has to be scrolled to.
+                // Bounding the field alone keeps the button where it is.
+                //
+                // A ceiling rather than fewer `maxLines`: shrinking the field
+                // at large text scales would take multi-line entry away from
+                // exactly the users who need the biggest text, on a screen
+                // that exists for typing several items at once.
+                _buildInput(context, maxFieldHeight: constraints.maxHeight * 0.3),
+                const Divider(height: 1),
+                Expanded(child: _buildBody(context, state)),
+                if (state is BulkAddLoadedState)
+                  _buildSubmitBar(context, state),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildInput(BuildContext context) => Padding(
+  Widget _buildInput(BuildContext context, {required double maxFieldHeight}) =>
+      Padding(
     padding: const EdgeInsets.all(16),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Semantics(
+        // Scrolls past its ceiling rather than being clipped: what is typed
+        // must stay reachable, and at ordinary text sizes four lines are far
+        // below this so nothing changes.
+        ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxFieldHeight),
+          child: Semantics(
           identifier: 'bulk-add-input',
           child: TextField(
             controller: _textController,
@@ -235,6 +259,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
               border: const OutlineInputBorder(),
             ),
           ),
+        ),
         ),
         const SizedBox(height: 12),
         Semantics(
