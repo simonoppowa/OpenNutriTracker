@@ -464,14 +464,82 @@ void main() {
     // The cap being gone is the fix, not an implementation detail: any
     // maxLines put back here truncates German at this size.
     expect(notice.maxLines, isNull);
-    // **Not `takeException()` here.** This viewport also produces a 14px
-    // RenderFlex overflow that has nothing to do with the notice — halving
-    // the notice's own ceiling leaves it at exactly 14px — so asserting a
-    // clean frame would fail this test for someone else's defect and hide
-    // this one behind it. Filed separately; the assertion above is what #777
-    // is about.
+    // Still not `takeException()`: #820 removed the vertical overflow, and
+    // doing so uncovered horizontal ones in the row layout that had been
+    // masked by it. Those are #824; the assertion above is what #777 is
+    // about.
     tester.takeException();
   });
+
+  testWidgets('the screen fits at 2x on a narrow phone, in German', (
+    tester,
+  ) async {
+    // #820. Only the row list could give ground: the entry block and the
+    // submit bar were both fixed, and at 2x they measured 388 and 192 against
+    // about 595 of body — so the rows got nothing and the column overflowed
+    // by 14px. German, because the buttons carry the longest labels.
+    tester.view.physicalSize = const Size(320 * 3, 640 * 3);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
+    await _registerWithFailingReader({
+      'toast': [_meal('Toast')],
+    }, const MealInterpreterException(
+      'request timed out',
+      failure: MealInterpreterFailure.timeout,
+    ));
+
+    // Collected rather than asserted away. Fixing the vertical overflow
+    // uncovered horizontal ones in the row layout — 65 and 244 pixels —
+    // which had been masked while layout aborted before the rows were
+    // reached. Those are #824, so this test
+    // says precisely what it guarantees: nothing overflows *downwards* any
+    // more. A blanket `takeException` would pass while the column overflowed
+    // again, and a clean-frame assertion would fail for the rows.
+    final errors = <String>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = (details) => errors.add(details.toString());
+    addTearDown(() => FlutterError.onError = previous);
+
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+        child: _app(locale: const Locale('de')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _parse(tester, '100g toast');
+
+    expect(
+      errors.where((e) => e.contains('overflowed') && e.contains('bottom')),
+      isEmpty,
+      reason: 'the column still does not fit the screen it is given',
+    );
+
+    final input = tester
+        .getSize(find.bySemanticsIdentifier('bulk-add-input'))
+        .height;
+    final submit = tester
+        .getSize(find.bySemanticsIdentifier('bulk-add-submit'))
+        .height;
+    final parse = tester
+        .getSize(find.bySemanticsIdentifier('bulk-add-parse'))
+        .height;
+
+    expect(
+      input,
+      lessThanOrEqualTo(640 * 0.3),
+      reason: 'the field is what gives ground, so the rows do not have to',
+    );
+    // The rows are what was being squeezed to nothing. 32 of padding above
+    // and 32 below the two buttons, and a 1px divider.
+    expect(
+      input + parse + submit + 65,
+      lessThan(640),
+      reason: 'the fixed children have to leave the list some height',
+    );
+  });
+
 
   testWidgets('the advice is a control, so nothing can truncate it', (
     tester,
