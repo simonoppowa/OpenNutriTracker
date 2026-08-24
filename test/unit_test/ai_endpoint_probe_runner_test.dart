@@ -324,6 +324,58 @@ void main() {
     expect(stored.photo, AiCapability.passed);
   });
 
+  test('a verdict is validated against the configuration it probed', () async {
+    // Two reads of the same store with a gap between them: the identity was
+    // taken by `_configurationOf`, and the configuration actually sent came
+    // from `selectionFor` a moment later. A change landing in that gap probed
+    // the new machine and validated the old — so a good verdict was thrown
+    // away, and if the configuration changed *back* before the probe
+    // returned, the new machine's verdict was written against the old one.
+    // Raised by Copilot on #800.
+    await configure();
+    // Held between the two reads: the key slot is the first thing
+    // `selectionFor` asks for, so the identity is already taken and the
+    // address is not yet.
+    final betweenReads = Completer<void>();
+    backing.readGates['AiApiKeyTag.ownServer'] = betweenReads;
+    prober.gate = Completer<void>();
+
+    final running = runner.start(own);
+    await pumpEventQueue();
+
+    // The user re-points at another box while the check is starting.
+    await storage.writeOwnServerConfiguration(
+      endpoint: 'http://192.168.1.9:11434',
+      model: 'gemma3:4b',
+      provider: own,
+    );
+    backing.readGates.remove('AiApiKeyTag.ownServer');
+    betweenReads.complete();
+    await pumpEventQueue();
+
+    // And back again before the answer lands, which is what made the old
+    // identity match and let the wrong verdict through.
+    await storage.writeOwnServerConfiguration(
+      endpoint: 'http://192.168.1.5:11434',
+      model: 'gemma3:4b',
+      provider: own,
+    );
+
+    prober.gate!.complete();
+    await running;
+
+    expect(
+      prober.lastSelection?.endpoint,
+      contains('192.168.1.9'),
+      reason: 'the probe was sent to the machine configured at the time',
+    );
+    expect(
+      (await storage.readProbe(provider: own)).photo,
+      AiCapability.unknown,
+      reason: 'that verdict is about a machine this configuration is not',
+    );
+  });
+
   test('the language the user reads in reaches the request', () async {
     // The system prompt asks for food names in the user's language, and the
     // probe goes through the shipping interpreters — so the probe has to be
