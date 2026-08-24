@@ -29,6 +29,22 @@ class DiaryTableCalendar extends StatefulWidget {
   State<DiaryTableCalendar> createState() => _DiaryTableCalendarState();
 }
 
+/// What one line of [style] actually needs at the current text scale.
+///
+/// Measured rather than scaled from the package's 16.0: that constant only
+/// equals a heading's height by coincidence — it is `labelSmall`'s line
+/// height today — and scaling it lands fractionally short at some scales
+/// (20.8 against the 21.0 wanted at 1.3x), which clips just as surely.
+double _weekdayRowHeight(BuildContext context, TextStyle style) =>
+    (TextPainter(
+      // Any single line measures the same: the height comes from the font's
+      // metrics, not from which glyphs are in it.
+      text: TextSpan(text: 'Mon', style: style),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout())
+        .height;
+
 class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
   @override
   Widget build(BuildContext context) {
@@ -36,6 +52,9 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     final accent = Theme.of(context).colorScheme.primary;
     final textTheme = Theme.of(context).textTheme;
+    final weekdayStyle =
+        textTheme.labelSmall?.copyWith(color: palette.textMuted) ??
+            const TextStyle();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -65,9 +84,18 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
             headerPadding: const EdgeInsets.symmetric(vertical: Dimens.spacing8),
           ),
           daysOfWeekStyle: DaysOfWeekStyle(
-            weekdayStyle: textTheme.labelSmall?.copyWith(color: palette.textMuted) ?? const TextStyle(),
-            weekendStyle: textTheme.labelSmall?.copyWith(color: palette.textMuted) ?? const TextStyle(),
+            weekdayStyle: weekdayStyle,
+            weekendStyle: weekdayStyle,
           ),
+          // The package default is a flat 16.0, and `labelSmall` is 11sp on a
+          // 1.45 line height — exactly 16 logical pixels. So the row has no
+          // slack at all at the default text size, and every step above it
+          // cuts the headings: 21px of text in 16 at 1.3x, 32 in 16 at 2x.
+          //
+          // Nothing throws and no overflow stripes appear, because each
+          // heading sits in a `SizedBox` of this height, and a tight
+          // constraint squeezes its child rather than overflowing (#766).
+          daysOfWeekHeight: _weekdayRowHeight(context, weekdayStyle),
           focusedDay: widget.focusedDate,
           firstDay: widget.currentDate.subtract(widget.calendarDurationDays),
           lastDay: widget.currentDate.add(widget.calendarDurationDays),
