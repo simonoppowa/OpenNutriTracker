@@ -21,12 +21,20 @@ const _supported = [
 ];
 
 class _Recorder {
+  /// What a read-back of the OS tag answers after a push. By default it
+  /// echoes the pushed value — a platform that holds per-app overrides.
+  /// Pass false for one that cannot hold them, where a push no-ops.
+  _Recorder({this.readBackFollowsPush = true});
+
+  final bool readBackFollowsPush;
   final persisted = <String?>[];
   final pushed = <String?>[];
   int seededMarks = 0;
 
   Future<void> persist(String? code) async => persisted.add(code);
   Future<void> push(String? tag) async => pushed.add(tag);
+  Future<({String? tag, bool readFailed})> readBack() async =>
+      (tag: readBackFollowsPush ? pushed.lastOrNull : null, readFailed: false);
   Future<void> markSeeded() async => seededMarks++;
 }
 
@@ -44,6 +52,7 @@ Future<String?> _reconcile(
   supportedLocales: _supported,
   persistSelectedLocale: recorder.persist,
   pushToSystem: recorder.push,
+  readSystemTag: recorder.readBack,
   markLocaleSyncSeeded: recorder.markSeeded,
 );
 
@@ -94,8 +103,11 @@ void main() {
 
     // The upgrade path: someone chose a language in the app long before this
     // wiring existed, so the OS has no override yet. Their choice is what
-    // they meant, and it seeds the system rather than being overwritten by it.
-    test('with no override, a saved choice seeds the system', () async {
+    // they meant, and it seeds the system rather than being overwritten by
+    // it. The read-back sees the pushed value, so seeded is recorded in the
+    // same call — a clear arriving any time afterwards is honoured, with no
+    // window in which it would read as never-seeded and be re-pushed.
+    test('a saved choice seeds the system and the echo records it', () async {
       final recorder = _Recorder();
 
       final result = await _reconcile(recorder, saved: 'uk', system: null);
@@ -105,20 +117,19 @@ void main() {
       expect(recorder.persisted, isEmpty);
       expect(
         recorder.seededMarks,
-        0,
+        1,
         reason:
-            'seeded means the OS was SEEN holding a value; recording it on '
-            'the attempt would turn a platform that cannot hold one — where '
-            'this branch repeats forever — into a user who cleared it',
+            'seeded means the OS was SEEN holding a value — here via the '
+            'read-back of the push, not the attempt itself',
       );
     });
 
-    // The observation that completes the migration: the pushed value comes
-    // back on the next read, which is when seeded may be recorded. On a
-    // platform with no per-app override the push no-ops, this never fires,
-    // and the saved choice survives every launch.
+    // On a platform with no per-app override the push no-ops and the
+    // read-back stays empty, so seeded is never recorded and the migration
+    // branch repeats — harmlessly — instead of the platform ever being
+    // mistaken for a user who cleared their override.
     test('a saved choice on an override-less platform survives', () async {
-      final recorder = _Recorder();
+      final recorder = _Recorder(readBackFollowsPush: false);
 
       await _reconcile(recorder, saved: 'uk', system: null);
       final result = await _reconcile(recorder, saved: 'uk', system: null);
@@ -128,6 +139,11 @@ void main() {
         recorder.persisted,
         isEmpty,
         reason: 'nothing may clear a choice the user never cleared',
+      );
+      expect(
+        recorder.pushed,
+        ['uk', 'uk'],
+        reason: 'the repeat is the design: pushes that never take are no-ops',
       );
       expect(recorder.seededMarks, 0);
     });
@@ -227,7 +243,7 @@ void main() {
 
       expect(result, 'it');
       expect(recorder.pushed, ['it']);
-      expect(recorder.seededMarks, 0);
+      expect(recorder.seededMarks, 1);
     });
 
     // A channel failure is not an answer. Deciding anything on it — most of

@@ -30,11 +30,13 @@ import 'dart:ui';
 /// - **No override, never seeded.** The upgrade path: an install that
 ///   predates this wiring, or one where only the in-app picker has been
 ///   used. The saved choice is pushed out so both sides start from the same
-///   place. Deliberately not recorded as seeded here -- the record comes
-///   from *observing* the pushed value on a later read. On Android 13+ that
-///   is the next launch; on platforms with no per-app override the push
-///   no-ops, the observation never comes, and this branch harmlessly repeats
-///   instead of ever mistaking the platform for a user who cleared it.
+///   place. Seeded is recorded only by *observing* the pushed value, read
+///   back in this same call -- never by the attempt alone. On Android 13+
+///   the read-back sees the value immediately, so the record lands before
+///   this call returns and a clear arriving any time after it is honoured;
+///   on platforms with no per-app override the push no-ops, the read-back
+///   stays empty, and this branch harmlessly repeats instead of ever
+///   mistaking the platform for a user who cleared it.
 /// - **No override, seeded.** The OS held a value and no longer does, which
 ///   only happens when the user picked "System default" in Android's picker.
 ///   That is a deliberate choice, so the in-app override is cleared to
@@ -49,6 +51,7 @@ Future<String?> reconcileAppLocale({
   required Iterable<Locale> supportedLocales,
   required Future<void> Function(String? localeCode) persistSelectedLocale,
   required Future<void> Function(String? languageTag) pushToSystem,
+  required Future<({String? tag, bool readFailed})> Function() readSystemTag,
   required Future<void> Function() markLocaleSyncSeeded,
 }) async {
   if (systemTagReadFailed) return savedLocaleCode;
@@ -68,7 +71,13 @@ Future<String?> reconcileAppLocale({
   }
 
   if (!localeSyncSeeded) {
-    if (savedLocaleCode != null) await pushToSystem(savedLocaleCode);
+    if (savedLocaleCode != null) {
+      await pushToSystem(savedLocaleCode);
+      final verify = await readSystemTag();
+      if (!verify.readFailed && verify.tag != null && verify.tag!.isNotEmpty) {
+        await markLocaleSyncSeeded();
+      }
+    }
     return savedLocaleCode;
   }
 

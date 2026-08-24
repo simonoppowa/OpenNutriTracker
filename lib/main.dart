@@ -94,6 +94,7 @@ Future<void> _bootstrapApp() async {
     supportedLocales: S.supportedLocales,
     persistSelectedLocale: configRepo.setSelectedLocale,
     pushToSystem: AppLocaleService.setApplicationLocale,
+    readSystemTag: AppLocaleService.getApplicationLocale,
     markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
   );
   final savedLocale = localeCode != null ? Locale(localeCode) : null;
@@ -239,13 +240,41 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
     unawaited(_adoptSystemLocale());
   }
 
+  /// True while [_adoptSystemLocale] is between its awaits; a second entry
+  /// then only queues a re-run instead of racing the first.
+  bool _adoptingSystemLocale = false;
+  bool _adoptSystemLocaleQueued = false;
+
   /// The same [reconcileAppLocale] the launch path runs, deliberately: this
   /// fires for any locale change — the per-app picker, but also a plain
   /// system-language change on platforms with no per-app override — and a
   /// second hand-rolled copy of the decision table here could disagree with
   /// the launch one about the same OS state within one session. Only the
   /// screen update is local; every persistence decision stays in one place.
+  ///
+  /// Serialized against itself: reconciling can change the locale (the
+  /// migration push), which re-fires [didChangeLocales] while the first run
+  /// is still mid-flight. Overlapping runs would read the same pre-write
+  /// config snapshot and double-apply it, so a run arriving early is queued
+  /// and replayed once the current one finishes — dropped instead of
+  /// queued, it could miss a clear that arrived mid-run.
   Future<void> _adoptSystemLocale() async {
+    if (_adoptingSystemLocale) {
+      _adoptSystemLocaleQueued = true;
+      return;
+    }
+    _adoptingSystemLocale = true;
+    try {
+      do {
+        _adoptSystemLocaleQueued = false;
+        await _reconcileAndAdoptLocale();
+      } while (_adoptSystemLocaleQueued);
+    } finally {
+      _adoptingSystemLocale = false;
+    }
+  }
+
+  Future<void> _reconcileAndAdoptLocale() async {
     final configRepo = locator<ConfigRepository>();
     final systemLocale = await AppLocaleService.getApplicationLocale();
     final localeCode = await reconcileAppLocale(
@@ -256,8 +285,12 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
       supportedLocales: S.supportedLocales,
       persistSelectedLocale: configRepo.setSelectedLocale,
       pushToSystem: AppLocaleService.setApplicationLocale,
+      readSystemTag: AppLocaleService.getApplicationLocale,
       markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
     );
+    // Persistence above deliberately ran to completion regardless of widget
+    // lifetime — what is saved must not depend on whether this State is
+    // still mounted. Only the on-screen update needs the live context.
     if (!mounted) return;
 
     final localeProvider = Provider.of<LocaleProvider>(context, listen: false);

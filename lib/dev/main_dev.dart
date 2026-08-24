@@ -43,6 +43,7 @@ Future<void> main() async {
     supportedLocales: S.supportedLocales,
     persistSelectedLocale: configRepo.setSelectedLocale,
     pushToSystem: AppLocaleService.setApplicationLocale,
+    readSystemTag: AppLocaleService.getApplicationLocale,
     markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
   );
   final savedLocale = localeCode != null ? Locale(localeCode) : null;
