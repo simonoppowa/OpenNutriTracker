@@ -195,6 +195,51 @@ void main() {
     }
   });
 
+  test('the README names the destination it cannot name a party for', () {
+    // #759. The privacy section is the falsifiable promise the project is
+    // built on, and a fourth provider whose address the user supplies is the
+    // one destination it cannot list as a company. Burying it in prose would
+    // read as evasive, so it is a row — set apart from the contracted
+    // parties, stating the rule rather than a host.
+    final readme = File('README.md').readAsStringSync();
+    final privacy = readme.substring(readme.indexOf('**What leaves your device.**'));
+
+    expect(
+      privacy,
+      contains('The address you entered, and nothing else'),
+      reason: 'the rule is the row; there is no party to put there',
+    );
+    // Both moments, because the address is contacted by an explicit fetch as
+    // well as by sending a meal — a table that named only the second would
+    // understate when the app talks to the machine.
+    expect(privacy, contains('Load models'));
+    expect(
+      privacy,
+      contains('No third party receives anything on this path'),
+      reason: 'the honest claim, which is not "it never leaves"',
+    );
+  });
+
+  test('the README never labels a destination "local"', () {
+    // #736 settled that "local" is the word this feature must not use as a
+    // label: it reads as *on the phone*, and the data does leave — to a
+    // machine the user happens to own. Descriptive prose elsewhere is fine,
+    // which is why this looks only at the destination cells.
+    final readme = File('README.md').readAsStringSync().split('\n');
+    final rows = readme.where(
+      (line) => line.startsWith('| ') && line.split('|').length > 3,
+    );
+    for (final row in rows) {
+      final destination = row.split('|')[1].trim().toLowerCase();
+      expect(
+        destination,
+        isNot(contains('local')),
+        reason: 'a destination cell reading "$destination" claims the data '
+            'does not leave, and it does',
+      );
+    }
+  });
+
   test('the plaintext clause promises no boundary nobody enforces', () {
     // It used to end *"it is only permitted because it stays on your own
     // network"*, which asserts two things the app does not do: it permits
