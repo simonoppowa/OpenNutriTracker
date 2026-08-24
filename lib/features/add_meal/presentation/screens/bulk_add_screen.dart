@@ -350,6 +350,13 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         // Coloured as a warning, unlike the neutral "read by AI" banner:
         // this one is asking the user to go and change something.
         emphasised: true,
+        // #777: the advice used to be the tail of the sentence, and the tail
+        // is what a three-line cap ate. It is a control now, so it cannot be
+        // truncated at any text scale — and every one of these failures is
+        // answered in the same place.
+        action: () => Navigator.of(
+          context,
+        ).pushNamed(NavigationOptions.settingsRoute),
       );
     }
 
@@ -382,9 +389,14 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     required IconData icon,
     required String text,
     bool emphasised = false,
+    VoidCallback? action,
   }) {
     final scheme = Theme.of(context).colorScheme;
-    return Column(
+    // The ceiling is a share of what this widget was actually given, not of
+    // the screen: the screen includes the app bar and the input above, so a
+    // fraction of it overflows the part that is left.
+    return LayoutBuilder(
+      builder: (context, constraints) => Column(
       children: [
         Semantics(
           identifier: 'bulk-add-model-notice',
@@ -394,33 +406,79 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             color: emphasised
                 ? scheme.errorContainer
                 : scheme.surfaceContainerHighest,
-            child: Row(
+            // **Bounded, and scrollable rather than clipped.** Dropping the
+            // cap on its own overflowed by 317px at 2x on a 320dp screen —
+            // the notice sits above the rows in a `Column`, so its height
+            // comes straight out of them. A ceiling gives the rows their
+            // share back; scrolling is what stops the ceiling becoming a
+            // second truncation, which is the bug this is fixing.
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: constraints.maxHeight * 0.4,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  icon,
-                  size: 16,
-                  color: emphasised ? scheme.onErrorContainer : null,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
+                Row(
+                  children: [
+                    Icon(
+                      icon,
+                      size: 16,
+                      color: emphasised ? scheme.onErrorContainer : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
                   child: Text(
                     text,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: emphasised ? scheme.onErrorContainer : null,
                     ),
-                    // Three lines: the failure notices carry two facts and
-                    // run long in German, and truncating the half that says
-                    // where the rows came from would be the worse loss.
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
+                    // **No cap.** There used to be three lines, on the
+                    // reasoning that these run long in German. Measured for
+                    // #777, every one of them overran it — in English too —
+                    // and no cap survives the combination that matters:
+                    // German at 2x on a 320dp screen needed twenty lines,
+                    // which is when the words are needed most. Now that the
+                    // advice is a button, what is left is one sentence: two
+                    // or three lines on a handset, up to eight at 2x on the
+                    // narrowest screen, and never cut off.
                   ),
                 ),
+                  ],
+                ),
+                // **Below the sentence, not beside it.** Sharing the row was
+                // measured first and is worse: a button takes about 120px,
+                // which on a 320dp screen leaves the text 144 and pushes
+                // German at 2x back up to twelve lines. Full width for the
+                // words, the control underneath.
+                if (action != null)
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: Semantics(
+                      identifier: 'bulk-add-notice-action',
+                      child: TextButton(
+                        onPressed: action,
+                        style: TextButton.styleFrom(
+                          foregroundColor: emphasised
+                              ? scheme.onErrorContainer
+                              : null,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        child: Text(S.of(context).settingsLabel),
+                      ),
+                    ),
+                  ),
               ],
+                ),
+              ),
             ),
           ),
         ),
         Expanded(child: list),
       ],
+      ),
     );
   }
 

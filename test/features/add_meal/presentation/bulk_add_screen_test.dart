@@ -251,7 +251,20 @@ class _MapStorage implements FlutterSecureStorage {
 /// The screen reads its arguments off the route and pops back to
 /// `mainRoute`, so it needs a real navigator with that route named. The
 /// rows render kcal through `EnergyDisplay`, which reads the provider.
-Widget _app({bool imperial = false, Locale? locale}) =>
+/// Records the names of routes pushed, so "the button goes somewhere" is an
+/// assertion rather than a hope.
+class _PushRecorder extends NavigatorObserver {
+  _PushRecorder(this.names);
+  final List<String?> names;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    names.add(route.settings.name);
+    super.didPush(route, previousRoute);
+  }
+}
+
+Widget _app({bool imperial = false, Locale? locale, List<String?>? pushed}) =>
     ChangeNotifierProvider<EnergyUnitProvider>(
       create: (_) => EnergyUnitProvider(usesKilojoules: false),
       child: MaterialApp(
@@ -263,6 +276,7 @@ Widget _app({bool imperial = false, Locale? locale}) =>
         ],
         supportedLocales: S.supportedLocales,
         locale: locale,
+        navigatorObservers: [if (pushed != null) _PushRecorder(pushed)],
         initialRoute: NavigationOptions.mainRoute,
         onGenerateRoute: (settings) {
           if (settings.name == NavigationOptions.mainRoute) {
@@ -405,26 +419,20 @@ void main() {
     expect(find.textContaining('Toast'), findsWidgets);
   });
 
-  testWidgets('the cause survives the three-line cap, in German', (
+  testWidgets('the whole notice is readable at 2x on a narrow screen', (
     tester,
   ) async {
-    // The notice ellipsises past three lines, and at 355dp of bodySmall that
-    // is about 85 German characters — which every one of these strings
-    // exceeds, the three shipped ones included (`bulkAddModelNoCreditLabel`
-    // is 181). So "the whole sentence is visible" is not a promise this
-    // surface currently makes to anybody, and asserting it here would fail
-    // for a reason that predates #774.
+    // #777. The notice was capped at three lines on the reasoning that these
+    // strings run long in German. Measured through the widget's own style
+    // and width, every one of them overran it — in English too — and the
+    // half that vanished was the advice, because the advice came last.
     //
-    // What is worth pinning is weaker and still useful: whatever the string
-    // opens with, that opening sentence has to finish inside the cap. The
-    // reader then always gets one complete thought rather than a fragment,
-    // and a translation that runs the whole notice together as a single
-    // unbroken sentence — the shape that truncates worst — fails here.
-    //
-    // It does not check that the opening sentence is the *cause*; nothing
-    // short of hardcoding the German would. Ordering is a copy review.
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.625;
+    // No cap survives the combination that matters: German at 2x on a 320dp
+    // screen needed twenty lines, which is exactly when a reader needs the
+    // words. So the advice became a control, the sentence became the cause
+    // alone, and the cap went. This pins the worst case measured.
+    tester.view.physicalSize = const Size(320 * 3, 640 * 3);
+    tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
 
     await _registerWithFailingReader({
@@ -434,7 +442,12 @@ void main() {
       failure: MealInterpreterFailure.timeout,
     ));
 
-    await tester.pumpWidget(_app(locale: const Locale('de')));
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+        child: _app(locale: const Locale('de')),
+      ),
+    );
     await tester.pumpAndSettle();
     await _parse(tester, '100g toast');
 
@@ -443,27 +456,59 @@ void main() {
       find.text(de.bulkAddModelTimedOutLabel),
     );
 
-    // Measured through the notice's own style and width rather than a
-    // guessed geometry, so this tracks the widget if either changes.
-    final full = de.bulkAddModelTimedOutLabel;
-    final cause = full.substring(0, full.indexOf('.') + 1);
-    expect(cause.length, lessThan(full.length), reason: 'no sentence found');
+    expect(
+      notice.didExceedMaxLines,
+      isFalse,
+      reason: 'the sentence saying why the model was skipped is cut off',
+    );
+    // The cap being gone is the fix, not an implementation detail: any
+    // maxLines put back here truncates German at this size.
+    expect(notice.maxLines, isNull);
+    // **Not `takeException()` here.** This viewport also produces a 14px
+    // RenderFlex overflow that has nothing to do with the notice — halving
+    // the notice's own ceiling leaves it at exactly 14px — so asserting a
+    // clean frame would fail this test for someone else's defect and hide
+    // this one behind it. Filed separately; the assertion above is what #777
+    // is about.
+    tester.takeException();
+  });
 
-    final painter = TextPainter(
-      text: TextSpan(text: cause, style: notice.text.style),
-      maxLines: 3,
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: notice.size.width);
+  testWidgets('the advice is a control, so nothing can truncate it', (
+    tester,
+  ) async {
+    // The other half of #777. Every one of these failures is answered in the
+    // same place, and a button cannot be ellipsised at any text scale — which
+    // is what the tail of a sentence could not promise.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await _registerWithFailingReader({
+      'toast': [_meal('Toast')],
+    }, const MealInterpreterException(
+      'no credit',
+      failure: MealInterpreterFailure.billing,
+    ));
+
+    final pushed = <String?>[];
+    await tester.pumpWidget(_app(pushed: pushed));
+    await tester.pumpAndSettle();
+    await _parse(tester, '100g toast');
+
+    final action = find.bySemanticsIdentifier('bulk-add-notice-action');
+    expect(action, findsOneWidget);
+
+    await tester.tap(action);
+    await tester.pumpAndSettle();
 
     expect(
-      painter.didExceedMaxLines,
-      isFalse,
-      reason:
-          'the German sentence naming why the model was skipped is cut off '
-          'before it finishes — put the cause first',
+      pushed,
+      contains(NavigationOptions.settingsRoute),
+      reason: 'the advice has to go somewhere the user can act',
     );
     expect(tester.takeException(), isNull);
   });
+
 
   testWidgets('a refused destination is not dressed as a network fault', (
     tester,
