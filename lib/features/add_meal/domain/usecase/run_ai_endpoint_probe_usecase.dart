@@ -107,11 +107,13 @@ class AiEndpointProbeRunner {
     String? localeCode,
   }) async {
     try {
-      // Recorded whether or not there turns out to be anything to send, so a
-      // caller joining later can tell "tested nothing, because paused" from
-      // "tested a configuration that has since changed".
-      final testing = await _configurationOf(provider);
-      running.testing = testing;
+      // A provisional identity, for the case where there turns out to be
+      // nothing to send: it lets a caller joining later tell "tested nothing,
+      // because paused" from "tested a configuration that has since changed".
+      // When there *is* something to send it is replaced below by the
+      // identity of the selection actually probed, which is the only one a
+      // verdict may be validated against.
+      running.testing = await _configurationOf(provider);
       // Named rather than active: this is a probe of *this* provider's stored
       // configuration, not of whoever happens to be selected when it gets
       // around to asking. Reading the active selection instead put a window
@@ -125,16 +127,31 @@ class AiEndpointProbeRunner {
       if (selection == null) {
         _log.info('Nothing to probe for ${provider.name}');
       } else {
+        // **The identity of what is about to be sent**, taken from the
+        // selection itself rather than from the read above it. Those are two
+        // reads of the same store with a gap between them: a change landing
+        // in that gap probed the new configuration and validated the old, so
+        // a good verdict was thrown away — and if the configuration changed
+        // back before the probe returned, the new machine's verdict was
+        // stored against the old one. Raised by Copilot on #800.
+        final tested = (
+          endpoint: selection.endpoint,
+          modelId: selection.modelId,
+        );
+        // Kept in step so a caller joining mid-flight compares against what
+        // is really being tested.
+        running.testing = tested;
         final found = await _prober.probe(selection, localeCode: localeCode);
-        // Asked again on the way out, for the same reason `start` asks: what
-        // was tested has to still be what is stored, or this writes a verdict
-        // about one machine into the slot describing another. `writeEndpoint`
-        // and `writeModel` clear the slot when their value changes; without
-        // this, a probe already in flight would quietly fill it back in.
-        final settled = await _configurationOf(provider);
-        if (settled != null && settled == testing) {
-          await _credentials.writeProbe(found, provider: provider);
-        } else {
+        // Compare and write in the store as one serialized operation. A check
+        // here would leave a window where a configuration change clears the
+        // slot before this stale verdict fills it back in.
+        final stored = await _credentials.writeProbeIfConfigurationMatches(
+          found,
+          provider: provider,
+          endpoint: tested.endpoint,
+          modelId: tested.modelId,
+        );
+        if (!stored) {
           _log.info('Dropped a verdict about a configuration that has moved');
         }
       }

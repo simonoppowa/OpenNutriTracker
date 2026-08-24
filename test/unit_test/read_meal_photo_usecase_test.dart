@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -58,12 +59,14 @@ class _MemoryStorage implements FlutterSecureStorage {
 class _FakeInterpreter implements MealPhotoInterpreter {
   final MealTextParseResult? result;
   final Object? throws;
+  final Future<void>? waitUntilReleased;
 
   MealPhoto? sawPhoto;
   String? sawLocale;
   var calls = 0;
+  final entered = Completer<void>();
 
-  _FakeInterpreter({this.result, this.throws});
+  _FakeInterpreter({this.result, this.throws, this.waitUntilReleased});
 
   @override
   Future<MealTextParseResult> interpret(
@@ -73,6 +76,8 @@ class _FakeInterpreter implements MealPhotoInterpreter {
     calls++;
     sawPhoto = photo;
     sawLocale = localeCode;
+    if (!entered.isCompleted) entered.complete();
+    if (waitUntilReleased != null) await waitUntilReleased;
     if (throws != null) throw throws!;
     return result!;
   }
@@ -89,11 +94,19 @@ const _oneItem = MealTextParseResult(
 );
 
 /// A use case over storage that already holds [apiKey], or nothing.
-({ReadMealPhotoUseCase useCase, _FakeInterpreter interpreter}) subject({
+({
+  ReadMealPhotoUseCase useCase,
+  _FakeInterpreter interpreter,
+  AiCredentialStorage credentials,
+})
+subject({
   String? apiKey,
   bool enabled = true,
   MealTextParseResult? result,
   Object? throws,
+  AiEndpointProbe? probe,
+  Future<void>? waitUntilReleased,
+  bool ownServer = false,
 }) {
   final storage = _MemoryStorage();
   final credentials = AiCredentialStorage(storage);
@@ -101,10 +114,30 @@ const _oneItem = MealTextParseResult(
     storage.store['AiApiKeyTag'] = apiKey;
     storage.store['AiAssistEnabledTag'] = enabled ? 'true' : 'false';
   }
-  final interpreter = _FakeInterpreter(result: result, throws: throws);
+  // The one provider whose address the user supplies, and so the only one
+  // where an endpoint can move under a request that is still out.
+  if (ownServer) {
+    storage.store['AiProviderTag'] = 'ownServer';
+    storage.store['AiEndpointTag.ownServer'] =
+        'http://192.168.1.5:11434/v1/chat/completions';
+    storage.store['AiModelTag.ownServer'] = 'gemma3:4b';
+    storage.store['AiAssistEnabledTag'] = enabled ? 'true' : 'false';
+  }
+  if (probe != null) {
+    // Written straight into the slot the active provider reads, so a case
+    // about retraction starts where a user with a passing check starts.
+    storage.store[ownServer ? 'AiProbeTag.ownServer' : 'AiProbeTag.anthropic'] =
+        probe.encode();
+  }
+  final interpreter = _FakeInterpreter(
+    result: result,
+    throws: throws,
+    waitUntilReleased: waitUntilReleased,
+  );
   return (
     useCase: ReadMealPhotoUseCase(credentials, (_) => interpreter),
     interpreter: interpreter,
+    credentials: credentials,
   );
 }
 
@@ -233,21 +266,189 @@ void main() {
       expect((reading as MealPhotoFailed).failure, MealPhotoFailure.transient);
     });
 
-    test('a refused plaintext destination is not blamed on the model', () async {
-      final s = subject(
-        apiKey: 'k',
-        throws: const MealInterpreterException(
-          'plaintext to a public address',
-          failure: MealInterpreterFailure.insecureDestination,
-        ),
+    test(
+      'a refused plaintext destination is not blamed on the model',
+      () async {
+        final s = subject(
+          apiKey: 'k',
+          throws: const MealInterpreterException(
+            'plaintext to a public address',
+            failure: MealInterpreterFailure.insecureDestination,
+          ),
+        );
+
+        final reading = await s.useCase.read(_photo);
+
+        expect(
+          (reading as MealPhotoFailed).failure,
+          MealPhotoFailure.insecureDestination,
+        );
+      },
+    );
+
+    group('a pass that has stopped being true (#782)', () {
+      const passedBoth = AiEndpointProbe(
+        text: AiCapability.passed,
+        photo: AiCapability.passed,
       );
 
-      final reading = await s.useCase.read(_photo);
+      test('an unsupported photo retracts the stored pass', () async {
+        // A pass says photos worked once, and it can stop being true without
+        // the user touching anything: pull a different model under the same
+        // tag and the camera is still offered, still says photos work, and
+        // fails on every photograph taken.
+        final s = subject(
+          apiKey: 'k',
+          probe: passedBoth,
+          throws: const MealInterpreterException(
+            'this model cannot see',
+            failure: MealInterpreterFailure.unsupported,
+          ),
+        );
 
-      expect(
-        (reading as MealPhotoFailed).failure,
-        MealPhotoFailure.insecureDestination,
-      );
+        await s.useCase.read(_photo);
+
+        expect((await s.credentials.readProbe()).photo, AiCapability.failed);
+      });
+
+      test('a replacement model does not inherit the old failure', () async {
+        // The request owns the selection it started with. If settings move
+        // while the model is answering, its eventual failure says nothing
+        // about the replacement and must not refill the probe slot that the
+        // model change cleared.
+        final release = Completer<void>();
+        final s = subject(
+          apiKey: 'k',
+          probe: passedBoth,
+          waitUntilReleased: release.future,
+          throws: const MealInterpreterException(
+            'the old model cannot see',
+            failure: MealInterpreterFailure.unsupported,
+          ),
+        );
+
+        final reading = s.useCase.read(_photo);
+        await s.interpreter.entered.future;
+        await s.credentials.writeModel('replacement-model');
+        release.complete();
+        await reading;
+
+        expect((await s.credentials.readProbe()).photo, AiCapability.unknown);
+      });
+
+      test('the same model on a different machine keeps its slot', () async {
+        // The endpoint half of the pair, and why it is not redundant.
+        // `writeEndpoint` clears the model when the address changes, so most
+        // address changes read as model changes too — and a check watching
+        // only the model would look sufficient. Re-pointing at another box
+        // running the same tag, which is one `writeOwnServerConfiguration`,
+        // leaves the model identical and moves only the address. The old
+        // machine's failure would then hide the new machine's camera.
+        final release = Completer<void>();
+        final s = subject(
+          ownServer: true,
+          probe: passedBoth,
+          waitUntilReleased: release.future,
+          throws: const MealInterpreterException(
+            'the old box cannot see',
+            failure: MealInterpreterFailure.unsupported,
+          ),
+        );
+
+        final reading = s.useCase.read(_photo);
+        await s.interpreter.entered.future;
+        await s.credentials.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.9:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        release.complete();
+        await reading;
+
+        expect(
+          (await s.credentials.readProbe(provider: AiProvider.ownServer)).photo,
+          AiCapability.unknown,
+          reason: 'that verdict is about a machine the user has moved off',
+        );
+      });
+
+      test('the text verdict is left where it stands', () async {
+        // This photograph says nothing about whether a meal line still reads,
+        // and the two are stored together — so a retraction that took the
+        // text result with it would turn one fact into two losses.
+        final s = subject(
+          apiKey: 'k',
+          probe: passedBoth,
+          throws: const MealInterpreterException(
+            'this model cannot see',
+            failure: MealInterpreterFailure.unsupported,
+          ),
+        );
+
+        await s.useCase.read(_photo);
+
+        expect((await s.credentials.readProbe()).text, AiCapability.passed);
+      });
+
+      test('nothing else in the taxonomy retracts it', () async {
+        // The narrowness is the whole design. Each of these says something
+        // about the network, the load, the credential, the bill, the picture
+        // or the address — and none of them about whether the model has eyes.
+        // `insecureDestination` is the one this rule had to wait for: #790
+        // separated it out precisely so a photo the app *refused to send*
+        // could not be read as a model that cannot see.
+        for (final failure in [
+          MealInterpreterFailure.transient,
+          MealInterpreterFailure.timeout,
+          MealInterpreterFailure.auth,
+          MealInterpreterFailure.billing,
+          MealInterpreterFailure.rejected,
+          MealInterpreterFailure.insecureDestination,
+        ]) {
+          final s = subject(
+            apiKey: 'k',
+            probe: passedBoth,
+            throws: MealInterpreterException('nope', failure: failure),
+          );
+
+          await s.useCase.read(_photo);
+
+          expect(
+            (await s.credentials.readProbe()).photo,
+            AiCapability.passed,
+            reason: '$failure must not cost the user a working camera',
+          );
+        }
+      });
+
+      test('a fresh pass puts the camera back', () async {
+        // The way out, and the reason `failed` is not a dead end: the dialog
+        // reports per capability and offers the retry on the same surface.
+        final s = subject(
+          apiKey: 'k',
+          probe: passedBoth,
+          throws: const MealInterpreterException(
+            'this model cannot see',
+            failure: MealInterpreterFailure.unsupported,
+          ),
+        );
+        await s.useCase.read(_photo);
+        expect((await s.credentials.readProbe()).photo, AiCapability.failed);
+
+        await s.credentials.writeProbe(passedBoth);
+
+        expect((await s.credentials.readProbe()).photo, AiCapability.passed);
+      });
+
+      test('a photo that succeeds leaves the pass alone', () async {
+        // Guard against a retraction that fires on the way through rather
+        // than on the failure — the assertions above would all still pass.
+        final s = subject(apiKey: 'k', probe: passedBoth, result: _oneItem);
+
+        await s.useCase.read(_photo);
+
+        expect((await s.credentials.readProbe()).photo, AiCapability.passed);
+      });
     });
 
     test('a timeout folds into transient rather than crashing', () async {
@@ -295,7 +496,10 @@ void main() {
         final reading = await s.useCase.read(_photo);
 
         expect(reading, isA<MealPhotoFailed>());
-        expect((reading as MealPhotoFailed).failure, MealPhotoFailure.transient);
+        expect(
+          (reading as MealPhotoFailed).failure,
+          MealPhotoFailure.transient,
+        );
       },
     );
 

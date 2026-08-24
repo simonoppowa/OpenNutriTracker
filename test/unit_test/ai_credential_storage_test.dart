@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
@@ -10,6 +12,7 @@ import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 class _MemoryStorage implements FlutterSecureStorage {
   final store = <String, String>{};
   final reads = <String>[];
+  final readGates = <String, Completer<void>>{};
 
   @override
   Future<String?> read({
@@ -22,6 +25,8 @@ class _MemoryStorage implements FlutterSecureStorage {
     WindowsOptions? wOptions,
   }) async {
     reads.add(key);
+    final gate = readGates[key];
+    if (gate != null) await gate.future;
     return store[key];
   }
 
@@ -552,6 +557,78 @@ void main() {
   });
 
   group('a server the user runs', () {
+    test('two overlapping saves cannot cross their endpoint and model', () async {
+      // The pair commits as one act or not at all. Taking the lock once per
+      // write let two saves interleave — endpoint A, endpoint B, model B,
+      // model A — and leave one server paired with another save's model.
+      // Worse than a generic interleave: writing an endpoint clears the model
+      // when the address changes, so it is the *older* save's model write
+      // that repopulates the slot, and the probe identity check then reads
+      // that crossed pair as the configuration a verdict belongs to. Raised
+      // by Copilot on #800.
+      //
+      // Reachable by pressing OK twice before the first save has settled,
+      // which is the same gesture behind #796.
+      await storage.setActiveProvider(AiProvider.ownServer);
+
+      // The interleave has to be *made*, not hoped for: left to the microtask
+      // queue these two run one after the other and the defect never shows.
+      // The first save is held between its address write and its model read —
+      // the exact gap the second save has to slip through.
+      const modelKey = 'AiModelTag.ownServer';
+      final held = Completer<void>();
+      backing.readGates[modelKey] = held;
+
+      final first = storage.writeOwnServerConfiguration(
+        endpoint: 'http://192.168.1.5:11434',
+        model: 'model-a',
+        provider: AiProvider.ownServer,
+      );
+      for (var i = 0; i < 50 && !backing.reads.contains(modelKey); i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(
+        backing.reads,
+        contains(modelKey),
+        reason: 'the first save must be parked where the second can overtake',
+      );
+
+      // Lifted so only the first save is held; the second must be free to run.
+      backing.readGates.remove(modelKey);
+      final second = storage.writeOwnServerConfiguration(
+        endpoint: 'http://192.168.1.9:11434',
+        model: 'model-b',
+        provider: AiProvider.ownServer,
+      );
+      for (var i = 0; i < 50; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      held.complete();
+      await Future.wait([first, second]);
+
+      final endpoint = await storage.readEndpoint(
+        provider: AiProvider.ownServer,
+      );
+      final model = await storage.readModel(provider: AiProvider.ownServer);
+
+      // Either save may win; neither may be half-applied.
+      expect(
+        [endpoint, model],
+        anyOf(
+          equals([
+            'http://192.168.1.5:11434/v1/chat/completions',
+            'model-a',
+          ]),
+          equals([
+            'http://192.168.1.9:11434/v1/chat/completions',
+            'model-b',
+          ]),
+        ),
+        reason: 'an address must never be stored beside another save\'s model',
+      );
+    });
+
     // The provider whose credential is an address. Everything here exists
     // because "has a key" stopped being the test of usability. #755.
 
@@ -1188,6 +1265,39 @@ void main() {
       final probe = await storage.readProbe(provider: own);
       expect(probe.photo, AiCapability.failed, reason: 'retracted');
       expect(probe.text, AiCapability.passed, reason: 'untouched');
+    });
+
+    test('a configuration move cannot land inside a conditional write', () async {
+      // The endpoint/model comparison and probe write must be indivisible.
+      // Holding the probe read opens the exact old check-then-write window:
+      // without serialization, the endpoint change clears the slot and the
+      // stale write recreates it afterwards.
+      await configure();
+      backing.readGates['AiProbeTag.ownServer'] = Completer<void>();
+
+      final staleWrite = storage.writeProbeIfConfigurationMatches(
+        const AiEndpointProbe(
+          text: AiCapability.unknown,
+          photo: AiCapability.failed,
+        ),
+        provider: own,
+        endpoint: 'http://192.168.1.5:11434/v1/chat/completions',
+        modelId: 'gemma3:4b',
+      );
+      await pumpEventQueue();
+      expect(backing.reads.last, 'AiProbeTag.ownServer');
+
+      final move = storage.writeEndpoint(
+        'http://192.168.1.9:11434',
+        provider: own,
+      );
+      backing.readGates.remove('AiProbeTag.ownServer')!.complete();
+      await Future.wait([staleWrite, move]);
+
+      expect(
+        (await storage.readProbe(provider: own)).photo,
+        AiCapability.unknown,
+      );
     });
 
     test('nothing conclusive leaves no record at all', () async {
