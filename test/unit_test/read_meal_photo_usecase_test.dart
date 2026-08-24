@@ -106,6 +106,7 @@ subject({
   Object? throws,
   AiEndpointProbe? probe,
   Future<void>? waitUntilReleased,
+  bool ownServer = false,
 }) {
   final storage = _MemoryStorage();
   final credentials = AiCredentialStorage(storage);
@@ -113,10 +114,20 @@ subject({
     storage.store['AiApiKeyTag'] = apiKey;
     storage.store['AiAssistEnabledTag'] = enabled ? 'true' : 'false';
   }
+  // The one provider whose address the user supplies, and so the only one
+  // where an endpoint can move under a request that is still out.
+  if (ownServer) {
+    storage.store['AiProviderTag'] = 'ownServer';
+    storage.store['AiEndpointTag.ownServer'] =
+        'http://192.168.1.5:11434/v1/chat/completions';
+    storage.store['AiModelTag.ownServer'] = 'gemma3:4b';
+    storage.store['AiAssistEnabledTag'] = enabled ? 'true' : 'false';
+  }
   if (probe != null) {
     // Written straight into the slot the active provider reads, so a case
     // about retraction starts where a user with a passing check starts.
-    storage.store['AiProbeTag.anthropic'] = probe.encode();
+    storage.store[ownServer ? 'AiProbeTag.ownServer' : 'AiProbeTag.anthropic'] =
+        probe.encode();
   }
   final interpreter = _FakeInterpreter(
     result: result,
@@ -323,6 +334,42 @@ void main() {
         await reading;
 
         expect((await s.credentials.readProbe()).photo, AiCapability.unknown);
+      });
+
+      test('the same model on a different machine keeps its slot', () async {
+        // The endpoint half of the pair, and why it is not redundant.
+        // `writeEndpoint` clears the model when the address changes, so most
+        // address changes read as model changes too — and a check watching
+        // only the model would look sufficient. Re-pointing at another box
+        // running the same tag, which is one `writeOwnServerConfiguration`,
+        // leaves the model identical and moves only the address. The old
+        // machine's failure would then hide the new machine's camera.
+        final release = Completer<void>();
+        final s = subject(
+          ownServer: true,
+          probe: passedBoth,
+          waitUntilReleased: release.future,
+          throws: const MealInterpreterException(
+            'the old box cannot see',
+            failure: MealInterpreterFailure.unsupported,
+          ),
+        );
+
+        final reading = s.useCase.read(_photo);
+        await s.interpreter.entered.future;
+        await s.credentials.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.9:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        release.complete();
+        await reading;
+
+        expect(
+          (await s.credentials.readProbe(provider: AiProvider.ownServer)).photo,
+          AiCapability.unknown,
+          reason: 'that verdict is about a machine the user has moved off',
+        );
       });
 
       test('the text verdict is left where it stands', () async {
