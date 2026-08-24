@@ -4,7 +4,7 @@
   "addItemLabel": "Agregar nuevo elemento:",
   "addLabel": "Agregar",
   "additionalInfoLabelCompendium2011": "Información proporcionada\npor el\nCompendio de Actividades\nFísicas de 2024",
-  "additionalInfoLabelCustom": "Alimento personalizado",
+  "additionalInfoLabelCustom": "Comida personalizada",
   "additionalInfoLabelFDC": "Más información en\nFoodData Central",
   "additionalInfoLabelSource": "Más información en\n{sourceName}",
   "@additionalInfoLabelSource": {
@@ -17,7 +17,7 @@
   "foodSourcesAlwaysEnabledLabel": "Siempre activado",
   "foodSourcesHelpText": "Los resultados de búsqueda provienen de estas bases de datos de alimentos. Open Food Facts se usa para la búsqueda de productos y códigos de barras y está siempre activado.",
   "machineTranslatedNameHint": "Nombre traducido automáticamente",
-  "measureUnitBar": "{count, plural, one{barrita} other{barras}}",
+  "measureUnitBar": "{count, plural, one{barra} other{barras}}",
   "@measureUnitBar": {
     "placeholders": {
       "count": {
@@ -33,7 +33,7 @@
       }
     }
   },
-  "measureUnitCan": "{count, plural, one{bote} other{botes}}",
+  "measureUnitCan": "{count, plural, one{lata} other{latas}}",
   "@measureUnitCan": {
     "placeholders": {
       "count": {
@@ -116,12 +116,12 @@
   "settingsFoodSourcesLabel": "Bases de datos de alimentos",
   "settingsFoodSourcesSubtitle": "Elige de dónde provienen los resultados de la búsqueda de alimentos",
   "onboardingOtherOptionsLabel": "Otras opciones",
-  "onboardingOtherOptionsSubtitle": "Personaliza la aplicación — podrás cambiarlo todo más tarde en Opciones",
-  "additionalInfoLabelOFF": "Más información en\nOpenFoodFacts",
+  "onboardingOtherOptionsSubtitle": "Personaliza la aplicación — podrás cambiarlo todo más tarde en Ajustes",
+  "additionalInfoLabelOFF": "Más información en\nOpen Food Facts",
   "additionalInfoLabelRecipe": "Receta personalizada",
   "additionalInfoLabelUnknown": "Alimento desconocido",
   "ageLabel": "Edad",
-  "allItemsLabel": "Todo",
+  "allItemsLabel": "Todos",
   "alphaVersionName": "[Alfa]",
   "appDescription": "OpenNutriTracker es un contador gratuito y de código abierto de calorías y nutrientes que respeta tu privacidad.",
   "appLicenseLabel": "Licencia GPL-3.0",
@@ -161,7 +161,7 @@
     }
   },
   "calculationsRecommendedLabel": "(recomendado)",
-  "calculationsTDEEIOM2006Label": "Ecuación del instituto de Medicina (2005)",
+  "calculationsTDEEIOM2006Label": "Ecuación del Instituto de Medicina (2005)",
   "calculationsTDEELabel": "Ecuación del GETD (TDEE)",
   "caloriesProfileAveragedLabel": "Referencia promediada (predeterminada)",
   "caloriesProfileEstrogenTypicalLabel": "Referencia de tipo estrogénico",
@@ -172,7 +172,7 @@
   "carbsLabel": "hidratos",
   "carbsLabelShort": "c",
   "cholesterolLabel": "colesterol",
-  "chooseWeeklyWeightGoalLabel": "Ratio de peso semanal",
+  "chooseWeeklyWeightGoalLabel": "Ritmo de peso semanal",
   "chooseWeightGoalLabel": "Elige tu objetivo de peso",
   "clearOffCacheConfirmContent": "Elimina los resultados de búsqueda y escaneo guardados localmente en la caché de Open Food Facts y FDC. La caché se volverá a crear automáticamente a medida que busques y escanees productos. Tus comidas personalizadas no se verán afectadas.",
   "clearOffCacheConfirmTitle": "¿Limpiar elementos de la caché?",
@@ -194,8 +194,8 @@
   "copyDialogTitle": "¿A qué tipo de comida quieres copiarlo?",
   "copyOrDeleteTimeDialogContent": "Con \"Copiar a hoy\" puedes copiar la comida a hoy. Con \"Borrar\" puedes borrar la comida.",
   "copyOrDeleteTimeDialogTitle": "¿Qué quieres hacer?",
-  "createCustomDialogContent": "¿Quieres crear un alimento personalizado?",
-  "createCustomDialogTitle": "¿Crear alimento personalizado?",
+  "createCustomDialogContent": "¿Quieres crear una comida personalizada?",
+  "createCustomDialogTitle": "¿Crear comida personalizada?",
   "createRecipeTitle": "Crear receta",
   "csvImportContributeOffAndroidLink": "Android",
   "csvImportContributeOffIosLink": "iOS",
@@ -256,7 +256,7 @@
   "deleteAllLabel": "Eliminar todo",
   "settingsDeleteAllDataLabel": "Reiniciar datos del perfil",
   "settingsDeleteAllDataSubtitle": "Perfil, comidas, actividades, historial de peso y sesiones de ayuno",
-  "settingsDeleteAllDataConfirmTitle": "Reiniciar datos del perfil?",
+  "settingsDeleteAllDataConfirmTitle": "¿Reiniciar datos del perfil?",
   "settingsDeleteAllDataConfirmContent": "Esto eliminará tu perfil, comidas, actividades, historial de peso y sesiones de ayuno solo para el perfil actual. El contenido compartido (comidas personalizadas, recetas, plantillas de actividad) y los catálogos de Open Food Facts y USDA FoodData Central no se verán afectados. Esta acción no se puede deshacer.",
   "settingsDeleteAllDataConfirmAction": "Reiniciar perfil",
   "lowKcalWarningTitle": "Este objetivo diario es algo bajo",
@@ -317,7 +317,7 @@
   "diarySortByLabel": "Ordenar por",
   "diarySortByProtein": "Proteínas (más a menos)",
   "diarySortByTime": "Tiempo añadido",
-  "dinnerExample": "ej. sopa, pollo, vino …",
+  "dinnerExample": "ej. sopa, pollo, vino ...",
   "dinnerLabel": "Cena",
   "discardChangesConfirmLabel": "Descartar",
   "discardChangesContent": "Tus cambios no guardados se perderán.",
@@ -368,7 +368,7 @@
   "gramMilliliterUnit": "g/ml",
   "gramUnit": "g",
   "heightLabel": "Altura",
-  "homeLabel": "Casa",
+  "homeLabel": "Inicio",
   "homeFirstMealHint": "Pulsa + para añadir tu primera comida o actividad",
   "homeDemoBannerLabel": "Estás viendo datos de ejemplo",
   "homeDemoBannerAction": "Configura tu perfil",
@@ -420,7 +420,7 @@
   "importMealSuccessLabel": "Comida importada",
   "importMealsCsvAction": "Importar comidas (csv)",
   "importMealsJsonAction": "Importar comidas (json)",
-  "importOffFetchFailedLabel": "No se pudieron obtener {count} elemento(s) de OpenFoodFacts.",
+  "importOffFetchFailedLabel": "No se pudieron obtener {count} elemento(s) de Open Food Facts.",
   "@importOffFetchFailedLabel": {
     "placeholders": {
       "count": {
@@ -543,7 +543,7 @@
   "milliliterUnit": "ml",
   "missingProductInfo": "Al producto le falta información obligatoria de kcal o de macronutrientes",
   "monounsaturatedFatLabel": "grasas monoinsaturadas",
-  "newCustomMealLabel": "Nuevo alimento personalizado",
+  "newCustomMealLabel": "Nueva comida personalizada",
   "niacinLabel": "niacina (B3)",
   "noActivityRecentlyAddedLabel": "No hay actividades añadidas recientemente",
   "noMealsRecentlyAddedLabel": "No hay comidas añadidas recientemente",
@@ -678,7 +678,7 @@
   "onboardingWeightExampleHintLbs": "ej. 132",
   "onboardingWeightQuestionSubtitle": "¿Cuál es tu peso actual?",
   "onboardingFoodUnitsSubtitle": "Cómo registras alimentos y bebidas",
-  "onboardingWelcomeLabel": "Bienvenido a",
+  "onboardingWelcomeLabel": "Te damos la bienvenida a",
   "onboardingWrongHeightLabel": "Introduce una altura correcta",
   "onboardingWrongWeightLabel": "Introduce un peso correcto",
   "onboardingYourGoalLabel": "Tu objetivo calórico:",
@@ -905,7 +905,7 @@
   "palActiveLabel": "Activo",
   "palLowActiveDescriptionLabel": "p. ej., trabajo sentado o de pie y actividades ligeras en el tiempo libre",
   "palLowLActiveLabel": "Poco activo",
-  "palSedentaryDescriptionLabel": "p. ej., trabajo de oficina y tiempo libre mayormente sentado",
+  "palSedentaryDescriptionLabel": "P. ej., trabajo de oficina y tiempo libre mayormente sentado",
   "palSedentaryLabel": "Sedentario",
   "palVeryActiveDescriptionLabel": "Trabajo caminando, corriendo o cargando peso la mayor parte del tiempo, con tiempo libre activo",
   "palVeryActiveLabel": "Muy activo",
@@ -1276,12 +1276,12 @@
   "hoursLabel": "horas",
   "dialogCloseLabel": "Cerrar",
   "customMealsRowMoreTooltip": "Más acciones",
-  "customMealsMergeAction": "Fusionar con otro alimento personalizado",
-  "customMealsMergePickerTitle": "Elige el alimento personalizado con el que fusionar",
+  "customMealsMergeAction": "Fusionar con otra comida personalizada",
+  "customMealsMergePickerTitle": "Elige la comida personalizada con la que fusionar",
   "customMealsMergeChooseSurvivorTitle": "¿Cuál se conserva?",
   "customMealsMergeContinueAction": "Continuar",
-  "customMealsMergeConfirmTitle": "¿Fusionar alimentos personalizados?",
-  "customMealsMergeConfirmContent": "Se sustituirán todos los registros de {loser} para que muestren {winner} en su lugar, y se eliminará {loser} de tus alimentos personalizados. Esto no se puede deshacer.",
+  "customMealsMergeConfirmTitle": "¿Fusionar comidas personalizadas?",
+  "customMealsMergeConfirmContent": "Se sustituirán todos los registros de {loser} para que muestren {winner} en su lugar, y se eliminará {loser} de tus comidas personalizadas. Esto no se puede deshacer.",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
       "loser": {
