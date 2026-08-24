@@ -311,31 +311,46 @@ class AiCredentialStorage {
         enabled: false,
       );
     }
-    final apiKey = await readApiKey(provider: provider);
-    final endpoint = await readEndpoint(provider: provider);
-    // Read here rather than only in `readSelection`, because usability now
-    // depends on it for one provider. That call gets no more expensive — it
-    // was reading the model separately anyway — and a summary costs one more
-    // round trip than it did, which is the price of the row and the request
-    // agreeing about whether this provider can answer.
-    final modelId = await readModel(provider: provider);
-    // The invariant, stated here once: the flag alone never means "on" — a
-    // provider that is not usable is off whatever the tag says.
-    final enabled =
-        _isUsable(
-          provider,
-          apiKey: apiKey,
-          endpoint: endpoint,
-          modelId: modelId,
-        ) &&
-        await _storage.read(key: _enabledTag) != 'false';
-    return (
-      provider: provider,
-      apiKey: apiKey,
-      endpoint: endpoint,
-      modelId: modelId,
-      enabled: enabled,
-    );
+    final target = provider;
+    // **Read as one act, because it is written as one act.** Each line below
+    // is a platform-channel round trip, and `writeOwnServerConfiguration`
+    // commits an endpoint and a model together under this same lock — so
+    // without it a save landing between two of these reads hands back
+    // `(endpoint A, model B)`, a pair the user never configured and no
+    // machine was ever asked about. That is not a verdict written against the
+    // wrong destination, which the conditional writes already catch; it is a
+    // *request sent* to one, and by then the photograph has left. #813.
+    //
+    // Nothing reachable from in here may take the lock again — it is not
+    // reentrant. These are all plain reads, and `activeProvider` is resolved
+    // above rather than inside.
+    return _probeConfigurationLock.synchronized(() async {
+      final apiKey = await readApiKey(provider: target);
+      final endpoint = await readEndpoint(provider: target);
+      // Read here rather than only in `readSelection`, because usability now
+      // depends on it for one provider. That call gets no more expensive — it
+      // was reading the model separately anyway — and a summary costs one
+      // more round trip than it did, which is the price of the row and the
+      // request agreeing about whether this provider can answer.
+      final modelId = await readModel(provider: target);
+      // The invariant, stated here once: the flag alone never means "on" — a
+      // provider that is not usable is off whatever the tag says.
+      final enabled =
+          _isUsable(
+            target,
+            apiKey: apiKey,
+            endpoint: endpoint,
+            modelId: modelId,
+          ) &&
+          await _storage.read(key: _enabledTag) != 'false';
+      return (
+        provider: target,
+        apiKey: apiKey,
+        endpoint: endpoint,
+        modelId: modelId,
+        enabled: enabled,
+      );
+    });
   }
 
   /// The route every OpenAI-compatible runtime answers on. Fixed by the
