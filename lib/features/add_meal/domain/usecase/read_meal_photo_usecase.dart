@@ -107,7 +107,7 @@ class ReadMealPhotoUseCase {
     } on MealInterpreterException catch (e) {
       _log.info('Photo interpreter failed: ${e.reason}');
       if (e.failure == MealInterpreterFailure.unsupported) {
-        await _retractPhotoPass(selection.provider);
+        await _retractPhotoPass(selection);
       }
       return MealPhotoFailed(switch (e.failure) {
         MealInterpreterFailure.auth => MealPhotoFailure.auth,
@@ -163,8 +163,24 @@ class ReadMealPhotoUseCase {
   /// The text verdict is left as it stands. This photograph says nothing
   /// about whether a meal line still reads, and the same merge is what keeps
   /// it: `unknown` for text means "no opinion", not "forget".
-  Future<void> _retractPhotoPass(AiProvider provider) async {
+  ///
+  /// The configuration is checked again before writing. A photo request can
+  /// outlive the settings it started with, and a failure from the old model
+  /// must not recreate the probe slot [AiCredentialStorage.writeModel] just
+  /// cleared for its replacement.
+  Future<void> _retractPhotoPass(AiSelection selection) async {
     try {
+      final provider = selection.provider;
+      final currentEndpoint = await _credentials.readEndpoint(
+        provider: provider,
+      );
+      final currentModel = await _credentials.readModel(provider: provider);
+      if (currentEndpoint != selection.endpoint ||
+          currentModel != selection.modelId) {
+        _log.info('Dropped a photo retraction for a configuration that moved');
+        return;
+      }
+
       await _credentials.writeProbe(
         const AiEndpointProbe(
           text: AiCapability.unknown,

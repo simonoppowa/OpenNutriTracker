@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -58,12 +59,14 @@ class _MemoryStorage implements FlutterSecureStorage {
 class _FakeInterpreter implements MealPhotoInterpreter {
   final MealTextParseResult? result;
   final Object? throws;
+  final Future<void>? waitUntilReleased;
 
   MealPhoto? sawPhoto;
   String? sawLocale;
   var calls = 0;
+  final entered = Completer<void>();
 
-  _FakeInterpreter({this.result, this.throws});
+  _FakeInterpreter({this.result, this.throws, this.waitUntilReleased});
 
   @override
   Future<MealTextParseResult> interpret(
@@ -73,6 +76,8 @@ class _FakeInterpreter implements MealPhotoInterpreter {
     calls++;
     sawPhoto = photo;
     sawLocale = localeCode;
+    if (!entered.isCompleted) entered.complete();
+    if (waitUntilReleased != null) await waitUntilReleased;
     if (throws != null) throw throws!;
     return result!;
   }
@@ -93,7 +98,6 @@ const _oneItem = MealTextParseResult(
   ReadMealPhotoUseCase useCase,
   _FakeInterpreter interpreter,
   AiCredentialStorage credentials,
-  _MemoryStorage store,
 })
 subject({
   String? apiKey,
@@ -101,6 +105,7 @@ subject({
   MealTextParseResult? result,
   Object? throws,
   AiEndpointProbe? probe,
+  Future<void>? waitUntilReleased,
 }) {
   final storage = _MemoryStorage();
   final credentials = AiCredentialStorage(storage);
@@ -113,12 +118,15 @@ subject({
     // about retraction starts where a user with a passing check starts.
     storage.store['AiProbeTag.anthropic'] = probe.encode();
   }
-  final interpreter = _FakeInterpreter(result: result, throws: throws);
+  final interpreter = _FakeInterpreter(
+    result: result,
+    throws: throws,
+    waitUntilReleased: waitUntilReleased,
+  );
   return (
     useCase: ReadMealPhotoUseCase(credentials, (_) => interpreter),
     interpreter: interpreter,
     credentials: credentials,
-    store: storage,
   );
 }
 
@@ -247,22 +255,25 @@ void main() {
       expect((reading as MealPhotoFailed).failure, MealPhotoFailure.transient);
     });
 
-    test('a refused plaintext destination is not blamed on the model', () async {
-      final s = subject(
-        apiKey: 'k',
-        throws: const MealInterpreterException(
-          'plaintext to a public address',
-          failure: MealInterpreterFailure.insecureDestination,
-        ),
-      );
+    test(
+      'a refused plaintext destination is not blamed on the model',
+      () async {
+        final s = subject(
+          apiKey: 'k',
+          throws: const MealInterpreterException(
+            'plaintext to a public address',
+            failure: MealInterpreterFailure.insecureDestination,
+          ),
+        );
 
-      final reading = await s.useCase.read(_photo);
+        final reading = await s.useCase.read(_photo);
 
-      expect(
-        (reading as MealPhotoFailed).failure,
-        MealPhotoFailure.insecureDestination,
-      );
-    });
+        expect(
+          (reading as MealPhotoFailed).failure,
+          MealPhotoFailure.insecureDestination,
+        );
+      },
+    );
 
     group('a pass that has stopped being true (#782)', () {
       const passedBoth = AiEndpointProbe(
@@ -287,6 +298,31 @@ void main() {
         await s.useCase.read(_photo);
 
         expect((await s.credentials.readProbe()).photo, AiCapability.failed);
+      });
+
+      test('a replacement model does not inherit the old failure', () async {
+        // The request owns the selection it started with. If settings move
+        // while the model is answering, its eventual failure says nothing
+        // about the replacement and must not refill the probe slot that the
+        // model change cleared.
+        final release = Completer<void>();
+        final s = subject(
+          apiKey: 'k',
+          probe: passedBoth,
+          waitUntilReleased: release.future,
+          throws: const MealInterpreterException(
+            'the old model cannot see',
+            failure: MealInterpreterFailure.unsupported,
+          ),
+        );
+
+        final reading = s.useCase.read(_photo);
+        await s.interpreter.entered.future;
+        await s.credentials.writeModel('replacement-model');
+        release.complete();
+        await reading;
+
+        expect((await s.credentials.readProbe()).photo, AiCapability.unknown);
       });
 
       test('the text verdict is left where it stands', () async {
@@ -413,7 +449,10 @@ void main() {
         final reading = await s.useCase.read(_photo);
 
         expect(reading, isA<MealPhotoFailed>());
-        expect((reading as MealPhotoFailed).failure, MealPhotoFailure.transient);
+        expect(
+          (reading as MealPhotoFailed).failure,
+          MealPhotoFailure.transient,
+        );
       },
     );
 
