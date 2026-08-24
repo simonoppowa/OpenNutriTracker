@@ -126,7 +126,7 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 
 No account, no sign-in, no analytics, no ads. Your profile, diary, activities, weight, water and fasting history, custom meals, and recipes live in local [Hive](https://pub.dev/packages/hive_ce) boxes encrypted with AES-256. The key is generated on first launch, kept in the Android Keystore / iOS Keychain, and never transmitted ([source](lib/core/utils/secure_app_storage_provider.dart)). **Settings → Delete all my data** wipes the active profile. Formal policy: [Data Protection](https://www.iubenda.com/privacy-policy/53501884).
 
-**What leaves your device.** These destinations, nothing else, and the last four only if you turn them on:
+**What leaves your device.** These destinations, nothing else, and the last four only if you turn them on — plus one more, set out below, if you point the app at a server of your own:
 
 | Destination | When | What is sent |
 | :-- | :-- | :-- |
@@ -138,7 +138,17 @@ No account, no sign-in, no analytics, no ads. Your profile, diary, activities, w
 | └ the vendor serving it | | Named in Settings; pinned, so it is the vendor the model names |
 | [Sentry](https://sentry.io) | **Only if you opt in** | Crash traces, app and OS version, device model |
 
+**And one destination this project cannot name.** Every row above is a company with a published policy you can hold it to. If you point the app at a server you run, the destination is a machine of your choosing — so this row states a **rule** rather than a party. It is set apart deliberately: an open-ended entry in the list above would weaken the closed-list promise the list exists to make. It earns a place anyway, because burying the most privacy-relevant destination in prose would read as evasive.
+
+| Destination | When | What is sent |
+| :-- | :-- | :-- |
+| **The address you entered, and nothing else** | **Only if you save a server address in Settings** — when you press *Load models*, and each time a meal line or photo is read | The meal line or the photo, your app language, and the model name you typed |
+
+This is the one row you can falsify yourself: your own server's access log settles it, where no user can ever settle a claim about a vendor's retention. **No third party receives anything on this path** — which is not the same as the data staying put. It does leave the device, to the address you named, and the app will not send it in the clear to anything that is not a private address.
+
 **AI meal assistance is marked Experimental**, and that is a claim about stability rather than accuracy: the feature may change or be removed, and the providers and models offered may change with it. It stops being experimental when two things hold — a model has been screened against a real corpus of photographs containing no food ([#719](https://github.com/simonoppowa/OpenNutriTracker/issues/719) ran on five images, only one of them a photograph), and one release cycle passes with no provider or model dropped from the curated list. Until both are true the label stays, so that removing it is something you can check rather than something that felt right.
+
+**Neither test can be run against a server you run yourself**, so the exit condition above is about the three hosted providers and does not cover that path. The project has never seen the model on your machine and there is no curated list for it to be dropped from. What stands in for a screen there is the setup check in Settings: it asks your server to read one meal line and one sample photograph, and reports what came back — so the camera is offered only after a photograph has actually been read once, and stops being offered when your server says it cannot.
 
 **AI meal assistance** is off until you supply your own API key in **Settings → AI meal assistance**, and it can be paused without removing the key. The key is held in the Android Keystore / iOS Keychain and never leaves the device except as the request header it authenticates; the project never sees it and does not pay for its use. Only the line you type, or a photo you explicitly pick, is sent — never your diary, profile, or history.
 
