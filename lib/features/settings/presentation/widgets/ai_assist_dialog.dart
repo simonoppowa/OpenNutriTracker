@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/ai_model_list_api.dart';
 import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/ai_consent_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Where the user chooses a provider, supplies a key for it, picks a model,
@@ -560,6 +561,11 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
           return;
         }
 
+        // Everything above this point validates; nothing above it writes.
+        // The agreement goes here, between the two, so a refusal leaves the
+        // device exactly as it found it.
+        if (!await _agreedBeforeAnythingIsStored(provider)) return;
+
         // One act, and the store's act. The order the two writes have to go
         // in, the both-or-neither rule, and whether any of it differs from
         // what is already stored are all facts about the storage format —
@@ -595,12 +601,46 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
 
     final typed = _apiKeyController.text.trim();
     if (typed.isNotEmpty) {
+      // The own-server branch above has already asked, and asking is
+      // idempotent: it returns true without a screen once the agreement is on
+      // file, so a server configured with a key does not answer twice.
+      if (!await _agreedBeforeAnythingIsStored(provider)) return;
       await widget.storage.writeApiKey(typed, provider: provider);
       changed = true;
     }
 
     if (!mounted) return;
     Navigator.of(context).pop(changed);
+  }
+
+  /// True when the user has agreed to what leaving the device means, asking
+  /// them if they have not.
+  ///
+  /// Called on every path that writes a credential, and only after validation
+  /// has passed — a refusal must leave nothing behind, and an invalid address
+  /// should be corrected before anyone is asked to agree to sending anything
+  /// to it.
+  ///
+  /// Declining clears the typed key as well as declining to store it. Leaving
+  /// it in the field would show a credential the app has not saved, which is
+  /// the same lie the dialog already refuses to tell elsewhere.
+  Future<bool> _agreedBeforeAnythingIsStored(AiProvider provider) async {
+    if (await widget.storage.hasAcceptedTerms()) return true;
+    if (!mounted) return false;
+
+    final agreed = await AiConsentScreen.show(
+      context,
+      provider: provider,
+      typedEndpoint: _endpointController.text,
+    );
+    if (!agreed) {
+      if (mounted) _apiKeyController.clear();
+      return false;
+    }
+    // Written only once the answer is yes, so a dismissed screen leaves no
+    // trace of having been shown.
+    await widget.storage.setTermsAccepted(true);
+    return true;
   }
 
   /// Already safe, and worth saying so: `_provider` is read to build the call

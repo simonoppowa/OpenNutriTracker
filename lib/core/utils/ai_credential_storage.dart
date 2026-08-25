@@ -223,6 +223,7 @@ class AiCredentialStorage {
   static const _legacyApiKeyTag = 'AiApiKeyTag';
 
   static const _enabledTag = 'AiAssistEnabledTag';
+  static const _termsAcceptedTag = 'AiTermsAcceptedTag';
   static const _providerTag = 'AiProviderTag';
   static const _modelTag = 'AiModelTag';
 
@@ -934,12 +935,18 @@ class AiCredentialStorage {
       await _storage.delete(key: _probeSlotTag(target));
       await _retireLegacyTagFor(target);
 
-      // Only once nothing is left: with two slots, clearing one key is often
-      // "I am dropping this provider", not "I am done with the feature". The
-      // invariant that matters is narrower — the flag may never be on with no
-      // credential behind it at all.
-      if (!await _hasAnyKey()) {
+      // Only once nothing is left: with four slots, clearing one credential
+      // is often "I am dropping this provider", not "I am done with the
+      // feature". The invariant that matters is narrower — neither flag may
+      // stand with nothing behind it at all.
+      //
+      // The agreement goes with the switch (#836). A recorded yes that
+      // outlives every credential it authorised is a stored answer to a
+      // question nobody is asking any more, and the next credential deserves
+      // to be asked about rather than covered by it.
+      if (!await _hasAnyUsableProvider()) {
         await _storage.delete(key: _enabledTag);
+        await _storage.delete(key: _termsAcceptedTag);
       }
     });
   }
@@ -953,15 +960,58 @@ class AiCredentialStorage {
     await _storage.delete(key: _legacyApiKeyTag);
   }
 
-  Future<bool> _hasAnyKey() async {
+  /// Whether any provider still has something usable behind it.
+  ///
+  /// This asked only about keys until #836, which is the narrower question
+  /// #755 retired everywhere else and [setEnabled] already says it learned:
+  /// a server the user runs is configured by an address and a model, and its
+  /// key is optional. So someone running that server *and* holding a hosted
+  /// key lost the feature by removing the hosted key — switched off while a
+  /// working provider was still configured, with nothing on screen to explain
+  /// it.
+  ///
+  /// Safe inside [clear]'s critical section: every reader below goes straight
+  /// to storage, and none of them take the lock that call already holds.
+  Future<bool> _hasAnyUsableProvider() async {
     for (final provider in AiProvider.values) {
-      if (await readApiKey(provider: provider) != null) return true;
+      if (_isUsable(
+        provider,
+        apiKey: await readApiKey(provider: provider),
+        endpoint: await readEndpoint(provider: provider),
+        modelId: await readModel(provider: provider),
+      )) {
+        return true;
+      }
     }
     return false;
   }
 
   Future<bool> hasApiKey({AiProvider? provider}) async =>
       await readApiKey(provider: provider) != null;
+
+  /// Whether the user has agreed to what leaving the device means.
+  ///
+  /// Kept beside the credentials rather than in the profile config, for the
+  /// same reason the credentials are: it is a fact about this device, and a
+  /// second profile must neither inherit an agreement it never gave nor be
+  /// asked again for a decision already made on this phone.
+  ///
+  /// One flag for the feature rather than one per provider, decided in #835.
+  /// It follows that agreeing while pointed at a server the user runs also
+  /// covers a hosted provider chosen later — which is why the screen says so,
+  /// and why the dialog keeps showing each provider's own terms.
+  Future<bool> hasAcceptedTerms() async =>
+      await _storage.read(key: _termsAcceptedTag) == 'true';
+
+  /// Recorded only after the agreement is actually given, and cleared when
+  /// the last credential goes (#836) so a stored yes never outlives the thing
+  /// it authorised.
+  Future<void> setTermsAccepted(bool accepted) async {
+    await _storage.write(
+      key: _termsAcceptedTag,
+      value: accepted ? 'true' : 'false',
+    );
+  }
 
   /// Whether the user currently wants the key used. False whenever the
   /// *active* provider has no key, so a caller never has to check both — the
