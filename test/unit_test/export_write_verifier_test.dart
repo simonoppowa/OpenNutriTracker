@@ -56,6 +56,18 @@ void main() {
       );
     });
 
+    test('does not throw for file_picker Android document-provider paths', () {
+      // file_picker 11 strips the content:// scheme and returns Uri.path,
+      // which looks like this even though it is not a local filesystem path.
+      expect(
+        () => ExportWriteVerifier.verify(
+          '/document/primary:Download/opennutritracker-export (2).zip',
+          4,
+        ),
+        returnsNormally,
+      );
+    });
+
     test('throws when a normal path cannot be statted at all', () {
       // A missing filesystem path means the write never landed — unlike a
       // content:// URI, there is no legitimate unreadable case to excuse.

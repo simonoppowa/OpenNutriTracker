@@ -24,11 +24,16 @@ class ExportWriteVerifier {
   const ExportWriteVerifier._();
 
   /// Throws a [StateError] if [savedPath] can be statted and its length
-  /// differs from [expectedByteLength], or if a non-content:// path cannot
+  /// differs from [expectedByteLength], or if a real filesystem path cannot
   /// be statted at all.
   static void verify(String savedPath, int expectedByteLength) {
-    if (savedPath.startsWith('content://')) {
-      // Not a path dart:io can stat - nothing more we can check.
+    // file_picker 11 returns Uri.path for Android document-provider saves,
+    // rather than the original content:// URI. Uri.path looks like
+    // /document/primary:Download/file.zip, but it is not a dart:io path that
+    // can be statted. The provider has already accepted the bytes by this
+    // point, so treating it as a missing local file creates a false failure.
+    if (savedPath.startsWith('content://') ||
+        savedPath.startsWith('/document/')) {
       return;
     }
 
