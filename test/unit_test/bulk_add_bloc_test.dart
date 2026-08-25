@@ -798,7 +798,13 @@ class _StubPhotoReader implements ReadMealPhotoUseCase {
 class _MapStorage implements FlutterSecureStorage {
   final Map<String, String> values;
 
-  _MapStorage(this.values);
+  /// Seeds the agreement unless a test says otherwise.
+  ///
+  /// A stored credential is only usable once the user has agreed to what
+  /// leaves the device (#836), so a map holding a key and no agreement is a
+  /// state the app cannot reach.
+  _MapStorage(Map<String, String> values)
+    : values = {'AiTermsAcceptedTag': 'true', ...values};
 
   @override
   Future<String?> read({

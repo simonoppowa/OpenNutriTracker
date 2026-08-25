@@ -335,7 +335,14 @@ class AiCredentialStorage {
       // request agreeing about whether this provider can answer.
       final modelId = await readModel(provider: target);
       // The invariant, stated here once: the flag alone never means "on" — a
-      // provider that is not usable is off whatever the tag says.
+      // provider that is not usable is off whatever the tag says, and so is
+      // one the user has not agreed to send anything to.
+      //
+      // The agreement belongs in this expression rather than only in the
+      // dialog that asks for it. A credential reaching storage without one is
+      // not reachable through that dialog, but "not reachable through the UI"
+      // is a weaker promise than the one #836 makes, and this is the layer
+      // that owns the state the promise is about.
       final enabled =
           _isUsable(
             target,
@@ -343,6 +350,7 @@ class AiCredentialStorage {
             endpoint: endpoint,
             modelId: modelId,
           ) &&
+          await _storage.read(key: _termsAcceptedTag) == 'true' &&
           await _storage.read(key: _enabledTag) != 'false';
       return (
         provider: target,
@@ -960,6 +968,25 @@ class AiCredentialStorage {
     await _storage.delete(key: _legacyApiKeyTag);
   }
 
+  /// Reads what [provider] has on file and asks whether that is enough to
+  /// use it.
+  ///
+  /// The three reads and the question were written out at each call site,
+  /// which is how [setEnabled] and `clear` came to disagree about what counts
+  /// as configured — the narrow key-only test survived in one of them long
+  /// after the other had learned better. One helper, one answer.
+  ///
+  /// Not for [_readState], which already holds these values and would pay
+  /// three more round trips to ask through here.
+  ///
+  /// Takes no lock, so it is safe from inside a critical section.
+  Future<bool> _isProviderUsable(AiProvider provider) async => _isUsable(
+    provider,
+    apiKey: await readApiKey(provider: provider),
+    endpoint: await readEndpoint(provider: provider),
+    modelId: await readModel(provider: provider),
+  );
+
   /// Whether any provider still has something usable behind it.
   ///
   /// This asked only about keys until #836, which is the narrower question
@@ -974,14 +1001,7 @@ class AiCredentialStorage {
   /// to storage, and none of them take the lock that call already holds.
   Future<bool> _hasAnyUsableProvider() async {
     for (final provider in AiProvider.values) {
-      if (_isUsable(
-        provider,
-        apiKey: await readApiKey(provider: provider),
-        endpoint: await readEndpoint(provider: provider),
-        modelId: await readModel(provider: provider),
-      )) {
-        return true;
-      }
+      if (await _isProviderUsable(provider)) return true;
     }
     return false;
   }
@@ -1031,14 +1051,7 @@ class AiCredentialStorage {
     if (enabled) {
       final provider = await activeProvider();
       if (provider == null) return;
-      if (!_isUsable(
-        provider,
-        apiKey: await readApiKey(provider: provider),
-        endpoint: await readEndpoint(provider: provider),
-        modelId: await readModel(provider: provider),
-      )) {
-        return;
-      }
+      if (!await _isProviderUsable(provider)) return;
     }
     await _storage.write(key: _enabledTag, value: enabled ? 'true' : 'false');
   }
