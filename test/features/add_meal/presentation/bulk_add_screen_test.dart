@@ -472,11 +472,112 @@ void main() {
     // The cap being gone is the fix, not an implementation detail: any
     // maxLines put back here truncates German at this size.
     expect(notice.maxLines, isNull);
-    // Still not `takeException()`: #820 removed the vertical overflow, and
-    // doing so uncovered horizontal ones in the row layout that had been
-    // masked by it. Those are #824; the assertion above is what #777 is
-    // about.
-    tester.takeException();
+    // Clean now: #820 removed the vertical overflow, #824 the horizontal ones
+    // in the rows that it uncovered.
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a row fits at 2x on an ordinary phone, unit and all', (
+    tester,
+  ) async {
+    // #824. 320dp is the bound; 411dp at 2x is the combination people
+    // actually meet, being a Pixel at the accessibility size they actually
+    // choose. The food carries a serving, so the unit dropdown has to hold a
+    // word rather than "g" — and a unit clipped to "Por" is not a narrower
+    // reading of the amount, it is a different one.
+    tester.view.physicalSize = const Size(411 * 3, 891 * 3);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
+    await _register({
+      'toast': [_meal('Toast', servingQuantity: 30)],
+    });
+
+    final errors = <String>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = (details) => errors.add(details.toString());
+    addTearDown(() => FlutterError.onError = previous);
+
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+        child: _app(locale: const Locale('de')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _parse(tester, '100g toast');
+
+    // Put the handler back before asserting. While it is still installed a
+    // failed `expect` is an error the framework cannot reconcile, so the test
+    // hangs to its ten-minute timeout instead of failing.
+    FlutterError.onError = previous;
+    expect(
+      errors.where((e) => e.contains('overflowed')),
+      isEmpty,
+      reason: 'something on this row does not fit the space it is given',
+    );
+
+    // The dropdown shows one unit but sizes itself to its widest, so this is
+    // the width the row has to find even while "g" is the one on screen. Its
+    // other items are not in the tree to be found, only measured against.
+    final de = lookupS(const Locale('de'));
+    final dropdown = find.byType(DropdownButton<String>);
+    final needed = (TextPainter(
+      text: TextSpan(
+        text: de.servingLabel,
+        style: Theme.of(tester.element(dropdown)).textTheme.titleMedium,
+      ),
+      textDirection: TextDirection.ltr,
+      textScaler: const TextScaler.linear(2.0),
+    )..layout()).width;
+    expect(
+      tester.getSize(dropdown).width,
+      greaterThanOrEqualTo(needed),
+      reason: 'the unit dropdown is narrower than the unit it has to show, '
+          'and a clipped unit reads as a different one',
+    );
+  });
+
+  testWidgets('the quantity box holds the largest amount at 2x', (
+    tester,
+  ) async {
+    // #824. Where the screen is wide enough to keep the controls on one line
+    // the box is a fixed width, and the fixed width was the original bug: at
+    // 2x, 10000 — the largest amount this screen accepts — no longer fits the
+    // 110px the box used to get, so the number the user typed scrolled out of
+    // its own field.
+    tester.view.physicalSize = const Size(800 * 3, 900 * 3);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
+    await _register({
+      'toast': [_meal('Toast')],
+    });
+
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+        child: _app(locale: const Locale('de')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _parse(tester, '10000g toast');
+
+    final field = find.byType(TextField).last;
+    final needed = (TextPainter(
+      text: TextSpan(
+        text: '10000',
+        style: Theme.of(tester.element(field)).textTheme.bodyLarge,
+      ),
+      textDirection: TextDirection.ltr,
+      textScaler: const TextScaler.linear(2.0),
+    )..layout()).width;
+
+    expect(
+      tester.getSize(field).width,
+      greaterThan(needed),
+      reason: 'the amount box cannot show the largest amount it accepts',
+    );
   });
 
   testWidgets('the screen fits at 2x on a narrow phone, in German', (
@@ -497,13 +598,13 @@ void main() {
       failure: MealInterpreterFailure.timeout,
     ));
 
-    // Collected rather than asserted away. Fixing the vertical overflow
-    // uncovered horizontal ones in the row layout — 65 and 244 pixels —
-    // which had been masked while layout aborted before the rows were
-    // reached. Those are #824, so this test
-    // says precisely what it guarantees: nothing overflows *downwards* any
-    // more. A blanket `takeException` would pass while the column overflowed
-    // again, and a clean-frame assertion would fail for the rows.
+    // Collected rather than asserted away, so the assertion can name what it
+    // covers. It began downwards-only: fixing the vertical overflow (#820)
+    // uncovered horizontal ones in the rows — 65 and 244 pixels — masked
+    // until then because layout aborted before reaching them. #824 fixed
+    // those, so it now covers both directions. A blanket `takeException`
+    // would pass while the screen overflowed again, which is the regression
+    // this exists to catch.
     final errors = <String>[];
     final previous = FlutterError.onError;
     FlutterError.onError = (details) => errors.add(details.toString());
@@ -518,10 +619,14 @@ void main() {
     await tester.pumpAndSettle();
     await _parse(tester, '100g toast');
 
+    // Put the handler back before asserting. While it is still installed a
+    // failed `expect` is an error the framework cannot reconcile, so the test
+    // hangs to its ten-minute timeout instead of failing.
+    FlutterError.onError = previous;
     expect(
-      errors.where((e) => e.contains('overflowed') && e.contains('bottom')),
+      errors.where((e) => e.contains('overflowed')),
       isEmpty,
-      reason: 'the column still does not fit the screen it is given',
+      reason: 'something on this screen does not fit the space it is given',
     );
 
     final input = tester
