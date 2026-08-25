@@ -1128,6 +1128,8 @@
   "aiAssistExperimentalLabel": "实验性功能",
   "aiAssistExperimentalNote": "此功能可能会更改或被移除，所提供的服务商和模型也可能随之更改。",
   "aiConsentTitle": "开启之前",
+  "bulkAddModelHintLabel": "模型可以为你读取这些内容",
+  "bulkAddModelHintKeyLabel": "使用你自己的 API 密钥",
   "aiConsentChangeProviderNote": "你之后可以更换提供方。每个提供方的条款都在设置中，在你使用该功能之前不会发送任何内容。",
   "aiConsentAgreeLabel": "我已了解",
   "aiAssistDisclosureCommon": "您的日记和您的个人资料永远不会被发送。营养数值始终来自食物数据库，而非模型。密钥仅存储在本设备上：OpenNutriTracker 永远看不到它，也不会为其使用付费。",

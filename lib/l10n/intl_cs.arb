@@ -1127,6 +1127,8 @@
   "aiAssistExperimentalLabel": "Experimentální",
   "aiAssistExperimentalNote": "Tato funkce se může změnit nebo být odstraněna a nabídka poskytovatelů a modelů se může změnit s ní.",
   "aiConsentTitle": "Než to zapneš",
+  "bulkAddModelHintLabel": "Model to za tebe může přečíst",
+  "bulkAddModelHintKeyLabel": "S vlastním API klíčem",
   "aiConsentChangeProviderNote": "Poskytovatele můžeš později změnit. Podmínky každého poskytovatele najdeš v nastavení a nic se neodesílá, dokud funkci nepoužiješ.",
   "aiConsentAgreeLabel": "ROZUMÍM",
   "aiAssistDisclosureCommon": "Váš deník ani váš profil se nikdy neodesílají. Výživové hodnoty vždy pocházejí z databází potravin, nikdy od modelu. Klíč je uložen pouze v tomto zařízení: OpenNutriTracker jej nikdy nevidí a neplatí za jeho použití.",

@@ -89,6 +89,22 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     return await _photoDestination != null;
   }();
 
+  /// Whether to offer the model at all, for someone who has never set it up.
+  ///
+  /// Asked of *every* provider rather than the active one. `readSummary`'s
+  /// `configured` speaks only for whichever provider is selected, so a user
+  /// holding a key for one of the other three would be invited to set up
+  /// something they set up last week — an app that does not know its own
+  /// configuration.
+  ///
+  /// Deliberately **not** gated on `isEnabled`. A user who paused the feature
+  /// has not failed to discover it, and this line exists for discovery. The
+  /// rule is one sentence: it shows only for someone who has configured
+  /// nothing. #844.
+  late final Future<bool> _modelUnknown = () async {
+    return !await locator<AiCredentialStorage>().hasAnyUsableProvider();
+  }();
+
   /// Where a photo would actually go, **and the name the sheet gives it**.
   ///
   /// The sheet below is the last moment the user can decline, so it has to
@@ -235,6 +251,91 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     );
   }
 
+  /// Puts the hint above [body] without letting it push anything off screen.
+  ///
+  /// It lives in the body rather than in the entry block above, which is
+  /// fixed: adding a standing line there overflowed the column by 184px at 2x
+  /// on a 320dp screen, the same defect #820 fixed and the same one #824
+  /// uncovered under it. This region is the one that can give ground.
+  Widget _withModelHint(BuildContext context, Widget body) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      _buildModelHint(context),
+      Expanded(child: body),
+    ],
+  );
+
+  /// The line that says a model could read this, for a user who has never
+  /// configured one.
+  ///
+  /// It names the API key requirement before the tap. The app ships no model,
+  /// so a reader who follows this without knowing that lands in a third-party
+  /// signup nothing warned them about — the qualifier is what keeps a
+  /// standing offer from being a bait.
+  ///
+  /// It carries the same Experimental marker every other AI surface carries.
+  /// This is the most-seen of them, and marking the quiet surfaces while
+  /// leaving the loudest one bare would invert the emphasis.
+  ///
+  /// It says nothing about where nutrition values come from. A model may
+  /// never produce them, and that guarantee is reassurance rather than
+  /// something that changes whether this tap leads anywhere — it belongs on
+  /// the agreement, which is where it is.
+  Widget _buildModelHint(BuildContext context) => FutureBuilder<bool>(
+    future: _modelUnknown,
+    builder: (context, snapshot) {
+      // Nothing until the keystore read lands, and nothing for anyone who has
+      // configured a provider. A line that appeared and then vanished would
+      // resize the screen under someone already typing.
+      if (snapshot.data != true) return const SizedBox.shrink();
+      final s = S.of(context);
+      final theme = Theme.of(context);
+      return Semantics(
+        identifier: 'bulk-add-model-hint',
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: InkWell(
+            onTap: () => Navigator.of(
+              context,
+            ).pushNamed(NavigationOptions.settingsRoute),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.auto_awesome_rounded,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${s.bulkAddModelHintLabel} · '
+                          '${s.aiAssistExperimentalLabel}',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        Text(
+                          s.bulkAddModelHintKeyLabel,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+
   Widget _buildInput(BuildContext context, {required double maxFieldHeight}) =>
       Padding(
     padding: const EdgeInsets.all(16),
@@ -298,10 +399,17 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       });
     }
     if (state is! BulkAddLoadedState) {
-      return const SizedBox();
+      // Scrollable because here the line *is* the body and takes a tight
+      // height from the Expanded above: at 2x in German its two rows want
+      // 112px more than this region has before anything has been parsed.
+      // Scrolling rather than clipping, for the reason #777 settled — the
+      // words are the point.
+      return SingleChildScrollView(child: _buildModelHint(context));
     }
     if (state.rows.isEmpty) {
-      return _centeredMessage(context, switch (state) {
+      return _withModelHint(
+        context,
+        _centeredMessage(context, switch (state) {
         // A bad segment explains itself; that outranks either generic line.
         _ when state.parseErrors.isNotEmpty => _parseErrorsText(
           context,
@@ -315,7 +423,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         _ when state.source == BulkAddReadSource.photo =>
           S.of(context).bulkAddPhotoNoFoodLabel,
         _ => S.of(context).bulkAddNothingToLogLabel,
-      });
+        }),
+      );
     }
 
     // The list is the labelled surface, not each child — row identifiers
