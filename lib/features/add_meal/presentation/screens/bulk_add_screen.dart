@@ -23,6 +23,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dar
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/util/meal_quantity_converter.dart';
+import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class BulkAddScreenArguments {
@@ -490,9 +491,18 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         // is what a three-line cap ate. It is a control now, so it cannot be
         // truncated at any text scale — and every one of these failures is
         // answered in the same place.
-        action: () => Navigator.of(
-          context,
-        ).pushNamed(NavigationOptions.settingsRoute),
+        //
+        // #852: which is why it asks for that place by name. Plain Settings
+        // opens on Units & Energy and the AI row is four category groups
+        // below it, so the recovery from "your server did not answer in
+        // time" used to end in a hunt through a long list. The failure kind
+        // does not appear here on purpose: the auth, unsupported, billing,
+        // timeout and insecure-destination cases are all fixed in this one
+        // dialog, so they all ask for the same thing.
+        action: () => Navigator.of(context).pushNamed(
+          NavigationOptions.settingsRoute,
+          arguments: const SettingsScreenArguments(openAiAssist: true),
+        ),
       );
     }
 

@@ -26,6 +26,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 import '../../../helpers/test_l10n.dart';
@@ -224,6 +225,21 @@ Future<BulkAddBloc> _registerWithFailingReader(
   return bloc;
 }
 
+/// What an interpreter has to throw for the screen to draw [kind]'s notice.
+///
+/// A switch over the notice's own enum rather than a lookup by name: a sixth
+/// failure that offers the Settings action cannot then be added without this
+/// answering for it, which is how the "every failure kind behaves the same"
+/// promise of #852 stays true rather than staying written down.
+MealInterpreterFailure _throwsFor(MealTextModelFailure kind) => switch (kind) {
+  MealTextModelFailure.auth => MealInterpreterFailure.auth,
+  MealTextModelFailure.unsupported => MealInterpreterFailure.unsupported,
+  MealTextModelFailure.billing => MealInterpreterFailure.billing,
+  MealTextModelFailure.timeout => MealInterpreterFailure.timeout,
+  MealTextModelFailure.insecureDestination =>
+    MealInterpreterFailure.insecureDestination,
+};
+
 class _AlwaysFailsInterpreter implements MealTextInterpreter {
   final MealInterpreterException failure;
 
@@ -265,20 +281,28 @@ class _MapStorage implements FlutterSecureStorage {
 /// The screen reads its arguments off the route and pops back to
 /// `mainRoute`, so it needs a real navigator with that route named. The
 /// rows render kcal through `EnergyDisplay`, which reads the provider.
-/// Records the names of routes pushed, so "the button goes somewhere" is an
-/// assertion rather than a hope.
+/// Records the routes pushed, so "the button goes somewhere" is an assertion
+/// rather than a hope.
+///
+/// Settings rather than names: #852 made *where inside* Settings the action
+/// lands the point of it, and that travels as the route's arguments. A
+/// recorder that kept only names would pass just as happily on the bug.
 class _PushRecorder extends NavigatorObserver {
-  _PushRecorder(this.names);
-  final List<String?> names;
+  _PushRecorder(this.routes);
+  final List<RouteSettings> routes;
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    names.add(route.settings.name);
+    routes.add(route.settings);
     super.didPush(route, previousRoute);
   }
 }
 
-Widget _app({bool imperial = false, Locale? locale, List<String?>? pushed}) =>
+Widget _app({
+  bool imperial = false,
+  Locale? locale,
+  List<RouteSettings>? pushed,
+}) =>
     ChangeNotifierProvider<EnergyUnitProvider>(
       create: (_) => EnergyUnitProvider(usesKilojoules: false),
       child: MaterialApp(
@@ -297,6 +321,20 @@ Widget _app({bool imperial = false, Locale? locale, List<String?>? pushed}) =>
             return MaterialPageRoute<void>(
               settings: settings,
               builder: (_) => const Scaffold(body: SizedBox()),
+            );
+          }
+          // A stand-in for the settings screen, which needs a locator graph
+          // of its own. It keeps the arguments the caller passed — those are
+          // what carries the request to open the AI dialog (#852), and
+          // rewriting them here, as the branch below has to for the screen
+          // under test, would hide the thing being asserted.
+          if (settings.name == NavigationOptions.settingsRoute) {
+            return MaterialPageRoute<void>(
+              settings: settings,
+              builder: (_) => const Scaffold(
+                key: Key('settings-stub'),
+                body: SizedBox(),
+              ),
             );
           }
           return MaterialPageRoute<void>(
@@ -677,7 +715,7 @@ void main() {
       failure: MealInterpreterFailure.billing,
     ));
 
-    final pushed = <String?>[];
+    final pushed = <RouteSettings>[];
     await tester.pumpWidget(_app(pushed: pushed));
     await tester.pumpAndSettle();
     await _parse(tester, '100g toast');
@@ -689,11 +727,107 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      pushed,
+      pushed.map((route) => route.name),
       contains(NavigationOptions.settingsRoute),
       reason: 'the advice has to go somewhere the user can act',
     );
     expect(tester.takeException(), isNull);
+  });
+
+  // #852. Somewhere the user can act was not enough: the route landed on
+  // Units & Energy, and the AI row is four category groups below it — far
+  // enough down that the #830 device pass took several attempts to reach it
+  // while looking for it. The action now names the control it is talking
+  // about, and it does so identically for every failure that offers it,
+  // because all five are fixed in that one dialog.
+  for (final kind in MealTextModelFailure.values) {
+    testWidgets('the ${kind.name} notice asks for the AI settings by name', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.625;
+      addTearDown(tester.view.reset);
+
+      await _registerWithFailingReader({
+        'toast': [_meal('Toast')],
+      }, MealInterpreterException('failed', failure: _throwsFor(kind)));
+
+      final pushed = <RouteSettings>[];
+      await tester.pumpWidget(_app(pushed: pushed));
+      await tester.pumpAndSettle();
+      await _parse(tester, '100g toast');
+
+      final action = find.bySemanticsIdentifier('bulk-add-notice-action');
+      expect(action, findsOneWidget, reason: '${kind.name} offers the action');
+
+      await tester.tap(action);
+      await tester.pumpAndSettle();
+
+      final settings = pushed
+          .where((route) => route.name == NavigationOptions.settingsRoute)
+          .toList();
+      expect(settings, hasLength(1));
+      expect(
+        settings.single.arguments,
+        isA<SettingsScreenArguments>().having(
+          (arguments) => arguments.openAiAssist,
+          'openAiAssist',
+          isTrue,
+        ),
+        reason:
+            'a notice about the model that drops the user at the top of '
+            'Settings has sent them hunting for the fix',
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('and coming back from it, the rows are still there', (
+    tester,
+  ) async {
+    // The parser rows survive a failed model read — they are the reason the
+    // user is still on this screen at all. Sending them to Settings and
+    // handing back an empty screen would be a worse bug than the one #852
+    // fixes, so the route is pushed over this screen rather than replacing
+    // it.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await _registerWithFailingReader({
+      'toast': [_meal('Toast')],
+    }, const MealInterpreterException(
+      'request timed out',
+      failure: MealInterpreterFailure.timeout,
+    ));
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    await _parse(tester, '100g toast');
+    expect(find.textContaining('Toast'), findsWidgets);
+
+    await tester.tap(find.bySemanticsIdentifier('bulk-add-notice-action'));
+    await tester.pumpAndSettle();
+
+    // Actually left: the rows are behind the pushed route, not still in
+    // front of the user.
+    expect(find.byKey(const Key('settings-stub')), findsOneWidget);
+    expect(find.textContaining('Toast'), findsNothing);
+
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('Toast'),
+      findsWidgets,
+      reason: 'the rows are what the user came back to finish',
+    );
+    expect(
+      find.bySemanticsIdentifier('bulk-add-notice-action'),
+      findsOneWidget,
+      reason: 'and the notice is still there if the fix did not take',
+    );
+    expect(find.bySemanticsIdentifier('bulk-add-submit'), findsOneWidget);
   });
 
 
