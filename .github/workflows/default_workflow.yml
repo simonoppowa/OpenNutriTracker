@@ -281,12 +281,15 @@ jobs:
     # simulator's VM service. ios-build / package / deploy stay on macos-26 —
     # they build/sign and never launch a simulator, so they're unaffected.
     runs-on: macos-15
-    # Bound the job so a hung test fails fast rather than drifting toward
-    # GitHub's 6-hour default. A healthy run is the ~11-12 min Xcode build
-    # plus a few minutes of tests, but the "Run integration tests" step
-    # retries the whole build+test once on failure, so a single flake needs
-    # room for a second cold build. 30 was too tight for that and got
-    # cancelled mid-retry; 50 covers the retry while still catching hangs.
+    # The backstop, not the thing that catches hangs. Each attempt below
+    # carries its own 20-minute bound, so a hang is a failed attempt the
+    # retry can act on; this bound only stops a job drifting toward GitHub's
+    # 6-hour default if something escapes both. It has to hold two cold
+    # builds — 30 was too tight and got cancelled mid-retry.
+    #
+    # It used to be the only bound, and a hang cost the whole 50 minutes of
+    # macOS time, reported as a cancelled job rather than a failed test —
+    # which `gh pr checks` renders as `fail` on a PR that is fine (#823).
     timeout-minutes: 50
     permissions:
       contents: read
@@ -349,25 +352,40 @@ jobs:
           xcrun simctl bootstatus "$DEVICE_UDID"
           echo "DEVICE_UDID=$DEVICE_UDID" >> $GITHUB_ENV
 
-      - name: Run integration tests
+      # Two steps rather than a shell loop, matching android-integration-tests
+      # below. The loop this replaces retried on a non-zero exit, and so had
+      # nothing to say about `flutter test` never exiting at all: a hung
+      # attempt blocked until the job's own `timeout-minutes` killed it, and
+      # the retry — the mechanism meant to absorb simulator flakes — was
+      # skipped by the one flake mode that actually happens here. Three of
+      # sixteen runs on 2026-08-24 burned the full 50 minutes that way (#823).
+      #
+      # A step-level `timeout-minutes` turns a hang into a failed attempt, so
+      # the retry fires on it exactly as it does on a failure.
+      #
+      # 20 minutes per attempt: the slowest healthy run of this step in the
+      # last twenty was 15m36s (the range is 8m53s-15m36s, and it includes the
+      # cold Xcode build), and two 20-minute attempts still fit the job's 50
+      # with the ~5m40s of setup and teardown around them.
+      - name: Run integration tests (attempt 1)
+        id: ios-integration
+        continue-on-error: true
+        timeout-minutes: 20
         # --flavor full so the integration-test app matches the production
         # iOS scheme (bundle id + display name) rather than the develop one.
         # The whole integration_test/ directory runs from a single build.
-        # Retry once: integration tests occasionally flake on a slow simulator
-        # (a dropped frame, a transient launch hiccup). A second attempt on the
-        # same booted sim clears those without masking a real failure, since a
-        # genuine break fails both attempts.
+        run: flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded
+
+      # Retry once: integration tests occasionally flake on a slow simulator
+      # (a dropped frame, a transient launch hiccup, a build that never
+      # returns). A second attempt on the same booted sim clears those without
+      # masking a real failure, since a genuine break fails both attempts.
+      - name: Run integration tests (retry once)
+        if: steps.ios-integration.outcome == 'failure'
+        timeout-minutes: 20
         run: |
-          attempt=1
-          max=2
-          until flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded; do
-            if [ "$attempt" -ge "$max" ]; then
-              echo "::error::iOS integration tests failed after $max attempts"
-              exit 1
-            fi
-            attempt=$((attempt + 1))
-            echo "::warning::iOS integration tests flaked; retrying (attempt $attempt of $max)"
-          done
+          echo "::warning::iOS integration tests failed or hung; retrying (attempt 2 of 2)"
+          flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded
 
   android-build:
     runs-on: ubuntu-latest
@@ -437,11 +455,11 @@ jobs:
     # Same as iOS: runs in parallel from the start, gated on neither
     # android-build (it rebuilds the app itself) nor a file-discovery job.
     runs-on: ubuntu-latest
-    # Same bound as iOS so a hung test fails fast rather than running to the
-    # 6-hour default. On a cold cache this job pays an AVD seed boot plus a
-    # test boot, and the "retry once" step adds a third boot + rebuild, so 30
-    # was too tight and got cancelled mid-retry (which also skips the AVD
-    # cache save, keeping the next run cold). 50 covers the retry path.
+    # Same backstop as iOS, and like iOS the per-attempt bounds below are what
+    # actually catch a hang. On a cold cache this job pays an AVD seed boot
+    # plus a test boot, and the "retry once" step adds a third boot + rebuild,
+    # so 30 was too tight and got cancelled mid-retry (which also skips the
+    # AVD cache save, keeping the next run cold). 50 covers the retry path.
     timeout-minutes: 50
     permissions:
       contents: read
@@ -554,6 +572,14 @@ jobs:
       - name: Run integration tests (attempt 1)
         id: android-integration
         continue-on-error: true
+        # Same bound as iOS, for the same reason. No Android run in the last
+        # twenty hung, and the emulator-runner already bounds the boot it is
+        # known to flake on, but `script:` itself is unbounded — so the one
+        # failure mode that skips the retry is available here too, and this
+        # closes it for the price of a line.
+        #
+        # 20 minutes: the slowest healthy attempt in that sample was 12m4s.
+        timeout-minutes: 20
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -570,6 +596,7 @@ jobs:
 
       - name: Run integration tests (retry once)
         if: steps.android-integration.outcome == 'failure'
+        timeout-minutes: 20
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
