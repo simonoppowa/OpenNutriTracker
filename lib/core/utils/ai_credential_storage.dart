@@ -223,6 +223,7 @@ class AiCredentialStorage {
   static const _legacyApiKeyTag = 'AiApiKeyTag';
 
   static const _enabledTag = 'AiAssistEnabledTag';
+  static const _termsAcceptedTag = 'AiTermsAcceptedTag';
   static const _providerTag = 'AiProviderTag';
   static const _modelTag = 'AiModelTag';
 
@@ -962,6 +963,30 @@ class AiCredentialStorage {
 
   Future<bool> hasApiKey({AiProvider? provider}) async =>
       await readApiKey(provider: provider) != null;
+
+  /// Whether the user has agreed to what leaving the device means.
+  ///
+  /// Kept beside the credentials rather than in the profile config, for the
+  /// same reason the credentials are: it is a fact about this device, and a
+  /// second profile must neither inherit an agreement it never gave nor be
+  /// asked again for a decision already made on this phone.
+  ///
+  /// One flag for the feature rather than one per provider, decided in #835.
+  /// It follows that agreeing while pointed at a server the user runs also
+  /// covers a hosted provider chosen later — which is why the screen says so,
+  /// and why the dialog keeps showing each provider's own terms.
+  Future<bool> hasAcceptedTerms() async =>
+      await _storage.read(key: _termsAcceptedTag) == 'true';
+
+  /// Recorded only after the agreement is actually given, and cleared when
+  /// the last credential goes (#836) so a stored yes never outlives the thing
+  /// it authorised.
+  Future<void> setTermsAccepted(bool accepted) async {
+    await _storage.write(
+      key: _termsAcceptedTag,
+      value: accepted ? 'true' : 'false',
+    );
+  }
 
   /// Whether the user currently wants the key used. False whenever the
   /// *active* provider has no key, so a caller never has to check both — the
