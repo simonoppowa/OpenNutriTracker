@@ -6,7 +6,13 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
 class _MemoryStorage implements FlutterSecureStorage {
-  final store = <String, String>{};
+  /// Starts with the agreement already given.
+  ///
+  /// A stored credential is only usable once the user has agreed to what
+  /// leaves the device (#836), so a store holding a key and no agreement is a
+  /// state the app cannot reach. These tests arrange a working feature, which
+  /// now means configured *and* agreed to.
+  final store = <String, String>{'AiTermsAcceptedTag': 'true'};
 
   @override
   Future<String?> read({

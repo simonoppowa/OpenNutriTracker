@@ -231,7 +231,15 @@ class _AlwaysFailsInterpreter implements MealTextInterpreter {
 class _MapStorage implements FlutterSecureStorage {
   final Map<String, String> values;
 
-  _MapStorage(this.values);
+  /// Seeds the agreement unless a test says otherwise.
+  ///
+  /// A stored credential is only usable once the user has agreed to what
+  /// leaves the device (#836), so a map holding a key and no agreement is a
+  /// state the app cannot reach. Every test here arranging a working feature
+  /// means "configured and agreed to"; the ones about the agreement itself
+  /// pass their own value.
+  _MapStorage(Map<String, String> values)
+    : values = {'AiTermsAcceptedTag': 'true', ...values};
 
   @override
   Future<String?> read({
