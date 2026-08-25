@@ -203,9 +203,14 @@ void main() {
   late _MemoryStorage backing;
   late AiCredentialStorage storage;
 
-  setUp(() {
+  setUp(() async {
     backing = _MemoryStorage();
     storage = AiCredentialStorage(backing);
+    // Storing a credential requires agreeing to what leaves the device
+    // (#835). Every test below that saves one is about something else, so the
+    // agreement is arranged as already given; the group that is about the
+    // agreement clears it again.
+    await storage.setTermsAccepted(true);
   });
 
   testWidgets('states what leaves the device before a key is entered', (
@@ -2294,11 +2299,16 @@ void main() {
   testWidgets('cancelling without typing stores nothing', (tester) async {
     await tester.pumpWidget(_app(storage));
     await tester.pumpAndSettle();
+    // What this asserts is that cancelling *changes* nothing, which is what
+    // it always meant. It read `isEmpty` while an empty store was the only
+    // arrangement any test had; the agreement (#835) is a second, and a test
+    // about the cancel button should not fail because a precondition exists.
+    final before = Map.of(backing.store);
 
     await tester.tap(find.text(l10nEn.dialogCancelLabel));
     await tester.pumpAndSettle();
 
-    expect(backing.store, isEmpty);
+    expect(backing.store, before);
   });
 
   testWidgets('a long saved-key label does not overflow its row', (
@@ -2453,5 +2463,148 @@ void main() {
       hasLength(titles.length),
       reason: 'two rows painted the same text',
     );
+  });
+
+  group('agreeing before anything is stored', () {
+    setUp(() async => storage.setTermsAccepted(false));
+
+    Future<void> typeKeyAndSave(WidgetTester tester, {String key = 'sk-x'}) async {
+      await tester.enterText(find.byType(TextField).first, key);
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsIdentifier('ai-assist-save-key'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a key is not stored until the terms are agreed to', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await typeKeyAndSave(tester);
+
+      // The screen is up, and nothing has been written behind it. That order
+      // is the whole point: the question is put while the answer still
+      // matters.
+      expect(find.text(l10nEn.aiConsentTitle), findsOneWidget);
+      expect(
+        await storage.readApiKey(provider: AiProvider.anthropic),
+        isNull,
+        reason: 'the key was stored before the user agreed to anything',
+      );
+      expect(await storage.hasAcceptedTerms(), isFalse);
+    });
+
+    testWidgets('declining stores nothing and leaves no agreement', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await typeKeyAndSave(tester);
+
+      await tester.tap(find.bySemanticsIdentifier('ai-consent-decline'));
+      await tester.pumpAndSettle();
+
+      expect(await storage.readApiKey(provider: AiProvider.anthropic), isNull);
+      expect(await storage.hasAcceptedTerms(), isFalse);
+      expect(await storage.isEnabled(), isFalse);
+      // The field is cleared too. Leaving the key visible would show a
+      // credential the app has not saved.
+      expect(
+        tester.widget<TextField>(find.byType(TextField).first).controller?.text,
+        isEmpty,
+      );
+    });
+
+    testWidgets('agreeing stores the key and records the agreement', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await typeKeyAndSave(tester);
+
+      await tester.tap(find.bySemanticsIdentifier('ai-consent-agree'));
+      await tester.pumpAndSettle();
+
+      expect(await storage.readApiKey(provider: AiProvider.anthropic), 'sk-x');
+      expect(await storage.hasAcceptedTerms(), isTrue);
+    });
+
+    testWidgets('having agreed once, saving again does not ask again', (
+      tester,
+    ) async {
+      await storage.setTermsAccepted(true);
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await typeKeyAndSave(tester);
+
+      expect(find.text(l10nEn.aiConsentTitle), findsNothing);
+      expect(await storage.readApiKey(provider: AiProvider.anthropic), 'sk-x');
+    });
+
+    testWidgets('the screen names the destination that was chosen', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OpenAI'));
+      await tester.pumpAndSettle();
+
+      await typeKeyAndSave(tester);
+
+      // The provider selected at this moment, not whichever the dialog opened
+      // on — an agreement naming the wrong company is worth nothing.
+      expect(
+        find.textContaining(l10nEn.aiAssistDisclosureOpenAI),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(l10nEn.aiAssistDisclosureAnthropic),
+        findsNothing,
+      );
+    });
+
+    testWidgets('the screen says the provider can be changed later', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await typeKeyAndSave(tester);
+
+      // One agreement covers the feature rather than one provider, so this
+      // sentence is what keeps that honest. Without it a user could
+      // reasonably read the screen as being about the company in front of
+      // them alone.
+      expect(find.text(l10nEn.aiConsentChangeProviderNote), findsOneWidget);
+    });
+
+    testWidgets('the terms are set at a size meant to be read', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await typeKeyAndSave(tester);
+
+      final context = tester.element(find.text(l10nEn.aiConsentTitle));
+      final smallest = Theme.of(context).textTheme.bodySmall?.fontSize;
+      final rendered = tester
+          .widget<Text>(
+            find.textContaining(l10nEn.aiAssistDisclosureAnthropic),
+          )
+          .style
+          ?.fontSize;
+
+      // The words were always on screen. What this ticket changes is that
+      // they are no longer in the smallest type the theme has, below the
+      // fields, where a reader's eye does not go.
+      expect(rendered, isNotNull);
+      expect(
+        rendered,
+        greaterThan(smallest!),
+        reason: 'the terms are set in the same small type they were meant to '
+            'escape',
+      );
+    });
   });
 }

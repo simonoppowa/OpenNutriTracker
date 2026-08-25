@@ -1464,4 +1464,74 @@ void main() {
       }
     });
   });
+
+  group('the agreement goes with the last credential', () {
+    test('removing the only credential withdraws it', () async {
+      await storage.writeApiKey('sk-test', provider: AiProvider.anthropic);
+      await storage.setTermsAccepted(true);
+
+      await storage.clear(provider: AiProvider.anthropic);
+
+      expect(
+        await storage.hasAcceptedTerms(),
+        isFalse,
+        reason: 'a recorded yes outlived every credential it authorised, and '
+            'the next key would be stored without anyone being asked',
+      );
+    });
+
+    test('removing one of two leaves it standing', () async {
+      await storage.writeApiKey('sk-ant', provider: AiProvider.anthropic);
+      await storage.writeApiKey('sk-oai', provider: AiProvider.openai);
+      await storage.setTermsAccepted(true);
+
+      await storage.clear(provider: AiProvider.openai);
+
+      // Dropping one provider is not being done with the feature, and asking
+      // again while a working credential is still on file would be asking
+      // about a decision the user has not revisited.
+      expect(await storage.hasAcceptedTerms(), isTrue);
+    });
+
+    test('a server the user runs counts as a credential', () async {
+      // The one that is not a key. #755 generalised "has a key" to "is
+      // usable" everywhere else; clear() was still asking the narrow
+      // question, so removing the hosted key switched the feature off and —
+      // once the agreement joined that block — would have withdrawn it too,
+      // while a fully configured server was still there to use.
+      await storage.writeOwnServerConfiguration(
+        endpoint: 'http://192.168.1.5:11434',
+        model: 'qwen3:8b',
+        provider: AiProvider.ownServer,
+      );
+      await storage.writeApiKey('sk-oai', provider: AiProvider.openai);
+      await storage.setTermsAccepted(true);
+
+      await storage.clear(provider: AiProvider.openai);
+
+      expect(
+        await storage.hasAcceptedTerms(),
+        isTrue,
+        reason: 'the agreement was withdrawn while a usable provider remained',
+      );
+      expect(
+        await storage.readEndpoint(provider: AiProvider.ownServer),
+        isNotNull,
+        reason: 'and that provider is still configured',
+      );
+    });
+
+    test('removing the last one withdraws it even without a key', () async {
+      await storage.writeOwnServerConfiguration(
+        endpoint: 'http://192.168.1.5:11434',
+        model: 'qwen3:8b',
+        provider: AiProvider.ownServer,
+      );
+      await storage.setTermsAccepted(true);
+
+      await storage.clear(provider: AiProvider.ownServer);
+
+      expect(await storage.hasAcceptedTerms(), isFalse);
+    });
+  });
 }
