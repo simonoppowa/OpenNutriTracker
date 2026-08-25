@@ -108,10 +108,16 @@ class _FakeSearch implements SearchProductsUseCase {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-MealEntity _meal(String name, {double? servingQuantity, String? mealUnit}) =>
+MealEntity _meal(
+  String name, {
+  double? servingQuantity,
+  String? mealUnit,
+  String? brands,
+}) =>
     MealEntity(
       code: name,
       name: name,
+      brands: brands,
       url: null,
       mealQuantity: null,
       mealUnit: mealUnit,
@@ -994,6 +1000,70 @@ void main() {
     await _parse(tester, '2 eggs');
 
     expect(find.text(l10nEn.bulkAddCheckAmountLabel), findsNothing);
+  });
+
+  testWidgets('a brand stays visible behind a unit warning', (tester) async {
+    // #847. Found on a Pixel 6: "Spiegeleier" resolved to Haribo's gummy
+    // sweets — 340 kcal/100 g of sugar where the user meant fried eggs. The
+    // row also carried the bare-count warning, and because the brand was an
+    // *alternative* to that warning rather than a companion, the word
+    // "Haribo" never reached the screen. The warning is about the amount;
+    // the brand is the thing that tells you the food itself is wrong, so a
+    // doubtful row is exactly when it must not disappear.
+    await _register({
+      'spiegeleier': [_meal('Spiegeleier', brands: 'Haribo')],
+    });
+    await tester.pumpWidget(_app());
+    await _parse(tester, '2 spiegeleier');
+
+    expect(find.text(l10nEn.bulkAddCheckAmountLabel), findsOneWidget);
+    expect(find.text('Haribo'), findsOneWidget);
+  });
+
+  testWidgets('a brand still shows on a row with no warning', (tester) async {
+    await _register({
+      'butter': [_meal('Butter', brands: 'Gut Bio', servingQuantity: 10)],
+    });
+    await tester.pumpWidget(_app());
+    await _parse(tester, '2 butter');
+
+    expect(find.text(l10nEn.bulkAddCheckAmountLabel), findsNothing);
+    expect(find.text('Gut Bio'), findsOneWidget);
+  });
+
+  testWidgets('a brand and a warning together still fit at 2x', (tester) async {
+    // The brand is a new *third* line on a row that already carried a title
+    // and a warning, and this screen has run out of room twice before (#820
+    // vertically, #824 horizontally). German at 2x is the worst case the
+    // suite has: every glyph is one em wide in the test font, so
+    // "Einheit fuer diese Menge pruefen" is far wider here than on a device.
+    await _register({
+      'spiegeleier': [_meal('Spiegeleier', brands: 'Haribo')],
+    });
+
+    final errors = <String>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = (details) => errors.add(details.toString());
+    addTearDown(() => FlutterError.onError = previous);
+
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+        child: _app(locale: const Locale('de')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _parse(tester, '2 spiegeleier');
+
+    // Restored before asserting: a failed `expect` while this is installed is
+    // an error the framework cannot reconcile, and the test hangs instead.
+    FlutterError.onError = previous;
+    expect(
+      errors.where((e) => e.contains('overflowed')),
+      isEmpty,
+      reason: 'the brand line does not fit beside the warning it accompanies',
+    );
+    expect(find.text('Haribo'), findsOneWidget);
   });
 
   testWidgets('parse errors are shown alongside the rows that parsed', (

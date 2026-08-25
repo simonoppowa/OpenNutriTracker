@@ -718,6 +718,17 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                           : null,
                     ),
                   ),
+                  // The brand names *which* food this is; a warning only
+                  // qualifies it. They were alternatives, and that inverted
+                  // the intent below: the more doubtful a row looked, the
+                  // less identifying detail it showed. #847 found the cost
+                  // on a Pixel 6 — "Spiegeleier" resolved to Haribo's gummy
+                  // sweets, and because the row also carried a unit warning,
+                  // the word "Haribo" never reached the screen. The one
+                  // field that gives the mistake away is the one a warning
+                  // used to hide, so it is now unconditional.
+                  if (meal?.brands != null)
+                    Text(meal!.brands!, style: theme.textTheme.bodySmall),
                   if (!row.isResolved)
                     Text(
                       S.of(context).bulkAddNoMatchLabel,
@@ -741,9 +752,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.tertiary,
                       ),
-                    )
-                  else if (meal?.brands != null)
-                    Text(meal!.brands!, style: theme.textTheme.bodySmall),
+                    ),
                 ],
               ),
             );
