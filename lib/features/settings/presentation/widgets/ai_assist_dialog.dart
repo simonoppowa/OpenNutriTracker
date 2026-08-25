@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/presentation/ai_assist_summary.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/ai_model_list_api.dart';
@@ -879,7 +880,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                     // which is the fact that changes — then the sentences that
                     // are true whichever provider is chosen.
                     Text(
-                      '${_disclosureFor(s)}\n\n${s.aiAssistDisclosureCommon}',
+                      '${aiDisclosureFor(s, provider: _provider, typedEndpoint: _endpointController.text)}\n\n${s.aiAssistDisclosureCommon}',
                       style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: 12),
@@ -968,38 +969,6 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
           ? s.aiAssistModelsEmptyLabel(host)
           : null,
     };
-  }
-
-  String _disclosureFor(S s) => switch (_provider) {
-    AiProvider.anthropic => s.aiAssistDisclosureAnthropic,
-    AiProvider.openrouter => s.aiAssistDisclosureOpenRouter,
-    AiProvider.openai => s.aiAssistDisclosureOpenAI,
-    // Named host, and an encryption clause derived from the scheme rather
-    // than guessed. #736: "sent to the server you configured" is not
-    // checkable at the moment a user is agreeing to it, where
-    // `sent to 192.168.1.5:11434` is verifiable on sight — and it catches a
-    // stale address pointing somewhere they had forgotten.
-    AiProvider.ownServer => _ownServerDisclosure(s),
-  };
-
-  /// Empty while no address is stored: there is no destination to name yet,
-  /// and a sentence naming nothing would be worse than none.
-  String _ownServerDisclosure(S s) {
-    final typed = _endpointController.text.trim();
-    // Nothing to name yet, which half-typed text also counts as. It used to
-    // fall back to echoing whatever was in the field, and that is a paragraph
-    // rendering a credential the moment someone pastes an address with one
-    // in it.
-    final display = AiCredentialStorage.displayHost(typed);
-    if (display == null) return '';
-    // Which of the two this connection is, read off the scheme as typed, and
-    // nothing beyond that. It deliberately does **not** say the address is
-    // private: nothing checks that today — #758 may — and the string it picks
-    // states what is true of any plaintext connection instead of claiming a
-    // boundary has been enforced.
-    return Uri.tryParse(typed)?.scheme == 'https'
-        ? s.aiAssistDisclosureOwnServerSecure(display)
-        : s.aiAssistDisclosureOwnServerPlaintext(display);
   }
 
   /// What the setup check found, **one row per capability**.
