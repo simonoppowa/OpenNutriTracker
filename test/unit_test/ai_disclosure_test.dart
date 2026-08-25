@@ -35,6 +35,25 @@ void main() {
       );
     });
 
+    test('every destination is told that photos go there too', () {
+      final s = lookupS(const Locale('en'));
+      for (final provider in AiProvider.values) {
+        expect(
+          aiDisclosureFor(
+            s,
+            provider: provider,
+            typedEndpoint: 'https://box.local:11434',
+          ),
+          contains('photo'),
+          // The own-server paragraphs named only the typed text, while the
+          // camera is offered for that provider too once its photo probe
+          // passes. An agreement that lists what leaves the device has to
+          // list the photo, whichever destination is chosen.
+          reason: '${provider.name} does not mention the photo it sends',
+        );
+      }
+    });
+
     test('each hosted provider gets the paragraph written for it', () {
       final s = lookupS(const Locale('en'));
       expect(
