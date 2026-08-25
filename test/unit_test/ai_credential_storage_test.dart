@@ -67,9 +67,14 @@ void main() {
   late _MemoryStorage backing;
   late AiCredentialStorage storage;
 
-  setUp(() {
+  setUp(() async {
     backing = _MemoryStorage();
     storage = AiCredentialStorage(backing);
+    // A credential is only usable once the user has agreed to what leaving
+    // the device means (#836). Tests below are about something else, so the
+    // agreement is arranged as already given; the two that are about it say
+    // so themselves.
+    await storage.setTermsAccepted(true);
   });
 
   test('starts with nothing stored and the feature off', () async {
@@ -269,12 +274,18 @@ void main() {
       backing.store[legacyTag] = 'sk-old';
       backing.store['AiAssistEnabledTag'] = 'true';
 
+      // Snapshotted rather than listed: what this asserts is that reading
+      // writes nothing *back*, which is what it always meant. Listing the
+      // exact tags held only while the arrangement was two of them.
+      final before = Map.of(backing.store);
+
       expect(await storage.readApiKey(), 'sk-old');
       expect(await storage.isEnabled(), isTrue);
-      expect(backing.store.keys.toSet(), {
-        legacyTag,
-        'AiAssistEnabledTag',
-      }, reason: 'reading must not write anything back');
+      expect(
+        backing.store,
+        before,
+        reason: 'reading must not write anything back',
+      );
     });
 
     test('is Anthropic\'s, and not visible to the other provider', () async {
@@ -520,8 +531,11 @@ void main() {
         reason: 'the provider decides which slot to read; it is not per value',
       );
       expect(
+        // Six since #836: the agreement is one more key, and `enabled` cannot
+        // be answered without it. Still a fixed budget rather than one that
+        // grows per value, which is what this guards.
         backing.reads.length,
-        lessThanOrEqualTo(5),
+        lessThanOrEqualTo(6),
         reason: 'five distinct keys exist; asking the three getters '
             'separately took 6-8 round trips. The model joined them when it '
             'became part of what "configured" means for a server the user '
@@ -1466,6 +1480,24 @@ void main() {
   });
 
   group('the agreement goes with the last credential', () {
+    test('a credential without an agreement is not usable', () async {
+      // Not reachable through the dialog, which asks before it writes. The
+      // invariant is asserted here anyway, because "the UI never does that"
+      // is a weaker promise than the one #836 makes, and this is the layer
+      // that owns the state.
+      await storage.setTermsAccepted(false);
+      await storage.writeApiKey('sk-test', provider: AiProvider.anthropic);
+
+      expect(
+        await storage.isEnabled(),
+        isFalse,
+        reason: 'a stored credential is usable with no agreement recorded',
+      );
+
+      await storage.setTermsAccepted(true);
+      expect(await storage.isEnabled(), isTrue);
+    });
+
     test('removing the only credential withdraws it', () async {
       await storage.writeApiKey('sk-test', provider: AiProvider.anthropic);
       await storage.setTermsAccepted(true);
