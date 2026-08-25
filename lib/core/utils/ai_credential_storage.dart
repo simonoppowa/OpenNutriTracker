@@ -952,7 +952,7 @@ class AiCredentialStorage {
       // outlives every credential it authorised is a stored answer to a
       // question nobody is asking any more, and the next credential deserves
       // to be asked about rather than covered by it.
-      if (!await _hasAnyUsableProvider()) {
+      if (!await hasAnyUsableProvider()) {
         await _storage.delete(key: _enabledTag);
         await _storage.delete(key: _termsAcceptedTag);
       }
@@ -987,7 +987,12 @@ class AiCredentialStorage {
     modelId: await readModel(provider: provider),
   );
 
-  /// Whether any provider still has something usable behind it.
+  /// Whether any provider has something usable behind it.
+  ///
+  /// Public because a caller asking "has this user set anything up at all?"
+  /// wants exactly this and not [readSummary]'s `configured`, which speaks
+  /// only for the *active* provider — a user holding a key for one of the
+  /// other three would be told they had configured nothing.
   ///
   /// This asked only about keys until #836, which is the narrower question
   /// #755 retired everywhere else and [setEnabled] already says it learned:
@@ -999,7 +1004,7 @@ class AiCredentialStorage {
   ///
   /// Safe inside [clear]'s critical section: every reader below goes straight
   /// to storage, and none of them take the lock that call already holds.
-  Future<bool> _hasAnyUsableProvider() async {
+  Future<bool> hasAnyUsableProvider() async {
     for (final provider in AiProvider.values) {
       if (await _isProviderUsable(provider)) return true;
     }

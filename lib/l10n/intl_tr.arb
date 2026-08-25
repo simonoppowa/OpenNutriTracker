@@ -1158,6 +1158,8 @@
   "aiAssistExperimentalLabel": "Deneysel",
   "aiAssistExperimentalNote": "Bu özellik değişebilir veya kaldırılabilir; sunulan sağlayıcılar ve modeller de onunla birlikte değişebilir.",
   "aiConsentTitle": "Bunu açmadan önce",
+  "bulkAddModelHintLabel": "Bunu senin için bir model okuyabilir",
+  "bulkAddModelHintKeyLabel": "Kendi API anahtarınla",
   "aiConsentChangeProviderNote": "Sağlayıcıyı daha sonra değiştirebilirsin. Her sağlayıcının koşulları ayarlarda yer alır ve sen özelliği kullanana kadar hiçbir şey gönderilmez.",
   "aiConsentAgreeLabel": "ANLADIM",
   "aiAssistDisclosureCommon": "Günlüğünüz ve profiliniz asla gönderilmez. Besin değerleri her zaman besin veritabanlarından gelir, modelden değil. Anahtar yalnızca bu cihazda saklanır: OpenNutriTracker onu asla görmez ve kullanımı için ödeme yapmaz.",

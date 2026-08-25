@@ -1321,6 +1321,95 @@ void main() {
     expect(await storage.isEnabled(), isTrue);
     expect(find.byIcon(Icons.photo_camera_rounded), findsOneWidget);
   });
+
+  group('telling a user a model could read this (#844)', () {
+    Future<void> openBulkAdd(WidgetTester tester) async {
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      navigator.pushNamed('/bulk');
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> useStorage(Map<String, String> stored) async {
+      await _register(const {});
+      getIt.unregister<AiCredentialStorage>();
+      final storage = AiCredentialStorage(_MapStorage(stored));
+      getIt.registerLazySingleton<AiCredentialStorage>(() => storage);
+    }
+
+    testWidgets('offered to someone who has configured nothing', (
+      tester,
+    ) async {
+      await useStorage(const {});
+      await openBulkAdd(tester);
+
+      expect(find.bySemanticsIdentifier('bulk-add-model-hint'), findsOneWidget);
+      // The qualifier keeps a standing offer from being a bait: this app
+      // ships no model, and the tap leads to a third-party signup.
+      expect(find.text(l10nEn.bulkAddModelHintKeyLabel), findsOneWidget);
+      expect(
+        find.textContaining(l10nEn.aiAssistExperimentalLabel),
+        findsWidgets,
+      );
+    });
+
+    testWidgets('not offered to someone already configured', (tester) async {
+      await useStorage(const {'AiApiKeyTag.anthropic': 'sk-test'});
+      await openBulkAdd(tester);
+
+      expect(find.bySemanticsIdentifier('bulk-add-model-hint'), findsNothing);
+    });
+
+    testWidgets('not offered to someone who paused it', (tester) async {
+      // Pausing is deliberate, and this line exists for discovery. Someone
+      // who switched it off has not failed to discover it.
+      await useStorage(const {
+        'AiApiKeyTag.anthropic': 'sk-test',
+        'AiAssistEnabledTag': 'false',
+      });
+      await openBulkAdd(tester);
+
+      expect(find.bySemanticsIdentifier('bulk-add-model-hint'), findsNothing);
+    });
+
+    testWidgets('not offered for a key held by a provider that is not active', (
+      tester,
+    ) async {
+      // The trap `readSummary().configured` would fall into: it speaks for
+      // the active provider alone, so this user would be invited to set up
+      // what they set up already.
+      await useStorage(const {
+        'AiProviderTag': 'anthropic',
+        'AiApiKeyTag.openai': 'sk-oai',
+      });
+      await openBulkAdd(tester);
+
+      expect(find.bySemanticsIdentifier('bulk-add-model-hint'), findsNothing);
+    });
+
+    testWidgets('it claims nothing about where the numbers come from', (
+      tester,
+    ) async {
+      // A model may never produce a nutrition value, so the line selling the
+      // model must not imply otherwise.
+      await useStorage(const {});
+      await openBulkAdd(tester);
+
+      final hint = find.bySemanticsIdentifier('bulk-add-model-hint');
+      expect(
+        find.descendant(of: hint, matching: find.textContaining('kcal')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: hint,
+          matching: find.textContaining(l10nEn.aiAssistDisclosureCommon),
+        ),
+        findsNothing,
+      );
+    });
+  });
 }
 
 /// Returns a fixed reading without touching a credential or a network.

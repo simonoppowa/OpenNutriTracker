@@ -1127,6 +1127,8 @@
   "aiAssistExperimentalLabel": "Sperimentale",
   "aiAssistExperimentalNote": "Questa funzione può cambiare o essere rimossa, e i fornitori e i modelli offerti possono cambiare con essa.",
   "aiConsentTitle": "Prima di attivarlo",
+  "bulkAddModelHintLabel": "Un modello può leggerlo per te",
+  "bulkAddModelHintKeyLabel": "Con la tua chiave API",
   "aiConsentChangeProviderNote": "Puoi cambiare fornitore in seguito. Le condizioni di ciascun fornitore sono nelle impostazioni e non viene inviato nulla finché non usi la funzione.",
   "aiConsentAgreeLabel": "HO CAPITO",
   "aiAssistDisclosureCommon": "Il tuo diario e il tuo profilo non vengono mai inviati. I valori nutrizionali provengono sempre dai database alimentari, mai dal modello. La chiave è salvata solo su questo dispositivo: OpenNutriTracker non la vede mai e non paga per il suo utilizzo.",

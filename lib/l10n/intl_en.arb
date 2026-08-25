@@ -1236,6 +1236,8 @@
   "aiAssistExperimentalLabel": "Experimental",
   "aiAssistExperimentalNote": "This feature may change or be removed, and the providers and models offered may change with it.",
   "aiConsentTitle": "Before you turn this on",
+  "bulkAddModelHintLabel": "A model can read this for you",
+  "bulkAddModelHintKeyLabel": "With your own API key",
   "aiConsentChangeProviderNote": "You can change provider later. Each provider's terms are shown in Settings, and nothing is sent until you use the feature.",
   "aiConsentAgreeLabel": "I UNDERSTAND",
   "aiAssistDisclosureCommon": "Your diary and your profile are never sent. Nutrition values always come from the food databases, never from the model. The key is stored on this device only: OpenNutriTracker never sees it and does not pay for its use.",
