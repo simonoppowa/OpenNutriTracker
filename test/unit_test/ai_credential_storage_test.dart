@@ -1372,9 +1372,10 @@ void main() {
       );
     });
 
-    test('nothing conclusive leaves no record at all', () async {
-      // "Stored as absence" is now literally true rather than a `"--"` that
-      // merely reads like absence.
+    test('nothing conclusive and nothing asked leaves no record at all', () async {
+      // "Stored as absence" is now literally true rather than a `"---"` that
+      // merely reads like absence. Narrower than it used to be: a *check*
+      // that established nothing is a record — see the #850 test below.
       await configure();
 
       await storage.writeProbe(AiEndpointProbe.unknown, provider: own);
@@ -1383,6 +1384,72 @@ void main() {
         backing.store.keys.where((k) => k.startsWith('AiProbeTag')),
         isEmpty,
       );
+    });
+
+    test('a check that established nothing is still remembered (#850)', () async {
+      // The measured bug: both legs of a probe ran to their timeout, both
+      // verdicts stayed `unknown` — correctly — and the record was deleted,
+      // so four minutes of waiting read back identical to never having
+      // asked. The verdicts are still `unknown`; what survives is that
+      // somebody asked.
+      await configure();
+
+      await storage.writeProbe(AiEndpointProbe.nothingLearned, provider: own);
+
+      final probe = await storage.readProbe(provider: own);
+      expect(probe.text, AiCapability.unknown, reason: 'still no verdict');
+      expect(probe.photo, AiCapability.unknown, reason: 'still no verdict');
+      expect(probe.checked, isTrue, reason: 'but the check did happen');
+    });
+
+    test('a run cannot be un-run by a later inconclusive write', () async {
+      await configure();
+      await storage.writeProbe(AiEndpointProbe.nothingLearned, provider: own);
+
+      await storage.writeProbe(AiEndpointProbe.unknown, provider: own);
+
+      expect((await storage.readProbe(provider: own)).checked, isTrue);
+    });
+
+    test('a use-time retraction does not claim a check ran', () async {
+      // `_retractPhotoPass` learns something real about the model without a
+      // setup check having happened. Reporting "we checked and got nothing"
+      // for the *text* row on the strength of a failed photograph would be
+      // the same lie #850 is about, pointing the other way.
+      await configure();
+
+      await storage.writeProbe(
+        const AiEndpointProbe(
+          text: AiCapability.unknown,
+          photo: AiCapability.failed,
+        ),
+        provider: own,
+      );
+
+      final probe = await storage.readProbe(provider: own);
+      expect(probe.photo, AiCapability.failed);
+      expect(probe.checked, isFalse);
+    });
+
+    test('a record an older build wrote counts as a check', () async {
+      // Two characters is the pre-#850 form, and those builds only wrote at
+      // all once something conclusive existed — so the record existing is
+      // the run. Reading it as unchecked would demote a real check on
+      // upgrade.
+      final legacy = AiEndpointProbe.decode('pf');
+
+      expect(legacy.text, AiCapability.passed);
+      expect(legacy.photo, AiCapability.failed);
+      expect(legacy.checked, isTrue);
+    });
+
+    test('changing the address discards the check along with the verdicts', () async {
+      await configure();
+      await storage.writeProbe(AiEndpointProbe.nothingLearned, provider: own);
+
+      await storage.writeEndpoint('http://192.168.1.9:11434', provider: own);
+
+      expect((await storage.readProbe(provider: own)).checked, isFalse);
     });
 
     test('changing the address discards it', () async {
@@ -1470,10 +1537,17 @@ void main() {
     test('every verdict encodes to something the decoder reads back', () {
       for (final text in AiCapability.values) {
         for (final photo in AiCapability.values) {
-          final probe = AiEndpointProbe(text: text, photo: photo);
-          final round = AiEndpointProbe.decode(probe.encode());
-          expect(round.text, text, reason: probe.encode());
-          expect(round.photo, photo, reason: probe.encode());
+          for (final checked in [false, true]) {
+            final probe = AiEndpointProbe(
+              text: text,
+              photo: photo,
+              checked: checked,
+            );
+            final round = AiEndpointProbe.decode(probe.encode());
+            expect(round.text, text, reason: probe.encode());
+            expect(round.photo, photo, reason: probe.encode());
+            expect(round.checked, checked, reason: probe.encode());
+          }
         }
       }
     });

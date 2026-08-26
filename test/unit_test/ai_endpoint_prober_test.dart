@@ -141,8 +141,11 @@ void main() {
 
       expect(result.text, AiCapability.unknown);
       expect(result.photo, AiCapability.unknown);
-      // And nothing is stored: the encoded form of unknown is absence.
-      expect(result.encode(), '--');
+      // No verdict, but the run itself is recorded. #850: this used to
+      // encode to absence, which is also what "nobody has ever asked" encodes
+      // to — so four minutes of waiting came back reading "Not checked yet."
+      expect(result.checked, isTrue);
+      expect(result.encode(), '--c');
     });
 
     test('a 500 is the server having a bad day, not a verdict', () async {
@@ -188,7 +191,7 @@ void main() {
 
     expect(result.text, AiCapability.passed);
     expect(result.photo, AiCapability.failed);
-    expect(result.encode(), 'pf');
+    expect(result.encode(), 'pfc');
   });
 
   test('the photo probe asks for the container the real path sends', () async {
@@ -258,5 +261,52 @@ void main() {
     // Mac mini: 29s for the text probe and 37s for the photo probe, both
     // from cold. The hosted 20s default would have failed both.
     expect(aiEndpointProbeTimeout.inSeconds, greaterThan(37 * 2));
+  });
+
+  group('the quoted wait is derived from the probe timeout (#851)', () {
+    test('changing the timeout changes the stated duration', () {
+      // The acceptance criterion, and the reason this takes an argument at
+      // all: a figure read from the constant inside the body could only ever
+      // be checked against itself, and the bug being fixed is exactly a
+      // second number that stopped tracking the first.
+      expect(aiProbeWorstCaseMinutes(const Duration(seconds: 120)), 4);
+      expect(aiProbeWorstCaseMinutes(const Duration(seconds: 60)), 2);
+      expect(aiProbeWorstCaseMinutes(const Duration(seconds: 300)), 10);
+      expect(
+        aiProbeWorstCaseMinutes(const Duration(seconds: 20)),
+        1,
+        reason: 'the hosted budget, which does not reach a whole minute',
+      );
+    });
+
+    test('it covers both legs, not one', () {
+      // The whole of #851 in one line. The old copy said "one to two
+      // minutes", which is what a *single* 120s leg rounds to — the two-leg
+      // worst case measured 4m00s on a Pixel 6.
+      expect(
+        aiProbeWorstCaseMinutes(const Duration(seconds: 120)),
+        greaterThan(const Duration(seconds: 120).inMinutes),
+      );
+      expect(aiProbeLegCount, 2, reason: 'text, then photo');
+    });
+
+    test('a remainder rounds up rather than down', () {
+      // A wait a run can outlast is the bug, in miniature. 200s of budget is
+      // 3m20s, and quoting three minutes would send the user back early to
+      // the same "still going" screen the four-minute promise was meant to
+      // spare them.
+      expect(aiProbeWorstCaseMinutes(const Duration(seconds: 100)), 4);
+      expect(aiProbeWorstCaseMinutes(const Duration(seconds: 91)), 4);
+    });
+
+    test('what the dialog quotes today is four minutes', () {
+      // Pins the derivation to the shipping constant, so a timeout change
+      // that should move the copy cannot pass unnoticed.
+      expect(aiProbeWorstCaseMinutes(), 4);
+      expect(
+        aiProbeWorstCaseMinutes(),
+        aiProbeWorstCaseMinutes(aiEndpointProbeTimeout),
+      );
+    });
   });
 }

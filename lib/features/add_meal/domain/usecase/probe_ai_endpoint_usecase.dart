@@ -37,6 +37,35 @@ const aiProbeMealLine = 'two eggs and a slice of toast';
 /// costs no app size.
 const aiProbePhotoAsset = 'assets/demo/meals/1552056413-b8b5eed0170b.jpg';
 
+/// How many requests a full probe makes, one after another.
+///
+/// Named rather than counted at the call site because [AiEndpointProber.probe]
+/// is not the only thing that depends on it: the wait quoted to the user in
+/// settings is this many timeouts long.
+const aiProbeLegCount = 2;
+
+/// The longest a full probe can take, in whole minutes, rounded up.
+///
+/// **Derived, not stated.** #851: the settings copy said "one to two minutes"
+/// while the code ran two legs of [aiEndpointProbeTimeout] each — measured at
+/// exactly 4m00s on a Pixel 6 against a server that accepts a connection and
+/// never answers. The copy invites the user to walk away, so the number is
+/// what they use to decide when to come back, and a second hardcoded constant
+/// is a second thing to forget when the timeout moves.
+///
+/// Rounded **up**, and never below one minute. The whole point is a figure a
+/// run cannot outlast, so the direction of the error matters more than its
+/// size: quoting three minutes for a 3m20s worst case reproduces the bug in
+/// miniature.
+///
+/// Takes the timeout as an argument so the derivation is provable — a `const`
+/// read from inside the body could only ever be checked against itself.
+int aiProbeWorstCaseMinutes([Duration timeout = aiEndpointProbeTimeout]) {
+  final seconds = timeout.inSeconds * aiProbeLegCount;
+  if (seconds <= 60) return 1;
+  return (seconds + 59) ~/ 60;
+}
+
 /// Runs the two setup-time probes against an endpoint and reports what it
 /// found. **Stores nothing** — see [AiCredentialStorage.writeProbe] for that.
 ///
@@ -73,13 +102,27 @@ class AiEndpointProber {
   /// a time against one loaded model, so firing both at once would queue them
   /// anyway — and it would make the first call, the one that pays for the
   /// cold model load, indistinguishable from the second in the timings.
+  ///
+  /// #851 asked again, because sequential is what makes the worst case
+  /// [aiProbeLegCount] timeouts long rather than one. The answer did not
+  /// change: the machines this probe exists for are single-slot, so
+  /// concurrency buys nothing on the good path and risks the bad one — a
+  /// second inference request arriving while a cold model is still loading is
+  /// how a small server starts swapping or refusing. What was wrong was the
+  /// number the user was quoted, not the order the requests go out in.
+  ///
+  /// The result carries [AiEndpointProbe.checked], because this is the one
+  /// place that knows a check really ran. Both legs can come back
+  /// [AiCapability.unknown] — that is the timeout path — and without this the
+  /// stored record of those four minutes would be indistinguishable from
+  /// never having asked.
   Future<AiEndpointProbe> probe(
     AiSelection selection, {
     String? localeCode,
   }) async {
     final text = await probeText(selection, localeCode: localeCode);
     final photo = await probePhoto(selection, localeCode: localeCode);
-    return AiEndpointProbe(text: text, photo: photo);
+    return AiEndpointProbe(text: text, photo: photo, checked: true);
   }
 
   Future<AiCapability> probeText(
