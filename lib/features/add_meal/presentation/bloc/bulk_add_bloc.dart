@@ -110,6 +110,40 @@ class BulkAddRow extends Equatable {
           // unit. A substituted one is just as wrong and less visible.
           : effectiveUnit != unit);
 
+  /// True when the amount on this row is the app's flat fallback — neither
+  /// stated by the user nor carried by the food record.
+  ///
+  /// The gap [amountNeedsCheck] cannot see, and deliberately so: that getter
+  /// requires `resolved.parsed.quantity != null`, so it only ever speaks about
+  /// a number somebody supplied. When nobody supplies one the row falls to
+  /// 100 g (1 oz imperial) and says nothing at all — the case where the app
+  /// guesses hardest is the one case it stayed quiet about. #864.
+  ///
+  /// **Weaker than [amountNeedsCheck], and rendered more quietly.** That flag
+  /// means "this number probably does not mean what you think"; this one only
+  /// means "this number is not yours". 100 g is a defensible neutral — the
+  /// nutriments are published per 100 g, so it is the one figure here nobody
+  /// invented — and a warning that fires on every unquantified row would
+  /// become wallpaper, which is exactly what the model-failure notices were
+  /// shaped to avoid.
+  ///
+  /// Clears once the user types an amount: they have answered it.
+  ///
+  /// Gated on `servingQuantity`, and **not** on `scalableServingQuantity`.
+  /// `_initialAmount` falls back to the flat number exactly when the numeric
+  /// field is absent, so the wider getter would go quiet on rows the fallback
+  /// really did fire on: OFF often leaves `servingQuantity` empty while
+  /// `serving_size` carries "30 g" as text, and `scalableServingQuantity`
+  /// reads the 30 out of it (#629). The row still shows 100.
+  ///
+  /// `hasServingValues` is not consulted either — it is true whenever
+  /// `servingQuantity` is, so pairing them only looks like a stricter test.
+  bool get amountIsProvisional =>
+      !amountEditedByUser &&
+      isResolved &&
+      resolved.parsed.quantity == null &&
+      meal?.servingQuantity == null;
+
   List<String> get allowedUnits => [
     // Only when the serving can actually be scaled. `hasServingValues` is
     // also true for a record carrying nothing but `servingSize` text, and

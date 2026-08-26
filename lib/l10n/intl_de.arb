@@ -1147,6 +1147,7 @@
   "bulkAddNothingToLogLabel": "Noch nichts zu speichern",
   "bulkAddSearchFailedLabel": "Suche nach diesen Lebensmitteln fehlgeschlagen",
   "bulkAddCheckAmountLabel": "Einheit für diese Menge prüfen",
+  "bulkAddDefaultAmountLabel": "Menge nicht angegeben",
   "bulkAddErrorInvalidName": "Eintrag {number}: kein gültiger Lebensmittelname",
   "bulkAddErrorQuantityTooSmall": "Eintrag {number}: Menge muss größer als 0 sein",
   "bulkAddErrorQuantityTooLarge": "Eintrag {number}: Menge darf höchstens {bound} betragen",

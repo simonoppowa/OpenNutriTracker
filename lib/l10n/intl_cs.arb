@@ -1116,6 +1116,7 @@
   "bulkAddNothingToLogLabel": "Zatím není co zaznamenat",
   "bulkAddSearchFailedLabel": "Vyhledávání potravin selhalo",
   "bulkAddCheckAmountLabel": "Zkontrolujte jednotku množství",
+  "bulkAddDefaultAmountLabel": "Množství neuvedeno",
   "bulkAddErrorInvalidName": "Položka {number}: neplatný název potraviny",
   "bulkAddErrorQuantityTooSmall": "Položka {number}: množství musí být větší než 0",
   "bulkAddErrorQuantityTooLarge": "Položka {number}: množství smí být nejvýše {bound}",
