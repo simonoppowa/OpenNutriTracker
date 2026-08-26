@@ -104,10 +104,13 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         tooltip: S.of(context).bulkAddTitle,
                       ),
                     ),
-                    IconButton(
-                      onPressed: () =>
-                          _onCustomAddButtonPressed(state.usesImperialUnits),
-                      icon: const Icon(Icons.add_circle_outline),
+                    Semantics(
+                      identifier: 'add-meal-custom-add',
+                      child: IconButton(
+                        onPressed: () =>
+                            _onCustomAddButtonPressed(state.usesImperialUnits),
+                        icon: const Icon(Icons.add_circle_outline),
+                      ),
                     ),
                   ],
                 );
