@@ -123,9 +123,12 @@ absorbed.
 ```mermaid
 flowchart TD
     Cam["Camera or picker"] --> Cache["Temporary copy in the app cache<br/>put there by image_picker, not by the app"]
-    Cache --> Enc["Encoded in memory<br/>longest edge 1024 px, quality 80<br/>WebP to hosted providers, JPEG to your own server"]
-    Enc --> Del["Cache copy deleted<br/>whether or not encoding succeeded"]
-    Enc --> Send["base64, one request"]
+    Cache --> Enc{"Re-encode in memory<br/>longest edge 1024 px, quality 80"}
+    Enc -->|"succeeded"| Out["WebP to hosted providers<br/>JPEG to a server you run"]
+    Enc -->|"no usable encoder on this device"| Raw["The original file, unmodified<br/>only if its format is one the provider takes<br/>and only under 3 MB — otherwise nothing is sent"]
+    Out --> Send["base64, one request"]
+    Raw --> Send
+    Cache --> Del["Cache copy deleted, encoded or not<br/>best effort: if the delete fails, the OS clears it later"]
     Send --> Gone["Bytes dropped"]
     Gone -. never .-> Never["documents/ · the export zip · a second send"]
 ```
@@ -134,7 +137,20 @@ The cache deletion is there because of a measurement, not a theory. `image_picke
 back the original file — it copies the chosen photo into the app's cache directory and never
 cleans up. Verified on a Pixel 6: after one pick, the full JPEG was still sitting in `cache/`,
 byte for byte. That copy is what would make *"the app keeps no photo"* false, so the app removes
-it.
+it, in a `finally` that runs whether the encode succeeded, failed or threw.
+
+**The delete is best effort, and worth stating as such.** A cache file the app could not remove is
+not worth failing someone's meal entry over, so the failure is swallowed and the copy sits there
+until the OS clears the cache. That is a narrower promise than "the file is gone the moment the
+request leaves", and the narrower one is the true one.
+
+**One branch sends more than the encoding above describes.** If the device has no usable encoder
+for the chosen container, the app falls back to sending the picked file *unmodified* rather than
+failing over an encoder the user has no way to install — so what leaves the device on that path is
+the camera's own output at its own resolution, not a 1024 px re-encode. Two conditions bound it:
+the file's format must be one the provider accepts, and it must be under 3 MB, or nothing is sent
+at all. The fallback is far rarer on the JPEG path than the WebP one, because JPEG encoders are
+universal where WebP's are not.
 
 The photo is never written to the documents directory, which is what the export zip reads — so a
 meal photo sent for interpretation is not in your export and cannot be shown again.
@@ -199,10 +215,26 @@ is read strictly:
   silently redirect their requests to a company they did not choose. In an app that enumerates its
   destinations as a guarantee, that is the one failure that cannot be quiet.
 
-Provider selection is a single `switch` in one function, [`mealItemsApiFor`](../lib/features/add_meal/data/meal_items_api_factory.dart).
+**Choosing the wire client** is a single `switch` in one function, [`mealItemsApiFor`](../lib/features/add_meal/data/meal_items_api_factory.dart).
 The interpreters take a client and never learn which one they were handed, because the prompt and
-the schema never depended on the destination. Adding a provider is a case there and a change
-nowhere else.
+the schema never depended on the destination — so nothing in the request path branches on provider
+a second time.
+
+That is narrower than "adding a provider is one edit", and deliberately so. Four other exhaustive
+switches ask a provider to answer a question of their own, and each of them will refuse to compile
+until a new member answers it:
+
+| Switch | The question it makes a new provider answer |
+|---|---|
+| [`meal_photo_encoder.dart`](../lib/features/add_meal/util/meal_photo_encoder.dart) | which image container this destination can actually decode |
+| [`ai_model_catalogue.dart`](../lib/core/utils/ai_model_catalogue.dart) | which models are offered, and which vendor serves each |
+| [`ai_assist_dialog.dart`](../lib/features/settings/presentation/widgets/ai_assist_dialog.dart) | what this provider is called on screen |
+| [`bulk_add_screen.dart`](../lib/features/add_meal/presentation/screens/bulk_add_screen.dart) | what the photo disclosure says before a picture is sent |
+
+None of them has a `default`. The photo encoder says why in its own source: a fifth provider has to
+answer the question rather than inherit whichever answer a wildcard happened to give it. For a
+feature whose whole claim is that it enumerates its destinations, a silent default is the failure
+mode worth spending four compile errors to prevent.
 
 **Timeouts differ by an order of magnitude, on purpose.** The hosted three get 20 seconds. A
 server you run gets 120. That is not a guess: a real Ollama on an M4 Mac mini serving an 8B model

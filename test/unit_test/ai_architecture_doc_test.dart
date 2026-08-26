@@ -99,6 +99,20 @@ void main() {
       );
     });
 
+    test('the README still points at this page', () {
+      // The other direction. Everything above keeps the page's outbound
+      // links honest; this keeps the one link *into* it honest, because a
+      // page nothing references is a page nobody reads and a rename would
+      // cost it its only inbound link without failing anything.
+      final readme = File('README.md').readAsStringSync();
+      expect(
+        readme,
+        contains('](docs/ai-architecture.md)'),
+        reason: 'the README no longer links to the architecture page, so the '
+            'only route a reader has to it is gone',
+      );
+    });
+
     test('every anchor into another document exists', () {
       final broken = <String>[];
       for (final link in outward) {
