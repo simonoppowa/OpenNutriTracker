@@ -39,6 +39,9 @@ void main() {
     'aiAssistProbePhotoLabel',
     'aiAssistProbePassedLabel',
     'aiAssistProbeUnknownLabel',
+    // #850. The second rendering of `unknown`: a check that ran and came back
+    // with no verdict, which is not the same claim as "nobody has asked".
+    'aiAssistProbeNoAnswerLabel',
     'aiAssistProbeTextFailedLabel',
     'aiAssistProbePhotoFailedLabel',
     // #781. The one sheet that names a destination the app cannot name by
@@ -287,6 +290,11 @@ void main() {
         'aiAssistProbeTextFailedLabel',
         'aiAssistProbePhotoFailedLabel',
         'aiAssistProbePassedLabel',
+        // #850 adds a fourth to the same set, and it is the one most at risk
+        // of being folded back in: "not checked yet" and "checked, no
+        // answer" are a hair apart in English and closer still once a
+        // translator is working from the English alone.
+        'aiAssistProbeNoAnswerLabel',
       ]) {
         expect(
           unknown,
@@ -294,6 +302,43 @@ void main() {
           reason: '$locale: "not checked yet" reads the same as $key',
         );
       }
+    }
+  });
+
+  test('"checked, no answer" is not a verdict in any language (#850)', () {
+    // The other direction. A check that came back with nothing must not read
+    // as a check that came back with an answer — the whole reason a timeout
+    // stays `AiCapability.unknown` is that it says nothing about the model,
+    // and a locale that phrased this like the failure sentences would put the
+    // blame the state model refuses to assign.
+    for (final locale in locales) {
+      final noAnswer = arb[locale]!['aiAssistProbeNoAnswerLabel'] as String;
+      for (final key in [
+        'aiAssistProbePassedLabel',
+        'aiAssistProbeTextFailedLabel',
+        'aiAssistProbePhotoFailedLabel',
+      ]) {
+        expect(
+          noAnswer,
+          isNot(arb[locale]![key]),
+          reason: '$locale: "checked, no answer" reads the same as $key',
+        );
+      }
+    }
+  });
+
+  test('the quoted wait carries the derived figure everywhere (#851)', () {
+    // The running notice is the copy that invites the user to walk away, so
+    // the number in it is what they use to decide when to come back. A locale
+    // that dropped the placeholder would go back to stating a fixed duration
+    // — which is the bug, in eight more languages, and silent because the
+    // sentence still reads perfectly well.
+    for (final locale in locales) {
+      expect(
+        arb[locale]!['aiAssistProbeRunningLabel'] as String,
+        contains('{minutes'),
+        reason: '$locale states a duration the code does not control',
+      );
     }
   });
 

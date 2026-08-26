@@ -115,21 +115,50 @@ class AiEndpointProbe {
   /// Whether a photograph did. This is the one that gates a camera.
   final AiCapability photo;
 
-  const AiEndpointProbe({required this.text, required this.photo});
+  /// Whether a check has ever actually run against this destination.
+  ///
+  /// **A fact about history, where [text] and [photo] are facts about
+  /// knowledge.** #850 is what happens when the two are collapsed: both legs
+  /// of a probe ran to their timeout, both capabilities stayed
+  /// [AiCapability.unknown] — correctly, because a timeout earns no verdict —
+  /// and the dialog then told a user who had just waited four minutes that
+  /// the check had never happened.
+  ///
+  /// Set by [AiEndpointProber.probe] and by nothing else. A use-time
+  /// retraction learns something about the model without a setup check having
+  /// run, so it leaves this alone and the merge in `_writeProbe` keeps
+  /// whatever was already recorded.
+  final bool checked;
+
+  const AiEndpointProbe({
+    required this.text,
+    required this.photo,
+    this.checked = false,
+  });
 
   static const unknown = AiEndpointProbe(
     text: AiCapability.unknown,
     photo: AiCapability.unknown,
   );
 
-  /// `text` and `photo` as one character each — `p`, `f`, or absent as `-`.
+  /// A check that ran and established nothing — the #850 state.
+  static const nothingLearned = AiEndpointProbe(
+    text: AiCapability.unknown,
+    photo: AiCapability.unknown,
+    checked: true,
+  );
+
+  /// `text` and `photo` as one character each — `p`, `f`, or absent as `-` —
+  /// followed by `c` if a check has run, or `-` if none has.
   ///
-  /// A fixed two-character form rather than JSON. This is a *storage format*
+  /// A fixed three-character form rather than JSON. This is a *storage format*
   /// like [AiProvider] is, so it is worth being explicit that widening it
-  /// later means handling what an older build wrote; two positions with a
+  /// later means handling what an older build wrote; positions with a
   /// documented alphabet make that obvious, where a JSON blob invites fields
-  /// to be added as though nothing were reading the old ones.
-  String encode() => '${_code(text)}${_code(photo)}';
+  /// to be added as though nothing were reading the old ones. [decode] still
+  /// reads the two-character form #850 widened, which is the exercise this
+  /// comment was promising.
+  String encode() => '${_code(text)}${_code(photo)}${checked ? 'c' : '-'}';
 
   static String _code(AiCapability capability) => switch (capability) {
     AiCapability.passed => 'p',
@@ -142,10 +171,35 @@ class AiEndpointProbe {
   /// and the safe reading of "I do not know what this says" is "I do not
   /// know what this endpoint can do".
   static AiEndpointProbe decode(String? value) {
-    if (value == null || value.length != 2) return unknown;
+    if (value == null) return unknown;
+    // Two characters is what every build before #850 wrote, and those builds
+    // only wrote at all once something conclusive had been established — so
+    // the record existing *is* the run. Reading it back as unchecked would
+    // demote a real check to "nobody has asked" on the upgrade.
+    if (value.length == 2) {
+      final text = _capability(value[0]);
+      final photo = _capability(value[1]);
+      return AiEndpointProbe(
+        text: text,
+        photo: photo,
+        checked:
+            text != AiCapability.unknown || photo != AiCapability.unknown,
+      );
+    }
+    if (value.length != 3) return unknown;
+    // Strict where the first two positions are lenient. `'ppp'` is not this
+    // format, and reading it as two passes would offer a camera on the
+    // strength of a value nothing here wrote.
+    final checked = switch (value[2]) {
+      'c' => true,
+      '-' => false,
+      _ => null,
+    };
+    if (checked == null) return unknown;
     return AiEndpointProbe(
       text: _capability(value[0]),
       photo: _capability(value[1]),
+      checked: checked,
     );
   }
 
@@ -848,9 +902,13 @@ class AiCredentialStorage {
   /// A conclusive verdict does overwrite, in both directions, which is what
   /// lets a use-time capability refusal retract a stale pass (#782).
   ///
-  /// With nothing conclusive on either side the slot is **deleted** rather
-  /// than written as `"--"`, so "we could not tell" and "nobody has asked
-  /// yet" really are one state rather than two that merely read alike.
+  /// With nothing conclusive on either side and no check ever having run, the
+  /// slot is **deleted** rather than written as `"---"`: there is nothing to
+  /// remember. A check that ran and established nothing does get written, as
+  /// `"--c"`. That is #850 — it used to be deleted too, on the reasoning that
+  /// "we could not tell" and "nobody has asked yet" are one state, and they
+  /// are not: the first is worth four minutes of someone's afternoon and the
+  /// second is not.
   Future<void> writeProbe(AiEndpointProbe probe, {AiProvider? provider}) async {
     final target = await _target(provider);
     if (target == null) return;
@@ -891,10 +949,15 @@ class AiCredentialStorage {
     final merged = AiEndpointProbe(
       text: probe.text == AiCapability.unknown ? stored.text : probe.text,
       photo: probe.photo == AiCapability.unknown ? stored.photo : probe.photo,
+      // A run cannot be un-run. Merged rather than overwritten so a use-time
+      // retraction — which is a fact about the model, not a setup check —
+      // does not erase the record of a check that did happen.
+      checked: probe.checked || stored.checked,
     );
 
     if (merged.text == AiCapability.unknown &&
-        merged.photo == AiCapability.unknown) {
+        merged.photo == AiCapability.unknown &&
+        !merged.checked) {
       await _storage.delete(key: _probeSlotTag(target));
       return;
     }

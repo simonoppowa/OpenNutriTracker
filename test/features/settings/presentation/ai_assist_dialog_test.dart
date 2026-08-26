@@ -1793,9 +1793,13 @@ void main() {
       late _FakeProber prober;
       late AiEndpointProbeRunner runner;
 
+      // Carries `checked`, because a real prober always does — it is the one
+      // thing that knows a check ran. A fake that left it off would let the
+      // #850 rendering pass on results no real run can produce.
       const textOnly = AiEndpointProbe(
         text: AiCapability.passed,
         photo: AiCapability.failed,
+        checked: true,
       );
 
       setUp(() {
@@ -1913,6 +1917,168 @@ void main() {
         );
       });
 
+      testWidgets('a check that came back with nothing does not read as '
+          '"not checked yet" (#850)', (tester) async {
+        // Measured on a Pixel 6 against an unresponsive endpoint: probe
+        // started 19:44:36, the text leg timed out at 19:46:36, the photo leg
+        // at 19:48:36, and at 19:50 both rows still read "Noch nicht
+        // geprüft" with the running banner cleared and the button
+        // re-enabled. Four minutes of someone's afternoon, and the screen
+        // denied the check had happened at all.
+        await configure();
+        prober.result = AiEndpointProbe.nothingLearned;
+
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+        expect(
+          find.text(l10nEn.aiAssistProbeUnknownLabel),
+          findsNWidgets(2),
+          reason: 'before anything is asked, both rows read as never checked',
+        );
+
+        await tapRetry(tester);
+
+        expect(
+          find.text(l10nEn.aiAssistProbeNoAnswerLabel),
+          findsNWidgets(2),
+          reason: 'the check ran, learned nothing, and says so',
+        );
+        expect(
+          find.text(l10nEn.aiAssistProbeUnknownLabel),
+          findsNothing,
+          reason: 'and no row still claims nobody has asked',
+        );
+        // The stored value is untouched. A timeout earns `unknown` on
+        // purpose: the app stopped waiting, which says nothing about what
+        // the endpoint can do, and recording `failed` would be a claim the
+        // probe did not earn.
+        final stored = await storage.readProbe(provider: AiProvider.ownServer);
+        expect(stored.text, AiCapability.unknown);
+        expect(stored.photo, AiCapability.unknown);
+      });
+
+      testWidgets('the two inconclusive rows do not share an icon (#850)', (
+        tester,
+      ) async {
+        // Distinguishable *at a glance* rather than only on reading. The two
+        // sentences are a hair apart and sit in the smallest type on the
+        // screen, so a shared glyph would collapse them again for anyone
+        // scanning rather than reading.
+        await configure();
+
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+        final neverChecked = tester
+            .widgetList<Icon>(find.byType(Icon))
+            .map((i) => i.icon)
+            .toSet();
+
+        prober.result = AiEndpointProbe.nothingLearned;
+        await tapRetry(tester);
+        final noAnswer = tester
+            .widgetList<Icon>(find.byType(Icon))
+            .map((i) => i.icon)
+            .toSet();
+
+        expect(
+          noAnswer.difference(neverChecked),
+          isNotEmpty,
+          reason: 'a check that got nothing looks exactly like a never-run',
+        );
+        expect(
+          noAnswer,
+          isNot(contains(Icons.error_outline_rounded)),
+          reason: 'nothing failed: a server that did not answer is not a '
+              'model that cannot see, and an error icon says it did',
+        );
+        expect(
+          noAnswer,
+          isNot(contains(Icons.check_circle_outline_rounded)),
+          reason: 'and nothing passed either',
+        );
+      });
+
+      testWidgets('and the distinction survives reopening the dialog (#850)', (
+        tester,
+      ) async {
+        // The probe is explicitly allowed to outlive the dialog — #735
+        // settled that the user has moved on long before it finishes — so a
+        // distinction that lived only in `State` would tell the truth to
+        // whoever happened to still be looking and lie to everybody else.
+        await configure();
+        prober.result = AiEndpointProbe.nothingLearned;
+
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+        await tapRetry(tester);
+        expect(find.text(l10nEn.aiAssistProbeNoAnswerLabel), findsNWidgets(2));
+
+        // Torn down and rebuilt, so everything the second dialog shows it
+        // read back from the store rather than inherited.
+        await tester.pumpWidget(const SizedBox());
+        await tester.pumpAndSettle();
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+
+        expect(find.text(l10nEn.aiAssistProbeNoAnswerLabel), findsNWidgets(2));
+        expect(find.text(l10nEn.aiAssistProbeUnknownLabel), findsNothing);
+      });
+
+      testWidgets('a genuine verdict is untouched by all of that (#850)', (
+        tester,
+      ) async {
+        // The guard on the rendering split: only `unknown` gained a second
+        // sentence. A pass and a failure each keep exactly one.
+        await configure();
+        prober.result = const AiEndpointProbe(
+          text: AiCapability.passed,
+          photo: AiCapability.failed,
+          checked: true,
+        );
+
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+        await tapRetry(tester);
+
+        expect(find.text(l10nEn.aiAssistProbePassedLabel), findsOneWidget);
+        expect(
+          find.text(l10nEn.aiAssistProbePhotoFailedLabel),
+          findsOneWidget,
+        );
+        expect(find.text(l10nEn.aiAssistProbeNoAnswerLabel), findsNothing);
+        expect(find.text(l10nEn.aiAssistProbeUnknownLabel), findsNothing);
+      });
+
+      testWidgets('the wait it quotes covers both legs (#851)', (
+        tester,
+      ) async {
+        // The copy invites the user to walk away, so the number in it is what
+        // they use to decide when to come back. Two legs of the own-server
+        // budget run back to back — measured at 4m00s on a Pixel 6 — under a
+        // promise of "one to two minutes", which is what a single leg rounds
+        // to.
+        await configure();
+        prober.gate = Completer<void>();
+
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+        await tapRetry(tester);
+
+        expect(
+          find.text(l10nEn.aiAssistProbeRunningLabel(4)),
+          findsOneWidget,
+          reason: 'the two-leg worst case, derived from the probe timeout',
+        );
+        expect(
+          find.text(l10nEn.aiAssistProbeRunningLabel(2)),
+          findsNothing,
+          reason: 'one leg is the figure the old copy was quoting',
+        );
+
+        prober.gate!.complete();
+        await tester.pumpAndSettle();
+      });
+
       testWidgets('an unreachable server stays a state with a retry', (
         tester,
       ) async {
@@ -1920,14 +2086,14 @@ void main() {
         // conclusive is recorded and nothing is presented as a fault. What
         // the user gets back is the same offer to try again.
         await configure();
-        prober.result = AiEndpointProbe.unknown;
+        prober.result = AiEndpointProbe.nothingLearned;
 
         await tester.pumpWidget(_app(storage, probeRunner: runner));
         await tester.pumpAndSettle();
         await tapRetry(tester);
 
         expect(prober.calls, 1, reason: 'the retry really did run one');
-        expect(find.text(l10nEn.aiAssistProbeUnknownLabel), findsNWidgets(2));
+        expect(find.text(l10nEn.aiAssistProbeNoAnswerLabel), findsNWidgets(2));
         expect(find.text(l10nEn.aiAssistProbeTextFailedLabel), findsNothing);
         final retry = tester.widget<TextButton>(
           find.descendant(
@@ -2010,7 +2176,10 @@ void main() {
         await tester.pumpWidget(_app(storage, probeRunner: runner));
         await tester.pumpAndSettle();
 
-        expect(find.text(l10nEn.aiAssistProbeRunningLabel), findsOneWidget);
+        expect(
+          find.text(l10nEn.aiAssistProbeRunningLabel(aiProbeWorstCaseMinutes())),
+          findsOneWidget,
+        );
         final retry = tester.widget<TextButton>(
           find.descendant(
             of: find.bySemanticsIdentifier('ai-assist-probe-run'),
@@ -2022,7 +2191,10 @@ void main() {
         // And it catches up live if they are still looking when it lands.
         prober.gate!.complete();
         await tester.pumpAndSettle();
-        expect(find.text(l10nEn.aiAssistProbeRunningLabel), findsNothing);
+        expect(
+          find.text(l10nEn.aiAssistProbeRunningLabel(aiProbeWorstCaseMinutes())),
+          findsNothing,
+        );
         expect(find.text(l10nEn.aiAssistProbePassedLabel), findsOneWidget);
       });
 

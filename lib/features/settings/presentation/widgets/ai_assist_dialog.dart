@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/ai_model_list_api.dart';
 import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/probe_ai_endpoint_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/ai_consent_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -1104,8 +1105,16 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
           // seconds against a cold Ollama — 29s text, 37s photo — so the
           // honest affordance says how long it takes and that leaving is
           // fine.
+          //
+          // The figure is the **worst** case, derived from the probe timeout
+          // rather than from that 66-second measurement. #851: a server that
+          // accepts a connection and never answers takes both timeouts in
+          // full, measured at 4m00s on a Pixel 6 under a promise of "one to
+          // two minutes" — and an endpoint that might not be reachable is
+          // exactly the reason someone runs a check in the first place, so
+          // the slow path is the likely one here rather than the exotic one.
           child: Text(
-            s.aiAssistProbeRunningLabel,
+            s.aiAssistProbeRunningLabel(aiProbeWorstCaseMinutes()),
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -1114,28 +1123,30 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _probeRow(
         theme,
         s.aiAssistProbeTextLabel,
-        _probe.text,
+        _rowStateFor(_probe.text),
         // A failed text check is **reported and disables nothing.** The
         // deterministic parser still produces the rows, one sample line is
         // thin evidence about a real meal, and taking the feature away over
         // it would remove something that costs nothing. #735.
-        switch (_probe.text) {
-          AiCapability.passed => s.aiAssistProbePassedLabel,
-          AiCapability.failed => s.aiAssistProbeTextFailedLabel,
-          AiCapability.unknown => s.aiAssistProbeUnknownLabel,
+        switch (_rowStateFor(_probe.text)) {
+          _ProbeRowState.passed => s.aiAssistProbePassedLabel,
+          _ProbeRowState.failed => s.aiAssistProbeTextFailedLabel,
+          _ProbeRowState.noAnswer => s.aiAssistProbeNoAnswerLabel,
+          _ProbeRowState.neverChecked => s.aiAssistProbeUnknownLabel,
         },
       ),
       _probeRow(
         theme,
         s.aiAssistProbePhotoLabel,
-        _probe.photo,
+        _rowStateFor(_probe.photo),
         // The asymmetric half: a failed photo check hides the camera, because
         // there is nothing underneath it the way the parser is underneath the
         // text path, and offering a dead end is worse than not offering it.
-        switch (_probe.photo) {
-          AiCapability.passed => s.aiAssistProbePassedLabel,
-          AiCapability.failed => s.aiAssistProbePhotoFailedLabel,
-          AiCapability.unknown => s.aiAssistProbeUnknownLabel,
+        switch (_rowStateFor(_probe.photo)) {
+          _ProbeRowState.passed => s.aiAssistProbePassedLabel,
+          _ProbeRowState.failed => s.aiAssistProbePhotoFailedLabel,
+          _ProbeRowState.noAnswer => s.aiAssistProbeNoAnswerLabel,
+          _ProbeRowState.neverChecked => s.aiAssistProbeUnknownLabel,
         },
       ),
       // Offered while the feature is on, and not while it is paused: paused
@@ -1158,6 +1169,28 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     ],
   );
 
+  /// How one capability reads, given what is stored *and* whether a check has
+  /// run.
+  ///
+  /// The whole of #850. [AiCapability.unknown] is a statement about
+  /// knowledge — "no verdict" — and it was being rendered as a statement
+  /// about history — "no check has happened". Those agree until a probe runs
+  /// and learns nothing, which is the ordinary outcome against a server that
+  /// is asleep, on another network, or behind a VPN that is off. On a Pixel 6
+  /// it left someone who had waited four minutes looking at "Not checked
+  /// yet." on both rows.
+  ///
+  /// The stored value is untouched: a timeout still earns
+  /// [AiCapability.unknown], because the app stopping waiting says nothing
+  /// about what the endpoint can do. Only the number of renderings changes.
+  _ProbeRowState _rowStateFor(AiCapability capability) => switch (capability) {
+    AiCapability.passed => _ProbeRowState.passed,
+    AiCapability.failed => _ProbeRowState.failed,
+    AiCapability.unknown => _probe.checked
+        ? _ProbeRowState.noAnswer
+        : _ProbeRowState.neverChecked,
+  };
+
   /// One capability, its verdict, and what that verdict means for the user.
   ///
   /// Name above status rather than `"$name: $status"`. The separator would be
@@ -1167,7 +1200,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   Widget _probeRow(
     ThemeData theme,
     String name,
-    AiCapability capability,
+    _ProbeRowState state,
     String status,
   ) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
@@ -1175,20 +1208,28 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(
-          // **Never `failed`'s icon for `unknown`.** "We have not asked" and
-          // "we asked and it cannot" are different states, and the first is
-          // not an error: nothing went wrong, there is nothing to dismiss,
-          // and the answer is the button below rather than a fix.
-          switch (capability) {
-            AiCapability.passed => Icons.check_circle_outline_rounded,
-            AiCapability.failed => Icons.error_outline_rounded,
-            AiCapability.unknown => Icons.help_outline_rounded,
+          // **Never `failed`'s icon for the two inconclusive states.** "We
+          // have not asked" and "we asked and it cannot" are different
+          // states, and the first is not an error: nothing went wrong, there
+          // is nothing to dismiss, and the answer is the button below rather
+          // than a fix. The same holds for a check that came back with
+          // nothing — it is a wasted four minutes, not a broken model, and
+          // dressing it as an error would blame the server for the network.
+          switch (state) {
+            _ProbeRowState.passed => Icons.check_circle_outline_rounded,
+            _ProbeRowState.failed => Icons.error_outline_rounded,
+            _ProbeRowState.noAnswer => Icons.sync_problem_rounded,
+            _ProbeRowState.neverChecked => Icons.help_outline_rounded,
           },
           size: 18,
-          color: switch (capability) {
-            AiCapability.passed => theme.colorScheme.primary,
-            AiCapability.failed => theme.colorScheme.error,
-            AiCapability.unknown => theme.colorScheme.onSurfaceVariant,
+          // A different shape *and* a different weight for the two
+          // inconclusive rows, so "we asked and got nothing" is not one
+          // glyph's difference away from "nobody has asked" at a glance.
+          color: switch (state) {
+            _ProbeRowState.passed => theme.colorScheme.primary,
+            _ProbeRowState.failed => theme.colorScheme.error,
+            _ProbeRowState.noAnswer => theme.colorScheme.onSurface,
+            _ProbeRowState.neverChecked => theme.colorScheme.onSurfaceVariant,
           },
         ),
         const SizedBox(width: 8),
@@ -1434,4 +1475,26 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       ],
     );
   }
+}
+
+/// The four sentences one capability row can carry, over three stored values.
+///
+/// [AiCapability] deliberately has three members and keeps them (#850 is a
+/// rendering bug, not a state-model one). This is where the extra distinction
+/// lives, because it is only a distinction *in front of a user*: nothing
+/// downstream — not the camera gate, not the storage merge — treats a check
+/// that learned nothing differently from one that never ran.
+enum _ProbeRowState {
+  /// The endpoint answered with items.
+  passed,
+
+  /// The endpoint answered, and the answer was not usable.
+  failed,
+
+  /// A check ran against this destination and came back with no verdict.
+  /// Almost always a timeout, and the four minutes were real.
+  noAnswer,
+
+  /// Nothing has ever been asked.
+  neverChecked,
 }
