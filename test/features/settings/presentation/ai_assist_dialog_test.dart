@@ -1787,6 +1787,224 @@ void main() {
 
         expect(tester.takeException(), isNull);
       });
+
+      group('a verdict does not outlive the address it judged (#853)', () {
+        /// A public literal, so the refusal is reached **without a DNS
+        /// lookup**. `PlaintextDestinationGuard` answers a literal from its
+        /// bytes; a name would send the test host to a real resolver and make
+        /// the result depend on the network the suite runs on.
+        ///
+        /// TEST-NET-3 (RFC 5737), which exists to be written down: reserved
+        /// for documentation, guaranteed never routed, and owned by nobody.
+        /// A real host's address would read as public to the guard just the
+        /// same, but it would also be someone's.
+        const publicAddress = 'http://203.0.113.1:11434';
+        const privateAddress = 'http://192.168.99.99:11434';
+
+        /// Types **without letting the clock run**, for the same reason
+        /// [commitEndpoint] does: `pumpAndSettle` ages a request held open by
+        /// [_Server.gates] past `AiModelListApi`'s fifteen-second timeout, and
+        /// the window where an answer is still out is the whole of what the
+        /// last case here is about.
+        Future<void> typeEndpointNow(
+          WidgetTester tester,
+          String endpoint,
+        ) async {
+          await tester.enterText(
+            find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+            endpoint,
+          );
+          await tester.pump();
+        }
+
+        /// Presses the button and returns while the request is still out.
+        Future<void> pressLoadNow(WidgetTester tester) async {
+          final button = find.bySemanticsIdentifier('ai-assist-load-models');
+          // Nothing is in flight yet, so settling here costs nothing.
+          await tester.ensureVisible(button);
+          await tester.pumpAndSettle();
+          await tester.tap(button);
+          await tester.pump();
+        }
+
+        testWidgets('editing the address clears the refusal it produced', (
+          tester,
+        ) async {
+          // The reported defect, in the order it was found on a Pixel 6: the
+          // app refuses a public plaintext address, the user does exactly what
+          // the sentence tells them to and moves to a private one, and the
+          // complaint stays on screen still calling the address public. It
+          // reads as *still refused* over a configuration the app would now
+          // happily send to.
+          final server = _Server.listing(['gemma3:4b']);
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+
+          await typeEndpoint(tester, publicAddress);
+          await pressLoad(tester);
+
+          expect(
+            find.text(l10nEn.aiAssistModelsInsecureLabel),
+            findsOneWidget,
+            reason: 'the refusal has to be announced at all, or #758 is '
+                'undone',
+          );
+          expect(server.requests, isEmpty, reason: 'nothing was sent');
+
+          await typeEndpoint(tester, privateAddress);
+
+          expect(
+            find.text(l10nEn.aiAssistModelsInsecureLabel),
+            findsNothing,
+            reason: 'the sentence was about an address that is no longer in '
+                'the field',
+          );
+        });
+
+        testWidgets('editing the address clears the list fetched for the old '
+            'one', (tester) async {
+          // The other statement about a particular host, immediately below the
+          // first. A picker offering one machine's models under another
+          // machine's address is the same lie with a cost attached: picking a
+          // row writes that id into the model field.
+          final server = _Server.listing(['qwen3:8b']);
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+
+          await typeEndpoint(tester, 'http://192.168.1.5:11434');
+          await pressLoad(tester);
+
+          expect(
+            find.bySemanticsIdentifier('ai-assist-model-picker'),
+            findsOneWidget,
+          );
+
+          await typeEndpoint(tester, 'http://192.168.1.9:11434');
+
+          expect(
+            find.bySemanticsIdentifier('ai-assist-model-picker'),
+            findsNothing,
+            reason: 'the list belonged to the address that was just edited '
+                'away',
+          );
+        });
+
+        testWidgets('an edit elsewhere in the dialog leaves the verdict '
+            'standing', (tester) async {
+          // The half that stops this being "clear it whenever anything
+          // happens". A model name, the pause switch and the key say nothing
+          // about which host was asked, so a list fetched for the address
+          // still in the field is still that address's list — and throwing it
+          // away on every keystroke would make the picker unusable, since
+          // picking from it is what fills the model field.
+          final server = _Server.listing(['qwen3:8b']);
+          await storage.writeOwnServerConfiguration(
+            endpoint: 'http://192.168.1.5:11434',
+            model: 'gemma3:4b',
+            provider: AiProvider.ownServer,
+          );
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+
+          await pressLoad(tester);
+          expect(
+            find.bySemanticsIdentifier('ai-assist-model-picker'),
+            findsOneWidget,
+          );
+
+          await tester.enterText(
+            find.bySemanticsIdentifier('ai-assist-model-field'),
+            'llama3.2:3b',
+          );
+          await tester.pumpAndSettle();
+
+          final toggle = find.bySemanticsIdentifier('ai-assist-enabled');
+          await tester.ensureVisible(toggle);
+          await tester.pumpAndSettle();
+          await tester.tap(toggle);
+          await tester.pumpAndSettle();
+
+          final key = find.bySemanticsIdentifier('ai-assist-key-field');
+          await tester.ensureVisible(key);
+          await tester.pumpAndSettle();
+          await tester.enterText(key, 'sk-behind-a-reverse-proxy');
+          await tester.pumpAndSettle();
+
+          expect(
+            find.bySemanticsIdentifier('ai-assist-model-picker'),
+            findsOneWidget,
+            reason: 'the address that list belongs to never changed',
+          );
+        });
+
+        testWidgets('asking again after the edit answers about the new '
+            'address', (tester) async {
+          // Clearing the sentence is only half of what the user was told to
+          // do. The button beside it has to work against what they typed
+          // instead, or the fix is a dialog that goes quiet and stays quiet.
+          final server = _Server.listing(['gemma3:4b']);
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+
+          await typeEndpoint(tester, publicAddress);
+          await pressLoad(tester);
+          await typeEndpoint(tester, privateAddress);
+          await pressLoad(tester);
+
+          expect(server.requests, [
+            Uri.parse('http://192.168.99.99:11434/v1/models'),
+          ]);
+          expect(
+            find.bySemanticsIdentifier('ai-assist-model-picker'),
+            findsOneWidget,
+          );
+          for (final message in messagesFor('192.168.99.99:11434')) {
+            expect(find.text(message), findsNothing);
+          }
+        });
+
+        testWidgets('an answer for the old address does not land under the '
+            'new one', (tester) async {
+          // A verdict that arrives *after* the edit is as stale as one that
+          // was already there — a machine on someone's LAN answers when it
+          // answers, and what it answers about is the address that was in the
+          // field when the request left. So the edit supersedes the request
+          // rather than only wiping what is currently painted.
+          final server = _Server.perHost({
+            '192.168.1.9': ['qwen3:8b'],
+          });
+          server.gates['192.168.1.9'] = Completer<void>();
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+
+          await typeEndpointNow(tester, 'http://192.168.1.9:11434');
+          await pressLoadNow(tester);
+          await typeEndpointNow(tester, 'http://192.168.1.7:11434');
+
+          server.gates['192.168.1.9']!.complete();
+          await tester.pumpAndSettle();
+
+          expect(
+            find.bySemanticsIdentifier('ai-assist-model-picker'),
+            findsNothing,
+            reason: 'nothing has been asked about the address on screen',
+          );
+          for (final message in messagesFor('192.168.1.9:11434')) {
+            expect(find.text(message), findsNothing);
+          }
+          final button = find.bySemanticsIdentifier('ai-assist-load-models');
+          await tester.ensureVisible(button);
+          await tester.pumpAndSettle();
+          expect(
+            tester.widget<TextButton>(
+              find.descendant(of: button, matching: find.byType(TextButton)),
+            ).onPressed,
+            isNotNull,
+            reason: 'the button has to be pressable against the address that '
+                'replaced the one being fetched for',
+          );
+        });
+      });
     });
 
     group('the setup check (#780)', () {
@@ -2211,7 +2429,7 @@ void main() {
 
         await tester.enterText(
           find.bySemanticsIdentifier('ai-assist-endpoint-field'),
-          'http://93.184.216.34:11434',
+          'http://203.0.113.1:11434',
         );
         await tester.enterText(
           find.bySemanticsIdentifier('ai-assist-model-field'),

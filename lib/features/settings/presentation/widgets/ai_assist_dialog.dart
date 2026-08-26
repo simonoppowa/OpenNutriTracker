@@ -380,6 +380,43 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     });
   }
 
+  /// The address was edited, so everything on screen that judged the old one
+  /// stops being true.
+  ///
+  /// Two things here are verdicts about a *specific* address, rendered either
+  /// side of the field that produced them: the refusal on the field itself,
+  /// and the model-list sentence under the button. Left alone they outlive
+  /// their subject — #853 watched *"that address is public and unencrypted"*
+  /// stay on screen after the address had been edited to a private one the
+  /// app would happily send to. Someone following the notice's own advice
+  /// sees the complaint not go away and reads it as still refused.
+  ///
+  /// The mirror of #758's argument for announcing the refusal at all: silence
+  /// leaves a user never learning that their configuration is one the app
+  /// will not honour, and a stale refusal teaches them the same wrong thing
+  /// about a configuration that is now fine.
+  ///
+  /// **A request already out is superseded rather than left to land**, for
+  /// the reason [_modelsGeneration] exists at all: what it answers about is
+  /// the address that was in the field when it left. The same two moves
+  /// [_load] makes — bump the generation, and turn [_fetchingModels] off by
+  /// hand, because the abandoned request no longer reaches the line that
+  /// would.
+  ///
+  /// Only the address field calls this. A model name, the pause switch and
+  /// the key say nothing about which host was asked, so editing one of those
+  /// leaves a verdict for the address still in the field standing.
+  void _endpointChanged() {
+    setState(() {
+      _endpointError = null;
+      _modelsGeneration++;
+      _fetchingModels = false;
+      _modelIds = null;
+      _modelListFailure = null;
+      _modelListHost = null;
+    });
+  }
+
   /// The user has finished with the address field.
   ///
   /// **A URL change is the second of the two moments a fetch may happen**
@@ -860,11 +897,12 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                           ),
                           // The disclosure below names this host and derives
                           // its encryption clause from the scheme, so it has
-                          // to follow the field as it is typed. A refusal
-                          // clears with the same keystroke, because it was
-                          // about text that no longer exists.
-                          onChanged: (_) =>
-                              setState(() => _endpointError = null),
+                          // to follow the field as it is typed. So does every
+                          // verdict this dialog has reached about the address
+                          // — a refusal, and the model-list sentence under
+                          // the button — because each was about text that no
+                          // longer exists. See [_endpointChanged].
+                          onChanged: (_) => _endpointChanged(),
                         ),
                       ),
                       const SizedBox(height: 12),
