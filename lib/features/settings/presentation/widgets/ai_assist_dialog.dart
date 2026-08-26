@@ -1027,7 +1027,8 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                     // which is the fact that changes — then the sentences that
                     // are true whichever provider is chosen.
                     Text(
-                      '${aiDisclosureFor(s, provider: _provider, typedEndpoint: _endpointController.text)}\n\n${s.aiAssistDisclosureCommon}',
+                      '${aiDisclosureFor(s, provider: _provider, typedEndpoint: _endpointController.text)}'
+                      '\n\n${s.aiAssistDisclosureCommon}',
                       style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: 12),
