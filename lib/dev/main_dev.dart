@@ -34,12 +34,17 @@ Future<void> main() async {
   final config = await configRepo.getConfig();
   // Mirrors the reconciliation in main.dart so a dev build behaves the same
   // way when the OS holds a per-app language.
+  final systemLocale = await AppLocaleService.getApplicationLocale();
   final localeCode = await reconcileAppLocale(
     savedLocaleCode: await configRepo.getSelectedLocale(),
-    systemLocaleTag: await AppLocaleService.getApplicationLocale(),
+    systemLocaleTag: systemLocale.tag,
+    systemTagReadFailed: systemLocale.readFailed,
+    localeSyncSeeded: await configRepo.getLocaleSyncSeeded(),
     supportedLocales: S.supportedLocales,
     persistSelectedLocale: configRepo.setSelectedLocale,
     pushToSystem: AppLocaleService.setApplicationLocale,
+    readSystemTag: AppLocaleService.getApplicationLocale,
+    markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
   );
   final savedLocale = localeCode != null ? Locale(localeCode) : null;
   final savedAppTheme = await configRepo.getConfigAppTheme();

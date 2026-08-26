@@ -152,6 +152,14 @@ class ConfigDBO extends HiveObject {
   // nothing has been deleted.
   @HiveField(36)
   List<String>? healthDeletedExternalIds;
+  // One-shot marker for [reconcileAppLocale]'s migration push: set once the
+  // saved language has been offered to Android's per-app language picker (or
+  // the picker was seen holding a value). Null means the push has not
+  // happened yet. Without it, an override the user cleared in the OS picker
+  // is indistinguishable from one that was never seeded, and gets silently
+  // pushed back on the next launch.
+  @HiveField(37)
+  bool? localeSyncSeeded;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -188,6 +196,7 @@ class ConfigDBO extends HiveObject {
     this.healthWorkoutKcalMultiplier,
     this.healthLastImportAt,
     this.healthDeletedExternalIds,
+    this.localeSyncSeeded,
   });
 
   factory ConfigDBO.empty() =>

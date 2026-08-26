@@ -21,56 +21,93 @@ const _supported = [
 ];
 
 class _Recorder {
+  /// What a read-back of the OS tag answers after a push. By default it
+  /// echoes the pushed value — a platform that holds per-app overrides.
+  /// Pass false for one that cannot hold them, where a push no-ops.
+  _Recorder({this.readBackFollowsPush = true});
+
+  final bool readBackFollowsPush;
   final persisted = <String?>[];
   final pushed = <String?>[];
+  int seededMarks = 0;
 
   Future<void> persist(String? code) async => persisted.add(code);
   Future<void> push(String? tag) async => pushed.add(tag);
+  Future<({String? tag, bool readFailed})> readBack() async =>
+      (tag: readBackFollowsPush ? pushed.lastOrNull : null, readFailed: false);
+  Future<void> markSeeded() async => seededMarks++;
 }
 
 Future<String?> _reconcile(
   _Recorder recorder, {
   String? saved,
   String? system,
-}) =>
-    reconcileAppLocale(
-      savedLocaleCode: saved,
-      systemLocaleTag: system,
-      supportedLocales: _supported,
-      persistSelectedLocale: recorder.persist,
-      pushToSystem: recorder.push,
-    );
+  bool seeded = false,
+  bool readFailed = false,
+}) => reconcileAppLocale(
+  savedLocaleCode: saved,
+  systemLocaleTag: system,
+  systemTagReadFailed: readFailed,
+  localeSyncSeeded: seeded,
+  supportedLocales: _supported,
+  persistSelectedLocale: recorder.persist,
+  pushToSystem: recorder.push,
+  readSystemTag: recorder.readBack,
+  markLocaleSyncSeeded: recorder.markSeeded,
+);
 
 void main() {
   group('reconcileAppLocale', () {
     test('the system override wins and is saved', () async {
       final recorder = _Recorder();
 
-      final result =
-          await _reconcile(recorder, saved: 'de', system: 'pl');
+      final result = await _reconcile(recorder, saved: 'de', system: 'pl');
 
       expect(result, 'pl');
-      expect(recorder.persisted, ['pl'],
-          reason: 'Settings should show what the OS picker holds');
-      expect(recorder.pushed, isEmpty,
-          reason: 'the OS already has this value; writing it back is noise');
+      expect(
+        recorder.persisted,
+        ['pl'],
+        reason: 'Settings should show what the OS picker holds',
+      );
+      expect(
+        recorder.pushed,
+        isEmpty,
+        reason: 'the OS already has this value; writing it back is noise',
+      );
+      expect(
+        recorder.seededMarks,
+        1,
+        reason: 'an OS value existing means both sides are already met',
+      );
     });
 
     test('an override that already matches is not written again', () async {
       final recorder = _Recorder();
 
-      final result =
-          await _reconcile(recorder, saved: 'de', system: 'de');
+      final result = await _reconcile(
+        recorder,
+        saved: 'de',
+        system: 'de',
+        seeded: true,
+      );
 
       expect(result, 'de');
       expect(recorder.persisted, isEmpty);
       expect(recorder.pushed, isEmpty);
+      expect(
+        recorder.seededMarks,
+        0,
+        reason: 'already recorded; another config write is noise',
+      );
     });
 
     // The upgrade path: someone chose a language in the app long before this
     // wiring existed, so the OS has no override yet. Their choice is what
-    // they meant, and it seeds the system rather than being overwritten by it.
-    test('with no override, a saved choice seeds the system', () async {
+    // they meant, and it seeds the system rather than being overwritten by
+    // it. The read-back sees the pushed value, so seeded is recorded in the
+    // same call — a clear arriving any time afterwards is honoured, with no
+    // window in which it would read as never-seeded and be re-pushed.
+    test('a saved choice seeds the system and the echo records it', () async {
       final recorder = _Recorder();
 
       final result = await _reconcile(recorder, saved: 'uk', system: null);
@@ -78,6 +115,65 @@ void main() {
       expect(result, 'uk');
       expect(recorder.pushed, ['uk']);
       expect(recorder.persisted, isEmpty);
+      expect(
+        recorder.seededMarks,
+        1,
+        reason:
+            'seeded means the OS was SEEN holding a value — here via the '
+            'read-back of the push, not the attempt itself',
+      );
+    });
+
+    // On a platform with no per-app override the push no-ops and the
+    // read-back stays empty, so seeded is never recorded and the migration
+    // branch repeats — harmlessly — instead of the platform ever being
+    // mistaken for a user who cleared their override.
+    test('a saved choice on an override-less platform survives', () async {
+      final recorder = _Recorder(readBackFollowsPush: false);
+
+      await _reconcile(recorder, saved: 'uk', system: null);
+      final result = await _reconcile(recorder, saved: 'uk', system: null);
+
+      expect(result, 'uk');
+      expect(
+        recorder.persisted,
+        isEmpty,
+        reason: 'nothing may clear a choice the user never cleared',
+      );
+      expect(
+        recorder.pushed,
+        ['uk', 'uk'],
+        reason: 'the repeat is the design: pushes that never take are no-ops',
+      );
+      expect(recorder.seededMarks, 0);
+    });
+
+    // The other reading of "no override": it was seeded before, so its
+    // absence now is the user having picked System default in Android's
+    // picker. Re-pushing the saved choice would undo their action; instead
+    // the saved choice follows the OS and is cleared.
+    test('once seeded, a cleared override clears the saved choice', () async {
+      final recorder = _Recorder();
+
+      final result = await _reconcile(
+        recorder,
+        saved: 'uk',
+        system: null,
+        seeded: true,
+      );
+
+      expect(result, isNull);
+      expect(
+        recorder.pushed,
+        isEmpty,
+        reason: 'pushing the old choice back is the bug this exists for',
+      );
+      expect(
+        recorder.persisted,
+        [null],
+        reason: 'System default means follow the system in both pickers',
+      );
+      expect(recorder.seededMarks, 0);
     });
 
     test('with nothing on either side, nothing happens', () async {
@@ -88,6 +184,7 @@ void main() {
       expect(result, isNull);
       expect(recorder.pushed, isEmpty);
       expect(recorder.persisted, isEmpty);
+      expect(recorder.seededMarks, 0);
     });
 
     test('a region-qualified tag resolves to the language we ship', () async {
@@ -102,23 +199,41 @@ void main() {
     test('a script-and-region tag resolves the same way', () async {
       final recorder = _Recorder();
 
-      final result =
-          await _reconcile(recorder, saved: null, system: 'zh-Hans-CN');
+      final result = await _reconcile(
+        recorder,
+        saved: null,
+        system: 'zh-Hans-CN',
+      );
 
       expect(result, 'zh');
       expect(recorder.persisted, ['zh']);
     });
 
-    // A tag we do not ship must not strand anyone in a half-translated app.
-    test('an unshipped language is treated as no override', () async {
+    // A tag we do not ship must not strand anyone in a half-translated app —
+    // but it is still the user's explicit OS-level choice, so it is ignored,
+    // not overwritten. The app keeps its saved language and the OS keeps its.
+    test('an unshipped language is ignored, not corrected', () async {
       final recorder = _Recorder();
 
       final result = await _reconcile(recorder, saved: 'de', system: 'ja');
 
       expect(result, 'de');
       expect(recorder.persisted, isEmpty);
-      expect(recorder.pushed, ['de'],
-          reason: 'the OS holds a language we cannot render; correct it');
+      expect(
+        recorder.pushed,
+        isEmpty,
+        reason:
+            'overwriting an OS-level choice we merely cannot render '
+            'is a stronger action than ignoring it',
+      );
+      expect(
+        recorder.seededMarks,
+        1,
+        reason:
+            'the OS demonstrably holds an override, so its later absence '
+            'must read as the user clearing it — not as never-seeded, which '
+            'would re-push the saved code over their System default',
+      );
     });
 
     test('an empty tag is treated as no override', () async {
@@ -128,6 +243,27 @@ void main() {
 
       expect(result, 'it');
       expect(recorder.pushed, ['it']);
+      expect(recorder.seededMarks, 1);
+    });
+
+    // A channel failure is not an answer. Deciding anything on it — most of
+    // all the seeded+absent clear below — would destroy a language the user
+    // never touched.
+    test('a failed read changes nothing, even when seeded', () async {
+      final recorder = _Recorder();
+
+      final result = await _reconcile(
+        recorder,
+        saved: 'de',
+        system: null,
+        seeded: true,
+        readFailed: true,
+      );
+
+      expect(result, 'de');
+      expect(recorder.pushed, isEmpty);
+      expect(recorder.persisted, isEmpty);
+      expect(recorder.seededMarks, 0);
     });
   });
 
