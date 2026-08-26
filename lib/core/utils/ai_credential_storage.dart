@@ -274,6 +274,28 @@ class AiCredentialStorage {
   Future<void> setActiveProvider(AiProvider provider) =>
       _storage.write(key: _providerTag, value: provider.name);
 
+  /// The stored name **exactly as it is held** — including one this build does
+  /// not know, and including nothing at all.
+  ///
+  /// [activeProvider] answers the question the app asks at runtime, and to do
+  /// that it folds both of those onto values it can act on: nothing stored
+  /// reads as Anthropic, an unrecognised name reads as null (see
+  /// [AiProvider.fromTag]). Neither folded answer can be written back, so a
+  /// caller that means to put the selection back exactly where it found it
+  /// cannot go through the enum. #848.
+  Future<String?> readActiveProviderTag() => _storage.read(key: _providerTag);
+
+  /// Puts back what [readActiveProviderTag] returned.
+  ///
+  /// Null **deletes** rather than writing a default. An install that has never
+  /// chosen a provider is a different state from one that chose Anthropic —
+  /// the first is every install that predates providers existing, and it is
+  /// valid precisely because nothing was ever written to it — and undoing a
+  /// change nobody confirmed must not be what turns the one into the other.
+  Future<void> restoreActiveProviderTag(String? tag) => tag == null
+      ? _storage.delete(key: _providerTag)
+      : _storage.write(key: _providerTag, value: tag);
+
   /// Resolves the active provider **once** and answers everything that hangs
   /// off it, for the callers that want more than one of these values.
   ///

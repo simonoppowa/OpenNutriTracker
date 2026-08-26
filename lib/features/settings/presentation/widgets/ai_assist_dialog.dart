@@ -62,7 +62,9 @@ class AiAssistDialog extends StatefulWidget {
   /// Not barrier-dismissible: the switch, the provider selector and the
   /// remove button write immediately, so a tap outside would drop the
   /// "something changed" answer on the floor and leave the settings tile
-  /// describing the old state. Leaving is via Cancel, which reports honestly.
+  /// describing the old state. Leaving is via Cancel or the back button, both
+  /// of which report honestly and put the provider back — see
+  /// `_AiAssistDialogState._cancel`.
   static Future<bool> show(
     BuildContext context,
     AiCredentialStorage storage, {
@@ -202,9 +204,26 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// have left: 66 seconds is longer than anyone waits at a settings screen.
   bool _probing = false;
 
+  /// What the store held when the dialog opened, so leaving without
+  /// confirming can put it back. See [_cancel].
+  ///
+  /// **A raw tag rather than an [AiProvider]**, because the two selections
+  /// this dialog cannot itself express — nothing stored, and a name this
+  /// build does not know — are both states Cancel has to restore, and neither
+  /// survives a round trip through the enum.
+  ///
+  /// Kept as the future rather than its answer: the read is started before
+  /// anything is on screen to tap, and awaiting it at the point of use means
+  /// a radio somehow tapped first still reverts to what was there rather than
+  /// to what the tap left behind.
+  late final Future<String?> _providerOnOpen;
+
   @override
   void initState() {
     super.initState();
+    // Started before the first frame, because every write below this point
+    // overwrites the thing being remembered.
+    _providerOnOpen = widget.storage.readActiveProviderTag();
     // **Deliberately only this.** No fetch here, and none in
     // [_selectProvider]: for the three hosted providers opening AI settings
     // sends nothing anywhere, and the README's promise is about what leaves
@@ -378,8 +397,8 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // a machine on the user's network at the one moment they cannot see the
     // answer. A route stops being current the moment `pop` is called, which
     // is before it moves focus — so this catches every way out at once:
-    // Cancel, OK, and the system back button, which runs no handler of ours
-    // at all.
+    // Cancel, OK, and the system back button, whose own handler (#848) ends
+    // in the same `pop` and so is covered by the same check.
     //
     // One check rather than a flag set on each exit. A flag was tried first
     // and could not see the back button; adding this made every one of its
@@ -503,6 +522,37 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     _modelController.text = id;
     _modelError = null;
   });
+
+  /// Leaves, and takes the provider choice back out with it.
+  ///
+  /// **Selecting a provider persists immediately**, and has to: [_load] reads
+  /// the store for whoever is now active, so the write goes first. That made
+  /// Cancel a button that undid nothing — tap OpenAI, tap Cancel, and the
+  /// settings row read *"On — OpenAI"*. #848.
+  ///
+  /// Which matters here more than it would elsewhere, because this dialog is
+  /// the one place that names each destination and states what it does with a
+  /// photo. Reading those is something the app actively invites, so tapping
+  /// down the list to compare them is ordinary use — and it was silently
+  /// repointing where the next meal photo would be sent.
+  ///
+  /// The restore is **awaited before the pop**, not fired off beside it. The
+  /// caller refreshes its subtitle from this dialog's answer, and a row that
+  /// reads the wrong destination for a frame is the same lie in miniature.
+  ///
+  /// Only the provider is put back. A model chosen for a named provider, the
+  /// pause switch, Remove — each is a deliberate act on a thing the user
+  /// pointed at, not a side effect of reading a paragraph; this undoes the one
+  /// change that happened without being asked for.
+  /// The route check is the same idiom [_endpointCommitted] uses, for the
+  /// mirror-image reason: a route stops being current the moment `pop` is
+  /// called, so a second back press arriving during the restore finds this
+  /// already on its way out and does not pop the screen underneath as well.
+  Future<void> _cancel() async {
+    await widget.storage.restoreActiveProviderTag(await _providerOnOpen);
+    if (!mounted || ModalRoute.of(context)?.isCurrent == false) return;
+    Navigator.of(context).pop(_changed);
+  }
 
   Future<void> _save() async {
     final s = S.of(context);
@@ -709,6 +759,24 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     final s = S.of(context);
     final theme = Theme.of(context);
 
+    return PopScope(
+      // The back button is a dismissal too, and it is the exit that runs no
+      // handler of its own — so it is intercepted here rather than left to pop
+      // straight past the restore, which would make "put the provider back"
+      // a promise that held for one of the two ways out.
+      //
+      // `canPop: false` gates only the pops the *user* initiates. The two this
+      // dialog performs itself call `Navigator.pop` directly and are not
+      // routed through here, which is what keeps a confirmed switch confirmed.
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) unawaited(_cancel());
+      },
+      child: _buildDialog(context, s, theme),
+    );
+  }
+
+  Widget _buildDialog(BuildContext context, S s, ThemeData theme) {
     return AlertDialog(
       // The Experimental marker is deliberately *not* appended here. At a 2x
       // text scale on a 320px phone it makes this title tall enough to squeeze
@@ -941,9 +1009,12 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
               ),
             ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(_changed),
-          child: Text(s.dialogCancelLabel),
+        Semantics(
+          identifier: 'ai-assist-cancel',
+          child: TextButton(
+            onPressed: _cancel,
+            child: Text(s.dialogCancelLabel),
+          ),
         ),
         // Offered whenever something on screen can still be typed into. For
         // the hosted three that is exactly "before a key exists", which is

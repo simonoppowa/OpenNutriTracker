@@ -2311,6 +2311,172 @@ void main() {
     expect(backing.store, before);
   });
 
+  group('leaving without confirming (#848)', () {
+    /// Taps a provider row the way the adb verifier does — by the identifier
+    /// AGENTS.md asks for rather than by a brand name, which is what a driver
+    /// on a localized device has to use.
+    Future<void> choose(WidgetTester tester, AiProvider provider) async {
+      await tester.tap(
+        find.bySemanticsIdentifier(AiAssistDialog.providerIdentifier(provider)),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> cancel(WidgetTester tester) async {
+      await tester.tap(find.bySemanticsIdentifier('ai-assist-cancel'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Cancel puts the destination back where it found it', (
+      tester,
+    ) async {
+      // Reproduced on a Pixel 6 in the #830 acceptance pass: active provider
+      // OpenRouter, open the dialog, tap OpenAI, tap Cancel, and the settings
+      // row reads "On — OpenAI". The dialog is the one place that names each
+      // destination and says what it does with a photo, so tapping down the
+      // list to read them is ordinary use, and it was quietly repointing
+      // where the next meal photo went.
+      await storage.setActiveProvider(AiProvider.openrouter);
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await choose(tester, AiProvider.openai);
+      expect(
+        await storage.activeProvider(),
+        AiProvider.openai,
+        reason: 'the selection still persists on the way in — the reload '
+            'below the selector reads the store for whoever is now active',
+      );
+
+      await cancel(tester);
+
+      expect(await storage.activeProvider(), AiProvider.openrouter);
+    });
+
+    testWidgets('OK still switches, and still persists', (tester) async {
+      // The other half, and the one that would pass if the revert were
+      // implemented by never writing at all.
+      await storage.setActiveProvider(AiProvider.openrouter);
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await choose(tester, AiProvider.openai);
+      await tester.tap(find.bySemanticsIdentifier('ai-assist-save-key'));
+      await tester.pumpAndSettle();
+
+      expect(await storage.activeProvider(), AiProvider.openai);
+    });
+
+    testWidgets('the system back button puts it back too', (tester) async {
+      // The exit that runs no handler of its own. Driven through the real
+      // `show()` route, because a dialog embedded in a body has nothing to
+      // pop.
+      await storage.setActiveProvider(AiProvider.openrouter);
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            S.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: S.supportedLocales,
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => AiAssistDialog.show(context, storage),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      await choose(tester, AiProvider.openai);
+      // What Android's back gesture delivers. `pageBack` looks for a back
+      // button widget, and a dialog route has none.
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.settingsAiAssistLabel), findsNothing);
+      expect(await storage.activeProvider(), AiProvider.openrouter);
+    });
+
+    testWidgets('an install that never chose is still one that never chose', (
+      tester,
+    ) async {
+      // Nothing stored reads as Anthropic, and that is what makes every
+      // install predating providers valid without a migration having to run
+      // over it. Restoring by writing "anthropic" would answer the same
+      // question the same way and quietly end that — so the revert puts back
+      // the absence, not the reading of it.
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await choose(tester, AiProvider.openai);
+      await cancel(tester);
+
+      expect(backing.store.containsKey('AiProviderTag'), isFalse);
+    });
+
+    testWidgets('a name this build does not know survives being read past', (
+      tester,
+    ) async {
+      // #753: a newer build wrote a provider this one cannot honour, and the
+      // radios fall back to the first for display only, so that downgrading
+      // and re-upgrading restores what the user picked. That promise is about
+      // *not writing*, and a revert is a write — it has to put the unknown
+      // name back rather than the one the radios were showing.
+      backing.store['AiProviderTag'] = 'someProviderFromALaterBuild';
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      expect(await storage.activeProvider(), isNull);
+
+      await choose(tester, AiProvider.openai);
+      await cancel(tester);
+
+      expect(backing.store['AiProviderTag'], 'someProviderFromALaterBuild');
+      expect(await storage.activeProvider(), isNull);
+    });
+
+    testWidgets('declining the terms and leaving moves nothing', (
+      tester,
+    ) async {
+      // The consent gate (#835, #836) is unchanged by any of this: a switch
+      // that is confirmed with a key still asks before storing it. What this
+      // adds is that saying no leaves the dialog open on a provider the store
+      // has already been pointed at — so it is the exit, not the refusal,
+      // that has to undo the switch.
+      await storage.setTermsAccepted(false);
+      await storage.setActiveProvider(AiProvider.openrouter);
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await choose(tester, AiProvider.openai);
+      await tester.enterText(find.byType(TextField).first, 'sk-x');
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsIdentifier('ai-assist-save-key'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.aiConsentTitle), findsOneWidget);
+      // OpenAI's disclosure runs past the fold on the test viewport, and the
+      // buttons sit under it — which is the screen doing its job.
+      await tester.drag(find.byType(ListView), const Offset(0, -600));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsIdentifier('ai-consent-decline'));
+      await tester.pumpAndSettle();
+
+      expect(await storage.readApiKey(provider: AiProvider.openai), isNull);
+      expect(await storage.hasAcceptedTerms(), isFalse);
+
+      await cancel(tester);
+
+      expect(await storage.activeProvider(), AiProvider.openrouter);
+    });
+  });
+
   testWidgets('a long saved-key label does not overflow its row', (
     tester,
   ) async {
