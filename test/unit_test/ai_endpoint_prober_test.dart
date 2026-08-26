@@ -174,6 +174,82 @@ void main() {
     });
   });
 
+  group('every failure kind is ruled on, not inherited (#854)', () {
+    // The mapping in `_verdictForFailure` is the whole of #850's argument in
+    // code: some failures say something durable about the destination and
+    // some say nothing at all. Until now it was reached only sideways, via
+    // an unreachable host and a 500 — so six of the seven members were
+    // pinned by nothing. Flipping `auth` to `failed` is the plausible
+    // mistake (a rejected key *feels* like a failure) and it would have
+    // turned the camera off for a server that can see perfectly well.
+    //
+    // Driven through real status codes rather than by calling the mapper, so
+    // these also pin `_failureFor`'s half of the journey.
+    Future<AiCapability> textVerdictFor(int status) async {
+      final client = _ScriptedClient([_reply('{}', status: status)]);
+      final result = await _prober(client).probe(_selection);
+      return result.text;
+    }
+
+    test('401 says nothing about what the model can do', () async {
+      // A key problem is the user's to fix, and it is not a capability.
+      // A server the user runs should not be answering this at all.
+      expect(await textVerdictFor(401), AiCapability.unknown);
+    });
+
+    test('403 is NOT the same answer as 401 on this client', () async {
+      // The trap this test exists for. On the direct OpenAI client 403 is
+      // `permission_error` and pairs with 401 as auth — but a server the
+      // user runs goes through `OpenAiCompatibleMealItemsApi`, where 403 is
+      // documented as a guardrail block or moderation flag. Treating it as a
+      // credential problem would send someone whose photo tripped a filter
+      // off to check a key that works fine.
+      //
+      // So it is `rejected`, which is a real verdict: the request was
+      // refused and will be refused again tomorrow.
+      expect(await textVerdictFor(403), AiCapability.failed);
+    });
+
+    test('402 is a bill, not an ability', () async {
+      expect(await textVerdictFor(402), AiCapability.unknown);
+    });
+
+    test('404 means nothing here serves this, and will not tomorrow', () async {
+      // On Ollama, which has no `tool_choice` at all, this is the expected
+      // way a weak model fails rather than a rare one (#733).
+      expect(await textVerdictFor(404), AiCapability.failed);
+    });
+
+    test('400 is the request itself being refused', () async {
+      expect(await textVerdictFor(400), AiCapability.failed);
+    });
+
+    test('422 is the same answer as 400', () async {
+      expect(await textVerdictFor(422), AiCapability.failed);
+    });
+
+    test('an unrecognised status is not a verdict', () async {
+      // Anything unclassified folds to transient, which is the whole reason
+      // `unknown` exists — asleep, loading, or rate limited.
+      expect(await textVerdictFor(418), AiCapability.unknown);
+    });
+
+    test('every one of them still records that a check ran', () async {
+      // The #850 property, across the whole mapping rather than one case of
+      // it: a verdict is a claim about knowledge, `checked` is a claim about
+      // history, and no failure kind may quietly cost the second one.
+      for (final status in [400, 401, 402, 403, 404, 422, 418, 500]) {
+        final client = _ScriptedClient([_reply('{}', status: status)]);
+        final result = await _prober(client).probe(_selection);
+        expect(
+          result.checked,
+          isTrue,
+          reason: 'a $status left the run looking like it never happened',
+        );
+      }
+    });
+  });
+
   test('the two verdicts are independent', () async {
     // The common case for a small local model: it handles a meal line and
     // cannot see. One combined verdict could not express it, and the text
