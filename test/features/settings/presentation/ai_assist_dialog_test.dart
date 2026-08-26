@@ -1793,7 +1793,12 @@ void main() {
         /// lookup**. `PlaintextDestinationGuard` answers a literal from its
         /// bytes; a name would send the test host to a real resolver and make
         /// the result depend on the network the suite runs on.
-        const publicAddress = 'http://93.184.216.34:11434';
+        ///
+        /// TEST-NET-3 (RFC 5737), which exists to be written down: reserved
+        /// for documentation, guaranteed never routed, and owned by nobody.
+        /// A real host's address would read as public to the guard just the
+        /// same, but it would also be someone's.
+        const publicAddress = 'http://203.0.113.1:11434';
         const privateAddress = 'http://192.168.99.99:11434';
 
         /// Types **without letting the clock run**, for the same reason
@@ -2252,7 +2257,7 @@ void main() {
 
         await tester.enterText(
           find.bySemanticsIdentifier('ai-assist-endpoint-field'),
-          'http://93.184.216.34:11434',
+          'http://203.0.113.1:11434',
         );
         await tester.enterText(
           find.bySemanticsIdentifier('ai-assist-model-field'),
