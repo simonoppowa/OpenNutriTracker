@@ -1386,6 +1386,51 @@ void main() {
       );
     });
 
+    test('a verdict outlives the process that learned it (#854)', () async {
+      // "Remember the answer" is half of what #784 built, and the existing
+      // round-trip test writes and reads through **one** storage object — so
+      // it pins the encoder, not persistence. A probe costs up to four
+      // minutes; if its result did not survive a restart the user would pay
+      // that again every launch, and nothing in the suite would have noticed.
+      //
+      // A second `AiCredentialStorage` over the same backing store is what a
+      // relaunch actually is: the keystore persists, the object does not.
+      await configure();
+      await storage.writeProbe(
+        const AiEndpointProbe(
+          text: AiCapability.passed,
+          photo: AiCapability.failed,
+          checked: true,
+        ),
+        provider: own,
+      );
+
+      final afterRestart = AiCredentialStorage(backing);
+      final probe = await afterRestart.readProbe(provider: own);
+
+      expect(probe.text, AiCapability.passed);
+      expect(probe.photo, AiCapability.failed);
+      expect(probe.checked, isTrue);
+    });
+
+    test('and so does a check that learned nothing (#854)', () async {
+      // The #850 state specifically. This is the one a naive encoding drops,
+      // because "nothing conclusive" and "never asked" look identical unless
+      // the record keeps them apart — and it is also the state a user is
+      // most likely to be in when they put the phone down and come back.
+      await configure();
+      await storage.writeProbe(
+        AiEndpointProbe.nothingLearned,
+        provider: own,
+      );
+
+      final probe = await AiCredentialStorage(backing).readProbe(provider: own);
+
+      expect(probe.text, AiCapability.unknown);
+      expect(probe.photo, AiCapability.unknown);
+      expect(probe.checked, isTrue);
+    });
+
     test('a check that established nothing is still remembered (#850)', () async {
       // The measured bug: both legs of a probe ran to their timeout, both
       // verdicts stayed `unknown` — correctly — and the record was deleted,
