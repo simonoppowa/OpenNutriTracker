@@ -48,6 +48,24 @@ import 'package:opennutritracker/features/settings/presentation/widgets/macro_sp
 import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_goals_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/per_meal_kcal_share_dialog.dart';
 
+/// What the settings route was opened *for*.
+///
+/// This screen is long enough that "go to Settings" is not an answer on its
+/// own: pushed plain it lands on Units & Energy, four category groups above
+/// the AI row, and a Pixel 6 pass (#830) took several attempts to scroll to
+/// that row while deliberately looking for it. A caller that already knows
+/// which control the user came to change says so here, and the screen opens
+/// that control itself rather than leaving them to hunt for it. #852.
+///
+/// Arguments are optional — every other way in pushes the route without
+/// them, and a null or foreign `arguments` is simply the plain screen.
+class SettingsScreenArguments {
+  /// Open the AI assistance dialog as soon as the screen is up.
+  final bool openAiAssist;
+
+  const SettingsScreenArguments({this.openAiAssist = false});
+}
+
 class SettingsScreen extends StatefulWidget {
   /// When true, renders the settings list inline (no Scaffold/AppBar, the list
   /// shrink-wraps) so it can be hosted inside the You tab's scroll. The pushed
@@ -78,6 +96,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Null when the stored name is unrecognised — see #753.
   AiProvider? _aiProvider;
 
+  /// Whether the route's arguments have been acted on.
+  ///
+  /// `didChangeDependencies` runs again for anything this screen depends on —
+  /// a theme change, a locale change, the keyboard, and the dialog's own
+  /// route going up — so an unguarded read reopens a dialog that is already
+  /// open, and closing it leaves a second behind.
+  bool _routeRequestHandled = false;
+
   @override
   void initState() {
     _aiCredentials = locator<AiCredentialStorage>();
@@ -98,6 +124,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // leaves stale values on the screen for the rest of the session.
     // Refresh on every entry instead.
     _settingsBloc.add(LoadSettingsEvent());
+  }
+
+  /// Acts on what the caller asked the settings route for — see
+  /// [SettingsScreenArguments].
+  ///
+  /// The embedded form is skipped: it has no route of its own, so what it
+  /// would read is the host route's arguments, which are not addressed to it.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_routeRequestHandled || widget.embedded) return;
+    _routeRequestHandled = true;
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+    if (arguments is! SettingsScreenArguments || !arguments.openAiAssist) {
+      return;
+    }
+    // After the frame, not during it: this runs inside a build, and
+    // `showDialog` pushes a route.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_openAiAssistDialog(context));
+    });
   }
 
   @override
