@@ -150,8 +150,23 @@ class ConfigDBO extends HiveObject {
   // over again. Kept indefinitely — it only grows by one entry per deletion,
   // and forgetting an entry resurrects the workout it stands for. Null means
   // nothing has been deleted.
+  // Superseded by [healthDeletedWorkouts], which carries the date each
+  // tombstone needs in order to be prunable. Read once and folded into the
+  // new field, then cleared — see `ConfigDataSource._migrateDeletedWorkouts`.
+  // Only pre-release installs can have anything here; #651 has not shipped.
   @HiveField(36)
   List<String>? healthDeletedExternalIds;
+  // External record ids of imported workouts the user deleted, mapped to the
+  // workout's own start time. The importer skips them, so a deletion sticks
+  // instead of being undone by the next overlapping read.
+  //
+  // The date is what makes this boundable (#768). A tombstone is only ever
+  // consulted against workouts the platform returns for the import window, so
+  // once its workout falls outside the widest window any future run could ask
+  // for, it can never match again and is dropped. Without a date the list grew
+  // with the lifetime of the install rather than with recent activity.
+  @HiveField(38)
+  Map<String, DateTime>? healthDeletedWorkouts;
   // Which revision of the privacy policy the user has been *shown a notice
   // about* — not which one they accepted, which `hasAcceptedPolicy` cannot
   // answer because it is an unversioned bool (#887).
@@ -203,6 +218,7 @@ class ConfigDBO extends HiveObject {
     this.healthLastImportAt,
     this.healthDeletedExternalIds,
     this.policyNoticeRevisionSeen,
+    this.healthDeletedWorkouts,
   });
 
   factory ConfigDBO.empty() =>

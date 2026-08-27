@@ -162,6 +162,18 @@ class ImportWorkoutsUsecase {
     // Written even when nothing was imported: the watermark is also what
     // debounces the next run, and an empty window is still a window covered.
     await _configRepository.setConfigHealthLastImportAt(to);
+
+    // Drop tombstones whose workouts can no longer be returned by any window
+    // a future run will ask for (#768). Done here rather than on deletion
+    // because this is where the window is already known, and after the
+    // watermark is written so the cutoff reflects the run that just finished.
+    await _configRepository.pruneConfigHealthDeletedWorkouts(
+      ConfigEntity.oldestUsefulTombstone(
+        now: to,
+        lastImportAt: to,
+        overlapTolerance: overlapTolerance,
+      ),
+    );
     if (imported > 0) {
       _log.info('Imported $imported workout(s) from the platform health store');
     }
