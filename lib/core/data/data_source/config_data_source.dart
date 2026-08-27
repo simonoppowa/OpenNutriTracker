@@ -137,6 +137,14 @@ class ConfigDataSource {
     await _update((c) => c.hasAcceptedPolicy = hasAcceptedPolicy);
   }
 
+  /// Records that the user has been shown the policy-change notice for
+  /// [revision]. Device-wide: it is not in [_readMerged]'s personal-field
+  /// overlay, so it is read from the shared app box and a second profile is
+  /// not notified again.
+  Future<void> setConfigPolicyNoticeRevisionSeen(int revision) async {
+    await _update((c) => c.policyNoticeRevisionSeen = revision);
+  }
+
   Future<AppThemeDBO> getAppTheme() async => _readMerged().selectedAppTheme;
 
   Future<void> setConfigAppTheme(AppThemeDBO appTheme) async {

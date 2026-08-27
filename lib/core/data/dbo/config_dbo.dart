@@ -152,6 +152,20 @@ class ConfigDBO extends HiveObject {
   // nothing has been deleted.
   @HiveField(36)
   List<String>? healthDeletedExternalIds;
+  // Which revision of the privacy policy the user has been *shown a notice
+  // about* — not which one they accepted, which `hasAcceptedPolicy` cannot
+  // answer because it is an unversioned bool (#887).
+  //
+  // Device-wide rather than per-profile: the policy describes what the app
+  // does, not what one profile does, so it is deliberately absent from the
+  // personal-field overlay in `ConfigDataSource._readMerged` and therefore
+  // read from the shared app box. A second profile does not get the notice
+  // again.
+  //
+  // Null means "no notice has ever been shown", which is every install that
+  // existed before the field did — exactly the users the notice is for.
+  @HiveField(37)
+  int? policyNoticeRevisionSeen;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -188,6 +202,7 @@ class ConfigDBO extends HiveObject {
     this.healthWorkoutKcalMultiplier,
     this.healthLastImportAt,
     this.healthDeletedExternalIds,
+    this.policyNoticeRevisionSeen,
   });
 
   factory ConfigDBO.empty() =>

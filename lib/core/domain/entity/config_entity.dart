@@ -114,6 +114,15 @@ class ConfigEntity extends Equatable {
   /// overlapping read. Empty when nothing has been deleted.
   final Set<String> healthDeletedExternalIds;
 
+  /// Which revision of the privacy policy the user has been shown a *notice*
+  /// about. Zero for every install that predates the field, which is exactly
+  /// who the notice is for.
+  ///
+  /// Not a record of what anyone agreed to. #874 settled that the onboarding
+  /// checkbox is an acknowledgement and no legal basis rests on it, so there
+  /// is nothing here to re-collect — this only answers "have they been told".
+  final int policyNoticeRevisionSeen;
+
   /// Bounds on the calorie-credit multiplier. The floor sits at 50% because
   /// even the most compensating decile in Careau et al. 2021 keeps roughly
   /// half of the exercise deficit; the ceiling is "credit every calorie",
@@ -200,6 +209,7 @@ class ConfigEntity extends Equatable {
     this.healthWorkoutKcalMultiplier,
     this.healthLastImportAt,
     this.healthDeletedExternalIds = const <String>{},
+    this.policyNoticeRevisionSeen = 0,
   });
 
   /// The multiplier the importer actually applies. Falls back to crediting
@@ -279,8 +289,8 @@ class ConfigEntity extends Equatable {
     bodyWeightUnit: dbo.bodyWeightUnitIndex != null
         ? BodyWeightUnit.fromIndex(dbo.bodyWeightUnitIndex!)
         : ((dbo.usesImperialUnits ?? false)
-            ? BodyWeightUnit.lb
-            : BodyWeightUnit.kg),
+              ? BodyWeightUnit.lb
+              : BodyWeightUnit.kg),
     userKcalAdjustment: dbo.userKcalAdjustment,
     userCarbGoalPct: dbo.userCarbGoalPct,
     userProteinGoalPct: dbo.userProteinGoalPct,
@@ -314,6 +324,7 @@ class ConfigEntity extends Equatable {
       dbo.healthWorkoutKcalMultiplier,
     ),
     healthLastImportAt: dbo.healthLastImportAt,
+    policyNoticeRevisionSeen: dbo.policyNoticeRevisionSeen ?? 0,
     healthDeletedExternalIds: dbo.healthDeletedExternalIds != null
         ? Set<String>.from(dbo.healthDeletedExternalIds!)
         : const <String>{},
@@ -419,5 +430,6 @@ class ConfigEntity extends Equatable {
     healthWorkoutKcalMultiplier,
     healthLastImportAt,
     healthDeletedExternalIds,
+    policyNoticeRevisionSeen,
   ];
 }
