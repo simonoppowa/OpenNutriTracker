@@ -69,6 +69,11 @@ class SearchProductsUseCase {
         cacheSource: MealSourceEntity.off);
   }
 
+  /// Searches the reference-food corpus. "FDC" here names the *data* (USDA
+  /// FoodData Central and the other datasets ingested alongside it), not the
+  /// host: the request goes to the Supabase backend, never to USDA. The name
+  /// is kept because [MealSourceEntity.fdc] is persisted in Hive and renaming
+  /// it would need a data migration.
   Future<SearchProductsResult> searchFDCFoodByString(
     String searchString, {
     bool skipRemote = false,

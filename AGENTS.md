@@ -107,7 +107,6 @@ cp .env.example .env
 The template carries placeholders that have no real-world effect — they exist so `envied`'s codegen finds every key on a fresh clone. Replace them:
 
 ```
-FDC_API_KEY="YOUR_KEY"        # USDA Food Data Central API key (direct FDC source, not actively used in UI)
 SENTRY_DNS="DNS_URL"
 SUPABASE_PROJECT_URL="PROJECT_URL"
 SUPABASE_PROJECT_ANON_KEY="ANON_KEY"
@@ -380,15 +379,14 @@ When adding a new `@HiveType`, assign a unique `typeId`. Check all existing DBOs
 
 ### Food data sources
 
-`ProductsRepository` aggregates three sources via `SearchProductsUseCase`:
+`ProductsRepository` aggregates two remote sources via `SearchProductsUseCase`:
 
 | Source           | Class              | Notes                                                                               |
 | ---------------- | ------------------ | ----------------------------------------------------------------------------------- |
 | Open Food Facts  | `OFFDataSource`    | REST API — text search + barcode lookup                                             |
 | Supabase backend | `SpFoodDataSource` | Full-text search on `food_summary` + `food_translation` (multi-source: FDC, BLS, …) |
-| USDA FDC direct  | `FDCDataSource`    | Requires `FDC_API_KEY`; not actively surfaced in the UI                             |
 
-`SearchProductsUseCase.searchFDCFoodByString` uses the **Supabase** source, not the direct FDC API. The backend schema and import pipeline live in the [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) repo; users choose which backend sources to search in Settings → Food databases (`SPConst.settingsSelectableFoodSources`).
+The app makes no requests to USDA. `SearchProductsUseCase.searchFDCFoodByString` uses the **Supabase** source — "FDC" throughout the search stack names the data corpus, not the host. A direct `FDCDataSource` HTTP client existed but was never called from anywhere; it and its `FDC_API_KEY` were removed. The backend schema and import pipeline live in the [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) repo; users choose which backend sources to search in Settings → Food databases (`SPConst.settingsSelectableFoodSources`).
 
 ### Calorie and macro calculations
 
