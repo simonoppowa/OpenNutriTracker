@@ -19,6 +19,24 @@ void main() {
     expect(configured().enablePrintBreadcrumbs, isFalse);
   });
 
+  test('release options strip the user block before sending', () async {
+    // The native SDKs attach a stable per-install UUID as user.id regardless
+    // of sendDefaultPii, so an event that still carries a user block is one
+    // that carries an identifier. The consent the user gave calls these
+    // reports anonymous; this hook is what makes that true.
+    final options = configured();
+    final beforeSend = options.beforeSend;
+    expect(beforeSend, isNotNull, reason: 'no beforeSend hook is configured');
+
+    final event = SentryEvent(
+      user: SentryUser(id: 'a-per-install-uuid', geo: SentryGeo(city: 'Essen')),
+    );
+    final sent = await beforeSend!(event, Hint());
+
+    expect(sent, isNotNull, reason: 'the hook must not drop the event itself');
+    expect(sent!.user, isNull);
+  });
+
   test('release options do not attach default PII', () {
     // Not set by `configureSentryOptions` — this pins the SDK's own default,
     // because the README states that `sendDefaultPii` stays false and an SDK
