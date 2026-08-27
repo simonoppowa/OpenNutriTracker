@@ -5,6 +5,22 @@ map [#867](https://github.com/simonoppowa/OpenNutriTracker/issues/867). Research
 2026-08-27 against Sentry's own documentation, the `sentry-dart` source at tag
 `9.19.0` (the version this app pins), and this repo's `main`.
 
+> [!WARNING]
+> **Superseded in part.** This document concludes that server-side geolocation is gated on
+> `ip_address` being present on the event. That is **wrong**, and it was disproved by
+> [#889](https://github.com/simonoppowa/OpenNutriTracker/issues/889) by reading a live event in
+> this project's Sentry organisation: `user.geo` was populated with `country_code`, `city` and
+> `region` while `user.ip_address` was `null`. Relay resolves geo from the **connection** IP
+> before the filtering step, so the city of every crash is stored on both platforms, and the
+> organisation's *Prevent Storing of IP Addresses* setting does not cover it.
+>
+> #889 also found a **stable per-install UUID** in `user.id`, ungated by `sendDefaultPii`,
+> which this document does not mention at all. See `docs/privacy-sentry-ios-ip.md`.
+>
+> Everything else here — the trace-sampling analysis, the print-breadcrumb finding that led to
+> [#877](https://github.com/simonoppowa/OpenNutriTracker/issues/877), and the retention figures —
+> stands. The error is preserved rather than edited away so the correction is visible.
+
 **The short answer: transactions do add a category — timings, spans, measurements and
 a `ui.load` app-start trace — but the payload that actually matters for the policy is
 not the transaction. It is the breadcrumb trail, which rides on *both* error events
