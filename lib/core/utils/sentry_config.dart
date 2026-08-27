@@ -21,10 +21,34 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 /// line can leave the device.
 void configureSentryOptions(SentryOptions options, {required String dsn}) {
   options.dsn = dsn;
-  options.tracesSampleRate = 1.0;
+  options.tracesSampleRate = _tracesSampleRate;
   options.enablePrintBreadcrumbs = false;
   options.beforeSend = _stripUser;
 }
+
+/// Null, which is what switches performance monitoring off: `isTracingEnabled`
+/// is `tracesSampleRate != null || tracesSampler != null`, so a null rate means
+/// no transaction is ever sampled or sent.
+///
+/// It was `1.0`. A traces sample rate is what turns transaction sending on, and
+/// `enableAutoPerformanceTracing` defaults to true, so app-start and
+/// screen-load transactions were produced for ordinary sessions at a 100%
+/// sample rate — with no crash involved.
+///
+/// The switch the user actually agreed to says *"Send crash reports to help fix
+/// bugs"*. A report every time the app opens is not that. It also changes how
+/// often Sentry observes the coarse location it derives server-side from the
+/// connection: once per session rather than once per crash, which is a
+/// materially different picture from the one the consent describes.
+///
+/// Written as an explicit null rather than an omitted line, because an absent
+/// setting reads as an oversight and this one is a decision.
+///
+/// The alternative was to keep the tracing and widen the consent string and the
+/// policy to "crash and performance reports". That stays available — nothing
+/// here is hard to reverse — but it asks the user for more, and nothing in this
+/// repository reads the performance data.
+const double? _tracesSampleRate = null;
 
 /// Drops the `user` block from every event before it leaves the device.
 ///
