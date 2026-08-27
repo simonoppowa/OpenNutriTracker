@@ -44,7 +44,7 @@ Unless specified otherwise in this document, Personal Data shall be processed an
 The purposes of processing
 
 The Data concerning the User is collected to allow the Owner to provide its Service, comply with its legal obligations, respond to enforcement requests, protect its rights and interests (or those of its Users or third parties), detect any malicious or fraudulent activity, as well as the following:
-Platform services and hosting, Beta Testing, Displaying content from external platforms, Hosting and backend infrastructure, Infrastructure monitoring and Access to third-party accounts.
+Platform services and hosting, Beta Testing, Displaying content from external platforms, Hosting and backend infrastructure, Infrastructure monitoring, Access to third-party accounts and Handling activity data.
 
 For specific information about the Personal Data used for each purpose, the User may refer to the section “Detailed information on the processing of Personal Data”.
 
@@ -106,15 +106,48 @@ This type of service might still collect web traffic data for the pages where th
 
 Open Food Facts
 
-When you search for a food or scan a barcode, this Application sends the search term or the barcode to Open Food Facts, together with a country code derived from your device's language settings, which the service uses to rank results.
+When you search for a food or scan a barcode, this Application sends the search term or the barcode to Open Food Facts. A text search also sends the language your device is set to, with English appended as a fallback, which the service uses to rank results. No country code and no other part of your device's location or region settings is sent, and a barcode lookup sends no language at all.
+
+Open Food Facts serves searches, product lookups and product photographs from more than one of its own hosts, and which of them this Application reaches depends on which is up. Searches and product lookups identify the app by name, platform and version; photograph downloads do not.
+
+A food's photograph is downloaded from Open Food Facts whenever it is shown — in search results, on a meal screen, and on the diary card of a meal you have already logged. The address of a photograph contains that product's barcode. Photographs are kept on your device for up to 30 days and no more than 200 at a time, so one you keep coming back to is downloaded again after that.
 
 Open Food Facts is an independent non-profit association. It decides for itself how it handles what it receives and does not act on the instructions of the Owner of this Application, so its own privacy policy governs that handling. No account, profile or device identifier is sent, and your food diary is never sent.
 
 This processing rests on the Owner's legitimate interest in providing the food search this Application exists to offer. You can object to it at any time, and in practice you can avoid it altogether: a search happens only when you start one, and meals you have saved yourself can be added without any search.
 
-Personal Data processed: search terms; barcodes; a country code; Usage Data.
+The Owner keeps nothing from these requests. How long Open Food Facts keeps what it receives is decided by Open Food Facts and set out in its own privacy policy.
+
+Personal Data processed: search terms; barcodes; a device language code; the app's name and version; Usage Data.
 
 Place of processing: France — Privacy Policy.
+
+Handling activity data
+
+This type of service allows the Owner to use the activity or biometric data collected by your device in order for this Application to operate or to provide specific features. This may include movements, heartbeat, change in altitude or data about the surroundings.
+
+Depending on what is described below, third parties may be involved in the activity tracking.
+
+Most devices allow for the User to control which Data is accessed or stored.
+
+Health and fitness data (workout import)
+
+This Application can import workouts from Health Connect (Android) or Apple Health (iOS). The feature is off until you switch it on in Settings → Health sync, and switching it on is what triggers the platform's own permission prompt.
+
+When enabled, this Application reads from the platform's health store:
+
+- workouts (exercise sessions), and
+- body fat percentage.
+
+On Android it additionally reads the total energy burned, distance and step count recorded against a workout session. Health Connect refuses a workout query outright unless those reads are granted as well, so they are requested to make the import work and are used for nothing else.
+
+Workouts are added to your diary. The body fat reading, where one exists, is used only to personalise how much of a workout's energy this Application suggests crediting toward your daily goal.
+
+Access is read-only. Nothing is ever written back to Health Connect or Apple Health.
+
+This data is not transmitted. It is held in the encrypted database on your device, is not sent to the Owner or to any third party, and leaves the device only through a backup or export you carry out yourself.
+
+You can withdraw access at any time in Health Connect or Apple Health, or switch the feature off in Settings. Entries already imported remain in your diary until you delete them.
 
 Hosting and backend infrastructure
 
@@ -124,7 +157,7 @@ Some services among those listed below, if any, may work through geographically 
 
 Food reference backend (Supabase)
 
-Food searches are answered by a reference database that the Owner of this Application operates on Supabase's managed cloud platform. A search sends the text you typed. No account, profile or device identifier is attached, and your food diary is never sent.
+Food searches are answered by a reference database that the Owner of this Application operates on Supabase's managed cloud platform. A search sends the text you typed; your app language too, when it is one this Application has food translations for; and, if you have switched any of the food databases off in Settings, the list of the ones you left on. No account, profile or device identifier is attached, and your food diary is never sent.
 
 Because the request travels over the internet, the platform's gateway records for 24 hours the address the request came from, an approximate location derived from that address (country, region, city and postal code), the name of your internet access provider, and a fingerprint of the encrypted connection.
 
@@ -132,7 +165,7 @@ The database is stored and primarily processed in Frankfurt, Germany. Supabase P
 
 This processing rests on the Owner's legitimate interest in providing the food search this Application exists to offer. You can object to it at any time, and in practice you can avoid it altogether: a search happens only when you start one, and meals you have saved yourself can be added without any search.
 
-Personal Data processed: search terms; IP address; approximate location; connection identifiers; Usage Data.
+Personal Data processed: search terms; app language; food-database preferences; IP address; approximate location; connection identifiers; Usage Data.
 
 Place of processing: Germany — Singapore.
 
