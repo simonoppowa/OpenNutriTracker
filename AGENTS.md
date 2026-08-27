@@ -177,7 +177,7 @@ Semantics(
 |---|---|
 | `ListTile` / `InkWell` / `GestureDetector` with an `onTap` | Pure display — `Text`, `Icon`, `Image`, `Divider`, charts |
 | Buttons — `ElevatedButton`, `TextButton`, `IconButton`, `FloatingActionButton`, `FilledButton` (when they have `onPressed`) | Layout — `Container` without `onTap`, `Padding`, `SizedBox`, `Row`, `Column` |
-| Input — `TextField`, `TextFormField`, `Slider`, `Switch`, `SwitchListTile`, `Checkbox` (the actual checkbox, not its label) | Generated code (`*.g.dart`, `messages_*.dart`, `l10n.dart`) |
+| Input — `TextField`, `TextFormField`, `Slider`, `Switch`, `SwitchListTile`, `Checkbox` (the actual checkbox, not its label) | Generated code (`*.g.dart`, `l10n.dart`, `l10n_<locale>.dart`) |
 | Selection — `ChoiceChip`, `FilterChip`, `RadioListTile`, `SegmentedButton`, `DropdownButton` | Theming, transitions, decorative wrappers |
 | Bottom sheets, dialog action buttons (Save/Cancel/OK) | Items inside `ListView.builder` / `GridView.builder` (see below) |
 
@@ -334,7 +334,7 @@ lib/
     settings/     # App settings, data export/import, day-start, theme picker
     onboarding/   # First-run user setup flow
   dev/            # Dev-only main_dev.dart entry point (never shipped) — see "Demo data" above
-  generated/      # Intl files — maintained manually (see Localization above)
+  generated/      # gen-l10n output — gitignored, never edited by hand (see Localization above)
   l10n/           # Source ARB translation files
 ```
 
