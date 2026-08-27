@@ -113,6 +113,21 @@ void main() {
       );
     });
 
+    test('the release checklist still points at this page', () {
+      // The other inbound link, and the one that carries the *instruction*
+      // to publish this page to the wiki. If the page is renamed and the
+      // checklist is not, the release step points at nothing — and a step
+      // nobody can follow is how a page written for the wiki stays in the
+      // repo forever.
+      final releasing = File('docs/RELEASING.md').readAsStringSync();
+      expect(
+        releasing,
+        contains('](ai-architecture.md)'),
+        reason: 'docs/RELEASING.md no longer links to the architecture page, '
+            'so the release step that publishes it has lost its target',
+      );
+    });
+
     test('every anchor into another document exists', () {
       final broken = <String>[];
       for (final link in outward) {
