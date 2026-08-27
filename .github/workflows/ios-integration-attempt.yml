@@ -25,6 +25,11 @@ name: iOS integration attempt
 
 on:
   workflow_call:
+    inputs:
+      force_fail:
+        description: 'TEMP (do not merge): make the attempt fail instantly.'
+        type: boolean
+        default: false
     outputs:
       passed:
         description: >-
@@ -132,7 +137,12 @@ jobs:
         # --flavor full so the integration-test app matches the production
         # iOS scheme (bundle id + display name) rather than the develop one.
         # The whole integration_test/ directory runs from a single build.
-        run: flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded
+        run: |
+          if [ "${{ inputs.force_fail }}" = "true" ]; then
+            echo "TEMP (do not merge): forcing this attempt to fail"
+            exit 1
+          fi
+          flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded
 
       - name: Record the verdict
         id: verdict

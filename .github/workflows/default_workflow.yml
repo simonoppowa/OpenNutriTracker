@@ -156,6 +156,7 @@ jobs:
           fi
 
   ios-build:
+    if: false  # TEMP (do not merge): not what this branch is testing
     runs-on: macos-26
     permissions:
       contents: write
@@ -268,6 +269,8 @@ jobs:
   # single required check.
   ios-integration-tests:
     uses: ./.github/workflows/ios-integration-attempt.yml
+    with:
+      force_fail: true
 
   # Only when the first runner did not pass. An empty output counts as "did not
   # pass": that is what a job killed by its own timeout-minutes leaves behind.
@@ -275,6 +278,8 @@ jobs:
     needs: ios-integration-tests
     if: ${{ !cancelled() && needs.ios-integration-tests.outputs.passed != 'true' }}
     uses: ./.github/workflows/ios-integration-attempt.yml
+    with:
+      force_fail: true
 
   # The check to require in branch protection — the two jobs above are green
   # even when their tests fail, by design, so requiring either of them directly
@@ -300,6 +305,7 @@ jobs:
           echo "::error::iOS integration tests failed on two independent runners — treat this as a real break, not a flake."
           exit 1
   android-build:
+    if: false  # TEMP (do not merge): not what this branch is testing
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -363,6 +369,7 @@ jobs:
         run: flutter build apk --flavor full --debug
 
   android-integration-tests:
+    if: false  # TEMP (do not merge): not what this branch is testing
     # Same as iOS: runs in parallel from the start, gated on neither
     # android-build (it rebuilds the app itself) nor a file-discovery job.
     runs-on: ubuntu-latest
