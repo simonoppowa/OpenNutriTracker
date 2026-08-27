@@ -47,8 +47,12 @@ shipped-in-every-build feature:
   (`lib/features/onboarding/presentation/onboarding_intro_page_body.dart`)
   is a real, shipped feature — a prospective user can seed the same active
   profile with three weeks of always-on-track sample data and jump straight
-  to Home, independent of the privacy-policy checkbox. While the active
-  profile holds sample data, a persistent banner
+  to Home, but only with the privacy-policy checkbox ticked, the same bar as
+  Start — tapping it unchecked just explains itself in a snackbar and seeds
+  nothing, so no path into the app skips policy acceptance. The checkbox
+  that is independent is the data-collection one: crash reporting stays off
+  (and locked) while demo data is active.
+  While the active profile holds sample data, a persistent banner
   (`lib/core/presentation/widgets/demo_mode_banner.dart`) shows on every tab
   of `MainScreen`; tapping "Set up your profile" wipes it and returns to
   onboarding (mirrors `SettingsScreen._confirmDeleteAllData`'s
