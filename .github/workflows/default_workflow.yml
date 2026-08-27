@@ -52,8 +52,11 @@ jobs:
       - name: Install Flutter packages
         run: just install
 
-      - name: Generate localizations
-        run: just gen_l10n
+      # check_l10n generates, then fails if any locale is missing a key.
+      # `flutter gen-l10n` alone exits 0 on a missing translation and lets it
+      # ship as English, and nothing downstream sees the difference.
+      - name: Generate localizations (fails if a locale is missing keys)
+        run: just check_l10n
 
       - name: Generate code (env.g.dart, Hive adapters, JSON serializers)
         run: just build
