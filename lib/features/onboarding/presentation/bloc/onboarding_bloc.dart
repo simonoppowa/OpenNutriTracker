@@ -13,6 +13,7 @@ import 'package:opennutritracker/core/utils/bounds/ranges_const.dart';
 import 'package:opennutritracker/core/utils/locale_units.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
+import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_data_mask_entity.dart';
 
 part 'onboarding_event.dart';
@@ -110,6 +111,14 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     // onboarding always means the user accepted it. Persist that – the flag
     // previously only lived in ephemeral intro UI state.
     await _addConfigUsecase.setConfigHasAcceptedPolicy(true);
+    // Someone accepting the policy now has read the current revision, so
+    // stamp it: the change notice is for users who onboarded against an older
+    // one, and telling a brand-new user that the document they just read has
+    // changed is the small wrongness that makes the next notice trusted less
+    // (#887).
+    await _addConfigUsecase.setConfigPolicyNoticeRevisionSeen(
+      URLConst.policyRevision,
+    );
     await _addConfigUsecase.setConfigHasAcceptedAnonymousData(
       hasAcceptedDataCollection,
     );

@@ -1,0 +1,122 @@
+# Keep a change record of the two published privacy-policy documents, and fail
+# when they drift apart.
+#
+# iubenda offers no version history and no "what changed" view (#871), so the
+# only way to answer "what did the policy say in March" is to keep the text
+# somewhere that has history. Committing it here makes git that record, which
+# is what #887 settled on when deciding what is owed to users who acknowledged
+# an older policy.
+#
+# The check half exists because **every clause in this policy is custom**, and
+# custom clauses do not propagate between languages in iubenda. #888 caught the
+# German document left behind in exactly that way. A check that needs no
+# discipline beats one that relies on someone being conscientious.
+#
+# What it compares, and why only those things: `tool/policy_snapshot.dart`
+# carries the reasoning. In short, only signals that survive translation can be
+# compared — the purpose taxonomy ids, the service count per purpose, and the
+# last-updated date. Service ids cannot: iubenda mints them per language.
+#
+# Divergences the maintainer cannot fix only warn. iubenda's own template text
+# differs between its languages in places (measured 2026-08-27: the English
+# App Store Connect section links support.apple.com for opt-out guidance, the
+# German one omits the sentence), and a check nobody can satisfy is a check
+# that gets ignored.
+#
+# The snapshot has the owner's postal address replaced with a placeholder. It is
+# on the published page already, so nothing is being hidden — but a public
+# repository's history is permanent in a way an editable page is not, and #886
+# recorded a preference for a c/o address over the residential one. The script
+# throws rather than writing a snapshot it cannot redact.
+#
+# TWO THINGS TO KNOW ABOUT WHERE THIS RUNS:
+#
+#  * Workflow files only take effect once they are on the **default branch**, so
+#    neither the schedule nor the manual trigger does anything while this lives
+#    on a feature branch. That is also why the first snapshot was committed by
+#    hand from a local run: a before-and-after diff of the policy correction was
+#    only available before the edits were made, and CI could not have run in
+#    time to capture it.
+#  * A scheduled run therefore starts on `main` — but `CONTRIBUTING.md` reserves
+#    `main` for release merges only. So this checks out and commits to
+#    `develop` explicitly rather than to whatever ref it was triggered on.
+#
+# No secrets. The read API is public and unauthenticated.
+
+name: Privacy policy snapshot
+
+on:
+  schedule:
+    # Weekly. The documents change a handful of times a year, and a daily run
+    # would mostly be a daily no-op against a third party.
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+  # Also on any change to the checker itself, so a broken parser is caught by
+  # the pull request that breaks it rather than by a Monday-morning cron.
+  pull_request:
+    paths:
+      - 'tool/policy_snapshot.dart'
+      - '.github/workflows/policy-snapshot.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  # On a pull request: check only. Nothing may be committed — the branch is not
+  # necessarily ours, and a bot commit would rewrite a contributor's PR.
+  check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Flutter + cache packages
+        uses: ./.github/actions/setup-flutter-cache
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Check the two documents agree
+        run: dart run tool/policy_snapshot.dart --check
+
+  snapshot:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v7
+        with:
+          # Not the triggering ref. A scheduled run fires on the default
+          # branch, and `main` takes release merges only.
+          ref: develop
+
+      - name: Setup Flutter + cache packages
+        uses: ./.github/actions/setup-flutter-cache
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Snapshot both documents and check they agree
+        run: dart run tool/policy_snapshot.dart
+
+      # Runs even when the check failed: a divergence is exactly the state
+      # worth having a record of, and discarding the snapshot would throw away
+      # the evidence of the thing the job just complained about.
+      - name: Commit the snapshot if it changed
+        if: always()
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- docs/privacy-policy; then
+            echo "Neither document changed."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/privacy-policy
+          git commit -m "docs: snapshot the published privacy policy"
+          git push origin HEAD:develop

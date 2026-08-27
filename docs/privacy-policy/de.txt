@@ -1,0 +1,322 @@
+Datenschutzerklärung von OpenNutriTracker
+
+Diese Anwendung erhebt personenbezogene Daten von ihren Nutzern.
+
+Dieses Dokument kann zu Zwecken der Aufbewahrung über den Befehl „Drucken“ im Browser ausgedruckt werden.
+
+Anbieter und Verantwortlicher
+
+Simon Oppowa
+[postal address — see the published policy]
+
+E-Mail-Adresse des Anbieters: opennutritracker-dev@pm.me
+
+Arten der erhobenen Daten
+
+Zu den personenbezogenen Daten, die diese Anwendung selbstständig oder durch Dritte verarbeitet, gehören:
+Nutzungsdaten; Diagnosedaten; E-Mail; Informationen über die Anwendung; Gerätelogs; Geräteinformationen; Während der Nutzung des Dienstes übermittelte Daten.
+
+Vollständige Details zu jeder Art von verarbeiteten personenbezogenen Daten werden in den dafür vorgesehenen Abschnitten dieser Datenschutzerklärung oder punktuell durch Erklärungstexte bereitgestellt, die vor der Datenerhebung angezeigt werden.
+Personenbezogene Daten können vom Nutzer freiwillig angegeben oder, im Falle von Nutzungsdaten, automatisch erhoben werden, wenn diese Anwendung genutzt wird.
+Sofern nicht anders angegeben, ist die Angabe aller durch diese Anwendung angeforderten Daten obligatorisch. Weigert sich der Nutzer, die Daten anzugeben, kann dies dazu führen, dass diese Anwendung dem Nutzer ihre Dienste nicht zur Verfügung stellen kann. In Fällen, in denen diese Anwendung die Angabe personenbezogener Daten ausdrücklich als freiwillig bezeichnet, dürfen sich die Nutzer dafür entscheiden, diese Daten ohne jegliche Folgen für die Verfügbarkeit oder die Funktionsfähigkeit des Dienstes nicht anzugeben.
+Nutzer, die sich darüber im Unklaren sind, welche personenbezogenen Daten obligatorisch sind, können sich an den Anbieter wenden.
+Jegliche Verwendung von Cookies – oder anderer Tracking-Tools – durch diese Anwendung oder Anbieter von Drittdiensten, die durch diese Anwendung eingesetzt werden, dient dem Zweck, den vom Nutzer gewünschten Dienst zu erbringen, und allen anderen Zwecken, die im vorliegenden Dokument beschrieben sind.
+
+Die Nutzer sind für alle personenbezogenen Daten Dritter verantwortlich, die durch diese Anwendung beschafft, veröffentlicht oder weitergegeben werden.
+
+Art und Ort der Datenverarbeitung
+
+Verarbeitungsmethoden
+
+Der Anbieter verarbeitet die personenbezogenen Daten der Nutzer auf ordnungsgemäße Weise und ergreift angemessene Sicherheitsmaßnahmen, um den unbefugten Zugriff und die unbefugte Weiterleitung, Veränderung oder Vernichtung von Daten zu vermeiden.
+Die Datenverarbeitung wird mittels Computern oder IT-basierten Systemen nach organisatorischen Verfahren und Verfahrensweisen durchgeführt, die gezielt auf die angegebenen Zwecke abstellen. Zusätzlich zum Verantwortlichen könnten auch andere Personen intern (Personalverwaltung, Vertrieb, Marketing, Rechtsabteilung, Systemadministratoren) oder extern – und in dem Fall soweit erforderlich, vom Verantwortlichen als Auftragsverarbeiter benannt (wie Anbieter technischer Dienstleistungen, Zustellunternehmen, Hosting-Anbieter, IT-Unternehmen oder Kommunikationsagenturen) - diese Anwendung betreiben und damit Zugriff auf die Daten haben. Eine aktuelle Liste dieser Beteiligten kann jederzeit vom Anbieter verlangt werden.
+
+Ort
+
+Die Daten werden in der Niederlassung des Anbieters und an allen anderen Orten, an denen sich die an der Datenverarbeitung beteiligten Stellen befinden, verarbeitet.
+
+Je nach Standort der Nutzer können Datenübertragungen die Übertragung der Daten des Nutzers in ein anderes Land als das eigene beinhalten. Um mehr über den Ort der Verarbeitung der übermittelten Daten zu erfahren, können die Nutzer den Abschnitt mit den ausführlichen Angaben zur Verarbeitung der personenbezogenen Daten konsultieren.
+
+Speicherdauer
+
+Sofern in diesem Dokument nicht anderweitig festgelegt, werden personenbezogene Daten so lange verarbeitet und gespeichert, wie es der Zweck erfordert, zu dem sie erhoben wurden, und können ggf. aufgrund einer zu erfüllenden rechtlichen Verpflichtung oder basierend auf der Einwilligung des Nutzers auch länger aufbewahrt werden.
+
+Zwecke der Verarbeitung
+
+Personenbezogene Daten über den Nutzer werden erhoben, damit der Anbieter den Dienst erbringen und des Weiteren seinen gesetzlichen Verpflichtungen nachkommen, auf Durchsetzungsforderungen reagieren, seine Rechte und Interessen (oder die der Nutzer oder Dritter) schützen, böswillige oder betrügerische Aktivitäten aufdecken kann. Darüber hinaus werden Daten zu folgenden Zwecken erhoben:
+Plattform-Dienste und Hosting, Beta-Tests, Anzeigen von Inhalten externer Plattformen, Hosting und Backend-Infrastruktur, Überwachung der Infrastruktur und Zugriff auf Profile von Drittanbietern.
+
+Nutzer können im Abschnitt “Ausführliche Angaben über die Verarbeitung personenbezogener Daten” dieses Dokuments weitere detaillierte Informationen zu diesen Verarbeitungszwecken und die zu den für den jeweiligen Zweck verwendeten personenbezogenen Daten vorfinden.
+
+Ausführliche Angaben über die Verarbeitung personenbezogener Daten
+
+Personenbezogene Daten werden zu folgenden Zwecken unter Inanspruchnahme folgender Dienstleistungen erhoben:
+
+Anzeigen von Inhalten externer Plattformen
+
+Mit dieser Art von Diensten können Nutzer sich Inhalte, die auf externen Plattformen gehostet werden, direkt über diese Anwendung anzeigen lassen und mit ihnen interagieren. Solche Dienste werden häufig als Widgets bezeichnet, d. h. als kleine Elemente, die auf einer Website oder in einer Anwendung platziert werden. Sie bieten bestimmte Informationen oder führen eine bestimmte Funktion aus und ermöglichen oft eine Interaktion mit dem Nutzer.
+
+Diese Art von Dienst kann möglicherweise immer noch Web-Traffic-Daten für die Seiten erheben, auf denen der Dienst installiert ist, auch wenn Nutzer ihn nicht verwenden.
+
+Open Food Facts
+
+Wenn Sie ein Lebensmittel suchen oder einen Barcode scannen, sendet diese Anwendung den Suchbegriff bzw. den Barcode an Open Food Facts, zusammen mit einem aus den Spracheinstellungen Ihres Geräts abgeleiteten Ländercode, den der Dienst zur Sortierung der Ergebnisse verwendet.
+
+Open Food Facts ist ein unabhängiger gemeinnütziger Verein. Der Verein entscheidet selbst darüber, wie er die erhaltenen Daten verarbeitet, und handelt nicht auf Weisung des Anbieters dieser Anwendung; für diese Verarbeitung gilt daher seine eigene Datenschutzerklärung. Es werden kein Konto, kein Profil und keine Gerätekennung übermittelt, und Ihr Ernährungstagebuch wird nie übermittelt.
+
+Diese Verarbeitung beruht auf dem berechtigten Interesse des Anbieters, die Lebensmittelsuche bereitzustellen, für die diese Anwendung gedacht ist. Sie können dieser Verarbeitung jederzeit widersprechen und sie in der Praxis vollständig vermeiden: Eine Suche findet nur statt, wenn Sie sie starten, und selbst gespeicherte Mahlzeiten können Sie ohne jede Suche hinzufügen.
+
+Verarbeitete personenbezogene Daten: Suchbegriffe; Barcodes; ein Ländercode; Nutzungsdaten.
+
+Ort der Verarbeitung: Frankreich — Datenschutzerklärung.
+
+Beta-Tests
+
+Diese Art von Diensten ermöglicht es, den Nutzerzugriff auf diese Anwendung oder Teile davon zu verwalten, um eine bestimmte Funktion oder die gesamte Anwendung zu testen.
+
+Der Dienstanbieter kann automatisch Daten über Abstürze und Statistiken im Zusammenhang mit der Nutzung von dieser Anwendung (diese Anwendung) durch den Nutzer in einer persönlich identifizierbaren Form sammeln.
+
+TestFlight (Apple Inc.)
+
+TestFlight ist ein Beta-Test-Dienst von Apple Inc.
+
+Verarbeitete personenbezogene Daten: E-Mail; Geräteinformationen; Gerätelogs; Informationen über die Anwendung.
+
+Verarbeitungsort: Vereinigte Staaten – Datenschutzerklärung.
+
+Google Play Beta Testing (Google Ireland Limited)
+
+Google Play Beta Testing ist ein Beta-Test-Dienst von Google Ireland Limited.
+
+Verarbeitete personenbezogene Daten: Geräteinformationen; Nutzungsdaten; Während der Nutzung des Dienstes übermittelte Daten.
+
+Verarbeitungsort: Irland – Datenschutzerklärung.
+
+Hosting und Backend-Infrastruktur
+
+Diese Art von Dienst hat den Zweck, Daten und Dateien zu hosten, die für diese Anwendung den Betrieb und die Verbreitung möglich machen, oder eine fertige Infrastruktur zur Verfügung zu stellen, um für diese Anwendung bestimmte Funktionen oder Teile auszuführen.
+
+Einige der unten aufgeführten Dienste können, müssen aber nicht, über geografisch verteilte Server funktionieren, was es schwierig macht, den tatsächlichen Speicherort der personenbezogenen Daten zu bestimmen.
+
+Lebensmittel-Referenzdatenbank (Supabase)
+
+Lebensmittelsuchen werden von einer Referenzdatenbank beantwortet, die der Anbieter dieser Anwendung auf der Managed-Cloud-Plattform von Supabase betreibt. Bei einer Suche wird der von Ihnen eingegebene Text übermittelt. Es werden kein Konto, kein Profil und keine Gerätekennung mitgesendet, und Ihr Ernährungstagebuch wird nie übermittelt.
+
+Da die Anfrage über das Internet übertragen wird, protokolliert das Gateway der Plattform für 24 Stunden die Adresse, von der die Anfrage kam, einen daraus abgeleiteten ungefähren Standort (Land, Region, Ort und Postleitzahl), den Namen Ihres Internetanbieters sowie einen Fingerprint der verschlüsselten Verbindung.
+
+Die Datenbank wird in Frankfurt (Deutschland) gespeichert und überwiegend dort verarbeitet. Die Supabase Pte. Ltd. handelt als Auftragsverarbeiter auf Weisung des Anbieters; zu ihren Unterauftragsverarbeitern gehören die Cloudflare, Inc. und die Amazon Web Services, Inc. Anfragen erreichen zunächst einen Cloudflare-Standort in Ihrer Nähe und dann die Datenbank. Übermittlungen außerhalb des Europäischen Wirtschaftsraums sind durch Standardvertragsklauseln abgedeckt.
+
+Diese Verarbeitung beruht auf dem berechtigten Interesse des Anbieters, die Lebensmittelsuche bereitzustellen, für die diese Anwendung gedacht ist. Sie können dieser Verarbeitung jederzeit widersprechen und sie in der Praxis vollständig vermeiden: Eine Suche findet nur statt, wenn Sie sie starten, und selbst gespeicherte Mahlzeiten können Sie ohne jede Suche hinzufügen.
+
+Verarbeitete personenbezogene Daten: Suchbegriffe; IP-Adresse; ungefährer Standort; Verbindungskennungen; Nutzungsdaten.
+
+Ort der Verarbeitung: Deutschland — Singapur.
+
+Plattform-Dienste und Hosting
+
+Diese Dienste haben den Zweck, Hauptkomponenten der Applikation für diese Anwendung zu hosten und zu betreiben, damit diese Anwendung aus einer einheitlichen Plattform angeboten werden kann. Solche Plattformen stellen dem Anbieter eine ganze Reihe von Werkzeugen zur Verfügung – zum Beispiel Analyse- und Kommentarfunktionen, Nutzer- und Datenbankverwaltung, E-Commerce und Zahlungsabwicklung – welche die Verarbeitung von personenbezogenen Daten beinhalten.
+
+Einige dieser Dienste arbeiten mit geografisch verteilten Servern, so dass es schwierig ist, den Ort zu bestimmen, an dem die personenbezogenen Daten gespeichert sind.
+
+Google Play Store (Google LLC)
+
+Diese Anwendung wird im Google Play Store vertrieben, einer Plattform für den Vertrieb von mobilen Apps, die von Google LLC oder von Google Ireland Limited, je nachdem, wie der Anbieter die Datenverarbeitung verwaltet, bereitgestellt wird.
+
+Dadurch, dass diese Anwendung über diesen Kanal verteilt wird, erhebt Google Nutzungs- und Diagnoseinformationen und teilt diese mit dem Anbieter. Ein Großteil dieser Informationen wird auf Opt-in-Basis verarbeitet.
+
+Nutzer können diese Analysefunktion direkt über ihre Geräteeinstellungen deaktivieren. Weitere Informationen zur Verwaltung der Analyseeinstellungen findet der Nutzer auf dieser Seite.
+
+Verarbeitete personenbezogene Daten: Nutzungsdaten.
+
+Verarbeitungsort: Vereinigte Staaten – Datenschutzerklärung; Irland – Datenschutzerklärung.
+
+App Store Connect (Apple Inc.)
+
+Diese Anwendung wird im App Store von Apple vertrieben, einer Plattform für den Vertrieb mobiler Anwendungen, die von Apple Inc. bereitgestellt wird.
+
+App Store Connect ermöglicht es dem Anbieter, diese Anwendung im App Store von Apple zu verwalten. Je nach Konfiguration stellt App Store Connect dem Anbieter statistische Daten über Nutzerbindung und App-Entdeckung, Marketingkampagnen, Verkäufe, In-App-Käufe und Zahlungen zur Verfügung, um die Leistung von diese Anwendung zu messen.
+App Store Connect sammelt solche Daten nur von Nutzern, die zugestimmt haben, sie mit dem Anbieter zu teilen. Nutzer finden weitere Informationen darüber, wie sie sich über ihre Geräteeinstellungen abmelden können [hier] (https://support.apple.com/de-de/HT202100).
+
+Verarbeitete personenbezogene Daten: Diagnosedaten.
+
+Verarbeitungsort: Vereinigte Staaten – Datenschutzerklärung.
+
+Zugriff auf Profile von Drittanbietern
+
+Diese Anwendung liest mittels dieser Art von Diensten Profilinformationen Ihrer Profile bei Drittanbietern aus und setzt diese in Aktionen um.
+
+Diese Dienste werden nicht automatisch aktiviert, sondern bedürfen der expliziten Zustimmung des Nutzers.
+
+KI-Unterstützung bei Mahlzeiten (eigener Anbieter)
+
+Die KI-Unterstützung bei Mahlzeiten ist deaktiviert, bis Sie Ihren eigenen API-Schlüssel für einen von Ihnen gewählten Anbieter eintragen. Bis dahin wird nichts übermittelt.
+
+Ist sie aktiviert, wird nur die von Ihnen eingegebene Beschreibung der Mahlzeit — oder ein von Ihnen bewusst ausgewähltes Foto — an diesen Anbieter übermittelt, damit dieser Lebensmittelnamen und Mengen zurückgeben kann. Ihr Ernährungstagebuch, Ihr Gewicht und Ihr Profil werden nie übermittelt.
+
+Der Anbieter ist der von Ihnen gewählte, und das Konto ist Ihres: Für die weitere Verarbeitung gilt Ihr Verhältnis zu diesem Anbieter und dessen eigene Datenschutzerklärung. Der Anbieter dieser Anwendung hat darauf keinen Zugriff, zahlt nichts dafür und erhält nichts zurück.
+
+Wenn Sie OpenRouter wählen, erreicht Ihre Anfrage OpenRouter und den Anbieter, der das von Ihnen gewählte Modell bereitstellt — also zwei Empfänger, nicht einen — und eine kontobezogene Kennung wird an diesen Anbieter weitergegeben und lässt sich nicht abschalten. Wenn Sie einen eigenen Server konfigurieren, geht die Anfrage an die von Ihnen eingetragene Adresse, die dem Anbieter dieser Anwendung nicht bekannt ist: Kein Dritter erhält die Daten, sie verlassen Ihr Gerät jedoch dennoch.
+
+Ihr API-Schlüssel wird im sicheren Anmeldedatenspeicher Ihres Geräts aufbewahrt und verlässt das Gerät nur als der Header, der Ihre Anfrage authentifiziert.
+
+Verarbeitete personenbezogene Daten: der Text oder das Foto, das Sie zur Auswertung übermitteln; Ihre App-Sprache.
+
+Ort der Verarbeitung: das Land des von Ihnen gewählten Anbieters — siehe dessen eigene Datenschutzerklärung.
+
+Dieser Dienst nutzt künstliche Intelligenz. Bestimmte Funktionen von KI-Unterstützung bei Mahlzeiten (eigener Anbieter) basieren auf automatisierten Systemen, die Daten verarbeiten, um das Nutzererlebnis zu personalisieren oder zu verbessern.
+
+Überwachung der Infrastruktur
+
+Mit dieser Art von Diensten kann diese Anwendung zur Verbesserung der Leistung, des Betriebs, der Wartung und der Fehlersuche die Nutzung und das Verhalten ihrer einzelnen Bestandteile überwachen.
+
+Welche personenbezogenen Daten verarbeitet werden, hängt von den Eigenschaften und der Art der Ausführung der Dienste ab, deren Funktion das Filtern der über diese Anwendung stattfindenden Aktivitäten ist.
+
+Sentry
+
+Die Absturzberichterstattung ist deaktiviert, bis Sie sie in den Einstellungen aktivieren, und sie läuft nur in veröffentlichten Versionen der App.
+
+Ist sie aktiviert, wird bei einem Absturz ein technischer Bericht übermittelt — der Fehler und sein Stacktrace, die App-Version, die Version des Betriebssystems und das Gerätemodell — zusammen mit einer zufällig erzeugten Kennung für Ihre Installation. Ihr Ernährungstagebuch, Ihr Gewicht und Ihr Profil werden nie übermittelt, und die App übermittelt Ihre IP-Adresse nicht. Die Server von Sentry können aus der Verbindung, über die der Bericht eingeht, einen ungefähren Standort (Land, Region und Ort) ableiten.
+
+Berichte werden 30 Tage lang aufbewahrt.
+
+Diese Verarbeitung beruht auf Ihrer Einwilligung. Sie können diese jederzeit widerrufen, indem Sie die Absturzberichterstattung in den Einstellungen deaktivieren; die Übermittlung endet dann sofort.
+
+Verarbeitete personenbezogene Daten: Diagnosedaten; Geräteinformationen; Gerätelogs; eine Installationskennung; ungefährer Standort; Nutzungsdaten.
+
+Ort der Verarbeitung: Vereinigte Staaten — Übermittlungen sind durch das EU-US Data Privacy Framework und Standardvertragsklauseln abgedeckt.
+
+Weitere Informationen für Nutzer
+
+Rechtsgrundlagen der Verarbeitung
+
+Der Anbieter darf personenbezogene Daten von Nutzern nur dann verarbeiten, wenn einer der folgenden Punkte zutrifft:
+
+Die Nutzer haben ihre Einwilligung für einen oder mehrere bestimmte Zwecke erteilt.
+
+die Datenerhebung ist für die Erfüllung eines Vertrages mit dem Nutzer und/oder für vorvertragliche Maßnahmen daraus erforderlich;
+
+die Verarbeitung ist für die Erfüllung einer rechtlichen Verpflichtung, der der Anbieter unterliegt, erforderlich;
+
+die Verarbeitung steht im Zusammenhang mit einer Aufgabe, die im öffentlichen Interesse oder in Ausübung hoheitlicher Befugnisse, die dem Anbieter übertragen wurden, durchgeführt wird;
+
+die Verarbeitung ist zur Wahrung der berechtigten Interessen des Anbieters oder eines Dritten erforderlich.
+
+In jedem Fall erteilt der Anbieter gerne Auskunft über die konkrete Rechtsgrundlage, auf der die Verarbeitung beruht, insbesondere darüber, ob die Angabe personenbezogener Daten eine gesetzliche oder vertragliche Verpflichtung oder eine Voraussetzung für den Abschluss eines Vertrages ist.
+
+Weitere Informationen zur Speicherdauer
+
+Sofern in diesem Dokument nicht anderweitig festgelegt, werden personenbezogene Daten so lange verarbeitet und gespeichert, wie es der Zweck erfordert, zu dem sie erhoben wurden, und können ggf. aufgrund einer zu erfüllenden rechtlichen Verpflichtung oder basierend auf der Einwilligung des Nutzers auch länger aufbewahrt werden.
+
+Daher gilt:
+
+Personenbezogene Daten, die zu Zwecken der Erfüllung eines zwischen dem Anbieter und dem Nutzer geschlossenen Vertrages erhoben werden, werden bis zur vollständigen Erfüllung dieses Vertrages gespeichert.
+
+Personenbezogene Daten, die zur Wahrung der berechtigten Interessen des Anbieters erhoben werden, werden so lange aufbewahrt, wie es zur Erfüllung dieser Zwecke erforderlich ist. Nutzer können nähere Informationen über die berechtigten Interessen des Anbieters in den entsprechenden Abschnitten dieses Dokuments oder durch Kontaktaufnahme zum Anbieter erhalten.
+
+Darüber hinaus ist es dem Anbieter gestattet, personenbezogene Daten für einen längeren Zeitraum zu speichern, wenn der Nutzer in eine solche Verarbeitung eingewilligt hat, solange die Einwilligung nicht widerrufen wird. Darüber hinaus kann der Anbieter verpflichtet sein, personenbezogene Daten für einen längeren Zeitraum aufzubewahren, wenn dies zur Erfüllung einer gesetzlichen Verpflichtung oder auf Anordnung einer Behörde erforderlich ist.
+
+Nach Ablauf der Aufbewahrungsfrist werden personenbezogene Daten gelöscht. Daher können das Auskunftsrecht, das Recht auf Löschung, das Recht auf Berichtigung und das Recht auf Datenübertragbarkeit nach Ablauf der Aufbewahrungsfrist nicht geltend gemacht werden.
+
+Die Rechte der Nutzer nach der Datenschutz-Grundverordnung (DSGVO)
+
+Die Nutzer können bestimmte Rechte in Bezug auf ihre vom Anbieter verarbeiteten Daten ausüben.
+
+Nutzer haben im gesetzlich zulässigen Umfang insbesondere das Recht, Folgendes zu tun:
+
+Die Einwilligungen jederzeit widerrufen. Hat der Nutzer zuvor in die Verarbeitung personenbezogener Daten eingewilligt, so kann er die eigene Einwilligung jederzeit widerrufen.
+
+Widerspruch gegen die Verarbeitung ihrer Daten einlegen. Der Nutzer hat das Recht, der Verarbeitung seiner Daten zu widersprechen, wenn die Verarbeitung auf einer anderen Rechtsgrundlage als der Einwilligung erfolgt.
+
+Auskunft bezüglich ihrer Daten erhalten. Der Nutzer hat das Recht zu erfahren, ob die Daten vom Anbieter verarbeitet werden, über einzelne Aspekte der Verarbeitung Auskunft zu erhalten und eine Kopie der Daten zu erhalten.
+
+Überprüfen und berichtigen lassen. Der Nutzer hat das Recht, die Richtigkeit seiner Daten zu überprüfen und deren Aktualisierung oder Berichtigung zu verlangen.
+
+Einschränkung der Verarbeitung ihrer Daten verlangen. Die Nutzer haben das Recht, die Verarbeitung ihrer Daten einzuschränken. In diesem Fall wird der Anbieter die Daten zu keinem anderen Zweck als der Speicherung verarbeiten.
+
+Löschung oder anderweitiges Entfernen der personenbezogenen Daten verlangen. Die Nutzer haben das Recht, vom Anbieter die Löschung ihrer Daten zu verlangen.
+
+Ihre Daten erhalten und an einen anderen Verantwortlichen übertragen lassen. Der Nutzer hat das Recht, seine Daten in einem strukturierten, gängigen und maschinenlesbaren Format zu erhalten und, sofern technisch möglich, ungehindert an einen anderen Verantwortlichen übermitteln zu lassen.
+
+Beschwerde einreichen. Die Nutzer haben das Recht, eine Beschwerde bei der zuständigen Aufsichtsbehörde einzureichen.
+
+Die Nutzer haben auch das Recht, sich über die Rechtsgrundlage der Datenübermittlung ins Ausland oder an eine internationale Organisation, die dem Völkerrecht unterliegt oder von zwei oder mehr Ländern gegründet wurde, wie beispielsweise die UNO, sowie sich über die vom Anbieter ergriffenen Sicherheitsmaßnahmen zum Schutz ihrer Daten aufklären zu lassen.
+
+Details zum Widerspruchsrecht bezüglich der Verarbeitung
+
+Werden personenbezogene Daten im öffentlichen Interesse, in Ausübung eines dem Anbieter übertragenen hoheitlichen Befugnisses oder zur Wahrung der berechtigten Interessen des Anbieters verarbeitet, kann der Nutzer dieser Verarbeitung widersprechen, indem er einen Rechtfertigungsgrund angibt, der sich auf seine besondere Situation bezieht.
+
+Nutzer werden darüber informiert, dass sie der Verarbeitung der personenbezogenen Daten für Direktwerbung jederzeit unentgeltlich ohne Angabe von Gründen widersprechen können. Widerspricht der Nutzer der Verarbeitung für Zwecke der Direktwerbung, so werden die personenbezogenen Daten nicht mehr für diese Zwecke verarbeitet. Ob der Anbieter personenbezogene Daten für Direktwerbungszwecke verarbeitet, können die Nutzer den entsprechenden Abschnitten dieses Dokuments entnehmen.
+
+Wie die Rechte ausgeübt werden können
+
+Alle Anfragen zur Ausübung der Nutzerrechte können über die in diesem Dokument angegebenen Kontaktdaten an den Eigentümer gerichtet werden. Diese Anfragen können kostenlos gestellt werden und werden vom Anbieter so früh wie möglich, spätestens innerhalb eines Monats, beantwortet und den Nutzern die gesetzlich vorgeschriebenen Informationen zur Verfügung gestellt. Jede Berichtigung oder Löschung personenbezogener Daten oder die Einschränkung der Verarbeitung teilt der Anbieter allen Empfängern, denen personenbezogene Daten offengelegt wurden, mit, falls es welche gibt. Es sei denn, dies erweist sich als unmöglich oder ist mit einem unverhältnismäßigen Aufwand verbunden. Der Anbieter unterrichtet den Nutzer über diese Empfänger, wenn der Nutzer dies verlangt.
+
+Weitere Informationen über die Erhebung und Verarbeitung von Daten
+
+Rechtliche Maßnahmen
+
+Die personenbezogenen Daten des Nutzers können vom Anbieter zu Zwecken der Rechtsdurchsetzung innerhalb oder in Vorbereitung gerichtlicher Verfahren verarbeitet werden, die sich daraus ergeben, dass diese Anwendung oder die dazugehörigen Dienste nicht ordnungsgemäß genutzt wurden.
+
+Der Nutzer erklärt, sich dessen bewusst zu sein, dass der Anbieter von den Behörden zur Herausgabe von personenbezogenen Daten verpflichtet werden könnte.
+
+Weitere Informationen über die personenbezogenen Daten des Nutzers
+
+Zusätzlich zu den in dieser Datenschutzerklärung aufgeführten Informationen kann diese Anwendung dem Nutzer auf Anfrage weitere kontextbezogene Informationen zur Verfügung stellen, die sich auf bestimmte Dienste oder auf die Erhebung und Verarbeitung personenbezogener Daten beziehen.
+
+Systemprotokolle und Wartung
+
+Diese Anwendung und die Dienste von Dritten können zu Betriebs- und Wartungszwecken Dateien erfassen, die die über diese Anwendung stattfindende Interaktion aufzeichnen (Systemprotokolle), oder andere personenbezogene Daten (z. B. IP-Adresse) zu diesem Zweck verwenden.
+
+Nicht in dieser Datenschutzerklärung enthaltene Informationen
+
+Weitere Informationen über die Erhebung oder Verarbeitung personenbezogener Daten können jederzeit vom Anbieter über die aufgeführten Kontaktangaben angefordert werden.
+
+Änderungen dieser Datenschutzerklärung
+
+Der Anbieter behält sich vor, jederzeit Änderungen an dieser Datenschutzerklärung vorzunehmen, indem Nutzer auf dieser Seite und gegebenenfalls über diese Anwendung und/oder - soweit technisch und rechtlich möglich – durch das Versenden einer Mitteilung über dem Anbieter vorliegende Kontaktdaten der Nutzer informiert werden. Nutzern wird daher nahegelegt, diese Seite regelmäßig aufzurufen und insbesondere das am Seitenende angegebene Datum der letzten Änderung zu prüfen.
+
+Soweit Änderungen eine auf der Einwilligung des Nutzers basierte Datennutzung betreffen, so wird der Anbieter - soweit erforderlich - eine neue Einwilligung einholen.
+
+Begriffsbestimmungen und rechtliche Hinweise
+
+Personenbezogene Daten (oder Daten)
+
+Alle Informationen, durch die direkt oder in Verbindung mit weiteren Informationen die Identität einer natürlichen Person bestimmt wird oder werden kann.
+
+Nutzungsdaten
+
+Informationen, die diese Anwendung (oder Dienste Dritter, die diese Anwendung in Anspruch nimmt), automatisch erhebt, z. B.: die IP-Adressen oder Domain-Namen der Computer von Nutzern, die diese Anwendung verwenden, die URI-Adressen (Uniform Resource Identifier), den Zeitpunkt der Anfrage, die Methode, die für die Übersendung der Anfrage an den Server verwendet wurde, die Größe der empfangenen Antwort-Datei, der Zahlencode, der den Status der Server-Antwort anzeigt (erfolgreiches Ergebnis, Fehler etc.), das Herkunftsland, die Funktionen des vom Nutzer verwendeten Browsers und Betriebssystems, die diversen Zeitangaben pro Aufruf (z. B. wie viel Zeit auf jeder Seite der Anwendung verbracht wurde) und Angaben über den Pfad, dem innerhalb einer Anwendung gefolgt wurde, insbesondere die Reihenfolge der besuchten Seiten, sowie sonstige Informationen über das Betriebssystem des Geräts und/oder die IT-Umgebung des Nutzers.
+
+Nutzer
+
+Die diese Anwendung verwendende Person, die, soweit nicht anders bestimmt, mit dem Betroffenen übereinstimmt.
+
+Betroffener
+
+Die natürliche Person, auf die sich die personenbezogenen Daten beziehen.
+
+Auftragsverarbeiter (oder Auftragsbearbeiter)
+
+Natürliche oder juristische Person, Behörde, Einrichtung oder andere Stelle, die personenbezogene Daten im Auftrag des Verantwortlichen verarbeitet, wie in dieser Datenschutzerklärung beschrieben.
+
+Verantwortlicher (oder Anbieter, teilweise auch Eigentümer)
+
+Die natürliche oder juristische Person, Behörde, Einrichtung oder andere Stelle, die allein oder gemeinsam mit anderen über die Zwecke und Mittel der Verarbeitung personenbezogener Daten sowie die hierfür verwendeten Mittel entscheidet, einschließlich der Sicherheitsmaßnahmen bezüglich des sich auf diese Anwendung beziehenden Betriebs und der Nutzung. Soweit nichts anderes angegeben ist, ist der Verantwortliche die natürliche oder juristische Person, über welche diese Anwendung angeboten wird.
+
+Diese Anwendung
+
+Das Hardware- oder Software-Tool, mit dem die personenbezogenen Daten des Nutzers erhoben und verarbeitet werden.
+
+Dienst
+
+Der durch diese Anwendung angebotene Dienst, wie in den entsprechenden AGBs (falls vorhanden) und auf dieser Website/Anwendung beschrieben.
+
+Europäische Union (oder EU)
+
+Sofern nicht anders angegeben, beziehen sich alle Verweise in diesem Dokument auf die Europäische Union auf alle derzeitigen Mitgliedstaaten der Europäischen Union und den Europäischen Wirtschaftsraum (EWR).
+
+Rechtlicher Hinweis
+
+Diese Erklärung bezieht sich ausschließlich auf diese Anwendung, sofern in diesem Dokument nicht anders angegeben.
+
+Letzte Aktualisierung: 27. August 2026
