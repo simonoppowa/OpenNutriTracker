@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/util/photo_metadata.dart';
 
 /// The container a photo is encoded into. **Quality and size are identical
 /// either way** — only the container changes.
@@ -37,9 +38,7 @@ enum MealPhotoFormat {
   /// Exhaustive on purpose. A fifth provider has to answer this question
   /// rather than inherit whichever answer a wildcard happened to give it.
   static MealPhotoFormat forProvider(AiProvider provider) => switch (provider) {
-    AiProvider.anthropic ||
-    AiProvider.openrouter ||
-    AiProvider.openai => webp,
+    AiProvider.anthropic || AiProvider.openrouter || AiProvider.openai => webp,
     AiProvider.ownServer => jpeg,
   };
 }
@@ -138,7 +137,24 @@ class MealPhotoEncoder {
     if (mediaType == null) return null;
     final raw = await _rawBytes(sourcePath);
     if (raw == null) return null;
-    return _fitting(raw, mediaType);
+
+    // These bytes have not been through an encoder, so they still carry
+    // whatever the camera wrote into them — including the GPS block, which is
+    // the one thing in a meal photo that is about the user rather than the
+    // meal. The normal path is clean for free, because re-encoding writes a
+    // container with no metadata in it; this path has to be cleaned.
+    //
+    // Null when the file cannot be parsed as the type its extension claims.
+    // That narrows the fallback, on purpose: an unreadable file is the one
+    // most likely to be carrying something, and "pick another photo" is a
+    // better answer than sending bytes we could not account for.
+    final stripped = PhotoMetadata.stripped(raw, mediaType);
+    if (stripped == null) return null;
+
+    // What survives is still full-resolution — stripping metadata is not
+    // resizing, and there is no encoder here to resize with. The size ceiling
+    // in [maxBytes] is what bounds it.
+    return _fitting(stripped, mediaType);
   }
 
   /// The provider media type for a path's extension, or null when it is one
@@ -171,6 +187,12 @@ class MealPhotoEncoder {
         quality: 80,
         minWidth: 1024,
         minHeight: 1024,
+        // The package's default, pinned so it is a decision rather than an
+        // inheritance. A meal photo's EXIF is the camera's GPS fix and the
+        // body's serial number; none of it helps a model read the plate, and
+        // the app promises it asks for no location. [PhotoMetadata] does the
+        // same job on the fallback path below, where no encoder runs.
+        keepExif: false,
         // `minWidth`/`minHeight` are upper bounds for the *longest* edge
         // when the source exceeds them; the compressor preserves aspect
         // ratio. Shorter-edge images pass through untouched.
