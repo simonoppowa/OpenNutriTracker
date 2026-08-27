@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
 import 'package:opennutritracker/core/presentation/widgets/demo_mode_banner.dart';
+import 'package:opennutritracker/core/presentation/widgets/policy_change_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/meal_type_suggester.dart';
+import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/diary/diary_page.dart';
 import 'package:opennutritracker/core/presentation/widgets/home_appbar.dart';
 import 'package:opennutritracker/features/home/home_page.dart';
@@ -30,16 +33,38 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDemoDataFlag();
+    _loadConfigDrivenUi();
   }
 
-  // Checked once per screen instance rather than kept live — leaving demo
-  // mode always replaces this whole screen with the onboarding route (see
-  // DemoModeBanner), so there's no in-place transition to react to.
-  Future<void> _loadDemoDataFlag() async {
+  // One config read for both. Checked once per screen instance rather than
+  // kept live — leaving demo mode always replaces this whole screen with the
+  // onboarding route (see DemoModeBanner), so there's no in-place transition
+  // to react to, and the policy notice is by definition a once-ever event.
+  Future<void> _loadConfigDrivenUi() async {
     final config = await locator<GetConfigUsecase>().getConfig();
     if (!mounted) return;
     setState(() => _isDemoData = config.isDemoData);
+    await _maybeShowPolicyChangeNotice(config.policyNoticeRevisionSeen);
+  }
+
+  /// Shows the policy-change notice once, to users who onboarded against an
+  /// older revision (#887).
+  ///
+  /// The revision is recorded when the dialog closes rather than when it
+  /// opens, so a user who kills the app mid-dialog is told again rather than
+  /// silently skipped. Recording on open would lose the notice for exactly
+  /// the person who never saw it.
+  Future<void> _maybeShowPolicyChangeNotice(int revisionSeen) async {
+    if (revisionSeen >= URLConst.policyRevision) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => const PolicyChangeDialog(),
+    );
+
+    await locator<AddConfigUsecase>().setConfigPolicyNoticeRevisionSeen(
+      URLConst.policyRevision,
+    );
   }
 
   @override
@@ -190,7 +215,9 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = index == selectedIndex;
-    final color = selected ? Theme.of(context).colorScheme.primary : palette.textMuted;
+    final color = selected
+        ? Theme.of(context).colorScheme.primary
+        : palette.textMuted;
     return Expanded(
       child: Semantics(
         identifier: id,
@@ -206,7 +233,9 @@ class _NavItem extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   label,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: color),
                 ),
               ],
             ),
