@@ -47,8 +47,12 @@ shipped-in-every-build feature:
   (`lib/features/onboarding/presentation/onboarding_intro_page_body.dart`)
   is a real, shipped feature — a prospective user can seed the same active
   profile with three weeks of always-on-track sample data and jump straight
-  to Home, independent of the privacy-policy checkbox. While the active
-  profile holds sample data, a persistent banner
+  to Home, but only with the privacy-policy checkbox ticked, the same bar as
+  Start — tapping it unchecked just explains itself in a snackbar and seeds
+  nothing, so no path into the app skips policy acceptance. The checkbox
+  that is independent is the data-collection one: crash reporting stays off
+  (and locked) while demo data is active.
+  While the active profile holds sample data, a persistent banner
   (`lib/core/presentation/widgets/demo_mode_banner.dart`) shows on every tab
   of `MainScreen`; tapping "Set up your profile" wipes it and returns to
   onboarding (mirrors `SettingsScreen._confirmDeleteAllData`'s
@@ -107,7 +111,6 @@ cp .env.example .env
 The template carries placeholders that have no real-world effect — they exist so `envied`'s codegen finds every key on a fresh clone. Replace them:
 
 ```
-FDC_API_KEY="YOUR_KEY"        # USDA Food Data Central API key (direct FDC source, not actively used in UI)
 SENTRY_DNS="DNS_URL"
 SUPABASE_PROJECT_URL="PROJECT_URL"
 SUPABASE_PROJECT_ANON_KEY="ANON_KEY"
@@ -380,15 +383,14 @@ When adding a new `@HiveType`, assign a unique `typeId`. Check all existing DBOs
 
 ### Food data sources
 
-`ProductsRepository` aggregates three sources via `SearchProductsUseCase`:
+`ProductsRepository` aggregates two remote sources via `SearchProductsUseCase`:
 
 | Source           | Class              | Notes                                                                               |
 | ---------------- | ------------------ | ----------------------------------------------------------------------------------- |
 | Open Food Facts  | `OFFDataSource`    | REST API — text search + barcode lookup                                             |
 | Supabase backend | `SpFoodDataSource` | Full-text search on `food_summary` + `food_translation` (multi-source: FDC, BLS, …) |
-| USDA FDC direct  | `FDCDataSource`    | Requires `FDC_API_KEY`; not actively surfaced in the UI                             |
 
-`SearchProductsUseCase.searchFDCFoodByString` uses the **Supabase** source, not the direct FDC API. The backend schema and import pipeline live in the [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) repo; users choose which backend sources to search in Settings → Food databases (`SPConst.settingsSelectableFoodSources`).
+The app makes no requests to USDA. `SearchProductsUseCase.searchFDCFoodByString` uses the **Supabase** source — "FDC" throughout the search stack names the data corpus, not the host. A direct `FDCDataSource` HTTP client existed but was never called from anywhere; it and its `FDC_API_KEY` were removed. The backend schema and import pipeline live in the [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) repo; users choose which backend sources to search in Settings → Food databases (`SPConst.settingsSelectableFoodSources`).
 
 ### Calorie and macro calculations
 

@@ -89,7 +89,6 @@ import 'package:opennutritracker/features/activity_detail/presentation/bloc/acti
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/activities_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_activities_bloc.dart';
-import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
@@ -183,7 +182,7 @@ Future<void> initLocator() async {
     ),
   );
   locator.registerLazySingleton<DeleteAllUserDataUsecase>(
-    () => DeleteAllUserDataUsecase(locator()),
+    () => DeleteAllUserDataUsecase(locator(), locator(), locator()),
   );
 
   // Backend
@@ -541,7 +540,7 @@ Future<void> initLocator() async {
     () => IntakeRepository(locator()),
   );
   locator.registerLazySingleton<ProductsRepository>(
-    () => ProductsRepository(locator(), locator(), locator()),
+    () => ProductsRepository(locator(), locator()),
   );
   locator.registerLazySingleton<UserActivityRepository>(
     () => UserActivityRepository(locator()),
@@ -592,7 +591,6 @@ Future<void> initLocator() async {
     () => PhysicalActivityDataSource(),
   );
   locator.registerLazySingleton<OFFDataSource>(() => OFFDataSource());
-  locator.registerLazySingleton<FDCDataSource>(() => FDCDataSource());
   locator.registerLazySingleton<SpFoodDataSource>(() => SpFoodDataSource());
   locator.registerLazySingleton(() => TrackedDayDataSource(hiveDBProvider));
   locator.registerLazySingleton<WeightLogDataSource>(
