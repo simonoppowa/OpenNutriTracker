@@ -233,4 +233,18 @@ Genuinely undecided, and deliberately not guessed at:
 
 ## Where the reasoning lives
 
-This spec states conclusions. Every one has a ticket carrying the argument, the evidence, and what was rejected — see **Decisions so far** on [#867](https://github.com/simonoppowa/OpenNutriTracker/issues/867). Supporting research: `docs/privacy-sentry-payload.md`, `docs/privacy-iubenda-expressiveness.md`, `docs/privacy-permission-audit.md`, `docs/privacy-fdc-reachability.md`, `docs/privacy-supabase-subprocessors.md`, `docs/privacy-sentry-ios-ip.md`.
+This spec states conclusions. Every one has a ticket carrying the argument, the evidence, and what was **rejected** — which a spec cannot show, and which is half the value of an audit. Start from **Decisions so far** on [#867](https://github.com/simonoppowa/OpenNutriTracker/issues/867), or go straight to the investigation you want:
+
+| Question | Ticket |
+| :-- | :-- |
+| Does the app still call the USDA FoodData Central API? | [#868](https://github.com/simonoppowa/OpenNutriTracker/issues/868) |
+| What does Sentry receive at `tracesSampleRate = 1.0`? | [#870](https://github.com/simonoppowa/OpenNutriTracker/issues/870) |
+| What can iubenda be made to express? | [#871](https://github.com/simonoppowa/OpenNutriTracker/issues/871) |
+| Which permissions does the released build actually request? | [#872](https://github.com/simonoppowa/OpenNutriTracker/issues/872) |
+| Where does the Supabase backend run, and what does it log? | [#869](https://github.com/simonoppowa/OpenNutriTracker/issues/869) |
+| Is Cloudflare a named sub-processor under a Supabase DPA? | [#890](https://github.com/simonoppowa/OpenNutriTracker/issues/890) |
+| Does Sentry attach the client IP on iOS? | [#889](https://github.com/simonoppowa/OpenNutriTracker/issues/889) |
+
+Each ticket's resolution comment carries the verdict and the decisive evidence, quoted with a `file:line` or a URL. Fuller working — the sources that led nowhere, the alternate readings — is on throwaway `research/*` branches, following the same practice as earlier maps.
+
+**Those branches are working notes and will go stale**, which is why nothing here depends on them: `privacy-supabase-subprocessors.md` describes a sub-processor list dated 1 June 2026, and `privacy-iubenda-expressiveness.md` describes a generator UI that will change. One of them had to be annotated as partly wrong within hours of being written, when [#889](https://github.com/simonoppowa/OpenNutriTracker/issues/889) disproved [#870](https://github.com/simonoppowa/OpenNutriTracker/issues/870)'s geolocation conclusion. Prefer the tickets.
