@@ -282,12 +282,14 @@ jobs:
     # carries its own 20-minute bound, so a hang is a failed attempt the
     # retry can act on; this bound only stops a job drifting toward GitHub's
     # 6-hour default if something escapes both. It has to hold two cold
-    # builds — 30 was too tight and got cancelled mid-retry.
+    # builds and the simulator reboot between them — 30 was too tight and got
+    # cancelled mid-retry, and 50 no longer clears 20 + 5 + 20 with the ~5m40s
+    # of setup and teardown around them.
     #
     # It used to be the only bound, and a hang cost the whole 50 minutes of
     # macOS time, reported as a cancelled job rather than a failed test —
     # which `gh pr checks` renders as `fail` on a PR that is fine (#823).
-    timeout-minutes: 50
+    timeout-minutes: 55
     permissions:
       contents: read
     steps:
@@ -361,8 +363,9 @@ jobs:
       #
       # 20 minutes per attempt: the slowest healthy run of this step in the
       # last twenty was 15m36s (the range is 8m53s-15m36s, and it includes the
-      # cold Xcode build), and two 20-minute attempts still fit the job's 50
-      # with the ~5m40s of setup and teardown around them.
+      # cold Xcode build), and two 20-minute attempts plus the 5-minute reboot
+      # between them still fit the job's 55 with the ~5m40s of setup and
+      # teardown around them.
       - name: Run integration tests (attempt 1)
         id: ios-integration
         continue-on-error: true
@@ -374,14 +377,41 @@ jobs:
 
       # Retry once: integration tests occasionally flake on a slow simulator
       # (a dropped frame, a transient launch hiccup, a build that never
-      # returns). A second attempt on the same booted sim clears those without
-      # masking a real failure, since a genuine break fails both attempts.
+      # returns). The device attempt 1 broke on is not the device to retry on,
+      # though — reusing it is how a runner-side flake takes down *both*
+      # attempts and reads as the genuine break the retry is supposed to
+      # distinguish. On #904 attempt 1 hung for its full 20 minutes and
+      # attempt 2 then lost the same simulator three seconds after launch
+      # ("No tests were found", exit 79) on a docs-only diff that re-ran green
+      # untouched.
+      #
+      # So give attempt 2 a clean device, which is what the retry over in
+      # android-integration-tests already gets for free by re-running the
+      # emulator-runner action. Erasing also restores what "fresh install"
+      # means to app_boot_test.dart: attempt 1 may have left the app and its
+      # Hive boxes behind.
+      #
+      # 5 minutes: `Pick + boot iPhone simulator` above took 80s and 124s on
+      # the two most recent runs, and this repeats that boot plus a shutdown
+      # and an erase. `shutdown` tolerates an already-dead device (it exits
+      # non-zero on one), which is the state a hung attempt tends to leave.
+      - name: Reboot simulator before retry
+        if: steps.ios-integration.outcome == 'failure'
+        timeout-minutes: 5
+        run: |
+          echo "::warning::iOS integration tests failed or hung; rebooting the simulator before attempt 2 of 2"
+          xcrun simctl shutdown "$DEVICE_UDID" || true
+          xcrun simctl erase "$DEVICE_UDID"
+          xcrun simctl boot "$DEVICE_UDID"
+          xcrun simctl bootstatus "$DEVICE_UDID"
+
+      # Skipped if the reboot above fails: a runner that cannot erase and boot
+      # a simulator has nothing to offer attempt 2, and the failed reboot step
+      # says so more precisely than a second lost device would.
       - name: Run integration tests (retry once)
         if: steps.ios-integration.outcome == 'failure'
         timeout-minutes: 20
-        run: |
-          echo "::warning::iOS integration tests failed or hung; retrying (attempt 2 of 2)"
-          flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded
+        run: flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded
 
   android-build:
     runs-on: ubuntu-latest
