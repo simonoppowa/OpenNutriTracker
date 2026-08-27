@@ -138,7 +138,7 @@ No account, no sign-in, no analytics, no ads. Your profile, diary, activities, w
 
 [USDA FoodData Central](https://fdc.nal.usda.gov/), the German [BLS](https://www.blsdb.de), INDB and TBCA are where the food *data* comes from, not places your device talks to. Those datasets are ingested into the Supabase backend ahead of time ([self-hosting guide](docs/supabase-fdc-self-hosting.md)), so a search reaches that backend and stops there. Settings → Food databases chooses which datasets a search covers. Five are selectable today, with INDB and TBCA in the schema but not yet carrying data ([`sp_const.dart`](lib/features/add_meal/data/dto/sp/sp_const.dart)).
 
-Requests carry a User-Agent naming the app, platform, and version, with no user or device identifier. Search results are cached locally and pruned after 90 days.
+Requests to Open Food Facts carry a User-Agent naming the app, platform, and version; requests to the Supabase backend carry the Supabase SDK's own client headers instead. **The app generates no user or device identifier and sends none** — but a request still arrives from somewhere, and the Supabase gateway logs the address it came from along with a coarse location and a fingerprint of the TLS connection, kept for 24 hours. Search results are cached locally and pruned after 90 days.
 
 **Crash reporting** is off until you enable it, and initializes only in release builds ([`main.dart:119`](lib/main.dart:119)). `sendDefaultPii` stays `false`, so no username, email, or IP-derived identity is attached. Disabling it, or deleting your data, closes the SDK immediately.
 
