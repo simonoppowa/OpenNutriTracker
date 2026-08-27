@@ -1181,7 +1181,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text(S.of(context).sendAnonymousUserData),
+                        title: Text(S.of(context).sendCrashReports),
                         value: switchActive,
                         onChanged: isDemoData
                             ? null
