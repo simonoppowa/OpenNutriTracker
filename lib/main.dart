@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
+import 'package:opennutritracker/core/utils/sentry_config.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
@@ -148,10 +149,7 @@ void _runAppWithSentryReporting(
   int? savedAccentColor,
 ) async {
   await SentryFlutter.init(
-    (options) {
-      options.dsn = Env.sentryDns;
-      options.tracesSampleRate = 1.0;
-    },
+    (options) => configureSentryOptions(options, dsn: Env.sentryDns),
     appRunner: () => runAppWithChangeNotifiers(
       isUserInitialized,
       savedAppTheme,
