@@ -13,11 +13,14 @@ import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/workout_compensation_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/health_disclosure_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// What the platform health store is called in front of the user. Both names
 /// are product names, so they are deliberately not localized. Lives here
@@ -128,6 +131,18 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
       return;
     }
 
+    // The disclosure gates the request rather than merely preceding it (#926):
+    // Play's User Data policy wants affirmative consent in the app before the
+    // platform is asked, and a dialog the user could dismiss into a permission
+    // prompt would not be consent. Anything other than the confirm action —
+    // cancel, back, a killed activity — leaves the switch off and asks for
+    // nothing.
+    //
+    // Shown on every opt-in, not once ever. Re-enabling is rare, and a
+    // disclosure that only the first user of a device ever saw would be a
+    // disclosure to the wrong person on a shared handset.
+    if (!await _confirmDisclosure()) return;
+
     setState(() => _busy = true);
     try {
       final granted = await locator<HealthImportRepository>()
@@ -230,6 +245,33 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     ).push(MaterialPageRoute<void>(builder: (_) => const SourcesScreen()));
   }
 
+  /// Puts the disclosure up and reports whether the user chose to go on.
+  ///
+  /// A dismissal returns null, which reads as a refusal — the one direction
+  /// this must fail in, since the alternative is asking the platform for
+  /// health data on the strength of a stray tap.
+  Future<bool> _confirmDisclosure() async {
+    final accepted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const HealthDisclosureDialog(),
+    );
+    return accepted ?? false;
+  }
+
+  /// Opens the policy in the language the app is being read in, matching how
+  /// Settings and the onboarding intro do it.
+  Future<void> _openPrivacyPolicy() async {
+    final url = Uri.parse(
+      URLConst.privacyPolicyFor(Localizations.localeOf(context).languageCode),
+    );
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else if (mounted) {
+      _showMessage(S.of(context).errorOpeningBrowser);
+    }
+  }
+
   int _percentOf(double multiplier) => (multiplier * 100).round();
 
   /// The suggestion is only worth showing when acting on it would move the
@@ -299,6 +341,19 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
                     ),
                     enabled: canEdit,
                     onTap: _onImportNowPressed,
+                  ),
+                ),
+                // Health Connect can send the user straight here to ask what
+                // the app wants their data for (#927), and the policy is the
+                // rest of that answer. Reachable from settings too, but a
+                // reader who arrived from outside the app has no reason to
+                // know that, and should not have to go looking.
+                Semantics(
+                  identifier: 'health-sync-privacy-policy',
+                  child: ListTile(
+                    leading: const Icon(Icons.privacy_tip_outlined),
+                    title: Text(s.privacyPolicyLabel),
+                    onTap: _openPrivacyPolicy,
                   ),
                 ),
               ],
