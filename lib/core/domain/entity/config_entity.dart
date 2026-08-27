@@ -109,10 +109,62 @@ class ConfigEntity extends Equatable {
   /// [healthImportBackfillDays] on the first run).
   final DateTime? healthLastImportAt;
 
-  /// External record ids of imported workouts the user deleted. The importer
-  /// skips them, so a deletion sticks instead of being undone by the next
-  /// overlapping read. Empty when nothing has been deleted.
-  final Set<String> healthDeletedExternalIds;
+  /// External record ids of imported workouts the user deleted, mapped to the
+  /// workout's own start time. The importer skips them, so a deletion sticks
+  /// instead of being undone by the next overlapping read. Empty when nothing
+  /// has been deleted.
+  ///
+  /// The date is what bounds the list (#768): see
+  /// [oldestUsefulTombstone] for the instant before which a tombstone can
+  /// never match again.
+  final Map<String, DateTime> healthDeletedWorkouts;
+
+  /// Undated tombstones from before #768, which only a pre-release install can
+  /// have. Kept separate rather than given an invented date, so that mapping a
+  /// stored config into an entity stays a pure function of that config.
+  ///
+  /// They are folded into the dated map — and cleared — by the next write
+  /// through `ConfigDataSource`. Until then they still have to be *visible*,
+  /// which is what [healthDeletedExternalIds] is for: a read path that ignored
+  /// them would re-import every workout the user had already deleted.
+  final Set<String> legacyHealthDeletedExternalIds;
+
+  /// Every id the importer must skip, dated or not. All its dedupe set needs.
+  Set<String> get healthDeletedExternalIds => {
+    ...healthDeletedWorkouts.keys,
+    ...legacyHealthDeletedExternalIds,
+  };
+
+  /// The earliest instant any future import could ask the platform about, and
+  /// therefore the point before which a tombstone is dead weight rather than
+  /// protection.
+  ///
+  /// Two windows have to be survivable, so this is the earlier of them:
+  ///
+  ///  * the window the *next* run will use — [healthLastImportAt] pushed back
+  ///    by the importer's overlap tolerance;
+  ///  * a full backfill, which is what a run with no watermark asks for.
+  ///
+  /// The watermark only ever moves forward, so the first of those advances and
+  /// the list drains. The second is the floor: if a watermark were ever lost
+  /// without the tombstones going with it, the next run would reach back
+  /// [healthImportBackfillDays] and needs its tombstones intact. Taking the
+  /// earlier of the two costs a few stale entries and cannot prune one that is
+  /// still doing work.
+  static DateTime oldestUsefulTombstone({
+    required DateTime now,
+    required DateTime? lastImportAt,
+    required Duration overlapTolerance,
+  }) {
+    final backfillFloor = now
+        .subtract(const Duration(days: healthImportBackfillDays))
+        .subtract(overlapTolerance);
+    if (lastImportAt == null) return backfillFloor;
+    final nextWindowStart = lastImportAt.subtract(overlapTolerance);
+    return nextWindowStart.isBefore(backfillFloor)
+        ? nextWindowStart
+        : backfillFloor;
+  }
 
   /// Which revision of the privacy policy the user has been shown a *notice*
   /// about. Zero for every install that predates the field, which is exactly
@@ -208,7 +260,8 @@ class ConfigEntity extends Equatable {
     this.healthImportEnabled = false,
     this.healthWorkoutKcalMultiplier,
     this.healthLastImportAt,
-    this.healthDeletedExternalIds = const <String>{},
+    this.healthDeletedWorkouts = const <String, DateTime>{},
+    this.legacyHealthDeletedExternalIds = const <String>{},
     this.policyNoticeRevisionSeen = 0,
   });
 
@@ -325,7 +378,10 @@ class ConfigEntity extends Equatable {
     ),
     healthLastImportAt: dbo.healthLastImportAt,
     policyNoticeRevisionSeen: dbo.policyNoticeRevisionSeen ?? 0,
-    healthDeletedExternalIds: dbo.healthDeletedExternalIds != null
+    healthDeletedWorkouts: dbo.healthDeletedWorkouts != null
+        ? Map<String, DateTime>.from(dbo.healthDeletedWorkouts!)
+        : const <String, DateTime>{},
+    legacyHealthDeletedExternalIds: dbo.healthDeletedExternalIds != null
         ? Set<String>.from(dbo.healthDeletedExternalIds!)
         : const <String>{},
   );
@@ -429,7 +485,8 @@ class ConfigEntity extends Equatable {
     healthImportEnabled,
     healthWorkoutKcalMultiplier,
     healthLastImportAt,
-    healthDeletedExternalIds,
+    healthDeletedWorkouts,
+    legacyHealthDeletedExternalIds,
     policyNoticeRevisionSeen,
   ];
 }

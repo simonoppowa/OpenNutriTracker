@@ -196,7 +196,17 @@ class ConfigRepository {
     await _configDataSource.setConfigHealthLastImportAt(importedAt);
   }
 
-  Future<void> addConfigHealthDeletedExternalId(String externalId) async {
-    await _configDataSource.addConfigHealthDeletedExternalId(externalId);
+  Future<void> addConfigHealthDeletedWorkout(
+    String externalId,
+    DateTime startedAt,
+  ) async {
+    await _configDataSource.addConfigHealthDeletedWorkout(
+      externalId,
+      startedAt,
+    );
+  }
+
+  Future<void> pruneConfigHealthDeletedWorkouts(DateTime cutoff) async {
+    await _configDataSource.pruneConfigHealthDeletedWorkouts(cutoff);
   }
 }

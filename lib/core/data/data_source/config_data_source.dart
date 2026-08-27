@@ -60,6 +60,7 @@ class ConfigDataSource {
       merged.healthWorkoutKcalMultiplier = profile.healthWorkoutKcalMultiplier;
       merged.healthLastImportAt = profile.healthLastImportAt;
       merged.healthDeletedExternalIds = profile.healthDeletedExternalIds;
+      merged.healthDeletedWorkouts = profile.healthDeletedWorkouts;
     } else {
       // Explicitly clear personal fields so they don't leak from the
       // app box after a profile reset. A fresh profile therefore reads as
@@ -75,6 +76,7 @@ class ConfigDataSource {
       merged.healthWorkoutKcalMultiplier = null;
       merged.healthLastImportAt = null;
       merged.healthDeletedExternalIds = null;
+      merged.healthDeletedWorkouts = null;
     }
     return merged;
   }
@@ -332,15 +334,63 @@ class ConfigDataSource {
     await _update((c) => c.healthLastImportAt = importedAt);
   }
 
-  /// Records that the imported workout behind [externalId] was deleted, so
-  /// the importer stops re-creating it. Appends into a fresh list so Hive
-  /// sees a distinct object reference on save.
-  Future<void> addConfigHealthDeletedExternalId(String externalId) async {
+  /// Records that the imported workout behind [externalId], which started at
+  /// [startedAt], was deleted — so the importer stops re-creating it.
+  ///
+  /// [startedAt] is the workout's own start time rather than the moment of
+  /// deletion, because it is what the import window is compared against: the
+  /// tombstone stops being useful when the *workout* falls out of range, not
+  /// when the deletion does. Writes a fresh map so Hive sees a distinct object
+  /// reference on save.
+  Future<void> addConfigHealthDeletedWorkout(
+    String externalId,
+    DateTime startedAt,
+  ) async {
     await _update((c) {
-      final current = c.healthDeletedExternalIds;
-      if (current != null && current.contains(externalId)) return;
-      c.healthDeletedExternalIds = <String>[...?current, externalId];
+      final current = _mergedDeletedWorkouts(c);
+      if (current[externalId] == startedAt) return;
+      c.healthDeletedWorkouts = {...current, externalId: startedAt};
+      c.healthDeletedExternalIds = null;
     });
+  }
+
+  /// Drops tombstones for workouts that started before [cutoff].
+  ///
+  /// Those can never match again — the platform will not return them for any
+  /// window a future import asks for — so they are dead weight rather than
+  /// protection. See `ConfigEntity.oldestUsefulTombstone` for how the caller
+  /// arrives at [cutoff]. A no-op when nothing is stale, so the common case
+  /// costs no write.
+  Future<void> pruneConfigHealthDeletedWorkouts(DateTime cutoff) async {
+    await _update((c) {
+      final current = _mergedDeletedWorkouts(c);
+      final kept = <String, DateTime>{
+        for (final entry in current.entries)
+          if (!entry.value.isBefore(cutoff)) entry.key: entry.value,
+      };
+      if (kept.length == current.length && c.healthDeletedExternalIds == null) {
+        return;
+      }
+      c.healthDeletedWorkouts = kept;
+      c.healthDeletedExternalIds = null;
+    });
+  }
+
+  /// The dated tombstones, with any undated legacy ids folded in.
+  ///
+  /// Before #768 a tombstone was an id with no date, so there is nothing to
+  /// compare a legacy entry against. It is dated *now* instead, which keeps it
+  /// for one more full window and then lets it drain — erring toward keeping a
+  /// deletion honoured, which is the direction that cannot annoy anyone.
+  ///
+  /// Only pre-release installs can carry any: #651 has not shipped. This can
+  /// be deleted once 2.1.0 is out and no dev build predates it.
+  static Map<String, DateTime> _mergedDeletedWorkouts(ConfigDBO config) {
+    final dated = config.healthDeletedWorkouts ?? const <String, DateTime>{};
+    final legacy = config.healthDeletedExternalIds;
+    if (legacy == null || legacy.isEmpty) return dated;
+    final now = DateTime.now();
+    return {for (final id in legacy) id: now, ...dated};
   }
 
   Future<ConfigDBO> getConfig() async => _readMerged();

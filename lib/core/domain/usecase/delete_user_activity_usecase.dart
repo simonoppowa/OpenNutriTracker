@@ -18,7 +18,14 @@ class DeleteUserActivityUsecase {
       // The importer dedupes against the activities on file, and its window
       // deliberately overlaps the last one — so a deleted workout would be
       // read again and filed again. Remember that this record is unwanted.
-      await _configRepository.addConfigHealthDeletedExternalId(externalId);
+      //
+      // The activity's date is the workout's own start time, which is what
+      // lets the tombstone be dropped once that workout falls outside any
+      // window a future import will ask for (#768).
+      await _configRepository.addConfigHealthDeletedWorkout(
+        externalId,
+        activityEntity.date,
+      );
     }
   }
 }
