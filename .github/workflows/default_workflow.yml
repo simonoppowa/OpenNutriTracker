@@ -279,7 +279,7 @@ jobs:
     if: ${{ !cancelled() && needs.ios-integration-tests.outputs.passed != 'true' }}
     uses: ./.github/workflows/ios-integration-attempt.yml
     with:
-      force_fail: true
+      force_fail: false
 
   # The check to require in branch protection — the two jobs above are green
   # even when their tests fail, by design, so requiring either of them directly
