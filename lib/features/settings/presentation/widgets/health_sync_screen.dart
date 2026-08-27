@@ -13,11 +13,13 @@ import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/workout_compensation_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// What the platform health store is called in front of the user. Both names
 /// are product names, so they are deliberately not localized. Lives here
@@ -230,6 +232,19 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     ).push(MaterialPageRoute<void>(builder: (_) => const SourcesScreen()));
   }
 
+  /// Opens the policy in the language the app is being read in, matching how
+  /// Settings and the onboarding intro do it.
+  Future<void> _openPrivacyPolicy() async {
+    final url = Uri.parse(
+      URLConst.privacyPolicyFor(Localizations.localeOf(context).languageCode),
+    );
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else if (mounted) {
+      _showMessage(S.of(context).errorOpeningBrowser);
+    }
+  }
+
   int _percentOf(double multiplier) => (multiplier * 100).round();
 
   /// The suggestion is only worth showing when acting on it would move the
@@ -299,6 +314,19 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
                     ),
                     enabled: canEdit,
                     onTap: _onImportNowPressed,
+                  ),
+                ),
+                // Health Connect can send the user straight here to ask what
+                // the app wants their data for (#927), and the policy is the
+                // rest of that answer. Reachable from settings too, but a
+                // reader who arrived from outside the app has no reason to
+                // know that, and should not have to go looking.
+                Semantics(
+                  identifier: 'health-sync-privacy-policy',
+                  child: ListTile(
+                    leading: const Icon(Icons.privacy_tip_outlined),
+                    title: Text(s.privacyPolicyLabel),
+                    onTap: _openPrivacyPolicy,
                   ),
                 ),
               ],

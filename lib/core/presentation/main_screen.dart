@@ -5,8 +5,10 @@ import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet
 import 'package:opennutritracker/core/presentation/widgets/demo_mode_banner.dart';
 import 'package:opennutritracker/core/presentation/widgets/policy_change_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/utils/health_rationale_service.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/meal_type_suggester.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/diary/diary_page.dart';
 import 'package:opennutritracker/core/presentation/widgets/home_appbar.dart';
@@ -23,9 +25,14 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   int _selectedPageIndex = 0;
   bool _isDemoData = false;
+
+  /// Guards against two lifecycle events asking the platform at once. The
+  /// platform side clears the flag on read, so a race would not open the
+  /// screen twice — but it would spend two channel round trips finding out.
+  bool _checkingHealthRationale = false;
 
   late List<Widget> _bodyPages;
   late List<PreferredSizeWidget> _appbarPages;
@@ -33,7 +40,25 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadConfigDrivenUi();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // The activity is singleTop, so Health Connect reaching a process that is
+    // already running never rebuilds this screen — a resume is the only signal
+    // that an intent arrived.
+    if (state == AppLifecycleState.resumed) {
+      _maybeOpenHealthRationale();
+    }
   }
 
   // One config read for both. Checked once per screen instance rather than
@@ -45,6 +70,30 @@ class _MainScreenState extends State<MainScreen> {
     if (!mounted) return;
     setState(() => _isDemoData = config.isDemoData);
     await _maybeShowPolicyChangeNotice(config.policyNoticeRevisionSeen);
+    // After the notice rather than beside it: a cold start launched by Health
+    // Connect can owe the user both, and pushing a route out from under a
+    // dialog would leave the dialog orphaned over the wrong screen.
+    await _maybeOpenHealthRationale();
+  }
+
+  /// Opens the health-sync screen when Health Connect asked the app to explain
+  /// what it wants health data for (#927).
+  ///
+  /// Health Connect starts the app rather than rendering anything itself, so
+  /// without this the user is dropped on the diary having asked a question
+  /// nothing answered. The screen names the data, says what it is used for,
+  /// and links the privacy policy.
+  Future<void> _maybeOpenHealthRationale() async {
+    if (_checkingHealthRationale) return;
+    _checkingHealthRationale = true;
+    final bool requested;
+    try {
+      requested = await HealthRationaleService.consumePendingRequest();
+    } finally {
+      _checkingHealthRationale = false;
+    }
+    if (!requested || !mounted) return;
+    await Navigator.of(context).pushNamed(NavigationOptions.healthSyncRoute);
   }
 
   /// Shows the policy-change notice once, to users who onboarded against an

@@ -44,6 +44,7 @@ import 'package:opennutritracker/features/home/presentation/screens/import_meal_
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/accent_colour_screen.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -304,6 +305,7 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
         NavigationOptions.settingsRoute: (context) => const SettingsScreen(),
         NavigationOptions.accentColourRoute: (context) =>
             const AccentColourScreen(),
+        NavigationOptions.healthSyncRoute: (context) => const HealthSyncScreen(),
         NavigationOptions.addMealRoute: (context) => const AddMealScreen(),
         NavigationOptions.scannerRoute: (context) => const ScannerScreen(),
         NavigationOptions.mealDetailRoute: (context) =>
