@@ -182,8 +182,7 @@ class AiEndpointProbe {
       return AiEndpointProbe(
         text: text,
         photo: photo,
-        checked:
-            text != AiCapability.unknown || photo != AiCapability.unknown,
+        checked: text != AiCapability.unknown || photo != AiCapability.unknown,
       );
     }
     if (value.length != 3) return unknown;
@@ -1043,6 +1042,38 @@ class AiCredentialStorage {
       }
     });
   }
+
+  /// Forgets **every** provider's credential and every device-wide tag,
+  /// leaving this store as it was before the app was ever configured.
+  ///
+  /// Not [clear] in a loop. A single-slot clear deliberately keeps the
+  /// selected provider and, unless nothing usable is left, the on/off switch
+  /// and the agreement, because clearing one credential usually means "I am
+  /// dropping this provider" rather than "I am done with the feature". A wipe
+  /// means exactly the second thing, so it takes all three unconditionally —
+  /// and the legacy tag too, which [_retireLegacyTagFor] guards behind
+  /// Anthropic for a reason that stops applying once every slot is going.
+  ///
+  /// The agreement goes for the reason #836 gave: a recorded yes must not
+  /// outlive the credential it authorised, and after this nothing survives to
+  /// have authorised anything.
+  ///
+  /// The endpoint goes with the key rather than staying behind as a setting.
+  /// #732 put a server the user runs in this store precisely so the two could
+  /// not diverge here: the address of a machine on someone's own network is
+  /// as much theirs as the credential that opens it.
+  Future<void> clearAll() => _probeConfigurationLock.synchronized(() async {
+    for (final provider in AiProvider.values) {
+      await _storage.delete(key: _slotTag(provider));
+      await _storage.delete(key: _endpointSlotTag(provider));
+      await _storage.delete(key: _modelSlotTag(provider));
+      await _storage.delete(key: _probeSlotTag(provider));
+    }
+    await _storage.delete(key: _legacyApiKeyTag);
+    await _storage.delete(key: _providerTag);
+    await _storage.delete(key: _enabledTag);
+    await _storage.delete(key: _termsAcceptedTag);
+  });
 
   /// The legacy tag is the Anthropic slot under an older name, so it is
   /// retired only when Anthropic's own slot is written or cleared. Deleting

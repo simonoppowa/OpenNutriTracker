@@ -336,7 +336,7 @@
   "settingsDeleteAllDataLabel": "Reset profile data",
   "settingsDeleteAllDataSubtitle": "Profile, meals, activities, weight history and fasting sessions",
   "settingsDeleteAllDataConfirmTitle": "Reset profile data?",
-  "settingsDeleteAllDataConfirmContent": "This removes your profile, meals, activities, weight history and fasting sessions for the current profile only. Shared content (custom meals, recipes, activity templates) and the Open Food Facts and USDA Food Data Central catalogues are not affected. This cannot be undone.",
+  "settingsDeleteAllDataConfirmContent": "This removes your profile, meals, activities, weight history and fasting sessions for the current profile only. It also removes any AI provider key and server address, which are shared by every profile on this device. Shared content (custom meals, recipes, activity templates) and the Open Food Facts and USDA Food Data Central catalogues are not affected. This cannot be undone.",
   "settingsDeleteAllDataConfirmAction": "Reset profile",
   "lowKcalWarningTitle": "This daily target is on the low side",
   "lowKcalWarningBody": "Most adults shouldn't eat fewer than {threshold} kcal a day for any length of time without medical guidance. Please consider speaking with a healthcare professional before sticking with a target this low.",

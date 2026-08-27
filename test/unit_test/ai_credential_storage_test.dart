@@ -345,6 +345,69 @@ void main() {
     });
   });
 
+  group('clearAll', () {
+    /// Every tag this class can ever write, for every provider, seeded
+    /// directly rather than through the write path — a store that was only
+    /// half-configured would let a forgotten delete pass as a green test.
+    void seedEverything() {
+      backing.store['AiApiKeyTag'] = 'sk-legacy';
+      backing.store['AiProviderTag'] = 'openrouter';
+      backing.store['AiAssistEnabledTag'] = 'true';
+      for (final provider in AiProvider.values) {
+        backing.store['AiApiKeyTag.${provider.name}'] = 'sk-${provider.name}';
+        backing.store['AiEndpointTag.${provider.name}'] = 'http://host/v1';
+        backing.store['AiModelTag.${provider.name}'] = 'some-model';
+        backing.store['AiProbeTag.${provider.name}'] = 'pp';
+      }
+    }
+
+    test('leaves nothing at all behind', () async {
+      // The whole point of the method, and the reason it asserts on the
+      // backing store rather than on the getters: a getter that reads null
+      // says nothing about a tag still sitting in the keystore. #892 was
+      // exactly that — a paid credential surviving a wipe with no sign of it.
+      seedEverything();
+
+      await storage.clearAll();
+
+      expect(backing.store, isEmpty);
+    });
+
+    test('reaches providers other than the active one', () async {
+      // What separates this from clear(), which resolves one target and
+      // touches only its slots. A user who tried two providers has two keys.
+      backing.store['AiProviderTag'] = 'anthropic';
+      backing.store['AiApiKeyTag.anthropic'] = 'sk-ant';
+      backing.store['AiApiKeyTag.openrouter'] = 'sk-or';
+      backing.store['AiEndpointTag.ownServer'] = 'http://192.168.1.4:11434/v1';
+
+      await storage.clearAll();
+
+      expect(await storage.readApiKey(provider: AiProvider.openrouter), isNull);
+      expect(
+        await storage.readEndpoint(provider: AiProvider.ownServer),
+        isNull,
+      );
+    });
+
+    test('takes the switch and the agreement with it', () async {
+      // clear() keeps both while anything usable survives. Nothing survives a
+      // wipe, so neither may: an install that came back on its own would be
+      // sending again without being asked, and a recorded yes that outlived
+      // every credential it authorised is the state #836 refused.
+      backing.store['AiAssistEnabledTag'] = 'true';
+      backing.store['AiTermsAcceptedTag'] = 'true';
+
+      await storage.clearAll();
+
+      expect(await storage.isEnabled(), isFalse);
+      expect(await storage.hasAcceptedTerms(), isFalse);
+      final summary = await storage.readSummary();
+      expect(summary.configured, isFalse);
+      expect(summary.enabled, isFalse);
+    });
+  });
+
   group('the provider tag', () {
     test('is stored as a stable name, not an index', () async {
       // Persisted format: an ordinal would silently repoint every install at
@@ -408,24 +471,31 @@ void main() {
       expect(await storage.isEnabled(), isFalse);
     });
 
-    test('does not hand back the stranded key through the default path', () async {
-      // `readApiKey()` with no argument resolves the active provider. With
-      // that unknown there is no slot to read, and answering with Anthropic's
-      // key would be the same defect wearing a different method name.
-      expect(await storage.readApiKey(), isNull);
-      expect(await storage.readModel(), isNull);
-    });
+    test(
+      'does not hand back the stranded key through the default path',
+      () async {
+        // `readApiKey()` with no argument resolves the active provider. With
+        // that unknown there is no slot to read, and answering with Anthropic's
+        // key would be the same defect wearing a different method name.
+        expect(await storage.readApiKey(), isNull);
+        expect(await storage.readModel(), isNull);
+      },
+    );
 
-    test('leaves the tag in place, so re-upgrading restores the choice', () async {
-      await storage.readSelection();
-      await storage.readSummary();
+    test(
+      'leaves the tag in place, so re-upgrading restores the choice',
+      () async {
+        await storage.readSelection();
+        await storage.readSummary();
 
-      expect(
-        backing.store['AiProviderTag'],
-        'a-provider-from-a-later-build',
-        reason: 'destroying the selection makes re-upgrading a second surprise',
-      );
-    });
+        expect(
+          backing.store['AiProviderTag'],
+          'a-provider-from-a-later-build',
+          reason:
+              'destroying the selection makes re-upgrading a second surprise',
+        );
+      },
+    );
 
     test('the key itself survives, and is reachable when named', () async {
       // Nothing is deleted — only refused while the selection is unreadable.
@@ -503,20 +573,23 @@ void main() {
       expect(summary.enabled, isFalse);
     });
 
-    test('enabled is never true without a key for the active provider', () async {
-      // The invariant `isEnabled` has always enforced, now stated in one
-      // place: the flag alone never means "on". Set the flag against a
-      // provider that holds a key, then switch to one that does not.
-      await storage.writeApiKey('sk-test', provider: AiProvider.anthropic);
-      await storage.setEnabled(true);
-      await storage.setActiveProvider(AiProvider.openai);
+    test(
+      'enabled is never true without a key for the active provider',
+      () async {
+        // The invariant `isEnabled` has always enforced, now stated in one
+        // place: the flag alone never means "on". Set the flag against a
+        // provider that holds a key, then switch to one that does not.
+        await storage.writeApiKey('sk-test', provider: AiProvider.anthropic);
+        await storage.setEnabled(true);
+        await storage.setActiveProvider(AiProvider.openai);
 
-      final summary = await storage.readSummary();
+        final summary = await storage.readSummary();
 
-      expect(summary.provider, AiProvider.openai);
-      expect(summary.configured, isFalse);
-      expect(summary.enabled, isFalse);
-    });
+        expect(summary.provider, AiProvider.openai);
+        expect(summary.configured, isFalse);
+        expect(summary.enabled, isFalse);
+      },
+    );
 
     test('resolves the active provider once, not once per value', () async {
       await storage.setActiveProvider(AiProvider.openai);
@@ -536,7 +609,8 @@ void main() {
         // grows per value, which is what this guards.
         backing.reads.length,
         lessThanOrEqualTo(6),
-        reason: 'five distinct keys exist; asking the three getters '
+        reason:
+            'five distinct keys exist; asking the three getters '
             'separately took 6-8 round trips. The model joined them when it '
             'became part of what "configured" means for a server the user '
             'runs, and `readSelection` stopped reading it a second time in '
@@ -571,135 +645,131 @@ void main() {
   });
 
   group('a server the user runs', () {
-    test('a selection is never one save\'s address beside another\'s model', () async {
-      // The read side of the same rule. `writeOwnServerConfiguration` commits
-      // the pair as one act; reading the fields one at a time let a save land
-      // between them and hand back `(endpoint A, model B)` — a pair the user
-      // never configured and no machine was ever asked about.
-      //
-      // Worse than a wasted round trip, because it is a *request* to that
-      // pair: a photo sent to one box asking for another box's model is a
-      // `model_not_found`, which is `unsupported`, which #782 reads as
-      // grounds to take the camera away from a configuration that works.
-      // #813.
-      await storage.setActiveProvider(AiProvider.ownServer);
-      await storage.writeOwnServerConfiguration(
-        endpoint: 'http://192.168.1.5:11434',
-        model: 'model-a',
-        provider: AiProvider.ownServer,
-      );
+    test(
+      'a selection is never one save\'s address beside another\'s model',
+      () async {
+        // The read side of the same rule. `writeOwnServerConfiguration` commits
+        // the pair as one act; reading the fields one at a time let a save land
+        // between them and hand back `(endpoint A, model B)` — a pair the user
+        // never configured and no machine was ever asked about.
+        //
+        // Worse than a wasted round trip, because it is a *request* to that
+        // pair: a photo sent to one box asking for another box's model is a
+        // `model_not_found`, which is `unsupported`, which #782 reads as
+        // grounds to take the camera away from a configuration that works.
+        // #813.
+        await storage.setActiveProvider(AiProvider.ownServer);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'model-a',
+          provider: AiProvider.ownServer,
+        );
 
-      // Held after the address has been read and before the model is.
-      const modelKey = 'AiModelTag.ownServer';
-      final held = Completer<void>();
-      backing.readGates[modelKey] = held;
+        // Held after the address has been read and before the model is.
+        const modelKey = 'AiModelTag.ownServer';
+        final held = Completer<void>();
+        backing.readGates[modelKey] = held;
 
-      final reading = storage.selectionFor(AiProvider.ownServer);
-      for (var i = 0; i < 50 && !backing.reads.contains(modelKey); i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
+        final reading = storage.selectionFor(AiProvider.ownServer);
+        for (var i = 0; i < 50 && !backing.reads.contains(modelKey); i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
 
-      // Started, not awaited: with the fix the read holds the lock, so this
-      // save waits — and awaiting it here would wait on ourselves.
-      backing.readGates.remove(modelKey);
-      final saved = storage.writeOwnServerConfiguration(
-        endpoint: 'http://192.168.1.9:11434',
-        model: 'model-b',
-        provider: AiProvider.ownServer,
-      );
-      held.complete();
-      final selection = await reading;
-      await saved;
+        // Started, not awaited: with the fix the read holds the lock, so this
+        // save waits — and awaiting it here would wait on ourselves.
+        backing.readGates.remove(modelKey);
+        final saved = storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.9:11434',
+          model: 'model-b',
+          provider: AiProvider.ownServer,
+        );
+        held.complete();
+        final selection = await reading;
+        await saved;
 
-      expect(
-        [selection?.endpoint, selection?.modelId],
-        anyOf(
-          equals([
-            'http://192.168.1.5:11434/v1/chat/completions',
-            'model-a',
-          ]),
-          equals([
-            'http://192.168.1.9:11434/v1/chat/completions',
-            'model-b',
-          ]),
-        ),
-        reason: 'a torn read is not only a crossed pair: writing an address '
-            'clears the model, so the half-read state can also come back as '
-            'not configured at all and the feature go quietly unavailable',
-      );
-    });
+        expect(
+          [selection?.endpoint, selection?.modelId],
+          anyOf(
+            equals(['http://192.168.1.5:11434/v1/chat/completions', 'model-a']),
+            equals(['http://192.168.1.9:11434/v1/chat/completions', 'model-b']),
+          ),
+          reason:
+              'a torn read is not only a crossed pair: writing an address '
+              'clears the model, so the half-read state can also come back as '
+              'not configured at all and the feature go quietly unavailable',
+        );
+      },
+    );
 
-    test('two overlapping saves cannot cross their endpoint and model', () async {
-      // The pair commits as one act or not at all. Taking the lock once per
-      // write let two saves interleave — endpoint A, endpoint B, model B,
-      // model A — and leave one server paired with another save's model.
-      // Worse than a generic interleave: writing an endpoint clears the model
-      // when the address changes, so it is the *older* save's model write
-      // that repopulates the slot, and the probe identity check then reads
-      // that crossed pair as the configuration a verdict belongs to. Raised
-      // by Copilot on #800.
-      //
-      // Reachable by pressing OK twice before the first save has settled,
-      // which is the same gesture behind #796.
-      await storage.setActiveProvider(AiProvider.ownServer);
+    test(
+      'two overlapping saves cannot cross their endpoint and model',
+      () async {
+        // The pair commits as one act or not at all. Taking the lock once per
+        // write let two saves interleave — endpoint A, endpoint B, model B,
+        // model A — and leave one server paired with another save's model.
+        // Worse than a generic interleave: writing an endpoint clears the model
+        // when the address changes, so it is the *older* save's model write
+        // that repopulates the slot, and the probe identity check then reads
+        // that crossed pair as the configuration a verdict belongs to. Raised
+        // by Copilot on #800.
+        //
+        // Reachable by pressing OK twice before the first save has settled,
+        // which is the same gesture behind #796.
+        await storage.setActiveProvider(AiProvider.ownServer);
 
-      // The interleave has to be *made*, not hoped for: left to the microtask
-      // queue these two run one after the other and the defect never shows.
-      // The first save is held between its address write and its model read —
-      // the exact gap the second save has to slip through.
-      const modelKey = 'AiModelTag.ownServer';
-      final held = Completer<void>();
-      backing.readGates[modelKey] = held;
+        // The interleave has to be *made*, not hoped for: left to the microtask
+        // queue these two run one after the other and the defect never shows.
+        // The first save is held between its address write and its model read —
+        // the exact gap the second save has to slip through.
+        const modelKey = 'AiModelTag.ownServer';
+        final held = Completer<void>();
+        backing.readGates[modelKey] = held;
 
-      final first = storage.writeOwnServerConfiguration(
-        endpoint: 'http://192.168.1.5:11434',
-        model: 'model-a',
-        provider: AiProvider.ownServer,
-      );
-      for (var i = 0; i < 50 && !backing.reads.contains(modelKey); i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(
-        backing.reads,
-        contains(modelKey),
-        reason: 'the first save must be parked where the second can overtake',
-      );
+        final first = storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'model-a',
+          provider: AiProvider.ownServer,
+        );
+        for (var i = 0; i < 50 && !backing.reads.contains(modelKey); i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        expect(
+          backing.reads,
+          contains(modelKey),
+          reason: 'the first save must be parked where the second can overtake',
+        );
 
-      // Lifted so only the first save is held; the second must be free to run.
-      backing.readGates.remove(modelKey);
-      final second = storage.writeOwnServerConfiguration(
-        endpoint: 'http://192.168.1.9:11434',
-        model: 'model-b',
-        provider: AiProvider.ownServer,
-      );
-      for (var i = 0; i < 50; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
+        // Lifted so only the first save is held; the second must be free to run.
+        backing.readGates.remove(modelKey);
+        final second = storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.9:11434',
+          model: 'model-b',
+          provider: AiProvider.ownServer,
+        );
+        for (var i = 0; i < 50; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
 
-      held.complete();
-      await Future.wait([first, second]);
+        held.complete();
+        await Future.wait([first, second]);
 
-      final endpoint = await storage.readEndpoint(
-        provider: AiProvider.ownServer,
-      );
-      final model = await storage.readModel(provider: AiProvider.ownServer);
+        final endpoint = await storage.readEndpoint(
+          provider: AiProvider.ownServer,
+        );
+        final model = await storage.readModel(provider: AiProvider.ownServer);
 
-      // Either save may win; neither may be half-applied.
-      expect(
-        [endpoint, model],
-        anyOf(
-          equals([
-            'http://192.168.1.5:11434/v1/chat/completions',
-            'model-a',
-          ]),
-          equals([
-            'http://192.168.1.9:11434/v1/chat/completions',
-            'model-b',
-          ]),
-        ),
-        reason: 'an address must never be stored beside another save\'s model',
-      );
-    });
+        // Either save may win; neither may be half-applied.
+        expect(
+          [endpoint, model],
+          anyOf(
+            equals(['http://192.168.1.5:11434/v1/chat/completions', 'model-a']),
+            equals(['http://192.168.1.9:11434/v1/chat/completions', 'model-b']),
+          ),
+          reason:
+              'an address must never be stored beside another save\'s model',
+        );
+      },
+    );
 
     // The provider whose credential is an address. Everything here exists
     // because "has a key" stopped being the test of usability. #755.
@@ -721,7 +791,8 @@ void main() {
       expect(
         summary.configured,
         isTrue,
-        reason: 'an address and a model are what make this one usable, '
+        reason:
+            'an address and a model are what make this one usable, '
             'not a key',
       );
       expect(summary.enabled, isTrue);
@@ -751,7 +822,8 @@ void main() {
       expect(
         await storage.isEnabled(),
         isFalse,
-        reason: 'writing an address is what turns the feature on, so a '
+        reason:
+            'writing an address is what turns the feature on, so a '
             'refused one must not',
       );
     });
@@ -865,16 +937,32 @@ void main() {
       // base address. Completing it is the OpenAI-compatible contract rather
       // than a guess about the server.
       for (final (typed, expected) in [
-        ('http://192.168.1.5:11434', 'http://192.168.1.5:11434/v1/chat/completions'),
-        ('http://192.168.1.5:11434/', 'http://192.168.1.5:11434/v1/chat/completions'),
-        ('http://192.168.1.5:11434/v1', 'http://192.168.1.5:11434/v1/chat/completions'),
-        ('http://192.168.1.5:11434/v1/', 'http://192.168.1.5:11434/v1/chat/completions'),
+        (
+          'http://192.168.1.5:11434',
+          'http://192.168.1.5:11434/v1/chat/completions',
+        ),
+        (
+          'http://192.168.1.5:11434/',
+          'http://192.168.1.5:11434/v1/chat/completions',
+        ),
+        (
+          'http://192.168.1.5:11434/v1',
+          'http://192.168.1.5:11434/v1/chat/completions',
+        ),
+        (
+          'http://192.168.1.5:11434/v1/',
+          'http://192.168.1.5:11434/v1/chat/completions',
+        ),
         // Already a route: left exactly as typed.
-        ('https://ollama.example.com/v1/chat/completions',
-            'https://ollama.example.com/v1/chat/completions'),
+        (
+          'https://ollama.example.com/v1/chat/completions',
+          'https://ollama.example.com/v1/chat/completions',
+        ),
         // Something else entirely is the user's business, not ours.
-        ('https://ollama.example.com/proxy/chat',
-            'https://ollama.example.com/proxy/chat'),
+        (
+          'https://ollama.example.com/proxy/chat',
+          'https://ollama.example.com/proxy/chat',
+        ),
       ]) {
         expect(
           AiCredentialStorage.resolveEndpoint(typed).toString(),
@@ -911,7 +999,10 @@ void main() {
         ('http://192.168.1.5:11434', '192.168.1.5:11434'),
         ('http://192.168.1.5:11434/v1/chat/completions', '192.168.1.5:11434'),
         // No port typed is no port shown, rather than the scheme's default.
-        ('https://ollama.example.com/v1/chat/completions', 'ollama.example.com'),
+        (
+          'https://ollama.example.com/v1/chat/completions',
+          'ollama.example.com',
+        ),
         // `Uri` canonicalizes an explicitly typed scheme-default port, so it
         // is omitted as redundant while non-default ports above remain.
         ('http://example-server.home.arpa:80', 'example-server.home.arpa'),
@@ -954,7 +1045,10 @@ void main() {
         ('http://192.168.1.5:11434', '192.168.1.5:11434'),
         ('http://192.168.1.5', '192.168.1.5'),
         ('https://ollama.example.com:8443/v1', 'ollama.example.com:8443'),
-        ('https://ollama.example.com/v1/chat/completions', 'ollama.example.com'),
+        (
+          'https://ollama.example.com/v1/chat/completions',
+          'ollama.example.com',
+        ),
       ]) {
         expect(
           AiCredentialStorage.displayHost(endpoint),
@@ -969,8 +1063,7 @@ void main() {
       // above. It also carries `userInfo`, which is the whole reason this
       // function does not use it — so the two rules are checked together
       // rather than each on an address the other never sees.
-      const withPassword =
-          'http://ollama:hunter2@[fd00:1234:5678::22]:11434';
+      const withPassword = 'http://ollama:hunter2@[fd00:1234:5678::22]:11434';
 
       expect(
         AiCredentialStorage.displayHost(withPassword),
@@ -986,11 +1079,7 @@ void main() {
       // Echoing the field back is how a half-pasted credential reaches the
       // screen; a caller with nothing to name shows nothing.
       for (final typed in ['', 'htt', '192.168.1.5:11434', 'ollama:hunter2@']) {
-        expect(
-          AiCredentialStorage.displayHost(typed),
-          isNull,
-          reason: typed,
-        );
+        expect(AiCredentialStorage.displayHost(typed), isNull, reason: typed);
       }
     });
 
@@ -1021,7 +1110,10 @@ void main() {
       final selection = await storage.readSelection();
 
       expect(selection!.apiKey, isNull);
-      expect(selection.endpoint, 'http://192.168.1.5:11434/v1/chat/completions');
+      expect(
+        selection.endpoint,
+        'http://192.168.1.5:11434/v1/chat/completions',
+      );
       expect(selection.modelId, 'gemma3:4b');
     });
 
@@ -1100,22 +1192,25 @@ void main() {
       expect(await storage.readModel(), 'gemma3:4b');
     });
 
-    test('clearing forgets the address, the model and the key together', () async {
-      await storage.writeEndpoint('http://192.168.1.5:11434');
-      await storage.writeModel('gemma3:4b');
-      await storage.writeApiKey('sk-local');
+    test(
+      'clearing forgets the address, the model and the key together',
+      () async {
+        await storage.writeEndpoint('http://192.168.1.5:11434');
+        await storage.writeModel('gemma3:4b');
+        await storage.writeApiKey('sk-local');
 
-      await storage.clear();
+        await storage.clear();
 
-      expect(await storage.readEndpoint(), isNull);
-      expect(await storage.readModel(), isNull);
-      expect(
-        await storage.readApiKey(),
-        isNull,
-        reason: 'a key that outlives its endpoint means nothing',
-      );
-      expect(await storage.readSummary().then((s) => s.configured), isFalse);
-    });
+        expect(await storage.readEndpoint(), isNull);
+        expect(await storage.readModel(), isNull);
+        expect(
+          await storage.readApiKey(),
+          isNull,
+          reason: 'a key that outlives its endpoint means nothing',
+        );
+        expect(await storage.readSummary().then((s) => s.configured), isFalse);
+      },
+    );
 
     test('the address is reported so a row can name the destination', () async {
       // #736: this destination has no brand, so the only honest name is the
@@ -1174,27 +1269,33 @@ void main() {
       expect(selection.modelId, 'b/two');
     });
 
-    test('hands over the active provider\'s key when both are stored', () async {
-      // The reason this is read as a unit rather than field by field. A key
-      // is scoped to the account that issued it: sending the Anthropic one
-      // to OpenRouter would hand a working credential to a company the user
-      // never gave it to, and it would come back as a puzzling 401 rather
-      // than as anything that says what happened.
-      //
-      // Both slots are filled on purpose. With only one key stored the
-      // wrong-key bug is unreachable — `isEnabled` is itself scoped to the
-      // active provider, so it returns false and `readSelection` gives up
-      // before it ever reads a key. A test written that way passes against
-      // an implementation that always reads Anthropic's slot.
-      await storage.writeApiKey('sk-anthropic', provider: AiProvider.anthropic);
-      await storage.writeApiKey('sk-or', provider: AiProvider.openrouter);
-      await storage.setActiveProvider(AiProvider.openrouter);
+    test(
+      'hands over the active provider\'s key when both are stored',
+      () async {
+        // The reason this is read as a unit rather than field by field. A key
+        // is scoped to the account that issued it: sending the Anthropic one
+        // to OpenRouter would hand a working credential to a company the user
+        // never gave it to, and it would come back as a puzzling 401 rather
+        // than as anything that says what happened.
+        //
+        // Both slots are filled on purpose. With only one key stored the
+        // wrong-key bug is unreachable — `isEnabled` is itself scoped to the
+        // active provider, so it returns false and `readSelection` gives up
+        // before it ever reads a key. A test written that way passes against
+        // an implementation that always reads Anthropic's slot.
+        await storage.writeApiKey(
+          'sk-anthropic',
+          provider: AiProvider.anthropic,
+        );
+        await storage.writeApiKey('sk-or', provider: AiProvider.openrouter);
+        await storage.setActiveProvider(AiProvider.openrouter);
 
-      final selection = await storage.readSelection();
+        final selection = await storage.readSelection();
 
-      expect(selection!.apiKey, 'sk-or');
-      expect(selection.provider, AiProvider.openrouter);
-    });
+        expect(selection!.apiKey, 'sk-or');
+        expect(selection.provider, AiProvider.openrouter);
+      },
+    );
 
     test('is null when only the other provider has a key', () async {
       // Via `isEnabled`, which asks `hasApiKey()` for the *active* provider.
@@ -1237,7 +1338,10 @@ void main() {
       final selection = await storage.selectionFor(AiProvider.ownServer);
 
       expect(selection!.provider, AiProvider.ownServer);
-      expect(selection.endpoint, 'http://192.168.1.5:11434/v1/chat/completions');
+      expect(
+        selection.endpoint,
+        'http://192.168.1.5:11434/v1/chat/completions',
+      );
       expect(selection.modelId, 'gemma3:4b');
       // The active one is genuinely unusable, so this is the discriminating
       // pair rather than two ways of asking the same thing.
@@ -1339,52 +1443,58 @@ void main() {
       expect(probe.text, AiCapability.passed, reason: 'untouched');
     });
 
-    test('a configuration move cannot land inside a conditional write', () async {
-      // The endpoint/model comparison and probe write must be indivisible.
-      // Holding the probe read opens the exact old check-then-write window:
-      // without serialization, the endpoint change clears the slot and the
-      // stale write recreates it afterwards.
-      await configure();
-      backing.readGates['AiProbeTag.ownServer'] = Completer<void>();
+    test(
+      'a configuration move cannot land inside a conditional write',
+      () async {
+        // The endpoint/model comparison and probe write must be indivisible.
+        // Holding the probe read opens the exact old check-then-write window:
+        // without serialization, the endpoint change clears the slot and the
+        // stale write recreates it afterwards.
+        await configure();
+        backing.readGates['AiProbeTag.ownServer'] = Completer<void>();
 
-      final staleWrite = storage.writeProbeIfConfigurationMatches(
-        const AiEndpointProbe(
-          text: AiCapability.unknown,
-          photo: AiCapability.failed,
-        ),
-        provider: own,
-        endpoint: 'http://192.168.1.5:11434/v1/chat/completions',
-        modelId: 'gemma3:4b',
-      );
-      await pumpEventQueue();
-      expect(backing.reads.last, 'AiProbeTag.ownServer');
+        final staleWrite = storage.writeProbeIfConfigurationMatches(
+          const AiEndpointProbe(
+            text: AiCapability.unknown,
+            photo: AiCapability.failed,
+          ),
+          provider: own,
+          endpoint: 'http://192.168.1.5:11434/v1/chat/completions',
+          modelId: 'gemma3:4b',
+        );
+        await pumpEventQueue();
+        expect(backing.reads.last, 'AiProbeTag.ownServer');
 
-      final move = storage.writeEndpoint(
-        'http://192.168.1.9:11434',
-        provider: own,
-      );
-      backing.readGates.remove('AiProbeTag.ownServer')!.complete();
-      await Future.wait([staleWrite, move]);
+        final move = storage.writeEndpoint(
+          'http://192.168.1.9:11434',
+          provider: own,
+        );
+        backing.readGates.remove('AiProbeTag.ownServer')!.complete();
+        await Future.wait([staleWrite, move]);
 
-      expect(
-        (await storage.readProbe(provider: own)).photo,
-        AiCapability.unknown,
-      );
-    });
+        expect(
+          (await storage.readProbe(provider: own)).photo,
+          AiCapability.unknown,
+        );
+      },
+    );
 
-    test('nothing conclusive and nothing asked leaves no record at all', () async {
-      // "Stored as absence" is now literally true rather than a `"---"` that
-      // merely reads like absence. Narrower than it used to be: a *check*
-      // that established nothing is a record — see the #850 test below.
-      await configure();
+    test(
+      'nothing conclusive and nothing asked leaves no record at all',
+      () async {
+        // "Stored as absence" is now literally true rather than a `"---"` that
+        // merely reads like absence. Narrower than it used to be: a *check*
+        // that established nothing is a record — see the #850 test below.
+        await configure();
 
-      await storage.writeProbe(AiEndpointProbe.unknown, provider: own);
+        await storage.writeProbe(AiEndpointProbe.unknown, provider: own);
 
-      expect(
-        backing.store.keys.where((k) => k.startsWith('AiProbeTag')),
-        isEmpty,
-      );
-    });
+        expect(
+          backing.store.keys.where((k) => k.startsWith('AiProbeTag')),
+          isEmpty,
+        );
+      },
+    );
 
     test('a verdict outlives the process that learned it (#854)', () async {
       // "Remember the answer" is half of what #784 built, and the existing
@@ -1419,10 +1529,7 @@ void main() {
       // the record keeps them apart — and it is also the state a user is
       // most likely to be in when they put the phone down and come back.
       await configure();
-      await storage.writeProbe(
-        AiEndpointProbe.nothingLearned,
-        provider: own,
-      );
+      await storage.writeProbe(AiEndpointProbe.nothingLearned, provider: own);
 
       final probe = await AiCredentialStorage(backing).readProbe(provider: own);
 
@@ -1431,21 +1538,24 @@ void main() {
       expect(probe.checked, isTrue);
     });
 
-    test('a check that established nothing is still remembered (#850)', () async {
-      // The measured bug: both legs of a probe ran to their timeout, both
-      // verdicts stayed `unknown` — correctly — and the record was deleted,
-      // so four minutes of waiting read back identical to never having
-      // asked. The verdicts are still `unknown`; what survives is that
-      // somebody asked.
-      await configure();
+    test(
+      'a check that established nothing is still remembered (#850)',
+      () async {
+        // The measured bug: both legs of a probe ran to their timeout, both
+        // verdicts stayed `unknown` — correctly — and the record was deleted,
+        // so four minutes of waiting read back identical to never having
+        // asked. The verdicts are still `unknown`; what survives is that
+        // somebody asked.
+        await configure();
 
-      await storage.writeProbe(AiEndpointProbe.nothingLearned, provider: own);
+        await storage.writeProbe(AiEndpointProbe.nothingLearned, provider: own);
 
-      final probe = await storage.readProbe(provider: own);
-      expect(probe.text, AiCapability.unknown, reason: 'still no verdict');
-      expect(probe.photo, AiCapability.unknown, reason: 'still no verdict');
-      expect(probe.checked, isTrue, reason: 'but the check did happen');
-    });
+        final probe = await storage.readProbe(provider: own);
+        expect(probe.text, AiCapability.unknown, reason: 'still no verdict');
+        expect(probe.photo, AiCapability.unknown, reason: 'still no verdict');
+        expect(probe.checked, isTrue, reason: 'but the check did happen');
+      },
+    );
 
     test('a run cannot be un-run by a later inconclusive write', () async {
       await configure();
@@ -1488,14 +1598,17 @@ void main() {
       expect(legacy.checked, isTrue);
     });
 
-    test('changing the address discards the check along with the verdicts', () async {
-      await configure();
-      await storage.writeProbe(AiEndpointProbe.nothingLearned, provider: own);
+    test(
+      'changing the address discards the check along with the verdicts',
+      () async {
+        await configure();
+        await storage.writeProbe(AiEndpointProbe.nothingLearned, provider: own);
 
-      await storage.writeEndpoint('http://192.168.1.9:11434', provider: own);
+        await storage.writeEndpoint('http://192.168.1.9:11434', provider: own);
 
-      expect((await storage.readProbe(provider: own)).checked, isFalse);
-    });
+        expect((await storage.readProbe(provider: own)).checked, isFalse);
+      },
+    );
 
     test('changing the address discards it', () async {
       // A pass was a fact about a machine. This is a different machine, and
@@ -1626,7 +1739,8 @@ void main() {
       expect(
         await storage.hasAcceptedTerms(),
         isFalse,
-        reason: 'a recorded yes outlived every credential it authorised, and '
+        reason:
+            'a recorded yes outlived every credential it authorised, and '
             'the next key would be stored without anyone being asked',
       );
     });
