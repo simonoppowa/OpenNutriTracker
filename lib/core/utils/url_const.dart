@@ -30,11 +30,17 @@ class URLConst {
   /// to every existing user on their next launch, and a notice that cries wolf
   /// is worth less than no notice at all.
   ///
-  /// Revision 1 is the correction that followed the audit in #867: recipients
-  /// that were always receiving data got named, a health-data section was
-  /// added for the Health Connect / Apple Health import, and an approximate
-  /// location the Supabase gateway keeps for a day was disclosed. None of it
-  /// changed what the app does.
+  /// Revision 1 is the correction that follows the audit in #867: recipients
+  /// that were always receiving data get named, a health-data section is added
+  /// for the Health Connect / Apple Health import, and an approximate location
+  /// the Supabase gateway keeps for a day is disclosed. None of it changes what
+  /// the app does.
+  ///
+  /// Those edits are drafted in #915, #919 and #920 and are applied by hand in
+  /// iubenda, so this constant records which revision the app *claims*, not
+  /// which one is published. Both documents have to carry the edits before a
+  /// build with this value ships, or the notice sends people to a policy that
+  /// still reads the old way. `tool/policy_snapshot.dart` is what confirms it.
   static const policyRevision = 1;
 
   // Citations for the in-app medical/health calculations. Surfaced on the
