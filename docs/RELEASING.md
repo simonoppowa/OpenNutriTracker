@@ -4,6 +4,10 @@ A release is **a merge of `develop` into `main`**. There is no release script an
 by hand: pushing to `main` starts the pipeline, and the pipeline does the packaging, the store
 uploads and the GitHub release itself.
 
+A **hotfix merged straight to `main`** starts the same pipeline, which is why it is a legitimate
+thing to do — and why it needs [its own step afterwards](#hotfixes-and-the-way-back-to-develop),
+because nothing carries it back.
+
 That is worth stating first because most of this page is about the parts the pipeline *cannot* do —
 the ones that are otherwise remembered, or not.
 
@@ -53,6 +57,9 @@ lands on `develop`.
 - [ ] Confirm the checks are **registered**, not just absent. A PR that gets no checks still reports
       mergeable, and silence looks exactly like success.
 - [ ] Merge. From here the pipeline runs; do not tag by hand.
+- [ ] Confirm `develop` is not missing anything `main` already has — see
+      [Hotfixes](#hotfixes-and-the-way-back-to-develop). A hotfix that never came back is invisible
+      at this point, and shipping without it is the whole cost.
 
 ## After the pipeline finishes
 
@@ -65,6 +72,37 @@ lands on `develop`.
       automated.
 - [ ] **Update the store listings** with the "what's new" text, since the pipeline uploads none.
 - [ ] **Merge the release-fingerprint PR** into `develop`.
+
+## Hotfixes, and the way back to `develop`
+
+A fix urgent enough to skip the batch can go straight to `main`. Nothing brings it back down, so
+the next release — cut from `develop` — quietly ships without it.
+
+This has already happened once. [#879](https://github.com/simonoppowa/OpenNutriTracker/pull/879)
+landed on `main` and left `develop` without the setting that keeps the application log, food search
+terms included, out of Sentry breadcrumbs; it was backported in
+[#893](https://github.com/simonoppowa/OpenNutriTracker/pull/893) only because someone went looking.
+The failure mode is silence: no check fails, and the fix simply is not there.
+
+- [ ] **After merging anything directly to `main`, open a backport PR into `develop`** in the same
+      sitting. It is not done until that PR is merged too.
+
+**Cherry-pick the commits. Do not merge `main` into `develop`.** With a squash-merge flow the two
+branches share only an old merge base — the previous release — and `main` carries each release as a
+single squashed commit of everything `develop` had at the time. A merge weighs that against
+`develop`'s individual commits plus everything added since, which conflicts across the whole
+release and can revert newer work where git cannot tell the two apart. `git cherry-pick -x <sha>`
+keeps authorship and records where it came from.
+
+```bash
+git log --oneline origin/develop..origin/main    # what main has that develop does not
+```
+
+**Most of what that command prints is expected and must not be backported.** Release commits are
+absent from `develop` *by construction* under squash merging, so they accumulate there forever.
+Before backporting anything, check whether its content is already present — a file that exists on
+both branches, or a paragraph already corrected — rather than trusting the commit list. Only two of
+the four entries it printed in August 2026 were real gaps.
 
 ## Documentation
 
