@@ -391,10 +391,12 @@ jobs:
       # means to app_boot_test.dart: attempt 1 may have left the app and its
       # Hive boxes behind.
       #
-      # 5 minutes: `Pick + boot iPhone simulator` above took 80s and 124s on
-      # the two most recent runs, and this repeats that boot plus a shutdown
-      # and an erase. `shutdown` tolerates an already-dead device (it exits
-      # non-zero on one), which is the state a hung attempt tends to leave.
+      # 5 minutes: measured at 73s on macos-15 with this path forced end to
+      # end, against the 80s and 124s the plain boot in `Pick + boot iPhone
+      # simulator` took on the two runs before it — a post-erase first boot
+      # spends ~40s of that waiting on Data Migration. `shutdown` tolerates an
+      # already-dead device (it exits non-zero on one), which is the state a
+      # hung attempt tends to leave.
       - name: Reboot simulator before retry
         if: steps.ios-integration.outcome == 'failure'
         timeout-minutes: 5
