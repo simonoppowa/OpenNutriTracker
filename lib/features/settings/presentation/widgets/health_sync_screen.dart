@@ -18,6 +18,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/health_disclosure_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -130,6 +131,18 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
       return;
     }
 
+    // The disclosure gates the request rather than merely preceding it (#926):
+    // Play's User Data policy wants affirmative consent in the app before the
+    // platform is asked, and a dialog the user could dismiss into a permission
+    // prompt would not be consent. Anything other than the confirm action —
+    // cancel, back, a killed activity — leaves the switch off and asks for
+    // nothing.
+    //
+    // Shown on every opt-in, not once ever. Re-enabling is rare, and a
+    // disclosure that only the first user of a device ever saw would be a
+    // disclosure to the wrong person on a shared handset.
+    if (!await _confirmDisclosure()) return;
+
     setState(() => _busy = true);
     try {
       final granted = await locator<HealthImportRepository>()
@@ -230,6 +243,20 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     Navigator.of(
       context,
     ).push(MaterialPageRoute<void>(builder: (_) => const SourcesScreen()));
+  }
+
+  /// Puts the disclosure up and reports whether the user chose to go on.
+  ///
+  /// A dismissal returns null, which reads as a refusal — the one direction
+  /// this must fail in, since the alternative is asking the platform for
+  /// health data on the strength of a stray tap.
+  Future<bool> _confirmDisclosure() async {
+    final accepted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const HealthDisclosureDialog(),
+    );
+    return accepted ?? false;
   }
 
   /// Opens the policy in the language the app is being read in, matching how

@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dar
 import 'package:opennutritracker/core/utils/calc/workout_compensation_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/health_disclosure_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -154,6 +155,21 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Taps the opt-in switch and confirms the disclosure that #926 put in front
+  /// of the permission request. Every opt-in goes through it, so the tests that
+  /// exercise opting in have to as well.
+  Future<void> optIn(WidgetTester tester) async {
+    await tester.tap(_byIdentifier('health-sync-auto-import'));
+    await tester.pumpAndSettle();
+    expect(
+      find.byType(HealthDisclosureDialog),
+      findsOneWidget,
+      reason: 'the platform must not be asked before the user is told',
+    );
+    await tester.tap(find.text(l10nEn.healthSyncDisclosureContinueAction));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('import is off and the credit slider inert until opted in', (
     tester,
   ) async {
@@ -182,8 +198,7 @@ void main() {
     healthImportRepository.granted = true;
 
     await pumpScreen(tester);
-    await tester.tap(_byIdentifier('health-sync-auto-import'));
-    await tester.pumpAndSettle();
+    await optIn(tester);
 
     expect(healthImportRepository.requestPermissionsCalls, 1);
     expect(settingsBloc.importEnabledCalls, [true]);
@@ -208,8 +223,7 @@ void main() {
     healthImportRepository.granted = false;
 
     await pumpScreen(tester);
-    await tester.tap(_byIdentifier('health-sync-auto-import'));
-    await tester.pumpAndSettle();
+    await optIn(tester);
 
     expect(
       tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
@@ -290,5 +304,92 @@ void main() {
     expect(title.minFontSize, lessThan(title.style?.fontSize ?? 16));
     expect(title.overflow, TextOverflow.ellipsis);
     expect(tester.takeException(), isNull);
+  });
+
+  // #926: Play's User Data policy wants the disclosure in front of the
+  // permission request, resolved by an affirmative action. These pin the part
+  // that matters — that a refusal really does ask the platform for nothing.
+
+  testWidgets('cancelling the disclosure asks the platform for nothing', (
+    tester,
+  ) async {
+    storeConfig(healthImportEnabled: false);
+    // Granted, so a wrongly-proceeding implementation would succeed loudly
+    // rather than be masked by a denial.
+    healthImportRepository.granted = true;
+
+    await pumpScreen(tester);
+    await tester.tap(_byIdentifier('health-sync-auto-import'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.dialogCancelLabel));
+    await tester.pumpAndSettle();
+
+    expect(healthImportRepository.requestPermissionsCalls, 0);
+    expect(settingsBloc.importEnabledCalls, isEmpty);
+    expect(importWorkoutsUsecase.importNowCalls, 0);
+    expect(
+      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      isFalse,
+    );
+  });
+
+  // A dialog that a stray tap could dismiss into a permission prompt would not
+  // be consent, so the barrier has to hold.
+  testWidgets('the disclosure ignores a tap outside it', (tester) async {
+    storeConfig(healthImportEnabled: false);
+    healthImportRepository.granted = true;
+
+    await pumpScreen(tester);
+    await tester.tap(_byIdentifier('health-sync-auto-import'));
+    await tester.pumpAndSettle();
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HealthDisclosureDialog), findsOneWidget);
+    expect(healthImportRepository.requestPermissionsCalls, 0);
+  });
+
+  testWidgets('turning import off discloses nothing', (tester) async {
+    storeConfig(healthImportEnabled: true);
+
+    await pumpScreen(tester);
+    await tester.tap(_byIdentifier('health-sync-auto-import'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HealthDisclosureDialog), findsNothing);
+    expect(settingsBloc.importEnabledCalls, [false]);
+  });
+
+  // The four things the disclosure owes a reader. Asserted against the source
+  // language so that rewriting the copy for tone cannot quietly drop one of
+  // them — which is the failure mode, since all four read as reassurance
+  // rather than as requirements.
+  test('the disclosure covers what it has to cover', () {
+    final body = l10nEn.healthSyncDisclosureBody(healthPlatformName);
+
+    expect(
+      body,
+      contains(healthPlatformName),
+      reason: 'must name the store the data comes from',
+    );
+    expect(
+      body,
+      contains('body fat'),
+      reason:
+          'body fat is read as well as workouts, and is the more '
+          'sensitive of the two',
+    );
+    expect(
+      body.toLowerCase(),
+      contains('written back'),
+      reason: 'read-only access is a disclosure element, not a detail',
+    );
+    expect(
+      body.toLowerCase(),
+      contains('stays on this device'),
+      reason:
+          'that nothing is transmitted is the claim the whole Play '
+          'declaration rests on',
+    );
   });
 }

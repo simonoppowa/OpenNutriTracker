@@ -1151,6 +1151,9 @@
   "healthSyncNeverImportedLabel": "Zatiaľ neboli importované žiadne tréningy",
   "healthSyncImportedCountLabel": "{count, plural, =0{Žiadne nové tréningy} one{Importovaný 1 tréning} few{Importované {count} tréningy} many{Importovaných {count} tréningu} other{Importovaných {count} tréningov}}",
   "healthSyncPermissionDeniedLabel": "Prístup k {platform} nebol udelený. Povoľ aplikácii OpenNutriTracker čítať tréningy a podiel telesného tuku, aby ich mohla importovať.",
+  "healthSyncDisclosureTitle": "Importovať tréningy z {platform}?",
+  "healthSyncDisclosureBody": "OpenNutriTracker načíta tvoje dokončené tréningy z {platform} — ich typ, kedy prebehli, ako dlho trvali a energiu, ktorú uvádzajú — a naposledy uložený podiel telesného tuku.\n\nTréningy sa do denníka ukladajú ako aktivity, ktoré môžeš upraviť alebo odstrániť; uvedená energia zvýši kalorický cieľ daného dňa o podiel, ktorý si zvolíš. Údaj o telesnom tuku slúži na návrh tohto podielu.\n\nDo {platform} sa nič nezapisuje a nič sa nikam neodosiela — všetko zostáva v tomto zariadení.\n\nKedykoľvek to môžeš vypnúť; tým sa ďalšie načítanie zastaví.",
+  "healthSyncDisclosureContinueAction": "Pokračovať",
   "healthSyncUnavailableLabel": "Zdravotné údaje nie sú na tomto zariadení dostupné. Import tréningov vyžaduje Health Connect v Androide alebo Apple Health v iOS.",
   "sourcesEnergyCompensationTitle": "Započítanie kalórií z tréningu",
   "sourcesEnergyCompensationDescription": "Importované tréningy sa započítavajú s nižšou energiou, než akú hlási zariadenie. Ľudia cvičenie kompenzujú tým, že po zvyšok dňa spália menej kalórií – v priemere asi 28 %, pri vyššom podiele telesného tuku viac. Odporúčaná hodnota vychádza z tohto výskumu a môžeš ju zmeniť v Nastaveniach → Synchronizácia zdravotných údajov. Samotnú energiu hlási aplikácia alebo zariadenie, ktoré tréning zaznamenalo; nepočíta sa vzorcom MET v aplikácii."
