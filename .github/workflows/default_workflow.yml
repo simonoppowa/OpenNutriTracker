@@ -260,129 +260,45 @@ jobs:
         # App Store install and isn't what CI should validate.
         run: flutter build ios --no-codesign --release --flavor full
 
+  # Two calls on two runners, not two attempts on one. See the header of
+  # .github/workflows/ios-integration-attempt.yml for why: the hang this suite
+  # suffers is runner-sticky, so an in-place retry never recovers from it while
+  # a fresh runner has every time. Neither call fails on its own — each reports
+  # a verdict, and ios-integration-tests-result below turns the pair into the
+  # single required check.
   ios-integration-tests:
-    # Runs from the start of the workflow, in parallel with everything else.
-    # Not gated on ios-build: this job rebuilds the app itself (it compiles
-    # its own test binary), so the dependency shared no output and only
-    # serialised ~6-11 min of build in front of it. The cost is one extra
-    # macOS build when the app doesn't compile, which this job's own build
-    # surfaces regardless.
-    #
-    # Pinned to macos-15, not macos-26. On the macos-26 image Flutter builds
-    # and launches the app on the iPhone 17 Pro / iOS 26.4 simulator but then
-    # hangs forever on "Waiting for VM Service port to be available" — the Dart
-    # VM-service URL is never discovered on that simulator, so the test never
-    # connects (the same suite passes on the Android emulator and on the iOS 18
-    # simulator here). macos-15 ships the Xcode 16 / iOS 18 simulator this
-    # Flutter supports. Revisit macos-26 once Flutter discovers the iOS 26
-    # simulator's VM service. ios-build / package / deploy stay on macos-26 —
-    # they build/sign and never launch a simulator, so they're unaffected.
-    runs-on: macos-15
-    # The backstop, not the thing that catches hangs. Each attempt below
-    # carries its own 20-minute bound, so a hang is a failed attempt the
-    # retry can act on; this bound only stops a job drifting toward GitHub's
-    # 6-hour default if something escapes both. It has to hold two cold
-    # builds — 30 was too tight and got cancelled mid-retry.
-    #
-    # It used to be the only bound, and a hang cost the whole 50 minutes of
-    # macOS time, reported as a cancelled job rather than a failed test —
-    # which `gh pr checks` renders as `fail` on a PR that is fine (#823).
-    timeout-minutes: 50
+    uses: ./.github/workflows/ios-integration-attempt.yml
+
+  # Only when the first runner did not pass. An empty output counts as "did not
+  # pass": that is what a job killed by its own timeout-minutes leaves behind.
+  ios-integration-tests-retry:
+    needs: ios-integration-tests
+    if: ${{ !cancelled() && needs.ios-integration-tests.outputs.passed != 'true' }}
+    uses: ./.github/workflows/ios-integration-attempt.yml
+
+  # The check to require in branch protection — the two jobs above are green
+  # even when their tests fail, by design, so requiring either of them directly
+  # would require nothing at all.
+  ios-integration-tests-result:
+    needs:
+      - ios-integration-tests
+      - ios-integration-tests-retry
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Setup Flutter + cache packages
-        uses: ./.github/actions/setup-flutter-cache
-
-      # Match ios-podfile-lock-guard and ios-build: SPM is enabled by
-      # default on Flutter's stable channel, so `flutter test` would spend
-      # ~150s "Adding Swift Package Manager integration" and resolve plugins
-      # via the SPM graph instead of the CocoaPods one those jobs pin to.
-      # Disable it here too so this job builds the same pinned graph and
-      # skips that avoidable per-build cost.
-      - name: Disable Swift Package Manager
-        run: flutter config --no-enable-swift-package-manager
-
-      - name: Cache CocoaPods
-        uses: actions/cache@v6
-        with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-
-
-      - name: Generate stub .env for CI
-        uses: ./.github/actions/write-env-file
-        with:
-          sentry_dns: https://stub@sentry.io/0
-          supabase_project_url: https://stub.supabase.co
-          supabase_project_anon_key: ci-stub
-
-      - name: Install Flutter packages
-        run: flutter pub get
-
-      - name: Generate code
-        run: dart run build_runner build --delete-conflicting-outputs
-
-      - name: Pod install (regenerate lockfile if constraints have shifted)
-        run: .github/scripts/pod_install_with_targeted_fallback.sh
-
-      # Pick any available iPhone simulator on the runner. macos-26
-      # ships several preinstalled; we don't care which exact model — the
-      # boot-smoke test is platform-bridge driven, not display-pixel driven.
-      - name: Pick + boot iPhone simulator
+      - name: Require one of the two runners to have passed
         run: |
-          DEVICE_UDID=$(xcrun simctl list devices available iPhone -j | python3 -c "
-          import sys, json
-          data = json.load(sys.stdin)
-          devices = [d for runtime in data['devices'].values() for d in runtime if d.get('isAvailable')]
-          if not devices:
-              sys.exit('No available iPhone simulators on this runner')
-          print(devices[0]['udid'])
-          ")
-          echo "Booting simulator UDID: $DEVICE_UDID"
-          xcrun simctl boot "$DEVICE_UDID"
-          xcrun simctl bootstatus "$DEVICE_UDID"
-          echo "DEVICE_UDID=$DEVICE_UDID" >> $GITHUB_ENV
-
-      # Two steps rather than a shell loop, matching android-integration-tests
-      # below. The loop this replaces retried on a non-zero exit, and so had
-      # nothing to say about `flutter test` never exiting at all: a hung
-      # attempt blocked until the job's own `timeout-minutes` killed it, and
-      # the retry — the mechanism meant to absorb simulator flakes — was
-      # skipped by the one flake mode that actually happens here. Three of
-      # sixteen runs on 2026-08-24 burned the full 50 minutes that way (#823).
-      #
-      # A step-level `timeout-minutes` turns a hang into a failed attempt, so
-      # the retry fires on it exactly as it does on a failure.
-      #
-      # 20 minutes per attempt: the slowest healthy run of this step in the
-      # last twenty was 15m36s (the range is 8m53s-15m36s, and it includes the
-      # cold Xcode build), and two 20-minute attempts still fit the job's 50
-      # with the ~5m40s of setup and teardown around them.
-      - name: Run integration tests (attempt 1)
-        id: ios-integration
-        continue-on-error: true
-        timeout-minutes: 20
-        # --flavor full so the integration-test app matches the production
-        # iOS scheme (bundle id + display name) rather than the develop one.
-        # The whole integration_test/ directory runs from a single build.
-        run: flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded
-
-      # Retry once: integration tests occasionally flake on a slow simulator
-      # (a dropped frame, a transient launch hiccup, a build that never
-      # returns). A second attempt on the same booted sim clears those without
-      # masking a real failure, since a genuine break fails both attempts.
-      - name: Run integration tests (retry once)
-        if: steps.ios-integration.outcome == 'failure'
-        timeout-minutes: 20
-        run: |
-          echo "::warning::iOS integration tests failed or hung; retrying (attempt 2 of 2)"
-          flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded
-
+          first='${{ needs.ios-integration-tests.outputs.passed }}'
+          second='${{ needs.ios-integration-tests-retry.outputs.passed }}'
+          echo "first runner:  ${first:-<no verdict — the job was killed>}"
+          echo "second runner: ${second:-<not run>}"
+          if [ "$first" = 'true' ] || [ "$second" = 'true' ]; then
+            exit 0
+          fi
+          echo "::error::iOS integration tests failed on two independent runners — treat this as a real break, not a flake."
+          exit 1
   android-build:
     runs-on: ubuntu-latest
     permissions:
@@ -608,7 +524,7 @@ jobs:
     needs:
       - linux-checks
       - ios-build
-      - ios-integration-tests
+      - ios-integration-tests-result
       - android-build
       - android-integration-tests
     runs-on: macos-26
@@ -770,7 +686,7 @@ jobs:
     needs:
       - linux-checks
       - ios-build
-      - ios-integration-tests
+      - ios-integration-tests-result
       - android-build
       - android-integration-tests
     runs-on: ubuntu-latest
