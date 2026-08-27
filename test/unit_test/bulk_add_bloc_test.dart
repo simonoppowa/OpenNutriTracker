@@ -768,6 +768,103 @@ void main() {
       );
     });
   });
+
+  group('a defaulted amount says so (#864)', () {
+    BulkAddRow rowFor(
+      MealEntity food, {
+      double? statedQuantity,
+      bool amountEdited = false,
+    }) => BulkAddRow(
+      resolved: ResolvedMealItem(
+        parsed: ParsedMealItem(query: food.name!, quantity: statedQuantity),
+        candidates: [food],
+        selectedIndex: 0,
+        confidence: 0.9,
+      ),
+      selectedIndex: 0,
+      amountText: '100',
+      unit: 'g',
+      amountEditedByUser: amountEdited,
+    );
+
+    test('nobody stated an amount and the record carries none', () {
+      // The flat 100 g. `amountNeedsCheck` cannot see this case at all,
+      // because it requires a stated quantity — so before this getter the
+      // row where the app guesses hardest was the one row saying nothing.
+      final row = rowFor(meal('toast'));
+      expect(row.amountIsProvisional, isTrue);
+      expect(row.amountNeedsCheck, isFalse);
+    });
+
+    test('the record supplied the amount, so it is not the app guessing', () {
+      final row = rowFor(meal('bread', servingQuantity: 38));
+      expect(row.amountIsProvisional, isFalse);
+    });
+
+    test('serving *text* alone is still the flat fallback', () {
+      // OFF's real shape: no numeric field, a weight only in the text.
+      // `scalableServingQuantity` reads the 30 out of it (#629) but
+      // `_initialAmount` does not — it gates on `servingQuantity` — so the
+      // row shows 100 and this must say so.
+      //
+      // The example matters. An earlier version used "1 egg", where
+      // `scalableServingQuantity` is *also* null, so the test passed against
+      // either gate and pinned nothing.
+      final row = rowFor(meal('yoghurt', servingSize: '30 g'));
+      expect(row.meal!.hasServingValues, isTrue);
+      expect(row.meal!.scalableServingQuantity, 30);
+      expect(row.meal!.servingQuantity, isNull);
+      expect(row.amountIsProvisional, isTrue);
+    });
+
+    test('a stated amount is never provisional', () {
+      // That number is the user's or the model's. Whether it means what
+      // they think is `amountNeedsCheck`'s question, not this one.
+      final row = rowFor(meal('toast'), statedQuantity: 2);
+      expect(row.amountIsProvisional, isFalse);
+    });
+
+    test('typing an amount answers it', () {
+      final row = rowFor(meal('toast'), amountEdited: true);
+      expect(row.amountIsProvisional, isFalse);
+    });
+
+    test('an unresolved row has nothing to be provisional about', () {
+      final row = BulkAddRow(
+        resolved: const ResolvedMealItem(
+          parsed: ParsedMealItem(query: 'zzzz'),
+          candidates: [],
+          selectedIndex: 0,
+          confidence: 0,
+        ),
+        selectedIndex: 0,
+        amountText: '100',
+        unit: 'g',
+      );
+      expect(row.isResolved, isFalse);
+      expect(row.amountIsProvisional, isFalse);
+    });
+
+    test('the two flags never fire together', () {
+      // The screen renders them in one exclusive chain, so an overlap would
+      // silently hide the louder of the two rather than show both.
+      for (final food in [
+        meal('toast'),
+        meal('bread', servingQuantity: 38),
+        meal('egg', servingSize: '1 egg'),
+      ]) {
+        for (final stated in [null, 2.0]) {
+          final row = rowFor(food, statedQuantity: stated);
+          expect(
+            row.amountIsProvisional && row.amountNeedsCheck,
+            isFalse,
+            reason: '${food.name} stated=$stated',
+          );
+        }
+      }
+    });
+  });
+
 }
 
 final _photo = MealPhoto(

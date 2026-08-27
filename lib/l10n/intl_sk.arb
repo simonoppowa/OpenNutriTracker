@@ -1147,6 +1147,7 @@
   "bulkAddNothingToLogLabel": "Zatiaľ nie je čo zaznamenať",
   "bulkAddSearchFailedLabel": "Vyhľadávanie potravín zlyhalo",
   "bulkAddCheckAmountLabel": "Skontrolujte jednotku množstva",
+  "bulkAddDefaultAmountLabel": "Množstvo neuvedené",
   "bulkAddErrorInvalidName": "Položka {number}: neplatný názov potraviny",
   "bulkAddErrorQuantityTooSmall": "Položka {number}: množstvo musí byť väčšie ako 0",
   "bulkAddErrorQuantityTooLarge": "Položka {number}: množstvo smie byť najviac {bound}",

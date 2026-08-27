@@ -1201,6 +1201,7 @@
   "bulkAddSearchFailedLabel": "Couldn't search for these foods",
   "@bulkAddSubmitLabel": {"placeholders": {"count": {"type": "int"}}},
   "bulkAddCheckAmountLabel": "Check the unit for this amount",
+  "bulkAddDefaultAmountLabel": "Amount not stated",
   "bulkAddErrorInvalidName": "Item {number}: not a valid food name",
   "@bulkAddErrorInvalidName": {
       "placeholders": {

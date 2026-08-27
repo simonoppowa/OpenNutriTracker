@@ -1147,6 +1147,7 @@
   "bulkAddNothingToLogLabel": "Henüz kaydedilecek bir şey yok",
   "bulkAddSearchFailedLabel": "Bu yiyecekler aranamadı",
   "bulkAddCheckAmountLabel": "Bu miktarın birimini kontrol edin",
+  "bulkAddDefaultAmountLabel": "Miktar belirtilmedi",
   "bulkAddErrorInvalidName": "{number}. öğe: geçerli bir besin adı değil",
   "bulkAddErrorQuantityTooSmall": "{number}. öğe: miktar 0'dan büyük olmalı",
   "bulkAddErrorQuantityTooLarge": "{number}. öğe: miktar en fazla {bound} olabilir",

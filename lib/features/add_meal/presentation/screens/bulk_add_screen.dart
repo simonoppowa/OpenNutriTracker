@@ -16,6 +16,7 @@ import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_photo_encoder.dart';
+import 'package:opennutritracker/features/add_meal/util/portion_label.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -762,6 +763,17 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.tertiary,
                       ),
+                    )
+                  // Last, and the quietest of the four. The others say
+                  // something is probably wrong; this only says the number
+                  // is the app's rather than the user's, so it takes the
+                  // muted surface colour instead of an accent. #864.
+                  else if (row.amountIsProvisional)
+                    Text(
+                      S.of(context).bulkAddDefaultAmountLabel,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                 ],
               ),
@@ -934,7 +946,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     for (final unit in row.allowedUnits) {
       widest = math.max(
         widest,
-        _textWidth(context, _unitLabel(context, unit), style),
+        _textWidth(context, _unitLabel(context, unit, row), style),
       );
     }
     return widest + _dropdownArrowWidth;
@@ -960,21 +972,26 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       DropdownMenuItem(
         value: unit,
         child: Text(
-          _unitLabel(context, unit),
+          _unitLabel(context, unit, row),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
       ),
   ];
 
-  String _unitLabel(BuildContext context, String unit) =>
+  /// Takes the row because one of the six units is not a fixed word: the
+  /// food names its own portion, and "3 slice" says what "3 serving" only
+  /// implies. Display only — the value behind it stays `serving` (#864).
+  String _unitLabel(BuildContext context, String unit, BulkAddRow row) =>
       switch (UnitDropdownItem.g.fromString(unit)) {
         UnitDropdownItem.g => S.of(context).gramUnit,
         UnitDropdownItem.ml => S.of(context).milliliterUnit,
         UnitDropdownItem.gml => S.of(context).gramMilliliterUnit,
         UnitDropdownItem.oz => S.of(context).ozUnit,
         UnitDropdownItem.flOz => S.of(context).flOzUnit,
-        UnitDropdownItem.serving => S.of(context).servingLabel,
+        UnitDropdownItem.serving =>
+          householdPortionLabel(row.meal?.servingSize) ??
+              S.of(context).servingLabel,
       };
 
   Widget _buildSubmitBar(BuildContext context, BulkAddLoadedState state) {

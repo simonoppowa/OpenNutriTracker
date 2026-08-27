@@ -1117,6 +1117,7 @@
   "bulkAddNothingToLogLabel": "暂无可记录的内容",
   "bulkAddSearchFailedLabel": "无法搜索这些食物",
   "bulkAddCheckAmountLabel": "请核对此数量的单位",
+  "bulkAddDefaultAmountLabel": "未说明数量",
   "bulkAddErrorInvalidName": "第 {number} 项：食物名称无效",
   "bulkAddErrorQuantityTooSmall": "第 {number} 项：数量必须大于 0",
   "bulkAddErrorQuantityTooLarge": "第 {number} 项：数量不能超过 {bound}",

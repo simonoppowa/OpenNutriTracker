@@ -112,6 +112,7 @@ class _FakeSearch implements SearchProductsUseCase {
 MealEntity _meal(
   String name, {
   double? servingQuantity,
+  String? servingSize,
   String? mealUnit,
   String? brands,
 }) =>
@@ -124,7 +125,7 @@ MealEntity _meal(
       mealUnit: mealUnit,
       servingQuantity: servingQuantity,
       servingUnit: null,
-      servingSize: null,
+      servingSize: servingSize,
       source: MealSourceEntity.off,
       nutriments: const MealNutrimentsEntity(
         energyKcal100: 100,
@@ -579,6 +580,88 @@ void main() {
       greaterThanOrEqualTo(needed),
       reason: 'the unit dropdown is narrower than the unit it has to show, '
           'and a clipped unit reads as a different one',
+    );
+  });
+
+  testWidgets('a row says the word the food uses, not "serving"', (
+    tester,
+  ) async {
+    // #864. Three slices of bread already logs 3 x 38 g correctly; the row
+    // just called it "3 serving". The word is in the record and was never
+    // read back out.
+    await _register({
+      'bread': [
+        _meal('Bread', servingQuantity: 38, servingSize: '1 slice (38 g)'),
+      ],
+    });
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    await _parse(tester, '3 bread');
+
+    expect(find.text('slice'), findsOneWidget);
+    expect(find.text(lookupS(const Locale('en')).servingLabel), findsNothing);
+  });
+
+  testWidgets('and keeps "serving" when the record names no measure', (
+    tester,
+  ) async {
+    // OFF's ordinary shape: a weight in the text and no household word in
+    // it. Reducing "30 g" to "g" would put a wrong unit on a right number,
+    // so the fallback has to hold.
+    await _register({
+      'yoghurt': [
+        _meal('Yoghurt', servingQuantity: 125, servingSize: '30 g'),
+      ],
+    });
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    await _parse(tester, '2 yoghurt');
+
+    expect(find.text(lookupS(const Locale('en')).servingLabel), findsOneWidget);
+  });
+
+  testWidgets('a defaulted amount is marked, quietly', (tester) async {
+    // #864. Nobody stated an amount and the record carries none, so the row
+    // shows 100 g that came from the app. `amountNeedsCheck` cannot speak
+    // about this case at all, so before this the row said nothing.
+    await _register({
+      'toast': [_meal('Toast')],
+    });
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    await _parse(tester, 'toast');
+
+    final en = lookupS(const Locale('en'));
+    expect(find.text(en.bulkAddDefaultAmountLabel), findsOneWidget);
+    // Quieter than its siblings: the muted surface colour, not an accent.
+    final marker = tester.widget<Text>(
+      find.text(en.bulkAddDefaultAmountLabel),
+    );
+    final scheme = Theme.of(
+      tester.element(find.text(en.bulkAddDefaultAmountLabel)),
+    ).colorScheme;
+    expect(marker.style?.color, scheme.onSurfaceVariant);
+    expect(marker.style?.color, isNot(scheme.tertiary));
+    expect(marker.style?.color, isNot(scheme.error));
+  });
+
+  testWidgets('and stays quiet when the amount came from the record', (
+    tester,
+  ) async {
+    await _register({
+      'bread': [_meal('Bread', servingQuantity: 38)],
+    });
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    await _parse(tester, 'bread');
+
+    expect(
+      find.text(lookupS(const Locale('en')).bulkAddDefaultAmountLabel),
+      findsNothing,
     );
   });
 

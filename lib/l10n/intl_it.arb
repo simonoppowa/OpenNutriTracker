@@ -1116,6 +1116,7 @@
   "bulkAddNothingToLogLabel": "Niente da registrare",
   "bulkAddSearchFailedLabel": "Ricerca degli alimenti non riuscita",
   "bulkAddCheckAmountLabel": "Controlla l'unità di questa quantità",
+  "bulkAddDefaultAmountLabel": "Quantità non indicata",
   "bulkAddErrorInvalidName": "Voce {number}: nome dell'alimento non valido",
   "bulkAddErrorQuantityTooSmall": "Voce {number}: la quantità deve essere maggiore di 0",
   "bulkAddErrorQuantityTooLarge": "Voce {number}: la quantità non può superare {bound}",
