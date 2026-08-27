@@ -55,7 +55,7 @@ When adding a new string key in the same PR you must:
 
 2. **Regenerate with `just gen_l10n`** (`flutter gen-l10n`). This rewrites `lib/generated/l10n.dart` and one `lib/generated/l10n_<locale>.dart` per locale, which is where your `S.of(context).yourNewKey` getter comes from. Nothing under `lib/generated/` belongs in the commit — the ARB files are the whole change.
 
-3. **Check `l10n_untranslated.json`** — `gen-l10n` writes it at the repo root (also gitignored) listing every key a locale is still missing. A missing translation does not fail the build; the string just falls back to English. The file should still read `{}` after your change.
+3. **Leave no locale behind.** `flutter gen-l10n` exits 0 on a missing translation — it records the key in `l10n_untranslated.json` at the repo root (also gitignored) and the string falls back to English at runtime. `just check_l10n` is what turns that into a failure, and it is what CI runs; when it fails, that file names the locale and the key.
 
 4. **Run `flutter analyze` and `just test`** before opening the PR — or `just ci` for the whole pre-flight in one go.
 
@@ -68,7 +68,7 @@ Some files are produced by `build_runner` (Hive type adapters and JSON serializa
 - 120-character line width (configured in `analysis_options.yaml`).
 - Format with `just format` before committing — this targets only `lib/core`, `lib/features`, `lib/l10n`, and `test` and deliberately skips `lib/generated/`.
 - Run `flutter analyze` and `just test` locally before opening the PR.
-- `just ci` runs the full CI pipeline (install, format check, l10n generation, build, analyze, test) and is the closest thing to a one-shot pre-flight check.
+- `just ci` runs the full CI pipeline (install, format check, l10n generation and completeness, build, analyze, test) and is the closest thing to a one-shot pre-flight check.
 
 ## Commit messages
 
