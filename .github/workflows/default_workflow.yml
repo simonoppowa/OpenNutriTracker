@@ -391,24 +391,36 @@ jobs:
       # means to app_boot_test.dart: attempt 1 may have left the app and its
       # Hive boxes behind.
       #
+      # The host needs the same treatment. A step killed by its own
+      # timeout-minutes takes the shell with it but not necessarily the dart
+      # processes it spawned, and one leftover Dart Development Service fails
+      # attempt 2 before it even loads the test — that is how run 33067097364
+      # died ("Failed to start Dart Development Service"), on a diff that
+      # touched only the justfile and a markdown file. simctl cleans the
+      # device; nothing cleans the host, so sweep it first. The sweep cannot
+      # hit its own shell: Actions runs a `run:` block from a temp script file
+      # (`/bin/bash -e <path>.sh`), so the pattern is in the file rather than
+      # on any command line pkill sees.
+      #
       # 5 minutes: measured at 73s on macos-15 with this path forced end to
       # end, against the 80s and 124s the plain boot in `Pick + boot iPhone
       # simulator` took on the two runs before it — a post-erase first boot
       # spends ~40s of that waiting on Data Migration. `shutdown` tolerates an
       # already-dead device (it exits non-zero on one), which is the state a
       # hung attempt tends to leave.
-      - name: Reboot simulator before retry
+      - name: Reset device and host state before retry
         if: steps.ios-integration.outcome == 'failure'
         timeout-minutes: 5
         run: |
-          echo "::warning::iOS integration tests failed or hung; rebooting the simulator before attempt 2 of 2"
+          echo "::warning::iOS integration tests failed or hung; resetting the device and host before attempt 2 of 2"
+          pkill -f 'flutter_tools\.snapshot|dart-sdk/bin/dart|dartaotruntime' || true
           xcrun simctl shutdown "$DEVICE_UDID" || true
           xcrun simctl erase "$DEVICE_UDID"
           xcrun simctl boot "$DEVICE_UDID"
           xcrun simctl bootstatus "$DEVICE_UDID"
 
-      # Skipped if the reboot above fails: a runner that cannot erase and boot
-      # a simulator has nothing to offer attempt 2, and the failed reboot step
+      # Skipped if the reset above fails: a runner that cannot erase and boot
+      # a simulator has nothing to offer attempt 2, and the failed reset step
       # says so more precisely than a second lost device would.
       - name: Run integration tests (retry once)
         if: steps.ios-integration.outcome == 'failure'
