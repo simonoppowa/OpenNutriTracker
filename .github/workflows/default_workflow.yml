@@ -40,7 +40,6 @@ jobs:
       - name: Generate stub .env for CI
         uses: ./.github/actions/write-env-file
         with:
-          fdc_api_key: ci-stub
           sentry_dns: https://stub@sentry.io/0
           supabase_project_url: https://stub.supabase.co
           supabase_project_anon_key: ci-stub
@@ -132,7 +131,6 @@ jobs:
         if: steps.changes.outputs.ios == 'true'
         uses: ./.github/actions/write-env-file
         with:
-          fdc_api_key: ci-stub
           sentry_dns: https://stub@sentry.io/0
           supabase_project_url: https://stub.supabase.co
           supabase_project_anon_key: ci-stub
@@ -209,7 +207,6 @@ jobs:
       - name: Generate stub .env for CI
         uses: ./.github/actions/write-env-file
         with:
-          fdc_api_key: ci-stub
           sentry_dns: https://stub@sentry.io/0
           supabase_project_url: https://stub.supabase.co
           supabase_project_anon_key: ci-stub
@@ -320,7 +317,6 @@ jobs:
       - name: Generate stub .env for CI
         uses: ./.github/actions/write-env-file
         with:
-          fdc_api_key: ci-stub
           sentry_dns: https://stub@sentry.io/0
           supabase_project_url: https://stub.supabase.co
           supabase_project_anon_key: ci-stub
@@ -430,7 +426,6 @@ jobs:
       - name: Generate stub .env for CI
         uses: ./.github/actions/write-env-file
         with:
-          fdc_api_key: ci-stub
           sentry_dns: https://stub@sentry.io/0
           supabase_project_url: https://stub.supabase.co
           supabase_project_anon_key: ci-stub
@@ -534,7 +529,6 @@ jobs:
       - name: Generate stub .env for CI
         uses: ./.github/actions/write-env-file
         with:
-          fdc_api_key: ci-stub
           sentry_dns: https://stub@sentry.io/0
           supabase_project_url: https://stub.supabase.co
           supabase_project_anon_key: ci-stub
@@ -677,12 +671,10 @@ jobs:
       - name: Generate .env from GitHub Secrets
         uses: ./.github/actions/write-env-file
         env:
-          FDC_API_KEY: ${{ secrets.FDC_API_KEY }}
           SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
           SUPABASE_PROJECT_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
           SUPABASE_PROJECT_ANON_KEY: ${{ secrets.SUPABASE_PROJECT_ANON_KEY }}
         with:
-          fdc_api_key: ${{ env.FDC_API_KEY }}
           sentry_dns: ${{ env.SENTRY_DNS }}
           supabase_project_url: ${{ env.SUPABASE_PROJECT_URL }}
           supabase_project_anon_key: ${{ env.SUPABASE_PROJECT_ANON_KEY }}
@@ -831,12 +823,10 @@ jobs:
       - name: Generate .env from GitHub Secrets
         uses: ./.github/actions/write-env-file
         env:
-          FDC_API_KEY: ${{ secrets.FDC_API_KEY }}
           SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
           SUPABASE_PROJECT_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
           SUPABASE_PROJECT_ANON_KEY: ${{ secrets.SUPABASE_PROJECT_ANON_KEY }}
         with:
-          fdc_api_key: ${{ env.FDC_API_KEY }}
           sentry_dns: ${{ env.SENTRY_DNS }}
           supabase_project_url: ${{ env.SUPABASE_PROJECT_URL }}
           supabase_project_anon_key: ${{ env.SUPABASE_PROJECT_ANON_KEY }}
@@ -1005,7 +995,6 @@ jobs:
 #      - name: Run CI
 #        run: just ci
 #        env:
-#          FDC_API_KEY: ${{ secrets.FDC_API_KEY }}
-#          SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
+##          SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
 #          SUPABASE_PROJECT_ANON_KEY: ${{ secrets.SUPABASE_PROJECT_ANON_KEY }}
 #          SUPABASE_PROJECT_URL: ${{ secrets.SUPABASE_PROJECT_URL }}

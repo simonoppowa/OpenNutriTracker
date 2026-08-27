@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/utils/off_country.dart';
-import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -29,14 +28,9 @@ class ProductsRepository {
   static const _localCountryBoost = 1.3;
 
   final OFFDataSource _offDataSource;
-  final FDCDataSource _fdcDataSource;
   final SpFoodDataSource _spBackendDataSource;
 
-  ProductsRepository(
-    this._offDataSource,
-    this._fdcDataSource,
-    this._spBackendDataSource,
-  );
+  ProductsRepository(this._offDataSource, this._spBackendDataSource);
 
   Future<List<MealEntity>> getOFFProductsByString(String searchString) async {
     final offWordResponse = await _offDataSource.fetchSearchWordResults(
@@ -100,17 +94,6 @@ class ProductsRepository {
         return score(b).compareTo(score(a));
       });
     return ranked.take(_searchResultLimit).map((p) => p.meal).toList();
-  }
-
-  Future<List<MealEntity>> getFDCFoodsByString(String searchString) async {
-    final fdcWordResponse = await _fdcDataSource.fetchSearchWordResults(
-      searchString,
-    );
-    final products = fdcWordResponse.foods
-        .map((food) => MealEntity.fromFDCFood(food))
-        .where(_keepIfConsistent)
-        .toList();
-    return products;
   }
 
   Future<List<MealEntity>> getSupabaseFoodsByString(
