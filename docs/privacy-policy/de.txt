@@ -44,7 +44,7 @@ Sofern in diesem Dokument nicht anderweitig festgelegt, werden personenbezogene 
 Zwecke der Verarbeitung
 
 Personenbezogene Daten über den Nutzer werden erhoben, damit der Anbieter den Dienst erbringen und des Weiteren seinen gesetzlichen Verpflichtungen nachkommen, auf Durchsetzungsforderungen reagieren, seine Rechte und Interessen (oder die der Nutzer oder Dritter) schützen, böswillige oder betrügerische Aktivitäten aufdecken kann. Darüber hinaus werden Daten zu folgenden Zwecken erhoben:
-Plattform-Dienste und Hosting, Beta-Tests, Anzeigen von Inhalten externer Plattformen, Hosting und Backend-Infrastruktur, Überwachung der Infrastruktur und Zugriff auf Profile von Drittanbietern.
+Plattform-Dienste und Hosting, Beta-Tests, Anzeigen von Inhalten externer Plattformen, Hosting und Backend-Infrastruktur, Überwachung der Infrastruktur, Zugriff auf Profile von Drittanbietern und Handhabung von Aktivitätsdaten .
 
 Nutzer können im Abschnitt “Ausführliche Angaben über die Verarbeitung personenbezogener Daten” dieses Dokuments weitere detaillierte Informationen zu diesen Verarbeitungszwecken und die zu den für den jeweiligen Zweck verwendeten personenbezogenen Daten vorfinden.
 
@@ -60,13 +60,19 @@ Diese Art von Dienst kann möglicherweise immer noch Web-Traffic-Daten für die 
 
 Open Food Facts
 
-Wenn Sie ein Lebensmittel suchen oder einen Barcode scannen, sendet diese Anwendung den Suchbegriff bzw. den Barcode an Open Food Facts, zusammen mit einem aus den Spracheinstellungen Ihres Geräts abgeleiteten Ländercode, den der Dienst zur Sortierung der Ergebnisse verwendet.
+Wenn Sie ein Lebensmittel suchen oder einen Barcode scannen, sendet diese Anwendung den Suchbegriff bzw. den Barcode an Open Food Facts. Bei einer Textsuche wird zusätzlich die Sprache übermittelt, auf die Ihr Gerät eingestellt ist, ergänzt um Englisch als Rückfallsprache; der Dienst verwendet sie zur Sortierung der Ergebnisse. Ein Ländercode oder ein anderer Teil der Standort- oder Regionseinstellungen Ihres Geräts wird nicht übermittelt, und bei einer Barcode-Abfrage wird gar keine Sprache mitgesendet.
+
+Open Food Facts beantwortet Suchen, Produktabfragen und Produktfotos über mehrere eigene Hosts; welchen davon diese Anwendung erreicht, hängt davon ab, welcher gerade erreichbar ist. Suchen und Produktabfragen nennen die App mit Name, Plattform und Version; beim Laden von Fotos geschieht das nicht.
+
+Das Foto eines Lebensmittels wird von Open Food Facts geladen, sobald es angezeigt wird — in den Suchergebnissen, auf einem Mahlzeitenbildschirm und auf der Tagebuchkarte einer bereits eingetragenen Mahlzeit. Die Adresse eines Fotos enthält den Barcode des jeweiligen Produkts. Fotos werden bis zu 30 Tage und höchstens 200 Stück auf Ihrem Gerät vorgehalten; ein Foto, das Sie danach erneut ansehen, wird noch einmal geladen.
 
 Open Food Facts ist ein unabhängiger gemeinnütziger Verein. Der Verein entscheidet selbst darüber, wie er die erhaltenen Daten verarbeitet, und handelt nicht auf Weisung des Anbieters dieser Anwendung; für diese Verarbeitung gilt daher seine eigene Datenschutzerklärung. Es werden kein Konto, kein Profil und keine Gerätekennung übermittelt, und Ihr Ernährungstagebuch wird nie übermittelt.
 
 Diese Verarbeitung beruht auf dem berechtigten Interesse des Anbieters, die Lebensmittelsuche bereitzustellen, für die diese Anwendung gedacht ist. Sie können dieser Verarbeitung jederzeit widersprechen und sie in der Praxis vollständig vermeiden: Eine Suche findet nur statt, wenn Sie sie starten, und selbst gespeicherte Mahlzeiten können Sie ohne jede Suche hinzufügen.
 
-Verarbeitete personenbezogene Daten: Suchbegriffe; Barcodes; ein Ländercode; Nutzungsdaten.
+Der Anbieter dieser Anwendung bewahrt aus diesen Anfragen nichts auf. Wie lange Open Food Facts die erhaltenen Daten speichert, entscheidet Open Food Facts selbst; Näheres regelt dessen eigene Datenschutzerklärung.
+
+Verarbeitete personenbezogene Daten: Suchbegriffe; Barcodes; ein Sprachcode des Geräts; Name und Version der App; Nutzungsdaten.
 
 Ort der Verarbeitung: Frankreich — Datenschutzerklärung.
 
@@ -92,6 +98,29 @@ Verarbeitete personenbezogene Daten: Geräteinformationen; Nutzungsdaten; Währe
 
 Verarbeitungsort: Irland – Datenschutzerklärung.
 
+Handhabung von Aktivitätsdaten
+
+Diese Art von Diensten ermöglichen es dem Anbieter, Aktivitätsdaten oder biometrische Daten für diese Anwendung zu nutzen, um bestimmte Funktionen auszuführen oder bereitzustellen. Die von Ihrem Gerät erfassten Daten können Bewegungen, Herzschlag, Höhenunterschiede oder Umgebungsdaten beinhalten. Je nachdem, was nachfolgend beschrieben wird, können Dritte an der Aktivitätserfassung beteiligt sein. Bei den meisten Geräten können Nutzer festlegen, welche Daten abgerufen oder gespeichert werden.
+
+Gesundheits- und Fitnessdaten (Trainingsimport)
+
+Diese Anwendung kann Trainings aus Health Connect (Android) bzw. Apple Health (iOS) importieren. Die Funktion ist deaktiviert, bis Sie sie einschalten (Einstellungen → Gesundheitsdaten-Sync); erst dann erscheint die Berechtigungsabfrage der Plattform.
+
+Ist sie aktiviert, liest diese Anwendung aus dem Gesundheitsspeicher der Plattform:
+
+- Trainings (Trainingseinheiten) und
+- den Körperfettanteil.
+
+Unter Android werden zusätzlich der Gesamtenergieverbrauch, die Distanz und die Schrittzahl gelesen, die zu einer Trainingseinheit erfasst wurden. Health Connect verweigert die Abfrage von Trainings vollständig, solange diese Zugriffe nicht ebenfalls erteilt sind; sie werden deshalb angefragt, damit der Import funktioniert, und für nichts anderes verwendet.
+
+Trainings werden in Ihr Tagebuch übernommen. Der Körperfettanteil wird, sofern vorhanden, ausschließlich dazu verwendet, den Vorschlag zu personalisieren, wie viel der Trainingsenergie auf Ihr Tagesziel angerechnet wird.
+
+Der Zugriff erfolgt ausschließlich lesend. Es wird nichts nach Health Connect oder Apple Health zurückgeschrieben.
+
+Diese Daten werden nicht übertragen. Sie liegen in der verschlüsselten Datenbank auf Ihrem Gerät, werden weder an den Eigentümer noch an Dritte gesendet und verlassen das Gerät nur durch ein Backup oder einen Export, den Sie selbst vornehmen.
+
+Sie können den Zugriff jederzeit in Health Connect bzw. Apple Health widerrufen oder die Funktion in den Einstellungen ausschalten. Bereits importierte Einträge bleiben in Ihrem Tagebuch, bis Sie sie löschen.
+
 Hosting und Backend-Infrastruktur
 
 Diese Art von Dienst hat den Zweck, Daten und Dateien zu hosten, die für diese Anwendung den Betrieb und die Verbreitung möglich machen, oder eine fertige Infrastruktur zur Verfügung zu stellen, um für diese Anwendung bestimmte Funktionen oder Teile auszuführen.
@@ -100,7 +129,7 @@ Einige der unten aufgeführten Dienste können, müssen aber nicht, über geogra
 
 Lebensmittel-Referenzdatenbank (Supabase)
 
-Lebensmittelsuchen werden von einer Referenzdatenbank beantwortet, die der Anbieter dieser Anwendung auf der Managed-Cloud-Plattform von Supabase betreibt. Bei einer Suche wird der von Ihnen eingegebene Text übermittelt. Es werden kein Konto, kein Profil und keine Gerätekennung mitgesendet, und Ihr Ernährungstagebuch wird nie übermittelt.
+Lebensmittelsuchen werden von einer Referenzdatenbank beantwortet, die der Anbieter dieser Anwendung auf der Managed-Cloud-Plattform von Supabase betreibt. Bei einer Suche werden der von Ihnen eingegebene Text übermittelt, außerdem Ihre App-Sprache, sofern diese Anwendung Lebensmittelübersetzungen dafür mitbringt, und — falls Sie in den Einstellungen eine der Lebensmitteldatenbanken abgeschaltet haben — die Liste der von Ihnen aktiv gelassenen Datenbanken. Es werden kein Konto, kein Profil und keine Gerätekennung mitgesendet, und Ihr Ernährungstagebuch wird nie übermittelt.
 
 Da die Anfrage über das Internet übertragen wird, protokolliert das Gateway der Plattform für 24 Stunden die Adresse, von der die Anfrage kam, einen daraus abgeleiteten ungefähren Standort (Land, Region, Ort und Postleitzahl), den Namen Ihres Internetanbieters sowie einen Fingerprint der verschlüsselten Verbindung.
 
@@ -108,7 +137,7 @@ Die Datenbank wird in Frankfurt (Deutschland) gespeichert und überwiegend dort 
 
 Diese Verarbeitung beruht auf dem berechtigten Interesse des Anbieters, die Lebensmittelsuche bereitzustellen, für die diese Anwendung gedacht ist. Sie können dieser Verarbeitung jederzeit widersprechen und sie in der Praxis vollständig vermeiden: Eine Suche findet nur statt, wenn Sie sie starten, und selbst gespeicherte Mahlzeiten können Sie ohne jede Suche hinzufügen.
 
-Verarbeitete personenbezogene Daten: Suchbegriffe; IP-Adresse; ungefährer Standort; Verbindungskennungen; Nutzungsdaten.
+Verarbeitete personenbezogene Daten: Suchbegriffe; App-Sprache; Auswahl der Lebensmitteldatenbanken; IP-Adresse; ungefährer Standort; Verbindungskennungen; Nutzungsdaten.
 
 Ort der Verarbeitung: Deutschland — Singapur.
 
