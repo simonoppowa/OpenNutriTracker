@@ -108,6 +108,7 @@ void main() {
   late GetKcalGoalUsecase getKcalGoalUsecase;
   late GetMacroGoalUsecase getMacroGoalUsecase;
   late _FakeHealthService healthService;
+  late FakeHiveDBProvider provider;
   late ImportWorkoutsUsecase usecase;
   late DeleteUserActivityUsecase deleteUsecase;
 
@@ -134,7 +135,8 @@ void main() {
     await trackedDayBox.clear();
     await userBox.clear();
 
-    final provider = FakeHiveDBProvider(
+    provider = FakeHiveDBProvider(
+      activeProfileId: 'profile-a',
       configBox: configBox,
       userActivityBox: activityBox,
       trackedDayBox: trackedDayBox,
@@ -175,6 +177,7 @@ void main() {
         getKcalGoalUsecase,
         getMacroGoalUsecase,
       ),
+      provider,
     );
 
     deleteUsecase = DeleteUserActivityUsecase(
@@ -402,6 +405,88 @@ void main() {
       expect(await usecase.importIfDue(), equals(0));
       expect(() => usecase.importNow(), throwsStateError);
     });
+  });
+
+  // #944: the boxes every write below goes through are resolved from
+  // HiveDBProvider at the moment of the call, and switching profiles swaps
+  // that box-set in place. A run that read profile A's opt-in flag and came
+  // back from the platform under profile B used to file A's workouts, and A's
+  // watermark, into B — a profile that never opted in.
+  group('ImportWorkoutsUsecase profile isolation', () {
+    test('a switch during the platform read files nothing', () async {
+      healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 7, 0))];
+      healthService.readGate = Completer<void>();
+
+      final run = usecase.importNow();
+      // The switch lands while the health store is still answering, which is
+      // the long await and the likeliest moment for it.
+      provider.activeProfileId = 'profile-b';
+      healthService.readGate!.complete();
+
+      expect(await run, equals(0));
+      expect(await userActivityRepository.getAllUserActivityDBO(), isEmpty);
+    });
+
+    test(
+      'a switch during the platform read leaves the watermark alone',
+      () async {
+        // The watermark matters as much as the rows: written into B it would
+        // debounce B's own first import and silently narrow its backfill window.
+        healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 7, 0))];
+        healthService.readGate = Completer<void>();
+
+        final run = usecase.importNow();
+        provider.activeProfileId = 'profile-b';
+        healthService.readGate!.complete();
+        await run;
+
+        expect((await configRepository.getConfig()).healthLastImportAt, isNull);
+      },
+    );
+
+    test('the abandoned window is imported again on the next run', () async {
+      // Abandoning is only cheap if nothing is lost by it. Switching back and
+      // running again has to produce the workout the first run walked away
+      // from.
+      healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 7, 0))];
+      healthService.readGate = Completer<void>();
+
+      final abandoned = usecase.importNow();
+      provider.activeProfileId = 'profile-b';
+      healthService.readGate!.complete();
+      expect(await abandoned, equals(0));
+
+      provider.activeProfileId = 'profile-a';
+      expect(await usecase.importNow(), equals(1));
+      expect(
+        await userActivityRepository.getAllUserActivityDBO(),
+        hasLength(1),
+      );
+    });
+
+    test(
+      'a caller on another profile does not join the run in flight',
+      () async {
+        // The serialization guard is only sound for callers asking the same
+        // question. Handing B the answer to A's question would report A's count
+        // as B's and skip the import B asked for.
+        healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 7, 0))];
+        healthService.readGate = Completer<void>();
+
+        final onA = usecase.importNow();
+        provider.activeProfileId = 'profile-b';
+        final onB = usecase.importNow();
+        healthService.readGate!.complete();
+
+        await onA;
+        await onB;
+        expect(
+          healthService.readWorkoutsCalls,
+          equals(2),
+          reason: 'B must read the platform for itself, not inherit A\'s read',
+        );
+      },
+    );
   });
 
   group('ImportWorkoutsUsecase serialization', () {

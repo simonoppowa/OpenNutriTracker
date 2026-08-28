@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_physical_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 
 /// Pulls finished workouts out of Health Connect / Apple Health and files
@@ -54,11 +55,26 @@ class ImportWorkoutsUsecase {
   /// watermark sequence is effectively serialized.
   Future<int>? _inFlight;
 
+  /// The profile [_inFlight] belongs to.
+  ///
+  /// The serialization above is only sound for callers asking the same
+  /// question. A profile switch makes it a different question: joining the
+  /// previous profile's run would report its count as this profile's and skip
+  /// the import this caller actually asked for, so a caller on another
+  /// profile starts its own run (#944).
+  String? _inFlightProfileId;
+
   final HealthImportRepository _healthImportRepository;
   final ConfigRepository _configRepository;
   final UserActivityRepository _userActivityRepository;
   final GetPhysicalActivityUsecase _getPhysicalActivityUsecase;
   final LogUserActivityUsecase _logUserActivityUsecase;
+
+  /// Consulted only for [HiveDBProvider.activeProfileId] — see
+  /// [_stillOnProfile]. The repositories above already resolve their boxes
+  /// through it; this use case needs to know *which* profile they resolved
+  /// to, which nothing else exposes.
+  final HiveDBProvider _hiveDBProvider;
 
   ImportWorkoutsUsecase(
     this._healthImportRepository,
@@ -66,6 +82,7 @@ class ImportWorkoutsUsecase {
     this._userActivityRepository,
     this._getPhysicalActivityUsecase,
     this._logUserActivityUsecase,
+    this._hiveDBProvider,
   );
 
   /// Runs an import if one is due, swallowing failures.
@@ -79,7 +96,10 @@ class ImportWorkoutsUsecase {
       // A run already under way covers this call too, and joining it beats
       // reading the platform again the moment it finishes.
       final inFlight = _inFlight;
-      if (inFlight != null) return await inFlight;
+      if (inFlight != null &&
+          _inFlightProfileId == _hiveDBProvider.activeProfileId) {
+        return await inFlight;
+      }
       final config = await _configRepository.getConfig();
       if (!config.healthImportEnabled) return 0;
       final lastImportAt = config.healthLastImportAt;
@@ -106,16 +126,24 @@ class ImportWorkoutsUsecase {
   /// in flight answers with that run's outcome rather than importing the same
   /// window a second time (see [_inFlight]).
   Future<int> importNow() {
+    final profileId = _hiveDBProvider.activeProfileId;
     final inFlight = _inFlight;
-    if (inFlight != null) return inFlight;
+    if (inFlight != null && _inFlightProfileId == profileId) return inFlight;
     final run = _import();
     _inFlight = run;
+    _inFlightProfileId = profileId;
     return run.whenComplete(() {
-      if (identical(_inFlight, run)) _inFlight = null;
+      // Not necessarily this run: a switch mid-flight lets a second run start
+      // and take the slot, and that one is the live one now.
+      if (identical(_inFlight, run)) {
+        _inFlight = null;
+        _inFlightProfileId = null;
+      }
     });
   }
 
   Future<int> _import() async {
+    final profileId = _hiveDBProvider.activeProfileId;
     final config = await _configRepository.getConfig();
     if (!config.healthImportEnabled) return 0;
 
@@ -131,6 +159,10 @@ class ImportWorkoutsUsecase {
       from: from,
       to: to,
     );
+    // The platform read is the long await, and the likeliest place for a
+    // switch to land. Everything past this point writes.
+    if (!_stillOnProfile(profileId)) return 0;
+
     final seenIds = await _userActivityRepository.getExternalIdsSince(from);
     // Deleting an imported workout has to stick. The dedupe set above is
     // built from the activities on file, so a deleted one leaves nothing
@@ -146,6 +178,12 @@ class ImportWorkoutsUsecase {
     var imported = 0;
     for (final workout in workouts) {
       if (!_isImportable(workout) || !seenIds.add(workout.id)) continue;
+      // Re-checked per workout rather than once before the loop: logging an
+      // activity is itself several awaits, so a long import has a switch
+      // window between every row. Rows already written went to the right
+      // profile; abandoning here leaves the watermark unmoved, so the next
+      // run re-reads the same window and the external-id dedupe absorbs it.
+      if (!_stillOnProfile(profileId)) return imported;
       await _logUserActivityUsecase.logActivity(
         _toUserActivity(workout, config, activityByCode),
         // A workout that started at 00:30 under an 03:00 day boundary belongs
@@ -158,6 +196,8 @@ class ImportWorkoutsUsecase {
       );
       imported++;
     }
+
+    if (!_stillOnProfile(profileId)) return imported;
 
     // Written even when nothing was imported: the watermark is also what
     // debounces the next run, and an empty window is still a window covered.
@@ -178,6 +218,26 @@ class ImportWorkoutsUsecase {
       _log.info('Imported $imported workout(s) from the platform health store');
     }
     return imported;
+  }
+
+  /// Whether the run that started under [profileId] may still write.
+  ///
+  /// Every box the writes go through is resolved from [HiveDBProvider] at the
+  /// moment of the call, and switching profiles swaps that box-set in place.
+  /// A run that began under one profile and came back from the platform under
+  /// another would file the first profile's workouts — and its watermark —
+  /// into the second, which never opted in: the flag this run checked was the
+  /// first profile's (#944).
+  ///
+  /// Abandoning is the cheap half of the trade. Nothing is written after the
+  /// switch, the watermark stays where it was, and the next launch or resume
+  /// reads the same window again for whichever profile is active by then.
+  bool _stillOnProfile(String profileId) {
+    if (_hiveDBProvider.activeProfileId == profileId) return true;
+    _log.info(
+      'Abandoning the workout import: the active profile changed mid-run',
+    );
+    return false;
   }
 
   /// A workout the app can turn into a meaningful diary row: it lasted some

@@ -83,9 +83,22 @@ class ConfigDataSource {
 
   /// Persists [config] to both boxes. Each box gets its own detached copy so
   /// the same `HiveObject` instance is never shared between boxes.
+  ///
+  /// Both puts are started before either is awaited, deliberately.
+  ///
+  /// [_profileBox] resolves through [HiveDBProvider], which swaps the
+  /// per-profile box in place when the user switches profiles. Awaiting the
+  /// app-box put before resolving the profile box would leave a window for a
+  /// switch to land between them, writing the two halves of one config into
+  /// two different profiles (#944). Resolving and starting both in the same
+  /// synchronous step closes it.
   Future<void> _writeBoth(ConfigDBO config) async {
-    await _appBox.put(_configKey, ConfigDBO.fromJson(config.toJson()));
-    await _profileBox.put(_configKey, ConfigDBO.fromJson(config.toJson()));
+    final app = _appBox.put(_configKey, ConfigDBO.fromJson(config.toJson()));
+    final profile = _profileBox.put(
+      _configKey,
+      ConfigDBO.fromJson(config.toJson()),
+    );
+    await Future.wait([app, profile]);
   }
 
   Future<bool> configInitialized() async =>
