@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
 import 'package:opennutritracker/core/presentation/widgets/demo_mode_banner.dart';
-import 'package:opennutritracker/core/presentation/widgets/policy_change_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/utils/health_rationale_service.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/meal_type_suggester.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/diary/diary_page.dart';
 import 'package:opennutritracker/core/presentation/widgets/home_appbar.dart';
 import 'package:opennutritracker/features/home/home_page.dart';
@@ -61,18 +58,24 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     }
   }
 
-  // One config read for both. Checked once per screen instance rather than
-  // kept live — leaving demo mode always replaces this whole screen with the
-  // onboarding route (see DemoModeBanner), so there's no in-place transition
-  // to react to, and the policy notice is by definition a once-ever event.
+  // Checked once per screen instance rather than kept live — leaving demo mode
+  // always replaces this whole screen with the onboarding route (see
+  // DemoModeBanner), so there is no in-place transition to react to.
+  //
+  // The policy-change notice #887 specified is deliberately **not** shown for
+  // revision 1. #887's reasoning stands on the record and was not refuted —
+  // the corrections name recipients that were always receiving data, so users
+  // were under-informed for the whole time rather than recently — but the call
+  // was made not to spend a first-launch dialog on it. The mechanism itself is
+  // kept, not deleted: `URLConst.policyRevision`, the seeding in
+  // `OnboardingBloc.saveOnboardingData` and `PolicyChangeDialog` are all still
+  // live and tested, so a future revision that does warrant telling people can
+  // restore this by calling the dialog again. What is gone is one call, not
+  // the ability to notify.
   Future<void> _loadConfigDrivenUi() async {
     final config = await locator<GetConfigUsecase>().getConfig();
     if (!mounted) return;
     setState(() => _isDemoData = config.isDemoData);
-    await _maybeShowPolicyChangeNotice(config.policyNoticeRevisionSeen);
-    // After the notice rather than beside it: a cold start launched by Health
-    // Connect can owe the user both, and pushing a route out from under a
-    // dialog would leave the dialog orphaned over the wrong screen.
     await _maybeOpenHealthRationale();
   }
 
@@ -94,26 +97,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     }
     if (!requested || !mounted) return;
     await Navigator.of(context).pushNamed(NavigationOptions.healthSyncRoute);
-  }
-
-  /// Shows the policy-change notice once, to users who onboarded against an
-  /// older revision (#887).
-  ///
-  /// The revision is recorded when the dialog closes rather than when it
-  /// opens, so a user who kills the app mid-dialog is told again rather than
-  /// silently skipped. Recording on open would lose the notice for exactly
-  /// the person who never saw it.
-  Future<void> _maybeShowPolicyChangeNotice(int revisionSeen) async {
-    if (revisionSeen >= URLConst.policyRevision) return;
-
-    await showDialog<void>(
-      context: context,
-      builder: (_) => const PolicyChangeDialog(),
-    );
-
-    await locator<AddConfigUsecase>().setConfigPolicyNoticeRevisionSeen(
-      URLConst.policyRevision,
-    );
   }
 
   @override
