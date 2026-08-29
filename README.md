@@ -28,8 +28,6 @@
 </p>
 
 <p align="center">
-  <a href="https://simonoppowa.github.io/OpenNutriTracker/">Website</a>
-  ·
   <a href="GettingStarted.md">Getting started</a>
   ·
   <a href="CONTRIBUTING.md">Contributing</a>
@@ -54,9 +52,9 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 
 <table align="center">
   <tr>
-    <td align="center" width="33%"><img alt="Home screen showing calories left on a progress ring, carbs, fat and protein against their targets, and the day's logged activity" src="docs/site/screenshots/1_en-US.png" /></td>
-    <td align="center" width="33%"><img alt="Adding food to lunch, with recently logged items ready to re-add in one tap and a barcode scanner in the search field" src="docs/site/screenshots/2_en-US.png" /></td>
-    <td align="center" width="33%"><img alt="Food detail showing the full nutrition table with saturated fat, sugar and fibre, plus an expanded micronutrient panel" src="docs/site/screenshots/3_en-US.png" /></td>
+    <td align="center" width="33%"><img alt="Home screen showing calories left on a progress ring, carbs, fat and protein against their targets, and the day's logged activity" src="docs/screenshots/1_en-US.png" /></td>
+    <td align="center" width="33%"><img alt="Adding food to lunch, with recently logged items ready to re-add in one tap and a barcode scanner in the search field" src="docs/screenshots/2_en-US.png" /></td>
+    <td align="center" width="33%"><img alt="Food detail showing the full nutrition table with saturated fat, sugar and fibre, plus an expanded micronutrient panel" src="docs/screenshots/3_en-US.png" /></td>
   </tr>
   <tr>
     <td align="center"><sub><b>Home</b><br />where the day stands</sub></td>
@@ -64,9 +62,9 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
     <td align="center"><sub><b>Food detail</b><br />down to the micronutrient</sub></td>
   </tr>
   <tr>
-    <td align="center"><img alt="Diary showing a month calendar with each day marked by how it went, and the selected day's calories and macro rings below" src="docs/site/screenshots/4_en-US.png" /></td>
-    <td align="center"><img alt="Trends showing a seven-day streak, calories charted against the goal line, and daily macro averages" src="docs/site/screenshots/5_en-US.png" /></td>
-    <td align="center"><img alt="Profile screen showing BMI, activity level, weight goal and weekly rate" src="docs/site/screenshots/6_en-US.png" /></td>
+    <td align="center"><img alt="Diary showing a month calendar with each day marked by how it went, and the selected day's calories and macro rings below" src="docs/screenshots/4_en-US.png" /></td>
+    <td align="center"><img alt="Trends showing a seven-day streak, calories charted against the goal line, and daily macro averages" src="docs/screenshots/5_en-US.png" /></td>
+    <td align="center"><img alt="Profile screen showing BMI, activity level, weight goal and weekly rate" src="docs/screenshots/6_en-US.png" /></td>
   </tr>
   <tr>
     <td align="center"><sub><b>Diary</b><br />every day you've logged</sub></td>
@@ -132,7 +130,7 @@ No account, no sign-in, no analytics, no ads. Your profile, diary, activities, w
 
 | Destination | When | What is sent |
 | :-- | :-- | :-- |
-| [Open Food Facts](https://world.openfoodfacts.org/) | Food search or barcode scan | The search term or barcode, plus a country tag from your device locale for ranking |
+| [Open Food Facts](https://world.openfoodfacts.org/) | Food search or barcode scan | The search term or barcode. A word search also sends your device's **language** code to rank results; the fallback search and the barcode lookup send no locale at all. Your **country is never sent** — the country boost is applied on your device, to the results that come back |
 | Supabase reference backend | Food search | The search term |
 | [Sentry](https://sentry.io) | **Only if you opt in** | Crash traces, app and OS version, device model |
 
@@ -142,7 +140,7 @@ Requests to Open Food Facts carry a User-Agent naming the app, platform, and ver
 
 **Crash reporting** is off until you enable it, and initializes only in release builds ([`main.dart:119`](lib/main.dart:119)). `sendDefaultPii` stays `false`, so no username, email, or IP-derived identity is attached. Disabling it, or deleting your data, closes the SDK immediately.
 
-**Permissions:** camera (barcode scanning, meal photos), photo library (meal photos, exports), notifications (daily reminder, fasting timer), internet (food lookups), and receive-boot-completed (re-registering the reminder after a reboot). No location, contacts, microphone, or health-data access.
+**Permissions:** camera (barcode scanning, meal photos), photo library (meal photos, exports), notifications (daily reminder, fasting timer), internet (food lookups), and receive-boot-completed (re-registering the reminder after a reboot). Health data — workouts and body fat percentage — is read only if you turn on workout import under Settings → Health sync, which is off by default; the access is read-only, nothing is ever written back to Health Connect or Apple Health, and the imported workouts stay on your device. No location, contacts, or microphone access.
 
 **Not collected:** no account, email, or phone number. The backend is read with an anonymous key and there is no sign-in path. No advertising ID and no cross-app tracking: `NSPrivacyTracking` is `false` with an empty tracking-domains list, and crash and performance data are declared *not linked to the user* ([`PrivacyInfo.xcprivacy`](ios/Runner/PrivacyInfo.xcprivacy)).
 

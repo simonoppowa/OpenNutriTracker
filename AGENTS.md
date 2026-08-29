@@ -111,7 +111,6 @@ cp .env.example .env
 The template carries placeholders that have no real-world effect — they exist so `envied`'s codegen finds every key on a fresh clone. Replace them:
 
 ```
-FDC_API_KEY="YOUR_KEY"        # USDA Food Data Central API key (direct FDC source, not actively used in UI)
 SENTRY_DNS="DNS_URL"
 SUPABASE_PROJECT_URL="PROJECT_URL"
 SUPABASE_PROJECT_ANON_KEY="ANON_KEY"
@@ -178,7 +177,7 @@ Semantics(
 |---|---|
 | `ListTile` / `InkWell` / `GestureDetector` with an `onTap` | Pure display — `Text`, `Icon`, `Image`, `Divider`, charts |
 | Buttons — `ElevatedButton`, `TextButton`, `IconButton`, `FloatingActionButton`, `FilledButton` (when they have `onPressed`) | Layout — `Container` without `onTap`, `Padding`, `SizedBox`, `Row`, `Column` |
-| Input — `TextField`, `TextFormField`, `Slider`, `Switch`, `SwitchListTile`, `Checkbox` (the actual checkbox, not its label) | Generated code (`*.g.dart`, `messages_*.dart`, `l10n.dart`) |
+| Input — `TextField`, `TextFormField`, `Slider`, `Switch`, `SwitchListTile`, `Checkbox` (the actual checkbox, not its label) | Generated code (`*.g.dart`, `l10n.dart`, `l10n_<locale>.dart`) |
 | Selection — `ChoiceChip`, `FilterChip`, `RadioListTile`, `SegmentedButton`, `DropdownButton` | Theming, transitions, decorative wrappers |
 | Bottom sheets, dialog action buttons (Save/Cancel/OK) | Items inside `ListView.builder` / `GridView.builder` (see below) |
 
@@ -335,7 +334,7 @@ lib/
     settings/     # App settings, data export/import, day-start, theme picker
     onboarding/   # First-run user setup flow
   dev/            # Dev-only main_dev.dart entry point (never shipped) — see "Demo data" above
-  generated/      # Intl files — maintained manually (see Localization above)
+  generated/      # gen-l10n output — gitignored, never edited by hand (see Localization above)
   l10n/           # Source ARB translation files
 ```
 
@@ -384,15 +383,14 @@ When adding a new `@HiveType`, assign a unique `typeId`. Check all existing DBOs
 
 ### Food data sources
 
-`ProductsRepository` aggregates three sources via `SearchProductsUseCase`:
+`ProductsRepository` aggregates two remote sources via `SearchProductsUseCase`:
 
 | Source           | Class              | Notes                                                                               |
 | ---------------- | ------------------ | ----------------------------------------------------------------------------------- |
 | Open Food Facts  | `OFFDataSource`    | REST API — text search + barcode lookup                                             |
 | Supabase backend | `SpFoodDataSource` | Full-text search on `food_summary` + `food_translation` (multi-source: FDC, BLS, …) |
-| USDA FDC direct  | `FDCDataSource`    | Requires `FDC_API_KEY`; not actively surfaced in the UI                             |
 
-`SearchProductsUseCase.searchFDCFoodByString` uses the **Supabase** source, not the direct FDC API. The backend schema and import pipeline live in the [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) repo; users choose which backend sources to search in Settings → Food databases (`SPConst.settingsSelectableFoodSources`).
+The app makes no requests to USDA. `SearchProductsUseCase.searchFDCFoodByString` uses the **Supabase** source — "FDC" throughout the search stack names the data corpus, not the host. A direct `FDCDataSource` HTTP client existed but was never called from anywhere; it and its `FDC_API_KEY` were removed. The backend schema and import pipeline live in the [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) repo; users choose which backend sources to search in Settings → Food databases (`SPConst.settingsSelectableFoodSources`).
 
 ### Calorie and macro calculations
 
@@ -416,7 +414,7 @@ Issue forms and the PR template live under `.github/`:
 | `.github/ISSUE_TEMPLATE/bug_report.yml` | Structured bug reports (repro steps, platform, app/OS version, feature area, logs) |
 | `.github/ISSUE_TEMPLATE/feature_request.yml` | Feature proposals (problem, solution, alternatives, area/platform) |
 | `.github/ISSUE_TEMPLATE/question.yml` | Usage / contributor questions |
-| `.github/ISSUE_TEMPLATE/config.yml` | Disables blank issues; contact links (website, privacy, Open Food Facts, Discussions) |
+| `.github/ISSUE_TEMPLATE/config.yml` | Disables blank issues; contact links (privacy, Open Food Facts, Discussions) |
 | `.github/PULL_REQUEST_TEMPLATE.md` | PR checklist: summary, type, test plan, semantics IDs, l10n, codegen, no secrets |
 
 When filing issues or opening PRs, prefer these templates. Product/food-database data errors belong on Open Food Facts (or the backend repo), not app bug reports — the forms call this out in their checklists.

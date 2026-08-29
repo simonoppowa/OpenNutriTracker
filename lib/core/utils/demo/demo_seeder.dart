@@ -34,6 +34,7 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
+import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/fasting/data/repository/fasting_repository.dart';
 import 'package:opennutritracker/features/fasting/domain/entity/fasting_session_entity.dart';
 import 'package:opennutritracker/features/fasting/domain/usecase/acknowledge_fasting_warning_usecase.dart';
@@ -288,6 +289,10 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   // consent must not silently ride along from a previous profile).
   final addConfig = locator<AddConfigUsecase>();
   await addConfig.setConfigHasAcceptedPolicy(true);
+  // Same reasoning as the onboarding bloc: this user has just read the
+  // current policy, so they are not who the change notice is for. Without
+  // this, Try Demo lands on Home and immediately reports a change (#887).
+  await addConfig.setConfigPolicyNoticeRevisionSeen(URLConst.policyRevision);
   await addConfig.setConfigHasAcceptedAnonymousData(false);
   await addConfig.setConfigIsDemoData(true);
 

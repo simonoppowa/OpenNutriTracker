@@ -70,7 +70,9 @@ class _BodyWeightInputState extends State<BodyWeightInput> {
       case BodyWeightUnit.lb:
         _singleController.text = _trim(UnitCalc.kgToLbs(kg));
       case BodyWeightUnit.st:
-        final (stones, pounds) = UnitCalc.kgToStLb(kg);
+        // _trim prints one decimal, so ask for the split at that precision
+        // rather than seeding the field with a full stone of pounds.
+        final (stones, pounds) = UnitCalc.kgToStLb(kg, poundsDecimals: 1);
         _stonesController.text = stones.toString();
         _poundsController.text = _trim(pounds);
     }

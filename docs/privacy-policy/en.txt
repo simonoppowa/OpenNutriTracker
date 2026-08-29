@@ -1,0 +1,354 @@
+Privacy Policy of OpenNutriTracker
+
+This Application collects some Personal Data from its Users.
+
+This document can be printed for reference by using the print command in the settings of any browser.
+
+Owner and Data Controller
+
+Simon Oppowa
+[postal address — see the published policy]
+
+Owner contact email: opennutritracker-dev@pm.me
+
+Types of Data collected
+
+Among the types of Personal Data that this Application collects, by itself or through third parties, there are:
+Usage Data; diagnostics; email address; app information; device logs; device information; Data communicated while using the service.
+
+Complete details on each type of Personal Data collected are provided in the dedicated sections of this privacy policy or by specific explanation texts displayed prior to the Data collection.
+Personal Data may be freely provided by the User, or, in case of Usage Data, collected automatically when using this Application.
+Unless specified otherwise, all Data requested by this Application is mandatory and failure to provide this Data may make it impossible for this Application to provide its services. In cases where this Application specifically states that some Data is not mandatory, Users are free not to communicate this Data without consequences to the availability or the functioning of the Service.
+Users who are uncertain about which Personal Data is mandatory are welcome to contact the Owner.
+Any use of Cookies – or of other tracking tools — by this Application or by the owners of third-party services used by this Application serves the purpose of providing the Service required by the User, in addition to any other purposes described in the present document.
+
+Users are responsible for any third-party Personal Data obtained, published or shared through this Application.
+
+Mode and place of processing the Data
+
+Methods of processing
+
+The Owner takes appropriate security measures to prevent unauthorized access, disclosure, modification, or unauthorized destruction of the Data.
+The Data processing is carried out using computers and/or IT enabled tools, following organizational procedures and modes strictly related to the purposes indicated. In addition to the Owner, in some cases, the Data may be accessible to certain types of persons in charge, involved with the operation of this Application (administration, sales, marketing, legal, system administration) or external parties (such as third-party technical service providers, mail carriers, hosting providers, IT companies, communications agencies) appointed, if necessary, as Data Processors by the Owner. The updated list of these parties may be requested from the Owner at any time.
+
+Place
+
+The Data is processed at the Owner's operating offices and in any other places where the parties involved in the processing are located.
+
+Depending on the User's location, data transfers may involve transferring the User's Data to a country other than their own. To find out more about the place of processing of such transferred Data, Users can check the section containing details about the processing of Personal Data.
+
+Retention time
+
+Unless specified otherwise in this document, Personal Data shall be processed and stored for as long as required by the purpose they have been collected for and may be retained for longer due to applicable legal obligation or based on the Users’ consent.
+
+The purposes of processing
+
+The Data concerning the User is collected to allow the Owner to provide its Service, comply with its legal obligations, respond to enforcement requests, protect its rights and interests (or those of its Users or third parties), detect any malicious or fraudulent activity, as well as the following:
+Platform services and hosting, Beta Testing, Displaying content from external platforms, Hosting and backend infrastructure, Infrastructure monitoring, Access to third-party accounts and Handling activity data.
+
+For specific information about the Personal Data used for each purpose, the User may refer to the section “Detailed information on the processing of Personal Data”.
+
+Detailed information on the processing of Personal Data
+
+Personal Data is collected for the following purposes and using the following services:
+
+Access to third-party accounts
+
+This type of service allows this Application to access Data from your account on a third-party service and perform actions with it.
+
+These services are not activated automatically, but require explicit authorization by the User.
+
+AI meal assistance (your own provider)
+
+AI meal assistance is switched off until you enter your own API key for a provider you have chosen. Nothing is sent anywhere until you do.
+
+When it is on, only the meal description you type — or a photo you deliberately pick — is sent to that provider, so that it can return food names and amounts. Your food diary, your weight and your profile are never sent.
+
+The provider is the one you selected and the account is yours: your relationship with that provider, and their own privacy policy, governs what they do with what they receive. The Owner of this Application has no access to it, pays nothing for it and receives nothing back.
+
+If you choose OpenRouter, your request reaches OpenRouter and the vendor serving the model you picked — two recipients, not one — and an account-level identifier is passed on to that vendor and cannot be switched off. If you configure your own server, the request goes to the address you entered, which the Owner cannot know: no third party receives it, though it does still leave your device.
+
+Your API key is held in your device's own secure credential store and leaves the device only as the header that authenticates your request.
+
+Personal Data processed: the text or the photo you submit for interpretation; your app language.
+
+Place of processing: the country of the provider you choose — see that provider's own privacy policy.
+
+This service uses artificial intelligence. Certain features of AI meal assistance (your own provider) are powered by automated systems that process your data to personalise or improve your experience.
+
+Beta Testing
+
+This type of service makes it possible to manage User access to this Application, or parts of it, for the purpose of testing a certain feature or the entire Application.
+
+The service provider may automatically collect data related to crashes and statistics related to the User's use of this Application in a personally identifiable form.
+
+TestFlight (Apple Inc.)
+
+TestFlight is a beta testing service provided by Apple Inc.
+
+Personal Data processed: app information; device information; device logs; email address.
+
+Place of processing: United States – Privacy Policy.
+
+Google Play Beta Testing (Google Ireland Limited)
+
+Google Play Beta Testing is a beta testing service provided by Google Ireland Limited.
+
+Personal Data processed: Data communicated while using the service; device information; Usage Data.
+
+Place of processing: Ireland – Privacy Policy.
+
+Displaying content from external platforms
+
+This type of service allows you to view content hosted on external platforms directly from the pages of this Application and interact with them. Such services are often referred to as widgets, which are small elements placed on a website or app. They provide specific information or perform a particular function and often allow for user interaction.
+
+This type of service might still collect web traffic data for the pages where the service is installed, even when Users do not use it.
+
+Open Food Facts
+
+When you search for a food or scan a barcode, this Application sends the search term or the barcode to Open Food Facts. A text search also sends the language your device is set to, with English appended as a fallback, which the service uses to rank results. No country code and no other part of your device's location or region settings is sent, and a barcode lookup sends no language at all.
+
+Open Food Facts serves searches, product lookups and product photographs from more than one of its own hosts, and which of them this Application reaches depends on which is up. Searches and product lookups identify the app by name, platform and version; photograph downloads do not.
+
+A food's photograph is downloaded from Open Food Facts whenever it is shown — in search results, on a meal screen, and on the diary card of a meal you have already logged. The address of a photograph contains that product's barcode. Photographs are kept on your device for up to 30 days and no more than 200 at a time, so one you keep coming back to is downloaded again after that.
+
+Open Food Facts is an independent non-profit association. It decides for itself how it handles what it receives and does not act on the instructions of the Owner of this Application, so its own privacy policy governs that handling. No account, profile or device identifier is sent, and your food diary is never sent.
+
+This processing rests on the Owner's legitimate interest in providing the food search this Application exists to offer. You can object to it at any time, and in practice you can avoid it altogether: a search happens only when you start one, and meals you have saved yourself can be added without any search.
+
+The Owner keeps nothing from these requests. How long Open Food Facts keeps what it receives is decided by Open Food Facts and set out in its own privacy policy.
+
+Personal Data processed: search terms; barcodes; a device language code; the app's name and version; Usage Data.
+
+Place of processing: France — Privacy Policy.
+
+Handling activity data
+
+This type of service allows the Owner to use the activity or biometric data collected by your device in order for this Application to operate or to provide specific features. This may include movements, heartbeat, change in altitude or data about the surroundings.
+
+Depending on what is described below, third parties may be involved in the activity tracking.
+
+Most devices allow for the User to control which Data is accessed or stored.
+
+Health and fitness data (workout import)
+
+This Application can import workouts from Health Connect (Android) or Apple Health (iOS). The feature is off until you switch it on in Settings → Health sync, and switching it on is what triggers the platform's own permission prompt.
+
+When enabled, this Application reads from the platform's health store:
+
+- workouts (exercise sessions), and
+- body fat percentage.
+
+On Android it additionally reads the total energy burned, distance and step count recorded against a workout session. Health Connect refuses a workout query outright unless those reads are granted as well, so they are requested to make the import work and are used for nothing else.
+
+Workouts are added to your diary. The body fat reading, where one exists, is used only to personalise how much of a workout's energy this Application suggests crediting toward your daily goal.
+
+Access is read-only. Nothing is ever written back to Health Connect or Apple Health.
+
+This data is not transmitted. It is held in the encrypted database on your device, is not sent to the Owner or to any third party, and leaves the device only through a backup or export you carry out yourself.
+
+You can withdraw access at any time in Health Connect or Apple Health, or switch the feature off in Settings. Entries already imported remain in your diary until you delete them.
+
+Hosting and backend infrastructure
+
+This type of service has the purpose of hosting Data and files that enable this Application to run and be distributed or to provide a ready-made infrastructure to run specific features or parts of this Application.
+
+Some services among those listed below, if any, may work through geographically distributed servers, making it difficult to determine the actual location where the Personal Data are stored.
+
+Food reference backend (Supabase)
+
+Food searches are answered by a reference database that the Owner of this Application operates on Supabase's managed cloud platform. A search sends the text you typed; your app language too, when it is one this Application has food translations for; and, if you have switched any of the food databases off in Settings, the list of the ones you left on. No account, profile or device identifier is attached, and your food diary is never sent.
+
+Because the request travels over the internet, the platform's gateway records for 24 hours the address the request came from, an approximate location derived from that address (country, region, city and postal code), the name of your internet access provider, and a fingerprint of the encrypted connection.
+
+The database is stored and primarily processed in Frankfurt, Germany. Supabase Pte. Ltd. acts as a processor on the Owner's instructions, with Cloudflare, Inc. and Amazon Web Services, Inc. among its sub-processors; requests reach a Cloudflare location close to you before the database. Transfers outside the European Economic Area are covered by standard contractual clauses.
+
+This processing rests on the Owner's legitimate interest in providing the food search this Application exists to offer. You can object to it at any time, and in practice you can avoid it altogether: a search happens only when you start one, and meals you have saved yourself can be added without any search.
+
+Personal Data processed: search terms; app language; food-database preferences; IP address; approximate location; connection identifiers; Usage Data.
+
+Place of processing: Germany — Singapore.
+
+Infrastructure monitoring
+
+This type of service allows this Application to monitor the use and behavior of its components so its performance, operation, maintenance and troubleshooting can be improved.
+
+Which Personal Data are processed depends on the characteristics and mode of implementation of these services, whose function is to filter the activities of this Application.
+
+Sentry
+
+Crash reporting is switched off unless you turn it on in Settings, and it runs only in released builds of the app.
+
+When it is on, a crash sends a technical report — the error and its stack trace, the app version, the operating system version and the device model — together with a randomly generated identifier for your installation. Your food diary, your weight and your profile are never sent, and the app does not attach your IP address. Sentry's servers may derive an approximate location (country, region and city) from the connection the report arrives on.
+
+Reports are kept for 30 days.
+
+This processing is based on your consent. You can withdraw it at any time by switching crash reporting off in Settings, which stops reporting immediately.
+
+Personal Data processed: diagnostics; device information; device logs; an installation identifier; approximate location; Usage Data.
+
+Place of processing: United States — transfers are covered by the EU–US Data Privacy Framework and standard contractual clauses.
+
+Platform services and hosting
+
+These services have the purpose of hosting and running key components of this Application, therefore allowing the provision of this Application from within a unified platform. Such platforms provide a wide range of tools to the Owner – e.g. analytics, user registration, commenting, database management, e-commerce, payment processing – that imply the collection and handling of Personal Data.
+
+Some of these services work through geographically distributed servers, making it difficult to determine the actual location where the Personal Data are stored.
+
+Google Play Store (Google LLC)
+
+This Application is distributed on the Google Play Store, a platform for the distribution of mobile apps, provided by Google LLC or by Google Ireland Limited, depending on how the Owner manages the Data processing.
+
+By virtue of being distributed via this app store, Google collects usage and diagnostics data and share aggregate information with the Owner. Much of this information is processed on an opt-in basis.
+
+Users may opt-out of this analytics feature directly through their device settings. More information on how to manage analysis settings can be found on this page.
+
+Personal Data processed: Usage Data.
+
+Place of processing: United States – Privacy Policy; Ireland – Privacy Policy.
+
+App Store Connect (Apple Inc.)
+
+This Application is distributed on Apple's App Store, a platform for the distribution of mobile apps, provided by Apple Inc.
+
+App Store Connect enables the Owner to manage this Application on Apple's App Store. Depending on the configuration, App Store Connect provides the Owner with analytics data on user engagement and app discovery, marketing campaigns, sales, in-app purchases, and payments to measure the performance of this Application.
+App Store Connect only collects such data from Users who have agreed to share them with the Owner. Users may find more information on how to opt out via their device settings here.
+
+Personal Data processed: diagnostics.
+
+Place of processing: United States – Privacy Policy.
+
+Further Information for Users
+
+Legal basis of processing
+
+The Owner may process Personal Data relating to Users if one of the following applies:
+
+Users have given their consent for one or more specific purposes.
+
+provision of Data is necessary for the performance of an agreement with the User and/or for any pre-contractual obligations thereof;
+
+processing is necessary for compliance with a legal obligation to which the Owner is subject;
+
+processing is related to a task that is carried out in the public interest or in the exercise of official authority vested in the Owner;
+
+processing is necessary for the purposes of the legitimate interests pursued by the Owner or by a third party.
+
+In any case, the Owner will gladly help to clarify the specific legal basis that applies to the processing, and in particular whether the provision of Personal Data is a statutory or contractual requirement, or a requirement necessary to enter into a contract.
+
+Further information about retention time
+
+Unless specified otherwise in this document, Personal Data shall be processed and stored for as long as required by the purpose they have been collected for and may be retained for longer due to applicable legal obligation or based on the Users’ consent.
+
+Therefore:
+
+Personal Data collected for purposes related to the performance of a contract between the Owner and the User shall be retained until such contract has been fully performed.
+
+Personal Data collected for the purposes of the Owner’s legitimate interests shall be retained as long as needed to fulfill such purposes. Users may find specific information regarding the legitimate interests pursued by the Owner within the relevant sections of this document or by contacting the Owner.
+
+The Owner may be allowed to retain Personal Data for a longer period whenever the User has given consent to such processing, as long as such consent is not withdrawn. Furthermore, the Owner may be obliged to retain Personal Data for a longer period whenever required to fulfil a legal obligation or upon order of an authority.
+
+Once the retention period expires, Personal Data shall be deleted. Therefore, the right of access, the right to erasure, the right to rectification and the right to data portability cannot be enforced after expiration of the retention period.
+
+The rights of Users based on the General Data Protection Regulation (GDPR)
+
+Users may exercise certain rights regarding their Data processed by the Owner.
+
+In particular, Users have the right to do the following, to the extent permitted by law:
+
+Withdraw their consent at any time. Users have the right to withdraw consent where they have previously given their consent to the processing of their Personal Data.
+
+Object to processing of their Data. Users have the right to object to the processing of their Data if the processing is carried out on a legal basis other than consent.
+
+Access their Data. Users have the right to learn if Data is being processed by the Owner, obtain disclosure regarding certain aspects of the processing and obtain a copy of the Data undergoing processing.
+
+Verify and seek rectification. Users have the right to verify the accuracy of their Data and ask for it to be updated or corrected.
+
+Restrict the processing of their Data. Users have the right to restrict the processing of their Data. In this case, the Owner will not process their Data for any purpose other than storing it.
+
+Have their Personal Data deleted or otherwise removed. Users have the right to obtain the erasure of their Data from the Owner.
+
+Receive their Data and have it transferred to another controller. Users have the right to receive their Data in a structured, commonly used and machine readable format and, if technically feasible, to have it transmitted to another controller without any hindrance.
+
+Lodge a complaint. Users have the right to bring a claim before their competent data protection authority.
+
+Users are also entitled to learn about the legal basis for Data transfers abroad including to any international organization governed by public international law or set up by two or more countries, such as the UN, and about the security measures taken by the Owner to safeguard their Data.
+
+Details about the right to object to processing
+
+Where Personal Data is processed for a public interest, in the exercise of an official authority vested in the Owner or for the purposes of the legitimate interests pursued by the Owner, Users may object to such processing by providing a ground related to their particular situation to justify the objection.
+
+Users must know that, however, should their Personal Data be processed for direct marketing purposes, they can object to that processing at any time, free of charge and without providing any justification. Where the User objects to processing for direct marketing purposes, the Personal Data will no longer be processed for such purposes. To learn whether the Owner is processing Personal Data for direct marketing purposes, Users may refer to the relevant sections of this document.
+
+How to exercise these rights
+
+Any requests to exercise User rights can be directed to the Owner through the contact details provided in this document. Such requests are free of charge and will be answered by the Owner as early as possible and always within one month, providing Users with the information required by law. Any rectification or erasure of Personal Data or restriction of processing will be communicated by the Owner to each recipient, if any, to whom the Personal Data has been disclosed unless this proves impossible or involves disproportionate effort. At the Users’ request, the Owner will inform them about those recipients.
+
+Additional information about Data collection and processing
+
+Legal action
+
+The User's Personal Data may be used for legal purposes by the Owner in Court or in the stages leading to possible legal action arising from improper use of this Application or the related Services.
+The User declares to be aware that the Owner may be required to reveal personal data upon request of public authorities.
+
+Additional information about User's Personal Data
+
+In addition to the information contained in this privacy policy, this Application may provide the User with additional and contextual information concerning particular Services or the collection and processing of Personal Data upon request.
+
+System logs and maintenance
+
+For operation and maintenance purposes, this Application and any third-party services may collect files that record interaction with this Application (System logs) or use other Personal Data (such as the IP Address) for this purpose.
+
+Information not contained in this policy
+
+More details concerning the collection or processing of Personal Data may be requested from the Owner at any time. Please see the contact information at the beginning of this document.
+
+Changes to this privacy policy
+
+The Owner reserves the right to make changes to this privacy policy at any time by notifying its Users on this page and possibly within this Application and/or - as far as technically and legally feasible - sending a notice to Users via any contact information available to the Owner. It is strongly recommended to check this page often, referring to the date of the last modification listed at the bottom.
+
+Should the changes affect processing activities performed on the basis of the User’s consent, the Owner shall collect new consent from the User, where required.
+
+Definitions and legal references
+
+Personal Data (or Data)
+
+Any information that directly, indirectly, or in connection with other information — including a personal identification number — allows for the identification or identifiability of a natural person.
+
+Usage Data
+
+Information collected automatically through this Application (or third-party services employed in this Application), which can include: the IP addresses or domain names of the computers utilized by the Users who use this Application, the URI addresses (Uniform Resource Identifier), the time of the request, the method utilized to submit the request to the server, the size of the file received in response, the numerical code indicating the status of the server's answer (successful outcome, error, etc.), the country of origin, the features of the browser and the operating system utilized by the User, the various time details per visit (e.g., the time spent on each page within the Application) and the details about the path followed within the Application with special reference to the sequence of pages visited, and other parameters about the device operating system and/or the User's IT environment.
+
+User
+
+The individual using this Application who, unless otherwise specified, coincides with the Data Subject.
+
+Data Subject
+
+The natural person to whom the Personal Data refers.
+
+Data Processor (or Processor)
+
+The natural or legal person, public authority, agency or other body which processes Personal Data on behalf of the Controller, as described in this privacy policy.
+
+Data Controller (or Owner)
+
+The natural or legal person, public authority, agency or other body which, alone or jointly with others, determines the purposes and means of the processing of Personal Data, including the security measures concerning the operation and use of this Application. The Data Controller, unless otherwise specified, is the Owner of this Application.
+
+This Application
+
+The means by which the Personal Data of the User is collected and processed.
+
+Service
+
+The service provided by this Application as described in the relative terms (if available) and on this site/application.
+
+European Union (or EU)
+
+Unless otherwise specified, all references made within this document to the European Union include all current member states to the European Union and the European Economic Area.
+
+Legal information
+
+This policy relates solely to this Application, if not stated otherwise within this document.
+
+Latest update: August 27, 2026

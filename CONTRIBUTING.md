@@ -28,10 +28,10 @@ architecture conventions live in [AGENTS.md](AGENTS.md).
 
 ## Adding or changing localized strings
 
-Source strings live in `lib/l10n/intl_en.arb`. Translations live in a separate ARB file per supported locale, plus manually-maintained Dart files under `lib/generated/`.
+Source strings live in `lib/l10n/intl_en.arb`, with one ARB file per supported locale beside it. The Dart files under `lib/generated/` are produced from those ARBs by `flutter gen-l10n` (configured in `l10n.yaml`) — they are gitignored, and CI regenerates them from scratch on every run.
 
 > [!IMPORTANT]
-> **For now**, the files under `lib/generated/` carry a `// GENERATED CODE - DO NOT MODIFY BY HAND` header but are **maintained manually** in this project — the upstream generator's output conflicts with the repo's 120-character formatting and would fail CI. Until the generation pipeline is reconciled with the formatting rules, edit those files by hand. Do **not** run `intl_translation:generate_from_arb` — this caveat will go away once the generator output is fixed.
+> Never hand-edit anything under `lib/generated/`. The directory is listed in `.gitignore`, so hand-edits are never committed, and the next `flutter gen-l10n` overwrites them locally — the work is lost silently. Edit the ARB files and regenerate.
 
 When adding a new string key in the same PR you must:
 
@@ -51,11 +51,13 @@ When adding a new string key in the same PR you must:
 
    Provide a real translation for each locale — do not leave the English string in as a placeholder. If you only speak one of the languages, machine translation is acceptable as a starting point; native-speaker review is welcome post-merge.
 
-2. **Add a getter to `lib/generated/l10n.dart`**, following the existing style.
+   All nine files stay at the same key count. Placeholder metadata (`"@key": {"placeholders": ...}`) only needs to be declared in the template, `intl_en.arb`.
 
-3. **Add a matching `MessageLookupByLibrary.simpleMessage(...)` entry to each `lib/generated/intl/messages_<locale>.dart` file**, one per locale.
+2. **Regenerate with `just gen_l10n`** (`flutter gen-l10n`). This rewrites `lib/generated/l10n.dart` and one `lib/generated/l10n_<locale>.dart` per locale, which is where your `S.of(context).yourNewKey` getter comes from. Nothing under `lib/generated/` belongs in the commit — the ARB files are the whole change.
 
-4. **Verify with `just check_intl`** — this is what CI runs and will fail the PR if any of the above is missing or out of sync.
+3. **Leave no locale behind.** `flutter gen-l10n` exits 0 on a missing translation — it records the key in `l10n_untranslated.json` at the repo root (also gitignored) and the string falls back to English at runtime. `just check_l10n` is what turns that into a failure, and it is what CI runs; when it fails, that file names the locale and the key.
+
+4. **Run `flutter analyze` and `just test`** before opening the PR — or `just ci` for the whole pre-flight in one go.
 
 ## Code generation
 
@@ -66,7 +68,7 @@ Some files are produced by `build_runner` (Hive type adapters and JSON serializa
 - 120-character line width (configured in `analysis_options.yaml`).
 - Format with `just format` before committing — this targets only `lib/core`, `lib/features`, `lib/l10n`, and `test` and deliberately skips `lib/generated/`.
 - Run `flutter analyze` and `just test` locally before opening the PR.
-- `just ci` runs the full CI pipeline (install, format check, intl check, build, analyze, test) and is the closest thing to a one-shot pre-flight check.
+- `just ci` runs the full CI pipeline (install, format check, l10n generation and completeness, build, analyze, test) and is the closest thing to a one-shot pre-flight check.
 
 ## Commit messages
 

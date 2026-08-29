@@ -31,6 +31,10 @@ class ConfigRepository {
     await _configDataSource.setConfigAcceptedPolicy(hasAcceptedPolicy);
   }
 
+  Future<void> setConfigPolicyNoticeRevisionSeen(int revision) async {
+    await _configDataSource.setConfigPolicyNoticeRevisionSeen(revision);
+  }
+
   Future<bool> getConfigHasAcceptedAnonymousData() async {
     return await _configDataSource.getHasAcceptedAnonymousData();
   }
@@ -178,5 +182,31 @@ class ConfigRepository {
 
   Future<void> setConfigFoodSourceToggles(Map<String, bool> toggles) async {
     await _configDataSource.setConfigFoodSourceToggles(toggles);
+  }
+
+  Future<void> setConfigHealthImportEnabled(bool enabled) async {
+    await _configDataSource.setConfigHealthImportEnabled(enabled);
+  }
+
+  Future<void> setConfigHealthWorkoutKcalMultiplier(double multiplier) async {
+    await _configDataSource.setConfigHealthWorkoutKcalMultiplier(multiplier);
+  }
+
+  Future<void> setConfigHealthLastImportAt(DateTime? importedAt) async {
+    await _configDataSource.setConfigHealthLastImportAt(importedAt);
+  }
+
+  Future<void> addConfigHealthDeletedWorkout(
+    String externalId,
+    DateTime startedAt,
+  ) async {
+    await _configDataSource.addConfigHealthDeletedWorkout(
+      externalId,
+      startedAt,
+    );
+  }
+
+  Future<void> pruneConfigHealthDeletedWorkouts(DateTime cutoff) async {
+    await _configDataSource.pruneConfigHealthDeletedWorkouts(cutoff);
   }
 }

@@ -5,6 +5,44 @@ class URLConst {
   static const privacyPolicyURLDe =
       "https://www.iubenda.com/privacy-policy/53922100";
 
+  /// The privacy policy to open for [languageCode], English by default.
+  ///
+  /// Nine locales ship and exactly two policy documents exist, so this is a
+  /// deliberately narrow rule rather than a lookup table: German has its own
+  /// document, and every other language gets the English one because there is
+  /// nothing else to send them to. Do not add a locale here without a policy
+  /// actually existing for it — pointing a Czech user at a German document is
+  /// worse than the English fallback.
+  ///
+  /// Both entry points route through here so the two cannot drift; before
+  /// this existed they each hardcoded the English URL and the German document
+  /// was maintained for nobody.
+  static String privacyPolicyFor(String languageCode) =>
+      languageCode == 'de' ? privacyPolicyURLDe : privacyPolicyURLEn;
+
+  /// The current privacy-policy revision, compared against
+  /// `ConfigEntity.policyNoticeRevisionSeen` to decide whether a user still
+  /// needs the one-time change notice (#887).
+  ///
+  /// **Bump this only for a change that is material to a reader** — a recipient
+  /// named for the first time, a new category of data, a legal basis. Not for a
+  /// typo, a reworded sentence, or a translation fix. Every bump shows a dialog
+  /// to every existing user on their next launch, and a notice that cries wolf
+  /// is worth less than no notice at all.
+  ///
+  /// Revision 1 is the correction that follows the audit in #867: recipients
+  /// that were always receiving data get named, a health-data section is added
+  /// for the Health Connect / Apple Health import, and an approximate location
+  /// the Supabase gateway keeps for a day is disclosed. None of it changes what
+  /// the app does.
+  ///
+  /// Those edits are drafted in #915, #919 and #920 and are applied by hand in
+  /// iubenda, so this constant records which revision the app *claims*, not
+  /// which one is published. Both documents have to carry the edits before a
+  /// build with this value ships, or the notice sends people to a policy that
+  /// still reads the old way. `tool/policy_snapshot.dart` is what confirms it.
+  static const policyRevision = 1;
+
   // Citations for the in-app medical/health calculations. Surfaced on the
   // Sources & References screen (see `sources_screen.dart`) so that users
   // can verify each number we show against its peer-reviewed source.
@@ -28,6 +66,10 @@ class URLConst {
       "https://pmc.ncbi.nlm.nih.gov/articles/PMC6046513/";
   static const sourceTransNutritionLinsenmeyer2020URL =
       "https://link.springer.com/article/10.1186/s12937-020-00590-4";
+  static const sourceEnergyCompensationCareau2021URL =
+      "https://pubmed.ncbi.nlm.nih.gov/34453886/";
+  static const sourceBodyCompositionBorrud2010URL =
+      "https://www.cdc.gov/nchs/data/series/sr_11/sr11_250.pdf";
 
   // Wiki page documenting every in-app calculation in full — linked from
   // the calorie-goal transparency screen for people who want the complete

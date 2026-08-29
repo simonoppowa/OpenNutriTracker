@@ -24,6 +24,7 @@ import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/food_name_validator.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/widgets/default_meal_image.dart';
@@ -909,7 +910,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
       } else {
         Navigator.of(context).pushNamedAndRemoveUntil(
           NavigationOptions.mealDetailRoute,
-          ModalRoute.withName(NavigationOptions.addMealRoute),
+          namedRouteOrFirst(NavigationOptions.addMealRoute),
           arguments: MealDetailScreenArguments(
             newMealEntity,
             _intakeTypeEntity,

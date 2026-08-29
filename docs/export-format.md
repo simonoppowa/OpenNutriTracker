@@ -119,6 +119,13 @@ Array of logged physical-activity records:
 ]
 ```
 
+Records also carry the optional `userKcal` (set once the user edits an
+activity's calories, `null` before that), plus `externalId` (the health-store
+record an imported workout came from, which is what stops a re-import
+duplicating it) and `sourceReportedKcal` (the energy the device reported before
+the workout calorie credit); the latter two are `null` on manually logged
+activities, and all three round-trip on import/export.
+
 ### `user_tracked_day.json`
 
 Array of per-day calorie/macro totals:
@@ -223,6 +230,9 @@ Header lookup is case-insensitive.
 | `mets`              | number | yes      | MET value.                                                             |
 | `tags`              | string | no       | Pipe-separated (`outdoor|cardio`) so the cell stays single-field.      |
 | `type`              | enum   | yes      | `bicycling` / `conditioningExercise` / `dancing` / `running` / `sport` / `waterActivities` / `winterActivities`. |
+| `user_kcal`            | number | no       | Set when the kcal figure is the user's own or a device's rather than the MET formula's. |
+| `external_id`          | string | no       | Health Connect / Apple Health record id for an imported workout; empty for a manually logged one. |
+| `source_reported_kcal` | number | no       | What the device reported for an imported workout, before the calorie-credit multiplier. |
 
 ### `user_tracked_day.csv`
 

@@ -129,6 +129,58 @@ class ConfigDBO extends HiveObject {
   // leaving demo mode clears this for free.
   @HiveField(32)
   bool? isDemoData;
+  // Opt-in workout import from Health Connect (Android) / Apple Health (iOS).
+  // Null means the user has never enabled it, which reads as off — no health
+  // data is touched until they say so.
+  @HiveField(33)
+  bool? healthImportEnabled;
+  // Share of an imported workout's device-reported energy that counts toward
+  // the daily goal, stored as a fraction in 0.50–1.00. Null means "not chosen
+  // yet"; the settings flow writes a body-composition-derived suggestion the
+  // moment import is switched on (see WorkoutCompensationCalc).
+  @HiveField(34)
+  double? healthWorkoutKcalMultiplier;
+  // Watermark: the end of the window the last successful import read. Doubles
+  // as the debounce timestamp so a resume storm can't hammer the platform.
+  @HiveField(35)
+  DateTime? healthLastImportAt;
+  // External record ids of imported workouts the user has deleted. The
+  // importer's dedupe set is built from the activities actually on file, so
+  // without this the next overlapping read would file a deleted workout all
+  // over again. Kept indefinitely — it only grows by one entry per deletion,
+  // and forgetting an entry resurrects the workout it stands for. Null means
+  // nothing has been deleted.
+  // Superseded by [healthDeletedWorkouts], which carries the date each
+  // tombstone needs in order to be prunable. Read once and folded into the
+  // new field, then cleared — see `ConfigDataSource._migrateDeletedWorkouts`.
+  // Only pre-release installs can have anything here; #651 has not shipped.
+  @HiveField(36)
+  List<String>? healthDeletedExternalIds;
+  // External record ids of imported workouts the user deleted, mapped to the
+  // workout's own start time. The importer skips them, so a deletion sticks
+  // instead of being undone by the next overlapping read.
+  //
+  // The date is what makes this boundable (#768). A tombstone is only ever
+  // consulted against workouts the platform returns for the import window, so
+  // once its workout falls outside the widest window any future run could ask
+  // for, it can never match again and is dropped. Without a date the list grew
+  // with the lifetime of the install rather than with recent activity.
+  @HiveField(38)
+  Map<String, DateTime>? healthDeletedWorkouts;
+  // Which revision of the privacy policy the user has been *shown a notice
+  // about* — not which one they accepted, which `hasAcceptedPolicy` cannot
+  // answer because it is an unversioned bool (#887).
+  //
+  // Device-wide rather than per-profile: the policy describes what the app
+  // does, not what one profile does, so it is deliberately absent from the
+  // personal-field overlay in `ConfigDataSource._readMerged` and therefore
+  // read from the shared app box. A second profile does not get the notice
+  // again.
+  //
+  // Null means "no notice has ever been shown", which is every install that
+  // existed before the field did — exactly the users the notice is for.
+  @HiveField(37)
+  int? policyNoticeRevisionSeen;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -161,6 +213,12 @@ class ConfigDBO extends HiveObject {
     this.bodyWeightUnitIndex,
     this.foodSourceToggles,
     this.isDemoData,
+    this.healthImportEnabled,
+    this.healthWorkoutKcalMultiplier,
+    this.healthLastImportAt,
+    this.healthDeletedExternalIds,
+    this.policyNoticeRevisionSeen,
+    this.healthDeletedWorkouts,
   });
 
   factory ConfigDBO.empty() =>

@@ -125,7 +125,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   /// re-run after hydration reveals serving values.
   void _applyInitialSelection() {
     if (_initialUnit == "") {
-      if (meal.hasServingValues) {
+      // `scalableServingQuantity`, not `hasServingValues` (#629): the latter
+      // is true for a record whose serving is unparseable text, and nothing
+      // can scale those — they defaulted to "1 serving" and logged 1 g.
+      if (meal.scalableServingQuantity != null) {
         _initialUnit = UnitDropdownItem.serving.toString();
       } else if (meal.isLiquid) {
         _initialUnit = _usesImperialUnits
@@ -144,7 +147,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     }
 
     if (_initialQuantity == "") {
-      if (meal.hasServingValues) {
+      // Gated the same way as the unit above, so a bare "1" can never end
+      // up beside a weight unit.
+      if (meal.scalableServingQuantity != null) {
         _initialQuantity = "1";
         quantityTextController.text = "1";
       } else if (_usesImperialUnits) {
