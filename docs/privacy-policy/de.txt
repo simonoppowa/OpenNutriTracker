@@ -131,7 +131,7 @@ Lebensmittel-Referenzdatenbank (Supabase)
 
 Lebensmittelsuchen werden von einer Referenzdatenbank beantwortet, die der Anbieter dieser Anwendung auf der Managed-Cloud-Plattform von Supabase betreibt. Bei einer Suche werden der von Ihnen eingegebene Text übermittelt, außerdem Ihre App-Sprache, sofern diese Anwendung Lebensmittelübersetzungen dafür mitbringt, und — falls Sie in den Einstellungen eine der Lebensmitteldatenbanken abgeschaltet haben — die Liste der von Ihnen aktiv gelassenen Datenbanken. Es werden kein Konto, kein Profil und keine Gerätekennung mitgesendet, und Ihr Ernährungstagebuch wird nie übermittelt.
 
-Da die Anfrage über das Internet übertragen wird, protokolliert das Gateway der Plattform für 24 Stunden die Adresse, von der die Anfrage kam, einen daraus abgeleiteten ungefähren Standort (Land, Region, Ort und Postleitzahl), den Namen Ihres Internetanbieters sowie einen Fingerprint der verschlüsselten Verbindung.
+Da die Anfrage über das Internet übertragen wird, protokolliert das Gateway der Plattform die Adresse, von der die Anfrage kam, einen daraus abgeleiteten ungefähren Standort (Land, Region, Ort und Postleitzahl), den Namen Ihres Internetanbieters sowie einen Fingerprint der verschlüsselten Verbindung. Diese Daten werden so lange aufbewahrt, wie der Hosting-Tarif die Gateway-Protokolle vorhält — derzeit 24 Stunden.
 
 Die Datenbank wird in Frankfurt (Deutschland) gespeichert und überwiegend dort verarbeitet. Die Supabase Pte. Ltd. handelt als Auftragsverarbeiter auf Weisung des Anbieters; zu ihren Unterauftragsverarbeitern gehören die Cloudflare, Inc. und die Amazon Web Services, Inc. Anfragen erreichen zunächst einen Cloudflare-Standort in Ihrer Nähe und dann die Datenbank. Übermittlungen außerhalb des Europäischen Wirtschaftsraums sind durch Standardvertragsklauseln abgedeckt.
 
@@ -348,4 +348,4 @@ Rechtlicher Hinweis
 
 Diese Erklärung bezieht sich ausschließlich auf diese Anwendung, sofern in diesem Dokument nicht anders angegeben.
 
-Letzte Aktualisierung: 27. August 2026
+Letzte Aktualisierung: 29. August 2026
