@@ -159,7 +159,7 @@ Food reference backend (Supabase)
 
 Food searches are answered by a reference database that the Owner of this Application operates on Supabase's managed cloud platform. A search sends the text you typed; your app language too, when it is one this Application has food translations for; and, if you have switched any of the food databases off in Settings, the list of the ones you left on. No account, profile or device identifier is attached, and your food diary is never sent.
 
-Because the request travels over the internet, the platform's gateway records for 24 hours the address the request came from, an approximate location derived from that address (country, region, city and postal code), the name of your internet access provider, and a fingerprint of the encrypted connection.
+Because the request travels over the internet, the platform's gateway records the address the request came from, an approximate location derived from that address (country, region, city and postal code), the name of your internet access provider, and a fingerprint of the encrypted connection. These are kept for as long as the hosting plan retains its gateway logs — currently 24 hours.
 
 The database is stored and primarily processed in Frankfurt, Germany. Supabase Pte. Ltd. acts as a processor on the Owner's instructions, with Cloudflare, Inc. and Amazon Web Services, Inc. among its sub-processors; requests reach a Cloudflare location close to you before the database. Transfers outside the European Economic Area are covered by standard contractual clauses.
 
@@ -351,4 +351,4 @@ Legal information
 
 This policy relates solely to this Application, if not stated otherwise within this document.
 
-Latest update: August 27, 2026
+Latest update: August 29, 2026
