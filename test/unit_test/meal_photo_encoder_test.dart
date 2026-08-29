@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_photo_encoder.dart';
 
+import '../fixture/photo_fixtures.dart';
+
 /// Only the decisions that need no platform channel. The compression itself
 /// runs in the device encoder and is covered by driving the real flow.
 void main() {
@@ -146,23 +148,57 @@ void main() {
       }
     });
 
-    test('the fallback declares the file it sent, not the one asked for', () async {
-      // There is no platform channel in a unit test, so the compressor fails
-      // and `encode` takes the raw-bytes path — which is the real behaviour
-      // on a device whose encoder is missing. What it sends is the original
-      // file, so the media type has to describe *that*, not the container
-      // that was requested and never produced. Declaring `image/webp` over
-      // JPEG bytes is a 400 from Ollama, whose decodeImageURL checks the
-      // data-URI prefix.
-      final file = File('${dir.path}/original.jpg')
-        ..writeAsBytesSync(List.filled(2000, 0));
+    test(
+      'the fallback declares the file it sent, not the one asked for',
+      () async {
+        // There is no platform channel in a unit test, so the compressor fails
+        // and `encode` takes the raw-bytes path — which is the real behaviour
+        // on a device whose encoder is missing. What it sends is the original
+        // file, so the media type has to describe *that*, not the container
+        // that was requested and never produced. Declaring `image/webp` over
+        // JPEG bytes is a 400 from Ollama, whose decodeImageURL checks the
+        // data-URI prefix.
+        final file = File('${dir.path}/original.jpg')
+          ..writeAsBytesSync(jpegWithMetadata());
+
+        final photo = await MealPhotoEncoder.encode(
+          file.path,
+          format: MealPhotoFormat.webp,
+        );
+
+        expect(photo?.mediaType, 'image/jpeg');
+      },
+    );
+
+    test('the fallback does not send the camera\'s metadata', () async {
+      // The normal path is clean because re-encoding writes a container with
+      // no metadata in it. This path has no encoder to inherit that from, so
+      // it strips the file itself — otherwise a device whose encoder failed
+      // is the one device that posts its owner's GPS fix to a provider.
+      final file = File('${dir.path}/geotagged.jpg')
+        ..writeAsBytesSync(jpegWithMetadata());
 
       final photo = await MealPhotoEncoder.encode(
         file.path,
-        format: MealPhotoFormat.webp,
+        format: MealPhotoFormat.jpeg,
       );
 
-      expect(photo?.mediaType, 'image/jpeg');
+      expect(photo, isNotNull);
+      expect(containsBytes(photo!.bytes, gpsNeedle), isFalse);
+    });
+
+    test('a file that cannot be parsed is not sent at all', () async {
+      // Deliberately narrower than before: the fallback used to forward
+      // whatever bytes it found. A file that does not parse as the type its
+      // extension claims is the one most likely to be carrying something, and
+      // "pick another photo" is a better answer than sending it blind.
+      final file = File('${dir.path}/not_really.jpg')
+        ..writeAsBytesSync(List.filled(2000, 0));
+
+      expect(
+        await MealPhotoEncoder.encode(file.path, format: MealPhotoFormat.jpeg),
+        isNull,
+      );
     });
 
     test('a missing source is not an error', () async {

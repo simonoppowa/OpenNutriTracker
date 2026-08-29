@@ -182,7 +182,12 @@ Future<void> initLocator() async {
     ),
   );
   locator.registerLazySingleton<DeleteAllUserDataUsecase>(
-    () => DeleteAllUserDataUsecase(locator(), locator(), locator()),
+    () => DeleteAllUserDataUsecase(
+      locator(),
+      locator(),
+      locator(),
+      locator<AiCredentialStorage>(),
+    ),
   );
 
   // Backend
