@@ -17,7 +17,14 @@
 #
 # Re-adding an item that is already on a board is a no-op (the underlying
 # addProjectV2ItemById mutation returns the existing item), so the repeated
-# `labeled` firings do not create duplicates.
+# `labeled` firings do not create duplicates — but only when they arrive one
+# at a time. Filing an issue *with* labels attached fires `opened` and one
+# `labeled` per label within the same second, and two of those runs adding the
+# same item concurrently makes the API answer one of them with
+# "Content already exists in this project", which fails the job. The
+# concurrency group below serialises runs per issue so the second one is the
+# harmless no-op this paragraph describes. It went unnoticed for a long time
+# because issues are normally labelled minutes or days after they are filed.
 #
 # REQUIRED SECRET: `PROJECTS_TOKEN` — this must be a *classic* PAT carrying the
 # `project` scope (plus `public_repo`). Fine-grained tokens cannot do this job:
@@ -37,6 +44,14 @@ on:
 
 permissions:
   contents: read
+
+# Keyed on the issue, not the workflow: two different issues filed at once are
+# not in conflict and should still run in parallel. `cancel-in-progress` stays
+# false because each run is doing real work — cancelling the first would drop
+# the add it was in the middle of, which is the opposite of the fix.
+concurrency:
+  group: add-issues-to-projects-${{ github.event.issue.number }}
+  cancel-in-progress: false
 
 jobs:
   roadmap:

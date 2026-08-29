@@ -20,6 +20,29 @@ class URLConst {
   static String privacyPolicyFor(String languageCode) =>
       languageCode == 'de' ? privacyPolicyURLDe : privacyPolicyURLEn;
 
+  /// The current privacy-policy revision, compared against
+  /// `ConfigEntity.policyNoticeRevisionSeen` to decide whether a user still
+  /// needs the one-time change notice (#887).
+  ///
+  /// **Bump this only for a change that is material to a reader** — a recipient
+  /// named for the first time, a new category of data, a legal basis. Not for a
+  /// typo, a reworded sentence, or a translation fix. Every bump shows a dialog
+  /// to every existing user on their next launch, and a notice that cries wolf
+  /// is worth less than no notice at all.
+  ///
+  /// Revision 1 is the correction that follows the audit in #867: recipients
+  /// that were always receiving data get named, a health-data section is added
+  /// for the Health Connect / Apple Health import, and an approximate location
+  /// the Supabase gateway keeps for a day is disclosed. None of it changes what
+  /// the app does.
+  ///
+  /// Those edits are drafted in #915, #919 and #920 and are applied by hand in
+  /// iubenda, so this constant records which revision the app *claims*, not
+  /// which one is published. Both documents have to carry the edits before a
+  /// build with this value ships, or the notice sends people to a policy that
+  /// still reads the old way. `tool/policy_snapshot.dart` is what confirms it.
+  static const policyRevision = 1;
+
   // Citations for the in-app medical/health calculations. Surfaced on the
   // Sources & References screen (see `sources_screen.dart`) so that users
   // can verify each number we show against its peer-reviewed source.

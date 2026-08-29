@@ -28,6 +28,10 @@ class AddConfigUsecase {
     await _configRepository.setConfigHasAcceptedPolicy(hasAcceptedPolicy);
   }
 
+  Future<void> setConfigPolicyNoticeRevisionSeen(int revision) async {
+    await _configRepository.setConfigPolicyNoticeRevisionSeen(revision);
+  }
+
   Future<void> setConfigAppTheme(AppThemeEntity appTheme) async {
     await _configRepository.setConfigAppTheme(appTheme);
   }

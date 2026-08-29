@@ -61,7 +61,16 @@ android {
     defaultConfig {
         applicationId "com.opennutritracker.ont.opennutritracker"
         // The health package's Health Connect client requires API 26; Flutter's
-        // default is lower, so the floor is pinned here.
+        // default is 24, so the floor is pinned here.
+        //
+        // The cost, which #651 raised the floor without measuring: this drops
+        // Android 7.0 and 7.1. Play counts that as 1,399 device models — a
+        // number that sounds alarming and is not, because measured against
+        // real installs on 2026-08-29 it was **3 of 9,580 active users**,
+        // 0.03% (#959). Accepted deliberately on that evidence: Health
+        // Connect cannot ship below 26, so the alternative was dropping the
+        // feature, and 1,399 models is a device-catalogue figure rather than
+        // an audience.
         minSdkVersion 26
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()

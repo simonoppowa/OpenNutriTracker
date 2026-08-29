@@ -177,7 +177,7 @@ Semantics(
 |---|---|
 | `ListTile` / `InkWell` / `GestureDetector` with an `onTap` | Pure display — `Text`, `Icon`, `Image`, `Divider`, charts |
 | Buttons — `ElevatedButton`, `TextButton`, `IconButton`, `FloatingActionButton`, `FilledButton` (when they have `onPressed`) | Layout — `Container` without `onTap`, `Padding`, `SizedBox`, `Row`, `Column` |
-| Input — `TextField`, `TextFormField`, `Slider`, `Switch`, `SwitchListTile`, `Checkbox` (the actual checkbox, not its label) | Generated code (`*.g.dart`, `messages_*.dart`, `l10n.dart`) |
+| Input — `TextField`, `TextFormField`, `Slider`, `Switch`, `SwitchListTile`, `Checkbox` (the actual checkbox, not its label) | Generated code (`*.g.dart`, `l10n.dart`, `l10n_<locale>.dart`) |
 | Selection — `ChoiceChip`, `FilterChip`, `RadioListTile`, `SegmentedButton`, `DropdownButton` | Theming, transitions, decorative wrappers |
 | Bottom sheets, dialog action buttons (Save/Cancel/OK) | Items inside `ListView.builder` / `GridView.builder` (see below) |
 
@@ -334,7 +334,7 @@ lib/
     settings/     # App settings, data export/import, day-start, theme picker
     onboarding/   # First-run user setup flow
   dev/            # Dev-only main_dev.dart entry point (never shipped) — see "Demo data" above
-  generated/      # Intl files — maintained manually (see Localization above)
+  generated/      # gen-l10n output — gitignored, never edited by hand (see Localization above)
   l10n/           # Source ARB translation files
 ```
 
@@ -420,6 +420,14 @@ Issue forms and the PR template live under `.github/`:
 When filing issues or opening PRs, prefer these templates. Product/food-database data errors belong on Open Food Facts (or the backend repo), not app bug reports — the forms call this out in their checklists.
 
 Blank issues are disabled (`blank_issues_enabled: false`). Add or edit YAML forms in `.github/ISSUE_TEMPLATE/`; keep labels (`bug`, `enhancement`, `question`) aligned with any repo label setup.
+
+### `Fixes #N` does not close the issue here
+
+Feature work targets **`develop`**, but the default branch is **`main`**. GitHub only acts on a closing keyword when the referencing commit reaches the *default* branch, so a `Fixes #123` in a PR merged into `develop` **leaves the issue open** — often for weeks, until a release merge carries it to `main`.
+
+Write the reference anyway: it links the PR to the issue and closes it when the release lands. But **close the issue by hand once the PR merges**, with a comment saying where the fix is. Three issues sat open for exactly this reason on 2026-08-29 alone.
+
+The exception is a PR that targets `main` directly — a release PR or a hotfix — where the keyword behaves as expected.
 
 ## Naming Conventions
 
