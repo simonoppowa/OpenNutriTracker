@@ -14,7 +14,7 @@ E-Mail-Adresse des Anbieters: opennutritracker-dev@pm.me
 Arten der erhobenen Daten
 
 Zu den personenbezogenen Daten, die diese Anwendung selbstständig oder durch Dritte verarbeitet, gehören:
-Nutzungsdaten; Diagnosedaten; E-Mail; Informationen über die Anwendung; Gerätelogs; Geräteinformationen; Während der Nutzung des Dienstes übermittelte Daten.
+Nutzungsdaten; E-Mail; Informationen über die Anwendung; Gerätelogs; Geräteinformationen; Während der Nutzung des Dienstes übermittelte Daten.
 
 Vollständige Details zu jeder Art von verarbeiteten personenbezogenen Daten werden in den dafür vorgesehenen Abschnitten dieser Datenschutzerklärung oder punktuell durch Erklärungstexte bereitgestellt, die vor der Datenerhebung angezeigt werden.
 Personenbezogene Daten können vom Nutzer freiwillig angegeben oder, im Falle von Nutzungsdaten, automatisch erhoben werden, wenn diese Anwendung genutzt wird.
@@ -161,14 +161,17 @@ Verarbeitungsort: Vereinigte Staaten – Datenschutzerklärung; Irland – Daten
 
 App Store Connect (Apple Inc.)
 
-Diese Anwendung wird im App Store von Apple vertrieben, einer Plattform für den Vertrieb mobiler Anwendungen, die von Apple Inc. bereitgestellt wird.
+Diese Anwendung wird über den App Store von Apple vertrieben; App Store Connect ist die Konsole, die Apple dem Anbieter für deren Verwaltung bereitstellt.
 
-App Store Connect ermöglicht es dem Anbieter, diese Anwendung im App Store von Apple zu verwalten. Je nach Konfiguration stellt App Store Connect dem Anbieter statistische Daten über Nutzerbindung und App-Entdeckung, Marketingkampagnen, Verkäufe, In-App-Käufe und Zahlungen zur Verfügung, um die Leistung von diese Anwendung zu messen.
-App Store Connect sammelt solche Daten nur von Nutzern, die zugestimmt haben, sie mit dem Anbieter zu teilen. Nutzer finden weitere Informationen darüber, wie sie sich über ihre Geräteeinstellungen abmelden können [hier] (https://support.apple.com/de-de/HT202100).
+Apple meldet dem Anbieter zusammengefasste Kennzahlen zum App-Store-Eintrag — wie viele Menschen ihn gesehen, die App installiert und weiter genutzt haben — sowie Absturz- und Diagnoseberichte von Geräten. Diese Angaben kommen bereits aggregiert von Apple und nur von Nutzern, die in ihren Geräteeinstellungen der Weitergabe von Analysedaten an Entwickler zugestimmt haben. Diese Anwendung verkauft nichts und bietet weder Käufe noch Abonnements an; entsprechende Daten fallen daher nicht an.
+
+Der Anbieter kann Sie daraus nicht identifizieren, und nichts davon ist mit Ihrem Ernährungstagebuch verknüpft, das Ihr Gerät nie verlässt.
+
+Sie können dies für alle Apps zugleich abschalten, unter iOS-Einstellungen → Datenschutz & Sicherheit → Analyse & Verbesserungen. Apple erklärt es hier.
 
 Verarbeitete personenbezogene Daten: Diagnosedaten.
 
-Verarbeitungsort: Vereinigte Staaten – Datenschutzerklärung.
+Verarbeitungsort: Vereinigte Staaten — Datenschutzerklärung.
 
 Zugriff auf Profile von Drittanbietern
 
