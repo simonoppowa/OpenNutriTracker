@@ -65,6 +65,8 @@
     <string>Used to attach a photo to a custom meal so it's easier to recognise in your saved list, and for exporting data.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Read access to your workouts and body fat percentage is used to import workouts into your diary and to suggest how much of their energy to credit toward your daily goal. Nothing is written back to Health, and the data stays on your device.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>OpenNutriTracker does not write anything to Health. It only reads finished workouts and your most recent body fat percentage, and the activities it creates from them stay in your diary on this device. iOS asks for this description because the health framework the app uses includes write access, which the app never requests.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
