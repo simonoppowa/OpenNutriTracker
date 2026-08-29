@@ -1052,9 +1052,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _openHealthSyncScreen(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const HealthSyncScreen()),
-    );
+    // The named route rather than a direct push: Health Connect can ask for
+    // this same screen from outside the app (#927), and one registration is
+    // easier to keep honest than two ways in.
+    Navigator.of(context).pushNamed(NavigationOptions.healthSyncRoute);
   }
 
   Future<void> _confirmClearOffCache(BuildContext context) async {
@@ -1354,7 +1355,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text(S.of(context).sendAnonymousUserData),
+                        title: Text(S.of(context).sendCrashReports),
                         value: switchActive,
                         onChanged: isDemoData
                             ? null

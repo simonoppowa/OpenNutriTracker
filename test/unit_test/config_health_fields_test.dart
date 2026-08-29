@@ -178,23 +178,25 @@ void main() {
     });
 
     test('deletion tombstones stay with the profile that made them', () async {
+      final first = DateTime(2026, 5, 23, 7);
+      final second = DateTime(2026, 5, 24, 18);
       final profileA = sourceFor(profileABox);
       await profileA.initializeConfig();
-      await profileA.addConfigHealthDeletedExternalId('record-1');
-      // Recording the same deletion twice must not grow the list.
-      await profileA.addConfigHealthDeletedExternalId('record-1');
-      await profileA.addConfigHealthDeletedExternalId('record-2');
+      await profileA.addConfigHealthDeletedWorkout('record-1', first);
+      // Recording the same deletion twice must not grow the map.
+      await profileA.addConfigHealthDeletedWorkout('record-1', first);
+      await profileA.addConfigHealthDeletedWorkout('record-2', second);
 
       final profileB = sourceFor(profileBBox);
       await profileB.initializeConfig();
 
       expect(
-        (await profileA.getConfig()).healthDeletedExternalIds,
-        equals(<String>['record-1', 'record-2']),
+        (await profileA.getConfig()).healthDeletedWorkouts,
+        equals(<String, DateTime>{'record-1': first, 'record-2': second}),
       );
       // The other profile never imported that workout, so it has nothing to
       // remember about it either.
-      expect((await profileB.getConfig()).healthDeletedExternalIds, isNull);
+      expect((await profileB.getConfig()).healthDeletedWorkouts, isNull);
     });
 
     test(

@@ -78,6 +78,12 @@ class _FakeConfigRepository implements ConfigRepository {
   @override
   Future<void> setIsDemoData(bool _) async {}
 
+  // Stamped alongside the policy acceptance, so someone onboarding now is
+  // never told the document they just read has changed (#887). Written after
+  // the race under test, resolves immediately.
+  @override
+  Future<void> setConfigPolicyNoticeRevisionSeen(int _) async {}
+
   @override
   noSuchMethod(Invocation invocation) =>
       throw UnimplementedError(invocation.memberName.toString());

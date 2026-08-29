@@ -10,7 +10,10 @@ import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
 import '../helpers/hive_test_setup.dart';
@@ -69,6 +72,19 @@ class _MemoryStorage implements FlutterSecureStorage {
 /// Hive/encryption bootstrap. The shared content libraries are deliberately
 /// left unset — the usecase must never reach for them, and a `late final`
 /// that was never assigned throws loudly if it does.
+/// A notification service that does nothing, for a test that is not about
+/// notifications.
+///
+/// Cancelling arrived on this use case from `develop` (#764) while this test
+/// was written on the AI branch; the two met at the merge. The real service
+/// reaches the platform plugin, which is not available here — and
+/// `_stopScheduledNotifications` wraps its calls in `_bestEffort`, so a
+/// throwing stand-in would be swallowed and prove nothing either way.
+class _SilentNotificationService extends NotificationService {
+  @override
+  Future<void> cancelAllScheduled() async {}
+}
+
 class _TestHiveDBProvider extends HiveDBProvider {
   final Box<ConfigDBO> config;
   final Box<IntakeDBO> intake;
@@ -144,7 +160,12 @@ void main() {
 
     backing = _MemoryStorage();
     credentials = AiCredentialStorage(backing);
-    sut = DeleteAllUserDataUsecase(provider, credentials);
+    sut = DeleteAllUserDataUsecase(
+      provider,
+      _SilentNotificationService(),
+      ConfigRepository(ConfigDataSource(provider)),
+      credentials,
+    );
   });
 
   tearDown(() async {
