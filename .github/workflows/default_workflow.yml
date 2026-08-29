@@ -61,8 +61,11 @@ jobs:
       - name: Install Flutter packages
         run: just install
 
-      - name: Generate localizations
-        run: just gen_l10n
+      # check_l10n generates, then fails if any locale is missing a key.
+      # `flutter gen-l10n` alone exits 0 on a missing translation and lets it
+      # ship as English, and nothing downstream sees the difference.
+      - name: Generate localizations (fails if a locale is missing keys)
+        run: just check_l10n
 
       - name: Generate code (env.g.dart, Hive adapters, JSON serializers)
         run: just build
@@ -932,12 +935,80 @@ jobs:
           name: android-aab
           path: release-assets/android
 
+      # Tolerates exactly one upstream defect, and nothing else.
+      #
+      # Since 2.1.0 the bundle declares `android.permission.health.*`, and the
+      # Play Publishing API rejects health-permission bundles at
+      # `EditService.Validate`/`Commit` with "You must let us know whether your
+      # app includes any health features" — **regardless of the declaration**,
+      # which is complete and was re-verified across four console surfaces
+      # (#942). Uploading the same bundle by hand through the console asks no
+      # health question at all and succeeds. It is a known, open, unowned
+      # defect: fastlane#22204 was closed unfixed, fastlane#27960 reopened it,
+      # and expo/eas-cli#3275 reports it from a different toolchain, which
+      # rules out fastlane's request construction as the sole cause.
+      #
+      # So the attempt stays. Deleting the step would go silently green and
+      # nobody would notice the day Google fixes it; `continue-on-error` would
+      # swallow real failures too. Matching the one error string keeps every
+      # other failure — bad credentials, a consumed versionCode, a rejected
+      # bundle — loud, and lets this heal itself with no further change.
+      #
+      # Note what a failing upload also costs, learned the hard way in #959:
+      # the API never reaches the point where Play returns its release
+      # warnings, so a minSdk bump that dropped 1,399 device models went
+      # unseen for eight days. The manual upload is where those warnings
+      # appear, which is why the summary below insists on reading them.
       - name: Upload Android App Bundle to Google Play Internal Testing via Fastlane
         working-directory: android
-        run: bundle exec fastlane android internal
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           ANDROID_AAB_PATH: ${{ github.workspace }}/release-assets/android/app-release.aab
+        run: |
+          set +e
+          log="$RUNNER_TEMP/play-upload.log"
+          bundle exec fastlane android internal 2>&1 | tee "$log"
+          status=${PIPESTATUS[0]}
+          set -e
+
+          [ "$status" -eq 0 ] && exit 0
+
+          if ! grep -qF \
+            'You must let us know whether your app includes any health features' \
+            "$log"; then
+            echo "::error::Play upload failed for a reason other than the known health-declaration defect (#942). Not tolerated."
+            exit "$status"
+          fi
+
+          echo "::warning::Play rejected the API upload with the known health-declaration defect (#942). The Android bundle needs uploading by hand; iOS is unaffected."
+
+          {
+            echo '### Android upload needs doing by hand'
+            echo
+            echo 'The Play Publishing API rejected this bundle with:'
+            echo
+            echo '> Google Api Error: Invalid request - You must let us know whether your app includes any health features.'
+            echo
+            echo 'This is [#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942):'
+            echo 'a known upstream defect, not a missing declaration. The declaration is'
+            echo 'complete, and the console asks no health question when the same bundle is'
+            echo 'uploaded by hand.'
+            echo
+            echo '**To finish the release:**'
+            echo
+            echo '1. Download the `android-aab` artifact from this run, or take the AAB'
+            echo '   attached to the GitHub release this workflow creates.'
+            echo '2. Play Console → Testen und veröffentlichen → Interner Test →'
+            echo '   **Neuen Release erstellen**, and drop the AAB in.'
+            echo '3. **Read the warnings on the review step before publishing.** This is the'
+            echo '   only place Play reports them, and a failing API upload never gets far'
+            echo '   enough to return them — which is how the minSdk regression in'
+            echo '   [#959](https://github.com/simonoppowa/OpenNutriTracker/issues/959) went'
+            echo '   unnoticed for eight days.'
+            echo
+            echo 'This step will start passing on its own once Google fixes the API; nothing'
+            echo 'here needs changing when that happens.'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   github-release:
     if: |

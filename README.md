@@ -130,7 +130,7 @@ No account, no sign-in, no analytics, no ads. Your profile, diary, activities, w
 
 | Destination | When | What is sent |
 | :-- | :-- | :-- |
-| [Open Food Facts](https://world.openfoodfacts.org/) | Food search or barcode scan | The search term or barcode, plus a country tag from your device locale for ranking |
+| [Open Food Facts](https://world.openfoodfacts.org/) | Food search or barcode scan | The search term or barcode. A word search also sends your device's **language** code to rank results; the fallback search and the barcode lookup send no locale at all. Your **country is never sent** — the country boost is applied on your device, to the results that come back |
 | Supabase reference backend | Food search | The search term |
 | [Anthropic](https://www.anthropic.com/) | **Only if you save your own API key and pick Anthropic** | The meal line you type on the multi-item add screen, or a meal photo you choose to read there, and your app language |
 | [OpenAI](https://openai.com/) | **Only if you save your own API key and pick OpenAI** | As the Anthropic row, plus the model you chose |

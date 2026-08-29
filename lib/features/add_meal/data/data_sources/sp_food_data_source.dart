@@ -87,21 +87,41 @@ class SpFoodDataSource {
     return enabled;
   }
 
+  /// Calls [fn] and hands back its rows.
+  ///
+  /// `rpc` posts [params] as the request body and leaves the URL as a bare
+  /// `/rest/v1/rpc/<fn>` — which is the entire point of routing search this
+  /// way — but it is typed `dynamic`, where `select()` handed back a typed
+  /// list. One cast in one place rather than three.
+  Future<List<Map<String, dynamic>>> _rpcRows(
+    SupabaseClient client,
+    String fn,
+    Map<String, dynamic> params,
+  ) async {
+    final response = await client.rpc(fn, params: params);
+    // A set-returning function with no matches answers with an empty array,
+    // never null; null would mean the function itself returned NULL, which
+    // none of these can.
+    return (response as List).cast<Map<String, dynamic>>();
+  }
+
   Future<List<SpFoodDTO>> _searchEnglish(
     SupabaseClient client,
     String searchString,
     List<String>? enabledSources,
   ) async {
-    var query = client.from(SPConst.foodSummaryTable).select().textSearch(
-          SPConst.foodName,
-          searchString,
-          config: SPConst.foodNameFtsConfig,
-          type: TextSearchType.websearch,
-        );
-    if (enabledSources != null) {
-      query = query.inFilter(SPConst.foodSource, enabledSources);
-    }
-    final response = await query.limit(_candidatePoolSize);
+    // An RPC rather than a filtered select on the view, so the term travels
+    // in the POST body instead of the query string — see [SPConst
+    // .searchFoodSummaryFn]. The function returns `setof food_summary`, so
+    // the rows arrive in exactly the shape `select()` produced and
+    // [SpFoodDTO.fromJson] is unchanged. The source filter and the row cap
+    // move into the call because a filter chained onto an RPC would go back
+    // into the URL, which is the thing being removed.
+    final response = await _rpcRows(client, SPConst.searchFoodSummaryFn, {
+      'term': searchString,
+      'sources': enabledSources,
+      'max_rows': _candidatePoolSize,
+    });
 
     // PostgREST's `order` query parameter only accepts column references
     // (`.order('column')`), not computed expressions — `.order(ts_rank(...))`
@@ -121,20 +141,11 @@ class SpFoodDataSource {
     String searchString,
     List<String>? enabledSources,
   ) async {
-    final unrankedRows = await client
-        .from(SPConst.foodTranslationTable)
-        .select(
-          '${SPConst.translationFoodId}, ${SPConst.translationDescription}, '
-          '${SPConst.translationSource}',
-        )
-        .eq(SPConst.translationLocale, locale)
-        .textSearch(
-          SPConst.translationDescription,
-          searchString,
-          config: SPConst.translationFtsConfig,
-          type: TextSearchType.websearch,
-        )
-        .limit(_candidatePoolSize);
+    final unrankedRows = await _rpcRows(
+      client,
+      SPConst.searchFoodTranslationFn,
+      {'term': searchString, 'loc': locale, 'max_rows': _candidatePoolSize},
+    );
 
     if (unrankedRows.isEmpty) return const [];
 
@@ -144,8 +155,9 @@ class SpFoodDataSource {
     // ranked client-side instead of via Postgres ORDER BY (same issue as
     // _searchEnglish). Rank the whole candidate pool, then truncate — see
     // _candidatePoolSize for why truncating first would be wrong.
-    final translationRows =
-        rankAndTruncateTranslationRows([...unrankedRows], searchString);
+    final translationRows = rankAndTruncateTranslationRows([
+      ...unrankedRows,
+    ], searchString);
 
     final nameByFoodId = {
       for (final row in translationRows)
@@ -154,8 +166,7 @@ class SpFoodDataSource {
     };
     final machineTranslatedFoodIds = {
       for (final row in translationRows)
-        if (row[SPConst.translationSource] ==
-            SPConst.translationSourceMachine)
+        if (row[SPConst.translationSource] == SPConst.translationSourceMachine)
           row[SPConst.translationFoodId] as int,
     };
     // nameByFoodId's key order mirrors translationRows (a LinkedHashMap
@@ -168,14 +179,16 @@ class SpFoodDataSource {
 
     // The source filter is applied on the summary fetch rather than the
     // translation match: food_translation has no source column.
-    var query = client
-        .from(SPConst.foodSummaryTable)
-        .select()
-        .inFilter(SPConst.foodId, nameByFoodId.keys.toList());
-    if (enabledSources != null) {
-      query = query.inFilter(SPConst.foodSource, enabledSources);
-    }
-    final response = await query;
+    //
+    // An RPC for the same reason the search above is one, and it is worth
+    // being explicit about why: these ids are *derived from the search
+    // term*, so an `in.(...)` filter would put a fingerprint of what the
+    // user typed straight back into the URL the gateway logs. Removing the
+    // term while leaving its shadow behind would not be worth doing.
+    final response = await _rpcRows(client, SPConst.foodSummaryByIdsFn, {
+      'ids': nameByFoodId.keys.toList(),
+      'sources': enabledSources,
+    });
 
     // A WHERE-IN fetch has no guaranteed relationship to its id list's
     // order, so re-sort onto the translation-relevance order captured above
@@ -183,13 +196,16 @@ class SpFoodDataSource {
     final foods = response.map((food) {
       final dto = SpFoodDTO.fromJson(food);
       dto.localizedName = nameByFoodId[dto.foodId];
-      dto.localizedNameIsMachineTranslated =
-          machineTranslatedFoodIds.contains(dto.foodId);
+      dto.localizedNameIsMachineTranslated = machineTranslatedFoodIds.contains(
+        dto.foodId,
+      );
       return dto;
     }).toList();
-    mergeSort(foods,
-        compare: (a, b) => (rankByFoodId[a.foodId] ?? rankByFoodId.length)
-            .compareTo(rankByFoodId[b.foodId] ?? rankByFoodId.length));
+    mergeSort(
+      foods,
+      compare: (a, b) => (rankByFoodId[a.foodId] ?? rankByFoodId.length)
+          .compareTo(rankByFoodId[b.foodId] ?? rankByFoodId.length),
+    );
     return foods;
   }
 }
@@ -202,12 +218,17 @@ class SpFoodDataSource {
 /// directly unit-testable without mocking the Supabase client.
 @visibleForTesting
 List<SpFoodDTO> rankAndTruncateFoodsByName(
-    List<SpFoodDTO> foods, String searchString) {
+  List<SpFoodDTO> foods,
+  String searchString,
+) {
   final decorated = [
-    for (final food in foods) (food: food, score: textRelevanceScore(food.name, searchString)),
+    for (final food in foods)
+      (food: food, score: textRelevanceScore(food.name, searchString)),
   ];
   mergeSort(decorated, compare: (a, b) => b.score.compareTo(a.score));
-  return [for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.food];
+  return [
+    for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.food,
+  ];
 }
 
 /// Same idea as [rankAndTruncateFoodsByName], but for raw `food_translation`
@@ -215,14 +236,21 @@ List<SpFoodDTO> rankAndTruncateFoodsByName(
 /// into [SpFoodDTO] (see [SpFoodDataSource._searchByTranslation]).
 @visibleForTesting
 List<Map<String, dynamic>> rankAndTruncateTranslationRows(
-    List<Map<String, dynamic>> rows, String searchString) {
+  List<Map<String, dynamic>> rows,
+  String searchString,
+) {
   final decorated = [
     for (final row in rows)
       (
         row: row,
-        score: textRelevanceScore(row[SPConst.translationDescription] as String?, searchString),
+        score: textRelevanceScore(
+          row[SPConst.translationDescription] as String?,
+          searchString,
+        ),
       ),
   ];
   mergeSort(decorated, compare: (a, b) => b.score.compareTo(a.score));
-  return [for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.row];
+  return [
+    for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.row,
+  ];
 }

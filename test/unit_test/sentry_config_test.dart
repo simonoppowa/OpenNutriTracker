@@ -29,12 +29,30 @@ void main() {
     expect(beforeSend, isNotNull, reason: 'no beforeSend hook is configured');
 
     final event = SentryEvent(
-      user: SentryUser(id: 'a-per-install-uuid', geo: SentryGeo(city: 'Essen')),
+      user: SentryUser(
+        id: 'a-per-install-uuid',
+        geo: SentryGeo(city: 'Essen'),
+      ),
     );
     final sent = await beforeSend!(event, Hint());
 
     expect(sent, isNotNull, reason: 'the hook must not drop the event itself');
     expect(sent!.user, isNull);
+  });
+
+  test('release options send no performance transactions', () {
+    // A traces sample rate is what turns transaction sending on, and
+    // enableAutoPerformanceTracing defaults to true — so a non-null rate here
+    // means app-start and screen-load transactions for ordinary sessions, with
+    // no crash involved. The switch says "Send crash reports to help fix bugs".
+    final options = configured();
+
+    expect(options.tracesSampleRate, isNull);
+    expect(
+      options.isTracingEnabled(),
+      isFalse,
+      reason: 'tracing is on, so ordinary sessions reach the network',
+    );
   });
 
   test('release options do not attach default PII', () {
