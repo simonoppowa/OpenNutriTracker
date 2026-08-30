@@ -603,6 +603,27 @@ void main() {
     expect(find.text(lookupS(const Locale('en')).servingLabel), findsNothing);
   });
 
+  testWidgets('and never in a locale that word is not written in', (
+    tester,
+  ) async {
+    // #864. The description is English on every path — `food_summary`
+    // builds it straight from `food_portion.portion_description`, and
+    // `food_portion_translation` is empty. #865 put that English word in
+    // front of all nine locales; a German row read "3 slice".
+    await _register({
+      'bread': [
+        _meal('Bread', servingQuantity: 38, servingSize: '1 slice (38 g)'),
+      ],
+    });
+
+    await tester.pumpWidget(_app(locale: const Locale('de')));
+    await tester.pumpAndSettle();
+    await _parse(tester, '3 bread');
+
+    expect(find.text('slice'), findsNothing);
+    expect(find.text(lookupS(const Locale('de')).servingLabel), findsOneWidget);
+  });
+
   testWidgets('and keeps "serving" when the record names no measure', (
     tester,
   ) async {

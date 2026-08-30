@@ -49,7 +49,29 @@ const maxHouseholdPortionLabel = 16;
 /// Deliberately conservative: every rejection falls back to today's wording,
 /// so a miss costs nothing and a false positive would cost a wrong-looking
 /// unit on a correct number.
-String? householdPortionLabel(String? servingSize) {
+///
+/// **Only in English, because that is the only language this text exists
+/// in.** `food_summary.serving_size` is built straight from
+/// `food_portion.portion_description` with no join to
+/// `food_portion_translation`, and that table is empty — measured against the
+/// live backend, 0 rows, alongside 36,682 portions. So the word is "slice"
+/// for every locale the app ships. Food *names* are translated (20,834 rows
+/// in `food_translation`), which is what made the gap easy to miss: the row
+/// showed a German name beside an English unit.
+///
+/// The cost is admitted rather than hidden: an Open Food Facts product whose
+/// own `serving_size` happens to be in the reader's language is suppressed
+/// too, because nothing here can tell which language that field is in. That
+/// returns those rows to what they said before this function existed, which
+/// was never wrong — only less specific. Guessing the other way puts an
+/// English word in eight other languages' UI.
+///
+/// This is the gate to remove first if `food_portion_translation` is ever
+/// populated (#864).
+String? householdPortionLabel(String? servingSize, {
+  required String languageCode,
+}) {
+  if (languageCode != 'en') return null;
   if (servingSize == null) return null;
 
   final withoutWeight = servingSize.replaceFirst(_trailingWeight, '');

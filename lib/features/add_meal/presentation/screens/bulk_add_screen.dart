@@ -990,7 +990,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         UnitDropdownItem.oz => S.of(context).ozUnit,
         UnitDropdownItem.flOz => S.of(context).flOzUnit,
         UnitDropdownItem.serving =>
-          householdPortionLabel(row.meal?.servingSize) ??
+          householdPortionLabel(
+            row.meal?.servingSize,
+            languageCode: Localizations.localeOf(context).languageCode,
+          ) ??
               S.of(context).servingLabel,
       };
 
