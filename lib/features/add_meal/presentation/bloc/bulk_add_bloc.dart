@@ -82,9 +82,19 @@ class BulkAddRow extends Equatable {
   /// serving that becomes 3 g/ml, and looking only for a *missing* unit
   /// would let it through unmarked.
   ///
-  /// Either way the row still logs — both fields are editable — but it is
-  /// marked so the eye lands on the one row needing a decision rather than
-  /// on a plausible-looking wrong number.
+  /// Either way the row is **held back from the batch** until the user
+  /// settles it, and marked so the eye lands on the one row needing a
+  /// decision rather than on a plausible-looking wrong number.
+  ///
+  /// Marking alone used to be the whole remedy, and it was not enough. A
+  /// device pass typed `zwei Eier und drei Scheiben Brot`, got two flagged
+  /// rows reading 2 g/ml and 3 g/ml, and **Save all** wrote both: 11 kcal
+  /// for a breakfast. The flag was doing its job and the batch ignored it.
+  /// Worse, the control the flag points at cannot always answer — a record
+  /// with no portion offers only `g`, `oz`, `g/ml`, so there is no unit on
+  /// the dropdown that means *one egg*. A warning pointing at a control that
+  /// cannot resolve it, over a button that logs it anyway, is not a warning.
+  /// #973.
   ///
   /// Derived rather than stored, so picking a different candidate
   /// re-evaluates it against the food actually selected. A stored flag
@@ -183,7 +193,12 @@ class BulkAddRow extends Equatable {
       allowedUnits.contains(unit) ? unit : UnitDropdownItem.gml.toString();
 
   /// Rows that will actually be written when the user confirms.
-  bool get willBeLogged => isResolved && !skipped;
+  ///
+  /// [amountNeedsCheck] excludes rather than merely annotates: an amount the
+  /// app cannot vouch for is not written to the diary on the user's behalf.
+  /// Picking a unit clears the flag and the row rejoins the batch, so the
+  /// way out is one tap on the control the warning already points at. #973.
+  bool get willBeLogged => isResolved && !skipped && !amountNeedsCheck;
 
   BulkAddRow copyWith({
     int? selectedIndex,
