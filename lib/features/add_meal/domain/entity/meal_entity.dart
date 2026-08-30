@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/supported_language.dart';
@@ -96,6 +97,15 @@ class MealEntity extends Equatable {
   /// back from the database, which stores no such provenance.
   final bool servingSizeIsLocalized;
 
+  /// Every way this food can be counted, in the backend's order, so the first
+  /// is the portion `food_summary` picked and a picker opens where the app
+  /// already stood.
+  ///
+  /// Empty for everything that is not a fresh backend search result — Open
+  /// Food Facts, custom meals, anything read back from the database — and the
+  /// row then behaves exactly as it did before portions existed.
+  final List<MealPortionEntity> portions;
+
   /// Relative path (`meal_images/<code>.webp`) to a user-attached photo
   /// for a custom meal, or null if none is set. Resolved to an absolute
   /// path at render time via `MealImageStorage.absolutePath`. Always
@@ -135,6 +145,7 @@ class MealEntity extends Equatable {
     this.backendSource,
     this.machineTranslatedName = false,
     this.servingSizeIsLocalized = false,
+    this.portions = const [],
     this.localImagePath,
     this.detailed = false,
   });
@@ -164,6 +175,34 @@ class MealEntity extends Equatable {
     backendSource: backendSource,
     machineTranslatedName: machineTranslatedName,
     servingSizeIsLocalized: true,
+    portions: portions,
+    localImagePath: localImagePath,
+    detailed: detailed,
+  );
+
+  /// The same meal knowing every portion it can be counted in.
+  ///
+  /// Separate from [withServingLabel] because the two arrive from different
+  /// calls and either can be absent: a food may have a verified default label
+  /// and no picker-worthy list, or several portions and no translation.
+  MealEntity withPortions(List<MealPortionEntity> found) => MealEntity(
+    code: code,
+    name: name,
+    brands: brands,
+    thumbnailImageUrl: thumbnailImageUrl,
+    mainImageUrl: mainImageUrl,
+    url: url,
+    mealQuantity: mealQuantity,
+    mealUnit: mealUnit,
+    servingQuantity: servingQuantity,
+    servingUnit: servingUnit,
+    servingSize: servingSize,
+    nutriments: nutriments,
+    source: source,
+    backendSource: backendSource,
+    machineTranslatedName: machineTranslatedName,
+    servingSizeIsLocalized: servingSizeIsLocalized,
+    portions: found,
     localImagePath: localImagePath,
     detailed: detailed,
   );

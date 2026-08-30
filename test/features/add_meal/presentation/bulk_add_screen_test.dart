@@ -16,6 +16,7 @@ import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
@@ -115,6 +116,7 @@ MealEntity _meal(
   String? servingSize,
   String? mealUnit,
   String? brands,
+  List<MealPortionEntity> portions = const [],
 }) =>
     MealEntity(
       code: name,
@@ -126,6 +128,7 @@ MealEntity _meal(
       servingQuantity: servingQuantity,
       servingUnit: null,
       servingSize: servingSize,
+      portions: portions,
       source: MealSourceEntity.off,
       nutriments: const MealNutrimentsEntity(
         energyKcal100: 100,
@@ -684,6 +687,41 @@ void main() {
       find.text(lookupS(const Locale('en')).bulkAddDefaultAmountLabel),
       findsNothing,
     );
+  });
+
+  testWidgets('a chosen portion is written as a plain serving', (
+    tester,
+  ) async {
+    // #864 decision 3. The dropdown offers "serving#1" so the row can name
+    // the slice, but `IntakeDBO.unit` is published in docs/export-format.md
+    // and rides in a positional QR array other builds parse, so what gets
+    // written has to stay inside the closed set.
+    await _register({
+      'bread': [
+        _meal('Bread', servingQuantity: 244, portions: const [
+          MealPortionEntity(label: '1 cup', gramWeight: 244, localized: false),
+          MealPortionEntity(label: '1 slice', gramWeight: 38, localized: false),
+        ]),
+      ],
+    });
+
+    await tester.pumpWidget(_app());
+    await _parse(tester, '3 bread');
+
+    // Pick the second portion, then log.
+    await tester.tap(find.byType(DropdownButton<String>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('slice').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(_submitButton());
+    await tester.pumpAndSettle();
+
+    final write = _mealDetailBloc.writes.single;
+    expect(write.unit, 'serving',
+        reason: 'the portion suffix must never be written down');
+    expect(double.parse(write.amount), 114,
+        reason: '3 slices at 38 g, not 3 cups at 244 g');
   });
 
   testWidgets('the quantity box holds the largest amount at 2x', (
