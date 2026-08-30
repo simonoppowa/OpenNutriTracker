@@ -19,11 +19,32 @@ class ParsedMealItem {
   final double? quantity;
   final String? unit;
 
-  const ParsedMealItem({required this.query, this.quantity, this.unit});
+  /// What the model called the portion — "slice", "cup" — as a **lookup key**
+  /// into the food's own portions, never a value.
+  ///
+  /// The deterministic parser never sets it: it keys off unit symbols and
+  /// leaves any household word in [query], where `matchPortionToQuery` finds
+  /// it. This is for the paths that have no typed text to search — a
+  /// photograph above all, where nobody wrote "slices" for anything to match.
+  ///
+  /// Nothing numeric arrives with it. The grams still come from the portion
+  /// the key resolves to, which came from the food database, so "every number
+  /// is cited" is untouched — the model names, the data measures. A key that
+  /// matches nothing is ignored, which is a far weaker failure than a wrong
+  /// number. #864.
+  final String? portion;
+
+  const ParsedMealItem({
+    required this.query,
+    this.quantity,
+    this.unit,
+    this.portion,
+  });
 
   @override
   String toString() =>
-      'ParsedMealItem(query: $query, quantity: $quantity, unit: $unit)';
+      'ParsedMealItem(query: $query, quantity: $quantity, unit: $unit, '
+      'portion: $portion)';
 }
 
 /// One rejected segment, identified by its position in the input.
@@ -210,7 +231,17 @@ MealTextParseResult validateParsedMealItems(List<ParsedMealItem> candidates) {
         ? unit
         : null;
 
-    items.add(ParsedMealItem(query: query, quantity: quantity, unit: keptUnit));
+    // `portion` is carried through untouched. Every model reply passes here,
+    // so dropping it would leave the key set and never used — the feature
+    // silently doing nothing, with no failure to notice.
+    items.add(
+      ParsedMealItem(
+        query: query,
+        quantity: quantity,
+        unit: keptUnit,
+        portion: candidate.portion,
+      ),
+    );
   }
 
   return MealTextParseResult(items: items, errors: errors);

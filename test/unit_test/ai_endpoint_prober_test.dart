@@ -310,7 +310,12 @@ void main() {
           ((params['properties'] as Map)['items'] as Map)['items'] as Map;
       expect(
         (item['properties'] as Map).keys,
-        unorderedEquals(['query', 'quantity', 'unit']),
+      // `portion` joined the set in #864. It is a lookup key rather than a
+      // measurement — the model names a portion, the gram weight comes from
+      // the food's own record — so the provenance guarantee is unchanged.
+      // Kept exact rather than loosened to "contains no macros", because
+      // exact is what caught this addition and has to catch the next one.
+        unorderedEquals(['query', 'quantity', 'unit', 'portion']),
       );
     },
   );

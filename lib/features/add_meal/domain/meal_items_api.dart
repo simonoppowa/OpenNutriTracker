@@ -42,6 +42,14 @@ const mealItemsToolDescription = 'Record the food items found.';
 /// The schema every provider is held to. **No nutrition fields, by
 /// construction.**
 ///
+/// `portion` is not one, and the distinction is the whole design rather than
+/// a technicality. It is a **lookup key** into the food's own portions — the
+/// model says "slice" and the gram weight comes from the row that matched,
+/// which came from the food database. A key that matches nothing is ignored.
+/// So the model still names and the data still measures, and a wrong key
+/// costs a portion nobody selected rather than a number nobody can check.
+/// #864.
+///
 /// This is the provenance guarantee's enforcement point, and it is a
 /// top-level constant rather than a member of either client so that adding a
 /// provider cannot quietly add a second schema. Reviewing the guarantee stays
@@ -73,6 +81,13 @@ const mealItemsToolSchema = {
       'items': {
         'type': 'object',
         'properties': {
+          'portion': {
+            'type': 'string',
+            'description':
+                'How the food was portioned, if it was — '
+                'slice, cup, piece. A word only, never a weight or a '
+                'count. Omit when unsure.',
+          },
           'query': {
             'type': 'string',
             'description':
@@ -177,10 +192,17 @@ ParsedMealItem? _mealItemFrom(Map<dynamic, dynamic> raw) {
   };
 
   final rawUnit = raw['unit'];
+  final rawPortion = raw['portion'];
   return ParsedMealItem(
     query: query,
     quantity: quantity,
     unit: rawUnit is String ? rawUnit : null,
+    // A non-string is dropped rather than coerced: this is a key to look
+    // something up with, and a number here means the model misread the
+    // field, not that it meant 3.
+    portion: rawPortion is String && rawPortion.trim().isNotEmpty
+        ? rawPortion.trim()
+        : null,
   );
 }
 

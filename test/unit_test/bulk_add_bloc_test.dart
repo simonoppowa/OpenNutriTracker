@@ -102,6 +102,39 @@ class _AlwaysFailsInterpreter implements MealTextInterpreter {
       throw failure;
 }
 
+/// A model that answers with exactly these items. The sibling of
+/// [readerFailingWith]: a key is stored, so the use case really takes the
+/// model path rather than falling back to the parser.
+ReadMealTextUseCase readerReturning(List<ParsedMealItem> items) =>
+    ReadMealTextUseCase(
+      AiCredentialStorage(
+        _MapStorage({
+          'AiApiKeyTag.anthropic': 'sk-test',
+          'AiAssistEnabledTag': 'true',
+        }),
+      ),
+      (_) => _FixedInterpreter(items),
+    );
+
+class _FixedInterpreter implements MealTextInterpreter {
+  final List<ParsedMealItem> items;
+
+  _FixedInterpreter(this.items);
+
+  @override
+  Future<MealTextParseResult> interpret(String input, {String? localeCode}) async =>
+      MealTextParseResult(items: items, errors: const []);
+}
+
+BulkAddBloc blocWithModelReply(
+  Map<String, List<MealEntity>> results,
+  List<ParsedMealItem> items,
+) => BulkAddBloc(
+  ResolveParsedMealsUseCase(_FakeSearch(results)),
+  readerReturning(items),
+  photoReaderWithoutKey(),
+);
+
 BulkAddBloc blocWithFailingReader(
   Map<String, List<MealEntity>> results,
   MealInterpreterException failure,
@@ -933,6 +966,33 @@ void main() {
 
       expect(row.unit, isNot('serving#1'));
       expect(row.amountText, '244');
+    });
+
+    test("the model's own word picks the portion", () async {
+      // A photograph has no typed text to search, so the key is the only
+      // thing that can name a slice on that path. Driven here through the
+      // text interpreter, which is the same ParsedMealItem either way.
+      final bloc = blocWithModelReply(
+        {'bread': [meal('Bread', servingQuantity: 244, portions: [cup, slice])]},
+        const [ParsedMealItem(query: 'bread', quantity: 3, portion: 'slice')],
+      );
+
+      final row = (await parse(bloc, 'bread')).rows.single;
+
+      expect(row.unit, 'serving#1');
+    });
+
+    test('a key that matches nothing leaves the row alone', () async {
+      // The weak failure this design chose: an unusable key is ignored, and
+      // the row keeps the preselection it would have had.
+      final bloc = blocWithModelReply(
+        {'bread': [meal('Bread', servingQuantity: 244, portions: [cup, slice])]},
+        const [ParsedMealItem(query: 'bread', quantity: 3, portion: 'thimble')],
+      );
+
+      final row = (await parse(bloc, 'bread')).rows.single;
+
+      expect(row.unit, 'serving');
     });
 
     test('a food with no portion list is untouched', () async {

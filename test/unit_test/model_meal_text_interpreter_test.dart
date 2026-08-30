@@ -120,7 +120,7 @@ void main() {
     // The provenance guarantee for tier 1b is structural: the model has
     // nowhere to put a calorie. If someone adds a macro field to the tool
     // schema, this fails — which is the review question we want asked.
-    test('exposes only query, quantity and unit', () async {
+    test('exposes only query, quantity, unit and portion', () async {
       final client = FakeClient(body: toolReply(const []));
       await interpreterWith(client).interpret('toast');
 
@@ -131,10 +131,16 @@ void main() {
                   as Map)['items']
               as Map;
 
+      // `portion` joined the set in #864. It is a lookup key rather than a
+      // measurement — the model names a portion, the gram weight comes from
+      // the food's own record — so the provenance guarantee is unchanged.
+      // Kept exact rather than loosened to "contains no macros", because
+      // exact is what caught this addition and has to catch the next one.
       expect(((itemProps['properties']) as Map).keys.toSet(), {
         'query',
         'quantity',
         'unit',
+        'portion',
       });
       expect(itemProps['additionalProperties'], isFalse);
     });
