@@ -66,12 +66,20 @@ const maxHouseholdPortionLabel = 16;
 /// was never wrong — only less specific. Guessing the other way puts an
 /// English word in eight other languages' UI.
 ///
-/// This is the gate to remove first if `food_portion_translation` is ever
-/// populated (#864).
+/// `food_portion_translation` is populated now, and `portion_labels_by_food_ids`
+/// serves only rows a human promoted to `verified` — so [textIsLocalized]
+/// opens this up per locale, with no app release, the moment a reviewer
+/// signs one off. The English path is unchanged: that text needs no
+/// translation to be in an English reader's language.
 String? householdPortionLabel(String? servingSize, {
   required String languageCode,
+  bool textIsLocalized = false,
 }) {
-  if (languageCode != 'en') return null;
+  // English, or a translation a human has verified. Both mean the same
+  // thing here — the text is in the reader's language — and nothing else
+  // does, because "1 Scheibe" and "1 slice" are indistinguishable as
+  // strings once they are on the entity.
+  if (!textIsLocalized && languageCode != 'en') return null;
   if (servingSize == null) return null;
 
   final withoutWeight = servingSize.replaceFirst(_trailingWeight, '');

@@ -106,7 +106,27 @@ class ProductsRepository {
         .map((foodItem) => MealEntity.fromSpFood(foodItem))
         .where(_keepIfConsistent)
         .toList();
-    return products;
+
+    // The serving label a food record carries is English on every path, so a
+    // German row read "3 slice" until #966 gated it off. This puts the
+    // reader's own word back where a human has verified one. #864.
+    //
+    // After the consistency filter, so nothing is fetched for rows that were
+    // just dropped. One call for the whole page rather than one per row.
+    final ids = products
+        .map((meal) => int.tryParse(meal.code ?? ''))
+        .nonNulls
+        .toList();
+    final labels = await _spBackendDataSource.fetchPortionLabels(ids);
+    if (labels.isEmpty) return products;
+
+    return [
+      for (final meal in products)
+        if (labels[int.tryParse(meal.code ?? '')] case final label?)
+          meal.withServingLabel(label)
+        else
+          meal,
+    ];
   }
 
   Future<MealEntity> getOFFProductByBarcode(String barcode) async {
