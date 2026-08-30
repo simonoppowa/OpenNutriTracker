@@ -80,6 +80,47 @@ void main() {
       expect(householdPortionLabel('1 slice', languageCode: 'en_US'), isNull);
     });
 
+    test('a verified translation is shown in its own locale', () {
+      // #864. `portion_labels_by_food_ids` serves only rows a human promoted
+      // to 'verified', so text that arrived that way is by construction in
+      // the reader's language — and opening this per locale needs no app
+      // release, only a reviewer signing one off.
+      expect(
+        householdPortionLabel('1 Scheibe (38 g)',
+            languageCode: 'de', textIsLocalized: true),
+        'Scheibe',
+      );
+      expect(
+        householdPortionLabel('1 片 (38 g)',
+            languageCode: 'zh', textIsLocalized: true),
+        '片',
+      );
+    });
+
+    test('but the same text unverified is still refused', () {
+      // The flag is the whole difference. Without it this is the English
+      // record text, and #966 gated it for exactly that reason.
+      expect(
+        householdPortionLabel('1 Scheibe (38 g)', languageCode: 'de'),
+        isNull,
+      );
+    });
+
+    test('being localized does not excuse a bare weight or a long label', () {
+      // The other rules still apply: a verified translation of "30 g" names
+      // no household measure, and one too long for the row is still too long.
+      expect(
+        householdPortionLabel('30 g', languageCode: 'de', textIsLocalized: true),
+        isNull,
+      );
+      final long = 'a' * (maxHouseholdPortionLabel + 1);
+      expect(
+        householdPortionLabel('1 $long',
+            languageCode: 'de', textIsLocalized: true),
+        isNull,
+      );
+    });
+
     test('a non-Latin measure survives', () {
       // The backend translates portion descriptions per locale, so this
       // function must not assume the Latin script it was written against.

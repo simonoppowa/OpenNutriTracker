@@ -993,6 +993,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           householdPortionLabel(
             row.meal?.servingSize,
             languageCode: Localizations.localeOf(context).languageCode,
+            textIsLocalized: row.meal?.servingSizeIsLocalized ?? false,
           ) ??
               S.of(context).servingLabel,
       };

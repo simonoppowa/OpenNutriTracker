@@ -85,6 +85,17 @@ class MealEntity extends Equatable {
   /// disclosure hint under the title for these.
   final bool machineTranslatedName;
 
+  /// True when [servingSize] holds a translation a human has verified, rather
+  /// than the English text every food record carries.
+  ///
+  /// Needed because the two are indistinguishable by inspection: "1 Scheibe"
+  /// and "1 slice" are both just strings on the entity, and showing the
+  /// second one to a German reader is the defect #966 had to gate against.
+  /// Only [withServingLabel] sets it, so it is false everywhere a label did
+  /// not come from the backend's verified set — including every meal read
+  /// back from the database, which stores no such provenance.
+  final bool servingSizeIsLocalized;
+
   /// Relative path (`meal_images/<code>.webp`) to a user-attached photo
   /// for a custom meal, or null if none is set. Resolved to an absolute
   /// path at render time via `MealImageStorage.absolutePath`. Always
@@ -123,9 +134,39 @@ class MealEntity extends Equatable {
     required this.source,
     this.backendSource,
     this.machineTranslatedName = false,
+    this.servingSizeIsLocalized = false,
     this.localImagePath,
     this.detailed = false,
   });
+
+  /// The same meal with a verified translation in place of the English
+  /// serving label.
+  ///
+  /// Deliberately narrow: it replaces the text and records where it came
+  /// from, and touches nothing else. [servingQuantity] in particular stays
+  /// as it was, because the backend picks the label and the gram weight from
+  /// the same portion row — swapping one without the other is how "1 slice"
+  /// ends up beside 240 g.
+  MealEntity withServingLabel(String label) => MealEntity(
+    code: code,
+    name: name,
+    brands: brands,
+    thumbnailImageUrl: thumbnailImageUrl,
+    mainImageUrl: mainImageUrl,
+    url: url,
+    mealQuantity: mealQuantity,
+    mealUnit: mealUnit,
+    servingQuantity: servingQuantity,
+    servingUnit: servingUnit,
+    servingSize: label,
+    nutriments: nutriments,
+    source: source,
+    backendSource: backendSource,
+    machineTranslatedName: machineTranslatedName,
+    servingSizeIsLocalized: true,
+    localImagePath: localImagePath,
+    detailed: detailed,
+  );
 
   factory MealEntity.empty() => MealEntity(
     code: IdGenerator.getUniqueID(),

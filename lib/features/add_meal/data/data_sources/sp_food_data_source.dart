@@ -77,6 +77,41 @@ class SpFoodDataSource {
   /// Source codes the user allows in search results (Settings → Food
   /// databases), or null when everything is enabled and no filter is
   /// needed. An empty list means every backend source is disabled.
+  /// A verified portion label per food id, in the reader's language.
+  ///
+  /// Empty rather than throwing on anything unusual — no locale, no verified
+  /// translations, a backend that refused. The caller's fallback is the
+  /// English label it already has, which is what it shows today, so a failure
+  /// here costs nothing and must never cost a search.
+  ///
+  /// Resolves the locale here rather than taking one, because this class
+  /// already owns that decision for the search itself and two answers would
+  /// eventually disagree.
+  Future<Map<int, String>> fetchPortionLabels(List<int> foodIds) async {
+    if (foodIds.isEmpty) return const {};
+    final locale = SPConst.translationLocaleOf(
+      SupportedLanguage.fromCode(Platform.localeName),
+    );
+    // English needs no lookup: the stored description is already English.
+    if (locale == null) return const {};
+
+    try {
+      final rows = await _rpcRows(
+        locator<SupabaseClient>(),
+        SPConst.portionLabelsByFoodIdsFn,
+        {'ids': foodIds, 'loc': locale},
+      );
+      return {
+        for (final row in rows)
+          if (row['food_id'] is int && row['label'] is String)
+            row['food_id'] as int: row['label'] as String,
+      };
+    } catch (e) {
+      log.fine('No portion labels for $locale: $e');
+      return const {};
+    }
+  }
+
   Future<List<String>?> _enabledSources() async {
     final toggles = await locator<ConfigDataSource>().getFoodSourceToggles();
     if (toggles == null) return null;
