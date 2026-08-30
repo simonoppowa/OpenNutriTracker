@@ -412,7 +412,13 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     // exactly as it was, which is decision 7 — nothing changes for anyone
     // who did not name a portion.
     if (parsed.quantity != null) {
-      final named = matchPortionToQuery(parsed.query, meal.portions);
+      // The model's own word first, then the user's. A photograph has no
+      // typed text to search, so `portion` is the only thing that can name a
+      // slice there; where both exist they usually agree, and the model saw
+      // the food.
+      final named =
+          matchPortionToQuery(parsed.portion ?? '', meal.portions) ??
+          matchPortionToQuery(parsed.query, meal.portions);
       if (named != null) return portionUnit(named);
     }
 
