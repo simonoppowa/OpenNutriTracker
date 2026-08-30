@@ -7,6 +7,7 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_phot
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
+import 'package:opennutritracker/features/add_meal/util/portion_unit.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 
 part 'bulk_add_event.dart';
@@ -145,13 +146,21 @@ class BulkAddRow extends Equatable {
       meal?.servingQuantity == null;
 
   List<String> get allowedUnits => [
+    // One entry per portion the food actually has — cup, slice, ounce —
+    // rather than the single one `food_summary` picked. The values are
+    // `serving`, `serving#1`, ...; `storedUnit` strips the suffix before
+    // anything is written, so the published unit vocabulary is unchanged.
+    // #864.
+    if (meal?.portions.isNotEmpty ?? false)
+      for (var i = 0; i < meal!.portions.length; i++) portionUnit(i)
     // Only when the serving can actually be scaled. `hasServingValues` is
     // also true for a record carrying nothing but `servingSize` text, and
     // `convertQuantityToBaseUnit` leaves those unscaled — so offering
     // `serving` there is a no-op dressed as a fix. Worse, it is the option
     // a user reaches for after reading `amountNeedsCheck`: picking it
     // relabels the row, clears the warning and logs the same wrong number.
-    if (meal?.servingQuantity != null) UnitDropdownItem.serving.toString(),
+    else if (meal?.servingQuantity != null)
+      UnitDropdownItem.serving.toString(),
     if (meal?.isSolid ?? false) ...[
       UnitDropdownItem.g.toString(),
       UnitDropdownItem.oz.toString(),

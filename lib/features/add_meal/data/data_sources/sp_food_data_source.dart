@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/retry_util.dart';
 import 'package:opennutritracker/core/utils/supported_language.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -108,6 +109,56 @@ class SpFoodDataSource {
       };
     } catch (e) {
       log.fine('No portion labels for $locale: $e');
+      return const {};
+    }
+  }
+
+  /// Every usable portion per food id, in the backend's order.
+  ///
+  /// Same failure policy as [fetchPortionLabels]: empty for anything unusual,
+  /// because the caller's fallback is the single serving it already has, and
+  /// a portion list is not worth costing anyone a search.
+  ///
+  /// Unlike the label lookup this runs for English too — the choice between a
+  /// food's cup, slice and ounce is worth offering whether or not the words
+  /// needed translating.
+  Future<Map<int, List<MealPortionEntity>>> fetchPortions(
+    List<int> foodIds,
+  ) async {
+    if (foodIds.isEmpty) return const {};
+    final locale = SPConst.translationLocaleOf(
+      SupportedLanguage.fromCode(Platform.localeName),
+    );
+
+    try {
+      final rows = await _rpcRows(
+        locator<SupabaseClient>(),
+        SPConst.portionsByFoodIdsFn,
+        // English has no translations to look for, and the function treats an
+        // unmatched locale as "none verified", so passing 'en' asks the same
+        // question without a special case here.
+        {'ids': foodIds, 'loc': locale ?? 'en'},
+      );
+
+      final byFood = <int, List<MealPortionEntity>>{};
+      for (final row in rows) {
+        final id = row['food_id'];
+        final label = row['label'];
+        final grams = row['gram_weight'];
+        if (id is! int || label is! String || grams == null) continue;
+        final weight = grams is num ? grams.toDouble() : null;
+        if (weight == null || weight <= 0) continue;
+        byFood.putIfAbsent(id, () => []).add(
+          MealPortionEntity(
+            label: label,
+            gramWeight: weight,
+            localized: row['localized'] == true,
+          ),
+        );
+      }
+      return byFood;
+    } catch (e) {
+      log.fine('No portions fetched: $e');
       return const {};
     }
   }

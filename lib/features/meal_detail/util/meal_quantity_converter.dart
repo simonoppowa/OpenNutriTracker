@@ -1,4 +1,5 @@
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/features/add_meal/util/portion_unit.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 
@@ -20,7 +21,25 @@ double convertQuantityToBaseUnit(
   String unit,
   MealEntity meal,
 ) {
-  if (unit == UnitDropdownItem.serving.toString()) {
+  // A named portion scales by its own weight. Falls through to the old
+  // serving path when the food has no portion list — every meal that is not
+  // a fresh backend search result — so nothing that worked before changes.
+  if (isPortionUnit(unit) && meal.portions.isNotEmpty) {
+    final index = effectivePortionIndex(unit);
+    if (index < meal.portions.length) {
+      return quantity * meal.portions[index].gramWeight;
+    }
+    // An index past the end means the food changed under a chosen unit.
+    // Falling through is deliberate: the serving path below either scales by
+    // the record's own serving or leaves the amount alone, and both are
+    // better than multiplying by a portion that belongs to another food.
+  }
+
+  // `storedUnit`, not `unit`: an index past the end falls through to here
+  // still carrying its suffix, and comparing the raw string would miss the
+  // serving path entirely and hand back an unscaled amount — 2 instead of
+  // 2 x 30 g.
+  if (storedUnit(unit) == UnitDropdownItem.serving.toString()) {
     // `scalableServingQuantity`, not `servingQuantity` (#629): OFF often
     // leaves the numeric field empty while `serving_size` carries the figure
     // as text, and reading only the numeric one left this branch silently

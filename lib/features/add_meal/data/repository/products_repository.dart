@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/utils/off_country.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -117,16 +118,39 @@ class ProductsRepository {
         .map((meal) => int.tryParse(meal.code ?? ''))
         .nonNulls
         .toList();
-    final labels = await _spBackendDataSource.fetchPortionLabels(ids);
-    if (labels.isEmpty) return products;
+    // Both lookups in flight together: they answer different questions of the
+    // same page and neither depends on the other, so serialising them would
+    // just add a round trip to every search.
+    final (labels, portions) = await (
+      _spBackendDataSource.fetchPortionLabels(ids),
+      _spBackendDataSource.fetchPortions(ids),
+    ).wait;
+    if (labels.isEmpty && portions.isEmpty) return products;
 
     return [
       for (final meal in products)
-        if (labels[int.tryParse(meal.code ?? '')] case final label?)
-          meal.withServingLabel(label)
-        else
-          meal,
+        _decorate(meal, labels, portions),
     ];
+  }
+
+  /// Applies whichever of the two lookups had something for this meal.
+  ///
+  /// Either can be absent independently — a food may have a verified default
+  /// label and only one portion, or several portions and no translation — so
+  /// they are applied separately rather than as a pair.
+  MealEntity _decorate(
+    MealEntity meal,
+    Map<int, String> labels,
+    Map<int, List<MealPortionEntity>> portions,
+  ) {
+    final id = int.tryParse(meal.code ?? '');
+    if (id == null) return meal;
+    var result = meal;
+    if (labels[id] case final label?) result = result.withServingLabel(label);
+    if (portions[id] case final found? when found.isNotEmpty) {
+      result = result.withPortions(found);
+    }
+    return result;
   }
 
   Future<MealEntity> getOFFProductByBarcode(String barcode) async {

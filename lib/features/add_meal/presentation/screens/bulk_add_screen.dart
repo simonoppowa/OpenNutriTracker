@@ -17,6 +17,7 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text
 import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_photo_encoder.dart';
 import 'package:opennutritracker/features/add_meal/util/portion_label.dart';
+import 'package:opennutritracker/features/add_meal/util/portion_unit.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -982,8 +983,29 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// Takes the row because one of the six units is not a fixed word: the
   /// food names its own portion, and "3 slice" says what "3 serving" only
   /// implies. Display only — the value behind it stays `serving` (#864).
-  String _unitLabel(BuildContext context, String unit, BulkAddRow row) =>
-      switch (UnitDropdownItem.g.fromString(unit)) {
+  String _unitLabel(BuildContext context, String unit, BulkAddRow row) {
+    // A named portion shows its own word — "slice", "cup" — which is the
+    // whole point of offering more than one. Only when the text is in the
+    // reader's language: the backend says per portion whether it is, and
+    // showing English to the other eight locales is what #966 gated.
+    final portions = row.meal?.portions ?? const [];
+    if (isPortionUnit(unit) && portions.isNotEmpty) {
+      final index = effectivePortionIndex(unit);
+      if (index < portions.length) {
+        final portion = portions[index];
+        final label = householdPortionLabel(
+          portion.label,
+          languageCode: Localizations.localeOf(context).languageCode,
+          textIsLocalized: portion.localized,
+        );
+        if (label != null) return label;
+      }
+    }
+    return _fixedUnitLabel(context, unit, row);
+  }
+
+  String _fixedUnitLabel(BuildContext context, String unit, BulkAddRow row) =>
+      switch (UnitDropdownItem.g.fromString(storedUnit(unit))) {
         UnitDropdownItem.g => S.of(context).gramUnit,
         UnitDropdownItem.ml => S.of(context).milliliterUnit,
         UnitDropdownItem.gml => S.of(context).gramMilliliterUnit,
@@ -1242,7 +1264,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       for (var i = 0; i < rows.length; i++) {
         await mealDetailBloc.addIntake(
           context,
-          rows[i].effectiveUnit,
+          // The suffix is a display device; the stored vocabulary stays
+          // the closed set the export format and QR payload were written
+          // against. #864 decision 3.
+          storedUnit(rows[i].effectiveUnit),
           amounts[i].toString(),
           _args.intakeTypeEntity,
           rows[i].meal!,
