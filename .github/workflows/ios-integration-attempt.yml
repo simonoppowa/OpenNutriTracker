@@ -1,0 +1,145 @@
+name: iOS integration attempt
+
+# One attempt at the iOS integration suite, on its own runner.
+#
+# default_workflow.yml calls this twice rather than retrying in place. The
+# retry it replaces re-ran `flutter test` as a second step in the same job, so
+# it landed on the same runner — and the failure this suite actually suffers is
+# runner-sticky. Every run where the first attempt hung also lost the second
+# (#904, run 33067097364, run 33069718130), in three different ways: the device
+# gone three seconds after launch, "Failed to start Dart Development Service",
+# and an identical 20-minute hang. Run 33069718130 is the one that settles it —
+# it shut down, erased and rebooted the simulator and swept the host's dart
+# processes between the attempts, and the second attempt hung anyway. Meanwhile
+# every re-run dispatched onto a *fresh* runner has passed first time.
+#
+# The hang itself is Flutter never discovering the app's VM service: the Xcode
+# build completes, the app launches, and the tool sits silent until something
+# kills it. That is the same bug the macos-15 pin below documents for macos-26;
+# it is rarer on macos-15, not absent.
+#
+# So: a second runner, not a second attempt. The job never fails — it reports
+# `passed` as an output and leaves the verdict to the caller, which is what
+# lets the second call be conditioned on the first and lets one gate job
+# require that one of them succeeded.
+
+on:
+  workflow_call:
+    outputs:
+      passed:
+        description: >-
+          "true" when the suite passed on this runner, "false" when it failed
+          or hung. Empty if the job never reached its verdict step (its own
+          timeout-minutes killed it), which callers must treat as not passed.
+        value: ${{ jobs.run.outputs.passed }}
+
+jobs:
+  run:
+    # Pinned to macos-15, not macos-26. On the macos-26 image Flutter builds
+    # and launches the app on the iPhone 17 Pro / iOS 26.4 simulator but then
+    # hangs forever on "Waiting for VM Service port to be available" — the Dart
+    # VM-service URL is never discovered on that simulator, so the test never
+    # connects (the same suite passes on the Android emulator and on the iOS 18
+    # simulator here). macos-15 ships the Xcode 16 / iOS 18 simulator this
+    # Flutter supports. Revisit macos-26 once Flutter discovers the iOS 26
+    # simulator's VM service. ios-build / package / deploy stay on macos-26 —
+    # they build/sign and never launch a simulator, so they're unaffected.
+    runs-on: macos-15
+    # The backstop, not the thing that catches hangs — the test step's own
+    # 20-minute bound does that, and turns a hang into a verdict the caller can
+    # retry on a different runner. This only stops a job drifting toward
+    # GitHub's 6-hour default if something escapes it. One attempt plus the
+    # measured ~5m30s of setup and teardown fits in 30 with room to spare.
+    #
+    # It used to be the only bound, and a hang cost the whole 50 minutes of
+    # macOS time, reported as a cancelled job rather than a failed test —
+    # which `gh pr checks` renders as `fail` on a PR that is fine (#823).
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      passed: ${{ steps.verdict.outputs.passed }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Flutter + cache packages
+        uses: ./.github/actions/setup-flutter-cache
+
+      # Match ios-podfile-lock-guard and ios-build: SPM is enabled by
+      # default on Flutter's stable channel, so `flutter test` would spend
+      # ~150s "Adding Swift Package Manager integration" and resolve plugins
+      # via the SPM graph instead of the CocoaPods one those jobs pin to.
+      # Disable it here too so this job builds the same pinned graph and
+      # skips that avoidable per-build cost.
+      - name: Disable Swift Package Manager
+        run: flutter config --no-enable-swift-package-manager
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v6
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Generate stub .env for CI
+        uses: ./.github/actions/write-env-file
+        with:
+          sentry_dns: https://stub@sentry.io/0
+          supabase_project_url: https://stub.supabase.co
+          supabase_project_anon_key: ci-stub
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Pod install (regenerate lockfile if constraints have shifted)
+        run: .github/scripts/pod_install_with_targeted_fallback.sh
+
+      # Pick any available iPhone simulator on the runner. The runner images
+      # ship several preinstalled; we don't care which exact model — the
+      # boot-smoke test is platform-bridge driven, not display-pixel driven.
+      - name: Pick + boot iPhone simulator
+        run: |
+          DEVICE_UDID=$(xcrun simctl list devices available iPhone -j | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          devices = [d for runtime in data['devices'].values() for d in runtime if d.get('isAvailable')]
+          if not devices:
+              sys.exit('No available iPhone simulators on this runner')
+          print(devices[0]['udid'])
+          ")
+          echo "Booting simulator UDID: $DEVICE_UDID"
+          xcrun simctl boot "$DEVICE_UDID"
+          xcrun simctl bootstatus "$DEVICE_UDID"
+          echo "DEVICE_UDID=$DEVICE_UDID" >> $GITHUB_ENV
+
+      # continue-on-error so the job survives to report a verdict; the caller
+      # decides what a failure means. timeout-minutes is what makes a hang
+      # reportable at all — without it the tool sits there until the job bound
+      # kills the whole job, and a cancelled job has no output to hand back.
+      #
+      # 20 minutes: the slowest healthy run of this step in the last twenty was
+      # 15m36s (the range is 8m53s-15m36s, and it includes the cold Xcode
+      # build).
+      - name: Run integration tests
+        id: attempt
+        continue-on-error: true
+        timeout-minutes: 20
+        # --flavor full so the integration-test app matches the production
+        # iOS scheme (bundle id + display name) rather than the develop one.
+        # The whole integration_test/ directory runs from a single build.
+        run: flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded
+
+      - name: Record the verdict
+        id: verdict
+        run: |
+          if [ "${{ steps.attempt.outcome }}" = "success" ]; then
+            echo "passed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::iOS integration tests failed or hung on this runner"
+            echo "passed=false" >> "$GITHUB_OUTPUT"
+          fi
