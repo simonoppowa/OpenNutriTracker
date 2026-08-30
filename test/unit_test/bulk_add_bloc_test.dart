@@ -9,6 +9,7 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_phot
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
@@ -19,6 +20,7 @@ MealEntity meal(
   double? servingQuantity,
   String? servingUnit,
   String? servingSize,
+  List<MealPortionEntity> portions = const [],
 }) => MealEntity(
   code: name,
   name: name,
@@ -28,6 +30,7 @@ MealEntity meal(
   servingQuantity: servingQuantity,
   servingUnit: servingUnit,
   servingSize: servingSize,
+  portions: portions,
   source: MealSourceEntity.off,
   nutriments: MealNutrimentsEntity.empty(),
 );
@@ -862,6 +865,84 @@ void main() {
           );
         }
       }
+    });
+  });
+
+
+  group('the typed word picks the portion (#864)', () {
+    const cup = MealPortionEntity(
+        label: '1 cup', gramWeight: 244, localized: false);
+    const slice = MealPortionEntity(
+        label: '1 slice', gramWeight: 38, localized: false);
+
+    test('"3 slices of bread" preselects the slice, not the cup', () async {
+      // The whole point. Without this the row takes the first portion and
+      // three slices log as three cups — 732 g of bread.
+      final bloc = blocWith({
+        'slices of bread': [
+          meal('Bread', servingQuantity: 244, portions: [cup, slice]),
+        ],
+      });
+
+      final row = (await parse(bloc, '3 slices of bread')).rows.single;
+
+      expect(row.unit, 'serving#1');
+      expect(row.amountText, '3');
+    });
+
+    test('naming no portion leaves the preselection exactly as it was',
+        () async {
+      // Decision 7: this only ever narrows. A bare count with no word still
+      // means the default portion, which is what the row did before.
+      final bloc = blocWith({
+        'bread': [meal('Bread', servingQuantity: 244, portions: [cup, slice])],
+      });
+
+      final row = (await parse(bloc, '3 bread')).rows.single;
+
+      expect(row.unit, 'serving');
+    });
+
+    test('a stated unit still wins over a named portion', () async {
+      // "100g toast" is grams whatever else the text says: the parser
+      // already resolved it, and second-guessing that would let a food name
+      // override an explicit measurement.
+      final bloc = blocWith({
+        'slices of bread': [
+          meal('Bread', servingQuantity: 244, portions: [cup, slice]),
+        ],
+      });
+
+      final row = (await parse(bloc, '100g slices of bread')).rows.single;
+
+      expect(row.unit, 'g');
+    });
+
+    test('naming a portion with no count does not preselect it', () async {
+      // The gate on a stated quantity is load-bearing, not tidiness.
+      // `_initialAmount` falls back to the *default* portion's weight, so
+      // preselecting the slice here would pair the slice's name with the
+      // cup's 244 g and the row would read "244 slice".
+      final bloc = blocWith({
+        'slices of bread': [
+          meal('Bread', servingQuantity: 244, portions: [cup, slice]),
+        ],
+      });
+
+      final row = (await parse(bloc, 'slices of bread')).rows.single;
+
+      expect(row.unit, isNot('serving#1'));
+      expect(row.amountText, '244');
+    });
+
+    test('a food with no portion list is untouched', () async {
+      final bloc = blocWith({
+        'slices of bread': [meal('Bread', servingQuantity: 30)],
+      });
+
+      final row = (await parse(bloc, '3 slices of bread')).rows.single;
+
+      expect(row.unit, 'serving');
     });
   });
 

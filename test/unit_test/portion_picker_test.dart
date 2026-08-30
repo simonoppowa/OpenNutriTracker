@@ -29,9 +29,10 @@ const _cup = MealPortionEntity(label: '1 cup', gramWeight: 244, localized: false
 const _slice = MealPortionEntity(label: '1 slice', gramWeight: 38, localized: false);
 const _ounce = MealPortionEntity(label: '1 oz', gramWeight: 28, localized: false);
 
-BulkAddRow _row(MealEntity meal, String unit) => BulkAddRow(
+BulkAddRow _row(MealEntity meal, String unit, {String query = 'bread'}) =>
+    BulkAddRow(
   resolved: ResolvedMealItem(
-    parsed: const ParsedMealItem(query: 'bread'),
+    parsed: ParsedMealItem(query: query),
     candidates: [meal],
     selectedIndex: 0,
     confidence: 0.9,

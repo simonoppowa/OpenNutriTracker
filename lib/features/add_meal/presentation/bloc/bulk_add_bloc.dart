@@ -7,6 +7,7 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_phot
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
+import 'package:opennutritracker/features/add_meal/util/portion_match.dart';
 import 'package:opennutritracker/features/add_meal/util/portion_unit.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 
@@ -401,6 +402,19 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
         ? UnitDropdownItem.oz.toString()
         : UnitDropdownItem.gml.toString();
     if (meal == null) return fallback;
+
+    // The user named a portion, so their word decides which — "3 slices of
+    // bread" is slices, not the cup that happens to sort first. Above the
+    // bare-count rule below, because that rule cannot tell the two apart and
+    // would take the default.
+    //
+    // Only ever *narrows* the choice: no match leaves the preselection
+    // exactly as it was, which is decision 7 — nothing changes for anyone
+    // who did not name a portion.
+    if (parsed.quantity != null) {
+      final named = matchPortionToQuery(parsed.query, meal.portions);
+      if (named != null) return portionUnit(named);
+    }
 
     // A bare count means "N of them", and when the record's serving can be
     // scaled that is precisely what a serving is — so `2 eggs` is two
