@@ -10,6 +10,7 @@ import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/add_meal/util/portion_match.dart';
 import 'package:opennutritracker/features/add_meal/util/portion_unit.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/util/meal_quantity_converter.dart';
 
 part 'bulk_add_event.dart';
 part 'bulk_add_state.dart';
@@ -192,13 +193,51 @@ class BulkAddRow extends Equatable {
   String get effectiveUnit =>
       allowedUnits.contains(unit) ? unit : UnitDropdownItem.gml.toString();
 
+  /// True when the row's number would reach the diary meaning something
+  /// other than what was asked for.
+  ///
+  /// **Narrower than [amountNeedsCheck], deliberately.** That flag fires on
+  /// every substituted unit, including substitutions that change nothing.
+  /// A record measured in grams offers no `ml`, so `200ml Milch` becomes
+  /// `200 g/ml` — same number, same base quantity, same energy, and a row
+  /// that was right all along. The guard added for #973 (#975) held those
+  /// back too, refusing an amount the user typed correctly and the app
+  /// understood correctly.
+  ///
+  /// Three ways a number does go wrong, and each is checked on its own terms
+  /// rather than inferred from the label:
+  ///
+  /// * **Nothing was stated** and the food cannot be counted, so the number
+  ///   is a count about to be read as a weight — `2 Eier` as two grams.
+  /// * **A serving the food cannot scale.** `3 serving` against a record
+  ///   with no scalable serving converts to a bare `3`, and so does
+  ///   `3 g/ml` — numerically identical, both meaningless, so comparing the
+  ///   two conversions cannot see it. Caught by asking what the unit *is*.
+  /// * **The conversion moves the number**, `4oz` against a record that
+  ///   cannot honour ounces being the plain case.
+  bool get amountWouldBeWrong {
+    if (!amountNeedsCheck) return false;
+    // Nothing to compare against: the count has no unit and no serving to
+    // land on.
+    if (resolved.parsed.unit == null) return true;
+    // A serving the food cannot honour. Checked before the conversion, not
+    // by it — see above.
+    if (isPortionUnit(unit)) return true;
+    final quantity = resolved.parsed.quantity;
+    final food = meal;
+    if (quantity == null || food == null) return true;
+    return convertQuantityToBaseUnit(quantity, unit, food) !=
+        convertQuantityToBaseUnit(quantity, effectiveUnit, food);
+  }
+
   /// Rows that will actually be written when the user confirms.
   ///
-  /// [amountNeedsCheck] excludes rather than merely annotates: an amount the
-  /// app cannot vouch for is not written to the diary on the user's behalf.
-  /// Picking a unit clears the flag and the row rejoins the batch, so the
-  /// way out is one tap on the control the warning already points at. #973.
-  bool get willBeLogged => isResolved && !skipped && !amountNeedsCheck;
+  /// [amountWouldBeWrong] excludes rather than merely annotates: an amount
+  /// that would land meaning something else is not written to the diary on
+  /// the user's behalf. Picking a unit clears it and the row rejoins the
+  /// batch, so the way out is one tap on the control the warning already
+  /// points at. #973.
+  bool get willBeLogged => isResolved && !skipped && !amountWouldBeWrong;
 
   BulkAddRow copyWith({
     int? selectedIndex,

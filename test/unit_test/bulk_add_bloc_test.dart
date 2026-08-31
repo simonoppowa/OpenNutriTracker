@@ -20,13 +20,14 @@ MealEntity meal(
   double? servingQuantity,
   String? servingUnit,
   String? servingSize,
+  String? mealUnit,
   List<MealPortionEntity> portions = const [],
 }) => MealEntity(
   code: name,
   name: name,
   url: null,
   mealQuantity: null,
-  mealUnit: null,
+  mealUnit: mealUnit,
   servingQuantity: servingQuantity,
   servingUnit: servingUnit,
   servingSize: servingSize,
@@ -265,6 +266,46 @@ void main() {
       expect(row.amountText, '2');
       expect(row.amountNeedsCheck, isTrue);
       expect(row.willBeLogged, isFalse);
+    });
+
+    test('a harmless substitution still logs', () async {
+      // A record measured in grams offers no `ml`, so a typed `200ml`
+      // becomes `200 g/ml` — same number, same base quantity, same energy.
+      // The #973 guard (#975) held these back too, refusing an amount the
+      // user had typed correctly and the app had understood correctly.
+      final bloc = blocWith({
+        'milk': [meal('Milk', mealUnit: 'g')],
+      });
+
+      final state = await parse(bloc, '200ml milk');
+
+      final row = state.rows.single;
+      expect(row.effectiveUnit, 'g/ml');
+      expect(row.amountText, '200');
+      expect(
+        row.amountNeedsCheck,
+        isTrue,
+        reason: 'the swap is still worth pointing at',
+      );
+      expect(
+        row.amountWouldBeWrong,
+        isFalse,
+        reason: 'but it does not move the number',
+      );
+      expect(state.loggableCount, 1);
+    });
+
+    test('a substitution that moves the number is kept out', () async {
+      // `4oz` against a record that cannot honour ounces becomes `4 g/ml`:
+      // a 28-fold under-count, and exactly the shape the guard is for.
+      final bloc = blocWith({
+        'steak': [meal('Steak', mealUnit: 'ml')],
+      });
+
+      final state = await parse(bloc, '4oz steak');
+
+      expect(state.rows.single.amountWouldBeWrong, isTrue);
+      expect(state.loggableCount, 0);
     });
 
     test('a flagged count is kept out of the batch', () async {
