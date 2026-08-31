@@ -567,8 +567,8 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
 
   // Gender-aware defaults for the two nutrients where female / male DRIs
   // disagree substantively. Non-binary users route through their chosen
-  // [CaloriesProfileEntity] just like the BMR calculator does
-  // (see [BMRCalc._dispatch]): Estrogen-typical → female value,
+  // [CaloriesProfileEntity] just like the calorie calculation does
+  // (see [TDEECalc.getTDEEKcalIOM2005]): Estrogen-typical → female value,
   // Testosterone-typical → male value, Averaged (default) → midpoint.
   // This keeps a single source of truth for what "non-binary → which
   // reference" means across the app, rather than the nutrient panel

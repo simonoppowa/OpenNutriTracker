@@ -133,9 +133,9 @@ class ValueValidator {
 
   /// Whether the goal for this birthday should carry the adult-equation
   /// notice. Ages below [Ranges.minAgeYears] can't be picked, so in practice
-  /// this covers 13 to 17.
+  /// this covers 13 to 18.
   static bool isUnderAdultAge(DateTime birthday, {DateTime? now}) =>
-      ageInYears(birthday, now: now) < Ranges.adultAgeYears;
+      ageInYears(birthday, now: now) < Ranges.adultEquationAgeYears;
 
   /// Clamps a stored birthday into the accepted range so it can be handed to
   /// `showDatePicker` as `initialDate`. The picker asserts when that falls

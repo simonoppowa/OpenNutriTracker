@@ -1,21 +1,9 @@
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
-import 'package:opennutritracker/core/utils/calc/bmr_calc.dart';
 import 'package:opennutritracker/core/utils/calc/pal_calc.dart';
 
 class TDEECalc {
-  /// Calculates TDEE from userEntity based on the formula from
-  /// 'Human energy requirements Report of a Joint FAO/WHO/UNU
-  /// Expert Consultation'
-  /// TDEE = BMR x PAL
-  /// https://www.fao.org/3/y5686e/y5686e00.htm
-  static double getTDEEKcalWHO2001(UserEntity userEntity) {
-    final userBMR = BMRCalc.getBMRSchofield11985(userEntity);
-    final userPAL = PalCalc.getPALValueFromActivityCategory(userEntity);
-    return userBMR * userPAL;
-  }
-
   /// Returns the total daily energy expenditure (TDEE) of given userEntity
   /// based on 2005 IOM equation
   ///
@@ -64,6 +52,15 @@ class TDEECalc {
   /// Single-side male reference result for a given PAL value. Public so the
   /// calorie-goal transparency breakdown can show each reference side of an
   /// averaged non-binary TDEE without duplicating the coefficients.
+  ///
+  /// p. 204, verbatim:
+  ///   TEE = 864 - (9.72 x age [y]) + PA x (14.2 x weight [kg]
+  ///         + 503 x height [m])
+  ///
+  /// PA multiplies the weight *and* the height term. Dropping the brackets
+  /// costs a non-sedentary user 109-489 kcal/day (#987); the brackets are the
+  /// whole content of this expression, so keep them. See
+  /// `docs/tdee-iom-2005-verification.md`.
   static double iom2005MaleReferenceKcal(
       UserEntity userEntity, double palValue) {
     final paValue = PalCalc.getPAValueForFormula(
@@ -72,12 +69,17 @@ class TDEECalc {
     );
     return 864 -
         9.72 * userEntity.age +
-        paValue * 14.2 * userEntity.weightKG +
-        503 * (userEntity.heightCM / 100);
+        paValue *
+            (14.2 * userEntity.weightKG + 503 * (userEntity.heightCM / 100));
   }
 
   /// Single-side female reference result for a given PAL value. See
-  /// [iom2005MaleReferenceKcal] for why this is public.
+  /// [iom2005MaleReferenceKcal] for why this is public, and for the bracket
+  /// placement that #987 turned on.
+  ///
+  /// p. 204, verbatim:
+  ///   TEE = 387 - (7.31 x age [y]) + PA x (10.9 x weight [kg]
+  ///         + 660.7 x height [m])
   static double iom2005FemaleReferenceKcal(
       UserEntity userEntity, double palValue) {
     final paValue = PalCalc.getPAValueForFormula(
@@ -86,7 +88,7 @@ class TDEECalc {
     );
     return 387 -
         7.31 * userEntity.age +
-        paValue * 10.9 * userEntity.weightKG +
-        660.7 * (userEntity.heightCM / 100);
+        paValue *
+            (10.9 * userEntity.weightKG + 660.7 * (userEntity.heightCM / 100));
   }
 }

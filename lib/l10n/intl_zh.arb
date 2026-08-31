@@ -480,7 +480,7 @@
   "nutritionalStatusUnderweight": "体重过轻",
   "offDisclaimer": "本应用提供的数据来自Open Food Facts数据库。无法保证所提供信息的准确性、完整性或可靠性。数据按\"原样\"提供，数据的原始来源（Open Food Facts）不对因使用数据而产生的任何损害承担责任。",
   "onboardingActivityQuestionSubtitle": "您的活动水平如何？（不包括锻炼）",
-  "onboardingAdultEquationNotice": "热量目标使用成人参考公式计算。未满 18 岁请咨询医生或营养师确认结果。",
+  "onboardingAdultEquationNotice": "热量目标使用成人参考公式计算。未满 19 岁请咨询医生或营养师确认结果。",
   "onboardingBirthdayHint": "输入日期",
   "onboardingBirthdayQuestionSubtitle": "您的生日是什么时候？",
   "onboardingBlockedActivitySnack": "请选择您的活动水平以继续",
