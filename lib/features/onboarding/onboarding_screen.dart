@@ -17,6 +17,8 @@ import 'package:opennutritracker/features/onboarding/domain/entity/user_goal_sel
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:opennutritracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_goal_page_body.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_other_options_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_overview_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_activity_page_body.dart';
@@ -288,6 +290,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             initialDailyReminderEnabled: selection.dailyReminderEnabled,
             initialUseMaterialYou: selection.useMaterialYou,
             initialAccentColor: selection.accentColor,
+            // The one dependency on this page the bloc does not carry: the AI
+            // row reads and writes the keystore directly rather than staging
+            // through onboarding's save. #728.
+            aiCredentials: locator<AiCredentialStorage>(),
+            aiProbeRunner: locator<AiEndpointProbeRunner>(),
           ),
           // Everything on this page is optional and pre-filled with
           // defaults, so the button is always active.

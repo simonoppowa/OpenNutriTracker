@@ -1,0 +1,543 @@
+import 'package:opennutritracker/core/utils/food_name_validator.dart';
+
+/// Upper bound for a parsed quantity, matching the manual-entry check in
+/// meal_detail_bottom_sheet.dart.
+const _maxQuantity = 10000;
+
+/// The exact set of `UnitDropdownItem.toString()` values (meal_detail_bloc
+/// .dart). [ParsedMealItem.unit] must always be `null` or one of these —
+/// see the assert in [parseMealText] and the dedicated invariant test.
+const _validUnits = {'g', 'ml', 'g/ml', 'oz', 'fl.oz', 'serving'};
+
+/// One item extracted from a free-text meal description. [query] is what
+/// gets handed to the existing food search; [quantity] and [unit] are
+/// `null` when the input didn't state an amount, in which case the review
+/// row downstream falls back to the defaults `MealDetailScreen
+/// ._applyInitialSelection` already uses.
+class ParsedMealItem {
+  final String query;
+  final double? quantity;
+  final String? unit;
+
+  /// What the model called the portion — "slice", "cup" — as a **lookup key**
+  /// into the food's own portions, never a value.
+  ///
+  /// The deterministic parser never sets it: it keys off unit symbols and
+  /// leaves any household word in [query], where `matchPortionToQuery` finds
+  /// it. This is for the paths that have no typed text to search — a
+  /// photograph above all, where nobody wrote "slices" for anything to match.
+  ///
+  /// Nothing numeric arrives with it. The grams still come from the portion
+  /// the key resolves to, which came from the food database, so "every number
+  /// is cited" is untouched — the model names, the data measures. A key that
+  /// matches nothing is ignored, which is a far weaker failure than a wrong
+  /// number. #864.
+  final String? portion;
+
+  const ParsedMealItem({
+    required this.query,
+    this.quantity,
+    this.unit,
+    this.portion,
+  });
+
+  @override
+  String toString() =>
+      'ParsedMealItem(query: $query, quantity: $quantity, unit: $unit, '
+      'portion: $portion)';
+}
+
+/// One rejected segment, identified by its position in the input.
+///
+/// Deliberately not a message. [parseMealText] is a pure function with no
+/// `BuildContext`, so it cannot reach `S.of(context)`; building the string
+/// here shipped English into all nine locales (#631). The reason and the
+/// numbers travel instead, and the render site localizes them.
+///
+/// Sealed, with the data each reason needs on the subtype rather than a
+/// nullable field beside a kind. Only [QuantityTooLargeError] has a bound,
+/// so only it carries one — which means a bound can never be missing where
+/// it is needed, and the render site never has to invent a stand-in. An
+/// earlier shape allowed `quantityTooLarge` with no bound, and the screen
+/// defaulted it to 0 and told the user their quantity had to be "0 or
+/// less".
+sealed class MealTextParseError {
+  /// 1-based position among the segments the parser actually attempted.
+  /// Empty segments never consume a number.
+  final int itemNumber;
+
+  const MealTextParseError(this.itemNumber);
+}
+
+/// The segment carried no unicode letter, so there is no food to search
+/// for — a bare `123`, or punctuation on its own.
+final class InvalidFoodNameError extends MealTextParseError {
+  const InvalidFoodNameError(super.itemNumber);
+
+  @override
+  String toString() => 'InvalidFoodNameError(item: $itemNumber)';
+
+  @override
+  bool operator ==(Object other) =>
+      other is InvalidFoodNameError && other.itemNumber == itemNumber;
+
+  @override
+  int get hashCode => Object.hash(InvalidFoodNameError, itemNumber);
+}
+
+/// A quantity was stated but is zero or negative.
+final class QuantityTooSmallError extends MealTextParseError {
+  const QuantityTooSmallError(super.itemNumber);
+
+  @override
+  String toString() => 'QuantityTooSmallError(item: $itemNumber)';
+
+  @override
+  bool operator ==(Object other) =>
+      other is QuantityTooSmallError && other.itemNumber == itemNumber;
+
+  @override
+  int get hashCode => Object.hash(QuantityTooSmallError, itemNumber);
+}
+
+/// A quantity was stated but exceeds [bound]. Checked after kg/l
+/// conversion, so `15 kg` is rejected as 15000 g rather than a
+/// valid-looking 15.
+final class QuantityTooLargeError extends MealTextParseError {
+  /// The limit that was exceeded. An `int` because it is a cap rather than
+  /// a measurement, and because the string it feeds takes an integer
+  /// placeholder — keeping the types equal removes a lossy conversion at
+  /// the render site.
+  final int bound;
+
+  const QuantityTooLargeError(super.itemNumber, this.bound);
+
+  @override
+  String toString() =>
+      'QuantityTooLargeError(item: $itemNumber, '
+      'bound: $bound)';
+
+  @override
+  bool operator ==(Object other) =>
+      other is QuantityTooLargeError &&
+      other.itemNumber == itemNumber &&
+      other.bound == bound;
+
+  @override
+  int get hashCode => Object.hash(QuantityTooLargeError, itemNumber, bound);
+}
+
+/// Result of [parseMealText]. [errors] holds an item-indexed reason for
+/// each segment that could not be turned into a [ParsedMealItem] — empty
+/// segments (e.g. a trailing comma) are skipped silently and never produce
+/// an error.
+class MealTextParseResult {
+  final List<ParsedMealItem> items;
+  final List<MealTextParseError> errors;
+
+  const MealTextParseResult({required this.items, required this.errors});
+
+  bool get hasErrors => errors.isNotEmpty;
+}
+
+/// Applies the bounds [parseMealText] enforces to items that were extracted
+/// somewhere else.
+///
+/// Exists so a non-deterministic source — a model, an import — can never
+/// reach the diary under looser rules than a regex does. Everything a
+/// caller supplies is treated as untrusted: the food name must satisfy
+/// [FoodNameValidator], a stated quantity must be `> 0` and `<= 10000`, and
+/// a stated unit must be one the app can actually convert. Anything else is
+/// rejected with the same item-indexed reason the parser produces, so the
+/// review screen renders both sources identically.
+///
+/// Unlike [parseMealText] this does no extraction — the caller is expected
+/// to have arrived at a quantity already — but it *does* apply the same
+/// kg/l normalization, so `1.5 l` becomes 1500 ml here exactly as it does
+/// there. A model can report a litre, and dropping it silently was worse
+/// than converting it.
+///
+/// A unit outside the set the app can convert is dropped while the number
+/// is kept, turning the item into a bare count for the review row's
+/// existing handling. That is deliberately not the same as mapping it to a
+/// near-miss: `2 tbsp` becoming `2 g` is a thirteenfold under-count nobody
+/// is shown, whereas a bare `2` is a number the row already knows how to
+/// question.
+/// True when [input] actually carries a unit — a number with one of the
+/// [_unitSymbol] symbols against it, in any of its segments.
+///
+/// Asked of the text the *model* was given, so a unit in its reply can be
+/// checked against whether one was ever there to report. #977: for
+/// `ein Glas Milch` anthropic answered `1 l` and openai answered
+/// `unit: "Glas"`. Neither is in the input; the enum happened to contain
+/// one of them, so the app multiplied by a thousand and logged 470 kcal for
+/// a glass of milk, while the other was dropped as unrecognised and came out
+/// right. Which of two wrong answers is harmless should not be decided by
+/// what the enum happens to spell.
+///
+/// Reuses the parser's own segmentation and extraction rather than scanning
+/// for the symbols, and that is the whole point: `l` occurs inside `Glas`,
+/// so a substring test reports a unit in exactly the phrase this exists to
+/// catch. [_leadingQuantity] and [_trailingQuantity] only see a unit when a
+/// number is against it.
+bool textStatesAUnit(String input) => _segment(
+  input,
+).any((segment) => _extractQuantityAndUnit(segment).unit != null);
+
+MealTextParseResult validateParsedMealItems(
+  List<ParsedMealItem> candidates, {
+  String? statedIn,
+}) {
+  // A unit nobody wrote is a guess, and is dropped before the kg/l
+  // normalization below can act on it — after it, `1 l` is already 1000 ml
+  // and the number cannot be put back. Dropping leaves a bare count, which
+  // the review row already resolves against the food's own portion: that is
+  // how openai's `unit: "Glas"` arrives at the right figure today, by being
+  // unrecognised rather than by being right. #977.
+  //
+  // Whole-input rather than per-item: a model's rows do not map onto text
+  // segments reliably enough to ask the question per row, and `100g Toast,
+  // 2 Eier` states a unit, so nothing there changes. It is a narrowing of
+  // today's behaviour, not a replacement for it.
+  if (statedIn != null && !textStatesAUnit(statedIn)) {
+    candidates = [
+      for (final c in candidates)
+        ParsedMealItem(
+          query: c.query,
+          quantity: c.quantity,
+          unit: null,
+          portion: c.portion,
+        ),
+    ];
+  }
+
+  final items = <ParsedMealItem>[];
+  final errors = <MealTextParseError>[];
+
+  for (var i = 0; i < candidates.length; i++) {
+    final itemNum = i + 1;
+    final candidate = candidates[i];
+    final query = candidate.query.trim();
+
+    if (!FoodNameValidator.isValid(query)) {
+      errors.add(InvalidFoodNameError(itemNum));
+      continue;
+    }
+
+    // A non-finite quantity is treated as no quantity at all. Both bounds
+    // below are *false* for NaN, so it would otherwise pass validation
+    // untouched and surface as the literal text "NaN" in the amount field.
+    // `double.tryParse('NaN')` returns NaN, so a model answering with that
+    // string is all it takes. Dropped rather than rejected, matching how an
+    // unrecognized unit is handled: the food is still usable and the row's
+    // own default is a better answer than refusing to log it.
+    final rawQuantity = candidate.quantity;
+    var quantity = (rawQuantity != null && rawQuantity.isFinite)
+        ? rawQuantity
+        : null;
+    // Normalized before the bounds are applied, matching parseMealText, so
+    // `15 kg` is rejected as 15000 g rather than passing as a harmless 15.
+    //
+    // Lower-cased first. `parseMealText` already does this when it extracts,
+    // but this entry point takes whatever a caller supplies, and a model
+    // answering `KG` would otherwise have its unit dropped and its number
+    // survive as a bare count — 2 instead of 2000 g, the thousandfold
+    // under-count this function exists to prevent, reached through casing.
+    var unit = candidate.unit?.toLowerCase();
+    if (quantity != null && unit != null) {
+      (quantity, unit) = _normalizeUnitAndQuantity(quantity, unit);
+    }
+
+    if (quantity != null) {
+      if (quantity <= 0) {
+        errors.add(QuantityTooSmallError(itemNum));
+        continue;
+      }
+      if (quantity > _maxQuantity) {
+        errors.add(QuantityTooLargeError(itemNum, _maxQuantity));
+        continue;
+      }
+    }
+
+    // An unrecognized unit is dropped rather than rejected: the food name
+    // is still usable, and the review row's own default is a better answer
+    // than refusing to log the item at all. A *stated* quantity survives
+    // with it, since the row shows both and the user can correct the unit.
+    //
+    // A unit with no quantity is dropped too. [ParsedMealItem] documents the
+    // two as stated together, and `parseMealText` cannot produce one without
+    // the other, so downstream code was written against that. A model can
+    // produce it, and honouring a unit nobody attached a number to would
+    // present a guess as though the user had typed it.
+    // Gated on the *sanitized* quantity, not the raw one. A candidate of
+    // `{quantity: NaN, unit: 'g'}` sanitizes to a null quantity, and reading
+    // the raw value here would have kept the `g` beside it — reintroducing
+    // exactly the unit-without-quantity state the paragraph above exists to
+    // prevent.
+    final keptUnit = quantity != null && _validUnits.contains(unit)
+        ? unit
+        : null;
+
+    // `portion` is carried through untouched. Every model reply passes here,
+    // so dropping it would leave the key set and never used — the feature
+    // silently doing nothing, with no failure to notice.
+    items.add(
+      ParsedMealItem(
+        query: query,
+        quantity: quantity,
+        unit: keptUnit,
+        portion: candidate.portion,
+      ),
+    );
+  }
+
+  return MealTextParseResult(items: items, errors: errors);
+}
+
+/// A comma with a digit immediately before it *and* immediately after it
+/// is a decimal point; every other comma separates items. The lookarounds
+/// express that as "a comma not preceded by a digit, or not followed by
+/// one", so a decimal comma is simply never matched as a separator.
+///
+/// `1,5 l milk` → one segment (digits on both sides).
+/// `100g toast, 2 eggs` → two segments (a space follows the comma).
+/// `toast,2 eggs` → two segments (no digit precedes the comma).
+///
+/// Splitting rather than rewriting matters: an earlier version replaced
+/// every decimal comma with `.` across the whole input before splitting,
+/// which also rewrote commas inside food names — `yoghurt 3,5% fat` and
+/// `Omega 3,6,9 capsules` reached the food search with characters the user
+/// never typed. The decimal comma is now converted only inside the number
+/// actually parsed, in [_parseQuantity].
+///
+/// The CJK separators — `、` (ideographic comma), `，` and `；` (fullwidth
+/// comma and semicolon) — are here because a Chinese, Japanese or Korean
+/// keyboard emits them by default. Without them a user typing a list the
+/// only way their keyboard offers gets a single unparsed row no matter what
+/// the placeholder demonstrates.
+///
+/// They are punctuation, not vocabulary, so this does not reintroduce the
+/// per-locale word lists this parser was designed to avoid: the set is
+/// fixed, tiny, and does not grow when a language is added. None of them
+/// carries a decimal meaning, so unlike `,` they need no lookaround.
+final _separator = RegExp(r'[;+\n、，；]|(?<!\d),|,(?!\d)');
+
+/// Splits [input] into trimmed, non-empty pieces on `,` / `;` / newline /
+/// `+` and their CJK equivalents, subject to the comma rule on
+/// [_separator].
+List<String> _segment(String input) => input
+    .split(_separator)
+    .map((s) => s.trim())
+    .where((s) => s.isNotEmpty)
+    .toList();
+
+/// The unit symbols this parser recognizes as *input*, longest-first so a
+/// longer symbol is never shadowed by one that starts the same way: `毫升`
+/// before `升`, `千克` before `克`. Naming them explicitly (rather than
+/// matching any run of letters) is what lets
+/// the regex engine backtrack to the no-unit reading when the word after
+/// the number simply belongs to the food name — see [_leadingQuantity].
+const _unitSymbol = r'(?:kg|lb|ml|oz|g|l|毫升|千克|克|升)';
+
+/// Scripts that do not put spaces between words. A number and the food it
+/// counts sit flush against each other in all of them, so the whitespace
+/// this parser otherwise requires never appears.
+///
+/// A Unicode *script* property, not a vocabulary list: it does not grow when
+/// a language is added, which is the objection that ruled out number-words
+/// in #600. `2个鸡蛋` splits here for the same reason `2 eggs` splits on a
+/// space.
+const _unspacedScript =
+    r'[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}'
+    r'\p{Script=Hangul}]';
+
+/// A number, accepting either decimal separator. `JsonMealImporter` takes
+/// both the same way; [_parseQuantity] does the conversion.
+///
+/// The leading `-` is matched deliberately even though a negative quantity
+/// is never valid. Refusing it here does not reject the input — it just
+/// stops the number being recognized as a quantity at all, so `-5g sugar`
+/// would fall through to the food search as a literal query and the user
+/// would silently get the default amount instead of the bounds error that
+/// `0g water` produces. Matching it lets the `> 0` check below do its job.
+const _number = r'-?\d+(?:[.,]\d+)?';
+
+/// A quantity+unit token immediately before or after the food name, e.g.
+/// `100g toast` or `toast 100g`. `\s*` (not `\s+`) between the number and
+/// the unit is what lets `1.5 l milk` — number, space, unit — match the
+/// same way as the no-space `100g toast` does.
+///
+/// The unit group is optional *and* restricted to [_unitSymbol]. Both
+/// halves matter: with a bare `([a-zA-Z]*)` the group greedily swallowed
+/// the first word of a multi-word food, and because that word is not a
+/// unit the whole match was then discarded — so `2 chicken breasts` lost
+/// its quantity entirely while `2 eggs` kept it, purely because a single
+/// trailing word forced the engine to backtrack. Restricting the group
+/// makes the engine find the no-unit reading itself.
+final _leadingQuantity = RegExp(
+  '^($_number)\\s*($_unitSymbol)?(?:\\s+|(?=$_unspacedScript))(.+)\$',
+  caseSensitive: false,
+  unicode: true,
+);
+final _trailingQuantity = RegExp(
+  '^(.+?)(?:\\s+|(?<=$_unspacedScript))($_number)\\s*($_unitSymbol)?\\s*\$',
+  caseSensitive: false,
+  unicode: true,
+);
+
+/// Both decimal separators reach here; `double.parse` only accepts `.`.
+double _parseQuantity(String raw) => double.parse(raw.replaceAll(',', '.'));
+
+/// The result of attempting to pull a quantity+unit out of one segment.
+/// [unit] is one of the [_unitSymbol] symbols, lower-cased, or `null` when
+/// the segment stated no unit.
+class _Extracted {
+  final String query;
+  final double? quantity;
+  final String? unit;
+
+  const _Extracted({required this.query, this.quantity, this.unit});
+}
+
+/// Tries [_leadingQuantity] then [_trailingQuantity]. Because the unit
+/// group only ever matches a known symbol, a letter run that is not a unit
+/// stays in the food name instead of being mistaken for one — `2 chicken
+/// breasts` keeps its quantity, and `100xyz toast` (letters glued to the
+/// number, more often a product code than anything else) is left whole for
+/// the search rather than silently losing the `100xyz`.
+_Extracted _extractQuantityAndUnit(String segment) {
+  final leading = _leadingQuantity.firstMatch(segment);
+  if (leading != null) {
+    return _Extracted(
+      query: leading.group(3)!,
+      quantity: _parseQuantity(leading.group(1)!),
+      unit: leading.group(2)?.toLowerCase(),
+    );
+  }
+
+  final trailing = _trailingQuantity.firstMatch(segment);
+  if (trailing != null) {
+    return _Extracted(
+      query: trailing.group(1)!,
+      quantity: _parseQuantity(trailing.group(2)!),
+      unit: trailing.group(3)?.toLowerCase(),
+    );
+  }
+
+  return _Extracted(query: segment);
+}
+
+/// The app's [UnitDropdownItem] (`meal_detail_bloc.dart`) has no `kg` or
+/// `l` — its `fromString` falls through to `g/ml` for anything it doesn't
+/// recognize, so emitting `kg`/`l` unchanged would silently turn `1,5 l
+/// milk` into 1.5 g/ml instead of 1500 ml. Converting here, before the
+/// value ever reaches that code, is what avoids the silent 1000x error.
+(double, String) _normalizeUnitAndQuantity(double quantity, String unit) {
+  switch (unit) {
+    case 'kg':
+    case '千克':
+      return (quantity * 1000, 'g');
+    case 'l':
+    case '升':
+      return (quantity * 1000, 'ml');
+    // The Han forms of gram and millilitre. Symbols with one fixed meaning,
+    // like `g` and `ml`, rather than words that need translating — and
+    // shared across the Han-using locales rather than one entry per
+    // language. Without them `100克吐司` parses as a bare *count* of 100,
+    // which the review row can read as 100 servings.
+    // A pound is 16 ounces. Without it in the enum the model mapped
+    // `1 pound of mince` onto `oz` and kept the number — a sixteenfold
+    // under-count that no flag caught, because a unit *was* stated.
+    case 'lb':
+      return (quantity * 453.59237, 'g');
+    case '克':
+      return (quantity, 'g');
+    case '毫升':
+      return (quantity, 'ml');
+    default:
+      return (quantity, unit);
+  }
+}
+
+/// Turns one line of free text into a list of search intents — the tier-0
+/// half of #599's AI-assisted meal logging: a deterministic parser, no
+/// model, so it ships free and runs offline. Pure and dependency-free: no
+/// I/O, no UI, fully unit-testable.
+///
+/// ```
+/// parseMealText('100g toast, 2 eggs; 1,5 l milk')
+/// // -> items: [
+/// //      ParsedMealItem(query: 'toast', quantity: 100, unit: 'g'),
+/// //      ParsedMealItem(query: 'eggs', quantity: 2, unit: null),
+/// //      ParsedMealItem(query: 'milk', quantity: 1500, unit: 'ml'),
+/// //    ]
+/// ```
+///
+/// Each `,` / `;` / newline / `+`-separated segment becomes one
+/// [ParsedMealItem], resolved independently against the existing food
+/// search downstream (this parser never invents nutrient estimates — see
+/// #599 for why that constraint matters to the project's privacy/citation
+/// claims). A segment with no recognizable quantity — `black coffee` —
+/// still becomes an item, just with `quantity` and `unit` left `null` for
+/// the review row to default. A segment that fails validation (no letters,
+/// quantity out of bounds) produces an indexed entry in [errors] instead
+/// and is dropped from [items]; it never silently disappears.
+///
+/// Locale-independent by construction: this keys off digits and the unit
+/// symbols `g`/`kg`/`ml`/`l`/`oz`, never number-words, so it needs no
+/// per-locale word list across the app's 9 supported locales. See the doc
+/// comments on the private helpers below for the segmentation and
+/// unit-normalization rules, and the class docs on [ParsedMealItem] and
+/// [MealTextParseResult] for the result shape.
+MealTextParseResult parseMealText(String input) {
+  final segments = _segment(input.trim());
+
+  final items = <ParsedMealItem>[];
+  final errors = <MealTextParseError>[];
+
+  // Numbers only the segments actually attempted, matching "empty segments
+  // are skipped, not errors" — a trailing comma doesn't consume an index.
+  var itemNum = 0;
+
+  for (final segment in segments) {
+    itemNum++;
+    final extracted = _extractQuantityAndUnit(segment);
+    final query = extracted.query.trim();
+
+    if (!FoodNameValidator.isValid(query)) {
+      errors.add(InvalidFoodNameError(itemNum));
+      continue;
+    }
+
+    var quantity = extracted.quantity;
+    var unit = extracted.unit;
+    if (quantity != null && unit != null) {
+      (quantity, unit) = _normalizeUnitAndQuantity(quantity, unit);
+    }
+
+    // Bounds match meal_detail_bottom_sheet.dart's manual-entry check.
+    // Applied after kg/l conversion, so '15 kg' is rejected as 15000 g
+    // rather than silently becoming a valid-looking 15.
+    if (quantity != null) {
+      if (quantity <= 0) {
+        errors.add(QuantityTooSmallError(itemNum));
+        continue;
+      }
+      if (quantity > _maxQuantity) {
+        errors.add(QuantityTooLargeError(itemNum, _maxQuantity));
+        continue;
+      }
+    }
+
+    // This is the invariant that stops a future unit addition reintroducing
+    // the silent kg/l coercion _normalizeUnitAndQuantity exists to prevent.
+    assert(
+      unit == null || _validUnits.contains(unit),
+      'parseMealText emitted unrecognized unit "$unit"',
+    );
+
+    items.add(ParsedMealItem(query: query, quantity: quantity, unit: unit));
+  }
+
+  return MealTextParseResult(items: items, errors: errors);
+}

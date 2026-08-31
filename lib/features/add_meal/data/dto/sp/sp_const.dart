@@ -61,6 +61,16 @@ class SPConst {
   static const searchFoodTranslationFn = 'search_food_translation';
   static const foodSummaryByIdsFn = 'food_summary_by_ids';
 
+  /// A food's default portion label in the reader's language, and only
+  /// where a human has verified the translation. The `verified` filter is
+  /// server-side, so this app cannot show machine output by forgetting to
+  /// ask for it. #864.
+  static const portionLabelsByFoodIdsFn = 'portion_labels_by_food_ids';
+
+  /// Every usable portion a food has, so the unit dropdown can offer a
+  /// choice rather than the one `food_summary` picked. #864.
+  static const portionsByFoodIdsFn = 'portions_by_food_ids';
+
   /// food_source.code prefix shared by the USDA FDC sources
   /// (fdc_foundation, fdc_sr_legacy, fdc_survey). Only these foods have a
   /// public detail page to link to.
