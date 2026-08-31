@@ -103,7 +103,12 @@ class AnthropicMealItemsApi implements MealItemsApi {
       );
     }
 
-    return validateParsedMealItems(_itemsFrom(response.body));
+    return validateParsedMealItems(
+      _itemsFrom(response.body),
+      // Only the typed path corroborates: a photograph states no units at
+      // all, and its own counts-only filter already drops them.
+      statedIn: content is MealTextContent ? content.text : null,
+    );
   }
 
   /// What Anthropic's status codes mean here.

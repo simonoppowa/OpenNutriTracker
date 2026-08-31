@@ -319,7 +319,12 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
 
     _warnIfThePinDidNotHold(decoded);
 
-    return validateParsedMealItems(_itemsFrom(decoded));
+    return validateParsedMealItems(
+      _itemsFrom(decoded),
+      // Only the typed path corroborates: a photograph states no units at
+      // all, and its own counts-only filter already drops them.
+      statedIn: content is MealTextContent ? content.text : null,
+    );
   }
 
   /// Checks that the provider named in the app is the one that answered.

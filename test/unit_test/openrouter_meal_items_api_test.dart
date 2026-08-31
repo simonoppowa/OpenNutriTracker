@@ -453,7 +453,12 @@ void main() {
         ]),
       );
 
-      final result = await request(apiWith(client));
+      // The input has to state the unit the reply reports, or #977 drops it
+      // as invented. The default `'toast'` states none.
+      final result = await request(
+        apiWith(client),
+        content: const MealTextContent('100g toast, 2 eggs'),
+      );
 
       expect(result.items, hasLength(2));
       expect(result.items[0].unit, 'g');
@@ -502,7 +507,12 @@ void main() {
         ]),
       );
 
-      final result = await request(apiWith(client));
+      // A litre the user actually wrote, which is the case that must still
+      // convert — #977 only drops one nobody wrote.
+      final result = await request(
+        apiWith(client),
+        content: const MealTextContent('1,5 l milk'),
+      );
 
       // Converted, not silently downgraded — the 1000x bug the unit enum
       // exists to prevent.
