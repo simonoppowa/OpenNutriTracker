@@ -2,8 +2,8 @@
 
 ## Bottom line
 
-1. **The issue is correct.** p. 204 groups the weight *and* height terms inside
-   the PA multiplier; the app multiplied PA into the weight term only. Every
+1. **The PA multiplier covers both terms.** p. 204 groups the weight *and*
+   height terms inside it; the app multiplied PA into the weight term only. Every
    user above sedentary got a TDEE too low by `(PA − 1) × 503 × height[m]`
    (male) or `× 660.7 × height[m]` (female) — **109 to 489 kcal/day** over
    realistic adult inputs, growing with height and activity. Sedentary users
@@ -82,7 +82,8 @@ returns is a **TEE**, not an EER.
 - **Units correct.** Book: `age [y]`, `weight [kg]`, `height [m]`; app passes
   years, kg, `heightCM / 100`.
 - **Age.** Headings say "Ages 19 Years and Older". The floor is 13 with a
-  disclosure below 19 (was 18 — that gap is what #987 exposed). The book's
+  disclosure below 19 (previously 18, which left 18-year-olds undisclosed).
+  The book's
   9-through-18 equations (p. 182) differ in coefficients, in PA values (boys
   1.00/1.13/1.26/1.42; girls 1.00/1.16/1.31/1.56) *and* carry a `+ 25 kcal`
   growth term the adult set has no equivalent for.
@@ -193,8 +194,9 @@ Two traps, both encoded in the fixture file:
 - **Appendix Table I-9** was not located separately. I-10 and I-11 (p. 1201)
   were read and confirm the p. 204 coefficients; those appendix tables print
   coefficients, standard errors, n and R² only — no computed kcal.
-- **The project wiki page** cited by #987 was not fetched; the code comments
-  were treated as the statement of what the app claims to implement.
+- **The project wiki page** describing these calculations was not fetched; the
+  code comments were treated as the statement of what the app claims to
+  implement.
 
 ---
 
