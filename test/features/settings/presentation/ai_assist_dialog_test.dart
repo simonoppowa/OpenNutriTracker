@@ -2757,6 +2757,69 @@ void main() {
       expect(await storage.activeProvider(), AiProvider.openai);
     });
 
+    testWidgets('a keyed provider can be switched to and confirmed (#979)', (
+      tester,
+    ) async {
+      // The state every real user is in once they configure a second
+      // destination, and the one this group never covered: the test above
+      // passes because its target provider has no key, which is the only
+      // reason OK was on screen for it.
+      //
+      // With keys stored, `_hasKey` is true, OK was not rendered at all, and
+      // Cancel and Back both restore the previous provider. Every exit undid
+      // the switch. Reported from a device as "the switch dialog does not
+      // have an OK button to confirm the change" — it did not.
+      await storage.writeApiKey('sk-or', provider: AiProvider.openrouter);
+      await storage.writeApiKey('sk-oa', provider: AiProvider.openai);
+      await storage.setActiveProvider(AiProvider.openrouter);
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await choose(tester, AiProvider.openai);
+
+      expect(
+        find.bySemanticsIdentifier('ai-assist-save-key'),
+        findsOneWidget,
+        reason: 'a change with no way to confirm it is a change that cannot '
+            'be made',
+      );
+
+      await tester.tap(find.bySemanticsIdentifier('ai-assist-save-key'));
+      await tester.pumpAndSettle();
+
+      expect(await storage.activeProvider(), AiProvider.openai);
+    });
+
+    testWidgets('Cancel still reverts a keyed switch (#848 holds)', (
+      tester,
+    ) async {
+      // The half that must not regress while fixing the other one.
+      await storage.writeApiKey('sk-or', provider: AiProvider.openrouter);
+      await storage.writeApiKey('sk-oa', provider: AiProvider.openai);
+      await storage.setActiveProvider(AiProvider.openrouter);
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await choose(tester, AiProvider.openai);
+      await cancel(tester);
+
+      expect(await storage.activeProvider(), AiProvider.openrouter);
+    });
+
+    testWidgets('an untouched dialog offers nothing to confirm', (
+      tester,
+    ) async {
+      // The gate is widened by "there is a change", not removed: opening the
+      // dialog on a configured provider and touching nothing still has no OK,
+      // which is what kept a no-op confirm off the screen in the first place.
+      await storage.writeApiKey('sk-ant', provider: AiProvider.anthropic);
+      await storage.setActiveProvider(AiProvider.anthropic);
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsIdentifier('ai-assist-save-key'), findsNothing);
+    });
+
     testWidgets('the system back button puts it back too', (tester) async {
       // The exit that runs no handler of its own. Driven through the real
       // `show()` route, because a dialog embedded in a body has nothing to
