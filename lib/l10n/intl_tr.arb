@@ -510,7 +510,7 @@
   "nutritionalStatusUnderweight": "Düşük Kilolu",
   "offDisclaimer": "Bu uygulama tarafından size sağlanan veriler Open Food Facts veritabanından alınmaktadır. Sağlanan bilgilerin doğruluğu, eksiksizliği veya güvenilirliği konusunda hiçbir garanti verilmemektedir. Veriler \"olduğu gibi\" sağlanır ve verilerin kullanımıyla ilgili herhangi bir zarardan verilerin kaynağı (Open Food Facts) sorumlu tutulamaz.",
   "onboardingActivityQuestionSubtitle": "Ne kadar aktifsiz? (antrenmanlar hariç)",
-  "onboardingAdultEquationNotice": "Kalori hedefleri yetişkin referans denklemleriyle hesaplanır. 18 yaş altındaysanız sonucu bir doktora veya diyetisyene danışın.",
+  "onboardingAdultEquationNotice": "Kalori hedefleri yetişkin referans denklemleriyle hesaplanır. 19 yaş altındaysanız sonucu bir doktora veya diyetisyene danışın.",
   "onboardingBirthdayHint": "Tarih Girin",
   "onboardingBirthdayQuestionSubtitle": "Doğum gününüz ne zaman?",
   "onboardingBlockedActivitySnack": "Devam etmek için aktivite seviyenizi seçin",
