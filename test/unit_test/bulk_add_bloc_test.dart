@@ -254,8 +254,8 @@ void main() {
     });
 
     test('flags a count when the food has no serving data', () async {
-      // Nothing to count, so the amount falls back to a weight. The row
-      // still logs — it is editable — but it is marked.
+      // Nothing to count, so the amount falls back to a weight. The row is
+      // marked, and held out of the batch until the user settles it.
       final bloc = blocWith({
         'eggs': [meal('Egg')],
       });
@@ -264,7 +264,67 @@ void main() {
 
       expect(row.amountText, '2');
       expect(row.amountNeedsCheck, isTrue);
-      expect(row.willBeLogged, isTrue);
+      expect(row.willBeLogged, isFalse);
+    });
+
+    test('a flagged count is kept out of the batch', () async {
+      // #973. Typing `zwei Eier und drei Scheiben Brot` on a device gave two
+      // flagged rows at 2 g/ml and 3 g/ml, and Save all wrote both — 11 kcal
+      // for a breakfast. The flag was right and the batch ignored it.
+      final bloc = blocWith({
+        'eggs': [meal('Egg')],
+        'bread': [meal('Bread')],
+      });
+
+      final state = await parse(bloc, '2 eggs, 3 bread');
+
+      expect(state.rows.length, 2);
+      expect(state.rows.every((r) => r.amountNeedsCheck), isTrue);
+      expect(state.loggableCount, 0);
+    });
+
+    test('picking a unit returns a flagged row to the batch', () async {
+      // The way out has to be reachable from the row itself, or excluding it
+      // just strands the user. Choosing a unit is the call the warning asks
+      // for, so it both clears the flag and restores the row.
+      final bloc = blocWith({
+        'eggs': [meal('Egg')],
+      });
+      await parse(bloc, '2 eggs');
+
+      bloc.add(const ChangeRowUnitEvent(0, 'g'));
+      final state = await bloc.stream.first as BulkAddLoadedState;
+
+      expect(state.rows.single.amountNeedsCheck, isFalse);
+      expect(state.rows.single.willBeLogged, isTrue);
+      expect(state.loggableCount, 1);
+    });
+
+    test('a countable food is unaffected and still logs in one pass', () async {
+      // The guard must not cost the case that already worked: a record with
+      // serving data counts as servings and goes straight into the batch.
+      final bloc = blocWith({
+        'eggs': [meal('Egg', servingQuantity: 50)],
+      });
+
+      final state = await parse(bloc, '2 eggs');
+
+      expect(state.rows.single.unit, 'serving');
+      expect(state.rows.single.amountNeedsCheck, isFalse);
+      expect(state.loggableCount, 1);
+    });
+
+    test('a stated weight is unaffected and still logs in one pass', () async {
+      // The deterministic path with an explicit unit is the common case and
+      // must be untouched by this.
+      final bloc = blocWith({
+        'toast': [meal('Toast', servingQuantity: 30)],
+      });
+
+      final state = await parse(bloc, '100g toast');
+
+      expect(state.rows.single.unit, 'g');
+      expect(state.loggableCount, 1);
     });
 
     test('a stated unit is never second-guessed', () async {

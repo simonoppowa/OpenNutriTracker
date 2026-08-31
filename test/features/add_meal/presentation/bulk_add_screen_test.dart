@@ -1155,7 +1155,10 @@ void main() {
   testWidgets('writes one intake per loggable row, in order', (tester) async {
     await _register({
       'toast': [_meal('Toast')],
-      'eggs': [_meal('Egg')],
+      // Countable, so the row stays in the batch: a bare count against a
+      // serving-less record is held back now (#973), which would quietly
+      // drop a row this test needs.
+      'eggs': [_meal('Egg', servingQuantity: 50)],
       'milk': [_meal('Milk')],
     });
     await tester.pumpWidget(_app());
@@ -1228,7 +1231,10 @@ void main() {
   testWidgets('a skipped row is not written', (tester) async {
     await _register({
       'toast': [_meal('Toast')],
-      'eggs': [_meal('Egg')],
+      // Countable, so the row stays in the batch: a bare count against a
+      // serving-less record is held back now (#973), which would quietly
+      // drop a row this test needs.
+      'eggs': [_meal('Egg', servingQuantity: 50)],
     });
     await tester.pumpWidget(_app());
     await _parse(tester, '100g toast, 2 eggs');
@@ -1266,6 +1272,50 @@ void main() {
     await _parse(tester, '2 eggs');
 
     expect(find.text(l10nEn.bulkAddCheckAmountLabel), findsOneWidget);
+  });
+
+  testWidgets('a flagged row is not written by Save all', (tester) async {
+    // #973. The flag existed and the batch wrote the row anyway. A device
+    // pass typed two eggs and three slices of bread against records with no
+    // portion, and logged 11 kcal for a breakfast — both rows warned, both
+    // rows written. Warning and writing are the same decision here.
+    await _register({
+      'toast': [_meal('Toast')],
+      'eggs': [_meal('Egg')],
+    });
+    await tester.pumpWidget(_app());
+    await _parse(tester, '100g toast, 2 eggs');
+
+    expect(find.text(l10nEn.bulkAddCheckAmountLabel), findsOneWidget);
+
+    await tester.tap(_submitButton());
+    await tester.pumpAndSettle();
+
+    expect(_mealDetailBloc.writes.map((w) => w.mealName), ['Toast']);
+  });
+
+  testWidgets('choosing a unit lets a flagged row be written', (
+    tester,
+  ) async {
+    // Excluding the row is only defensible because the way back is one tap
+    // on the control the warning already points at.
+    await _register({
+      'eggs': [_meal('Egg')],
+    });
+    await tester.pumpWidget(_app());
+    await _parse(tester, '2 eggs');
+
+    await tester.tap(find.byType(DropdownButton<String>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('g').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10nEn.bulkAddCheckAmountLabel), findsNothing);
+
+    await tester.tap(_submitButton());
+    await tester.pumpAndSettle();
+
+    expect(_mealDetailBloc.writes.map((w) => w.mealName), ['Egg']);
   });
 
   testWidgets('a countable food shows no warning', (tester) async {
@@ -1368,7 +1418,10 @@ void main() {
   ) async {
     await _register({
       'toast': [_meal('Toast')],
-      'eggs': [_meal('Egg')],
+      // Countable, so the row stays in the batch: a bare count against a
+      // serving-less record is held back now (#973), which would quietly
+      // drop a row this test needs.
+      'eggs': [_meal('Egg', servingQuantity: 50)],
     }, failOnSecondWrite: true);
     await tester.pumpWidget(_app());
     await _parse(tester, '100g toast, 2 eggs');
