@@ -110,6 +110,63 @@ void main() {
   setUp(() => _register());
   tearDown(() async => locator.reset());
 
+  group('the embedded form is not a scrollable (#974)', () {
+    /// The You tab hosts the screen inside its own scrollable, so anything
+    /// scrollable here is a viewport nested in a viewport.
+    Widget embeddedIn(Widget child) => MaterialApp(
+      localizationsDelegates: const [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: S.supportedLocales,
+      home: Scaffold(body: SingleChildScrollView(child: child)),
+    );
+
+    testWidgets('embedded, it creates no viewport of its own', (tester) async {
+      // The fix, stated as the thing that can be checked without a device.
+      //
+      // It used to be a `ListView` with `shrinkWrap` and
+      // `NeverScrollableScrollPhysics`: a viewport that cannot scroll,
+      // inside the You tab's viewport that can. Rows outside the outer
+      // viewport are flagged `isHidden`, and which of them cleared depended
+      // on the outer list's offset — flung, it jumps in large
+      // non-overlapping steps, and four rows in the middle were never
+      // uncovered for a screen reader.
+      //
+      // The device behaviour cannot be reproduced here: a widget test
+      // scrolls to a computed offset, which a fling never rests at. So this
+      // pins the structural property the fix rests on instead, and says so
+      // rather than implying wider cover.
+      await tester.pumpWidget(
+        embeddedIn(const SettingsScreen(embedded: true)),
+      );
+      await tester.pumpAndSettle();
+
+      final scrollables = tester.widgetList(find.byType(Scrollable));
+      expect(
+        scrollables,
+        hasLength(1),
+        reason: 'only the host scrollable — the embedded settings must add '
+            'none of its own',
+      );
+    });
+
+    testWidgets('pushed, it still scrolls itself', (tester) async {
+      // The other half: the standalone screen is the one that must keep its
+      // viewport, and it is the arrangement that was always reachable.
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(Scrollable), findsWidgets);
+      expect(
+        tester.widget<ListView>(find.byType(ListView).first).physics,
+        isNot(isA<NeverScrollableScrollPhysics>()),
+      );
+    });
+  });
+
   testWidgets('the AI row is nowhere near the top of a plain Settings', (
     tester,
   ) async {
