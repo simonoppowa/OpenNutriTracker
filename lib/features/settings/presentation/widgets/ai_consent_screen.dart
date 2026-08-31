@@ -89,6 +89,28 @@ class AiConsentScreen extends StatelessWidget {
               s.aiConsentChangeProviderNote,
               style: body?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
+            // Only a server the user runs is contacted before the feature is
+            // used: saving its address asks it for its model list and runs the
+            // setup check. The three hosted providers have a curated catalogue
+            // and no probe, so they are sent nothing until a meal is read, and
+            // a note about checks would be false for them rather than merely
+            // redundant.
+            //
+            // The note above stays true for every provider because of its
+            // qualifier — nothing *you type or photograph* — which the probe
+            // does not breach: it sends a fixed line and a bundled photograph.
+            // This paragraph is what makes that qualifier legible instead of
+            // lawyerly, on the one screen whose job is to be accurate before
+            // someone agrees. #985.
+            if (provider == AiProvider.ownServer) ...[
+              const SizedBox(height: 12),
+              Text(
+                s.aiConsentOwnServerCheckNote,
+                style: body?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
             Text(
               s.aiAssistExperimentalNote,

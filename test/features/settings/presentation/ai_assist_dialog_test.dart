@@ -3121,6 +3121,13 @@ void main() {
       await tester.pumpAndSettle();
       await typeKeyAndSave(tester);
 
+      // Scrolled to first: the consent screen is a ListView and Decline is its
+      // last child, so it sits below the fold on a short viewport. #985 added a
+      // paragraph above it, which is what pushed it out of reach here.
+      await tester.ensureVisible(
+        find.bySemanticsIdentifier('ai-consent-decline'),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsIdentifier('ai-consent-decline'));
       await tester.pumpAndSettle();
 
