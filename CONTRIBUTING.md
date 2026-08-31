@@ -15,6 +15,8 @@ architecture conventions live in [AGENTS.md](AGENTS.md).
 
 `main` is reserved for release merges only — it receives a single batched `develop → main` PR per release. If you open a PR against `main`, a maintainer will repoint it to `develop` before review.
 
+**The one exception: long-lived integration branches.** A feature too large for a single PR is staged on a `feature/**` branch, and its parts target *that* branch rather than `develop`; the branch itself then reaches `develop` as one PR. This is a maintainer arrangement — if you are contributing to one you will have been told, so target `develop` unless you have. Two things to know if you do work on one: CI is wired for `feature/**` in [`.github/workflows/default_workflow.yml`](.github/workflows/default_workflow.yml), so a PR targeting anything else gets **no checks at all while still reporting mergeable**; and issues do not auto-close on merge, because the closing keyword only fires against the default branch.
+
 ## Before you start
 
 - Check the [public board](https://github.com/users/simonoppowa/projects/2) before picking something up — it shows what is already in progress, so you don't duplicate work that is underway.

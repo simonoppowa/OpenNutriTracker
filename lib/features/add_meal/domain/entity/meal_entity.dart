@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/supported_language.dart';
@@ -85,6 +86,26 @@ class MealEntity extends Equatable {
   /// disclosure hint under the title for these.
   final bool machineTranslatedName;
 
+  /// True when [servingSize] holds a translation a human has verified, rather
+  /// than the English text every food record carries.
+  ///
+  /// Needed because the two are indistinguishable by inspection: "1 Scheibe"
+  /// and "1 slice" are both just strings on the entity, and showing the
+  /// second one to a German reader is the defect #966 had to gate against.
+  /// Only [withServingLabel] sets it, so it is false everywhere a label did
+  /// not come from the backend's verified set — including every meal read
+  /// back from the database, which stores no such provenance.
+  final bool servingSizeIsLocalized;
+
+  /// Every way this food can be counted, in the backend's order, so the first
+  /// is the portion `food_summary` picked and a picker opens where the app
+  /// already stood.
+  ///
+  /// Empty for everything that is not a fresh backend search result — Open
+  /// Food Facts, custom meals, anything read back from the database — and the
+  /// row then behaves exactly as it did before portions existed.
+  final List<MealPortionEntity> portions;
+
   /// Relative path (`meal_images/<code>.webp`) to a user-attached photo
   /// for a custom meal, or null if none is set. Resolved to an absolute
   /// path at render time via `MealImageStorage.absolutePath`. Always
@@ -123,9 +144,68 @@ class MealEntity extends Equatable {
     required this.source,
     this.backendSource,
     this.machineTranslatedName = false,
+    this.servingSizeIsLocalized = false,
+    this.portions = const [],
     this.localImagePath,
     this.detailed = false,
   });
+
+  /// The same meal with a verified translation in place of the English
+  /// serving label.
+  ///
+  /// Deliberately narrow: it replaces the text and records where it came
+  /// from, and touches nothing else. [servingQuantity] in particular stays
+  /// as it was, because the backend picks the label and the gram weight from
+  /// the same portion row — swapping one without the other is how "1 slice"
+  /// ends up beside 240 g.
+  MealEntity withServingLabel(String label) => MealEntity(
+    code: code,
+    name: name,
+    brands: brands,
+    thumbnailImageUrl: thumbnailImageUrl,
+    mainImageUrl: mainImageUrl,
+    url: url,
+    mealQuantity: mealQuantity,
+    mealUnit: mealUnit,
+    servingQuantity: servingQuantity,
+    servingUnit: servingUnit,
+    servingSize: label,
+    nutriments: nutriments,
+    source: source,
+    backendSource: backendSource,
+    machineTranslatedName: machineTranslatedName,
+    servingSizeIsLocalized: true,
+    portions: portions,
+    localImagePath: localImagePath,
+    detailed: detailed,
+  );
+
+  /// The same meal knowing every portion it can be counted in.
+  ///
+  /// Separate from [withServingLabel] because the two arrive from different
+  /// calls and either can be absent: a food may have a verified default label
+  /// and no picker-worthy list, or several portions and no translation.
+  MealEntity withPortions(List<MealPortionEntity> found) => MealEntity(
+    code: code,
+    name: name,
+    brands: brands,
+    thumbnailImageUrl: thumbnailImageUrl,
+    mainImageUrl: mainImageUrl,
+    url: url,
+    mealQuantity: mealQuantity,
+    mealUnit: mealUnit,
+    servingQuantity: servingQuantity,
+    servingUnit: servingUnit,
+    servingSize: servingSize,
+    nutriments: nutriments,
+    source: source,
+    backendSource: backendSource,
+    machineTranslatedName: machineTranslatedName,
+    servingSizeIsLocalized: servingSizeIsLocalized,
+    portions: found,
+    localImagePath: localImagePath,
+    detailed: detailed,
+  );
 
   factory MealEntity.empty() => MealEntity(
     code: IdGenerator.getUniqueID(),
