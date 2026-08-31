@@ -1,18 +1,5 @@
 # Does the app's TDEE match the IOM 2005 equation it cites
 
-Answers [#987](https://github.com/simonoppowa/OpenNutriTracker/issues/987)
-against primary sources only, gathered 2026-08-31. The IOM equations were read
-off the scanned page images NAP serves for record 10490
-(`https://nap.nationalacademies.org/books/10490/gif/<page>.gif`, photographs of
-the printed pages), the FAO report from FAO's own HTML edition, and the Brooks
-abstract from NCBI E-utilities. Nothing rests on a calculator site, a blog or a
-wiki; anything not read first-hand is under [Not verified](#not-verified).
-
-**Status:** every defect below is fixed in
-[#993](https://github.com/simonoppowa/OpenNutriTracker/pull/993) except where
-marked *open*. Kept as the reasoning behind the fix and as the reference for the
-next person to touch these equations.
-
 ## Bottom line
 
 1. **The issue is correct.** p. 204 groups the weight *and* height terms inside
