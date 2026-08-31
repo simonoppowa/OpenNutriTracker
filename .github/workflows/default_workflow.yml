@@ -23,6 +23,14 @@ on:
       # This is scoped to `feature/**` rather than `**` on purpose: it should
       # cover deliberate integration branches without firing a full CI run on
       # every PR between two arbitrary topic branches.
+      #
+      # Kept after `feature/ai-assisted-meal-logging` merged, rather than
+      # removed as spent. It is not leftover config: it is what gave #975,
+      # #978, #980 and #981 any checks at all, and four of the five defects
+      # that branch surrendered were found after CI passed on exactly those
+      # PRs. The next long-lived branch will need it before anyone remembers
+      # to add it back, and the failure mode is silent — a retargeted PR
+      # still reports mergeable with no checks run.
       - 'feature/**'
   workflow_dispatch:
 
