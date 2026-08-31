@@ -161,20 +161,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
           final isDark = Theme.of(context).brightness == Brightness.dark;
           final palette = isDark ? AppPalette.dark : AppPalette.light;
           final error = Theme.of(context).colorScheme.error;
-          return ListView(
-            shrinkWrap: widget.embedded,
-            physics: widget.embedded
-                ? const NeverScrollableScrollPhysics()
-                : null,
-            padding: widget.embedded
-                ? EdgeInsets.zero
-                : const EdgeInsets.fromLTRB(
-                    Dimens.spacing16,
-                    Dimens.spacing16,
-                    Dimens.spacing16,
-                    Dimens.spacing32,
-                  ),
-            children: [
+          // Built once, then wrapped in one of two shapes — because the
+          // embedded form is not a scrollable and should not pretend to be.
+          //
+          // It used to be a `ListView` either way, `shrinkWrap` with
+          // `NeverScrollableScrollPhysics` when embedded: a viewport that
+          // cannot scroll, nested inside the You tab's viewport that can.
+          // Rows outside the outer viewport are marked `isHidden`, and which
+          // of them cleared was decided by that outer list's offset — flung,
+          // it moves in large non-overlapping jumps, and a band in the middle
+          // was never uncovered. Four rows (the food databases, Health
+          // Connect, AI Assist, custom food import) could not be reached by a
+          // screen reader at all. #974.
+          //
+          // A `Column` has no viewport, so nothing here hides anything and
+          // the outer list alone decides what is on screen, exactly as it
+          // does for every other row of the You tab. It renders the same: a
+          // shrink-wrapped, unscrollable list of fixed children *is* a
+          // Column, with a viewport in the way.
+          final children = <Widget>[
               _categoryHeader(
                 context,
                 palette,
@@ -576,7 +581,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: Dimens.spacing24),
               AppBannerVersion(versionNumber: state.versionNumber),
-            ],
+          ];
+
+          if (widget.embedded) {
+            return Column(mainAxisSize: MainAxisSize.min, children: children);
+          }
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(
+              Dimens.spacing16,
+              Dimens.spacing16,
+              Dimens.spacing16,
+              Dimens.spacing32,
+            ),
+            children: children,
           );
         }
         return const SizedBox();
