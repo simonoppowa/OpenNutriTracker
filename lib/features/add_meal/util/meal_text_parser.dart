@@ -163,7 +163,54 @@ class MealTextParseResult {
 /// near-miss: `2 tbsp` becoming `2 g` is a thirteenfold under-count nobody
 /// is shown, whereas a bare `2` is a number the row already knows how to
 /// question.
-MealTextParseResult validateParsedMealItems(List<ParsedMealItem> candidates) {
+/// True when [input] actually carries a unit — a number with one of the
+/// [_unitSymbol] symbols against it, in any of its segments.
+///
+/// Asked of the text the *model* was given, so a unit in its reply can be
+/// checked against whether one was ever there to report. #977: for
+/// `ein Glas Milch` anthropic answered `1 l` and openai answered
+/// `unit: "Glas"`. Neither is in the input; the enum happened to contain
+/// one of them, so the app multiplied by a thousand and logged 470 kcal for
+/// a glass of milk, while the other was dropped as unrecognised and came out
+/// right. Which of two wrong answers is harmless should not be decided by
+/// what the enum happens to spell.
+///
+/// Reuses the parser's own segmentation and extraction rather than scanning
+/// for the symbols, and that is the whole point: `l` occurs inside `Glas`,
+/// so a substring test reports a unit in exactly the phrase this exists to
+/// catch. [_leadingQuantity] and [_trailingQuantity] only see a unit when a
+/// number is against it.
+bool textStatesAUnit(String input) => _segment(
+  input,
+).any((segment) => _extractQuantityAndUnit(segment).unit != null);
+
+MealTextParseResult validateParsedMealItems(
+  List<ParsedMealItem> candidates, {
+  String? statedIn,
+}) {
+  // A unit nobody wrote is a guess, and is dropped before the kg/l
+  // normalization below can act on it — after it, `1 l` is already 1000 ml
+  // and the number cannot be put back. Dropping leaves a bare count, which
+  // the review row already resolves against the food's own portion: that is
+  // how openai's `unit: "Glas"` arrives at the right figure today, by being
+  // unrecognised rather than by being right. #977.
+  //
+  // Whole-input rather than per-item: a model's rows do not map onto text
+  // segments reliably enough to ask the question per row, and `100g Toast,
+  // 2 Eier` states a unit, so nothing there changes. It is a narrowing of
+  // today's behaviour, not a replacement for it.
+  if (statedIn != null && !textStatesAUnit(statedIn)) {
+    candidates = [
+      for (final c in candidates)
+        ParsedMealItem(
+          query: c.query,
+          quantity: c.quantity,
+          unit: null,
+          portion: c.portion,
+        ),
+    ];
+  }
+
   final items = <ParsedMealItem>[];
   final errors = <MealTextParseError>[];
 

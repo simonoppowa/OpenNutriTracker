@@ -130,7 +130,12 @@ class OpenAiMealItemsApi implements MealItemsApi {
       throw const MealInterpreterException('malformed response');
     }
 
-    return validateParsedMealItems(_itemsFrom(decoded));
+    return validateParsedMealItems(
+      _itemsFrom(decoded),
+      // Only the typed path corroborates: a photograph states no units at
+      // all, and its own counts-only filter already drops them.
+      statedIn: content is MealTextContent ? content.text : null,
+    );
   }
 
   /// Responses content. **Image before text**, matching the Anthropic client
