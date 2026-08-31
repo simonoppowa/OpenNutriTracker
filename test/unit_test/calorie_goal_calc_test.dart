@@ -45,9 +45,9 @@ void main() {
           550.0,
         );
 
-        // TDEE: 2087, Activities: 550, Adjustment: -500
-        // 2087 + 550 - 500 = 2137
-        int expectedKcal = 2137;
+        // TDEE: 2373, Activities: 550, Adjustment: -500
+        // 2373 + 550 - 500 = 2423
+        int expectedKcal = 2423;
 
         expect(resultCalorieGoal.toInt(), expectedKcal);
       },
