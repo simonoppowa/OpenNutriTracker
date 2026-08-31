@@ -510,7 +510,7 @@
   "nutritionalStatusUnderweight": "Untergewicht",
   "offDisclaimer": "Die Daten, die Ihnen mit dieser App zur Verfügung gestellt werden, stammen aus der Open Food Facts-Datenbank. Es kann keine Garantie für die Richtigkeit, Vollständigkeit oder Zuverlässigkeit der bereitgestellten Informationen übernommen werden. Die Daten werden ohne Mängelgewähr zur Verfügung gestellt, und die Ursprungsquelle der Daten (Open Food Facts) haftet nicht für Schäden, die aus der Verwendung der Daten entstehen.",
   "onboardingActivityQuestionSubtitle": "Wie aktiv sind Sie? (Ohne Trainingseinheiten)",
-  "onboardingAdultEquationNotice": "Kalorienziele werden mit Referenzgleichungen für Erwachsene berechnet. Unter 18 Jahren sollten Sie das Ergebnis ärztlich oder von einer Ernährungsfachkraft prüfen lassen.",
+  "onboardingAdultEquationNotice": "Kalorienziele werden mit Referenzgleichungen für Erwachsene berechnet. Unter 19 Jahren sollten Sie das Ergebnis ärztlich oder von einer Ernährungsfachkraft prüfen lassen.",
   "onboardingBirthdayHint": "Datum eingeben",
   "onboardingBirthdayQuestionSubtitle": "Wann haben Sie Geburtstag?",
   "onboardingBlockedActivitySnack": "Wählen Sie Ihr Aktivitätsniveau, um fortzufahren",

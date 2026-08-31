@@ -479,7 +479,7 @@
   "nutritionalStatusUnderweight": "Podváha",
   "offDisclaimer": "Data poskytnutá aplikací jsou získána z databáze Open Food Facts. Nelze garantovat jejich přesnost, kompletnost nebo spolehlivost. Data jsou poskytována bez záruky a jejich původní poskytovatel (Open Food Facts) není zodpovědný za jakékoliv újmy vzniklé jejich používáním.",
   "onboardingActivityQuestionSubtitle": "Jak aktivně žijete? (Obecně - proteď prosím neberte v úvahu konkrétní cvičení.)",
-  "onboardingAdultEquationNotice": "Kalorické cíle se počítají podle referenčních rovnic pro dospělé. Do 18 let výsledek konzultujte s lékařem nebo nutričním terapeutem.",
+  "onboardingAdultEquationNotice": "Kalorické cíle se počítají podle referenčních rovnic pro dospělé. Do 19 let výsledek konzultujte s lékařem nebo nutričním terapeutem.",
   "onboardingBirthdayHint": "Vložte datum",
   "onboardingBirthdayQuestionSubtitle": "Kdy jste se narodil(a)?",
   "onboardingBlockedActivitySnack": "Pro pokračování vyberte svou úroveň aktivity",

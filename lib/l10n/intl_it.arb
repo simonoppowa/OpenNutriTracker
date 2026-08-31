@@ -479,7 +479,7 @@
   "nutritionalStatusUnderweight": "Sottopeso",
   "offDisclaimer": "I dati forniti da questa app provengono dal database Open Food Facts. Non è possibile garantire l'accuratezza, la completezza o l'affidabilità delle informazioni fornite. I dati sono forniti \"così come sono\" e la fonte originale (Open Food Facts) non è responsabile per eventuali danni derivanti dall'uso dei dati.",
   "onboardingActivityQuestionSubtitle": "Quanto sei attivo? (senza allenamenti)",
-  "onboardingAdultEquationNotice": "Gli obiettivi calorici sono calcolati con equazioni di riferimento per adulti. Sotto i 18 anni, verifica il risultato con un medico o un dietista.",
+  "onboardingAdultEquationNotice": "Gli obiettivi calorici sono calcolati con equazioni di riferimento per adulti. Sotto i 19 anni, verifica il risultato con un medico o un dietista.",
   "onboardingBirthdayHint": "Inserisci data",
   "onboardingBirthdayQuestionSubtitle": "Quando è il tuo compleanno?",
   "onboardingBlockedActivitySnack": "Seleziona il tuo livello di attività per continuare",

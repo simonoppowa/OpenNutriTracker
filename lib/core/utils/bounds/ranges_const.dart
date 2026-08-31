@@ -12,7 +12,12 @@ class Ranges {
   /// says out loud that it comes from adult reference equations: the
   /// IOM 2005 formulas behind [TDEECalc] are the adult set, and the IOM
   /// publishes separate equations for children and adolescents.
-  static const int adultAgeYears = 18;
+  ///
+  /// This is the applicability floor the source states — p. 204 heads its
+  /// equations "ages 19 years and older" — not legal adulthood, which is why
+  /// it is 19 and not 18. An 18-year-old gets adult equations too, so they
+  /// get the notice as well (#987).
+  static const int adultEquationAgeYears = 19;
 
   static const double maxHeight = 300;
   static const double minHeight = 30;
