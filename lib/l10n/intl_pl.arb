@@ -479,7 +479,7 @@
   "nutritionalStatusUnderweight": "Niedowaga",
   "offDisclaimer": "Dane dostarczone przez tę aplikację są pobierane z bazy danych Open Food Facts. Nie można zagwarantować dokładności, kompletności ani wiarygodności dostarczonych informacji. Dane są dostarczane \"tak jak są\", a źródło pochodzenia danych (Open Food Facts) nie ponosi odpowiedzialności za jakiekolwiek szkody wynikające z użycia danych.",
   "onboardingActivityQuestionSubtitle": "Jak aktywny jesteś? (bez treningów)",
-  "onboardingAdultEquationNotice": "Cele kaloryczne są obliczane na podstawie równań referencyjnych dla dorosłych. Poniżej 18 lat skonsultuj wynik z lekarzem lub dietetykiem.",
+  "onboardingAdultEquationNotice": "Cele kaloryczne są obliczane na podstawie równań referencyjnych dla dorosłych. Poniżej 19 lat skonsultuj wynik z lekarzem lub dietetykiem.",
   "onboardingBirthdayHint": "Wprowadź datę",
   "onboardingBirthdayQuestionSubtitle": "Kiedy się urodziłeś?",
   "onboardingBlockedActivitySnack": "Wybierz poziom aktywności, aby kontynuować",

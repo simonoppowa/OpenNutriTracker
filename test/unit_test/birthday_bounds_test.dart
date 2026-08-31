@@ -86,16 +86,26 @@ void main() {
       );
     });
 
-    test('18 today is not', () {
+    // The boundary is 19, not legal adulthood: IOM 2005 p. 204 heads its
+    // equations "ages 19 years and older", so an 18-year-old is still being
+    // handed a formula published for someone older (#987).
+    test('18 is under adult-equation age', () {
       expect(
         ValueValidator.isUnderAdultAge(DateTime(2008, 8, 1), now: now),
+        isTrue,
+      );
+    });
+
+    test('19 today is not', () {
+      expect(
+        ValueValidator.isUnderAdultAge(DateTime(2007, 8, 1), now: now),
         isFalse,
       );
     });
 
-    test('one day short of 18 still is', () {
+    test('one day short of 19 still is', () {
       expect(
-        ValueValidator.isUnderAdultAge(DateTime(2008, 8, 2), now: now),
+        ValueValidator.isUnderAdultAge(DateTime(2007, 8, 2), now: now),
         isTrue,
       );
     });

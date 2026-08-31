@@ -222,7 +222,7 @@ class _OnboardingAboutYouPageBodyState
     );
   }
 
-  /// Shown for 13–17 year olds. The calorie goal is still calculated, but
+  /// Shown for 13–18 year olds. The calorie goal is still calculated, but
   /// the IOM 2005 equations behind it are the adult set, and saying so is
   /// more honest than quietly handing a teenager an adult number.
   Widget _buildAdultEquationNotice() {
