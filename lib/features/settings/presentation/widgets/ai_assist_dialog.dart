@@ -1056,14 +1056,30 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
             child: Text(s.dialogCancelLabel),
           ),
         ),
-        // Offered whenever something on screen can still be typed into. For
-        // the hosted three that is exactly "before a key exists", which is
-        // what this used to say. A server the user runs keeps an address and
-        // a model name editable for as long as the dialog is open, and
-        // hanging OK off the credential left both fields rendered with no way
-        // to commit a change — the only exit was Remove, which discards the
-        // address as well.
-        if (!_loading && (!_hasKey || _provider == AiProvider.ownServer))
+        // Offered whenever something on screen can still be typed into, **or
+        // whenever there is already a change to confirm**. For the hosted
+        // three the first half is exactly "before a key exists", which is
+        // what this used to say on its own. A server the user runs keeps an
+        // address and a model name editable for as long as the dialog is
+        // open, and hanging OK off the credential left both fields rendered
+        // with no way to commit a change — the only exit was Remove, which
+        // discards the address as well.
+        //
+        // The second half is #979. Switching to a provider that already has
+        // a key is a change, and it had no way out that kept it: `_hasKey`
+        // is true for that provider, so OK was never rendered, while Cancel
+        // and the back button both run `_cancel` and restore the previous
+        // one. Every exit undid the switch, which made a second configured
+        // destination unreachable — the choice the four-destination design
+        // exists to offer. The test that covered "OK still switches" passed
+        // throughout, because its provider had no key and so was on the
+        // lucky side of this gate.
+        //
+        // `_changed` is the right question rather than `_provider != _providerOnOpen`:
+        // a model pick and the enabled toggle are also changes someone may
+        // want to keep, and they are already written by the time they set it.
+        if (!_loading &&
+            (!_hasKey || _provider == AiProvider.ownServer || _changed))
           Semantics(
             identifier: 'ai-assist-save-key',
             child: TextButton(onPressed: _save, child: Text(s.dialogOKLabel)),
