@@ -546,12 +546,36 @@ jobs:
 
   # Deploy gate, 1 of 5 — read this one, the other four point back at it.
   #
-  # Two things have to be true to package a release, and BOTH halves below are
+  # Three things have to be true to package a release, and every one of them is
   # load-bearing:
   #
-  #   1. the run is a push to `main` or a manual dispatch — a pull request must
-  #      never touch signing material or a store;
-  #   2. every job in `needs:` actually SUCCEEDED.
+  #   1. the run is on `main` — tested first, and for EVERY event;
+  #   2. the run is a push or a manual dispatch — a pull request must never
+  #      touch signing material or a store;
+  #   3. every job in `needs:` actually SUCCEEDED.
+  #
+  # (1) is its own conjunct rather than half of (2) on purpose, and that is
+  # #1011. The guard used to read
+  #
+  #     ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+  #     github.event_name == 'workflow_dispatch') && ...
+  #
+  # which pins the ref on the `push` arm ONLY. `workflow_dispatch:` accepts no
+  # branch filter — GitHub does not offer one — so the dispatch arm accepted
+  # any branch or tag in the repository, and a manual run from a topic branch
+  # got the full release: a TestFlight upload, a Play versionCode, and a `v*`
+  # tag. Not hypothetical: run 26086317616 was a `workflow_dispatch` on
+  # `integrate-cicd-deployment` and carried ios-package, android-package,
+  # ios-deploy, android-deploy AND github-release all to success.
+  #
+  # We got away with it — that head was later merged, and every tag this repo
+  # has cut points at a commit reachable from `main`. That was luck. Nothing
+  # in the old guard required it.
+  #
+  # The parentheses around the event test are load-bearing: `&&` binds tighter
+  # than `||`, so dropping them re-associates into
+  # `(ref == main && event == push) || (event == dispatch && needs...)`, which
+  # is the bug written out longhand.
   #
   # (2) used to be implicit: with no status check function in an `if:`, GitHub
   # ANDs a `success()` onto it for free. That free check is what broke the
@@ -586,8 +610,8 @@ jobs:
   #     deploys from pull requests.
   ios-package:
     if: |
-      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       !cancelled() &&
       needs.linux-checks.result == 'success' &&
       needs.ios-build.result == 'success' &&
@@ -707,8 +731,8 @@ jobs:
   # the packages would go green and this would still silently skip.
   ios-deploy:
     if: |
-      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       !cancelled() &&
       needs.ios-package.result == 'success' &&
       needs.android-package.result == 'success'
@@ -764,8 +788,8 @@ jobs:
   # left to GitHub's implicit `success()`.
   android-package:
     if: |
-      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       !cancelled() &&
       needs.linux-checks.result == 'success' &&
       needs.ios-build.result == 'success' &&
@@ -902,8 +926,8 @@ jobs:
   # `needs:` edit could quietly widen.
   android-deploy:
     if: |
-      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       !cancelled() &&
       needs.android-package.result == 'success' &&
       needs.ios-package.result == 'success'
@@ -1018,8 +1042,8 @@ jobs:
   # here would have tagged and published it.
   github-release:
     if: |
-      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       !cancelled() &&
       needs.ios-deploy.result == 'success' &&
       needs.android-deploy.result == 'success'
