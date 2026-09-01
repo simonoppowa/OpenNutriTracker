@@ -344,4 +344,111 @@ void main() {
       }
     });
   });
+
+  /// The claims above are made against a fake, which cannot follow a redirect
+  /// — `dart:io` does that below `BaseClient.send`, where no fake reaches. So
+  /// these run against a real `HttpServer` on loopback and a real `dart:io`
+  /// client, which is the only place the redirect rule is actually decided.
+  group('against a real socket', () {
+    late HttpServer server;
+    late List<String> paths;
+    late List<String?> hosts;
+    HttpOverrides? savedOverrides;
+
+    setUp(() async {
+      // `flutter_test` installs an override that answers every request with a
+      // canned 400 rather than opening a socket. These tests are about what
+      // the socket layer really does, so they need it out of the way — and
+      // put back, because the rest of the suite may rely on it.
+      savedOverrides = HttpOverrides.current;
+      HttpOverrides.global = null;
+
+      paths = [];
+      hosts = [];
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      server.listen((request) async {
+        paths.add(request.uri.path);
+        hosts.add(request.headers.value('host'));
+        if (request.uri.path == '/first') {
+          request.response.statusCode = HttpStatus.found;
+          request.response.headers.set('location', '/second');
+        } else {
+          request.response.statusCode = HttpStatus.ok;
+        }
+        await request.response.close();
+      });
+    });
+
+    tearDown(() async {
+      await server.close(force: true);
+      HttpOverrides.global = savedOverrides;
+    });
+
+    test('an unguarded client really does follow the redirect', () async {
+      // The control. Without it the two tests below prove nothing: they would
+      // pass just as well against a server that never redirected, or a client
+      // stack that had stopped following redirects on its own.
+      final client = http.Client();
+      addTearDown(client.close);
+
+      final response =
+          await client.get(Uri.parse('http://127.0.0.1:${server.port}/first'));
+
+      expect(paths, ['/first', '/second']);
+      expect(response.statusCode, 200);
+    });
+
+    test('the guarded client stops at the 30x — literal pass-through',
+        () async {
+      // A private literal is waved through `approve` untouched, so this is
+      // the branch where the request object reaches the socket as the caller
+      // built it. `followRedirects` still has to have been turned off.
+      final client = GuardedPlaintextClient(http.Client());
+      addTearDown(client.close);
+
+      final response =
+          await client.get(Uri.parse('http://127.0.0.1:${server.port}/first'));
+
+      expect(paths, ['/first']);
+      expect(response.statusCode, 302);
+      expect(response.headers['location'], '/second');
+    });
+
+    test('the guarded client stops at the 30x — rebound path', () async {
+      // The same claim on the other branch: a name pinned to its resolved
+      // address, rebuilt into a new request. The rebuild must not hand back a
+      // request that follows redirects.
+      final client = GuardedPlaintextClient(
+        http.Client(),
+        guard: PlaintextDestinationGuard(
+          lookup: (_) async => [_v4('127.0.0.1')],
+        ),
+      );
+      addTearDown(client.close);
+
+      final response = await client
+          .get(Uri.parse('http://ollama.lan:${server.port}/first'));
+
+      expect(paths, ['/first']);
+      expect(response.statusCode, 302);
+    });
+
+    test('the Host header arrives at the server with its port', () async {
+      // Read off the wire rather than off the request object: the header has
+      // to survive `dart:io`, which sets a Host of its own from the
+      // connection URI and would otherwise report 127.0.0.1.
+      final client = GuardedPlaintextClient(
+        http.Client(),
+        guard: PlaintextDestinationGuard(
+          lookup: (_) async => [_v4('127.0.0.1')],
+        ),
+      );
+      addTearDown(client.close);
+
+      await client.get(Uri.parse('http://ollama.lan:${server.port}/second'));
+
+      expect(hosts.single, 'ollama.lan:${server.port}');
+    });
+  });
+
 }
