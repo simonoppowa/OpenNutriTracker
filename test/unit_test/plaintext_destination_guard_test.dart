@@ -5,13 +5,25 @@ import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 
 /// Records the request that reached the socket, or the fact that none did.
+///
+/// [sentCount] matters for the redirect tests: following a 30x would show up
+/// here as a second send, which is exactly what must not happen.
 class _RecordingClient extends http.BaseClient {
   http.BaseRequest? sent;
+  int sentCount = 0;
+
+  /// Returned instead of a bare 200 when a test needs a specific status —
+  /// a 30x, for the redirect cases.
+  final http.StreamedResponse? response;
+
+  _RecordingClient({this.response});
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     sent = request;
-    return http.StreamedResponse(const Stream.empty(), 200, request: request);
+    sentCount++;
+    return response ??
+        http.StreamedResponse(const Stream.empty(), 200, request: request);
   }
 }
 
@@ -216,6 +228,73 @@ void main() {
         throwsA(isA<InsecureDestinationException>()),
       );
       expect(inner.sent, isNull);
+    });
+
+    test('redirects are not followed, on the rebound path', () async {
+      // The gap this closes: `dart:io` follows a 30x below `BaseClient.send`,
+      // so the hop never re-enters the guard. A private server answering with
+      // a public `http://` Location would have had that connection made, out
+      // of a check that reported the destination private.
+      final inner = _RecordingClient();
+      final client = GuardedPlaintextClient(
+        inner,
+        guard: PlaintextDestinationGuard(
+          lookup: (_) async => [_v4('192.168.1.5')],
+        ),
+      );
+
+      await client.post(
+        Uri.parse('http://ollama.lan:11434/v1/chat/completions'),
+        body: 'payload',
+      );
+
+      expect(inner.sent!.followRedirects, isFalse);
+    });
+
+    test('redirects are not followed on the https pass-through either', () async {
+      // `approve` waves https straight through, so the pass-through branch
+      // needs its own guarantee: an encrypted first hop says nothing about
+      // where a `Location` header points.
+      final inner = _RecordingClient();
+      final client = GuardedPlaintextClient(inner);
+
+      await client.post(
+        Uri.parse('https://ollama.example.com/v1/chat/completions'),
+        body: 'payload',
+      );
+
+      expect(inner.sent!.followRedirects, isFalse);
+    });
+
+    test('a 30x comes back to the caller as a response, not a second hop', () async {
+      // Contract, not regression: the following happens inside `dart:io`,
+      // below this fake, so this test passes with or without the fix above.
+      // It pins what a caller sees — a 30x surfacing rather than being
+      // swallowed — while the two tests above are the ones that fail if
+      // `followRedirects` is ever turned back on.
+      final inner = _RecordingClient(
+        response: http.StreamedResponse(
+          const Stream.empty(),
+          302,
+          headers: {'location': 'http://93.184.216.34/v1/chat/completions'},
+        ),
+      );
+      final client = GuardedPlaintextClient(
+        inner,
+        guard: PlaintextDestinationGuard(
+          lookup: (_) async => [_v4('192.168.1.5')],
+        ),
+      );
+
+      final response = await client.post(
+        Uri.parse('http://ollama.lan:11434/v1/chat/completions'),
+        body: 'payload',
+      );
+
+      // Surfaced rather than chased. The caller sees a failed request; what
+      // it does not see is a payload delivered to 93.184.216.34.
+      expect(response.statusCode, 302);
+      expect(inner.sentCount, 1);
     });
 
     test('the exception names the host and nothing else', () async {
