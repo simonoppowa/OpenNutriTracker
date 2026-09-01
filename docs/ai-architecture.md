@@ -492,7 +492,12 @@ Independent checks, not a sequence. Each one is pinned by a test that fails if i
 platform does not. `http://ollama.lan` is what people actually configure, and a name resolves
 wherever DNS says — possibly somewhere public, and possibly somewhere different today than when it
 was saved. Neither platform's transport-security policy reaches Dart's socket layer, so this check
-is the whole of the enforcement. It permits loopback, link-local, RFC 1918 and IPv6 unique-local,
+is the whole of the enforcement, and it stays whole because **a redirect is not followed**. A
+`Location` header is acted on inside `dart:io`, below where this check sits, so a second hop
+would be made on the strength of an approval granted to a different destination; instead a 30x
+comes back to the caller as the response it is. That holds for `https://` too, which the guard
+otherwise waves through: an encrypted first hop says nothing about where its `Location` points.
+The check permits loopback, link-local, RFC 1918 and IPv6 unique-local,
 and it deliberately excludes carrier-grade NAT (`100.64.0.0/10`) — which is what Tailscale hands
 out, so a tailnet user must use `https://`. The app cannot tell a tailnet from an ISP's shared
 address space, and treating every `100.x` as private would quietly permit plaintext onto a
