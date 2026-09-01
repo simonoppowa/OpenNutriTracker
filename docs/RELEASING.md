@@ -36,8 +36,10 @@ Two properties are deliberate and worth knowing:
 error. Since 2.1.0 the bundle declares `android.permission.health.*`, and the Play Publishing API
 rejects health-permission bundles with *"You must let us know whether your app includes any health
 features"* regardless of the declaration — a known upstream defect
-([#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942), fastlane#22204 closed unfixed,
-fastlane#27960 reopened, reproduced from a different toolchain in expo/eas-cli#3275). The same
+([#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942),
+[fastlane#22204](https://github.com/fastlane/fastlane/issues/22204) closed unfixed,
+[fastlane#27960](https://github.com/fastlane/fastlane/issues/27960) reopened, and reproduced from a
+different toolchain in [expo/eas-cli#3275](https://github.com/expo/eas-cli/issues/3275)). The same
 bundle uploaded by hand through the console is asked no health question and goes through.
 
 The step tolerates that one error and nothing else: it emits a `::warning::` and writes the
