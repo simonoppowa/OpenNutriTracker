@@ -41,8 +41,17 @@ void main() {
   /// catch, and this page quotes real source comments verbatim — so scanning
   /// one means failing the build over an accurate transcription. It also
   /// keeps a `# install` line in a shell block from registering as a heading.
+  /// Indented fences count. A fence inside a list item is indented by the
+  /// list's own margin, and anchoring at column 0 would read straight past it
+  /// — scanning the sample links and headings it contains as if they were the
+  /// page's own. Up to three spaces is what CommonMark allows before a fence
+  /// stops being a fence, and the closing run has to be allowed the same.
   String withoutFences(String markdown) => markdown.replaceAll(
-    RegExp(r'^(```|~~~)[^\n]*\n.*?^\1[^\n]*$', multiLine: true, dotAll: true),
+    RegExp(
+      r'^ {0,3}(```|~~~)[^\n]*\n.*?^ {0,3}\1[^\n]*$',
+      multiLine: true,
+      dotAll: true,
+    ),
     '',
   );
 
