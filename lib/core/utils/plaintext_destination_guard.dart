@@ -138,6 +138,10 @@ class PlaintextDestinationGuard {
 /// promise is about the app's traffic to a user-supplied address and not
 /// about one call site. Anything given this client is covered, including
 /// call sites that do not exist yet.
+///
+/// **Redirects are not followed.** They would be followed below this layer,
+/// where the guard never sees them, so a 30x comes back to the caller
+/// unfollowed rather than becoming an unchecked second destination.
 class GuardedPlaintextClient extends http.BaseClient {
   final http.Client _inner;
   final PlaintextDestinationGuard _guard;
@@ -148,8 +152,22 @@ class GuardedPlaintextClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     final approved = await _guard.approve(request.url);
-    if (approved == request.url) return _inner.send(request);
-    return _inner.send(_reboundTo(approved, request));
+    final outgoing = approved == request.url
+        ? request
+        : _reboundTo(approved, request);
+
+    // Redirects are followed inside `dart:io`, below `BaseClient.send`, so a
+    // hop never comes back through here and never meets [approve]. Left on,
+    // a server answering 30x with a public `http://` target would have that
+    // connection made — from a check that reported the destination private.
+    // The guard cannot vouch for a hop it never sees, so it does not let one
+    // happen: a redirect is returned to the caller as the 30x it is.
+    //
+    // This holds for `https://` too, which [approve] waves through: an
+    // encrypted first hop says nothing about where a `Location` points.
+    if (outgoing.followRedirects) outgoing.followRedirects = false;
+
+    return _inner.send(outgoing);
   }
 
   /// Rebuilds the request against the approved address, keeping the original
@@ -166,7 +184,6 @@ class GuardedPlaintextClient extends http.BaseClient {
       ..headers.addAll(request.headers)
       ..headers['host'] = request.url.host
       ..bodyBytes = request.bodyBytes
-      ..followRedirects = request.followRedirects
       ..maxRedirects = request.maxRedirects
       ..persistentConnection = request.persistentConnection;
   }
