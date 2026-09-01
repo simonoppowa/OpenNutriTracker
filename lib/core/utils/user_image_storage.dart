@@ -31,8 +31,8 @@ enum UserImageKind {
 /// across app reinstalls and iOS sandbox refreshes, where the documents
 /// directory's parent prefix can change between launches.
 ///
-/// Photos are stored as WebP at quality 80, capped at 1024px on the
-/// longest edge — small enough that an export zip of a few dozen
+/// Photos are stored as WebP at quality 80, bounded at 1024px on the
+/// shortest edge — small enough that an export zip of a few dozen
 /// recipes and meals stays in the low-megabyte range, while still
 /// being plenty crisp for a list thumbnail and the detail-screen
 /// header. WebP roughly halves the bytes of an equivalent-quality JPEG
@@ -83,7 +83,7 @@ class UserImageStorage {
     return imagesDir;
   }
 
-  /// Reads `sourcePath`, re-encodes it to WebP (quality 80, longest
+  /// Reads `sourcePath`, re-encodes it to WebP (quality 80, shortest
   /// edge 1024px), writes the result to the matching images directory
   /// under `<ownerId>.webp`, and returns the relative slug to persist.
   /// The source file is left untouched.
@@ -185,9 +185,12 @@ class UserImageStorage {
         quality: 80,
         minWidth: 1024,
         minHeight: 1024,
-        // `minWidth`/`minHeight` are upper bounds for the *longest*
-        // edge when the source exceeds them; the compressor preserves
-        // aspect ratio. Shorter-edge images pass through untouched.
+        // `minWidth`/`minHeight` bound the *shortest* edge, not the longest.
+        // The compressor takes `min(width/minWidth, height/minHeight)` as its
+        // scale factor, so the smaller ratio wins and the edge that lands on
+        // 1024 is the short one: a 4080x3072 frame comes out 1360x1024, and a
+        // 16:9 frame wider still. Aspect ratio is preserved and an image
+        // already smaller than 1024 on both edges passes through untouched.
       );
     } catch (_) {
       return null;

@@ -53,7 +53,7 @@ enum MealPhotoFormat {
 /// the documents directory is a photo the export zip picks up and the user
 /// never asked to keep.
 ///
-/// The encoding — quality 80, longest edge 1024 px — matches
+/// The encoding — quality 80, shortest edge 1024 px — matches
 /// `UserImageStorage` on purpose. It is the pipeline this app already trusts
 /// for food photography, and a 1024 px image is about 1400 visual tokens,
 /// which is what makes this cost fractions of a cent where anyone is charging
@@ -193,9 +193,12 @@ class MealPhotoEncoder {
         // the app promises it asks for no location. [PhotoMetadata] does the
         // same job on the fallback path below, where no encoder runs.
         keepExif: false,
-        // `minWidth`/`minHeight` are upper bounds for the *longest* edge
-        // when the source exceeds them; the compressor preserves aspect
-        // ratio. Shorter-edge images pass through untouched.
+        // `minWidth`/`minHeight` bound the *shortest* edge, not the longest.
+        // The compressor takes `min(width/minWidth, height/minHeight)` as its
+        // scale factor, so the smaller ratio wins and the edge that lands on
+        // 1024 is the short one: a 4080x3072 frame comes out 1360x1024, and a
+        // 16:9 frame wider still. Aspect ratio is preserved and an image
+        // already smaller than 1024 on both edges passes through untouched.
       );
     } catch (_) {
       return null;

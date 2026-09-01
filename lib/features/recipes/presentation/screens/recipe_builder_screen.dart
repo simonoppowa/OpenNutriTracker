@@ -408,8 +408,8 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
     try {
       final picker = ImagePicker();
       // Pick at full resolution — `UserImageStorage.importFrom` re-encodes
-      // to WebP at quality 80 with a 1024px longest-edge cap, so we don't
-      // need image_picker's own JPEG compression on top. Doing it in one
+      // to WebP at quality 80, bounding the shortest edge at 1024px, so we
+      // don't need image_picker's own JPEG compression on top. Doing it in one
       // place keeps the on-disk footprint consistent regardless of which
       // source (camera / gallery) the photo came from.
       final picked = await picker.pickImage(source: source);
