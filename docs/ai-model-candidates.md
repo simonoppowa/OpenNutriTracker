@@ -568,5 +568,8 @@ Related notes in this repo:
 
 In-repo files cited:
 [`lib/core/utils/ai_model_catalogue.dart`](../lib/core/utils/ai_model_catalogue.dart) ·
-[`lib/features/add_meal/data/openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart) ·
-[`tool/live_routing_policy.dart`](../tool/live_routing_policy.dart)
+[`lib/features/add_meal/data/openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart)
+
+The routing-policy check behind the table above was run with a local probe,
+`tool/live_routing_policy.dart`. It talks to a real provider with a real key and
+is deliberately not committed, so it is named here rather than linked.

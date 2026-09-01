@@ -66,5 +66,14 @@ result
 # Exception for Gemfile.lock, which is needed for Fastlane / Bundler
 !**/Gemfile.lock
 
+# Live provider probes — scripts that talk to a real AI provider with a real
+# key, kept locally and never committed. They take the key as a *file path*
+# argument rather than embedding one, so the risk is not the key leaking; it
+# is a `git add -A` sweeping an ad-hoc script into a release branch, which is
+# exactly what nearly happened during 2.2.0. `tool/policy_snapshot.dart` is a
+# committed tool and stays tracked — this ignores only the probes.
+tool/live_*.dart
+tool/verify_openai_key.dart
+
 # Fastlane / Bundler — local gem install path (bundle config set path vendor/bundle)
 ios/vendor/
