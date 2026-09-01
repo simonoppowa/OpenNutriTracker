@@ -89,10 +89,11 @@ Future<void> _pump(
 
 void main() {
   group('KcalGoalInfoScreen', () {
-    // Reference case, hand-computed:
-    // TDEE = 864 − 9.72×30 + 1.27×14.2×80 + 503×1.80
-    //      = 864 − 291.6 + 1442.72 + 905.4 = 2920.52
-    // Goal = 2920.52 − 500 + 150 + 320 = 2890.52
+    // Reference case, hand-computed from IOM 2005 p. 204. PA multiplies the
+    // weight *and* height terms — see #987, which is why these numbers moved.
+    // TDEE = 864 − 9.72×30 + 1.27×(14.2×80 + 503×1.80)
+    //      = 572.4 + 1.27×2041.4 = 3164.98
+    // Goal = 3164.98 − 500 + 150 + 320 = 3134.98
     KcalGoalBreakdownEntity maleBreakdown() => KcalGoalBreakdownEntity.compute(
       user: _buildUser(),
       userKcalAdjustment: 150,
@@ -123,14 +124,14 @@ void main() {
 
       expect(
         find.textContaining(
-          '864 − 9.72 × 30 + 1.27 × 14.2 × 80.0 + 503 × 1.80',
+          '864 − 9.72 × 30 + 1.27 × (14.2 × 80.0 + 503 × 1.80)',
         ),
         findsOneWidget,
       );
       // Box result truncates exactly like the summary rows do.
-      expect(find.textContaining('= 2920 kcal'), findsOneWidget);
+      expect(find.textContaining('= 3164 kcal'), findsOneWidget);
       // TDEE appears twice: TDEE card result row + result card line.
-      expect(find.text('2920 kcal'), findsNWidgets(2));
+      expect(find.text('3164 kcal'), findsNWidgets(2));
     });
 
     testWidgets('shows every goal component with an explicit sign', (
@@ -154,8 +155,8 @@ void main() {
     ) async {
       await _pump(tester, maleBreakdown());
 
-      // 2890.52 truncates to 2890 — identical to the dashboard's toInt().
-      expect(find.text('2890 kcal'), findsOneWidget);
+      // 3134.98 truncates to 3134 — identical to the dashboard's toInt().
+      expect(find.text('3134 kcal'), findsOneWidget);
     });
 
     testWidgets('macro card shows the hand-computed gram targets', (
@@ -163,15 +164,15 @@ void main() {
     ) async {
       await _pump(tester, maleBreakdown());
 
-      // Carbs: 2890.52 × 0.60 ÷ 4 = 433.578 → 433 g (truncated, like the
-      // dashboard tiles). Fat: ×0.25 ÷ 9 = 80.29 → 80 g.
-      // Protein: ×0.15 ÷ 4 = 108.39 → 108 g.
-      expect(find.textContaining('2890 × 60 % ÷ 4 = 433 g'), findsOneWidget);
-      expect(find.textContaining('2890 × 25 % ÷ 9 = 80 g'), findsOneWidget);
-      expect(find.textContaining('2890 × 15 % ÷ 4 = 108 g'), findsOneWidget);
-      expect(find.text('433 g'), findsOneWidget);
-      expect(find.text('80 g'), findsOneWidget);
-      expect(find.text('108 g'), findsOneWidget);
+      // Carbs: 3134.98 × 0.60 ÷ 4 = 470.25 → 470 g (truncated, like the
+      // dashboard tiles). Fat: ×0.25 ÷ 9 = 87.08 → 87 g.
+      // Protein: ×0.15 ÷ 4 = 117.56 → 117 g.
+      expect(find.textContaining('3134 × 60 % ÷ 4 = 470 g'), findsOneWidget);
+      expect(find.textContaining('3134 × 25 % ÷ 9 = 87 g'), findsOneWidget);
+      expect(find.textContaining('3134 × 15 % ÷ 4 = 117 g'), findsOneWidget);
+      expect(find.text('470 g'), findsOneWidget);
+      expect(find.text('87 g'), findsOneWidget);
+      expect(find.text('117 g'), findsOneWidget);
     });
 
     testWidgets('kJ mode converts summary rows but keeps the formula in kcal', (
@@ -179,12 +180,12 @@ void main() {
     ) async {
       await _pump(tester, maleBreakdown(), usesKilojoules: true);
 
-      // 2890.52 kcal × 4.184 = 12093.9 → 12093 kJ (truncated).
-      expect(find.text('12093 kJ'), findsOneWidget);
-      // 2920.52 kcal × 4.184 = 12219.4 → 12219 kJ.
-      expect(find.text('12219 kJ'), findsNWidgets(2));
+      // 3134.98 kcal × 4.184 = 13116.7 → 13116 kJ (truncated).
+      expect(find.text('13116 kJ'), findsOneWidget);
+      // 3164.98 kcal × 4.184 = 13242.3 → 13242 kJ.
+      expect(find.text('13242 kJ'), findsNWidgets(2));
       // The IOM equation is defined in kcal, so the box must stay kcal.
-      expect(find.textContaining('= 2920 kcal'), findsOneWidget);
+      expect(find.textContaining('= 3164 kcal'), findsOneWidget);
     });
 
     testWidgets('taper case shows base and tapered adjustment plus the note', (

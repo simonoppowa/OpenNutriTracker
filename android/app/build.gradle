@@ -60,7 +60,18 @@ android {
 
     defaultConfig {
         applicationId "com.opennutritracker.ont.opennutritracker"
-        minSdkVersion flutter.minSdkVersion
+        // The health package's Health Connect client requires API 26; Flutter's
+        // default is 24, so the floor is pinned here.
+        //
+        // The cost, which #651 raised the floor without measuring: this drops
+        // Android 7.0 and 7.1. Play counts that as 1,399 device models — a
+        // number that sounds alarming and is not, because measured against
+        // real installs on 2026-08-29 it was **3 of 9,580 active users**,
+        // 0.03% (#959). Accepted deliberately on that evidence: Health
+        // Connect cannot ship below 26, so the alternative was dropping the
+        // feature, and 1,399 models is a device-catalogue figure rather than
+        // an audience.
+        minSdkVersion 26
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -95,11 +106,11 @@ android {
 
     // Preserve the historic `app-<buildType>.apk` / `app-<buildType>.aab`
     // filenames for the `full` flavor so the public-facing artifacts stay
-    // named `app-release.apk` and `app-release.aab`, matching the website's
-    // "verify your download" instructions, the update-release-fingerprint
-    // workflow, and the fastlane Android lane's default path. The develop
-    // flavor keeps Gradle's default `app-develop-<buildType>.{apk,aab}` so
-    // a sideloaded build is easy to spot in the output directory.
+    // named `app-release.apk` and `app-release.aab`, matching the GitHub
+    // release asset names and the fastlane Android lane's default path. The
+    // develop flavor keeps Gradle's default
+    // `app-develop-<buildType>.{apk,aab}` so a sideloaded build is easy to
+    // spot in the output directory.
     applicationVariants.all { variant ->
         if (variant.flavorName == 'full') {
             // APK rename — AGP exposes this directly via Variant.outputs.

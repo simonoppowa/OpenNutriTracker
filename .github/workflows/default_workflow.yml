@@ -15,6 +15,23 @@ on:
     branches:
       - main
       - develop
+      # Long-lived integration branches, where a multi-PR feature is staged
+      # before it reaches `develop` as one merge. Without an entry here a PR
+      # retargeted onto one of these silently gets *no* checks at all — the
+      # PR still reports mergeable, so the absence is easy to miss.
+      #
+      # This is scoped to `feature/**` rather than `**` on purpose: it should
+      # cover deliberate integration branches without firing a full CI run on
+      # every PR between two arbitrary topic branches.
+      #
+      # Kept after `feature/ai-assisted-meal-logging` merged, rather than
+      # removed as spent. It is not leftover config: it is what gave #975,
+      # #978, #980 and #981 any checks at all, and four of the five defects
+      # that branch surrendered were found after CI passed on exactly those
+      # PRs. The next long-lived branch will need it before anyone remembers
+      # to add it back, and the failure mode is silent — a retargeted PR
+      # still reports mergeable with no checks run.
+      - 'feature/**'
   workflow_dispatch:
 
 jobs:
@@ -40,7 +57,6 @@ jobs:
       - name: Generate stub .env for CI
         uses: ./.github/actions/write-env-file
         with:
-          fdc_api_key: ci-stub
           sentry_dns: https://stub@sentry.io/0
           supabase_project_url: https://stub.supabase.co
           supabase_project_anon_key: ci-stub
@@ -53,8 +69,11 @@ jobs:
       - name: Install Flutter packages
         run: just install
 
-      - name: Generate localizations
-        run: just gen_l10n
+      # check_l10n generates, then fails if any locale is missing a key.
+      # `flutter gen-l10n` alone exits 0 on a missing translation and lets it
+      # ship as English, and nothing downstream sees the difference.
+      - name: Generate localizations (fails if a locale is missing keys)
+        run: just check_l10n
 
       - name: Generate code (env.g.dart, Hive adapters, JSON serializers)
         run: just build
@@ -101,7 +120,7 @@ jobs:
 
       - name: Check for iOS-relevant file changes
         id: changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           base: ${{ github.event.pull_request.base.ref }}
           filters: |
@@ -132,7 +151,6 @@ jobs:
         if: steps.changes.outputs.ios == 'true'
         uses: ./.github/actions/write-env-file
         with:
-          fdc_api_key: ci-stub
           sentry_dns: https://stub@sentry.io/0
           supabase_project_url: https://stub.supabase.co
           supabase_project_anon_key: ci-stub
@@ -209,7 +227,6 @@ jobs:
       - name: Generate stub .env for CI
         uses: ./.github/actions/write-env-file
         with:
-          fdc_api_key: ci-stub
           sentry_dns: https://stub@sentry.io/0
           supabase_project_url: https://stub.supabase.co
           supabase_project_anon_key: ci-stub
@@ -263,112 +280,45 @@ jobs:
         # App Store install and isn't what CI should validate.
         run: flutter build ios --no-codesign --release --flavor full
 
+  # Two calls on two runners, not two attempts on one. See the header of
+  # .github/workflows/ios-integration-attempt.yml for why: the hang this suite
+  # suffers is runner-sticky, so an in-place retry never recovers from it while
+  # a fresh runner has every time. Neither call fails on its own — each reports
+  # a verdict, and ios-integration-tests-result below turns the pair into the
+  # single required check.
   ios-integration-tests:
-    # Runs from the start of the workflow, in parallel with everything else.
-    # Not gated on ios-build: this job rebuilds the app itself (it compiles
-    # its own test binary), so the dependency shared no output and only
-    # serialised ~6-11 min of build in front of it. The cost is one extra
-    # macOS build when the app doesn't compile, which this job's own build
-    # surfaces regardless.
-    #
-    # Pinned to macos-15, not macos-26. On the macos-26 image Flutter builds
-    # and launches the app on the iPhone 17 Pro / iOS 26.4 simulator but then
-    # hangs forever on "Waiting for VM Service port to be available" — the Dart
-    # VM-service URL is never discovered on that simulator, so the test never
-    # connects (the same suite passes on the Android emulator and on the iOS 18
-    # simulator here). macos-15 ships the Xcode 16 / iOS 18 simulator this
-    # Flutter supports. Revisit macos-26 once Flutter discovers the iOS 26
-    # simulator's VM service. ios-build / package / deploy stay on macos-26 —
-    # they build/sign and never launch a simulator, so they're unaffected.
-    runs-on: macos-15
-    # Bound the job so a hung test fails fast rather than drifting toward
-    # GitHub's 6-hour default. A healthy run is the ~11-12 min Xcode build
-    # plus a few minutes of tests, but the "Run integration tests" step
-    # retries the whole build+test once on failure, so a single flake needs
-    # room for a second cold build. 30 was too tight for that and got
-    # cancelled mid-retry; 50 covers the retry while still catching hangs.
-    timeout-minutes: 50
+    uses: ./.github/workflows/ios-integration-attempt.yml
+
+  # Only when the first runner did not pass. An empty output counts as "did not
+  # pass": that is what a job killed by its own timeout-minutes leaves behind.
+  ios-integration-tests-retry:
+    needs: ios-integration-tests
+    if: ${{ !cancelled() && needs.ios-integration-tests.outputs.passed != 'true' }}
+    uses: ./.github/workflows/ios-integration-attempt.yml
+
+  # The check to require in branch protection — the two jobs above are green
+  # even when their tests fail, by design, so requiring either of them directly
+  # would require nothing at all.
+  ios-integration-tests-result:
+    needs:
+      - ios-integration-tests
+      - ios-integration-tests-retry
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Setup Flutter + cache packages
-        uses: ./.github/actions/setup-flutter-cache
-
-      # Match ios-podfile-lock-guard and ios-build: SPM is enabled by
-      # default on Flutter's stable channel, so `flutter test` would spend
-      # ~150s "Adding Swift Package Manager integration" and resolve plugins
-      # via the SPM graph instead of the CocoaPods one those jobs pin to.
-      # Disable it here too so this job builds the same pinned graph and
-      # skips that avoidable per-build cost.
-      - name: Disable Swift Package Manager
-        run: flutter config --no-enable-swift-package-manager
-
-      - name: Cache CocoaPods
-        uses: actions/cache@v6
-        with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-
-
-      - name: Generate stub .env for CI
-        uses: ./.github/actions/write-env-file
-        with:
-          fdc_api_key: ci-stub
-          sentry_dns: https://stub@sentry.io/0
-          supabase_project_url: https://stub.supabase.co
-          supabase_project_anon_key: ci-stub
-
-      - name: Install Flutter packages
-        run: flutter pub get
-
-      - name: Generate code
-        run: dart run build_runner build --delete-conflicting-outputs
-
-      - name: Pod install (regenerate lockfile if constraints have shifted)
-        run: .github/scripts/pod_install_with_targeted_fallback.sh
-
-      # Pick any available iPhone simulator on the runner. macos-26
-      # ships several preinstalled; we don't care which exact model — the
-      # boot-smoke test is platform-bridge driven, not display-pixel driven.
-      - name: Pick + boot iPhone simulator
+      - name: Require one of the two runners to have passed
         run: |
-          DEVICE_UDID=$(xcrun simctl list devices available iPhone -j | python3 -c "
-          import sys, json
-          data = json.load(sys.stdin)
-          devices = [d for runtime in data['devices'].values() for d in runtime if d.get('isAvailable')]
-          if not devices:
-              sys.exit('No available iPhone simulators on this runner')
-          print(devices[0]['udid'])
-          ")
-          echo "Booting simulator UDID: $DEVICE_UDID"
-          xcrun simctl boot "$DEVICE_UDID"
-          xcrun simctl bootstatus "$DEVICE_UDID"
-          echo "DEVICE_UDID=$DEVICE_UDID" >> $GITHUB_ENV
-
-      - name: Run integration tests
-        # --flavor full so the integration-test app matches the production
-        # iOS scheme (bundle id + display name) rather than the develop one.
-        # The whole integration_test/ directory runs from a single build.
-        # Retry once: integration tests occasionally flake on a slow simulator
-        # (a dropped frame, a transient launch hiccup). A second attempt on the
-        # same booted sim clears those without masking a real failure, since a
-        # genuine break fails both attempts.
-        run: |
-          attempt=1
-          max=2
-          until flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded; do
-            if [ "$attempt" -ge "$max" ]; then
-              echo "::error::iOS integration tests failed after $max attempts"
-              exit 1
-            fi
-            attempt=$((attempt + 1))
-            echo "::warning::iOS integration tests flaked; retrying (attempt $attempt of $max)"
-          done
-
+          first='${{ needs.ios-integration-tests.outputs.passed }}'
+          second='${{ needs.ios-integration-tests-retry.outputs.passed }}'
+          echo "first runner:  ${first:-<no verdict — the job was killed>}"
+          echo "second runner: ${second:-<not run>}"
+          if [ "$first" = 'true' ] || [ "$second" = 'true' ]; then
+            exit 0
+          fi
+          echo "::error::iOS integration tests failed on two independent runners — treat this as a real break, not a flake."
+          exit 1
   android-build:
     runs-on: ubuntu-latest
     permissions:
@@ -379,7 +329,7 @@ jobs:
 
       - name: Setup Java (Zulu)
         id: setup_java_zulu
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         continue-on-error: true
         with:
           distribution: 'zulu'
@@ -391,7 +341,7 @@ jobs:
       # build. It now takes both vendors being down at once.
       - name: Setup Java (Temurin fallback)
         if: steps.setup_java_zulu.outcome == 'failure'
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -412,7 +362,6 @@ jobs:
       - name: Generate stub .env for CI
         uses: ./.github/actions/write-env-file
         with:
-          fdc_api_key: ci-stub
           sentry_dns: https://stub@sentry.io/0
           supabase_project_url: https://stub.supabase.co
           supabase_project_anon_key: ci-stub
@@ -437,11 +386,11 @@ jobs:
     # Same as iOS: runs in parallel from the start, gated on neither
     # android-build (it rebuilds the app itself) nor a file-discovery job.
     runs-on: ubuntu-latest
-    # Same bound as iOS so a hung test fails fast rather than running to the
-    # 6-hour default. On a cold cache this job pays an AVD seed boot plus a
-    # test boot, and the "retry once" step adds a third boot + rebuild, so 30
-    # was too tight and got cancelled mid-retry (which also skips the AVD
-    # cache save, keeping the next run cold). 50 covers the retry path.
+    # Same backstop as iOS, and like iOS the per-attempt bounds below are what
+    # actually catch a hang. On a cold cache this job pays an AVD seed boot
+    # plus a test boot, and the "retry once" step adds a third boot + rebuild,
+    # so 30 was too tight and got cancelled mid-retry (which also skips the
+    # AVD cache save, keeping the next run cold). 50 covers the retry path.
     timeout-minutes: 50
     permissions:
       contents: read
@@ -466,7 +415,7 @@ jobs:
 
       - name: Setup Java (Zulu)
         id: setup_java_zulu
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         continue-on-error: true
         with:
           distribution: 'zulu'
@@ -478,7 +427,7 @@ jobs:
       # build. It now takes both vendors being down at once.
       - name: Setup Java (Temurin fallback)
         if: steps.setup_java_zulu.outcome == 'failure'
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -516,7 +465,6 @@ jobs:
       - name: Generate stub .env for CI
         uses: ./.github/actions/write-env-file
         with:
-          fdc_api_key: ci-stub
           sentry_dns: https://stub@sentry.io/0
           supabase_project_url: https://stub.supabase.co
           supabase_project_anon_key: ci-stub
@@ -554,6 +502,14 @@ jobs:
       - name: Run integration tests (attempt 1)
         id: android-integration
         continue-on-error: true
+        # Same bound as iOS, for the same reason. No Android run in the last
+        # twenty hung, and the emulator-runner already bounds the boot it is
+        # known to flake on, but `script:` itself is unbounded — so the one
+        # failure mode that skips the retry is available here too, and this
+        # closes it for the price of a line.
+        #
+        # 20 minutes: the slowest healthy attempt in that sample was 12m4s.
+        timeout-minutes: 20
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -570,6 +526,7 @@ jobs:
 
       - name: Run integration tests (retry once)
         if: steps.android-integration.outcome == 'failure'
+        timeout-minutes: 20
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -587,7 +544,7 @@ jobs:
     needs:
       - linux-checks
       - ios-build
-      - ios-integration-tests
+      - ios-integration-tests-result
       - android-build
       - android-integration-tests
     runs-on: macos-26
@@ -650,12 +607,10 @@ jobs:
       - name: Generate .env from GitHub Secrets
         uses: ./.github/actions/write-env-file
         env:
-          FDC_API_KEY: ${{ secrets.FDC_API_KEY }}
           SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
           SUPABASE_PROJECT_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
           SUPABASE_PROJECT_ANON_KEY: ${{ secrets.SUPABASE_PROJECT_ANON_KEY }}
         with:
-          fdc_api_key: ${{ env.FDC_API_KEY }}
           sentry_dns: ${{ env.SENTRY_DNS }}
           supabase_project_url: ${{ env.SUPABASE_PROJECT_URL }}
           supabase_project_anon_key: ${{ env.SUPABASE_PROJECT_ANON_KEY }}
@@ -751,7 +706,7 @@ jobs:
     needs:
       - linux-checks
       - ios-build
-      - ios-integration-tests
+      - ios-integration-tests-result
       - android-build
       - android-integration-tests
     runs-on: ubuntu-latest
@@ -765,7 +720,7 @@ jobs:
 
       - name: Setup Java (Zulu)
         id: setup_java_zulu
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         continue-on-error: true
         with:
           distribution: 'zulu'
@@ -777,7 +732,7 @@ jobs:
       # build. It now takes both vendors being down at once.
       - name: Setup Java (Temurin fallback)
         if: steps.setup_java_zulu.outcome == 'failure'
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -804,12 +759,10 @@ jobs:
       - name: Generate .env from GitHub Secrets
         uses: ./.github/actions/write-env-file
         env:
-          FDC_API_KEY: ${{ secrets.FDC_API_KEY }}
           SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
           SUPABASE_PROJECT_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
           SUPABASE_PROJECT_ANON_KEY: ${{ secrets.SUPABASE_PROJECT_ANON_KEY }}
         with:
-          fdc_api_key: ${{ env.FDC_API_KEY }}
           sentry_dns: ${{ env.SENTRY_DNS }}
           supabase_project_url: ${{ env.SUPABASE_PROJECT_URL }}
           supabase_project_anon_key: ${{ env.SUPABASE_PROJECT_ANON_KEY }}
@@ -866,9 +819,8 @@ jobs:
         # Gradle's native output directory (apk/<flavor>/<buildType>/).
         # Flutter's post-build copy at build/app/outputs/flutter-apk/
         # bypasses the rename and writes `app-full-release.apk` there,
-        # so we point the upload at the Gradle dir where the name is
-        # what the website and update-release-fingerprint workflow
-        # expect.
+        # so we point the upload at the Gradle dir where the name matches
+        # the historic GitHub release asset.
         uses: actions/upload-artifact@v7
         with:
           name: android-apk
@@ -907,12 +859,80 @@ jobs:
           name: android-aab
           path: release-assets/android
 
+      # Tolerates exactly one upstream defect, and nothing else.
+      #
+      # Since 2.1.0 the bundle declares `android.permission.health.*`, and the
+      # Play Publishing API rejects health-permission bundles at
+      # `EditService.Validate`/`Commit` with "You must let us know whether your
+      # app includes any health features" — **regardless of the declaration**,
+      # which is complete and was re-verified across four console surfaces
+      # (#942). Uploading the same bundle by hand through the console asks no
+      # health question at all and succeeds. It is a known, open, unowned
+      # defect: fastlane#22204 was closed unfixed, fastlane#27960 reopened it,
+      # and expo/eas-cli#3275 reports it from a different toolchain, which
+      # rules out fastlane's request construction as the sole cause.
+      #
+      # So the attempt stays. Deleting the step would go silently green and
+      # nobody would notice the day Google fixes it; `continue-on-error` would
+      # swallow real failures too. Matching the one error string keeps every
+      # other failure — bad credentials, a consumed versionCode, a rejected
+      # bundle — loud, and lets this heal itself with no further change.
+      #
+      # Note what a failing upload also costs, learned the hard way in #959:
+      # the API never reaches the point where Play returns its release
+      # warnings, so a minSdk bump that dropped 1,399 device models went
+      # unseen for eight days. The manual upload is where those warnings
+      # appear, which is why the summary below insists on reading them.
       - name: Upload Android App Bundle to Google Play Internal Testing via Fastlane
         working-directory: android
-        run: bundle exec fastlane android internal
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           ANDROID_AAB_PATH: ${{ github.workspace }}/release-assets/android/app-release.aab
+        run: |
+          set +e
+          log="$RUNNER_TEMP/play-upload.log"
+          bundle exec fastlane android internal 2>&1 | tee "$log"
+          status=${PIPESTATUS[0]}
+          set -e
+
+          [ "$status" -eq 0 ] && exit 0
+
+          if ! grep -qF \
+            'You must let us know whether your app includes any health features' \
+            "$log"; then
+            echo "::error::Play upload failed for a reason other than the known health-declaration defect (#942). Not tolerated."
+            exit "$status"
+          fi
+
+          echo "::warning::Play rejected the API upload with the known health-declaration defect (#942). The Android bundle needs uploading by hand; iOS is unaffected."
+
+          {
+            echo '### Android upload needs doing by hand'
+            echo
+            echo 'The Play Publishing API rejected this bundle with:'
+            echo
+            echo '> Google Api Error: Invalid request - You must let us know whether your app includes any health features.'
+            echo
+            echo 'This is [#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942):'
+            echo 'a known upstream defect, not a missing declaration. The declaration is'
+            echo 'complete, and the console asks no health question when the same bundle is'
+            echo 'uploaded by hand.'
+            echo
+            echo '**To finish the release:**'
+            echo
+            echo '1. Download the `android-aab` artifact from this run, or take the AAB'
+            echo '   attached to the GitHub release this workflow creates.'
+            echo '2. Play Console → Testen und veröffentlichen → Interner Test →'
+            echo '   **Neuen Release erstellen**, and drop the AAB in.'
+            echo '3. **Read the warnings on the review step before publishing.** This is the'
+            echo '   only place Play reports them, and a failing API upload never gets far'
+            echo '   enough to return them — which is how the minSdk regression in'
+            echo '   [#959](https://github.com/simonoppowa/OpenNutriTracker/issues/959) went'
+            echo '   unnoticed for eight days.'
+            echo
+            echo 'This step will start passing on its own once Google fixes the API; nothing'
+            echo 'here needs changing when that happens.'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   github-release:
     if: |
@@ -960,7 +980,7 @@ jobs:
           cp "$IPA_PATH" release-assets/opennutritracker.ipa
 
       - name: Create GitHub release and upload assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.TAG_NAME }}
           name: ${{ env.RELEASE_NAME }}
@@ -979,7 +999,6 @@ jobs:
 #      - name: Run CI
 #        run: just ci
 #        env:
-#          FDC_API_KEY: ${{ secrets.FDC_API_KEY }}
-#          SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
+##          SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
 #          SUPABASE_PROJECT_ANON_KEY: ${{ secrets.SUPABASE_PROJECT_ANON_KEY }}
 #          SUPABASE_PROJECT_URL: ${{ secrets.SUPABASE_PROJECT_URL }}

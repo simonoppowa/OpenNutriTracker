@@ -2,6 +2,8 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
+import 'package:opennutritracker/core/data/data_source/health/health_service_factory.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
@@ -15,6 +17,7 @@ import 'package:opennutritracker/core/data/data_source/water_intake_data_source.
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
+import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/physical_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/profile_repository.dart';
@@ -58,6 +61,8 @@ import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.d
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/send_intake_to_profiles_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/switch_profile_usecase.dart';
@@ -66,6 +71,15 @@ import 'package:opennutritracker/core/domain/usecase/update_profile_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
 import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/env.dart';
+import 'package:http/http.dart' as http;
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/data/meal_items_api_factory.dart';
+import 'package:opennutritracker/features/add_meal/data/model_meal_photo_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/data/model_meal_text_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/probe_ai_endpoint_usecase.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_photo_usecase.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/profile_bootstrap.dart';
@@ -75,12 +89,13 @@ import 'package:opennutritracker/features/activity_detail/presentation/bloc/acti
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/activities_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_activities_bloc.dart';
-import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
@@ -134,14 +149,51 @@ Future<void> initLocator() async {
     () => secureAppStorageProvider,
   );
   locator.registerLazySingleton<HiveDBProvider>(() => hiveDBProvider);
+  locator.registerLazySingleton<AiCredentialStorage>(
+    () => AiCredentialStorage(),
+  );
+  // One client for the app rather than one per interpret call: a fresh
+  // http.Client carries its own connection pool and is never closed here,
+  // so building one each time the user taps Search would accumulate
+  // sockets for the life of the process.
+  locator.registerLazySingleton<http.Client>(() => http.Client());
+  locator.registerLazySingleton<ReadMealTextUseCase>(
+    () => ReadMealTextUseCase(
+      locator<AiCredentialStorage>(),
+      (selection) =>
+          ModelMealTextInterpreter(mealItemsApiFor(locator(), selection)),
+    ),
+  );
+  locator.registerLazySingleton<ReadMealPhotoUseCase>(
+    () => ReadMealPhotoUseCase(
+      locator<AiCredentialStorage>(),
+      (selection) =>
+          ModelMealPhotoInterpreter(mealItemsApiFor(locator(), selection)),
+    ),
+  );
+  // A singleton because it is the thing that outlives the settings dialog:
+  // a check runs for about a minute after the user pressed OK and walked
+  // away, and a per-navigation instance would lose both the result and the
+  // "one at a time" rule the moment the dialog was disposed.
+  locator.registerLazySingleton<AiEndpointProbeRunner>(
+    () => AiEndpointProbeRunner(
+      locator<AiCredentialStorage>(),
+      AiEndpointProber(locator<http.Client>()),
+    ),
+  );
   locator.registerLazySingleton<DeleteAllUserDataUsecase>(
-    () => DeleteAllUserDataUsecase(locator()),
+    () => DeleteAllUserDataUsecase(
+      locator(),
+      locator(),
+      locator(),
+      locator<AiCredentialStorage>(),
+    ),
   );
 
   // Backend
   await Supabase.initialize(
     url: Env.supabaseProjectUrl,
-    anonKey: Env.supabaseProjectAnonKey,
+    publishableKey: Env.supabaseProjectAnonKey,
     // In debug builds supabase_flutter attaches its own printer to the
     // shared root log stream (hierarchical logging is off), duplicating
     // every app log line in a second format. LoggerConfig already prints
@@ -205,7 +257,8 @@ Future<void> initLocator() async {
   // Singleton so a unit change in Settings can refresh the live Trends page
   // (it lives in the main IndexedStack and isn't recreated on tab switch).
   locator.registerLazySingleton<TrendsBloc>(
-      () => TrendsBloc(locator(), locator(), locator(), locator(), locator()));
+    () => TrendsBloc(locator(), locator(), locator(), locator(), locator()),
+  );
   locator.registerFactory<RecipeBuilderBloc>(
     () => RecipeBuilderBloc(locator(), locator()),
   );
@@ -239,13 +292,8 @@ Future<void> initLocator() async {
   // create-from-popup flow on the same tab — both must mutate / observe the
   // same instance so the list refreshes after a new entry is created.
   locator.registerLazySingleton<CustomMealsBloc>(
-    () => CustomMealsBloc(
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-    ),
+    () =>
+        CustomMealsBloc(locator(), locator(), locator(), locator(), locator()),
   );
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
@@ -279,6 +327,9 @@ Future<void> initLocator() async {
     () => EditMealBloc(locator(), locator(), locator()),
   );
   locator.registerFactory<AddMealBloc>(() => AddMealBloc(locator()));
+  locator.registerFactory<BulkAddBloc>(
+    () => BulkAddBloc(locator(), locator(), locator()),
+  );
   locator.registerFactory<ProductsBloc>(
     () => ProductsBloc(locator(), locator()),
   );
@@ -343,6 +394,12 @@ Future<void> initLocator() async {
       locator(),
     ),
   );
+  // Per-navigation, matching how the AddMeal / Products / Food blocs that
+  // drive the same screens are registered — it holds no state worth reusing
+  // between one bulk-add session and the next.
+  locator.registerFactory<ResolveParsedMealsUseCase>(
+    () => ResolveParsedMealsUseCase(locator()),
+  );
   locator.registerLazySingleton<SearchProductByBarcodeUseCase>(
     () => SearchProductByBarcodeUseCase(locator(), locator(), locator()),
   );
@@ -364,8 +421,21 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<AddUserActivityUsecase>(
     () => AddUserActivityUsecase(locator()),
   );
+  locator.registerLazySingleton<LogUserActivityUsecase>(
+    () => LogUserActivityUsecase(locator(), locator(), locator(), locator()),
+  );
+  locator.registerLazySingleton<ImportWorkoutsUsecase>(
+    () => ImportWorkoutsUsecase(
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+    ),
+  );
   locator.registerLazySingleton<DeleteUserActivityUsecase>(
-    () => DeleteUserActivityUsecase(locator()),
+    () => DeleteUserActivityUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<UpdateUserActivityUsecase>(
     () => UpdateUserActivityUsecase(locator(), locator()),
@@ -476,7 +546,7 @@ Future<void> initLocator() async {
     () => IntakeRepository(locator()),
   );
   locator.registerLazySingleton<ProductsRepository>(
-    () => ProductsRepository(locator(), locator(), locator()),
+    () => ProductsRepository(locator(), locator()),
   );
   locator.registerLazySingleton<UserActivityRepository>(
     () => UserActivityRepository(locator()),
@@ -505,6 +575,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<ProfileRepository>(
     () => ProfileRepository(locator()),
   );
+  locator.registerLazySingleton<HealthImportRepository>(
+    () => HealthImportRepository(locator()),
+  );
 
   // DataSources
   // Per-profile data sources take the provider and resolve the *active*
@@ -524,7 +597,6 @@ Future<void> initLocator() async {
     () => PhysicalActivityDataSource(),
   );
   locator.registerLazySingleton<OFFDataSource>(() => OFFDataSource());
-  locator.registerLazySingleton<FDCDataSource>(() => FDCDataSource());
   locator.registerLazySingleton<SpFoodDataSource>(() => SpFoodDataSource());
   locator.registerLazySingleton(() => TrackedDayDataSource(hiveDBProvider));
   locator.registerLazySingleton<WeightLogDataSource>(
@@ -550,6 +622,11 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<ProfileDataSource>(
     () => ProfileDataSource(hiveDBProvider),
   );
+  // Probed once here rather than per call: resolving the platform health
+  // store needs an await, and a plugin that can't initialise falls back to a
+  // service that reports itself unavailable instead of failing startup.
+  final healthService = await createHealthService();
+  locator.registerLazySingleton<HealthService>(() => healthService);
 
   await ensureConfigInitialized(locator());
 }

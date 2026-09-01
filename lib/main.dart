@@ -15,10 +15,13 @@ import 'package:opennutritracker/core/presentation/storage_recovery_app.dart';
 import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/app_theme.dart';
+import 'package:opennutritracker/core/utils/app_locale_service.dart';
+import 'package:opennutritracker/core/utils/app_locale_sync.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
+import 'package:opennutritracker/core/utils/sentry_config.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
@@ -26,6 +29,7 @@ import 'package:opennutritracker/core/utils/locale_provider.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
 import 'package:opennutritracker/features/activity_detail/activity_detail_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
+import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add_screen.dart';
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/onboarding/onboarding_screen.dart';
@@ -41,6 +45,7 @@ import 'package:opennutritracker/features/home/presentation/screens/import_meal_
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/accent_colour_screen.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -80,8 +85,17 @@ Future<void> _bootstrapApp() async {
   final configRepo = locator<ConfigRepository>();
 
   final config = await configRepo.getConfig();
-  final savedLocaleCode = await configRepo.getSelectedLocale();
-  final savedLocale = savedLocaleCode != null ? Locale(savedLocaleCode) : null;
+  // Android's own per-app language picker and ours are two doors into the
+  // same setting, so ask the system what it holds before trusting what we
+  // saved. See [reconcileAppLocale] for which side wins and why.
+  final localeCode = await reconcileAppLocale(
+    savedLocaleCode: await configRepo.getSelectedLocale(),
+    systemLocaleTag: await AppLocaleService.getApplicationLocale(),
+    supportedLocales: S.supportedLocales,
+    persistSelectedLocale: configRepo.setSelectedLocale,
+    pushToSystem: AppLocaleService.setApplicationLocale,
+  );
+  final savedLocale = localeCode != null ? Locale(localeCode) : null;
 
   // #312: Restore scheduled notifications after app start / device reboot.
   // Look up the user's localized strings first — there's no widget tree yet,
@@ -148,10 +162,7 @@ void _runAppWithSentryReporting(
   int? savedAccentColor,
 ) async {
   await SentryFlutter.init(
-    (options) {
-      options.dsn = Env.sentryDns;
-      options.tracesSampleRate = 1.0;
-    },
+    (options) => configureSentryOptions(options, dsn: Env.sentryDns),
     appRunner: () => runAppWithChangeNotifiers(
       isUserInitialized,
       savedAppTheme,
@@ -191,10 +202,52 @@ void runAppWithChangeNotifiers(
   ),
 );
 
-class OpenNutriTrackerApp extends StatelessWidget {
+class OpenNutriTrackerApp extends StatefulWidget {
   final bool userInitialized;
 
   const OpenNutriTrackerApp({super.key, required this.userInitialized});
+
+  @override
+  State<OpenNutriTrackerApp> createState() => _OpenNutriTrackerAppState();
+}
+
+class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Android delivers this when someone changes the app's language from
+  /// Settings -> Apps -> OpenNutriTracker -> Language while the app is alive.
+  /// `MaterialApp.locale` is pinned to our own saved choice, so without
+  /// adopting the new value here that picker would appear to do nothing.
+  @override
+  void didChangeLocales(List<Locale>? locales) {
+    super.didChangeLocales(locales);
+    unawaited(_adoptSystemLocale());
+  }
+
+  Future<void> _adoptSystemLocale() async {
+    final systemCode = supportedLanguageCode(
+      await AppLocaleService.getApplicationLocale(),
+      S.supportedLocales,
+    );
+    if (systemCode == null || !mounted) return;
+
+    final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
+    if (localeProvider.locale?.languageCode == systemCode) return;
+
+    localeProvider.updateLocale(Locale(systemCode));
+    await locator<ConfigRepository>().setSelectedLocale(systemCode);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -246,14 +299,16 @@ class OpenNutriTrackerApp extends StatelessWidget {
       initialRoute: NavigationOptions.splashRoute,
       routes: {
         NavigationOptions.splashRoute: (context) =>
-            SplashScreen(userInitialized: userInitialized),
+            SplashScreen(userInitialized: widget.userInitialized),
         NavigationOptions.mainRoute: (context) => const MainScreen(),
         NavigationOptions.onboardingRoute: (context) =>
             const OnboardingScreen(),
         NavigationOptions.settingsRoute: (context) => const SettingsScreen(),
         NavigationOptions.accentColourRoute: (context) =>
             const AccentColourScreen(),
+        NavigationOptions.healthSyncRoute: (context) => const HealthSyncScreen(),
         NavigationOptions.addMealRoute: (context) => const AddMealScreen(),
+        NavigationOptions.bulkAddRoute: (context) => const BulkAddScreen(),
         NavigationOptions.scannerRoute: (context) => const ScannerScreen(),
         NavigationOptions.mealDetailRoute: (context) =>
             const MealDetailScreen(),

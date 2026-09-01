@@ -121,6 +121,32 @@ run_case "compatible-versions and none-of-your-sources together still dedup" \
 None of your spec sources contain a spec satisfying the dependency: `Sentry/HybridSDK (= 8.58.0)`.' \
   'Sentry'
 
+# The script under test runs *only* on the macOS runners, whose /bin/bash
+# is 3.2, while these tests run on linux-checks under bash 5. That gap let
+# a `declare -A` sit in the fallback path unnoticed until a CocoaPods CDN
+# outage took that path for the first time and the script died with
+# "declare: -A: invalid option".
+#
+# There is no bash 3.2 on the Linux runner to execute against, so this
+# greps for the bash-4-only constructs instead. It is a lint, not an
+# execution test, but it closes the gap that mattered: the parser tests
+# above can never fail for a reason the target platform would.
+tests_run=$((tests_run + 1))
+# Comment lines are dropped, so the note explaining this rule does not
+# trip it.
+bash4_only=$(grep -nE \
+  '(declare|local|typeset)[[:space:]]+-[A-Za-z]*A|mapfile|readarray|\$\{[A-Za-z_][A-Za-z0-9_]*(\[[^]]*\])?(,,|\^\^)' \
+  "$script_dir/pod_install_with_targeted_fallback.sh" \
+  | grep -vE '^[0-9]+:[[:space:]]*#' || true)
+
+if [ -n "$bash4_only" ]; then
+  tests_failed=$((tests_failed + 1))
+  echo "FAIL: bash 4+ construct in a script that runs on macOS bash 3.2:"
+  echo "$bash4_only"
+else
+  echo "ok: no bash 4+ constructs in pod_install_with_targeted_fallback.sh"
+fi
+
 echo
 echo "Tests run: $tests_run, failures: $tests_failed"
 exit "$tests_failed"

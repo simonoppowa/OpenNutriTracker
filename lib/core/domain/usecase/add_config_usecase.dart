@@ -28,6 +28,10 @@ class AddConfigUsecase {
     await _configRepository.setConfigHasAcceptedPolicy(hasAcceptedPolicy);
   }
 
+  Future<void> setConfigPolicyNoticeRevisionSeen(int revision) async {
+    await _configRepository.setConfigPolicyNoticeRevisionSeen(revision);
+  }
+
   Future<void> setConfigAppTheme(AppThemeEntity appTheme) async {
     await _configRepository.setConfigAppTheme(appTheme);
   }
@@ -132,5 +136,13 @@ class AddConfigUsecase {
 
   Future<void> setConfigIsDemoData(bool isDemoData) async {
     await _configRepository.setIsDemoData(isDemoData);
+  }
+
+  Future<void> setConfigHealthImportEnabled(bool enabled) async {
+    await _configRepository.setConfigHealthImportEnabled(enabled);
+  }
+
+  Future<void> setConfigHealthWorkoutKcalMultiplier(double multiplier) async {
+    await _configRepository.setConfigHealthWorkoutKcalMultiplier(multiplier);
   }
 }

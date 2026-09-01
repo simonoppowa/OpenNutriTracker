@@ -263,15 +263,20 @@ class _TdeeCard extends StatelessWidget {
     );
   }
 
+  // The brackets are not decoration: IOM 2005 p. 204 multiplies PA into the
+  // weight *and* the height term, and this string has to show the same shape
+  // the calculation uses (#987).
   String _maleFormulaText(KcalGoalBreakdownEntity b) =>
       '864 − 9.72 × ${b.age} '
-      '+ ${b.paMaleFormula!.toStringAsFixed(2)} × 14.2 × ${b.weightKG.toStringAsFixed(1)} '
-      '+ 503 × ${(b.heightCM / 100).toStringAsFixed(2)}';
+      '+ ${b.paMaleFormula!.toStringAsFixed(2)} × '
+      '(14.2 × ${b.weightKG.toStringAsFixed(1)} '
+      '+ 503 × ${(b.heightCM / 100).toStringAsFixed(2)})';
 
   String _femaleFormulaText(KcalGoalBreakdownEntity b) =>
       '387 − 7.31 × ${b.age} '
-      '+ ${b.paFemaleFormula!.toStringAsFixed(2)} × 10.9 × ${b.weightKG.toStringAsFixed(1)} '
-      '+ 660.7 × ${(b.heightCM / 100).toStringAsFixed(2)}';
+      '+ ${b.paFemaleFormula!.toStringAsFixed(2)} × '
+      '(10.9 × ${b.weightKG.toStringAsFixed(1)} '
+      '+ 660.7 × ${(b.heightCM / 100).toStringAsFixed(2)})';
 }
 
 /// Step 2 — deficit / surplus for the weight goal, including the taper.

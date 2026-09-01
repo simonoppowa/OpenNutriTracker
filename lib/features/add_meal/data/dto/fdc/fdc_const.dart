@@ -1,28 +1,10 @@
 class FDCConst {
-  static const _pageSize = "20";
-
-  // URL
+  // Public FDC website. Used only to build the attribution/detail links the
+  // user can tap through to; the app makes no requests to USDA itself — FDC
+  // food data reaches the app through the Supabase backend.
   static const fdcWebsiteUrl = "https://fdc.nal.usda.gov/fdc-app.html#";
   static const _fdcFoodDetailPath = "/food-details/";
   static const _fdcFoodDetailNutrientsPath = "/nutrients";
-  static const _fdcBaseUrl = "api.nal.usda.gov";
-  static const _fdcFoodSearchPath = "/fdc/v1/foods/search";
-
-  static const _fdcQueryTag = "query";
-  static const _fdcPageSizeTag = "pageSize";
-  static const _fdcDataTypeTag = "dataType";
-
-  // static const _fdcDataTypeBrandedValue = "Branded";
-  static const _fdcDataTypeFoundationValue = "Foundation";
-  static const _fdcDataTypeSRLegacyValue = "SR Legacy";
-  static const _fdcSortOrderTag = "sortOrder";
-  static const _fdcSortOrderAscValue = "asc";
-  static const _fdcApiKeyTag = "api_key";
-
-  static const _dataTypeParams = [
-    _fdcDataTypeFoundationValue,
-    _fdcDataTypeSRLegacyValue,
-  ];
 
   static const fdcDefaultUnit = 'g/ml';
 
@@ -154,7 +136,7 @@ class FDCConst {
 
   static String getFoodDetailUrlString(String? code) {
     if (code == null) {
-      return _fdcBaseUrl;
+      return fdcWebsiteUrl;
     } else {
       return fdcWebsiteUrl +
           _fdcFoodDetailPath +
@@ -163,27 +145,13 @@ class FDCConst {
     }
   }
 
-  static String _getDataTypeParams() => _dataTypeParams.join(",");
-
-  static Uri getFDCWordSearchUrl(String searchString, String apiKey) {
-    final queryParameters = {
-      _fdcQueryTag: searchString,
-      _fdcPageSizeTag: _pageSize,
-      _fdcDataTypeTag: _getDataTypeParams(),
-      _fdcSortOrderTag: _fdcSortOrderAscValue,
-      _fdcApiKeyTag: apiKey,
-    };
-
-    return Uri.https(_fdcBaseUrl, _fdcFoodSearchPath, queryParameters);
-  }
-
   // Nutriment codes. These are FDC nutrient *ids* (the `nutrient.id` /
-  // `nutrientId` field), not the FDC nutrient *numbers*. Both the Supabase
-  // `fdc_nutrients.nutrient_id` column and the direct FDC search response key
-  // on the id. The Atwater energy ids differ from their numbers (957/958), so
-  // they must be the ids 2047/2048 to match; using the numbers meant Foundation
-  // foods that carry only Atwater energy (no plain Energy 1008) silently
-  // resolved to no kcal and were rejected as "missing required kcal" (#252).
+  // `nutrientId` field), not the FDC nutrient *numbers*. The Supabase
+  // `fdc_nutrients.nutrient_id` column keys on the id. The Atwater energy ids
+  // differ from their numbers (957/958), so they must be the ids 2047/2048 to
+  // match; using the numbers meant Foundation foods that carry only Atwater
+  // energy (no plain Energy 1008) silently resolved to no kcal and were
+  // rejected as "missing required kcal" (#252).
   static const fdcTotalKcalId = 1008;
   static const fdcKcalAtwaterGeneralId = 2047; // number 957
   static const fdcKcalAtwaterSpecificId = 2048; // number 958

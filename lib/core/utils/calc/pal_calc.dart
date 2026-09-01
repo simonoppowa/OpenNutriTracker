@@ -4,13 +4,25 @@ import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
 
 class PalCalc {
   ///
-  /// Return the physical activity level (PAL) value fom the PAL category
-  /// based on the IOM Physical Activity Recommendations 2004
-  /// 'Chronicle of the Institute of Medicine physical activity recommendation:
-  /// how a physical activity recommendation came to be among dietary
-  /// recommendations'
-  /// by Brooks et al.
-  /// https://pubmed.ncbi.nlm.nih.gov/15113740/
+  /// Returns a representative physical activity level (PAL) value for the
+  /// user's activity category.
+  ///
+  /// The four categories, and the PAL *ranges* behind them, come from
+  /// IOM 2005 pp. 182-205 — the same pages as the TEE equations these values
+  /// feed. The ranges are half-open, as the book prints them:
+  /// sedentary `>= 1.0 < 1.4`, low active `>= 1.4 < 1.6`,
+  /// active `>= 1.6 < 1.9`, very active `>= 1.9 < 2.5`.
+  ///
+  /// The four point values below are the project's own representatives for
+  /// those ranges. **They are not published anywhere in IOM 2005 or in
+  /// FAO/WHO/UNU 2001** — each falls inside its band, but no source prints
+  /// this set. Treat them as unattributed until someone finds the page; see
+  /// `docs/tdee-iom-2005-verification.md`.
+  ///
+  /// This previously cited Brooks et al. 2004
+  /// (https://pubmed.ncbi.nlm.nih.gov/15113740/) as the source. That paper is
+  /// the chronicle of how the *60 minutes a day* activity recommendation came
+  /// to be; it publishes no category → PAL table, and was the wrong citation.
   ///
   static double getPALValueFromActivityCategory(UserEntity userEntity) {
     double palValue;

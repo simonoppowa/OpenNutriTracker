@@ -30,7 +30,17 @@ class FakeHiveDBProvider extends HiveDBProvider {
   final Box<WaterIntakeDBO>? _waterIntakeBox;
   final Box<FastingSessionDBO>? _fastingBox;
 
+  /// The profile the injected boxes belong to.
+  ///
+  /// Mutable so a test can simulate a profile switch landing in the middle of
+  /// an operation (#944) — the real provider swaps its whole box-set at that
+  /// moment, but for a guard that only compares identities, moving this is
+  /// the switch.
+  @override
+  String activeProfileId;
+
   FakeHiveDBProvider({
+    this.activeProfileId = 'test-profile',
     Box<ConfigDBO>? configBox,
     Box<ConfigDBO>? appConfigBox,
     Box<IntakeDBO>? intakeBox,

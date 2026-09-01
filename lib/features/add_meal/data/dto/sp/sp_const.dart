@@ -45,11 +45,31 @@ class SPConst {
   /// other values (native, community, verified) involve a human and don't.
   static const translationSourceMachine = 'machine';
 
-  // Text-search configs matching the indexes in schema.sql:
-  // food.description uses to_tsvector('english', ...), food_translation
-  // uses to_tsvector('simple', ...) since it holds many languages.
-  static const foodNameFtsConfig = 'english';
-  static const translationFtsConfig = 'simple';
+  // Postgres functions the app searches through, rather than filtering the
+  // relations above over the URL.
+  //
+  // PostgREST issues a table query as a GET, so a search term travels in the
+  // query string and the Supabase API gateway log keeps it beside the
+  // caller's IP address, city, postal code, ISP and TLS fingerprint. An RPC
+  // is a POST with a JSON body, and the gateway log records no body. #882.
+  //
+  // The text-search configs these used to be called with — 'english' for
+  // food_summary.name, 'simple' for the many-language food_translation —
+  // now live inside the functions, next to the indexes that have to agree
+  // with them. See sql/schema.sql section 6b in the backend repo.
+  static const searchFoodSummaryFn = 'search_food_summary';
+  static const searchFoodTranslationFn = 'search_food_translation';
+  static const foodSummaryByIdsFn = 'food_summary_by_ids';
+
+  /// A food's default portion label in the reader's language, and only
+  /// where a human has verified the translation. The `verified` filter is
+  /// server-side, so this app cannot show machine output by forgetting to
+  /// ask for it. #864.
+  static const portionLabelsByFoodIdsFn = 'portion_labels_by_food_ids';
+
+  /// Every usable portion a food has, so the unit dropdown can offer a
+  /// choice rather than the one `food_summary` picked. #864.
+  static const portionsByFoodIdsFn = 'portions_by_food_ids';
 
   /// food_source.code prefix shared by the USDA FDC sources
   /// (fdc_foundation, fdc_sr_legacy, fdc_survey). Only these foods have a

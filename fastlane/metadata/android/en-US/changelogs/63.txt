@@ -1,0 +1,9 @@
+ * Fixed the daily calorie goal: the TDEE formula did not match the IOM 2005
+   equations it is based on. The activity coefficient was applied only to the
+   weight term, not to the height term as the source specifies. Goals for
+   everyone above the "sedentary" activity level were too low — by roughly
+   100 to 500 kcal a day, growing with height and activity. Sedentary goals
+   are unchanged. Past days keep the goal they were tracked against.
+ * The calorie-goal breakdown screen now shows the corrected formula.
+ * The adult-equations notice now appears up to age 18, since the equations
+   are published for ages 19 and older.

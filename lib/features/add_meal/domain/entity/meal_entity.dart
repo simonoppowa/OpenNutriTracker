@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/supported_language.dart';
@@ -10,6 +11,13 @@ import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+
+/// A number immediately followed by a metric mass or volume unit, as it
+/// appears inside an Open Food Facts `serving_size` string.
+final _servingSizeMetric = RegExp(
+  r'(\d+(?:[.,]\d+)?)\s*(?:g|ml)\b',
+  caseSensitive: false,
+);
 
 class MealEntity extends Equatable {
   static const liquidUnits = {'ml', 'l', 'dl', 'cl', 'fl oz', 'fl.oz'};
@@ -39,6 +47,31 @@ class MealEntity extends Equatable {
   // already falls back to `servingSize` when `servingUnit` is missing.
   bool get hasServingValues => servingQuantity != null || servingSize != null;
 
+  /// A number of grams or millilitres per serving, or null when the record
+  /// carries none that can be scaled.
+  ///
+  /// [servingQuantity] is Open Food Facts' parsed numeric, and it is often
+  /// absent while `serving_size` carries the same figure as text — "30 g",
+  /// "2 Tbsp (32 g)", "1 slice (25g)". Reading it back matters because
+  /// [hasServingValues] is true for those records while nothing can scale
+  /// them: the meal-detail screen defaulted them to "1 serving" and logged
+  /// one *gram* (#629).
+  ///
+  /// The last `g`/`ml` figure wins, so a parenthesised metric equivalent
+  /// beats the imperial measure in front of it ("12 oz (355 ml)" is 355).
+  /// A serving with no metric figure at all — "1 egg" — yields null, and
+  /// the caller falls back to a weight the user can see.
+  double? get scalableServingQuantity {
+    final parsed = servingQuantity;
+    if (parsed != null) return parsed;
+
+    final text = servingSize;
+    if (text == null) return null;
+    final matches = _servingSizeMetric.allMatches(text);
+    if (matches.isEmpty) return null;
+    return double.tryParse(matches.last.group(1)!.replaceAll(',', '.'));
+  }
+
   final MealSourceEntity source;
 
   /// Backend food_source.code ('fdc_sr_legacy', 'bls', 'indb'...) for
@@ -52,6 +85,26 @@ class MealEntity extends Equatable {
   /// backend's food_translation table. The meal detail page shows a small
   /// disclosure hint under the title for these.
   final bool machineTranslatedName;
+
+  /// True when [servingSize] holds a translation a human has verified, rather
+  /// than the English text every food record carries.
+  ///
+  /// Needed because the two are indistinguishable by inspection: "1 Scheibe"
+  /// and "1 slice" are both just strings on the entity, and showing the
+  /// second one to a German reader is the defect #966 had to gate against.
+  /// Only [withServingLabel] sets it, so it is false everywhere a label did
+  /// not come from the backend's verified set — including every meal read
+  /// back from the database, which stores no such provenance.
+  final bool servingSizeIsLocalized;
+
+  /// Every way this food can be counted, in the backend's order, so the first
+  /// is the portion `food_summary` picked and a picker opens where the app
+  /// already stood.
+  ///
+  /// Empty for everything that is not a fresh backend search result — Open
+  /// Food Facts, custom meals, anything read back from the database — and the
+  /// row then behaves exactly as it did before portions existed.
+  final List<MealPortionEntity> portions;
 
   /// Relative path (`meal_images/<code>.webp`) to a user-attached photo
   /// for a custom meal, or null if none is set. Resolved to an absolute
@@ -91,9 +144,68 @@ class MealEntity extends Equatable {
     required this.source,
     this.backendSource,
     this.machineTranslatedName = false,
+    this.servingSizeIsLocalized = false,
+    this.portions = const [],
     this.localImagePath,
     this.detailed = false,
   });
+
+  /// The same meal with a verified translation in place of the English
+  /// serving label.
+  ///
+  /// Deliberately narrow: it replaces the text and records where it came
+  /// from, and touches nothing else. [servingQuantity] in particular stays
+  /// as it was, because the backend picks the label and the gram weight from
+  /// the same portion row — swapping one without the other is how "1 slice"
+  /// ends up beside 240 g.
+  MealEntity withServingLabel(String label) => MealEntity(
+    code: code,
+    name: name,
+    brands: brands,
+    thumbnailImageUrl: thumbnailImageUrl,
+    mainImageUrl: mainImageUrl,
+    url: url,
+    mealQuantity: mealQuantity,
+    mealUnit: mealUnit,
+    servingQuantity: servingQuantity,
+    servingUnit: servingUnit,
+    servingSize: label,
+    nutriments: nutriments,
+    source: source,
+    backendSource: backendSource,
+    machineTranslatedName: machineTranslatedName,
+    servingSizeIsLocalized: true,
+    portions: portions,
+    localImagePath: localImagePath,
+    detailed: detailed,
+  );
+
+  /// The same meal knowing every portion it can be counted in.
+  ///
+  /// Separate from [withServingLabel] because the two arrive from different
+  /// calls and either can be absent: a food may have a verified default label
+  /// and no picker-worthy list, or several portions and no translation.
+  MealEntity withPortions(List<MealPortionEntity> found) => MealEntity(
+    code: code,
+    name: name,
+    brands: brands,
+    thumbnailImageUrl: thumbnailImageUrl,
+    mainImageUrl: mainImageUrl,
+    url: url,
+    mealQuantity: mealQuantity,
+    mealUnit: mealUnit,
+    servingQuantity: servingQuantity,
+    servingUnit: servingUnit,
+    servingSize: servingSize,
+    nutriments: nutriments,
+    source: source,
+    backendSource: backendSource,
+    machineTranslatedName: machineTranslatedName,
+    servingSizeIsLocalized: servingSizeIsLocalized,
+    portions: found,
+    localImagePath: localImagePath,
+    detailed: detailed,
+  );
 
   factory MealEntity.empty() => MealEntity(
     code: IdGenerator.getUniqueID(),

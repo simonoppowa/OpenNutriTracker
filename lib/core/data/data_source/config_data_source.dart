@@ -11,9 +11,14 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 ///   notifications, anonymous-data consent, legal acceptances, and the
 ///   various view toggles), so it stays consistent whichever profile is
 ///   active;
-/// - the **per-profile** [HiveDBProvider.configBox] holds only the personal
+/// - the **per-profile** [HiveDBProvider.configBox] holds the personal
 ///   nutrition goals (kcal adjustment, macro split, per-meal kcal shares and
-///   the daily water goal), which differ from one profile to the next.
+///   the daily water goal) plus the health-import settings (opt-in flag,
+///   calorie-credit multiplier, import watermark), which differ from one
+///   profile to the next. The health settings belong here because the
+///   activity box they write into is itself per-profile
+///   ([HiveDBProvider.perProfileBoxNames]): each profile opts in for itself,
+///   imports its own copy of a workout, and tracks its own watermark.
 ///
 /// Reads merge the two — shared fields from the app box, personal fields
 /// from the active profile's box. Writes store a detached copy of the merged
@@ -51,24 +56,49 @@ class ConfigDataSource {
       merged.userFatGoalPct = profile.userFatGoalPct;
       merged.mealKcalSharesPct = profile.mealKcalSharesPct;
       merged.dailyWaterGoalMl = profile.dailyWaterGoalMl;
+      merged.healthImportEnabled = profile.healthImportEnabled;
+      merged.healthWorkoutKcalMultiplier = profile.healthWorkoutKcalMultiplier;
+      merged.healthLastImportAt = profile.healthLastImportAt;
+      merged.healthDeletedExternalIds = profile.healthDeletedExternalIds;
+      merged.healthDeletedWorkouts = profile.healthDeletedWorkouts;
     } else {
       // Explicitly clear personal fields so they don't leak from the
-      // app box after a profile reset.
+      // app box after a profile reset. A fresh profile therefore reads as
+      // opted out of the health import with no watermark of its own, which
+      // is what it is.
       merged.userKcalAdjustment = null;
       merged.userCarbGoalPct = null;
       merged.userProteinGoalPct = null;
       merged.userFatGoalPct = null;
       merged.mealKcalSharesPct = null;
       merged.dailyWaterGoalMl = null;
+      merged.healthImportEnabled = null;
+      merged.healthWorkoutKcalMultiplier = null;
+      merged.healthLastImportAt = null;
+      merged.healthDeletedExternalIds = null;
+      merged.healthDeletedWorkouts = null;
     }
     return merged;
   }
 
   /// Persists [config] to both boxes. Each box gets its own detached copy so
   /// the same `HiveObject` instance is never shared between boxes.
+  ///
+  /// Both puts are started before either is awaited, deliberately.
+  ///
+  /// [_profileBox] resolves through [HiveDBProvider], which swaps the
+  /// per-profile box in place when the user switches profiles. Awaiting the
+  /// app-box put before resolving the profile box would leave a window for a
+  /// switch to land between them, writing the two halves of one config into
+  /// two different profiles (#944). Resolving and starting both in the same
+  /// synchronous step closes it.
   Future<void> _writeBoth(ConfigDBO config) async {
-    await _appBox.put(_configKey, ConfigDBO.fromJson(config.toJson()));
-    await _profileBox.put(_configKey, ConfigDBO.fromJson(config.toJson()));
+    final app = _appBox.put(_configKey, ConfigDBO.fromJson(config.toJson()));
+    final profile = _profileBox.put(
+      _configKey,
+      ConfigDBO.fromJson(config.toJson()),
+    );
+    await Future.wait([app, profile]);
   }
 
   Future<bool> configInitialized() async =>
@@ -120,6 +150,14 @@ class ConfigDataSource {
 
   Future<void> setConfigAcceptedPolicy(bool hasAcceptedPolicy) async {
     await _update((c) => c.hasAcceptedPolicy = hasAcceptedPolicy);
+  }
+
+  /// Records that the user has been shown the policy-change notice for
+  /// [revision]. Device-wide: it is not in [_readMerged]'s personal-field
+  /// overlay, so it is read from the shared app box and a second profile is
+  /// not notified again.
+  Future<void> setConfigPolicyNoticeRevisionSeen(int revision) async {
+    await _update((c) => c.policyNoticeRevisionSeen = revision);
   }
 
   Future<AppThemeDBO> getAppTheme() async => _readMerged().selectedAppTheme;
@@ -295,6 +333,77 @@ class ConfigDataSource {
   Future<void> setConfigFoodSourceToggles(Map<String, bool> toggles) async {
     // Copy into a fresh map so Hive sees a distinct object reference on save.
     await _update((c) => c.foodSourceToggles = Map<String, bool>.from(toggles));
+  }
+
+  Future<void> setConfigHealthImportEnabled(bool enabled) async {
+    await _update((c) => c.healthImportEnabled = enabled);
+  }
+
+  Future<void> setConfigHealthWorkoutKcalMultiplier(double multiplier) async {
+    await _update((c) => c.healthWorkoutKcalMultiplier = multiplier);
+  }
+
+  Future<void> setConfigHealthLastImportAt(DateTime? importedAt) async {
+    await _update((c) => c.healthLastImportAt = importedAt);
+  }
+
+  /// Records that the imported workout behind [externalId], which started at
+  /// [startedAt], was deleted — so the importer stops re-creating it.
+  ///
+  /// [startedAt] is the workout's own start time rather than the moment of
+  /// deletion, because it is what the import window is compared against: the
+  /// tombstone stops being useful when the *workout* falls out of range, not
+  /// when the deletion does. Writes a fresh map so Hive sees a distinct object
+  /// reference on save.
+  Future<void> addConfigHealthDeletedWorkout(
+    String externalId,
+    DateTime startedAt,
+  ) async {
+    await _update((c) {
+      final current = _mergedDeletedWorkouts(c);
+      if (current[externalId] == startedAt) return;
+      c.healthDeletedWorkouts = {...current, externalId: startedAt};
+      c.healthDeletedExternalIds = null;
+    });
+  }
+
+  /// Drops tombstones for workouts that started before [cutoff].
+  ///
+  /// Those can never match again — the platform will not return them for any
+  /// window a future import asks for — so they are dead weight rather than
+  /// protection. See `ConfigEntity.oldestUsefulTombstone` for how the caller
+  /// arrives at [cutoff]. A no-op when nothing is stale, so the common case
+  /// costs no write.
+  Future<void> pruneConfigHealthDeletedWorkouts(DateTime cutoff) async {
+    await _update((c) {
+      final current = _mergedDeletedWorkouts(c);
+      final kept = <String, DateTime>{
+        for (final entry in current.entries)
+          if (!entry.value.isBefore(cutoff)) entry.key: entry.value,
+      };
+      if (kept.length == current.length && c.healthDeletedExternalIds == null) {
+        return;
+      }
+      c.healthDeletedWorkouts = kept;
+      c.healthDeletedExternalIds = null;
+    });
+  }
+
+  /// The dated tombstones, with any undated legacy ids folded in.
+  ///
+  /// Before #768 a tombstone was an id with no date, so there is nothing to
+  /// compare a legacy entry against. It is dated *now* instead, which keeps it
+  /// for one more full window and then lets it drain — erring toward keeping a
+  /// deletion honoured, which is the direction that cannot annoy anyone.
+  ///
+  /// Only pre-release installs can carry any: #651 has not shipped. This can
+  /// be deleted once 2.1.0 is out and no dev build predates it.
+  static Map<String, DateTime> _mergedDeletedWorkouts(ConfigDBO config) {
+    final dated = config.healthDeletedWorkouts ?? const <String, DateTime>{};
+    final legacy = config.healthDeletedExternalIds;
+    if (legacy == null || legacy.isEmpty) return dated;
+    final now = DateTime.now();
+    return {for (final id in legacy) id: now, ...dated};
   }
 
   Future<ConfigDBO> getConfig() async => _readMerged();
