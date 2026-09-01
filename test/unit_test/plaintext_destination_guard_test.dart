@@ -6,8 +6,10 @@ import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 
 /// Records the request that reached the socket, or the fact that none did.
 ///
-/// [sentCount] matters for the redirect tests: following a 30x would show up
-/// here as a second send, which is exactly what must not happen.
+/// [sentCount] records how many times [GuardedPlaintextClient] called through.
+/// It cannot see a redirect being followed — that happens inside `dart:io`,
+/// below this fake — so it pins that the guard itself sends once, and nothing
+/// more than that.
 class _RecordingClient extends http.BaseClient {
   http.BaseRequest? sent;
   int sentCount = 0;
@@ -22,8 +24,18 @@ class _RecordingClient extends http.BaseClient {
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     sent = request;
     sentCount++;
-    return response ??
-        http.StreamedResponse(const Stream.empty(), 200, request: request);
+    // The injected response keeps the request association too, so an
+    // assertion on `response.request` reads the same either way.
+    final canned = response;
+    if (canned != null) {
+      return http.StreamedResponse(
+        canned.stream,
+        canned.statusCode,
+        headers: canned.headers,
+        request: request,
+      );
+    }
+    return http.StreamedResponse(const Stream.empty(), 200, request: request);
   }
 }
 
