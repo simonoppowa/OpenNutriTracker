@@ -317,7 +317,8 @@ ask them for.
 Most of what each destination *keeps* is a policy question rather than a mechanism one, and it
 lives in the README's [Privacy](../README.md#privacy) section — but two of the four requests carry
 a retention instruction of their own. The direct OpenAI call sends `store: false`, because
-Responses stores by default and silence there is not a no-op. The OpenRouter routing block sends
+the Responses API retains request and response content by default, so saying nothing is not the
+same as opting out. The OpenRouter routing block sends
 `data_collection: "deny"` alongside the vendor pin, which makes a vendor that stores input
 non-transiently ineligible to serve the request at all. Two things there are worth knowing before you
 read this page's diagrams as reassurance: being reached directly is not the same as keeping less,
