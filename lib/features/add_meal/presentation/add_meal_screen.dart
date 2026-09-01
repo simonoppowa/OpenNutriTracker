@@ -223,14 +223,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
   Widget _buildSourceChips(BuildContext context, AppPalette palette) {
     Widget chip(_SearchSource source, String label) => Padding(
-          padding: const EdgeInsets.only(right: Dimens.spacing8),
-          child: ChoiceChip(
-            label: Text(label),
-            selected: _source == source,
-            showCheckmark: false,
-            onSelected: (_) => _selectSource(source),
-          ),
-        );
+      padding: const EdgeInsets.only(right: Dimens.spacing8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: _source == source,
+        showCheckmark: false,
+        onSelected: (_) => _selectSource(source),
+      ),
+    );
     return Align(
       alignment: Alignment.centerLeft,
       child: SingleChildScrollView(
@@ -248,16 +248,16 @@ class _AddMealScreenState extends State<AddMealScreen> {
   }
 
   Widget _resultsHeader(BuildContext context, AppPalette palette) => Container(
-        padding: const EdgeInsets.symmetric(vertical: Dimens.spacing4),
-        alignment: Alignment.centerLeft,
-        child: Text(
-          S.of(context).searchResultsLabel,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: palette.textMuted,
-              ),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(vertical: Dimens.spacing4),
+    alignment: Alignment.centerLeft,
+    child: Text(
+      S.of(context).searchResultsLabel,
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w700,
+        color: palette.textMuted,
+      ),
+    ),
+  );
 
   /// True while the results carried by [state] lag behind [query]: the
   /// search for the current input is still debouncing or in flight. Empty
@@ -320,20 +320,28 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           _foodPending(fs, query)) {
                         return _pendingSpinner;
                       }
-                      final products =
-                          ps is ProductsLoadedState ? ps.products : const <MealEntity>[];
-                      final foods =
-                          fs is FoodLoadedState ? fs.food : const <MealEntity>[];
+                      final products = ps is ProductsLoadedState
+                          ? ps.products
+                          : const <MealEntity>[];
+                      final foods = fs is FoodLoadedState
+                          ? fs.food
+                          : const <MealEntity>[];
                       final merged = mergeAndRankMeals(products, foods, query);
                       if (merged.isEmpty) {
                         if (ps is ProductsInitial && fs is FoodInitial) {
                           return const DefaultsResultsWidget();
                         }
-                        return const NoResultsWidget();
+                        return NoResultsWidget(
+                          onScanBarcode: _onBarcodeIconPressed,
+                          onCreateCustomFood: () =>
+                              _onCustomAddFromEmptyState(),
+                        );
                       }
                       final imperial = ps is ProductsLoadedState
                           ? ps.usesImperialUnits
-                          : (fs is FoodLoadedState ? fs.usesImperialUnits : false);
+                          : (fs is FoodLoadedState
+                                ? fs.usesImperialUnits
+                                : false);
                       return ListView.builder(
                         itemCount: merged.length,
                         itemBuilder: (context, index) => MealItemCard(
@@ -367,15 +375,24 @@ class _AddMealScreenState extends State<AddMealScreen> {
                   if (state.products.isEmpty) {
                     return _productsPending(state, query)
                         ? _pendingSpinner
-                        : const NoResultsWidget();
+                        : NoResultsWidget(
+                            onScanBarcode: _onBarcodeIconPressed,
+                            onCreateCustomFood: () =>
+                                _onCustomAddFromEmptyState(),
+                          );
                   }
                   return Flexible(
                     child: ListView.builder(
                       itemCount:
-                          state.products.length + (state.remoteSourceEmpty ? 1 : 0),
+                          state.products.length +
+                          (state.remoteSourceEmpty ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index == state.products.length) {
-                          return const NoResultsWidget();
+                          return NoResultsWidget(
+                            onScanBarcode: _onBarcodeIconPressed,
+                            onCreateCustomFood: () =>
+                                _onCustomAddFromEmptyState(),
+                          );
                         }
                         return MealItemCard(
                           day: _day,
@@ -414,14 +431,23 @@ class _AddMealScreenState extends State<AddMealScreen> {
                   if (state.food.isEmpty) {
                     return _foodPending(state, query)
                         ? _pendingSpinner
-                        : const NoResultsWidget();
+                        : NoResultsWidget(
+                            onScanBarcode: _onBarcodeIconPressed,
+                            onCreateCustomFood: () =>
+                                _onCustomAddFromEmptyState(),
+                          );
                   }
                   return Flexible(
                     child: ListView.builder(
-                      itemCount: state.food.length + (state.remoteSourceEmpty ? 1 : 0),
+                      itemCount:
+                          state.food.length + (state.remoteSourceEmpty ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index == state.food.length) {
-                          return const NoResultsWidget();
+                          return NoResultsWidget(
+                            onScanBarcode: _onBarcodeIconPressed,
+                            onCreateCustomFood: () =>
+                                _onCustomAddFromEmptyState(),
+                          );
                         }
                         return MealItemCard(
                           day: _day,
@@ -468,7 +494,10 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         );
                       },
                     )
-                  : const NoResultsWidget();
+                  : NoResultsWidget(
+                      onScanBarcode: _onBarcodeIconPressed,
+                      onCreateCustomFood: () => _onCustomAddFromEmptyState(),
+                    );
             } else if (state is RecentMealFailedState) {
               return ErrorDialog(
                 errorText: S.of(context).noMealsRecentlyAddedLabel,
@@ -493,11 +522,17 @@ class _AddMealScreenState extends State<AddMealScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (sheetContext) => QuickAddBottomSheet(
-        intakeType: _mealType.getIntakeType(),
-        day: _day,
-      ),
+      builder: (sheetContext) =>
+          QuickAddBottomSheet(intakeType: _mealType.getIntakeType(), day: _day),
     );
+  }
+
+  void _onCustomAddFromEmptyState() {
+    final state = locator<AddMealBloc>().state;
+    final imperial = state is AddMealLoadedState
+        ? state.usesImperialUnits
+        : false;
+    _onCustomAddButtonPressed(imperial);
   }
 
   void _onCustomAddButtonPressed(bool usesImperialUnits) {
