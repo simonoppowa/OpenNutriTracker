@@ -138,6 +138,10 @@ class PlaintextDestinationGuard {
 /// promise is about the app's traffic to a user-supplied address and not
 /// about one call site. Anything given this client is covered, including
 /// call sites that do not exist yet.
+///
+/// **Redirects are not followed.** They would be followed below this layer,
+/// where the guard never sees them, so a 30x comes back to the caller
+/// unfollowed rather than becoming an unchecked second destination.
 class GuardedPlaintextClient extends http.BaseClient {
   final http.Client _inner;
   final PlaintextDestinationGuard _guard;
@@ -148,12 +152,34 @@ class GuardedPlaintextClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     final approved = await _guard.approve(request.url);
-    if (approved == request.url) return _inner.send(request);
-    return _inner.send(_reboundTo(approved, request));
+    final outgoing = approved == request.url
+        ? request
+        : _reboundTo(approved, request);
+
+    // Redirects are followed inside `dart:io`, below `BaseClient.send`, so a
+    // hop never comes back through here and never meets [approve]. Left on,
+    // a server answering 30x with a public `http://` target would have that
+    // connection made — from a check that reported the destination private.
+    // The guard cannot vouch for a hop it never sees, so it does not let one
+    // happen: a redirect is returned to the caller as the 30x it is.
+    //
+    // This holds for `https://` too, which [approve] waves through: an
+    // encrypted first hop says nothing about where a `Location` points.
+    if (outgoing.followRedirects) outgoing.followRedirects = false;
+
+    return _inner.send(outgoing);
   }
 
   /// Rebuilds the request against the approved address, keeping the original
   /// authority in the `host` header so a name-based server still routes it.
+  ///
+  /// **The port is part of that authority.** A local model server is almost
+  /// never on 80 — `http://ollama.lan:11434` is the ordinary shape — and a
+  /// `Host: ollama.lan` that drops the `:11434` is a different authority from
+  /// the one that was typed. A reverse proxy or a strict server routes by
+  /// what that header says, so it has to keep saying it. The port is written
+  /// only when the URL gave one, so a plain `http://ollama.lan` still sends
+  /// the bare name rather than a redundant `:80`.
   ///
   /// Only [http.Request] can be rebuilt — its body is bytes already. A
   /// streamed request is passed through **after** the check, which still
@@ -162,11 +188,13 @@ class GuardedPlaintextClient extends http.BaseClient {
   /// guess about how to re-wrap one would be worse than the gap.
   http.BaseRequest _reboundTo(Uri url, http.BaseRequest request) {
     if (request is! http.Request) return request;
+    final origin = request.url;
     return http.Request(request.method, url)
       ..headers.addAll(request.headers)
-      ..headers['host'] = request.url.host
+      ..headers['host'] = origin.hasPort
+          ? '${origin.host}:${origin.port}'
+          : origin.host
       ..bodyBytes = request.bodyBytes
-      ..followRedirects = request.followRedirects
       ..maxRedirects = request.maxRedirects
       ..persistentConnection = request.persistentConnection;
   }
