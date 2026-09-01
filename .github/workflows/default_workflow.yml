@@ -32,6 +32,13 @@ on:
       # to add it back, and the failure mode is silent — a retargeted PR
       # still reports mergeable with no checks run.
       - 'feature/**'
+      # Release branches, for the same reason and with the same failure mode.
+      # `release/2.2.0` is cut from `main`, so a fix that landed on `develop`
+      # is not in it, and the PR carrying that fix across got exactly one
+      # check — the Copilot reviewer — while reporting `CLEAN`. A release
+      # branch is the last place that should merge unverified: everything on
+      # it is by definition about to become `main`.
+      - 'release/**'
   workflow_dispatch:
 
 jobs:
