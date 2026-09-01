@@ -544,6 +544,155 @@ jobs:
           disable-animations: true
           script: flutter test integration_test/ --flavor full --reporter expanded
 
+  # Deploy gate, 0 of 5 — the only one that asks whether there is anything NEW
+  # to ship. The five below ask whether it is safe to ship it.
+  #
+  # This job exists because of what fixing the deploy-chain skip exposed. Until
+  # a8a78997 the five deploy jobs silently skipped on every push to `main`, so
+  # it did not matter that they are keyed on nothing but the branch. They fire
+  # for real now, and `push: main` fires on every merge — docs-only ones
+  # included. With `pubspec.yaml` still reading `2.2.0+63` the morning after
+  # 2.2.0 shipped, the next merge would re-run the whole chain against an
+  # already-published version:
+  #
+  #   * `ios-deploy` re-uploads build 63. Apple answers ITMS-90189 "Redundant
+  #     Binary Upload" and pilot raises; the lane has no rescue and the step no
+  #     `continue-on-error`, so the job goes RED — a red `main` for a docs
+  #     commit, after ~41 macOS runner minutes.
+  #   * `android-deploy` re-uploads versionCode 63. Whether that dies inside
+  #     supply's `upload_bundles` or limps to the same #942 commit failure
+  #     depends on whether the AAB was finished by hand in the console. Only
+  #     the second matches the #942 grep, so the first is correctly NOT
+  #     tolerated — also red.
+  #   * `github-release` derives `TAG_NAME=v2.2.0`, which already exists, and
+  #     softprops/action-gh-release does not fail on that — it UPDATES the
+  #     release in place. `overwrite_files` defaults to true, so it would
+  #     DELETE and re-upload the IPA, AAB and APK that 2.2.0 shipped and
+  #     regenerate the notes, while the tag stayed put (GitHub's REST docs:
+  #     `target_commitish` is "Unused if the Git tag already exists"). The
+  #     result is a published release whose binaries no longer match its tag.
+  #
+  # Today only ordering stops that last one: `ios-deploy` fails first, so
+  # `github-release` never runs. That is luck, not design. Bump only the build
+  # number — `2.2.0+64` — and iOS passes, `TAG_NAME` is still `v2.2.0`, and the
+  # luck runs out on a published release. This job turns the ordering accident
+  # into a rule.
+  #
+  # The ledger it reads is the one `github-release` writes: the `v<version>`
+  # tag, created by the last step of the last job in the chain. Tag present
+  # means a release carrying that exact version name ran to completion. No
+  # tag, nothing shipped it, so ship.
+  #
+  # Deliberately does NOT gate the build and test jobs. A push to `main` should
+  # still be compiled and tested; what it must not do is package and publish.
+  #
+  # Two consequences, both chosen rather than overlooked:
+  #
+  #   * A build-only bump will not deploy. `2.2.0+64` still derives `v2.2.0`,
+  #     so it is refused. That is deliberate — a build-only bump is exactly the
+  #     input that arms the release-overwrite above — and it matches what
+  #     docs/RELEASING.md already asks for: bump `version:` in `pubspec.yaml`,
+  #     both halves. A rebuild that must reach TestFlight needs a new version
+  #     name, not a new build number.
+  #   * The tag records a release that FINISHED. A chain that died after the
+  #     TestFlight upload leaves no tag, so this job says ship again and the
+  #     retry hits ITMS-90189. Nothing local can detect a half-published
+  #     release; bump the build number before retrying one.
+  #
+  # It reports rather than fails when there is nothing to ship. A merge that is
+  # not a release is the normal case, and a red X on `main` for every docs
+  # commit teaches everyone to stop reading main's status — the exact habit
+  # that let the deploy jobs skip unnoticed for a whole release cycle.
+  release-gate:
+    # The same ref/event test the five gates below carry (see ios-package).
+    # Repeating it here means a skipped gate — result `skipped`, not
+    # `success` — is a second, independent reason the deploy chain cannot run
+    # from a pull request or from a branch other than `main`.
+    #
+    # No `!cancelled()` here, unlike the five below, and that is not an
+    # oversight: this job has no `needs:`, so there is no upstream skip for
+    # GitHub's implicit `success()` to inherit and nothing to escape.
+    if: |
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      # The literal string 'true' and nothing else. Every gate below compares
+      # against it, so the empty string a skipped or failed job leaves behind
+      # reads as "do not ship" without any extra handling.
+      ship: ${{ steps.decide.outputs.ship }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Decide whether this version has already been released
+        id: decide
+        run: |
+          # Character-for-character the derivation `github-release` uses in its
+          # "Prepare release tag and asset names" step. The two are deliberately
+          # independent — passing the name between jobs would let an empty
+          # output fall through to action-gh-release's documented `tag_name`
+          # default of `github.ref_name`, i.e. a release tagged `main` — but
+          # they must stay in step. Edit one, edit the other.
+          APP_VERSION=$(awk '/^version:/ {print $2}' pubspec.yaml)
+          TAG_NAME="v${APP_VERSION%+*}"
+
+          # `git ls-remote --exit-code` rather than a REST call, because it
+          # separates the three answers that matter into distinct exit codes:
+          # 0 the tag exists, 2 it does not, anything else the question was
+          # never answered. A 404 body cannot be told apart from a transient
+          # failure that cheaply, and "could not reach the remote" must never
+          # read as "no tag, go ahead and release".
+          #
+          # It queries the REMOTE, which is why `actions/checkout`'s shallow,
+          # tag-less fetch does not matter here — a local `git tag -l` would
+          # answer "no such tag" for every version and wave every push through.
+          #
+          # The pattern is a full ref path, which matches exactly: with
+          # `refs/tags/v1.3.2+53-build.629` present in this repo,
+          # `refs/tags/v1.3.2` still exits 2.
+          set +e
+          git ls-remote --exit-code --tags origin "refs/tags/$TAG_NAME" >/dev/null 2>&1
+          status=$?
+          set -e
+
+          case "$status" in
+            0)
+              echo "ship=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::$TAG_NAME is already released, so the packaging and deploy jobs are skipped. Bump version: in pubspec.yaml to ship a new release."
+              {
+                echo '### No release from this push'
+                echo
+                echo "\`pubspec.yaml\` is at \`$APP_VERSION\` and **\`$TAG_NAME\` already exists**,"
+                echo 'so this version has shipped. The five packaging and deploy jobs are'
+                echo 'skipped; the build and test jobs ran as normal.'
+                echo
+                echo 'This is the expected result for a docs fix or any merge that did not'
+                echo 'bump the version. To ship a release, bump `version:` in `pubspec.yaml`'
+                echo '— both halves — per docs/RELEASING.md.'
+              } >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            2)
+              echo "ship=true" >> "$GITHUB_OUTPUT"
+              echo "::notice::$TAG_NAME does not exist yet. This push will package and release $APP_VERSION."
+              {
+                echo "### Releasing \`$APP_VERSION\` as \`$TAG_NAME\`"
+                echo
+                echo "No \`$TAG_NAME\` tag exists, so this push ships. Watch \`android-deploy\`'s"
+                echo 'step summary — the Play upload usually still needs doing by hand (#942).'
+              } >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            *)
+              # Fail rather than guess. A failed job makes the run red and, via
+              # the `result == 'success'` term in every gate below, keeps the
+              # deploy chain shut — loudly, which is the point.
+              echo "::error::Could not read tags from origin (git ls-remote exit $status). Refusing to guess whether $TAG_NAME has already been released."
+              exit 1
+              ;;
+          esac
+
   # Deploy gate, 1 of 5 — read this one, the other four point back at it.
   #
   # Three things have to be true to package a release, and every one of them is
@@ -613,12 +762,15 @@ jobs:
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       !cancelled() &&
+      needs.release-gate.result == 'success' &&
+      needs.release-gate.outputs.ship == 'true' &&
       needs.linux-checks.result == 'success' &&
       needs.ios-build.result == 'success' &&
       needs.ios-integration-tests-result.result == 'success' &&
       needs.android-build.result == 'success' &&
       needs.android-integration-tests.result == 'success'
     needs:
+      - release-gate
       - linux-checks
       - ios-build
       - ios-integration-tests-result
@@ -734,11 +886,14 @@ jobs:
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       !cancelled() &&
+      needs.release-gate.result == 'success' &&
+      needs.release-gate.outputs.ship == 'true' &&
       needs.ios-package.result == 'success' &&
       needs.android-package.result == 'success'
     # Deploy only when BOTH platforms packaged successfully (see android-deploy)
     # so a one-sided failure never publishes half a release.
     needs:
+      - release-gate
       - ios-package
       - android-package
     # Must run on macOS. The TestFlight upload goes through Apple's iTunes
@@ -791,12 +946,15 @@ jobs:
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       !cancelled() &&
+      needs.release-gate.result == 'success' &&
+      needs.release-gate.outputs.ship == 'true' &&
       needs.linux-checks.result == 'success' &&
       needs.ios-build.result == 'success' &&
       needs.ios-integration-tests-result.result == 'success' &&
       needs.android-build.result == 'success' &&
       needs.android-integration-tests.result == 'success'
     needs:
+      - release-gate
       - linux-checks
       - ios-build
       - ios-integration-tests-result
@@ -929,6 +1087,8 @@ jobs:
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       !cancelled() &&
+      needs.release-gate.result == 'success' &&
+      needs.release-gate.outputs.ship == 'true' &&
       needs.android-package.result == 'success' &&
       needs.ios-package.result == 'success'
     # Deploy only when BOTH platforms packaged successfully. A half-success
@@ -936,6 +1096,7 @@ jobs:
     # consuming a Play versionCode and forcing a build-number bump on the
     # retry. Gating both deploys on both package jobs keeps a release atomic.
     needs:
+      - release-gate
       - android-package
       - ios-package
     runs-on: ubuntu-latest
@@ -1045,9 +1206,12 @@ jobs:
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       !cancelled() &&
+      needs.release-gate.result == 'success' &&
+      needs.release-gate.outputs.ship == 'true' &&
       needs.ios-deploy.result == 'success' &&
       needs.android-deploy.result == 'success'
     needs:
+      - release-gate
       - ios-deploy
       - android-deploy
     runs-on: ubuntu-latest
@@ -1092,6 +1256,15 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.TAG_NAME }}
+          # Belt and braces behind `release-gate`, which should mean this job
+          # never runs against an existing tag at all. If one ever slips
+          # through, the action does NOT fail on an existing release — it
+          # updates it in place, and `overwrite_files` defaults to true, which
+          # deletes the published IPA/AAB/APK and re-uploads binaries from a
+          # different commit while the tag stays where it was. GitHub does not
+          # version release assets, so that deletion is permanent. Refusing the
+          # overwrite turns a silent corruption into a failed step.
+          overwrite_files: false
           name: ${{ env.RELEASE_NAME }}
           generate_release_notes: true
           files: |
