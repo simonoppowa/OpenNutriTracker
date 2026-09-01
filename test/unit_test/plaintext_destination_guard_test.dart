@@ -168,6 +168,87 @@ void main() {
           InternetAddressType.IPv6);
     });
 
+    // A zone id is what makes a link-local address routable on a host with
+    // more than one interface, and it is the case the guard was silently
+    // breaking: `Uri` escapes the `%` to `%25`, `InternetAddress.tryParse`
+    // refuses that, and the address fell through to a DNS lookup that cannot
+    // succeed — so a link-local server this check exists to *permit* was
+    // reported unreachable, while an unguarded client reached it fine.
+    //
+    // Two things make these tests fussier than they look:
+    //
+    // - `tryParse` resolves a **named** zone against the running machine's
+    //   interfaces, so a hardcoded `%eth0` is null on a host without an eth0.
+    //   The name is asked of the machine instead.
+    // - A **numeric** zone tests nothing at all: `%1` escapes to `%251`,
+    //   which parses happily as scope 251, so the guard never stumbled. Only
+    //   a named zone reproduces the failure.
+    //
+    // There is deliberately no "zoned public address" case: `tryParse`
+    // rejects a zone on anything that is not link-local (`2001:db8::1%lo` is
+    // null), so such a URL was never reaching this branch to begin with.
+    Future<String?> anInterfaceName() async {
+      final interfaces = await NetworkInterface.list(
+        includeLoopback: true,
+        type: InternetAddressType.any,
+      );
+      return interfaces.isEmpty ? null : interfaces.first.name;
+    }
+
+    /// Fails rather than resolving. A zoned literal must be settled by the
+    /// literal branch; reaching the resolver *is* the bug.
+    PlaintextDestinationGuard guardThatMustNotResolve() =>
+        PlaintextDestinationGuard(
+          lookup: (host) async => fail('a zoned literal reached the resolver: $host'),
+        );
+
+    test('a zoned link-local literal is allowed, and left alone', () async {
+      final zone = await anInterfaceName();
+      if (zone == null) {
+        markTestSkipped('no network interface to name a zone with');
+        return;
+      }
+      final url = Uri.parse('http://[fe80::1%$zone]:11434/v1/chat/completions');
+      // What the guard actually sees, and what `tryParse` answers to it.
+      expect(url.host, 'fe80::1%25$zone');
+      expect(InternetAddress.tryParse(url.host), isNull);
+
+      // Returned untouched: the socket layer does its own unescaping, and
+      // rewriting the host here would only cost the zone.
+      expect(await guardThatMustNotResolve().approve(url), url);
+    });
+
+    test('the typed % and the RFC 6874 %25 are the same destination', () async {
+      // Nobody needs to know the RFC to hit this — both spellings land on the
+      // same escaped host, so the plain one cannot behave differently.
+      final zone = await anInterfaceName();
+      if (zone == null) {
+        markTestSkipped('no network interface to name a zone with');
+        return;
+      }
+      final typed = Uri.parse('http://[fe80::1%$zone]:11434/v1');
+      final escaped = Uri.parse('http://[fe80::1%25$zone]:11434/v1');
+      expect(typed.host, escaped.host);
+
+      final guard = guardThatMustNotResolve();
+      expect(await guard.approve(typed), typed);
+      expect(await guard.approve(escaped), escaped);
+    });
+
+    test('a hostname is never rewritten by the zone handling', () async {
+      // The `25` comes off only when it directly follows the first `%`, so a
+      // name still reaches the resolver exactly as it was typed.
+      final seen = <String>[];
+      final guard = PlaintextDestinationGuard(lookup: (host) async {
+        seen.add(host);
+        return [_v4('192.168.1.5')];
+      });
+
+      await guard.approve(Uri.parse('http://ollama.lan:11434/v1'));
+
+      expect(seen, ['ollama.lan']);
+    });
+
     test('a name that does not resolve is not a policy refusal', () async {
       // Telling someone their address is unsafe when it is merely
       // unreachable sends them to fix the wrong thing.
