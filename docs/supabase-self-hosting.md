@@ -103,7 +103,7 @@ To sanity-check the wiring, search for a common English food name (something lik
 - **The search functions are missing, or `anon` cannot execute them.** This is the first thing to check on any database created before the RPC work, or from a partial schema run. `schema.sql` revokes execute from `public` and grants it to `anon` and `authenticated` explicitly, so a correctly populated database still returns nothing without those grants. An existing self-hosted copy needs the migrations in `sql/migrations/` applied — the search, portion-label and portions functions each arrived in one.
 - **The `food_summary` materialized view hasn't been refreshed** after import (`import_fdc.py` does this at the end of every run).
 - **Grants on the view are missing.** Note this is grants, not RLS: a materialized view has no row-level security, so `schema.sql` restricts it with `grant select on food_summary to anon, authenticated` instead. Base tables do use RLS — public read, `service_role` write.
-- **The full-text-search indexes are missing**, which shows up as slow or empty search rather than an error.
+- **The full-text-search indexes are missing.** This one does not change the answer — a sequential scan returns the same rows — so it shows up as search that is slow, or that times out on a large table, rather than as no results.
 
 ## Attribution
 
