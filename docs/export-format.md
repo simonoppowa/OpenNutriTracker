@@ -6,31 +6,47 @@ issue #40 asked for it: people who want to keep their nutrition history in a
 plaintext format they can sync via Syncthing, open in a spreadsheet, or feed
 into other tooling deserve a stable schema they can read against. Issue #132
 asked specifically for CSV export so the import / export round trip would be
-symmetric, and that lives alongside the JSON in the same bundle.
+symmetric. CSV is a second bundle format rather than an addition to the JSON one.
 
 ## Zip layout
 
 The export is a single `.zip` file (default filename
-`opennutritracker-export.zip`). It contains:
+`opennutritracker-export.zip`).
 
-| File                  | Format | Notes                                                              |
-| --------------------- | ------ | ------------------------------------------------------------------ |
-| `user_intake.json`    | JSON   | Canonical format the app re-imports from.                          |
-| `user_intake.csv`     | CSV    | Flat companion to `user_intake.json` — same rows, flattened meal.  |
-| `user_activity.json`  | JSON   | Canonical format the app re-imports from.                          |
-| `user_activity.csv`   | CSV    | Flat companion to `user_activity.json`.                            |
-| `user_tracked_day.json` | JSON | Canonical format the app re-imports from.                          |
-| `user_tracked_day.csv`  | CSV  | Flat companion to `user_tracked_day.json`.                         |
-| `user_recipes.json`   | JSON   | Recipes only. Nested-ingredient shape, no CSV counterpart.         |
+**You pick one format, and the bundle carries only that one.** Settings → Export
+offers a JSON / CSV toggle, and the bundle contains either the JSON files or the
+CSV files — never both side by side. A tool that unzips expecting a JSON file
+next to its CSV counterpart will not find one.
 
-User profile (height, weight, birthday, PAL, goal) is intentionally **not**
-included — see `core/data/data_source/user_data_source.dart` for the box that
-stores it.
+**JSON bundle**
 
-The user can re-import the same zip via **Settings → Import**. The importer
-reads the JSON files and ignores the CSV companions. The CSV files exist so a
-spreadsheet, a Syncthing-style backup, or external tooling can read the same
-data without going through Hive.
+| File                             | Notes                                                    |
+| -------------------------------- | -------------------------------------------------------- |
+| `user_intake.json`               | Canonical format the app re-imports from.                |
+| `user_activity.json`             | Canonical format the app re-imports from.                |
+| `user_tracked_day.json`          | Canonical format the app re-imports from.                |
+| `user_recipes.json`              | Recipes only. Nested-ingredient shape, no CSV counterpart. |
+| `weight_log.json`                | Weight history.                                          |
+| `custom_activity_templates.json` | Saved custom activities — name and typical kcal.         |
+
+**CSV bundle**
+
+| File                    | Notes                                                        |
+| ----------------------- | ------------------------------------------------------------ |
+| `user_intake.csv`       | Same rows as the JSON, with the meal and its nutriments flattened. |
+| `user_activity.csv`     | Flat activities.                                             |
+| `user_tracked_day.csv`  | Flat tracked days — **lossy, see [Round-trip guarantee](#round-trip-guarantee)**. |
+
+Either bundle also carries any user-attached photos, under `recipe_images/` and
+`meal_images/`.
+
+The **profile box** — height, birthday, PAL, goal — is intentionally not
+included; see `core/data/data_source/user_data_source.dart`. Note this is the
+profile only: your logged **weight history** *is* exported, as `weight_log.json`.
+
+The user can re-import the same zip via **Settings → Import**, in either format.
+The CSV files also exist so a spreadsheet, a Syncthing-style backup, or external
+tooling can read the same data without going through Hive.
 
 ## JSON schema
 
@@ -250,18 +266,23 @@ Header lookup is case-insensitive.
 
 ## Round-trip guarantee
 
-The CSV files round-trip cleanly through
+Intakes and activities round-trip cleanly through
 `lib/core/utils/csv_data_exporter.dart` — exporting a list of DBOs and parsing
 the resulting CSV yields structurally equal DBOs (modulo
 empty-string-vs-null normalisation on nullable fields). The unit test
 `test/unit_test/csv_data_exporter_test.dart` pins this behaviour.
 
-The in-app **Import** action still reads the JSON files only, so external
-tooling that wants to write data back into the app must produce the JSON
-shape above. Future work could surface a "Import CSV (intakes /
-activities / tracked days)" entry point if there's demand — for now the
-CSV is read-only from the app's perspective and read-write from your
-spreadsheet's perspective.
+**Tracked days do not round-trip.** `trackedDayColumns` carries nine columns
+while `TrackedDayDBO` has nineteen fields: the ten per-nutrient goals — fibre,
+saturated fat, sugars, sodium, calcium, iron, potassium, magnesium, vitamin B12
+and vitamin D — have no column and are lost on a CSV export. The JSON bundle
+keeps them. Use JSON if you intend to restore from the bundle rather than read
+it in a spreadsheet.
+
+**CSV import works.** `ImportDataUsecase.importDataCsv` reads `user_intake.csv`,
+`user_activity.csv` and `user_tracked_day.csv`, and Settings → Import uses the
+same format toggle as the export. External tooling can therefore write either
+shape — subject to the tracked-day loss above.
 
 ## Syncthing-friendly notes
 
