@@ -37,11 +37,13 @@ next to its CSV counterpart will not find one.
 | `user_activity.csv`     | Flat activities.                                             |
 | `user_tracked_day.csv`  | Flat tracked days — **lossy, see [Round-trip guarantee](#round-trip-guarantee)**. |
 
-Either bundle also carries any user-attached photos, under `recipe_images/` and
-`meal_images/`.
+**Photos travel with the JSON bundle only.** Any user-attached recipe and custom-meal images are
+added under `recipe_images/` and `meal_images/` when you export as JSON. A CSV export carries
+none, and the CSV importer does not restore them — another reason to use JSON for anything you
+intend to restore from.
 
 The **profile box** — height, birthday, PAL, goal — is intentionally not
-included; see `core/data/data_source/user_data_source.dart`. Note this is the
+included; see `lib/core/data/data_source/user_data_source.dart`. Note this is the
 profile only: your logged **weight history** *is* exported, as `weight_log.json`.
 
 The user can re-import the same zip via **Settings → Import**, in either format.
