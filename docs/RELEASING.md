@@ -19,7 +19,7 @@ Everything below fires from `push` on `main`, so it needs no action beyond the m
 |---|---|
 | `linux-checks`, `*-build`, `*-integration-tests` | the same gates every PR runs |
 | `ios-package` / `android-package` | build the IPA, AAB and APK |
-| `ios-deploy` / `android-deploy` | upload to **TestFlight** and the Play **`internal`** track |
+| `ios-deploy` / `android-deploy` | upload to **TestFlight**, and *attempt* the Play **`internal`** track — see [the Android upload](#the-android-upload-usually-needs-a-hand) |
 | `github-release` | tag, attach the IPA/AAB/APK, and generate release notes from merged PRs |
 
 Two properties are deliberate and worth knowing:
@@ -30,21 +30,38 @@ Two properties are deliberate and worth knowing:
   TestFlight `changelog` is commented out. Listing text and "what's new" are edited in the
   consoles, by a person.
 
-After the GitHub release is *published*, `update-release-fingerprint.yml` extracts the signing
-certificate's SHA-256 from the released APK and opens a **pull request into `develop`** updating
-`docs/site/release-info.json`. It is a PR, not a push — it waits for someone to merge it.
+### The Android upload usually needs a hand
 
-And `deploy-site.yml` publishes GitHub Pages on any push to `main` touching `docs/site/**`, which
-is how that merged fingerprint eventually reaches the site — on the *next* release, since the PR
-lands on `develop`.
+`android-deploy` **attempts** the Play upload and, for now, is expected to fail on one specific
+error. Since 2.1.0 the bundle declares `android.permission.health.*`, and the Play Publishing API
+rejects health-permission bundles with *"You must let us know whether your app includes any health
+features"* regardless of the declaration — a known upstream defect
+([#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942), fastlane#22204 closed unfixed,
+fastlane#27960 reopened, reproduced from a different toolchain in expo/eas-cli#3275). The same
+bundle uploaded by hand through the console is asked no health question and goes through.
+
+The step tolerates that one error and nothing else: it emits a `::warning::` and writes the
+recovery steps into the run's **step summary**. So the job going green is not the signal — read the
+summary. When it says the upload needs doing by hand:
+
+1. Download the `android-aab` artifact from the run, or take the AAB attached to the GitHub release.
+2. Play Console → Internal testing → **Create new release**, and drop the AAB in.
+3. **Read the warnings on the review step before publishing.** That is the only place Play reports
+   them, and a failing API upload never gets far enough to return them — which is how the minSdk
+   regression in [#959](https://github.com/simonoppowa/OpenNutriTracker/issues/959) went unnoticed
+   for eight days.
+
+This step starts passing on its own once Google fixes the API; nothing here needs changing then.
 
 ## Before opening the release PR
 
-- [ ] **Bump `version:` in `pubspec.yaml`.** Both halves: the name (`2.0.2`) and the build number
-      (`+61`). The build number must increase or Play rejects the upload. Nothing bumps it for you.
-- [ ] **Decide the store "what's new" text.** It is not in this repo — `fastlane/metadata/android`
-      carries a single stale `changelogs/12.txt` against a build number now far past it, so treat
-      that directory as unused rather than as the source.
+- [ ] **Bump `version:` in `pubspec.yaml`.** Both halves: the name (`2.2.0`) and the build number
+      (`+63`). The build number must increase or Play rejects the upload. Nothing bumps it for you.
+- [ ] **Write the store "what's new" text** into
+      `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` — `63.txt` for build 63. The
+      directory also holds a stale `12.txt` from the F-Droid era; ignore that one. The pipeline does
+      **not** upload it (`skip_upload_metadata: true`), so this file is the record, and the text
+      still has to be pasted into the consoles by hand.
 - [ ] **Check the Play data-safety declaration still matches what the app does.** Any release that
       adds or changes a network destination changes this answer. It is the one item here whose
       failure mode is the app being pulled rather than a bad release.
@@ -66,12 +83,12 @@ lands on `develop`.
 - [ ] **Watch the run to a terminal state.** A run can fail *before creating any job* — GitHub
       reports `startup_failure`, and the check-runs read `cancelled` for jobs that never existed.
       Re-running is the fix; it is not a fault in the branch.
-- [ ] **Promote the Android build.** The only Play lane is `internal`. Production promotion is
-      manual in the Play Console.
+- [ ] **Get the Android build onto `internal`.** Check the run's step summary first: if the API
+      upload hit [#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942), the track is
+      still empty and the AAB needs uploading by hand. Production promotion is manual either way.
 - [ ] **Submit the iOS build.** The lane uploads to TestFlight; App Store submission is not
       automated.
 - [ ] **Update the store listings** with the "what's new" text, since the pipeline uploads none.
-- [ ] **Merge the release-fingerprint PR** into `develop`.
 
 ## Hotfixes, and the way back to `develop`
 
@@ -134,6 +151,11 @@ skipped — which is exactly why they get skipped.
 Store credentials, signing keys and the Play service account live in repository secrets and are
 consumed by the workflow; none of them need touching for an ordinary release.
 
-`main` and `develop` carry different workflow sets: `deploy-site.yml` and
-`update-release-fingerprint.yml` exist **only on `main`**. That is why neither runs from a
-`feature/**` branch, and why editing them requires a PR that reaches `main`.
+`main` and `develop` carry slightly different workflow sets, and the difference runs the other way
+than you might expect: `develop` has `ios-integration-attempt.yml`, which `main` does not. Both
+carry `default_workflow.yml`, `add-issues-to-projects.yml` and `policy-snapshot.yml`.
+
+There is no site-publishing or signing-fingerprint workflow any more. `deploy-site.yml`,
+`update-release-fingerprint.yml` and the whole `docs/site/` tree were removed with the project
+website in [#786](https://github.com/simonoppowa/OpenNutriTracker/pull/786); nothing extracts a
+signing fingerprint and nothing opens a PR after a release.
