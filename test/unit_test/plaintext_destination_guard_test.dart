@@ -209,9 +209,28 @@ void main() {
       );
 
       expect(inner.sent!.url.host, '192.168.1.5');
-      expect(inner.sent!.headers['host'], 'ollama.lan');
+      // With the port. `ollama.lan` alone is a different authority from the
+      // `ollama.lan:11434` that was typed, and a local model server is
+      // essentially never on 80, so dropping it is the common case rather
+      // than the corner one.
+      expect(inner.sent!.headers['host'], 'ollama.lan:11434');
       expect(inner.sent!.headers['content-type'], 'application/json');
       expect((inner.sent! as http.Request).body, 'payload');
+    });
+
+    test('a URL without a port sends the bare name, not a redundant :80',
+        () async {
+      final inner = _RecordingClient();
+      final client = GuardedPlaintextClient(
+        inner,
+        guard: PlaintextDestinationGuard(
+          lookup: (_) async => [_v4('192.168.1.5')],
+        ),
+      );
+
+      await client.post(Uri.parse('http://ollama.lan/v1'), body: 'payload');
+
+      expect(inner.sent!.headers['host'], 'ollama.lan');
     });
 
     test('an https request reaches the socket untouched', () async {

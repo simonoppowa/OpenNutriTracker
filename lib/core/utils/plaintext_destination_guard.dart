@@ -173,6 +173,14 @@ class GuardedPlaintextClient extends http.BaseClient {
   /// Rebuilds the request against the approved address, keeping the original
   /// authority in the `host` header so a name-based server still routes it.
   ///
+  /// **The port is part of that authority.** A local model server is almost
+  /// never on 80 — `http://ollama.lan:11434` is the ordinary shape — and a
+  /// `Host: ollama.lan` that drops the `:11434` is a different authority from
+  /// the one that was typed. A reverse proxy or a strict server routes by
+  /// what that header says, so it has to keep saying it. The port is written
+  /// only when the URL gave one, so a plain `http://ollama.lan` still sends
+  /// the bare name rather than a redundant `:80`.
+  ///
   /// Only [http.Request] can be rebuilt — its body is bytes already. A
   /// streamed request is passed through **after** the check, which still
   /// refuses a public destination; it only loses the address pinning. The app
@@ -180,9 +188,12 @@ class GuardedPlaintextClient extends http.BaseClient {
   /// guess about how to re-wrap one would be worse than the gap.
   http.BaseRequest _reboundTo(Uri url, http.BaseRequest request) {
     if (request is! http.Request) return request;
+    final origin = request.url;
     return http.Request(request.method, url)
       ..headers.addAll(request.headers)
-      ..headers['host'] = request.url.host
+      ..headers['host'] = origin.hasPort
+          ? '${origin.host}:${origin.port}'
+          : origin.host
       ..bodyBytes = request.bodyBytes
       ..maxRedirects = request.maxRedirects
       ..persistentConnection = request.persistentConnection;
