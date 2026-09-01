@@ -15,6 +15,8 @@ import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 
 import '../helpers/fake_hive_db_provider.dart';
@@ -30,6 +32,31 @@ import '../helpers/hive_test_setup.dart';
 /// from; a probe pointed at config would read that rewrite as "still on file"
 /// and pass in exactly the arrangement it exists to reject. Nothing
 /// repopulates the user box.
+/// Enough of the keystore for `clearAll()`, which only ever deletes.
+///
+/// The credential store arrived on this use case from the AI branch while
+/// this test was written on `develop`; the two met at the merge. This test
+/// says nothing about credentials — it just has to construct the subject.
+class _MemoryStorage implements FlutterSecureStorage {
+  final store = <String, String>{};
+
+  @override
+  Future<void> delete({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    store.remove(key);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _RecordingNotificationService extends NotificationService {
   _RecordingNotificationService(this._userBox, {this.throws = false});
 
@@ -109,7 +136,12 @@ void main() {
     tearDown(() async => Hive.deleteFromDisk());
 
     DeleteAllUserDataUsecase subject(NotificationService notifications) =>
-        DeleteAllUserDataUsecase(provider, notifications, configRepository);
+        DeleteAllUserDataUsecase(
+          provider,
+          notifications,
+          configRepository,
+          AiCredentialStorage(_MemoryStorage()),
+        );
 
     test('the alarm the OS holds is cancelled, not merely forgotten', () async {
       final notifications = _RecordingNotificationService(userBox);

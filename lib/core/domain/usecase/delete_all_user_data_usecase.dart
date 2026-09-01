@@ -1,5 +1,6 @@
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -13,16 +14,23 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 /// After this completes, `UserDataSource.hasUserData()` returns false for
 /// the active profile, so the next launch (or the explicit navigation back
 /// to the onboarding route the caller performs) will land on onboarding.
+///
+/// One thing it clears is **not** per-profile: the AI credential store, which
+/// is keyed by provider and shared by every profile on the device. That is a
+/// deliberate exception rather than an oversight — see [deleteAll] — and the
+/// confirmation dialog says so.
 class DeleteAllUserDataUsecase {
   final _log = Logger('DeleteAllUserDataUsecase');
   final HiveDBProvider _hiveDBProvider;
   final NotificationService _notificationService;
   final ConfigRepository _configRepository;
+  final AiCredentialStorage _aiCredentials;
 
   DeleteAllUserDataUsecase(
     this._hiveDBProvider,
     this._notificationService,
     this._configRepository,
+    this._aiCredentials,
   );
 
   Future<void> deleteAll() async {
@@ -52,6 +60,18 @@ class DeleteAllUserDataUsecase {
       _hiveDBProvider.waterIntakeBox.clear(),
       _hiveDBProvider.fastingBox.clear(),
     ]);
+
+    // The device-wide exception. This store is keyed by provider, not by
+    // profile, so clearing it takes a credential the other profiles share —
+    // which is why the confirmation dialog names it.
+    //
+    // Keeping it would be the worse trade. The caller lands on onboarding
+    // straight after this, and onboarding reads this same store: the profile
+    // would come back up already pointed at a provider, already enabled, so
+    // whoever set it up next would inherit a working paid key and — for a
+    // server the user runs — the address of a machine on someone's network.
+    // #892.
+    await _aiCredentials.clearAll();
   }
 
   /// Stops the reminder in both of the places that keep it alive.

@@ -14,7 +14,7 @@ Owner contact email: opennutritracker-dev@pm.me
 Types of Data collected
 
 Among the types of Personal Data that this Application collects, by itself or through third parties, there are:
-Usage Data; diagnostics; email address; app information; device logs; device information; Data communicated while using the service.
+Usage Data; email address; app information; device logs; device information; Data communicated while using the service.
 
 Complete details on each type of Personal Data collected are provided in the dedicated sections of this privacy policy or by specific explanation texts displayed prior to the Data collection.
 Personal Data may be freely provided by the User, or, in case of Usage Data, collected automatically when using this Application.
@@ -159,7 +159,7 @@ Food reference backend (Supabase)
 
 Food searches are answered by a reference database that the Owner of this Application operates on Supabase's managed cloud platform. A search sends the text you typed; your app language too, when it is one this Application has food translations for; and, if you have switched any of the food databases off in Settings, the list of the ones you left on. No account, profile or device identifier is attached, and your food diary is never sent.
 
-Because the request travels over the internet, the platform's gateway records for 24 hours the address the request came from, an approximate location derived from that address (country, region, city and postal code), the name of your internet access provider, and a fingerprint of the encrypted connection.
+Because the request travels over the internet, the platform's gateway records the address the request came from, an approximate location derived from that address (country, region, city and postal code), the name of your internet access provider, and a fingerprint of the encrypted connection. These are kept for as long as the hosting plan retains its gateway logs — currently 24 hours.
 
 The database is stored and primarily processed in Frankfurt, Germany. Supabase Pte. Ltd. acts as a processor on the Owner's instructions, with Cloudflare, Inc. and Amazon Web Services, Inc. among its sub-processors; requests reach a Cloudflare location close to you before the database. Transfers outside the European Economic Area are covered by standard contractual clauses.
 
@@ -209,14 +209,17 @@ Place of processing: United States – Privacy Policy; Ireland – Privacy Polic
 
 App Store Connect (Apple Inc.)
 
-This Application is distributed on Apple's App Store, a platform for the distribution of mobile apps, provided by Apple Inc.
+This Application is distributed through Apple's App Store, and App Store Connect is the console Apple gives the Owner to manage it there.
 
-App Store Connect enables the Owner to manage this Application on Apple's App Store. Depending on the configuration, App Store Connect provides the Owner with analytics data on user engagement and app discovery, marketing campaigns, sales, in-app purchases, and payments to measure the performance of this Application.
-App Store Connect only collects such data from Users who have agreed to share them with the Owner. Users may find more information on how to opt out via their device settings here.
+Apple reports back aggregate figures about the App Store listing — how many people saw it, installed it, and kept using it — together with crash and diagnostic reports from devices. These arrive already aggregated, and only from Users who chose to share analytics with developers in their device settings. This Application makes no sales and offers no purchases or subscriptions, so nothing of that kind is reported.
+
+The Owner cannot identify you from any of it, and none of it is linked to your food diary, which never leaves your device.
+
+You can turn this off for every app at once under iOS Settings → Privacy & Security → Analytics & Improvements. Apple explains it here.
 
 Personal Data processed: diagnostics.
 
-Place of processing: United States – Privacy Policy.
+Place of processing: United States — Privacy Policy.
 
 Further Information for Users
 
@@ -351,4 +354,4 @@ Legal information
 
 This policy relates solely to this Application, if not stated otherwise within this document.
 
-Latest update: August 27, 2026
+Latest update: August 29, 2026

@@ -4,6 +4,7 @@ class NavigationOptions {
   static const onboardingRoute = "onboarding";
   static const settingsRoute = "settings";
   static const addMealRoute = "addMeal";
+  static const bulkAddRoute = "bulkAdd";
   static const scannerRoute = "scanner";
   static const mealDetailRoute = "mealDetail";
   static const editMealRoute = "editMeal";

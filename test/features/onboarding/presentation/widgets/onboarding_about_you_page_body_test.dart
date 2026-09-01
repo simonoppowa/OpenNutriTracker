@@ -56,8 +56,17 @@ void main() {
     expect(find.text(noticeText), findsNothing);
   });
 
-  testWidgets('exactly 18 does not', (tester) async {
+  // 18 still sees it: the IOM equations behind the goal are published for
+  // "ages 19 years and older", so an 18-year-old is outside their stated
+  // range even though they are legally an adult (#987).
+  testWidgets('exactly 18 still sees the notice', (tester) async {
     await pumpFirstPage(tester, birthday: yearsAgo(18));
+
+    expect(find.text(noticeText), findsOneWidget);
+  });
+
+  testWidgets('exactly 19 does not', (tester) async {
+    await pumpFirstPage(tester, birthday: yearsAgo(19));
 
     expect(find.text(noticeText), findsNothing);
   });

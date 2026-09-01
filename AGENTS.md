@@ -421,6 +421,14 @@ When filing issues or opening PRs, prefer these templates. Product/food-database
 
 Blank issues are disabled (`blank_issues_enabled: false`). Add or edit YAML forms in `.github/ISSUE_TEMPLATE/`; keep labels (`bug`, `enhancement`, `question`) aligned with any repo label setup.
 
+### `Fixes #N` does not close the issue here
+
+Feature work targets **`develop`**, but the default branch is **`main`**. GitHub only acts on a closing keyword when the referencing commit reaches the *default* branch, so a `Fixes #123` in a PR merged into `develop` **leaves the issue open** — often for weeks, until a release merge carries it to `main`.
+
+Write the reference anyway: it links the PR to the issue and closes it when the release lands. But **close the issue by hand once the PR merges**, with a comment saying where the fix is. Three issues sat open for exactly this reason on 2026-08-29 alone.
+
+The exception is a PR that targets `main` directly — a release PR or a hotfix — where the keyword behaves as expected.
+
 ## Naming Conventions
 
 | Suffix                     | Meaning                                                       |
