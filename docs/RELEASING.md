@@ -1,6 +1,6 @@
 # Releasing
 
-A release is **a merge of `develop` into `main`**. There is no release script and no tag to push
+A release is **a merge of `develop` into `main`**. There is no release script, and no tag to push
 by hand: pushing to `main` starts the pipeline, and the pipeline does the packaging, the store
 uploads and the GitHub release itself.
 
@@ -46,7 +46,9 @@ The step tolerates that one error and nothing else: it emits a `::warning::` and
 recovery steps into the run's **step summary**. So the job going green is not the signal — read the
 summary. When it says the upload needs doing by hand:
 
-1. Download the `android-aab` artifact from the run, or take the AAB attached to the GitHub release.
+1. Download the `android-aab` artifact from the run. (A full release also attaches the AAB to the
+   GitHub release; a build-only bump creates no release, so the run artifact is the only copy —
+   and it expires after 90 days.)
 2. Play Console → Internal testing → **Create new release**, and drop the AAB in.
 3. **Read the warnings on the review step before publishing.** That is the only place Play reports
    them, and a failing API upload never gets far enough to return them — which is how the minSdk
@@ -57,8 +59,22 @@ This step starts passing on its own once Google fixes the API; nothing here need
 
 ## Before opening the release PR
 
-- [ ] **Bump `version:` in `pubspec.yaml`.** Both halves: the name (`2.2.0`) and the build number
-      (`+63`). The build number must increase or Play rejects the upload. Nothing bumps it for you.
+- [ ] **Bump `version:` in `pubspec.yaml`.** The build number (`+63`) must increase or the
+      pipeline refuses to deploy — `release-gate` reads it and Play rejects a reused versionCode.
+      Nothing bumps it for you.
+
+      **Bumping the build number alone is a supported release.** `2.2.0+63` → `2.2.0+64` ships to
+      TestFlight and Play under the same version name. On that path `github-release` is **skipped
+      on purpose**, because `v2.2.0` already exists and re-running it would delete the published
+      release's assets and replace them with binaries from another commit. A skipped
+      `github-release` there is expected, not the #1008 skip bug — the run is green and
+      `release-gate`'s step summary says which of the two happened. The consequence: a build-only
+      bump publishes no GitHub release, so its IPA and AAB exist only as run artifacts, for 90
+      days. Bump the name as well when the build should have a durable public download.
+
+      **Bumping the name without the build fails the gate**, by design: `2.3.0+63` is refused with
+      an error naming both fixes. So does a build number that goes backwards — this repo's history
+      contains `1.3.1+51` and `1.4.0+51`, the same versionCode twice.
 - [ ] **Write the store "what's new" text** into
       `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` — `63.txt` for build 63. The
       directory also holds a stale `12.txt` from the F-Droid era; ignore that one. The pipeline does
@@ -85,6 +101,15 @@ This step starts passing on its own once Google fixes the API; nothing here need
 - [ ] **Watch the run to a terminal state.** A run can fail *before creating any job* — GitHub
       reports `startup_failure`, and the check-runs read `cancelled` for jobs that never existed.
       Re-running is the fix; it is not a fault in the branch.
+- [ ] **If you have to re-run after a deploy job failed, use "Re-run failed jobs" — never "Re-run
+      all jobs".** The former reuses `release-gate`'s cached answer. The latter recomputes it, and
+      by then the deploy jobs have recorded the build as spent, so the gate correctly answers "do
+      not deploy" and the release is stranded mid-flight with no way forward but a build bump.
+- [ ] **Know what the pipeline records.** Each deploy job pushes a `deployed/<build-number>` tag on
+      success — that is the ledger `release-gate` reads, and the one thing this workflow pushes
+      besides a release tag. It records what a store **consumed**, not what it **published**: with
+      the #942 tolerance `android-deploy` exits 0 on a rejected upload and still marks the build
+      spent. So a build you never hand-uploaded still needs a bump before you can retry it.
 - [ ] **Get the Android build onto `internal`.** Check the run's step summary first: if the API
       upload hit [#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942), the track is
       still empty and the AAB needs uploading by hand. Production promotion is manual either way.
