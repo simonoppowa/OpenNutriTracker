@@ -184,17 +184,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
-          # Need the merge base in scope so the paths-filter step below
-          # can diff against the PR's target branch.
+          # NOT for the filter below — that claim used to live here and was
+          # wrong. On `pull_request` events dorny/paths-filter ignores `base:`
+          # entirely and asks the REST API instead of diffing git, so it needs
+          # no history and no checkout at all (which is also why the `changes`
+          # gate job can run without one). This is here for `pod install`.
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
 
-      - name: Check for iOS-relevant file changes
-        id: changes
+      # Deliberately NARROWER than the `changes` gate that let this job start.
+      # Two questions at two granularities: the gate asks "is a macOS runner
+      # worth allocating at all", this asks "is the ~2.4 min `pod install`
+      # worth running". A PR touching ios/Runner/*.swift opens the gate but
+      # cannot shift the lockfile, so it should not pay for a resolve.
+      #
+      # Step id is NOT `changes`: this job also has `needs: changes`, and
+      # `steps.podfile-scope.outputs.ios` vs `needs.changes.outputs.ios` would be
+      # two different answers to the same-looking question.
+      - name: Check whether the pod lockfile could have drifted
+        id: podfile-scope
         uses: dorny/paths-filter@v4
         with:
-          base: ${{ github.event.pull_request.base.ref }}
           filters: |
             ios:
               - 'pubspec.yaml'
@@ -202,7 +213,7 @@ jobs:
               - 'ios/Podfile'
 
       - name: Setup Flutter + cache packages
-        if: steps.changes.outputs.ios == 'true'
+        if: steps.podfile-scope.outputs.ios == 'true'
         uses: ./.github/actions/setup-flutter-cache
 
       # Swift Package Manager is enabled by default on Flutter's stable
@@ -216,11 +227,11 @@ jobs:
       # sole iOS dependency manager until that's resolved (or until we
       # wire up real signing for CI).
       - name: Disable Swift Package Manager
-        if: steps.changes.outputs.ios == 'true'
+        if: steps.podfile-scope.outputs.ios == 'true'
         run: flutter config --no-enable-swift-package-manager
 
       - name: Generate stub .env for CI
-        if: steps.changes.outputs.ios == 'true'
+        if: steps.podfile-scope.outputs.ios == 'true'
         uses: ./.github/actions/write-env-file
         with:
           sentry_dns: https://stub@sentry.io/0
@@ -228,11 +239,11 @@ jobs:
           supabase_project_anon_key: ci-stub
 
       - name: Install Flutter packages
-        if: steps.changes.outputs.ios == 'true'
+        if: steps.podfile-scope.outputs.ios == 'true'
         run: flutter pub get
 
       - name: Pod install (with repo update)
-        if: steps.changes.outputs.ios == 'true'
+        if: steps.podfile-scope.outputs.ios == 'true'
         run: cd ios && pod install --repo-update
 
       # If `pod install` rewrote Podfile.lock, the working tree now has a
@@ -240,7 +251,7 @@ jobs:
       # failure with a hint so the contributor knows what to do next,
       # rather than letting a stale lockfile silently ship to main.
       - name: Fail if Podfile.lock drifted
-        if: steps.changes.outputs.ios == 'true'
+        if: steps.podfile-scope.outputs.ios == 'true'
         run: |
           if ! git diff --exit-code ios/Podfile.lock; then
             echo "::error file=ios/Podfile.lock::Podfile.lock is out of date with pubspec.yaml. Run 'cd ios && pod install' on macOS and commit the result."
