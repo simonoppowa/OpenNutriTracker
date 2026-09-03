@@ -41,7 +41,69 @@ on:
       - 'release/**'
   workflow_dispatch:
 
+# Supersede in-flight runs for the same ref, so a force-push stops holding
+# macOS runners for a commit nobody is waiting on any more. 18.2% of PR runs
+# get superseded, and 82% of the macOS time that reclaims is the iOS
+# integration suite.
+#
+# `main` is excluded deliberately: those runs carry the deploy chain, and a
+# cancel mid-upload can consume a TestFlight build number with no ledger entry.
+# A pull request can never share a group with a push to `main` anyway —
+# `github.ref` is `refs/pull/N/merge` for a PR and `refs/heads/main` for the
+# push — so this guard is about a *second push to main*, which has happened
+# once in 26 main pushes. See #1018.
+#
+# Do NOT add a `concurrency:` block to ios-integration-attempt.yml:
+# `${{ github.workflow }}` evaluates to the CALLER's name inside a reusable
+# workflow, so it would land in this same group and the run would cancel itself.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
+  # Decides whether the macOS jobs below need to run at all. Cheap, on ubuntu,
+  # and deliberately carries NO `if:` — it must run on EVERY event.
+  #
+  # A skip travels the whole dependency chain, not one hop (#1008): a job that
+  # exempts itself with `!cancelled()` does not stop the skip continuing
+  # downstream. A gate that skipped on `push: main` would therefore plant a
+  # fresh skip source directly upstream of the deploy chain, six days after
+  # exactly that shipped an empty 2.2.0. Fifteen free ubuntu seconds removes
+  # the question. See #1021.
+  #
+  # No checkout: dorny/paths-filter calls the REST API on `pull_request`
+  # events and never touches git, which is also why it works on fork PRs.
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      # Evaluates to the string 'true' or 'false', never empty. Written as a
+      # boolean expression rather than `steps.filter.outputs.ios || 'true'`
+      # on purpose: that form relies on the string 'false' being truthy (it
+      # is — only '' is falsy), and if that were ever wrong the gate would
+      # silently never close and this whole change would be a no-op that
+      # still looked healthy. The non-PR arm short-circuits first, so the
+      # skipped `filter` step's empty output is never consulted.
+      ios: ${{ github.event_name != 'pull_request' || steps.filter.outputs.ios == 'true' }}
+    steps:
+      - name: Check for iOS-relevant file changes
+        id: filter
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            ios:
+              - 'ios/**'
+              - 'pubspec.yaml'
+              - 'pubspec.lock'
+              # The pipeline verifies itself while we change it: an edit to the
+              # workflow or its composite actions can break the iOS jobs.
+              - '.github/workflows/**'
+              - '.github/actions/**'
+              - '.github/scripts/**'
+
   linux-checks:
     runs-on: ubuntu-latest
     permissions:
@@ -111,8 +173,11 @@ jobs:
   # pubspec.yaml, pubspec.lock, or ios/Podfile actually changed —
   # otherwise the macOS minutes aren't worth burning.
   ios-podfile-lock-guard:
+    needs: changes
+    # Zero `needs:` dependents, so gating this one carries no propagation risk
+    # at all. Same fail-open shape as ios-build.
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && (needs.changes.result == 'failure' || needs.changes.outputs.ios == 'true') }}
     runs-on: macos-26
-    if: github.event_name == 'pull_request'
     permissions:
       contents: read
     steps:
@@ -183,6 +248,12 @@ jobs:
           fi
 
   ios-build:
+    needs: changes
+    # Fail OPEN. `== 'failure'`, never `!= 'success'` — the latter is true for
+    # `skipped` too and would flip the gate open by accident (the same trap
+    # #1008 documents for `!= 'failure'`). `!cancelled()` drops the implicit
+    # success() so a broken gate can never withhold the build.
+    if: ${{ !cancelled() && (needs.changes.result == 'failure' || needs.changes.outputs.ios == 'true') }}
     runs-on: macos-26
     permissions:
       contents: write
