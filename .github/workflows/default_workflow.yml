@@ -176,7 +176,7 @@ jobs:
     needs: changes
     # Zero `needs:` dependents, so gating this one carries no propagation risk
     # at all. Same fail-open shape as ios-build.
-    if: ${{ !cancelled() && github.event_name == 'pull_request' && (needs.changes.result == 'failure' || needs.changes.outputs.ios == 'true') }}
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && !(needs.changes.result == 'success' && needs.changes.outputs.ios == 'false') }}
     runs-on: macos-26
     permissions:
       contents: read
@@ -249,11 +249,20 @@ jobs:
 
   ios-build:
     needs: changes
-    # Fail OPEN. `== 'failure'`, never `!= 'success'` — the latter is true for
-    # `skipped` too and would flip the gate open by accident (the same trap
-    # #1008 documents for `!= 'failure'`). `!cancelled()` drops the implicit
-    # success() so a broken gate can never withhold the build.
-    if: ${{ !cancelled() && (needs.changes.result == 'failure' || needs.changes.outputs.ios == 'true') }}
+    # Fail OPEN, and read this as: skip ONLY when the gate ran cleanly and
+    # said no. Every other state — gate failed, gate skipped, output missing —
+    # builds. `!cancelled()` drops the implicit success() so a broken gate can
+    # never withhold the build.
+    #
+    # Written this way rather than `needs.changes.result == 'failure' || ...`
+    # on purpose. That form is false for `skipped`, so it would fail CLOSED on
+    # a skipped gate: ios-build would skip, and ios-package/android-package
+    # both assert `needs.ios-build.result == 'success'` — the whole deploy
+    # chain stops while the run still reports success. That is run
+    # 33547853809 (the empty 2.2.0) recreated with a new cause. The gate below
+    # has no `if:` today so a skip is unreachable, but that invariant then
+    # lives in a comment; this expression enforces it instead.
+    if: ${{ !cancelled() && !(needs.changes.result == 'success' && needs.changes.outputs.ios == 'false') }}
     runs-on: macos-26
     permissions:
       contents: write
