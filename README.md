@@ -142,7 +142,7 @@ No account, no sign-in, no analytics, no ads. Your profile, diary, activities, w
 
 | Destination | When | What is sent |
 | :-- | :-- | :-- |
-| **The address you entered, and nothing else** | **Only if you save a server address in Settings** — when you press *Load models*, and each time a meal line or photo is read | The meal line or the photo, your app language, and the model name you typed |
+| **The address you entered, and nothing else** | **From the moment you type a server address in Settings, not from when you save it** — when you change the address and leave the field, when you press *Load models*, when you save (the setup check), and each time a meal line or photo is read | The meal line or the photo, your app language, and the model name you typed |
 
 This is the one row you can falsify yourself: your own server's access log settles it, where no user can ever settle a claim about a vendor's retention. **No third party receives anything on this path** — which is not the same as the data staying put. It does leave the device, to the address you named, and the app will not send it in the clear to anything that is not a private address.
 
