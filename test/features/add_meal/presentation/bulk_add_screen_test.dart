@@ -1809,6 +1809,109 @@ void main() {
       );
     });
   });
+
+  // #992. The likeliest first run of the flagship feature ended with the
+  // feature apparently absent: the screen resolved its AI setup once, so a
+  // user who followed the hint into settings, configured a provider and came
+  // back found the camera still hidden — with nothing to suggest it had ever
+  // been there, or that anything they had just done had taken effect.
+  group('coming back from settings with a provider now configured', () {
+    testWidgets('the camera appears without leaving the screen', (
+      tester,
+    ) async {
+      await _register(const {});
+      getIt.unregister<AiCredentialStorage>();
+      // Held rather than passed by value: writing into it partway through is
+      // this test's stand-in for the user configuring a provider over in
+      // settings, and the screen reads the same instance throughout.
+      final stored = _MapStorage(const {});
+      getIt.registerLazySingleton<AiCredentialStorage>(
+        () => AiCredentialStorage(stored),
+      );
+
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      navigator.pushNamed('/bulk');
+      await tester.pumpAndSettle();
+
+      final camera = find.bySemanticsIdentifier('bulk-add-photo');
+      final hint = find.bySemanticsIdentifier('bulk-add-model-hint');
+      expect(camera, findsNothing, reason: 'nothing is configured yet');
+      expect(hint, findsOneWidget);
+
+      await tester.tap(hint);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('settings-stub')), findsOneWidget);
+
+      stored.values['AiProviderTag'] = 'anthropic';
+      stored.values['AiApiKeyTag.anthropic'] = 'sk-test';
+
+      navigator.pop();
+      await tester.pumpAndSettle();
+
+      expect(
+        camera,
+        findsOneWidget,
+        reason:
+            'the answers were resolved before the user left, so the screen '
+            'shows the feature as missing until it is re-entered',
+      );
+      // And the line inviting them to set one up has done its job.
+      expect(hint, findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('and from the failure notice, which lands in the same place', (
+      tester,
+    ) async {
+      // The other route out of this screen (#852). It carries arguments the
+      // hint does not, so it is a second call site rather than the same one.
+      await _registerWithFailingReader({
+        'toast': [_meal('Toast')],
+      }, const MealInterpreterException(
+        'rejected',
+        failure: MealInterpreterFailure.auth,
+      ));
+      getIt.unregister<AiCredentialStorage>();
+      final stored = _MapStorage(const {});
+      getIt.registerLazySingleton<AiCredentialStorage>(
+        () => AiCredentialStorage(stored),
+      );
+
+      final pushed = <RouteSettings>[];
+      await tester.pumpWidget(_app(pushed: pushed));
+      await tester.pumpAndSettle();
+      await _parse(tester, '100g toast');
+
+      expect(find.bySemanticsIdentifier('bulk-add-photo'), findsNothing);
+
+      await tester.tap(find.bySemanticsIdentifier('bulk-add-notice-action'));
+      await tester.pumpAndSettle();
+
+      // The arguments the action carries are the point of #852 and must
+      // survive the call going through the re-resolving helper.
+      expect(
+        pushed
+            .lastWhere((route) => route.name == NavigationOptions.settingsRoute)
+            .arguments,
+        isA<SettingsScreenArguments>().having(
+          (arguments) => arguments.openAiAssist,
+          'openAiAssist',
+          isTrue,
+        ),
+      );
+
+      stored.values['AiProviderTag'] = 'anthropic';
+      stored.values['AiApiKeyTag.anthropic'] = 'sk-test';
+
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsIdentifier('bulk-add-photo'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
 }
 
 /// Returns a fixed reading without touching a credential or a network.
