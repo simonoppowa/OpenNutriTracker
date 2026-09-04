@@ -1137,6 +1137,23 @@ jobs:
       - ios-build
       - android-build
       - android-integration-tests
+    # Three environments, and the line between them is which CREDENTIALS a job
+    # holds, not what it is called (#1055, #1057):
+    #
+    #   release-build    local signing material only. Branch policy, no
+    #                    reviewer — there is nothing here a wrong branch could
+    #                    spend. `android-package` holds the keystore.
+    #   release-ship     STORE credentials. Branch policy AND an approval,
+    #                    because these can consume a Play versionCode or a
+    #                    TestFlight build number, and neither is refundable.
+    #   release-publish  no secrets at all, but it publishes. Branch policy,
+    #                    no reviewer. See `github-release`.
+    #
+    # So this job is on `release-ship` and its Android counterpart is not,
+    # even though both only package: `fastlane ios build` runs `match`, which
+    # authenticates to App Store Connect, so iOS packaging holds store
+    # credentials and Android packaging holds a local keystore. The asymmetry
+    # is the rule being applied, not an oversight.
     environment: release-ship
     runs-on: macos-26
     permissions:
@@ -1740,6 +1757,21 @@ jobs:
       - release-gate
       - ios-deploy
       - android-deploy
+    # #1057. This job holds no secrets, so an approval here would guard
+    # nothing — and it could not be a real decision anyway: by the time it
+    # runs, both stores already have the build, and declining would leave them
+    # shipped with no release to point at. What it needs is the other half of
+    # what `release-ship` provides.
+    #
+    # The branch policy is the half that matters. This job publishes the one
+    # artifact nobody can quietly take back — a `v*` tag and three binaries,
+    # whose assets GitHub does not version — and until now its only protection
+    # was the `if:` below. That is the mechanism with a track record here: run
+    # 26086317616 was a `workflow_dispatch` from a topic branch and carried
+    # this job to success, cutting a real tag. A branch policy pinned to `main`
+    # would have stopped it whatever the expression said, which is the whole
+    # point of having a second one.
+    environment: release-publish
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -1913,6 +1945,10 @@ jobs:
   #
   # It never fails a run that was not meant to ship. A docs merge to `main`
   # leaves `deploy` and `publish` both false, and this job says so and exits 0.
+  # Deliberately in NO environment. It holds no secrets and publishes nothing,
+  # and a branch policy here would be worse than useless: this is the job that
+  # reports when a release did not happen, so anything able to stop it running
+  # defeats it. The three environments above are for jobs that spend something.
   release-summary:
     if: |
       github.ref == 'refs/heads/main' &&

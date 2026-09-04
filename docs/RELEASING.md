@@ -13,7 +13,8 @@ the ones that are otherwise remembered, or not.
 
 ## What happens on its own
 
-Everything below fires from `push` on `main`, so it needs no action beyond the merge.
+Everything below fires from `push` on `main`. **It does not run to completion unattended** — the
+jobs holding store credentials pause for an approval, see [Environments](#environments-and-the-approval-pause).
 
 | Job | What it does |
 |---|---|
@@ -21,6 +22,7 @@ Everything below fires from `push` on `main`, so it needs no action beyond the m
 | `ios-package` / `android-package` | build the IPA, AAB and APK |
 | `ios-deploy` / `android-deploy` | upload to **TestFlight**, and *attempt* the Play **`internal`** track — see [the Android upload](#the-android-upload-usually-needs-a-hand) |
 | `github-release` | tag, attach the IPA/AAB/APK, and generate release notes from merged PRs |
+| `release-summary` | last job; asserts the run produced what `release-gate` promised, and says so on the run page |
 
 Two properties are deliberate and worth knowing:
 
@@ -29,6 +31,32 @@ Two properties are deliberate and worth knowing:
 - **Store metadata is not uploaded.** `skip_upload_metadata: true` on the Play lane, and the
   TestFlight `changelog` is commented out. Listing text and "what's new" are edited in the
   consoles, by a person.
+
+### Environments and the approval pause
+
+Three deployment environments, split by which **credentials** a job holds rather than by what it
+is called. All three are pinned to `main` by a deployment branch policy, which is a guard
+independent of the `if:` expressions — the expression is the mechanism that has already failed
+here once, when a `workflow_dispatch` from a topic branch cut a real tag.
+
+| Environment | Jobs | Protection |
+| :-- | :-- | :-- |
+| `release-build` | `android-package` | branch policy |
+| `release-ship` | `ios-package`, `ios-deploy`, `android-deploy` | branch policy **and an approval** |
+| `release-publish` | `github-release` | branch policy |
+
+**A release stops and waits for you.** The `release-ship` jobs sit in *Review pending deployments*
+until approved, so a merge to `main` does not finish on its own. Approving is the decision point:
+those jobs can consume a Play `versionCode` and a TestFlight build number, and neither is
+refundable.
+
+Declining is a real option and behaves sanely — a rejected job reports `failure`, so
+`github-release` (which needs both deploys green) never runs, and no build number is spent.
+`release-summary` will fail the run and say the build can be retried as it stands, which it can.
+
+`ios-package` is on `release-ship` and `android-package` is not, though both only package:
+`fastlane ios build` runs `match`, which authenticates to App Store Connect, so iOS packaging
+holds store credentials where Android packaging holds only a local keystore.
 
 ### The Android upload usually needs a hand
 
