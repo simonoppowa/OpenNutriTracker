@@ -88,6 +88,32 @@ class PlaintextDestinationGuard {
   static Future<List<InternetAddress>> _resolve(String host) =>
       InternetAddress.lookup(host, type: InternetAddressType.any);
 
+  /// Turns the `%25` a URI must spell a zone id with back into the `%` that
+  /// [InternetAddress] parses.
+  ///
+  /// A link-local address needs a zone to be routable on a host with more
+  /// than one interface, and RFC 6874 says a URI escapes it: `Uri` stores
+  /// `http://[fe80::1%wlan0]` with a host of `fe80::1%25wlan0` — typing the
+  /// bare `%` gets you the same thing, so this is not a corner someone has to
+  /// know the RFC to reach. `InternetAddress.tryParse` returns null on that
+  /// escaped form, which sent the address down the DNS branch below, where
+  /// the lookup fails and the caller is told the server is **unreachable** —
+  /// about a link-local server this check exists to *permit*, and which an
+  /// unguarded client reaches perfectly well.
+  ///
+  /// `dart:io` does exactly this substitution itself, in
+  /// `escapeLinkLocalAddress`, before it resolves or connects. Doing it here
+  /// too is what makes the check agree with the socket layer it is guarding.
+  ///
+  /// Anything that still fails to parse falls through to the lookup unchanged,
+  /// so a name is never touched: the `25` is only dropped when it directly
+  /// follows the first `%`.
+  static String _withZoneUnescaped(String host) {
+    final marker = host.indexOf('%');
+    if (marker < 0 || !host.startsWith('25', marker + 1)) return host;
+    return host.replaceRange(marker + 1, marker + 3, '');
+  }
+
   /// Returns the URL to actually request, or throws
   /// [InsecureDestinationException].
   ///
@@ -103,7 +129,7 @@ class PlaintextDestinationGuard {
     if (url.scheme != 'http') return url;
 
     final host = url.host;
-    final literal = InternetAddress.tryParse(host);
+    final literal = InternetAddress.tryParse(_withZoneUnescaped(host));
     if (literal != null) {
       // No lookup to do, and nothing to pin — the user typed the address.
       if (isPrivateDestination(literal)) return url;
@@ -138,6 +164,10 @@ class PlaintextDestinationGuard {
 /// promise is about the app's traffic to a user-supplied address and not
 /// about one call site. Anything given this client is covered, including
 /// call sites that do not exist yet.
+///
+/// **Redirects are not followed.** They would be followed below this layer,
+/// where the guard never sees them, so a 30x comes back to the caller
+/// unfollowed rather than becoming an unchecked second destination.
 class GuardedPlaintextClient extends http.BaseClient {
   final http.Client _inner;
   final PlaintextDestinationGuard _guard;
@@ -148,12 +178,34 @@ class GuardedPlaintextClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     final approved = await _guard.approve(request.url);
-    if (approved == request.url) return _inner.send(request);
-    return _inner.send(_reboundTo(approved, request));
+    final outgoing = approved == request.url
+        ? request
+        : _reboundTo(approved, request);
+
+    // Redirects are followed inside `dart:io`, below `BaseClient.send`, so a
+    // hop never comes back through here and never meets [approve]. Left on,
+    // a server answering 30x with a public `http://` target would have that
+    // connection made — from a check that reported the destination private.
+    // The guard cannot vouch for a hop it never sees, so it does not let one
+    // happen: a redirect is returned to the caller as the 30x it is.
+    //
+    // This holds for `https://` too, which [approve] waves through: an
+    // encrypted first hop says nothing about where a `Location` points.
+    if (outgoing.followRedirects) outgoing.followRedirects = false;
+
+    return _inner.send(outgoing);
   }
 
   /// Rebuilds the request against the approved address, keeping the original
   /// authority in the `host` header so a name-based server still routes it.
+  ///
+  /// **The port is part of that authority.** A local model server is almost
+  /// never on 80 — `http://ollama.lan:11434` is the ordinary shape — and a
+  /// `Host: ollama.lan` that drops the `:11434` is a different authority from
+  /// the one that was typed. A reverse proxy or a strict server routes by
+  /// what that header says, so it has to keep saying it. The port is written
+  /// only when the URL gave one, so a plain `http://ollama.lan` still sends
+  /// the bare name rather than a redundant `:80`.
   ///
   /// Only [http.Request] can be rebuilt — its body is bytes already. A
   /// streamed request is passed through **after** the check, which still
@@ -162,11 +214,13 @@ class GuardedPlaintextClient extends http.BaseClient {
   /// guess about how to re-wrap one would be worse than the gap.
   http.BaseRequest _reboundTo(Uri url, http.BaseRequest request) {
     if (request is! http.Request) return request;
+    final origin = request.url;
     return http.Request(request.method, url)
       ..headers.addAll(request.headers)
-      ..headers['host'] = request.url.host
+      ..headers['host'] = origin.hasPort
+          ? '${origin.host}:${origin.port}'
+          : origin.host
       ..bodyBytes = request.bodyBytes
-      ..followRedirects = request.followRedirects
       ..maxRedirects = request.maxRedirects
       ..persistentConnection = request.persistentConnection;
   }

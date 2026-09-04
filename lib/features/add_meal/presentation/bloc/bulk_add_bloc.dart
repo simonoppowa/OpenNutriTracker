@@ -435,11 +435,11 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     bool usesImperialUnits,
   ) {
     final parsedQuantity = parsed.quantity;
-    if (parsedQuantity != null) return _trimZeros(parsedQuantity);
+    if (parsedQuantity != null) return _amountText(parsedQuantity);
 
     if (meal != null && meal.hasServingValues) {
       final serving = meal.servingQuantity;
-      if (serving != null) return _trimZeros(serving);
+      if (serving != null) return _amountText(serving);
     }
     return usesImperialUnits ? '1' : '100';
   }
@@ -497,9 +497,26 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     return fallback;
   }
 
-  static String _trimZeros(double value) => value == value.roundToDouble()
-      ? value.toInt().toString()
-      : value.toString();
+  /// Formats a quantity for the amount field, which accepts at most two
+  /// decimals — `_quantityPattern` on the bulk-add screen is both the submit
+  /// check and the field's input formatter. A converted imperial quantity has
+  /// many more: `1 lb` is 453.59237 g. Prefilling that verbatim produced a row
+  /// the submit check refused, with a message naming only the field, and
+  /// because that check aborts the batch, one such row blocked every correct
+  /// row beside it. The pattern is anchored, so the formatter then rejected
+  /// every edit too and the field blanked on the first keystroke. Rounding
+  /// here is what keeps the prefill and the check in step.
+  ///
+  /// The floor is the same concern from the other end: a positive quantity
+  /// below 0.005 would round to zero, which the check rejects for being
+  /// non-positive.
+  static String _amountText(double value) {
+    final rounded = double.parse(value.toStringAsFixed(2));
+    final quantity = rounded <= 0 && value > 0 ? 0.01 : rounded;
+    return quantity == quantity.roundToDouble()
+        ? quantity.toInt().toString()
+        : quantity.toString();
+  }
 
   void _onChangeCandidate(
     ChangeRowCandidateEvent event,
