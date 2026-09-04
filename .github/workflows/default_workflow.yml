@@ -1135,6 +1135,7 @@ jobs:
       - ios-build
       - android-build
       - android-integration-tests
+    environment: release-ship
     runs-on: macos-26
     permissions:
       contents: read
@@ -1260,6 +1261,7 @@ jobs:
     # ubuntu it failed with "No such file or directory @ dir_chdir0" as the
     # transporter couldn't resolve its working directory. The IPA is built
     # in ios-package and handed off as an artifact, so this job only uploads.
+    environment: release-ship
     runs-on: macos-26
     permissions:
       # Widened from `read` for the ledger step at the end of this job,
@@ -1396,6 +1398,7 @@ jobs:
       - ios-build
       - android-build
       - android-integration-tests
+    environment: release-build
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -1535,6 +1538,7 @@ jobs:
       - release-gate
       - android-package
       - ios-package
+    environment: release-ship
     runs-on: ubuntu-latest
     permissions:
       # Widened from `read` for the ledger step at the end of this job,
