@@ -294,13 +294,30 @@ jobs:
   # a verdict, and ios-integration-tests-result below turns the pair into the
   # single required check.
   ios-integration-tests:
+    # Not on pull requests. In 732 PR runs over 120 days this suite was never
+    # the unique detector of anything: every genuine break it caught was also
+    # red on ios-build, linux-checks or android-build in the same run, while
+    # 60% of its non-green events were infrastructure. It is also the single
+    # largest consumer of the 5-slot macOS cap — 71% of PR macOS time — so it
+    # is what makes PRs queue. android-integration-tests runs the identical
+    # `flutter test integration_test/` on a free ubuntu emulator and remains
+    # the per-PR signal. See #1020.
+    if: ${{ github.event_name != 'pull_request' }}
     uses: ./.github/workflows/ios-integration-attempt.yml
 
   # Only when the first runner did not pass. An empty output counts as "did not
   # pass": that is what a job killed by its own timeout-minutes leaves behind.
   ios-integration-tests-retry:
     needs: ios-integration-tests
-    if: ${{ !cancelled() && needs.ios-integration-tests.outputs.passed != 'true' }}
+    #
+    # The event test is NOT redundant with the one above. This job's condition
+    # is `passed != 'true'`, and a skipped job's outputs are the empty string —
+    # `'' != 'true'` is TRUE — so without it, skipping the first attempt on a
+    # pull request would fire the retry on every pull request instead.
+    if: >-
+      ${{ !cancelled()
+      && github.event_name != 'pull_request'
+      && needs.ios-integration-tests.outputs.passed != 'true' }}
     uses: ./.github/workflows/ios-integration-attempt.yml
 
   # The check to require in branch protection — the two jobs above are green
@@ -310,7 +327,11 @@ jobs:
     needs:
       - ios-integration-tests
       - ios-integration-tests-retry
-    if: ${{ !cancelled() }}
+    # Same event test again, and load-bearing for the same reason: `!cancelled()`
+    # exempts this job from the skip its needs inherit, so on a pull request it
+    # would RUN with both outputs empty, read that as "did not pass", and exit 1
+    # — a red X on every PR for a suite that deliberately did not run.
+    if: ${{ !cancelled() && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -326,6 +347,65 @@ jobs:
           fi
           echo "::error::iOS integration tests failed on two independent runners — treat this as a real break, not a flake."
           exit 1
+  # The smoke gates nothing now, so a red one has to reach a human some other
+  # way. This repo already has one signal that goes unread — android-deploy
+  # reports green while Play received nothing — and an advisory check nobody
+  # looks at is worse than no check, because it reads as coverage.
+  #
+  # Deduplicated by EXACT TITLE rather than by the search API: `gh issue list`
+  # with a client-side match hits the issues endpoint directly, whereas
+  # `--search` goes through an index that lags by seconds to minutes and would
+  # file duplicates across consecutive red runs.
+  ios-smoke-alarm:
+    needs: ios-integration-tests-result
+    # `!cancelled()` rather than `always()`, per the rule stated on ios-package:
+    # always() also fires on a run someone deliberately stopped.
+    if: >-
+      ${{ !cancelled()
+      && github.event_name != 'pull_request'
+      && needs.ios-integration-tests-result.result == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: File or update the iOS smoke tracking issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: 'CI: iOS boot smoke is red on main'
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHA: ${{ github.sha }}
+        run: |
+          body="The iOS boot smoke failed on **two independent runners** on \`main\`.
+
+          - Run: $RUN_URL
+          - Commit: \`$SHA\`
+
+          This suite is advisory (#1020): it gates no merge and no deploy, so
+          the release chain is unaffected and this issue is the only signal.
+
+          Before treating it as a real break, check whether the second runner
+          also *hung* rather than failed. About 60% of this suite's non-green
+          events are infrastructure — a VM-service hang on the macos-15 image —
+          and its only organic two-runner verdict on record was a false alarm.
+          The run log distinguishes them: a hang stops at \"Waiting for VM
+          Service port\" and is killed by the step's 20-minute bound, whereas a
+          real break reports a failing \`testWidgets\` assertion.
+
+          Android runs the identical \`flutter test integration_test/\`; if
+          android-integration-tests is green in the same run, the fault is
+          iOS-specific (plugin init, Keychain, or the simulator itself)."
+
+          existing=$(gh issue list --state open --limit 100 --json number,title \
+            --jq 'map(select(.title == env.TITLE)) | .[0].number // empty')
+
+          if [ -n "$existing" ]; then
+            echo "::notice::Adding to existing issue #$existing rather than filing a duplicate."
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$TITLE" --label bug --body "$body"
+          fi
+
   android-build:
     runs-on: ubuntu-latest
     permissions:
@@ -571,9 +651,15 @@ jobs:
   # Including one drops that implicit `success()` and with it the inherited
   # skip. It is also why the gate then has to be written out by hand, one
   # `result == 'success'` per dependency — a bare `!cancelled()` on its own
-  # would be strictly WORSE than the bug it fixes, because it would push an
-  # integration suite that failed on two independent runners straight to
-  # TestFlight and Play.
+  # would be strictly WORSE than the bug it fixes, because it would deploy out
+  # of a run where `ios-build` or the test suites had failed outright.
+  #
+  # (That sentence used to cite the iOS integration suite reaching TestFlight.
+  # It no longer can: since #1020 the suite is advisory, runs only outside pull
+  # requests, and is deliberately absent from `needs:` below. The mechanism
+  # above is unchanged and the 2.2.0 history is still exactly what it describes
+  # — the retry -> result chain that caused it still exists — but the
+  # consequence today is a bad BUILD shipping, not a bad smoke.)
   #
   # Rules for anyone editing this:
   #   * every entry in `needs:` needs a matching line in `if:`. The implicit
@@ -591,13 +677,22 @@ jobs:
       !cancelled() &&
       needs.linux-checks.result == 'success' &&
       needs.ios-build.result == 'success' &&
-      needs.ios-integration-tests-result.result == 'success' &&
       needs.android-build.result == 'success' &&
       needs.android-integration-tests.result == 'success'
+    # ios-integration-tests-result is deliberately ABSENT. It used to sit here
+    # and in the `if:` above, which made a flaky simulator able to strand a
+    # release: 60% of that suite's non-green events are infrastructure, and its
+    # only organic two-runner verdict on record was a false alarm. The suite is
+    # now an advisory signal on main (#1020) and gates nothing.
+    #
+    # Removed from `needs:` as well as `if:`, per the rule this file states on
+    # ios-package: "every entry in `needs:` needs a matching line in `if:`".
+    # Dropping only the `if:` line would leave an unmirrored dependency — an
+    # ungated one — and would also keep packaging waiting ~18-24 min for a job
+    # whose answer is no longer consulted.
     needs:
       - linux-checks
       - ios-build
-      - ios-integration-tests-result
       - android-build
       - android-integration-tests
     runs-on: macos-26
@@ -769,13 +864,22 @@ jobs:
       !cancelled() &&
       needs.linux-checks.result == 'success' &&
       needs.ios-build.result == 'success' &&
-      needs.ios-integration-tests-result.result == 'success' &&
       needs.android-build.result == 'success' &&
       needs.android-integration-tests.result == 'success'
+    # ios-integration-tests-result is deliberately ABSENT. It used to sit here
+    # and in the `if:` above, which made a flaky simulator able to strand a
+    # release: 60% of that suite's non-green events are infrastructure, and its
+    # only organic two-runner verdict on record was a false alarm. The suite is
+    # now an advisory signal on main (#1020) and gates nothing.
+    #
+    # Removed from `needs:` as well as `if:`, per the rule this file states on
+    # ios-package: "every entry in `needs:` needs a matching line in `if:`".
+    # Dropping only the `if:` line would leave an unmirrored dependency — an
+    # ungated one — and would also keep packaging waiting ~18-24 min for a job
+    # whose answer is no longer consulted.
     needs:
       - linux-checks
       - ios-build
-      - ios-integration-tests-result
       - android-build
       - android-integration-tests
     runs-on: ubuntu-latest
