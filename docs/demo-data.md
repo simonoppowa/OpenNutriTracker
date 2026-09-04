@@ -28,7 +28,7 @@ shipped-in-every-build feature:
   config box) and defensively re-cleared when real onboarding completes
   (`OnboardingBloc.saveOnboardingData`).
 
-Both callers share [`lib/core/utils/demo/`](lib/core/utils/demo/) — this
+Both callers share [`lib/core/utils/demo/`](../lib/core/utils/demo/) — this
 is **not** dev-only, since the onboarding flow needs it in every build:
 
 - `demo_seeder.dart` — `seedDemoData(DemoSeedOptions options)`, the
