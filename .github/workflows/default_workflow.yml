@@ -360,8 +360,17 @@ jobs:
     needs: ios-integration-tests-result
     # `!cancelled()` rather than `always()`, per the rule stated on ios-package:
     # always() also fires on a run someone deliberately stopped.
+    #
+    # Restricted to `main`, not just to non-PR events. The suite itself is
+    # allowed to run on a `workflow_dispatch` against any ref — that is useful
+    # for verifying a simulator fix on a branch — but a red run there is a
+    # manual diagnostic, not a statement about main's health. Without this the
+    # alarm would file, or comment on, an issue titled "red on main" because
+    # someone dispatched the suite on a feature branch, and the title-based
+    # dedup would fold unrelated refs into one thread.
     if: >-
       ${{ !cancelled()
+      && github.ref == 'refs/heads/main'
       && github.event_name != 'pull_request'
       && needs.ios-integration-tests-result.result == 'failure' }}
     runs-on: ubuntu-latest
