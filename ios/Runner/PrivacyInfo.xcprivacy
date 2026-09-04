@@ -72,6 +72,65 @@
                 <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
             </array>
         </dict>
+        <!-- AI meal assistance (#990). Declared only because of that feature:
+             it is off until the user saves an API key of their own or the
+             address of a server they run, and the app transmits none of this
+             otherwise.
+
+             Apple defines "collect" as transmitting data off the device "in a
+             way that allows you and/or your third-party partners to access it
+             for a period longer than what is necessary to service the
+             transmitted request in real time". Whether a provider the USER
+             contracts with counts as a third-party partner of this project is
+             not answerable in advance — it is the Apple twin of the Play
+             question in #816. Both types are declared anyway: OpenAI documents
+             retaining API inputs for up to 30 days and Anthropic retains
+             flagged content for up to two years, so the data does outlive the
+             request, and under-declaring is the direction that gets a
+             submission rejected.
+
+             Linked is NO because the app generates no user or device
+             identifier and sends none. Tracking is NO because nothing is
+             linked with third-party data or shared with a data broker.
+
+             Deliberately NOT declared, each for a different reason:
+               * Food search terms. They reach Open Food Facts and the Supabase
+                 backend only to answer the query. Backend access is RPC-only
+                 (#882) precisely so the term stays out of the gateway log, so
+                 nothing retains it past the request.
+               * Health and Fitness. Workouts and body fat percentage are read
+                 from HealthKit and never transmitted off the device — and
+                 "collect" is about transmission, not access.
+               * Photos attached to a custom meal or recipe. Those stay on
+                 disk and are never sent anywhere.
+
+             `PhotosorVideos` is Apple's own spelling, lowercase "or"
+             included. It is not a typo and must not be "corrected". -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypePhotosorVideos</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+        <!-- The meal line typed on the multi-item add screen. -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeOtherUserContent</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
     </array>
 </dict>
 </plist>

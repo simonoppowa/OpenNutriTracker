@@ -60,7 +60,7 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera permission is used to scan barcodes and to attach a photo to a custom meal so it's easier to recognise in your saved list.</string>
+	<string>Camera permission is used to scan barcodes, to attach a photo to a custom meal so it's easier to recognise in your saved list, and — only if you turn on AI meal assistance — to photograph a meal so the provider you configured can read what is in it. That photo is sent for that one request, is never written to your device, and is not included in your exports.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
     <string>Used to attach a photo to a custom meal so it's easier to recognise in your saved list, and for exporting data.</string>
 	<key>NSHealthShareUsageDescription</key>
