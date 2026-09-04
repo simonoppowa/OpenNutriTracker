@@ -12,7 +12,7 @@ Flutter version: **3.44.6** (managed via FVM; see `.fvmrc`)
 
 Reviews are advisory and cannot block a merge. Most PRs come from outside contributors, often their first — write for that person. Cite `file:line`, phrase findings as observations, and raise at most five. Silence is a valid review.
 
-Never assert a count, or an "every locale" claim, you have not computed from this PR's own diff — not from the PR description, which has been wrong before. Don't restate what CI already failed on: `linux-checks` runs `just check_l10n`, `just build`, `flutter analyze`, `just test` — it deliberately does **not** run the format check. Don't comment on the target branch; a maintainer repoints those.
+Never assert a count, or an "every locale" claim, you have not computed from this PR's own diff — not from the PR description, which has been wrong before. Don't restate what CI already failed on: `linux-checks` runs `just check_agents_md`, `just check_l10n`, `just build`, `flutter analyze`, `just test` — it deliberately does **not** run the format check. Don't comment on the target branch; a maintainer repoints those.
 
 ### 1. Untranslated ARB values — the one check CI cannot do
 
