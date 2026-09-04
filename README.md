@@ -118,7 +118,7 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 - **⚖️ Weight history:** Capture weight during onboarding and on demand, see the trend on a chart with a dashed line at your target weight, and optionally taper the calorie goal as you approach it.
 - **🎨 Material You + theme picker:** Adopt the system accent colour on Android 12+, or pick from sixteen built-in presets. The app icon adapts to iOS dark and tinted appearances and to Android themed icons.
 - **🔢 kcal or kJ:** Switch the energy unit globally; every diary entry, target, and chart reflects the choice.
-- **📤 Export and import:** Export your diary entries, activities, tracked days, recipes, weight history and custom activity templates to a JSON zip (recipe photos included, plus photos of custom meals you saved for next time — a one-off custom meal photo that was not saved is not in the zip), or diary, activities and tracked days as a CSV zip — you pick one format, the bundle carries only that one ([bundle format](docs/export-format.md)). Paste a JSON blob to import meals, and share a single meal or activity as a QR code another phone can scan. Your profile, custom-meal catalogue, water and fasting history stay out of the bundle.
+- **📤 Export and import:** Export your diary entries, activities, tracked days, recipes, weight history and custom activity templates to a JSON zip (recipe and custom-meal photos included), or diary, activities and tracked days as a CSV zip — you pick one format, the bundle carries only that one ([bundle format](docs/export-format.md)). Paste a JSON blob to import meals, and share a single meal or activity as a QR code another phone can scan. Your profile, custom-meal catalogue, water and fasting history stay out of the bundle.
 
 </details>
 
@@ -131,7 +131,7 @@ No account, no sign-in, no analytics, no ads. Your profile, diary, activities, w
 | Destination | When | What is sent |
 | :-- | :-- | :-- |
 | [Open Food Facts](https://world.openfoodfacts.org/) | Food search, barcode scan, or whenever a food's photograph is shown — in search results, on a meal screen, and on the diary card of a meal you have already logged | The search term or barcode. A word search also sends your device's **language** code to rank results; the fallback search and the barcode lookup send no locale at all. Your **country is never sent** — the country boost is applied on your device, to the results that come back. A photograph's address contains that product's barcode. Searches and product lookups identify the app by name, platform and version; photograph downloads do not |
-| Supabase reference backend | Food search | The text you typed; the device language too, when it is one this Application has food translations for; and, if any food database is off, the list of the ones left on (onboarding already turns BLS off outside DE/AT/CH, and US branded products off inside them; Settings can change that) |
+| Supabase reference backend | Food search | The text you typed; your **device's** language code, when it is one the backend has food names in; and which food databases you have left switched on — that list travels on every search, because onboarding starts one of the five off |
 | [Anthropic](https://www.anthropic.com/) | **Only if you save your own API key and pick Anthropic** | The meal line you type on the multi-item add screen, or a meal photo you choose to read there, and your app language |
 | [OpenAI](https://openai.com/) | **Only if you save your own API key and pick OpenAI** | As the Anthropic row, plus the model you chose |
 | [OpenRouter](https://openrouter.ai/) | **Only if you save your own API key and pick OpenRouter** | As the Anthropic row, plus the model you chose |
@@ -142,7 +142,7 @@ No account, no sign-in, no analytics, no ads. Your profile, diary, activities, w
 
 | Destination | When | What is sent |
 | :-- | :-- | :-- |
-| **The address you entered, and nothing else** | When you finish with the address field or press *Load models* (that request goes out even if you later Cancel); on save, the setup check; and each time a meal line or photo is read after the address is saved | A models-list request when you finish with the address or press *Load models*; a fixed example line and a bundled photograph on save; otherwise the meal line or the photo, your app language, and the model name you typed |
+| **The address you entered, and nothing else** | **Only if you save a server address in Settings** — when you finish with the address field, when you press *Load models*, when you save (the setup check), and each time a meal line or photo is read | A models-list request when you finish with the address or press *Load models*; a fixed example line and a bundled photograph on save; otherwise the meal line or the photo, your app language, and the model name you typed |
 
 This is the one row you can falsify yourself: your own server's access log settles it, where no user can ever settle a claim about a vendor's retention. **No third party receives anything on this path** — which is not the same as the data staying put. It does leave the device, to the address you named, and the app will not send it in the clear to anything that is not a private address.
 
