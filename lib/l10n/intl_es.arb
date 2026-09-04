@@ -1024,7 +1024,7 @@
       }
     }
   },
-  "sendAnonymousUserData": "Enviar datos anónimos de uso",
+  "sendCrashReports": "Enviar reportes de errores",
   "servingLabel": "Ración",
   "servingSizeLabelImperial": "Una ración (oz/fl oz)",
   "servingSizeLabelMetric": "Una ración",
@@ -1347,5 +1347,66 @@
   "quickAddActivityAddedSnack": "Actividad añadida",
   "quickAddActivityNameLabel": "Nombre (opcional)",
   "scannerLockOrientationTooltip": "Bloquear en vertical",
-  "scannerUnlockOrientationTooltip": "Permitir rotación"
+  "scannerUnlockOrientationTooltip": "Permitir rotación",
+  "suggestedLabel": "Sugerido",
+  "settingsHealthSyncSubtitle": "Importar entrenamientos",
+  "healthSyncAutoImportLabel": "Importar entrenamientos automáticamente desde {platform}",
+  "@healthSyncAutoImportLabel": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncKcalMultiplierLabel": "Crédito calórico de entrenamiento",
+  "healthSyncKcalMultiplierSubtitle": "Tu cuerpo normalmente compensa el ejercicio quemando menos calorías el resto del día. El 100 % acredita todas las calorías del entrenamiento hacia tu objetivo diario.",
+  "healthSyncKcalMultiplierValueLabel": "{percent} %",
+  "@healthSyncKcalMultiplierValueLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "healthSyncSuggestedLabel": "Sugerido para ti: {percent} %",
+  "@healthSyncSuggestedLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "healthSyncImportNowLabel": "Importar ahora",
+  "healthSyncLastImportLabel": "Última importación: {time}",
+  "@healthSyncLastImportLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncNeverImportedLabel": "Aún no se han importado entrenamientos",
+  "healthSyncImportedCountLabel": "{count, plural, =0{Sin entrenamientos nuevos} one{1 entrenamiento importado} other{{count} entrenamientos importados}}",
+  "@healthSyncImportedCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "healthSyncPermissionDeniedLabel": "No se concedió acceso a {platform}. Permite que OpenNutriTracker lea entrenamientos y porcentaje de grasa corporal para importarlos.",
+  "@healthSyncPermissionDeniedLabel": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncUnavailableLabel": "Los datos de salud no están disponibles en este dispositivo. La importación de entrenamientos necesita Health Connect en Android o Apple Health en iOS.",
+  "policyChangeNoticeTitle": "Hemos actualizado la política de privacidad",
+  "policyChangeNoticeBody": "Nada de lo que hace la aplicación ha cambiado. Lo que ha cambiado es cuánto te contamos de ello.\n\nLos servicios que siempre recibían tus búsquedas ahora están nombrados. Hay una nueva sección sobre datos de salud, para la importación de entrenamientos que puedes activar. Y ahora revelamos la ubicación aproximada que nuestro backend de búsqueda de alimentos registra junto a una petición y conserva durante 24 horas.\n\nTu diario permanece en tu dispositivo, como siempre.",
+  "policyChangeNoticeReadAction": "Leer la política",
+  "policyChangeNoticeDismissAction": "Entendido",
+  "sourcesEnergyCompensationTitle": "Crédito calórico de entrenamiento",
+  "sourcesEnergyCompensationDescription": "Los entrenamientos importados se acreditan con menos energía de la que reporta tu dispositivo. Las personas compensan el ejercicio quemando menos calorías el resto del día — aproximadamente un 28 % de media, y más con un porcentaje de grasa corporal elevado. La sugerencia proviene de esa investigación y puedes modificarla en Ajustes → Sincronización de salud. La energía la reporta la aplicación o el dispositivo que registró el entrenamiento, no se calcula con la fórmula MET de la aplicación."
 }
