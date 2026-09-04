@@ -37,10 +37,16 @@ next to its CSV counterpart will not find one.
 | `user_activity.csv`     | Flat activities.                                             |
 | `user_tracked_day.csv`  | Flat tracked days — **lossy, see [Round-trip guarantee](#round-trip-guarantee)**. |
 
-**Photos travel with the JSON bundle only.** Any user-attached recipe and custom-meal images are
-added under `recipe_images/` and `meal_images/` when you export as JSON. A CSV export carries
-none, and the CSV importer does not restore them — another reason to use JSON for anything you
-intend to restore from.
+**Photos travel with the JSON bundle only.** User-attached photos are added under
+`recipe_images/` and `meal_images/` when you export as JSON, gathered from three places: recipes,
+saved custom meals, and **the diary entries themselves**. That third source is not redundant — a
+custom meal logged with *Save for next time* off keeps its photo on the entry without leaving a
+saved meal behind, so gathering only from the first two put the filename in the JSON and left the
+bytes out of the zip ([#1061](https://github.com/simonoppowa/OpenNutriTracker/issues/1061)). A
+photo reachable from any of the three is in the bundle exactly once.
+
+A CSV export carries none, and the CSV importer does not restore them — another reason to use
+JSON for anything you intend to restore from.
 
 The **profile box** — height, birthday, PAL, goal — is intentionally not
 included; see `lib/core/data/data_source/user_data_source.dart`. Note this is the
