@@ -41,7 +41,93 @@ on:
       - 'release/**'
   workflow_dispatch:
 
+# Supersede in-flight runs for the same ref, so a force-push stops holding
+# macOS runners for a commit nobody is waiting on any more. 18.2% of PR runs
+# get superseded, and 82% of the macOS time that reclaims is the iOS
+# integration suite.
+#
+# `main` is never CANCELLED, but note it is not excluded from the group either:
+# `cancel-in-progress: false` puts it in the group without cancelling, which
+# per the docs means a second push to `main` goes PENDING until the first run
+# finishes — and if a third arrives while the second is still pending, the
+# second is cancelled and replaced. So `main` is SERIALISED, with displacement.
+#
+# That is the intended trade: two concurrent deploy runs racing on the same
+# build number and ledger tag is worse than one waiting. It is a real behaviour
+# change though — before this block, two main pushes ran side by side. If
+# displacement is ever unwanted, `concurrency.queue: max` keeps up to 100
+# pending runs in FIFO instead, and is mutually exclusive with cancel-in-progress.
+#
+# Why cancelling `main` would be worse: those runs carry the deploy chain, and a
+# cancel mid-upload can consume a TestFlight build number with no ledger entry.
+# A pull request can never share a group with a push to `main` anyway —
+# `github.ref` is `refs/pull/N/merge` for a PR and `refs/heads/main` for the
+# push — so this guard is about a *second push to main*, which has happened
+# once in 26 main pushes. See #1018.
+#
+# Do NOT add a `concurrency:` block to ios-integration-attempt.yml:
+# `${{ github.workflow }}` evaluates to the CALLER's name inside a reusable
+# workflow, so it would land in this same group and the run would cancel itself.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
+  # Decides whether the macOS jobs below need to run at all. Cheap, on ubuntu,
+  # and deliberately carries NO `if:` — it must run on EVERY event.
+  #
+  # A skip travels the whole dependency chain, not one hop (#1008): a job that
+  # exempts itself with `!cancelled()` does not stop the skip continuing
+  # downstream. A gate that skipped on `push: main` would therefore plant a
+  # fresh skip source directly upstream of the deploy chain, six days after
+  # exactly that shipped an empty 2.2.0. Fifteen free ubuntu seconds removes
+  # the question. See #1021.
+  #
+  # No checkout: dorny/paths-filter calls the REST API on `pull_request`
+  # events and never touches git, which is also why it works on fork PRs.
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      # Both evaluate to the string 'true' or 'false', never empty. Written as
+      # boolean expressions rather than `steps.filter.outputs.X || 'true'` on
+      # purpose: that form relies on the string 'false' being truthy (it is —
+      # only '' is falsy), and if that were ever wrong the gate would silently
+      # never close and this whole change would be a no-op that still looked
+      # healthy. The non-PR arm short-circuits first, so the skipped `filter`
+      # step's empty outputs are never consulted.
+      #
+      #   ios      — could an iOS BUILD break? Gates ios-build.
+      #   pod_deps — could Podfile.lock have DRIFTED? Gates the lock guard,
+      #              and is deliberately much narrower: a PR touching
+      #              ios/Runner/*.swift can break the build but cannot shift
+      #              the lockfile, so it has no business booting a Mac for
+      #              `pod install`.
+      ios: ${{ github.event_name != 'pull_request' || steps.filter.outputs.ios == 'true' }}
+      pod_deps: ${{ github.event_name != 'pull_request' || steps.filter.outputs.pod_deps == 'true' }}
+    steps:
+      - name: Check for iOS-relevant file changes
+        id: filter
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            ios:
+              - 'ios/**'
+              - 'pubspec.yaml'
+              - 'pubspec.lock'
+              # The pipeline verifies itself while we change it: an edit to the
+              # workflow or its composite actions can break the iOS jobs.
+              - '.github/workflows/**'
+              - '.github/actions/**'
+              - '.github/scripts/**'
+            pod_deps:
+              - 'pubspec.yaml'
+              - 'pubspec.lock'
+              - 'ios/Podfile'
+
   linux-checks:
     runs-on: ubuntu-latest
     permissions:
@@ -107,37 +193,35 @@ jobs:
   # PRs, but fork PRs run with a read-only token and that auto-commit
   # silently no-ops; this job exists to surface a hard failure on the PR
   # check so a human notices and refreshes the lockfile locally on a
-  # Mac. We only run it on `pull_request` events where one of
-  # pubspec.yaml, pubspec.lock, or ios/Podfile actually changed —
-  # otherwise the macOS minutes aren't worth burning.
+  # Mac. It runs only on `pull_request` events where one of pubspec.yaml,
+  # pubspec.lock or ios/Podfile actually changed — and since the `changes`
+  # gate decides that on ubuntu, a PR that cannot move the lockfile no longer
+  # allocates a macOS runner at all. Nothing is billed here (the repo is
+  # public); what is scarce is the account-wide cap of 5 concurrent macOS
+  # jobs, and this job used to hold one of them for ~11s on 4 PRs in 5.
   ios-podfile-lock-guard:
+    needs: changes
+    # Gated on `pod_deps`, NOT `ios`. The broad filter would boot a macOS runner
+    # for an ios/Runner/*.swift-only PR just to discover the lockfile cannot
+    # have moved. Same fail-open shape as ios-build.
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && !(needs.changes.result == 'success' && needs.changes.outputs.pod_deps == 'false') }}
     runs-on: macos-26
-    if: github.event_name == 'pull_request'
     permissions:
       contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
-          # Need the merge base in scope so the paths-filter step below
-          # can diff against the PR's target branch.
+          # For `pod install`, which wants the tree. This job used to run its
+          # own paths-filter and a comment here credited the checkout to that;
+          # both are gone — the `changes` gate answers the question on ubuntu
+          # now, and paths-filter needed neither history nor a checkout anyway
+          # (it reads the REST API on pull_request events).
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
 
-      - name: Check for iOS-relevant file changes
-        id: changes
-        uses: dorny/paths-filter@v4
-        with:
-          base: ${{ github.event.pull_request.base.ref }}
-          filters: |
-            ios:
-              - 'pubspec.yaml'
-              - 'pubspec.lock'
-              - 'ios/Podfile'
-
       - name: Setup Flutter + cache packages
-        if: steps.changes.outputs.ios == 'true'
         uses: ./.github/actions/setup-flutter-cache
 
       # Swift Package Manager is enabled by default on Flutter's stable
@@ -151,11 +235,9 @@ jobs:
       # sole iOS dependency manager until that's resolved (or until we
       # wire up real signing for CI).
       - name: Disable Swift Package Manager
-        if: steps.changes.outputs.ios == 'true'
         run: flutter config --no-enable-swift-package-manager
 
       - name: Generate stub .env for CI
-        if: steps.changes.outputs.ios == 'true'
         uses: ./.github/actions/write-env-file
         with:
           sentry_dns: https://stub@sentry.io/0
@@ -163,11 +245,9 @@ jobs:
           supabase_project_anon_key: ci-stub
 
       - name: Install Flutter packages
-        if: steps.changes.outputs.ios == 'true'
         run: flutter pub get
 
       - name: Pod install (with repo update)
-        if: steps.changes.outputs.ios == 'true'
         run: cd ios && pod install --repo-update
 
       # If `pod install` rewrote Podfile.lock, the working tree now has a
@@ -175,7 +255,6 @@ jobs:
       # failure with a hint so the contributor knows what to do next,
       # rather than letting a stale lockfile silently ship to main.
       - name: Fail if Podfile.lock drifted
-        if: steps.changes.outputs.ios == 'true'
         run: |
           if ! git diff --exit-code ios/Podfile.lock; then
             echo "::error file=ios/Podfile.lock::Podfile.lock is out of date with pubspec.yaml. Run 'cd ios && pod install' on macOS and commit the result."
@@ -183,6 +262,21 @@ jobs:
           fi
 
   ios-build:
+    needs: changes
+    # Fail OPEN, and read this as: skip ONLY when the gate ran cleanly and
+    # said no. Every other state — gate failed, gate skipped, output missing —
+    # builds. `!cancelled()` drops the implicit success() so a broken gate can
+    # never withhold the build.
+    #
+    # Written this way rather than `needs.changes.result == 'failure' || ...`
+    # on purpose. That form is false for `skipped`, so it would fail CLOSED on
+    # a skipped gate: ios-build would skip, and ios-package/android-package
+    # both assert `needs.ios-build.result == 'success'` — the whole deploy
+    # chain stops while the run still reports success. That is run
+    # 33547853809 (the empty 2.2.0) recreated with a new cause. The gate below
+    # has no `if:` today so a skip is unreachable, but that invariant then
+    # lives in a comment; this expression enforces it instead.
+    if: ${{ !cancelled() && !(needs.changes.result == 'success' && needs.changes.outputs.ios == 'false') }}
     runs-on: macos-26
     permissions:
       contents: write
@@ -294,13 +388,30 @@ jobs:
   # a verdict, and ios-integration-tests-result below turns the pair into the
   # single required check.
   ios-integration-tests:
+    # Not on pull requests. In 732 PR runs over 120 days this suite was never
+    # the unique detector of anything: every genuine break it caught was also
+    # red on ios-build, linux-checks or android-build in the same run, while
+    # 60% of its non-green events were infrastructure. It is also the single
+    # largest consumer of the 5-slot macOS cap — 71% of PR macOS time — so it
+    # is what makes PRs queue. android-integration-tests runs the identical
+    # `flutter test integration_test/` on a free ubuntu emulator and remains
+    # the per-PR signal. See #1020.
+    if: ${{ github.event_name != 'pull_request' }}
     uses: ./.github/workflows/ios-integration-attempt.yml
 
   # Only when the first runner did not pass. An empty output counts as "did not
   # pass": that is what a job killed by its own timeout-minutes leaves behind.
   ios-integration-tests-retry:
     needs: ios-integration-tests
-    if: ${{ !cancelled() && needs.ios-integration-tests.outputs.passed != 'true' }}
+    #
+    # The event test is NOT redundant with the one above. This job's condition
+    # is `passed != 'true'`, and a skipped job's outputs are the empty string —
+    # `'' != 'true'` is TRUE — so without it, skipping the first attempt on a
+    # pull request would fire the retry on every pull request instead.
+    if: >-
+      ${{ !cancelled()
+      && github.event_name != 'pull_request'
+      && needs.ios-integration-tests.outputs.passed != 'true' }}
     uses: ./.github/workflows/ios-integration-attempt.yml
 
   # The check to require in branch protection — the two jobs above are green
@@ -310,7 +421,11 @@ jobs:
     needs:
       - ios-integration-tests
       - ios-integration-tests-retry
-    if: ${{ !cancelled() }}
+    # Same event test again, and load-bearing for the same reason: `!cancelled()`
+    # exempts this job from the skip its needs inherit, so on a pull request it
+    # would RUN with both outputs empty, read that as "did not pass", and exit 1
+    # — a red X on every PR for a suite that deliberately did not run.
+    if: ${{ !cancelled() && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -326,6 +441,74 @@ jobs:
           fi
           echo "::error::iOS integration tests failed on two independent runners — treat this as a real break, not a flake."
           exit 1
+  # The smoke gates nothing now, so a red one has to reach a human some other
+  # way. This repo already has one signal that goes unread — android-deploy
+  # reports green while Play received nothing — and an advisory check nobody
+  # looks at is worse than no check, because it reads as coverage.
+  #
+  # Deduplicated by EXACT TITLE rather than by the search API: `gh issue list`
+  # with a client-side match hits the issues endpoint directly, whereas
+  # `--search` goes through an index that lags by seconds to minutes and would
+  # file duplicates across consecutive red runs.
+  ios-smoke-alarm:
+    needs: ios-integration-tests-result
+    # `!cancelled()` rather than `always()`, per the rule stated on ios-package:
+    # always() also fires on a run someone deliberately stopped.
+    #
+    # Restricted to `main`, not just to non-PR events. The suite itself is
+    # allowed to run on a `workflow_dispatch` against any ref — that is useful
+    # for verifying a simulator fix on a branch — but a red run there is a
+    # manual diagnostic, not a statement about main's health. Without this the
+    # alarm would file, or comment on, an issue titled "red on main" because
+    # someone dispatched the suite on a feature branch, and the title-based
+    # dedup would fold unrelated refs into one thread.
+    if: >-
+      ${{ !cancelled()
+      && github.ref == 'refs/heads/main'
+      && github.event_name != 'pull_request'
+      && needs.ios-integration-tests-result.result == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: File or update the iOS smoke tracking issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: 'CI: iOS boot smoke is red on main'
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHA: ${{ github.sha }}
+        run: |
+          body="The iOS boot smoke failed on **two independent runners** on \`main\`.
+
+          - Run: $RUN_URL
+          - Commit: \`$SHA\`
+
+          This suite is advisory (#1020): it gates no merge and no deploy, so
+          the release chain is unaffected and this issue is the only signal.
+
+          Before treating it as a real break, check whether the second runner
+          also *hung* rather than failed. About 60% of this suite's non-green
+          events are infrastructure — a VM-service hang on the macos-15 image —
+          and its only organic two-runner verdict on record was a false alarm.
+          The run log distinguishes them: a hang stops at \"Waiting for VM
+          Service port\" and is killed by the step's 20-minute bound, whereas a
+          real break reports a failing \`testWidgets\` assertion.
+
+          Android runs the identical \`flutter test integration_test/\`; if
+          android-integration-tests is green in the same run, the fault is
+          iOS-specific (plugin init, Keychain, or the simulator itself)."
+
+          existing=$(gh issue list --state open --limit 100 --json number,title \
+            --jq 'map(select(.title == env.TITLE)) | .[0].number // empty')
+
+          if [ -n "$existing" ]; then
+            echo "::notice::Adding to existing issue #$existing rather than filing a duplicate."
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$TITLE" --label bug --body "$body"
+          fi
+
   android-build:
     runs-on: ubuntu-latest
     permissions:
@@ -899,9 +1082,15 @@ jobs:
   # Including one drops that implicit `success()` and with it the inherited
   # skip. It is also why the gate then has to be written out by hand, one
   # `result == 'success'` per dependency — a bare `!cancelled()` on its own
-  # would be strictly WORSE than the bug it fixes, because it would push an
-  # integration suite that failed on two independent runners straight to
-  # TestFlight and Play.
+  # would be strictly WORSE than the bug it fixes, because it would deploy out
+  # of a run where `ios-build` or the test suites had failed outright.
+  #
+  # (That sentence used to cite the iOS integration suite reaching TestFlight.
+  # It no longer can: since #1020 the suite is advisory, runs only outside pull
+  # requests, and is deliberately absent from `needs:` below. The mechanism
+  # above is unchanged and the 2.2.0 history is still exactly what it describes
+  # — the retry -> result chain that caused it still exists — but the
+  # consequence today is a bad BUILD shipping, not a bad smoke.)
   #
   # Rules for anyone editing this:
   #   * every entry in `needs:` needs a matching line in `if:`. The implicit
@@ -921,14 +1110,23 @@ jobs:
       needs.release-gate.outputs.deploy == 'true' &&
       needs.linux-checks.result == 'success' &&
       needs.ios-build.result == 'success' &&
-      needs.ios-integration-tests-result.result == 'success' &&
       needs.android-build.result == 'success' &&
       needs.android-integration-tests.result == 'success'
+    # ios-integration-tests-result is deliberately ABSENT. It used to sit here
+    # and in the `if:` above, which made a flaky simulator able to strand a
+    # release: 60% of that suite's non-green events are infrastructure, and its
+    # only organic two-runner verdict on record was a false alarm. The suite is
+    # now an advisory signal on main (#1020) and gates nothing.
+    #
+    # Removed from `needs:` as well as `if:`, per the rule this file states on
+    # ios-package: "every entry in `needs:` needs a matching line in `if:`".
+    # Dropping only the `if:` line would leave an unmirrored dependency — an
+    # ungated one — and would also keep packaging waiting ~18-24 min for a job
+    # whose answer is no longer consulted.
     needs:
       - release-gate
       - linux-checks
       - ios-build
-      - ios-integration-tests-result
       - android-build
       - android-integration-tests
     runs-on: macos-26
@@ -1173,14 +1371,23 @@ jobs:
       needs.release-gate.outputs.deploy == 'true' &&
       needs.linux-checks.result == 'success' &&
       needs.ios-build.result == 'success' &&
-      needs.ios-integration-tests-result.result == 'success' &&
       needs.android-build.result == 'success' &&
       needs.android-integration-tests.result == 'success'
+    # ios-integration-tests-result is deliberately ABSENT. It used to sit here
+    # and in the `if:` above, which made a flaky simulator able to strand a
+    # release: 60% of that suite's non-green events are infrastructure, and its
+    # only organic two-runner verdict on record was a false alarm. The suite is
+    # now an advisory signal on main (#1020) and gates nothing.
+    #
+    # Removed from `needs:` as well as `if:`, per the rule this file states on
+    # ios-package: "every entry in `needs:` needs a matching line in `if:`".
+    # Dropping only the `if:` line would leave an unmirrored dependency — an
+    # ungated one — and would also keep packaging waiting ~18-24 min for a job
+    # whose answer is no longer consulted.
     needs:
       - release-gate
       - linux-checks
       - ios-build
-      - ios-integration-tests-result
       - android-build
       - android-integration-tests
     runs-on: ubuntu-latest
