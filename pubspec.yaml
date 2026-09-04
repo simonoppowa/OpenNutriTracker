@@ -84,7 +84,7 @@ dependencies:
   timezone: ^0.10.1
   flutter_timezone: ^5.1.0
 
-  dynamic_color: ^1.7.0
+  dynamic_color: ^2.1.0
 
   # Health Connect (Android) / Apple Health (iOS) workout import. Every call
   # sits behind HealthService so the plugin never loads under `flutter test`.
