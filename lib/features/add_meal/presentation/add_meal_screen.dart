@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/presentation/widgets/empty_hint.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -476,23 +477,30 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 child: CircularProgressIndicator(),
               );
             } else if (state is RecentMealLoadedState) {
-              return state.recentMeals.isNotEmpty
-                  ? ListView.builder(
-                      itemCount: state.recentMeals.length,
-                      itemBuilder: (context, index) {
-                        return MealItemCard(
-                          day: _day,
-                          mealEntity: state.recentMeals[index],
-                          addMealType: _mealType,
-                          usesImperialUnits: state.usesImperialUnits,
-                        );
-                      },
-                    )
-                  : NoResultsWidget(
-                      onScanBarcode: _onBarcodeIconPressed,
-                      onCreateCustomFood: () =>
-                          _onCustomAddButtonPressed(state.usesImperialUnits),
+              if (state.recentMeals.isNotEmpty) {
+                return ListView.builder(
+                  itemCount: state.recentMeals.length,
+                  itemBuilder: (context, index) {
+                    return MealItemCard(
+                      day: _day,
+                      mealEntity: state.recentMeals[index],
+                      addMealType: _mealType,
+                      usesImperialUnits: state.usesImperialUnits,
                     );
+                  },
+                );
+              }
+              if (query.trim().isEmpty) {
+                return EmptyHint(
+                  icon: Icons.history_rounded,
+                  title: S.of(context).noMealsRecentlyAddedLabel,
+                );
+              }
+              return NoResultsWidget(
+                onScanBarcode: _onBarcodeIconPressed,
+                onCreateCustomFood: () =>
+                    _onCustomAddButtonPressed(state.usesImperialUnits),
+              );
             } else if (state is RecentMealFailedState) {
               return ErrorDialog(
                 errorText: S.of(context).noMealsRecentlyAddedLabel,
