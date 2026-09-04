@@ -67,7 +67,8 @@ Some files are produced by `build_runner` (Hive type adapters and JSON serializa
 
 ## Code style and tests
 
-- 120-character line width (configured in `analysis_options.yaml`).
+- 80-character line width — `dart format`'s own default. `just format` passes no
+  `--line-length`, and nothing in the repo configures one.
 - Format with `just format` before committing — this targets only `lib/core`, `lib/features`, `lib/l10n`, and `test` and deliberately skips `lib/generated/`.
 - Run `flutter analyze` and `just test` locally before opening the PR.
 - `just ci` runs the full CI pipeline (install, format check, l10n generation and completeness, build, analyze, test) and is the closest thing to a one-shot pre-flight check.
