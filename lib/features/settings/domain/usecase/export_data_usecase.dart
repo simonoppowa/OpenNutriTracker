@@ -65,12 +65,12 @@ class ExportDataUsecase {
     final archive = Archive();
 
     // Activity dataset
-    final fullUserActivity =
-        await _userActivityRepository.getAllUserActivityDBO();
+    final fullUserActivity = await _userActivityRepository
+        .getAllUserActivityDBO();
     if (format == ExportFormat.json) {
-      final bytes = utf8.encode(jsonEncode(
-        fullUserActivity.map((a) => a.toJson()).toList(),
-      ));
+      final bytes = utf8.encode(
+        jsonEncode(fullUserActivity.map((a) => a.toJson()).toList()),
+      );
       archive.addFile(
         ArchiveFile(userActivityJsonFileName, bytes.length, bytes),
       );
@@ -86,35 +86,27 @@ class ExportDataUsecase {
     // Intake dataset
     final fullIntake = await _intakeRepository.getAllIntakesDBO();
     if (format == ExportFormat.json) {
-      final bytes = utf8.encode(jsonEncode(
-        fullIntake.map((i) => i.toJson()).toList(),
-      ));
-      archive.addFile(
-        ArchiveFile(userIntakeJsonFileName, bytes.length, bytes),
+      final bytes = utf8.encode(
+        jsonEncode(fullIntake.map((i) => i.toJson()).toList()),
       );
+      archive.addFile(ArchiveFile(userIntakeJsonFileName, bytes.length, bytes));
     } else {
       final bytes = utf8.encode(CsvDataExporter.intakesToCsv(fullIntake));
-      archive.addFile(
-        ArchiveFile(userIntakeCsvFileName, bytes.length, bytes),
-      );
+      archive.addFile(ArchiveFile(userIntakeCsvFileName, bytes.length, bytes));
     }
 
     // Tracked day dataset
     final fullTrackedDay = await _trackedDayRepository.getAllTrackedDaysDBO();
     if (format == ExportFormat.json) {
-      final bytes = utf8.encode(jsonEncode(
-        fullTrackedDay.map((d) => d.toJson()).toList(),
-      ));
-      archive.addFile(
-        ArchiveFile(trackedDayJsonFileName, bytes.length, bytes),
+      final bytes = utf8.encode(
+        jsonEncode(fullTrackedDay.map((d) => d.toJson()).toList()),
       );
+      archive.addFile(ArchiveFile(trackedDayJsonFileName, bytes.length, bytes));
     } else {
       final bytes = utf8.encode(
         CsvDataExporter.trackedDaysToCsv(fullTrackedDay),
       );
-      archive.addFile(
-        ArchiveFile(trackedDayCsvFileName, bytes.length, bytes),
-      );
+      archive.addFile(ArchiveFile(trackedDayCsvFileName, bytes.length, bytes));
     }
 
     // Recipes, photos, weight log and Custom activity templates — JSON
@@ -126,9 +118,9 @@ class ExportDataUsecase {
     // CSV path under Import Custom Food Data.
     if (format == ExportFormat.json) {
       final fullRecipes = _recipeRepository.getAllRecipesDBO();
-      final recipeBytes = utf8.encode(jsonEncode(
-        fullRecipes.map((r) => r.toJson()).toList(),
-      ));
+      final recipeBytes = utf8.encode(
+        jsonEncode(fullRecipes.map((r) => r.toJson()).toList()),
+      );
       archive.addFile(
         ArchiveFile(recipeJsonFileName, recipeBytes.length, recipeBytes),
       );
@@ -150,9 +142,9 @@ class ExportDataUsecase {
 
       // Weight-log dataset
       final fullWeightLog = await _weightLogRepository.getAllEntriesDBO();
-      final weightLogBytes = utf8.encode(jsonEncode(
-        fullWeightLog.map((entry) => entry.toJson()).toList(),
-      ));
+      final weightLogBytes = utf8.encode(
+        jsonEncode(fullWeightLog.map((entry) => entry.toJson()).toList()),
+      );
       archive.addFile(
         ArchiveFile(
           weightLogJsonFileName,
@@ -162,11 +154,11 @@ class ExportDataUsecase {
       );
 
       // Custom activity templates (#70 follow-up)
-      final fullTemplates =
-          await _customActivityTemplateRepository.allTemplateDBOs();
-      final templatesBytes = utf8.encode(jsonEncode(
-        fullTemplates.map((template) => template.toJson()).toList(),
-      ));
+      final fullTemplates = await _customActivityTemplateRepository
+          .allTemplateDBOs();
+      final templatesBytes = utf8.encode(
+        jsonEncode(fullTemplates.map((template) => template.toJson()).toList()),
+      );
       archive.addFile(
         ArchiveFile(
           customActivityTemplateJsonFileName,
@@ -193,7 +185,7 @@ class ExportDataUsecase {
       bytes: Uint8List.fromList(zipBytes),
     );
 
-    if (result == null || result.isEmpty) {
+    if (result == null) {
       // User cancelled the save dialog.
       return false;
     }

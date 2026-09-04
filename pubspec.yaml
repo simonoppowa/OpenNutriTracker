@@ -45,14 +45,14 @@ dependencies:
   path_provider: ^2.1.6
   flutter_secure_storage: ^10.0.0
   cupertino_icons: ^1.0.9
-  package_info_plus: ^9.0.1
+  package_info_plus: ^10.2.1
   url_launcher: ^6.3.2
   flutter_svg: ^2.3.0
   cached_network_image: ^3.4.1
   flutter_cache_manager: ^3.4.2
   envied: ^1.3.8
   archive: 4.0.9
-  file_picker: ^11.0.2
+  file_picker: ^12.2.0
 
   flutter_bloc: ^9.1.1
   bloc_concurrency: ^0.3.0
@@ -69,7 +69,7 @@ dependencies:
 
   mobile_scanner: ^7.4.0
   qr_flutter: ^4.1.0
-  share_plus: ^12.0.2
+  share_plus: ^13.3.0
   image_picker: ^1.2.3
   flutter_image_compress: ^2.5.1
 
@@ -88,9 +88,7 @@ dependencies:
 
   # Health Connect (Android) / Apple Health (iOS) workout import. Every call
   # sits behind HealthService so the plugin never loads under `flutter test`.
-  # Pinned below 13.3.2: that release pulls device_info_plus ^13.2.0, whose
-  # win32 ^6 constraint collides with package_info_plus ^9.0.1's win32 ^5.
-  health: ^13.1.4
+  health: ^13.3.2
 
 dev_dependencies:
   flutter_test:
@@ -110,7 +108,7 @@ dev_dependencies:
   path_provider_platform_interface: ^2.1.3
   # Transitively required by share_plus; declared explicitly so widget tests
   # can verify ShareParams at the plugin boundary.
-  share_plus_platform_interface: ^6.1.0
+  share_plus_platform_interface: ^7.2.0
   plugin_platform_interface: ^2.1.8
 
 flutter:
