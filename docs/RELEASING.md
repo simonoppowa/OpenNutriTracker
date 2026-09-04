@@ -155,10 +155,14 @@ pins them so a later edit cannot quietly undo one.
       workouts and locally-attached meal photos are deliberately absent; the manifest says why,
       beside each one.
 
-Two questions behind these are open rather than answered, and neither blocks a release:
+The table is what the AI path made necessary, not a statement that the record is complete. Three
+things behind it are open rather than answered, and none blocks a release:
 [#816](https://github.com/simonoppowa/OpenNutriTracker/issues/816) on whether a server the user
-runs counts as collection for Play's Data safety form, and the Apple twin of it noted in the
-privacy manifest. `docs/ai-legal-constraints.md` carries the research both rest on.
+runs counts as collection for Play's Data safety form; the Apple twin of it noted in the privacy
+manifest; and [#938](https://github.com/simonoppowa/OpenNutriTracker/issues/938) on the coarse
+location the Supabase gateway derives from the caller's IP, whose research concludes both stores
+want it declared and which no manifest entry covers yet. That research sits on the unmerged
+`research/store-declarations` branch; `docs/ai-legal-constraints.md` carries the rest.
 
 ## Hotfixes, and the way back to `develop`
 
