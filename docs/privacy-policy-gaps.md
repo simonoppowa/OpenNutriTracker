@@ -355,10 +355,21 @@ and 14 do not bite. It is *not* an argument for silence, for three reasons:
 1. The policy's opening list is presented as complete — *"Among the types of
    Personal Data that this Application collects […]"* — and a reader who
    turns on workout import is entitled to find it there.
-2. Google Play's Data safety declaration must cover data the app *accesses*
-   off its own storage regardless of where it ends up, and Google is explicit
-   that *"You alone are responsible for making complete and accurate
-   declarations"*. Health and fitness is a declarable category.
+2. Google's broader *accesses* standard lands on the **privacy policy**, the
+   in-app disclosure and the Health apps declaration — which is this finding —
+   and Google is explicit that *"You alone are responsible for making complete
+   and accurate declarations"*. Health and fitness is a declarable category
+   there.
+
+   *Corrected 2026-09-04:* this point previously said the **Data safety form**
+   must cover data the app accesses "regardless of where it ends up". It does
+   not, and [#937](https://github.com/simonoppowa/OpenNutriTracker/issues/937)
+   settled it the other way: that form is scoped to collection and sharing,
+   "collect" means transmitting off device, and *"User data accessed by your app
+   that is only processed locally on the user's device and not sent off device
+   does not need to be disclosed."* The correction strengthens this finding
+   rather than weakening it — the duty the access standard creates is precisely
+   the policy text this section is asking for.
 3. Finding 1 is the concrete counter-example to "on-device means out of
    scope": until `enablePrintBreadcrumbs = false` ships, on-device values do
    leave, through Sentry, in the released build.
