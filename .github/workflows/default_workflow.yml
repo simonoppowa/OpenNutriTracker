@@ -397,13 +397,17 @@ jobs:
   # a verdict, and ios-integration-tests-result below turns the pair into the
   # single required check.
   ios-integration-tests:
+    needs: changes
+    if: ${{ !cancelled() && !(needs.changes.result == 'success' && needs.changes.outputs.ios == 'false') }}
     uses: ./.github/workflows/ios-integration-attempt.yml
 
   # Only when the first runner did not pass. An empty output counts as "did not
   # pass": that is what a job killed by its own timeout-minutes leaves behind.
   ios-integration-tests-retry:
-    needs: ios-integration-tests
-    if: ${{ !cancelled() && needs.ios-integration-tests.outputs.passed != 'true' }}
+    needs:
+      - changes
+      - ios-integration-tests
+    if: ${{ !cancelled() && !(needs.changes.result == 'success' && needs.changes.outputs.ios == 'false') && needs.ios-integration-tests.outputs.passed != 'true' }}
     uses: ./.github/workflows/ios-integration-attempt.yml
 
   # The check to require in branch protection — the two jobs above are green
@@ -411,6 +415,7 @@ jobs:
   # would require nothing at all.
   ios-integration-tests-result:
     needs:
+      - changes
       - ios-integration-tests
       - ios-integration-tests-retry
     if: ${{ !cancelled() }}
@@ -420,6 +425,14 @@ jobs:
     steps:
       - name: Require one of the two runners to have passed
         run: |
+          # A skipped suite is not a failure. Without this the empty
+          # outputs below read as "neither runner passed" and this job —
+          # the one to require in branch protection — goes red on every
+          # PR that touches no iOS path.
+          if [ '${{ needs.changes.result }}' = 'success' ] && [ '${{ needs.changes.outputs.ios }}' = 'false' ]; then
+            echo 'No iOS-relevant files changed — the suite did not run.'
+            exit 0
+          fi
           first='${{ needs.ios-integration-tests.outputs.passed }}'
           second='${{ needs.ios-integration-tests-retry.outputs.passed }}'
           echo "first runner:  ${first:-<no verdict — the job was killed>}"
