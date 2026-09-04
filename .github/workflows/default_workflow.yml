@@ -46,7 +46,19 @@ on:
 # get superseded, and 82% of the macOS time that reclaims is the iOS
 # integration suite.
 #
-# `main` is excluded deliberately: those runs carry the deploy chain, and a
+# `main` is never CANCELLED, but note it is not excluded from the group either:
+# `cancel-in-progress: false` puts it in the group without cancelling, which
+# per the docs means a second push to `main` goes PENDING until the first run
+# finishes — and if a third arrives while the second is still pending, the
+# second is cancelled and replaced. So `main` is SERIALISED, with displacement.
+#
+# That is the intended trade: two concurrent deploy runs racing on the same
+# build number and ledger tag is worse than one waiting. It is a real behaviour
+# change though — before this block, two main pushes ran side by side. If
+# displacement is ever unwanted, `concurrency.queue: max` keeps up to 100
+# pending runs in FIFO instead, and is mutually exclusive with cancel-in-progress.
+#
+# Why cancelling `main` would be worse: those runs carry the deploy chain, and a
 # cancel mid-upload can consume a TestFlight build number with no ledger entry.
 # A pull request can never share a group with a push to `main` anyway —
 # `github.ref` is `refs/pull/N/merge` for a PR and `refs/heads/main` for the
