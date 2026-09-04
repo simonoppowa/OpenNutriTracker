@@ -1961,19 +1961,43 @@ jobs:
           fi
 
           if [ "$DEPLOY" = true ]; then
+            BUILD_NUMBER=${APP_VERSION##*+}
+            ledger_advice=''
+
             for pair in "ios-package:$IOS_PACKAGE" "android-package:$ANDROID_PACKAGE" \
                         "ios-deploy:$IOS_DEPLOY" "android-deploy:$ANDROID_DEPLOY"; do
               job=${pair%%:*}
               res=${pair##*:}
-              if [ "$res" != success ]; then
-                # NOT "no store received this build". Both deploy jobs end with
-                # the ledger push, which runs AFTER the upload — so a red
-                # deploy job may well mean the store has the build and only the
-                # bookkeeping failed. Saying otherwise would invite a re-upload
-                # that Apple rejects and Play cannot accept twice.
-                echo "::error::release-gate said build ${APP_VERSION##*+} should deploy, but $job reported '$res'. Read that job's log before retrying — a build number that reached a store cannot be uploaded again."
-                fail=1
+              [ "$res" = success ] && continue
+
+              # A red deploy job says nothing about whether a store took the
+              # build. The ledger push is the LAST step of each deploy job, so
+              # a failure before it leaves nothing recorded, and a failure
+              # after it means the upload succeeded. And since the release
+              # jobs moved behind environments, `failure` is also what a
+              # REJECTED approval reports — GitHub: "If a job is rejected, the
+              # workflow will fail" — which consumes nothing at all.
+              #
+              # None of those are distinguishable from `needs.*.result`. The
+              # ledger is, so ask it once rather than guessing, and word the
+              # advice from the answer. Telling someone a build number is
+              # spent when it is not costs them a pointless version bump;
+              # telling them it is free when it is not costs a rejected
+              # upload at both stores.
+              if [ -z "$ledger_advice" ]; then
+                set +e
+                git ls-remote --exit-code --tags origin "refs/tags/deployed/$BUILD_NUMBER" >/dev/null 2>&1
+                ls_status=$?
+                set -e
+                case "$ls_status" in
+                  0) ledger_advice="A store has already consumed build $BUILD_NUMBER (deployed/$BUILD_NUMBER exists), so it cannot be uploaded again — bump the build number and ship afresh." ;;
+                  2) ledger_advice="No store consumed build $BUILD_NUMBER (deployed/$BUILD_NUMBER does not exist), so it can be retried as it stands." ;;
+                  *) ledger_advice="Could not read the ledger from origin (git ls-remote exit $ls_status), so whether build $BUILD_NUMBER is spent is unknown. Check deployed/$BUILD_NUMBER by hand before retrying." ;;
+                esac
               fi
+
+              echo "::error::release-gate said build $BUILD_NUMBER should deploy, but $job reported '$res'. $ledger_advice"
+              fail=1
             done
           fi
 
