@@ -636,9 +636,14 @@ jobs:
       # refused: both derive `v2.2.0`. A build-only bump is a legitimate
       # TestFlight release and must ship.
       #
-      # Both are the literal string 'true' and nothing else, so the empty
-      # string a skipped or failed job leaves behind reads as "do not ship"
-      # without any extra handling.
+      # Both are written explicitly as the string 'true' or 'false' (see the
+      # `decide` step). Every consumer tests `== 'true'`, which is what makes
+      # the third case safe: a skipped or failed `release-gate` leaves the
+      # output as the EMPTY string, and '' is equal to neither 'true' nor
+      # 'false', so it reads as "do not ship" without any extra handling.
+      #
+      # Test `== 'true'`, never `!= 'false'` — the latter is TRUE for the
+      # empty string, so it would ship out of a gate that never ran.
       deploy: ${{ steps.decide.outputs.deploy }}
       publish: ${{ steps.decide.outputs.publish }}
     steps:
@@ -704,7 +709,7 @@ jobs:
               0) REF_EXISTS=yes ;;
               2) REF_EXISTS=no ;;
               *)
-                echo "::error::Could not read tags from origin (git ls-remote exit $ls_status) while asking whether refs/tags/$1 exists. Refusing to guess whether this build has already shipped."
+                echo "::error::Could not read tags from origin (git ls-remote exit $ls_status) while asking whether $1 exists. Refusing to guess whether this build has already shipped."
                 exit 1
                 ;;
             esac
