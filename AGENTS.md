@@ -8,6 +8,39 @@ OpenNutriTracker is a Flutter mobile app (iOS/Android) for nutritional tracking.
 
 Flutter version: **3.44.6** (managed via FVM; see `.fvmrc`)
 
+## Code Review Rules
+
+Reviews are advisory and cannot block a merge. Most PRs come from outside contributors, often their first — write for that person. Cite `file:line`, phrase findings as observations, and raise at most five. Silence is a valid review.
+
+Never assert a count, or an "every locale" claim, you have not computed from this PR's own diff — not from the PR description, which has been wrong before. Don't restate what CI already failed on: `linux-checks` runs `just check_agents_md`, `just check_l10n`, `just build`, `flutter analyze`, `just test` — it deliberately does **not** run the format check. Don't comment on the target branch; a maintainer repoints those.
+
+### 1. Untranslated ARB values — the one check CI cannot do
+
+`just check_l10n` fails only on *missing* keys, so a key present in every locale with the English text still in it ships green. For each key **this PR adds or changes** under `lib/l10n/`, compare its value across the locale files.
+
+Report a key left byte-identical to English in every, or nearly every, non-English ARB. `CONTRIBUTING.md` forbids leaving English in as a placeholder, machine translation is the accepted floor, and no Weblate/Crowdin pipeline exists here — so "translations land later" is not an exemption. Name the key and its locales once.
+
+Identical is legitimate, and silent, for brand and platform names, units and symbols, acronyms, and placeholder-only strings (`{hour}:00`). A value identical in only one or two locales is usually a real cognate (German `Protein`, Italian `golf`) — leave those. Never audit keys the PR did not touch; that backlog is not this contributor's debt.
+
+### 2. Never report an ARB key-count difference
+
+Every ARB carries its own `@key` metadata, in differing amounts, so raw JSON entry counts legitimately differ between *any* two locales. Parity means keys not starting with `@`, and those are equal. Strip them before comparing, or say nothing.
+
+### 3. Semantics identifiers
+
+New interactive widgets take `Semantics(identifier: 'kebab-case')`, locale-independent. Exempt: children of a `ListView`/`GridView.builder` (the parent surface is labelled instead), and OK/Cancel inside a Material dialog. Don't ask for `button:`/`textField:` when the child already publishes that role — unless `excludeSemantics: true` is set, where the flag is required.
+
+`container: true` is **conditional**: needed only when the immediate parent is layout-greedy (`Expanded`, a filling `Container`). Under a `Wrap`, or any parent sized by its content, its absence is correct — do not ask for it. `Align` is the documented alternative to the flag, not a trigger for it. Bounds are a device fact (`uiautomator dump`), not a diff fact: ask, never assert.
+
+### 4. Everything else, in one line each
+
+- Row titles: `Expanded` on the title plus `maxLines` + ellipsis, `AutoSizeText` for prominent headers. Never `Flexible(title)` beside a `Spacer()` — that starves the title. Wrapping body copy, and Rows sized by their content, are exempt.
+- `lib/generated/` and `env.g.dart` are gitignored — their absence from a diff is correct, never ask for them. Every other `*.g.dart` is committed: a changed `@HiveType` / `@HiveField` / `@JsonSerializable` without its regenerated file is a real finding.
+- `locator<T>()` on a `registerFactory` type returns a **fresh** instance in its initial state, not the screen's — reading `.state` off one is a bug `flutter analyze` cannot see.
+- The same constructor call with the same arguments at three or more sites: point at it once.
+- Reformatted lines the change did not need: mention once, ask for those hunks back. The cause is pinned-SDK format drift plus the `just format` that `CONTRIBUTING.md` tells contributors to run — never blame the contributor, never suggest a repo-wide reformat.
+- If you can read the linked issue, name any state it asked for that no test covers. If you cannot, do not characterise what it asked for.
+
 ## Commits
 
 - Use [conventional commits](https://www.conventionalcommits.org/) (e.g. `feat:`, `fix:`, `chore:`, `docs:`).
@@ -32,61 +65,9 @@ just dev           # fvm flutter run --flavor develop
 just dev_seed      # same, but wipes the active profile and seeds a year of demo data — see below
 ```
 
-### Demo data — the dev seeder and the shipped "try it" onboarding flow
+See [`docs/demo-data.md`](docs/demo-data.md) for the demo seeder and the shipped
+"try it" onboarding flow that share `lib/core/utils/demo/`.
 
-One seeding engine, two callers — a dev-only fixture and a real,
-shipped-in-every-build feature:
-
-- **`just dev_seed`** runs a separate entry point, `lib/dev/main_dev.dart`,
-  instead of the normal `lib/main.dart`. On every launch it wipes the active
-  profile's Hive boxes and reseeds a full year of realistic data — skips
-  onboarding entirely, and lands on Home. This is dev-only: `main_dev.dart`
-  throws if built in release mode, and it's never referenced from
-  `lib/main.dart`, so it can't leak into a shipped build.
-- **The onboarding intro screen's "Try it with sample data" link**
-  (`lib/features/onboarding/presentation/onboarding_intro_page_body.dart`)
-  is a real, shipped feature — a prospective user can seed the same active
-  profile with three weeks of always-on-track sample data and jump straight
-  to Home, but only with the privacy-policy checkbox ticked, the same bar as
-  Start — tapping it unchecked just explains itself in a snackbar and seeds
-  nothing, so no path into the app skips policy acceptance. The checkbox
-  that is independent is the data-collection one: crash reporting stays off
-  (and locked) while demo data is active.
-  While the active profile holds sample data, a persistent banner
-  (`lib/core/presentation/widgets/demo_mode_banner.dart`) shows on every tab
-  of `MainScreen`; tapping "Set up your profile" wipes it and returns to
-  onboarding (mirrors `SettingsScreen._confirmDeleteAllData`'s
-  confirm-then-wipe-then-route pattern). Whether the active profile holds
-  sample data is tracked by `ConfigEntity.isDemoData`, cleared for free by
-  `DeleteAllUserDataUsecase.deleteAll()` (which already wipes the whole
-  config box) and defensively re-cleared when real onboarding completes
-  (`OnboardingBloc.saveOnboardingData`).
-
-Both callers share [`lib/core/utils/demo/`](lib/core/utils/demo/) — this
-is **not** dev-only, since the onboarding flow needs it in every build:
-
-- `demo_seeder.dart` — `seedDemoData(DemoSeedOptions options)`, the
-  day-loop/bulk-write engine. `DemoSeedOptions.dev` (365 days, ~10% of days
-  deliberately miss the calorie goal, a 15-day guaranteed current streak) vs
-  `DemoSeedOptions.onboarding` (21 days, `missedDayProbability: 0.0` so
-  every day is on-track by construction — no separate "flattering" content
-  needed, just that one dial) is the only thing that differs between the
-  exhaustive QA fixture and the public first-impression demo.
-- `demo_content.dart` — the food set, activity pool, recipes, and the
-  per-day macro-targeting algorithm. Duration-agnostic; reused unchanged by
-  both presets.
-- `unsplash_attribution.dart` — a small, hand-picked set of Unsplash photo
-  ids (not a live search), so seeding needs network access only to fetch
-  those fixed URLs (and downloads the profile picture locally); a failed
-  lookup just skips that one photo rather than aborting the seed. Also
-  carries the photographer-credit lookup and small credit-line widget shown
-  on the meal detail screen and the profile editor — see the file's doc
-  comment for why hardcoded URLs sidestep Unsplash's stricter API usage
-  terms.
-
-Data is generated from a fixed-seed RNG (`demoRng` in `demo_content.dart`),
-so re-seeding reproduces the same fixture every time rather than a new
-random one.
 
 Run a single test file:
 
@@ -221,59 +202,8 @@ Or — if `container: true` causes other TalkBack issues — restructure the lay
 
 Always verify with `adb shell uiautomator dump /sdcard/d.xml && adb pull /sdcard/d.xml /tmp/d.xml && grep your-id /tmp/d.xml` after adding a label inside a flex container. Reasonable bounds are tens to a few hundred pixels on each side, not screen-sized.
 
-### Flutter widgets on Android use `content-desc`, not `text`
-
-When inspecting the uiautomator dump, the visible text of Flutter widgets is reported under `content-desc`, not `text`. System dialogs (DatePicker, AlertDialog) use `text`. Test drivers that find widgets by visible label must check both.
-
-### Form fields drift between taps
-
-Flutter `TextField` / `TextFormField` widgets all report screen-wide `bounds` in the uiautomator dump (the `container: true` gotcha applied to every form input). Tapping a field by hard-coded coordinates from an earlier dump only works once — the moment the keyboard pops up, every layout in the form shifts, and the next tap lands on the wrong row.
-
-The `adb-driver.sh` helpers `tap_field_by_hint`, `enter_text_in_field`, and `fill_fields_by_hint` re-dump the UI before every tap and locate the field by its placeholder `hint` attribute (uiautomator dumps the TextField's placeholder there even when there's no `Semantics(identifier:)` on the field). They also hide the keyboard between fields so the next field's hit target is calculated against the post-IME layout, not the pre-IME one.
-
-Use them for any custom-meal / recipe / onboarding flow that fills more than one input:
-
-```bash
-source tools/adb/adb-driver.sh
-fill_fields_by_hint \
-  'Meal name'     'Greek%syoghurt' \
-  'Energy (kcal)' '100' \
-  'Carbohydrates' '4' \
-  'Fat'           '5' \
-  'Protein'       '10'
-```
-
-Pass `clear` as a third argument to `enter_text_in_field` when overwriting an existing value:
-
-```bash
-enter_text_in_field 'Protein' '10' clear
-```
-
-### ADB test tooling
-
-Reusable ADB scripts live in `tools/adb/`:
-
-| Script | Purpose |
-|--------|---------|
-| `adb-driver.sh` | Core driver library: `tap_id`, `wait_for_id`, `enter_text_at`, `_tap_text`, `screenshot`, `list_ids`, plus form-field helpers `tap_field_by_hint`, `enter_text_in_field`, `fill_fields_by_hint`, `clear_focused_field`, `hide_keyboard`. Source from any test script. |
-| `walk-onboarding.sh` | Walks the 7-page onboarding flow, lands the app on the main screen. Exports `walk_onboarding()`. Run standalone or source it. |
-| `run-branch-tests.sh` | Sequential smoke-test runner for all triage branches: builds a debug APK, installs it, walks onboarding, and runs a branch-specific probe. Produces a pass/fail summary and per-branch screenshots. |
-
-Usage:
-
-```bash
-# Source the driver in a one-off script
-source tools/adb/adb-driver.sh
-wait_for_id 'nav-home' 15 && echo "on main screen"
-
-# Walk onboarding standalone (clears app data first)
-DEVICE=1C151FDEE003YJ bash tools/adb/walk-onboarding.sh
-
-# Run the full branch test pass (unattended, ~90 min)
-DEVICE=1C151FDEE003YJ bash tools/adb/run-branch-tests.sh
-```
-
-`DEVICE` defaults to the first device returned by `adb devices` when not set.
+See [`tools/adb/README.md`](tools/adb/README.md) for the ADB driver scripts, the
+`content-desc` gotcha, and the form-field helpers that re-dump before every tap.
 
 ### Enforcement
 

@@ -159,6 +159,12 @@ jobs:
       # period when CI was disabled. We run the rest of `just ci` (l10n
       # generation, build_runner, analyze, test) and leave the format pass
       # for a dedicated follow-up PR.
+      # AGENTS.md is read by Codex on the PR review path and truncated at
+      # 32 KiB — head kept, tail dropped, silently. Pure bash, no Flutter, so
+      # it runs first and fails fast.
+      - name: Guard AGENTS.md size (fails before Codex silently truncates it)
+        run: just check_agents_md
+
       - name: Install Flutter packages
         run: just install
 

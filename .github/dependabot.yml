@@ -7,6 +7,10 @@ updates:
       interval: "weekly"
     target-branch: "develop"
     open-pull-requests-limit: 10
+    groups:
+      ios-bundler:
+        patterns:
+          - "*"
 
   - package-ecosystem: "bundler"
     directory: "/android"
@@ -14,6 +18,10 @@ updates:
       interval: "weekly"
     target-branch: "develop"
     open-pull-requests-limit: 10
+    groups:
+      android-bundler:
+        patterns:
+          - "*"
 
   - package-ecosystem: "pub"
     directory: "/"
@@ -21,6 +29,10 @@ updates:
       interval: "weekly"
     target-branch: "develop"
     open-pull-requests-limit: 10
+    groups:
+      pub:
+        patterns:
+          - "*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -28,3 +40,7 @@ updates:
       interval: "weekly"
     target-branch: "develop"
     open-pull-requests-limit: 10
+    groups:
+      github-actions:
+        patterns:
+          - "*"
