@@ -204,6 +204,40 @@ Before backporting anything, check whether its content is already present — a 
 both branches, or a paragraph already corrected — rather than trusting the commit list. Only two of
 the four entries it printed in August 2026 were real gaps.
 
+**Ask which lines, not which commits.** The command above answers "which commits", which is the
+wrong question under squash merging — `main` carries a release as one commit that `develop` will
+never contain. The useful question is which *lines* `main` has that `develop` does not:
+
+```bash
+git diff --name-only origin/develop origin/main | while read -r f; do
+  n=$(git diff origin/develop origin/main -- "$f" | grep -cE '^\+[^+]')
+  if [ "$n" -gt 0 ]; then printf '%4d  %s\n' "$n" "$f"; fi
+done
+```
+
+Then judge each file it prints. A line is a gap only if `develop` has no newer version of it. Most
+will be neither: text `develop` has since rewritten, or a file it deleted deliberately, both of
+which look identical to a gap in a commit listing.
+
+Run on **2026-09-04**, with `main` at 2.2.0 and `develop` seventeen commits past it, eleven files
+had `main`-only lines and **not one was a gap**:
+
+| `main`-only lines | Why it was not a gap |
+| --: | :-- |
+| 31 in `default_workflow.yml` | superseded by the `changes` job in #1043, which gates more than the inline version it replaced |
+| 25 in `docs/export-format.md` | superseded by #999 |
+| 15 in `full_description.txt`, 5 in `ai-legal-constraints.md`, 1 in `Info.plist` | superseded by #1049 and #1051 |
+| 4 in `docs/supabase-self-hosting.md` | superseded by #1000 |
+| 4 in `docs/supabase-fdc-self-hosting.md` | `develop` deleted the file on purpose in #997 |
+| 1 each in `README.md`, `ai-architecture.md`, `AGENTS.md`, `CONTRIBUTING.md` | superseded by #1003, #996 and #1047 |
+| 0 in `docs/RELEASING.md` | `develop` is a strict superset |
+
+The specific answer expires; the shape of it does not. `develop` is uniformly newer wherever the
+two differ, so the conflicts a release PR raises resolve to `develop`'s side — they are not a debt
+that grows between releases, and there is nothing to bring down in the meantime. If a run of the
+command above ever *does* print a real gap, cherry-pick it; do not reach for a merge, for the
+reason in the paragraph above.
+
 ## Documentation
 
 The step this page exists for. These have no automation at all, and nothing fails if they are
