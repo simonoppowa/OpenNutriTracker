@@ -327,6 +327,11 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           ? fs.food
                           : const <MealEntity>[];
                       final merged = mergeAndRankMeals(products, foods, query);
+                      final imperial = ps is ProductsLoadedState
+                          ? ps.usesImperialUnits
+                          : (fs is FoodLoadedState
+                                ? fs.usesImperialUnits
+                                : false);
                       if (merged.isEmpty) {
                         if (ps is ProductsInitial && fs is FoodInitial) {
                           return const DefaultsResultsWidget();
@@ -334,14 +339,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         return NoResultsWidget(
                           onScanBarcode: _onBarcodeIconPressed,
                           onCreateCustomFood: () =>
-                              _onCustomAddFromEmptyState(),
+                              _onCustomAddButtonPressed(imperial),
                         );
                       }
-                      final imperial = ps is ProductsLoadedState
-                          ? ps.usesImperialUnits
-                          : (fs is FoodLoadedState
-                                ? fs.usesImperialUnits
-                                : false);
                       return ListView.builder(
                         itemCount: merged.length,
                         itemBuilder: (context, index) => MealItemCard(
@@ -377,8 +377,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         ? _pendingSpinner
                         : NoResultsWidget(
                             onScanBarcode: _onBarcodeIconPressed,
-                            onCreateCustomFood: () =>
-                                _onCustomAddFromEmptyState(),
+                            onCreateCustomFood: () => _onCustomAddButtonPressed(
+                              state.usesImperialUnits,
+                            ),
                           );
                   }
                   return Flexible(
@@ -388,11 +389,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           (state.remoteSourceEmpty ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index == state.products.length) {
-                          return NoResultsWidget(
-                            onScanBarcode: _onBarcodeIconPressed,
-                            onCreateCustomFood: () =>
-                                _onCustomAddFromEmptyState(),
-                          );
+                          return const NoResultsWidget();
                         }
                         return MealItemCard(
                           day: _day,
@@ -433,8 +430,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         ? _pendingSpinner
                         : NoResultsWidget(
                             onScanBarcode: _onBarcodeIconPressed,
-                            onCreateCustomFood: () =>
-                                _onCustomAddFromEmptyState(),
+                            onCreateCustomFood: () => _onCustomAddButtonPressed(
+                              state.usesImperialUnits,
+                            ),
                           );
                   }
                   return Flexible(
@@ -443,11 +441,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           state.food.length + (state.remoteSourceEmpty ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index == state.food.length) {
-                          return NoResultsWidget(
-                            onScanBarcode: _onBarcodeIconPressed,
-                            onCreateCustomFood: () =>
-                                _onCustomAddFromEmptyState(),
-                          );
+                          return const NoResultsWidget();
                         }
                         return MealItemCard(
                           day: _day,
@@ -496,7 +490,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
                     )
                   : NoResultsWidget(
                       onScanBarcode: _onBarcodeIconPressed,
-                      onCreateCustomFood: () => _onCustomAddFromEmptyState(),
+                      onCreateCustomFood: () =>
+                          _onCustomAddButtonPressed(state.usesImperialUnits),
                     );
             } else if (state is RecentMealFailedState) {
               return ErrorDialog(
@@ -525,14 +520,6 @@ class _AddMealScreenState extends State<AddMealScreen> {
       builder: (sheetContext) =>
           QuickAddBottomSheet(intakeType: _mealType.getIntakeType(), day: _day),
     );
-  }
-
-  void _onCustomAddFromEmptyState() {
-    final state = locator<AddMealBloc>().state;
-    final imperial = state is AddMealLoadedState
-        ? state.usesImperialUnits
-        : false;
-    _onCustomAddButtonPressed(imperial);
   }
 
   void _onCustomAddButtonPressed(bool usesImperialUnits) {
