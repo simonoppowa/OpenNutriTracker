@@ -44,15 +44,32 @@ void main() {
       expect(camera, contains('custom meal'));
     });
 
-    // The photo path promises this in Settings and in the README, and the
-    // purpose string is the one place Apple reads it.
-    test('does not claim the photo is kept', () {
+    // The picker DOES write a cache file — `ImagePicker.pickImage` hands the
+    // app a temp copy, and `MealPhotoEncoder.encodeAndDiscardSource` deletes
+    // it in a `finally`, best effort. So the string may describe the app
+    // keeping no copy of its own and deleting that file; it may not claim the
+    // photo is never written to the device, which is what this string said
+    // before and is not true. The README has always drawn the line here.
+    test('describes what happens to the photo without over-claiming', () {
       final camera = valueFor('NSCameraUsageDescription')!.toLowerCase();
-      expect(camera, contains('never written to your device'));
+      expect(camera, contains('saves no copy of its own'));
+      expect(camera, contains("deletes the camera's temporary file"));
+      expect(
+        camera,
+        isNot(contains('never written')),
+        reason: 'the picker writes a cache file before it is deleted',
+      );
     });
   });
 
   group('iOS privacy manifest', () {
+    // Greedy `(.*)` on purpose. Each collected-type dictionary contains its
+    // own `NSPrivacyCollectedDataTypePurposes` array, so a lazy `(.*?)` would
+    // stop at the first inner `</array>` and match only the first entry's
+    // purposes — 460 characters instead of 5449, with neither AI type inside
+    // it. This works because `NSPrivacyCollectedDataTypes` is the last key in
+    // the file; if a key is ever added after it, match the outer array some
+    // other way rather than making this lazy.
     String collectedTypes() => RegExp(
       '<key>NSPrivacyCollectedDataTypes</key>\\s*<array>(.*)</array>',
       dotAll: true,

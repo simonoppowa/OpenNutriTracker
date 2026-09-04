@@ -119,12 +119,21 @@ This step starts passing on its own once Google fixes the API; nothing here need
 
 ## Store declarations
 
-Four platform-facing declarations live in the repo and are entered by hand in the two consoles.
-The repo copy is the source text; the console is where it takes effect, so they drift silently
-unless this list is walked. All four were corrected for 2.2.0 in
-[#990](https://github.com/simonoppowa/OpenNutriTracker/issues/990), and
+These declarations sit in three different places, which is the whole reason they drift apart:
+
+- **In the app bundle.** The iOS purpose strings in `Info.plist`, and the privacy manifest. They
+  ship with a build and are entered nowhere — they are right when the code is right, and App
+  Review reads them straight out of the bundle.
+- **Repo text that a human copies into a console.** The Play listing, and only that.
+- **Console only, with no repo copy at all.** Play's Health apps declaration, and the App Store
+  Connect App Privacy record — which has to agree with the privacy manifest, with nothing
+  anywhere checking that it does.
+
+All of them were corrected for 2.2.0 in
+[#990](https://github.com/simonoppowa/OpenNutriTracker/issues/990).
 [`test/unit_test/store_declarations_test.dart`](../test/unit_test/store_declarations_test.dart)
-pins them so a later edit cannot quietly undo one.
+pins the repo half so a later edit cannot quietly undo one; the console half is the checklist
+below, and nothing but this page will remind you.
 
 - [ ] **Paste `fastlane/metadata/android/en-US/full_description.txt` into the Play listing.**
       `upload_to_play_store` runs with `skip_upload_metadata: true`, so the pipeline never touches
