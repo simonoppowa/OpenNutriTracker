@@ -149,29 +149,101 @@
   "foodSourcesHelpText": "Arama sonuçları bu gıda veritabanlarından gelir. Open Food Facts, ürün ve barkod aramasını sağlar ve her zaman etkindir.",
   "machineTranslatedNameHint": "Ad otomatik olarak çevrildi",
   "measureUnitBar": "{count, plural, other{bar}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, other{şişe}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, other{kutu}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, other{fincan}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, other{yumurta}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, other{paket}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, other{parça}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, other{porsiyon}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, other{porsiyon}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, other{dilim}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, other{yemek kaşığı}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, other{çay kaşığı}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "Gıda veritabanları",
   "settingsFoodSourcesSubtitle": "Arama sonuçlarının kaynağını seçin",
   "onboardingOtherOptionsLabel": "Diğer seçenekler",
@@ -1089,26 +1161,40 @@
   "customMealsMergeConfirmContent": "Bu işlem, {loser} ile kaydedilen tüm girdileri değiştirip {winner} olarak gösterir ve {loser} özel yiyeceklerinden kaldırılır. Bu işlem geri alınamaz.",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "Birleştir",
   "customMealsMergeSuccessSnackbarOne": "Birleştirildi — {winner} artık 1 kayda sahip.",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "Birleştirildi — {winner} artık {count} kayda sahip.",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "Oruç · {remaining} kaldı",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "Oruç zamanlayıcısı",
@@ -1176,9 +1262,21 @@
   "aiAssistEndpointFieldLabel": "Sunucu adresi",
   "aiAssistModelFieldLabel": "Model adı",
   "aiAssistDisclosureOwnServerSecure": "Adres kaydedildiğinde, çoklu ekleme ekranında yazdığınız metin ve orada okutmayı seçtiğiniz her fotoğraf {host} adresine — kendi işlettiğiniz bir sunucuya — gönderilir. Bunu hiçbir üçüncü taraf almaz; projenin o makineyle bir ilişkisi yoktur ve neyi sakladığı konusunda hiçbir söz veremez. Bağlantı şifrelidir.",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "Adres kaydedildiğinde, çoklu ekleme ekranında yazdığınız metin ve orada okutmayı seçtiğiniz her fotoğraf {host} adresine — kendi işlettiğiniz bir sunucuya — gönderilir. Bunu hiçbir üçüncü taraf almaz; projenin o makineyle bir ilişkisi yoktur ve neyi sakladığı konusunda hiçbir söz veremez. Bu adres düz HTTP olduğundan bağlantı şifreli değildir: bu telefonla o sunucu arasındaki ağda bulunan her şey gönderilenleri okuyabilir.",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "http:// veya https:// ile başlayan bir adres girin.",
   "aiAssistModelRequiredLabel": "Bu sunucunun kullanacağı model adını girin.",
   "aiAssistEndpointPublicPlaintextLabel": "Bu adres herkese açık ve şifresiz olduğundan oraya giden istekler reddedilir. https veya özel bir adres kullanın.",
@@ -1246,5 +1344,6 @@
   "healthSyncDisclosureContinueAction": "Devam",
   "healthSyncUnavailableLabel": "Bu cihazda sağlık verileri kullanılamıyor. Antrenman içe aktarma, Android’de Health Connect veya iOS’ta Apple Health gerektirir.",
   "sourcesEnergyCompensationTitle": "Antrenman kalori payı",
-  "sourcesEnergyCompensationDescription": "İçe aktarılan antrenmanlar, cihazın bildirdiği enerjinin tamamından daha azıyla sayılır. İnsanlar egzersizi, günün geri kalanında daha az kalori yakarak dengeler; ortalama olarak yaklaşık %28, vücut yağ oranı yüksek olanlarda daha fazla. Önerilen pay bu araştırmadan gelir ve Ayarlar → Sağlık senkronizasyonu bölümünden değiştirebilirsin. Enerjinin kendisi antrenmanı kaydeden uygulama veya cihaz tarafından bildirilir; uygulamadaki MET formülüyle hesaplanmaz."
+  "sourcesEnergyCompensationDescription": "İçe aktarılan antrenmanlar, cihazın bildirdiği enerjinin tamamından daha azıyla sayılır. İnsanlar egzersizi, günün geri kalanında daha az kalori yakarak dengeler; ortalama olarak yaklaşık %28, vücut yağ oranı yüksek olanlarda daha fazla. Önerilen pay bu araştırmadan gelir ve Ayarlar → Sağlık senkronizasyonu bölümünden değiştirebilirsin. Enerjinin kendisi antrenmanı kaydeden uygulama veya cihaz tarafından bildirilir; uygulamadaki MET formülüyle hesaplanmaz.",
+  "searchRetryAfterConnectionLost": "Retry search"
 }

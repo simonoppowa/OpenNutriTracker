@@ -118,29 +118,101 @@
   "foodSourcesHelpText": "Результати пошуку надходять із цих баз даних продуктів. Open Food Facts забезпечує пошук продуктів і штрих-кодів і завжди ввімкнена.",
   "machineTranslatedNameHint": "Назву перекладено автоматично",
   "measureUnitBar": "{count, plural, one{батончик} few{батончики} many{батончиків} other{батончика}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, one{пляшка} few{пляшки} many{пляшок} other{пляшки}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, one{банка} few{банки} many{банок} other{банки}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, one{чашка} few{чашки} many{чашок} other{чашки}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, one{яйце} few{яйця} many{яєць} other{яйця}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, one{упаковка} few{упаковки} many{упаковок} other{упаковки}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, one{шматок} few{шматки} many{шматків} other{шматка}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, one{порція} few{порції} many{порцій} other{порції}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, one{порція} few{порції} many{порцій} other{порції}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, one{скибка} few{скибки} many{скибок} other{скибки}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, one{столова ложка} few{столові ложки} many{столових ложок} other{столової ложки}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, one{чайна ложка} few{чайні ложки} many{чайних ложок} other{чайної ложки}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "Бази даних продуктів",
   "settingsFoodSourcesSubtitle": "Виберіть, звідки надходять результати пошуку",
   "onboardingOtherOptionsLabel": "Інші параметри",
@@ -1058,26 +1130,40 @@
   "customMealsMergeConfirmContent": "Це замінить усі записи, додані з {loser}, щоб вони показували {winner}, і видалить {loser} з ваших власних страв. Цю дію не можна скасувати.",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "Об’єднати",
   "customMealsMergeSuccessSnackbarOne": "Об'єднано — {winner} тепер має 1 запис.",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "Об'єднано — {winner} тепер має {count} записів.",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "Голодування · залишилось {remaining}",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "Таймер голодування",
@@ -1145,9 +1231,21 @@
   "aiAssistEndpointFieldLabel": "Адреса сервера",
   "aiAssistModelFieldLabel": "Назва моделі",
   "aiAssistDisclosureOwnServerSecure": "Зі збереженою адресою текст, який ви вводите на екрані додавання кількох позицій, і будь-яке фото, яке ви даєте прочитати там, надсилається на {host} — сервер, який ви обслуговуєте самі. Його не отримує жодна третя сторона, і проєкт не має стосунку до цієї машини та нічого не може обіцяти щодо того, що вона зберігає. З’єднання зашифроване.",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "Зі збереженою адресою текст, який ви вводите на екрані додавання кількох позицій, і будь-яке фото, яке ви даєте прочитати там, надсилається на {host} — сервер, який ви обслуговуєте самі. Його не отримує жодна третя сторона, і проєкт не має стосунку до цієї машини та нічого не може обіцяти щодо того, що вона зберігає. Ця адреса використовує звичайний HTTP, тому з’єднання не зашифроване: усе в мережі між цим телефоном і тим сервером може прочитати те, що надсилається.",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "Введіть адресу, що починається з http:// або https://",
   "aiAssistModelRequiredLabel": "Вкажіть назву моделі, яку має використовувати цей сервер.",
   "aiAssistEndpointPublicPlaintextLabel": "Ця адреса публічна й незашифрована, тому запити до неї відхиляються. Використайте https або приватну адресу.",
@@ -1215,5 +1313,6 @@
   "healthSyncDisclosureContinueAction": "Продовжити",
   "healthSyncUnavailableLabel": "Дані про здоров’я недоступні на цьому пристрої. Для імпорту тренувань потрібен Health Connect на Android або Apple Health на iOS.",
   "sourcesEnergyCompensationTitle": "Зарахування калорій за тренування",
-  "sourcesEnergyCompensationDescription": "Імпортовані тренування зараховуються з меншою енергією, ніж повідомляє пристрій. Люди компенсують навантаження, спалюючи менше калорій протягом решти дня — у середньому близько 28%, а за вищого відсотка жиру більше. Рекомендоване значення походить із цього дослідження, і його можна змінити в Налаштуваннях → Синхронізація зі здоров’ям. Саму енергію повідомляє застосунок або пристрій, який записав тренування; вона не обчислюється формулою MET у застосунку."
+  "sourcesEnergyCompensationDescription": "Імпортовані тренування зараховуються з меншою енергією, ніж повідомляє пристрій. Люди компенсують навантаження, спалюючи менше калорій протягом решти дня — у середньому близько 28%, а за вищого відсотка жиру більше. Рекомендоване значення походить із цього дослідження, і його можна змінити в Налаштуваннях → Синхронізація зі здоров’ям. Саму енергію повідомляє застосунок або пристрій, який записав тренування; вона не обчислюється формулою MET у застосунку.",
+  "searchRetryAfterConnectionLost": "Retry search"
 }

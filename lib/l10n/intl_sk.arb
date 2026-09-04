@@ -166,29 +166,101 @@
   "foodSourcesHelpText": "Výsledky vyhľadávania pochádzajú z týchto databáz potravín. Open Food Facts poháňa vyhľadávanie produktov a čiarových kódov a je vždy zapnutá.",
   "machineTranslatedNameHint": "Názov bol preložený automaticky",
   "measureUnitBar": "{count, plural, one{tyčinka} few{tyčinky} other{tyčiniek}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, one{fľaša} few{fľaše} other{fliaš}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, one{plechovka} few{plechovky} other{plechoviek}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, one{šálka} few{šálky} other{šálok}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, one{vajce} few{vajcia} other{vajec}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, one{balenie} few{balenia} other{balení}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, one{kus} few{kusy} other{kusov}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, one{porcia} few{porcie} other{porcií}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, one{porcia} few{porcie} other{porcií}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, one{plátok} few{plátky} other{plátkov}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, one{lyžica} few{lyžice} other{lyžíc}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, one{lyžička} few{lyžičky} other{lyžičiek}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "Databázy potravín",
   "settingsFoodSourcesSubtitle": "Vyberte, odkiaľ pochádzajú výsledky vyhľadávania",
   "onboardingOtherOptionsLabel": "Ďalšie možnosti",
@@ -1089,26 +1161,40 @@
   "customMealsMergeConfirmContent": "Tým sa všetky záznamy zapísané s {loser} nahradia, aby zobrazovali {winner}, a {loser} bude odstránené z vašich vlastných jedál. Túto akciu nemožno vrátiť späť.",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "Zlúčiť",
   "customMealsMergeSuccessSnackbarOne": "Zlúčené — {winner} má teraz 1 záznam.",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "Zlúčené — {winner} má teraz {count} záznamov.",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "Pôst · zostáva {remaining}",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "Časovač pôstu",
@@ -1176,9 +1262,21 @@
   "aiAssistEndpointFieldLabel": "Adresa servera",
   "aiAssistModelFieldLabel": "Názov modelu",
   "aiAssistDisclosureOwnServerSecure": "S uloženou adresou sa text, ktorý zadáte na obrazovke hromadného pridávania, a každá fotografia, ktorú si tam necháte prečítať, odosiela na {host} — server, ktorý prevádzkujete vy. Nezískava ho žiadna tretia strana a projekt nemá k tomuto stroju žiadny vzťah a nemôže nič sľúbiť o tom, čo si uchováva. Spojenie je šifrované.",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "S uloženou adresou sa text, ktorý zadáte na obrazovke hromadného pridávania, a každá fotografia, ktorú si tam necháte prečítať, odosiela na {host} — server, ktorý prevádzkujete vy. Nezískava ho žiadna tretia strana a projekt nemá k tomuto stroju žiadny vzťah a nemôže nič sľúbiť o tom, čo si uchováva. Táto adresa je obyčajné HTTP, takže spojenie nie je šifrované: čokoľvek v sieti medzi týmto telefónom a oným serverom si môže prečítať, čo sa odosiela.",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "Zadajte adresu začínajúcu na http:// alebo https://",
   "aiAssistModelRequiredLabel": "Zadajte názov modelu, ktorý má tento server použiť.",
   "aiAssistEndpointPublicPlaintextLabel": "Táto adresa je verejná a nešifrovaná, preto sú požiadavky na ňu odmietané. Použite https alebo privátnu adresu.",
@@ -1246,5 +1344,6 @@
   "healthSyncDisclosureContinueAction": "Pokračovať",
   "healthSyncUnavailableLabel": "Zdravotné údaje nie sú na tomto zariadení dostupné. Import tréningov vyžaduje Health Connect v Androide alebo Apple Health v iOS.",
   "sourcesEnergyCompensationTitle": "Započítanie kalórií z tréningu",
-  "sourcesEnergyCompensationDescription": "Importované tréningy sa započítavajú s nižšou energiou, než akú hlási zariadenie. Ľudia cvičenie kompenzujú tým, že po zvyšok dňa spália menej kalórií – v priemere asi 28 %, pri vyššom podiele telesného tuku viac. Odporúčaná hodnota vychádza z tohto výskumu a môžeš ju zmeniť v Nastaveniach → Synchronizácia zdravotných údajov. Samotnú energiu hlási aplikácia alebo zariadenie, ktoré tréning zaznamenalo; nepočíta sa vzorcom MET v aplikácii."
+  "sourcesEnergyCompensationDescription": "Importované tréningy sa započítavajú s nižšou energiou, než akú hlási zariadenie. Ľudia cvičenie kompenzujú tým, že po zvyšok dňa spália menej kalórií – v priemere asi 28 %, pri vyššom podiele telesného tuku viac. Odporúčaná hodnota vychádza z tohto výskumu a môžeš ju zmeniť v Nastaveniach → Synchronizácia zdravotných údajov. Samotnú energiu hlási aplikácia alebo zariadenie, ktoré tréning zaznamenalo; nepočíta sa vzorcom MET v aplikácii.",
+  "searchRetryAfterConnectionLost": "Retry search"
 }

@@ -149,29 +149,101 @@
   "foodSourcesHelpText": "Suchergebnisse stammen aus diesen Lebensmitteldatenbanken. Open Food Facts liefert die Produkt- und Barcode-Suche und ist immer aktiviert.",
   "machineTranslatedNameHint": "Name automatisch übersetzt",
   "measureUnitBar": "{count, plural, one{Riegel} other{Riegel}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, one{Flasche} other{Flaschen}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, one{Dose} other{Dosen}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, one{Tasse} other{Tassen}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, one{Ei} other{Eier}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, one{Packung} other{Packungen}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, one{Stück} other{Stück}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, one{Portion} other{Portionen}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, one{Portion} other{Portionen}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, one{Scheibe} other{Scheiben}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, one{Esslöffel} other{Esslöffel}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, one{Teelöffel} other{Teelöffel}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "Lebensmitteldatenbanken",
   "settingsFoodSourcesSubtitle": "Wähle, woher die Suchergebnisse stammen",
   "onboardingOtherOptionsLabel": "Weitere Optionen",
@@ -1089,26 +1161,40 @@
   "customMealsMergeConfirmContent": "Dadurch werden alle Einträge, die mit {loser} protokolliert wurden, ersetzt, sodass sie {winner} anzeigen. Außerdem wird {loser} aus deinen eigenen Mahlzeiten entfernt. Das kann nicht rückgängig gemacht werden.",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "Zusammenführen",
   "customMealsMergeSuccessSnackbarOne": "Zusammengeführt — {winner} hat jetzt 1 Eintrag.",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "Zusammengeführt — {winner} hat jetzt {count} Einträge.",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "Fasten · noch {remaining}",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "Fasten-Timer",
@@ -1176,9 +1262,21 @@
   "aiAssistEndpointFieldLabel": "Serveradresse",
   "aiAssistModelFieldLabel": "Modellname",
   "aiAssistDisclosureOwnServerSecure": "Mit gespeicherter Adresse wird der Text, den du auf dem Mehrfach-Hinzufügen-Bildschirm eingibst, und jedes Foto, das du dort auslesen lässt, an {host} gesendet — einen Server, den du selbst betreibst. Niemand Drittes erhält ihn, und das Projekt hat keine Beziehung zu dieser Maschine und kann nichts darüber zusagen, was sie aufbewahrt. Die Verbindung ist verschlüsselt.",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "Mit gespeicherter Adresse wird der Text, den du auf dem Mehrfach-Hinzufügen-Bildschirm eingibst, und jedes Foto, das du dort auslesen lässt, an {host} gesendet — einen Server, den du selbst betreibst. Niemand Drittes erhält ihn, und das Projekt hat keine Beziehung zu dieser Maschine und kann nichts darüber zusagen, was sie aufbewahrt. Diese Adresse ist einfaches HTTP, die Verbindung ist also nicht verschlüsselt: Alles im Netzwerk zwischen diesem Telefon und dem Server kann mitlesen, was gesendet wird.",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "Gib eine Adresse ein, die mit http:// oder https:// beginnt.",
   "aiAssistModelRequiredLabel": "Gib den Namen des Modells an, das dieser Server verwenden soll.",
   "aiAssistEndpointPublicPlaintextLabel": "Diese Adresse ist öffentlich und unverschlüsselt, deshalb werden Anfragen dorthin abgelehnt. Nimm https oder eine private Adresse.",
@@ -1246,5 +1344,6 @@
   "healthSyncDisclosureContinueAction": "Weiter",
   "healthSyncUnavailableLabel": "Gesundheitsdaten sind auf diesem Gerät nicht verfügbar. Der Trainingsimport benötigt Health Connect unter Android oder Apple Health unter iOS.",
   "sourcesEnergyCompensationTitle": "Anrechnung von Trainingskalorien",
-  "sourcesEnergyCompensationDescription": "Importierte Trainings werden mit weniger Energie angerechnet, als dein Gerät meldet. Menschen gleichen Sport aus, indem sie den Rest des Tages weniger Kalorien verbrennen – im Mittel etwa 28 %, bei höherem Körperfettanteil mehr. Der Vorschlag stammt aus dieser Forschung und lässt sich unter Einstellungen → Gesundheitsdaten-Sync ändern. Die Energie selbst meldet die App oder das Gerät, das das Training aufgezeichnet hat; sie wird nicht mit der MET-Formel der App berechnet."
+  "sourcesEnergyCompensationDescription": "Importierte Trainings werden mit weniger Energie angerechnet, als dein Gerät meldet. Menschen gleichen Sport aus, indem sie den Rest des Tages weniger Kalorien verbrennen – im Mittel etwa 28 %, bei höherem Körperfettanteil mehr. Der Vorschlag stammt aus dieser Forschung und lässt sich unter Einstellungen → Gesundheitsdaten-Sync ändern. Die Energie selbst meldet die App oder das Gerät, das das Training aufgezeichnet hat; sie wird nicht mit der MET-Formel der App berechnet.",
+  "searchRetryAfterConnectionLost": "Retry search"
 }

@@ -119,29 +119,101 @@
   "foodSourcesHelpText": "搜索结果来自这些食品数据库。Open Food Facts 提供产品和条形码搜索，始终处于启用状态。",
   "machineTranslatedNameHint": "名称为自动翻译",
   "measureUnitBar": "{count, plural, other{条}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, other{瓶}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, other{罐}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, other{杯}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, other{个}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, other{包}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, other{块}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, other{份}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, other{份}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, other{片}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, other{汤匙}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, other{茶匙}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "食品数据库",
   "settingsFoodSourcesSubtitle": "选择食品搜索结果的来源",
   "onboardingOtherOptionsLabel": "其他选项",
@@ -1059,26 +1131,40 @@
   "customMealsMergeConfirmContent": "这会把所有用 {loser} 记录的条目改为显示 {winner},并把 {loser} 从你的自定义食物中移除。此操作无法撤销。",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "合并",
   "customMealsMergeSuccessSnackbarOne": "已合并 — {winner} 现在有 1 条记录。",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "已合并 — {winner} 现在有 {count} 条记录。",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "禁食中 · 剩余 {remaining}",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "断食计时器",
@@ -1146,9 +1232,21 @@
   "aiAssistEndpointFieldLabel": "服务器地址",
   "aiAssistModelFieldLabel": "模型名称",
   "aiAssistDisclosureOwnServerSecure": "保存地址后，您在多项添加界面输入的文本，以及您选择在那里读取的任何照片，会发送到 {host}——由您自己运行的服务器。没有第三方会收到它，本项目与该机器没有任何关系，也无法就其保留内容做出任何承诺。连接是加密的。",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "保存地址后，您在多项添加界面输入的文本，以及您选择在那里读取的任何照片，会发送到 {host}——由您自己运行的服务器。没有第三方会收到它，本项目与该机器没有任何关系，也无法就其保留内容做出任何承诺。该地址为明文 HTTP，因此连接未加密：本手机与该服务器之间网络上的任何设备都能读取所发送的内容。",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "请输入以 http:// 或 https:// 开头的地址。",
   "aiAssistModelRequiredLabel": "请填写该服务器要使用的模型名称。",
   "aiAssistEndpointPublicPlaintextLabel": "该地址是公网地址且未加密，因此发往它的请求会被拒绝。请使用 https 或私有地址。",
@@ -1216,5 +1314,6 @@
   "healthSyncDisclosureContinueAction": "继续",
   "healthSyncUnavailableLabel": "此设备上无法使用健康数据。导入锻炼需要 Android 上的 Health Connect 或 iOS 上的 Apple Health。",
   "sourcesEnergyCompensationTitle": "锻炼热量计入比例",
-  "sourcesEnergyCompensationDescription": "导入的锻炼计入的热量少于设备报告的数值。人体会在一天中的其余时间少消耗热量来补偿运动，平均约为 28%，体脂率越高补偿越多。建议值来自该研究，你可以在设置 → 健康同步中修改。热量数值由记录该锻炼的应用或设备提供，并非由应用内的 MET 公式计算。"
+  "sourcesEnergyCompensationDescription": "导入的锻炼计入的热量少于设备报告的数值。人体会在一天中的其余时间少消耗热量来补偿运动，平均约为 28%，体脂率越高补偿越多。建议值来自该研究，你可以在设置 → 健康同步中修改。热量数值由记录该锻炼的应用或设备提供，并非由应用内的 MET 公式计算。",
+  "searchRetryAfterConnectionLost": "Retry search"
 }

@@ -118,29 +118,101 @@
   "foodSourcesHelpText": "Wyniki wyszukiwania pochodzą z tych baz danych żywności. Open Food Facts obsługuje wyszukiwanie produktów i kodów kreskowych i jest zawsze włączona.",
   "machineTranslatedNameHint": "Nazwa przetłumaczona automatycznie",
   "measureUnitBar": "{count, plural, one{baton} few{batony} many{batonów} other{batona}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, one{butelka} few{butelki} many{butelek} other{butelki}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, one{puszka} few{puszki} many{puszek} other{puszki}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, one{filiżanka} few{filiżanki} many{filiżanek} other{filiżanki}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, one{jajko} few{jajka} many{jajek} other{jajka}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, one{opakowanie} few{opakowania} many{opakowań} other{opakowania}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, one{kawałek} few{kawałki} many{kawałków} other{kawałka}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, one{porcja} few{porcje} many{porcji} other{porcji}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, one{porcja} few{porcje} many{porcji} other{porcji}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, one{plasterek} few{plasterki} many{plasterków} other{plasterka}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, one{łyżka} few{łyżki} many{łyżek} other{łyżki}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, one{łyżeczka} few{łyżeczki} many{łyżeczek} other{łyżeczki}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "Bazy danych żywności",
   "settingsFoodSourcesSubtitle": "Wybierz, skąd pochodzą wyniki wyszukiwania",
   "onboardingOtherOptionsLabel": "Inne opcje",
@@ -1058,26 +1130,40 @@
   "customMealsMergeConfirmContent": "Spowoduje to zastąpienie wszystkich wpisów zarejestrowanych z {loser}, tak by pokazywały {winner}, oraz usunie {loser} z Twoich własnych produktów. Tej operacji nie można cofnąć.",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "Połącz",
   "customMealsMergeSuccessSnackbarOne": "Połączono — {winner} ma teraz 1 wpis.",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "Połączono — {winner} ma teraz {count} wpisów.",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "Post · pozostało {remaining}",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "Minutnik postu",
@@ -1145,9 +1231,21 @@
   "aiAssistEndpointFieldLabel": "Adres serwera",
   "aiAssistModelFieldLabel": "Nazwa modelu",
   "aiAssistDisclosureOwnServerSecure": "Po zapisaniu adresu tekst wpisywany na ekranie dodawania wielu pozycji oraz każde zdjęcie, które każesz tam odczytać, jest wysyłany do {host} — serwera, który sam prowadzisz. Nie otrzymuje go żadna strona trzecia, a projekt nie ma relacji z tą maszyną i nie może niczego obiecać co do tego, co ona przechowuje. Połączenie jest szyfrowane.",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "Po zapisaniu adresu tekst wpisywany na ekranie dodawania wielu pozycji oraz każde zdjęcie, które każesz tam odczytać, jest wysyłany do {host} — serwera, który sam prowadzisz. Nie otrzymuje go żadna strona trzecia, a projekt nie ma relacji z tą maszyną i nie może niczego obiecać co do tego, co ona przechowuje. Ten adres to zwykły HTTP, więc połączenie nie jest szyfrowane: wszystko w sieci między tym telefonem a tym serwerem może odczytać to, co jest wysyłane.",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "Podaj adres zaczynający się od http:// lub https://",
   "aiAssistModelRequiredLabel": "Podaj nazwę modelu, którego ma użyć ten serwer.",
   "aiAssistEndpointPublicPlaintextLabel": "Ten adres jest publiczny i nieszyfrowany, więc żądania do niego są odrzucane. Użyj https albo adresu prywatnego.",
@@ -1215,5 +1313,6 @@
   "healthSyncDisclosureContinueAction": "Dalej",
   "healthSyncUnavailableLabel": "Dane zdrowotne nie są dostępne na tym urządzeniu. Import treningów wymaga Health Connect na Androidzie lub Apple Health na iOS.",
   "sourcesEnergyCompensationTitle": "Zaliczanie kalorii z treningu",
-  "sourcesEnergyCompensationDescription": "Zaimportowane treningi są zaliczane z mniejszą energią, niż raportuje urządzenie. Ludzie kompensują wysiłek, spalając mniej kalorii przez resztę dnia — średnio około 28%, a przy wyższej zawartości tkanki tłuszczowej więcej. Sugerowana wartość pochodzi z tych badań i możesz ją zmienić w Ustawieniach → Synchronizacja zdrowia. Sama energia pochodzi z aplikacji lub urządzenia, które zarejestrowało trening, i nie jest obliczana wzorem MET w aplikacji."
+  "sourcesEnergyCompensationDescription": "Zaimportowane treningi są zaliczane z mniejszą energią, niż raportuje urządzenie. Ludzie kompensują wysiłek, spalając mniej kalorii przez resztę dnia — średnio około 28%, a przy wyższej zawartości tkanki tłuszczowej więcej. Sugerowana wartość pochodzi z tych badań i możesz ją zmienić w Ustawieniach → Synchronizacja zdrowia. Sama energia pochodzi z aplikacji lub urządzenia, które zarejestrowało trening, i nie jest obliczana wzorem MET w aplikacji.",
+  "searchRetryAfterConnectionLost": "Retry search"
 }
