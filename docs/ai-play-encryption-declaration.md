@@ -51,6 +51,19 @@ Health Connect or HealthKit integration. So today the declaration is honest, and
 user-typed `http://` address under [#758](https://github.com/simonoppowa/OpenNutriTracker/issues/758)
 would be the app's only plaintext path.
 
+> **Update, 2026-09-04.** Two facts in the paragraph above have expired, and the
+> findings are left as read on 2026-08-22 rather than rewritten. **#758 shipped**,
+> so the conditional in the last sentence is no longer conditional: the app permits
+> plaintext to a private address, which is the only plaintext path and it now
+> exists. *"Today the declaration is honest"* should not be carried forward — the
+> live form still answers **Yes**, and reconciling that is an acceptance criterion
+> on [#1050](https://github.com/simonoppowa/OpenNutriTracker/issues/1050). Section 3
+> below is the part that still holds and is the reason it needs a decision rather
+> than an edit. Separately, **2.2.0 added workout import**, so "there is no Health
+> Connect or HealthKit integration" is out of date; it does not change this
+> question, and what it does change for the Data safety form is
+> [#937](https://github.com/simonoppowa/OpenNutriTracker/issues/937).
+
 ## 3. Can a conditional truth be expressed?
 
 **No.** Google is explicit that the declaration is all-or-nothing:
