@@ -982,8 +982,10 @@ jobs:
               echo '`github-release` is skipped.'
               echo
               echo '**A skipped `github-release` on this path is the expected result, not the'
-              echo '#1008 failure it resembles.** A skipped job reports as Success, nothing'
-              echo 'in this workflow depends on `github-release`, and the run stays green.'
+              echo '#1008 failure it resembles.** A skipped job reports as Success, and the'
+              echo 'one job that does depend on `github-release` — `release-summary` — runs'
+              echo 'under `!cancelled()` and asserts nothing about a release when `publish`'
+              echo 'is false. So the run stays green.'
               echo
               echo '**Where the binaries are:** the `ios-ipa`, `android-aab` and'
               echo '`android-apk` artifacts on this run page, kept for 90 days (the'
@@ -1545,6 +1547,12 @@ jobs:
       # which pushes one lightweight tag with the GITHUB_TOKEN credentials
       # actions/checkout persists. Nothing else in this job writes to the repo.
       contents: write
+    # `result: success` on this job does NOT mean Play has the bundle — the
+    # upload step below tolerates #942 and exits 0 with the bundle rejected.
+    # That distinction lived only in the log until `release-summary` needed it,
+    # which is the whole reason this output exists.
+    outputs:
+      play_uploaded: ${{ steps.play-upload.outputs.play_uploaded }}
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/android/Gemfile
     steps:
@@ -1588,6 +1596,7 @@ jobs:
       # unseen for eight days. The manual upload is where those warnings
       # appear, which is why the summary below insists on reading them.
       - name: Upload Android App Bundle to Google Play Internal Testing via Fastlane
+        id: play-upload
         working-directory: android
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
@@ -1599,7 +1608,10 @@ jobs:
           status=${PIPESTATUS[0]}
           set -e
 
-          [ "$status" -eq 0 ] && exit 0
+          if [ "$status" -eq 0 ]; then
+            echo 'play_uploaded=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           if ! grep -qF \
             'You must let us know whether your app includes any health features' \
@@ -1607,6 +1619,11 @@ jobs:
             echo "::error::Play upload failed for a reason other than the known health-declaration defect (#942). Not tolerated."
             exit "$status"
           fi
+
+          # Tolerated, so this job goes green — but Play does not have the
+          # bundle. `release-summary` reads this and says so on the run page,
+          # rather than leaving it to whoever thinks to open this log.
+          echo 'play_uploaded=false' >> "$GITHUB_OUTPUT"
 
           echo "::warning::Play rejected the API upload with the known health-declaration defect (#942). The Android bundle needs uploading by hand; iOS is unaffected."
 
@@ -1801,6 +1818,289 @@ jobs:
             release-assets/opennutritracker.ipa
             release-assets/android/app-release.aab
             release-assets/android/app-release.apk
+
+      # #1012, flavour one. The action reporting success is not the same as a
+      # release existing: the existing-release path above logs and returns
+      # without throwing, and the job stays green. Ask the remote instead of
+      # trusting the step, and check the binaries too — a published tag with no
+      # assets is #959 in a different coat, green and not installable.
+      - name: Assert the release exists and carries all three binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Three-way, like `ref_exists()` in release-gate and for the reason
+          # given there: `--exit-code` returns 2 for "no such ref" and
+          # something else entirely when the question was never answered, and
+          # a transport failure must never be reported as "nothing was
+          # published". An earlier draft of this step collapsed them.
+          # Both refs, on purpose. An ANNOTATED tag's own ref points at the
+          # tag object, not at the commit — the commit sits behind the peeled
+          # `^{}` ref, and an exact pattern does not return that unless it is
+          # asked for by name (a bare `--tags` would list both; this does not).
+          # So asking only for `refs/tags/$TAG_NAME` and comparing to
+          # $GITHUB_SHA would compare a tag-object sha to a commit sha and
+          # always differ.
+          #
+          # `action-gh-release` creates a lightweight ref through the Releases
+          # API, so today only the plain line comes back and the peeled one
+          # does not exist. This does not rely on that staying true: correctness
+          # here should not depend on an implementation detail of a third-party
+          # action, because the failure mode is every release going red.
+          set +e
+          ref=$(git ls-remote --exit-code --tags origin "refs/tags/$TAG_NAME" "refs/tags/$TAG_NAME^{}" 2>/dev/null)
+          ls_status=$?
+          set -e
+
+          case "$ls_status" in
+            0) ;;
+            2)
+              echo "::error::The release step reported success but $TAG_NAME is not on the remote. Nothing was published."
+              exit 1
+              ;;
+            *)
+              echo "::error::Could not read tags from origin (git ls-remote exit $ls_status) while checking $TAG_NAME. Refusing to guess whether the release was published."
+              exit 1
+              ;;
+          esac
+
+          # The tag exists — but is it OURS? This is the existing-release path
+          # in the comment above: the action lands on a tag that was already
+          # there, logs, returns, and stays green over assets belonging to a
+          # different build. Names alone cannot tell the two apart, because the
+          # names are identical. The commit can: a release this run published
+          # is tagged at this run's commit.
+          tag_sha=$(printf '%s\n' "$ref" | awk -v t="refs/tags/$TAG_NAME" '
+            $2 == t "^{}" { peeled = $1 }
+            $2 == t       { plain  = $1 }
+            END           { print (peeled != "" ? peeled : plain) }')
+          if [ "$tag_sha" != "$GITHUB_SHA" ]; then
+            echo "::error::$TAG_NAME points at $tag_sha, not this run's commit ($GITHUB_SHA). The tag existed before this job ran, so the assets on it belong to a different build and this run published nothing. Do not re-run this job — see the overwrite_files note above."
+            exit 1
+          fi
+
+          if ! assets=$(gh release view "$TAG_NAME" --json assets --jq '[.assets[].name] | join(" ")'); then
+            echo "::error::Could not read the release for $TAG_NAME from the API. The tag is correct; nothing is concluded about its assets."
+            exit 1
+          fi
+
+          for want in opennutritracker.ipa app-release.aab app-release.apk; do
+            case " $assets " in
+              *" $want "*) ;;
+              *)
+                echo "::error::$TAG_NAME exists but carries no $want. Attached: ${assets:-<none>}."
+                exit 1
+                ;;
+            esac
+          done
+
+          echo "::notice::Published $TAG_NAME at $tag_sha with all three binaries attached."
+
+  # #1012, flavour two, and the one that outlives any specific fix. Two
+  # consecutive releases were lost — 2.1.0 to a real `android-deploy` failure,
+  # 2.2.0 to a skip that travelled the whole `needs:` chain — and both run
+  # pages looked exactly like a success. Nothing downstream of a skipped job
+  # can report on it, because it inherits the skip. So this job depends on
+  # everything and inherits nothing, and asserts the ARTIFACT rather than the
+  # colour: `release-gate` already said what this push was supposed to
+  # produce, and this checks that it did.
+  #
+  # A bare `!cancelled()` with no other status function is WRONG in the five
+  # deploy gates — it would push a failed integration suite straight to
+  # TestFlight — and it is exactly right here, because running after failures
+  # and skips is the entire point. Every judgement below is then made
+  # explicitly from `needs.*.result`, which is the same discipline the deploy
+  # gates apply for the opposite reason.
+  #
+  # It never fails a run that was not meant to ship. A docs merge to `main`
+  # leaves `deploy` and `publish` both false, and this job says so and exits 0.
+  release-summary:
+    if: |
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      !cancelled()
+    needs:
+      - release-gate
+      - ios-package
+      - ios-deploy
+      - android-package
+      - android-deploy
+      - github-release
+    runs-on: ubuntu-latest
+    # Reads the repo and asks origin about tags; writes nothing. Every other
+    # job here states its permissions, and this one has no reason to be the
+    # exception.
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      # `GITHUB_`-prefixed names are reserved by Actions, hence `RELEASE_JOB`
+      # rather than the obvious `GITHUB_RELEASE`.
+      - name: Assert this run produced what the gate promised
+        env:
+          GATE: ${{ needs.release-gate.result }}
+          DEPLOY: ${{ needs.release-gate.outputs.deploy }}
+          PUBLISH: ${{ needs.release-gate.outputs.publish }}
+          IOS_PACKAGE: ${{ needs.ios-package.result }}
+          IOS_DEPLOY: ${{ needs.ios-deploy.result }}
+          ANDROID_PACKAGE: ${{ needs.android-package.result }}
+          ANDROID_DEPLOY: ${{ needs.android-deploy.result }}
+          RELEASE_JOB: ${{ needs.github-release.result }}
+          PLAY_UPLOADED: ${{ needs.android-deploy.outputs.play_uploaded }}
+        run: |
+          set -u
+          APP_VERSION=$(awk '/^version:/ {print $2}' pubspec.yaml)
+          TAG_NAME="v${APP_VERSION%+*}"
+          fail=0
+
+          {
+            echo "### Release summary for \`$APP_VERSION\`"
+            echo
+            echo '| Job | Result |'
+            echo '| :-- | :-- |'
+            echo "| \`release-gate\` | \`$GATE\` |"
+            echo "| \`ios-package\` | \`$IOS_PACKAGE\` |"
+            echo "| \`android-package\` | \`$ANDROID_PACKAGE\` |"
+            echo "| \`ios-deploy\` | \`$IOS_DEPLOY\` |"
+            echo "| \`android-deploy\` | \`$ANDROID_DEPLOY\` |"
+            echo "| \`github-release\` | \`$RELEASE_JOB\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Everything below reads the gate's answer, so without one there is
+          # nothing to assert. The run is already red on the gate's account.
+          if [ "$GATE" != success ]; then
+            {
+              echo
+              echo "\`release-gate\` did not succeed (\`$GATE\`), so what this push"
+              echo 'should have produced was never decided. The failure is upstream;'
+              echo 'this job asserts nothing.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # The gate succeeded, so it set both outputs. Empty means the
+          # contract between the two jobs has been broken by an edit.
+          if [ -z "$DEPLOY" ] || [ -z "$PUBLISH" ]; then
+            echo "::error::release-gate succeeded but did not set deploy/publish (deploy='$DEPLOY' publish='$PUBLISH'). Its outputs are what every deploy job is gated on, so this is not survivable."
+            exit 1
+          fi
+
+          if [ "$DEPLOY" = true ]; then
+            BUILD_NUMBER=${APP_VERSION##*+}
+            ledger_advice=''
+
+            for pair in "ios-package:$IOS_PACKAGE" "android-package:$ANDROID_PACKAGE" \
+                        "ios-deploy:$IOS_DEPLOY" "android-deploy:$ANDROID_DEPLOY"; do
+              job=${pair%%:*}
+              res=${pair##*:}
+              [ "$res" = success ] && continue
+
+              # A red deploy job says nothing about whether a store took the
+              # build. The ledger push is the LAST step of each deploy job, so
+              # a failure before it leaves nothing recorded, and a failure
+              # after it means the upload succeeded. And since the release
+              # jobs moved behind environments, `failure` is also what a
+              # REJECTED approval reports — GitHub: "If a job is rejected, the
+              # workflow will fail" — which consumes nothing at all.
+              #
+              # None of those are distinguishable from `needs.*.result`. The
+              # ledger is, so ask it once rather than guessing, and word the
+              # advice from the answer. Telling someone a build number is
+              # spent when it is not costs them a pointless version bump;
+              # telling them it is free when it is not costs a rejected
+              # upload at both stores.
+              if [ -z "$ledger_advice" ]; then
+                set +e
+                git ls-remote --exit-code --tags origin "refs/tags/deployed/$BUILD_NUMBER" >/dev/null 2>&1
+                ls_status=$?
+                set -e
+                case "$ls_status" in
+                  0) ledger_advice="A store has already consumed build $BUILD_NUMBER (deployed/$BUILD_NUMBER exists), so it cannot be uploaded again — bump the build number and ship afresh." ;;
+                  2) ledger_advice="No store consumed build $BUILD_NUMBER (deployed/$BUILD_NUMBER does not exist), so it can be retried as it stands." ;;
+                  *) ledger_advice="Could not read the ledger from origin (git ls-remote exit $ls_status), so whether build $BUILD_NUMBER is spent is unknown. Check deployed/$BUILD_NUMBER by hand before retrying." ;;
+                esac
+              fi
+
+              echo "::error::release-gate said build $BUILD_NUMBER should deploy, but $job reported '$res'. $ledger_advice"
+              fail=1
+            done
+          fi
+
+          if [ "$PUBLISH" = true ]; then
+            # Ask the remote FIRST, and word the error from the answer rather
+            # than from the job's colour. `action-gh-release` creates the
+            # release before it uploads `files:`, so a failure part-way through
+            # leaves a real, partial release behind — and "there is no release"
+            # would then send the operator to re-run the job, which renames the
+            # published release and appends a second copy of the notes.
+            set +e
+            git ls-remote --exit-code --tags origin "refs/tags/$TAG_NAME" >/dev/null 2>&1
+            ls_status=$?
+            set -e
+            case "$ls_status" in
+              0) tag_state=present ;;
+              2) tag_state=absent ;;
+              *) tag_state=unknown ;;
+            esac
+
+            if [ "$tag_state" = unknown ]; then
+              echo "::error::Could not read tags from origin (git ls-remote exit $ls_status) while asking whether $TAG_NAME was published. Nothing is concluded about the release."
+              fail=1
+            elif [ "$RELEASE_JOB" != success ] && [ "$tag_state" = absent ]; then
+              echo "::error::release-gate said $TAG_NAME should be published, github-release reported '$RELEASE_JOB', and the tag is not on the remote. Nothing was published."
+              fail=1
+            elif [ "$RELEASE_JOB" != success ]; then
+              echo "::error::github-release reported '$RELEASE_JOB' but $TAG_NAME IS on the remote, so a release exists and may be incomplete. Inspect its assets by hand; do NOT re-run github-release, which renames a published release and appends its notes again."
+              fail=1
+            elif [ "$tag_state" = absent ]; then
+              echo "::error::github-release succeeded but $TAG_NAME is not on the remote."
+              fail=1
+            fi
+          fi
+
+          if [ "$DEPLOY" != true ] && [ "$PUBLISH" != true ]; then
+            {
+              echo
+              echo 'Nothing was due to ship from this push — the build number is spent and'
+              echo 'the version name is published. This is the expected result for a docs'
+              echo 'fix or any merge that did not bump `version:` in `pubspec.yaml`.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          # Green here does not mean Play has the bundle. It is the one
+          # tolerated failure in the whole pipeline (#942), and the warning it
+          # emits sits inside a log nobody opens on a green run.
+          # Deliberately NOT gated on android-deploy being green. The ledger
+          # step runs after the upload and can fail on its own, and that is
+          # precisely the run where this warning matters most — its error text
+          # says the build "HAS been uploaded", which on this path is false.
+          # A skipped android-deploy leaves the output empty rather than
+          # `false`, so this still cannot fire spuriously.
+          if [ "$PLAY_UPLOADED" = false ]; then
+            echo "::warning::Play rejected the upload (#942), so Play does not have this bundle and it still needs uploading by hand. android-deploy tolerates that one error, so its result — whatever it is — says nothing about whether Play accepted the build. See docs/RELEASING.md."
+            {
+              echo
+              echo '> **The Android bundle is not on Play.** The API upload was rejected'
+              echo '> with the known health-declaration defect'
+              echo '> ([#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942)),'
+              echo '> which this pipeline tolerates. `android-deploy`'"'"'s result says only that'
+              echo '> the bundle was built and the error was the expected one — never that'
+              echo '> Play accepted it. Upload it by hand; `docs/RELEASING.md` has the steps.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "$fail" -ne 0 ]; then
+            {
+              echo
+              echo '**This run did not produce what `release-gate` promised.** Catching'
+              echo 'that is [#1012](https://github.com/simonoppowa/OpenNutriTracker/issues/1012)'
+              echo 'and the reason this job exists. Read the errors above rather than the'
+              echo 'colour of the other jobs — some of them are green.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          exit "$fail"
 
 # Historical reference — the original single-step `just ci` invocation that
 # was used before this workflow was split into linux-checks + ios-build.

@@ -44,7 +44,9 @@ bundle uploaded by hand through the console is asked no health question and goes
 
 The step tolerates that one error and nothing else: it emits a `::warning::` and writes the
 recovery steps into the run's **step summary**. So the job going green is not the signal — read the
-summary. When it says the upload needs doing by hand:
+summary. `release-summary` repeats it at the end of the run in its own words, and does so whatever
+colour `android-deploy` ended up, because the ledger step after the upload can fail on its own.
+When either says the upload needs doing by hand:
 
 1. Download the `android-aab` artifact from the run. (A full release also attaches the AAB to the
    GitHub release; a build-only bump creates no release, so the run artifact is the only copy —
@@ -116,6 +118,13 @@ This step starts passing on its own once Google fixes the API; nothing here need
 - [ ] **Submit the iOS build.** The lane uploads to TestFlight; App Store submission is not
       automated.
 - [ ] **Update the store listings** with the "what's new" text, since the pipeline uploads none.
+- [ ] **Read `release-summary`.** It is the last job, it runs whatever happened upstream, and it
+      asserts the artifact rather than the colour: that every deploy job the gate promised actually
+      succeeded, and that the tag the gate promised is on the remote. A run where it is green and
+      says *"Nothing was due to ship from this push"* shipped nothing **on purpose**; a run where it
+      is red shipped less than it promised, whatever the jobs above it say. It exists because two
+      consecutive releases were lost behind a green run
+      ([#1012](https://github.com/simonoppowa/OpenNutriTracker/issues/1012)).
 
 ## Store declarations
 
