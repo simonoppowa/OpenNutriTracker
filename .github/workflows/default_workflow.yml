@@ -1823,8 +1823,21 @@ jobs:
           # something else entirely when the question was never answered, and
           # a transport failure must never be reported as "nothing was
           # published". An earlier draft of this step collapsed them.
+          # Both refs, on purpose. An ANNOTATED tag's own ref points at the
+          # tag object, not at the commit — the commit sits behind the peeled
+          # `^{}` ref, and an exact pattern does not return that unless it is
+          # asked for by name (a bare `--tags` would list both; this does not).
+          # So asking only for `refs/tags/$TAG_NAME` and comparing to
+          # $GITHUB_SHA would compare a tag-object sha to a commit sha and
+          # always differ.
+          #
+          # `action-gh-release` creates a lightweight ref through the Releases
+          # API, so today only the plain line comes back and the peeled one
+          # does not exist. This does not rely on that staying true: correctness
+          # here should not depend on an implementation detail of a third-party
+          # action, because the failure mode is every release going red.
           set +e
-          ref=$(git ls-remote --exit-code --tags origin "refs/tags/$TAG_NAME" 2>/dev/null)
+          ref=$(git ls-remote --exit-code --tags origin "refs/tags/$TAG_NAME" "refs/tags/$TAG_NAME^{}" 2>/dev/null)
           ls_status=$?
           set -e
 
@@ -1846,7 +1859,10 @@ jobs:
           # different build. Names alone cannot tell the two apart, because the
           # names are identical. The commit can: a release this run published
           # is tagged at this run's commit.
-          tag_sha=${ref%%[[:space:]]*}
+          tag_sha=$(printf '%s\n' "$ref" | awk -v t="refs/tags/$TAG_NAME" '
+            $2 == t "^{}" { peeled = $1 }
+            $2 == t       { plain  = $1 }
+            END           { print (peeled != "" ? peeled : plain) }')
           if [ "$tag_sha" != "$GITHUB_SHA" ]; then
             echo "::error::$TAG_NAME points at $tag_sha, not this run's commit ($GITHUB_SHA). The tag existed before this job ran, so the assets on it belong to a different build and this run published nothing. Do not re-run this job — see the overwrite_files note above."
             exit 1
