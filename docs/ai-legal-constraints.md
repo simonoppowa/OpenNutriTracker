@@ -798,11 +798,30 @@ itself transmits nothing to the developer?" is: **it changes the *sharing* answe
 not the *collection* answers.**
 
 - **Collection.** Yes, tiers 1–2 collect in Play's sense, because "collect" means
-  transmitting off device — irrespective of destination. Photos and the meal
-  description (which Play would treat under "Health and fitness" and "Photos and
-  videos") must be declared as collected, marked **optional** (the user can use the
-  entire app without ever enabling the feature), with purpose "App functionality".
-  Tier 0 collects nothing new.
+  transmitting off device — irrespective of destination. The meal photo and the
+  typed meal description must both be declared as collected, marked **optional**
+  (the user can use the entire app without ever enabling the feature), with
+  purpose "App functionality". Tier 0 collects nothing new.
+
+  **Corrected 2026-09-04.** This bullet previously said Play "would treat" the two
+  under *Health and fitness* and *Photos and videos*. The second is right; the
+  first is not, and nothing was cited for it. Play's only two types under that
+  heading are **Health info** — *"Information about a user's health, such as
+  medical records or symptoms"* — and **Fitness info** — *"Information about a
+  user's fitness, such as exercise or other physical activity"*. A meal
+  description is neither. It belongs under **App activity → Other user-generated
+  content**: *"Any other user-generated content not listed here, or in any
+  section. For example, user bios, notes, or open-ended responses."* So the pair
+  is **Photos and videos → Photos** and **App activity → Other user-generated
+  content**, and no Health and fitness entry arises from the AI path.
+
+  Nor from workout import, for a separate reason:
+  [#937](https://github.com/simonoppowa/OpenNutriTracker/issues/937) found that
+  data read from Health Connect and never transmitted falls under Google's
+  carve-out — *"User data accessed by your app that is only processed locally on
+  the user's device and not sent off device does not need to be disclosed."* Two
+  unrelated reasons for the same empty answer; neither covers the other. The live
+  form is [#1050](https://github.com/simonoppowa/OpenNutriTracker/issues/1050).
 - **Sharing.** The user-initiated-action exception is a strong fit — the user
   pastes an endpoint, then taps a button to send a specific photo or sentence. On
   the strict reading you need not declare sharing. Declare it anyway: it costs

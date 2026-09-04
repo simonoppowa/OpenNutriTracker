@@ -117,6 +117,62 @@ This step starts passing on its own once Google fixes the API; nothing here need
       automated.
 - [ ] **Update the store listings** with the "what's new" text, since the pipeline uploads none.
 
+## Store declarations
+
+These declarations sit in three different places, which is the whole reason they drift apart:
+
+- **In the app bundle.** The iOS purpose strings in `Info.plist`, and the privacy manifest. They
+  ship with a build and are entered nowhere — they are right when the code is right, and App
+  Review reads them straight out of the bundle.
+- **Repo text that a human copies into a console.** The Play listing, and only that.
+- **Console only, with no repo copy at all.** Play's Health apps declaration, and the App Store
+  Connect App Privacy record — which has to agree with the privacy manifest, with nothing
+  anywhere checking that it does.
+
+All of them were corrected for 2.2.0 in
+[#990](https://github.com/simonoppowa/OpenNutriTracker/issues/990).
+[`test/unit_test/store_declarations_test.dart`](../test/unit_test/store_declarations_test.dart)
+pins the repo half so a later edit cannot quietly undo one; the console half is the checklist
+below, and nothing but this page will remind you.
+
+- [ ] **Paste `fastlane/metadata/android/en-US/full_description.txt` into the Play listing.**
+      `upload_to_play_store` runs with `skip_upload_metadata: true`, so the pipeline never touches
+      the listing and the file and the live description agree only if someone copies it across.
+      The file is held under Play's 4000-character cap by a test; the Console gives no warning
+      until it refuses the text.
+- [ ] **Keep the "not a medical device" sentence in the listing.** Google's
+      [Health Content and Services](https://support.google.com/googleplay/android-developer/answer/12261419)
+      policy requires that exact wording *in the app description* for a health-and-fitness app that
+      is not a declared medical device, plus a reminder to consult a healthcare professional. Both
+      are the last line of `full_description.txt`.
+- [ ] **Answer Play's Health apps declaration.** Required for all developers under the same policy,
+      with nutrition tracking as a declarable feature.
+- [ ] **Make the App Store Connect App Privacy record agree with
+      [`ios/Runner/PrivacyInfo.xcprivacy`](../ios/Runner/PrivacyInfo.xcprivacy).** They are two
+      separate artifacts with no link between them, so they agree only by hand — and Apple
+      validates the manifest on the way in: *"App Store Connect rejects app submissions that
+      include invalid privacy manifest files."* What the manifest declares today, and what the
+      questionnaire therefore has to say:
+
+      | Data type | Linked to user | Tracking | Purpose |
+      | :-- | :-- | :-- | :-- |
+      | Photos or Videos | No | No | App Functionality |
+      | Other User Content | No | No | App Functionality |
+      | Crash Data, Performance Data, Other Diagnostic Data | No | No | App Functionality |
+
+      The first two exist only because of AI meal assistance. Food search terms, HealthKit
+      workouts and locally-attached meal photos are deliberately absent; the manifest says why,
+      beside each one.
+
+The table is what the AI path made necessary, not a statement that the record is complete. Three
+things behind it are open rather than answered, and none blocks a release:
+[#816](https://github.com/simonoppowa/OpenNutriTracker/issues/816) on whether a server the user
+runs counts as collection for Play's Data safety form; the Apple twin of it noted in the privacy
+manifest; and [#938](https://github.com/simonoppowa/OpenNutriTracker/issues/938) on the coarse
+location the Supabase gateway derives from the caller's IP, whose research concludes both stores
+want it declared and which no manifest entry covers yet. That research sits on the unmerged
+`research/store-declarations` branch; `docs/ai-legal-constraints.md` carries the rest.
+
 ## Hotfixes, and the way back to `develop`
 
 A fix urgent enough to skip the batch can go straight to `main`. Nothing brings it back down, so

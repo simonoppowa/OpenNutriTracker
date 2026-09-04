@@ -137,7 +137,7 @@ Note: the `SupportedLanguage` enum maps device locales to `food_translation` loc
 
 ## Code Style
 
-The project uses a **120-character line width** (configured in `analysis_options.yaml`). The `just format` command targets only `./lib/core ./lib/features ./lib/l10n ./test` — it deliberately excludes `lib/generated/`. Do not run `dart format` on `lib/generated/` files.
+`just format` runs `dart format` with no `--line-length`, so the width `just ci` enforces is the formatter's own default of **80 characters**. Nothing configures a different one: `analysis_options.yaml` sets no width, `pubspec.yaml` has no formatter section, and there is no `.editorconfig`. About 1.7% of lines do run past 80 — those are the ones `dart format` will not break, such as long string literals, URLs and comments. The `just format` command targets only `./lib/core ./lib/features ./lib/l10n ./test` — it deliberately excludes `lib/generated/`. Do not run `dart format` on `lib/generated/` files.
 
 ## Accessibility identifiers for interactive widgets
 
