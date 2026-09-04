@@ -66,6 +66,68 @@ class ExportDataUsecase {
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
   }) async {
+    final archive = await assembleArchive(
+      format: format,
+      userActivityJsonFileName: userActivityJsonFileName,
+      userIntakeJsonFileName: userIntakeJsonFileName,
+      trackedDayJsonFileName: trackedDayJsonFileName,
+      recipeJsonFileName: recipeJsonFileName,
+      weightLogJsonFileName: weightLogJsonFileName,
+      customActivityTemplateJsonFileName: customActivityTemplateJsonFileName,
+      userActivityCsvFileName: userActivityCsvFileName,
+      userIntakeCsvFileName: userIntakeCsvFileName,
+      trackedDayCsvFileName: trackedDayCsvFileName,
+    );
+    // Save the zip file to the user-specified location
+    final zipBytes = ZipEncoder().encode(archive);
+    if (zipBytes.isEmpty) {
+      // We built the archive ourselves a few lines up, so this should be
+      // unreachable — but if it ever happens, fail loudly rather than
+      // handing FilePicker.saveFile an empty payload and calling that
+      // a successful export.
+      throw StateError('Export archive was empty, refusing to save it');
+    }
+
+    final result = await FilePicker.saveFile(
+      fileName: exportZipFileName,
+      type: FileType.custom,
+      allowedExtensions: ['zip'],
+      bytes: Uint8List.fromList(zipBytes),
+    );
+
+    if (result == null || result.isEmpty) {
+      // User cancelled the save dialog.
+      return false;
+    }
+
+    ExportWriteVerifier.verify(result, zipBytes.length);
+    return true;
+  }
+
+  /// Builds the bundle in memory, without touching the file picker.
+  ///
+  /// Split out so a test can assert what actually lands in the archive.
+  /// `exportData` cannot be driven from a test — it ends in
+  /// `FilePicker.saveFile` — so before this seam existed, the only thing
+  /// covered was which photo paths get *collected*. Nothing checked that
+  /// the bytes reached the zip under the right name, which is the half of
+  /// #1061 that matters to someone restoring a backup.
+  ///
+  /// Extracted from @AzazelSensei's #1083, which had the seam and the test
+  /// this exists for.
+  @visibleForTesting
+  Future<Archive> assembleArchive({
+    required ExportFormat format,
+    required String userActivityJsonFileName,
+    required String userIntakeJsonFileName,
+    required String trackedDayJsonFileName,
+    required String recipeJsonFileName,
+    required String weightLogJsonFileName,
+    required String customActivityTemplateJsonFileName,
+    String userActivityCsvFileName = 'user_activity.csv',
+    String userIntakeCsvFileName = 'user_intake.csv',
+    String trackedDayCsvFileName = 'user_tracked_day.csv',
+  }) async {
     final archive = Archive();
 
     // Activity dataset
@@ -169,30 +231,7 @@ class ExportDataUsecase {
       );
     }
 
-    // Save the zip file to the user-specified location
-    final zipBytes = ZipEncoder().encode(archive);
-    if (zipBytes.isEmpty) {
-      // We built the archive ourselves a few lines up, so this should be
-      // unreachable — but if it ever happens, fail loudly rather than
-      // handing FilePicker.saveFile an empty payload and calling that
-      // a successful export.
-      throw StateError('Export archive was empty, refusing to save it');
-    }
-
-    final result = await FilePicker.saveFile(
-      fileName: exportZipFileName,
-      type: FileType.custom,
-      allowedExtensions: ['zip'],
-      bytes: Uint8List.fromList(zipBytes),
-    );
-
-    if (result == null || result.isEmpty) {
-      // User cancelled the save dialog.
-      return false;
-    }
-
-    ExportWriteVerifier.verify(result, zipBytes.length);
-    return true;
+    return archive;
   }
 
   /// The relative slug of every user-attached photo that belongs in a JSON
