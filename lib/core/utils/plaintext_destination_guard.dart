@@ -88,6 +88,32 @@ class PlaintextDestinationGuard {
   static Future<List<InternetAddress>> _resolve(String host) =>
       InternetAddress.lookup(host, type: InternetAddressType.any);
 
+  /// Turns the `%25` a URI must spell a zone id with back into the `%` that
+  /// [InternetAddress] parses.
+  ///
+  /// A link-local address needs a zone to be routable on a host with more
+  /// than one interface, and RFC 6874 says a URI escapes it: `Uri` stores
+  /// `http://[fe80::1%wlan0]` with a host of `fe80::1%25wlan0` — typing the
+  /// bare `%` gets you the same thing, so this is not a corner someone has to
+  /// know the RFC to reach. `InternetAddress.tryParse` returns null on that
+  /// escaped form, which sent the address down the DNS branch below, where
+  /// the lookup fails and the caller is told the server is **unreachable** —
+  /// about a link-local server this check exists to *permit*, and which an
+  /// unguarded client reaches perfectly well.
+  ///
+  /// `dart:io` does exactly this substitution itself, in
+  /// `escapeLinkLocalAddress`, before it resolves or connects. Doing it here
+  /// too is what makes the check agree with the socket layer it is guarding.
+  ///
+  /// Anything that still fails to parse falls through to the lookup unchanged,
+  /// so a name is never touched: the `25` is only dropped when it directly
+  /// follows the first `%`.
+  static String _withZoneUnescaped(String host) {
+    final marker = host.indexOf('%');
+    if (marker < 0 || !host.startsWith('25', marker + 1)) return host;
+    return host.replaceRange(marker + 1, marker + 3, '');
+  }
+
   /// Returns the URL to actually request, or throws
   /// [InsecureDestinationException].
   ///
@@ -103,7 +129,7 @@ class PlaintextDestinationGuard {
     if (url.scheme != 'http') return url;
 
     final host = url.host;
-    final literal = InternetAddress.tryParse(host);
+    final literal = InternetAddress.tryParse(_withZoneUnescaped(host));
     if (literal != null) {
       // No lookup to do, and nothing to pin — the user typed the address.
       if (isPrivateDestination(literal)) return url;

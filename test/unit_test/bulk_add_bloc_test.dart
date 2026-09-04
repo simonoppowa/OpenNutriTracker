@@ -221,6 +221,78 @@ void main() {
     expect(state.rows.single.unit, 'g');
   });
 
+  // The amount field accepts at most two decimals, and the same anchored
+  // pattern is both the submit check and the field's input formatter. A
+  // prefill it refuses is a row that cannot be logged and cannot be edited
+  // back into shape — the field blanks on the first keystroke — and the
+  // submit check aborts the whole batch on it. Mirrored from
+  // `_quantityPattern` in bulk_add_screen.dart; if that loosens, so can this.
+  final fieldPattern = RegExp(r'^\d+([.,]\d{0,2})?$');
+
+  test(
+    'a pound quantity is prefilled at a precision the field accepts',
+    () async {
+      final bloc = blocWith({
+        'mince': [meal('Mince')],
+      });
+
+      // 1 lb is 453.59237 g. Prefilled verbatim it was unloggable.
+      final state = await parse(bloc, '1 lb mince');
+
+      expect(state.rows.single.amountText, '453.59');
+      expect(state.rows.single.unit, 'g');
+      expect(fieldPattern.hasMatch(state.rows.single.amountText), isTrue);
+    },
+  );
+
+  test('one refused row no longer blocks the rows beside it', () async {
+    final bloc = blocWith({
+      'mince': [meal('Mince')],
+      'rice': [meal('Rice')],
+    });
+
+    final state = await parse(bloc, '1 lb mince, 100 g rice');
+
+    expect(state.rows, hasLength(2));
+    for (final row in state.rows) {
+      expect(
+        fieldPattern.hasMatch(row.amountText),
+        isTrue,
+        reason: '${row.meal?.name}: "${row.amountText}" fails the submit '
+            'check, and that check refuses the entire batch',
+      );
+    }
+  });
+
+  test('a serving weight carrying more decimals is rounded too', () async {
+    final bloc = blocWith({
+      'almonds': [
+        meal('Almonds', servingQuantity: 226.796185, servingUnit: 'g'),
+      ],
+    });
+
+    final state = await parse(bloc, 'almonds');
+
+    expect(state.rows.single.amountText, '226.8');
+    expect(fieldPattern.hasMatch(state.rows.single.amountText), isTrue);
+  });
+
+  test(
+    'a positive quantity below the rounding floor does not become zero',
+    () async {
+      final bloc = blocWith({
+        'saffron': [meal('Saffron', servingQuantity: 0.004, servingUnit: 'g')],
+      });
+
+      final state = await parse(bloc, 'saffron');
+
+      // Rounding alone gives "0.00", which the submit check rejects for
+      // being non-positive — the same dead end by the other route.
+      expect(state.rows.single.amountText, '0.01');
+      expect(fieldPattern.hasMatch(state.rows.single.amountText), isTrue);
+    },
+  );
+
   test('changing candidates falls back from unsupported units', () async {
     final bloc = blocWith({
       'drink': [
