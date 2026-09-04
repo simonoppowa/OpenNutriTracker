@@ -143,13 +143,21 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Directory tempRoot;
+  // `PathProviderPlatform.instance` is process-global, so a test that swaps it
+  // owes the next one its original back. Without the restore this file leaves
+  // every later test in the run pointed at a temp directory that `tearDown`
+  // has already deleted, which fails by test order rather than by cause.
+  // Same shape as `share_qr_dialog_test.dart`.
+  late PathProviderPlatform originalPathProvider;
 
   setUp(() async {
     tempRoot = await Directory.systemTemp.createTemp('ont_export_photo_');
+    originalPathProvider = PathProviderPlatform.instance;
     PathProviderPlatform.instance = _FakePathProvider(tempRoot.path);
   });
 
   tearDown(() async {
+    PathProviderPlatform.instance = originalPathProvider;
     if (await tempRoot.exists()) {
       await tempRoot.delete(recursive: true);
     }
