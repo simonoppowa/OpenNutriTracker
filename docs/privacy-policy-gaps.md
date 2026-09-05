@@ -128,7 +128,14 @@ The project already knows this. `lib/core/utils/sentry_config.dart:7-21` on
 and `:25` fixes it with `options.enablePrintBreadcrumbs = false`. That file
 does not exist at `v2.0.2` — `git show v2.0.2:lib/core/utils/sentry_config.dart`
 returns *"exists on disk, but not in 'v2.0.2'"*. The fix landed in the
-`e53be1bc` / #877 line of work and is not in any release.
+`e53be1bc` / #877 line of work.
+
+> **Update, 2026-09-05.** It has since shipped: `v2.2.0` carries
+> `sentry_config.dart` with `options.enablePrintBreadcrumbs = false`. The
+> finding above is left as audited against `v2.0.2`, which is what it was
+> written about and what the published policy was measured against — but it
+> is no longer a live defect, and the sentence below that depended on it has
+> been corrected rather than left arguing from a fixed bug.
 
 The app's own in-product consent text is more specific and equally wrong in
 the shipped build: `v2.0.2:lib/l10n/intl_en.arb` reads *"Send anonymous crash
@@ -355,13 +362,27 @@ and 14 do not bite. It is *not* an argument for silence, for three reasons:
 1. The policy's opening list is presented as complete — *"Among the types of
    Personal Data that this Application collects […]"* — and a reader who
    turns on workout import is entitled to find it there.
-2. Google Play's Data safety declaration must cover data the app *accesses*
-   off its own storage regardless of where it ends up, and Google is explicit
-   that *"You alone are responsible for making complete and accurate
-   declarations"*. Health and fitness is a declarable category.
+2. Google's broader *accesses* standard lands on the **privacy policy**, the
+   in-app disclosure and the Health apps declaration — which is this finding —
+   and Google is explicit that *"You alone are responsible for making complete
+   and accurate declarations"*. Health and fitness is a declarable category
+   there.
+
+   *Corrected 2026-09-04:* this point previously said the **Data safety form**
+   must cover data the app accesses "regardless of where it ends up". It does
+   not, and [#937](https://github.com/simonoppowa/OpenNutriTracker/issues/937)
+   settled it the other way: that form is scoped to collection and sharing,
+   "collect" means transmitting off device, and *"User data accessed by your app
+   that is only processed locally on the user's device and not sent off device
+   does not need to be disclosed."* The correction strengthens this finding
+   rather than weakening it — the duty the access standard creates is precisely
+   the policy text this section is asking for.
 3. Finding 1 is the concrete counter-example to "on-device means out of
-   scope": until `enablePrintBreadcrumbs = false` ships, on-device values do
-   leave, through Sentry, in the released build.
+   scope": on-device values **did** leave, through Sentry, in a released
+   build, for as long as `enablePrintBreadcrumbs` kept its default. Fixed and
+   shipped in `v2.2.0`, so the assumption is no longer wrong *here* — but it
+   was wrong once, quietly, in exactly the place nobody was looking, which is
+   the argument for not making it anywhere else.
 
 **What to do:** add a section stating that health data is read only after the
 user enables workout import, listing the five types, and stating plainly that

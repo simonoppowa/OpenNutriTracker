@@ -4,7 +4,11 @@ import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:meta/meta.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
@@ -58,6 +62,69 @@ class ExportDataUsecase {
     String weightLogJsonFileName,
     String customActivityTemplateJsonFileName, {
     ExportFormat format = ExportFormat.json,
+    String userActivityCsvFileName = 'user_activity.csv',
+    String userIntakeCsvFileName = 'user_intake.csv',
+    String trackedDayCsvFileName = 'user_tracked_day.csv',
+  }) async {
+    final archive = await assembleArchive(
+      format: format,
+      userActivityJsonFileName: userActivityJsonFileName,
+      userIntakeJsonFileName: userIntakeJsonFileName,
+      trackedDayJsonFileName: trackedDayJsonFileName,
+      recipeJsonFileName: recipeJsonFileName,
+      weightLogJsonFileName: weightLogJsonFileName,
+      customActivityTemplateJsonFileName: customActivityTemplateJsonFileName,
+      userActivityCsvFileName: userActivityCsvFileName,
+      userIntakeCsvFileName: userIntakeCsvFileName,
+      trackedDayCsvFileName: trackedDayCsvFileName,
+    );
+
+    // Save the zip file to the user-specified location
+    final zipBytes = ZipEncoder().encode(archive);
+    if (zipBytes.isEmpty) {
+      // We built the archive ourselves a few lines up, so this should be
+      // unreachable — but if it ever happens, fail loudly rather than
+      // handing FilePicker.saveFile an empty payload and calling that
+      // a successful export.
+      throw StateError('Export archive was empty, refusing to save it');
+    }
+
+    final result = await FilePicker.saveFile(
+      fileName: exportZipFileName,
+      type: FileType.custom,
+      allowedExtensions: ['zip'],
+      bytes: Uint8List.fromList(zipBytes),
+    );
+
+    if (result == null) {
+      // User cancelled the save dialog.
+      return false;
+    }
+
+    ExportWriteVerifier.verify(result, zipBytes.length);
+    return true;
+  }
+
+  /// Builds the bundle in memory, without touching the file picker.
+  ///
+  /// Split out so a test can assert what actually lands in the archive.
+  /// `exportData` cannot be driven from a test — it ends in
+  /// `FilePicker.saveFile` — so before this seam existed, the only thing
+  /// covered was which photo paths get *collected*. Nothing checked that
+  /// the bytes reached the zip under the right name, which is the half of
+  /// #1061 that matters to someone restoring a backup.
+  ///
+  /// Extracted from @AzazelSensei's #1083, which had the seam and the test
+  /// this exists for.
+  @visibleForTesting
+  Future<Archive> assembleArchive({
+    required ExportFormat format,
+    required String userActivityJsonFileName,
+    required String userIntakeJsonFileName,
+    required String trackedDayJsonFileName,
+    required String recipeJsonFileName,
+    required String weightLogJsonFileName,
+    required String customActivityTemplateJsonFileName,
     String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
@@ -125,19 +192,16 @@ class ExportDataUsecase {
         ArchiveFile(recipeJsonFileName, recipeBytes.length, recipeBytes),
       );
 
-      // Include any user-attached recipe photos under their relative
-      // slug (e.g. `recipe_images/<id>.webp`). The slug matches what
-      // we persist on RecipeDBO.imagePath, so import can drop the
-      // bytes back into place without translating filenames.
-      for (final recipe in fullRecipes) {
-        await _addUserImageIfPresent(archive, recipe.imagePath);
-      }
-
-      // Custom-meal photos travel through the same `meal_images/`
-      // subdirectory their relative slug names.
-      final customMeals = _customMealDataSource.getAllCustomMeals();
-      for (final meal in customMeals) {
-        await _addUserImageIfPresent(archive, meal.localImagePath);
+      // Every user-attached photo, under its relative slug (e.g.
+      // `recipe_images/<id>.webp`). The slug matches what we persist on
+      // the DBO, so import can drop the bytes back into place without
+      // translating filenames.
+      for (final path in userImagePaths(
+        recipes: fullRecipes,
+        customMeals: _customMealDataSource.getAllCustomMeals(),
+        intakes: fullIntake,
+      )) {
+        await _addUserImage(archive, path);
       }
 
       // Weight-log dataset
@@ -168,39 +232,59 @@ class ExportDataUsecase {
       );
     }
 
-    // Save the zip file to the user-specified location
-    final zipBytes = ZipEncoder().encode(archive);
-    if (zipBytes.isEmpty) {
-      // We built the archive ourselves a few lines up, so this should be
-      // unreachable — but if it ever happens, fail loudly rather than
-      // handing FilePicker.saveFile an empty payload and calling that
-      // a successful export.
-      throw StateError('Export archive was empty, refusing to save it');
-    }
-
-    final result = await FilePicker.saveFile(
-      fileName: exportZipFileName,
-      type: FileType.custom,
-      allowedExtensions: ['zip'],
-      bytes: Uint8List.fromList(zipBytes),
-    );
-
-    if (result == null) {
-      // User cancelled the save dialog.
-      return false;
-    }
-
-    ExportWriteVerifier.verify(result, zipBytes.length);
-    return true;
+    return archive;
   }
 
-  Future<void> _addUserImageIfPresent(
-    Archive archive,
-    String? relativePath,
-  ) async {
-    if (relativePath == null) return;
-    final sanitized = UserImageStorage.sanitizeRelative(relativePath);
-    if (sanitized == null) return;
+  /// The relative slug of every user-attached photo that belongs in a JSON
+  /// bundle, in archive order and without repeats.
+  ///
+  /// **Intakes are a source in their own right, not a duplicate of the
+  /// templates.** A custom meal logged with *Save for next time* off writes
+  /// no custom-meal record ([`edit_meal_screen`], #249), but the intake keeps
+  /// its `localImagePath` and the diary card renders it. Gathering only from
+  /// recipes and custom meals therefore put the reference in the JSON and
+  /// left the bytes out of the zip, so a restore lost the photo with nothing
+  /// failing anywhere (#1061).
+  ///
+  /// Deduplicated because the ordinary case — a saved custom meal that has
+  /// also been logged — reaches this twice, and two archive entries with one
+  /// name would double the bundle for every photographed meal.
+  ///
+  /// Pure, and separated from the file reads for that reason: which photos
+  /// belong in the bundle is the part worth testing, and it needs no
+  /// filesystem to answer.
+  @visibleForTesting
+  static List<String> userImagePaths({
+    required Iterable<RecipeDBO> recipes,
+    required Iterable<MealDBO> customMeals,
+    required Iterable<IntakeDBO> intakes,
+  }) {
+    final seen = <String>{};
+    final paths = <String>[];
+
+    void add(String? relativePath) {
+      if (relativePath == null) return;
+      final sanitized = UserImageStorage.sanitizeRelative(relativePath);
+      if (sanitized == null || !seen.add(sanitized)) return;
+      paths.add(sanitized);
+    }
+
+    for (final recipe in recipes) {
+      add(recipe.imagePath);
+    }
+    for (final meal in customMeals) {
+      add(meal.localImagePath);
+    }
+    for (final intake in intakes) {
+      add(intake.meal.localImagePath);
+    }
+    return paths;
+  }
+
+  /// Adds the bytes for one already-sanitized slug, if the file is still
+  /// there. A missing file is not an error: the photo may have been cleared
+  /// by the OS, and losing one image is not worth failing an export over.
+  Future<void> _addUserImage(Archive archive, String sanitized) async {
     final absolute = await UserImageStorage.absolutePath(sanitized);
     final file = File(absolute);
     if (!await file.exists()) return;

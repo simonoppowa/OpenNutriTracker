@@ -1,0 +1,241 @@
+# Replace the Google Play listing's phone screenshots, and nothing else.
+#
+# Why this exists: the four screenshots on the live Play listing are captures
+# of a **debug build** — Flutter's red DEBUG ribbon, and an app bar reading
+# "OpenNutriTracker [Alpha]" — at 424x900 (#1082). Nothing in the pipeline has
+# ever pushed a replacement: `upload_to_play_store` runs with
+# `skip_upload_screenshots: true` in the `internal` lane, and RELEASING.md
+# makes the listing a manual console chore.
+#
+# Why it is dispatch-only, and must stay that way: map #1016 spent an entire
+# effort removing avoidable jobs from the PR path, and a store-publishing job
+# has no business running on a pull request or a push. There is no trigger
+# here but `workflow_dispatch`. Adding one would be a regression, not a
+# convenience.
+#
+# Why it defaults to a dry run. Since 2.1.0 the bundle declares
+# `android.permission.health.*`, and Play's Publishing API rejects this app at
+# `EditService.Validate`/`Commit` with "You must let us know whether your app
+# includes any health features" — regardless of the declaration, which is
+# complete (#942). That defect was observed on a *bundle* upload; whether it
+# also fires on a listing-only edit, which carries no bundle at all, is
+# genuinely unknown. `validate` mode answers that question without the power
+# to change anything. Run it first. If it passes, run `publish`.
+#
+# What this deliberately does NOT touch, and why each one matters:
+#
+#   - The feature graphic and icon. The repo's `featureGraphic.png` is
+#     512x250 against Play's required 1024x500. The live asset is
+#     *reported* by the #1063 audit to be a compliant 1024x500 — not
+#     independently confirmed, because Google no longer renders the feature
+#     graphic on the desktop web listing — so an image upload would risk
+#     downgrading the store (#1074). Skipped either way: this workflow has
+#     no business touching that asset. `skip_upload_images: true`.
+#   - The title, short description and full description. The repo's copy has
+#     never been pushed and differs substantially from what is live; that is
+#     a content decision owned by map #1062, not a side effect of fixing an
+#     image. `skip_upload_metadata: true`.
+#   - Release notes. `changelogs/63.txt` still omits 2.2.0's headline
+#     features (#1073). `skip_upload_changelogs: true`.
+#   - Any binary. This workflow never ships code.
+#
+# The narrowness is the point. If you want to push copy or graphics, that is a
+# different change with a different review, not an extra checkbox here.
+
+name: Play store screenshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'validate = dry run, changes nothing. publish = update the live listing.'
+        required: true
+        default: validate
+        type: choice
+        options:
+          - validate
+          - publish
+
+permissions:
+  contents: read
+
+# Two concurrent listing edits would collide in the Play API. Never cancel a
+# run that may already be mid-commit.
+concurrency:
+  group: play-screenshots
+  cancel-in-progress: false
+
+jobs:
+  screenshots:
+    name: ${{ inputs.mode == 'publish' && 'Publish' || 'Validate' }} Play screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Play credentials belong behind the same gate as every other job that
+    # holds them. `release-ship` carries a deployment branch policy pinned to
+    # `main` **and** a manual approval (docs/RELEASING.md), and
+    # `android-deploy` already selects it. Without this line the job would
+    # still run — `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` is repository-scoped —
+    # but it would reach the store without the approval pause and without the
+    # branch policy, which is exactly the bypass the environments exist to
+    # close. A store write is a deployment.
+    environment: release-ship
+
+    # Same pattern as the deploy jobs in default_workflow.yml: there is no
+    # Gemfile at the repo root, so point Bundler at the Android one rather
+    # than relying on setup-ruby's directory discovery.
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/android/Gemfile
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      # Enforces Play's published phone-screenshot spec locally, so a bad set
+      # fails here in seconds instead of being rejected by the Play API after
+      # the credentials have already been handed out.
+      #
+      # The ratio rule is the one that is easy to miss: "The maximum
+      # dimension of your screenshot can't be more than twice as long as the
+      # minimum dimension." A tall phone capture clears a naive
+      # minimum-size check and is then refused by Play, so the ratio is
+      # checked explicitly rather than inferred from the edge lengths.
+      #
+      # The 1080px floor is stricter than Play's own 320px minimum, on
+      # purpose: the live debug set cleared 320px at 424x900 and still looked
+      # terrible (#1082). `docs/screenshots/` at 540x1102 is rejected by the
+      # same rule, deliberately.
+      - name: Check the screenshots meet Play's spec
+        run: |
+          python3 - <<'PY'
+          import glob, os, struct, sys
+
+          d = 'fastlane/metadata/android/en-US/images/phoneScreenshots'
+          files = sorted(glob.glob(os.path.join(d, '*.png')))
+          if not files:
+              sys.exit(f'No screenshots found in {d}')
+          if len(files) < 2:
+              sys.exit(f'Play requires at least 2 phone screenshots, found {len(files)}')
+          if len(files) > 8:
+              sys.exit(f'Play accepts at most 8 phone screenshots, found {len(files)}')
+
+          bad = []
+          for f in files:
+              name = os.path.basename(f)
+              head = open(f, 'rb').read(33)
+              if head[:8] != b'\x89PNG\r\n\x1a\n':
+                  bad.append(f'{name}: not a PNG')
+                  continue
+              # A file can carry the signature and still be too short to hold
+              # an IHDR — a truncated write, an interrupted download, an
+              # unexpanded LFS pointer. Say so, rather than dying in
+              # struct.unpack and leaving a traceback as the whole diagnosis.
+              if len(head) < 26:
+                  bad.append(f'{name}: truncated PNG — {len(head)} bytes, too short to contain an IHDR header')
+                  continue
+              w, h, depth, colour = struct.unpack('>IIBB', head[16:26])
+              short, long_ = min(w, h), max(w, h)
+              ratio = long_ / short
+              print(f'  {name:16s} {w}x{h}  ratio {ratio:.3f}')
+
+              # Play: "JPEG or 24-bit PNG (no alpha)". 24-bit means 8 bits
+              # each of R, G and B — PNG bit depth 8, colour type 2. Checking
+              # only for alpha would let 16-bit, grayscale (0) and palette (3)
+              # PNGs through here and have Play reject them later.
+              if colour in (4, 6):
+                  bad.append(f'{name}: PNG has an alpha channel; Play requires 24-bit PNG with no alpha')
+              elif colour != 2 or depth != 8:
+                  kind = {0: 'grayscale', 3: 'palette'}.get(colour, f'colour type {colour}')
+                  bad.append(f'{name}: {depth}-bit {kind} PNG; Play requires 24-bit (8-bit truecolour) PNG')
+              if short < 1080:
+                  bad.append(f'{name}: {w}x{h} — shorter edge {short}px is below 1080px')
+              if long_ > 3840:
+                  bad.append(f'{name}: {w}x{h} — longer edge {long_}px exceeds Play\'s 3840px maximum')
+              if ratio > 2.0:
+                  bad.append(
+                      f'{name}: {w}x{h} — longest edge is {ratio:.3f}x the shortest; '
+                      f"Play allows at most 2x, so Play would reject this"
+                  )
+
+          if bad:
+              sys.exit('Rejected:\n  ' + '\n  '.join(bad))
+          print(f'\n{len(files)} screenshot(s) OK.')
+          PY
+
+      - name: Setup Ruby + Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Upload screenshots to Google Play
+        id: upload
+        working-directory: android
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set +e
+          log="$RUNNER_TEMP/play-screenshots.log"
+          if [ "${{ inputs.mode }}" = "publish" ]; then
+            bundle exec fastlane android listing_screenshots validate_only:false 2>&1 | tee "$log"
+          else
+            bundle exec fastlane android listing_screenshots validate_only:true 2>&1 | tee "$log"
+          fi
+          status=${PIPESTATUS[0]}
+          set -e
+
+          # Name the one known upstream failure so it is diagnosable rather
+          # than mysterious. Everything else stays loud — see #942 and the
+          # equivalent handling in default_workflow.yml.
+          # Match the exact string, fixed not regex, the same way
+          # default_workflow.yml does. A loose match would relabel an
+          # unrelated failure as the known defect and send the reader to the
+          # wrong issue.
+          if [ "$status" -ne 0 ] && grep -qF \
+            'You must let us know whether your app includes any health features' \
+            "$log"; then
+            echo "health_defect=true" >> "$GITHUB_OUTPUT"
+          fi
+          exit "$status"
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Play screenshots — ${{ inputs.mode }}"
+            echo
+            if [ "${{ job.status }}" = "success" ]; then
+              if [ "${{ inputs.mode }}" = "publish" ]; then
+                echo "✅ Screenshots uploaded to the live Play listing."
+                echo
+                echo "Open the Play Console and confirm the new set is showing before closing #1082."
+              else
+                echo "✅ Validation passed — **nothing was changed**."
+                echo
+                echo "Play accepted a listing-only edit, so the #942 health-declaration"
+                echo "defect does not block this path. Re-run with \`mode: publish\` to apply."
+              fi
+            elif [ "${{ steps.upload.outputs.health_defect }}" = "true" ]; then
+              echo "❌ Play rejected the edit with its **health features** error."
+              echo
+              echo "This is the #942 defect reaching a listing-only edit as well as a"
+              echo "bundle upload — which is the thing this workflow existed to find out."
+              echo "It is an upstream defect with the declaration already complete, so"
+              echo "there is nothing to fix in this repo."
+              echo
+              echo "**Fall back to the console**: upload the six PNGs in"
+              echo "\`fastlane/metadata/android/en-US/images/phoneScreenshots/\` by hand."
+              echo "Record the finding on #942 and #1082 so the next person does not"
+              echo "rediscover it."
+            else
+              echo "❌ Failed. Read the step log — this is **not** the known #942 defect."
+              echo "Bad credentials, a malformed metadata directory, and a rejected asset"
+              echo "all land here and all mean something real."
+            fi
+            echo
+            echo "### Not touched by this workflow"
+            echo "- Feature graphic and icon (repo copy is 512x250; live reported compliant, unconfirmed — #1074)"
+            echo "- Title, short and full description (#1062)"
+            echo "- Release notes (#1073)"
+            echo "- Any app binary"
+          } >> "$GITHUB_STEP_SUMMARY"

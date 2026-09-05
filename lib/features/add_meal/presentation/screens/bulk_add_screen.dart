@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:auto_size_text/auto_size_text.dart';
@@ -8,6 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -55,14 +57,6 @@ class BulkAddScreen extends StatefulWidget {
   State<BulkAddScreen> createState() => _BulkAddScreenState();
 }
 
-/// Same shape the manual-entry quantity field enforces
-/// (`meal_detail_bottom_sheet.dart`), so the bulk path accepts exactly what
-/// manual entry does — no scientific notation, at most two decimals.
-final _quantityPattern = RegExp(r'^\d+([.,]\d{0,2})?$');
-
-/// Matches the manual-entry upper bound.
-const _maxQuantity = 10000;
-
 class _BulkAddScreenState extends State<BulkAddScreen> {
   final _log = Logger('BulkAddScreen');
   final _bloc = locator<BulkAddBloc>();
@@ -72,10 +66,22 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// parse produces a different set of rows.
   final _amountControllers = <int, TextEditingController>{};
 
-  /// Whether the photo action is offered at all. Read once and held, rather
-  /// than resolved inside `build` — a future rebuilt on every frame would
-  /// re-read the keystore continuously for an answer that changes only when
-  /// the user visits settings, which closes this screen anyway.
+  /// What the last submit attempt refused, keyed by index into
+  /// `BulkAddLoadedState.rows`.
+  ///
+  /// Held here rather than derived in `build` because a row is only wrong
+  /// once it has been asked for: `BulkAddRow.amountText` is text so that a
+  /// field mid-edit ("", "1,") is not marked while it is being typed. The
+  /// map is what makes every bad row visible at once — the check refuses the
+  /// whole batch, so reporting one at a time asks the user to resubmit for
+  /// each. #1013.
+  final _quantityErrors = <int, BulkAddQuantityError>{};
+
+  /// Whether the photo action is offered at all. Held rather than resolved
+  /// inside `build` — a future rebuilt on every frame would re-read the
+  /// keystore continuously for an answer that changes only when the user
+  /// visits settings. It is re-read when they come back from there, and only
+  /// then; see [_openSettings].
   /// **Both halves are load-bearing, and neither implies the other.**
   ///
   /// Found on a Pixel 6: with a server the user runs configured, the feature
@@ -89,10 +95,12 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// entry — so gating on it alone offered the camera to every user with no
   /// key at all, and to every user who had deliberately switched the feature
   /// off.
-  late final Future<bool> _photoAvailable = () async {
+  late Future<bool> _photoAvailable = _resolvePhotoAvailable();
+
+  Future<bool> _resolvePhotoAvailable() async {
     if (!await locator<AiCredentialStorage>().isEnabled()) return false;
     return await _photoDestination != null;
-  }();
+  }
 
   /// Whether to offer the model at all, for someone who has never set it up.
   ///
@@ -106,9 +114,11 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// has not failed to discover it, and this line exists for discovery. The
   /// rule is one sentence: it shows only for someone who has configured
   /// nothing. #844.
-  late final Future<bool> _modelUnknown = () async {
+  late Future<bool> _modelUnknown = _resolveModelUnknown();
+
+  Future<bool> _resolveModelUnknown() async {
     return !await locator<AiCredentialStorage>().hasAnyUsableProvider();
-  }();
+  }
 
   /// Where a photo would actually go, **and the name the sheet gives it**.
   ///
@@ -131,21 +141,24 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// Null when the stored provider is a name this build does not know. The
   /// sheet cannot name a destination it cannot identify, so it does not open
   /// — the same outcome as a provider with no key, and the point of #753.
-  late final Future<({AiProvider provider, String name})?> _photoDestination =
-      () async {
-        final storage = locator<AiCredentialStorage>();
-        final provider = await storage.activeProvider();
-        if (provider == null) return null;
-        if (provider == AiProvider.ownServer) {
-          return await _ownServerDestination(storage);
-        }
-        final model = AiModelCatalogue.resolve(
-          provider,
-          await storage.readModel(provider: provider),
-        );
-        if (model == null) return null;
-        return (provider: provider, name: model.servedBy);
-      }();
+  late Future<({AiProvider provider, String name})?> _photoDestination =
+      _resolvePhotoDestination();
+
+  Future<({AiProvider provider, String name})?>
+  _resolvePhotoDestination() async {
+    final storage = locator<AiCredentialStorage>();
+    final provider = await storage.activeProvider();
+    if (provider == null) return null;
+    if (provider == AiProvider.ownServer) {
+      return await _ownServerDestination(storage);
+    }
+    final model = AiModelCatalogue.resolve(
+      provider,
+      await storage.readModel(provider: provider),
+    );
+    if (model == null) return null;
+    return (provider: provider, name: model.servedBy);
+  }
 
   /// A server the user runs, **only once a photo probe has passed against the
   /// pair currently configured** — and null otherwise.
@@ -178,6 +191,68 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
   late BulkAddScreenArguments _args;
   bool _submitting = false;
+
+  /// Opens settings, and re-reads the three answers above once it pops.
+  ///
+  /// Every route out of this screen that can change them comes through here,
+  /// which is what makes "resolved once" safe. Without it the first run of
+  /// the feature ends with the feature missing: a new user follows the hint
+  /// below, configures a provider, comes back — and the camera is still
+  /// hidden, because the screen is still holding the answers it computed
+  /// before they left. #992.
+  ///
+  /// Re-read on the pop rather than on every rebuild: the keystore is the
+  /// only thing that can have changed, and only a visit to settings can have
+  /// changed it.
+  Future<void> _openSettings({SettingsScreenArguments? arguments}) async {
+    await Navigator.of(
+      context,
+    ).pushNamed(NavigationOptions.settingsRoute, arguments: arguments);
+    if (!mounted) return;
+    _resolveAiAnswers();
+    await _resolveAgainWhenProbeLands();
+  }
+
+  void _resolveAiAnswers() {
+    setState(() {
+      // Destination first: the availability answer awaits this field.
+      _photoDestination = _resolvePhotoDestination();
+      _photoAvailable = _resolvePhotoAvailable();
+      _modelUnknown = _resolveModelUnknown();
+    });
+  }
+
+  /// A second trigger, for the one answer that is not ready when the user
+  /// comes back. #1089.
+  ///
+  /// Saving an own-server address starts a capability probe **without
+  /// awaiting it**, and it takes long enough that returning promptly reads
+  /// the verdict as `unknown`. `_ownServerDestination` requires
+  /// `photo == passed`, so the camera stays hidden — and the route pop was
+  /// the only thing that would have re-read it, and has already happened.
+  ///
+  /// The waiting itself is deliberate and stays: the camera is offered only
+  /// once a photograph has actually been read (#735). What was missing is
+  /// that nothing told the screen the verdict had arrived.
+  ///
+  /// Own-server only, because it is the only provider whose availability
+  /// depends on a probe. `current` is null between one probe finishing and
+  /// its replacement registering — two keystore reads wide, documented on
+  /// the runner — and this returns rather than polling: the answer it would
+  /// have waited for is already stored, so the re-resolve above read it.
+  Future<void> _resolveAgainWhenProbeLands() async {
+    const provider = AiProvider.ownServer;
+    if (await locator<AiCredentialStorage>().activeProvider() != provider) {
+      return;
+    }
+
+    final running = locator<AiEndpointProbeRunner>().current(provider);
+    if (running == null) return;
+
+    await running;
+    if (!mounted) return;
+    _resolveAiAnswers();
+  }
 
   @override
   void didChangeDependencies() {
@@ -243,7 +318,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                 // at large text scales would take multi-line entry away from
                 // exactly the users who need the biggest text, on a screen
                 // that exists for typing several items at once.
-                _buildInput(context, maxFieldHeight: constraints.maxHeight * 0.3),
+                _buildInput(
+                  context,
+                  maxFieldHeight: constraints.maxHeight * 0.3,
+                ),
                 const Divider(height: 1),
                 Expanded(child: _buildBody(context, state)),
                 if (state is BulkAddLoadedState)
@@ -300,9 +378,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         child: Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: InkWell(
-            onTap: () => Navigator.of(
-              context,
-            ).pushNamed(NavigationOptions.settingsRoute),
+            // Asks for the AI dialog by name, the same way the failure
+            // notices below have since #852. Plain Settings opens with the
+            // AI row several category groups down, and of this screen's two
+            // audiences the one reading this hint is the one that knows
+            // least about where it is going — sending it the longer way
+            // round was exactly backwards. #992.
+            onTap: () => _openSettings(
+              arguments: const SettingsScreenArguments(openAiAssist: true),
+            ),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
@@ -341,8 +425,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     },
   );
 
-  Widget _buildInput(BuildContext context, {required double maxFieldHeight}) =>
-      Padding(
+  Widget _buildInput(
+    BuildContext context, {
+    required double maxFieldHeight,
+  }) => Padding(
     padding: const EdgeInsets.all(16),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -353,19 +439,19 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         ConstrainedBox(
           constraints: BoxConstraints(maxHeight: maxFieldHeight),
           child: Semantics(
-          identifier: 'bulk-add-input',
-          child: TextField(
-            controller: _textController,
-            minLines: 2,
-            maxLines: 4,
-            textInputAction: TextInputAction.newline,
-            keyboardType: TextInputType.multiline,
-            decoration: InputDecoration(
-              hintText: S.of(context).bulkAddInputHint,
-              border: const OutlineInputBorder(),
+            identifier: 'bulk-add-input',
+            child: TextField(
+              controller: _textController,
+              minLines: 2,
+              maxLines: 4,
+              textInputAction: TextInputAction.newline,
+              keyboardType: TextInputType.multiline,
+              decoration: InputDecoration(
+                hintText: S.of(context).bulkAddInputHint,
+                border: const OutlineInputBorder(),
+              ),
             ),
           ),
-        ),
         ),
         const SizedBox(height: 12),
         Semantics(
@@ -388,20 +474,52 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       return _centeredMessage(context, S.of(context).bulkAddSearchFailedLabel);
     }
     if (state is BulkAddPhotoErrorState) {
-      return _centeredMessage(context, switch (state.error) {
-        BulkAddPhotoError.unavailable =>
-          S.of(context).bulkAddPhotoUnavailableLabel,
-        BulkAddPhotoError.auth => S.of(context).bulkAddPhotoKeyRejectedLabel,
-        BulkAddPhotoError.transient => S.of(context).bulkAddPhotoFailedLabel,
-        BulkAddPhotoError.camera => S.of(context).bulkAddPhotoCameraFailedLabel,
-        BulkAddPhotoError.unreadable =>
-          S.of(context).bulkAddPhotoUnreadableLabel,
-        BulkAddPhotoError.unsupported =>
-          S.of(context).bulkAddPhotoUnsupportedLabel,
-        BulkAddPhotoError.insecureDestination =>
-          S.of(context).bulkAddModelInsecureServerLabel,
-        BulkAddPhotoError.billing => S.of(context).bulkAddPhotoNoCreditLabel,
-      });
+      return _centeredMessage(
+        context,
+        switch (state.error) {
+          BulkAddPhotoError.unavailable =>
+            S.of(context).bulkAddPhotoUnavailableLabel,
+          BulkAddPhotoError.auth => S.of(context).bulkAddPhotoKeyRejectedLabel,
+          BulkAddPhotoError.transient => S.of(context).bulkAddPhotoFailedLabel,
+          BulkAddPhotoError.camera =>
+            S.of(context).bulkAddPhotoCameraFailedLabel,
+          BulkAddPhotoError.unreadable =>
+            S.of(context).bulkAddPhotoUnreadableLabel,
+          BulkAddPhotoError.unsupported =>
+            S.of(context).bulkAddPhotoUnsupportedLabel,
+          BulkAddPhotoError.insecureDestination =>
+            S.of(context).bulkAddModelInsecureServerLabel,
+          BulkAddPhotoError.billing => S.of(context).bulkAddPhotoNoCreditLabel,
+        },
+        // #992. Three of these sentences send the user to Settings by name and
+        // the fourth is answered there too, but only the *text* path ever
+        // carried a way in — the photo path said "check it in Settings" and
+        // left the user to find it, which is the hunt #852 already fixed once,
+        // in the same dialog, for the same failures.
+        //
+        // Exhaustive, and deliberately not a `_ => null` default: a ninth photo
+        // failure has to say here whether Settings answers it, rather than
+        // inheriting silence from a case nobody weighed it against.
+        //
+        // The four that get nothing point somewhere else, and a Settings button
+        // under them would send the user to fix the one thing that is not
+        // broken: the camera case is a permission the OS holds, the unreadable
+        // case wants a different photograph, the transient case wants the
+        // connection or another attempt, and the billing case is settled on the
+        // provider's own site — its sentence says so.
+        action: switch (state.error) {
+          BulkAddPhotoError.unavailable ||
+          BulkAddPhotoError.auth ||
+          BulkAddPhotoError.unsupported ||
+          BulkAddPhotoError.insecureDestination => () => _openAiSettings(
+            context,
+          ),
+          BulkAddPhotoError.transient ||
+          BulkAddPhotoError.camera ||
+          BulkAddPhotoError.unreadable ||
+          BulkAddPhotoError.billing => null,
+        },
+      );
     }
     if (state is! BulkAddLoadedState) {
       // Scrollable because here the line *is* the body and takes a tight
@@ -415,19 +533,19 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       return _withModelHint(
         context,
         _centeredMessage(context, switch (state) {
-        // A bad segment explains itself; that outranks either generic line.
-        _ when state.parseErrors.isNotEmpty => _parseErrorsText(
-          context,
-          state.parseErrors,
-        ),
-        // The model looked at a photograph and reported no food. "Nothing to
-        // log yet" is true but reads as though nothing happened, and the
-        // notice that would have said a photo was read is not drawn on this
-        // branch — so the one screen where the user most needs to know a
-        // machine answered was the one screen that never said so.
-        _ when state.source == BulkAddReadSource.photo =>
-          S.of(context).bulkAddPhotoNoFoodLabel,
-        _ => S.of(context).bulkAddNothingToLogLabel,
+          // A bad segment explains itself; that outranks either generic line.
+          _ when state.parseErrors.isNotEmpty => _parseErrorsText(
+            context,
+            state.parseErrors,
+          ),
+          // The model looked at a photograph and reported no food. "Nothing to
+          // log yet" is true but reads as though nothing happened, and the
+          // notice that would have said a photo was read is not drawn on this
+          // branch — so the one screen where the user most needs to know a
+          // machine answered was the one screen that never said so.
+          _ when state.source == BulkAddReadSource.photo =>
+            S.of(context).bulkAddPhotoNoFoodLabel,
+          _ => S.of(context).bulkAddNothingToLogLabel,
         }),
       );
     }
@@ -501,10 +619,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         // does not appear here on purpose: the auth, unsupported, billing,
         // timeout and insecure-destination cases are all fixed in this one
         // dialog, so they all ask for the same thing.
-        action: () => Navigator.of(context).pushNamed(
-          NavigationOptions.settingsRoute,
-          arguments: const SettingsScreenArguments(openAiAssist: true),
-        ),
+        action: () => _openAiSettings(context),
       );
     }
 
@@ -545,94 +660,147 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     // fraction of it overflows the part that is left.
     return LayoutBuilder(
       builder: (context, constraints) => Column(
-      children: [
-        Semantics(
-          identifier: 'bulk-add-model-notice',
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: emphasised
-                ? scheme.errorContainer
-                : scheme.surfaceContainerHighest,
-            // **Bounded, and scrollable rather than clipped.** Dropping the
-            // cap on its own overflowed by 317px at 2x on a 320dp screen —
-            // the notice sits above the rows in a `Column`, so its height
-            // comes straight out of them. A ceiling gives the rows their
-            // share back; scrolling is what stops the ceiling becoming a
-            // second truncation, which is the bug this is fixing.
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: constraints.maxHeight * 0.4,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      icon,
-                      size: 16,
-                      color: emphasised ? scheme.onErrorContainer : null,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                  child: Text(
-                    text,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: emphasised ? scheme.onErrorContainer : null,
-                    ),
-                    // **No cap.** There used to be three lines, on the
-                    // reasoning that these run long in German. Measured for
-                    // #777, every one of them overran it — in English too —
-                    // and no cap survives the combination that matters:
-                    // German at 2x on a 320dp screen needed twenty lines,
-                    // which is when the words are needed most. Now that the
-                    // advice is a button, what is left is one sentence: two
-                    // or three lines on a handset, up to eight at 2x on the
-                    // narrowest screen, and never cut off.
-                  ),
+        children: [
+          Semantics(
+            identifier: 'bulk-add-model-notice',
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: emphasised
+                  ? scheme.errorContainer
+                  : scheme.surfaceContainerHighest,
+              // **Bounded, and scrollable rather than clipped.** Dropping the
+              // cap on its own overflowed by 317px at 2x on a 320dp screen —
+              // the notice sits above the rows in a `Column`, so its height
+              // comes straight out of them. A ceiling gives the rows their
+              // share back; scrolling is what stops the ceiling becoming a
+              // second truncation, which is the bug this is fixing.
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: constraints.maxHeight * 0.4,
                 ),
-                  ],
-                ),
-                // **Below the sentence, not beside it.** Sharing the row was
-                // measured first and is worse: a button takes about 120px,
-                // which on a 320dp screen leaves the text 144 and pushes
-                // German at 2x back up to twelve lines. Full width for the
-                // words, the control underneath.
-                if (action != null)
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: Semantics(
-                      identifier: 'bulk-add-notice-action',
-                      child: TextButton(
-                        onPressed: action,
-                        style: TextButton.styleFrom(
-                          foregroundColor: emphasised
-                              ? scheme.onErrorContainer
-                              : null,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        child: Text(S.of(context).settingsLabel),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            icon,
+                            size: 16,
+                            color: emphasised ? scheme.onErrorContainer : null,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              text,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: emphasised
+                                        ? scheme.onErrorContainer
+                                        : null,
+                                  ),
+                              // **No cap.** There used to be three lines, on the
+                              // reasoning that these run long in German. Measured for
+                              // #777, every one of them overran it — in English too —
+                              // and no cap survives the combination that matters:
+                              // German at 2x on a 320dp screen needed twenty lines,
+                              // which is when the words are needed most. Now that the
+                              // advice is a button, what is left is one sentence: two
+                              // or three lines on a handset, up to eight at 2x on the
+                              // narrowest screen, and never cut off.
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                      // **Below the sentence, not beside it.** Sharing the row was
+                      // measured first and is worse: a button takes about 120px,
+                      // which on a 320dp screen leaves the text 144 and pushes
+                      // German at 2x back up to twelve lines. Full width for the
+                      // words, the control underneath.
+                      if (action != null)
+                        Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: Semantics(
+                            identifier: 'bulk-add-notice-action',
+                            child: TextButton(
+                              onPressed: action,
+                              style: TextButton.styleFrom(
+                                foregroundColor: emphasised
+                                    ? scheme.onErrorContainer
+                                    : null,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              child: Text(S.of(context).settingsLabel),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-              ],
                 ),
               ),
             ),
           ),
-        ),
-        Expanded(child: list),
-      ],
+          Expanded(child: list),
+        ],
       ),
     );
   }
 
-  Widget _centeredMessage(BuildContext context, String message) => Padding(
+  /// The one place every "change a setting" recovery on this screen goes.
+  ///
+  /// Shared rather than repeated so the two paths cannot drift: the photo
+  /// failures are answered in the same dialog as the text ones, and the whole
+  /// point of #852 is that the route carries *which* part of Settings to
+  /// open. A second copy of these arguments is a second chance to lose them.
+  /// Every route from this screen to the AI dialog, so all of them both
+  /// deep-link (#852, #992) and re-resolve on the way back (#992).
+  ///
+  /// Delegating rather than pushing directly is the whole point: this had
+  /// three call sites — the discovery hint, the text failure notice and the
+  /// photo failure action — and only the ones that went through
+  /// [_openSettings] noticed a provider configured while they were away.
+  void _openAiSettings(BuildContext context) => unawaited(
+    _openSettings(arguments: const SettingsScreenArguments(openAiAssist: true)),
+  );
+
+  /// A message that fills the body, optionally with something to do about it.
+  ///
+  /// [action] is optional because most callers have nothing to offer: a
+  /// failed food search and an empty parse are not fixed anywhere in
+  /// particular, so they stay a sentence and nothing else.
+  Widget _centeredMessage(
+    BuildContext context,
+    String message, {
+    VoidCallback? action,
+  }) => Padding(
     padding: const EdgeInsets.all(24),
-    child: Center(child: Text(message, textAlign: TextAlign.center)),
+    // Scrollable rather than clipped, for the reason #777 settled: this
+    // region takes a tight height from the `Expanded` above, and German at 2x
+    // on a 320dp screen wants 484px more than it has. A bare `Column` there
+    // paints its overflow past the bottom of the screen, and the button is
+    // the last thing in it — so the control this change exists to add would
+    // have been the first thing to go: in the tree, and untappable. Measured,
+    // not assumed; the test pins it.
+    child: Center(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(message, textAlign: TextAlign.center),
+            if (action != null)
+              Semantics(
+                identifier: 'bulk-add-message-action',
+                child: TextButton(
+                  onPressed: action,
+                  child: Text(S.of(context).settingsLabel),
+                ),
+              ),
+          ],
+        ),
+      ),
+    ),
   );
 
   /// The parser reports *what* was wrong with *which* item; the sentence is
@@ -674,7 +842,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     final theme = Theme.of(context);
     final meal = row.meal;
 
-    final title = meal?.name ?? row.resolved.parsed.query;
+    final title = _rowTitle(row);
     final faded = row.skipped || !row.isResolved;
 
     // Both rows below decide between one line and two, so they need the width
@@ -809,6 +977,11 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     );
   }
 
+  /// What the row is called, on screen and in any message about it: the
+  /// matched food, or the words the user typed when nothing matched.
+  String _rowTitle(BulkAddRow row) =>
+      row.meal?.name ?? row.resolved.parsed.query;
+
   /// The controls on a row, as label and action rather than as widgets, so
   /// that what is measured cannot drift from what is drawn.
   List<({String label, VoidCallback onPressed})> _rowActions(
@@ -890,13 +1063,24 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       // Same shape the manual-entry field enforces, so the two paths accept
       // exactly the same input.
-      inputFormatters: [FilteringTextInputFormatter.allow(_quantityPattern)],
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(bulkAddQuantityPattern),
+      ],
       decoration: InputDecoration(
         labelText: S.of(context).quantityLabel,
         isDense: true,
         border: const OutlineInputBorder(),
       ),
-      onChanged: (value) => _bloc.add(ChangeRowAmountEvent(index, value)),
+      onChanged: (value) {
+        // The complaint belonged to the text that is no longer there.
+        // Re-checking as they type would put it back mid-keystroke, which
+        // is the thing `amountText` is a String to avoid; the next submit
+        // asks again.
+        if (_quantityErrors.containsKey(index)) {
+          setState(() => _quantityErrors.remove(index));
+        }
+        _bloc.add(ChangeRowAmountEvent(index, value));
+      },
     );
 
     final unit = DropdownButton<String>(
@@ -912,10 +1096,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
     final energy = Text(energyText, style: theme.textTheme.titleSmall);
 
+    final error = _quantityErrors[index];
+
     return Padding(
       padding: const EdgeInsets.only(top: 8),
-      child: stacked
-          ? Column(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (stacked)
+            Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 field,
@@ -927,7 +1116,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             )
           // Unchanged wherever it fits, which is every ordinary text size:
           // the figure stays on the same line, pushed to the trailing edge.
-          : Row(
+          else
+            Row(
               children: [
                 SizedBox(width: fieldWidth, child: field),
                 const SizedBox(width: 12),
@@ -936,8 +1126,37 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                 energy,
               ],
             ),
+          // The whole width, not the field's. `errorText` would put this
+          // inside a 110px box, where every one of the three sentences
+          // ellipsizes to nothing worth reading — and the decimal rule, the
+          // one constraint stated nowhere else in the UI, is the longest of
+          // them.
+          if (error != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                _quantityErrorText(context, error),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
+
+  /// Says which of the three failures this is. They used to render
+  /// identically, as the field's own name.
+  String _quantityErrorText(
+    BuildContext context,
+    BulkAddQuantityError error,
+  ) => switch (error) {
+    BulkAddQuantityError.malformed => S.of(context).bulkAddRowQuantityInvalid,
+    BulkAddQuantityError.tooSmall => S.of(context).bulkAddRowQuantityTooSmall,
+    BulkAddQuantityError.tooLarge =>
+      S.of(context).bulkAddRowQuantityTooLarge(bulkAddMaxQuantity),
+  };
 
   /// What the unit dropdown needs to show its longest unit without clipping
   /// it: the dropdown sizes itself to its widest item, plus its arrow.
@@ -1013,10 +1232,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         UnitDropdownItem.flOz => S.of(context).flOzUnit,
         UnitDropdownItem.serving =>
           householdPortionLabel(
-            row.meal?.servingSize,
-            languageCode: Localizations.localeOf(context).languageCode,
-            textIsLocalized: row.meal?.servingSizeIsLocalized ?? false,
-          ) ??
+                row.meal?.servingSize,
+                languageCode: Localizations.localeOf(context).languageCode,
+                textIsLocalized: row.meal?.servingSizeIsLocalized ?? false,
+              ) ??
               S.of(context).servingLabel,
       };
 
@@ -1164,6 +1383,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       controller.dispose();
     }
     _amountControllers.clear();
+    // Both are keyed by row index, so both belong to the batch that is
+    // being replaced. A mark left behind would land on whichever row
+    // happens to take that index next.
+    _quantityErrors.clear();
   }
 
   Future<void> _showCandidatePicker(int index, BulkAddRow row) async {
@@ -1222,55 +1445,98 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// written — a half-logged meal with no rollback. Checking every row up
   /// front is what makes the batch all-or-nothing.
   Future<void> _onSubmitPressed(BulkAddLoadedState state) async {
-    final rows = state.loggableRows.toList();
-
     // Validate the whole batch before writing any of it. addIntake parses
     // the amount with `double.parse` and no guard, so one bad row would
     // otherwise throw mid-loop and leave the rows before it already
     // written, with no rollback.
-    final amounts = <double>[];
-    for (final row in rows) {
-      final text = row.amountText.trim();
-      final quantity = double.tryParse(text.replaceAll(',', '.'));
-      if (!_quantityPattern.hasMatch(text) ||
-          quantity == null ||
-          quantity <= 0 ||
-          quantity > _maxQuantity) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${row.meal?.name ?? row.resolved.parsed.query}: '
-              '${S.of(context).quantityLabel}',
-            ),
-          ),
-        );
-        return;
+    //
+    // Every row is checked, and the loop no longer stops at the first
+    // failure. It refuses the batch either way, so stopping early only
+    // decided how many times the user has to submit it to find out what is
+    // wrong: one field fixed, one more refusal, one more field. #1013.
+    //
+    // Indexed over `rows` rather than `loggableRows`, because the failures
+    // are marked on the rows themselves and a filtered iterable cannot say
+    // which row it came from.
+    final invalid = <int, BulkAddQuantityError>{};
+    final writes = <({BulkAddRow row, double amount})>[];
+    for (var index = 0; index < state.rows.length; index++) {
+      final row = state.rows[index];
+      if (!row.willBeLogged) continue;
+
+      final error = row.quantityError;
+      if (error != null) {
+        invalid[index] = error;
+        continue;
       }
+      // Cannot throw: `quantityError` returned null, which required this
+      // same text to parse.
+      final quantity = double.parse(row.amountText.trim().replaceAll(',', '.'));
       // Store the value the intake is actually written with: nutriment
       // values are per gram/millilitre, so oz / fl.oz / serving have to be
       // converted first. Logging the raw amount stores 4 g for 4 oz.
-      amounts.add(
-        convertQuantityToBaseUnit(quantity, row.effectiveUnit, row.meal!),
-      );
+      writes.add((
+        row: row,
+        amount: convertQuantityToBaseUnit(
+          quantity,
+          row.effectiveUnit,
+          row.meal!,
+        ),
+      ));
     }
 
-    setState(() => _submitting = true);
+    if (invalid.isNotEmpty) {
+      setState(() {
+        _quantityErrors
+          ..clear()
+          ..addAll(invalid);
+      });
+      // The marks are on the rows, and a row can be off screen — a button
+      // that refuses in silence is the state this screen was already in.
+      // Naming each food and its reason keeps the snackbar honest about how
+      // many rows are waiting.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            // Bounded: nothing limits how many rows a paste produces, and a
+            // snackbar does not scroll — an unbounded join would cover the
+            // list the marks are on. The marks carry every failure; this
+            // carries as many as fit and ellipsizes the rest.
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            invalid.entries
+                .map(
+                  (entry) =>
+                      '${_rowTitle(state.rows[entry.key])}: '
+                      '${_quantityErrorText(context, entry.value)}',
+                )
+                .join('\n'),
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _quantityErrors.clear();
+      _submitting = true;
+    });
 
     final mealDetailBloc = locator<MealDetailBloc>();
     try {
       // Sequential, not concurrent. The tracked-day totals are accumulated
       // with a read-modify-write, so overlapping writes lose updates and
       // the day silently under-counts.
-      for (var i = 0; i < rows.length; i++) {
+      for (final write in writes) {
         await mealDetailBloc.addIntake(
           context,
           // The suffix is a display device; the stored vocabulary stays
           // the closed set the export format and QR payload were written
           // against. #864 decision 3.
-          storedUnit(rows[i].effectiveUnit),
-          amounts[i].toString(),
+          storedUnit(write.row.effectiveUnit),
+          write.amount.toString(),
           _args.intakeTypeEntity,
-          rows[i].meal!,
+          write.row.meal!,
           _args.day,
         );
       }

@@ -83,7 +83,7 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 | **Careful** | The fasting timer opens with a content warning linking BEAT and NEDA, and "Not for me" is a first-class answer ([`fasting_warning_dialog.dart`](lib/features/fasting/presentation/widgets/fasting_warning_dialog.dart)). No streak guilt, and no notification you didn't ask for. The daily reminder is off until you enable it. |
 | **Free** | No paid tier and no ads, with zero advertising or analytics SDKs in [`pubspec.yaml`](pubspec.yaml) to add them with. That includes the micronutrient panel the big-name trackers put behind a subscription. No investors, and GPLv3 leaves no exit that could paywall it later. |
 | **Private** | No account to create. Your diary lives in AES-256-encrypted storage with the key held in the Android Keystore / iOS Keychain, every destination that receives a request is listed under [Privacy](#privacy) with what it's sent, and the release signing fingerprint is published so you can verify your download. |
-| **Portable** | Export your diary, activities, recipes, custom meals and weight history as JSON or CSV, re-import it, or share an entry by QR. The [export format](docs/export-format.md) documents the schema and what it leaves out. |
+| **Portable** | Export your diary, activities, tracked days, recipes, weight history and custom activity templates as JSON — or diary, activities and tracked days as CSV — re-import it, or share an entry by QR. The [export format](docs/export-format.md) documents the schema and what it leaves out. |
 | **Open** | Open Food Facts, USDA FoodData Central (CC0) and the German BLS (CC BY 4.0). The backend is its own open repository you can [self-host](docs/supabase-self-hosting.md). |
 | **Community driven** | Over 30 developers have already contributed code, and most merged pull requests come from someone other than the maintainer. Features and fixes arrive as user issues and PRs, across the app and its food backend, and every translation is contributed on [Weblate](https://hosted.weblate.org/engage/opennutritracker/), which needs no Dart and no local setup. |
 | **Inclusive** | Non-binary calorie estimation grounded in published trans-health research, nine languages, kcal or kJ, and screen-reader support treated as a bug when it breaks. |
@@ -118,7 +118,7 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 - **⚖️ Weight history:** Capture weight during onboarding and on demand, see the trend on a chart with a dashed line at your target weight, and optionally taper the calorie goal as you approach it.
 - **🎨 Material You + theme picker:** Adopt the system accent colour on Android 12+, or pick from sixteen built-in presets. The app icon adapts to iOS dark and tinted appearances and to Android themed icons.
 - **🔢 kcal or kJ:** Switch the energy unit globally; every diary entry, target, and chart reflects the choice.
-- **📤 Export and import:** Export your diary entries, activities, tracked days, and recipes to a JSON zip, with flat CSV companions for the first three so a spreadsheet can read them ([bundle format](docs/export-format.md)). Paste a JSON blob to import meals, and share a single meal or activity as a QR code another phone can scan. Your profile, weight log, custom-meal catalogue, activity templates, water and fasting history stay out of the bundle.
+- **📤 Export and import:** Export your diary entries, activities, tracked days, recipes, weight history and custom activity templates to a JSON zip (recipe and custom-meal photos included), or diary, activities and tracked days as a CSV zip — you pick one format, the bundle carries only that one ([bundle format](docs/export-format.md)). Paste a JSON blob to import meals, and share a single meal or activity as a QR code another phone can scan. Your profile, custom-meal catalogue, water and fasting history stay out of the bundle.
 
 </details>
 
@@ -130,8 +130,8 @@ No account, no sign-in, no analytics, no ads. Your profile, diary, activities, w
 
 | Destination | When | What is sent |
 | :-- | :-- | :-- |
-| [Open Food Facts](https://world.openfoodfacts.org/) | Food search or barcode scan | The search term or barcode. A word search also sends your device's **language** code to rank results; the fallback search and the barcode lookup send no locale at all. Your **country is never sent** — the country boost is applied on your device, to the results that come back |
-| Supabase reference backend | Food search | The search term |
+| [Open Food Facts](https://world.openfoodfacts.org/) | Food search, barcode scan, or whenever a food's photograph is shown — in search results, on a meal screen, and on the diary card of a meal you have already logged | The search term or barcode. A word search also sends your device's **language** code to rank results; the fallback search and the barcode lookup send no locale at all. Your **country is never sent** — the country boost is applied on your device, to the results that come back. A photograph's address contains that product's barcode. Searches and product lookups identify the app by name, platform and version; photograph downloads do not |
+| Supabase reference backend | Food search | The text you typed; your **device's** language code, when it is one the backend has food names in; and which food databases you have left switched on — that list travels on every search, because onboarding starts one of the five off |
 | [Anthropic](https://www.anthropic.com/) | **Only if you save your own API key and pick Anthropic** | The meal line you type on the multi-item add screen, or a meal photo you choose to read there, and your app language |
 | [OpenAI](https://openai.com/) | **Only if you save your own API key and pick OpenAI** | As the Anthropic row, plus the model you chose |
 | [OpenRouter](https://openrouter.ai/) | **Only if you save your own API key and pick OpenRouter** | As the Anthropic row, plus the model you chose |
@@ -142,7 +142,7 @@ No account, no sign-in, no analytics, no ads. Your profile, diary, activities, w
 
 | Destination | When | What is sent |
 | :-- | :-- | :-- |
-| **The address you entered, and nothing else** | **Only if you save a server address in Settings** — when you press *Load models*, and each time a meal line or photo is read | The meal line or the photo, your app language, and the model name you typed |
+| **The address you entered, and nothing else** | **From the moment you type a server address in Settings, not from when you save it** — when you change the address and leave the field, when you press *Load models*, when you save (the setup check), and each time a meal line or photo is read | A models-list request when you change the address or press *Load models*; a fixed example line and a bundled photograph on save; otherwise the meal line or the photo, your app language, and the model name you typed |
 
 This is the one row you can falsify yourself: your own server's access log settles it, where no user can ever settle a claim about a vendor's retention. **No third party receives anything on this path** — which is not the same as the data staying put. It does leave the device, to the address you named, and the app will not send it in the clear to anything that is not a private address.
 
@@ -170,7 +170,7 @@ From a photo the rule is tighter still: it may **count** what it can see (two eg
 
 [USDA FoodData Central](https://fdc.nal.usda.gov/), the German [BLS](https://www.blsdb.de), INDB and TBCA are where the food *data* comes from, not places your device talks to. Those datasets are ingested into the Supabase backend ahead of time ([self-hosting guide](docs/supabase-self-hosting.md)), so a search reaches that backend and stops there. Settings → Food databases chooses which datasets a search covers. Five are selectable today, with INDB and TBCA in the schema but not yet carrying data ([`sp_const.dart`](lib/features/add_meal/data/dto/sp/sp_const.dart)).
 
-Requests to Open Food Facts carry a User-Agent naming the app, platform, and version; requests to the Supabase backend carry the Supabase SDK's own client headers instead. **The app generates no user or device identifier and sends none** — but a request still arrives from somewhere, and the Supabase gateway logs the address it came from along with a coarse location and a fingerprint of the TLS connection, kept for 24 hours. Search results are cached locally and pruned after 90 days.
+Searches and product lookups to Open Food Facts carry a User-Agent naming the app, platform, and version; photograph downloads do not. Requests to the Supabase backend carry the Supabase SDK's own client headers instead. **The app generates no user or device identifier and sends none** — but a request still arrives from somewhere, and the Supabase gateway logs the address it came from along with a coarse location and a fingerprint of the TLS connection, kept for 24 hours. Search results are cached locally and pruned after 90 days.
 
 **Crash reporting** is off until you enable it, and initializes only in release builds ([`main.dart:119`](lib/main.dart:119)). `sendDefaultPii` stays `false`, so no username, email, or IP-derived identity is attached. Disabling it, or deleting your data, closes the SDK immediately.
 
