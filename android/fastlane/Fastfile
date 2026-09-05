@@ -69,13 +69,21 @@ platform :android do
         problems << "#{name}: not a PNG"
         next
       end
-      width, height, _depth, colour_type = head[16, 10].unpack('NNCC')
+      width, height, depth, colour_type = head[16, 10].unpack('NNCC')
       short = [width, height].min
       long  = [width, height].max
       ratio = long.to_f / short
 
-      # Play: "JPEG or 24-bit PNG (no alpha)" — colour types 4 and 6 carry alpha.
-      problems << "#{name}: PNG has an alpha channel; Play requires 24-bit PNG with no alpha" if [4, 6].include?(colour_type)
+      # Play: "JPEG or 24-bit PNG (no alpha)". 24-bit means 8 bits each of R,
+      # G and B — PNG bit depth 8, colour type 2. Checking only for alpha would
+      # let 16-bit, grayscale (0) and palette (3) PNGs through here and have
+      # Play reject them later.
+      if [4, 6].include?(colour_type)
+        problems << "#{name}: PNG has an alpha channel; Play requires 24-bit PNG with no alpha"
+      elsif colour_type != 2 || depth != 8
+        kind = { 0 => 'grayscale', 3 => 'palette' }.fetch(colour_type, "colour type #{colour_type}")
+        problems << "#{name}: #{depth}-bit #{kind} PNG; Play requires 24-bit (8-bit truecolour) PNG"
+      end
       problems << "#{name}: #{width}x#{height} — shorter edge #{short}px is below 1080px" if short < 1080
       problems << "#{name}: #{width}x#{height} — longer edge #{long}px exceeds Play's 3840px maximum" if long > 3840
       # "The maximum dimension of your screenshot can't be more than twice as

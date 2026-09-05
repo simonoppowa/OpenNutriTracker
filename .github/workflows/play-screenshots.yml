@@ -2,11 +2,10 @@
 #
 # Why this exists: the four screenshots on the live Play listing are captures
 # of a **debug build** — Flutter's red DEBUG ribbon, and an app bar reading
-# "OpenNutriTracker [Alpha]" — at 424x900 (#1082). The clean 1080x2205 set has
-# been sitting in `fastlane/metadata/android/en-US/images/phoneScreenshots/`
-# the whole time, because nothing in the pipeline has ever pushed it:
-# `upload_to_play_store` runs with `skip_upload_screenshots: true` in the
-# `internal` lane, and RELEASING.md makes the listing a manual console chore.
+# "OpenNutriTracker [Alpha]" — at 424x900 (#1082). Nothing in the pipeline has
+# ever pushed a replacement: `upload_to_play_store` runs with
+# `skip_upload_screenshots: true` in the `internal` lane, and RELEASING.md
+# makes the listing a manual console chore.
 #
 # Why it is dispatch-only, and must stay that way: map #1016 spent an entire
 # effort removing avoidable jobs from the PR path, and a store-publishing job
@@ -26,9 +25,12 @@
 # What this deliberately does NOT touch, and why each one matters:
 #
 #   - The feature graphic and icon. The repo's `featureGraphic.png` is
-#     512x250 against Play's required 1024x500, while the **live** asset is
-#     already compliant — so an image upload would downgrade the store
-#     (#1074). `skip_upload_images: true`.
+#     512x250 against Play's required 1024x500. The live asset is
+#     *reported* by the #1063 audit to be a compliant 1024x500 — not
+#     independently confirmed, because Google no longer renders the feature
+#     graphic on the desktop web listing — so an image upload would risk
+#     downgrading the store (#1074). Skipped either way: this workflow has
+#     no business touching that asset. `skip_upload_images: true`.
 #   - The title, short description and full description. The repo's copy has
 #     never been pushed and differs substantially from what is live; that is
 #     a content decision owned by map #1062, not a side effect of fixing an
@@ -93,11 +95,11 @@ jobs:
       # fails here in seconds instead of being rejected by the Play API after
       # the credentials have already been handed out.
       #
-      # The ratio rule is the one that is easy to miss and was missed here:
-      # "The maximum dimension of your screenshot can't be more than twice as
-      # long as the minimum dimension." The committed set was 1080x2205 —
-      # 2205 > 2 x 1080 — so it would have been refused by Play while passing
-      # a naive minimum-size check.
+      # The ratio rule is the one that is easy to miss: "The maximum
+      # dimension of your screenshot can't be more than twice as long as the
+      # minimum dimension." A tall phone capture clears a naive
+      # minimum-size check and is then refused by Play, so the ratio is
+      # checked explicitly rather than inferred from the edge lengths.
       #
       # The 1080px floor is stricter than Play's own 320px minimum, on
       # purpose: the live debug set cleared 320px at 424x900 and still looked
@@ -124,15 +126,20 @@ jobs:
               if head[:8] != b'\x89PNG\r\n\x1a\n':
                   bad.append(f'{name}: not a PNG')
                   continue
-              w, h, _depth, colour = struct.unpack('>IIBB', head[16:26])
+              w, h, depth, colour = struct.unpack('>IIBB', head[16:26])
               short, long_ = min(w, h), max(w, h)
               ratio = long_ / short
               print(f'  {name:16s} {w}x{h}  ratio {ratio:.3f}')
 
-              # Play: "JPEG or 24-bit PNG (no alpha)". Colour types 4 and 6
-              # carry an alpha channel.
+              # Play: "JPEG or 24-bit PNG (no alpha)". 24-bit means 8 bits
+              # each of R, G and B — PNG bit depth 8, colour type 2. Checking
+              # only for alpha would let 16-bit, grayscale (0) and palette (3)
+              # PNGs through here and have Play reject them later.
               if colour in (4, 6):
                   bad.append(f'{name}: PNG has an alpha channel; Play requires 24-bit PNG with no alpha')
+              elif colour != 2 or depth != 8:
+                  kind = {0: 'grayscale', 3: 'palette'}.get(colour, f'colour type {colour}')
+                  bad.append(f'{name}: {depth}-bit {kind} PNG; Play requires 24-bit (8-bit truecolour) PNG')
               if short < 1080:
                   bad.append(f'{name}: {w}x{h} — shorter edge {short}px is below 1080px')
               if long_ > 3840:
