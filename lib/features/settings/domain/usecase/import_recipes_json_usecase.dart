@@ -29,15 +29,15 @@ class ImportRecipesJsonUsecase {
 
   /// Returns null when the user cancelled the file picker.
   Future<ImportRecipesJsonResult?> importFromPickedFile() async {
-    final picked = await FilePicker.pickFiles(
+    final picked = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['json'],
     );
-    if (picked == null || picked.files.single.path == null) {
+    if (picked == null || picked.path == null) {
       return null;
     }
 
-    final file = File(picked.files.single.path!);
+    final file = File(picked.path!);
     final content = await file.readAsString(encoding: utf8);
 
     final parseResult = JsonRecipeImporter.parse(content);
