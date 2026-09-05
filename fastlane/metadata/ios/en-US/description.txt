@@ -1,0 +1,26 @@
+OpenNutriTracker is a calorie counter and food diary with no account, no subscription and no ads — for losing weight or keeping a balanced diet. It is open source, and your diary stays on your device.
+
+Nothing to pay, nothing to sign up for. There is no paid tier, no advertising, and no sign-in step between installing the app and logging your first meal.
+
+WHAT IT DOES
+
+• Log meals against a large food database — Open Food Facts plus a reference backend covering USDA FoodData Central and the German BLS, selectable in Settings. Search, scan a barcode, or enter a number when you already know the calorie cost.
+• A calendar-driven diary split into Breakfast, Lunch, Dinner and Snack, with per-meal targets, drag-to-rearrange, and sorting by time or macro contribution.
+• Micronutrients, free: day and week views for fibre, sodium, saturated fat, sugar, calcium, iron, potassium, vitamin D, vitamin B12 and magnesium, with optional Dietary Reference Intake bars.
+• Trends: current and best day-streak, calories against your goal line, daily macro averages, water intake, and weight against target, over 7, 30 and 90 days or your whole history.
+• Custom meals and recipes, with photo, brand and barcode, and a recipe builder with its own ingredient picker.
+• Quick add for when you already know roughly what you ate — a title plus kcal, straight to the meal.
+• Activities from a categorised catalogue, or custom ones with direct kcal entry. Finished workouts can be imported from Apple Health — read-only, off by default, and they stay on your device.
+• A water tracker, an optional intermittent-fasting timer, and a weight history that can taper your calorie goal as you approach target.
+• kcal or kJ, switched globally, and sixteen colour themes.
+• Export your diary, activities, tracked days and recipes to a JSON zip with flat CSVs a spreadsheet can read.
+
+AI MEAL ASSISTANCE, IF YOU WANT IT
+
+Experimental and off by default. Describe a meal in one line, or photograph it, and have several items resolved at once. It needs your own API key — Anthropic, OpenAI, OpenRouter, or a server you run — and the project never sees either. The model reads language, not nutrition: every calorie still comes from the food databases.
+
+PRIVACY
+
+No account, no sign-in, no analytics, no ads. Your diary, profile, weight, custom meals and recipes are stored on your device in AES-256 encrypted databases; photos you attach are ordinary image files beside them. Food search sends the search term and your language code to rank results. Crash reporting is opt-in.
+
+OpenNutriTracker is not a medical device and does not diagnose, treat, cure, or prevent any medical condition. Figures are estimates from public databases and published equations. Always consult a healthcare professional for medical advice, diagnosis, or treatment.
