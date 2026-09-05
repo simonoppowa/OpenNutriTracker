@@ -312,7 +312,7 @@ Against the [documented requirements](https://f-droid.org/docs/All_About_Descrip
 | `full_description.txt`, max 4000 chars, mandatory | 3,570 chars | Pass |
 | `title.txt`, max 50 chars | 16 chars | Pass |
 | `images/icon.png` | 512×512 | Pass |
-| `images/featureGraphic.png` | 512×250 | Works; half the documented "usually 1024×500" |
+| `images/featureGraphic.png` | 1024×500 | Matches the documented "usually 1024×500" |
 | `images/phoneScreenshots/*.png` | 6 × 1432×2856 | Pass (well under `Image.MAX_IMAGE_PIXELS` = 4096×4096, `update.py:72`) |
 | `changelogs/<versionCode>.txt`, max 500 chars | only `12.txt` | **Gap** |
 | At least one locale beyond en-US | none | **Gap** for the Latest tab |
