@@ -126,6 +126,13 @@ jobs:
               if head[:8] != b'\x89PNG\r\n\x1a\n':
                   bad.append(f'{name}: not a PNG')
                   continue
+              # A file can carry the signature and still be too short to hold
+              # an IHDR — a truncated write, an interrupted download, an
+              # unexpanded LFS pointer. Say so, rather than dying in
+              # struct.unpack and leaving a traceback as the whole diagnosis.
+              if len(head) < 26:
+                  bad.append(f'{name}: truncated PNG — {len(head)} bytes, too short to contain an IHDR header')
+                  continue
               w, h, depth, colour = struct.unpack('>IIBB', head[16:26])
               short, long_ = min(w, h), max(w, h)
               ratio = long_ / short

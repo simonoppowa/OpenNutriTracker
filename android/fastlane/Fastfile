@@ -70,6 +70,14 @@ platform :android do
         problems << "#{name}: not a PNG"
         next
       end
+      # A file can carry the signature and still be too short to hold an
+      # IHDR — a truncated write, an interrupted download, an unexpanded LFS
+      # pointer. Say so, rather than unpacking nil and failing with a
+      # NoMethodError that diagnoses nothing.
+      if head.bytesize < 26
+        problems << "#{name}: truncated PNG — #{head.bytesize} bytes, too short to contain an IHDR header"
+        next
+      end
       width, height, depth, colour_type = head[16, 10].unpack('NNCC')
       short = [width, height].min
       long  = [width, height].max
