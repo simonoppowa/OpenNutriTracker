@@ -182,6 +182,17 @@ below, and nothing but this page will remind you.
       policy requires that exact wording *in the app description* for a health-and-fitness app that
       is not a declared medical device, plus a reminder to consult a healthcare professional. Both
       are the last line of `full_description.txt`.
+- [ ] **Correct Play's Data safety record**, which is the one item here that genuinely blocks
+      promoting the Android build to production. The record omits the meal photo and the typed
+      meal line, and
+      [#1050](https://github.com/simonoppowa/OpenNutriTracker/issues/1050) carries the answer
+      sheet field by field — two types, both collected and shared, both optional, purpose App
+      functionality, ephemeral **No**. It is entered in *App content*, independently of a release.
+
+      This step was missing from the first version of this list, which named the three cosmetic
+      declarations and not the blocking one. The public result is visible only at
+      `play.google.com/store/apps/datasafety?id=…`, and that page renders type-level rows rather
+      than the categories the Console groups them under.
 - [ ] **Answer Play's Health apps declaration.** Required for all developers under the same policy,
       with nutrition tracking as a declarable feature.
 - [ ] **Make the App Store Connect App Privacy record agree with
@@ -200,6 +211,10 @@ below, and nothing but this page will remind you.
       The first two exist only because of AI meal assistance. Food search terms, HealthKit
       workouts and locally-attached meal photos are deliberately absent; the manifest says why,
       beside each one.
+- [ ] **Answer Apple's regulated-medical-device question**
+      ([#1081](https://github.com/simonoppowa/OpenNutriTracker/issues/1081)). It gates Health &
+      Fitness submissions. Existing apps have until early 2027, so it does not block a release
+      today — it is here because a deadline nobody has written down is a deadline nobody meets.
 
 The table is what the AI path made necessary, not a statement that the record is complete. Three
 things behind it are open rather than answered, and none blocks a release:
