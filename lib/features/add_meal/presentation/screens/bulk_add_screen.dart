@@ -931,7 +931,12 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
     final energy = Text(energyText, style: theme.textTheme.titleSmall);
 
-    final error = _quantityErrors[index];
+    // Only while the row is still in the batch. Skipping a marked row, or
+    // anything else that drops it from `willBeLogged`, leaves the mark
+    // describing a refusal that is no longer happening — the submit check
+    // skips the row entirely. Guarded here rather than cleared on skip so
+    // that un-skipping brings the mark back rather than losing it.
+    final error = row.willBeLogged ? _quantityErrors[index] : null;
 
     return Padding(
       padding: const EdgeInsets.only(top: 8),
@@ -1330,6 +1335,12 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
+            // Bounded: nothing limits how many rows a paste produces, and a
+            // snackbar does not scroll — an unbounded join would cover the
+            // list the marks are on. The marks carry every failure; this
+            // carries as many as fit and ellipsizes the rest.
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
             invalid.entries
                 .map(
                   (entry) =>
