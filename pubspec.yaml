@@ -67,7 +67,7 @@ dependencies:
   animated_flip_counter: ^0.3.4
   fl_chart: ^1.2.0
 
-  mobile_scanner: ^7.2.0
+  mobile_scanner: ^7.4.0
   qr_flutter: ^4.1.0
   share_plus: ^12.0.2
   image_picker: ^1.2.3
