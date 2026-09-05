@@ -1,0 +1,39 @@
+{
+  "_comment": [
+    "Caption copy and band styling for the store screenshot sets.",
+    "",
+    "The strings below are the DRAFTS recorded on the shot-list ticket",
+    "(#1072). They are here so the compositing step is data-driven rather",
+    "than hard-coded, NOT because they are final: #1072 hands final wording",
+    "to the store-copy tickets. Captions are claims under Play's Misleading",
+    "Claims policy, which explicitly covers screenshots, so they carry the",
+    "same accuracy bar as the description — change them here, not in the",
+    "compositor.",
+    "",
+    "band_fraction is capped by policy, not by taste: Play allows a tagline",
+    "on at most 20% of the image. Apple's 2.3.3 permits overlays outright",
+    "and sets no limit, so one value under Play's cap serves both stores.",
+    "",
+    "One file per locale. en-US is the only listing locale in scope",
+    "(map #1062); a second locale means a second file and a re-render of",
+    "every asset, which is the cost #1072 accepted knowingly."
+  ],
+  "locale": "en-US",
+  "captions": {
+    "01-home": "Free forever. No account.",
+    "02-diary-meals": "Log a meal in seconds",
+    "03-micronutrients": "Ten micronutrients, free",
+    "04-trends": "See the pattern, not the day",
+    "05-diary-calendar": "Every day in one place",
+    "06-profile": "Your numbers, on your device"
+  },
+  "style": {
+    "band_fraction": 0.18,
+    "background": "#F7F4EF",
+    "text": "#2B2A27",
+    "font": "fonts/Poppins-Bold.ttf",
+    "max_lines": 2,
+    "side_padding_fraction": 0.08,
+    "capture_gap_fraction": 0.015
+  }
+}
