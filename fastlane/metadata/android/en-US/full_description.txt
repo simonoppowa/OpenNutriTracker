@@ -1,6 +1,8 @@
-OpenNutriTracker is an open-source calorie and nutrition tracker with a minimalistic interface — for improving your health, losing weight, or keeping a balanced diet.
+OpenNutriTracker is a calorie counter and food diary with no account, no subscription and no ads — for losing weight or keeping a balanced diet. Open source, and your diary stays on your device.
 
 
+🚫💰 No subscriptions, purchases or ads: completely free, with no paid tier and no advertising.
+🔒 Privacy first: No account, no sign-in, no analytics, no ads. Your diary, profile, weight, custom meals and recipes are stored on your device in AES-256 encrypted databases; photos you attach are ordinary image files beside them. Food search sends the search term, plus your language code to rank results. AI meal assistance sends only the line you type or the photo you take, to the provider you chose — never your diary or history. Crash reporting is opt-in.
 🍎 Nutritional tracking: Log meals and snacks against a large food database — Open Food Facts plus a reference backend covering USDA FoodData Central and the German BLS, selectable in Settings. Search, scan, or enter a number when you already know the calorie cost.
 📓 Food diary: A calendar-driven diary split into Breakfast, Lunch, Dinner and Snack, with per-meal kcal targets (several presets or a custom share), drag-to-rearrange between meals, and sort by time or macro contribution.
 📈 Trends: Current and best day-streak, calories against your goal line, daily macro averages, water intake, and weight against target. Switch between 7, 30 and 90 days or your whole history.
@@ -16,6 +18,4 @@ OpenNutriTracker is an open-source calorie and nutrition tracker with a minimali
 🎨 Material You & themes: Adopt the system accent colour on Android 12+, or pick from sixteen built-in presets.
 🔢 kcal or kJ: Switch the energy unit globally; every diary entry, target, and chart reflects the choice.
 📤 Export & import: Export diary entries, activities, tracked days and recipes to a JSON zip, with flat CSVs a spreadsheet can read. Paste a JSON blob to import meals, or share a meal or activity as a QR code. Your profile, weight log, custom meals, water and fasting history stay out of the bundle.
-🔒 Privacy first: No account, no sign-in, no analytics, no ads. Your diary, profile, weight, custom meals and recipes are stored on your device in AES-256 encrypted databases; photos you attach are ordinary image files beside them. Food search sends the search term, plus your language code to rank results. AI meal assistance sends only the line you type or the photo you take, to the provider you chose — never your diary or history. Crash reporting is opt-in.
-🚫💰 No subscriptions, purchases or ads: completely free, with no paid tier and no advertising.
 ⚕️ Not a medical device: OpenNutriTracker is not a medical device and does not diagnose, treat, cure, or prevent any medical condition. Figures are estimates from public databases and published equations. Always consult a healthcare professional for medical advice, diagnosis, or treatment.
