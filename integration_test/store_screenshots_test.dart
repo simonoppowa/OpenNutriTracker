@@ -43,11 +43,15 @@ import 'package:path_provider/path_provider.dart';
 ///
 /// ## Why it skips itself by default
 ///
-/// `ios-integration-attempt.yml` runs `flutter test integration_test/` — the
-/// whole directory. Without the `STORE_SCREENSHOTS` gate this file would join
-/// the iOS integration suite on every pull request, seed a year of demo data
-/// into it, and make the PR path slower and flakier. The screenshot lane
-/// passes `--dart-define=STORE_SCREENSHOTS=true`; nothing else does.
+/// Two jobs run `flutter test integration_test/` — the whole directory, not a
+/// named file. `android-integration-tests` in `default_workflow.yml` runs it
+/// on **every pull request**, and `ios-integration-attempt.yml` runs it on
+/// every push to `develop` and `main` (it is excluded from pull requests,
+/// which is map #1016's work). Without a gate, this file would join both,
+/// seed a year of demo data into each, and make them slower and flakier for
+/// no benefit. The screenshot lane passes
+/// `--dart-define=STORE_SCREENSHOTS=true`; nothing else does, so everywhere
+/// else this test is skipped at compile time.
 const bool _enabled = bool.fromEnvironment('STORE_SCREENSHOTS');
 
 /// Which demo fixture stands behind the shots.
