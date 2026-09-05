@@ -1298,6 +1298,40 @@ void main() {
     expect(find.bySemanticsIdentifier('bulk-add-message-action'), findsNothing);
   });
 
+  // Copilot on #1087 read the new `SingleChildScrollView` as breaking the
+  // vertical centring every other caller of `_centeredMessage` relies on.
+  // `Center` passes loose constraints, so the scroll view shrink-wraps its
+  // child rather than filling the viewport — but nothing pinned that, so a
+  // later change could make the claim true without a test noticing.
+  testWidgets('a short message is still vertically centred', (tester) async {
+    await _register(const {});
+    await tester.pumpWidget(_app());
+    await _parse(tester, '');
+
+    final message = find.text(l10nEn.bulkAddNothingToLogLabel);
+    expect(message, findsOneWidget);
+
+    // Compared against the region `_centeredMessage` is given, not the
+    // screen: the input block and divider sit above it, so "centred" means
+    // centred in what is left. The scroll view shrink-wraps the message, so
+    // its box is the message's box — top-aligning it moves this by half the
+    // region, which is what the assertion has to be able to see.
+    final scroller = find.ancestor(
+      of: message,
+      matching: find.byType(SingleChildScrollView),
+    );
+    final region = find.ancestor(of: scroller, matching: find.byType(Padding));
+    final scrollBox = tester.getRect(scroller.first);
+    final regionBox = tester.getRect(region.first);
+
+    expect(
+      (scrollBox.center.dy - regionBox.center.dy).abs(),
+      lessThan(1.0),
+      reason: 'a short message stays centred in its region, not pinned to '
+          'the top of the scroll viewport',
+    );
+  });
+
   testWidgets('an empty text parse still shows the generic line', (
     tester,
   ) async {
