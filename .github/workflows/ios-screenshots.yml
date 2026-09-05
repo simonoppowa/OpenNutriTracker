@@ -1,0 +1,360 @@
+# Produce the App Store screenshot sets on macOS CI simulators.
+#
+# Why this exists: Apple requires a **6.9" iPhone** set (1290x2796) and a
+# **13" iPad** set (2064x2752) — the iPad one because
+# `TARGETED_DEVICE_FAMILY = "1,2"` in `ios/Runner.xcodeproj/project.pbxproj`,
+# all six configurations. The assets on the live listing are 1242x2208, the
+# legacy 5.5" slot, and four of the eight have a visible defect: one iPhone
+# shot shows an app bar reading "OpenNutriTracker [Alpha]", two show the
+# simulator's `Carrier` status-bar placeholder, and two iPad shots are 35% and
+# 55% empty black (#1072). The dev machine is Linux and there is no Mac, so a
+# CI simulator is the only way this repo can shoot iOS at all — and doing it
+# in CI means the next release gets the re-shoot for free rather than
+# borrowing a laptop again.
+#
+# **Why it is `workflow_dispatch`-only, and must stay that way.** Map #1016
+# spent an entire effort removing macOS demand from the pull-request path:
+# macOS queue p90 fell from 35.4 to 1.7 minutes, and mean macOS jobs per run
+# from 3.06 to 2.17, against a hard cap of 5 concurrent macOS runners. This
+# job boots two simulators and runs a full Xcode build; putting it on
+# `pull_request`, `push`, `release/**` or `main` would hand back a large part
+# of what that effort bought. There is no trigger here but `workflow_dispatch`
+# and adding one is a regression, not a convenience. Same rule, same reason,
+# as `play-screenshots.yml`.
+#
+# **This job holds no store credentials and cannot publish.** Unlike
+# `play-screenshots.yml`, which selects the `release-ship` environment because
+# it writes to a live listing, this one only produces files and uploads them
+# as an artifact. It is deliberately not a deployment and deliberately not
+# behind an approval gate — there is nothing to approve.
+#
+# **It uploads an artifact; it does not commit and does not open a PR.** A CI
+# auto-commit has cost this repo real time before: the iOS `Podfile.lock`
+# auto-commit puts a bot commit on the branch tip, after which dependabot
+# refuses to rebase its own PRs and only `@dependabot recreate` recovers them.
+# Store screenshots are a judgement call — someone has to look at six images
+# and decide they are good enough for the front page of the listing — so the
+# human downloads the artifact, looks, and commits. That review step is the
+# feature.
+#
+# **Where the files land.** `fastlane/metadata/ios/en-US/screenshots/`, per
+# `deliver`'s metadata conventions and per the map's decision, split into
+# `iphone-6.9/` and `ipad-13/`. Note for whoever wires up an upload later:
+# `deliver`'s *default* screenshot path is `fastlane/screenshots/<locale>/`,
+# so `ios/fastlane/Fastfile` will need an explicit `screenshots_path:` if it
+# ever grows an `upload_to_app_store` call that carries images. It has none
+# today — its `release` lane uploads the IPA and nothing else.
+#
+# **What this deliberately does NOT do:**
+#
+#   - Publish. Nothing here talks to App Store Connect. Apple's metadata for
+#     the shipped 2.2.0 record is locked (#1067); screenshots are the one
+#     exception, deliverable via Product Page Optimization, and that is a
+#     console action owned by #1080.
+#   - Produce the Play set. It could — `integration_test/store_screenshots_test.dart`
+#     runs unchanged on an Android emulator and `tools/screenshots/compose.py`
+#     is platform-agnostic — but an Android emulator job belongs on
+#     `ubuntu-latest`, and putting one on a macOS runner would re-create the
+#     exact demand #1016 removed. The Play set's outstanding work is captions,
+#     not a re-capture, and that is `compose.py` run over the PNGs already in
+#     `fastlane/metadata/android/en-US/images/phoneScreenshots/`.
+#   - Touch any app code, any store copy, or any binary.
+
+name: App Store screenshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      devices:
+        description: 'Which Apple device classes to shoot.'
+        required: true
+        default: both
+        type: choice
+        options:
+          - both
+          - iphone
+          - ipad
+      captions:
+        description: 'on = composite the captions from tools/screenshots/captions.en-US.json (#1072). off = raw captures only, for inspecting the app itself.'
+        required: true
+        default: 'on'
+        type: choice
+        options:
+          - 'on'
+          - 'off'
+
+permissions:
+  contents: read
+
+# One at a time. Two runs would not corrupt anything — there is no shared
+# state to corrupt — but they would take two of the five macOS runners, which
+# is the resource this whole lane is written to be careful with.
+concurrency:
+  group: ios-screenshots
+  cancel-in-progress: false
+
+jobs:
+  screenshots:
+    name: Capture App Store screenshots
+    # Pinned to macos-15 for the same reason ios-integration-attempt.yml is:
+    # on the macos-26 image Flutter builds and launches the app on the iOS 26
+    # simulator and then hangs forever on "Waiting for VM Service port to be
+    # available" — the VM service URL is never discovered, so the test never
+    # connects. macos-15 ships the Xcode 16 / iOS 18 simulators this Flutter
+    # supports, and it is also where the 6.9" iPhone and 13" iPad device types
+    # this lane needs are available. Revisit together with that job, not
+    # separately.
+    runs-on: macos-15
+    # Two device classes, each paying a simulator boot and a Flutter test run,
+    # on top of one cold Xcode build. The integration job's slowest healthy
+    # run of the equivalent step was 15m36s including its cold build; the
+    # second device class reuses that build.
+    timeout-minutes: 90
+
+    env:
+      # Apple's current portrait sizes for the two slots this app must fill.
+      # Apple also accepts 1320x2868 for 6.9" and 2048x2732 for 13", which is
+      # why the guard names the alternates when it rejects — a runner image
+      # that only ships an iPhone 16 Pro Max would produce 1320x2868 and be
+      # perfectly valid, just not what #1072 specified.
+      IPHONE_SIZE: 1290x2796
+      IPAD_SIZE: 2064x2752
+      # --flavor full, so the app under test carries the production bundle id
+      # and display name rather than the `.develop` ones. A screenshot of a
+      # build whose app bar says "[Alpha]" is exactly the defect this replaces.
+      BUNDLE_ID: com.opennutritracker.ont.opennutritracker
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Flutter + cache packages
+        uses: ./.github/actions/setup-flutter-cache
+
+      # Same reasoning as ios-build and ios-integration-attempt: SPM is on by
+      # default on stable, and leaving it on costs ~150s of "Adding Swift
+      # Package Manager integration" and resolves plugins through the SPM
+      # graph instead of the CocoaPods one this repo pins.
+      - name: Disable Swift Package Manager
+        run: flutter config --no-enable-swift-package-manager
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v6
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      # The app will not build without a .env, and nothing in a screenshot run
+      # contacts Sentry or Supabase — the shots come off locally seeded demo
+      # data. Stubs, exactly as the integration job uses.
+      - name: Generate stub .env for CI
+        uses: ./.github/actions/write-env-file
+        with:
+          sentry_dns: https://stub@sentry.io/0
+          supabase_project_url: https://stub.supabase.co
+          supabase_project_anon_key: ci-stub
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Pod install (regenerate lockfile if constraints have shifted)
+        run: .github/scripts/pod_install_with_targeted_fallback.sh
+
+      # setup-python rather than the image's own python3: the macOS runner's
+      # Homebrew Python is an externally-managed environment, so a bare
+      # `pip install` into it fails. This gives the compositing step a plain
+      # interpreter it is allowed to install into.
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install Pillow
+        run: python3 -m pip install --upgrade pillow
+
+      # Capture. One step per device class so a failure names the class it
+      # failed on, and so `devices: iphone` does not pay for an iPad boot.
+      #
+      # The simulator device type is chosen by name from a preference list,
+      # because runner images add and drop device types between updates and a
+      # single hardcoded name turns an image refresh into a mystery failure.
+      # If none of the candidates is available, the step prints every iPhone
+      # or iPad the runner *does* have, which is the one thing that makes this
+      # diagnosable from a log.
+      #
+      # `status_bar override` pins Apple's canonical 9:41, full bars, full
+      # battery. Two of the live iPhone assets show the simulator's `Carrier`
+      # placeholder (#1072) — this is what prevents that recurring, and it
+      # costs one command.
+      - name: Capture — 6.9" iPhone
+        if: inputs.devices == 'both' || inputs.devices == 'iphone'
+        run: |
+          .github/scripts/ios_capture_screenshots.sh \
+            iphone "build/screenshots/raw/iphone"
+        env:
+          CANDIDATES: 'iPhone 16 Plus|iPhone 15 Plus|iPhone 16 Pro Max|iPhone 15 Pro Max'
+
+      - name: Capture — 13" iPad
+        if: inputs.devices == 'both' || inputs.devices == 'ipad'
+        run: |
+          .github/scripts/ios_capture_screenshots.sh \
+            ipad "build/screenshots/raw/ipad"
+        env:
+          CANDIDATES: 'iPad Pro 13-inch (M4)|iPad Pro (12.9-inch) (6th generation)'
+
+      # Compositing. Shared with the Play path on purpose (#1072 captions both
+      # sets); nothing in compose.py knows which platform it is looking at.
+      - name: Composite captions
+        run: |
+          set -euo pipefail
+          extra=""
+          if [ "${{ inputs.captions }}" = "off" ]; then
+            extra="--no-captions"
+          fi
+          if [ -d build/screenshots/raw/iphone ]; then
+            python3 tools/screenshots/compose.py \
+              --raw build/screenshots/raw/iphone \
+              --out "fastlane/metadata/ios/en-US/screenshots/iphone-6.9" \
+              --size "$IPHONE_SIZE" $extra
+          fi
+          if [ -d build/screenshots/raw/ipad ]; then
+            python3 tools/screenshots/compose.py \
+              --raw build/screenshots/raw/ipad \
+              --out "fastlane/metadata/ios/en-US/screenshots/ipad-13" \
+              --size "$IPAD_SIZE" $extra
+          fi
+
+      # Enforces Apple's published screenshot spec locally, so a bad set fails
+      # here in seconds instead of being refused by App Store Connect after
+      # somebody has already committed it. Same idea, and the same house
+      # style, as the Play spec guard in play-screenshots.yml — the sizes and
+      # the alpha rule are the parts that actually get people.
+      - name: Check the screenshots meet Apple's spec
+        run: |
+          python3 - <<'PY'
+          import glob, os, struct, sys
+
+          # Apple accepts either size in each slot; #1072 specifies the first
+          # of each pair. The second is named in the failure text so a runner
+          # image that only ships the other device is diagnosable rather than
+          # mysterious.
+          SLOTS = {
+              'iphone-6.9': ((1290, 2796), (1320, 2868), '6.9" iPhone'),
+              'ipad-13':    ((2064, 2752), (2048, 2732), '13" iPad'),
+          }
+
+          root = 'fastlane/metadata/ios/en-US/screenshots'
+          checked = 0
+          bad = []
+
+          for slot, (want, alt, label) in SLOTS.items():
+              d = os.path.join(root, slot)
+              files = sorted(glob.glob(os.path.join(d, '*.png')))
+              if not files:
+                  print(f'{label}: no screenshots in {d} — skipped')
+                  continue
+              print(f'{label} ({slot}):')
+              # Apple takes up to 10 per device class; #1072 settled on six.
+              if len(files) > 10:
+                  bad.append(f'{slot}: Apple accepts at most 10 screenshots per '
+                             f'device class, found {len(files)}')
+              if len(files) != 6:
+                  bad.append(f'{slot}: the shot list settled in #1072 is six '
+                             f'screens, found {len(files)}')
+
+              for f in files:
+                  checked += 1
+                  name = os.path.basename(f)
+                  head = open(f, 'rb').read(33)
+                  if head[:8] != b'\x89PNG\r\n\x1a\n':
+                      bad.append(f'{slot}/{name}: not a PNG')
+                      continue
+                  # A file can carry the signature and still be too short to
+                  # hold an IHDR — a truncated write, an interrupted copy off
+                  # the simulator. Say so, rather than dying in struct.unpack
+                  # and leaving a traceback as the whole diagnosis.
+                  if len(head) < 26:
+                      bad.append(f'{slot}/{name}: truncated PNG — {len(head)} bytes, '
+                                 f'too short to contain an IHDR header')
+                      continue
+                  w, h, depth, colour = struct.unpack('>IIBB', head[16:26])
+                  print(f'  {name:24s} {w}x{h}')
+
+                  if (w, h) != want:
+                      hint = (f' (this is Apple\'s other accepted {label} size; '
+                              f'#1072 specifies {want[0]}x{want[1]})'
+                              if (w, h) == alt else '')
+                      bad.append(f'{slot}/{name}: {w}x{h} — {label} needs '
+                                 f'{want[0]}x{want[1]}{hint}')
+
+                  # Apple: screenshots must be flattened with no transparency.
+                  # The raw captures come off UIGraphicsImageRenderer as RGBA,
+                  # so this is the check that proves the compositing step
+                  # actually flattened them.
+                  if colour in (4, 6):
+                      bad.append(f'{slot}/{name}: PNG has an alpha channel; Apple '
+                                 f'requires a flattened image with no transparency')
+                  elif colour != 2 or depth != 8:
+                      kind = {0: 'grayscale', 3: 'palette'}.get(colour, f'colour type {colour}')
+                      bad.append(f'{slot}/{name}: {depth}-bit {kind} PNG; Apple wants '
+                                 f'8-bit RGB')
+
+          if checked == 0:
+              sys.exit(f'No screenshots were produced under {root}')
+          if bad:
+              sys.exit('Rejected:\n  ' + '\n  '.join(bad))
+          print(f'\n{checked} screenshot(s) OK.')
+          PY
+
+      - name: Upload the screenshot sets
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: app-store-screenshots
+          path: |
+            fastlane/metadata/ios/en-US/screenshots/**/*.png
+            build/screenshots/raw/**/*.png
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## App Store screenshots"
+            echo
+            if [ "${{ job.status }}" = "success" ]; then
+              echo "✅ Captured and composited. Download the **app-store-screenshots**"
+              echo "artifact, look at all of them, and commit the ones you are happy"
+              echo "with to \`fastlane/metadata/ios/en-US/screenshots/\`."
+              echo
+              echo "The artifact carries the raw captures under \`build/screenshots/raw/\`"
+              echo "as well as the captioned assets, so a caption problem can be fixed"
+              echo "by re-running \`tools/screenshots/compose.py\` locally instead of"
+              echo "re-running this job."
+            else
+              echo "❌ Failed. Read the step log."
+              echo
+              echo "The three failures worth knowing in advance:"
+              echo "- **The device type was not on the runner.** The capture step prints"
+              echo "  every iPhone/iPad the image does have; add it to the candidate list."
+              echo "- **Flutter never found the VM service.** Same hang"
+              echo "  \`ios-integration-attempt.yml\` documents; it is rarer on macos-15,"
+              echo "  not absent. Re-run — a fresh runner has historically fixed it."
+              echo "- **The demo banner assertion tripped.** \`seedDemoData\` sets"
+              echo "  \`isDemoData\`, which pins a banner to every tab; the test clears it"
+              echo "  and then checks. If the check fires, the clearing stopped working —"
+              echo "  do not delete the assertion (#1075)."
+            fi
+            echo
+            echo "### Not touched by this workflow"
+            echo "- App Store Connect. Nothing here publishes (#1067, #1080)."
+            echo "- The Play set. Its outstanding work is captions, which is"
+            echo "  \`compose.py\` over the existing PNGs, not a re-capture."
+            echo "- Store copy, and any app binary."
+          } >> "$GITHUB_STEP_SUMMARY"
