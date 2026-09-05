@@ -1829,7 +1829,8 @@ void main() {
         () => AiCredentialStorage(stored),
       );
 
-      await tester.pumpWidget(_app());
+      final pushed = <RouteSettings>[];
+      await tester.pumpWidget(_app(pushed: pushed));
       await tester.pumpAndSettle();
       final navigator = tester.state<NavigatorState>(find.byType(Navigator));
       navigator.pushNamed('/bulk');
@@ -1843,6 +1844,21 @@ void main() {
       await tester.tap(hint);
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('settings-stub')), findsOneWidget);
+
+      // #992: the hint asks for the AI dialog by name, as the failure notice
+      // has since #852. Of this screen's two audiences the one reading this
+      // line knows least about where it is going, and it used to get the
+      // longer way round — the top of a long Settings list.
+      expect(
+        pushed
+            .lastWhere((route) => route.name == NavigationOptions.settingsRoute)
+            .arguments,
+        isA<SettingsScreenArguments>().having(
+          (arguments) => arguments.openAiAssist,
+          'openAiAssist',
+          isTrue,
+        ),
+      );
 
       stored.values['AiProviderTag'] = 'anthropic';
       stored.values['AiApiKeyTag.anthropic'] = 'sk-test';
@@ -1865,8 +1881,9 @@ void main() {
     testWidgets('and from the failure notice, which lands in the same place', (
       tester,
     ) async {
-      // The other route out of this screen (#852). It carries arguments the
-      // hint does not, so it is a second call site rather than the same one.
+      // The other route out of this screen (#852). Both call sites now carry
+      // the same arguments, so this asserts the second one keeps them when it
+      // goes through the re-resolving helper.
       await _registerWithFailingReader({
         'toast': [_meal('Toast')],
       }, const MealInterpreterException(

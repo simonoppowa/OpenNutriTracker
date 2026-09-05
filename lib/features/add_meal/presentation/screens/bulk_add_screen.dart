@@ -333,7 +333,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         child: Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: InkWell(
-            onTap: _openSettings,
+            // Asks for the AI dialog by name, the same way the failure
+            // notices below have since #852. Plain Settings opens with the
+            // AI row several category groups down, and of this screen's two
+            // audiences the one reading this hint is the one that knows
+            // least about where it is going — sending it the longer way
+            // round was exactly backwards. #992.
+            onTap: () => _openSettings(
+              arguments: const SettingsScreenArguments(openAiAssist: true),
+            ),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
