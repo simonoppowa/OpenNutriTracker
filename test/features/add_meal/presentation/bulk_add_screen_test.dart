@@ -1870,8 +1870,8 @@ void main() {
         camera,
         findsOneWidget,
         reason:
-            'the answers were resolved before the user left, so the screen '
-            'shows the feature as missing until it is re-entered',
+            'the answers are re-resolved when settings pops, so the camera '
+            'appears without leaving and re-entering the screen',
       );
       // And the line inviting them to set one up has done its job.
       expect(hint, findsNothing);
