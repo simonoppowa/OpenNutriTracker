@@ -137,7 +137,12 @@ void main() {
         false, // Material You off — see _brandAccentIndex
         _brandAccentIndex,
       );
-      await tester.pumpAndSettle(const Duration(seconds: 60));
+      // The first argument to pumpAndSettle is the interval *between* frames,
+      // not a timeout, and under the live binding that interval is real
+      // elapsed time — so this is "give boot 30 seconds, then settle". It is
+      // the idiom `app_boot_test.dart` already uses against this app's boot,
+      // which is the only reason to trust the number.
+      await tester.pumpAndSettle(const Duration(seconds: 30));
 
       // Android renders Flutter into a SurfaceView that `takeScreenshot`
       // cannot read; this swaps it for an ImageView. It is a documented no-op
@@ -261,7 +266,13 @@ Future<void> _tapNav(WidgetTester tester, String identifier) async {
     reason: 'no bottom-nav item with semantics identifier "$identifier"',
   );
   await tester.tap(item);
-  await tester.pumpAndSettle(const Duration(seconds: 10));
+  await tester.pumpAndSettle();
+  // A bare pumpAndSettle returns as soon as no frame is scheduled, which
+  // happens while a page's bloc is still awaiting its first load — so it can
+  // return on an empty screen. The explicit pump gives that load real time to
+  // land. `_shoot` refusing to capture over a spinner is the backstop.
+  await tester.pump(const Duration(seconds: 3));
+  await tester.pumpAndSettle();
 }
 
 /// Scrolls the diary's outer `ListView` until [target] is on screen.
@@ -303,6 +314,9 @@ Future<void> _shoot(
   String name,
   Finder mustBeVisible,
 ) async {
+  await tester.pump(const Duration(seconds: 2));
+  await tester.pumpAndSettle();
+
   expect(
     mustBeVisible,
     findsWidgets,
@@ -319,7 +333,6 @@ Future<void> _shoot(
     reason: 'refusing to capture "$name": something is still loading',
   );
 
-  await tester.pumpAndSettle();
   final bytes = await binding.takeScreenshot(name);
   await File('${outDir.path}/$name.png').writeAsBytes(bytes);
 }

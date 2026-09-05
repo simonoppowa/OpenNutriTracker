@@ -205,7 +205,14 @@ jobs:
           .github/scripts/ios_capture_screenshots.sh \
             ipad "build/screenshots/raw/ipad"
         env:
-          CANDIDATES: 'iPad Pro 13-inch (M4)|iPad Pro (12.9-inch) (6th generation)'
+          # Only the 13-inch M4 — 1032x1376pt at @2x is exactly 2064x2752.
+          # The 12.9-inch iPad Pro is deliberately *not* a fallback: it gives
+          # 2048x2732, which is Apple's other accepted 13" size and perfectly
+          # valid, but it is not the one #1072 named and the capture guard
+          # refuses to upscale into a slot. If the M4 ever leaves the runner
+          # image, the fix is to shoot at 2048x2732 and change IPAD_SIZE to
+          # match — not to stretch a smaller capture.
+          CANDIDATES: 'iPad Pro 13-inch (M4)'
 
       # Compositing. Shared with the Play path on purpose (#1072 captions both
       # sets); nothing in compose.py knows which platform it is looking at.
