@@ -1212,6 +1212,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   static const _supportedLocales = <String, String>{
     'en': 'English',
     'de': 'Deutsch',
+    'es': 'Español',
     'tr': 'Türkçe',
     'cs': 'Čeština',
     'it': 'Italiano',
