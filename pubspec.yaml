@@ -61,7 +61,7 @@ dependencies:
 
   percent_indicator: ^4.2.5
   horizontal_picker: ^1.2.0
-  table_calendar: ^3.2.0
+  table_calendar: ^3.2.1
   introduction_screen: ^4.0.0
   auto_size_text: ^3.0.0
   animated_flip_counter: ^0.3.4
