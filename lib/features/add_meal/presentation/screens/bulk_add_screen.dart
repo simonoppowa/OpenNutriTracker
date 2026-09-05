@@ -931,12 +931,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
     final energy = Text(energyText, style: theme.textTheme.titleSmall);
 
-    // Only while the row is still in the batch. Skipping a marked row, or
-    // anything else that drops it from `willBeLogged`, leaves the mark
-    // describing a refusal that is no longer happening — the submit check
-    // skips the row entirely. Guarded here rather than cleared on skip so
-    // that un-skipping brings the mark back rather than losing it.
-    final error = row.willBeLogged ? _quantityErrors[index] : null;
+    final error = _quantityErrors[index];
 
     return Padding(
       padding: const EdgeInsets.only(top: 8),

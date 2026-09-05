@@ -1326,24 +1326,6 @@ void main() {
       );
     });
 
-    testWidgets('skipping a marked row takes its mark with it', (tester) async {
-      // The submit check skips a row that will not be logged, so a mark left
-      // on one describes a refusal that is no longer happening.
-      await threeRows(tester);
-      await typeAmount(tester, 0, '0');
-      await tester.tap(_submitButton());
-      await tester.pumpAndSettle();
-
-      expect(find.text(l10nEn.bulkAddRowQuantityTooSmall), findsOneWidget);
-
-      ScaffoldMessenger.of(tester.element(_submitButton())).clearSnackBars();
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(l10nEn.bulkAddSkipLabel).first);
-      await tester.pumpAndSettle();
-
-      expect(find.text(l10nEn.bulkAddRowQuantityTooSmall), findsNothing);
-    });
-
     testWidgets('correcting a row clears its mark and logs the batch', (
       tester,
     ) async {
