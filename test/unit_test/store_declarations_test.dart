@@ -110,6 +110,38 @@ void main() {
     });
   });
 
+  group('Play release notes', () {
+    // Play caps release notes at 500 characters, and like the listing cap it
+    // is discovered only when the Console refuses the text. `63.txt` was 628
+    // characters and would have been rejected — it never reached the store,
+    // which is why nobody noticed. F-Droid reads these same files, so a
+    // changelog that cannot be published is not a private problem.
+    final changelogs = Directory(
+      'fastlane/metadata/android/en-US/changelogs',
+    ).listSync().whereType<File>().where((f) => f.path.endsWith('.txt'));
+
+    test('every changelog is within the 500-character cap', () {
+      for (final file in changelogs) {
+        expect(
+          file.readAsStringSync().trim().length,
+          lessThanOrEqualTo(500),
+          reason: '${file.path} exceeds Play\'s 500-character release-note cap',
+        );
+      }
+    });
+
+    test('the 2.2.0 note describes what 2.2.0 actually shipped', () {
+      final notes = File(
+        'fastlane/metadata/android/en-US/changelogs/63.txt',
+      ).readAsStringSync();
+      // The published note on both stores names these; an earlier draft
+      // described only the TDEE correction and matched neither store.
+      expect(notes, contains('Health Connect'));
+      expect(notes, contains('AI meal assistance'));
+      expect(notes.toLowerCase(), contains('kcal calculations'));
+    });
+  });
+
   group('Play listing', () {
     // Play rejects a longer description outright. Nothing in the repo or in
     // CI checks it, and `upload_to_play_store` runs with
