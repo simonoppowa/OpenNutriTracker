@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:auto_size_text/auto_size_text.dart';
@@ -75,10 +76,11 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// each. #1013.
   final _quantityErrors = <int, BulkAddQuantityError>{};
 
-  /// Whether the photo action is offered at all. Read once and held, rather
-  /// than resolved inside `build` — a future rebuilt on every frame would
-  /// re-read the keystore continuously for an answer that changes only when
-  /// the user visits settings, which closes this screen anyway.
+  /// Whether the photo action is offered at all. Held rather than resolved
+  /// inside `build` — a future rebuilt on every frame would re-read the
+  /// keystore continuously for an answer that changes only when the user
+  /// visits settings. It is re-read when they come back from there, and only
+  /// then; see [_openSettings].
   /// **Both halves are load-bearing, and neither implies the other.**
   ///
   /// Found on a Pixel 6: with a server the user runs configured, the feature
@@ -92,10 +94,12 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// entry — so gating on it alone offered the camera to every user with no
   /// key at all, and to every user who had deliberately switched the feature
   /// off.
-  late final Future<bool> _photoAvailable = () async {
+  late Future<bool> _photoAvailable = _resolvePhotoAvailable();
+
+  Future<bool> _resolvePhotoAvailable() async {
     if (!await locator<AiCredentialStorage>().isEnabled()) return false;
     return await _photoDestination != null;
-  }();
+  }
 
   /// Whether to offer the model at all, for someone who has never set it up.
   ///
@@ -109,9 +113,11 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// has not failed to discover it, and this line exists for discovery. The
   /// rule is one sentence: it shows only for someone who has configured
   /// nothing. #844.
-  late final Future<bool> _modelUnknown = () async {
+  late Future<bool> _modelUnknown = _resolveModelUnknown();
+
+  Future<bool> _resolveModelUnknown() async {
     return !await locator<AiCredentialStorage>().hasAnyUsableProvider();
-  }();
+  }
 
   /// Where a photo would actually go, **and the name the sheet gives it**.
   ///
@@ -134,21 +140,24 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// Null when the stored provider is a name this build does not know. The
   /// sheet cannot name a destination it cannot identify, so it does not open
   /// — the same outcome as a provider with no key, and the point of #753.
-  late final Future<({AiProvider provider, String name})?> _photoDestination =
-      () async {
-        final storage = locator<AiCredentialStorage>();
-        final provider = await storage.activeProvider();
-        if (provider == null) return null;
-        if (provider == AiProvider.ownServer) {
-          return await _ownServerDestination(storage);
-        }
-        final model = AiModelCatalogue.resolve(
-          provider,
-          await storage.readModel(provider: provider),
-        );
-        if (model == null) return null;
-        return (provider: provider, name: model.servedBy);
-      }();
+  late Future<({AiProvider provider, String name})?> _photoDestination =
+      _resolvePhotoDestination();
+
+  Future<({AiProvider provider, String name})?>
+  _resolvePhotoDestination() async {
+    final storage = locator<AiCredentialStorage>();
+    final provider = await storage.activeProvider();
+    if (provider == null) return null;
+    if (provider == AiProvider.ownServer) {
+      return await _ownServerDestination(storage);
+    }
+    final model = AiModelCatalogue.resolve(
+      provider,
+      await storage.readModel(provider: provider),
+    );
+    if (model == null) return null;
+    return (provider: provider, name: model.servedBy);
+  }
 
   /// A server the user runs, **only once a photo probe has passed against the
   /// pair currently configured** — and null otherwise.
@@ -181,6 +190,31 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
   late BulkAddScreenArguments _args;
   bool _submitting = false;
+
+  /// Opens settings, and re-reads the three answers above once it pops.
+  ///
+  /// Every route out of this screen that can change them comes through here,
+  /// which is what makes "resolved once" safe. Without it the first run of
+  /// the feature ends with the feature missing: a new user follows the hint
+  /// below, configures a provider, comes back — and the camera is still
+  /// hidden, because the screen is still holding the answers it computed
+  /// before they left. #992.
+  ///
+  /// Re-read on the pop rather than on every rebuild: the keystore is the
+  /// only thing that can have changed, and only a visit to settings can have
+  /// changed it.
+  Future<void> _openSettings({SettingsScreenArguments? arguments}) async {
+    await Navigator.of(
+      context,
+    ).pushNamed(NavigationOptions.settingsRoute, arguments: arguments);
+    if (!mounted) return;
+    setState(() {
+      // Destination first: the availability answer awaits this field.
+      _photoDestination = _resolvePhotoDestination();
+      _photoAvailable = _resolvePhotoAvailable();
+      _modelUnknown = _resolveModelUnknown();
+    });
+  }
 
   @override
   void didChangeDependencies() {
@@ -303,9 +337,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         child: Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: InkWell(
-            onTap: () => Navigator.of(
-              context,
-            ).pushNamed(NavigationOptions.settingsRoute),
+            // Asks for the AI dialog by name, the same way the failure
+            // notices below have since #852. Plain Settings opens with the
+            // AI row several category groups down, and of this screen's two
+            // audiences the one reading this hint is the one that knows
+            // least about where it is going — sending it the longer way
+            // round was exactly backwards. #992.
+            onTap: () => _openSettings(
+              arguments: const SettingsScreenArguments(openAiAssist: true),
+            ),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
@@ -663,9 +703,17 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// failures are answered in the same dialog as the text ones, and the whole
   /// point of #852 is that the route carries *which* part of Settings to
   /// open. A second copy of these arguments is a second chance to lose them.
-  void _openAiSettings(BuildContext context) => Navigator.of(context).pushNamed(
-    NavigationOptions.settingsRoute,
-    arguments: const SettingsScreenArguments(openAiAssist: true),
+  /// Every route from this screen to the AI dialog, so all of them both
+  /// deep-link (#852, #992) and re-resolve on the way back (#992).
+  ///
+  /// Delegating rather than pushing directly is the whole point: this had
+  /// three call sites — the discovery hint, the text failure notice and the
+  /// photo failure action — and only the ones that went through
+  /// [_openSettings] noticed a provider configured while they were away.
+  void _openAiSettings(BuildContext context) => unawaited(
+    _openSettings(
+      arguments: const SettingsScreenArguments(openAiAssist: true),
+    ),
   );
 
   /// A message that fills the body, optionally with something to do about it.
