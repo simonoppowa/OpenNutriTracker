@@ -227,7 +227,7 @@ jobs:
             fi
             echo
             echo "### Not touched by this workflow"
-            echo "- Feature graphic and icon (repo copy is 512x250, live is compliant — #1074)"
+            echo "- Feature graphic and icon (repo copy is 512x250; live reported compliant, unconfirmed — #1074)"
             echo "- Title, short and full description (#1062)"
             echo "- Release notes (#1073)"
             echo "- Any app binary"

@@ -28,8 +28,9 @@ platform :android do
   #
   # - `skip_upload_images` — `fastlane/metadata/android/en-US/images/`
   #   holds a **512x250** `featureGraphic.png` against Play's required
-  #   1024x500. The live asset is the compliant one, so uploading images
-  #   would *downgrade* the store (#1074).
+  #   1024x500. The live asset is *reported* by the #1063 audit to be the
+  #   compliant one — not independently confirmed — so uploading images
+  #   would risk downgrading the store (#1074).
   # - `skip_upload_metadata` — the repo's `full_description.txt` (3,952
   #   chars) has never been pushed; the live listing is a different,
   #   1,127-char text. Publishing it is a reviewed content decision that
