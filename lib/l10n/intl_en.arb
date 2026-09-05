@@ -1233,6 +1233,16 @@
           }
       }
   },
+  "bulkAddRowQuantityInvalid": "Enter a number with at most two decimals",
+  "bulkAddRowQuantityTooSmall": "Quantity must be greater than 0",
+  "bulkAddRowQuantityTooLarge": "Quantity must be {bound} or less",
+  "@bulkAddRowQuantityTooLarge": {
+      "placeholders": {
+          "bound": {
+              "type": "int"
+          }
+      }
+  },
   "settingsAiAssistLabel": "AI meal assistance",
   "settingsAiAssistNotConfiguredLabel": "Off — no key saved",
   "settingsAiAssistOnLabel": "On",
