@@ -401,6 +401,33 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         BulkAddPhotoError.insecureDestination =>
           S.of(context).bulkAddModelInsecureServerLabel,
         BulkAddPhotoError.billing => S.of(context).bulkAddPhotoNoCreditLabel,
+      },
+      // #992. Three of these sentences send the user to Settings by name and
+      // the fourth is answered there too, but only the *text* path ever
+      // carried a way in — the photo path said "check it in Settings" and
+      // left the user to find it, which is the hunt #852 already fixed once,
+      // in the same dialog, for the same failures.
+      //
+      // Exhaustive, and deliberately not a `_ => null` default: a ninth photo
+      // failure has to say here whether Settings answers it, rather than
+      // inheriting silence from a case nobody weighed it against.
+      //
+      // The four that get nothing point somewhere else, and a Settings button
+      // under them would send the user to fix the one thing that is not
+      // broken: the camera case is a permission the OS holds, the unreadable
+      // case wants a different photograph, the transient case wants the
+      // connection or another attempt, and the billing case is settled on the
+      // provider's own site — its sentence says so.
+      action: switch (state.error) {
+        BulkAddPhotoError.unavailable ||
+        BulkAddPhotoError.auth ||
+        BulkAddPhotoError.unsupported ||
+        BulkAddPhotoError.insecureDestination =>
+          () => _openAiSettings(context),
+        BulkAddPhotoError.transient ||
+        BulkAddPhotoError.camera ||
+        BulkAddPhotoError.unreadable ||
+        BulkAddPhotoError.billing => null,
       });
     }
     if (state is! BulkAddLoadedState) {
@@ -501,10 +528,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         // does not appear here on purpose: the auth, unsupported, billing,
         // timeout and insecure-destination cases are all fixed in this one
         // dialog, so they all ask for the same thing.
-        action: () => Navigator.of(context).pushNamed(
-          NavigationOptions.settingsRoute,
-          arguments: const SettingsScreenArguments(openAiAssist: true),
-        ),
+        action: () => _openAiSettings(context),
       );
     }
 
@@ -630,9 +654,53 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     );
   }
 
-  Widget _centeredMessage(BuildContext context, String message) => Padding(
+  /// The one place every "change a setting" recovery on this screen goes.
+  ///
+  /// Shared rather than repeated so the two paths cannot drift: the photo
+  /// failures are answered in the same dialog as the text ones, and the whole
+  /// point of #852 is that the route carries *which* part of Settings to
+  /// open. A second copy of these arguments is a second chance to lose them.
+  void _openAiSettings(BuildContext context) => Navigator.of(context).pushNamed(
+    NavigationOptions.settingsRoute,
+    arguments: const SettingsScreenArguments(openAiAssist: true),
+  );
+
+  /// A message that fills the body, optionally with something to do about it.
+  ///
+  /// [action] is optional because most callers have nothing to offer: a
+  /// failed food search and an empty parse are not fixed anywhere in
+  /// particular, so they stay a sentence and nothing else.
+  Widget _centeredMessage(
+    BuildContext context,
+    String message, {
+    VoidCallback? action,
+  }) => Padding(
     padding: const EdgeInsets.all(24),
-    child: Center(child: Text(message, textAlign: TextAlign.center)),
+    // Scrollable rather than clipped, for the reason #777 settled: this
+    // region takes a tight height from the `Expanded` above, and German at 2x
+    // on a 320dp screen wants 484px more than it has. A bare `Column` there
+    // paints its overflow past the bottom of the screen, and the button is
+    // the last thing in it — so the control this change exists to add would
+    // have been the first thing to go: in the tree, and untappable. Measured,
+    // not assumed; the test pins it.
+    child: Center(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(message, textAlign: TextAlign.center),
+            if (action != null)
+              Semantics(
+                identifier: 'bulk-add-message-action',
+                child: TextButton(
+                  onPressed: action,
+                  child: Text(S.of(context).settingsLabel),
+                ),
+              ),
+          ],
+        ),
+      ),
+    ),
   );
 
   /// The parser reports *what* was wrong with *which* item; the sentence is

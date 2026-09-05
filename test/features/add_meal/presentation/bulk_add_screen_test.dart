@@ -244,6 +244,49 @@ MealInterpreterFailure _throwsFor(MealTextModelFailure kind) => switch (kind) {
     MealInterpreterFailure.insecureDestination,
 };
 
+/// Whether the photo failure [error] is one the AI settings dialog answers.
+///
+/// A switch over the enum for the same reason [_throwsFor] is one: a ninth
+/// photo failure cannot be added without saying here whether Settings is
+/// where its user should be sent, rather than inheriting an answer from a
+/// default it was never weighed against.
+///
+/// The four that say `false` are answered somewhere this app does not own —
+/// the camera permission, a different photograph, the connection, and the
+/// provider's own billing page.
+bool _offersSettings(BulkAddPhotoError error) => switch (error) {
+  BulkAddPhotoError.unavailable ||
+  BulkAddPhotoError.auth ||
+  BulkAddPhotoError.unsupported ||
+  BulkAddPhotoError.insecureDestination => true,
+  BulkAddPhotoError.transient ||
+  BulkAddPhotoError.camera ||
+  BulkAddPhotoError.unreadable ||
+  BulkAddPhotoError.billing => false,
+};
+
+/// Puts the screen in front of the photo failure [error], without a picker
+/// and without a model: the bloc takes the failure as an event, which is how
+/// the camera path reports one anyway.
+Future<void> _photoFailure(
+  WidgetTester tester,
+  BulkAddPhotoError error, {
+  List<RouteSettings>? pushed,
+  Locale? locale,
+  Widget Function(Widget app)? wrap,
+}) async {
+  final bloc = await _registerWithPhotoReading(
+    const MealPhotoFailed(MealPhotoFailure.transient),
+  );
+  final app = _app(pushed: pushed, locale: locale);
+  await tester.pumpWidget(wrap == null ? app : wrap(app));
+  tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+  await tester.pumpAndSettle();
+
+  bloc.add(ReadMealPhotoFailedEvent(error));
+  await tester.pumpAndSettle();
+}
+
 class _AlwaysFailsInterpreter implements MealTextInterpreter {
   final MealInterpreterException failure;
 
@@ -1137,6 +1180,122 @@ void main() {
     final l10n = await S.delegate.load(const Locale('en'));
     expect(find.text(l10n.bulkAddModelInsecureServerLabel), findsOneWidget);
     expect(find.text(l10n.bulkAddPhotoUnsupportedLabel), findsNothing);
+  });
+
+  // #992. "Your API key was rejected. Check it in Settings." was the whole of
+  // the photo path's recovery: it named the place and then left the user to
+  // find it, four category groups down a list — the same hunt #852 fixed for
+  // the text path, on failures answered in the same dialog. The destination
+  // is asserted the way the text path's is, arguments and all, because
+  // landing at the top of Settings is the bug rather than a detail of it.
+  for (final error in BulkAddPhotoError.values) {
+    testWidgets(
+      _offersSettings(error)
+          ? 'the photo ${error.name} failure opens the AI settings'
+          : 'the photo ${error.name} failure offers no settings button',
+      (tester) async {
+        final pushed = <RouteSettings>[];
+        await _photoFailure(tester, error, pushed: pushed);
+
+        final action = find.bySemanticsIdentifier('bulk-add-message-action');
+        if (!_offersSettings(error)) {
+          expect(
+            action,
+            findsNothing,
+            reason:
+                '${error.name} is not fixed in Settings, and a button that '
+                'sends the user there is a wrong instruction, not a spare one',
+          );
+          return;
+        }
+
+        expect(action, findsOneWidget, reason: '${error.name} names Settings');
+        // The same word the text path's control carries, from the same key:
+        // one action, one label, however the read was started.
+        expect(
+          find.descendant(
+            of: action,
+            matching: find.text(l10nEn.settingsLabel),
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(action);
+        await tester.pumpAndSettle();
+
+        final settings = pushed
+            .where((route) => route.name == NavigationOptions.settingsRoute)
+            .toList();
+        expect(settings, hasLength(1));
+        expect(
+          settings.single.arguments,
+          isA<SettingsScreenArguments>().having(
+            (arguments) => arguments.openAiAssist,
+            'openAiAssist',
+            isTrue,
+          ),
+          reason:
+              'the photo path has to land where the text path lands: on the '
+              'AI dialog, not at the top of Settings',
+        );
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('the settings button is reachable at 2x in German', (
+    tester,
+  ) async {
+    // The size #777 measured this screen against. The button sits under a
+    // sentence that wants many lines here, and the region is 484px short of
+    // holding both — so "offers the action" is only true if it scrolls. A
+    // plain `Center` paints the control off the bottom of the screen, where
+    // it is findable and untappable.
+    tester.view.physicalSize = const Size(320 * 3, 640 * 3);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
+    final pushed = <RouteSettings>[];
+    await _photoFailure(
+      tester,
+      BulkAddPhotoError.unsupported,
+      pushed: pushed,
+      locale: const Locale('de'),
+      wrap: (app) => MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+        child: app,
+      ),
+    );
+
+    expect(
+      tester.takeException(),
+      isNull,
+      reason: 'the message and its control must not overflow the body',
+    );
+
+    final action = find.bySemanticsIdentifier('bulk-add-message-action');
+    await tester.ensureVisible(action);
+    await tester.pumpAndSettle();
+    await tester.tap(action);
+    await tester.pumpAndSettle();
+
+    expect(
+      pushed.map((route) => route.name),
+      contains(NavigationOptions.settingsRoute),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a message with nowhere to go stays a sentence', (tester) async {
+    // The centred message's other callers were not given a button by this
+    // change. An empty parse is not fixed in Settings, and sending someone
+    // there for it is the mis-direction #992 fixes, pointed the other way.
+    await _register(const {});
+    await tester.pumpWidget(_app());
+    await _parse(tester, '');
+
+    expect(find.text(l10nEn.bulkAddNothingToLogLabel), findsOneWidget);
+    expect(find.bySemanticsIdentifier('bulk-add-message-action'), findsNothing);
   });
 
   testWidgets('an empty text parse still shows the generic line', (
