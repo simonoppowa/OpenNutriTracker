@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -208,12 +209,49 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       context,
     ).pushNamed(NavigationOptions.settingsRoute, arguments: arguments);
     if (!mounted) return;
+    _resolveAiAnswers();
+    await _resolveAgainWhenProbeLands();
+  }
+
+  void _resolveAiAnswers() {
     setState(() {
       // Destination first: the availability answer awaits this field.
       _photoDestination = _resolvePhotoDestination();
       _photoAvailable = _resolvePhotoAvailable();
       _modelUnknown = _resolveModelUnknown();
     });
+  }
+
+  /// A second trigger, for the one answer that is not ready when the user
+  /// comes back. #1089.
+  ///
+  /// Saving an own-server address starts a capability probe **without
+  /// awaiting it**, and it takes long enough that returning promptly reads
+  /// the verdict as `unknown`. `_ownServerDestination` requires
+  /// `photo == passed`, so the camera stays hidden — and the route pop was
+  /// the only thing that would have re-read it, and has already happened.
+  ///
+  /// The waiting itself is deliberate and stays: the camera is offered only
+  /// once a photograph has actually been read (#735). What was missing is
+  /// that nothing told the screen the verdict had arrived.
+  ///
+  /// Own-server only, because it is the only provider whose availability
+  /// depends on a probe. `current` is null between one probe finishing and
+  /// its replacement registering — two keystore reads wide, documented on
+  /// the runner — and this returns rather than polling: the answer it would
+  /// have waited for is already stored, so the re-resolve above read it.
+  Future<void> _resolveAgainWhenProbeLands() async {
+    const provider = AiProvider.ownServer;
+    if (await locator<AiCredentialStorage>().activeProvider() != provider) {
+      return;
+    }
+
+    final running = locator<AiEndpointProbeRunner>().current(provider);
+    if (running == null) return;
+
+    await running;
+    if (!mounted) return;
+    _resolveAiAnswers();
   }
 
   @override
@@ -280,7 +318,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                 // at large text scales would take multi-line entry away from
                 // exactly the users who need the biggest text, on a screen
                 // that exists for typing several items at once.
-                _buildInput(context, maxFieldHeight: constraints.maxHeight * 0.3),
+                _buildInput(
+                  context,
+                  maxFieldHeight: constraints.maxHeight * 0.3,
+                ),
                 const Divider(height: 1),
                 Expanded(child: _buildBody(context, state)),
                 if (state is BulkAddLoadedState)
@@ -384,8 +425,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     },
   );
 
-  Widget _buildInput(BuildContext context, {required double maxFieldHeight}) =>
-      Padding(
+  Widget _buildInput(
+    BuildContext context, {
+    required double maxFieldHeight,
+  }) => Padding(
     padding: const EdgeInsets.all(16),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -396,19 +439,19 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         ConstrainedBox(
           constraints: BoxConstraints(maxHeight: maxFieldHeight),
           child: Semantics(
-          identifier: 'bulk-add-input',
-          child: TextField(
-            controller: _textController,
-            minLines: 2,
-            maxLines: 4,
-            textInputAction: TextInputAction.newline,
-            keyboardType: TextInputType.multiline,
-            decoration: InputDecoration(
-              hintText: S.of(context).bulkAddInputHint,
-              border: const OutlineInputBorder(),
+            identifier: 'bulk-add-input',
+            child: TextField(
+              controller: _textController,
+              minLines: 2,
+              maxLines: 4,
+              textInputAction: TextInputAction.newline,
+              keyboardType: TextInputType.multiline,
+              decoration: InputDecoration(
+                hintText: S.of(context).bulkAddInputHint,
+                border: const OutlineInputBorder(),
+              ),
             ),
           ),
-        ),
         ),
         const SizedBox(height: 12),
         Semantics(
@@ -431,47 +474,52 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       return _centeredMessage(context, S.of(context).bulkAddSearchFailedLabel);
     }
     if (state is BulkAddPhotoErrorState) {
-      return _centeredMessage(context, switch (state.error) {
-        BulkAddPhotoError.unavailable =>
-          S.of(context).bulkAddPhotoUnavailableLabel,
-        BulkAddPhotoError.auth => S.of(context).bulkAddPhotoKeyRejectedLabel,
-        BulkAddPhotoError.transient => S.of(context).bulkAddPhotoFailedLabel,
-        BulkAddPhotoError.camera => S.of(context).bulkAddPhotoCameraFailedLabel,
-        BulkAddPhotoError.unreadable =>
-          S.of(context).bulkAddPhotoUnreadableLabel,
-        BulkAddPhotoError.unsupported =>
-          S.of(context).bulkAddPhotoUnsupportedLabel,
-        BulkAddPhotoError.insecureDestination =>
-          S.of(context).bulkAddModelInsecureServerLabel,
-        BulkAddPhotoError.billing => S.of(context).bulkAddPhotoNoCreditLabel,
-      },
-      // #992. Three of these sentences send the user to Settings by name and
-      // the fourth is answered there too, but only the *text* path ever
-      // carried a way in — the photo path said "check it in Settings" and
-      // left the user to find it, which is the hunt #852 already fixed once,
-      // in the same dialog, for the same failures.
-      //
-      // Exhaustive, and deliberately not a `_ => null` default: a ninth photo
-      // failure has to say here whether Settings answers it, rather than
-      // inheriting silence from a case nobody weighed it against.
-      //
-      // The four that get nothing point somewhere else, and a Settings button
-      // under them would send the user to fix the one thing that is not
-      // broken: the camera case is a permission the OS holds, the unreadable
-      // case wants a different photograph, the transient case wants the
-      // connection or another attempt, and the billing case is settled on the
-      // provider's own site — its sentence says so.
-      action: switch (state.error) {
-        BulkAddPhotoError.unavailable ||
-        BulkAddPhotoError.auth ||
-        BulkAddPhotoError.unsupported ||
-        BulkAddPhotoError.insecureDestination =>
-          () => _openAiSettings(context),
-        BulkAddPhotoError.transient ||
-        BulkAddPhotoError.camera ||
-        BulkAddPhotoError.unreadable ||
-        BulkAddPhotoError.billing => null,
-      });
+      return _centeredMessage(
+        context,
+        switch (state.error) {
+          BulkAddPhotoError.unavailable =>
+            S.of(context).bulkAddPhotoUnavailableLabel,
+          BulkAddPhotoError.auth => S.of(context).bulkAddPhotoKeyRejectedLabel,
+          BulkAddPhotoError.transient => S.of(context).bulkAddPhotoFailedLabel,
+          BulkAddPhotoError.camera =>
+            S.of(context).bulkAddPhotoCameraFailedLabel,
+          BulkAddPhotoError.unreadable =>
+            S.of(context).bulkAddPhotoUnreadableLabel,
+          BulkAddPhotoError.unsupported =>
+            S.of(context).bulkAddPhotoUnsupportedLabel,
+          BulkAddPhotoError.insecureDestination =>
+            S.of(context).bulkAddModelInsecureServerLabel,
+          BulkAddPhotoError.billing => S.of(context).bulkAddPhotoNoCreditLabel,
+        },
+        // #992. Three of these sentences send the user to Settings by name and
+        // the fourth is answered there too, but only the *text* path ever
+        // carried a way in — the photo path said "check it in Settings" and
+        // left the user to find it, which is the hunt #852 already fixed once,
+        // in the same dialog, for the same failures.
+        //
+        // Exhaustive, and deliberately not a `_ => null` default: a ninth photo
+        // failure has to say here whether Settings answers it, rather than
+        // inheriting silence from a case nobody weighed it against.
+        //
+        // The four that get nothing point somewhere else, and a Settings button
+        // under them would send the user to fix the one thing that is not
+        // broken: the camera case is a permission the OS holds, the unreadable
+        // case wants a different photograph, the transient case wants the
+        // connection or another attempt, and the billing case is settled on the
+        // provider's own site — its sentence says so.
+        action: switch (state.error) {
+          BulkAddPhotoError.unavailable ||
+          BulkAddPhotoError.auth ||
+          BulkAddPhotoError.unsupported ||
+          BulkAddPhotoError.insecureDestination => () => _openAiSettings(
+            context,
+          ),
+          BulkAddPhotoError.transient ||
+          BulkAddPhotoError.camera ||
+          BulkAddPhotoError.unreadable ||
+          BulkAddPhotoError.billing => null,
+        },
+      );
     }
     if (state is! BulkAddLoadedState) {
       // Scrollable because here the line *is* the body and takes a tight
@@ -485,19 +533,19 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       return _withModelHint(
         context,
         _centeredMessage(context, switch (state) {
-        // A bad segment explains itself; that outranks either generic line.
-        _ when state.parseErrors.isNotEmpty => _parseErrorsText(
-          context,
-          state.parseErrors,
-        ),
-        // The model looked at a photograph and reported no food. "Nothing to
-        // log yet" is true but reads as though nothing happened, and the
-        // notice that would have said a photo was read is not drawn on this
-        // branch — so the one screen where the user most needs to know a
-        // machine answered was the one screen that never said so.
-        _ when state.source == BulkAddReadSource.photo =>
-          S.of(context).bulkAddPhotoNoFoodLabel,
-        _ => S.of(context).bulkAddNothingToLogLabel,
+          // A bad segment explains itself; that outranks either generic line.
+          _ when state.parseErrors.isNotEmpty => _parseErrorsText(
+            context,
+            state.parseErrors,
+          ),
+          // The model looked at a photograph and reported no food. "Nothing to
+          // log yet" is true but reads as though nothing happened, and the
+          // notice that would have said a photo was read is not drawn on this
+          // branch — so the one screen where the user most needs to know a
+          // machine answered was the one screen that never said so.
+          _ when state.source == BulkAddReadSource.photo =>
+            S.of(context).bulkAddPhotoNoFoodLabel,
+          _ => S.of(context).bulkAddNothingToLogLabel,
         }),
       );
     }
@@ -612,87 +660,90 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     // fraction of it overflows the part that is left.
     return LayoutBuilder(
       builder: (context, constraints) => Column(
-      children: [
-        Semantics(
-          identifier: 'bulk-add-model-notice',
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: emphasised
-                ? scheme.errorContainer
-                : scheme.surfaceContainerHighest,
-            // **Bounded, and scrollable rather than clipped.** Dropping the
-            // cap on its own overflowed by 317px at 2x on a 320dp screen —
-            // the notice sits above the rows in a `Column`, so its height
-            // comes straight out of them. A ceiling gives the rows their
-            // share back; scrolling is what stops the ceiling becoming a
-            // second truncation, which is the bug this is fixing.
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: constraints.maxHeight * 0.4,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      icon,
-                      size: 16,
-                      color: emphasised ? scheme.onErrorContainer : null,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                  child: Text(
-                    text,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: emphasised ? scheme.onErrorContainer : null,
-                    ),
-                    // **No cap.** There used to be three lines, on the
-                    // reasoning that these run long in German. Measured for
-                    // #777, every one of them overran it — in English too —
-                    // and no cap survives the combination that matters:
-                    // German at 2x on a 320dp screen needed twenty lines,
-                    // which is when the words are needed most. Now that the
-                    // advice is a button, what is left is one sentence: two
-                    // or three lines on a handset, up to eight at 2x on the
-                    // narrowest screen, and never cut off.
-                  ),
+        children: [
+          Semantics(
+            identifier: 'bulk-add-model-notice',
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: emphasised
+                  ? scheme.errorContainer
+                  : scheme.surfaceContainerHighest,
+              // **Bounded, and scrollable rather than clipped.** Dropping the
+              // cap on its own overflowed by 317px at 2x on a 320dp screen —
+              // the notice sits above the rows in a `Column`, so its height
+              // comes straight out of them. A ceiling gives the rows their
+              // share back; scrolling is what stops the ceiling becoming a
+              // second truncation, which is the bug this is fixing.
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: constraints.maxHeight * 0.4,
                 ),
-                  ],
-                ),
-                // **Below the sentence, not beside it.** Sharing the row was
-                // measured first and is worse: a button takes about 120px,
-                // which on a 320dp screen leaves the text 144 and pushes
-                // German at 2x back up to twelve lines. Full width for the
-                // words, the control underneath.
-                if (action != null)
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: Semantics(
-                      identifier: 'bulk-add-notice-action',
-                      child: TextButton(
-                        onPressed: action,
-                        style: TextButton.styleFrom(
-                          foregroundColor: emphasised
-                              ? scheme.onErrorContainer
-                              : null,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        child: Text(S.of(context).settingsLabel),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            icon,
+                            size: 16,
+                            color: emphasised ? scheme.onErrorContainer : null,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              text,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: emphasised
+                                        ? scheme.onErrorContainer
+                                        : null,
+                                  ),
+                              // **No cap.** There used to be three lines, on the
+                              // reasoning that these run long in German. Measured for
+                              // #777, every one of them overran it — in English too —
+                              // and no cap survives the combination that matters:
+                              // German at 2x on a 320dp screen needed twenty lines,
+                              // which is when the words are needed most. Now that the
+                              // advice is a button, what is left is one sentence: two
+                              // or three lines on a handset, up to eight at 2x on the
+                              // narrowest screen, and never cut off.
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                      // **Below the sentence, not beside it.** Sharing the row was
+                      // measured first and is worse: a button takes about 120px,
+                      // which on a 320dp screen leaves the text 144 and pushes
+                      // German at 2x back up to twelve lines. Full width for the
+                      // words, the control underneath.
+                      if (action != null)
+                        Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: Semantics(
+                            identifier: 'bulk-add-notice-action',
+                            child: TextButton(
+                              onPressed: action,
+                              style: TextButton.styleFrom(
+                                foregroundColor: emphasised
+                                    ? scheme.onErrorContainer
+                                    : null,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              child: Text(S.of(context).settingsLabel),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-              ],
                 ),
               ),
             ),
           ),
-        ),
-        Expanded(child: list),
-      ],
+          Expanded(child: list),
+        ],
       ),
     );
   }
@@ -711,9 +762,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// photo failure action — and only the ones that went through
   /// [_openSettings] noticed a provider configured while they were away.
   void _openAiSettings(BuildContext context) => unawaited(
-    _openSettings(
-      arguments: const SettingsScreenArguments(openAiAssist: true),
-    ),
+    _openSettings(arguments: const SettingsScreenArguments(openAiAssist: true)),
   );
 
   /// A message that fills the body, optionally with something to do about it.
@@ -1099,16 +1148,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
   /// Says which of the three failures this is. They used to render
   /// identically, as the field's own name.
-  String _quantityErrorText(BuildContext context, BulkAddQuantityError error) =>
-      switch (error) {
-        BulkAddQuantityError.malformed =>
-          S.of(context).bulkAddRowQuantityInvalid,
-        BulkAddQuantityError.tooSmall =>
-          S.of(context).bulkAddRowQuantityTooSmall,
-        BulkAddQuantityError.tooLarge => S
-            .of(context)
-            .bulkAddRowQuantityTooLarge(bulkAddMaxQuantity),
-      };
+  String _quantityErrorText(
+    BuildContext context,
+    BulkAddQuantityError error,
+  ) => switch (error) {
+    BulkAddQuantityError.malformed => S.of(context).bulkAddRowQuantityInvalid,
+    BulkAddQuantityError.tooSmall => S.of(context).bulkAddRowQuantityTooSmall,
+    BulkAddQuantityError.tooLarge =>
+      S.of(context).bulkAddRowQuantityTooLarge(bulkAddMaxQuantity),
+  };
 
   /// What the unit dropdown needs to show its longest unit without clipping
   /// it: the dropdown sizes itself to its widest item, plus its arrow.
@@ -1184,10 +1232,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         UnitDropdownItem.flOz => S.of(context).flOzUnit,
         UnitDropdownItem.serving =>
           householdPortionLabel(
-            row.meal?.servingSize,
-            languageCode: Localizations.localeOf(context).languageCode,
-            textIsLocalized: row.meal?.servingSizeIsLocalized ?? false,
-          ) ??
+                row.meal?.servingSize,
+                languageCode: Localizations.localeOf(context).languageCode,
+                textIsLocalized: row.meal?.servingSizeIsLocalized ?? false,
+              ) ??
               S.of(context).servingLabel,
       };
 
@@ -1429,7 +1477,11 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       // converted first. Logging the raw amount stores 4 g for 4 oz.
       writes.add((
         row: row,
-        amount: convertQuantityToBaseUnit(quantity, row.effectiveUnit, row.meal!),
+        amount: convertQuantityToBaseUnit(
+          quantity,
+          row.effectiveUnit,
+          row.meal!,
+        ),
       ));
     }
 
