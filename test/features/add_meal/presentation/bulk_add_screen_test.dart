@@ -1421,6 +1421,154 @@ void main() {
     expect(find.byType(SnackBar), findsOneWidget);
   });
 
+  group('a refused batch shows every bad row, and why (#1013)', () {
+    /// Three rows the resolver is happy with, so anything held back is held
+    /// back by its amount and nothing else.
+    Future<void> threeRows(WidgetTester tester) async {
+      // A handset rather than the default viewport: all three rows have to
+      // be built for their marks to be findable, and the point of the
+      // change is that they are visible together.
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.625;
+      addTearDown(tester.view.reset);
+
+      await _register({
+        'toast': [_meal('Toast')],
+        'milk': [_meal('Milk')],
+        'rice': [_meal('Rice')],
+      });
+      await tester.pumpWidget(_app());
+      await _parse(tester, '100g toast, 200g milk, 50g rice');
+    }
+
+    /// The amount field on row [row] — field 0 is the text box the batch was
+    /// typed into.
+    Finder amountField(int row) => find.byType(TextField).at(row + 1);
+
+    Future<void> typeAmount(
+      WidgetTester tester,
+      int row,
+      String amount,
+    ) async {
+      await tester.enterText(amountField(row), amount);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('two bad rows are both reported, not just the first', (
+      tester,
+    ) async {
+      // The old check returned on the first failure, so the second was
+      // discovered only by fixing the first and submitting again.
+      await threeRows(tester);
+      await typeAmount(tester, 0, '0');
+      await typeAmount(tester, 2, '99999');
+
+      await tester.tap(_submitButton());
+      await tester.pumpAndSettle();
+
+      expect(_mealDetailBloc.writes, isEmpty);
+      expect(find.text(l10nEn.bulkAddRowQuantityTooSmall), findsOneWidget);
+      expect(
+        find.text(l10nEn.bulkAddRowQuantityTooLarge(bulkAddMaxQuantity)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the three refusals do not read alike', (tester) async {
+      // "at most two decimals", "greater than 0" and "too large" all
+      // arrived as the word `Quantity`, so the message the user got was the
+      // same whichever mistake they had made.
+      await threeRows(tester);
+      await typeAmount(tester, 0, '0');
+      await typeAmount(tester, 1, '');
+      await typeAmount(tester, 2, '99999');
+
+      await tester.tap(_submitButton());
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.bulkAddRowQuantityTooSmall), findsOneWidget);
+      // The decimal rule is stated nowhere else in the UI; an emptied field
+      // is where it gets said.
+      expect(find.text(l10nEn.bulkAddRowQuantityInvalid), findsOneWidget);
+      expect(
+        find.text(l10nEn.bulkAddRowQuantityTooLarge(bulkAddMaxQuantity)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the snackbar names each row and its reason', (tester) async {
+      // A marked row can be off screen, so the summary has to carry the
+      // same information the marks do — it used to name one row and one
+      // word.
+      await threeRows(tester);
+      await typeAmount(tester, 0, '0');
+      await typeAmount(tester, 2, '99999');
+
+      await tester.tap(_submitButton());
+      await tester.pumpAndSettle();
+
+      final snack = tester.widget<Text>(
+        find.descendant(of: find.byType(SnackBar), matching: find.byType(Text)),
+      );
+      expect(snack.data, contains('Toast'));
+      expect(snack.data, contains(l10nEn.bulkAddRowQuantityTooSmall));
+      expect(snack.data, contains('Rice'));
+      expect(
+        snack.data,
+        contains(l10nEn.bulkAddRowQuantityTooLarge(bulkAddMaxQuantity)),
+      );
+    });
+
+    testWidgets('correcting a row clears its mark and logs the batch', (
+      tester,
+    ) async {
+      await threeRows(tester);
+      await typeAmount(tester, 0, '0');
+      await tester.tap(_submitButton());
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.bulkAddRowQuantityTooSmall), findsOneWidget);
+
+      await typeAmount(tester, 0, '150');
+
+      // Gone as soon as the text it described is gone, rather than sitting
+      // under a field that now reads correctly.
+      expect(find.text(l10nEn.bulkAddRowQuantityTooSmall), findsNothing);
+
+      // The refusal's snackbar sits over the submit bar, so a second tap
+      // lands on the snackbar rather than the button. Let it go before
+      // submitting again — a real user waits it out or dismisses it too.
+      ScaffoldMessenger.of(tester.element(_submitButton())).clearSnackBars();
+      await tester.pumpAndSettle();
+
+      await tester.tap(_submitButton());
+      await tester.pumpAndSettle();
+
+      expect(_mealDetailBloc.writes.map((w) => w.mealName), [
+        'Toast',
+        'Milk',
+        'Rice',
+      ]);
+    });
+
+    testWidgets('a marked row is refused, never quietly dropped', (
+      tester,
+    ) async {
+      // The batch stays all-or-nothing: logging the two good rows and
+      // leaving the third behind is the one outcome worse than refusing.
+      await threeRows(tester);
+      await typeAmount(tester, 1, '0');
+
+      await tester.tap(_submitButton());
+      await tester.pumpAndSettle();
+
+      expect(_mealDetailBloc.writes, isEmpty);
+      // And the button still offers all three, so nothing has silently left
+      // the batch.
+      expect(find.text(l10nEn.bulkAddSubmitLabel(3)), findsOneWidget);
+    });
+  });
+
   testWidgets('a skipped row is not written', (tester) async {
     await _register({
       'toast': [_meal('Toast')],

@@ -55,14 +55,6 @@ class BulkAddScreen extends StatefulWidget {
   State<BulkAddScreen> createState() => _BulkAddScreenState();
 }
 
-/// Same shape the manual-entry quantity field enforces
-/// (`meal_detail_bottom_sheet.dart`), so the bulk path accepts exactly what
-/// manual entry does — no scientific notation, at most two decimals.
-final _quantityPattern = RegExp(r'^\d+([.,]\d{0,2})?$');
-
-/// Matches the manual-entry upper bound.
-const _maxQuantity = 10000;
-
 class _BulkAddScreenState extends State<BulkAddScreen> {
   final _log = Logger('BulkAddScreen');
   final _bloc = locator<BulkAddBloc>();
@@ -71,6 +63,17 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// One controller per row, keyed by row index and rebuilt whenever a new
   /// parse produces a different set of rows.
   final _amountControllers = <int, TextEditingController>{};
+
+  /// What the last submit attempt refused, keyed by index into
+  /// `BulkAddLoadedState.rows`.
+  ///
+  /// Held here rather than derived in `build` because a row is only wrong
+  /// once it has been asked for: `BulkAddRow.amountText` is text so that a
+  /// field mid-edit ("", "1,") is not marked while it is being typed. The
+  /// map is what makes every bad row visible at once — the check refuses the
+  /// whole batch, so reporting one at a time asks the user to resubmit for
+  /// each. #1013.
+  final _quantityErrors = <int, BulkAddQuantityError>{};
 
   /// Whether the photo action is offered at all. Read once and held, rather
   /// than resolved inside `build` — a future rebuilt on every frame would
@@ -742,7 +745,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     final theme = Theme.of(context);
     final meal = row.meal;
 
-    final title = meal?.name ?? row.resolved.parsed.query;
+    final title = _rowTitle(row);
     final faded = row.skipped || !row.isResolved;
 
     // Both rows below decide between one line and two, so they need the width
@@ -877,6 +880,11 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     );
   }
 
+  /// What the row is called, on screen and in any message about it: the
+  /// matched food, or the words the user typed when nothing matched.
+  String _rowTitle(BulkAddRow row) =>
+      row.meal?.name ?? row.resolved.parsed.query;
+
   /// The controls on a row, as label and action rather than as widgets, so
   /// that what is measured cannot drift from what is drawn.
   List<({String label, VoidCallback onPressed})> _rowActions(
@@ -958,13 +966,24 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       // Same shape the manual-entry field enforces, so the two paths accept
       // exactly the same input.
-      inputFormatters: [FilteringTextInputFormatter.allow(_quantityPattern)],
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(bulkAddQuantityPattern),
+      ],
       decoration: InputDecoration(
         labelText: S.of(context).quantityLabel,
         isDense: true,
         border: const OutlineInputBorder(),
       ),
-      onChanged: (value) => _bloc.add(ChangeRowAmountEvent(index, value)),
+      onChanged: (value) {
+        // The complaint belonged to the text that is no longer there.
+        // Re-checking as they type would put it back mid-keystroke, which
+        // is the thing `amountText` is a String to avoid; the next submit
+        // asks again.
+        if (_quantityErrors.containsKey(index)) {
+          setState(() => _quantityErrors.remove(index));
+        }
+        _bloc.add(ChangeRowAmountEvent(index, value));
+      },
     );
 
     final unit = DropdownButton<String>(
@@ -980,10 +999,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
     final energy = Text(energyText, style: theme.textTheme.titleSmall);
 
+    final error = _quantityErrors[index];
+
     return Padding(
       padding: const EdgeInsets.only(top: 8),
-      child: stacked
-          ? Column(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (stacked)
+            Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 field,
@@ -995,7 +1019,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             )
           // Unchanged wherever it fits, which is every ordinary text size:
           // the figure stays on the same line, pushed to the trailing edge.
-          : Row(
+          else
+            Row(
               children: [
                 SizedBox(width: fieldWidth, child: field),
                 const SizedBox(width: 12),
@@ -1004,8 +1029,38 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                 energy,
               ],
             ),
+          // The whole width, not the field's. `errorText` would put this
+          // inside a 110px box, where every one of the three sentences
+          // ellipsizes to nothing worth reading — and the decimal rule, the
+          // one constraint stated nowhere else in the UI, is the longest of
+          // them.
+          if (error != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                _quantityErrorText(context, error),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
+
+  /// Says which of the three failures this is. They used to render
+  /// identically, as the field's own name.
+  String _quantityErrorText(BuildContext context, BulkAddQuantityError error) =>
+      switch (error) {
+        BulkAddQuantityError.malformed =>
+          S.of(context).bulkAddRowQuantityInvalid,
+        BulkAddQuantityError.tooSmall =>
+          S.of(context).bulkAddRowQuantityTooSmall,
+        BulkAddQuantityError.tooLarge => S
+            .of(context)
+            .bulkAddRowQuantityTooLarge(bulkAddMaxQuantity),
+      };
 
   /// What the unit dropdown needs to show its longest unit without clipping
   /// it: the dropdown sizes itself to its widest item, plus its arrow.
@@ -1232,6 +1287,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       controller.dispose();
     }
     _amountControllers.clear();
+    // Both are keyed by row index, so both belong to the batch that is
+    // being replaced. A mark left behind would land on whichever row
+    // happens to take that index next.
+    _quantityErrors.clear();
   }
 
   Future<void> _showCandidatePicker(int index, BulkAddRow row) async {
@@ -1290,55 +1349,94 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// written — a half-logged meal with no rollback. Checking every row up
   /// front is what makes the batch all-or-nothing.
   Future<void> _onSubmitPressed(BulkAddLoadedState state) async {
-    final rows = state.loggableRows.toList();
-
     // Validate the whole batch before writing any of it. addIntake parses
     // the amount with `double.parse` and no guard, so one bad row would
     // otherwise throw mid-loop and leave the rows before it already
     // written, with no rollback.
-    final amounts = <double>[];
-    for (final row in rows) {
-      final text = row.amountText.trim();
-      final quantity = double.tryParse(text.replaceAll(',', '.'));
-      if (!_quantityPattern.hasMatch(text) ||
-          quantity == null ||
-          quantity <= 0 ||
-          quantity > _maxQuantity) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${row.meal?.name ?? row.resolved.parsed.query}: '
-              '${S.of(context).quantityLabel}',
-            ),
-          ),
-        );
-        return;
+    //
+    // Every row is checked, and the loop no longer stops at the first
+    // failure. It refuses the batch either way, so stopping early only
+    // decided how many times the user has to submit it to find out what is
+    // wrong: one field fixed, one more refusal, one more field. #1013.
+    //
+    // Indexed over `rows` rather than `loggableRows`, because the failures
+    // are marked on the rows themselves and a filtered iterable cannot say
+    // which row it came from.
+    final invalid = <int, BulkAddQuantityError>{};
+    final writes = <({BulkAddRow row, double amount})>[];
+    for (var index = 0; index < state.rows.length; index++) {
+      final row = state.rows[index];
+      if (!row.willBeLogged) continue;
+
+      final error = row.quantityError;
+      if (error != null) {
+        invalid[index] = error;
+        continue;
       }
+      // Cannot throw: `quantityError` returned null, which required this
+      // same text to parse.
+      final quantity = double.parse(row.amountText.trim().replaceAll(',', '.'));
       // Store the value the intake is actually written with: nutriment
       // values are per gram/millilitre, so oz / fl.oz / serving have to be
       // converted first. Logging the raw amount stores 4 g for 4 oz.
-      amounts.add(
-        convertQuantityToBaseUnit(quantity, row.effectiveUnit, row.meal!),
-      );
+      writes.add((
+        row: row,
+        amount: convertQuantityToBaseUnit(quantity, row.effectiveUnit, row.meal!),
+      ));
     }
 
-    setState(() => _submitting = true);
+    if (invalid.isNotEmpty) {
+      setState(() {
+        _quantityErrors
+          ..clear()
+          ..addAll(invalid);
+      });
+      // The marks are on the rows, and a row can be off screen — a button
+      // that refuses in silence is the state this screen was already in.
+      // Naming each food and its reason keeps the snackbar honest about how
+      // many rows are waiting.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            // Bounded: nothing limits how many rows a paste produces, and a
+            // snackbar does not scroll — an unbounded join would cover the
+            // list the marks are on. The marks carry every failure; this
+            // carries as many as fit and ellipsizes the rest.
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            invalid.entries
+                .map(
+                  (entry) =>
+                      '${_rowTitle(state.rows[entry.key])}: '
+                      '${_quantityErrorText(context, entry.value)}',
+                )
+                .join('\n'),
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _quantityErrors.clear();
+      _submitting = true;
+    });
 
     final mealDetailBloc = locator<MealDetailBloc>();
     try {
       // Sequential, not concurrent. The tracked-day totals are accumulated
       // with a read-modify-write, so overlapping writes lose updates and
       // the day silently under-counts.
-      for (var i = 0; i < rows.length; i++) {
+      for (final write in writes) {
         await mealDetailBloc.addIntake(
           context,
           // The suffix is a display device; the stored vocabulary stays
           // the closed set the export format and QR payload were written
           // against. #864 decision 3.
-          storedUnit(rows[i].effectiveUnit),
-          amounts[i].toString(),
+          storedUnit(write.row.effectiveUnit),
+          write.amount.toString(),
           _args.intakeTypeEntity,
-          rows[i].meal!,
+          write.row.meal!,
           _args.day,
         );
       }
