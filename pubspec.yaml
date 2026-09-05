@@ -42,7 +42,7 @@ dependencies:
   uuid: ^4.6.0
   json_annotation: ^4.12.0
   logging: ^1.3.0
-  path_provider: ^2.1.5
+  path_provider: ^2.1.6
   flutter_secure_storage: ^10.0.0
   cupertino_icons: ^1.0.9
   package_info_plus: ^9.0.1
