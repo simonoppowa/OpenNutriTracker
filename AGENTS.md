@@ -129,11 +129,11 @@ dart run build_runner build
 
 ## Localization
 
-Source strings live in `lib/l10n/intl_en.arb` (and locale ARBs for `de`, `cs`, `it`, `pl`, `sk`, `tr`, `uk`, `zh`). `lib/generated/l10n.dart` plus one `l10n_<locale>.dart` per locale are produced by `flutter gen-l10n`, configured in `l10n.yaml`.
+Source strings live in `lib/l10n/intl_en.arb` (and locale ARBs for `de`, `cs`, `es`, `it`, `pl`, `sk`, `tr`, `uk`, `zh`). `lib/generated/l10n.dart` plus one `l10n_<locale>.dart` per locale are produced by `flutter gen-l10n`, configured in `l10n.yaml`.
 
-The generated files are **gitignored — never edit them by hand**. Add the key to every ARB (all nine stay at the same key count) and run `just gen_l10n`. Placeholder metadata (`"@key": {"placeholders": ...}`) only needs to be declared in the template `intl_en.arb`.
+The generated files are **gitignored — never edit them by hand**. Add the key to every ARB (all ten stay at the same key count) and run `just gen_l10n`. Placeholder metadata (`"@key": {"placeholders": ...}`) only needs to be declared in the template `intl_en.arb`.
 
-Note: the `SupportedLanguage` enum maps device locales to `food_translation` locales via `SPConst.translationLocaleOf` (`en` reads `food_summary.name` directly; `de`, `pl`, `zh`, `cs`, `it`, `sk`, `tr`, `uk` query translations, falling back to English).
+Note: the `SupportedLanguage` enum maps device locales to `food_translation` locales via `SPConst.translationLocaleOf` (`en` reads `food_summary.name` directly; `de`, `pl`, `zh`, `cs`, `es`, `it`, `sk`, `tr`, `uk` query translations, falling back to English).
 
 ## Code Style
 

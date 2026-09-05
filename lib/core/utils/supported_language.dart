@@ -13,6 +13,7 @@ enum SupportedLanguage {
   pl,
   zh,
   cs,
+  es,
   it,
   sk,
   tr,
@@ -31,6 +32,8 @@ enum SupportedLanguage {
         return SupportedLanguage.zh;
       case 'cs':
         return SupportedLanguage.cs;
+      case 'es':
+        return SupportedLanguage.es;
       case 'it':
         return SupportedLanguage.it;
       case 'sk':
