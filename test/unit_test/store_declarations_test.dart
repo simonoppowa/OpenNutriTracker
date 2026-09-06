@@ -110,6 +110,144 @@ void main() {
     });
   });
 
+  group('Play release notes', () {
+    // Play caps release notes at 500 characters, and like the listing cap it
+    // is discovered only when the Console refuses the text. `63.txt` was 628
+    // characters and would have been rejected — it never reached the store,
+    // which is why nobody noticed. F-Droid reads these same files, so a
+    // changelog that cannot be published is not a private problem.
+    final changelogs = Directory(
+      'fastlane/metadata/android/en-US/changelogs',
+    ).listSync().whereType<File>().where((f) => f.path.endsWith('.txt'));
+
+    test('every changelog is within the 500-character cap', () {
+      for (final file in changelogs) {
+        expect(
+          // trimRight() not trim(): a stray leading newline or indent is
+          // still charged by Play, so trimming it here would undercount and
+          // let an over-cap note through.
+          file.readAsStringSync().trimRight().length,
+          lessThanOrEqualTo(500),
+          reason: '${file.path} exceeds Play\'s 500-character release-note cap',
+        );
+      }
+    });
+
+    test('the 2.2.0 note describes what 2.2.0 actually shipped', () {
+      final notes = File(
+        'fastlane/metadata/android/en-US/changelogs/63.txt',
+      ).readAsStringSync();
+      // The published note on both stores names these; an earlier draft
+      // described only the TDEE correction and matched neither store.
+      expect(notes, contains('Health Connect'));
+      expect(notes, contains('AI meal assistance'));
+      expect(notes.toLowerCase(), contains('kcal calculations'));
+    });
+  });
+
+  group('Play listing fields', () {
+    // The full description already had a cap test; the title and short
+    // description did not, and this branch changes both. Play refuses
+    // over-length text at paste time with no earlier warning, and the short
+    // description in particular sits at exactly its cap — a stray character
+    // would be discovered in the Console rather than here.
+    String field(String name) => File(
+      'fastlane/metadata/android/en-US/$name',
+    ).readAsStringSync().trimRight();
+
+    test('title is within the 30-character cap', () {
+      expect(field('title.txt').length, lessThanOrEqualTo(30));
+    });
+
+    test('short description is within the 80-character cap', () {
+      expect(field('short_description.txt').length, lessThanOrEqualTo(80));
+    });
+
+    test('the title avoids the phrase Play forbids there', () {
+      // Play names "No Ads" as prohibited in a title specifically; Apple
+      // permits it in an app name, which is why this is asserted per store.
+      expect(field('title.txt').toLowerCase(), isNot(contains('no ads')));
+    });
+  });
+
+  group('App Store listing', () {
+    // Apple's caps are enforced only by App Store Connect refusing the text,
+    // and the fields live in the console rather than in this repo, so they
+    // drifted invisibly: the live description was still the pre-2.0 copy
+    // while What's New described 2.2.0, and the keyword field used 64 of its
+    // 100 characters with `open source` split into two weak tokens (#1063).
+    //
+    // Apple combines the name, subtitle and keyword field when it indexes, so
+    // a word repeated across them is a wasted slot rather than a stronger
+    // signal — hence the no-duplicates assertion.
+    String field(String name) =>
+        File('fastlane/metadata/ios/en-US/$name').readAsStringSync().trim();
+
+    const caps = {
+      'name.txt': 30,
+      'subtitle.txt': 30,
+      'keywords.txt': 100,
+      'promotional_text.txt': 170,
+      'description.txt': 4000,
+      // Both URL fields are pinned so the set stays complete. The marketing
+      // URL renders as the product page's "Developer Website" row and was
+      // simply absent — the GitHub Pages site was removed in #786, so the
+      // repository is the project's public home and the honest target.
+      'support_url.txt': 255,
+      'marketing_url.txt': 255,
+    };
+
+    caps.forEach((file, cap) {
+      test('$file is within its $cap-character cap', () {
+        expect(field(file).length, lessThanOrEqualTo(cap));
+      });
+    });
+
+    test('the keyword field wastes nothing on spaces after commas', () {
+      // Apple counts every character; ", " costs one more than ",".
+      expect(field('keywords.txt'), isNot(contains(', ')));
+    });
+
+    test('keywords do not repeat words already in the name or subtitle', () {
+      final indexed = '${field('name.txt')} ${field('subtitle.txt')}'
+          .toLowerCase()
+          .split(RegExp(r'[^a-z]+'))
+          .where((w) => w.length > 2)
+          .toSet();
+      final keywords = field('keywords.txt')
+          .toLowerCase()
+          .split(',')
+          .expand((k) => k.trim().split(' '))
+          .where((w) => w.length > 2);
+      for (final word in keywords) {
+        expect(
+          indexed,
+          isNot(contains(word)),
+          reason: '"$word" is already in the name or subtitle; Apple combines '
+              'those fields when indexing, so repeating it wastes a slot',
+        );
+      }
+    });
+
+    test('both URL fields point somewhere real', () {
+      for (final f in ['support_url.txt', 'marketing_url.txt']) {
+        expect(field(f), startsWith('https://'), reason: f);
+      }
+    });
+
+    test('carries the not-a-medical-device wording by choice', () {
+      // Apple imposes no listing mandate, unlike Play's Health Content and
+      // Services policy — this is kept to pre-empt a guideline 1.4.1 call.
+      expect(
+        field('description.txt'),
+        contains(
+          'not a medical device and does not diagnose, treat, cure, or '
+          'prevent any medical condition',
+        ),
+      );
+    });
+  });
+
   group('Play listing', () {
     // Play rejects a longer description outright. Nothing in the repo or in
     // CI checks it, and `upload_to_play_store` runs with
