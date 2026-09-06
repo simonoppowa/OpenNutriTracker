@@ -136,6 +136,21 @@ void main() {
       // shipping six banner-topped images.
       await locator<AddConfigUsecase>().setConfigIsDemoData(false);
 
+      // THE SECOND TRAP, and the first real run is what found it (#1076).
+      //
+      // A fresh profile has `hasAcceptedDisclaimer` false, so
+      // `home_bloc.dart:88` raises the disclaimer dialog over HomePage on the
+      // very first frame. A modal barrier makes everything behind it
+      // untouchable, so the capture guard refused the first shot with "Found
+      // 0 widgets with type HomePage (considering only hit-testable widgets)"
+      // — which is the guard working, not failing.
+      //
+      // Accepted here rather than tapped away: a tap is one more
+      // timing-dependent step on a dialog whose button text is localised, and
+      // the dialog is not part of what a store screenshot is meant to show.
+      // The Play re-shoot (#1075) hit exactly this and dismissed it by hand.
+      await locator<AddConfigUsecase>().setConfigDisclaimer(true);
+
       // Boot straight into the app with every presentation choice pinned,
       // rather than through `main()` — `main()` reads the theme, locale,
       // energy unit and accent back out of config, and a screenshot set must
