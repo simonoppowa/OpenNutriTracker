@@ -150,12 +150,18 @@ void main() {
         false, // Material You off — see _brandAccentIndex
         _brandAccentArgb,
       );
-      // The first argument to pumpAndSettle is the interval *between* frames,
-      // not a timeout, and under the live binding that interval is real
-      // elapsed time — so this is "give boot 30 seconds, then settle". It is
-      // the idiom `app_boot_test.dart` already uses against this app's boot,
-      // which is the only reason to trust the number.
-      await tester.pumpAndSettle(const Duration(seconds: 30));
+      // "Give boot up to 30 seconds, then settle" belongs in pumpAndSettle's
+      // *third* argument. The first is the interval between pumps, and under
+      // the live binding that interval is real elapsed time — so passing 30s
+      // there spends at least 30 real seconds per settle iteration rather
+      // than allowing 30 in total. `app_boot_test.dart:49` has the same
+      // shape and the same cost; this file does not copy it, and that file is
+      // worth revisiting separately.
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 30),
+      );
 
       // Android renders Flutter into a SurfaceView that `takeScreenshot`
       // cannot read; this swaps it for an ImageView. It is a documented no-op

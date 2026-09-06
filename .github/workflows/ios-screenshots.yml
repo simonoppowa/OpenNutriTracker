@@ -75,7 +75,7 @@ on:
           - iphone
           - ipad
       captions:
-        description: 'on = composite the captions from tools/screenshots/captions.en-US.json (#1072). off = raw captures only, for inspecting the app itself.'
+        description: 'on = composite the captions from tools/screenshots/captions.en-US.json (#1072). off = same assets, sized and padded to the slot, just without the caption band — what Play tablet slots need, and useful for inspecting the app itself.'
         required: true
         default: 'on'
         type: choice
@@ -207,7 +207,14 @@ jobs:
 
       - name: Capture — 13" iPad
         timeout-minutes: 25
-        if: inputs.devices == 'both' || inputs.devices == 'ipad'
+        # `!cancelled()` because GitHub's implicit `success()` would otherwise
+        # skip this whole step when the iPhone capture failed or timed out —
+        # losing the half of the set that was still reachable, which is the
+        # opposite of what the step timeouts are for. The job still fails on
+        # the iPhone step; this only stops one bad simulator taking both.
+        if: |
+          !cancelled() &&
+          (inputs.devices == 'both' || inputs.devices == 'ipad')
         run: |
           .github/scripts/ios_capture_screenshots.sh \
             ipad "build/screenshots/raw/ipad"
@@ -224,6 +231,9 @@ jobs:
       # Compositing. Shared with the Play path on purpose (#1072 captions both
       # sets); nothing in compose.py knows which platform it is looking at.
       - name: Composite captions
+        # Same reason as the iPad capture: composite whatever was captured,
+        # rather than skipping because an earlier device failed.
+        if: '!cancelled()'
         run: |
           set -euo pipefail
           extra=""
