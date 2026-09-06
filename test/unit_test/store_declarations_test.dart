@@ -123,7 +123,10 @@ void main() {
     test('every changelog is within the 500-character cap', () {
       for (final file in changelogs) {
         expect(
-          file.readAsStringSync().trim().length,
+          // trimRight() not trim(): a stray leading newline or indent is
+          // still charged by Play, so trimming it here would undercount and
+          // let an over-cap note through.
+          file.readAsStringSync().trimRight().length,
           lessThanOrEqualTo(500),
           reason: '${file.path} exceeds Play\'s 500-character release-note cap',
         );
