@@ -78,6 +78,7 @@ class ExportDataUsecase {
       userIntakeCsvFileName: userIntakeCsvFileName,
       trackedDayCsvFileName: trackedDayCsvFileName,
     );
+
     // Save the zip file to the user-specified location
     final zipBytes = ZipEncoder().encode(archive);
     if (zipBytes.isEmpty) {
@@ -95,7 +96,7 @@ class ExportDataUsecase {
       bytes: Uint8List.fromList(zipBytes),
     );
 
-    if (result == null || result.isEmpty) {
+    if (result == null) {
       // User cancelled the save dialog.
       return false;
     }

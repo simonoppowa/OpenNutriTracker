@@ -29,6 +29,6 @@ class DownloadSampleCsvUsecase {
       allowedExtensions: ['csv'],
       bytes: bytes,
     );
-    return result != null && result.isNotEmpty;
+    return result != null;
   }
 }
