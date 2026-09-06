@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:opennutritracker/core/styles/accent_colors.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
@@ -75,6 +76,14 @@ const String _fixture = String.fromEnvironment(
 /// pin costs nothing and this file is meant to run on both.
 const int _brandAccentIndex = 7;
 
+/// The packed ARGB the app actually expects. `runAppWithChangeNotifiers`
+/// hands this straight to `Color(accentColor)` in `lib/main.dart`, so passing
+/// the *index* yields `Color(0x00000007)` — transparent near-black, not the
+/// brand green, and every screenshot would have shipped with a broken accent.
+/// Read from the app's own list so the constant and the palette cannot drift.
+final int _brandAccentArgb =
+    accentPresetColors[_brandAccentIndex].toARGB32();
+
 /// Written into the app's own documents directory rather than handed back
 /// over a `flutter drive` channel. The host pulls them out of the simulator
 /// with `xcrun simctl get_app_container <udid> <bundle-id> data`, which keeps
@@ -139,7 +148,7 @@ void main() {
         const Locale('en'),
         false, // kcal, not kJ
         false, // Material You off — see _brandAccentIndex
-        _brandAccentIndex,
+        _brandAccentArgb,
       );
       // The first argument to pumpAndSettle is the interval *between* frames,
       // not a timeout, and under the live binding that interval is real
@@ -321,8 +330,12 @@ Future<void> _shoot(
   await tester.pump(const Duration(seconds: 2));
   await tester.pumpAndSettle();
 
+  // hitTestable(), not the bare finder: `MainScreen` keeps every tab alive in
+  // an IndexedStack, so an inactive tab's widgets are still in the tree and a
+  // plain `findsWidgets` would pass for a screen that is not on screen —
+  // defeating the whole point of this guard.
   expect(
-    mustBeVisible,
+    mustBeVisible.hitTestable(),
     findsWidgets,
     reason: 'refusing to capture "$name": its subject is not on screen',
   );
@@ -331,8 +344,10 @@ Future<void> _shoot(
     findsNothing,
     reason: 'refusing to capture "$name": the demo banner is showing',
   );
+  // Also hitTestable: a spinner on an inactive tab is not in the shot, and
+  // failing the run for it would be a false alarm.
   expect(
-    find.byType(CircularProgressIndicator),
+    find.byType(CircularProgressIndicator).hitTestable(),
     findsNothing,
     reason: 'refusing to capture "$name": something is still loading',
   );

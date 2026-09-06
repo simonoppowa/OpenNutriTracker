@@ -191,7 +191,13 @@ jobs:
       # battery. Two of the live iPhone assets show the simulator's `Carrier`
       # placeholder (#1072) — this is what prevents that recurring, and it
       # costs one command.
+      # Bounded independently of the job. The VM-service hang documented in the
+      # header is the reason: without a step timeout one stuck capture holds
+      # the macOS runner until the job's own limit, which would starve the
+      # other device's capture and the artifact upload that follows. 25 minutes
+      # is roughly twice a healthy run of six captures plus the boot.
       - name: Capture — 6.9" iPhone
+        timeout-minutes: 25
         if: inputs.devices == 'both' || inputs.devices == 'iphone'
         run: |
           .github/scripts/ios_capture_screenshots.sh \
@@ -200,6 +206,7 @@ jobs:
           CANDIDATES: 'iPhone 16 Plus|iPhone 15 Plus|iPhone 16 Pro Max|iPhone 15 Pro Max'
 
       - name: Capture — 13" iPad
+        timeout-minutes: 25
         if: inputs.devices == 'both' || inputs.devices == 'ipad'
         run: |
           .github/scripts/ios_capture_screenshots.sh \
