@@ -14,6 +14,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/util/quick_serving_option.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailBottomSheet extends StatefulWidget {
@@ -82,6 +83,13 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
       widget.quantityTextController.text,
       widget.selectedUnit,
     );
+  }
+
+  String _formatQuantity(double value) {
+    if (value == value.roundToDouble()) {
+      return value.toInt().toString();
+    }
+    return value.toString();
   }
 
   @override
@@ -153,7 +161,8 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                               items: <DropdownMenuItem<String>>[
                                 // #629: a serving the app cannot scale
                                 // is a no-op dressed as a unit.
-                                if (widget.product.scalableServingQuantity != null)
+                                if (widget.product.scalableServingQuantity !=
+                                    null)
                                   _getServingDropdownItem(context),
                                 if (widget.product.isSolid ||
                                     !widget.product.isLiquid &&
@@ -176,27 +185,52 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                         ],
                       ),
                       if (!productMissingRequiredInfo) ...[
-                        const SizedBox(height: Dimens.spacing12),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Wrap(
-                            spacing: Dimens.spacing8,
-                            children: [
-                              // Quick-quantity presets — one tap to a common
-                              // serving size instead of typing.
-                              for (final preset in const [50, 100, 150, 200, 250])
-                                ActionChip(
-                                  label: Text('$preset'),
-                                  onPressed: () {
-                                    widget.quantityTextController.text = '$preset';
-                                    widget.onQuantityOrUnitChanged(
-                                      '$preset',
-                                      widget.selectedUnit,
-                                    );
-                                  },
+                        Builder(
+                          builder: (context) {
+                            // Quick-quantity presets — one tap to a common
+                            // portion instead of typing. Uses the food's own
+                            // serving when it has one and 100 g for solids.
+                            final options = quickServingOptionsFor(
+                              widget.product,
+                              S.of(context).gramUnit,
+                            );
+                            if (options.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                top: Dimens.spacing12,
+                              ),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Wrap(
+                                  spacing: Dimens.spacing8,
+                                  children: [
+                                    for (final option in options)
+                                      Semantics(
+                                        identifier:
+                                            'meal-detail-chip-${option.label}',
+                                        child: ActionChip(
+                                          label: Text(option.label),
+                                          onPressed: () {
+                                            final quantityText =
+                                                _formatQuantity(
+                                                  option.quantity,
+                                                );
+                                            widget.quantityTextController.text =
+                                                quantityText;
+                                            widget.onQuantityOrUnitChanged(
+                                              quantityText,
+                                              option.unit,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                            ],
-                          ),
+                              ),
+                            );
+                          },
                         ),
                       ],
                       const SizedBox(height: Dimens.spacing16),
@@ -315,9 +349,8 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(S.of(context).infoAddedIntakeLabel)));
-    Navigator.of(
-      context,
-    ).popUntil(namedRouteOrFirst(NavigationOptions.mainRoute));
+    Navigator.of(context)
+        .popUntil(namedRouteOrFirst(NavigationOptions.mainRoute));
   }
 
   // #212: Check if this meal was already added today for the same meal type
@@ -388,11 +421,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
         : '${S.of(context).servingLabel} (${widget.product.servingQuantity} ${widget.product.servingUnit})';
     return DropdownMenuItem(
       value: UnitDropdownItem.serving.toString(),
-      child: Text(
-        servingText,
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-      ),
+      child: Text(servingText, overflow: TextOverflow.ellipsis, maxLines: 1),
     );
   }
 
