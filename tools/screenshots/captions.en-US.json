@@ -35,5 +35,13 @@
     "max_lines": 2,
     "side_padding_fraction": 0.08,
     "capture_gap_fraction": 0.015
+  },
+  "aliases": {
+    "1_en-US": "01-home",
+    "2_en-US": "05-diary-calendar",
+    "3_en-US": "04-trends",
+    "4_en-US": "06-profile",
+    "5_en-US": "02-diary-meals",
+    "6_en-US": "03-micronutrients"
   }
 }

@@ -46,7 +46,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import pathlib
 import sys
 
@@ -232,20 +231,22 @@ def main() -> None:
 
     # The two sets are named differently and both are real inputs: the iOS
     # lane writes `01-home.png`, matching the caption keys, while the Play set
-    # committed in #1085 is `1_en-US.png` through `6_en-US.png`. Resolve by
-    # stem first, then by the leading shot number, so the documented Play
-    # second pass actually runs instead of failing on every file.
-    by_number = {}
-    for key in captions:
-        digits = re.match(r"0*(\d+)", key)
-        if digits:
-            by_number.setdefault(digits.group(1), key)
+    # committed in #1085 is `1_en-US.png` through `6_en-US.png`.
+    #
+    # Resolving the second by its leading number would be wrong, not merely
+    # fragile: that set was shot before the #1072 shot list existed and is in
+    # a different order — `2_en-US` is the calendar, not the meals; `3_en-US`
+    # is Trends, not the micronutrient panel. Numeric matching mis-captions
+    # five of the six, and does it silently. So the mapping is explicit,
+    # derived from what is actually in each image, and lives in the caption
+    # file as data.
+    aliases = config.get("aliases", {})
 
     def caption_key(stem: str) -> str | None:
         if stem in captions:
             return stem
-        digits = re.match(r"0*(\d+)", stem)
-        return by_number.get(digits.group(1)) if digits else None
+        mapped = aliases.get(stem)
+        return mapped if mapped in captions else None
 
     if not args.no_captions:
         missing = [c.stem for c in captures if caption_key(c.stem) is None]

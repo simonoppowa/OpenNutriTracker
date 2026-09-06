@@ -301,15 +301,28 @@ Future<void> _tapNav(WidgetTester tester, String identifier) async {
 /// The outer list is the first `Scrollable` under `DiaryPage` in depth-first
 /// order because the calendar is one of its children.
 Future<void> _scrollDiaryTo(WidgetTester tester, Finder target) async {
+  final scrollable = find
+      .descendant(
+        of: find.byType(DiaryPage),
+        matching: find.byType(Scrollable),
+      )
+      .first;
+
+  // Back to the top before searching. `scrollUntilVisible` only ever scrolls
+  // in the direction of its delta, so a positive one cannot find a target
+  // that is now *above* the viewport — and that is the normal case here:
+  // `DailyNutrientPanel` sits before the `IntakeVerticalList`s in
+  // `day_info_widget.dart`, so capturing the meals first leaves the panel
+  // behind us, and the next call would exhaust maxScrolls and throw.
+  // Resetting makes each call independent of whatever the last one left
+  // behind, rather than requiring the shot order to match the widget order.
+  tester.state<ScrollableState>(scrollable).position.jumpTo(0);
+  await tester.pumpAndSettle();
+
   await tester.scrollUntilVisible(
     target,
     240,
-    scrollable: find
-        .descendant(
-          of: find.byType(DiaryPage),
-          matching: find.byType(Scrollable),
-        )
-        .first,
+    scrollable: scrollable,
     maxScrolls: 80,
   );
   await tester.pumpAndSettle();
