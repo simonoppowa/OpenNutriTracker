@@ -145,6 +145,31 @@ void main() {
     });
   });
 
+  group('Play listing fields', () {
+    // The full description already had a cap test; the title and short
+    // description did not, and this branch changes both. Play refuses
+    // over-length text at paste time with no earlier warning, and the short
+    // description in particular sits at exactly its cap — a stray character
+    // would be discovered in the Console rather than here.
+    String field(String name) => File(
+      'fastlane/metadata/android/en-US/$name',
+    ).readAsStringSync().trimRight();
+
+    test('title is within the 30-character cap', () {
+      expect(field('title.txt').length, lessThanOrEqualTo(30));
+    });
+
+    test('short description is within the 80-character cap', () {
+      expect(field('short_description.txt').length, lessThanOrEqualTo(80));
+    });
+
+    test('the title avoids the phrase Play forbids there', () {
+      // Play names "No Ads" as prohibited in a title specifically; Apple
+      // permits it in an app name, which is why this is asserted per store.
+      expect(field('title.txt').toLowerCase(), isNot(contains('no ads')));
+    });
+  });
+
   group('Play listing', () {
     // Play rejects a longer description outright. Nothing in the repo or in
     // CI checks it, and `upload_to_play_store` runs with
