@@ -208,14 +208,21 @@ void main() {
       );
 
       // 2. The day's logged meals with their photos and per-meal macros.
-      await _scrollDiaryTo(tester, find.byType(IntakeVerticalList).first);
-      await _shoot(
-        tester,
-        binding,
-        outDir,
-        '02-diary-meals',
-        find.byType(IntakeVerticalList).first,
-      );
+      //
+      // Scoped to DiaryPage, not `find.byType(IntakeVerticalList).first`.
+      // `HomePage` uses the same widget and is `_bodyPages[0]` in
+      // `MainScreen`'s IndexedStack, which keeps every tab mounted — so the
+      // global `.first` resolves to Home's copy, offstage behind the diary,
+      // and the scroll would hunt the diary forever for a widget that is not
+      // in it.
+      final diaryMeals = find
+          .descendant(
+            of: find.byType(DiaryPage),
+            matching: find.byType(IntakeVerticalList),
+          )
+          .first;
+      await _scrollDiaryTo(tester, diaryMeals);
+      await _shoot(tester, binding, outDir, '02-diary-meals', diaryMeals);
 
       // 3. The micronutrient panel, expanded. It is an ExpansionTile that
       //    starts collapsed, so the shot needs the tap as well as the scroll.
