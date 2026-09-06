@@ -7,17 +7,17 @@ WHAT IT DOES
 • Log meals against a large food database — Open Food Facts plus a reference backend covering USDA FoodData Central and the German BLS, selectable in Settings. Search, scan a barcode, or enter a number when you already know the calorie cost.
 • A calendar-driven diary split into Breakfast, Lunch, Dinner and Snack, with per-meal targets, drag-to-rearrange, and sorting by time or macro contribution.
 • Micronutrients, free: day and week views for fibre, sodium, saturated fat, sugar, calcium, iron, potassium, vitamin D, vitamin B12 and magnesium, with optional Dietary Reference Intake bars.
-• Trends: current and best day-streak, calories against your goal line, daily macro averages, water intake, and weight against target, over 7, 30 and 90 days or your whole history.
-• Custom meals and recipes, with photo, brand and barcode, and a recipe builder with its own ingredient picker.
+• Trends: current and best day-streak, calories against your goal line, daily macro averages, water intake, and weight against target, over 7, 30 and 90 days, or up to ten years.
+• Custom meals with photo, brand and barcode, and reusable recipes with a photo and their own ingredient picker.
 • Quick add for when you already know roughly what you ate — a title plus kcal, straight to the meal.
 • Activities from a categorised catalogue, or custom ones with direct kcal entry. Finished workouts can be imported from Apple Health — read-only, off by default, and they stay on your device.
 • A water tracker, an optional intermittent-fasting timer, and a weight history that can taper your calorie goal as you approach target.
 • kcal or kJ, switched globally, and sixteen colour themes.
-• Export your diary, activities, tracked days and recipes to a JSON zip with flat CSVs a spreadsheet can read.
+• Export your diary, activities, tracked days and recipes as a JSON zip you can re-import, or as flat CSVs for a spreadsheet.
 
 AI MEAL ASSISTANCE, IF YOU WANT IT
 
-Experimental and off by default. Describe a meal in one line, or photograph it, and have several items resolved at once. It needs your own API key — Anthropic, OpenAI, OpenRouter, or a server you run — and the project never sees either. The model reads language, not nutrition: every calorie still comes from the food databases.
+Experimental and off by default. Describe a meal in one line, or photograph it, and have several items resolved at once. It needs your own API key for Anthropic, OpenAI or OpenRouter, or just the address of a server you run — the project never sees either. The model reads language, not nutrition: every calorie still comes from the food databases.
 
 PRIVACY
 
