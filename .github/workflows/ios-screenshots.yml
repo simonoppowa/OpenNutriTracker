@@ -170,7 +170,7 @@ jobs:
       # `pip install` into it fails. This gives the compositing step a plain
       # interpreter it is allowed to install into.
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
