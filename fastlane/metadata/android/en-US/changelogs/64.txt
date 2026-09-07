@@ -1,0 +1,4 @@
+- Add several items: bad rows are all flagged at once, each with the reason, and a photo that fails to attach offers the retry its message promises
+- AI setup you change is picked up as soon as you come back to the list
+- Your data export now includes photos attached to logged meals, not only saved ones
+- Updated the libraries underneath, including secure storage, file picking and sharing
