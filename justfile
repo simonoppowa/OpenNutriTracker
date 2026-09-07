@@ -50,9 +50,22 @@ check_agents_md:
   set -euo pipefail
   limit=31000          # deliberate margin under 32768
   head_limit=12000     # Code Review Rules must sit well inside the head
-  size=$(wc -c < AGENTS.md)
+  # The budget is cumulative. Codex reads every AGENTS.md that applies to a
+  # path, so a scoped `subdir/AGENTS.md` spends the same 32768 as the root
+  # one. Measuring only the root left this green while the real total was
+  # over, and the scoped rules it exists to protect were dropped silently.
+  agents=$(git ls-files '*AGENTS.md')
+  if [ -z "$agents" ]; then
+    echo "No AGENTS.md is tracked; this guard has nothing to measure." >&2
+    exit 1
+  fi
+  size=0
+  while IFS= read -r f; do
+    size=$((size + $(wc -c < "$f")))
+  done <<< "$agents"
   if [ "$size" -gt "$limit" ]; then
-    echo "AGENTS.md is ${size} bytes, over the ${limit}-byte guard." >&2
+    echo "AGENTS.md files total ${size} bytes, over the ${limit}-byte guard:" >&2
+    while IFS= read -r f; do echo "  $(wc -c < "$f") ${f}" >&2; done <<< "$agents"
     echo "Codex truncates at 32768 and says nothing. Trim a section or move" >&2
     echo "device/authoring prose out (e.g. to tools/adb/README.md)." >&2
     exit 1
@@ -67,7 +80,8 @@ check_agents_md:
     echo "Truncation drops the tail, so the review rules must stay near the top." >&2
     exit 1
   fi
-  echo "AGENTS.md ${size}/${limit} bytes; Code Review Rules at byte ${offset}."
+  count=$(printf '%s\n' "$agents" | wc -l)
+  echo "${count} AGENTS.md file(s), ${size}/${limit} bytes total; Code Review Rules at byte ${offset}."
 
 # Run tests
 test:

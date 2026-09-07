@@ -107,7 +107,7 @@ the two API clients:
   than the request that needs it."*
 - It leaves the device only as a request header to the provider's own endpoint —
   `'authorization': 'Bearer ${_apiKey()}'` in
-  [`openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart)
+  [`openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart)
   and `'x-api-key': _apiKey()` in
   [`anthropic_meal_items_api.dart`](../lib/features/add_meal/data/anthropic_meal_items_api.dart).
   Those are the only two sites in `lib/` that read a credential into a header.
@@ -619,4 +619,4 @@ In-repo files cited:
 [`lib/core/utils/ai_credential_storage.dart`](../lib/core/utils/ai_credential_storage.dart) ·
 [`lib/core/utils/secure_app_storage_provider.dart`](../lib/core/utils/secure_app_storage_provider.dart) ·
 [`lib/features/add_meal/data/anthropic_meal_items_api.dart`](../lib/features/add_meal/data/anthropic_meal_items_api.dart) ·
-[`lib/features/add_meal/data/openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart)
+[`lib/features/add_meal/data/openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart)
