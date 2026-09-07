@@ -117,12 +117,21 @@ echo "==> $LABEL: running the capture test"
 # --flavor full so the app carries the production bundle id and display name.
 # A screenshot of a build whose app bar reads "[Alpha]" is the defect this
 # whole lane replaces.
+# The exit status is held rather than allowed to abort the script, so the
+# captures are still read out of the simulator when the test fails. The
+# second dispatch (#1076) is why: every shot had been taken and the run
+# failed on a teardown assertion afterwards, and `set -e` threw away six
+# good PNGs that would have shown the lane working. A failed run still fails
+# below — it just stops being undiagnosable.
+set +e
 flutter test integration_test/store_screenshots_test.dart \
   -d "$UDID" \
   --flavor full \
   --dart-define=STORE_SCREENSHOTS=true \
   --dart-define="SCREENSHOT_FIXTURE=$FIXTURE" \
   --reporter expanded
+TEST_STATUS=$?
+set -e
 
 echo "==> $LABEL: reading the captures out of the simulator"
 SRC=""
@@ -138,6 +147,10 @@ if [ -z "$SRC" ] || [ ! -d "$SRC" ]; then
         -maxdepth 3 -type d -name store_screenshots 2>/dev/null | head -n 1 || true)
 fi
 if [ -z "$SRC" ] || [ ! -d "$SRC" ]; then
+  if [ "$TEST_STATUS" -ne 0 ]; then
+    echo "The capture test failed and wrote nothing; see its output above." >&2
+    exit "$TEST_STATUS"
+  fi
   echo "No captures were written. The test reported success but nothing reached" >&2
   echo "the app's Documents directory, which means the capture step never ran." >&2
   exit 1
@@ -186,5 +199,14 @@ if bad:
     sys.exit(f'{label} captures rejected:\n  ' + '\n  '.join(bad))
 print(f'{len(files)} raw capture(s) OK for {label}.')
 "
+
+# A salvaged set does not make a failed run a pass. The captures were copied
+# out and validated so the artifact carries something to look at, and the
+# step still fails on the test's own status.
+if [ "$TEST_STATUS" -ne 0 ]; then
+  echo "::warning::$LABEL: the capture test failed, but its screenshots were read out and are in the artifact."
+  echo "$LABEL: captures salvaged; failing on the test's exit status ($TEST_STATUS)." >&2
+  exit "$TEST_STATUS"
+fi
 
 echo "==> $LABEL: done"
