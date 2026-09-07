@@ -98,8 +98,14 @@ void main() {
   testWidgets(
     'captures the six App Store / Play screenshots',
     (WidgetTester tester) async {
+      // Disposed at the end of the body, not via addTearDown. The first real
+      // run (#1076) failed with "A SemanticsHandle was active at the end of
+      // the test": `_endOfTestVerifications` runs inside `_runTestBody`,
+      // *before* addTearDown callbacks fire, so registering the dispose there
+      // is always too late. The test body had completed and all six captures
+      // had been taken — the non-zero exit then aborted the step before the
+      // simulator's container was copied out, so a clean run produced nothing.
       final semantics = tester.ensureSemantics();
-      addTearDown(semantics.dispose);
 
       final outDir = Directory(
         '${(await getApplicationDocumentsDirectory()).path}/$_outDirName',
@@ -288,6 +294,12 @@ void main() {
         6,
         reason: 'the shot list settled in #1072 is six screens; wrote $written',
       );
+
+      // Last statement on purpose. If anything above throws, the body's own
+      // failure is the one reported and this check never runs — which is what
+      // happened on the first dispatch, where the disclaimer failure appeared
+      // alone rather than behind a semantics complaint.
+      semantics.dispose();
     },
     // See _enabled: this file shares integration_test/ with the boot smoke
     // that runs on every pull request, and must not join it there.
