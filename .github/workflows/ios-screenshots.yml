@@ -345,20 +345,15 @@ jobs:
                                  f'8-bit RGB')
 
           if checked == 0:
-              sys.exit(f'No screenshots were produced under {root}')
+              sys.exit(
+                  f'No screenshots were produced under {root}.\n'
+                  'Read the capture step logs — both capture steps hold their '
+                  'exit status so one device failing still lets the other '
+                  'composite, so a run where neither produced anything reaches '
+                  'here rather than failing earlier.'
+              )
           if bad:
               sys.exit('Rejected:\n  ' + '\n  '.join(bad))
-          # An empty run is a failed run. Both capture steps hold their exit
-          # status so that one device failing still lets the other composite,
-          # which means nothing upstream fails the job when *no* device
-          # produced anything — and this check would otherwise report
-          # "0 screenshot(s) OK" and go green with an empty artifact.
-          if not checked:
-              sys.exit(
-                  f'No screenshots were produced in {root}.\n'
-                  'Read the capture step logs — the simulator run failed, or '
-                  'wrote nothing where this step looks.'
-              )
           print(f'\n{checked} screenshot(s) OK.')
           PY
 
