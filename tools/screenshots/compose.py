@@ -6,8 +6,14 @@ owned by either platform's lane:
 
   * the iOS lane feeds it fresh simulator captures at 1290x2796 (6.9" iPhone)
     and 2064x2752 (13" iPad);
-  * the Play set is already captured and committed at 1432x2856, so its
-    second pass is this script run over the existing PNGs — no re-shoot;
+  * the Play set is fed from tools/screenshots/raw/play at 1432x2856, so a
+    caption change is a re-render rather than a re-shoot;
+
+Inputs are always raw captures and outputs are always somewhere else. Pointing
+--raw at a directory this script has already written composites the caption a
+second time on top of the first and shrinks the app content again, and the
+result is a plausible-looking image rather than an error — so the marker below
+turns that mistake into a failure instead of a surprise.
   * Play's *tablet* slots stay empty by decision, and if that is ever
     revisited Play excludes non-core text there, which is what --no-captions
     is for.
@@ -32,10 +38,10 @@ Usage:
         --size  1290x2796 \\
         --captions tools/screenshots/captions.en-US.json
 
-    # Play's second pass, over the set already in the repo:
+    # Play, from the preserved captures:
     python3 tools/screenshots/compose.py \\
-        --raw fastlane/metadata/android/en-US/images/phoneScreenshots \\
-        --out build/screenshots/play-captioned \\
+        --raw tools/screenshots/raw/play \\
+        --out fastlane/metadata/android/en-US/images/phoneScreenshots \\
         --size 1432x2856 \\
         --captions tools/screenshots/captions.en-US.json
 
@@ -50,7 +56,7 @@ import pathlib
 import sys
 
 try:
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw, ImageFont, PngImagePlugin
 except ImportError:  # pragma: no cover - the message is the whole point
     sys.exit(
         "Pillow is not installed. `python3 -m pip install --upgrade pillow`, "
@@ -58,6 +64,14 @@ except ImportError:  # pragma: no cover - the message is the whole point
     )
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
+
+# Stamped into every output and refused on every input. A PNG text chunk is
+# the right home for it: both stores ignore ancillary chunks, it survives a
+# copy, and it does not touch a single pixel — so it cannot change what the
+# reviewer sees. Detecting a caption band by inspecting pixels would be a
+# heuristic; this is not.
+MARKER_KEY = "Software"
+MARKER = "tools/screenshots/compose.py"
 
 
 def parse_size(text: str) -> tuple[int, int]:
@@ -203,6 +217,14 @@ def compose_one(
             y += line_height
 
     with Image.open(capture_path) as raw:
+        if raw.info.get(MARKER_KEY) == MARKER:
+            sys.exit(
+                f"{capture_path} was written by this script, so it already "
+                "carries a caption band.\nCompositing it again would stack a "
+                "second caption on the first and shrink the app content "
+                "further.\nPoint --raw at the device captures instead "
+                "(tools/screenshots/raw/)."
+            )
         capture = raw.convert("RGB")
         available_height = height - band_height - gap
         scale = min(width / capture.width, available_height / capture.height)
@@ -218,7 +240,9 @@ def compose_one(
     )
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    canvas.save(out_path, format="PNG")
+    info = PngImagePlugin.PngInfo()
+    info.add_text(MARKER_KEY, MARKER)
+    canvas.save(out_path, format="PNG", pnginfo=info)
     print(f"  {out_path.name:24s} {width}x{height}  caption={caption!r}")
 
 
