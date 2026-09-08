@@ -50,9 +50,18 @@ import 'package:path_provider/path_provider.dart';
 /// every push to `develop` and `main` (it is excluded from pull requests,
 /// which is map #1016's work). Without a gate, this file would join both,
 /// seed a year of demo data into each, and make them slower and flakier for
-/// no benefit. The screenshot lane passes
-/// `--dart-define=STORE_SCREENSHOTS=true`; nothing else does, so everywhere
-/// else this test is skipped at compile time.
+/// no benefit. Only `--dart-define=STORE_SCREENSHOTS=true` enables it, and
+/// nothing in CI passes that — the dispatch-only iOS lane that used to was
+/// removed in #1076 — so everywhere else this test is skipped at compile
+/// time.
+///
+/// It is kept as a hand-run driver rather than deleted with the lane: it is
+/// the only programmatic route to a capture set, it costs nothing while
+/// gated off, and it runs on an Android emulator as well as an iOS
+/// simulator. The iOS captures now come from `xcrun simctl io booted
+/// screenshot`, which writes host-side and so avoids the container deletion
+/// that defeated the lane; see
+/// `fastlane/metadata/ios/en-US/screenshots/README.md`.
 const bool _enabled = bool.fromEnvironment('STORE_SCREENSHOTS');
 
 /// Which demo fixture stands behind the shots.

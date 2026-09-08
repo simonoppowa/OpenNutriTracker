@@ -7,18 +7,26 @@ Twelve captioned assets: six at 1290x2796 (6.9" iPhone) and six at 2064x2752
 
 ## Where these came from
 
-Captured by hand on a Mac with `xcrun simctl io booted screenshot`, not by
-`.github/workflows/ios-screenshots.yml`.
+Captured by hand on a Mac with `xcrun simctl io booted screenshot`.
 
-That is not a preference. The CI lane cannot currently get an image off the
-simulator: it drives the app with `flutter test`, and `flutter test`
-uninstalls the app when it finishes, so iOS deletes the data container the
-capture was written into. Three dispatches confirmed it — the app was absent
-from `simctl listapps` while 131 unrelated containers survived, and every PNG
-left on the device belonged to the GeoServices cache. `simctl io` sidesteps
-the whole problem by writing host-side, which is why the manual route worked
-first time. Fixing the lane means converting it to `flutter drive` +
-`onScreenshot`; see #1076.
+There was a dispatch-only macOS CI lane for this. It never worked and has been
+removed (#1076): it drove the app with `flutter test`, and `flutter test`
+uninstalls the app when it finishes, so iOS deleted the data container the
+capture had been written into. Three dispatches confirmed it — the app was
+absent from `simctl listapps` while 131 unrelated containers survived, and
+every PNG left on the device belonged to the GeoServices cache.
+
+`simctl io` writes host-side, so nothing has to survive the sandbox, which is
+why the manual route worked first time. Reviving CI capture would mean
+`flutter drive` + `onScreenshot`; that was judged not worth the macOS runner
+budget against a cap of five concurrent macOS jobs (#1016) for a set that is
+re-shot about once a release.
+
+`integration_test/store_screenshots_test.dart` is still here and still the
+programmatic driver, invoked by hand rather than by CI:
+
+    flutter test integration_test/store_screenshots_test.dart \
+      --dart-define=STORE_SCREENSHOTS=true -d <device>
 
 ## Two frames still owed
 
