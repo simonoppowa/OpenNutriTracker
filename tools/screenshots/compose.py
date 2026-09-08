@@ -6,8 +6,14 @@ owned by either platform's lane:
 
   * the iOS lane feeds it fresh simulator captures at 1290x2796 (6.9" iPhone)
     and 2064x2752 (13" iPad);
-  * the Play set is already captured and committed at 1432x2856, so its
-    second pass is this script run over the existing PNGs — no re-shoot;
+  * the Play set is fed from tools/screenshots/raw/play at 1432x2856, so a
+    caption change is a re-render rather than a re-shoot;
+
+Inputs are always raw captures and outputs are always somewhere else. Pointing
+--raw at a directory this script has already written composites the caption a
+second time on top of the first and shrinks the app content again, and the
+result is a plausible-looking image rather than an error — so the marker below
+turns that mistake into a failure instead of a surprise.
   * Play's *tablet* slots stay empty by decision, and if that is ever
     revisited Play excludes non-core text there, which is what --no-captions
     is for.
@@ -32,10 +38,10 @@ Usage:
         --size  1290x2796 \\
         --captions tools/screenshots/captions.en-US.json
 
-    # Play's second pass, over the set already in the repo:
+    # Play, from the preserved captures:
     python3 tools/screenshots/compose.py \\
-        --raw fastlane/metadata/android/en-US/images/phoneScreenshots \\
-        --out build/screenshots/play-captioned \\
+        --raw tools/screenshots/raw/play \\
+        --out fastlane/metadata/android/en-US/images/phoneScreenshots \\
         --size 1432x2856 \\
         --captions tools/screenshots/captions.en-US.json
 
@@ -50,7 +56,7 @@ import pathlib
 import sys
 
 try:
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw, ImageFont, PngImagePlugin
 except ImportError:  # pragma: no cover - the message is the whole point
     sys.exit(
         "Pillow is not installed. `python3 -m pip install --upgrade pillow`, "
@@ -58,6 +64,14 @@ except ImportError:  # pragma: no cover - the message is the whole point
     )
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
+
+# Stamped into every output and refused on every input. A PNG text chunk is
+# the right home for it: both stores ignore ancillary chunks, it survives a
+# copy, and it does not touch a single pixel — so it cannot change what the
+# reviewer sees. Detecting a caption band by inspecting pixels would be a
+# heuristic; this is not.
+MARKER_KEY = "Software"
+MARKER = "tools/screenshots/compose.py"
 
 
 def parse_size(text: str) -> tuple[int, int]:
@@ -83,24 +97,43 @@ def wrap_to_lines(
     max_width: int,
     max_lines: int,
 ) -> list[str] | None:
-    """Greedy word wrap. Returns None when the text will not fit."""
-    words = text.split()
+    """Greedy word wrap. Returns None when the text will not fit.
+
+    A literal newline in the caption is an author-chosen break and is always
+    taken. Blank segments are dropped rather than rendered: a stray trailing
+    newline, or a doubled one, would otherwise spend a line of a two-line
+    band on nothing. Greedy wrapping optimises for filling the line, which is the
+    wrong objective for a two-clause caption: "No sign-up. No paywall." fills
+    line one as "No sign-up. No", stranding the second clause's "No" at the
+    end of the line and leaving "paywall." alone underneath. The break the
+    reader wants is the sentence boundary, and nothing in the metrics can
+    infer that -- so the caption file states it.
+    """
     lines: list[str] = []
-    current = ""
-    for word in words:
-        candidate = f"{current} {word}".strip()
-        if draw.textlength(candidate, font=font) <= max_width:
-            current = candidate
+    for segment in text.split("\n"):
+        words = segment.split()
+        if not words:
             continue
-        if not current:
-            # A single word wider than the band: no wrapping can save it.
-            return None
-        lines.append(current)
-        current = word
-        if len(lines) == max_lines:
-            return None
-    if current:
-        lines.append(current)
+        current = ""
+        for word in words:
+            candidate = f"{current} {word}".strip()
+            if draw.textlength(candidate, font=font) <= max_width:
+                current = candidate
+                continue
+            # `word` is about to start a line of its own, so it has to fit
+            # on one by itself. Guarding only the `not current` case tested
+            # that for the first word of a segment and no other: a too-wide
+            # word arriving after a wrap was assigned to `current` and
+            # appended unchecked, overflowing the band.
+            if draw.textlength(word, font=font) > max_width:
+                # A single word wider than the band: no wrapping can save it.
+                return None
+            lines.append(current)
+            current = word
+            if len(lines) == max_lines:
+                return None
+        if current:
+            lines.append(current)
     if len(lines) > max_lines:
         return None
     return lines
@@ -184,6 +217,15 @@ def compose_one(
             y += line_height
 
     with Image.open(capture_path) as raw:
+        if raw.info.get(MARKER_KEY) == MARKER:
+            sys.exit(
+                f"{capture_path} was written by this script, so it already "
+                "carries a caption band.\nCompositing it again would stack a "
+                "second caption on the first and shrink the app content "
+                "further.\nPoint --raw at the original captures instead: "
+                "tools/screenshots/raw/ for the committed sets, or "
+                "build/screenshots/raw/ for a fresh run of the capture lane."
+            )
         capture = raw.convert("RGB")
         available_height = height - band_height - gap
         scale = min(width / capture.width, available_height / capture.height)
@@ -199,7 +241,9 @@ def compose_one(
     )
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    canvas.save(out_path, format="PNG")
+    info = PngImagePlugin.PngInfo()
+    info.add_text(MARKER_KEY, MARKER)
+    canvas.save(out_path, format="PNG", pnginfo=info)
     print(f"  {out_path.name:24s} {width}x{height}  caption={caption!r}")
 
 
@@ -220,6 +264,23 @@ def main() -> None:
         "text, so a tablet set would need this.",
     )
     args = parser.parse_args()
+
+    # The marker on each output catches a *second* pass over a composited
+    # directory. It cannot catch the first: point --out at the captures
+    # themselves and nothing carries the marker yet, so every raw is
+    # overwritten by its own composite and the marker only reports the
+    # damage on the next run, after the originals are gone. Equal
+    # directories are the one case where the guard arrives too late, so it
+    # is refused up front. Resolved, because "." and an absolute path to it
+    # are the same directory.
+    if args.raw.resolve() == args.out.resolve():
+        sys.exit(
+            f"--raw and --out are the same directory ({args.raw}).\n"
+            "Compositing in place would overwrite each capture with its own "
+            "captioned version and lose the original.\n"
+            "Write to the store's directory instead, and keep the captures "
+            "under tools/screenshots/raw/."
+        )
 
     captures = sorted(args.raw.glob("*.png"))
     if not captures:

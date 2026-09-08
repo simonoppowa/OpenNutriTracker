@@ -196,6 +196,22 @@ jobs:
       # the macOS runner until the job's own limit, which would starve the
       # other device's capture and the artifact upload that follows. 25 minutes
       # is roughly twice a healthy run of six captures plus the boot.
+      # The twelve composited assets are committed, so a fresh checkout
+      # arrives with both device directories already full. Without this the
+      # lane would validate and upload whatever it did not overwrite: a
+      # `devices: iphone` run composites into iphone-6.9 only, and the spec
+      # check and the artifact would still pick up the committed ipad-13 set
+      # and present it as this run's output. Stale images that look freshly
+      # captured are worse than missing ones, because nothing in the log says
+      # they are old.
+      #
+      # Safe to delete here: this lane only ever uploads an artifact, it never
+      # commits back, so the checkout is scratch. The committed sets are
+      # untouched in git, and the captures they were built from are preserved
+      # under tools/screenshots/raw/.
+      - name: Clear the committed sets so the artifact is this run's output
+        run: rm -rf fastlane/metadata/ios/en-US/screenshots
+
       - name: Capture — 6.9" iPhone
         timeout-minutes: 25
         if: inputs.devices == 'both' || inputs.devices == 'iphone'
@@ -259,6 +275,15 @@ jobs:
       # style, as the Play spec guard in play-screenshots.yml — the sizes and
       # the alpha rule are the parts that actually get people.
       - name: Check the screenshots meet Apple's spec
+        # Same condition as the compositor above and the upload below, and for
+        # the same reason. A capture step exits on the test's status, so a
+        # failed device fails the step; with the implicit success() this check
+        # was then skipped, while the compositor (!cancelled()) still built
+        # whatever the other device produced and the upload (always()) still
+        # shipped it. Assets could reach the artifact unvalidated, and the
+        # empty-run diagnostic below could not print in the one case it exists
+        # to explain. Validate whatever was produced, however the run went.
+        if: '!cancelled()'
         run: |
           python3 - <<'PY'
           import glob, os, struct, sys
@@ -329,7 +354,13 @@ jobs:
                                  f'8-bit RGB')
 
           if checked == 0:
-              sys.exit(f'No screenshots were produced under {root}')
+              sys.exit(
+                  f'No screenshots were produced under {root}.\n'
+                  'Read the capture step logs — both capture steps hold their '
+                  'exit status so one device failing still lets the other '
+                  'composite, so a run where neither produced anything reaches '
+                  'here rather than failing earlier.'
+              )
           if bad:
               sys.exit('Rejected:\n  ' + '\n  '.join(bad))
           print(f'\n{checked} screenshot(s) OK.')
