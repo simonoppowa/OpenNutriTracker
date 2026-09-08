@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart'
-    show healthPlatformName;
+    show healthPlatformName, healthStoreReadsBodyFat;
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Says what the health import will read, and what for, before the platform is
@@ -28,13 +28,13 @@ class HealthDisclosureDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = S.of(context);
     return AlertDialog(
-      // Four paragraphs, and German runs longest of the nine languages — the
-      // dialog's own column is what overflows on a short viewport, so the
-      // whole thing scrolls rather than just the content (see
-      // PolicyChangeDialog, which had exactly this bug).
+      // Four paragraphs, five where body fat is read, and German runs longest
+      // of the nine languages — the dialog's own column is what overflows on a
+      // short viewport, so the whole thing scrolls rather than just the
+      // content (see PolicyChangeDialog, which had exactly this bug).
       scrollable: true,
       title: Text(s.healthSyncDisclosureTitle(healthPlatformName)),
-      content: Text(s.healthSyncDisclosureBody(healthPlatformName)),
+      content: Text(_body(s)),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
@@ -47,4 +47,18 @@ class HealthDisclosureDialog extends StatelessWidget {
       ],
     );
   }
+
+  /// The disclosure is assembled rather than stored as one string because the
+  /// body-fat paragraph belongs only where body fat is actually read (see
+  /// [healthStoreReadsBodyFat]). It goes between what is read and the closing
+  /// guarantees, which is where those sentences sat when the two platforms
+  /// still read the same things — a paragraph about what is collected reads
+  /// as an afterthought once it follows the line about turning the feature
+  /// off.
+  String _body(S s) => [
+    s.healthSyncDisclosureBody(healthPlatformName),
+    if (healthStoreReadsBodyFat)
+      s.healthSyncDisclosureBodyFatAddendum(healthPlatformName),
+    s.healthSyncDisclosureFooter(healthPlatformName),
+  ].join('\n\n');
 }

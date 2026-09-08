@@ -29,6 +29,19 @@ import 'package:url_launcher/url_launcher.dart';
 String get healthPlatformName =>
     Platform.isIOS ? 'Apple Health' : 'Health Connect';
 
+/// Whether the platform health store is asked for body fat as well as
+/// workouts, which decides whether the disclosure mentions it.
+///
+/// Only HealthKit is. Play's Health Connect permissions policy refused this
+/// app READ_BODY_FAT as excessive for what it does, so Android reads workouts
+/// alone and the calorie-credit suggestion falls back to the BMI-derived
+/// percentile it already used for anyone with no body fat on record.
+///
+/// This must not ship ahead of the manifest change that drops the
+/// permission: while Android still asks for body fat, a disclosure that
+/// omits it is an under-disclosure, which is the direction Play penalises.
+bool get healthStoreReadsBodyFat => Platform.isIOS;
+
 /// Settings → Health sync: opts into importing finished workouts from Health
 /// Connect / Apple Health, and tunes how much of the energy those workouts
 /// report is credited toward the daily calorie goal.
