@@ -83,24 +83,36 @@ def wrap_to_lines(
     max_width: int,
     max_lines: int,
 ) -> list[str] | None:
-    """Greedy word wrap. Returns None when the text will not fit."""
-    words = text.split()
+    """Greedy word wrap. Returns None when the text will not fit.
+
+    A literal newline in the caption is an author-chosen break and is always
+    honoured. Greedy wrapping optimises for filling the line, which is the
+    wrong objective for a two-clause caption: "No sign-up. No paywall." fills
+    line one as "No sign-up. No", stranding the second clause's "No" at the
+    end of the line and leaving "paywall." alone underneath. The break the
+    reader wants is the sentence boundary, and nothing in the metrics can
+    infer that -- so the caption file states it.
+    """
     lines: list[str] = []
-    current = ""
-    for word in words:
-        candidate = f"{current} {word}".strip()
-        if draw.textlength(candidate, font=font) <= max_width:
-            current = candidate
+    for segment in text.split("\n"):
+        words = segment.split()
+        if not words:
             continue
-        if not current:
-            # A single word wider than the band: no wrapping can save it.
-            return None
-        lines.append(current)
-        current = word
-        if len(lines) == max_lines:
-            return None
-    if current:
-        lines.append(current)
+        current = ""
+        for word in words:
+            candidate = f"{current} {word}".strip()
+            if draw.textlength(candidate, font=font) <= max_width:
+                current = candidate
+                continue
+            if not current:
+                # A single word wider than the band: no wrapping can save it.
+                return None
+            lines.append(current)
+            current = word
+            if len(lines) == max_lines:
+                return None
+        if current:
+            lines.append(current)
     if len(lines) > max_lines:
         return None
     return lines
