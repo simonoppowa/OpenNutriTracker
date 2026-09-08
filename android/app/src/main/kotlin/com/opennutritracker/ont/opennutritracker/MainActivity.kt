@@ -7,6 +7,11 @@ import android.os.LocaleList
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 // FlutterFragmentActivity (rather than FlutterActivity) is required by the
 // health plugin: Health Connect permission requests go through
@@ -14,6 +19,18 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterFragmentActivity() {
     private val localeChannelName = "com.opennutritracker/locale"
     private val healthRationaleChannelName = "com.opennutritracker/health_rationale"
+    private val healthConnectChannelName = "com.opennutritracker/health_connect"
+
+    /**
+     * Scope for the Health Connect reads, which are suspend functions.
+     *
+     * Main dispatcher because a MethodChannel result has to be posted from the
+     * platform thread; the client's own reads move themselves off it. A
+     * SupervisorJob so one failed import cannot cancel the scope and leave
+     * every later read dead, and cancelled in [onDestroy] so a read in flight
+     * when the activity goes away does not answer into a dead channel.
+     */
+    private val healthConnectScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     /**
      * Whether Health Connect started us to ask what the app wants health data
@@ -43,6 +60,50 @@ class MainActivity : FlutterFragmentActivity() {
                     "consumePendingRequest" -> {
                         result.success(healthRationalePending)
                         healthRationalePending = false
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // Finished workouts, read straight from Health Connect rather than
+        // through the health plugin. See [HealthConnectWorkoutReader] for why:
+        // in short, the plugin's workout read also reads distance and steps,
+        // and Play's Health Connect permissions policy refused those two
+        // permissions for this app.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, healthConnectChannelName)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "readExerciseSessions" -> {
+                        val from = call.argument<Number>("fromMillis")?.toLong()
+                        val to = call.argument<Number>("toMillis")?.toLong()
+                        if (from == null || to == null) {
+                            result.error(
+                                "invalid_arguments",
+                                "readExerciseSessions needs fromMillis and toMillis",
+                                null,
+                            )
+                            return@setMethodCallHandler
+                        }
+                        healthConnectScope.launch {
+                            try {
+                                result.success(
+                                    HealthConnectWorkoutReader.readExerciseSessions(
+                                        applicationContext,
+                                        from,
+                                        to,
+                                    ),
+                                )
+                            } catch (e: SecurityException) {
+                                // A revoked grant. Distinguished from the rest
+                                // so Dart can tell the user to re-grant instead
+                                // of reporting a generic failure.
+                                result.error("permission_denied", e.message, null)
+                            } catch (e: Exception) {
+                                // Health Connect uninstalled or updating, a
+                                // client that will not initialise, an IO fault.
+                                result.error("health_connect_unavailable", e.message, null)
+                            }
+                        }
                     }
                     else -> result.notImplemented()
                 }
@@ -84,6 +145,11 @@ class MainActivity : FlutterFragmentActivity() {
         if (isHealthRationaleIntent(intent)) {
             healthRationalePending = true
         }
+    }
+
+    override fun onDestroy() {
+        healthConnectScope.cancel()
+        super.onDestroy()
     }
 
     /**
