@@ -7,18 +7,33 @@ Twelve captioned assets: six at 1290x2796 (6.9" iPhone) and six at 2064x2752
 
 ## Where these came from
 
-Captured by hand on a Mac with `xcrun simctl io booted screenshot`, not by
-`.github/workflows/ios-screenshots.yml`.
+Captured by hand on a Mac with `xcrun simctl io booted screenshot`.
 
-That is not a preference. The CI lane cannot currently get an image off the
-simulator: it drives the app with `flutter test`, and `flutter test`
-uninstalls the app when it finishes, so iOS deletes the data container the
-capture was written into. Three dispatches confirmed it — the app was absent
-from `simctl listapps` while 131 unrelated containers survived, and every PNG
-left on the device belonged to the GeoServices cache. `simctl io` sidesteps
-the whole problem by writing host-side, which is why the manual route worked
-first time. Fixing the lane means converting it to `flutter drive` +
-`onScreenshot`; see #1076.
+There was a dispatch-only macOS CI lane for this. It never worked and has been
+removed (#1076): it drove the app with `flutter test`, and `flutter test`
+uninstalls the app when it finishes, so iOS deleted the data container the
+capture had been written into. Three dispatches confirmed it — the app was
+absent from `simctl listapps` while 131 unrelated containers survived, and
+every PNG left on the device belonged to the GeoServices cache.
+
+`simctl io` writes host-side, so nothing has to survive the sandbox, which is
+why the manual route worked first time. Reviving CI capture would mean
+`flutter drive` + `onScreenshot`; that was judged not worth the macOS runner
+budget against a cap of five concurrent macOS jobs (#1016) for a set that is
+re-shot about once a release.
+
+`integration_test/store_screenshots_test.dart` is still here, but for what it
+encodes rather than as a working way to get files: the shot order, the
+finders, the demo fixture, and the assertions that refuse to capture a
+loading or banner-covered frame.
+
+It cannot hand you the images. `takeScreenshot` writes into the app's
+Documents directory — `getApplicationDocumentsDirectory()` — and `flutter
+test` uninstalls the app on exit, so the container goes and the PNGs with it.
+That is the same defect that killed the lane, and it belongs to the test
+rather than to CI: running it by hand hits it too, on an Android emulator as
+readily as on an iOS simulator. Exporting means the `flutter drive` +
+`onScreenshot` conversion above.
 
 ## Two frames still owed
 
