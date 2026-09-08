@@ -46,7 +46,7 @@ rather than on its own. This is the answer to #1080.
 
 Play is not like this, which is easy to over-generalise from: a listing-only
 edit there went through to the live listing with no binary
-(`play-screenshots.yml`).
+(`.github/workflows/play-screenshots.yml`).
 
 ## One thing to confirm on an editable version
 

@@ -86,7 +86,9 @@ def wrap_to_lines(
     """Greedy word wrap. Returns None when the text will not fit.
 
     A literal newline in the caption is an author-chosen break and is always
-    honoured. Greedy wrapping optimises for filling the line, which is the
+    taken. Blank segments are dropped rather than rendered: a stray trailing
+    newline, or a doubled one, would otherwise spend a line of a two-line
+    band on nothing. Greedy wrapping optimises for filling the line, which is the
     wrong objective for a two-clause caption: "No sign-up. No paywall." fills
     line one as "No sign-up. No", stranding the second clause's "No" at the
     end of the line and leaving "paywall." alone underneath. The break the
@@ -104,7 +106,12 @@ def wrap_to_lines(
             if draw.textlength(candidate, font=font) <= max_width:
                 current = candidate
                 continue
-            if not current:
+            # `word` is about to start a line of its own, so it has to fit
+            # on one by itself. Guarding only the `not current` case tested
+            # that for the first word of a segment and no other: a too-wide
+            # word arriving after a wrap was assigned to `current` and
+            # appended unchecked, overflowing the band.
+            if draw.textlength(word, font=font) > max_width:
                 # A single word wider than the band: no wrapping can save it.
                 return None
             lines.append(current)
