@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:health/health.dart';
+import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
+import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_package_service.dart';
 
 /// Stands in for the plugin's own entry point so the grant bookkeeping can be
@@ -10,6 +12,11 @@ class _FakeHealth extends Fake implements Health {
 
   List<HealthDataType>? requestedTypes;
   List<HealthDataType>? recheckedTypes;
+
+  /// Records every read the service asks the plugin for, so a test can assert
+  /// that the workout read no longer goes through it on Android.
+  final queriedTypes = <List<HealthDataType>>[];
+  List<HealthDataPoint> dataPoints = const [];
 
   @override
   Future<bool> requestAuthorization(
@@ -27,6 +34,33 @@ class _FakeHealth extends Fake implements Health {
   }) async {
     recheckedTypes = types;
     return workoutPermissions;
+  }
+
+  @override
+  Future<List<HealthDataPoint>> getHealthDataFromTypes({
+    required List<HealthDataType> types,
+    required DateTime startTime,
+    required DateTime endTime,
+    Map<HealthDataType, HealthDataUnit>? preferredUnits,
+    List<RecordingMethod> recordingMethodsToFilter = const [],
+  }) async {
+    queriedTypes.add(types);
+    return dataPoints;
+  }
+}
+
+/// The Health Connect session read, without a method channel.
+class _FakeWorkoutReader extends Fake implements HealthConnectWorkoutReader {
+  List<ExternalWorkout> sessions = const [];
+  int calls = 0;
+
+  @override
+  Future<List<ExternalWorkout>> readExerciseSessions({
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    calls++;
+    return sessions;
   }
 }
 
@@ -211,20 +245,163 @@ void main() {
       },
     );
 
-    test('body fat is asked for, but never re-checked', () async {
-      health.workoutPermissions = true;
+    test('on iOS body fat is asked for, but never re-checked', () async {
+      final iosHealth = _FakeHealth()..workoutPermissions = true;
+      final iosService = HealthPackageService(
+        iosHealth,
+        platform: HealthTargetPlatform.ios,
+      );
 
+      await iosService.requestPermissions();
+
+      expect(
+        iosHealth.requestedTypes,
+        contains(HealthDataType.BODY_FAT_PERCENTAGE),
+      );
+      expect(iosHealth.recheckedTypes, contains(HealthDataType.WORKOUT));
+      expect(
+        iosHealth.recheckedTypes,
+        isNot(contains(HealthDataType.BODY_FAT_PERCENTAGE)),
+      );
+    });
+  });
+
+  // Play's Health Connect permissions policy refused this app READ_BODY_FAT,
+  // READ_DISTANCE and READ_STEPS as excessive for the features it offers
+  // (enforced 8 Sept 2026). The app may ask for nothing beyond exercise and
+  // total calories on Android, and these are the tests that say so.
+  group('Android asks for no more than the policy allows', () {
+    late _FakeHealth health;
+    late HealthPackageService service;
+
+    setUp(() {
+      health = _FakeHealth()..workoutPermissions = true;
+      service = HealthPackageService(
+        health,
+        workoutReader: _FakeWorkoutReader(),
+        platform: HealthTargetPlatform.android,
+      );
+    });
+
+    test('the permission request covers exercise and calories, and '
+        'nothing else', () async {
+      await service.requestPermissions();
+
+      expect(health.requestedTypes, [
+        HealthDataType.WORKOUT,
+        HealthDataType.TOTAL_CALORIES_BURNED,
+      ]);
+    });
+
+    test('the three refused types are never requested', () async {
       await service.requestPermissions();
 
       expect(
         health.requestedTypes,
-        contains(HealthDataType.BODY_FAT_PERCENTAGE),
+        isNot(
+          anyElement(
+            isIn([
+              HealthDataType.BODY_FAT_PERCENTAGE,
+              HealthDataType.DISTANCE_DELTA,
+              HealthDataType.STEPS,
+            ]),
+          ),
+        ),
       );
-      expect(health.recheckedTypes, contains(HealthDataType.WORKOUT));
+    });
+
+    test('body fat is not read, and answers null rather than throwing',
+        () async {
+      expect(await service.readLatestBodyFatPercent(), isNull);
+      expect(health.queriedTypes, isEmpty);
+    });
+  });
+
+  group('HealthPackageService.readWorkouts on Android', () {
+    late _FakeHealth health;
+    late _FakeWorkoutReader reader;
+    late HealthPackageService service;
+
+    final from = DateTime(2026, 8, 13);
+    final to = DateTime(2026, 8, 14);
+    final sessionStart = DateTime(2026, 8, 13, 18, 0);
+    final sessionEnd = DateTime(2026, 8, 13, 19, 0);
+
+    setUp(() {
+      health = _FakeHealth()..workoutPermissions = true;
+      reader = _FakeWorkoutReader();
+      service = HealthPackageService(
+        health,
+        workoutReader: reader,
+        platform: HealthTargetPlatform.android,
+      );
+    });
+
+    test('sessions come from Health Connect directly, never from the '
+        'plugin\'s workout read', () async {
+      reader.sessions = [
+        ExternalWorkout(
+          id: 'session-1',
+          start: sessionStart,
+          end: sessionEnd,
+          activityTypeName: 'RUNNING',
+          sourceAppName: 'com.hevy.app',
+        ),
+      ];
+
+      await service.readWorkouts(from: from, to: to);
+
+      expect(reader.calls, 1);
+      // The only plugin read left is the calorie one.
+      expect(health.queriedTypes, [
+        [HealthDataType.TOTAL_CALORIES_BURNED],
+      ]);
+    });
+
+    test('energy is attributed to the session from the calorie records',
+        () async {
+      reader.sessions = [
+        ExternalWorkout(
+          id: 'session-1',
+          start: sessionStart,
+          end: sessionEnd,
+          activityTypeName: 'RUNNING',
+          sourceAppName: 'com.hevy.app',
+        ),
+      ];
+      health.dataPoints = [
+        _calories(source: 'com.hevy.app', start: sessionStart, kcal: 430.3),
+        _calories(
+          source: 'com.fitbit.FitbitMobile',
+          start: sessionStart,
+          kcal: 170,
+        ),
+      ];
+
+      final workouts = await service.readWorkouts(from: from, to: to);
+
+      expect(workouts, hasLength(1));
+      expect(workouts.single.id, 'session-1');
+      expect(workouts.single.activityTypeName, 'RUNNING');
+      expect(workouts.single.energyBurnedKcal, closeTo(430.3, 0.001));
+      expect(workouts.single.sourceAppName, 'com.hevy.app');
+    });
+
+    test('no sessions means the calorie records are never read', () async {
+      reader.sessions = const [];
+
+      expect(await service.readWorkouts(from: from, to: to), isEmpty);
+      expect(health.queriedTypes, isEmpty);
+    });
+
+    test('a definite refusal still aborts before any read', () async {
+      health.workoutPermissions = false;
+
       expect(
-        health.recheckedTypes,
-        isNot(contains(HealthDataType.BODY_FAT_PERCENTAGE)),
+        () => service.readWorkouts(from: from, to: to),
+        throwsStateError,
       );
+      expect(reader.calls, 0);
     });
   });
 }

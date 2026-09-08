@@ -6,15 +6,27 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- Health Connect: read-only, and only requested once workout import is
-         enabled in Settings → Health sync. Nothing is ever written back. -->
+         enabled in Settings → Health sync. Nothing is ever written back.
+
+         These two, and no more. Play's Health Connect permissions policy
+         rejected READ_BODY_FAT, READ_DISTANCE and READ_STEPS as excessive for
+         the features this app offers (enforced 8 Sept 2026), and the policy
+         asks for the minimum a feature needs rather than the minimum a
+         library happens to read.
+
+         READ_DISTANCE and READ_STEPS were only ever here because the health
+         plugin's workout read issues a DistanceRecord and a StepsRecord query
+         for every session and Health Connect fails the whole read without
+         them — their values were fetched and discarded, since energy is
+         attributed from the calorie records instead. The app now reads
+         sessions directly (HealthConnectWorkoutReader.kt), so neither is
+         needed.
+
+         READ_BODY_FAT personalised the workout calorie-credit suggestion.
+         That suggestion falls back to a BMI-derived percentile, which is what
+         Android now uses; iOS still reads body fat from HealthKit. -->
     <uses-permission android:name="android.permission.health.READ_EXERCISE"/>
-    <uses-permission android:name="android.permission.health.READ_BODY_FAT"/>
-    <!-- The health plugin populates a workout's totals by reading the
-         session's associated records; without these three the whole workout
-         query throws SecurityException and no workout can be imported. -->
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED"/>
-    <uses-permission android:name="android.permission.health.READ_DISTANCE"/>
-    <uses-permission android:name="android.permission.health.READ_STEPS"/>
 
     <!-- Provide required visibility configuration for API level 30 and above -->
     <queries>
