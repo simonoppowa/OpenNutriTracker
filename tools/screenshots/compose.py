@@ -222,8 +222,9 @@ def compose_one(
                 f"{capture_path} was written by this script, so it already "
                 "carries a caption band.\nCompositing it again would stack a "
                 "second caption on the first and shrink the app content "
-                "further.\nPoint --raw at the device captures instead "
-                "(tools/screenshots/raw/)."
+                "further.\nPoint --raw at the original captures instead: "
+                "tools/screenshots/raw/ for the committed sets, or "
+                "build/screenshots/raw/ for a fresh run of the capture lane."
             )
         capture = raw.convert("RGB")
         available_height = height - band_height - gap
