@@ -22,11 +22,18 @@ why the manual route worked first time. Reviving CI capture would mean
 budget against a cap of five concurrent macOS jobs (#1016) for a set that is
 re-shot about once a release.
 
-`integration_test/store_screenshots_test.dart` is still here and still the
-programmatic driver, invoked by hand rather than by CI:
+`integration_test/store_screenshots_test.dart` is still here, but for what it
+encodes rather than as a working way to get files: the shot order, the
+finders, the demo fixture, and the assertions that refuse to capture a
+loading or banner-covered frame.
 
-    flutter test integration_test/store_screenshots_test.dart \
-      --dart-define=STORE_SCREENSHOTS=true -d <device>
+It cannot hand you the images. `takeScreenshot` writes into the app's
+Documents directory — `getApplicationDocumentsDirectory()` — and `flutter
+test` uninstalls the app on exit, so the container goes and the PNGs with it.
+That is the same defect that killed the lane, and it belongs to the test
+rather than to CI: running it by hand hits it too, on an Android emulator as
+readily as on an iOS simulator. Exporting means the `flutter drive` +
+`onScreenshot` conversion above.
 
 ## Two frames still owed
 
