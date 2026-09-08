@@ -37,9 +37,11 @@ String get healthPlatformName =>
 /// alone and the calorie-credit suggestion falls back to the BMI-derived
 /// percentile it already used for anyone with no body fat on record.
 ///
-/// This must not ship ahead of the manifest change that drops the
-/// permission: while Android still asks for body fat, a disclosure that
-/// omits it is an under-disclosure, which is the direction Play penalises.
+/// Kept in step with `HealthPackageService.readLatestBodyFatPercent`, which
+/// returns null on Android for the same reason (#1123). If body fat is ever
+/// read there again, both have to change together — a disclosure that omits
+/// what is read is an under-disclosure, which is the direction Play
+/// penalises.
 bool get healthStoreReadsBodyFat => Platform.isIOS;
 
 /// Settings → Health sync: opts into importing finished workouts from Health
