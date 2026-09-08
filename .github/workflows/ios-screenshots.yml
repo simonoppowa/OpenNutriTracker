@@ -275,6 +275,15 @@ jobs:
       # style, as the Play spec guard in play-screenshots.yml — the sizes and
       # the alpha rule are the parts that actually get people.
       - name: Check the screenshots meet Apple's spec
+        # Same condition as the compositor above and the upload below, and for
+        # the same reason. A capture step exits on the test's status, so a
+        # failed device fails the step; with the implicit success() this check
+        # was then skipped, while the compositor (!cancelled()) still built
+        # whatever the other device produced and the upload (always()) still
+        # shipped it. Assets could reach the artifact unvalidated, and the
+        # empty-run diagnostic below could not print in the one case it exists
+        # to explain. Validate whatever was produced, however the run went.
+        if: '!cancelled()'
         run: |
           python3 - <<'PY'
           import glob, os, struct, sys
