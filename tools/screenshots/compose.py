@@ -264,6 +264,23 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    # The marker on each output catches a *second* pass over a composited
+    # directory. It cannot catch the first: point --out at the captures
+    # themselves and nothing carries the marker yet, so every raw is
+    # overwritten by its own composite and the marker only reports the
+    # damage on the next run, after the originals are gone. Equal
+    # directories are the one case where the guard arrives too late, so it
+    # is refused up front. Resolved, because "." and an absolute path to it
+    # are the same directory.
+    if args.raw.resolve() == args.out.resolve():
+        sys.exit(
+            f"--raw and --out are the same directory ({args.raw}).\n"
+            "Compositing in place would overwrite each capture with its own "
+            "captioned version and lose the original.\n"
+            "Write to the store's directory instead, and keep the captures "
+            "under tools/screenshots/raw/."
+        )
+
     captures = sorted(args.raw.glob("*.png"))
     if not captures:
         sys.exit(f"No captures found in {args.raw}")
