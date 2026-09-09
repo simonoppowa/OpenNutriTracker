@@ -43,29 +43,57 @@ check_l10n: gen_l10n
 # content at 32 KiB (32768 bytes) — keeping the head, dropping the tail, with
 # no warning anywhere a human looks. Nothing else catches it: the review still
 # runs, still posts findings, and simply never sees the rules past the cut.
-# The budget is cumulative across every AGENTS.md in the tree, so a nested
-# file buys no headroom.
+# The budget is cumulative along the chain that applies to a path — the root
+# file plus every scoped one above that path — so a nested file buys no
+# headroom for the directory it sits in.
 check_agents_md:
   #!/usr/bin/env bash
   set -euo pipefail
   limit=31000          # deliberate margin under 32768
   head_limit=12000     # Code Review Rules must sit well inside the head
-  # The budget is cumulative. Codex reads every AGENTS.md that applies to a
-  # path, so a scoped `subdir/AGENTS.md` spends the same 32768 as the root
-  # one. Measuring only the root left this green while the real total was
-  # over, and the scoped rules it exists to protect were dropped silently.
-  agents=$(git ls-files '*AGENTS.md')
+  # The budget is cumulative along a path, not across the tree. Codex reads
+  # the root file plus the scoped ones above the reviewed path, so a
+  # `subdir/AGENTS.md` spends the same 32768 as the root one — but a sibling
+  # `other/AGENTS.md` never applies to that same path and must not be charged
+  # against it. Measuring only the root left this green while a real chain
+  # was over; summing every tracked file would fail on a total no single
+  # review ever reads. So: the worst root-to-leaf chain.
+  #
+  # Two pathspecs rather than a `*AGENTS.md` suffix glob, which would also
+  # match a tracked `NOTAGENTS.md` that Codex never reads.
+  agents=$(git ls-files 'AGENTS.md' '*/AGENTS.md')
   if [ -z "$agents" ]; then
     echo "No AGENTS.md is tracked; this guard has nothing to measure." >&2
     exit 1
   fi
-  size=0
+  declare -A bytes_of
   while IFS= read -r f; do
-    size=$((size + $(wc -c < "$f")))
+    bytes_of["$f"]=$(wc -c < "$f")
   done <<< "$agents"
-  if [ "$size" -gt "$limit" ]; then
-    echo "AGENTS.md files total ${size} bytes, over the ${limit}-byte guard:" >&2
-    while IFS= read -r f; do echo "  $(wc -c < "$f") ${f}" >&2; done <<< "$agents"
+  # For each file, the chain that reaches it: itself plus every AGENTS.md in
+  # an ancestor directory. `${f%AGENTS.md}` is that file's directory prefix
+  # ("" at the root), so an ancestor is one whose prefix this one starts with.
+  worst=0
+  worst_chain=""
+  while IFS= read -r f; do
+    dir="${f%AGENTS.md}"
+    chain_size=0
+    chain=""
+    while IFS= read -r g; do
+      gdir="${g%AGENTS.md}"
+      if [ "${dir:0:${#gdir}}" = "$gdir" ]; then
+        chain_size=$((chain_size + ${bytes_of["$g"]}))
+        chain="${chain}  ${bytes_of["$g"]} ${g}"$'\n'
+      fi
+    done <<< "$agents"
+    if [ "$chain_size" -gt "$worst" ]; then
+      worst=$chain_size
+      worst_chain=$chain
+    fi
+  done <<< "$agents"
+  if [ "$worst" -gt "$limit" ]; then
+    echo "An AGENTS.md chain totals ${worst} bytes, over the ${limit}-byte guard:" >&2
+    printf '%s' "$worst_chain" >&2
     echo "Codex truncates at 32768 and says nothing. Trim a section or move" >&2
     echo "device/authoring prose out (e.g. to tools/adb/README.md)." >&2
     exit 1
@@ -81,7 +109,7 @@ check_agents_md:
     exit 1
   fi
   count=$(printf '%s\n' "$agents" | wc -l)
-  echo "${count} AGENTS.md file(s), ${size}/${limit} bytes total; Code Review Rules at byte ${offset}."
+  echo "${count} AGENTS.md file(s), worst chain ${worst}/${limit} bytes; Code Review Rules at byte ${offset}."
 
 # Run tests
 test:
