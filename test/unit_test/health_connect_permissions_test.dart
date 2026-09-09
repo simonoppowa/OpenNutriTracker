@@ -248,15 +248,11 @@ void main() {
       }
 
       for (final manifest in mergedManifests) {
-        final merged = RegExp(
-          r'<uses-permission\s+android:name="android\.permission\.health\.([A-Z_]+)"',
-        )
-            .allMatches(manifest.readAsStringSync())
-            .map((match) => match.group(1)!)
-            .toSet();
-
+        // The shared matcher, not a pattern of its own: attribute order and
+        // quote style are free in XML, and the check that decides what
+        // actually shipped is the last place to be picky about spelling.
         expect(
-          merged,
+          healthIn(manifest.readAsStringSync()).kept,
           {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED'},
           reason:
               '${manifest.path} ships a health permission set the repo did '
