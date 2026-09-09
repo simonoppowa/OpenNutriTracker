@@ -7,6 +7,7 @@ import android.os.LocaleList
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -93,6 +94,14 @@ class MainActivity : FlutterFragmentActivity() {
                                         to,
                                     ),
                                 )
+                            } catch (e: CancellationException) {
+                                // The activity went away mid-read and
+                                // [onDestroy] cancelled the scope. Cancellation
+                                // is control flow, not a failure: rethrow it so
+                                // the coroutine actually ends, rather than
+                                // catching it below and answering a channel
+                                // whose engine is gone.
+                                throw e
                             } catch (e: SecurityException) {
                                 // A revoked grant. Distinguished from the rest
                                 // so Dart can tell the user to re-grant instead

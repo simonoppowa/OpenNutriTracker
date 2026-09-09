@@ -368,6 +368,11 @@ void main() {
   // The dialog composes these the same way, gated on [healthStoreReadsBodyFat];
   // composing them here rather than pumping the widget is what lets one test
   // cover both platforms, since the host is neither.
+  //
+  // Composing them here does NOT check that the dialog composes them the same
+  // way — with the gate and the ordering living in `_body`, every assertion
+  // below passed against a build whose gate had been deleted outright. The
+  // rendered-output test that follows this group is what closes that.
   group('the disclosure covers what it has to cover', () {
     final base = l10nEn.healthSyncDisclosureBody(healthPlatformName);
     final addendum = l10nEn.healthSyncDisclosureBodyFatAddendum(
@@ -440,6 +445,40 @@ void main() {
         reason:
             'body fat is not what an import needs, so it is not what a '
             'failed import should ask for',
+      );
+    });
+
+    // The gate and the paragraph order live in `HealthDisclosureDialog._body`,
+    // and the assertions above re-implement that composition instead of
+    // observing it — so they hold even if `_body` stops doing it. This asserts
+    // the text a user is actually shown.
+    //
+    // The host is not iOS, so this exercises the Android branch: exactly the
+    // one Play refused READ_BODY_FAT for, and the one where claiming to read
+    // body fat would be wrong. The iOS branch stays unreachable from a host
+    // test until the gate is injectable.
+    testWidgets('the dialog renders the composition it claims to', (
+      tester,
+    ) async {
+      storeConfig(healthImportEnabled: false);
+      healthImportRepository.granted = true;
+
+      await pumpScreen(tester);
+      await tester.tap(_byIdentifier('health-sync-auto-import'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HealthDisclosureDialog), findsOneWidget);
+      expect(
+        find.text(withoutBodyFat),
+        findsOneWidget,
+        reason:
+            'the rendered disclosure must be base + footer, in that order, '
+            'with no body-fat paragraph on a store that is not asked for it',
+      );
+      expect(
+        find.text(withBodyFat),
+        findsNothing,
+        reason: 'the body-fat paragraph must not survive the gate here',
       );
     });
   });
