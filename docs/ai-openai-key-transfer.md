@@ -95,7 +95,7 @@ Services Agreement, Usage Policies and Service terms all carry explicit dates.
 
 Verified in source rather than assumed, in
 [`ai_credential_storage.dart`](../lib/core/utils/ai_credential_storage.dart) and
-the two API clients:
+every call site that sends the key:
 
 - The key is typed by the holder into the app's settings on their own device.
 - It is written through `flutter_secure_storage` to the platform keystore, using
@@ -107,10 +107,16 @@ the two API clients:
   than the request that needs it."*
 - It leaves the device only as a request header to the provider's own endpoint —
   `'authorization': 'Bearer ${_apiKey()}'` in
+  [`openai_meal_items_api.dart`](../lib/features/add_meal/data/openai_meal_items_api.dart),
+  `'authorization': 'Bearer $key'` in
   [`openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart)
-  and `'x-api-key': _apiKey()` in
-  [`anthropic_meal_items_api.dart`](../lib/features/add_meal/data/anthropic_meal_items_api.dart).
-  Those are the only two sites in `lib/` that read a credential into a header.
+  (which calls a nullable key callback first, and sends no header when there is
+  no key), `'x-api-key': _apiKey()` in
+  [`anthropic_meal_items_api.dart`](../lib/features/add_meal/data/anthropic_meal_items_api.dart),
+  and `'authorization': 'Bearer $apiKey'` in
+  [`ai_model_list_api.dart`](../lib/core/utils/ai_model_list_api.dart), which
+  asks the configured `/v1/models` route what it offers.
+  Those are the only four sites in `lib/` that read a credential into a header.
 - No backend, no proxy, no telemetry, no key in the shipped binary. The project
   holds no account and pays for nothing.
 
@@ -618,5 +624,7 @@ Related notes in this repo:
 In-repo files cited:
 [`lib/core/utils/ai_credential_storage.dart`](../lib/core/utils/ai_credential_storage.dart) ·
 [`lib/core/utils/secure_app_storage_provider.dart`](../lib/core/utils/secure_app_storage_provider.dart) ·
+[`lib/core/utils/ai_model_list_api.dart`](../lib/core/utils/ai_model_list_api.dart) ·
 [`lib/features/add_meal/data/anthropic_meal_items_api.dart`](../lib/features/add_meal/data/anthropic_meal_items_api.dart) ·
+[`lib/features/add_meal/data/openai_meal_items_api.dart`](../lib/features/add_meal/data/openai_meal_items_api.dart) ·
 [`lib/features/add_meal/data/openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart)

@@ -51,9 +51,11 @@ Three findings the existing code has backwards, each documented below:
 
 The strict-mode answer is in [Section F](#f-strict-mode). Short version: the
 nullable union **is** the sanctioned way to express an optional field, the
-documentation says so in as many words, and the objection recorded in
-`openai_compatible_meal_items_api.dart` — that `required` would oblige the model to
-produce a number for every item — does not survive it. That is for
+documentation says so in as many words, and the objection the generic client
+recorded at the time — that `required` would oblige the model to produce a
+number for every item — does not survive it. (It no longer records it:
+[#701](https://github.com/simonoppowa/OpenNutriTracker/pull/701) rewrote that
+comment after this note.) That is for
 [#683](https://github.com/simonoppowa/OpenNutriTracker/issues/683) to decide,
 not this note.
 
@@ -666,14 +668,24 @@ Both guides carry a worked example doing exactly this: `"units": {"type":
 ["string", "null"], "enum": ["celsius", "fahrenheit"]}` with `"required":
 ["location", "units"]`.
 
-**This is the finding that reopens the schema question.** The comment in
-`openai_compatible_meal_items_api.dart` reasons that *"making them required would
-oblige the model to produce a number for every item, which is the estimation
-this whole design exists to prevent"* — and against a plain `required` that is
-correct. Against `required` plus `["number", "null"]` it is not: the model is
-obliged to emit the *key*, and `null` is a conforming value for it. The
-parenthesis *"and the model will return a value for each parameter"* is the
-only behavioural consequence, and the value can be `null`.
+**This is the finding that reopens the schema question.** The comment in the
+generic client [reasoned, when this note was
+written](https://github.com/simonoppowa/OpenNutriTracker/blob/7481bff76d020f14f5c13d3a1957a57a25f441e3/lib/features/add_meal/data/openrouter_meal_items_api.dart#L86-L90),
+that *"making them required would oblige the model to produce a number for
+every item, which is the estimation this whole design exists to prevent"* — and
+against a plain `required` that is correct. Against `required` plus `["number",
+"null"]` it is not: the model is obliged to emit the *key*, and `null` is a
+conforming value for it. The parenthesis *"and the model will return a value
+for each parameter"* is the only behavioural consequence, and the value can be
+`null`.
+
+That comment no longer says this.
+[#701](https://github.com/simonoppowa/OpenNutriTracker/pull/701) acted on this
+reading: `openai_compatible_meal_items_api.dart:194-212` now records the
+estimation argument as the *former* rationale, states that a nullable union
+invalidates it, and gives the reason the decision actually rests on — strict
+buys this design nothing, because enforcement is in Dart. Quote the historical
+revision linked above, not the current file, for the claim in this paragraph.
 
 The downstream effect on this app is small.
 [`_mealItemFrom`](../lib/features/add_meal/domain/meal_items_api.dart) already
