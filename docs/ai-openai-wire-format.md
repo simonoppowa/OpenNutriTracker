@@ -101,7 +101,13 @@ Read against
 line by line. "Same" means the byte-level shape is identical and the code
 transfers unchanged.
 
-| What | `OpenAiCompatibleMealItemsApi` sends today | Direct OpenAI, Responses API | Same? |
+The column is the **`.openRouter`** configuration specifically, not the class
+as a whole. `MealItemsApiFactory` builds the same class for
+`AiProvider.ownServer` with a user-supplied `endpoint`, no routing block and
+no metadata header, so the endpoint, routing and metadata rows below describe
+one of its two configurations rather than both.
+
+| What | `OpenAiCompatibleMealItemsApi.openRouter` sends today | Direct OpenAI, Responses API | Same? |
 | --- | --- | --- | --- |
 | Endpoint | `openrouter.ai/api/v1/chat/completions` | `api.openai.com/v1/responses` | no |
 | Auth header | `authorization: Bearer …` | `Authorization: Bearer …` | **yes** |
