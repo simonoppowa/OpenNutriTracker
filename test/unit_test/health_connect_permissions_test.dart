@@ -46,23 +46,38 @@ void main() {
   /// writes and `.gitignore` excludes. If it is absent the plugin half checks
   /// nothing, so its absence fails a test of its own rather than passing
   /// quietly — a silent pass is the failure mode this file exists to prevent.
+  ///
+  /// Every source set is read, not just `src/main`: Gradle merges a variant
+  /// overlay such as `android/src/release/AndroidManifest.xml` into the
+  /// production manifest, so a permission declared only there would ship
+  /// while a `src/main`-only check stayed green. No plugin here has a
+  /// non-`main` source set today, which is when a guard is worth adding
+  /// rather than after it is needed.
   final pluginList = File('.flutter-plugins-dependencies');
   final pluginListPresent = pluginList.existsSync();
   final pluginPermissions = <String, Set<String>>{};
+  var pluginManifestsRead = 0;
   if (pluginListPresent) {
     final plugins = ((jsonDecode(pluginList.readAsStringSync())
             as Map<String, dynamic>)['plugins']
         as Map<String, dynamic>)['android'] as List<dynamic>;
     for (final plugin in plugins.cast<Map<String, dynamic>>()) {
       final root = (plugin['path'] as String).replaceAll(RegExp(r'/+$'), '');
-      final pluginManifest = File('$root/android/src/main/AndroidManifest.xml');
-      if (!pluginManifest.existsSync()) continue;
-      final found = healthPermission
-          .allMatches(pluginManifest.readAsStringSync())
-          .map((m) => m.group(1)!)
-          .toSet();
-      if (found.isNotEmpty) {
-        pluginPermissions[plugin['name'] as String] = found;
+      final sourceSets = Directory('$root/android/src');
+      if (!sourceSets.existsSync()) continue;
+      for (final entry in sourceSets.listSync().whereType<Directory>()) {
+        final pluginManifest = File('${entry.path}/AndroidManifest.xml');
+        if (!pluginManifest.existsSync()) continue;
+        pluginManifestsRead++;
+        final found = healthPermission
+            .allMatches(pluginManifest.readAsStringSync())
+            .map((m) => m.group(1)!)
+            .toSet();
+        if (found.isNotEmpty) {
+          pluginPermissions
+              .putIfAbsent(plugin['name'] as String, () => <String>{})
+              .addAll(found);
+        }
       }
     }
   }
@@ -105,15 +120,23 @@ void main() {
       );
     });
 
-    test('the plugin list is available, so the plugin half checked something',
-        () {
+    test('plugin manifests were actually inspected', () {
+      // Not just "the list exists": if the paths in it resolved to nothing,
+      // pluginPermissions would be empty and the plugin test below would pass
+      // having read no files at all. Assert the work happened.
       expect(
         pluginListPresent,
         isTrue,
         reason:
-            '.flutter-plugins-dependencies is missing, so no plugin manifest '
-            'was inspected and the plugin half of this guard passed without '
-            'checking anything. Run `flutter pub get` first; CI already does.',
+            '.flutter-plugins-dependencies is missing. Run `flutter pub get` '
+            'first; CI already does.',
+      );
+      expect(
+        pluginManifestsRead,
+        greaterThan(0),
+        reason:
+            'The plugin list resolved to no readable manifests, so the plugin '
+            'half of this guard passed without checking anything.',
       );
     });
 
