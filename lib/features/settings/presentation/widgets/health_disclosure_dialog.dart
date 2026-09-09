@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart'
-    show healthPlatformName, healthStoreReadsBodyFat;
+import 'package:opennutritracker/features/settings/presentation/utils/health_platform_labels.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Says what the health import will read, and what for, before the platform is

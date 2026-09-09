@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -18,31 +16,10 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/utils/health_platform_labels.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_disclosure_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-/// What the platform health store is called in front of the user. Both names
-/// are product names, so they are deliberately not localized. Lives here
-/// because it is a presentation-layer label; the settings row that leads to
-/// this screen shows the same name and reads it from here.
-String get healthPlatformName =>
-    Platform.isIOS ? 'Apple Health' : 'Health Connect';
-
-/// Whether the platform health store is asked for body fat as well as
-/// workouts, which decides whether the disclosure mentions it.
-///
-/// Only HealthKit is. Play's Health Connect permissions policy refused this
-/// app READ_BODY_FAT as excessive for what it does, so Android reads workouts
-/// alone and the calorie-credit suggestion falls back to the BMI-derived
-/// percentile it already used for anyone with no body fat on record.
-///
-/// Kept in step with `HealthPackageService.readLatestBodyFatPercent`, which
-/// returns null on Android for the same reason (#1123). If body fat is ever
-/// read there again, both have to change together — a disclosure that omits
-/// what is read is an under-disclosure, which is the direction Play
-/// penalises.
-bool get healthStoreReadsBodyFat => Platform.isIOS;
 
 /// Settings → Health sync: opts into importing finished workouts from Health
 /// Connect / Apple Health, and tunes how much of the energy those workouts
