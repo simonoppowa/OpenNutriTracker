@@ -16,7 +16,7 @@ be honoured, `strict: true` is unusable, no model may emit a nutrition value,
 and every request carries `require_parameters: true`, `data_collection: "deny"`
 and a vendor pin with `allow_fallbacks: false`
 ([`ai_model_catalogue.dart`](../lib/core/utils/ai_model_catalogue.dart),
-[`openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart),
+[`openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart),
 [#663](https://github.com/simonoppowa/OpenNutriTracker/issues/663)).
 
 **Nothing below is a decision, and nothing below can be.** The catalogue's own
@@ -115,7 +115,7 @@ live API. The summary:
 
 ## A. What the app actually sends, checked against the docs
 
-Re-read from [`openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart)
+Re-read from [`openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart)
 and matched line by line against OpenRouter's own
 [Provider Routing](https://openrouter.ai/docs/features/provider-routing) page,
 because three of the four filters below turn on wording that has changed since
@@ -726,6 +726,6 @@ two OpenAI models have and have not been screened for ·
 
 In-repo files cited:
 [`lib/core/utils/ai_model_catalogue.dart`](../lib/core/utils/ai_model_catalogue.dart) ·
-[`lib/features/add_meal/data/openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart) ·
+[`lib/features/add_meal/data/openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart) ·
 [`lib/features/add_meal/domain/meal_items_api.dart`](../lib/features/add_meal/domain/meal_items_api.dart) ·
 [`lib/features/add_meal/presentation/screens/bulk_add_screen.dart`](../lib/features/add_meal/presentation/screens/bulk_add_screen.dart)

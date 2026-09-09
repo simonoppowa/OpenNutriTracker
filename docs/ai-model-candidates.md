@@ -18,7 +18,7 @@ is required, and every OpenRouter request carries `require_parameters: true`,
 `data_collection: "deny"` and a vendor pin with `allow_fallbacks: false`
 ([#663](https://github.com/simonoppowa/OpenNutriTracker/issues/663),
 [`lib/core/utils/ai_model_catalogue.dart`](../lib/core/utils/ai_model_catalogue.dart),
-[`lib/features/add_meal/data/openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart)).
+[`lib/features/add_meal/data/openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart)).
 
 Things I could not establish from a primary source are in
 [Not verified](#not-verified) rather than inferred.
@@ -568,7 +568,7 @@ Related notes in this repo:
 
 In-repo files cited:
 [`lib/core/utils/ai_model_catalogue.dart`](../lib/core/utils/ai_model_catalogue.dart) ·
-[`lib/features/add_meal/data/openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart)
+[`lib/features/add_meal/data/openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart)
 
 The routing-policy check behind the table above was run with a local probe,
 `tool/live_routing_policy.dart`. It talks to a real provider with a real key and
