@@ -208,4 +208,51 @@ void main() {
       );
     });
   });
+
+  /// The manifest Gradle actually produced, which is the only artefact that
+  /// settles the question — the source checks above are a fast proxy for it.
+  ///
+  /// Ported from the release line (#1132), where it landed without a develop
+  /// twin. It uses this file's shared matcher rather than its own pattern, so
+  /// it inherits the attribute-order and quote-style tolerance instead of
+  /// reintroducing the brittleness in the one check meant to be authoritative.
+  group('the merged manifest Gradle produced', () {
+    // AGP has used both spellings for this directory; take whichever exists.
+    final mergedManifests = [
+      'build/app/intermediates/merged_manifest',
+      'build/app/intermediates/merged_manifests',
+    ]
+        .map(Directory.new)
+        .where((directory) => directory.existsSync())
+        .expand((directory) => directory.listSync(recursive: true))
+        .whereType<File>()
+        .where((file) => file.path.endsWith('AndroidManifest.xml'))
+        .toList();
+
+    test('declares those two health permissions and no others', () {
+      // Not a failure: the Android build is not a precondition for running the
+      // unit suite. Silence would be, though — a skipped guard that reads as a
+      // passing one is the failure mode this whole file exists to avoid.
+      if (mergedManifests.isEmpty) {
+        markTestSkipped(
+          'No merged manifest under build/ — run '
+          '`flutter build apk --debug --flavor develop` to exercise this. '
+          'The source-manifest assertions above still ran.',
+        );
+        return;
+      }
+
+      for (final mergedManifest in mergedManifests) {
+        expect(
+          healthIn(mergedManifest.readAsStringSync()).kept,
+          {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED'},
+          reason:
+              '${mergedManifest.path} ships a health permission set the repo '
+              'did not declare. A dependency merged it in — find which, and '
+              'either remove the dependency or justify the permission in the '
+              'Play Console declaration before it ships.',
+        );
+      }
+    });
+  });
 }
