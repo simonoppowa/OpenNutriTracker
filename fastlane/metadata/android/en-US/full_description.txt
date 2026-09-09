@@ -17,5 +17,5 @@ OpenNutriTracker is a calorie counter and food diary with no account, no subscri
 ⚖️ Weight history: Capture weight during onboarding and on demand, see the trend against your target, and optionally taper the calorie goal as you approach it.
 🎨 Material You & themes: Adopt the system accent colour on Android 12+, or pick from sixteen built-in presets.
 🔢 kcal or kJ: Switch the energy unit globally; every diary entry, target, and chart reflects the choice.
-📤 Export & import: Export diary entries, activities, tracked days, recipes and weight log as a JSON zip you can re-import, or as flat CSVs for a spreadsheet. Paste a JSON blob to import meals, or share a meal or activity as a QR code. Your profile, custom meals, water and fasting history stay out of the bundle.
+📤 Export & import: Export diary entries, activities and tracked days as a JSON zip you can re-import, or as flat CSVs. Recipes and weight log are JSON only. Paste a JSON blob to import meals, or share a meal or activity as a QR code. Your profile, custom meals, water and fasting history stay out of the bundle.
 ⚕️ Not a medical device: OpenNutriTracker is not a medical device and does not diagnose, treat, cure, or prevent any medical condition. Figures are estimates from public databases and published equations. Always consult a healthcare professional for medical advice, diagnosis, or treatment.
