@@ -87,9 +87,9 @@ object HealthConnectWorkoutReader {
      * deterministic, and picks the spelling the compendium table actually
      * carries.
      *
-     * A type absent from this table is reported by its Health Connect name if
-     * the import can use it and otherwise becomes a custom activity, which is
-     * what an unmapped type did before too.
+     * A type absent from this table is reported as "OTHER", which the import
+     * does not find in its compendium and turns into a custom activity named
+     * "Other" — the same thing an unmapped type did through the plugin.
      */
     private fun exerciseTypeName(exerciseType: Int): String = when (exerciseType) {
         ExerciseSessionRecord.EXERCISE_TYPE_FOOTBALL_AMERICAN -> "AMERICAN_FOOTBALL"
