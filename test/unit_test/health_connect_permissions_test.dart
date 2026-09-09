@@ -20,6 +20,22 @@ import 'package:flutter_test/flutter_test.dart';
 /// Flutter plugin that merges its own `uses-permission` into the manifest,
 /// and a well-meant revert of the workout reader that restores the plugin's
 /// workout path along with the permissions it needs. Both show up here.
+///
+/// Three checks, deliberately overlapping, because each sees something the
+/// others cannot:
+///
+///  1. the app manifest — what this repo declares on purpose;
+///  2. every plugin's own manifest, resolved from
+///     `.flutter-plugins-dependencies` — what Gradle is about to merge in,
+///     checkable without building, so it has teeth in `linux-checks`;
+///  3. the merged manifest Gradle actually produced — the ground truth Play
+///     inspects, which catches anything the merger adds from a source (2)
+///     cannot enumerate, such as a transitive AAR that is nobody's Flutter
+///     plugin. It needs a build, so it is skipped, loudly, when there is not
+///     one.
+///
+/// (2) and (3) are not redundant: one runs everywhere and reasons about
+/// intent, the other runs after a build and reasons about the artifact.
 void main() {
   final manifest = File(
     'android/app/src/main/AndroidManifest.xml',
@@ -177,6 +193,61 @@ void main() {
         declared.where((permission) => permission.startsWith('WRITE_')),
         isEmpty,
       );
+    });
+  });
+
+  // Check (3): the artifact rather than the intent. The plugin check above
+  // reasons about what Gradle is going to merge, from the sources it can
+  // enumerate; this reads what Gradle actually emitted, so a permission
+  // arriving from somewhere `.flutter-plugins-dependencies` does not list —
+  // a transitive AAR, a build-type overlay — is still caught. It is also the
+  // check that was run by hand while #1122 was being written, which is how
+  // that release was known to be clean.
+  group('the merged manifest Gradle produced', () {
+    // AGP has used both spellings for this directory; take whichever exists.
+    final mergedManifests = [
+      'build/app/intermediates/merged_manifest',
+      'build/app/intermediates/merged_manifests',
+    ]
+        .map(Directory.new)
+        .where((directory) => directory.existsSync())
+        .expand((directory) => directory.listSync(recursive: true))
+        .whereType<File>()
+        .where((file) => file.path.endsWith('AndroidManifest.xml'))
+        .toList();
+
+    test('declares those two health permissions and no others', () {
+      // Not a failure: the Android build is not a precondition for the unit
+      // suite, and `linux-checks` never runs one. Silence would be, though —
+      // a skipped guard that reads as a passing one is the failure mode this
+      // whole file exists to prevent, which is why this announces itself
+      // rather than quietly returning.
+      if (mergedManifests.isEmpty) {
+        markTestSkipped(
+          'No merged manifest under build/ — run '
+          '`flutter build apk --debug --flavor develop` to exercise this. '
+          'Checks (1) and (2) above still ran.',
+        );
+        return;
+      }
+
+      for (final manifest in mergedManifests) {
+        final merged = healthPermission
+            .allMatches(manifest.readAsStringSync())
+            .map((match) => match.group(1)!)
+            .toSet();
+
+        expect(
+          merged,
+          {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED'},
+          reason:
+              '${manifest.path} ships a health permission set the repo did '
+              'not declare, and one the plugin check did not predict. Find '
+              'what contributed it — it need not be a Flutter plugin — and '
+              'either drop it or get the Play Console declaration to cover '
+              'it before this ships.',
+        );
+      }
     });
   });
 }
