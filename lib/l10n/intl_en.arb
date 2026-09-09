@@ -1347,7 +1347,7 @@
   "@healthSyncDisclosureTitle": {"placeholders": {"platform": {"type": "String"}}},
   "healthSyncDisclosureBody": "OpenNutriTracker will read your finished workouts from {platform} — their type, when they happened, how long they lasted and the energy they report.\n\nWorkouts are filed in your diary as activities you can edit or delete, and the energy they report raises that day's calorie goal by a share you choose.",
   "@healthSyncDisclosureBody": {"placeholders": {"platform": {"type": "String"}}},
-  "healthSyncDisclosureBodyFatAddendum": "OpenNutriTracker also reads the most recent body fat percentage {platform} holds. The body fat reading is used to suggest what that share should be.",
+  "healthSyncDisclosureBodyFatAddendum": "OpenNutriTracker will also read the most recent body fat percentage that {platform} holds. The body fat reading is used to suggest what that share should be.",
   "@healthSyncDisclosureBodyFatAddendum": {"placeholders": {"platform": {"type": "String"}}},
   "healthSyncDisclosureFooter": "Nothing is written back to {platform}, and none of it is sent anywhere — it stays on this device.\n\nYou can turn this off at any time, and doing so stops any further reading.",
   "@healthSyncDisclosureFooter": {"placeholders": {"platform": {"type": "String"}}},
