@@ -360,36 +360,87 @@ void main() {
     expect(settingsBloc.importEnabledCalls, [false]);
   });
 
-  // The four things the disclosure owes a reader. Asserted against the source
+  // The things the disclosure owes a reader. Asserted against the source
   // language so that rewriting the copy for tone cannot quietly drop one of
-  // them — which is the failure mode, since all four read as reassurance
+  // them — which is the failure mode, since they all read as reassurance
   // rather than as requirements.
-  test('the disclosure covers what it has to cover', () {
-    final body = l10nEn.healthSyncDisclosureBody(healthPlatformName);
+  //
+  // The dialog composes these the same way, gated on [healthStoreReadsBodyFat];
+  // composing them here rather than pumping the widget is what lets one test
+  // cover both platforms, since the host is neither.
+  group('the disclosure covers what it has to cover', () {
+    final base = l10nEn.healthSyncDisclosureBody(healthPlatformName);
+    final addendum = l10nEn.healthSyncDisclosureBodyFatAddendum(
+      healthPlatformName,
+    );
+    final footer = l10nEn.healthSyncDisclosureFooter(healthPlatformName);
+    final withoutBodyFat = [base, footer].join('\n\n');
+    final withBodyFat = [base, addendum, footer].join('\n\n');
 
-    expect(
-      body,
-      contains(healthPlatformName),
-      reason: 'must name the store the data comes from',
-    );
-    expect(
-      body,
-      contains('body fat'),
-      reason:
-          'body fat is read as well as workouts, and is the more '
-          'sensitive of the two',
-    );
-    expect(
-      body.toLowerCase(),
-      contains('written back'),
-      reason: 'read-only access is a disclosure element, not a detail',
-    );
-    expect(
-      body.toLowerCase(),
-      contains('stays on this device'),
-      reason:
-          'that nothing is transmitted is the claim the whole Play '
-          'declaration rests on',
-    );
+    for (final MapEntry(key: platform, value: body) in {
+      'without body fat': withoutBodyFat,
+      'with body fat': withBodyFat,
+    }.entries) {
+      test('$platform: names the store', () {
+        expect(
+          body,
+          contains(healthPlatformName),
+          reason: 'must name the store the data comes from',
+        );
+      });
+
+      test('$platform: says nothing is written back', () {
+        expect(
+          body.toLowerCase(),
+          contains('written back'),
+          reason: 'read-only access is a disclosure element, not a detail',
+        );
+      });
+
+      test('$platform: says nothing leaves the device', () {
+        expect(
+          body.toLowerCase(),
+          contains('stays on this device'),
+          reason:
+              'that nothing is transmitted is the claim the whole Play '
+              'declaration rests on',
+        );
+      });
+    }
+
+    test('the body-fat paragraph discloses what it is read for', () {
+      expect(
+        addendum,
+        contains('body fat'),
+        reason:
+            'body fat is read as well as workouts, and is the more '
+            'sensitive of the two',
+      );
+      expect(
+        withBodyFat.indexOf(addendum),
+        allOf(
+          greaterThan(withBodyFat.indexOf(base)),
+          lessThan(withBodyFat.indexOf(footer)),
+        ),
+        reason:
+            'what is collected belongs before the closing guarantees, not '
+            'after the line about turning the feature off',
+      );
+    });
+
+    // Play refused READ_BODY_FAT as excessive, so a store that is not asked
+    // for body fat must not be described as reading it. Over-disclosure is
+    // not a policy violation, but it promises a permission row the user will
+    // never be shown.
+    test('a store that does not read body fat never mentions it', () {
+      expect(withoutBodyFat, isNot(contains('body fat')));
+      expect(
+        l10nEn.healthSyncPermissionDeniedLabel(healthPlatformName),
+        isNot(contains('body fat')),
+        reason:
+            'body fat is not what an import needs, so it is not what a '
+            'failed import should ask for',
+      );
+    });
   });
 }
