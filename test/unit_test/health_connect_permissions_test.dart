@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -24,10 +25,47 @@ void main() {
     'android/app/src/main/AndroidManifest.xml',
   ).readAsStringSync();
 
-  /// Every `android.permission.health.*` the manifest declares.
-  final declared = RegExp(
+  final healthPermission = RegExp(
     r'<uses-permission\s+android:name="android\.permission\.health\.([A-Z_]+)"',
-  ).allMatches(manifest).map((match) => match.group(1)!).toSet();
+  );
+
+  /// Every `android.permission.health.*` the app manifest declares.
+  final declared =
+      healthPermission.allMatches(manifest).map((m) => m.group(1)!).toSet();
+
+  /// The same, per plugin, from each plugin's own manifest.
+  ///
+  /// Gradle merges plugin manifests into the application manifest, so a
+  /// plugin declaring `android.permission.health.*` puts it in the APK and in
+  /// front of Play's reviewer without it ever appearing in
+  /// `android/app/src/main/AndroidManifest.xml`. Reading only the app
+  /// manifest cannot see that — so the first of the two regressions named
+  /// above was claimed but not actually covered until this was added.
+  ///
+  /// Paths come from `.flutter-plugins-dependencies`, which `flutter pub get`
+  /// writes and `.gitignore` excludes. If it is absent the plugin half checks
+  /// nothing, so its absence fails a test of its own rather than passing
+  /// quietly — a silent pass is the failure mode this file exists to prevent.
+  final pluginList = File('.flutter-plugins-dependencies');
+  final pluginListPresent = pluginList.existsSync();
+  final pluginPermissions = <String, Set<String>>{};
+  if (pluginListPresent) {
+    final plugins = ((jsonDecode(pluginList.readAsStringSync())
+            as Map<String, dynamic>)['plugins']
+        as Map<String, dynamic>)['android'] as List<dynamic>;
+    for (final plugin in plugins.cast<Map<String, dynamic>>()) {
+      final root = (plugin['path'] as String).replaceAll(RegExp(r'/+$'), '');
+      final pluginManifest = File('$root/android/src/main/AndroidManifest.xml');
+      if (!pluginManifest.existsSync()) continue;
+      final found = healthPermission
+          .allMatches(pluginManifest.readAsStringSync())
+          .map((m) => m.group(1)!)
+          .toSet();
+      if (found.isNotEmpty) {
+        pluginPermissions[plugin['name'] as String] = found;
+      }
+    }
+  }
 
   group('Health Connect permissions', () {
     test('exercise and total calories are declared', () {
@@ -54,8 +92,9 @@ void main() {
     });
 
     test('no health permission is declared beyond those two', () {
-      // Catches a plugin quietly merging one in, and catches a new read being
-      // added without the declaration form being updated to match.
+      // Catches a new read added here without the declaration form being
+      // updated to match. A plugin merging one in never reaches this set —
+      // that is the separate plugin test below.
       expect(
         declared,
         {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED'},
@@ -63,6 +102,33 @@ void main() {
             'Every declared Health Connect permission has to be justified by '
             'a feature in the Play Console declaration form. Adding one here '
             'without updating that form is what gets an update rejected.',
+      );
+    });
+
+    test('the plugin list is available, so the plugin half checked something',
+        () {
+      expect(
+        pluginListPresent,
+        isTrue,
+        reason:
+            '.flutter-plugins-dependencies is missing, so no plugin manifest '
+            'was inspected and the plugin half of this guard passed without '
+            'checking anything. Run `flutter pub get` first; CI already does.',
+      );
+    });
+
+    test('no plugin merges a health permission into the manifest', () {
+      expect(
+        pluginPermissions,
+        isEmpty,
+        reason:
+            'Gradle merges plugin manifests into the application manifest, so '
+            'a permission declared there reaches the APK and Play without '
+            'appearing in android/app/src/main/AndroidManifest.xml. If a '
+            'plugin genuinely needs one, the Play Console declaration has to '
+            'cover it first — the health plugin wanting READ_DISTANCE and '
+            'READ_STEPS for its own workout path is precisely why this app '
+            'reads ExerciseSessionRecord itself.',
       );
     });
 
