@@ -2046,13 +2046,26 @@ jobs:
               # spent when it is not costs them a pointless version bump;
               # telling them it is free when it is not costs a rejected
               # upload at both stores.
+              #
+              # One case where the tag is NOT proof of consumption, and it is
+              # the common one here: when Play refuses the bundle with the
+              # known health-declaration defect (#942), `android-deploy`
+              # tolerates it, sets `play_uploaded=false` and goes green — and
+              # the ledger step is the unconditional last step of the job, so
+              # the tag is written anyway. Play never took the bundle. The tag
+              # then only means "some deploy job reached its final step",
+              # which is why `play_uploaded` has to be read alongside it.
               if [ -z "$ledger_advice" ]; then
                 set +e
                 git ls-remote --exit-code --tags origin "refs/tags/deployed/$BUILD_NUMBER" >/dev/null 2>&1
                 ls_status=$?
                 set -e
                 case "$ls_status" in
-                  0) ledger_advice="A store has already consumed build $BUILD_NUMBER (deployed/$BUILD_NUMBER exists), so it cannot be uploaded again — bump the build number and ship afresh." ;;
+                  0) if [ "${PLAY_UPLOADED:-}" = false ]; then
+                       ledger_advice="deployed/$BUILD_NUMBER exists, but Play REJECTED this bundle (#942) and android-deploy recorded the ledger anyway, so the tag does not prove Play consumed the number. Whether it is spent turns on iOS alone: if ios-deploy reached TestFlight the number is gone and you must bump; if it did not, nothing consumed build $BUILD_NUMBER and it can be retried. Check TestFlight for build $BUILD_NUMBER before deciding."
+                     else
+                       ledger_advice="A store has already consumed build $BUILD_NUMBER (deployed/$BUILD_NUMBER exists), so it cannot be uploaded again — bump the build number and ship afresh."
+                     fi ;;
                   2) ledger_advice="No store consumed build $BUILD_NUMBER (deployed/$BUILD_NUMBER does not exist), so it can be retried as it stands." ;;
                   *) ledger_advice="Could not read the ledger from origin (git ls-remote exit $ls_status), so whether build $BUILD_NUMBER is spent is unknown. Check deployed/$BUILD_NUMBER by hand before retrying." ;;
                 esac
