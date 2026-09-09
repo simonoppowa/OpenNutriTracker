@@ -66,10 +66,13 @@ check_agents_md:
     echo "No AGENTS.md is tracked; this guard has nothing to measure." >&2
     exit 1
   fi
-  declare -A bytes_of
-  while IFS= read -r f; do
-    bytes_of["$f"]=$(wc -c < "$f")
-  done <<< "$agents"
+  # `size<TAB>path` lines rather than an associative array. `declare -A` is
+  # bash 4, and macOS still ships bash 3.2 as /bin/bash, where this recipe
+  # would die at the declaration — the same trap that
+  # .github/scripts/pod_install_with_targeted_fallback.sh already documents.
+  sizes=$(while IFS= read -r f; do
+    printf '%s\t%s\n' "$(wc -c < "$f")" "$f"
+  done <<< "$agents")
   # For each file, the chain that reaches it: itself plus every AGENTS.md in
   # an ancestor directory. `${f%AGENTS.md}` is that file's directory prefix
   # ("" at the root), so an ancestor is one whose prefix this one starts with.
@@ -79,13 +82,13 @@ check_agents_md:
     dir="${f%AGENTS.md}"
     chain_size=0
     chain=""
-    while IFS= read -r g; do
+    while IFS=$'\t' read -r gsize g; do
       gdir="${g%AGENTS.md}"
       if [ "${dir:0:${#gdir}}" = "$gdir" ]; then
-        chain_size=$((chain_size + ${bytes_of["$g"]}))
-        chain="${chain}  ${bytes_of["$g"]} ${g}"$'\n'
+        chain_size=$((chain_size + gsize))
+        chain="${chain}  ${gsize} ${g}"$'\n'
       fi
-    done <<< "$agents"
+    done <<< "$sizes"
     if [ "$chain_size" -gt "$worst" ]; then
       worst=$chain_size
       worst_chain=$chain
