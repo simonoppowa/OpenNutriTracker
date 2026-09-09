@@ -18,9 +18,9 @@ Read off the public listing on 2026-09-08
 |---|---|
 | **Shared** | App activity → In-app search history |
 | **Collected** | App info and performance → Crash logs, Diagnostics<br>Location → Approximate location |
-| **Security** | Data is encrypted in transit · **Data can't be deleted** |
+| **Security** | Data is encrypted in transit · Data can't be deleted |
 
-## The four things that are wrong
+## The three things that are wrong
 
 ### 1. In-app search history is shared but not collected
 
@@ -71,29 +71,36 @@ activity entry does not cover it.
 A meal description is not Health and fitness data — that category is medical
 records, symptoms and exercise, not what someone ate.
 
-### 4. "Data can't be deleted" — and what the in-app path really deletes
+## "Data can't be deleted": leave it alone unless something changes
 
-The app has a delete-all-user-data path (Settings → delete all data), but it
-is narrower than "everything", and the answer on the form has to match what
-it does rather than what its name suggests.
+An earlier version of this file said this answer contradicted the app, because
+Settings offers a delete-all path. That was wrong, and acting on it would have
+put a false claim on the form — so the reasoning is kept here rather than
+quietly removed.
 
-`DeleteAllUserDataUsecase.deleteAll()` clears the **active profile's** boxes —
-config, intake, user activities, user, tracked days, weight log, water and
-fasting — plus the device-wide AI credential store. It deliberately leaves
-alone the shared content libraries (custom meals, recipes, activity
-templates), the shared app settings and every other profile, because those
-belong to all profiles and wiping them here would take them from the others
-too. Its own comment says so.
+Play's deletion question is about **collected** data, and "collected" means
+data that left the device. `DeleteAllUserDataUsecase.deleteAll()`
+(`lib/core/domain/usecase/delete_all_user_data_usecase.dart`) is a local reset:
+it stops the scheduled notification, closes Sentry, clears the **active
+profile's** eight Hive boxes, and clears the device-wide AI credential store.
+It deliberately leaves the shared content libraries and shared settings alone,
+because those belong to every profile. Most importantly it sends **no deletion
+request to anyone**.
 
-It also contacts nobody. Search terms already sent to Open Food Facts or the
-backend, and anything sent to an AI provider under the user's own key, are
-outside its reach — so it cannot delete the off-device data this same form
-declares as collected.
+Nothing in the app can delete what has already gone off-device:
 
-> **Set:** the deletion answer to say an in-app path exists for the profile's
-> own on-device data. Do not let it imply deletion of the data declared as
-> leaving the device, and do not describe it as wiping everything the app
-> holds — shared libraries and other profiles survive it.
+| Recipient | What reached it | Deletable from the app? |
+|---|---|---|
+| Sentry | crash reports, kept 30 days per the policy | no |
+| AI provider (OpenAI / Anthropic / OpenRouter / own server) | meal photo, meal text | no |
+| Open Food Facts | search terms, scanned barcodes | no |
+| Supabase food backend | search terms | no |
+
+So the live answer is defensible as it stands. Changing it to "users can
+request deletion" would need an actual deletion route — a documented contact
+that reaches those recipients, or a data path that stops sending to them —
+not the local wipe. If that route is ever built, revisit this and #1050
+together.
 
 ## Health and fitness: unchanged, and deliberately
 
