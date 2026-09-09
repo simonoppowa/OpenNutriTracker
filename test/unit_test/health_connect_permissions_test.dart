@@ -25,8 +25,21 @@ void main() {
     'android/app/src/main/AndroidManifest.xml',
   ).readAsStringSync();
 
+  /// Matches a Health Connect `uses-permission` however it is spelled.
+  ///
+  /// Attribute order and quote style are free in XML, and both occur in the
+  /// wild: `<uses-permission android:maxSdkVersion="32" android:name="…"/>`
+  /// is merged by Gradle exactly like the canonical spelling. A pattern that
+  /// insisted on `android:name` coming first would stay green while the
+  /// release acquired the permission.
+  ///
+  /// Not handled, and not worth a parser: a manifest binding the Android
+  /// namespace to an alias other than `android:`. No plugin in the wild does
+  /// that, and the only robust fix is structural XML parsing, which would
+  /// mean promoting `xml` from a transitive dependency to a declared one.
   final healthPermission = RegExp(
-    r'<uses-permission\s+android:name="android\.permission\.health\.([A-Z_]+)"',
+    r'''<uses-permission\b[^>]*?\bandroid:name\s*=\s*'''
+    r'''["']android\.permission\.health\.([A-Z_]+)["']''',
   );
 
   /// Every `android.permission.health.*` the app manifest declares.
@@ -63,10 +76,14 @@ void main() {
         as Map<String, dynamic>)['android'] as List<dynamic>;
     for (final plugin in plugins.cast<Map<String, dynamic>>()) {
       final root = (plugin['path'] as String).replaceAll(RegExp(r'/+$'), '');
-      final sourceSets = Directory('$root/android/src');
-      if (!sourceSets.existsSync()) continue;
-      for (final entry in sourceSets.listSync().whereType<Directory>()) {
-        final pluginManifest = File('${entry.path}/AndroidManifest.xml');
+      // Only the source sets Gradle merges into a release build. `debug`,
+      // `profile` and `androidTest` never reach the uploaded artifact, so a
+      // permission a plugin declares there is not a Play problem — failing on
+      // it would be a false alarm, and the app's own debug/profile manifests
+      // are excluded for the same reason.
+      for (final sourceSet in const ['main', 'release']) {
+        final pluginManifest =
+            File('$root/android/src/$sourceSet/AndroidManifest.xml');
         if (!pluginManifest.existsSync()) continue;
         pluginManifestsRead++;
         final found = healthPermission
