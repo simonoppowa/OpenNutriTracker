@@ -1,8 +1,8 @@
 OpenNutriTracker is a calorie counter and food diary with no account, no subscription and no ads — for losing weight or keeping a balanced diet. Open source, and your diary stays on your device.
 
 
-🚫💰 No subscriptions, purchases or ads: no paid tier, no advertising.
-🔒 Privacy first: No account, no sign-in, no analytics, no ads. Your diary, profile, weight, custom meals and recipes are stored on your device in AES-256 encrypted databases; photos you attach are ordinary image files beside them. Food search sends the search term, plus your language code to rank results. AI meal assistance sends only the line you type or the photo you take, to the provider you chose — never your diary or history. Crash reporting is opt-in.
+🚫💰 No subscriptions, purchases or ads.
+🔒 Privacy first: No account, no sign-in, no analytics, no ads. Your diary, profile, weight, custom meals and recipes are stored on your device in AES-256 encrypted databases; photos you attach are ordinary image files beside them. Food search sends the search term; AI meal assistance sends the line you type or the photo you take, plus the model name, to the provider you chose — never your diary or history. Both also send your language code. Crash reporting is opt-in.
 🍎 Nutritional tracking: Log meals and snacks against a large food database — Open Food Facts plus a reference backend covering USDA FoodData Central and the German BLS, selectable in Settings. Search, scan, or enter a number when you already know the calorie cost.
 📓 Food diary: A calendar-driven diary split into Breakfast, Lunch, Dinner and Snack, with per-meal kcal targets (several presets or a custom share), drag-to-rearrange between meals, and sort by time or macro contribution.
 📈 Trends: Current and best day-streak, calories against your goal line, daily macro averages, water intake, and weight against target. Switch between 7, 30 and 90 days, or up to ten years.
