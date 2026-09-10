@@ -96,9 +96,13 @@
              flattering row while the cost of under-declaring is a rejected
              submission.
 
-             Linked is NO because the app generates no user or device
-             identifier and sends none. Tracking is NO because nothing is
-             linked with third-party data or shared with a data broker.
+             Linked is NO for the three diagnostic types: the app generates
+             no user or device identifier and sends none with them. It is YES
+             for the two AI types, which travel under the user's own provider
+             credential — see the note on those entries. The earlier blanket
+             "sends none" was simply wrong about that path. Tracking is NO
+             throughout because nothing is linked with third-party data or
+             shared with a data broker.
 
              Deliberately NOT declared, each for a different reason:
                * Food search terms. They reach Open Food Facts and the Supabase
@@ -118,11 +122,27 @@
 
              `PhotosorVideos` is Apple's own spelling, lowercase "or"
              included. It is not a typo and must not be "corrected". -->
+        <!-- Linked, deliberately, and it is the uncomfortable answer.
+
+             The app never sees these payloads — but it sends them under the
+             user's OWN provider credential: a bearer token for OpenAI and
+             OpenRouter, `x-api-key` for Anthropic. That credential names the
+             account the content belongs to, so the receiving provider can
+             associate the photo or the typed line with a specific person.
+
+             Apple's test is whether the collected data is linked to the
+             user's identity, not whether WE can do the linking. Reading it
+             the other way — unlinked because the developer holds no key —
+             answers a question the form does not ask, and understates the
+             declaration for every user who turns AI assistance on.
+
+             This applies only to those users: AI assistance is off by
+             default and does nothing without a key the user supplies. -->
         <dict>
             <key>NSPrivacyCollectedDataType</key>
             <string>NSPrivacyCollectedDataTypePhotosorVideos</string>
             <key>NSPrivacyCollectedDataTypeLinked</key>
-            <false/>
+            <true/>
             <key>NSPrivacyCollectedDataTypeTracking</key>
             <false/>
             <key>NSPrivacyCollectedDataTypePurposes</key>
@@ -135,7 +155,7 @@
             <key>NSPrivacyCollectedDataType</key>
             <string>NSPrivacyCollectedDataTypeOtherUserContent</string>
             <key>NSPrivacyCollectedDataTypeLinked</key>
-            <false/>
+            <true/>
             <key>NSPrivacyCollectedDataTypeTracking</key>
             <false/>
             <key>NSPrivacyCollectedDataTypePurposes</key>

@@ -91,22 +91,47 @@ void main() {
       );
     });
 
-    // The app generates no user or device identifier and sends none, so
-    // nothing it declares may be linked to an identity or used for tracking.
-    // A `<true/>` under either key would contradict the README's privacy
-    // table and the App Store Connect record it has to agree with.
-    test('nothing is linked to the user or used for tracking', () {
-      final linked = RegExp(
-        '<key>NSPrivacyCollectedDataTypeLinked</key>\\s*<(true|false)/>',
-      ).allMatches(manifest).map((m) => m.group(1)).toList();
+    // Tracking is a separate question from linking, and the answer there is
+    // still a flat no: nothing is combined with third-party data or handed
+    // to a data broker. Linking is decided per type instead — see the test
+    // below — because the AI requests carry the user's own provider
+    // credential while the diagnostic types carry no identifier at all. A
+    // `<true/>` under Tracking would contradict the README's privacy table
+    // and the App Store Connect record it has to agree with.
+    test('nothing is used for tracking', () {
       final tracking = RegExp(
         '<key>NSPrivacyCollectedDataTypeTracking</key>\\s*<(true|false)/>',
       ).allMatches(manifest).map((m) => m.group(1)).toList();
 
-      expect(linked, isNotEmpty);
-      expect(linked, everyElement('false'));
       expect(tracking, isNotEmpty);
       expect(tracking, everyElement('false'));
+    });
+
+    test('linked follows whether a credential travels with the data', () {
+      // The diagnostic types carry no identifier at all. The two AI types go
+      // out under the user's own provider key, which names the account the
+      // content belongs to — so they are linked, whether or not this app can
+      // resolve the link itself. Pinned per type rather than as one blanket
+      // rule, because a blanket rule is what got the AI path wrong.
+      final entries = RegExp(
+        '<key>NSPrivacyCollectedDataType</key>\\s*'
+        '<string>NSPrivacyCollectedDataType(\\w+)</string>\\s*'
+        '<key>NSPrivacyCollectedDataTypeLinked</key>\\s*<(true|false)/>',
+      ).allMatches(manifest).map((m) => '${m.group(1)}=${m.group(2)}').toList();
+
+      expect(entries, hasLength(5));
+      expect(
+        entries,
+        containsAll(['PhotosorVideos=true', 'OtherUserContent=true']),
+      );
+      expect(
+        entries,
+        containsAll([
+          'CrashData=false',
+          'PerformanceData=false',
+          'OtherDiagnosticData=false',
+        ]),
+      );
     });
   });
 
