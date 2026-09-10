@@ -231,9 +231,12 @@ void main() {
         return;
       }
 
-      for (final manifest in mergedManifests) {
+      // Named for what it is, not `manifest`: the app manifest's contents are
+      // already bound to that name at the top of this file, and a `File`
+      // shadowing a `String` under the same name reads as the same thing.
+      for (final mergedManifest in mergedManifests) {
         final merged = healthPermission
-            .allMatches(manifest.readAsStringSync())
+            .allMatches(mergedManifest.readAsStringSync())
             .map((match) => match.group(1)!)
             .toSet();
 
@@ -241,8 +244,8 @@ void main() {
           merged,
           {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED'},
           reason:
-              '${manifest.path} ships a health permission set the repo did '
-              'not declare, and one the plugin check did not predict. Find '
+              '${mergedManifest.path} ships a health permission set the repo '
+              'did not declare, and one the plugin check did not predict. Find '
               'what contributed it — it need not be a Flutter plugin — and '
               'either drop it or get the Play Console declaration to cover '
               'it before this ships.',
