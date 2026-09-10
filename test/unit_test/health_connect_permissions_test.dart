@@ -260,21 +260,21 @@ void main() {
         return;
       }
 
-      for (final manifest in mergedManifests) {
-        // The shared matcher, not a pattern of its own: attribute order and
-        // quote style are free in XML, and the check that decides what
-        // actually shipped is the last place to be picky about spelling.
-        expect(
-          healthIn(manifest.readAsStringSync()).kept,
-          {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED'},
-          reason:
-              '${manifest.path} ships a health permission set the repo did '
-              'not declare, and one the plugin check did not predict. Find '
-              'what contributed it — it need not be a Flutter plugin — and '
-              'either drop it or get the Play Console declaration to cover '
-              'it before this ships.',
-        );
-      }
+        for (final mergedManifest in mergedManifests) {
+          // The shared matcher, not a pattern of its own: attribute order and
+          // quote style are free in XML, and the check that decides what
+          // actually shipped is the last place to be picky about spelling.
+          expect(
+            healthIn(mergedManifest.readAsStringSync()).kept,
+            {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED'},
+            reason:
+                '${mergedManifest.path} ships a health permission set the '
+                'repo did not declare, and one the plugin check did not '
+                'predict. Find what contributed it — it need not be a Flutter '
+                'plugin — and either drop it or get the Play Console '
+                'declaration to cover it before this ships.',
+          );
+        }
     });
   });
 }
