@@ -91,10 +91,13 @@ void main() {
       );
     });
 
-    // The app generates no user or device identifier and sends none, so
-    // nothing it declares may be linked to an identity or used for tracking.
-    // A `<true/>` under either key would contradict the README's privacy
-    // table and the App Store Connect record it has to agree with.
+    // Tracking is a separate question from linking, and the answer there is
+    // still a flat no: nothing is combined with third-party data or handed
+    // to a data broker. Linking is decided per type instead — see the test
+    // below — because the AI requests carry the user's own provider
+    // credential while the diagnostic types carry no identifier at all. A
+    // `<true/>` under Tracking would contradict the README's privacy table
+    // and the App Store Connect record it has to agree with.
     test('nothing is used for tracking', () {
       final tracking = RegExp(
         '<key>NSPrivacyCollectedDataTypeTracking</key>\\s*<(true|false)/>',
