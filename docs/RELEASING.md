@@ -20,7 +20,7 @@ jobs holding store credentials pause for an approval, see [Environments](#enviro
 |---|---|
 | `linux-checks`, `*-build`, `*-integration-tests` | the same gates every PR runs |
 | `ios-package` / `android-package` | build the IPA, AAB and APK |
-| `ios-deploy` / `android-deploy` | upload to **TestFlight**, and *attempt* the Play **`internal`** track — see [the Android upload](#the-android-upload-usually-needs-a-hand) |
+| `ios-deploy` / `android-deploy` | upload to **TestFlight**, and to the Play **`internal`** track — which worked through the API for the first time on build 65; see [the Android upload](#the-android-upload-and-when-it-still-needs-a-hand) |
 | `github-release` | tag, attach the IPA/AAB/APK, and generate release notes from merged PRs |
 | `release-summary` | last job; asserts the run produced what `release-gate` promised, and says so on the run page |
 
@@ -58,22 +58,39 @@ Declining is a real option and behaves sanely — a rejected job reports `failur
 `fastlane ios build` runs `match`, which authenticates to App Store Connect, so iOS packaging
 holds store credentials where Android packaging holds only a local keystore.
 
-### The Android upload usually needs a hand
+### The Android upload, and when it still needs a hand
 
-`android-deploy` **attempts** the Play upload and, for now, is expected to fail on one specific
-error. Since 2.1.0 the bundle declares `android.permission.health.*`, and the Play Publishing API
-rejects health-permission bundles with *"You must let us know whether your app includes any health
-features"* regardless of the declaration — a known upstream defect
-([#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942),
-[fastlane#22204](https://github.com/fastlane/fastlane/issues/22204) closed unfixed,
-[fastlane#27960](https://github.com/fastlane/fastlane/issues/27960) reopened, and reproduced from a
-different toolchain in [expo/eas-cli#3275](https://github.com/expo/eas-cli/issues/3275)). The same
-bundle uploaded by hand through the console is asked no health question and goes through.
+**Build 65 uploaded through the API, on 2026-09-10.** `fastlane` logged *"Successfully finished the
+upload to Google Play"*, `android-deploy` emitted no `::warning::`, and its only annotation was the
+ledger notice. That is the first time this step has actually shipped a bundle; every release since
+2.1.0 needed the hand-upload below.
 
-The step tolerates that one error and nothing else: it emits a `::warning::` and writes the
-recovery steps into the run's **step summary**. So the job going green is not the signal — read the
-summary. `release-summary` repeats it at the end of the run in its own words, and does so whatever
-colour `android-deploy` ended up, because the ledger step after the upload can fail on its own.
+**Do not read that as fixed.** Two things changed at once, and nothing in this repo says which
+mattered:
+
+- Google may have fixed the Publishing API. The defect
+  ([#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942),
+  [fastlane#22204](https://github.com/fastlane/fastlane/issues/22204) closed unfixed,
+  [fastlane#27960](https://github.com/fastlane/fastlane/issues/27960) reopened, and reproduced from
+  a different toolchain in [expo/eas-cli#3275](https://github.com/expo/eas-cli/issues/3275)) was
+  that the API rejected health-permission bundles with *"You must let us know whether your app
+  includes any health features"* regardless of the declaration.
+- Or the bundle stopped provoking it. Build 65 is the first to declare **two**
+  `android.permission.health.*` permissions rather than five: Play's Health Connect permissions
+  policy refused `READ_BODY_FAT`, `READ_DISTANCE` and `READ_STEPS` as excessive on 2026-09-08, and
+  [#1122](https://github.com/simonoppowa/OpenNutriTracker/pull/1122) removed them.
+
+Nobody has run the experiment that separates those. Until a release with an unchanged permission
+set uploads cleanly, treat a working API upload as welcome rather than expected.
+
+The tolerance therefore stays. It costs nothing when the upload works, and the failure it guards
+against is silent. The step tolerates that one error and nothing else: it emits a `::warning::` and
+writes the recovery steps into the run's **step summary**. So the job going green is still not the
+signal — read the summary, or read the annotations: a successful upload leaves a `notice` and
+nothing else, a tolerated rejection leaves a `warning`. `release-summary` repeats it at the end of
+the run in its own words, and does so whatever colour `android-deploy` ended up, because the ledger
+step after the upload can fail on its own.
+
 When either says the upload needs doing by hand:
 
 1. Download the `android-aab` artifact from the run. (A full release also attaches the AAB to the
@@ -85,7 +102,8 @@ When either says the upload needs doing by hand:
    regression in [#959](https://github.com/simonoppowa/OpenNutriTracker/issues/959) went unnoticed
    for eight days.
 
-This step starts passing on its own once Google fixes the API; nothing here needs changing then.
+Build 65 needed none of the three steps above. Keep them until a release proves the API upload
+repeatable — see the caveat at the top of this section.
 
 ## Before opening the release PR
 
@@ -140,9 +158,12 @@ This step starts passing on its own once Google fixes the API; nothing here need
       besides a release tag. It records what a store **consumed**, not what it **published**: with
       the #942 tolerance `android-deploy` exits 0 on a rejected upload and still marks the build
       spent. So a build you never hand-uploaded still needs a bump before you can retry it.
-- [ ] **Get the Android build onto `internal`.** Check the run's step summary first: if the API
-      upload hit [#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942), the track is
-      still empty and the AAB needs uploading by hand. Production promotion is manual either way.
+- [ ] **Confirm the Android build reached `internal`.** Check the run's step summary, or
+      `android-deploy`'s annotations: a `notice` alone means the API upload went through and the
+      track has the build; a `warning` means it hit
+      [#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942), the track is still empty
+      and the AAB needs uploading by hand. Build 65 was the first to need neither. Production
+      promotion is manual either way.
 - [ ] **Submit the iOS build.** The lane uploads to TestFlight; App Store submission is not
       automated.
 - [ ] **Update the store listings** with the "what's new" text, since the pipeline uploads none.
