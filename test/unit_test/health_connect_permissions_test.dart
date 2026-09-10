@@ -20,31 +20,78 @@ import 'package:flutter_test/flutter_test.dart';
 /// Flutter plugin that merges its own `uses-permission` into the manifest,
 /// and a well-meant revert of the workout reader that restores the plugin's
 /// workout path along with the permissions it needs. Both show up here.
+///
+/// Three checks, deliberately overlapping, because each sees something the
+/// others cannot:
+///
+///  1. the app manifest — what this repo declares on purpose;
+///  2. every plugin's own manifest, resolved from
+///     `.flutter-plugins-dependencies` — what Gradle is about to merge in,
+///     checkable without building, so it has teeth in `linux-checks`;
+///  3. the merged manifest Gradle actually produced — the ground truth Play
+///     inspects, which catches anything the merger adds from a source (2)
+///     cannot enumerate, such as a transitive AAR that is nobody's Flutter
+///     plugin. It needs a build, so it is skipped, loudly, when there is not
+///     one.
+///
+/// (2) and (3) are not redundant: one runs everywhere and reasons about
+/// intent, the other runs after a build and reasons about the artifact.
 void main() {
-  final manifest = File(
-    'android/app/src/main/AndroidManifest.xml',
-  ).readAsStringSync();
-
-  /// Matches a Health Connect `uses-permission` however it is spelled.
+  /// Health `uses-permission` elements, however they are spelled.
   ///
-  /// Attribute order and quote style are free in XML, and both occur in the
-  /// wild: `<uses-permission android:maxSdkVersion="32" android:name="…"/>`
-  /// is merged by Gradle exactly like the canonical spelling. A pattern that
-  /// insisted on `android:name` coming first would stay green while the
-  /// release acquired the permission.
+  /// Element-wise rather than one whole-document pattern, so each declaration
+  /// can also be inspected for a manifest-merger marker. Attribute order and
+  /// quote style are free in XML and both occur in the wild:
+  /// `<uses-permission android:maxSdkVersion="32" android:name="…"/>` merges
+  /// exactly like the canonical spelling, and a pattern that required
+  /// `android:name` first would stay green while the release acquired it.
   ///
   /// Not handled, and not worth a parser: a manifest binding the Android
   /// namespace to an alias other than `android:`. No plugin in the wild does
-  /// that, and the only robust fix is structural XML parsing, which would
-  /// mean promoting `xml` from a transitive dependency to a declared one.
-  final healthPermission = RegExp(
-    r'''<uses-permission\b[^>]*?\bandroid:name\s*=\s*'''
-    r'''["']android\.permission\.health\.([A-Z_]+)["']''',
+  /// that, and the robust fix is structural XML parsing, which would mean
+  /// promoting `xml` from a transitive dependency to a declared one.
+  final usesPermission = RegExp(r'<uses-permission\b[^>]*?/?>');
+  final healthName = RegExp(
+    r'''\bandroid:name\s*=\s*["']android\.permission\.health\.([A-Z_]+)["']''',
   );
+  final nodeRemove = RegExp(r'''\btools:node\s*=\s*["']remove["']''');
 
-  /// Every `android.permission.health.*` the app manifest declares.
-  final declared =
-      healthPermission.allMatches(manifest).map((m) => m.group(1)!).toSet();
+  /// Health permissions in [xml], split by whether the element carries the
+  /// `tools:node="remove"` manifest-merger marker.
+  ({Set<String> kept, Set<String> removed}) healthIn(String xml) {
+    final kept = <String>{};
+    final removed = <String>{};
+    for (final element in usesPermission.allMatches(xml)) {
+      final text = element.group(0)!;
+      final name = healthName.firstMatch(text);
+      if (name == null) continue;
+      (nodeRemove.hasMatch(text) ? removed : kept).add(name.group(1)!);
+    }
+    return (kept: kept, removed: removed);
+  }
+
+  /// The app manifests Gradle merges into the uploaded artifact.
+  ///
+  /// The shipped variant is `fullRelease` (flavor `full`, build type
+  /// `release`), so `src/main`, `src/release`, `src/full` and
+  /// `src/fullRelease` all reach Play. `debug`, `profile` and the `develop`
+  /// flavor do not, and are excluded on purpose — failing over a permission
+  /// that never ships would be a false alarm.
+  final appManifests = const ['main', 'release', 'full', 'fullRelease']
+      .map((s) => File('android/app/src/$s/AndroidManifest.xml'))
+      .where((f) => f.existsSync())
+      .toList();
+
+  final manifest = appManifests.map((f) => f.readAsStringSync()).join('\n');
+
+  /// Every `android.permission.health.*` the app's own manifests declare.
+  final declared = healthIn(manifest).kept;
+
+  /// Permissions the app strips from the merged manifest with the standard
+  /// manifest-merger marker. A plugin's lower-priority declaration of one of
+  /// these never reaches the artifact, so charging the plugin for it would
+  /// block the normal remedy for a dependency that asks for too much.
+  final removedByApp = healthIn(manifest).removed;
 
   /// The same, per plugin, from each plugin's own manifest.
   ///
@@ -86,10 +133,8 @@ void main() {
             File('$root/android/src/$sourceSet/AndroidManifest.xml');
         if (!pluginManifest.existsSync()) continue;
         pluginManifestsRead++;
-        final found = healthPermission
-            .allMatches(pluginManifest.readAsStringSync())
-            .map((m) => m.group(1)!)
-            .toSet();
+        final found = healthIn(pluginManifest.readAsStringSync()).kept
+          ..removeAll(removedByApp);
         if (found.isNotEmpty) {
           pluginPermissions
               .putIfAbsent(plugin['name'] as String, () => <String>{})
@@ -177,6 +222,59 @@ void main() {
         declared.where((permission) => permission.startsWith('WRITE_')),
         isEmpty,
       );
+    });
+  });
+
+  // Check (3): the artifact rather than the intent. The plugin check above
+  // reasons about what Gradle is going to merge, from the sources it can
+  // enumerate; this reads what Gradle actually emitted, so a permission
+  // arriving from somewhere `.flutter-plugins-dependencies` does not list —
+  // a transitive AAR, a build-type overlay — is still caught. It is also the
+  // check that was run by hand while #1122 was being written, which is how
+  // that release was known to be clean.
+  group('the merged manifest Gradle produced', () {
+    // AGP has used both spellings for this directory; take whichever exists.
+    final mergedManifests = [
+      'build/app/intermediates/merged_manifest',
+      'build/app/intermediates/merged_manifests',
+    ]
+        .map(Directory.new)
+        .where((directory) => directory.existsSync())
+        .expand((directory) => directory.listSync(recursive: true))
+        .whereType<File>()
+        .where((file) => file.path.endsWith('AndroidManifest.xml'))
+        .toList();
+
+    test('declares those two health permissions and no others', () {
+      // Not a failure: the Android build is not a precondition for the unit
+      // suite, and `linux-checks` never runs one. Silence would be, though —
+      // a skipped guard that reads as a passing one is the failure mode this
+      // whole file exists to prevent, which is why this announces itself
+      // rather than quietly returning.
+      if (mergedManifests.isEmpty) {
+        markTestSkipped(
+          'No merged manifest under build/ — run '
+          '`flutter build apk --debug --flavor develop` to exercise this. '
+          'Checks (1) and (2) above still ran.',
+        );
+        return;
+      }
+
+      for (final manifest in mergedManifests) {
+        // The shared matcher, not a pattern of its own: attribute order and
+        // quote style are free in XML, and the check that decides what
+        // actually shipped is the last place to be picky about spelling.
+        expect(
+          healthIn(manifest.readAsStringSync()).kept,
+          {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED'},
+          reason:
+              '${manifest.path} ships a health permission set the repo did '
+              'not declare, and one the plugin check did not predict. Find '
+              'what contributed it — it need not be a Flutter plugin — and '
+              'either drop it or get the Play Console declaration to cover '
+              'it before this ships.',
+        );
+      }
     });
   });
 }
