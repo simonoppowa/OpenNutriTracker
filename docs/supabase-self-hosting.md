@@ -24,7 +24,19 @@ Users pick which sources they want to search in **Settings → Food databases**.
 
 ## What the app reads
 
-The app reads exactly two relations from the backend schema; everything else in the backend repo (the per-source raw tables, the nutrient mapping, the import staging) is invisible to it. All names come from `SPConst` (`lib/features/add_meal/data/dto/sp/sp_const.dart`); the query code lives in `lib/features/add_meal/data/data_sources/sp_food_data_source.dart`.
+**The app does not query tables directly.** Every read goes through a Postgres function, called over RPC — there is not a single `.from(` left in `sp_food_data_source.dart`. That changed for privacy (#882): a PostgREST `GET` puts the search term in the URL, where the API gateway logs it, while an RPC carries it in the body.
+
+Five functions are the whole of the app's required surface, all named in `SPConst` (`lib/features/add_meal/data/dto/sp/sp_const.dart`):
+
+| Function | What it is for |
+|---|---|
+| `search_food_summary` | English name search |
+| `search_food_translation` | Localised name search |
+| `food_summary_by_ids` | Hydrate results, and re-read a saved food |
+| `portion_labels_by_food_ids` | Verified portion label in the reader's language (#864) |
+| `portions_by_food_ids` | Every usable portion, for the unit dropdown (#864) |
+
+Behind them sit the two relations described below plus `food_portion` and `food_portion_translation`. Everything else in the backend repo — the per-source raw tables, the nutrient mapping, the import staging — stays invisible to the app. The calling code lives in `sp_food_data_source.dart`.
 
 ### `food_summary` — one flat row per food
 
@@ -35,13 +47,13 @@ A materialized view with everything the app needs to render and log a food:
 - **Default serving** — `serving_quantity`, `serving_unit`, `serving_size`, `serving_gram_weight`.
 - **Nutrients** — 24 canonical per-100g nutrient columns mirroring the app's `MealNutrimentsDBO` (energy, macros, extended lipids, minerals, vitamins).
 
-English names in `food_summary.name` are searched with Postgres full-text search using the `english` configuration.
+English names in `food_summary.name` are searched with Postgres full-text search using the `english` configuration. That configuration now lives inside `search_food_summary` rather than in the app, next to the index that has to agree with it (`sql/schema.sql`, section 6b).
 
 ### `food_translation` — per-locale food names
 
 One row per (food, locale) pair: `food_id`, `locale`, `description`, `source`. The app both **searches** this table for non-English locales and uses it to **label** foods in the UI. The `source` column records how the translation was produced — `native` (the original database carries the name, e.g. BLS German), `community`, `verified`, or `machine`. Machine translations (DeepL/LLM, produced by the backend repo's `translate_all.py`) are shown with a small disclosure hint in the app; human-sourced ones are not.
 
-Supported locales are mapped in `SPConst.translationLocaleOf` — currently `de`, `pl`, `zh`, `cs`, `it`, `sk`, `tr`, and `uk`, with English reading `food_summary.name` directly. Translation search uses the `simple` text-search configuration, since the table holds many languages.
+Supported locales are mapped in `SPConst.translationLocaleOf` — currently `de`, `pl`, `zh`, `cs`, `it`, `sk`, `tr`, and `uk`, with English reading `food_summary.name` directly. Translation search uses the `simple` text-search configuration, since the table holds many languages — again inside `search_food_translation` rather than in the app.
 
 ## Setting up your own backend
 
@@ -86,7 +98,12 @@ just build
 
 That regenerates `lib/core/utils/env.g.dart` (which is gitignored) with the new values baked in. After that, a normal `flutter run` will pick them up. The app's `Supabase.initialize` call in `lib/core/utils/locator.dart` reads from `Env.supabaseProjectUrl` and `Env.supabaseProjectAnonKey`, so as long as the regenerated env file is in place you don't need to touch any other code.
 
-To sanity-check the wiring, search for a common English food name (something like "apple raw") in the Add Meal screen. If you get backend results (rows with an FDC or BLS source chip), the database and the app are talking to each other. If you don't, the most common causes are: the RLS policies aren't in place (the anon role can't see the rows — `schema.sql` sets up public read, service_role write), the `food_summary` materialized view hasn't been refreshed after import (`import_fdc.py` does this automatically at the end of every run), or the full-text-search indexes are missing.
+To sanity-check the wiring, search for a common English food name (something like "apple raw") in the Add Meal screen. If you get backend results (rows with an FDC or BLS source chip), the database and the app are talking to each other. If you don't, the most likely causes, in order:
+
+- **The search functions are missing, or `anon` cannot execute them.** This is the first thing to check on any database created before the RPC work, or from a partial schema run. `schema.sql` revokes execute from `public` and grants it to `anon` and `authenticated` explicitly, so a correctly populated database still returns nothing without those grants. An existing self-hosted copy needs the migrations in `sql/migrations/` applied — the search, portion-label and portions functions each arrived in one.
+- **The `food_summary` materialized view hasn't been refreshed** after import (`import_fdc.py` does this at the end of every run).
+- **Grants on the view are missing.** Note this is grants, not RLS: a materialized view has no row-level security, so `schema.sql` restricts it with `grant select on food_summary to anon, authenticated` instead. Base tables do use RLS — public read, `service_role` write.
+- **The full-text-search indexes are missing.** This one does not change the answer — a sequential scan returns the same rows — so it shows up as search that is slow, or that times out on a large table, rather than as no results.
 
 ## Attribution
 

@@ -37,12 +37,44 @@ check_l10n: gen_l10n
   fi
   echo "All locales complete."
 
+# Guard AGENTS.md against Codex's silent instruction-file truncation.
+#
+# Codex reads AGENTS.md on the PR review path and truncates instruction
+# content at 32 KiB (32768 bytes) — keeping the head, dropping the tail, with
+# no warning anywhere a human looks. Nothing else catches it: the review still
+# runs, still posts findings, and simply never sees the rules past the cut.
+# The budget is cumulative across every AGENTS.md in the tree, so a nested
+# file buys no headroom.
+check_agents_md:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  limit=31000          # deliberate margin under 32768
+  head_limit=12000     # Code Review Rules must sit well inside the head
+  size=$(wc -c < AGENTS.md)
+  if [ "$size" -gt "$limit" ]; then
+    echo "AGENTS.md is ${size} bytes, over the ${limit}-byte guard." >&2
+    echo "Codex truncates at 32768 and says nothing. Trim a section or move" >&2
+    echo "device/authoring prose out (e.g. to tools/adb/README.md)." >&2
+    exit 1
+  fi
+  offset=$(grep -b -m1 '^## Code Review Rules$' AGENTS.md | cut -d: -f1) || true
+  if [ -z "${offset:-}" ]; then
+    echo "AGENTS.md has no '## Code Review Rules' heading — Codex review reads it." >&2
+    exit 1
+  fi
+  if [ "$offset" -gt "$head_limit" ]; then
+    echo "'## Code Review Rules' starts at byte ${offset}; keep it under ${head_limit}." >&2
+    echo "Truncation drops the tail, so the review rules must stay near the top." >&2
+    exit 1
+  fi
+  echo "AGENTS.md ${size}/${limit} bytes; Code Review Rules at byte ${offset}."
+
 # Run tests
 test:
   flutter test
 
 # Run CI checks
-ci: install (format "--set-exit-if-changed") check_l10n build && test
+ci: check_agents_md install (format "--set-exit-if-changed") check_l10n build && test
   flutter analyze
 
 create_emulator:

@@ -72,6 +72,97 @@
                 <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
             </array>
         </dict>
+        <!-- AI meal assistance (#990). Declared only because of that feature:
+             it is off until the user saves an API key of their own or the
+             address of a server they run, and the app transmits none of this
+             otherwise.
+
+             Apple defines "collect" as transmitting data off the device "in a
+             way that allows you and/or your third-party partners to access it
+             for a period longer than what is necessary to service the
+             transmitted request in real time", and narrows the second actor to
+             vendors "whose code you've added to your app".
+
+             On the letter of that, neither actor is reached: the project never
+             receives any of this, and no provider SDK is embedded — the app
+             speaks to each provider over its own HTTP client. So this is
+             declared on the conservative reading rather than because the
+             definition plainly bites. It is the Apple twin of the open Play
+             question in #816, and the reason for declaring is the same one
+             recorded there: the data does outlive the request (OpenAI
+             documents retaining API inputs for up to 30 days, Anthropic
+             retains flagged content for up to two years), and against a
+             one-bit public label the cost of over-declaring is a less
+             flattering row while the cost of under-declaring is a rejected
+             submission.
+
+             Linked is NO for the three diagnostic types: the app generates
+             no user or device identifier and sends none with them. It is YES
+             for the two AI types, which travel under the user's own provider
+             credential — see the note on those entries. The earlier blanket
+             "sends none" was simply wrong about that path. Tracking is NO
+             throughout because nothing is linked with third-party data or
+             shared with a data broker.
+
+             Deliberately NOT declared, each for a different reason:
+               * Food search terms. They reach Open Food Facts and the Supabase
+                 backend only to answer the query. Backend access is RPC-only
+                 (#882) precisely so the term stays out of the gateway log, so
+                 nothing retains it past the request. That covers the search
+                 TERM and nothing else: whether the coarse location the gateway
+                 derives from the caller's IP is separately collectable is #938
+                 under map #935, whose research answers yes for Apple. This
+                 list is what the AI path does and does not add — not a claim
+                 that the whole manifest is complete.
+               * Health and Fitness. Workouts and body fat percentage are read
+                 from HealthKit and never transmitted off the device — and
+                 "collect" is about transmission, not access.
+               * Photos attached to a custom meal or recipe. Those stay on
+                 disk and are never sent anywhere.
+
+             `PhotosorVideos` is Apple's own spelling, lowercase "or"
+             included. It is not a typo and must not be "corrected". -->
+        <!-- Linked, deliberately, and it is the uncomfortable answer.
+
+             The app never sees these payloads — but it sends them under the
+             user's OWN provider credential: a bearer token for OpenAI and
+             OpenRouter, `x-api-key` for Anthropic. That credential names the
+             account the content belongs to, so the receiving provider can
+             associate the photo or the typed line with a specific person.
+
+             Apple's test is whether the collected data is linked to the
+             user's identity, not whether WE can do the linking. Reading it
+             the other way — unlinked because the developer holds no key —
+             answers a question the form does not ask, and understates the
+             declaration for every user who turns AI assistance on.
+
+             This applies only to those users: AI assistance is off by
+             default and does nothing without a key the user supplies. -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypePhotosorVideos</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+        <!-- The meal line typed on the multi-item add screen. -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeOtherUserContent</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
     </array>
 </dict>
 </plist>

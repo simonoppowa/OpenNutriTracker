@@ -15,6 +15,38 @@ import 'package:opennutritracker/features/meal_detail/util/meal_quantity_convert
 part 'bulk_add_event.dart';
 part 'bulk_add_state.dart';
 
+/// The shape an amount has to have: no scientific notation, no sign, at most
+/// two decimals. The same shape the manual-entry quantity field enforces
+/// (`meal_detail_bottom_sheet.dart`), so the bulk path accepts exactly what
+/// manual entry does.
+///
+/// Kept here rather than on the screen because three things have to agree
+/// about it and only one of them is a widget: the field's input formatter,
+/// [BulkAddBloc._amountText] — which rounds every prefilled amount to satisfy
+/// it — and [BulkAddRow.quantityError], which reports what fails it.
+final bulkAddQuantityPattern = RegExp(r'^\d+([.,]\d{0,2})?$');
+
+/// Matches the manual-entry upper bound.
+const bulkAddMaxQuantity = 10000;
+
+/// Why a row's amount cannot be written, in terms the user can act on.
+///
+/// The three arrived at the screen as one message naming the field and
+/// nothing else, so "0", "99999" and "1.234" all read as `Rice: Quantity`.
+/// They are separated here rather than at the render site because the render
+/// site would then have to re-derive which of them happened. #1013.
+enum BulkAddQuantityError {
+  /// Not a number this screen accepts: empty, or carrying more decimals than
+  /// the field allows. The one failure the UI never stated a rule for.
+  malformed,
+
+  /// Zero or less. Nothing to log.
+  tooSmall,
+
+  /// Above [bulkAddMaxQuantity].
+  tooLarge,
+}
+
 /// One editable row on the review screen.
 ///
 /// Holds the user's edits separately from what the resolver produced, so
@@ -238,6 +270,30 @@ class BulkAddRow extends Equatable {
   /// batch, so the way out is one tap on the control the warning already
   /// points at. #973.
   bool get willBeLogged => isResolved && !skipped && !amountWouldBeWrong;
+
+  /// What is wrong with [amountText], or null when the row can be written.
+  ///
+  /// Deliberately **not** consulted by [willBeLogged]. A row the user
+  /// mistyped is handed back to them to fix; dropping it from the batch
+  /// instead would log the rest and say nothing about the one that was
+  /// meant to be there.
+  ///
+  /// Asked on submit rather than on every keystroke — [amountText] is text
+  /// precisely so that a half-typed "1," is not called wrong mid-edit.
+  BulkAddQuantityError? get quantityError {
+    final text = amountText.trim();
+    final quantity = double.tryParse(text.replaceAll(',', '.'));
+    // Shape first, because the other two need a number to compare against a
+    // bound and "" and "1.234" do not supply one. The parse is checked
+    // beside the pattern rather than after it, so that whatever the write
+    // would actually parse is what the bounds below are read from.
+    if (!bulkAddQuantityPattern.hasMatch(text) || quantity == null) {
+      return BulkAddQuantityError.malformed;
+    }
+    if (quantity <= 0) return BulkAddQuantityError.tooSmall;
+    if (quantity > bulkAddMaxQuantity) return BulkAddQuantityError.tooLarge;
+    return null;
+  }
 
   BulkAddRow copyWith({
     int? selectedIndex,
@@ -498,8 +554,8 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
   }
 
   /// Formats a quantity for the amount field, which accepts at most two
-  /// decimals — `_quantityPattern` on the bulk-add screen is both the submit
-  /// check and the field's input formatter. A converted imperial quantity has
+  /// decimals — [bulkAddQuantityPattern] is both the submit check and the
+  /// field's input formatter. A converted imperial quantity has
   /// many more: `1 lb` is 453.59237 g. Prefilling that verbatim produced a row
   /// the submit check refused, with a message naming only the field, and
   /// because that check aborts the batch, one such row blocked every correct

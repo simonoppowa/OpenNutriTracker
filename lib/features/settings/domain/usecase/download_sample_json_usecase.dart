@@ -31,6 +31,6 @@ class DownloadSampleJsonUsecase {
       allowedExtensions: ['json'],
       bytes: bytes,
     );
-    return result != null && result.isNotEmpty;
+    return result != null;
   }
 }

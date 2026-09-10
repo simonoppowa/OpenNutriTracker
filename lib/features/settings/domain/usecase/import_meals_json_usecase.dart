@@ -63,14 +63,14 @@ class ImportMealsJsonUsecase {
   /// Returns null when the user cancelled the file picker (mirroring the
   /// CSV importer contract).
   Future<ImportMealsJsonResult?> importFromPickedFile() async {
-    final picked = await FilePicker.pickFiles(
+    final picked = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['json'],
     );
-    if (picked == null || picked.files.single.path == null) {
+    if (picked == null || picked.path == null) {
       return null;
     }
-    final file = File(picked.files.single.path!);
+    final file = File(picked.path!);
     final content = await file.readAsString(encoding: utf8);
     return importFromJsonString(content);
   }
@@ -130,9 +130,13 @@ class ImportMealsJsonUsecase {
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
     if (hasTrackedDay) return;
     final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
-    final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
+    final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
+      totalKcalGoal,
+    );
     final totalFatGoal = await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
-    final totalProteinGoal = await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
+    final totalProteinGoal = await _getMacroGoalUsecase.getProteinsGoal(
+      totalKcalGoal,
+    );
     await _addTrackedDayUsecase.addNewTrackedDay(
       day,
       totalKcalGoal,

@@ -225,9 +225,10 @@ void main() {
   // pattern is both the submit check and the field's input formatter. A
   // prefill it refuses is a row that cannot be logged and cannot be edited
   // back into shape — the field blanks on the first keystroke — and the
-  // submit check aborts the whole batch on it. Mirrored from
-  // `_quantityPattern` in bulk_add_screen.dart; if that loosens, so can this.
-  final fieldPattern = RegExp(r'^\d+([.,]\d{0,2})?$');
+  // submit check aborts the whole batch on it. The pattern itself rather
+  // than a copy of it: a copy is a test that can pass while the check it
+  // claims to speak for says something else.
+  final fieldPattern = bulkAddQuantityPattern;
 
   test(
     'a pound quantity is prefilled at a precision the field accepts',
@@ -1179,6 +1180,90 @@ void main() {
     });
   });
 
+  group('a refused quantity says which refusal it is (#1013)', () {
+    /// A perfectly ordinary loggable row, with [amount] typed into it.
+    Future<BulkAddRow> rowWithAmount(String amount) async {
+      final bloc = blocWith({
+        'rice': [meal('Rice')],
+      });
+      final state = await parse(bloc, '100g rice');
+      return state.rows.single.copyWith(amountText: amount);
+    }
+
+    test('zero is refused for being zero', () async {
+      final row = await rowWithAmount('0');
+
+      expect(row.quantityError, BulkAddQuantityError.tooSmall);
+    });
+
+    test('and so is a zero written with decimals', () async {
+      final row = await rowWithAmount('0.00');
+
+      expect(row.quantityError, BulkAddQuantityError.tooSmall);
+    });
+
+    test('past the bound is refused for being past the bound', () async {
+      final row = await rowWithAmount('${bulkAddMaxQuantity + 1}');
+
+      expect(row.quantityError, BulkAddQuantityError.tooLarge);
+    });
+
+    test('the bound itself is allowed', () async {
+      final row = await rowWithAmount('$bulkAddMaxQuantity');
+
+      expect(row.quantityError, isNull);
+    });
+
+    test('a third decimal is refused for its shape, not its size', () async {
+      // The rule nothing on the screen states. Reported as itself rather
+      // than as "too small", which is what a check that parsed first would
+      // have called 0.001.
+      final row = await rowWithAmount('0.001');
+
+      expect(row.quantityError, BulkAddQuantityError.malformed);
+    });
+
+    test('an emptied field is refused the same way', () async {
+      final row = await rowWithAmount('');
+
+      expect(row.quantityError, BulkAddQuantityError.malformed);
+    });
+
+    test('a decimal comma is a number, not a fault', () async {
+      final row = await rowWithAmount('1,5');
+
+      expect(row.quantityError, isNull);
+    });
+
+    test('surrounding space is not a fault either', () async {
+      final row = await rowWithAmount(' 100 ');
+
+      expect(row.quantityError, isNull);
+    });
+
+    test('the three refusals are three distinct answers', () async {
+      final errors = {
+        (await rowWithAmount('0')).quantityError,
+        (await rowWithAmount('99999')).quantityError,
+        (await rowWithAmount('1.234')).quantityError,
+      };
+
+      // One message for all three was the bug: `Rice: Quantity`, whichever
+      // of them had happened.
+      expect(errors, hasLength(3));
+    });
+
+    test('a refused row is still part of the batch', () async {
+      // The batch is all-or-nothing, so a bad amount has to be handed back
+      // to the user rather than filtered out of the write — dropping it
+      // would log everything else and say nothing about the row that was
+      // meant to be there.
+      final row = await rowWithAmount('0');
+
+      expect(row.quantityError, isNotNull);
+      expect(row.willBeLogged, isTrue);
+    });
+  });
 }
 
 final _photo = MealPhoto(

@@ -30,9 +30,9 @@
 2.
 
 ## Checklist
-- [ ] Code follows project style (`just format` / 120-char line width)
+- [ ] Code follows project style — run `just format` (`dart format`'s default 80-column width; nothing configures a wider one)
 - [ ] New interactive widgets include `Semantics(identifier: '...')` where needed
-- [ ] Localization updated in ARBs **and** `lib/generated/` when user-facing strings change
+- [ ] Localization updated in **every** `lib/l10n/intl_*.arb` with a real translation, not the English string (`lib/generated/` is gitignored — do not edit or commit it)
 - [ ] Codegen ran if DBOs/DTOs/env changed (`just build`)
 - [ ] No secrets or `.env` values committed
 - [ ] PR title follows conventional commit style (e.g. `feat:`, `fix:`, `chore:`)
