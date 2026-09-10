@@ -20,7 +20,7 @@ jobs holding store credentials pause for an approval, see [Environments](#enviro
 |---|---|
 | `linux-checks`, `*-build`, `*-integration-tests` | the same gates every PR runs |
 | `ios-package` / `android-package` | build the IPA, AAB and APK |
-| `ios-deploy` / `android-deploy` | upload to **TestFlight**, and to the Play **`internal`** track — which worked through the API for the first time on build 65; see [the Android upload](#the-android-upload-and-when-it-still-needs-a-hand) |
+| `ios-deploy` / `android-deploy` | upload to **TestFlight**, and *attempt* the Play **`internal`** track — build 65 is the first attempt that landed, and the job still finishes green when one does not ([#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942)); see [the Android upload](#the-android-upload-and-when-it-still-needs-a-hand) |
 | `github-release` | tag, attach the IPA/AAB/APK, and generate release notes from merged PRs |
 | `release-summary` | last job; asserts the run produced what `release-gate` promised, and says so on the run page |
 
