@@ -40,7 +40,8 @@ whole label is `oz`, `fl oz`, `lb`, `ml`, `liter` or `g`, and 4,028 rows on
 (3 oz)` and `lb 16 oz` join, `liter` leaves) — labels the matcher cannot
 tokenise at all, since it drops terms under three letters. The label alone
 carries no count: 3,458 deliverable rows have `amount <> 1`, so the bare
-label `oz` stands for 85 g on 1,431 rows and 113 g on 638, and 307 foods
+label `oz` stands for `3 oz` on 1,431 rows (84–117 g) and `4 oz` on 638
+(112–114 g), and 307 foods
 would list the same label twice. The RPC's own regex catches all 108 `NFS`
 / `yields` / `NS as to` rows but passes 626 `(yield from 1 lb …)` rows,
 because those say `yield`, not `yields`. On which record the app receives:
@@ -426,9 +427,9 @@ Compared with the survey vocabulary in #1155, the head is the same words in
 a different form: `1 cup` was 3,056 survey foods, `cup` is 1,643 SR Legacy
 foods; `1 tablespoon` was 310 survey foods, and `tbsp` — which has no
 `portion_description` anywhere — is 548 here, with `tablespoon` on 91 more.
-`oz` at the top has no survey counterpart at all: the survey's mechanical
-measure is `1 fl oz` / `1 oz, cooked` / `1 cubic inch` on 1,434 foods, and it
-never leads.
+`oz` at the top has no survey counterpart at all: the survey's mechanical-
+measure family — 25 labels led by `1 fl oz`, `1 oz, cooked` and `1 cubic
+inch` — is on 1,434 foods, and it never leads.
 
 ### The classes
 
@@ -587,8 +588,8 @@ SELECT amount::text AS rendered, count(*) FROM sr GROUP BY 1 ORDER BY 2 DESC LIM
 ### A modifier can repeat within a food
 
 Survey rows never carry the same label twice on one food (#1155). SR Legacy
-rows do: 309 food/modifier pairs on 630 rows, distinguished by `amount` or,
-failing that, by grams alone. *Veal, ground, raw* (175290) has `oz` three times at amounts 3, 1,
+rows do: 309 food/modifier pairs on 630 rows, distinguished by `amount`, by
+grams alone, or — on four pairs — by nothing at all. *Veal, ground, raw* (175290) has `oz` three times at amounts 3, 1,
 4 = 85 g, 28.35 g, 113 g; *Bread, white, commercially prepared* (174924) has
 `slice` at `seq_num` 1 = 29 g and `seq_num` 6 = 25 g; a fast-food boneless
 chicken record has `pieces` at 6, 4, 10 and 20.
@@ -988,9 +989,9 @@ A COALESCE that returns the modifier alone returns a label without its
 count. On the 14,341 deliverable SR Legacy rows, `amount` is never `NULL`,
 10,883 rows are `1`, and 3,458 rows on 3,233 foods are not — 2,786 above 1,
 654 fractions between 0 and 1, 18 exactly 0 (672 below 1 in all). Without
-the count, the app would show `oz — 85 g` for
-`3 oz` (1,431 rows) and `oz — 113 g` for `4 oz` (638 rows), both reading as
-one ounce; `cup` for half a cup (148 rows, 10–202 g); `inch sub` twice on
+the count, the app would show `oz — 85 g` (84–117 g; 1,428 of the rows are
+exactly 85) for `3 oz` (1,431 rows) and `oz — 113 g` (112–114 g) for `4 oz`
+(638 rows), both reading as one ounce; `cup` for half a cup (148 rows, 10–202 g); `inch sub` twice on
 22 foods, once at 148–237 g and once at 296–474 g. *Snacks, banana chips*
 (168849) would list `oz` at 28.35 g, 85 g and 42 g.
 
@@ -1042,8 +1043,9 @@ Dropping the count also makes labels collide inside a food. Of the
 deliverable rows, 307 food/label pairs (626 rows, 307 foods) are identical
 within one food; 290 of them differ by `amount` (`oz` on 119 foods, `fl oz`
 49, `cup` 48, `inch sub` 22, `package (10 oz)` 13, `tsp` 8) and 17 share
-the amount too and differ only in grams (`oz` on 4 foods, `bar` 3, `fl oz`
-1, and white bread's `slice`). The matcher scores terms, not rows, so on
+the amount too (`oz` on 4 foods, `bar` 3, `fl oz` 1, and white bread's
+`slice`) — 13 of them differing only in grams, and four (a biscuit, a
+Pepperidge Farm cookie, a jar, an `oz`) identical in amount and grams both. The matcher scores terms, not rows, so on
 any of these it returns the earlier row — on white bread (174924) the 29 g
 `slice` at `seq_num` 1, never the 25 g one at 6.
 
@@ -1195,7 +1197,7 @@ SELECT fp.modifier, fp.amount, mu.name AS unit, count(*) AS rows, count(DISTINCT
 FROM food_portion fp JOIN food f ON f.id = fp.food_id LEFT JOIN measure_unit mu ON mu.id = fp.measure_unit_id
 WHERE f.source = 'fdc_foundation' AND fp.portion_description IS NULL
 GROUP BY 1,2,3 ORDER BY 4 DESC, 1 LIMIT 60;
--- NULL | 1 | cup 40+ … ; raw | 1 | steak/roast 8 ; Peeled | 1 | Banana 4 ; medium | 1 | link 4 ; sifted | 1 | cup 3 ; slices | 1 | cup 3 ; …
+-- NULL | 1 | cup 23 ; NULL | 1 | slice 8 ; NULL | 1 | tablespoon/oz/piece/teaspoon 5 each ; raw | 1 | steak/roast 8 ; Peeled | 1 | Banana 4 ; medium | 1 | link 4 ; sifted | 1 | cup 3 ; slices | 1 | cup 3 ; …
 
 SELECT count(*) AS rows, count(DISTINCT fp.modifier) AS distinct_modifiers,
        count(*) FILTER (WHERE fp.modifier IS NULL OR btrim(fp.modifier) = '') AS blank_modifier,
@@ -1611,8 +1613,9 @@ FROM (
 -- pool.json: 91 / 100 / 100 / 98 / 100 / 100 / 100 / 100 / 100 / 100 / 0 / 100 rows
 ```
 
-The harness, verbatim as run (`poolPath` and `outPath` are the only lines
-to change to re-run it elsewhere):
+The harness as run, with the two absolute scratch paths in `poolPath` and
+`outPath` replaced by `<scratchpad>` (the only lines to change to re-run it
+elsewhere):
 
 ```dart
 // Throwaway harness for #1163: replays the app's client-side ranking over the
@@ -1632,9 +1635,9 @@ import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.da
 import 'package:opennutritracker/features/add_meal/util/resolver_relevance.dart';
 
 const poolPath =
-    '/tmp/claude-1000/-home-simon-Documents-OpenNutriTracker/0432813e-4e04-4656-9928-de37c0feaf90/scratchpad/q1163b/pool.json';
+    '<scratchpad>/q1163b/pool.json';
 const outPath =
-    '/tmp/claude-1000/-home-simon-Documents-OpenNutriTracker/0432813e-4e04-4656-9928-de37c0feaf90/scratchpad/q1163b/ranker_out.txt';
+    '<scratchpad>/q1163b/ranker_out.txt';
 
 const surveyIds = <String, int>{
   'banana': 2709224, 'apple': 2709215, 'rice': 2708408, 'chicken breast': 2705956,
@@ -2341,9 +2344,12 @@ search cache's order decides whether it is the one auto-selected. What a
 COALESCE would change today, with no change to the ranker or the pool: the
 portions on the SR Legacy candidates the AI path already hands the review
 screen — #2 for banana (173945), chicken breast (171515) and almonds
-(170567), plus 174608 for chicken breast (the table's "#2 after
-resolution" and group columns) — since every candidate carries its
-portions and the user can select any of them; the Food tab for banana,
+(170567), the table's "#2 after resolution" column — since every candidate
+carries its portions and the user can select any of them. 174608 for
+chicken breast is a different case: it sits inside the winner's
+near-duplicate group, and `_collapseNearDuplicates` keeps one entry per
+group, so it is either the auto-selected record (when the cache order puts
+it first) or absent, never a second choice; the Food tab for banana,
 apple, chicken breast and almonds, where SR Legacy records sit in the top
 20 (its "SR Legacy in the 20" column); and every typed or AI search that
 lands on one of the 7,529 SR Legacy foods that gain labels.
@@ -2364,9 +2370,9 @@ on 2709215 and the app lands on 2709196, which has none.
   `tbsp` (548 foods) and `tsp` (163) a row; `tablespoon` gains 91 more. The
   sibling note found `tbsp` and `tsp` in no `portion_description`; the text
   prompt names both as non-units.
-- The largest single addition would be unmatchable: 3,951 deliverable rows
-  on 3,494 foods whose whole label is `oz`, `fl oz`, `lb`, `ml`, `liter` or
-  `g`, and 4,028 rows on 3,569 foods that yield no term after the
+- The largest single addition would be unmatchable bar three rows: 3,951
+  deliverable rows on 3,494 foods whose whole label is `oz`, `fl oz`, `lb`,
+  `ml`, `liter` or `g` — only the three `liter` rows tokenise — and 4,028 rows on 3,569 foods that yield no term after the
   parenthetical strip (`oz (3 oz)`, `lb 16 oz` included, `liter` not);
   1,028 foods carry only the five bare units and 1,042 have no deliverable
   row that yields a term at all ([Bare units](#bare-units)). A model word
@@ -2374,8 +2380,10 @@ on 2709215 and the app lands on 2709196, which has none.
   in the flat default only.
 - Meat cuts (`steak` 280 foods, `roast` 185, `chop` 57) and
   the food's own noun (`potato large`, `almond`, `pizza`, `bar`) are terms
-  the matcher sees though no class names them; the query-text fallback
-  would hit them, as it hits `1 egg` and `1 sandwich` on survey rows today.
+  the matcher sees though no class names them; the matcher's second pass
+  over the query text (`matchPortionToQuery(parsed.query, …)`) would hit
+  them, as it can hit `1 egg` on survey rows today (and `1 sandwich`, 75
+  survey foods in the sibling note).
 - `handful`, `plate`, `mug`, `bowl` and `glass`: the five photo words #1155
   found dead on survey rows are as good as dead in `modifier` too — `glass`
   on 2 rows (`glass (3.5 fl oz)`), `bowl` on 1, `handful`, `mug` and
