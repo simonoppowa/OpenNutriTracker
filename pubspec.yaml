@@ -177,10 +177,16 @@ flutter_launcher_icons:
   adaptive_icon_foreground: "assets/icon/ont_logo_square_color_back_1024x1024.png"
   adaptive_icon_background: "#ffffff"
   adaptive_icon_monochrome: "assets/icon/ont_logo_square_color_white_1024x1024.png"
+  # The logo PNGs are a tight crop; this inset keeps the artwork inside the
+  # 66dp safe zone of the adaptive icon (#1151). The tool's default is 16.
+  adaptive_icon_foreground_inset: 23
   ios: true
   remove_alpha_ios: true
   image_path: "assets/icon/ont_logo_square_color_back_1024x1024.png"
-  image_path_ios_dark_transparent: "assets/icon/ont_logo_square_color_white_1024x1024.png"
-  image_path_ios_tinted_grayscale: "assets/icon/ont_logo_square_color_white_1024x1024.png"
+  # iOS has no inset option, so it gets pre-padded copies of the logo PNGs;
+  # regenerate them with tools/icons/pad_ios_launcher_icon.py.
+  image_path_ios: "assets/icon/ont_launcher_ios_color_back_1024x1024.png"
+  image_path_ios_dark_transparent: "assets/icon/ont_launcher_ios_color_white_1024x1024.png"
+  image_path_ios_tinted_grayscale: "assets/icon/ont_launcher_ios_color_white_1024x1024.png"
   desaturate_tinted_to_grayscale_ios: true
   min_sdk_android: 21
