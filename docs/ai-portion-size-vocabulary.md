@@ -19,9 +19,13 @@ steered toward words the table can answer.
 **The answer.** The vocabulary is container-heavy and size-poor, and the app
 sees less of it than the table holds. Of the 5,394 foods with a usable label,
 4,002 (74%) carry a container word — almost entirely `1 cup` — 1,430 (27%)
-carry a size word, and 1,130 (21%) a piece word. `handful`, `plate`, `mug`,
+carry a size word, and 1,130 (21%) a piece word, counted first-match in the
+order size, container, piece; the container and piece figures are lower
+bounds (4,011 and 1,318 counting every food with such a label, see [The
+classes](#the-classes)). `handful`, `plate`, `mug`,
 `pint`, `quart`, `tbsp`, `tsp`, `each`, `sheet` and `unit` have no row anywhere;
-`bowl` and `glass` exist only on packaged meals and wine. Every one of the
+`bowl` exists only on ready-to-heat pastas and four branded bowls, `glass`
+only on wine. Every one of the
 14,449 SR Legacy rows has a `NULL` description, so the size ladders on the
 generic banana, apple and egg records are invisible to the matcher, and eight
 of the twelve foods the AI paths produce carry no size word at all on the
@@ -40,17 +44,18 @@ record the app receives.
    and the app receives none of it. The survey *Banana, raw* — the record the
    app can see — has no size word, so `banana, large` keeps `1 banana` 126 g.
 3. **Five photo words are dead on arrival.** `handful` and `plate`: zero rows.
-   `bowl`: 36 foods, 32 of them `1 large microwavable bowl` on frozen dinners,
-   the other four branded. `glass`: twelve foods, all wine, sangria or wine
-   cooler. `mug`: none. *A bowl of rice* and *a glass of milk* are the flat
-   default, not a route.
+   `bowl`: 36 foods, 32 of them `1 large microwavable bowl` on ready-to-heat
+   pasta dishes, the other four branded. `glass`: twelve foods, all wine,
+   sangria or wine cooler. `mug`: none. *A bowl of rice* and *a glass of
+   milk* are the flat default, not a route.
 4. **The tie the map hypothesised does not exist; a worse one does.** No food
    carries `1 cup` beside `1 cup, cooked` (cooked rice has exactly one cup
    row). Bare `1 cup` never loses a tie. But `slice` on white bread ties five
    rows and resolves to `1 small or thin/very thin slice` (24 g), not the 28 g
    regular slice — that label is the earliest slice row on 66 yeast breads,
-   and its poultry counterpart `1 small or thin slice` (28–109 g) on 57 more
-   — and `large` on pizza resolves to one piece, never the pie, on 63 foods.
+   and its poultry-and-meat namesake `1 small or thin slice` (28–109 g) on 57
+   more — and `large` on pizza resolves to one piece, never the pie, on 63
+   foods.
 5. **German is fully live for the head of the vocabulary; nowhere else is.**
    All 11,588 `de` translation rows are `verified`; the other seven seeded
    locales are `machine` only. 57 of the 416 size-or-container labels are
@@ -115,8 +120,19 @@ does before matching, so a word inside `( … )` is invisible to the app.
 .*
 ```
 
-Plurals are folded into each word (`cups?`, `box(es)?`, `patty|patties`)
-because the matcher's two-letter inflection bound treats them as the same word.
+Plurals are folded into each word (`cups?`, `box(es)?`) because `_matches`
+is a prefix relation with a two-letter bound: `cups` starts with `cup` and is
+one letter longer, `boxes` starts with `box` and is two longer, so the matcher
+treats each pair as one word. `patty|patties` is wider than the matcher —
+`patties` does not start with `patty`, so the code never matches one to the
+other — but no usable label contains `patties`, so the alternation changes no
+count:
+
+```sql
+SELECT count(*) AS rows_with_patties FROM food_portion WHERE portion_description ~* '\mpatties\M';
+-- 0
+```
+
 Word boundaries mean `cup` does not match `cupcake` and `stick` does not match
 `drumstick`, and the matcher agrees on both: it tokenises on non-letters, so
 `drumstick` is one token that does not start with `stick`, and `cupcake` is
@@ -384,7 +400,29 @@ ORDER BY array_position(ARRAY['SIZE','CONTAINER','PIECE','OTHER'], class);
 ```
 
 Foods overlap between classes (a food with `1 large` and `1 cup` counts in
-both), so the food column does not sum to 5,394.
+both), so the food column does not sum to 5,394. And because each label is
+classified once, first match, the CONTAINER and PIECE food counts are lower
+bounds: a food whose only container label is `1 large single serving bag`, or
+whose only piece label is `1 large or thick slice`, is counted under SIZE.
+Counting every food with any label matching a class regex, independent of the
+order, SIZE stays 1,430 (it goes first), CONTAINER is 4,011 and PIECE 1,318
+(24% of 5,394):
+
+```sql
+<BASE>
+SELECT count(DISTINCT food_id) FILTER (WHERE matchable ~* '\m(small|medium|large|jumbo|mini|miniature)\M') AS size_any,
+       count(DISTINCT food_id) FILTER (WHERE matchable ~* '\m(cups?|bowls?|glass(es)?|tbsp|tablespoons?|tsp|teaspoons?|handfuls?|scoops?|cans?|bottles?|jars?|packets?|packages?|bags?|box(es)?|cartons?|containers?|pouch(es)?|mugs?|pints?|quarts?|plates?|servings?)\M') AS container_any,
+       count(DISTINCT food_id) FILTER (WHERE matchable ~* '\m(slices?|pieces?|whole|each|sticks?|wedges?|sheets?|strips?|chunks?|links?|patty|patties|fillets?|legs?|breasts?|wings?|thighs?|units?|items?)\M') AS piece_any,
+       count(DISTINCT food_id) FILTER (WHERE class = 'SIZE') AS size_first,
+       count(DISTINCT food_id) FILTER (WHERE class = 'CONTAINER') AS container_first,
+       count(DISTINCT food_id) FILTER (WHERE class = 'PIECE') AS piece_first
+FROM classified;
+-- 1430 | 4011 | 1318 | 1430 | 4002 | 1130
+```
+
+The per-class label tables and the "Share of the 5,394" column use the
+first-match figures; the per-word [reach table](#reach-per-word) is
+order-independent.
 
 ### Top labels per class
 
@@ -564,6 +602,15 @@ SELECT label, count(*) AS rows, count(DISTINCT food_id) AS foods
 FROM usable WHERE matchable ~* '\m(bowl|glass)\M' GROUP BY label ORDER BY rows DESC;
 -- '1 large microwavable bowl' 32 ; '1 glass' 12 ; '1 KFC Bowl' 2 ;
 -- '1 Jack-in-the-Box Bowl' 1 ; "1 Uncle Ben's Rice Bowl (12 oz)" 1
+
+SELECT fp.portion_description, fc.description AS category, count(DISTINCT fp.food_id) AS foods
+FROM food_portion fp JOIN food f ON f.id = fp.food_id LEFT JOIN food_category fc ON fc.id = f.food_category_id
+WHERE regexp_replace(fp.portion_description, '\([^)]*\)', ' ', 'g') ~* '\mbowls?\M'
+GROUP BY 1, 2 ORDER BY 3 DESC;
+-- '1 large microwavable bowl'  Pasta mixed dishes, excludes macaroni and cheese  32
+--   (every one a 'Pasta … ready-to-heat' record)
+-- '1 KFC Bowl'  Poultry mixed dishes  2 ; '1 Jack-in-the-Box Bowl' 1 and
+-- "1 Uncle Ben's Rice Bowl (12 oz)" 1, both Stir-fry and soy-based sauce mixtures
 
 SELECT f.description, fp.seq_num, fp.gram_weight
 FROM food_portion fp JOIN food f ON f.id = fp.food_id
@@ -1183,11 +1230,12 @@ ranked AS (
   FROM usable u JOIN cupfoods c USING (food_id) WHERE u.lead = 'cup'),
 bare AS (SELECT food_id FROM ranked WHERE rn = 1 AND portion_description ILIKE '1 cup')
 SELECT (SELECT count(*) FROM bare) AS bare_cup_first, r.portion_description, count(DISTINCT r.food_id) AS foods,
-       string_agg(DISTINCT f.description, '; ') FILTER (WHERE r.portion_description NOT ILIKE '1 cup, mashed%') AS foods_named
+       string_agg(DISTINCT f.id || ' ' || f.description, '; ') FILTER (WHERE r.portion_description <> '1 cup, mashed') AS foods_named
 FROM ranked r JOIN bare b USING (food_id) JOIN food f ON f.id = r.food_id
 WHERE r.rn > 1 GROUP BY 2 ORDER BY foods DESC;
--- 38 ; '1 cup, mashed' 34 ; '1 cup ice' 1 (Water, tap) ; '1 cup, diced' 1 (Cheese spread, American or Cheddar cheese base) ;
--- '1 cup, mashed or pureed' 1 (Avocado, raw — 2709223) ; '1 cup, melted' 1 (Cheese, NFS)
+-- 38 ; '1 cup, mashed' 34 ; '1 cup ice' 1 (2710707 Water, tap) ;
+-- '1 cup, diced' 1 (2705773 Cheese spread, American or Cheddar cheese base) ;
+-- '1 cup, mashed or pureed' 1 (2709223 Avocado, raw) ; '1 cup, melted' 1 (2705704 Cheese, NFS)
 
 -- the same CTEs, the mashed labels by food category:
 SELECT r.portion_description, fc.description AS category, count(DISTINCT r.food_id) AS foods
@@ -1276,9 +1324,36 @@ Two quirks a reader of `portion_match.dart` should know. The score is the
 **label** term's length, so a query `cup` against a label containing `cups`
 scores 4 and beats a `cup` row regardless of `seq_num`; no food carries both
 today, and the only singular/plural coexistence among the taxonomy words is
-`piece` / `pieces` on three foods. And `seq_num` is never `NULL` and unique
-per food across usable rows, so the ordering behind every tie above is
-unambiguous:
+`piece` / `pieces` on three foods. On two of them (the *Graham crackers*
+records) both words sit in the one label, so no cross-row quirk arises; on
+the third, *Chicken, meatless, breaded, fried*, `1 cup, pieces` is already
+the earlier row, so the score and the order agree:
+
+```sql
+WITH usable AS (
+  SELECT fp.id, fp.food_id, fp.seq_num, fp.portion_description,
+         regexp_replace(fp.portion_description, '\([^)]*\)', ' ', 'g') AS stripped
+  FROM food_portion fp
+  WHERE NOT (fp.portion_description IS NULL OR btrim(fp.portion_description) = '' OR fp.portion_description ILIKE '%quantity not specified%' OR fp.portion_description ILIKE '%NFS%' OR fp.portion_description ILIKE '%yields%' OR fp.portion_description ILIKE '%NS as to size%')),
+terms AS (
+  SELECT DISTINCT u.id, u.food_id, lower(t) AS term
+  FROM usable u, regexp_split_to_table(u.stripped, '[^[:alpha:]]+') AS t WHERE length(t) >= 3),
+pairs(sing, plur) AS (VALUES ('cup','cups'),('piece','pieces'),('slice','slices'),('stick','sticks'),('strip','strips'),('can','cans'),('bag','bags'),('box','boxes'),('bottle','bottles'),('jar','jars'),('packet','packets'),('package','packages'),('pouch','pouches'),('serving','servings'),('wedge','wedges'),('chunk','chunks'),('link','links'),('fillet','fillets'),('leg','legs'),('breast','breasts'),('wing','wings'),('thigh','thighs'),('item','items'),('scoop','scoops'),('container','containers'),('tablespoon','tablespoons'),('teaspoon','teaspoons'))
+SELECT p.sing, p.plur, count(DISTINCT s.food_id) AS foods_with_both, string_agg(DISTINCT s.food_id::text, ',') AS food_ids
+FROM pairs p JOIN terms s ON s.term = p.sing JOIN terms q ON q.term = p.plur AND q.food_id = s.food_id
+GROUP BY 1, 2 ORDER BY 3 DESC;
+-- piece | pieces | 3 | 2707469,2708133,2708138   (the only pair returned)
+
+SELECT f.id, f.description, string_agg(fp.seq_num || ':' || fp.portion_description, ' | ' ORDER BY fp.seq_num) AS piece_rows
+FROM food f JOIN food_portion fp ON fp.food_id = f.id
+WHERE f.id IN (2707469, 2708133, 2708138) AND fp.portion_description ~* '\mpieces?\M' GROUP BY 1, 2;
+-- 2707469 Chicken, meatless, breaded, fried   1:1 cup, pieces | 2:1 piece
+-- 2708133 Graham crackers                     1 large rectangular piece or 2 squares or 4 small rectangular pieces
+-- 2708138 Graham crackers, reduced fat        (the same single label)
+```
+
+And `seq_num` is never `NULL` and unique per food across usable rows, so the
+ordering behind every tie above is unambiguous:
 
 ```sql
 SELECT count(*) AS rows_total, count(*) FILTER (WHERE seq_num IS NULL) AS seq_null,
@@ -1746,11 +1821,14 @@ WHERE matchable ~* '\m(cooked|raw|dry|boneless|skinless|prepared|frozen|without 
 
 Of the 207 RESIDUAL labels on 534 foods: container-like words the CONTAINER
 regex lacks — `1 tub` 39, `1 cone` 18, `1 sleeve` 9, `1 shell (jumbo)` 6, `1
-tray` 5, `1 envelope` 2, `1 tube` 1 — nine labels on 88 foods; meat-cut and
-seafood item words (`1 steak` 31, `1 drummette` 23, `1 nugget` 13, `1 drumstick`
-8, chops, ribs, clams, oysters, prawns, scallops…) 47 labels on 171 foods; fry
-shapes (`crinkle cut`, `shoestring`, `spiral or curly`, `straight cut`, 8 foods
-each) six labels on 43 foods.
+tray` 5, `1 envelope` 2, `1 tube` 1 — nine labels on 88 foods; meat-cut,
+whole-bird and seafood words (`1 steak` 31, `1 drummette` 23, `1 nugget` 13,
+`1 cocktail meatball` 9, `1 drumstick` 8, chops, ribs, clams, oysters, prawns,
+scallops…) 58 labels on 192 foods under the regex printed below; and fry
+shapes — six labels, 43 rows, but only 11 foods, because `crinkle cut`,
+`shoestring`, `spiral or curly`, `straight cut` and `fry, NS as to shape` all
+sit on the same eight french-fry records (2709456–2709463) and `1 chicken fry`
+on three others.
 
 ```sql
 <BASE><the sub CTE above>
@@ -1758,10 +1836,29 @@ SELECT label, count(DISTINCT food_id) AS foods FROM sub WHERE subclass = 'RESIDU
 GROUP BY label ORDER BY foods DESC, label LIMIT 60;
 -- '1 tub' 39, '1 steak' 31, '1 French bread' 29, '1 drummette' 23, '1 cone' 18, '1 half' 13,
 -- '1 nugget' 13, '1 rod' 11, '1 baguette (about 22" long)' 9, '1 cocktail meatball' 9, ...
-SELECT count(DISTINCT label), count(*), count(DISTINCT food_id) FROM sub
-WHERE subclass = 'RESIDUAL' AND matchable ~* '\m(tubs?|trays?|sleeves?|cones?|envelopes?|tubes?|shells?)\M';
--- 9 | 88 | 88
+
+<BASE><the sub CTE above>
+SELECT v.name, count(DISTINCT label) AS labels, count(*) AS rows, count(DISTINCT food_id) AS foods
+FROM sub, LATERAL (VALUES
+  ('CONTAINER_LIKE', '\m(tubs?|trays?|sleeves?|cones?|envelopes?|tubes?|shells?)\M'),
+  ('MEAT_SEAFOOD', '\m(steaks?|chops?|ribs?|drumsticks?|drummettes?|nuggets?|tenders?|cutlets?|meatballs?|sausages?|necks?|neckbones?|back|tails?|gizzards?|livers?|kidneys?|ham hock|claws?|clams?|oysters?|prawns?|scallops?|shrimps?|crabs?|crayfish|lobsters?|mussels?|anchov(y|ies)|sardines?|snails?|chicken|duck|hen|dove|quail|turkey)\M'),
+  ('FRY_SHAPE', '\m(crinkle cut|shoestring|spiral or curly|straight cut|fry)\M')) AS v(name, rx)
+WHERE subclass = 'RESIDUAL' AND matchable ~* v.rx
+GROUP BY v.name ORDER BY foods DESC;
+-- MEAT_SEAFOOD 58|202|192 ; CONTAINER_LIKE 9|88|88 ; FRY_SHAPE 6|43|11
+
+<BASE><the sub CTE above>
+SELECT label, count(DISTINCT food_id) AS foods, string_agg(DISTINCT food_id::text, ',') AS food_ids FROM sub
+WHERE subclass = 'RESIDUAL' AND matchable ~* '\m(crinkle cut|shoestring|spiral or curly|straight cut|fry)\M'
+GROUP BY label ORDER BY foods DESC, label;
+-- '1 crinkle cut', '1 fry, NS as to shape', '1 shoestring', '1 spiral or curly', '1 straight cut':
+--   8 each, the same ids 2709456,2709457,2709458,2709459,2709460,2709461,2709462,2709463
+-- '1 chicken fry' 3 (2706098,2706099,2706102)
 ```
+
+The MEAT_SEAFOOD regex is this note's own list of cut, bird and shellfish
+words; it is not FDC's grouping, and `1 chicken fry` and `1 popcorn chicken`
+fall in it through `chicken`.
 
 ### Regex caveats a checker should see
 
@@ -1828,8 +1925,9 @@ Read on `origin/develop` at `fedaab1f`:
   see and keep `1 banana` 126 g and `1 egg` 50 g. The size ladders for both
   sit on SR Legacy records with `NULL` labels.
 - The "visible containers, count fixed at one" shape has one word to work
-  with: `cup`, on 3,629 foods. `bowl` (36: 32 microwavable frozen dinners, 4
-  branded), `glass` (12, wine), `plate` and `handful` (0) cannot pin a row on
+  with: `cup`, on 3,629 foods. `bowl` (36: 32 ready-to-heat pastas under `1
+  large microwavable bowl`, 4 branded), `glass` (12, wine), `plate` and
+  `handful` (0) cannot pin a row on
   rice, salad, milk or nuts. For rice and pasta the only visible row is `1
   cup, cooked`.
 - Coffee's size ladder is coffee-shop sizes (`1 small` = 360 g) and its flat
@@ -1837,7 +1935,7 @@ Read on `origin/develop` at `fedaab1f`:
   matched word lands there.
 - The matcher is unreachable for a photo item that arrives with no count, so
   whatever #1156 allows, an item the model did not count keeps the flat
-  default regardless of its portion word — unless the call site changes.
+  default regardless of its portion word, as the call site stands.
 
 ### #1157 — the language of the key
 
@@ -1886,10 +1984,10 @@ Read on `origin/develop` at `fedaab1f`:
 - Free text has reach a list does not: the food's own noun is the unit on the
   168 OTHER labels in the partition's four noun subclasses — SANDWICH_BURGER,
   BAKED_SNACK, PRODUCE_UNIT, EGG (`1 egg` 109, `1 sandwich` 75, `1 bar` 59, `1
-  chip` 57, `1 cracker` 38, `1 nut` 32) — on 956 foods, plus the meat-cut and
-  seafood words in RESIDUAL (`1 steak` 31, among 47 labels on 171 foods); a
-  model that repeats the noun hits them, and the query-text fallback already
-  does.
+  chip` 57, `1 cracker` 38, `1 nut` 32) — on 956 foods, plus the meat-cut,
+  bird and seafood words in RESIDUAL (`1 steak` 31, among 58 labels on 192
+  foods under the regex in [The residual](#the-residual)); a model that
+  repeats the noun hits them, and the query-text fallback already does.
 
   ```sql
   <BASE><the sub CTE above>
@@ -1929,5 +2027,6 @@ Read on `origin/develop` at `fedaab1f`:
   reach a user; the RPC delivers them, the ticket's predicate excludes them.
 - **The German translations beyond the 57 size and container labels** were
   read for the words above but not reviewed for correctness; #1093 owns that.
-- **`piece` / `pieces` on three foods** is the only case where the label-length
-  scoring quirk could bite; which three was not recorded.
+- **The MEAT_SEAFOOD and FRY_SHAPE regexes** in [The residual](#the-residual)
+  are this note's word lists, chosen by reading the 207 RESIDUAL labels; a
+  different list gives a different count.
