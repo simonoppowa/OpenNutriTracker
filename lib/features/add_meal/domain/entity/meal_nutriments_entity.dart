@@ -153,33 +153,73 @@ class MealNutrimentsEntity extends Equatable {
       saturatedFat100:
           (offNutriments.saturated_fat_100g as Object?).asDoubleOrNull(),
       fiber100: (offNutriments.fiber_100g as Object?).asDoubleOrNull(),
-      // #237: Extended lipid profile
+      // #237: Extended lipid profile. These three are grams either way, so
+      // they pass through like the macros above.
       monounsaturatedFat100:
           (offNutriments.monounsaturated_fat_100g as Object?).asDoubleOrNull(),
       polyunsaturatedFat100:
           (offNutriments.polyunsaturated_fat_100g as Object?).asDoubleOrNull(),
       transFat100: (offNutriments.trans_fat_100g as Object?).asDoubleOrNull(),
-      cholesterol100:
-          (offNutriments.cholesterol_100g as Object?).asDoubleOrNull(),
+      cholesterol100: _gToMg(
+        (offNutriments.cholesterol_100g as Object?).asDoubleOrNull(),
+      ),
       // #237: Minerals
-      sodium100: (offNutriments.sodium_100g as Object?).asDoubleOrNull(),
-      potassium100: (offNutriments.potassium_100g as Object?).asDoubleOrNull(),
-      magnesium100: (offNutriments.magnesium_100g as Object?).asDoubleOrNull(),
-      calcium100: (offNutriments.calcium_100g as Object?).asDoubleOrNull(),
-      iron100: (offNutriments.iron_100g as Object?).asDoubleOrNull(),
-      zinc100: (offNutriments.zinc_100g as Object?).asDoubleOrNull(),
-      phosphorus100:
-          (offNutriments.phosphorus_100g as Object?).asDoubleOrNull(),
+      sodium100: _gToMg(
+        (offNutriments.sodium_100g as Object?).asDoubleOrNull(),
+      ),
+      potassium100: _gToMg(
+        (offNutriments.potassium_100g as Object?).asDoubleOrNull(),
+      ),
+      magnesium100: _gToMg(
+        (offNutriments.magnesium_100g as Object?).asDoubleOrNull(),
+      ),
+      calcium100: _gToMg(
+        (offNutriments.calcium_100g as Object?).asDoubleOrNull(),
+      ),
+      iron100: _gToMg((offNutriments.iron_100g as Object?).asDoubleOrNull()),
+      zinc100: _gToMg((offNutriments.zinc_100g as Object?).asDoubleOrNull()),
+      phosphorus100: _gToMg(
+        (offNutriments.phosphorus_100g as Object?).asDoubleOrNull(),
+      ),
       // #237: Vitamins
-      vitaminA100: (offNutriments.vitamin_a_100g as Object?).asDoubleOrNull(),
-      vitaminC100: (offNutriments.vitamin_c_100g as Object?).asDoubleOrNull(),
-      vitaminD100: (offNutriments.vitamin_d_100g as Object?).asDoubleOrNull(),
-      vitaminB6100: (offNutriments.vitamin_b6_100g as Object?).asDoubleOrNull(),
-      vitaminB12100:
-          (offNutriments.vitamin_b12_100g as Object?).asDoubleOrNull(),
-      niacin100: (offNutriments.niacin_100g as Object?).asDoubleOrNull(),
+      vitaminA100: _gToUg(
+        (offNutriments.vitamin_a_100g as Object?).asDoubleOrNull(),
+      ),
+      vitaminC100: _gToMg(
+        (offNutriments.vitamin_c_100g as Object?).asDoubleOrNull(),
+      ),
+      vitaminD100: _gToUg(
+        (offNutriments.vitamin_d_100g as Object?).asDoubleOrNull(),
+      ),
+      vitaminB6100: _gToMg(
+        (offNutriments.vitamin_b6_100g as Object?).asDoubleOrNull(),
+      ),
+      vitaminB12100: _gToUg(
+        (offNutriments.vitamin_b12_100g as Object?).asDoubleOrNull(),
+      ),
+      niacin100: _gToMg(
+        (offNutriments.niacin_100g as Object?).asDoubleOrNull(),
+      ),
     );
   }
+
+  /// Open Food Facts normalises every `<nutrient>_100g` field to grams, while
+  /// this entity carries each micronutrient in the unit the app displays it
+  /// in: milligrams for the minerals, micrograms for vitamins A, D and B12.
+  /// The field comments above are the reference for which is which.
+  ///
+  /// Without these two conversions a product's 2.1 mg of iron was stored as
+  /// 0.0021 and its 5 µg of vitamin D as 0.000005, which is why vitamin D
+  /// read `0.00µg` everywhere and why an OFF food contributed essentially
+  /// nothing to the daily micronutrient panel (#716).
+  ///
+  /// The other two sources need no conversion: the Supabase view already
+  /// pivots into the app's units, and FDC publishes these nutrients in mg and
+  /// µg natively.
+  static double? _gToMg(double? grams) => grams == null ? null : grams * 1000;
+
+  static double? _gToUg(double? grams) =>
+      grams == null ? null : grams * 1000000;
 
   /// Nutrients from the Supabase `food_summary` view. The view already
   /// pivots the canonical per-100g nutrient rows into flat columns in the

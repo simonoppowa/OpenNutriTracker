@@ -246,7 +246,11 @@ void main() {
       expect(entity.carbohydrates100, 25.0);
     });
 
-    test('maps all micronutrient fields correctly', () {
+    // Every value below is what Open Food Facts actually sends: it normalises
+    // each `<nutrient>_100g` field to grams, whatever unit the label used.
+    // The expectations are the app's own units, so this is the conversion
+    // #716 was missing, read in both directions at once.
+    test('converts micronutrients out of the grams OFF sends them in', () {
       final entity = MealNutrimentsEntity.fromOffNutriments(buildDto(
         energyKcal: 0,
         carbs: 0,
@@ -258,39 +262,122 @@ void main() {
         monounsaturatedFat: 1.1,
         polyunsaturatedFat: 2.2,
         transFat: 0.5,
-        cholesterol: 55.0,
+        cholesterol: 0.055,
         sodium: 0.12,
         potassium: 0.3,
-        magnesium: 25.0,
-        calcium: 100.0,
-        iron: 2.0,
-        zinc: 1.0,
-        phosphorus: 150.0,
-        vitaminA: 90.0,
-        vitaminC: 45.0,
-        vitaminD: 5.0,
-        vitaminB6: 0.3,
-        vitaminB12: 1.5,
-        niacin: 8.0,
+        magnesium: 0.025,
+        calcium: 0.1,
+        iron: 0.002,
+        zinc: 0.001,
+        phosphorus: 0.15,
+        vitaminA: 0.00009,
+        vitaminC: 0.045,
+        vitaminD: 0.000005,
+        vitaminB6: 0.0003,
+        vitaminB12: 0.0000015,
+        niacin: 0.008,
       ));
 
+      // Lipids are grams on both sides, so they pass straight through.
       expect(entity.monounsaturatedFat100, 1.1);
       expect(entity.polyunsaturatedFat100, 2.2);
       expect(entity.transFat100, 0.5);
+      // Milligrams from here down.
       expect(entity.cholesterol100, 55.0);
-      expect(entity.sodium100, 0.12);
-      expect(entity.potassium100, 0.3);
+      expect(entity.sodium100, 120.0);
+      expect(entity.potassium100, 300.0);
       expect(entity.magnesium100, 25.0);
       expect(entity.calcium100, 100.0);
       expect(entity.iron100, 2.0);
       expect(entity.zinc100, 1.0);
       expect(entity.phosphorus100, 150.0);
+      // Micrograms for A, D and B12; the rest of the vitamins are milligrams.
       expect(entity.vitaminA100, 90.0);
       expect(entity.vitaminC100, 45.0);
       expect(entity.vitaminD100, 5.0);
       expect(entity.vitaminB6100, 0.3);
       expect(entity.vitaminB12100, 1.5);
       expect(entity.niacin100, 8.0);
+    });
+
+    // Values copied from live OFF responses rather than invented, so the
+    // fixture cannot drift away from what the API really sends: iron for
+    // barcode 3168930010265 and sodium for 3017620422003, both reported with
+    // `_unit: "g"`.
+    test('matches what the live OFF API returns for real barcodes', () {
+      final entity = MealNutrimentsEntity.fromOffNutriments(buildDto(
+        iron: 0.0021,
+        sodium: 0.0428,
+      ));
+
+      expect(entity.iron100, closeTo(2.1, 1e-9));
+      expect(entity.sodium100, closeTo(42.8, 1e-9));
+    });
+
+    // The point of #716 in one assertion: the same food should read the same
+    // whichever database it came from. Before the conversion the OFF entity
+    // was a thousand times smaller than the FDC one on every mineral, and a
+    // million times smaller on vitamins A, D and B12.
+    test('agrees with the FDC mapping for the same food', () {
+      final fromOff = MealNutrimentsEntity.fromOffNutriments(buildDto(
+        cholesterol: 0.055,
+        sodium: 0.12,
+        potassium: 0.3,
+        magnesium: 0.025,
+        calcium: 0.1,
+        iron: 0.002,
+        zinc: 0.001,
+        phosphorus: 0.15,
+        vitaminA: 0.00009,
+        vitaminC: 0.045,
+        vitaminD: 0.000005,
+        vitaminB6: 0.0003,
+        vitaminB12: 0.0000015,
+        niacin: 0.008,
+      ));
+      final fromFdc = MealNutrimentsEntity.fromFDCNutriments([
+        _fdc(FDCConst.fdcCholesterolId, 55),
+        _fdc(FDCConst.fdcSodiumId, 120),
+        _fdc(FDCConst.fdcPotassiumId, 300),
+        _fdc(FDCConst.fdcMagnesiumId, 25),
+        _fdc(FDCConst.fdcCalciumId, 100),
+        _fdc(FDCConst.fdcIronId, 2),
+        _fdc(FDCConst.fdcZincId, 1),
+        _fdc(FDCConst.fdcPhosphorusId, 150),
+        _fdc(FDCConst.fdcVitaminAId, 90),
+        _fdc(FDCConst.fdcVitaminCId, 45),
+        _fdc(FDCConst.fdcVitaminDId, 5),
+        _fdc(FDCConst.fdcVitaminB6Id, 0.3),
+        _fdc(FDCConst.fdcVitaminB12Id, 1.5),
+        _fdc(FDCConst.fdcNiacinId, 8),
+      ]);
+
+      expect(fromOff.cholesterol100, fromFdc.cholesterol100);
+      expect(fromOff.sodium100, fromFdc.sodium100);
+      expect(fromOff.potassium100, fromFdc.potassium100);
+      expect(fromOff.magnesium100, fromFdc.magnesium100);
+      expect(fromOff.calcium100, fromFdc.calcium100);
+      expect(fromOff.iron100, fromFdc.iron100);
+      expect(fromOff.zinc100, fromFdc.zinc100);
+      expect(fromOff.phosphorus100, fromFdc.phosphorus100);
+      expect(fromOff.vitaminA100, fromFdc.vitaminA100);
+      expect(fromOff.vitaminC100, fromFdc.vitaminC100);
+      expect(fromOff.vitaminD100, fromFdc.vitaminD100);
+      expect(fromOff.vitaminB6100, fromFdc.vitaminB6100);
+      expect(fromOff.vitaminB12100, fromFdc.vitaminB12100);
+      expect(fromOff.niacin100, fromFdc.niacin100);
+    });
+
+    // A declared zero is a fact about the food and has to survive the
+    // conversion as a zero, not become a null the panel then ignores.
+    test('keeps a declared zero as zero rather than null', () {
+      final entity = MealNutrimentsEntity.fromOffNutriments(buildDto(
+        sodium: 0,
+        vitaminD: 0.0,
+      ));
+
+      expect(entity.sodium100, 0.0);
+      expect(entity.vitaminD100, 0.0);
     });
 
     test('absent micronutrients are null', () {
@@ -307,6 +394,7 @@ void main() {
       expect(entity.monounsaturatedFat100, isNull);
       expect(entity.sodium100, isNull);
       expect(entity.vitaminC100, isNull);
+      expect(entity.vitaminD100, isNull);
     });
 
     test('returns empty entity when DTO is null', () {
