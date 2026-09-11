@@ -38,30 +38,29 @@ largest single block is the bare units: 3,951 rows on 3,494 foods whose
 whole label is `oz`, `fl oz`, `lb`, `ml`, `liter` or `g`, and 4,028 rows on
 3,569 foods that yield no term once the matcher strips parentheticals (`oz
 (3 oz)` and `lb 16 oz` join, `liter` leaves) — labels the matcher cannot
-tokenise at all, since it drops terms under three letters. The count would
-have to be synthesised:
-3,458 deliverable rows have `amount <> 1`, so the bare label `oz` stands for
-85 g on 1,431 rows and 113 g on 638, and 307 foods would list the same label
-twice. The RPC's own regex catches all 108 `NFS` / `yields` / `NS as to` rows
-but passes 626 `(yield from 1 lb …)` rows, because those say `yield`, not
-`yields`. On which record the app receives: `search_food_summary` has no
-`ORDER BY` and returns the materialized view in heap order, survey rows
-first, so for seven of the twelve terms no SR Legacy record can enter the
-100-row pool at all; the Dart ranker, run on the exported pools in the
-backend's order, lands every one of the eleven terms that return anything on
-a survey record, and on the record #1155 tabulated in only four cases
-(banana, bread, coffee, pasta), and `yoghurt` returns nothing because every
-record is spelled *Yogurt*. Which sibling wins among records with the same
-shown name is decided by the order the search cache hands back, which the
-harness did not model; for ten of the eleven terms every such sibling is a
-survey record, for `chicken breast` one is SR Legacy (174608). On the AI
-path an SR Legacy record sits at #2 in the candidate list for banana,
-chicken breast and almonds, carrying portions and selectable on the review
-screen. Translation: zero `food_portion_translation` rows point at any
-NULL-description portion; 39 of the 109 seeded labels equal a modifier with
-`1 ` prepended, which is honest on the 4,387 rows (3,580 foods) at `amount =
-1`; every exposed label would otherwise be English with `localized = false` in
-all nine locales.
+tokenise at all, since it drops terms under three letters. The label alone
+carries no count: 3,458 deliverable rows have `amount <> 1`, so the bare
+label `oz` stands for 85 g on 1,431 rows and 113 g on 638, and 307 foods
+would list the same label twice. The RPC's own regex catches all 108 `NFS`
+/ `yields` / `NS as to` rows but passes 626 `(yield from 1 lb …)` rows,
+because those say `yield`, not `yields`. On which record the app receives:
+`search_food_summary` has no `ORDER BY` and returns the materialized view
+in heap order, survey rows first, so for seven of the twelve terms no SR
+Legacy record can enter the 100-row pool at all; the Dart ranker, run on
+the exported pools in the backend's order, lands every one of the eleven
+terms that return anything on a survey record, and on the record #1155
+tabulated in only four cases (banana, bread, coffee, pasta), and `yoghurt`
+returns nothing because every record is spelled *Yogurt*. Which sibling
+wins among records with the same shown name is decided by the order the
+search cache hands back, which the harness did not model; for ten of the
+eleven terms every such sibling is a survey record, for `chicken breast`
+one is SR Legacy (174608). On the AI path an SR Legacy record sits at #2 in
+the candidate list for banana, chicken breast and almonds, carrying
+portions and selectable on the review screen. Translation: zero
+`food_portion_translation` rows point at any NULL-description portion; 39
+of the 109 seeded labels equal a modifier with `1 ` prepended, which is
+honest on the 4,387 rows (3,580 foods) at `amount = 1`; every exposed label
+would otherwise be English with `localized = false` in all nine locales.
 
 ## Method
 
@@ -157,8 +156,9 @@ state the app is ever in: `searchFDCFoodByString` writes the 20 rows to the
 search cache and `_buildResult` reads them back sorted by cache timestamp
 before the ranker sees them (see [step 3](#the-app-side-re-ranking-as-read-from-the-code)),
 so the harness's order is the app's only when that sort preserves it. The
-test file and the copied generated files were removed afterwards. See [The
-harness run](#the-harness-run).
+test file and the copied generated files were removed from the worktree
+afterwards; the file and its output are printed in full in [The harness
+run](#the-harness-run).
 
 
 ## What `modifier` holds
@@ -869,12 +869,16 @@ SELECT label, count(*) AS rows FROM sr WHERE label ~* '\myield\M' GROUP BY 1 ORD
 No deliverable label is a bare number, and none is a number followed by a
 unit — the count is never in the text. But 3,951 rows on 3,494 foods are a
 bare weight or volume unit and nothing else (`oz` 3,166, `fl oz` 492, `lb`
-281, `ml` 8, `liter` 3, `g` 1); after the matcher's parenthetical strip, 80
+281, `ml` 8, `liter` 3, `g` 1); after the matcher's parenthetical strip, 79
 more join them (`oz (3 oz)`, `oz (1 serving)`, `oz (28 almonds)`), 4,030
-rows on 3,569 foods. 4,028 of those rows have no run of three or more
-letters left, so `_termsOf` yields no term and the matcher can never pick
-them, while `fetchPortions` would still list them; `liter` is the only bare
-unit that tokenises. Counting `cubic inch` as a unit too, 1,026 SR Legacy
+rows on 3,569 foods — 80 labels open a parenthesis right after a unit, but
+`lb (with shell), yield after shell removed` keeps its tail once the
+parenthetical is gone and is not one of the 79. Of the 4,030, 4,027 have no
+run of three or more letters left; the 3 `liter` rows are the only bare
+unit that tokenises. `lb 16 oz`, not a bare unit, has no such run either,
+so 4,028 rows on 3,569 foods yield no term: `_termsOf` finds nothing, the
+matcher can never pick them, and `fetchPortions` would still list them.
+Counting `cubic inch` as a unit too, 1,026 SR Legacy
 foods have nothing but bare units in `modifier`. On the deliverable rows,
 1,028 of the 7,529 foods carry only the five bare units `oz`, `fl oz`, `lb`,
 `g` and `ml`, and 1,042 have no row at all that yields a term — the food
@@ -909,6 +913,33 @@ SELECT count(*) AS delivered_rows, count(DISTINCT food_id) AS delivered_foods,
 FROM sr;
 -- 14341 | 7529 | 0 | 0 | 3951 | 3494 | 4030 | 3569 | 0 | 0 | 80
 
+WITH sr AS (SELECT fp.*, coalesce(fp.portion_description, fp.modifier) AS label,
+                   btrim(regexp_replace(coalesce(fp.portion_description, fp.modifier), '\([^)]*\)', ' ', 'g')) AS stripped
+            FROM food_portion fp JOIN food f ON f.id = fp.food_id
+            WHERE f.source = 'fdc_sr_legacy' AND coalesce(fp.portion_description, fp.modifier) IS NOT NULL
+              AND coalesce(fp.portion_description, fp.modifier) <> 'Quantity not specified' AND fp.gram_weight IS NOT NULL AND fp.gram_weight > 0
+              AND coalesce(fp.portion_description, fp.modifier) !~* '\mNFS\M|\mNS as to\M|\myields\M|^Guideline amount')
+SELECT count(*) AS joined_by_strip, count(DISTINCT food_id) AS joined_foods, string_agg(DISTINCT label, ' ; ') AS labels
+FROM sr WHERE stripped ~* '^(oz|fl oz|fl\.? ?oz\.?|lb|lbs|g|kg|mg|ml|l|gram|grams|ounce|ounces|pound|pounds|liter|liters|litre|litres|gallon|gallons)$'
+  AND btrim(label) !~* '^(oz|fl oz|fl\.? ?oz\.?|lb|lbs|g|kg|mg|ml|l|gram|grams|ounce|ounces|pound|pounds|liter|liters|litre|litres|gallon|gallons)$';
+-- 79 | 79 | fl oz (1 NLEA serving) ; fl oz (1 serving) ; fl oz (approximate weight, 1 serving) ; oz ( 1 serving  ) ; oz ( 1 serving ) ; oz ( 1serving ) ;
+-- oz (1 serving) ; oz (10-12 kernels) ; oz (14 halves) ; oz (14 kernels) ; oz (15 halves) ; oz (15 kernels) ; oz (167 kernels) ; oz (18 kernels) ;
+-- oz (19 halves) ; oz (21 whole kernels) ; oz (22 whole kernels) ; oz (23 whole kernels) ; oz (28 almonds) ; oz (3 oz) ; oz (4 oz) ;
+-- oz (42 medium seeds) ; oz (49 kernels) ; oz (6 kernels) ; oz (60 raisins) ; oz (8-14 seeds) ; oz (85 seeds) ;
+-- oz (Yield from 1 cooked roast, with refuse, weighing 1515g) ; oz (approx 2/3 cup) ; oz (approx 60 pcs)
+
+WITH sr AS (SELECT fp.*, coalesce(fp.portion_description, fp.modifier) AS label,
+                   btrim(regexp_replace(coalesce(fp.portion_description, fp.modifier), '\([^)]*\)', ' ', 'g')) AS stripped
+            FROM food_portion fp JOIN food f ON f.id = fp.food_id
+            WHERE f.source = 'fdc_sr_legacy' AND coalesce(fp.portion_description, fp.modifier) IS NOT NULL
+              AND coalesce(fp.portion_description, fp.modifier) <> 'Quantity not specified' AND fp.gram_weight IS NOT NULL AND fp.gram_weight > 0
+              AND coalesce(fp.portion_description, fp.modifier) !~* '\mNFS\M|\mNS as to\M|\myields\M|^Guideline amount')
+SELECT label, stripped, count(*) AS rows FROM sr
+WHERE btrim(label) ~* '^(oz|fl oz|lb|g|ml|kg)\s*\('
+  AND stripped !~* '^(oz|fl oz|fl\.? ?oz\.?|lb|lbs|g|kg|mg|ml|l|gram|grams|ounce|ounces|pound|pounds|liter|liters|litre|litres|gallon|gallons)$'
+GROUP BY 1,2;
+-- lb (with shell), yield after shell removed | lb  , yield after shell removed | 1
+
 WITH sr AS (SELECT fp.*, coalesce(fp.portion_description, fp.modifier) AS label FROM food_portion fp JOIN food f ON f.id = fp.food_id
             WHERE f.source = 'fdc_sr_legacy' AND fp.gram_weight > 0 AND coalesce(fp.portion_description, fp.modifier) !~* '\mNFS\M|\mNS as to\M|\myields\M|^Guideline amount')
 SELECT label, count(*) AS rows, count(DISTINCT food_id) AS foods, min(amount) AS min_amount, max(amount) AS max_amount, min(gram_weight) AS min_g, max(gram_weight) AS max_g
@@ -922,6 +953,22 @@ WITH sr AS (SELECT fp.id, fp.food_id, fp.modifier AS label, regexp_replace(fp.mo
 SELECT count(*) AS rows_no_term, count(DISTINCT food_id) AS foods_no_term, string_agg(DISTINCT label, ' ; ' ORDER BY label) AS labels
 FROM sr WHERE NOT EXISTS (SELECT 1 FROM regexp_split_to_table(matchable, '[^[:alpha:]]+') t WHERE length(t) >= 3);
 -- 4028 | 3569 | oz ; fl oz ; lb ; g ; ml ; lb 16 oz ; oz (3 oz) ; oz (1 serving) ; oz (28 almonds) ; …
+
+WITH sr AS (SELECT fp.id, fp.food_id, fp.modifier AS label, btrim(regexp_replace(fp.modifier, '\([^)]*\)', ' ', 'g')) AS stripped,
+                   EXISTS (SELECT 1 FROM regexp_split_to_table(regexp_replace(fp.modifier, '\([^)]*\)', ' ', 'g'), '[^[:alpha:]]+') t WHERE length(t) >= 3) AS has_term
+            FROM food_portion fp JOIN food f ON f.id = fp.food_id
+            WHERE f.source = 'fdc_sr_legacy' AND fp.gram_weight > 0 AND fp.modifier !~* '\mNFS\M|\mNS as to\M|\myields\M|^Guideline amount'),
+     bu AS (SELECT *, stripped ~* '^(oz|fl oz|fl\.? ?oz\.?|lb|lbs|g|kg|mg|ml|l|gram|grams|ounce|ounces|pound|pounds|liter|liters|litre|litres|gallon|gallons)$' AS bare_unit_stripped FROM sr)
+SELECT count(*) FILTER (WHERE bare_unit_stripped) AS bare_unit_stripped_rows,
+       count(DISTINCT food_id) FILTER (WHERE bare_unit_stripped) AS bare_unit_stripped_foods,
+       count(*) FILTER (WHERE bare_unit_stripped AND NOT has_term) AS of_those_no_term,
+       count(*) FILTER (WHERE NOT has_term) AS no_term_rows,
+       count(DISTINCT food_id) FILTER (WHERE NOT has_term) AS no_term_foods,
+       count(*) FILTER (WHERE NOT has_term AND NOT bare_unit_stripped) AS no_term_but_not_bare_unit,
+       string_agg(DISTINCT label, ' ; ') FILTER (WHERE NOT has_term AND NOT bare_unit_stripped) AS those_labels,
+       string_agg(DISTINCT label, ' ; ') FILTER (WHERE bare_unit_stripped AND has_term) AS bare_units_with_term
+FROM bu;
+-- 4030 | 3569 | 4027 | 4028 | 3569 | 1 | lb 16 oz | liter
 
 WITH sr AS (SELECT fp.food_id, fp.modifier AS label,
                    EXISTS (SELECT 1 FROM regexp_split_to_table(regexp_replace(fp.modifier, '\([^)]*\)', ' ', 'g'), '[^[:alpha:]]+') t WHERE length(t) >= 3) AS has_term
@@ -1045,9 +1092,10 @@ WHERE f.source = 'fdc_sr_legacy' AND f.description = 'Bananas, raw' ORDER BY fp.
 
 ### `gram_weight`
 
-Nothing to guard against. The column is `numeric NOT NULL` by schema; on
-the NULL-description rows it is positive everywhere — 14,449 SR Legacy rows
-in 0.1–5,717 g, 186 Foundation rows in 3.2–980 g. Table-wide exactly one
+The column is `numeric NOT NULL` by schema, and on the NULL-description
+rows it is positive everywhere — 14,449 SR Legacy rows in 0.1–5,717 g, 186
+Foundation rows in 3.2–980 g — so the RPC's `gram_weight IS NOT NULL AND
+gram_weight > 0` clause removes none of them. Table-wide exactly one
 `food_portion` row has `gram_weight <= 0`, and it is a survey row the RPC
 already drops.
 
@@ -1388,9 +1436,11 @@ is client-side, in four steps; line numbers are on `origin/develop` at
    of the remote list (211–217), deduplicated by `source:code` with the
    first occurrence kept (229–241). So on every call the 20 fresh rows
    re-enter through the cache: their order is the cache's timestamp order —
-   `List.sort` (158–166), which Dart documents as not stable and which
-   falls back to insertion sort only for 32 elements or fewer, so the 20
-   equal timestamps keep their order only while the box is that small — and
+   `List.sort` (158–166), which Dart documents as not stable and which, in
+   the pinned SDK's `lib/internal/sort.dart`, is an insertion sort only for
+   33 elements or fewer (`_doSort(a, 0, a.length - 1)` takes that branch
+   when `right - left <= 32`), so the 20 equal timestamps keep their order
+   only while the box is that small — and
    a fresh row whose shown name lacks the query word (`Nuts` for `almonds`,
    `Candies`) falls behind every cached match. No scoring. This is what the
    Food tab shows
@@ -1419,10 +1469,18 @@ is client-side, in four steps; line numbers are on `origin/develop` at
    `selectedIndex` is always 0 (130–135); `kResolutionConfidenceFloor` 0.45
    (line 14) only flags, never re-picks.
 
-Does the ranker favour a backend? No scorer reads `backendSource`; `source`
-is read only to put custom meals and recipes in their own tier
-(`mergeAndRankMeals` 73, `rankForResolution` 168–170) and, in step 3, to
-filter the cache to the tab and to the user's source toggles. An exact
+Does the ranker favour a backend? No scorer reads `backendSource`. `source`
+is read to put custom meals and recipes in their own tier
+(`mergeAndRankMeals` 73, `rankForResolution` 168–170), as the prefix of the
+`source:code` dedup keys (`_deduplicateAcrossSources` 87,
+`_deduplicateMeals` in `search_products_usecase.dart` 234, and
+`_nearDuplicateKey` 124 for nameless meals only) and, in step 3, to keep
+the intake-history hits that are custom meals (175) and to filter the cache
+to the tab and, with `backendSource`, to the user's source toggles
+(198–201). None of those reads separates one backend from another:
+`MealEntity.fromSpFood` gives every Supabase record `source =
+MealSourceEntity.fdc` and keeps the origin in `backendSource`
+(`meal_entity.dart` 335–336). An exact
 title? Yes: an exact normalized shown name scores 1.0 and, under the 0.9
 cap, beats every non-exact one. Shorter names? Yes, through Dice and the
 contains / prefix bonuses. Records with portions? No scorer reads
@@ -1494,8 +1552,54 @@ pick ([`bulk_add_screen.dart`](../lib/features/add_meal/presentation/screens/bul
 171688 and *Egg, whole, raw, fresh* 171287 that #1155 named never appear in
 any top 20.
 
-The harness input is the exact export below; its output and the SQL files
-sit in the scratchpad directory named in [Reproducing](#reproducing).
+The per-term table below is read off the harness output, which is printed
+in full after the harness; it is what [What this means for the
+map](#what-this-means-for-the-map) cites. "Sources in the 20" and the SR
+Legacy ranks come from the output's `SR Legacy rows in the app's top 20`
+line, the group from its `records sharing the winner's shown name` line,
+and the #2 from its `after rankForResolution` block; the source of each
+group member is from the SQL under the table.
+
+| Term | Sources in the 20 | SR Legacy in the 20 (rank: code) | Rows after collapse | Winner's group | Non-survey in the group | #2 after resolution |
+| --- | --- | --- | ---: | --- | --- | --- |
+| banana | survey 8, BLS 8, SR Legacy 4 | #15 167629, #16 168849, #17 169394, #18 173945 | 18 | 2: 2709224, 2709225 | none | 173945 SR Legacy, 0.857 |
+| apple | survey 17, SR Legacy 3 | #13 168816, #14 170959, #20 167729 | 14 | 4: 2709196, 2709215, 2709220, 2709294 | none | 2709319 survey, 0.667 |
+| rice | survey 20 | none | 15 | 4: 2708402, 2708404, 2708405, 2708406 | none | 2705411 survey, 0.667 |
+| chicken breast | survey 6, BLS 10, SR Legacy 3, Foundation 1 | #4 171515, #5 174608, #20 171514 | 6 | 9: 2705963, 2705965, 2705971, 174608, 10001201, 10003393, 2705964, 2705966, 2705972 | 174608 SR Legacy; 10001201, 10003393 BLS | 171515 SR Legacy, 0.800 |
+| salad | survey 20 | none | 20 | 1: 2706826 | none | 2706749 survey, 0.667 |
+| bread | survey 20 | none | 3 | 18 (codes in the output) | none | 2707626 survey, 0.667 |
+| egg | survey 20 | none | 6 | 15 (codes in the output) | none | 2707182 survey, 0.667 |
+| milk | survey 20 | none | 8 | 13 (codes in the output) | none | 2705510 survey, 0.667 |
+| coffee | survey 20 | none | 2 | 16 (codes in the output) | none | 2705599 survey, 0.667 |
+| pasta | survey 20 | none | 10 | 5: 2708357, 2708351, 2708359, 2708358, 2708903 | none | 2708828 survey, 0.500 |
+| yoghurt | empty pool | none | 0 | — | — | — |
+| almonds | survey 8, SR Legacy 10, Foundation 2 | #6 170567, #10 170568, #12 169060, #13 170656, #14 168592, #15 168754, #16 168602, #18 168596, #19 169419, #20 170158 | 3 | 8: 2707485, 2707486, 2707487, 2707489, 2707490, 2707488, 2707491, 2710326 | none | 170567 SR Legacy, 0.000 |
+
+```sql
+WITH g(term, food_id) AS (VALUES
+  ('banana',2709224),('banana',2709225),
+  ('apple',2709196),('apple',2709215),('apple',2709220),('apple',2709294),
+  ('rice',2708402),('rice',2708404),('rice',2708405),('rice',2708406),
+  ('chicken breast',2705963),('chicken breast',2705965),('chicken breast',2705971),('chicken breast',174608),('chicken breast',10001201),('chicken breast',10003393),('chicken breast',2705964),('chicken breast',2705966),('chicken breast',2705972),
+  ('salad',2706826),
+  ('bread',2707598),('bread',2707604),('bread',2707613),('bread',2707616),('bread',2707618),('bread',2707620),('bread',2707599),('bread',2707605),('bread',2707619),('bread',2707621),('bread',2707625),('bread',2707610),('bread',2707614),('bread',2707617),('bread',2707622),('bread',2707608),('bread',2707611),('bread',2707615),
+  ('egg',2707179),('egg',2707180),('egg',2707181),('egg',2707152),('egg',2707167),('egg',2707168),('egg',2707172),('egg',2707158),('egg',2707154),('egg',2707157),('egg',2707159),('egg',2707166),('egg',2707171),('egg',2707156),('egg',2707161),
+  ('milk',2705383),('milk',2705384),('milk',2705385),('milk',2705501),('milk',2705399),('milk',2705402),('milk',2705386),('milk',2705387),('milk',2705388),('milk',2705392),('milk',2705396),('milk',2705397),('milk',2705585),
+  ('coffee',2710375),('coffee',2710377),('coffee',2710378),('coffee',2710381),('coffee',2710382),('coffee',2710386),('coffee',2710379),('coffee',2710380),('coffee',2710383),('coffee',2710387),('coffee',2710389),('coffee',2710392),('coffee',2710410),('coffee',2710431),('coffee',2710449),('coffee',2710452),
+  ('pasta',2708357),('pasta',2708351),('pasta',2708359),('pasta',2708358),('pasta',2708903),
+  ('almonds',2707485),('almonds',2707486),('almonds',2707487),('almonds',2707489),('almonds',2707490),('almonds',2707488),('almonds',2707491),('almonds',2710326))
+SELECT g.term, count(*) AS members,
+       count(*) FILTER (WHERE f.source = 'fdc_survey') AS survey,
+       string_agg(f.id::text || ' ' || f.source, ', ' ORDER BY f.id) FILTER (WHERE f.source <> 'fdc_survey') AS non_survey
+FROM g JOIN food f ON f.id = g.food_id
+GROUP BY g.term
+ORDER BY array_position(ARRAY['banana','apple','rice','chicken breast','salad','bread','egg','milk','coffee','pasta','almonds'], g.term);
+-- banana 2 | 2 ; apple 4 | 4 ; rice 4 | 4 ; chicken breast 9 | 6 | 174608 fdc_sr_legacy, 10001201 bls, 10003393 bls ; salad 1 | 1 ;
+-- bread 18 | 18 ; egg 15 | 15 ; milk 13 | 13 ; coffee 16 | 16 ; pasta 5 | 5 ; almonds 8 | 8
+```
+
+The harness input is the exact export below, followed by the harness
+itself and the output it wrote.
 
 ```sql
 WITH terms(term) AS (VALUES ('banana'),('apple'),('rice'),('chicken breast'),('salad'),('bread'),('egg'),('milk'),('coffee'),('pasta'),('yoghurt'),('almonds'))
@@ -1505,6 +1609,358 @@ FROM (
           FROM search_food_summary(t.term, NULL, 100) WITH ORDINALITY AS s(food_id, source, source_code, name, short_title, brands, barcode, category, serving_quantity, serving_unit, serving_size, serving_gram_weight, thumbnail_url, main_image_url, tags, energy_kcal_100, carbohydrates_100, fat_100, proteins_100, sugars_100, saturated_fat_100, fiber_100, monounsaturated_fat_100, polyunsaturated_fat_100, trans_fat_100, cholesterol_100, sodium_100, potassium_100, magnesium_100, calcium_100, iron_100, zinc_100, phosphorus_100, vitamin_a_100, vitamin_c_100, vitamin_d_100, vitamin_b6_100, vitamin_b12_100, niacin_100, ord)), '[]'::json) AS rows
   FROM terms t) x;
 -- pool.json: 91 / 100 / 100 / 98 / 100 / 100 / 100 / 100 / 100 / 100 / 0 / 100 rows
+```
+
+The harness, verbatim as run (`poolPath` and `outPath` are the only lines
+to change to re-run it elsewhere):
+
+```dart
+// Throwaway harness for #1163: replays the app's client-side ranking over the
+// exact 100-row pools search_food_summary(term, NULL, 100) returned, in the
+// backend's order. Not committed. Uses the real functions from lib/.
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:collection/collection.dart';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
+import 'package:opennutritracker/features/add_meal/util/resolver_relevance.dart';
+
+const poolPath =
+    '/tmp/claude-1000/-home-simon-Documents-OpenNutriTracker/0432813e-4e04-4656-9928-de37c0feaf90/scratchpad/q1163b/pool.json';
+const outPath =
+    '/tmp/claude-1000/-home-simon-Documents-OpenNutriTracker/0432813e-4e04-4656-9928-de37c0feaf90/scratchpad/q1163b/ranker_out.txt';
+
+const surveyIds = <String, int>{
+  'banana': 2709224, 'apple': 2709215, 'rice': 2708408, 'chicken breast': 2705956,
+  'salad': 2709789, 'bread': 2707598, 'egg': 2707152, 'milk': 2705385,
+  'coffee': 2710375, 'pasta': 2708357, 'yoghurt': 2705418, 'almonds': 2707486,
+};
+
+String fmt(MealEntity m, Map<String, Map<String, dynamic>> byCode) {
+  final row = byCode[m.code];
+  return '${m.code} ${m.backendSource} "${row?['name']}" (name shown: "${m.name}")';
+}
+
+int rankOf(List<MealEntity> list, int id) {
+  final i = list.indexWhere((m) => m.code == '$id');
+  return i < 0 ? -1 : i + 1;
+}
+
+void main() {
+  test('replay app ranking over backend pools', () {
+    final pools = jsonDecode(File(poolPath).readAsStringSync()) as Map<String, dynamic>;
+    final out = StringBuffer();
+    for (final term in surveyIds.keys) {
+      final rows = (pools[term] as List).cast<Map<String, dynamic>>();
+      final byCode = {for (final r in rows) '${r['food_id']}': r};
+      final dtos = rows.map(SpFoodDTO.fromJson).toList();
+      // Step 1: SpFoodDataSource._searchEnglish -> rankAndTruncateFoodsByName (score on full name, take 20).
+      final truncated = rankAndTruncateFoodsByName(dtos, term);
+      // Step 2: ProductsRepository.getSupabaseFoodsByString -> MealEntity.fromSpFood + _keepIfConsistent.
+      final foodTab = truncated
+          .map(MealEntity.fromSpFood)
+          .where((m) => validateNutriments(m.nutriments).isConsistent)
+          .toList();
+      final dropped = truncated.length - foodTab.length;
+      // Step 3 (All tab and AI path): mergeAndRankMeals(off, fdc, query) with OFF empty.
+      final allTab = mergeAndRankMeals(const [], foodTab, term);
+      // Step 4 (AI path only): rankForResolution.
+      final resolved = rankForResolution(allTab, term);
+      final sid = surveyIds[term]!;
+      // Pre-truncation: where the survey record sits once the whole pool is scored on full name.
+      final scoredPool = [for (final d in dtos) (d: d, s: textRelevanceScore(d.name, term))];
+      final sortedPool = [...scoredPool]..sort((a, b) => b.s.compareTo(a.s)); // tie order irrelevant for the threshold
+      final surveyDto = dtos.where((d) => d.foodId == sid).firstOrNull;
+      final surveyScore = surveyDto == null ? null : textRelevanceScore(surveyDto.name, term);
+      final twentieth = sortedPool.length >= 20 ? sortedPool[19].s : null;
+      out.writeln('=== $term  pool=${rows.length} truncated=${truncated.length} consistencyDropped=$dropped foodTab=${foodTab.length} afterCollapse=${allTab.length}');
+      out.writeln('-- survey $sid in pool: ${surveyDto != null}; its full-name score=${surveyScore?.toStringAsFixed(3)}; 20th-best score in pool=${twentieth?.toStringAsFixed(3)}; pool rows scoring > survey: ${surveyScore == null ? 'n/a' : scoredPool.where((e) => e.s > surveyScore).length}, == survey: ${surveyScore == null ? 'n/a' : scoredPool.where((e) => e.s == surveyScore).length}');
+      final srInTop20 = [for (final (i, m) in foodTab.indexed) if (m.backendSource == 'fdc_sr_legacy') '#${i + 1}:${m.code}'];
+      out.writeln('-- SR Legacy rows in the app\'s top 20 (Food tab): ${srInTop20.isEmpty ? 'none' : srInTop20.join(' ')}; sources in top 20: ${ {for (final m in foodTab) m.backendSource: foodTab.where((x) => x.backendSource == m.backendSource).length} }');
+      out.writeln('-- Food tab order (rankAndTruncateFoodsByName, scored on food_summary.name), top 5; survey $sid rank=${rankOf(foodTab, sid)}');
+      for (final m in foodTab.take(5)) {
+        final d = truncated.firstWhere((x) => '${x.foodId}' == m.code);
+        out.writeln('   score=${textRelevanceScore(d.name, term).toStringAsFixed(3)} ${fmt(m, byCode)}');
+      }
+      out.writeln('-- All tab / AI path after mergeAndRankMeals (OFF empty), top 5; survey $sid rank=${rankOf(allTab, sid)}');
+      for (final m in allTab.take(5)) {
+        out.writeln('   score=${scoreMealRelevance(m, term).toStringAsFixed(3)} ${fmt(m, byCode)}');
+      }
+      out.writeln('-- AI path after rankForResolution, top 5; survey $sid rank=${rankOf(resolved, sid)}');
+      for (final m in resolved.take(5)) {
+        out.writeln('   score=${scoreMealForResolution(m, term).toStringAsFixed(3)} ${fmt(m, byCode)}');
+      }
+      // Which records collapsed into the winner's near-duplicate group?
+      if (resolved.isNotEmpty) {
+        final winnerName = resolved.first.name?.trim().toLowerCase();
+        final group = foodTab.where((m) => m.name?.trim().toLowerCase() == winnerName).map((m) => m.code).toList();
+        out.writeln('-- records sharing the winner\'s shown name "${resolved.first.name}" in the Food-tab list (collapsed to one): $group');
+      }
+      out.writeln();
+    }
+    File(outPath).writeAsStringSync(out.toString());
+    // ignore: avoid_print
+    print(out);
+  });
+}
+```
+
+Its output, verbatim; every figure in this section and in [What this means
+for the map](#what-this-means-for-the-map) that is not a database figure
+is read from these lines:
+
+```text
+=== banana  pool=91 truncated=20 consistencyDropped=0 foodTab=20 afterCollapse=18
+-- survey 2709224 in pool: true; its full-name score=0.900; 20th-best score in pool=0.636; pool rows scoring > survey: 0, == survey: 11
+-- SR Legacy rows in the app's top 20 (Food tab): #15:167629 #16:168849 #17:169394 #18:173945; sources in top 20: {fdc_survey: 8, bls: 8, fdc_sr_legacy: 4}
+-- Food tab order (rankAndTruncateFoodsByName, scored on food_summary.name), top 5; survey 2709224 rank=4
+   score=0.900 2705660 fdc_survey "Banana split" (name shown: "Banana split")
+   score=0.900 2705697 fdc_survey "Banana pudding" (name shown: "Banana pudding")
+   score=0.900 2709200 fdc_survey "Banana chips" (name shown: "Banana chips")
+   score=0.900 2709224 fdc_survey "Banana, raw" (name shown: "Banana")
+   score=0.900 2709225 fdc_survey "Banana, baked" (name shown: "Banana")
+-- All tab / AI path after mergeAndRankMeals (OFF empty), top 5; survey 2709224 rank=1
+   score=1.000 2709224 fdc_survey "Banana, raw" (name shown: "Banana")
+   score=0.900 2705660 fdc_survey "Banana split" (name shown: "Banana split")
+   score=0.900 2705697 fdc_survey "Banana pudding" (name shown: "Banana pudding")
+   score=0.900 2709200 fdc_survey "Banana chips" (name shown: "Banana chips")
+   score=0.900 2709342 fdc_survey "Banana nectar" (name shown: "Banana nectar")
+-- AI path after rankForResolution, top 5; survey 2709224 rank=1
+   score=1.000 2709224 fdc_survey "Banana, raw" (name shown: "Banana")
+   score=0.857 173945 fdc_sr_legacy "Bananas, dehydrated, or banana powder" (name shown: "Bananas")
+   score=0.667 2705660 fdc_survey "Banana split" (name shown: "Banana split")
+   score=0.667 2705697 fdc_survey "Banana pudding" (name shown: "Banana pudding")
+   score=0.667 2709200 fdc_survey "Banana chips" (name shown: "Banana chips")
+-- records sharing the winner's shown name "Banana" in the Food-tab list (collapsed to one): [2709224, 2709225]
+
+=== apple  pool=100 truncated=20 consistencyDropped=0 foodTab=20 afterCollapse=14
+-- survey 2709215 in pool: true; its full-name score=0.900; 20th-best score in pool=0.600; pool rows scoring > survey: 0, == survey: 5
+-- SR Legacy rows in the app's top 20 (Food tab): #13:168816 #14:170959 #20:167729; sources in top 20: {fdc_survey: 17, fdc_sr_legacy: 3}
+-- Food tab order (rankAndTruncateFoodsByName, scored on food_summary.name), top 5; survey 2709215 rank=2
+   score=0.900 2709196 fdc_survey "Apple, dried" (name shown: "Apple")
+   score=0.900 2709215 fdc_survey "Apple, raw" (name shown: "Apple")
+   score=0.900 2709220 fdc_survey "Apple, baked" (name shown: "Apple")
+   score=0.900 2709294 fdc_survey "Apple, candied" (name shown: "Apple")
+   score=0.900 2709319 fdc_survey "Apple cider" (name shown: "Apple cider")
+-- All tab / AI path after mergeAndRankMeals (OFF empty), top 5; survey 2709215 rank=-1
+   score=1.000 2709196 fdc_survey "Apple, dried" (name shown: "Apple")
+   score=0.900 2709319 fdc_survey "Apple cider" (name shown: "Apple cider")
+   score=0.900 2709320 fdc_survey "Apple juice, 100%" (name shown: "Apple juice")
+   score=0.850 2709219 fdc_survey "Apple pie filling" (name shown: "Apple pie filling")
+   score=0.850 2710591 fdc_survey "Apple juice beverage, 40-50% juice, light" (name shown: "Apple juice beverage")
+-- AI path after rankForResolution, top 5; survey 2709215 rank=-1
+   score=1.000 2709196 fdc_survey "Apple, dried" (name shown: "Apple")
+   score=0.667 2709319 fdc_survey "Apple cider" (name shown: "Apple cider")
+   score=0.667 2709320 fdc_survey "Apple juice, 100%" (name shown: "Apple juice")
+   score=0.500 2709219 fdc_survey "Apple pie filling" (name shown: "Apple pie filling")
+   score=0.500 2710591 fdc_survey "Apple juice beverage, 40-50% juice, light" (name shown: "Apple juice beverage")
+-- records sharing the winner's shown name "Apple" in the Food-tab list (collapsed to one): [2709196, 2709215, 2709220, 2709294]
+
+=== rice  pool=100 truncated=20 consistencyDropped=0 foodTab=20 afterCollapse=15
+-- survey 2708408 in pool: false; its full-name score=null; 20th-best score in pool=0.600; pool rows scoring > survey: n/a, == survey: n/a
+-- SR Legacy rows in the app's top 20 (Food tab): none; sources in top 20: {fdc_survey: 20}
+-- Food tab order (rankAndTruncateFoodsByName, scored on food_summary.name), top 5; survey 2708408 rank=-1
+   score=0.900 2705411 fdc_survey "Rice milk" (name shown: "Rice milk")
+   score=0.900 2708162 fdc_survey "Rice cake" (name shown: "Rice cake")
+   score=0.900 2708166 fdc_survey "Rice paper" (name shown: "Rice paper")
+   score=0.867 2705685 fdc_survey "Pudding, rice" (name shown: "Pudding")
+   score=0.867 2707794 fdc_survey "Bread, rice" (name shown: "Bread")
+-- All tab / AI path after mergeAndRankMeals (OFF empty), top 5; survey 2708408 rank=-1
+   score=1.000 2708402 fdc_survey "Rice, cooked, NFS" (name shown: "Rice")
+   score=0.900 2705411 fdc_survey "Rice milk" (name shown: "Rice milk")
+   score=0.900 2708162 fdc_survey "Rice cake" (name shown: "Rice cake")
+   score=0.900 2708166 fdc_survey "Rice paper" (name shown: "Rice paper")
+   score=0.900 2708356 fdc_survey "Rice noodles, cooked" (name shown: "Rice noodles")
+-- AI path after rankForResolution, top 5; survey 2708408 rank=-1
+   score=1.000 2708402 fdc_survey "Rice, cooked, NFS" (name shown: "Rice")
+   score=0.667 2705411 fdc_survey "Rice milk" (name shown: "Rice milk")
+   score=0.667 2708162 fdc_survey "Rice cake" (name shown: "Rice cake")
+   score=0.667 2708166 fdc_survey "Rice paper" (name shown: "Rice paper")
+   score=0.667 2708356 fdc_survey "Rice noodles, cooked" (name shown: "Rice noodles")
+-- records sharing the winner's shown name "Rice" in the Food-tab list (collapsed to one): [2708402, 2708404, 2708405, 2708406]
+
+=== chicken breast  pool=98 truncated=20 consistencyDropped=0 foodTab=20 afterCollapse=6
+-- survey 2705956 in pool: true; its full-name score=0.658; 20th-best score in pool=0.850; pool rows scoring > survey: 52, == survey: 6
+-- SR Legacy rows in the app's top 20 (Food tab): #4:171515 #5:174608 #20:171514; sources in top 20: {fdc_survey: 6, fdc_sr_legacy: 3, bls: 10, fdc_foundation: 1}
+-- Food tab order (rankAndTruncateFoodsByName, scored on food_summary.name), top 5; survey 2705956 rank=-1
+   score=0.900 2705963 fdc_survey "Chicken breast, rotisserie, skin eaten" (name shown: "Chicken breast")
+   score=0.900 2705965 fdc_survey "Chicken breast, stewed, skin eaten" (name shown: "Chicken breast")
+   score=0.900 2705971 fdc_survey "Chicken breast, sauteed, skin eaten" (name shown: "Chicken breast")
+   score=0.900 171515 fdc_sr_legacy "Chicken breast tenders, breaded, uncooked" (name shown: "Chicken breast tenders")
+   score=0.900 174608 fdc_sr_legacy "Chicken breast, roll, oven-roasted" (name shown: "Chicken breast")
+-- All tab / AI path after mergeAndRankMeals (OFF empty), top 5; survey 2705956 rank=-1
+   score=1.000 2705963 fdc_survey "Chicken breast, rotisserie, skin eaten" (name shown: "Chicken breast")
+   score=0.900 171515 fdc_sr_legacy "Chicken breast tenders, breaded, uncooked" (name shown: "Chicken breast tenders")
+   score=0.900 10000950 bls "Chicken breast fillet, raw" (name shown: "Chicken breast fillet")
+   score=0.900 10002565 bls "Chicken breast fillet fried" (name shown: "Chicken breast fillet fried")
+   score=0.900 10006428 bls "Chicken breast fillet breaded, fried" (name shown: "Chicken breast fillet breaded")
+-- AI path after rankForResolution, top 5; survey 2705956 rank=-1
+   score=1.000 2705963 fdc_survey "Chicken breast, rotisserie, skin eaten" (name shown: "Chicken breast")
+   score=0.800 171515 fdc_sr_legacy "Chicken breast tenders, breaded, uncooked" (name shown: "Chicken breast tenders")
+   score=0.800 10000950 bls "Chicken breast fillet, raw" (name shown: "Chicken breast fillet")
+   score=0.762 10006428 bls "Chicken breast fillet breaded, fried" (name shown: "Chicken breast fillet breaded")
+   score=0.667 10002565 bls "Chicken breast fillet fried" (name shown: "Chicken breast fillet fried")
+-- records sharing the winner's shown name "Chicken breast" in the Food-tab list (collapsed to one): [2705963, 2705965, 2705971, 174608, 10001201, 10003393, 2705964, 2705966, 2705972]
+
+=== salad  pool=100 truncated=20 consistencyDropped=0 foodTab=20 afterCollapse=20
+-- survey 2709789 in pool: false; its full-name score=null; 20th-best score in pool=0.533; pool rows scoring > survey: n/a, == survey: n/a
+-- SR Legacy rows in the app's top 20 (Food tab): none; sources in top 20: {fdc_survey: 20}
+-- Food tab order (rankAndTruncateFoodsByName, scored on food_summary.name), top 5; survey 2709789 rank=-1
+   score=0.867 2706749 fdc_survey "Beef salad" (name shown: "Beef salad")
+   score=0.867 2706824 fdc_survey "Crab salad" (name shown: "Crab salad")
+   score=0.867 2706825 fdc_survey "Lobster salad" (name shown: "Lobster salad")
+   score=0.867 2706826 fdc_survey "Salmon salad" (name shown: "Salmon salad")
+   score=0.867 2706837 fdc_survey "Shrimp salad" (name shown: "Shrimp salad")
+-- All tab / AI path after mergeAndRankMeals (OFF empty), top 5; survey 2709789 rank=-1
+   score=0.867 2706749 fdc_survey "Beef salad" (name shown: "Beef salad")
+   score=0.867 2706824 fdc_survey "Crab salad" (name shown: "Crab salad")
+   score=0.867 2706825 fdc_survey "Lobster salad" (name shown: "Lobster salad")
+   score=0.867 2706826 fdc_survey "Salmon salad" (name shown: "Salmon salad")
+   score=0.867 2706837 fdc_survey "Shrimp salad" (name shown: "Shrimp salad")
+-- AI path after rankForResolution, top 5; survey 2709789 rank=-1
+   score=0.833 2706826 fdc_survey "Salmon salad" (name shown: "Salmon salad")
+   score=0.667 2706749 fdc_survey "Beef salad" (name shown: "Beef salad")
+   score=0.667 2706824 fdc_survey "Crab salad" (name shown: "Crab salad")
+   score=0.667 2706825 fdc_survey "Lobster salad" (name shown: "Lobster salad")
+   score=0.667 2706837 fdc_survey "Shrimp salad" (name shown: "Shrimp salad")
+-- records sharing the winner's shown name "Salmon salad" in the Food-tab list (collapsed to one): [2706826]
+
+=== bread  pool=100 truncated=20 consistencyDropped=0 foodTab=20 afterCollapse=3
+-- survey 2707598 in pool: true; its full-name score=0.900; 20th-best score in pool=0.683; pool rows scoring > survey: 0, == survey: 6
+-- SR Legacy rows in the app's top 20 (Food tab): none; sources in top 20: {fdc_survey: 20}
+-- Food tab order (rankAndTruncateFoodsByName, scored on food_summary.name), top 5; survey 2707598 rank=1
+   score=0.900 2707598 fdc_survey "Bread, white" (name shown: "Bread")
+   score=0.900 2707604 fdc_survey "Bread, Cuban" (name shown: "Bread")
+   score=0.900 2707613 fdc_survey "Bread, naan" (name shown: "Bread")
+   score=0.900 2707616 fdc_survey "Bread, pita" (name shown: "Bread")
+   score=0.900 2707618 fdc_survey "Bread, cheese" (name shown: "Bread")
+-- All tab / AI path after mergeAndRankMeals (OFF empty), top 5; survey 2707598 rank=1
+   score=1.000 2707598 fdc_survey "Bread, white" (name shown: "Bread")
+   score=0.867 2707626 fdc_survey "Garlic bread, NFS" (name shown: "Garlic bread")
+   score=0.000 2705680 fdc_survey "Pudding, bread" (name shown: "Pudding")
+-- AI path after rankForResolution, top 5; survey 2707598 rank=1
+   score=1.000 2707598 fdc_survey "Bread, white" (name shown: "Bread")
+   score=0.667 2707626 fdc_survey "Garlic bread, NFS" (name shown: "Garlic bread")
+   score=0.000 2705680 fdc_survey "Pudding, bread" (name shown: "Pudding")
+-- records sharing the winner's shown name "Bread" in the Food-tab list (collapsed to one): [2707598, 2707604, 2707613, 2707616, 2707618, 2707620, 2707599, 2707605, 2707619, 2707621, 2707625, 2707610, 2707614, 2707617, 2707622, 2707608, 2707611, 2707615]
+
+=== egg  pool=100 truncated=20 consistencyDropped=0 foodTab=20 afterCollapse=6
+-- survey 2707152 in pool: true; its full-name score=0.850; 20th-best score in pool=0.636; pool rows scoring > survey: 3, == survey: 2
+-- SR Legacy rows in the app's top 20 (Food tab): none; sources in top 20: {fdc_survey: 20}
+-- Food tab order (rankAndTruncateFoodsByName, scored on food_summary.name), top 5; survey 2707152 rank=4
+   score=0.900 2707179 fdc_survey "Egg, creamed" (name shown: "Egg")
+   score=0.900 2707180 fdc_survey "Egg, Benedict" (name shown: "Egg")
+   score=0.900 2707181 fdc_survey "Egg, deviled" (name shown: "Egg")
+   score=0.850 2707152 fdc_survey "Egg, whole, raw" (name shown: "Egg")
+   score=0.850 2707167 fdc_survey "Egg, whole, pickled" (name shown: "Egg")
+-- All tab / AI path after mergeAndRankMeals (OFF empty), top 5; survey 2707152 rank=-1
+   score=1.000 2707179 fdc_survey "Egg, creamed" (name shown: "Egg")
+   score=0.900 2707182 fdc_survey "Egg salad, made with mayonnaise" (name shown: "Egg salad")
+   score=0.867 2707176 fdc_survey "Duck egg, cooked" (name shown: "Duck egg")
+   score=0.867 2707177 fdc_survey "Goose egg, cooked" (name shown: "Goose egg")
+   score=0.867 2707178 fdc_survey "Quail egg, canned" (name shown: "Quail egg")
+-- AI path after rankForResolution, top 5; survey 2707152 rank=-1
+   score=1.000 2707179 fdc_survey "Egg, creamed" (name shown: "Egg")
+   score=0.667 2707182 fdc_survey "Egg salad, made with mayonnaise" (name shown: "Egg salad")
+   score=0.667 2707176 fdc_survey "Duck egg, cooked" (name shown: "Duck egg")
+   score=0.667 2707177 fdc_survey "Goose egg, cooked" (name shown: "Goose egg")
+   score=0.667 2707178 fdc_survey "Quail egg, canned" (name shown: "Quail egg")
+-- records sharing the winner's shown name "Egg" in the Food-tab list (collapsed to one): [2707179, 2707180, 2707181, 2707152, 2707167, 2707168, 2707172, 2707158, 2707154, 2707157, 2707159, 2707166, 2707171, 2707156, 2707161]
+
+=== milk  pool=100 truncated=20 consistencyDropped=0 foodTab=20 afterCollapse=8
+-- survey 2705385 in pool: true; its full-name score=0.900; 20th-best score in pool=0.700; pool rows scoring > survey: 0, == survey: 4
+-- SR Legacy rows in the app's top 20 (Food tab): none; sources in top 20: {fdc_survey: 20}
+-- Food tab order (rankAndTruncateFoodsByName, scored on food_summary.name), top 5; survey 2705385 rank=3
+   score=0.900 2705383 fdc_survey "Milk, human" (name shown: "Milk")
+   score=0.900 2705384 fdc_survey "Milk, NFS" (name shown: "Milk")
+   score=0.900 2705385 fdc_survey "Milk, whole" (name shown: "Milk")
+   score=0.900 2705501 fdc_survey "Milk, malted" (name shown: "Milk")
+   score=0.867 2705395 fdc_survey "Goat milk" (name shown: "Goat milk")
+-- All tab / AI path after mergeAndRankMeals (OFF empty), top 5; survey 2705385 rank=-1
+   score=1.000 2705383 fdc_survey "Milk, human" (name shown: "Milk")
+   score=0.900 2705510 fdc_survey "Milk shake, bottled, chocolate" (name shown: "Milk shake")
+   score=0.867 2705395 fdc_survey "Goat milk" (name shown: "Goat milk")
+   score=0.867 2705411 fdc_survey "Rice milk" (name shown: "Rice milk")
+   score=0.867 2705412 fdc_survey "Oat milk" (name shown: "Oat milk")
+-- AI path after rankForResolution, top 5; survey 2705385 rank=-1
+   score=1.000 2705383 fdc_survey "Milk, human" (name shown: "Milk")
+   score=0.667 2705510 fdc_survey "Milk shake, bottled, chocolate" (name shown: "Milk shake")
+   score=0.667 2705395 fdc_survey "Goat milk" (name shown: "Goat milk")
+   score=0.667 2705411 fdc_survey "Rice milk" (name shown: "Rice milk")
+   score=0.667 2705412 fdc_survey "Oat milk" (name shown: "Oat milk")
+-- records sharing the winner's shown name "Milk" in the Food-tab list (collapsed to one): [2705383, 2705384, 2705385, 2705501, 2705399, 2705402, 2705386, 2705387, 2705388, 2705392, 2705396, 2705397, 2705585]
+
+=== coffee  pool=100 truncated=20 consistencyDropped=0 foodTab=20 afterCollapse=2
+-- survey 2710375 in pool: true; its full-name score=0.900; 20th-best score in pool=0.750; pool rows scoring > survey: 0, == survey: 6
+-- SR Legacy rows in the app's top 20 (Food tab): none; sources in top 20: {fdc_survey: 20}
+-- Food tab order (rankAndTruncateFoodsByName, scored on food_summary.name), top 5; survey 2710375 rank=1
+   score=0.900 2710375 fdc_survey "Coffee, brewed" (name shown: "Coffee")
+   score=0.900 2710377 fdc_survey "Coffee, Turkish" (name shown: "Coffee")
+   score=0.900 2710378 fdc_survey "Coffee, espresso" (name shown: "Coffee")
+   score=0.900 2710381 fdc_survey "Coffee, Cuban" (name shown: "Coffee")
+   score=0.900 2710382 fdc_survey "Coffee, macchiato" (name shown: "Coffee")
+-- All tab / AI path after mergeAndRankMeals (OFF empty), top 5; survey 2710375 rank=1
+   score=1.000 2710375 fdc_survey "Coffee, brewed" (name shown: "Coffee")
+   score=0.900 2705599 fdc_survey "Coffee creamer, NFS" (name shown: "Coffee creamer")
+-- AI path after rankForResolution, top 5; survey 2710375 rank=1
+   score=1.000 2710375 fdc_survey "Coffee, brewed" (name shown: "Coffee")
+   score=0.667 2705599 fdc_survey "Coffee creamer, NFS" (name shown: "Coffee creamer")
+-- records sharing the winner's shown name "Coffee" in the Food-tab list (collapsed to one): [2710375, 2710377, 2710378, 2710381, 2710382, 2710386, 2710379, 2710380, 2710383, 2710387, 2710389, 2710392, 2710410, 2710431, 2710449, 2710452]
+
+=== pasta  pool=100 truncated=20 consistencyDropped=0 foodTab=20 afterCollapse=10
+-- survey 2708357 in pool: true; its full-name score=0.900; 20th-best score in pool=0.600; pool rows scoring > survey: 0, == survey: 1
+-- SR Legacy rows in the app's top 20 (Food tab): none; sources in top 20: {fdc_survey: 20}
+-- Food tab order (rankAndTruncateFoodsByName, scored on food_summary.name), top 5; survey 2708357 rank=1
+   score=0.900 2708357 fdc_survey "Pasta, cooked" (name shown: "Pasta")
+   score=0.850 2708351 fdc_survey "Pasta, vegetable, cooked" (name shown: "Pasta")
+   score=0.850 2708359 fdc_survey "Pasta, gluten free" (name shown: "Pasta")
+   score=0.750 2708358 fdc_survey "Pasta, whole grain, cooked" (name shown: "Pasta")
+   score=0.750 2708828 fdc_survey "Pasta with sauce, NFS" (name shown: "Pasta with sauce")
+-- All tab / AI path after mergeAndRankMeals (OFF empty), top 5; survey 2708357 rank=1
+   score=1.000 2708357 fdc_survey "Pasta, cooked" (name shown: "Pasta")
+   score=0.850 2708828 fdc_survey "Pasta with sauce, NFS" (name shown: "Pasta with sauce")
+   score=0.850 2708827 fdc_survey "Pasta with vegetables, no sauce or dressing" (name shown: "Pasta with vegetables")
+   score=0.750 2708855 fdc_survey "Pasta with cream sauce, restaurant" (name shown: "Pasta with cream sauce")
+   score=0.683 2708830 fdc_survey "Pasta with tomato-based sauce, restaurant" (name shown: "Pasta with tomato-based sauce")
+-- AI path after rankForResolution, top 5; survey 2708357 rank=1
+   score=1.000 2708357 fdc_survey "Pasta, cooked" (name shown: "Pasta")
+   score=0.500 2708828 fdc_survey "Pasta with sauce, NFS" (name shown: "Pasta with sauce")
+   score=0.500 2708827 fdc_survey "Pasta with vegetables, no sauce or dressing" (name shown: "Pasta with vegetables")
+   score=0.400 2708855 fdc_survey "Pasta with cream sauce, restaurant" (name shown: "Pasta with cream sauce")
+   score=0.333 2708830 fdc_survey "Pasta with tomato-based sauce, restaurant" (name shown: "Pasta with tomato-based sauce")
+-- records sharing the winner's shown name "Pasta" in the Food-tab list (collapsed to one): [2708357, 2708351, 2708359, 2708358, 2708903]
+
+=== yoghurt  pool=0 truncated=0 consistencyDropped=0 foodTab=0 afterCollapse=0
+-- survey 2705418 in pool: false; its full-name score=null; 20th-best score in pool=null; pool rows scoring > survey: n/a, == survey: n/a
+-- SR Legacy rows in the app's top 20 (Food tab): none; sources in top 20: {}
+-- Food tab order (rankAndTruncateFoodsByName, scored on food_summary.name), top 5; survey 2705418 rank=-1
+-- All tab / AI path after mergeAndRankMeals (OFF empty), top 5; survey 2705418 rank=-1
+-- AI path after rankForResolution, top 5; survey 2705418 rank=-1
+
+=== almonds  pool=100 truncated=20 consistencyDropped=0 foodTab=20 afterCollapse=3
+-- survey 2707486 in pool: true; its full-name score=0.900; 20th-best score in pool=0.450; pool rows scoring > survey: 0, == survey: 5
+-- SR Legacy rows in the app's top 20 (Food tab): #6:170567 #10:170568 #12:169060 #13:170656 #14:168592 #15:168754 #16:168602 #18:168596 #19:169419 #20:170158; sources in top 20: {fdc_survey: 8, fdc_sr_legacy: 10, fdc_foundation: 2}
+-- Food tab order (rankAndTruncateFoodsByName, scored on food_summary.name), top 5; survey 2707486 rank=2
+   score=0.900 2707485 fdc_survey "Almonds, NFS" (name shown: "Almonds")
+   score=0.900 2707486 fdc_survey "Almonds, unroasted" (name shown: "Almonds")
+   score=0.900 2707487 fdc_survey "Almonds, salted" (name shown: "Almonds")
+   score=0.900 2707489 fdc_survey "Almonds, unsalted" (name shown: "Almonds")
+   score=0.900 2707490 fdc_survey "Almonds, flavored" (name shown: "Almonds")
+-- All tab / AI path after mergeAndRankMeals (OFF empty), top 5; survey 2707486 rank=-1
+   score=1.000 2707485 fdc_survey "Almonds, NFS" (name shown: "Almonds")
+   score=0.000 170567 fdc_sr_legacy "Nuts, almonds" (name shown: "Nuts")
+   score=0.000 169060 fdc_sr_legacy "Candies, nougat, with almonds" (name shown: "Candies")
+-- AI path after rankForResolution, top 5; survey 2707486 rank=-1
+   score=1.000 2707485 fdc_survey "Almonds, NFS" (name shown: "Almonds")
+   score=0.000 170567 fdc_sr_legacy "Nuts, almonds" (name shown: "Nuts")
+   score=0.000 169060 fdc_sr_legacy "Candies, nougat, with almonds" (name shown: "Candies")
+-- records sharing the winner's shown name "Almonds" in the Food-tab list (collapsed to one): [2707485, 2707486, 2707487, 2707489, 2707490, 2707488, 2707491, 2710326]
 ```
 
 ### What the winner delivers
@@ -1857,12 +2313,16 @@ Read on `origin/develop` at `df6d54c8`:
   would.
 - `search_food_summary` has no `ORDER BY`; the pool is heap order, survey
   first. No scorer in the client-side chain reads `backendSource`, portions
-  or gram weights; `source` is read only to tier custom meals and recipes
-  above the rest (`mergeAndRankMeals`, `rankForResolution`) and, with
-  `backendSource`, to filter cached rows to the tab and to the user's
-  source toggles (`_buildResult`). The shown name (`short_title`) decides
-  the near-duplicate collapse on the AI path, and the order the search
-  cache hands back decides which same-named sibling survives it.
+  or gram weights; `source` is read to tier custom meals and recipes above
+  the rest (`mergeAndRankMeals`, `rankForResolution`), as the prefix of the
+  `source:code` dedup keys (`_deduplicateAcrossSources`,
+  `_deduplicateMeals`, `_nearDuplicateKey`) and, with `backendSource`, to
+  filter cached rows to the tab and to the user's source toggles
+  (`_buildResult`); every Supabase record carries `source = fdc`, so none
+  of those reads tells survey from SR Legacy. The shown name
+  (`short_title`) decides the near-duplicate collapse on the AI path, and
+  the order the search cache hands back decides which same-named sibling
+  survives it.
 - `food_summary.serving_size` already renders `amount || ' ' || modifier`
   for SR Legacy foods, so the count-synthesis expression exists in the
   backend and produces `3 oz`, `0.5 cup` and `0 cup` today.
@@ -1874,16 +2334,19 @@ auto-selected record it would largely go on holding after a COALESCE, for a
 reason #1155 did not have: for seven of the twelve no SR Legacy record can
 enter the pool while the materialized view keeps its layout, and for ten of
 the eleven that return anything every record that can win the AI path's
-collapse is survey. The exception is `chicken breast`, where SR Legacy
-174608 shares the winning shown name and the search cache's order decides
-whether it is the one auto-selected. What a COALESCE would change today,
-with no change to the ranker or the pool: the portions on the SR Legacy
-candidates the AI path already hands the review screen — #2 for banana
-(173945), chicken breast (171515) and almonds (170567), plus 174608 for
-chicken breast — since every candidate carries its portions and the user
-can select any of them; the Food tab for banana, apple, chicken breast and
-almonds, where SR Legacy records sit in the top 20; and every typed or AI
-search that lands on one of the 7,529 SR Legacy foods that gain labels.
+collapse is survey (the "Non-survey in the group" column of the per-term
+table in [The harness run](#the-harness-run)). The exception is `chicken
+breast`, where SR Legacy 174608 shares the winning shown name and the
+search cache's order decides whether it is the one auto-selected. What a
+COALESCE would change today, with no change to the ranker or the pool: the
+portions on the SR Legacy candidates the AI path already hands the review
+screen — #2 for banana (173945), chicken breast (171515) and almonds
+(170567), plus 174608 for chicken breast (the table's "#2 after
+resolution" and group columns) — since every candidate carries its
+portions and the user can select any of them; the Food tab for banana,
+apple, chicken breast and almonds, where SR Legacy records sit in the top
+20 (its "SR Legacy in the 20" column); and every typed or AI search that
+lands on one of the 7,529 SR Legacy foods that gain labels.
 
 Separately, #1155's per-food tables describe the record the app receives
 in four of twelve cases. The other survey siblings the app lands on are in
@@ -1976,7 +2439,8 @@ on 2709215 and the app lands on 2709196, which has none.
   SR Legacy records are in the 20 but none shares the winning shown name,
   so every record that can win is survey; for `chicken breast` the winner
   is already order-dependent among survey, SR Legacy and BLS records shown
-  as *Chicken breast*. It says nothing about foods outside the twelve.
+  as *Chicken breast* (the per-term table in [The harness
+  run](#the-harness-run)). It says nothing about foods outside the twelve.
 
 ## Reproducing
 
@@ -2003,10 +2467,13 @@ on 2709215 and the app lands on 2709196, which has none.
    its rank (`#15:167629 …`) and the source mix; the top five at each of
    the three stages with scores; and the codes sharing the winner's shown
    name. The Food-tab ranks and the collapse groups cited above come from
-   the third and last of those lines, not from the top fives. The file and
-   the SQL used sit under the session scratchpad (`q1163/`, `q1163b/`) and
-   are not in the repository; the figures are therefore not re-runnable
-   from this note alone, unlike every SQL figure.
+   the third and last of those lines, not from the top fives. The file is
+   printed verbatim in [The harness run](#the-harness-run) with the output
+   it wrote; save it under `test/`, point `poolPath` at the exported JSON
+   and `outPath` at a writable file, and `flutter test test/<file>` prints
+   the same listing. Re-run once more on 2026-09-11 in the worktree
+   [Method](#method) describes, with the generated files copied back in,
+   before this note was finalised; the output was byte-identical.
 
 ## Not verified
 
