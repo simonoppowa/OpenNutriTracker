@@ -84,9 +84,11 @@ const mealItemsToolSchema = {
           'portion': {
             'type': 'string',
             'description':
-                'How the food was portioned, if it was — '
-                'slice, cup, piece. A word only, never a weight or a '
-                'count. Omit when unsure.',
+                'How the food was portioned, as one English word whatever '
+                'language the user wrote in — slice, piece, cup, '
+                'tablespoon, teaspoon, small, medium, large. Write '
+                'abbreviations out. Never a weight, a count, or a unit '
+                'from the unit list. Omit when the user named no portion.',
           },
           'query': {
             'type': 'string',
