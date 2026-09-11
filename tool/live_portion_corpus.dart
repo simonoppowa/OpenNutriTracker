@@ -6,15 +6,21 @@
 // (#1158); is it English rather than the line's own word (#1157); does it
 // match a row of the food the resolver lands on, via `matchPortionToQuery`
 // against the food's *English* labels; when it matches, was the winner a
-// tie; when it misses, the row would raise `amountNeedsCheck` (#1159). Plus
-// the abbreviation cases (`tbsp` → `tablespoon`), the unit-substitution rule
-// the prompt states, the old harness's invariants, and a stability probe.
+// tie or a hit on an inflection rather than the word as written (the
+// false-match surface); when it misses, whether the row would raise
+// `amountNeedsCheck` (#1159) — which needs a count and no match by the
+// query words either, since `_initialUnit` tries those before defaulting.
+// Plus the abbreviation cases (`tbsp` → `tablespoon`), the unit-substitution
+// rule the prompt states, the old harness's invariants and its differential
+// against `parseMealText`, and a stability probe.
 //
 //   dart run tool/live_portion_corpus.dart --keys <dir> --out <dir>
 //   dart run tool/live_portion_corpus.dart --dry-run --out <dir>
 //
 // Keys are read from files, never printed. The only network use in a dry
-// run is the two read-only backend RPCs the resolver makes.
+// run is the two read-only backend RPCs the resolver makes. The reports are
+// rewritten after every provider, so a run that dies on provider two still
+// leaves provider one's replies on disk.
 
 import 'dart:convert';
 import 'dart:io';
@@ -44,11 +50,18 @@ class ItemRecord {
   final RawItem? raw;
   final KeyLanguage? language;
   final bool? matchesExpectedKey;
-  final bool? abbreviationExpanded;
   final bool unitSubstituted;
   final ResolvedFood? food;
   final String? resolvedVia;
+
+  /// The backend did not answer for this item; nothing below is known.
+  final String? backendFailure;
   final PortionMatch? match;
+
+  /// What `_initialUnit`'s second try finds — the query words against the
+  /// labels of the line's own locale — computed only when the key missed,
+  /// because the app only reaches it then.
+  final PortionMatch? queryMatch;
   final int latencyMs;
 
   const ItemRecord({
@@ -59,11 +72,12 @@ class ItemRecord {
     required this.raw,
     required this.language,
     required this.matchesExpectedKey,
-    required this.abbreviationExpanded,
     required this.unitSubstituted,
     required this.food,
     required this.resolvedVia,
+    required this.backendFailure,
     required this.match,
+    required this.queryMatch,
     required this.latencyMs,
   });
 
@@ -72,8 +86,27 @@ class ItemRecord {
   bool get steering =>
       key != null && steeringWords.contains(key!.trim().toLowerCase());
   bool get expectedByLine => index == 0 && line.expected != null;
-  bool get wouldRaiseAmountNeedsCheck =>
-      emitted && food != null && match == null;
+
+  /// The key matched no row of a resolved food.
+  bool get keyMiss => emitted && food != null && match == null;
+
+  /// The row `amountNeedsCheck` would flag under #1159's rule, as the getter
+  /// is gated: a count is present, the key matched nothing, and neither did
+  /// the query words — a key miss whose query hits a row never reaches the
+  /// bare-count rule, and a row with no count is outside the getter.
+  bool get amountNeedsCheckFires =>
+      keyMiss && item.quantity != null && queryMatch == null;
+
+  /// How the line's abbreviation came back, when it carried one.
+  String? get abbreviationOutcome {
+    final e = line.expected;
+    if (!expectedByLine || e == null || !e.abbreviation) return null;
+    final k = key;
+    if (k == null) return 'no key';
+    if (k.trim().toLowerCase() == e.key) return 'expanded';
+    if (isAbbreviationKey(k)) return 'kept as written';
+    return 'other key';
+  }
 
   Map<String, Object?> toJson() => {
     'provider': provider,
@@ -91,12 +124,15 @@ class ItemRecord {
     'asciiLetters': key == null ? null : isAsciiLetters(key!),
     'keyLanguage': language?.name,
     'matchesExpectedKey': matchesExpectedKey,
-    'abbreviationExpanded': abbreviationExpanded,
+    'abbreviationOutcome': abbreviationOutcome,
     'unitSubstituted': unitSubstituted,
     'resolvedVia': resolvedVia,
+    'backendFailure': backendFailure,
     'food': food?.toJson(),
     'match': match?.toJson(),
-    'wouldRaiseAmountNeedsCheck': wouldRaiseAmountNeedsCheck,
+    'queryMatch': queryMatch?.toJson(),
+    'keyMiss': keyMiss,
+    'amountNeedsCheckFires': amountNeedsCheckFires,
     'latencyMs': latencyMs,
   };
 }
@@ -106,12 +142,18 @@ class ProviderRun {
   final items = <ItemRecord>[];
   final failures = <String>[];
   final violations = <String>[];
+  final disagreements = <String>[];
+  final backendFailures = <String>[];
   final latencies = <int>[];
   final unstable = <String>[];
   final portionMoved = <String>[];
   var stabilityLines = 0;
   var emptyResults = 0;
   var linesDone = 0;
+
+  /// Set when the session ended on something other than a provider or
+  /// backend failure; what was recorded before it is still reported.
+  String? aborted;
 
   ProviderRun(this.session);
 }
@@ -135,29 +177,19 @@ Future<void> main(List<String> args) async {
   opts.outDir.createSync(recursive: true);
 
   final runs = <ProviderRun>[];
-  for (final session in sessions) {
-    stdout.writeln('${session.label}: ${corpus.length} lines');
-    final run = ProviderRun(session);
-    await _runCorpus(run, corpus, resolver, opts.dryRun);
-    await _runStability(run, corpus);
-    runs.add(run);
-    session.close();
-  }
-  backend.close();
-
-  final stamp = DateTime.now().toUtc().toIso8601String();
-  final report = _report(
-    runs: runs,
-    corpus: corpus,
-    opts: opts,
-    prompts: prompts,
-    resolver: resolver,
-    stamp: stamp,
-  );
-  final md = File('${opts.outDir.path}/portion-corpus.md')
-    ..writeAsStringSync(report);
-  final json = File('${opts.outDir.path}/portion-corpus.items.json')
-    ..writeAsStringSync(
+  void write() {
+    final stamp = DateTime.now().toUtc().toIso8601String();
+    final report = _report(
+      runs: runs,
+      sessions: sessions,
+      corpus: corpus,
+      opts: opts,
+      prompts: prompts,
+      resolver: resolver,
+      stamp: stamp,
+    );
+    File('${opts.outDir.path}/portion-corpus.md').writeAsStringSync(report);
+    File('${opts.outDir.path}/portion-corpus.items.json').writeAsStringSync(
       const JsonEncoder.withIndent('  ').convert({
         'generated': stamp,
         'dryRun': opts.dryRun,
@@ -169,20 +201,54 @@ Future<void> main(List<String> args) async {
             for (final i in run.items) i.toJson(),
         ],
         'failures': {for (final r in runs) r.session.label: r.failures},
+        'backendFailures': {
+          for (final r in runs) r.session.label: r.backendFailures,
+        },
+        'disagreements': {for (final r in runs) r.session.label: r.disagreements},
         'unstable': {for (final r in runs) r.session.label: r.unstable},
+        'aborted': {for (final r in runs) r.session.label: r.aborted},
       }),
     );
-  stdout.writeln('wrote ${md.path} and ${json.path}');
+  }
+
+  for (final session in sessions) {
+    stdout.writeln('${session.label}: ${corpus.length} lines');
+    final run = ProviderRun(session);
+    runs.add(run);
+    try {
+      await _runCorpus(run, corpus, resolver, opts.dryRun);
+      await _runStability(run, corpus);
+    } catch (e) {
+      // Whatever it was, the replies already recorded are worth the file.
+      // The message is the exception's type alone: nothing that could
+      // carry a URL or a body reaches the report.
+      run.aborted = e.runtimeType.toString();
+      stderr.writeln('${session.label}: aborted by ${run.aborted}');
+    } finally {
+      session.close();
+      write();
+    }
+  }
+  backend.close();
+
+  stdout.writeln(
+    'wrote ${opts.outDir.path}/portion-corpus.md and '
+    '${opts.outDir.path}/portion-corpus.items.json',
+  );
   for (final run in runs) {
     final emitted = run.items.where((i) => i.expectedByLine && i.emitted).length;
     final expected = run.items.where((i) => i.expectedByLine).length;
     final matched = run.items.where((i) => i.match != null).length;
     stdout.writeln(
       '${run.session.label}: emitted ${ratio(emitted, expected)} on measure '
-      'lines | matched $matched | misses '
-      '${run.items.where((i) => i.wouldRaiseAmountNeedsCheck).length} | '
-      'failures ${run.failures.length} | violations ${run.violations.length} '
-      '| unstable ${run.unstable.length}/${run.stabilityLines}',
+      'lines | matched $matched | key misses '
+      '${run.items.where((i) => i.keyMiss).length} | amountNeedsCheck fires '
+      '${run.items.where((i) => i.amountNeedsCheckFires).length} | '
+      'failures ${run.failures.length} | backend failures '
+      '${run.backendFailures.length} | violations ${run.violations.length} '
+      '| disagreements ${run.disagreements.length} '
+      '| unstable ${run.unstable.length}/${run.stabilityLines}'
+      '${run.aborted == null ? '' : ' | ABORTED (${run.aborted})'}',
     );
   }
 }
@@ -222,6 +288,28 @@ Future<void> _runCorpus(
       run.violations.add('`${_oneLine(c.input)}` _${c.locale}_ — ${bad.join('; ')}');
     }
 
+    // The 503a4518 differential: where the deterministic parser is
+    // confident — a number and a unit it knows — the model must not read
+    // the same unit with a different number.
+    final offline = parseMealText(c.input);
+    if (offline.items.length == result.items.length && offline.items.isNotEmpty) {
+      for (var i = 0; i < offline.items.length; i++) {
+        final a = offline.items[i];
+        final b = result.items[i];
+        if (a.quantity != null &&
+            b.quantity != null &&
+            a.unit != null &&
+            b.unit != null &&
+            a.unit == b.unit &&
+            (a.quantity! - b.quantity!).abs() > 0.001) {
+          run.disagreements.add(
+            '`${_oneLine(c.input)}` _${c.locale}_ item $i: parser '
+            '${a.quantity}${a.unit}, model ${b.quantity}${b.unit}',
+          );
+        }
+      }
+    }
+
     final rawItems = run.session.raw.takeRawItems(textNeedle(c.input));
     for (final (index, item) in result.items.indexed) {
       // Raw items line up with validated ones only when nothing was dropped;
@@ -245,14 +333,14 @@ Future<void> _runCorpus(
           ? null
           : keyLanguage(
               key,
-              inputMeasureWord: c.locale == 'en' ? null : expected?.measureWord,
+              askedKey: expected?.key,
+              inputMeasureForms: c.locale == 'en'
+                  ? const []
+                  : expected?.measureForms ?? const [],
             );
       final matchesExpected = expected == null || key == null
           ? null
           : key.trim().toLowerCase() == expected.key;
-      final abbreviationExpanded = expected == null || !expected.abbreviation
-          ? null
-          : key != null && key.trim().toLowerCase() == expected.key;
       // The prompt: "Do not substitute a unit from the list". A measure
       // line states no unit the parser knows, so any unit on the wire is
       // one the model put there. Validation drops it (#977); the raw reply
@@ -262,16 +350,39 @@ Future<void> _runCorpus(
 
       ResolvedFood? food;
       String? via;
-      if (c.locale == 'en' || expected == null) {
-        food = await resolver.resolve(item.query);
-        via = 'query';
-      } else {
-        food = await resolver.resolve(expected.food.en);
-        via = 'englishEquivalent';
+      String? backendFailure;
+      PortionMatch? match;
+      PortionMatch? queryMatch;
+      try {
+        if (c.locale == 'en' || expected == null) {
+          food = await resolver.resolve(item.query);
+          via = 'query';
+        } else {
+          food = await resolver.resolve(expected.food.en);
+          via = 'englishEquivalent';
+        }
+        if (key != null && food != null) {
+          match = matchWithTie(key, food.portions);
+          if (match == null) {
+            // The app's second try, against the labels a user of this
+            // locale receives — the English ones already fetched for
+            // English, the locale's coalesced ones otherwise.
+            final localized = c.locale == 'en'
+                ? food.portions
+                : await resolver.localizedPortions(food.foodId, c.locale);
+            queryMatch = matchWithTie(item.query, localized);
+          }
+        }
+      } on BackendException catch (e) {
+        backendFailure = e.toString();
+        run.backendFailures.add(
+          '`${_oneLine(c.input)}` _${c.locale}_ `${item.query}` — $e',
+        );
+        food = null;
+        via = null;
+        match = null;
+        queryMatch = null;
       }
-      final match = key == null || food == null
-          ? null
-          : matchWithTie(key, food.portions);
 
       run.items.add(
         ItemRecord(
@@ -282,11 +393,12 @@ Future<void> _runCorpus(
           raw: raw,
           language: language,
           matchesExpectedKey: matchesExpected,
-          abbreviationExpanded: abbreviationExpanded,
           unitSubstituted: unitSubstituted,
           food: food,
           resolvedVia: food == null ? null : via,
+          backendFailure: backendFailure,
           match: match,
+          queryMatch: queryMatch,
           latencyMs: latency,
         ),
       );
@@ -352,6 +464,7 @@ String _oneLine(String s) => s.replaceAll('\n', ' / ');
 
 String _report({
   required List<ProviderRun> runs,
+  required List<ProviderSession> sessions,
   required List<Case> corpus,
   required MeasurementOptions opts,
   required PromptsAsRun prompts,
@@ -382,17 +495,40 @@ String _report({
     b
       ..writeln(
         '> **Dry run.** Every provider below is `FakeMealItemsApi`, a table '
-        'that exercises each branch of the pipeline; no model was called. '
-        'The backend *was* called — read-only `search_food_summary` and '
+        'built to exercise each branch of the pipeline — the English key, '
+        'the own-language key, an abbreviation kept as written, a '
+        'substituted unit, no key, a key on a plain line, one failed line, '
+        'and two lines that move on repeat; no model was called. The '
+        'backend *was* called — read-only `search_food_summary` and '
         '`portions_by_food_ids` — so the resolution, matching and tie '
         'columns are real.',
       )
       ..writeln();
   }
+  if (runs.length < sessions.length) {
+    b
+      ..writeln(
+        '> **Partial.** ${runs.length} of ${sessions.length} providers so '
+        'far; this file is rewritten after each.',
+      )
+      ..writeln();
+  }
+  for (final run in runs.where((r) => r.aborted != null)) {
+    b
+      ..writeln(
+        '> **${run.session.label} aborted** (${run.aborted}) after '
+        '${run.linesDone} lines; what it recorded is counted below.',
+      )
+      ..writeln();
+  }
   b.writeln(
-    callBudget(
-      textCount: opts.count,
-      providers: [for (final r in runs) r.session.provider],
+    textCallBudget(
+      textCount: corpus.length,
+      stabilityLines: stabilityLinesFor(
+        corpusLength: corpus.length,
+        measureLines: measureLines,
+      ),
+      sessions: sessions,
     ),
   );
 
@@ -427,10 +563,13 @@ String _report({
       'over the first item of those lines.',
     )
     ..writeln(
-      '- *English* counts a key that is one of the eight steering words or '
-      'ASCII-lettered and not the line\'s own word; *own word* is the key '
-      'equal to (or an inflection of) the measure word the line carried — '
-      '"Scheibe" for a German line, the failure #1157 names.',
+      '- *English* counts a key that is one of the eight steering words, '
+      'the English word the line\'s template asked for (`glass`, `bowl`, '
+      '`handful`), or ASCII-lettered and not the line\'s own word; *own '
+      'word* is a key equal to, or a short inflection of, any written form '
+      'of the line\'s own words for that measure — "Scheibe" for a German '
+      'line, and also "Glas" answered to a *Gläser* line or "tazza" to a '
+      '*tazze* line — the failure #1157 names.',
     )
     ..writeln(
       '- *Resolved* is the top record of `search_food_summary` ranked by '
@@ -441,9 +580,23 @@ String _report({
     )
     ..writeln(
       '- *Matched* is `matchPortionToQuery(key, portions) != null`; *tie* '
-      'means another row scored the same and the earlier one won; *miss* is '
-      'a key on a resolved food that matched nothing — the row that raises '
-      '`amountNeedsCheck` (#1159).',
+      'means another row scored the same and the earlier one won; *not '
+      'literal* means the hit came through the matcher\'s two-letter '
+      'inflection bound and no word of the key is a word of the winning '
+      'label as written. Together those are the *false-match surface* '
+      '#1160 asks for — the hits where a wrong row is possible; whether '
+      'one *is* wrong is for the reader, and every one is listed with the '
+      'row it picked.',
+    )
+    ..writeln(
+      '- *Key miss* is a key on a resolved food that matched nothing. '
+      '*amountNeedsCheck fires* is the subset #1159\'s rule would flag, as '
+      'the getter is gated: the row has a count, and the query words miss '
+      'too — `_initialUnit` tries `matchPortionToQuery(query, portions)` '
+      'before defaulting, against the labels of the line\'s own locale, so '
+      'a key miss whose query words hit a row is not flagged, and a row '
+      'with no count is outside the getter. A key miss on a food with no '
+      'rows always fires.',
     )
     ..writeln();
 
@@ -456,21 +609,24 @@ String _report({
     final first = all.where((i) => i.expectedByLine).toList();
     final emitted = first.where((i) => i.emitted).toList();
     final keyed = all.where((i) => i.emitted).toList();
+    final unchecked = keyed.where((i) => i.backendFailure != null).length;
     final resolvedKeyed = keyed.where((i) => i.food != null).toList();
     final matched = resolvedKeyed.where((i) => i.match != null).toList();
     final ties = matched.where((i) => i.match!.tie).length;
-    final misses = resolvedKeyed.where((i) => i.match == null).toList();
+    final notLiteral = matched.where((i) => !i.match!.literal).length;
+    final suspect = matched.where((i) => i.match!.suspect).length;
+    final misses = resolvedKeyed.where((i) => i.keyMiss).toList();
     final missesNoRows = misses.where((i) => i.food!.portions.isEmpty).length;
+    final missesRescued = misses.where((i) => i.queryMatch != null).length;
+    final missesNoCount = misses.where((i) => i.item.quantity == null).length;
+    final fires = misses.where((i) => i.amountNeedsCheckFires).length;
     final english = emitted
-        .where(
-          (i) =>
-              i.language == KeyLanguage.steering ||
-              i.language == KeyLanguage.asciiOther,
-        )
+        .where((i) => englishKeyLanguages.contains(i.language))
         .length;
     final ownWord = emitted.where((i) => i.language == KeyLanguage.inputWord).length;
     final abbreviations = first.where((i) => i.line.expected!.abbreviation).toList();
-    final abbreviationsOk = abbreviations.where((i) => i.abbreviationExpanded == true).length;
+    int outcome(String o) =>
+        abbreviations.where((i) => i.abbreviationOutcome == o).length;
     final substitutions = first.where((i) => i.unitSubstituted).length;
     final unasked = all.where((i) => !i.expectedByLine && i.emitted).length;
     final sorted = run.latencies.toList()..sort();
@@ -486,15 +642,24 @@ String _report({
       ratio(english, emitted.length),
       ratio(ownWord, emitted.length),
       ratio(emitted.where((i) => i.matchesExpectedKey == true).length, emitted.length),
-      ratio(resolvedKeyed.length, keyed.length),
+      '${ratio(resolvedKeyed.length, keyed.length)}'
+          '${unchecked == 0 ? '' : ', $unchecked unchecked (backend)'}',
       ratio(matched.length, resolvedKeyed.length),
       ratio(ties, matched.length),
+      ratio(notLiteral, matched.length),
+      ratio(suspect, matched.length),
       ratio(misses.length, resolvedKeyed.length),
       ratio(missesNoRows, misses.length),
-      ratio(abbreviationsOk, abbreviations.length),
+      ratio(missesRescued, misses.length),
+      ratio(missesNoCount, misses.length),
+      ratio(fires, resolvedKeyed.length),
+      '${ratio(outcome('expanded'), abbreviations.length)} '
+          '(kept ${outcome('kept as written')}, other ${outcome('other key')}, '
+          'no key ${outcome('no key')})',
       substitutions,
       unasked,
       run.violations.length,
+      run.disagreements.length,
       '${run.unstable.length}/${run.stabilityLines} (key alone: ${run.portionMoved.length})',
       sorted.isEmpty
           ? '–'
@@ -507,10 +672,13 @@ String _report({
         'provider', 'model', 'lines', 'failed', 'empty', 'measure lines',
         'key emitted', 'steering word', 'English', 'own word',
         'key = expected', 'resolved (of keyed)', 'matched (of resolved)',
-        'tie (of matched)', 'miss → amountNeedsCheck', 'of which: food has no rows',
-        'abbreviation expanded',
-        'unit substituted', 'key on plain line', 'invariant violations',
-        'unstable', 'latency p50 / p95 / max',
+        'tie (of matched)', 'not literal (of matched)',
+        'false-match surface (of matched)', 'key miss (of resolved)',
+        'of which: food has no rows', 'of which: query words hit a row',
+        'of which: no count', 'amountNeedsCheck fires (of resolved)',
+        'abbreviation expanded', 'unit substituted', 'key on plain line',
+        'invariant violations', 'parser disagreements', 'unstable',
+        'latency p50 / p95 / max',
       ],
       summaryRows,
     ),
@@ -543,6 +711,10 @@ String _report({
         ratio(resolvedKeyed.length, emitted.length),
         ratio(matched, resolvedKeyed.length),
         ratio(resolvedKeyed.length - matched, resolvedKeyed.length),
+        ratio(
+          resolvedKeyed.where((i) => i.amountNeedsCheckFires).length,
+          resolvedKeyed.length,
+        ),
       ]);
     }
   }
@@ -551,7 +723,7 @@ String _report({
       [
         'provider', 'locale', 'lines', 'measure lines', 'key emitted',
         'steering', 'own word', 'key = expected', 'resolved', 'matched',
-        'miss',
+        'key miss', 'amountNeedsCheck fires',
       ],
       localeRows,
     ),
@@ -595,11 +767,9 @@ String _report({
     'Abbreviation cases',
     [
       for (final run in runs)
-        for (final i in run.items.where(
-          (i) => i.expectedByLine && i.line.expected!.abbreviation,
-        ))
+        for (final i in run.items.where((i) => i.abbreviationOutcome != null))
           '- ${run.session.label} `${_oneLine(i.line.input)}` → key ${code(i.key)}'
-              ' ${i.abbreviationExpanded == true ? 'expanded' : '**not expanded**'}',
+              ' ${i.abbreviationOutcome == 'expanded' ? 'expanded' : '**${i.abbreviationOutcome}**'}',
     ],
   );
 
@@ -615,32 +785,46 @@ String _report({
     ],
   );
 
+  String hit(ItemRecord i) =>
+      '- ${i.provider} `${_oneLine(i.line.input)}` key ${code(i.key)} '
+      'on *${i.food!.name}* (${i.food!.foodId}) → '
+      '`${i.match!.portion.label}` ${i.match!.portion.gramWeight} g'
+      '${i.match!.tie ? '; **tie** with ${i.match!.tiedWith.map((p) => '`${p.label}` ${p.gramWeight} g').join(', ')}' : ''}'
+      '${i.match!.literal ? '' : '; **not literal** — no word of the key is in the label'}';
+
   _section(
     b,
     'Ties (a hit decided by row order — #1162)',
     [
       for (final run in runs)
-        for (final i in run.items.where((i) => i.match?.tie == true))
-          '- ${run.session.label} `${_oneLine(i.line.input)}` key ${code(i.key)} '
-              'on *${i.food!.name}* (${i.food!.foodId}) → won '
-              '`${i.match!.portion.label}` ${i.match!.portion.gramWeight} g; '
-              'tied: ${i.match!.tiedWith.map((p) => '`${p.label}` ${p.gramWeight} g').join(', ')}',
+        for (final i in run.items.where((i) => i.match?.tie == true)) hit(i),
     ],
     limit: 80,
   );
 
   _section(
     b,
-    'Misses — a key on a resolved food that matched no row (would raise amountNeedsCheck)',
+    'False-match surface — every hit decided by row order or by an inflection, with the row it picked (#1160)',
     [
       for (final run in runs)
-        for (final i in run.items.where((i) => i.wouldRaiseAmountNeedsCheck))
+        for (final i in run.items.where((i) => i.match?.suspect == true)) hit(i),
+    ],
+    limit: 120,
+  );
+
+  _section(
+    b,
+    'Key misses — a key on a resolved food that matched no row, and whether amountNeedsCheck fires (#1159)',
+    [
+      for (final run in runs)
+        for (final i in run.items.where((i) => i.keyMiss))
           '- ${run.session.label} `${_oneLine(i.line.input)}` key ${code(i.key)} '
               'on *${i.food!.name}* (${i.food!.foodId}, ${i.food!.portions.length} rows: '
               '${i.food!.portions.take(6).map((p) => '`${p.label}`').join(', ')}'
-              '${i.food!.portions.length > 6 ? ', …' : ''})',
+              '${i.food!.portions.length > 6 ? ', …' : ''}) → '
+              '${i.amountNeedsCheckFires ? '**fires**' : i.item.quantity == null ? 'quiet: no count' : 'quiet: query words hit `${i.queryMatch!.portion.label}` ${i.queryMatch!.portion.gramWeight} g'}',
     ],
-    limit: 80,
+    limit: 120,
   );
 
   _section(
@@ -656,12 +840,13 @@ String _report({
 
   _section(
     b,
-    'Keys that could not be checked (food unresolved)',
+    'Keys that could not be checked (food unresolved, or the backend did not answer)',
     [
       for (final run in runs)
         for (final i in run.items.where((i) => i.emitted && i.food == null))
           '- ${run.session.label} `${_oneLine(i.line.input)}` `${i.item.query}` '
-              '→ key ${code(i.key)}',
+              '→ key ${code(i.key)}'
+              '${i.backendFailure == null ? '' : ' — ${i.backendFailure}'}',
     ],
   );
 
@@ -669,9 +854,17 @@ String _report({
     for (final run in runs)
       for (final f in run.failures) '- ${run.session.label} $f',
   ]);
+  _section(b, 'Backend failures', [
+    for (final run in runs)
+      for (final f in run.backendFailures) '- ${run.session.label} $f',
+  ]);
   _section(b, 'Invariant violations', [
     for (final run in runs)
       for (final v in run.violations) '- ${run.session.label} $v',
+  ]);
+  _section(b, 'Disagreements with the deterministic parser', [
+    for (final run in runs)
+      for (final d in run.disagreements) '- ${run.session.label} $d',
   ]);
   _section(b, 'Unstable on repeat', [
     for (final run in runs)
@@ -683,7 +876,8 @@ String _report({
     ..writeln()
     ..writeln(
       '${resolver.rpcCalls} read-only RPC calls for '
-      '${resolver.distinctQueries} distinct queries.',
+      '${resolver.distinctQueries} distinct queries; '
+      '${resolver.backendFailures} failed.',
     )
     ..writeln()
     ..writeln('## Appendix')
@@ -710,4 +904,3 @@ void _section(StringBuffer b, String title, List<String> lines, {int limit = 60}
   if (lines.length > limit) b.writeln('\n_… ${lines.length - limit} more in the JSON_');
   b.writeln();
 }
-

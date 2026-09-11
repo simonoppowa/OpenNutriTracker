@@ -14,6 +14,16 @@ import 'providers.dart';
 /// The default `.env` — the main checkout's, which is gitignored there.
 const defaultEnvPath = '/home/simon/Documents/OpenNutriTracker/.env';
 
+/// The user's own server, when `--own-server` names one: where it answers
+/// and which model it is asked for. Both are what the app's settings hold
+/// for that provider (#738).
+class OwnServer {
+  final Uri endpoint;
+  final String model;
+
+  const OwnServer(this.endpoint, this.model);
+}
+
 /// What both tools take. `--keys` may be absent in a dry run, where no
 /// provider is called.
 class MeasurementOptions {
@@ -21,6 +31,7 @@ class MeasurementOptions {
   final String envPath;
   final Directory outDir;
   final List<Provider> providers;
+  final OwnServer? ownServer;
   final int count;
   final bool dryRun;
 
@@ -29,13 +40,15 @@ class MeasurementOptions {
     required this.envPath,
     required this.outDir,
     required this.providers,
+    required this.ownServer,
     required this.count,
     required this.dryRun,
   });
 }
 
 /// Parses `--keys DIR --env PATH --out DIR --providers a,b,c --count N
-/// --dry-run`. Exits 64 on a usage error, the way the old harness did.
+/// --own-server URL --own-model ID --dry-run`. Exits 64 on a usage error,
+/// the way the old harness did.
 MeasurementOptions parseOptions(
   List<String> args, {
   required String tool,
@@ -44,7 +57,9 @@ MeasurementOptions parseOptions(
   String? keys;
   var env = defaultEnvPath;
   String? out;
-  var providers = Provider.values.toList();
+  List<Provider>? providers;
+  String? ownEndpoint;
+  String? ownModel;
   var count = defaultCount;
   var dryRun = false;
 
@@ -78,6 +93,12 @@ MeasurementOptions parseOptions(
             int.tryParse(next(i, '--count')) ??
             usage(tool, '--count takes an integer');
         i++;
+      case '--own-server':
+        ownEndpoint = next(i, '--own-server');
+        i++;
+      case '--own-model':
+        ownModel = next(i, '--own-model');
+        i++;
       case '--dry-run':
         dryRun = true;
       case '--help' || '-h':
@@ -92,12 +113,31 @@ MeasurementOptions parseOptions(
   if (!dryRun && keys == null) {
     usage(tool, '--keys is required unless --dry-run');
   }
+  OwnServer? ownServer;
+  if (ownEndpoint != null || ownModel != null) {
+    if (ownEndpoint == null || ownModel == null) {
+      usage(tool, '--own-server and --own-model go together');
+    }
+    final endpoint = Uri.tryParse(ownEndpoint);
+    if (endpoint == null || !endpoint.hasScheme) {
+      usage(tool, '--own-server takes a URL');
+    }
+    ownServer = OwnServer(endpoint, ownModel);
+  }
+  // The hosted three by default; the own server joins only when named on
+  // the command line, and is not accepted in `--providers` without it.
+  final chosen = providers ??
+      [...hostedProviders, if (ownServer != null) Provider.ownServer];
+  if (chosen.contains(Provider.ownServer) && ownServer == null) {
+    usage(tool, 'ownServer needs --own-server and --own-model');
+  }
 
   return MeasurementOptions(
     keysDir: keys == null ? null : Directory(keys),
     envPath: env,
     outDir: Directory(out),
-    providers: providers,
+    providers: chosen,
+    ownServer: ownServer,
     count: count,
     dryRun: dryRun,
   );
@@ -107,13 +147,16 @@ Never usage(String tool, String? error) {
   if (error != null) stderr.writeln('error: $error');
   stderr.writeln(
     'usage: dart run tool/$tool --out <dir> [--keys <dir>] '
-    '[--env <path>] [--providers anthropic,openrouter,openai] '
-    '[--count N] [--dry-run]\n'
-    '  --keys      directory holding files named anthropic, openrouter, '
-    'openai; a missing file skips that provider\n'
-    '  --env       file with SUPABASE_PROJECT_URL and '
+    '[--env <path>] [--providers anthropic,openrouter,openai,ownServer] '
+    '[--count N] [--own-server <url> --own-model <id>] [--dry-run]\n'
+    '  --keys        directory holding files named anthropic, openrouter, '
+    'openai, ownServer; a missing file skips that provider (the own '
+    'server runs without one)\n'
+    '  --env         file with SUPABASE_PROJECT_URL and '
     'SUPABASE_PROJECT_ANON_KEY (default $defaultEnvPath)\n'
-    '  --dry-run   a fake provider answers; only the read-only backend '
+    '  --own-server  the chat-completions URL of a server you run, and '
+    '--own-model the model to ask it for; adds the ownServer provider\n'
+    '  --dry-run     a fake provider answers; only the read-only backend '
     'RPCs are called',
   );
   exit(64);

@@ -11,6 +11,9 @@
 //
 //   dart run tool/live_portion_photos.dart --keys <dir> --out <dir>
 //   dart run tool/live_portion_photos.dart --dry-run --out <dir>
+//
+// The reports are rewritten after every provider, so a run that dies on
+// provider two still leaves provider one's replies on disk.
 
 import 'dart:convert';
 import 'dart:io';
@@ -47,6 +50,9 @@ class PhotoItemRecord {
   /// What develop's `_countsOnly` returned for this item, for comparison.
   final ParsedMealItem? developOutput;
   final ResolvedFood? food;
+
+  /// The backend did not answer for a kept key; the match is unknown.
+  final String? backendFailure;
   final PortionMatch? match;
   final int latencyMs;
 
@@ -60,6 +66,7 @@ class PhotoItemRecord {
     required this.guard,
     required this.developOutput,
     required this.food,
+    required this.backendFailure,
     required this.match,
     required this.latencyMs,
   });
@@ -92,6 +99,7 @@ class PhotoItemRecord {
             'portion': developOutput!.portion,
           },
     'food': food?.toJson(),
+    'backendFailure': backendFailure,
     'match': match?.toJson(),
     'latencyMs': latencyMs,
   };
@@ -101,9 +109,16 @@ class PhotoRun {
   final ProviderSession session;
   final items = <PhotoItemRecord>[];
   final failures = <String>[];
+  final backendFailures = <String>[];
   final latencies = <int>[];
   final unstable = <String>[];
+
+  /// Requests actually sent, retries included.
   var calls = 0;
+
+  /// Set when the session ended on something other than a provider or
+  /// backend failure; what was recorded before it is still reported.
+  String? aborted;
 
   PhotoRun(this.session);
 }
@@ -131,28 +146,19 @@ Future<void> main(List<String> args) async {
   opts.outDir.createSync(recursive: true);
 
   final runs = <PhotoRun>[];
-  for (final session in sessions) {
-    stdout.writeln('${session.label}: ${photos.length} photos × $photoPasses');
-    final run = PhotoRun(session);
-    await _runPhotos(run, photos, resolver);
-    runs.add(run);
-    session.close();
-  }
-  backend.close();
-
-  final stamp = DateTime.now().toUtc().toIso8601String();
-  final report = _report(
-    runs: runs,
-    photos: photos,
-    opts: opts,
-    prompts: prompts,
-    resolver: resolver,
-    stamp: stamp,
-  );
-  final md = File('${opts.outDir.path}/portion-photos.md')
-    ..writeAsStringSync(report);
-  final json = File('${opts.outDir.path}/portion-photos.items.json')
-    ..writeAsStringSync(
+  void write() {
+    final stamp = DateTime.now().toUtc().toIso8601String();
+    final report = _report(
+      runs: runs,
+      sessions: sessions,
+      photos: photos,
+      opts: opts,
+      prompts: prompts,
+      resolver: resolver,
+      stamp: stamp,
+    );
+    File('${opts.outDir.path}/portion-photos.md').writeAsStringSync(report);
+    File('${opts.outDir.path}/portion-photos.items.json').writeAsStringSync(
       const JsonEncoder.withIndent('  ').convert({
         'generated': stamp,
         'dryRun': opts.dryRun,
@@ -162,17 +168,48 @@ Future<void> main(List<String> args) async {
             for (final i in run.items) i.toJson(),
         ],
         'failures': {for (final r in runs) r.session.label: r.failures},
+        'backendFailures': {
+          for (final r in runs) r.session.label: r.backendFailures,
+        },
         'unstable': {for (final r in runs) r.session.label: r.unstable},
+        'aborted': {for (final r in runs) r.session.label: r.aborted},
       }),
     );
-  stdout.writeln('wrote ${md.path} and ${json.path}');
+  }
+
+  for (final session in sessions) {
+    stdout.writeln('${session.label}: ${photos.length} photos × $photoPasses');
+    final run = PhotoRun(session);
+    runs.add(run);
+    try {
+      await _runPhotos(run, photos, resolver);
+    } catch (e) {
+      // The replies already recorded are worth the file. The message is
+      // the exception's type alone: nothing that could carry a URL or a
+      // body reaches the report.
+      run.aborted = e.runtimeType.toString();
+      stderr.writeln('${session.label}: aborted by ${run.aborted}');
+    } finally {
+      session.close();
+      write();
+    }
+  }
+  backend.close();
+
+  stdout.writeln(
+    'wrote ${opts.outDir.path}/portion-photos.md and '
+    '${opts.outDir.path}/portion-photos.items.json',
+  );
   for (final run in runs) {
     final arrived = run.items.where((i) => i.arrived).length;
     final kept = run.items.where((i) => i.kept).length;
     stdout.writeln(
-      '${run.session.label}: items ${run.items.length} | key arrived $arrived '
-      '| kept by guard $kept | failures ${run.failures.length} | unstable '
-      '${run.unstable.length}/${photos.length}',
+      '${run.session.label}: calls ${run.calls} | items ${run.items.length} '
+      '| key arrived $arrived | kept by guard $kept | failures '
+      '${run.failures.length} | backend failures '
+      '${run.backendFailures.length} | unstable '
+      '${run.unstable.length}/${photos.length}'
+      '${run.aborted == null ? '' : ' | ABORTED (${run.aborted})'}',
     );
   }
 }
@@ -196,9 +233,9 @@ Future<void> _runPhotos(
       final started = DateTime.now();
       MealTextParseResult result;
       try {
-        run.calls++;
         result = await withRetry(
           () => interpreter.interpret(photo, localeCode: photoLocale),
+          onAttempt: () => run.calls++,
         );
       } on MealInterpreterException catch (e) {
         run.failures.add(
@@ -241,9 +278,17 @@ Future<void> _runPhotos(
 
         ResolvedFood? food;
         PortionMatch? match;
+        String? backendFailure;
         if (guard.verdict == PhotoGuardVerdict.kept) {
-          food = await resolver.resolve(item.query);
-          if (food != null) match = matchWithTie(guard.portion!, food.portions);
+          try {
+            food = await resolver.resolve(item.query);
+            if (food != null) match = matchWithTie(guard.portion!, food.portions);
+          } on BackendException catch (e) {
+            backendFailure = e.toString();
+            run.backendFailures.add(
+              '${_name(file)} pass $pass `${item.query}` — $e',
+            );
+          }
         }
 
         run.items.add(
@@ -257,6 +302,7 @@ Future<void> _runPhotos(
             guard: guard,
             developOutput: develop,
             food: food,
+            backendFailure: backendFailure,
             match: match,
             latencyMs: latency,
           ),
@@ -274,6 +320,7 @@ Future<void> _runPhotos(
 
 String _report({
   required List<PhotoRun> runs,
+  required List<ProviderSession> sessions,
   required List<File> photos,
   required MeasurementOptions opts,
   required PromptsAsRun prompts,
@@ -292,18 +339,31 @@ String _report({
     b
       ..writeln(
         '> **Dry run.** Every provider below is `FakeMealItemsApi`, which '
-        'answers one canned plate per photo so that every branch of the '
-        'guard is exercised; no model was called. The backend *was* called '
-        '(read-only) for the survivors, so the match columns are real.',
+        'answers one canned plate per photo, the plates taken in turn so '
+        'that every verdict of the guard — kept, container, piece, other, '
+        'size-like, no count, fraction, unit — and a tie are served; no '
+        'model was called. The backend *was* called (read-only) for the '
+        'survivors, so the match columns are real.',
       )
       ..writeln();
   }
-  b.writeln(
-    callBudget(
-      textCount: opts.count,
-      providers: [for (final r in runs) r.session.provider],
-    ),
-  );
+  if (runs.length < sessions.length) {
+    b
+      ..writeln(
+        '> **Partial.** ${runs.length} of ${sessions.length} providers so '
+        'far; this file is rewritten after each.',
+      )
+      ..writeln();
+  }
+  for (final run in runs.where((r) => r.aborted != null)) {
+    b
+      ..writeln(
+        '> **${run.session.label} aborted** (${run.aborted}) after '
+        '${run.calls} calls; what it recorded is counted below.',
+      )
+      ..writeln();
+  }
+  b.writeln(photoCallBudget(photos: photos.length, sessions: sessions));
 
   b
     ..writeln('## The prompt sentences as run')
@@ -421,7 +481,11 @@ String _report({
                   ? '–'
                   : '${i.developOutput!.quantity ?? '–'} / ${i.developOutput!.portion ?? '–'}',
               i.food == null
-                  ? (i.kept ? 'unresolved' : '')
+                  ? (i.backendFailure != null
+                        ? 'backend failed'
+                        : i.kept
+                        ? 'unresolved'
+                        : '')
                   : '${i.food!.name} (${i.food!.portions.length} rows)',
               i.match == null
                   ? (i.food == null ? '' : 'miss (quiet)')
@@ -463,6 +527,10 @@ String _report({
     for (final run in runs)
       for (final f in run.failures) '- ${run.session.label} $f',
   ]);
+  section('Backend failures', [
+    for (final run in runs)
+      for (final f in run.backendFailures) '- ${run.session.label} $f',
+  ]);
   section('Unstable across passes', [
     for (final run in runs)
       for (final u in run.unstable) '- ${run.session.label} $u',
@@ -473,7 +541,8 @@ String _report({
     ..writeln()
     ..writeln(
       '${resolver.rpcCalls} read-only RPC calls for '
-      '${resolver.distinctQueries} distinct queries.',
+      '${resolver.distinctQueries} distinct queries; '
+      '${resolver.backendFailures} failed.',
     )
     ..writeln()
     ..writeln('## Appendix')

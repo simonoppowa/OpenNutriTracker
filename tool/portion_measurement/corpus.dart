@@ -16,8 +16,16 @@ class Food {
   final String local;
   final String en;
 
-  const Food(this.local, this.en);
+  /// Grammatical gender, German only, so an article or a size adjective
+  /// before the food can agree with it: *ein kleiner Apfel*, *eine kleine
+  /// Banane*, *ein kleines Brot*. `pl` marks a noun the list carries in the
+  /// plural (*Eier*, *Mandeln*), which takes no singular article at all.
+  final Gender? gender;
+
+  const Food(this.local, this.en, {this.gender});
 }
+
+enum Gender { m, f, n, pl }
 
 /// How a food is portioned in practice, so a line pairs a measure with a
 /// food that admits it: "3 slices of bread", not "2 slices of orange
@@ -82,14 +90,38 @@ class Measure {
   /// container: "2 large eggs" rather than "2 slices of bread".
   final bool size;
 
+  /// The indefinite article that goes before the singular where the
+  /// language inflects it — *ein Glas*, *eine Scheibe*. A size adjective
+  /// takes the article of the food instead, so sizes carry none.
+  final String? article;
+
+  /// Written forms beyond the singular and plural — the German size
+  /// adjective after *ein* or *1*: *kleiner Apfel*, *kleines Brot*.
+  final List<String> inflections;
+
   const Measure(
     this.singular,
     this.plural,
     this.key, {
     this.abbreviation = false,
     this.size = false,
+    this.article,
+    this.inflections = const [],
   });
+
+  /// Every way the word is written, so a key that answers any of them —
+  /// the lemma to a plural line included — is recognised as the line's
+  /// own word.
+  List<String> get forms => {singular, plural, ...inflections}.toList();
 }
+
+/// Every written form of every measure of [locale] that carries [key]:
+/// for a German tablespoon line that is *Esslöffel* and *EL* both, since a
+/// model answering either has answered in German.
+List<String> localeFormsForKey(String locale, String key) => [
+  for (final m in measures[locale] ?? const <Measure>[])
+    if (m.key == key) ...m.forms,
+];
 
 const foods = <String, List<Food>>{
   'en': [
@@ -114,22 +146,46 @@ const foods = <String, List<Food>>{
     Food('watermelon', 'watermelon'), Food('cake', 'cake'), Food('toast', 'toast'),
   ],
   'de': [
-    Food('Haferflocken', 'oats'), Food('Banane', 'banana'),
-    Food('griechischer Joghurt', 'greek yogurt'), Food('Hähnchenbrust', 'chicken breast'),
-    Food('Reis', 'rice'), Food('Spaghetti', 'spaghetti'), Food('Lachs', 'salmon'),
-    Food('Avocado', 'avocado'), Food('Milchkaffee', 'latte'), Food('Apfel', 'apple'),
-    Food('Mandeln', 'almonds'), Food('Eier', 'egg'), Food('Speck', 'bacon'),
-    Food('Orangensaft', 'orange juice'), Food('Pizza', 'pizza'),
-    Food('Vollkornbrot', 'whole wheat bread'), Food('Brot', 'bread'),
-    Food('Quark', 'cottage cheese'), Food('Müsli', 'granola'), Food('Milch', 'milk'),
-    Food('Gouda', 'gouda'), Food('Olivenöl', 'olive oil'), Food('Brokkoli', 'broccoli'),
-    Food('Süßkartoffel', 'sweet potato'), Food('Rindersteak', 'beef steak'),
-    Food('Thunfisch', 'tuna'), Food('Erdnussbutter', 'peanut butter'),
-    Food('Kaffee', 'coffee'), Food('grüner Tee', 'green tea'),
-    Food('Zartbitterschokolade', 'dark chocolate'), Food('Rührei', 'scrambled eggs'),
-    Food('Butter', 'butter'), Food('Zucker', 'sugar'), Food('Honig', 'honey'),
-    Food('Käse', 'cheese'), Food('Nudeln', 'pasta'), Food('Wassermelone', 'watermelon'),
-    Food('Kuchen', 'cake'), Food('Toast', 'toast'), Food('Salat', 'salad'),
+    Food('Haferflocken', 'oats', gender: Gender.pl),
+    Food('Banane', 'banana', gender: Gender.f),
+    Food('griechischer Joghurt', 'greek yogurt', gender: Gender.m),
+    Food('Hähnchenbrust', 'chicken breast', gender: Gender.f),
+    Food('Reis', 'rice', gender: Gender.m),
+    Food('Spaghetti', 'spaghetti', gender: Gender.pl),
+    Food('Lachs', 'salmon', gender: Gender.m),
+    Food('Avocado', 'avocado', gender: Gender.f),
+    Food('Milchkaffee', 'latte', gender: Gender.m),
+    Food('Apfel', 'apple', gender: Gender.m),
+    Food('Mandeln', 'almonds', gender: Gender.pl),
+    Food('Eier', 'egg', gender: Gender.pl),
+    Food('Speck', 'bacon', gender: Gender.m),
+    Food('Orangensaft', 'orange juice', gender: Gender.m),
+    Food('Pizza', 'pizza', gender: Gender.f),
+    Food('Vollkornbrot', 'whole wheat bread', gender: Gender.n),
+    Food('Brot', 'bread', gender: Gender.n),
+    Food('Quark', 'cottage cheese', gender: Gender.m),
+    Food('Müsli', 'granola', gender: Gender.n),
+    Food('Milch', 'milk', gender: Gender.f),
+    Food('Gouda', 'gouda', gender: Gender.m),
+    Food('Olivenöl', 'olive oil', gender: Gender.n),
+    Food('Brokkoli', 'broccoli', gender: Gender.m),
+    Food('Süßkartoffel', 'sweet potato', gender: Gender.f),
+    Food('Rindersteak', 'beef steak', gender: Gender.n),
+    Food('Thunfisch', 'tuna', gender: Gender.m),
+    Food('Erdnussbutter', 'peanut butter', gender: Gender.f),
+    Food('Kaffee', 'coffee', gender: Gender.m),
+    Food('grüner Tee', 'green tea', gender: Gender.m),
+    Food('Zartbitterschokolade', 'dark chocolate', gender: Gender.f),
+    Food('Rührei', 'scrambled eggs', gender: Gender.n),
+    Food('Butter', 'butter', gender: Gender.f),
+    Food('Zucker', 'sugar', gender: Gender.m),
+    Food('Honig', 'honey', gender: Gender.m),
+    Food('Käse', 'cheese', gender: Gender.m),
+    Food('Nudeln', 'pasta', gender: Gender.pl),
+    Food('Wassermelone', 'watermelon', gender: Gender.f),
+    Food('Kuchen', 'cake', gender: Gender.m),
+    Food('Toast', 'toast', gender: Gender.m),
+    Food('Salat', 'salad', gender: Gender.m),
   ],
   'zh': [
     Food('燕麦粥', 'oatmeal'), Food('香蕉', 'banana'), Food('鸡胸肉', 'chicken breast'),
@@ -232,19 +288,19 @@ const measures = <String, List<Measure>>{
     Measure('large', 'large', 'large', size: true),
   ],
   'de': [
-    Measure('Scheibe', 'Scheiben', 'slice'),
-    Measure('Stück', 'Stück', 'piece'),
-    Measure('Tasse', 'Tassen', 'cup'),
-    Measure('Esslöffel', 'Esslöffel', 'tablespoon'),
-    Measure('Teelöffel', 'Teelöffel', 'teaspoon'),
-    Measure('EL', 'EL', 'tablespoon', abbreviation: true),
-    Measure('TL', 'TL', 'teaspoon', abbreviation: true),
-    Measure('Glas', 'Gläser', 'glass'),
-    Measure('Schüssel', 'Schüsseln', 'bowl'),
-    Measure('Handvoll', 'Handvoll', 'handful'),
-    Measure('kleine', 'kleine', 'small', size: true),
-    Measure('mittlere', 'mittlere', 'medium', size: true),
-    Measure('große', 'große', 'large', size: true),
+    Measure('Scheibe', 'Scheiben', 'slice', article: 'eine'),
+    Measure('Stück', 'Stück', 'piece', article: 'ein'),
+    Measure('Tasse', 'Tassen', 'cup', article: 'eine'),
+    Measure('Esslöffel', 'Esslöffel', 'tablespoon', article: 'ein'),
+    Measure('Teelöffel', 'Teelöffel', 'teaspoon', article: 'ein'),
+    Measure('EL', 'EL', 'tablespoon', abbreviation: true, article: 'ein'),
+    Measure('TL', 'TL', 'teaspoon', abbreviation: true, article: 'ein'),
+    Measure('Glas', 'Gläser', 'glass', article: 'ein'),
+    Measure('Schüssel', 'Schüsseln', 'bowl', article: 'eine'),
+    Measure('Handvoll', 'Handvoll', 'handful', article: 'eine'),
+    Measure('kleine', 'kleine', 'small', size: true, inflections: ['kleiner', 'kleines']),
+    Measure('mittlere', 'mittlere', 'medium', size: true, inflections: ['mittlerer', 'mittleres']),
+    Measure('große', 'große', 'large', size: true, inflections: ['großer', 'großes']),
   ],
   'cs': [
     Measure('plátek', 'plátky', 'slice'),
@@ -332,15 +388,17 @@ const measures = <String, List<Measure>>{
 };
 
 /// Measure templates. `{n}` is a count, `{m}` the measure inflected for it,
-/// `{f}` the food. `{a}` is the article-plus-singular form ("a glass of",
-/// "ein Glas"). Sizes use `{s}` templates: the adjective before the food.
+/// `{f}` the food, `{a}` the indefinite article where the language inflects
+/// one — the measure's own before a container (*ein Glas*, *eine Scheibe*),
+/// the food's before a size (*ein kleiner Apfel*, *eine kleine Banane*).
+/// A template with `{a}` and no `{n}` is a count of one.
 const measureTemplates = <String, List<String>>{
   'en': [
     '{n} {m} of {f}', '{n} {m} {f}', 'a {m} of {f}', 'I had {n} {m} of {f}',
     '{n} {m} of {f} for breakfast', '{f}, {n} {m}',
   ],
   'de': [
-    '{n} {m} {f}', 'ein {m} {f}', 'eine {m} {f}', '{f}, {n} {m}',
+    '{n} {m} {f}', '{a} {m} {f}', '{f}, {n} {m}',
     'ich hatte {n} {m} {f}', '{n} {m} {f} zum Frühstück',
   ],
   'cs': ['{n} {m} {f}', '{f}, {n} {m}', 'k snídani {n} {m} {f}'],
@@ -354,7 +412,7 @@ const measureTemplates = <String, List<String>>{
 
 const sizeTemplates = <String, List<String>>{
   'en': ['{n} {m} {f}', 'a {m} {f}', 'one {m} {f}', '{n} {m} {f} and coffee'],
-  'de': ['{n} {m} {f}', 'ein {m}s {f}', 'eine {m} {f}', '{n} {m} {f} und Kaffee'],
+  'de': ['{n} {m} {f}', '{a} {m} {f}', '{n} {m} {f} und Kaffee'],
   'cs': ['{n} {m} {f}', 'jedno {m} {f}'],
   'it': ['{n} {m} {f}', 'una {m} {f}'],
   'pl': ['{n} {m} {f}', 'jedno {m} {f}'],
@@ -475,6 +533,10 @@ class Case {
 class Expectation {
   final Food food;
   final String measureWord;
+
+  /// Every written form of the locale's words for this measure, so the
+  /// language test recognises the lemma answered to a plural line.
+  final List<String> measureForms;
   final String key;
   final double quantity;
   final bool abbreviation;
@@ -483,6 +545,7 @@ class Expectation {
   const Expectation({
     required this.food,
     required this.measureWord,
+    required this.measureForms,
     required this.key,
     required this.quantity,
     required this.abbreviation,
@@ -493,6 +556,7 @@ class Expectation {
     'food': food.local,
     'foodEn': food.en,
     'measureWord': measureWord,
+    'measureForms': measureForms,
     'key': key,
     'quantity': quantity,
     'abbreviation': abbreviation,
@@ -508,38 +572,66 @@ List<Case> buildCorpus(int count, int seed) {
   ];
   final cases = <Case>[];
   final seen = <String>{};
+  final measureCursor = <String, int>{};
   var guard = 0;
 
   while (cases.length < count && guard++ < count * 50) {
     final locale = localeDraw[rng.nextInt(localeDraw.length)];
     final share = measureShare[locale] ?? defaultMeasureShare;
     final c = rng.nextDouble() < share
-        ? _measureCase(locale, rng)
+        ? _measureCase(locale, rng, measureCursor)
         : _plainCase(locale, rng);
     if (seen.add('${c.locale}|${c.input}')) cases.add(c);
   }
   return cases;
 }
 
-Case _measureCase(String locale, Random rng) {
+/// A measure line. The measure is taken in turn from the locale's list
+/// rather than drawn, so a locale with as many measure lines as measures
+/// says every word at least once — at the default count the seeded draw
+/// never produced *TL*, *Handvoll* or *mittlere* in 43 German lines, and
+/// the vocabulary was complete while the sample was not. The food, the
+/// template and the count are still drawn.
+Case _measureCase(String locale, Random rng, Map<String, int> cursor) {
   final fs = foods[locale]!;
   final ms = measures[locale]!;
-  final measure = ms[rng.nextInt(ms.length)];
+  final turn = cursor[locale] ?? 0;
+  cursor[locale] = turn + 1;
+  final measure = ms[turn % ms.length];
   final admits = kindsForKey[measure.key] ?? const <Kind>{};
   final fitting = [
     for (final f in fs)
       if ((kindsOf[f.en] ?? const <Kind>{}).intersection(admits).isNotEmpty) f,
   ];
   final pool = fitting.isEmpty ? fs : fitting;
-  final food = pool[rng.nextInt(pool.length)];
+  var food = pool[rng.nextInt(pool.length)];
   final templates = measure.size ? sizeTemplates[locale]! : measureTemplates[locale]!;
   var template = templates[rng.nextInt(templates.length)];
 
-  final counts = measure.size ? [1, 2, 3, 4] : [1, 2, 3, 4, 5, 6];
+  var counts = measure.size ? [1, 2, 3, 4] : [1, 2, 3, 4, 5, 6];
+  if (locale == 'de' && measure.size) {
+    // A size agrees with the food, and a noun the list carries in the
+    // plural has no singular to agree with: *ein kleines Eier* is not
+    // German. Such a food takes a count of two or more, and the article
+    // template takes a food that has a singular.
+    if (template.contains('{a}') && food.gender == Gender.pl) {
+      final singular = [for (final f in pool) if (f.gender != Gender.pl) f];
+      food = singular[rng.nextInt(singular.length)];
+    }
+    if (food.gender == Gender.pl) counts = [2, 3, 4];
+  }
   // A template without `{n}` carries its own article ("a glass of", "ein
   // Glas"), which is a count of one.
   final n = template.contains('{n}') ? counts[rng.nextInt(counts.length)] : 1;
-  final word = n == 1 ? measure.singular : measure.plural;
+  var word = n == 1 ? measure.singular : measure.plural;
+  String? article = measure.article;
+  if (locale == 'de' && measure.size) {
+    // After *ein* or *1* the adjective takes the food's gender: *ein
+    // kleiner Apfel*, *eine kleine Banane*, *ein kleines Brot*; before a
+    // count of two or more every gender takes *kleine*.
+    if (n == 1) word = _germanSize(measure, food.gender!);
+    article = food.gender == Gender.f ? 'eine' : 'ein';
+  }
   // "a slice", "an apple": the English article follows the word.
   if (locale == 'en' && template.startsWith('a {m}')) {
     final vowel = RegExp('^[aeiou]', caseSensitive: false).hasMatch(word);
@@ -547,6 +639,7 @@ Case _measureCase(String locale, Random rng) {
   }
   final input = template
       .replaceAll('{n}', '$n')
+      .replaceAll('{a}', article ?? '')
       .replaceAll('{m}', word)
       .replaceAll('{f}', food.local);
   return Case(
@@ -555,6 +648,7 @@ Case _measureCase(String locale, Random rng) {
     expected: Expectation(
       food: food,
       measureWord: word,
+      measureForms: localeFormsForKey(locale, measure.key),
       key: measure.key,
       quantity: n.toDouble(),
       abbreviation: measure.abbreviation,
@@ -562,6 +656,15 @@ Case _measureCase(String locale, Random rng) {
     ),
   );
 }
+
+/// The German size adjective inflected for a singular food: the masculine
+/// and neuter forms are the measure's `inflections`, in that order, and
+/// the feminine is the base form.
+String _germanSize(Measure measure, Gender gender) => switch (gender) {
+  Gender.m => measure.inflections[0],
+  Gender.n => measure.inflections[1],
+  Gender.f || Gender.pl => measure.singular,
+};
 
 Case _plainCase(String locale, Random rng) {
   final fs = foods[locale]!;

@@ -54,29 +54,61 @@ bool isAsciiLetters(String key) => RegExp(r'^[A-Za-z]+$').hasMatch(key);
 
 /// Where the key's language sits, as far as a harness can tell.
 ///
-/// `steering` is one of the eight; `inputWord` is the measure word the line
-/// itself carried (or an inflection of it), which is the failure #1157 names
-/// — "a model that answers *Scheibe* to a German line"; `asciiOther` is
-/// English-shaped and unverified (the long tail: "wedge", "can"); `nonAscii`
-/// cannot be English.
-enum KeyLanguage { steering, inputWord, asciiOther, nonAscii }
+/// `steering` is one of the eight; `askedWord` is the English word the
+/// line's template asked for when it is not one of the eight — `glass`,
+/// `bowl`, `handful`; `inputWord` is a word of the line's own language for
+/// that measure (any written form, or an inflection of one), which is the
+/// failure #1157 names — "a model that answers *Scheibe* to a German line";
+/// `asciiOther` is English-shaped and unverified (the long tail: "wedge",
+/// "can"); `nonAscii` cannot be English.
+///
+/// The asked word is tested before the own word because the two can be one
+/// letter apart — `glass` on a *Glas* line is the English answer, not the
+/// German one — and the own word is tested on every form the locale writes
+/// for the measure, not only the one the line carried, because a model
+/// that answers the lemma to a plural line (*Glas* to *Gläser*, *tazza* to
+/// *tazze*, *hrnek* to *hrnky*) has answered in the input language just
+/// the same.
+enum KeyLanguage { steering, askedWord, inputWord, asciiOther, nonAscii }
 
-KeyLanguage keyLanguage(String key, {String? inputMeasureWord}) {
+/// The classes the report's *English* column counts.
+const englishKeyLanguages = {
+  KeyLanguage.steering,
+  KeyLanguage.askedWord,
+  KeyLanguage.asciiOther,
+};
+
+KeyLanguage keyLanguage(
+  String key, {
+  String? askedKey,
+  Iterable<String> inputMeasureForms = const [],
+}) {
   final k = key.trim().toLowerCase();
   if (steeringWords.contains(k)) return KeyLanguage.steering;
-  if (inputMeasureWord != null) {
-    final w = inputMeasureWord.toLowerCase();
-    if (_inflectionOf(k, w)) return KeyLanguage.inputWord;
+  if (askedKey != null && k == askedKey.toLowerCase()) {
+    return KeyLanguage.askedWord;
+  }
+  for (final form in inputMeasureForms) {
+    if (_inflectionOf(k, form.toLowerCase())) return KeyLanguage.inputWord;
   }
   return isAsciiLetters(k) ? KeyLanguage.asciiOther : KeyLanguage.nonAscii;
 }
 
+/// True when [a] and [b] are the same word under a short ending: they share
+/// a stem of at least three letters and each carries at most two letters
+/// past it. Symmetric, so it also covers an ending swapped rather than
+/// added — tazze/tazza, pezzi/pezzo, hrnky/hrnek, plátky/plátek — which
+/// "longer starts with shorter" did not. A stem change (Gläser/Glas) is
+/// still not an inflection here; that case is met by passing every form.
 bool _inflectionOf(String a, String b) {
   if (a == b) return true;
-  if (a.length < 3 || b.length < 3) return false;
-  final shorter = a.length <= b.length ? a : b;
-  final longer = a.length <= b.length ? b : a;
-  return longer.startsWith(shorter) && longer.length - shorter.length <= 2;
+  final shorter = a.length < b.length ? a.length : b.length;
+  var stem = 0;
+  while (stem < shorter && a.codeUnitAt(stem) == b.codeUnitAt(stem)) {
+    stem++;
+  }
+  if (stem < 3) return false;
+  return a.length - stem <= 2 && b.length - stem <= 2;
 }
 
 /// The abbreviation the line carried, if any, and the word it should have
@@ -88,6 +120,11 @@ const abbreviationExpansions = {
   'el': 'tablespoon',
   'tl': 'teaspoon',
 };
+
+/// True when the key is one of the abbreviations as written, which the
+/// prompt tells the model to expand.
+bool isAbbreviationKey(String key) =>
+    abbreviationExpansions.containsKey(key.trim().toLowerCase());
 
 /// `matchPortionToQuery` plus the one thing it does not report: whether the
 /// winner won on a tie.
@@ -104,12 +141,24 @@ class PortionMatch {
   final bool tie;
   final List<MealPortionEntity> tiedWith;
 
+  /// False when no word of the query is a word of the winning label as
+  /// written and the hit came through the matcher's two-letter inflection
+  /// bound instead — `slice` on `1 slices`, `cup` on `cups`. Together with
+  /// [tie] this is the false-match surface #1160 asks the report to show:
+  /// the hits where the matcher's docstring says a wrong row is possible.
+  final bool literal;
+
   const PortionMatch({
     required this.index,
     required this.portion,
     required this.tie,
     required this.tiedWith,
+    required this.literal,
   });
+
+  /// A hit worth a second look: decided by row order, or not on the word
+  /// as written.
+  bool get suspect => tie || !literal;
 
   Map<String, Object?> toJson() => {
     'index': index,
@@ -117,8 +166,19 @@ class PortionMatch {
     'gramWeight': portion.gramWeight,
     'tie': tie,
     'tiedWith': [for (final p in tiedWith) p.label],
+    'literal': literal,
   };
 }
+
+/// The words of a query or a label the matcher sees: runs of letters of at
+/// least three, parentheticals removed, lower-cased — `portion_match`'s
+/// own rule, restated here only to say whether a hit was literal.
+Set<String> matcherWords(String text) => text
+    .replaceAll(RegExp(r'\([^)]*\)'), ' ')
+    .toLowerCase()
+    .split(RegExp(r'[^\p{L}]+', unicode: true))
+    .where((w) => w.length >= 3)
+    .toSet();
 
 PortionMatch? matchWithTie(String key, List<MealPortionEntity> portions) {
   final index = matchPortionToQuery(key, portions);
@@ -137,6 +197,7 @@ PortionMatch? matchWithTie(String key, List<MealPortionEntity> portions) {
     portion: winner,
     tie: tied.isNotEmpty,
     tiedWith: tied,
+    literal: matcherWords(key).intersection(matcherWords(winner.label)).isNotEmpty,
   );
 }
 

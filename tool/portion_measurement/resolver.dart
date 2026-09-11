@@ -9,25 +9,31 @@
 //
 //  1. `rankAndTruncateFoodsByName` — `textRelevanceScore` of the full
 //     `name` against the query, stable, descending, the top 20;
-//  2. `MealEntity.fromSpFood` — the shown name is `short_title ?? name`;
-//  4. `mergeAndRankMeals` — `scoreMealRelevance` on the shown name, records
-//     sharing a normalized shown name collapsed to the highest-scoring
-//     (first seen on a tie), a stable sort, then `rankForResolution`'s soft
-//     Dice, stable again — and index 0 is the food.
+//  2. `MealEntity.fromSpFood` — the shown name is `short_title ?? name`,
+//     the brand is `brands`, `detailed` is false;
+//  4. `mergeAndRankMeals` — `scoreMealRelevance` on the shown name and
+//     brand, records sharing a normalized shown name (and brand, where
+//     both name one) collapsed to the highest-scoring (first seen on a
+//     tie), a stable sort, then `rankForResolution`'s soft Dice, stable
+//     again — and index 0 is the food.
 //
 // Step 3, the search-cache round trip, is not modelled here either, for
 // the reason #1163 gives: it can only reorder equal-scoring siblings, and
 // the winner's *group* is fixed by the shown name. The portions are
 // `portions_by_food_ids(ids, 'en')`, so every label is the English
-// `portion_description` the model's key is matched against (#1157).
+// `portion_description` the model's key is matched against (#1157); the
+// query words are tried against the labels of the line's own locale, as
+// the app tries them.
 //
 // The scorers are copied below rather than imported: `meal_relevance_ranker
 // .dart` and `resolver_relevance.dart` reach `hive_ce_flutter` through
-// `meal_entity.dart` and cannot be compiled by `dart run`. The copies are
+// `meal_entity.dart` and cannot be compiled by `dart run`. The copies, and
+// [aiPathWinner]'s truncation, collapse, tie and shown-name rules, are
 // pinned to the originals by
 // `test/unit_test/portion_measurement_parity_test.dart`.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
@@ -91,6 +97,22 @@ class ResolvedFood {
   };
 }
 
+/// The backend could not answer. Carries the function and the kind of
+/// failure and nothing else: an `http.ClientException` prints its URI,
+/// which here is the project URL, and that must not reach a log or a
+/// report. A caller records the item as unchecked and carries on, so one
+/// backend blip mid-run does not throw away every provider reply already
+/// paid for.
+class BackendException implements Exception {
+  final String fn;
+  final String kind;
+
+  const BackendException(this.fn, this.kind);
+
+  @override
+  String toString() => 'backend $fn failed: $kind';
+}
+
 /// Caches per query, so a corpus that names the same forty foods a few
 /// hundred times makes a few dozen backend calls.
 class FoodResolver {
@@ -99,17 +121,38 @@ class FoodResolver {
   /// Futures rather than values, so two lanes asking for the same food at
   /// the same moment share one call.
   final _cache = <String, Future<ResolvedFood?>>{};
+  final _localized = <String, Future<List<MealPortionEntity>>>{};
   var rpcCalls = 0;
+  var backendFailures = 0;
 
   FoodResolver(this._client, this._access);
 
   int get distinctQueries => _cache.length;
 
   /// The food [query] lands on, or null when the search returned nothing.
+  /// Throws [BackendException] when the backend did not answer; the
+  /// failed lookup is not cached, so a later item asking for the same food
+  /// tries again.
   Future<ResolvedFood?> resolve(String query) {
     final key = query.trim().toLowerCase();
     if (key.isEmpty) return Future.value(null);
-    return _cache.putIfAbsent(key, () => _resolveUncached(query.trim()));
+    final pending = _cache.putIfAbsent(key, () => _resolveUncached(query.trim()));
+    return pending.catchError((Object e) {
+      _cache.remove(key);
+      throw e;
+    });
+  }
+
+  /// The portions of [foodId] as the app fetches them for a user whose app
+  /// language is [loc] — a verified translation where one exists, English
+  /// otherwise — which is what the query words are matched against.
+  Future<List<MealPortionEntity>> localizedPortions(int foodId, String loc) {
+    final key = '$foodId|$loc';
+    final pending = _localized.putIfAbsent(key, () => _portions(foodId, loc));
+    return pending.catchError((Object e) {
+      _localized.remove(key);
+      throw e;
+    });
   }
 
   Future<ResolvedFood?> _resolveUncached(String query) async {
@@ -120,14 +163,30 @@ class FoodResolver {
     });
     if (rows.isEmpty) return null;
 
-    final landed = _aiPathWinner(rows, query);
+    final landed = aiPathWinner(rows, query);
     if (landed == null) return null;
     final id = landed.row['food_id'];
     if (id is! int) return null;
 
+    final portions = await localizedPortions(id, 'en');
+
+    return ResolvedFood(
+      foodId: id,
+      name: (landed.row['name'] as String?) ?? '',
+      shortTitle: landed.row['short_title'] as String?,
+      source: (landed.row['source'] as String?) ?? '',
+      score: landed.score,
+      poolSize: rows.length,
+      poolTopName: landed.poolTopName,
+      groupSize: landed.groupSize,
+      portions: portions,
+    );
+  }
+
+  Future<List<MealPortionEntity>> _portions(int id, String loc) async {
     final portionRows = await _rpc('portions_by_food_ids', {
       'ids': [id],
-      'loc': 'en',
+      'loc': loc,
     });
     final portions = <MealPortionEntity>[];
     for (final row in portionRows) {
@@ -143,106 +202,145 @@ class FoodResolver {
         ),
       );
     }
-
-    return ResolvedFood(
-      foodId: id,
-      name: (landed.row['name'] as String?) ?? '',
-      shortTitle: landed.row['short_title'] as String?,
-      source: (landed.row['source'] as String?) ?? '',
-      score: landed.score,
-      poolSize: rows.length,
-      poolTopName: landed.poolTopName,
-      groupSize: landed.groupSize,
-      portions: portions,
-    );
-  }
-
-  /// Steps 1, 2 and 4 above over the raw pool.
-  static ({Map<String, dynamic> row, double score, String? poolTopName, int groupSize})?
-  _aiPathWinner(List<Map<String, dynamic>> rows, String query) {
-    // 1. rankAndTruncateFoodsByName.
-    final ranked = [
-      for (final row in rows)
-        (row: row, score: textRelevanceScore(row['name'] as String?, query)),
-    ];
-    mergeSort(ranked, compare: (a, b) => b.score.compareTo(a.score));
-    final top20 = ranked.take(maxNumberOfItems).toList();
-    if (top20.isEmpty) return null;
-    final poolTop = top20.first.row;
-
-    // 2 + 4. Shown name, scoreMealRelevance on it, collapse by normalized
-    // shown name keeping the highest (strict >, so first seen on a tie).
-    String shown(Map<String, dynamic> row) =>
-        (row['short_title'] as String?) ?? (row['name'] as String?) ?? '';
-    final groupOrder = <String>[];
-    final groups = <String, List<({Map<String, dynamic> row, double score})>>{};
-    for (final entry in top20) {
-      final key = _normalize(shown(entry.row));
-      final scored = (row: entry.row, score: scoreMealRelevance(shown(entry.row), query));
-      if (!groups.containsKey(key)) groupOrder.add(key);
-      groups.putIfAbsent(key, () => []).add(scored);
-    }
-    final collapsed = <({Map<String, dynamic> row, double score, int groupSize})>[];
-    for (final key in groupOrder) {
-      final group = groups[key]!;
-      var best = group.first;
-      for (final candidate in group.skip(1)) {
-        if (candidate.score > best.score) best = candidate;
-      }
-      collapsed.add((row: best.row, score: best.score, groupSize: group.length));
-    }
-    // rankMealsByRelevance, then rankForResolution, both stable.
-    mergeSort(collapsed, compare: (a, b) => b.score.compareTo(a.score));
-    final resolved = [
-      for (final c in collapsed)
-        (c: c, r: resolutionScore(shown(c.row), query)),
-    ];
-    mergeSort(resolved, compare: (a, b) => b.r.compareTo(a.r));
-    final winner = resolved.first.c;
-    return (
-      row: winner.row,
-      score: winner.score,
-      poolTopName: identical(winner.row, poolTop) ? null : poolTop['name'] as String?,
-      groupSize: winner.groupSize,
-    );
+    return portions;
   }
 
   /// One PostgREST RPC: a POST with the parameters as the JSON body, so the
-  /// search term never enters a URL (#882).
+  /// search term never enters a URL (#882). Every way the call can fail is
+  /// turned into a [BackendException] naming the function and the kind of
+  /// failure, because the `http` exceptions carry the URI in their message.
   Future<List<Map<String, dynamic>>> _rpc(
     String fn,
     Map<String, Object?> params,
   ) async {
     rpcCalls++;
     final anon = _access.anonKey();
-    final response = await _client.post(
-      _access.projectUrl.replace(path: '/rest/v1/rpc/$fn'),
-      headers: {
-        'apikey': anon,
-        'Authorization': 'Bearer $anon',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: jsonEncode(params),
-    );
-    if (response.statusCode != 200) {
-      throw StateError('$fn answered ${response.statusCode}');
+    final http.Response response;
+    try {
+      response = await _client.post(
+        _access.projectUrl.replace(path: '/rest/v1/rpc/$fn'),
+        headers: {
+          'apikey': anon,
+          'Authorization': 'Bearer $anon',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(params),
+      );
+    } on http.ClientException {
+      backendFailures++;
+      throw BackendException(fn, 'unreachable (ClientException)');
+    } on IOException {
+      backendFailures++;
+      throw BackendException(fn, 'unreachable (IOException)');
     }
-    final decoded = jsonDecode(response.body);
-    if (decoded is! List) throw StateError('$fn did not return rows');
+    if (response.statusCode != 200) {
+      backendFailures++;
+      throw BackendException(fn, 'HTTP ${response.statusCode}');
+    }
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(response.body);
+    } on FormatException {
+      backendFailures++;
+      throw BackendException(fn, 'body is not JSON');
+    }
+    if (decoded is! List) {
+      backendFailures++;
+      throw BackendException(fn, 'body is not a list of rows');
+    }
     return decoded.cast<Map<String, dynamic>>();
   }
+}
+
+/// What [aiPathWinner] lands on.
+typedef AiPathWinner = ({
+  Map<String, dynamic> row,
+  double score,
+  String? poolTopName,
+  int groupSize,
+});
+
+/// Steps 1, 2 and 4 of the AI path over the raw `search_food_summary` pool,
+/// or null for an empty pool. A top-level function so the parity test can
+/// run it beside the app's own pipeline on the same rows.
+AiPathWinner? aiPathWinner(List<Map<String, dynamic>> rows, String query) {
+  // 1. rankAndTruncateFoodsByName.
+  final ranked = [
+    for (final row in rows)
+      (row: row, score: textRelevanceScore(row['name'] as String?, query)),
+  ];
+  mergeSort(ranked, compare: (a, b) => b.score.compareTo(a.score));
+  final top20 = ranked.take(maxNumberOfItems).toList();
+  if (top20.isEmpty) return null;
+  final poolTop = top20.first.row;
+
+  // 2 + 4. Shown name and brand, scoreMealRelevance on them, collapse by
+  // `_nearDuplicateKey` keeping the highest (strict >, so first seen on a
+  // tie).
+  String shown(Map<String, dynamic> row) =>
+      (row['short_title'] as String?) ?? (row['name'] as String?) ?? '';
+  String? brand(Map<String, dynamic> row) => row['brands'] as String?;
+  final groupOrder = <String>[];
+  final groups = <String, List<({Map<String, dynamic> row, double score})>>{};
+  for (final entry in top20) {
+    final key = nearDuplicateKey(shown(entry.row), brand(entry.row), entry.row);
+    final scored = (
+      row: entry.row,
+      score: scoreMealRelevance(shown(entry.row), query, brand: brand(entry.row)),
+    );
+    if (!groups.containsKey(key)) groupOrder.add(key);
+    groups.putIfAbsent(key, () => []).add(scored);
+  }
+  final collapsed = <({Map<String, dynamic> row, double score, int groupSize})>[];
+  for (final key in groupOrder) {
+    final group = groups[key]!;
+    var best = group.first;
+    for (final candidate in group.skip(1)) {
+      if (candidate.score > best.score) best = candidate;
+    }
+    collapsed.add((row: best.row, score: best.score, groupSize: group.length));
+  }
+  // rankMealsByRelevance, then rankForResolution, both stable.
+  mergeSort(collapsed, compare: (a, b) => b.score.compareTo(a.score));
+  final resolved = [
+    for (final c in collapsed)
+      (c: c, r: resolutionScore(shown(c.row), query, brand: brand(c.row))),
+  ];
+  mergeSort(resolved, compare: (a, b) => b.r.compareTo(a.r));
+  final winner = resolved.first.c;
+  return (
+    row: winner.row,
+    score: winner.score,
+    poolTopName: identical(winner.row, poolTop) ? null : poolTop['name'] as String?,
+    groupSize: winner.groupSize,
+  );
 }
 
 // --- copied from meal_relevance_ranker.dart --------------------------------
 
 /// `scoreMealRelevance` from `lib/features/add_meal/util/meal_relevance_ranker.dart`
-/// for a backend food: no brand, `detailed` false, no machine translation in
-/// the English locale, so the score is the name's text score alone.
-double scoreMealRelevance(String? shownName, String query) {
+/// for a backend food: `detailed` false and no machine translation in the
+/// English locale (the parity test pins both to `MealEntity.fromSpFood`),
+/// so the score is the name's text score, or the brand's at 60% where that
+/// is higher.
+double scoreMealRelevance(String? shownName, String query, {String? brand}) {
   final normalizedQuery = _normalize(query);
   if (normalizedQuery.isEmpty) return 0.0;
-  return _textScore(shownName, normalizedQuery).clamp(0.0, 1.0);
+  final nameScore = _textScore(shownName, normalizedQuery);
+  final brandScore = _textScore(brand, normalizedQuery);
+  final score = nameScore >= brandScore ? nameScore : brandScore * 0.6;
+  return score.clamp(0.0, 1.0);
+}
+
+/// `_nearDuplicateKey` from the same file: the normalized shown name, with
+/// the normalized brand appended when there is one; a nameless row keys on
+/// `source:code`, which for a backend food is `fdc` and the food id.
+String nearDuplicateKey(String? shownName, String? brand, Map<String, dynamic> row) {
+  final name = _normalize(shownName);
+  if (name.isEmpty) return 'noname:fdc:${row['food_id'] ?? identityHashCode(row)}';
+  final b = _normalize(brand);
+  return b.isEmpty ? name : '$name|$b';
 }
 
 /// `textRelevanceScore` from the same file, verbatim apart from the names.
@@ -284,14 +382,22 @@ double _diceCoefficient(Set<String> a, Set<String> b) {
 // --- copied from resolver_relevance.dart -----------------------------------
 
 /// `scoreMealForResolution` from `lib/features/add_meal/util/resolver_relevance.dart`
-/// for a backend food: no brand, no bonuses, so the soft Dice of the shown
-/// name alone.
-double resolutionScore(String? shownName, String query) {
+/// for a backend food: no bonuses (`detailed` false, not machine
+/// translated), so the soft Dice of the shown name, or the brand's at 60%
+/// where that is higher.
+double resolutionScore(String? shownName, String query, {String? brand}) {
   final queryTokens = _tokenize(_normalize(query));
   if (queryTokens.isEmpty) return 0.0;
-  final normalized = _normalize(shownName);
+  final nameScore = _resolutionTextScore(shownName, queryTokens);
+  final brandScore = _resolutionTextScore(brand, queryTokens);
+  final score = nameScore >= brandScore ? nameScore : brandScore * 0.6;
+  return score.clamp(0.0, 1.0);
+}
+
+double _resolutionTextScore(String? text, Set<String> queryTokens) {
+  final normalized = _normalize(text);
   if (normalized.isEmpty) return 0.0;
-  return _softDice(_tokenize(normalized), queryTokens).clamp(0.0, 1.0);
+  return _softDice(_tokenize(normalized), queryTokens);
 }
 
 const _minPrefix = 3;

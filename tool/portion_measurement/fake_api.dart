@@ -5,13 +5,15 @@
 // It is deliberately not a good model. Every branch the report has a column
 // for is produced on purpose: the English key, the key in the line's own
 // language, an abbreviation left as written, a unit substituted for a
-// household measure, no key at all, a key on a line that named no measure;
-// and on the photo side a container word, a piece word, a size on a
-// fraction, a size beside a unit, a size with no count, `extra large`, and
+// household measure, no key at all, a key on a line that named no measure,
+// one line that fails outright; and on the photo side a container word, a
+// piece word, a word of neither kind, a size on a fraction, a size beside a
+// unit, a size with no count, `extra large`, a size that ties two rows, and
 // the three words that survive. Which branch a line gets is a hash of the
 // line, so a dry run is reproducible and a repeat of the same line answers
-// the same way — except one photo, whose third pass moves, so the stability
-// column is exercised too.
+// the same way — except one photo, whose third pass moves, and two text
+// lines whose third repeat moves (one the key alone, one the count), so
+// the stability columns are exercised too.
 
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
@@ -22,6 +24,11 @@ import 'providers.dart';
 class FakeMealItemsApi implements MealItemsApi, RawReplySource {
   final _raw = <({String needle, List<Map<String, Object?>> items})>[];
   final _photoPasses = <String, int>{};
+  final _photoOrder = <String, int>{};
+  final _textAsks = <String, int>{};
+  String? _failingLine;
+  var _keyMoved = false;
+  var _countMoved = false;
   var calls = 0;
 
   @override
@@ -35,14 +42,33 @@ class FakeMealItemsApi implements MealItemsApi, RawReplySource {
     final String? statedIn;
     switch (content) {
       case MealTextContent(:final text):
-        items = _textReply(text);
         needle = textNeedle(text);
+        final ask = (_textAsks[needle] ?? 0) + 1;
+        _textAsks[needle] = ask;
+        // One line fails, every time it is asked: the first seen whose
+        // hash lands on 3, so the harness's failure path runs once per
+        // provider without a retry pause (the failure is not transient).
+        _failingLine ??= _hash(text) % 10 == 3 ? text : null;
+        if (text == _failingLine) {
+          throw const MealInterpreterException(
+            'the fake refuses this line',
+            failure: MealInterpreterFailure.rejected,
+            statusCode: 400,
+          );
+        }
+        items = _textReply(text);
+        // The third repeat of a line moves, once for the key alone and once
+        // for the count, so both stability rows have something to show.
+        // Ask 4 is the third of the stability probe's three; the corpus
+        // pass was ask 1.
+        if (ask == 4 && items.isNotEmpty) _moveOnce(items.first);
         statedIn = text;
       case MealPhotoContent(:final base64Data):
         needle = photoNeedle(base64Data);
         final pass = (_photoPasses[needle] ?? 0) + 1;
         _photoPasses[needle] = pass;
-        items = _photoReply(base64Data, pass);
+        _photoOrder[needle] ??= _photoOrder.length;
+        items = _photoReply(_photoOrder[needle]!, pass);
         statedIn = null;
     }
     _raw.add((needle: needle, items: items));
@@ -60,6 +86,16 @@ class FakeMealItemsApi implements MealItemsApi, RawReplySource {
     return _raw.removeAt(i).items;
   }
 
+  void _moveOnce(Map<String, Object?> first) {
+    if (!_keyMoved && first['portion'] is String) {
+      first['portion'] = first['portion'] == 'piece' ? 'slice' : 'piece';
+      _keyMoved = true;
+    } else if (!_countMoved && first['quantity'] is num) {
+      first['quantity'] = (first['quantity'] as num) + 1;
+      _countMoved = true;
+    }
+  }
+
   /// Deterministic per line: a stable hash picks the branch.
   static int _hash(String s) {
     var h = 0;
@@ -69,14 +105,16 @@ class FakeMealItemsApi implements MealItemsApi, RawReplySource {
     return h;
   }
 
-  /// Every measure word of every locale, longest first so "столова ложка"
-  /// wins over "ложка"-shaped matches and "Esslöffel" over "EL".
+  /// Every written form of every measure word of every locale, longest
+  /// first so "столова ложка" wins over "ложка"-shaped matches, "Esslöffel"
+  /// over "EL" and "kleines" over "kleine".
   static final _vocabulary = () {
     final all = <(String word, String locale, Measure m)>[];
     for (final e in measures.entries) {
       for (final m in e.value) {
-        all.add((m.singular, e.key, m));
-        if (m.plural != m.singular) all.add((m.plural, e.key, m));
+        for (final form in m.forms) {
+          all.add((form, e.key, m));
+        }
       }
     }
     all.sort((a, b) => b.$1.length.compareTo(a.$1.length));
@@ -111,15 +149,24 @@ class FakeMealItemsApi implements MealItemsApi, RawReplySource {
         map['query'] = food.isEmpty ? query : food;
       }
       final quantity = item.quantity ?? 1.0;
+      if (measure.abbreviation && h % 3 == 0) {
+        // An abbreviation left as written, which the prompt says to expand.
+        // Its own draw, on the abbreviation lines alone: as one case of the
+        // ten below it never once fell on an abbreviation line of the
+        // default corpus.
+        map['quantity'] = quantity;
+        map['portion'] = word;
+        out.add(map);
+        continue;
+      }
       switch (h % 10) {
         case 6:
-          // The failure #1157 names: the key in the line's own language.
+          // The failure #1157 names: the key in the line's own language —
+          // as its lemma, the way a model answers *Glas* to *Gläser* and
+          // *tazza* to *tazze*, so the language test has a stem change to
+          // recognise and not only the word as written.
           map['quantity'] = quantity;
-          map['portion'] = word;
-        case 7:
-          // An abbreviation left as written — only where the line had one.
-          map['quantity'] = quantity;
-          map['portion'] = measure.abbreviation ? word : measure.key;
+          map['portion'] = measure.singular;
         case 8:
           // No key at all.
           map['quantity'] = quantity;
@@ -197,12 +244,13 @@ class FakeMealItemsApi implements MealItemsApi, RawReplySource {
         .trim();
   }
 
-  /// One canned plate per photo, chosen by a hash of its bytes, so every
-  /// photo of the fixed set lands on a different branch of the guard.
-  List<Map<String, Object?>> _photoReply(String base64Data, int pass) {
-    final h = _hash(photoNeedle(base64Data));
-    final variant = h % 9;
-    switch (variant) {
+  /// One canned plate per photo, taken in turn in the order the photos are
+  /// first seen — the set is read sorted, so the same photo gets the same
+  /// plate every run — and every plate is served as long as the set has at
+  /// least ten photos. A hash of the bytes was tried first and left two
+  /// branches unserved.
+  List<Map<String, Object?>> _photoReply(int order, int pass) {
+    switch (order % 10) {
       case 0:
         return [
           {'query': 'egg', 'quantity': 2, 'portion': 'large'},
@@ -251,11 +299,20 @@ class FakeMealItemsApi implements MealItemsApi, RawReplySource {
           {'query': 'pancakes', 'quantity': 3, 'portion': 'medium'},
           {'query': 'maple syrup', 'quantity': 2, 'portion': 'tablespoon'},
         ];
-      default:
+      case 8:
         return [
           {'query': 'sushi', 'quantity': 8, 'portion': 'piece'},
           {'query': 'miso soup', 'quantity': 1, 'portion': 'bowl'},
           {'query': 'edamame', 'quantity': 1, 'portion': 'mini'},
+        ];
+      default:
+        // A word of neither kind (`stalk` is in no class of #1155), and a
+        // size that ties two rows of the resolved food — `small` on
+        // watermelon matches `1 small wedge/slice` and `1 small melon`
+        // alike, and row order decides.
+        return [
+          {'query': 'celery', 'quantity': 2, 'portion': 'stalk'},
+          {'query': 'watermelon', 'quantity': 1, 'portion': 'small'},
         ];
     }
   }

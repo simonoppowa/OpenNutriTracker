@@ -12,20 +12,34 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/data/openai_compatible_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/data/openai_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 
-enum Provider { anthropic, openrouter, openai }
+/// The three curated providers, and the user's own server — the fourth
+/// `AiProvider`, run only when `--own-server` names an endpoint (#1160:
+/// "and the own-server endpoint if it is up").
+enum Provider { anthropic, openrouter, openai, ownServer }
+
+/// The hosted three, which a run takes by default.
+const hostedProviders = [Provider.anthropic, Provider.openrouter, Provider.openai];
 
 /// `AiModelCatalogue.defaultFor(provider).id` — the first entry of each list,
-/// which is what a user who never opened the model picker is sent to.
+/// which is what a user who never opened the model picker is sent to. The
+/// own server has no default: its model is part of what "configured" means
+/// there (#738), so the command line names it.
 const defaultModelIds = <Provider, String>{
   Provider.anthropic: 'claude-haiku-4-5',
   Provider.openrouter: 'anthropic/claude-sonnet-5',
   Provider.openai: 'gpt-5.6-luna',
 };
+
+/// `ownServerTimeout` from `meal_items_api_factory.dart`, copied because
+/// that file reaches `flutter_secure_storage`: the budget #774 measured a
+/// cold model load against.
+const ownServerTimeout = Duration(seconds: 120);
 
 /// `AiModel.providers` for the OpenRouter default: pinned to Anthropic with
 /// fallbacks off, so the vendor that answers is the vendor the app names.
@@ -34,23 +48,42 @@ const openRouterPins = <String, List<String>>{
 };
 
 /// The client for [provider], over [client], with the key read through
-/// [key] at request time — the same three constructor calls the factory
-/// makes for the hosted providers.
+/// [key] at request time — the same constructor calls the factory makes.
+/// [key] may be null only for the own server, which may run without one;
+/// [endpoint] is required for it and ignored by the hosted three.
 MealItemsApi buildApi(
   Provider provider,
   http.Client client,
-  String Function() key,
-) {
-  final model = defaultModelIds[provider]!;
+  String Function()? key, {
+  required String model,
+  Uri? endpoint,
+}) {
+  String hostedKey() {
+    if (key == null) throw StateError('${provider.name} needs a key');
+    return key();
+  }
+
   return switch (provider) {
-    Provider.anthropic => AnthropicMealItemsApi(client, key, model: model),
+    Provider.anthropic => AnthropicMealItemsApi(client, hostedKey, model: model),
     Provider.openrouter => OpenAiCompatibleMealItemsApi.openRouter(
       client,
-      key,
+      hostedKey,
       model: model,
       providers: openRouterPins[model],
     ),
-    Provider.openai => OpenAiMealItemsApi(client, key, model: model),
+    Provider.openai => OpenAiMealItemsApi(client, hostedKey, model: model),
+    // As the factory builds it: the plaintext guard around the client, no
+    // broker, `required` rather than a named tool (#733), the long budget
+    // and the timeout classification of #774.
+    Provider.ownServer => OpenAiCompatibleMealItemsApi(
+      GuardedPlaintextClient(client),
+      key,
+      model: model,
+      endpoint: endpoint ?? (throw StateError('the own server needs an endpoint')),
+      toolChoice: ToolChoiceMode.anyTool,
+      timeout: ownServerTimeout,
+      timeoutFailure: MealInterpreterFailure.timeout,
+    ),
   };
 }
 
