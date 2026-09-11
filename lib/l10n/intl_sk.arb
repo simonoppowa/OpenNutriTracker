@@ -364,6 +364,8 @@
   "exportImportCsvRecipesNote": "CSV obsahuje aktivitu, denník jedál a zaznamenané dni. Recepty a pripojené fotky sa ukladajú len do JSON — prepni na JSON, ak ich chceš mať v zálohe.",
   "exportImportDescription": "Údaje aplikácie môžete exportovať do zip súboru a neskôr ich importovať. Hodí sa to, keď si chcete údaje zálohovať alebo preniesť do iného zariadenia.\n\nAplikácia nepoužíva na ukladanie vašich údajov žiadnu cloudovú službu.",
   "exportImportErrorLabel": "Chyba exportu / importu",
+  "exportImportErrorUnreadableLabel": "Vybraný súbor sa nepodarilo prečítať. Vyberte zálohu .zip, ktorú OpenNutriTracker exportoval.",
+  "exportImportErrorWriteFailedLabel": "Súbor sa nepodarilo uložiť do vybraného umiestnenia. Skúste iný priečinok.",
   "exportImportSuccessLabel": "Export / Import bol úspešný",
   "fatLabel": "tuky",
   "fatLabelShort": "t",

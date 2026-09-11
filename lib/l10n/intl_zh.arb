@@ -317,6 +317,8 @@
   "exportImportCsvRecipesNote": "CSV 会保存活动、饮食日志和已记录的日期。食谱和添加的照片仅保存在 JSON 中——如果想纳入备份，请切换到 JSON。",
   "exportImportDescription": "您可以将应用数据导出到zip文件并稍后导入。这在您想要备份数据或传输到另一台设备时很有用。\n\n应用不会使用任何云服务存储您的数据。",
   "exportImportErrorLabel": "导出/导入错误",
+  "exportImportErrorUnreadableLabel": "无法读取所选文件。请选择 OpenNutriTracker 导出的 .zip 备份文件。",
+  "exportImportErrorWriteFailedLabel": "无法将文件保存到所选位置。请尝试其他文件夹。",
   "exportImportSuccessLabel": "导出/导入成功",
   "fatLabel": "脂肪",
   "fatLabelShort": "脂",

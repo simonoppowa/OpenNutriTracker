@@ -19,9 +19,22 @@ class ExportImportSuccess extends ExportImportState {
   List<Object?> get props => [];
 }
 
+/// An export, import or sample download failed, for [reason].
+///
+/// Never carries [ExportImportFailureReason.cancelled]: a dismissed picker
+/// is not a failure, and the bloc returns to [ExportImportInitial] for it
+/// instead (#1103).
 class ExportImportError extends ExportImportState {
+  final ExportImportFailureReason reason;
+
+  const ExportImportError(this.reason)
+    : assert(
+        reason != ExportImportFailureReason.cancelled,
+        'A cancelled picker is not an error; emit ExportImportInitial',
+      );
+
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [reason];
 }
 
 /// CSV import finished. [imported] is the number of meals saved;

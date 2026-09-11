@@ -18,6 +18,7 @@ import 'package:opennutritracker/core/data/repository/weight_log_repository.dart
 import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
 import 'package:opennutritracker/core/utils/export_write_verifier.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
+import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 
 /// The two export shapes available from Settings → Export / Import App Data.
 /// JSON is the canonical backup-and-restore format the app re-imports from;
@@ -89,20 +90,30 @@ class ExportDataUsecase {
       throw StateError('Export archive was empty, refusing to save it');
     }
 
-    final result = await FilePicker.saveFile(
-      fileName: exportZipFileName,
-      type: FileType.custom,
-      allowedExtensions: ['zip'],
-      bytes: Uint8List.fromList(zipBytes),
+    // Anything the save dialog or the read-back check throws is a failure
+    // to get the bytes onto disk, and is reported as such (#1103) — the
+    // verifier's StateError in particular carries the path and the byte
+    // count that make it diagnosable.
+    return ExportImportFailure.guard(
+      ExportImportFailureReason.writeFailed,
+      'Could not save $exportZipFileName',
+      () async {
+        final result = await FilePicker.saveFile(
+          fileName: exportZipFileName,
+          type: FileType.custom,
+          allowedExtensions: ['zip'],
+          bytes: Uint8List.fromList(zipBytes),
+        );
+
+        if (result == null) {
+          // User cancelled the save dialog.
+          return false;
+        }
+
+        ExportWriteVerifier.verify(result, zipBytes.length);
+        return true;
+      },
     );
-
-    if (result == null) {
-      // User cancelled the save dialog.
-      return false;
-    }
-
-    ExportWriteVerifier.verify(result, zipBytes.length);
-    return true;
   }
 
   /// Builds the bundle in memory, without touching the file picker.

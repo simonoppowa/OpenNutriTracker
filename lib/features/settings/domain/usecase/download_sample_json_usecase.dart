@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:opennutritracker/core/utils/json_meal_importer.dart';
 import 'package:opennutritracker/core/utils/json_recipe_importer.dart';
+import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 
 /// Saves the bundled JSON samples (meals or recipes) to a user-chosen
 /// location. Mirrors [DownloadSampleCsvUsecase] which holds both the
@@ -25,11 +26,15 @@ class DownloadSampleJsonUsecase {
 
   Future<bool> _saveJson(String content, String fileName) async {
     final bytes = Uint8List.fromList(utf8.encode(content));
-    final result = await FilePicker.saveFile(
-      fileName: fileName,
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-      bytes: bytes,
+    final result = await ExportImportFailure.guard(
+      ExportImportFailureReason.writeFailed,
+      'Could not save $fileName',
+      () => FilePicker.saveFile(
+        fileName: fileName,
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        bytes: bytes,
+      ),
     );
     return result != null;
   }

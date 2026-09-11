@@ -347,6 +347,8 @@
   "exportImportCsvRecipesNote": "CSV speichert Aktivitäten, das Essensprotokoll und protokollierte Tage. Rezepte und angehängte Fotos werden nur in JSON gesichert — wähle JSON, wenn du sie im Backup behalten möchtest.",
   "exportImportDescription": "Sie können die App-Daten in eine Zip-Datei exportieren und später importieren. Dies ist nützlich, wenn Sie Ihre Daten sichern oder auf ein anderes Gerät übertragen möchten.\n\nDie App nutzt keinen Cloud-Dienst, um Ihre Daten zu speichern.",
   "exportImportErrorLabel": "Fehler beim Export/Import",
+  "exportImportErrorUnreadableLabel": "Die ausgewählte Datei konnte nicht gelesen werden. Wählen Sie die von OpenNutriTracker exportierte .zip-Sicherung.",
+  "exportImportErrorWriteFailedLabel": "Die Datei konnte nicht am gewählten Ort gespeichert werden. Versuchen Sie einen anderen Ordner.",
   "exportImportSuccessLabel": "Export / Import erfolgreich",
   "fatLabel": "Fett",
   "fatLabelShort": "f",
