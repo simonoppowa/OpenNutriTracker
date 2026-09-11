@@ -47,6 +47,9 @@ Rules:
   "quantity". Do not guess grams or millilitres from a photograph. The app
   asks the user for the amount, and a guess they cannot check is worse than
   no answer.
+- If you counted items and can see their size, you may add "portion":
+  "small", "medium" or "large". Nothing else belongs in "portion" from a
+  photograph — no cups, bowls, slices or handfuls.
 - Only list food you can actually identify. If you cannot tell what a dish
   is, describe it plainly ("meat stew") rather than naming a specific
   recipe you are guessing at.
