@@ -42,8 +42,8 @@ record the app receives.
    175, `extra large` 157, `whole` 136, `bag` 123, `pouch` 121, `bottle` 117,
    `stick` 114; every other word in the [reach table](#reach-per-word) is
    under 100.
-2. **The matcher only ever sees FNDDS survey labels.** All 14,449 SR Legacy
-   rows and 186 of 187 Foundation rows have `portion_description IS NULL`; the
+2. **The matcher only ever sees FNDDS survey labels, bar one Foundation row.**
+   All 14,449 SR Legacy rows and 186 of 187 Foundation rows have `portion_description IS NULL`; the
    household text sits in `modifier`, which `portions_by_food_ids` never reads.
    The generic *Bananas, raw* carries `1 extra small` through `1 extra large`
    and the app receives none of it. The survey *Banana, raw* — the record the
@@ -351,7 +351,8 @@ FROM (SELECT food_id, portion_description FROM food_portion
 
 ### Where the usable rows come from
 
-Only FNDDS survey records carry a `portion_description`. Every SR Legacy row
+Only FNDDS survey records carry a `portion_description`, bar a single
+Foundation row. Every SR Legacy row
 has it `NULL` (not empty), with the household text — `large (8" to 8-7/8"
 long)`, `cup, mashed`, `jumbo` — in `modifier`:
 
@@ -375,6 +376,8 @@ SELECT f.source, count(*) AS rows,
        count(*) FILTER (WHERE fp.modifier IS NOT NULL AND btrim(fp.modifier) <> '') AS has_modifier
 FROM food_portion fp JOIN food f ON f.id = fp.food_id
 GROUP BY 1 ORDER BY 2 DESC;
+-- source | rows | foods | foods_usable | is_null :
+-- fdc_survey 22046 | 5395 | 5393 | 0 ; fdc_sr_legacy 14449 | 7533 | 0 | 14449 ; fdc_foundation 187 | 116 | 1 | 186
 ```
 
 Survey rows hold the FNDDS portion code in `modifier` (e.g. `62015`) and have
@@ -417,6 +420,14 @@ SELECT count(*) FILTER (WHERE task_usable) AS task_usable,
        count(*) FILTER (WHERE rpc_usable AND NOT task_usable) AS rpc_only
 FROM t;
 -- 15775 | 15441 | 336 | 2
+
+-- the 336 task-only rows, by label family (same CTE):
+SELECT CASE WHEN portion_description ~* '^Guideline amount' THEN 'Guideline amount …'
+            WHEN portion_description ~* 'NS as to shape' THEN 'NS as to shape'
+            WHEN portion_description ~* 'NS as to form' THEN 'NS as to form' ELSE 'other' END AS family,
+       count(*) AS rows, count(DISTINCT portion_description) AS labels
+FROM t WHERE task_usable AND NOT rpc_usable GROUP BY 1 ORDER BY 2 DESC;
+-- Guideline amount … 314 | 13 ; NS as to form 14 | 2 ; NS as to shape 8 | 1   (16 labels in all)
 ```
 
 Every figure in this note uses the ticket's predicate unless it says
@@ -898,10 +909,11 @@ resolves to the breast, 135 g; `small` and `medium` likewise. With no portion
 word at all, the fallback match on the query text `chicken breast` hits the
 six-letter `breast` in rows 2, 3, 4 and 9 — a longer term than any size word
 — and resolves to the earliest, `1 small breast` 105 g. The flat default is
-`1 cup, cooked, diced` 135 g. Nine near-identical survey variants (2705955
-skin eaten, 2705957/2705958 from pre-cooked, 2705959/2705960 fast food,
-2705961/2705962 with marinade, 2705971/2705972 sautéed) carry the same ladder
-at slightly different grams.
+`1 cup, cooked, diced` 135 g. Seven near-identical survey variants (2705955
+skin eaten, 2705957/2705958 from pre-cooked, 2705961/2705962 with marinade,
+2705971/2705972 sautéed) carry the same ladder at slightly different grams;
+the two fast-food records (2705959/2705960) carry a bare `1 breast` in place
+of the small/medium/large breast rows and keep only the slice sizes.
 
 The generic **`Chicken, broilers or fryers, breast, meat only, cooked, roasted`
 (SR Legacy, 171477)** has `1 cup, chopped or diced` 140, `1 unit (yield from 1
@@ -1215,7 +1227,17 @@ GROUP BY term ORDER BY foods DESC;
 
 Grouping on the **leading** word only — what the ticket's wording suggests —
 undercounts: 806 foods, of which 155 tie on `fl` (from `1 fl oz`) and 45 on
-`oz`, tokens under the matcher's three-letter minimum that it can never hit.
+`oz`, tokens under the matcher's three-letter minimum that it can never hit:
+
+```sql
+-- the `usable` CTE below with '[[:alpha:]]+' in place of '[[:alpha:]]{3,}'
+SELECT (SELECT count(DISTINCT food_id) FROM groups) AS foods_with_any_tie,
+       count(*) FILTER (WHERE word = 'fl') AS fl_foods,
+       count(*) FILTER (WHERE word = 'oz') AS oz_foods
+FROM groups;
+-- 806 | 155 | 45
+```
+
 Restricted to three-letter tokens the leading-word count is 680 foods, and 823
 usable rows (`1 fl oz`, `1 oz`) contain no matchable term at all:
 
@@ -1264,7 +1286,8 @@ FROM ranked;
 
 On the leading word alone it is 83 foods — 38 bare-first, 45 qualified-first,
 0 bare-but-later — and the earliest cup row across those 83 is `1 cup` 38, `1
-cup, shredded` 20, `1 cup, diced` 9, `1 cup, pieces` 4, then singletons. The
+cup, shredded` 20, `1 cup, diced` 9, `1 cup, pieces` 4, then `1 cup, bite size`,
+`1 cup, boneless` and `1 cup, dry type` at 2 each, then six singletons. The
 extra 82 foods under the any-term rule come from `1 microwavable cup` (32),
 `Guideline amount per cup of hot cereal` (25), an ice-cream-cup trio (14),
 `1 Keurig cup` / `1 microwave cup, prepared` on ten oatmeals, and `Guideline
@@ -1305,7 +1328,7 @@ shredded, diced or melted cheese — `1 cup, shredded` 20, `1 cup, diced` 9,
 whatever was on the plate. The other 15 are `1 cup, sliced` on one more
 cheese, `1 cup, dry type` on two cottage/ricotta records, and twelve
 non-cheese foods (`1 cup, pieces` 4, `1 cup, bite size` 2, `1 cup, boneless`
-2, five singletons).
+2, four singletons).
 
 ```sql
 WITH usable AS (
@@ -1464,8 +1487,12 @@ WHERE f.id IN (2707469, 2708133, 2708138) AND fp.portion_description ~* '\mpiece
 -- 2708138 Graham crackers, reduced fat        (the same single label)
 ```
 
-And `seq_num` is never `NULL` and unique per food across usable rows, so the
-ordering behind every tie above is unambiguous:
+`portion_match` breaks a tie on *list position*, not on `seq_num` — but the
+list the app receives is the RPC's, and `portions_by_food_ids` ends
+`order by fp.food_id, fp.seq_num nulls last, fp.id` (read with
+`pg_get_functiondef`). `seq_num` is never `NULL` and unique per food across
+usable rows, so "earlier in the list" and "earlier `seq_num`" are the same
+thing and the ordering behind every tie above is unambiguous:
 
 ```sql
 SELECT count(*) AS rows_total, count(*) FILTER (WHERE seq_num IS NULL) AS seq_null,
@@ -1832,7 +1859,7 @@ WHERE c.label = '1 regular' GROUP BY 1 ORDER BY 2 DESC LIMIT 5;
 Each regex counted independently within OTHER (they overlap, so they do not
 sum):
 
-| Proposed class | Regex (case-insensitive, on the stripped label) | Labels | Rows | Foods |
+| Sub-class | Regex (case-insensitive, on the stripped label) | Labels | Rows | Foods |
 | --- | --- | ---: | ---: | ---: |
 | SIZE_EXT — FDC's other size grades | `\m(regular\|thick\|thin\|personal\|child\|senior\|kids?\|footlong\|foot long\|fun\|sharing\|king size\|tiny\|individual\|baby\|snack size\|bite size\|movie theater)\M` | 42 | 856 | **661** |
 | VOLUME_UNIT | `\m(fl oz\|fluid ounces?\|ml\|millilit(er\|re)s?\|lit(er\|re)s?\|shots?\|jiggers?\|drops?)\M` | 8 | 888 | 659 |
