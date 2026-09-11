@@ -21,6 +21,13 @@ where every mask touches the edge. The light icon is later flattened onto
 white by `remove_alpha_ios`; the dark and tinted ones keep their alpha, as
 Apple requires, so the canvas here must stay transparent.
 
+The colour *under* the transparency matters too. flutter_launcher_icons
+downscales with a straight (non-premultiplied) box average, so whatever RGB
+sits in fully transparent pixels bleeds into every anti-aliased edge of the
+smaller dark and tinted icons. Pillow's resize leaves black there, which
+turned the white spoon tip grey at 40px; the logo PNGs carry white, and so
+does the output here.
+
 Run it from the repo root after the logo PNGs change, then regenerate the
 icon sets:
 
@@ -56,6 +63,11 @@ def pad(src: Path, dst: Path, fill: float) -> tuple[int, int]:
     art = art.resize((target_w, target_h), Image.LANCZOS)
     canvas = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
     canvas.alpha_composite(art, ((CANVAS - target_w) // 2, (CANVAS - target_h) // 2))
+    # White under the transparency, not black (see the module docstring).
+    alpha = canvas.getchannel("A")
+    white = Image.new("RGB", (CANVAS, CANVAS), (255, 255, 255))
+    rgb = Image.composite(canvas.convert("RGB"), white, alpha.point(lambda a: 255 if a else 0))
+    canvas = Image.merge("RGBA", (*rgb.split(), alpha))
     canvas.save(dst, optimize=True)
     return target_w, target_h
 
