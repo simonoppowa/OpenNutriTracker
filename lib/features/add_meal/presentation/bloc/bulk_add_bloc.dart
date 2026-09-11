@@ -331,6 +331,15 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
   final ReadMealTextUseCase _readMealTextUseCase;
   final ReadMealPhotoUseCase _readMealPhotoUseCase;
 
+  /// Which read is current. Bumped by every parse, photo read and cancel, and
+  /// compared after every await, so a result that lands for an earlier
+  /// attempt is dropped. `emit.isDone` cannot do this: it only answers for a
+  /// closed bloc, and a cancelled wait leaves the bloc very much open.
+  int _attempt = 0;
+
+  /// True when [attempt] is no longer the read the screen is waiting on.
+  bool _superseded(int attempt) => attempt != _attempt;
+
   BulkAddBloc(
     this._resolveParsedMealsUseCase,
     this._readMealTextUseCase,
@@ -341,6 +350,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     on<ReadMealPhotoFailedEvent>(
       (event, emit) => emit(BulkAddPhotoErrorState(event.error)),
     );
+    on<CancelBulkReadEvent>(_onCancel);
     on<ChangeRowCandidateEvent>(_onChangeCandidate);
     on<ChangeRowAmountEvent>(_onChangeAmount);
     on<ChangeRowUnitEvent>(_onChangeUnit);
@@ -354,17 +364,19 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     // Emitted before the read, not after: with a key configured this waits
     // on a network round trip, and a screen that does nothing for two
     // seconds reads as broken.
-    emit(const BulkAddLoadingState());
+    final attempt = ++_attempt;
+    emit(BulkAddLoadingState(attempt: attempt));
 
     final reading = await _readMealTextUseCase.read(
       event.text,
       localeCode: event.localeCode,
     );
-    if (emit.isDone) return;
+    if (emit.isDone || _superseded(attempt)) return;
 
     await _resolveAndEmit(
       reading.result,
       emit,
+      attempt: attempt,
       usesImperialUnits: event.usesImperialUnits,
       source: reading.usedModel
           ? BulkAddReadSource.model
@@ -381,13 +393,14 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     ReadMealPhotoEvent event,
     Emitter<BulkAddState> emit,
   ) async {
-    emit(const BulkAddLoadingState());
+    final attempt = ++_attempt;
+    emit(BulkAddLoadingState(attempt: attempt));
 
     final reading = await _readMealPhotoUseCase.read(
       event.photo,
       localeCode: event.localeCode,
     );
-    if (emit.isDone) return;
+    if (emit.isDone || _superseded(attempt)) return;
 
     switch (reading) {
       case MealPhotoUnavailable():
@@ -414,10 +427,26 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
         await _resolveAndEmit(
           result,
           emit,
+          attempt: attempt,
           usesImperialUnits: event.usesImperialUnits,
           source: BulkAddReadSource.photo,
         );
     }
+  }
+
+  /// Leaves the loading state and orphans the read in flight.
+  ///
+  /// Bumping [_attempt] is the whole mechanism: the handler still awaiting
+  /// the read compares against it afterwards and returns without emitting.
+  /// Back to [BulkAddInitial] rather than to the previous rows, because the
+  /// text field still holds what was typed and a Search away from trying
+  /// again is the state the user was in before they tapped it. Only while
+  /// loading — a cancel that lands after the rows have does nothing, so a
+  /// tap racing a late result cannot wipe rows the user is already reading.
+  void _onCancel(CancelBulkReadEvent event, Emitter<BulkAddState> emit) {
+    if (state is! BulkAddLoadingState) return;
+    _attempt++;
+    emit(const BulkAddInitial());
   }
 
   /// Shared by both readers: resolve whatever was extracted against the food
@@ -427,6 +456,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
   Future<void> _resolveAndEmit(
     MealTextParseResult parsed,
     Emitter<BulkAddState> emit, {
+    required int attempt,
     required bool usesImperialUnits,
     required BulkAddReadSource source,
     MealTextModelFailure? modelFailure,
@@ -448,7 +478,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
 
     try {
       final resolved = await _resolveParsedMealsUseCase.resolve(parsed.items);
-      if (emit.isDone) return;
+      if (emit.isDone || _superseded(attempt)) return;
 
       emit(
         BulkAddLoadedState(
@@ -477,7 +507,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
       );
     } catch (e, stackTrace) {
       log.severe('Bulk resolution failed', e, stackTrace);
-      if (emit.isDone) return;
+      if (emit.isDone || _superseded(attempt)) return;
       emit(const BulkAddErrorState());
     }
   }

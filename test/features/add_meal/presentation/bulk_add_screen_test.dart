@@ -26,6 +26,7 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/search_product
 import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add_screen.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/own_server_wait_indicator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -288,6 +289,86 @@ Future<void> _photoFailure(
   bloc.add(ReadMealPhotoFailedEvent(error));
   await tester.pumpAndSettle();
 }
+
+/// An interpreter held open, so a read can be left in flight for as long as
+/// a test needs and answered on demand. #1148.
+class _GatedInterpreter implements MealTextInterpreter {
+  final gate = Completer<MealTextParseResult>();
+
+  @override
+  Future<MealTextParseResult> interpret(String input, {String? localeCode}) =>
+      gate.future;
+}
+
+/// Same graph, but the text reader waits on [_GatedInterpreter.gate] and the
+/// keystore — the one the screen reads *and* the one the use case reads —
+/// holds [stored]. Returns the interpreter so a test can land the answer.
+///
+/// Two storages seeded from one map, because the two questions are asked of
+/// two objects: the use case decides whether to call the model at all, and
+/// the screen decides which loading state to draw for it. A test that seeds
+/// only one would either never wait or never see the wait it drew.
+Future<_GatedInterpreter> _registerWithGatedReader(
+  Map<String, List<MealEntity>> results,
+  Map<String, String> stored,
+) async {
+  await _register(results);
+  final interpreter = _GatedInterpreter();
+  getIt.unregister<AiCredentialStorage>();
+  getIt.registerLazySingleton<AiCredentialStorage>(
+    () => AiCredentialStorage(_MapStorage(stored)),
+  );
+  final bloc = BulkAddBloc(
+    ResolveParsedMealsUseCase(_FakeSearch(results)),
+    ReadMealTextUseCase(
+      AiCredentialStorage(_MapStorage(stored)),
+      (_) => interpreter,
+    ),
+    ReadMealPhotoUseCase(
+      AiCredentialStorage(_EmptyStorage()),
+      (_) => throw StateError('must not be built without a key'),
+    ),
+  );
+  getIt.unregister<BulkAddBloc>();
+  getIt.registerSingleton<BulkAddBloc>(bloc);
+  return interpreter;
+}
+
+/// A server the user runs, configured and enabled.
+const _ownServerStored = {
+  'AiProviderTag': 'ownServer',
+  'AiEndpointTag.ownServer': 'http://192.168.1.5:11434',
+  'AiModelTag.ownServer': 'gemma3:4b',
+};
+
+/// A hosted provider, configured and enabled.
+const _hostedStored = {
+  'AiProviderTag': 'anthropic',
+  'AiApiKeyTag.anthropic': 'sk-test',
+};
+
+/// Pushes the screen, types [text] and taps Search, then pumps **one frame**
+/// rather than settling: the read under test is held open, and a wait that
+/// ticks once a second never settles.
+Future<void> _startWaiting(WidgetTester tester, String text) async {
+  await tester.pumpWidget(_app());
+  await tester.pumpAndSettle();
+  final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+  navigator.pushNamed('/bulk');
+  await tester.pumpAndSettle();
+
+  await tester.enterText(find.byType(TextField).first, text);
+  await tester.tap(find.widgetWithIcon(FilledButton, Icons.search));
+  await tester.pump();
+  // The screen decides which loading state to draw from a keystore read
+  // that lands a microtask or two after the loading state does.
+  await tester.pump();
+}
+
+/// The model-loading sentence, or its absence.
+Finder _modelLoadingHint() => find.text(l10nEn.bulkAddWaitModelLoadingLabel);
+
+Finder _waitCancel() => find.bySemanticsIdentifier('bulk-add-wait-cancel');
 
 class _AlwaysFailsInterpreter implements MealTextInterpreter {
   final MealInterpreterException failure;
@@ -2458,6 +2539,152 @@ void main() {
         findsNothing,
         reason: 'a landed verdict is not the same as a passing one',
       );
+    });
+  });
+
+  group('waiting on a server the user runs (#1148)', () {
+    // The wait is legitimately long — #774 measured 22–24 s from cold on
+    // good hardware, and #776 gave it 120 s — and the screen used to spend
+    // all of it on a bare spinner. These pin the three things that make it
+    // read as waiting rather than stuck, and that none of them leak onto the
+    // hosted providers, which answer in seconds.
+    final threshold = OwnServerWaitIndicator.hintAfter;
+
+    testWidgets('the seconds count up, and the hint waits for the threshold', (
+      tester,
+    ) async {
+      await _registerWithGatedReader(const {}, _ownServerStored);
+      await _startWaiting(tester, 'an apple');
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text(l10nEn.bulkAddWaitElapsedLabel(0)), findsOneWidget);
+      expect(
+        _modelLoadingHint(),
+        findsNothing,
+        reason: 'a warm model answers in 8–17 s; the sentence would be noise',
+      );
+
+      await tester.pump(const Duration(seconds: 3));
+      expect(
+        find.text(l10nEn.bulkAddWaitElapsedLabel(3)),
+        findsOneWidget,
+        reason: 'something on screen has to change with time',
+      );
+      expect(_modelLoadingHint(), findsNothing);
+
+      await tester.pump(threshold - const Duration(seconds: 3));
+      expect(
+        find.text(l10nEn.bulkAddWaitElapsedLabel(threshold.inSeconds)),
+        findsOneWidget,
+      );
+      expect(
+        _modelLoadingHint(),
+        findsOneWidget,
+        reason: 'the point of the ticket: the user has no other way to know',
+      );
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('the hint is readable at 2x on a narrow screen, in German', (
+      tester,
+    ) async {
+      // The region this draws into takes a tight height from the `Expanded`
+      // above it, and the sentence is body copy meant to wrap. #777 settled
+      // that scrolling, not clipping, is the answer — and the cancel button
+      // is the last child, so a clipped column would lose the one control.
+      tester.view.physicalSize = const Size(640, 1136);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+
+      await _registerWithGatedReader(const {}, _ownServerStored);
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+          child: _app(locale: const Locale('de')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      navigator.pushNamed('/bulk');
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, 'ein Apfel');
+      await tester.tap(find.widgetWithIcon(FilledButton, Icons.search));
+      await tester.pump();
+      await tester.pump(threshold);
+
+      expect(tester.takeException(), isNull);
+      expect(_waitCancel(), findsOneWidget);
+      await tester.ensureVisible(_waitCancel());
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('cancel leaves the wait, and a late answer is discarded', (
+      tester,
+    ) async {
+      // Neither interpreter can abort a request it has sent, so cancel means
+      // "stop waiting and drop whatever lands". The second half is the one
+      // worth pinning: rows from a request the user gave up on must not
+      // appear later under whatever they typed next.
+      final interpreter = await _registerWithGatedReader({
+        'apple': [_meal('Apple')],
+      }, _ownServerStored);
+      await _startWaiting(tester, 'an apple');
+      expect(_waitCancel(), findsOneWidget);
+
+      await tester.tap(_waitCancel());
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(_waitCancel(), findsNothing);
+      expect(
+        find.byType(TextField).first,
+        findsOneWidget,
+        reason: 'the line typed is still there to try again',
+      );
+      expect(
+        tester.widget<TextField>(find.byType(TextField).first).controller?.text,
+        'an apple',
+      );
+
+      // The server answers after all. Nothing on screen may change.
+      interpreter.gate.complete(
+        MealTextParseResult(
+          items: const [ParsedMealItem(query: 'apple', quantity: 1)],
+          errors: const [],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('Apple'), findsNothing);
+      expect(_submitButton(), findsNothing);
+    });
+
+    testWidgets('a hosted provider keeps the bare spinner', (tester) async {
+      // Hosted providers answer in seconds; a wait dressed for a model
+      // loading on somebody's desk would be noise for everyone else.
+      final interpreter = await _registerWithGatedReader({
+        'apple': [_meal('Apple')],
+      }, _hostedStored);
+      await _startWaiting(tester, 'an apple');
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      await tester.pump(threshold + const Duration(seconds: 5));
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(_modelLoadingHint(), findsNothing);
+      expect(_waitCancel(), findsNothing);
+      expect(find.textContaining(l10nEn.bulkAddWaitCancelLabel), findsNothing);
+
+      // And the plain path still lands its rows.
+      interpreter.gate.complete(
+        MealTextParseResult(
+          items: const [ParsedMealItem(query: 'apple', quantity: 1)],
+          errors: const [],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Apple'), findsOneWidget);
     });
   });
 }
