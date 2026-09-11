@@ -34,9 +34,12 @@ Legacy foods, plus 94 qualifier fragments (`raw`, `sifted`, `Peeled`) on 53
 Foundation foods whose unit lives in `measure_unit` instead. What it exposes
 is not mostly size ladders: a size word reaches 245 SR Legacy foods (3.3%,
 against 27% of survey foods in #1155), `cup` reaches 1,691 rows, and the
-largest single block is 4,028 rows on 3,569 foods whose whole label is `oz`,
-`fl oz`, `lb`, `g` or `ml` — labels the matcher cannot tokenise at all, since
-it drops terms under three letters. The count would have to be synthesised:
+largest single block is the bare units: 3,951 rows on 3,494 foods whose
+whole label is `oz`, `fl oz`, `lb`, `ml`, `liter` or `g`, and 4,028 rows on
+3,569 foods that yield no term once the matcher strips parentheticals (`oz
+(3 oz)` and `lb 16 oz` join, `liter` leaves) — labels the matcher cannot
+tokenise at all, since it drops terms under three letters. The count would
+have to be synthesised:
 3,458 deliverable rows have `amount <> 1`, so the bare label `oz` stands for
 85 g on 1,431 rows and 113 g on 638, and 307 foods would list the same label
 twice. The RPC's own regex catches all 108 `NFS` / `yields` / `NS as to` rows
@@ -44,11 +47,17 @@ but passes 626 `(yield from 1 lb …)` rows, because those say `yield`, not
 `yields`. On which record the app receives: `search_food_summary` has no
 `ORDER BY` and returns the materialized view in heap order, survey rows
 first, so for seven of the twelve terms no SR Legacy record can enter the
-100-row pool at all; the Dart ranker, run on the exported pools, lands every
-one of the eleven terms that return anything on a survey record — never SR
-Legacy — but on the record #1155 tabulated in only four cases (banana, bread,
-coffee, pasta), and `yoghurt` returns nothing because every record is spelled
-*Yogurt*. Translation: zero `food_portion_translation` rows point at any
+100-row pool at all; the Dart ranker, run on the exported pools in the
+backend's order, lands every one of the eleven terms that return anything on
+a survey record, and on the record #1155 tabulated in only four cases
+(banana, bread, coffee, pasta), and `yoghurt` returns nothing because every
+record is spelled *Yogurt*. Which sibling wins among records with the same
+shown name is decided by the order the search cache hands back, which the
+harness did not model; for ten of the eleven terms every such sibling is a
+survey record, for `chicken breast` one is SR Legacy (174608). On the AI
+path an SR Legacy record sits at #2 in the candidate list for banana,
+chicken breast and almonds, carrying portions and selectable on the review
+screen. Translation: zero `food_portion_translation` rows point at any
 NULL-description portion; 39 of the 109 seeded labels equal a modifier with
 `1 ` prepended, which is honest on the 4,387 rows (3,580 foods) at `amount =
 1`; every exposed label would otherwise be English with `localized = false` in
@@ -140,10 +149,16 @@ fed through the real `rankAndTruncateFoodsByName` →
 [], fdc, term)` → `rankForResolution` by a throwaway `flutter test` file in a
 worktree whose `lib/` and `test/` are byte-identical to `origin/develop`
 (`git diff --stat 6ab618a8 origin/develop -- lib test` is empty). Assumptions
-the harness fixes: the OFF list empty; no custom meals, recipes, intake
-history or search cache; English locale; every source toggle on (`sources =
-NULL`); the query is the bare term. The test file and the copied generated
-files were removed afterwards. See [The harness run](#the-harness-run).
+the harness fixes: the OFF list empty; no custom meals, recipes or intake
+history; English locale; every source toggle on (`sources = NULL`); the
+query is the bare term; and the list handed to `mergeAndRankMeals` is the
+one `getSupabaseFoodsByString` returns, in that order. The last is not a
+state the app is ever in: `searchFDCFoodByString` writes the 20 rows to the
+search cache and `_buildResult` reads them back sorted by cache timestamp
+before the ranker sees them (see [step 3](#the-app-side-re-ranking-as-read-from-the-code)),
+so the harness's order is the app's only when that sort preserves it. The
+test file and the copied generated files were removed afterwards. See [The
+harness run](#the-harness-run).
 
 
 ## What `modifier` holds
@@ -253,15 +268,19 @@ The remaining 1,733 values fall into six families:
 
 - **Dimension-qualified sizes in parentheses** — `large (8" to 8-7/8" long)`,
   `medium (3" dia)`, `extra small (less than 6" long)`: 75 distinct values on
-  48 foods. Only 7 values are a bare size word (`small`, `medium`, `large`,
-  `extra small`, `extra large`, `jumbo`, `mini`), 186 rows on 94 foods.
+  48 foods. Only 7 values are a bare size word — `medium` (66 rows), `large`
+  (60), `small` (51), `extra large` (4), `jumbo` (2), `mini` (2), `miniature`
+  (1); `extra small` never occurs bare — 186 rows on 94 foods.
 - **A bare weight or volume unit as the whole label** — `oz` on 3,041 foods,
   `fl oz` 440, `lb` 281, `cubic inch` 51, `ml` 8, `liter` 3, `g` 1: 4,002 rows
-  on 3,512 foods, and 1,026 foods have nothing else.
+  on 3,512 foods, and 1,026 foods have nothing else (1,024 counting only
+  `oz`, `fl oz`, `lb`, `g` and `ml`).
 - **The yield family** — `piece, cooked, excluding refuse (yield from 1 lb raw
   meat with refuse)`, `unit (yield from 1 lb ready-to-cook chicken)`: 709 rows
   on 685 foods.
-- **`NLEA serving`** on 197 foods.
+- **`NLEA serving`** as the whole label on 37 foods (32 in that exact case,
+  five as `NLEA Serving`); the word `NLEA` reaches 197 foods, mostly through
+  `cup (1 NLEA serving)` (98) and `packet (1 NLEA serving)` (17).
 - **Food noun before the size** — `potato large`, `head, large`, `leaf,
   medium`, `slice, large`, `strip medium`.
 - **Container with capacity** — `container (6 oz)`, `cup (8 fl oz)`, `can (303
@@ -275,6 +294,11 @@ SELECT count(DISTINCT fp.modifier) FILTER (WHERE fp.modifier ~* '^\s*(extra )?(s
        count(DISTINCT fp.food_id) FILTER (WHERE fp.modifier ~* '^\s*(extra )?(small|medium|large|jumbo|mini|miniature)\s*\(') AS size_with_dimension_foods
 FROM food_portion fp WHERE fp.portion_description IS NULL AND fp.modifier IS NOT NULL;
 -- 7 | 186 | 94 | 75 | 48
+
+SELECT fp.modifier, count(*) AS rows, count(DISTINCT fp.food_id) AS foods
+FROM food_portion fp WHERE fp.portion_description IS NULL AND fp.modifier ~* '^\s*(extra )?(small|medium|large|jumbo|mini|miniature)\s*$'
+GROUP BY 1 ORDER BY 2 DESC, 1;
+-- medium 66 | 66 ; large 60 | 60 ; small 51 | 51 ; extra large 4 | 4 ; jumbo 2 | 2 ; mini 2 | 2 ; miniature 1 | 1   (no bare "extra small")
 
 SELECT fp.modifier, count(*) AS rows, count(DISTINCT fp.food_id) AS foods, count(*) FILTER (WHERE fp.amount = 1) AS rows_amount_1
 FROM food_portion fp
@@ -290,12 +314,39 @@ FROM food_portion fp
 WHERE fp.portion_description IS NULL AND fp.modifier ~* '^\s*(oz|fl oz|lb|g|kg|ml|l|liter|litre|gram|grams|ounce|ounces|pound|pounds|cubic inch|inch|inches|cubic centimeter)\s*$';
 -- 4002 | 3512 | 1026
 
+WITH per_food AS (
+  SELECT fp.food_id,
+         bool_and(fp.modifier ~* '^\s*(oz|fl oz|lb|g|kg|ml|l|liter|litre|gram|grams|ounce|ounces|pound|pounds|cubic inch|inch|inches|cubic centimeter)\s*$') AS only_units_incl_cubic_inch,
+         bool_and(fp.modifier ~* '^\s*(oz|fl oz|lb|g|ml)\s*$') AS only_five_bare_units
+  FROM food_portion fp JOIN food f ON f.id = fp.food_id
+  WHERE fp.portion_description IS NULL AND f.source = 'fdc_sr_legacy' AND fp.modifier IS NOT NULL GROUP BY 1)
+SELECT count(*) FILTER (WHERE only_units_incl_cubic_inch) AS foods_only_bare_units_with_cubic_inch,
+       count(*) FILTER (WHERE only_five_bare_units) AS foods_only_five_bare_units
+FROM per_food;
+-- 1026 | 1024
+
+SELECT count(*) AS yield_rows, count(DISTINCT fp.food_id) AS yield_foods
+FROM food_portion fp WHERE fp.portion_description IS NULL AND fp.modifier ~* '\myields?\M';
+-- 709 | 685
+
 SELECT fp.modifier, count(*) AS rows FROM food_portion fp
 WHERE fp.portion_description IS NULL AND fp.modifier ~* '\myields?\M'
 GROUP BY 1 ORDER BY 2 DESC LIMIT 8;
 -- piece, cooked, excluding refuse (yield from 1 lb raw meat with refuse) 212 ; unit (yield from 1 lb ready-to-cook chicken) 106 ;
 -- unit, cooked (yield from 1 lb raw meat) 33 ; package (10 oz) yields 32 ; piece, cooked (yield from 1 lb raw meat, boneless) 20 ;
 -- chop, excluding refuse (yield from 1 raw chop, with refuse, weighing 113 g) 11 ; unit (yield from 1 lb ready-to-cook duck) 11 ; package yield (2 cups) 10
+
+SELECT count(DISTINCT fp.food_id) FILTER (WHERE fp.modifier = 'NLEA serving') AS nlea_serving_exact_foods,
+       count(DISTINCT fp.food_id) FILTER (WHERE lower(btrim(fp.modifier)) = 'nlea serving') AS nlea_serving_ci_foods,
+       count(DISTINCT fp.food_id) FILTER (WHERE fp.modifier ~* '\mNLEA\M') AS any_nlea_foods,
+       count(*) FILTER (WHERE fp.modifier ~* '\mNLEA\M') AS any_nlea_rows
+FROM food_portion fp WHERE fp.portion_description IS NULL;
+-- 32 | 37 | 197 | 198
+
+SELECT fp.modifier, count(DISTINCT fp.food_id) AS foods, count(*) AS rows
+FROM food_portion fp WHERE fp.portion_description IS NULL AND fp.modifier ~* '\mNLEA\M'
+GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 6;
+-- cup (1 NLEA serving) 98 ; NLEA serving 32 ; packet (1 NLEA serving) 17 ; tbsp (1 NLEA serving) 12 ; NLEA Serving 5 ; package (1 NLEA serving) 5
 ```
 
 ### The top values
@@ -316,49 +367,59 @@ honest label (see [The count lives in `amount`](#the-count-lives-in-amount)).
 | `piece, cooked, excluding refuse (yield from 1 lb raw meat with refuse)` | 212 | 212 | 212 |
 | `slice` | 185 | 186 | 185 |
 | `roast` | 185 | 185 | 185 |
-| `tsp` | 163 | 171 | — |
-| `fillet` | 162 | 162 | — |
+| `tsp` | 163 | 171 | 157 |
+| `fillet` | 162 | 162 | 121 |
 | `piece` | 146 | 147 | 146 |
 | `jar` | 130 | 131 | 131 |
-| `unit (yield from 1 lb ready-to-cook chicken)` | 106 | 106 | — |
+| `unit (yield from 1 lb ready-to-cook chicken)` | 106 | 106 | 98 |
 | `cup (1 NLEA serving)` | 98 | 98 | 31 |
-| `tablespoon` | 91 | 91 | — |
-| `cup (8 fl oz)` | 90 | 90 | — |
-| `cup, chopped` | 71 | 71 | — |
-| `cup slices` | 67 | 68 | — |
-| `medium` | 66 | 66 | — |
-| `bar` | 61 | 66 | — |
-| `large` | 60 | 60 | — |
-| `can` | 58 | 58 | — |
-| `cup, chopped or diced` | 58 | 58 | — |
-| `chop` | 57 | 57 | — |
-| `package` | 54 | 56 | — |
-| `item` | 53 | 53 | — |
-| `cup, shredded` | 52 | 52 | — |
+| `tablespoon` | 91 | 91 | 84 |
+| `cup (8 fl oz)` | 90 | 90 | 90 |
+| `cup, chopped` | 71 | 71 | 63 |
+| `cup slices` | 67 | 68 | 46 |
+| `medium` | 66 | 66 | 59 |
+| `bar` | 61 | 66 | 65 |
+| `large` | 60 | 60 | 56 |
+| `can` | 58 | 58 | 56 |
+| `cup, chopped or diced` | 58 | 58 | 46 |
+| `chop` | 57 | 57 | 57 |
+| `package` | 54 | 56 | 40 |
+| `item` | 53 | 53 | 53 |
+| `cup, shredded` | 52 | 52 | 46 |
 | `cubic inch` | 51 | 51 | 51 |
-| `cup, sliced` | 51 | 51 | — |
-| `small` | 51 | 51 | — |
-| `cup, diced` | 46 | 46 | — |
-| `scoop` | 46 | 46 | — |
-| `cup, cubes` | 40 | 43 | — |
+| `cup, sliced` | 51 | 51 | 51 |
+| `small` | 51 | 51 | 48 |
+| `cup, diced` | 46 | 46 | 42 |
+| `scoop` | 46 | 46 | 42 |
+| `cup, cubes` | 40 | 43 | 39 |
 | `pieces` | 39 | 46 | 0 |
-| `package (10 oz)` | 37 | 50 | — |
-| `pizza` | 36 | 37 | — |
-| `can (303 x 406)` | 36 | 36 | — |
-| `jar Gerber Second Food (4 oz)` | 36 | 36 | — |
+| `package (10 oz)` | 37 | 50 | 37 |
+| `pizza` | 36 | 37 | 36 |
+| `can (303 x 406)` | 36 | 36 | 36 |
+| `jar Gerber Second Food (4 oz)` | 36 | 36 | 36 |
 
-A dash means the `amount = 1` count was not tabulated for that value; of
-the forty, `oz`, `pieces`, `cup (1 NLEA serving)` and `fl oz` are the ones
-well below 100%, and the rest sit at 90–100%.
+Thirteen of the forty sit below 90% at `amount = 1`: `pieces` (0 of 46),
+`oz` (31.6%), `cup (1 NLEA serving)` (31.6%), `cup slices` (67.6%),
+`package` (71.4%), `fl oz` and `package (10 oz)` (74.0%), `fillet` (74.7%),
+`cup, chopped or diced` (79.3%), `cup` (86.9%), `cup, shredded` (88.5%),
+`cup, chopped` (88.7%) and `medium` (89.4%); the other twenty-seven are at
+90–100%, twelve of them at exactly 100%.
 
 ```sql
 SELECT fp.modifier AS value, count(DISTINCT fp.food_id) AS foods, count(*) AS rows,
-       count(*) FILTER (WHERE fp.amount = 1) AS rows_amount_1
+       count(*) FILTER (WHERE fp.amount = 1) AS rows_amount_1,
+       round(100.0 * count(*) FILTER (WHERE fp.amount = 1) / count(*), 1) AS pct_amount_1
 FROM food_portion fp
 WHERE fp.portion_description IS NULL AND fp.modifier IS NOT NULL AND btrim(fp.modifier) <> ''
 GROUP BY 1 ORDER BY 2 DESC, 3 DESC, 1 LIMIT 40;
--- oz 3041 | 3166 | 999 ; cup 1643 | 1691 | 1469 ; tbsp 548 | 548 | 505 ; fl oz 440 | 492 | 364 ; lb 281 | 281 | 271 ;
--- steak 280 | 280 | 280 ; serving 265 | 265 | 265 ; … (the table above)
+-- oz 3041 | 3166 | 999 | 31.6 ; cup 1643 | 1691 | 1469 | 86.9 ; tbsp 548 | 548 | 505 | 92.2 ; fl oz 440 | 492 | 364 | 74.0 ; lb 281 | 281 | 271 | 96.4 ;
+-- steak 280 | 280 | 280 | 100 ; serving 265 | 265 | 265 | 100 ; piece, cooked … 212 | 212 | 212 | 100 ; slice 185 | 186 | 185 | 99.5 ; roast 185 | 185 | 185 | 100 ;
+-- tsp 163 | 171 | 157 | 91.8 ; fillet 162 | 162 | 121 | 74.7 ; piece 146 | 147 | 146 | 99.3 ; jar 130 | 131 | 131 | 100 ; unit (yield …) 106 | 106 | 98 | 92.5 ;
+-- cup (1 NLEA serving) 98 | 98 | 31 | 31.6 ; tablespoon 91 | 91 | 84 | 92.3 ; cup (8 fl oz) 90 | 90 | 90 | 100 ; cup, chopped 71 | 71 | 63 | 88.7 ; cup slices 67 | 68 | 46 | 67.6 ;
+-- medium 66 | 66 | 59 | 89.4 ; bar 61 | 66 | 65 | 98.5 ; large 60 | 60 | 56 | 93.3 ; can 58 | 58 | 56 | 96.6 ; cup, chopped or diced 58 | 58 | 46 | 79.3 ;
+-- chop 57 | 57 | 57 | 100 ; package 54 | 56 | 40 | 71.4 ; item 53 | 53 | 53 | 100 ; cup, shredded 52 | 52 | 46 | 88.5 ; cubic inch 51 | 51 | 51 | 100 ;
+-- cup, sliced 51 | 51 | 51 | 100 ; small 51 | 51 | 48 | 94.1 ; cup, diced 46 | 46 | 42 | 91.3 ; scoop 46 | 46 | 42 | 91.3 ; cup, cubes 40 | 43 | 39 | 90.7 ;
+-- pieces 39 | 46 | 0 | 0 ; package (10 oz) 37 | 50 | 37 | 74.0 ; pizza 36 | 37 | 36 | 97.3 ; can (303 x 406) 36 | 36 | 36 | 100 ; jar Gerber Second Food (4 oz) 36 | 36 | 36 | 100
 ```
 
 Compared with the survey vocabulary in #1155, the head is the same words in
@@ -405,8 +466,9 @@ Counted per SR Legacy food and per class independently (a food counts in
 every class it hits, not only the first), size words reach 247 of the 7,533
 foods (3.3%), container words 3,990 (53%), piece words 1,687, any of the
 three 5,289; 2,244 foods hit none of them. Only 13 foods carry an `extra
-small` or `extra large` row. #1155's survey figures for comparison: size
-27%, container 74%, piece 21% of the 5,394 foods with a usable label.
+small` or `extra large` row. #1155's survey figures for comparison, from
+its class table: size 1,430 foods (27%), container 4,002 (74%), piece 1,130
+(21%) of the 5,394 foods with a usable label.
 
 ```sql
 SELECT
@@ -813,7 +875,10 @@ rows on 3,569 foods. 4,028 of those rows have no run of three or more
 letters left, so `_termsOf` yields no term and the matcher can never pick
 them, while `fetchPortions` would still list them; `liter` is the only bare
 unit that tokenises. Counting `cubic inch` as a unit too, 1,026 SR Legacy
-foods have nothing but bare units.
+foods have nothing but bare units in `modifier`. On the deliverable rows,
+1,028 of the 7,529 foods carry only the five bare units `oz`, `fl oz`, `lb`,
+`g` and `ml`, and 1,042 have no row at all that yields a term — the food
+would list portions and the matcher could never pick one.
 
 | Label | Rows | Foods | `amount` range | `gram_weight` range |
 | --- | ---: | ---: | --- | --- |
@@ -857,6 +922,17 @@ WITH sr AS (SELECT fp.id, fp.food_id, fp.modifier AS label, regexp_replace(fp.mo
 SELECT count(*) AS rows_no_term, count(DISTINCT food_id) AS foods_no_term, string_agg(DISTINCT label, ' ; ' ORDER BY label) AS labels
 FROM sr WHERE NOT EXISTS (SELECT 1 FROM regexp_split_to_table(matchable, '[^[:alpha:]]+') t WHERE length(t) >= 3);
 -- 4028 | 3569 | oz ; fl oz ; lb ; g ; ml ; lb 16 oz ; oz (3 oz) ; oz (1 serving) ; oz (28 almonds) ; …
+
+WITH sr AS (SELECT fp.food_id, fp.modifier AS label,
+                   EXISTS (SELECT 1 FROM regexp_split_to_table(regexp_replace(fp.modifier, '\([^)]*\)', ' ', 'g'), '[^[:alpha:]]+') t WHERE length(t) >= 3) AS has_term
+            FROM food_portion fp JOIN food f ON f.id = fp.food_id
+            WHERE f.source = 'fdc_sr_legacy' AND fp.gram_weight > 0 AND fp.modifier !~* '\mNFS\M|\mNS as to\M|\myields\M|^Guideline amount'),
+     per_food AS (SELECT food_id, bool_or(has_term) AS any_term, bool_and(btrim(label) ~* '^(oz|fl oz|lb|g|ml)$') AS only_five_bare_units FROM sr GROUP BY 1)
+SELECT count(*) AS delivered_foods,
+       count(*) FILTER (WHERE NOT any_term) AS foods_with_no_term_row,
+       count(*) FILTER (WHERE only_five_bare_units) AS foods_with_only_five_bare_units
+FROM per_food;
+-- 7529 | 1042 | 1028
 ```
 
 ### The missing count
@@ -864,7 +940,8 @@ FROM sr WHERE NOT EXISTS (SELECT 1 FROM regexp_split_to_table(matchable, '[^[:al
 A COALESCE that returns the modifier alone returns a label without its
 count. On the 14,341 deliverable SR Legacy rows, `amount` is never `NULL`,
 10,883 rows are `1`, and 3,458 rows on 3,233 foods are not — 2,786 above 1,
-672 below, 18 zero. Without the count, the app would show `oz — 85 g` for
+654 fractions between 0 and 1, 18 exactly 0 (672 below 1 in all). Without
+the count, the app would show `oz — 85 g` for
 `3 oz` (1,431 rows) and `oz — 113 g` for `4 oz` (638 rows), both reading as
 one ounce; `cup` for half a cup (148 rows, 10–202 g); `inch sub` twice on
 22 foods, once at 148–237 g and once at 296–474 g. *Snacks, banana chips*
@@ -894,9 +971,10 @@ WITH sr AS (SELECT fp.*, coalesce(fp.portion_description, fp.modifier) AS label 
 SELECT count(*) AS rows, count(*) FILTER (WHERE amount IS NULL) AS amount_null, count(*) FILTER (WHERE amount = 1) AS amount_one,
        count(*) FILTER (WHERE amount <> 1) AS amount_not_one, count(DISTINCT food_id) FILTER (WHERE amount <> 1) AS foods_amount_not_one,
        count(*) FILTER (WHERE amount > 1) AS amount_gt_one, count(*) FILTER (WHERE amount < 1) AS amount_lt_one,
+       count(*) FILTER (WHERE amount > 0 AND amount < 1) AS amount_fraction, count(*) FILTER (WHERE amount = 0) AS amount_zero,
        count(*) FILTER (WHERE amount <> 1 AND label ~ '[0-9]') AS not_one_and_digit_in_label
 FROM sr;
--- 14341 | 0 | 10883 | 3458 | 3233 | 2786 | 672 | 288
+-- 14341 | 0 | 10883 | 3458 | 3233 | 2786 | 672 | 654 | 18 | 288
 
 WITH sr AS (SELECT fp.*, coalesce(fp.portion_description, fp.modifier) AS label FROM food_portion fp JOIN food f ON f.id = fp.food_id
             WHERE f.source = 'fdc_sr_legacy' AND fp.gram_weight > 0 AND coalesce(fp.portion_description, fp.modifier) !~* '\mNFS\M|\mNS as to\M|\myields\M|^Guideline amount')
@@ -915,11 +993,12 @@ ORDER BY fp.seq_num NULLS LAST, fp.id;
 
 Dropping the count also makes labels collide inside a food. Of the
 deliverable rows, 307 food/label pairs (626 rows, 307 foods) are identical
-within one food; 290 of them differ only by `amount` (`oz` on 123 foods, `fl
-oz` 50, `cup` 48, `inch sub` 22, `package (10 oz)` 13, `tsp` 8) and 17 share
-the amount too and differ only in grams. The matcher scores terms, not
-rows, so on any of these it returns the earlier row — on white bread
-(174924) the 29 g `slice` at `seq_num` 1, never the 25 g one at 6.
+within one food; 290 of them differ by `amount` (`oz` on 119 foods, `fl oz`
+49, `cup` 48, `inch sub` 22, `package (10 oz)` 13, `tsp` 8) and 17 share
+the amount too and differ only in grams (`oz` on 4 foods, `bar` 3, `fl oz`
+1, and white bread's `slice`). The matcher scores terms, not rows, so on
+any of these it returns the earlier row — on white bread (174924) the 29 g
+`slice` at `seq_num` 1, never the 25 g one at 6.
 
 ```sql
 WITH sr AS (SELECT fp.*, coalesce(fp.portion_description, fp.modifier) AS label FROM food_portion fp JOIN food f ON f.id = fp.food_id
@@ -932,9 +1011,17 @@ FROM dup;
 
 WITH sr AS (SELECT fp.*, coalesce(fp.portion_description, fp.modifier) AS label FROM food_portion fp JOIN food f ON f.id = fp.food_id
             WHERE f.source = 'fdc_sr_legacy' AND fp.gram_weight > 0 AND coalesce(fp.portion_description, fp.modifier) !~* '\mNFS\M|\mNS as to\M|\myields\M|^Guideline amount'),
-     dup AS (SELECT food_id, label, count(*) AS n FROM sr GROUP BY 1,2 HAVING count(*) > 1)
-SELECT label, count(*) AS foods, sum(n) AS rows FROM dup GROUP BY 1 ORDER BY 2 DESC LIMIT 15;
--- oz 123 ; fl oz 50 ; cup 48 ; inch sub 22 ; package (10 oz) 13 ; tsp 8 ; …
+     dup AS (SELECT food_id, label, count(*) AS n, count(DISTINCT amount) AS amounts FROM sr GROUP BY 1,2 HAVING count(*) > 1)
+SELECT label, count(*) AS foods_all_pairs, count(*) FILTER (WHERE amounts > 1) AS foods_differing_by_amount, count(*) FILTER (WHERE amounts = 1) AS foods_same_amount
+FROM dup GROUP BY 1 ORDER BY 2 DESC LIMIT 8;
+-- oz 123 | 119 | 4 ; fl oz 50 | 49 | 1 ; cup 48 | 48 | 0 ; inch sub 22 | 22 | 0 ; package (10 oz) 13 | 13 | 0 ; tsp 8 | 8 | 0 ; pieces 4 | 4 | 0 ; bar 4 | 1 | 3
+
+WITH sr AS (SELECT fp.*, coalesce(fp.portion_description, fp.modifier) AS label FROM food_portion fp JOIN food f ON f.id = fp.food_id
+            WHERE f.source = 'fdc_sr_legacy' AND fp.gram_weight > 0 AND coalesce(fp.portion_description, fp.modifier) !~* '\mNFS\M|\mNS as to\M|\myields\M|^Guideline amount'),
+     dup AS (SELECT food_id, label, count(*) AS n, count(DISTINCT amount) AS amounts, array_agg(gram_weight ORDER BY seq_num) AS grams FROM sr GROUP BY 1,2 HAVING count(*) > 1)
+SELECT food_id, label, n, grams FROM dup WHERE amounts = 1 ORDER BY label, food_id;
+-- 17 rows: bar 167542 {21,25}, 168862 {37,37,38}, 173136 {55,44} ; biscuit 171371, 172668 ; cookie 172717 ; cookie Pepperidge Farm Chocolate Chunk Pecan 172716 ;
+-- fl oz 169789 {30,152} ; jar 173497 ; jar (5 oz) 171254 ; oz 167536 {28.35,28.35}, 167537, 168853, 169677 {28,28.35} ; pancake 172771 ; piece 169004 ; slice 174924 {29,25}
 ```
 
 Synthesising the count the way `food_summary` does — `concat_ws(' ',
@@ -1289,15 +1376,31 @@ is client-side, in four steps; line numbers are on `origin/develop` at
    implausible nutriments (none of the twelve top-20s lost a row).
 3. **`SearchProductsUseCase.searchFDCFoodByString` → `_buildResult`**
    ([`search_products_usecase.dart`](../lib/features/add_meal/domain/usecase/search_products_usecase.dart)
-   77–92, 125–221): custom meals, recipes, intake history, cached hits whose
-   name contains the query, then the remote list, deduplicated by
-   `source:code` (229–241). No re-ranking. This is what the Food tab shows
+   77–92, 125–221). Before building anything it awaits
+   `_cacheRemoteResults(remote)` (89, 94–103), which writes the 20 rows into
+   the search cache — new entries stamped with one `now` per call, existing
+   entries keeping their timestamp
+   ([`remote_search_cache_data_source.dart`](../lib/core/data/data_source/remote_search_cache_data_source.dart)
+   81–105). `_buildResult` then reads the whole cache back through
+   `getAllByMostRecentlyTouched()` (195–196), keeps the rows whose `source` is
+   the tab's and whose `backendSource` the user has enabled (198–201), and
+   the rows whose shown name contains the query (202), and puts them ahead
+   of the remote list (211–217), deduplicated by `source:code` with the
+   first occurrence kept (229–241). So on every call the 20 fresh rows
+   re-enter through the cache: their order is the cache's timestamp order —
+   `List.sort` (158–166), which Dart documents as not stable and which
+   falls back to insertion sort only for 32 elements or fewer, so the 20
+   equal timestamps keep their order only while the box is that small — and
+   a fresh row whose shown name lacks the query word (`Nuts` for `almonds`,
+   `Candies`) falls behind every cached match. No scoring. This is what the
+   Food tab shows
    ([`food_bloc.dart`](../lib/features/add_meal/presentation/bloc/food_bloc.dart)
    43, 86).
 4. **AI path, `ResolveParsedMealsUseCase._resolveOne`**
    ([`resolve_parsed_meals_usecase.dart`](../lib/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart)
-   93–136): OFF and Supabase searched in parallel (105–108), then
-   `mergeAndRankMeals(off, supabase, query)` (113;
+   93–136): OFF and Supabase searched in parallel (105–108), each through
+   the use case above, so the Supabase list is step 3's output, cache order
+   included; then `mergeAndRankMeals(off, supabase, query)` (113;
    [`meal_relevance_ranker.dart`](../lib/features/add_meal/util/meal_relevance_ranker.dart)
    69–78) concatenates `[...OFF, ...Supabase]`, dedupes by `source:code`
    (83–91), puts custom meals and recipes in a tier above everything, and
@@ -1316,17 +1419,24 @@ is client-side, in four steps; line numbers are on `origin/develop` at
    `selectedIndex` is always 0 (130–135); `kResolutionConfidenceFloor` 0.45
    (line 14) only flags, never re-picks.
 
-Does the ranker favour a source? No — it never reads one. An exact title?
-Yes: an exact normalized shown name scores 1.0 and, under the 0.9 cap,
-beats every non-exact one. Shorter names? Yes, through Dice and the
+Does the ranker favour a backend? No scorer reads `backendSource`; `source`
+is read only to put custom meals and recipes in their own tier
+(`mergeAndRankMeals` 73, `rankForResolution` 168–170) and, in step 3, to
+filter the cache to the tab and to the user's source toggles. An exact
+title? Yes: an exact normalized shown name scores 1.0 and, under the 0.9
+cap, beats every non-exact one. Shorter names? Yes, through Dice and the
 contains / prefix bonuses. Records with portions? No scorer reads
-portions, `servingSize` or gram weights.
+portions, `servingSize` or gram weights. Ties? Decided by order: the
+near-duplicate collapse keeps the first seen, both sorts are stable, and
+the order they see is step 3's.
 
 ### The harness run
 
 The exported pools were fed through those exact functions by a throwaway
-`flutter test` file (see [Method](#method)). What the AI path lands on
-when OFF returns nothing, against the record #1155 tabulated:
+`flutter test` file (see [Method](#method)), in the order
+`getSupabaseFoodsByString` returns them — step 3's cache round-trip was
+not modelled. What the AI path lands on in that order when OFF returns
+nothing, against the record #1155 tabulated:
 
 | Term | Lands on | #1155 assumed | Why |
 | --- | --- | --- | --- |
@@ -1343,20 +1453,46 @@ when OFF returns nothing, against the record #1155 tabulated:
 | yoghurt | nothing | 2705418 | 0 backend rows |
 | almonds | 2707485 *Almonds, NFS* | 2707486 *Almonds, unroasted* | collapse into *Almonds*, first seen |
 
-Every winner is a survey record; no SR Legacy record is first for any of
-the twelve. The record #1155 tabulated is the one the app lands on in four
-cases (banana, bread, coffee, pasta). SR Legacy records reach the Food-tab
-top 20 only for banana (#15 167629, #16 168849, #17 169394, #18 173945),
-apple (#13 168816, #14 170959, #20 167729), chicken breast (#4 171515, #5
-174608, #20 171514) and almonds (ten of twenty: #6 170567, #10 170568, #12
-169060, #13 170656, #14 168592, #15 168754, #16 168602, #18 168596, #19
-169419, #20 170158); for the other eight the pool holds no SR Legacy record
-(seven are 100% survey, `yoghurt` is empty), so none can. On the AI path after collapse and resolution the best an SR Legacy
-record does is #2: banana (173945 *Bananas, dehydrated*, 0.857), chicken
-breast (171515 *Chicken breast tenders*, 0.800) and almonds (170567 *Nuts,
-almonds*, 0.000 — only because everything else collapsed). The generic
-*Bananas, raw* 173944, *Apples, raw, with skin* 171688 and *Egg, whole, raw,
-fresh* 171287 that #1155 named never appear in any top 20.
+Every winner is a survey record in this order, and the record #1155
+tabulated is the winner in four cases (banana, bread, coffee, pasta). How
+much of that is the order: the winner's group — the records in the 20 that
+share its shown name and so collapse into one — has more than one member
+for ten of the eleven terms (banana 2, apple 4, rice 4, chicken breast 9,
+bread 18, egg 15, milk 13, coffee 16, pasta 5, almonds 8; salad 1), every
+member scores the same 1.0 on the shown name, and the collapse keeps the
+first seen. So for those ten the "Lands on" row above, and the matching row
+in [What the winner delivers](#what-the-winner-delivers), is the harness's
+input order speaking — heap order among equal step-1 scores — which is the
+app's order only while the cache sort preserves it. What survives any
+order: the winner's group is fixed, because only the shown name equal to
+the query scores 1.0; for ten of the eleven terms every record in that
+group is survey, so those ten land on a survey record whatever the cache
+does; for `chicken breast` the group holds SR Legacy 174608 *Chicken
+breast, roll, oven-roasted* and BLS 10001201 and 10003393 beside six survey
+records, so which of the nine the app lands on is the cache's call. Salad
+is decided by score alone.
+
+SR Legacy records reach the 20-row list (the harness's Food tab, before
+step 3 reorders it) only for banana (#15 167629, #16 168849, #17 169394,
+#18 173945), apple (#13 168816, #14 170959, #20 167729), chicken breast
+(#4 171515, #5 174608, #20 171514) and almonds (ten of twenty: #6 170567,
+#10 170568, #12 169060, #13 170656, #14 168592, #15 168754, #16 168602,
+#18 168596, #19 169419, #20 170158); for the other eight the pool holds no
+SR Legacy record (seven are 100% survey, `yoghurt` is empty), so none can,
+and step 3 can only reorder the 20, not add to them. On the AI path after
+collapse and resolution the best an SR Legacy record does in this order is
+#2: banana (173945 *Bananas, dehydrated*, 0.857), chicken breast (171515
+*Chicken breast tenders*, 0.800) and almonds (170567 *Nuts, almonds*, 0.000
+— only because everything else collapsed). Those three score strictly
+below the winner, so no reordering lifts them to #1; but they are in the
+candidate list, `getSupabaseFoodsByString` attaches portions to every
+candidate ([`products_repository.dart`](../lib/features/add_meal/data/repository/products_repository.dart)
+117–133), and the review screen lists every candidate for the user to
+pick ([`bulk_add_screen.dart`](../lib/features/add_meal/presentation/screens/bulk_add_screen.dart)
+1449–1458, [`bulk_add_bloc.dart`](../lib/features/add_meal/presentation/bloc/bulk_add_bloc.dart)
+607–628). The generic *Bananas, raw* 173944, *Apples, raw, with skin*
+171688 and *Egg, whole, raw, fresh* 171287 that #1155 named never appear in
+any top 20.
 
 The harness input is the exact export below; its output and the SQL files
 sit in the scratchpad directory named in [Reproducing](#reproducing).
@@ -1373,8 +1509,9 @@ FROM (
 
 ### What the winner delivers
 
-`portions_by_food_ids(ids, 'en')` for the record the AI path lands on
-against the one #1155 tabulated:
+`portions_by_food_ids(ids, 'en')` for the record the harness lands on
+(in its input order — see above for which rows that order decides) against
+the one #1155 tabulated:
 
 | Term | Lands on | Delivered portions | #1155's record delivered |
 | --- | --- | --- | --- |
@@ -1632,7 +1769,7 @@ checked against the curve at ranks 107–111.
 | Rank | Modifier | Foods | Cumulative foods | Cumulative % | Seeded with `1 ` |
 | ---: | --- | ---: | ---: | ---: | --- |
 | 1 | `oz` | 3,041 | 3,041 | 40.4 | yes |
-| 2 | `cup` | 1,643 | 4,549 | 60.4 | yes |
+| 2 | `cup` | 1,643 | 4,550 | 60.4 | yes |
 | 3 | `tbsp` | 553 | | | |
 | 4 | `fl oz` | 440 | | | yes |
 | 5 | `lb` | 281 | | | |
@@ -1673,7 +1810,7 @@ food_rank AS (SELECT sr.food_id, min(r.rnk) AS first_rank FROM sr JOIN ranked r 
 curve AS (SELECT r.rnk, r.m, r.foods, r.rows, sum(coalesce(fr.n,0)) OVER (ORDER BY r.rnk) AS cum_foods FROM ranked r LEFT JOIN (SELECT first_rank, count(*) AS n FROM food_rank GROUP BY 1) fr ON fr.first_rank = r.rnk)
 SELECT rnk, m, foods, rows, cum_foods, round(100.0 * cum_foods / 7533, 1) AS cum_pct, EXISTS (SELECT 1 FROM seeded s WHERE s.label = '1 ' || c.m) AS seeded_with_leading_one
 FROM curve c WHERE rnk <= 20 ORDER BY rnk;
--- (the table above; rank 16 cup (1 nlea serving) -> 5660 = 75.1% ; rank 20 cup slices -> 78.0%)
+-- (the table above; rank 1 oz -> 3041 = 40.4% ; rank 2 cup -> 4550 = 60.4% ; rank 16 cup (1 nlea serving) -> 5660 = 75.1% ; rank 20 cup slices -> 78.0%)
 
 WITH sr AS (SELECT fp.food_id, lower(btrim(fp.modifier)) AS m FROM food_portion fp JOIN food f ON f.id = fp.food_id WHERE f.source = 'fdc_sr_legacy' AND fp.portion_description IS NULL AND fp.modifier IS NOT NULL AND btrim(fp.modifier) <> ''),
 seeded AS (SELECT DISTINCT lower(btrim(fp.portion_description)) AS label FROM food_portion fp WHERE EXISTS (SELECT 1 FROM food_portion_translation t WHERE t.food_portion_id = fp.id)),
@@ -1719,25 +1856,34 @@ Read on `origin/develop` at `df6d54c8`:
   no term at all; `large (8" to 8-7/8" long)` matches exactly as `1 large`
   would.
 - `search_food_summary` has no `ORDER BY`; the pool is heap order, survey
-  first. Nothing in the client-side chain reads `source`, portions or gram
-  weights; the shown name (`short_title`) decides the near-duplicate
-  collapse on the AI path.
+  first. No scorer in the client-side chain reads `backendSource`, portions
+  or gram weights; `source` is read only to tier custom meals and recipes
+  above the rest (`mergeAndRankMeals`, `rankForResolution`) and, with
+  `backendSource`, to filter cached rows to the tab and to the user's
+  source toggles (`_buildResult`). The shown name (`short_title`) decides
+  the near-duplicate collapse on the AI path, and the order the search
+  cache hands back decides which same-named sibling survives it.
 - `food_summary.serving_size` already renders `amount || ' ' || modifier`
   for SR Legacy foods, so the count-synthesis expression exists in the
   backend and produces `3 oz`, `0.5 cup` and `0 cup` today.
 
 ### The premise the map states
 
-"The size ladders are invisible" holds for the twelve foods, and it would
-go on holding after a COALESCE, for a reason #1155 did not have: on the AI
-path the app never lands on an SR Legacy record for any of the twelve, and
-for seven of them no SR Legacy record can enter the pool while the
-materialized view keeps its layout. A COALESCE would change what the app
-receives for those twelve foods only if the ranker or the pool changed
-first. What it would change today is the Food tab for banana, apple,
-chicken breast and almonds, where SR Legacy records sit in the top 20, and
-every typed or AI search that lands on one of the 7,529 SR Legacy foods
-that gain labels.
+"The size ladders are invisible" holds for the twelve foods, and for the
+auto-selected record it would largely go on holding after a COALESCE, for a
+reason #1155 did not have: for seven of the twelve no SR Legacy record can
+enter the pool while the materialized view keeps its layout, and for ten of
+the eleven that return anything every record that can win the AI path's
+collapse is survey. The exception is `chicken breast`, where SR Legacy
+174608 shares the winning shown name and the search cache's order decides
+whether it is the one auto-selected. What a COALESCE would change today,
+with no change to the ranker or the pool: the portions on the SR Legacy
+candidates the AI path already hands the review screen — #2 for banana
+(173945), chicken breast (171515) and almonds (170567), plus 174608 for
+chicken breast — since every candidate carries its portions and the user
+can select any of them; the Food tab for banana, apple, chicken breast and
+almonds, where SR Legacy records sit in the top 20; and every typed or AI
+search that lands on one of the 7,529 SR Legacy foods that gain labels.
 
 Separately, #1155's per-food tables describe the record the app receives
 in four of twelve cases. The other survey siblings the app lands on are in
@@ -1747,25 +1893,42 @@ on 2709215 and the app lands on 2709196, which has none.
 ### #1158 — the prompt vocabulary
 
 - A COALESCE would not make size words common. They reach 245 SR Legacy
-  foods after the strip (3.3%), against 1,430 survey foods (27%) in #1155;
-  `large` 178, `medium` 168, `small` 147. The generic ladders — banana,
+  foods after the strip (3.3%), against 1,430 survey foods (27%) in #1155's
+  class table (quoted in [The classes](#the-classes)); `large` 178,
+  `medium` 168, `small` 147. The generic ladders — banana,
   apple, egg, lettuce heads and leaves, potatoes — are real but few.
 - It would make `cup` reach 1,643 more foods and, for the first time, give
   `tbsp` (548 foods) and `tsp` (163) a row; `tablespoon` gains 91 more. The
   sibling note found `tbsp` and `tsp` in no `portion_description`; the text
   prompt names both as non-units.
-- The largest single addition would be unmatchable: 4,028 rows on 3,569
-  foods whose whole label is `oz`, `lb`, `fl oz`, `g` or `ml`, and 1,026
-  foods with nothing else. A model word can never select those rows; they
-  would appear in the portion list and in the flat default only.
+- The largest single addition would be unmatchable: 3,951 deliverable rows
+  on 3,494 foods whose whole label is `oz`, `fl oz`, `lb`, `ml`, `liter` or
+  `g`, and 4,028 rows on 3,569 foods that yield no term after the
+  parenthetical strip (`oz (3 oz)`, `lb 16 oz` included, `liter` not);
+  1,028 foods carry only the five bare units and 1,042 have no deliverable
+  row that yields a term at all ([Bare units](#bare-units)). A model word
+  can never select those rows; they would appear in the portion list and
+  in the flat default only.
 - Meat cuts (`steak` 280 foods, `roast` 185, `chop` 57) and
   the food's own noun (`potato large`, `almond`, `pizza`, `bar`) are terms
   the matcher sees though no class names them; the query-text fallback
   would hit them, as it hits `1 egg` and `1 sandwich` on survey rows today.
-- `handful`, `plate`, `mug`, `bowl` and `glass`: none of the five photo
-  words #1155 found dead on survey rows is among the forty most common
-  modifiers. Their individual reach in `modifier` was not counted (see
-  [Not verified](#not-verified)).
+- `handful`, `plate`, `mug`, `bowl` and `glass`: the five photo words #1155
+  found dead on survey rows are as good as dead in `modifier` too — `glass`
+  on 2 rows (`glass (3.5 fl oz)`), `bowl` on 1, `handful`, `mug` and
+  `plate` on none (#1155 had already counted those three at 0 table-wide).
+  A COALESCE would not give the model those words.
+
+  ```sql
+  WITH words(word, rx) AS (VALUES ('bowl','\mbowls?\M'),('glass','\mglass(es)?\M'),('handful','\mhandfuls?\M'),('plate','\mplates?\M'),('mug','\mmugs?\M'))
+  SELECT w.word,
+         count(fp.id) FILTER (WHERE fp.modifier ~* w.rx) AS modifier_rows_null_desc,
+         count(DISTINCT fp.food_id) FILTER (WHERE fp.modifier ~* w.rx) AS modifier_foods_null_desc,
+         string_agg(DISTINCT fp.modifier, ' ; ') FILTER (WHERE fp.modifier ~* w.rx) AS values
+  FROM words w LEFT JOIN food_portion fp ON fp.portion_description IS NULL AND fp.modifier ~* w.rx
+  GROUP BY w.word ORDER BY 2 DESC, w.word;
+  -- glass 2 | 2 | glass (3.5 fl oz) ; bowl 1 | 1 | bowl ; handful 0 ; mug 0 ; plate 0
+  ```
 
 ### #1157 — the language of the key
 
@@ -1807,9 +1970,13 @@ on 2709215 and the app lands on 2709196, which has none.
 
 - No scorer in the chain reads portions, so a portion word cannot today
   steer toward a record that carries labels. The measurement here says how
-  often that would matter on the AI path for the twelve foods: never,
-  because the SR Legacy record is never first and never in the pool for
-  seven of them. It says nothing about foods outside the twelve.
+  often that would matter for the auto-selected record on the AI path for
+  the twelve foods: for eight no SR Legacy record is in the pool (seven
+  pools are 100% survey, `yoghurt` is empty); for banana, apple and almonds
+  SR Legacy records are in the 20 but none shares the winning shown name,
+  so every record that can win is survey; for `chicken breast` the winner
+  is already order-dependent among survey, SR Legacy and BLS records shown
+  as *Chicken breast*. It says nothing about foods outside the twelve.
 
 ## Reproducing
 
@@ -1830,9 +1997,16 @@ on 2709215 and the app lands on 2709196, which has none.
    export the pools with the `json_object_agg` query above, and feed them
    through `rankAndTruncateFoodsByName` → `MealEntity.fromSpFood` →
    `validateNutriments` → `mergeAndRankMeals(const [], fdc, term)` →
-   `rankForResolution` in a `flutter test` file, printing the top five at
-   each stage. The file and the SQL used sit under the session scratchpad
-   (`q1163/`, `q1163b/`) and are not in the repository.
+   `rankForResolution` in a `flutter test` file, printing per term: the
+   pool, truncated and post-collapse sizes; the survey record's full-name
+   score against the 20th-best; every SR Legacy row in the 20-row list with
+   its rank (`#15:167629 …`) and the source mix; the top five at each of
+   the three stages with scores; and the codes sharing the winner's shown
+   name. The Food-tab ranks and the collapse groups cited above come from
+   the third and last of those lines, not from the top fives. The file and
+   the SQL used sit under the session scratchpad (`q1163/`, `q1163b/`) and
+   are not in the repository; the figures are therefore not re-runnable
+   from this note alone, unlike every SQL figure.
 
 ## Not verified
 
@@ -1842,9 +2016,19 @@ on 2709215 and the app lands on 2709196, which has none.
 - **OFF.** Not called. The AI-path winners hold for an empty OFF list or one
   sharing no shown name with a Supabase record; a live OFF response can
   replace any of them through the near-duplicate collapse.
+- **The search cache's order.** The harness fed `mergeAndRankMeals` the
+  list `getSupabaseFoodsByString` returns; the app feeds it `_buildResult`'s,
+  which has been through the cache (step 3). The ten order-decided winners
+  in [The harness run](#the-harness-run) are the fresh-install, first-search
+  outcome with OFF empty (20 cache entries, insertion sort, order kept) and
+  were not confirmed
+  on a device with a populated cache; for `chicken breast` the auto-selected
+  record could be survey, SR Legacy 174608 or BLS. The per-term
+  survey-versus-SR-Legacy conclusions do not depend on it except there.
 - **The other assumptions the harness fixes** — no custom meals, recipes,
-  intake history or cached hits; English locale; all source toggles on;
-  the bare term as the query. A cached record with the same shown name is
+  intake history or previously cached hits; English locale; all source
+  toggles on; the bare term as the query. A previously cached record with
+  the same shown name, or one whose timestamp a logged intake bumped, is
   first seen and wins ties.
 - **The translation path** (`search_food_translation`,
   `food_summary_by_ids`, `portion_labels_by_food_ids`) is not exercised
@@ -1856,6 +2040,3 @@ on 2709215 and the app lands on 2709196, which has none.
 - **Whether `NFS` / `yield` rows in the SR Legacy modifier ever reach a
   user** through `food_summary.serving_size`. The expression carries no such
   filter; the view's row selection was not read for one. Not counted.
-- **The per-word reach of `bowl`, `glass`, `handful`, `plate` and `mug`**
-  in `modifier`. They fall inside the CONTAINER regex and none is in the
-  top forty; they were not counted one by one.
