@@ -26,20 +26,34 @@ downscales with a straight (non-premultiplied) box average, so whatever RGB
 sits in fully transparent pixels bleeds into every anti-aliased edge of the
 smaller dark and tinted icons. Pillow's resize leaves black there, which
 turned the white spoon tip grey at 40px; the logo PNGs carry white, and so
-does the output here.
+does the output here. White is a compromise, not a cure: the same average
+lightens the green rings' edges by a few levels at the smallest sizes, as it
+did before the padding existed. Bleeding each edge's own colour outwards
+would remove that too, and was not judged worth the code.
 
-Run it from the repo root after the logo PNGs change, then regenerate the
-icon sets:
+Run it after the logo PNGs change, then regenerate the icon sets:
 
     python3 tools/icons/pad_ios_launcher_icon.py
     dart run flutter_launcher_icons
+
+Requires Pillow.
 """
+
+from __future__ import annotations
 
 import argparse
 import sys
 from pathlib import Path
 
-from PIL import Image
+try:
+    from PIL import Image
+except ImportError:  # pragma: no cover - the message is the whole point
+    sys.exit(
+        "Pillow is not installed. `python3 -m pip install --upgrade pillow`, "
+        "or in CI add a `pip install pillow` step before this one."
+    )
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 CANVAS = 1024
 SOURCES = {
@@ -53,8 +67,9 @@ SOURCES = {
 def pad(src: Path, dst: Path, fill: float) -> tuple[int, int]:
     image = Image.open(src).convert("RGBA")
     if image.size != (CANVAS, CANVAS):
-        sys.exit(f"{src}: expected {CANVAS}x{CANVAS}, got {image.size[0]}x{image.size[1]}")
-    bbox = image.getbbox()
+        got = f"{image.size[0]}x{image.size[1]}"
+        sys.exit(f"{src}: expected {CANVAS}x{CANVAS}, got {got}")
+    bbox = image.getchannel("A").getbbox()
     if bbox is None:
         sys.exit(f"{src}: image is fully transparent")
     art = image.crop(bbox)
@@ -62,11 +77,13 @@ def pad(src: Path, dst: Path, fill: float) -> tuple[int, int]:
     target_w = round(art.width * target_h / art.height)
     art = art.resize((target_w, target_h), Image.LANCZOS)
     canvas = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
-    canvas.alpha_composite(art, ((CANVAS - target_w) // 2, (CANVAS - target_h) // 2))
+    offset = ((CANVAS - target_w) // 2, (CANVAS - target_h) // 2)
+    canvas.alpha_composite(art, offset)
     # White under the transparency, not black (see the module docstring).
     alpha = canvas.getchannel("A")
     white = Image.new("RGB", (CANVAS, CANVAS), (255, 255, 255))
-    rgb = Image.composite(canvas.convert("RGB"), white, alpha.point(lambda a: 255 if a else 0))
+    painted = alpha.point(lambda a: 255 if a else 0)
+    rgb = Image.composite(canvas.convert("RGB"), white, painted)
     canvas = Image.merge("RGBA", (*rgb.split(), alpha))
     canvas.save(dst, optimize=True)
     return target_w, target_h
@@ -84,7 +101,7 @@ def main() -> None:
     if not 0 < args.fill <= 100:
         parser.error("--fill must be in (0, 100]")
     for src, dst in SOURCES.items():
-        w, h = pad(Path(src), Path(dst), args.fill)
+        w, h = pad(REPO_ROOT / src, REPO_ROOT / dst, args.fill)
         print(f"{dst}: artwork {w}x{h} on {CANVAS}x{CANVAS}")
 
 
