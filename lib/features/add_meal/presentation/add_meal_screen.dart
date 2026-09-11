@@ -392,14 +392,17 @@ class _AddMealScreenState extends State<AddMealScreen> {
                   return _pendingSpinner;
                 } else if (state is ProductsLoadedState) {
                   if (state.products.isEmpty) {
-                    return _productsPending(state, query)
-                        ? _pendingSpinner
-                        : NoResultsWidget(
-                            onScanBarcode: _onBarcodeIconPressed,
-                            onCreateCustomFood: () => _onCustomAddButtonPressed(
-                              state.usesImperialUnits,
+                    return Flexible(
+                      child: _productsPending(state, query)
+                          ? _pendingSpinner
+                          : NoResultsWidget(
+                              onScanBarcode: _onBarcodeIconPressed,
+                              onCreateCustomFood: () =>
+                                  _onCustomAddButtonPressed(
+                                    state.usesImperialUnits,
+                                  ),
                             ),
-                          );
+                    );
                   }
                   return Flexible(
                     child: ListView.builder(
@@ -445,14 +448,17 @@ class _AddMealScreenState extends State<AddMealScreen> {
                   return _pendingSpinner;
                 } else if (state is FoodLoadedState) {
                   if (state.food.isEmpty) {
-                    return _foodPending(state, query)
-                        ? _pendingSpinner
-                        : NoResultsWidget(
-                            onScanBarcode: _onBarcodeIconPressed,
-                            onCreateCustomFood: () => _onCustomAddButtonPressed(
-                              state.usesImperialUnits,
+                    return Flexible(
+                      child: _foodPending(state, query)
+                          ? _pendingSpinner
+                          : NoResultsWidget(
+                              onScanBarcode: _onBarcodeIconPressed,
+                              onCreateCustomFood: () =>
+                                  _onCustomAddButtonPressed(
+                                    state.usesImperialUnits,
+                                  ),
                             ),
-                          );
+                    );
                   }
                   return Flexible(
                     child: ListView.builder(
