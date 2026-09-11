@@ -6,6 +6,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dar
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/export_import_error_text.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Export / Import App Data dialog. A SegmentedButton at the top picks
@@ -122,7 +123,12 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(S.of(context).exportImportErrorLabel),
+                          child: Text(
+                            exportImportErrorText(
+                              S.of(context),
+                              state.reason,
+                            ),
+                          ),
                         ),
                       ],
                     );
