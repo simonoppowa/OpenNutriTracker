@@ -1309,6 +1309,16 @@
   "bulkAddModelNoCreditLabel": "AI didn't run: your provider account is out of credit.",
   "bulkAddModelInsecureServerLabel": "AI didn't run: that address is public and unencrypted.",
   "bulkAddModelTimedOutLabel": "AI didn't run: your server didn't answer in time.",
+  "bulkAddWaitElapsedLabel": "Waiting for your server · {seconds} s",
+  "@bulkAddWaitElapsedLabel": {
+      "placeholders": {
+          "seconds": {
+              "type": "int"
+          }
+      }
+  },
+  "bulkAddWaitModelLoadingLabel": "Your server may be loading its model. The first request after a while can take a minute or two — that is normal.",
+  "bulkAddWaitCancelLabel": "Cancel",
   "bulkAddPhotoLabel": "Read a photo",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker keeps no copy of its own, and it is never included in your exports.",
   "bulkAddPhotoDisclosureAnthropic": "The photo is sent to Anthropic to identify the foods in it.",
