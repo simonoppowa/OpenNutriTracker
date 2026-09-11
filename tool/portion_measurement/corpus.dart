@@ -7,11 +7,12 @@
 
 import 'dart:math';
 
-/// A food as a user in [locale] writes it, beside the English name the
-/// harness resolves it by when the line is not English. The search the
-/// app makes for a German query goes through `search_food_translation`,
-/// which this measurement does not call; the English equivalent lands on
-/// the same food's portion table, which is what the key is matched against.
+/// A food as a user in [locale] writes it, beside its English name. The
+/// harness resolves the model's query the way the app does for the line's
+/// locale — `search_food_translation` for a German line, the English
+/// search only when that finds nothing — so the English name is not what
+/// is searched; it is what the corpus's kind table is keyed by, and what
+/// the report can show beside the record the search landed on.
 class Food {
   final String local;
   final String en;

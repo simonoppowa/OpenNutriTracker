@@ -40,7 +40,11 @@ class PhotoItemRecord {
   final String photo;
   final int pass;
   final int index;
-  final RawItem raw;
+
+  /// The wire item this validated item came from, or null when none could
+  /// be paired to it — see [pairRawItems]. An unpaired item is still
+  /// recorded, flagged, so the report shows it rather than losing it.
+  final RawItem? raw;
 
   /// After `validateParsedMealItems`, before any counts-only rule — what
   /// the app's guard sees.
@@ -71,7 +75,13 @@ class PhotoItemRecord {
     required this.latencyMs,
   });
 
-  bool get arrived => raw.portion != null && raw.portion!.trim().isNotEmpty;
+  bool get pairingFailed => raw == null;
+
+  /// A key was on the wire. `_mealItemFrom` carries a non-blank `portion`
+  /// through trimmed and the validator leaves it alone, so the validated
+  /// key says the same as the raw one, and answers when the raw item could
+  /// not be paired.
+  bool get arrived => validated.portion != null;
   bool get kept => guard.verdict == PhotoGuardVerdict.kept;
 
   Map<String, Object?> toJson() => {
@@ -79,7 +89,8 @@ class PhotoItemRecord {
     'photo': photo,
     'pass': pass,
     'index': index,
-    'raw': raw.json,
+    'raw': raw?.json,
+    'pairingFailed': pairingFailed,
     'validated': {
       'query': validated.query,
       'quantity': validated.quantity,
@@ -205,6 +216,7 @@ Future<void> main(List<String> args) async {
     final kept = run.items.where((i) => i.kept).length;
     stdout.writeln(
       '${run.session.label}: calls ${run.calls} | items ${run.items.length} '
+      '| unpaired ${run.items.where((i) => i.pairingFailed).length} '
       '| key arrived $arrived | kept by guard $kept | failures '
       '${run.failures.length} | backend failures '
       '${run.backendFailures.length} | unstable '
@@ -261,20 +273,22 @@ Future<void> _runPhotos(
             .join(' ~ '),
       );
 
+      // Null where no raw item could be paired: the item is recorded all
+      // the same, flagged, and the report lists it.
+      final paired = pairRawItems(rawItems, validated.items);
       for (final (index, item) in validated.items.indexed) {
-        final raw = rawItems
-            .map(RawItem.new)
-            .where((r) => r.query == item.query)
-            .firstOrNull;
-        if (raw == null) continue;
+        final raw = paired[index];
         final guard = applyPhotoGuard(
           quantity: item.quantity,
           unit: item.unit,
           portion: item.portion,
         );
-        final develop = result.items
-            .where((i) => i.query == item.query)
-            .firstOrNull;
+        // `_countsOnly` maps the validated items one to one, in order, so
+        // develop's output for this item is at the same index; the query
+        // lookup is only for a client that stopped doing that.
+        final develop = result.items.length == validated.items.length
+            ? result.items[index]
+            : result.items.where((i) => i.query == item.query).firstOrNull;
 
         ResolvedFood? food;
         PortionMatch? match;
@@ -416,9 +430,10 @@ String _report({
       run.calls,
       run.failures.length,
       all.length,
+      all.where((i) => i.pairingFailed).length,
       ratio(arrived.length, all.length),
       ratio(
-        arrived.where((i) => photoSizeWords.contains(i.raw.portion!.trim().toLowerCase())).length,
+        arrived.where((i) => photoSizeWords.contains(i.validated.portion!.trim().toLowerCase())).length,
         arrived.length,
       ),
       ratio(kept.length, arrived.length),
@@ -442,8 +457,9 @@ String _report({
   b.writeln(
     table(
       [
-        'provider', 'model', 'calls', 'failed', 'items', 'key arrived',
-        'arrived as a size word', 'kept by guard', 'dropped: container',
+        'provider', 'model', 'calls', 'failed', 'items', 'unpaired items',
+        'key arrived', 'arrived as a size word', 'kept by guard',
+        'dropped: container',
         'dropped: piece', 'dropped: size-like, not one of three',
         'dropped: other', 'dropped: no count', 'dropped: fraction',
         'dropped: unit', 'resolved (of kept)', 'matched (of resolved)',
@@ -470,10 +486,10 @@ String _report({
               run.session.label,
               i.photo.substring(0, 10),
               i.pass,
-              i.validated.query,
-              i.raw.quantity,
-              i.raw.unit,
-              i.raw.portion == null ? null : '`${i.raw.portion}`',
+              i.pairingFailed ? '${i.validated.query} **(pairing failed)**' : i.validated.query,
+              i.raw?.quantity,
+              i.raw?.unit,
+              i.raw?.portion == null ? null : '`${i.raw!.portion}`',
               '${i.validated.quantity ?? '–'} / ${i.validated.unit ?? '–'}',
               i.guard.verdict.name,
               i.guard.portion,
@@ -520,8 +536,17 @@ String _report({
             i.guard.verdict == PhotoGuardVerdict.pieceWord,
       ))
         '- ${run.session.label} ${i.photo} pass ${i.pass}: `${i.validated.query}` '
-            '${i.raw.quantity ?? '–'} × `${i.raw.portion}` → ${i.guard.verdict.name}, '
+            '${(i.raw?.quantity ?? i.validated.quantity) ?? '–'} × '
+            '`${i.raw?.portion ?? i.validated.portion}` → ${i.guard.verdict.name}, '
             'count ${i.guard.quantity ?? 'dropped'}',
+  ]);
+  section('Items whose raw reply could not be paired (recorded, not dropped)', [
+    for (final run in runs)
+      for (final i in run.items.where((i) => i.pairingFailed))
+        '- ${run.session.label} ${i.photo} pass ${i.pass} item ${i.index}: '
+            '`${i.validated.query}` ${i.validated.quantity ?? '–'} / '
+            '${i.validated.unit ?? '–'} key ${code(i.validated.portion)} → '
+            '${i.guard.verdict.name}',
   ]);
   section('Call failures', [
     for (final run in runs)

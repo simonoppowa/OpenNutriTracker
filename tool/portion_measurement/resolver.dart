@@ -1,16 +1,26 @@
 // Resolves a query to the food the app would land on, and fetches that
-// food's portions with English labels — the two read-only RPCs the
+// food's portions with English labels — through the read-only RPCs the
 // measurement is allowed to call.
 //
-// The search is `search_food_summary` over PostgREST with the anon key,
-// exactly the POST `SpFoodDataSource._searchEnglish` makes. Then the AI
-// path's ranking as #1163 read it out of the code, with OFF empty and no
-// custom meals, recipes or history:
+// For an English line the search is `search_food_summary` over PostgREST
+// with the anon key, exactly the POST `SpFoodDataSource._searchEnglish`
+// makes. For any other locale it is what `fetchSearchWordResults` does for
+// a user of that app language: `search_food_translation(term, loc)` first,
+// the matched rows ranked and cut by `rankAndTruncateTranslationRows`, then
+// `food_summary_by_ids` for those ids, the summary rows re-sorted onto the
+// translation-relevance order and given the translated name as the shown
+// name (`_searchByTranslation`); and when the translation search finds
+// nothing, the English search on the same words, as the app falls through.
+// Then the AI path's ranking as #1163 read it out of the code, with OFF
+// empty and no custom meals, recipes or history:
 //
 //  1. `rankAndTruncateFoodsByName` — `textRelevanceScore` of the full
-//     `name` against the query, stable, descending, the top 20;
-//  2. `MealEntity.fromSpFood` — the shown name is `short_title ?? name`,
-//     the brand is `brands`, `detailed` is false;
+//     `name` against the query, stable, descending, the top 20 (the
+//     English path; the translation path was cut on its own step above);
+//  2. `MealEntity.fromSpFood` — the shown name is `localizedName ??
+//     short_title ?? name`, the brand is `brands`, `detailed` is false,
+//     `machineTranslatedName` is whether the translation shown came from
+//     `food_translation.source = 'machine'`;
 //  4. `mergeAndRankMeals` — `scoreMealRelevance` on the shown name and
 //     brand, records sharing a normalized shown name (and brand, where
 //     both name one) collapsed to the highest-scoring (first seen on a
@@ -20,23 +30,28 @@
 // Step 3, the search-cache round trip, is not modelled here either, for
 // the reason #1163 gives: it can only reorder equal-scoring siblings, and
 // the winner's *group* is fixed by the shown name. The portions are
-// `portions_by_food_ids(ids, 'en')`, so every label is the English
-// `portion_description` the model's key is matched against (#1157); the
-// query words are tried against the labels of the line's own locale, as
-// the app tries them.
+// `portions_by_food_ids(ids, 'en')` on every path, so every label is the
+// English `portion_description` the model's key is matched against
+// (#1157); the query words are tried against the labels of the line's own
+// locale, as the app tries them.
 //
 // The scorers are copied below rather than imported: `meal_relevance_ranker
 // .dart` and `resolver_relevance.dart` reach `hive_ce_flutter` through
-// `meal_entity.dart` and cannot be compiled by `dart run`. The copies, and
-// [aiPathWinner]'s truncation, collapse, tie and shown-name rules, are
-// pinned to the originals by
-// `test/unit_test/portion_measurement_parity_test.dart`.
+// `meal_entity.dart` and cannot be compiled by `dart run`; so is the
+// decoration and re-sort of `_searchByTranslation`, which is private and
+// needs a `SupabaseClient`. The copies, [aiPathWinner]'s truncation,
+// collapse, tie and shown-name rules, and [translationPage]'s order and
+// names are pinned to the originals by
+// `test/unit_test/portion_measurement_parity_test.dart`. The RPC names and
+// the locale mapping are the app's own `SPConst`, imported.
 
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
+import 'package:opennutritracker/core/utils/supported_language.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 
 import 'cli.dart';
@@ -46,6 +61,12 @@ import 'cli.dart';
 const candidatePoolSize = 100;
 const maxNumberOfItems = 20;
 
+/// Which search the record came out of: the English `search_food_summary`
+/// (an English line), the locale's `search_food_translation` (a non-English
+/// line the translation search answered), or the English search reached by
+/// falling through when the translation search found nothing.
+enum ResolvePath { english, translation, englishFallback }
+
 /// The record the ranker put first, and everything the report needs to
 /// name it.
 class ResolvedFood {
@@ -53,9 +74,25 @@ class ResolvedFood {
   final String name;
   final String? shortTitle;
   final String source;
+  final ResolvePath path;
+
+  /// The `food_translation` locale the search ran in; null for English.
+  final String? locale;
+
+  /// The translated description the app shows for this record, when it
+  /// came through the translation search; the shown name is then this, not
+  /// the short title.
+  final String? localizedName;
+
+  /// Whether that translation is an unreviewed machine one, which both
+  /// rankers dock 0.03 for.
+  final bool machineTranslated;
 
   /// `scoreMealRelevance` of the shown name, the score the collapse kept.
   final double score;
+
+  /// Rows the search returned before the cut to 20: `search_food_summary`'s
+  /// on the English path, `search_food_translation`'s on the other.
   final int poolSize;
 
   /// The full name of the record step 1 put first, when it is not this one
@@ -73,6 +110,10 @@ class ResolvedFood {
     required this.name,
     required this.shortTitle,
     required this.source,
+    required this.path,
+    required this.locale,
+    required this.localizedName,
+    required this.machineTranslated,
     required this.score,
     required this.poolSize,
     required this.poolTopName,
@@ -80,13 +121,18 @@ class ResolvedFood {
     required this.portions,
   });
 
-  String get shownName => shortTitle ?? name;
+  /// What the app's list shows for the record, `SpFoodDTO.displayName`.
+  String get shownName => localizedName ?? shortTitle ?? name;
 
   Map<String, Object?> toJson() => {
     'foodId': foodId,
     'name': name,
     'shortTitle': shortTitle,
     'source': source,
+    'path': path.name,
+    'locale': locale,
+    'localizedName': localizedName,
+    'machineTranslated': machineTranslated,
     'score': score,
     'poolSize': poolSize,
     'poolTopName': poolTopName,
@@ -113,8 +159,8 @@ class BackendException implements Exception {
   String toString() => 'backend $fn failed: $kind';
 }
 
-/// Caches per query, so a corpus that names the same forty foods a few
-/// hundred times makes a few dozen backend calls.
+/// Caches per locale and query, so a corpus that names the same forty
+/// foods a few hundred times makes a few dozen backend calls.
 class FoodResolver {
   final http.Client _client;
   final SupabaseAccess _access;
@@ -129,14 +175,19 @@ class FoodResolver {
 
   int get distinctQueries => _cache.length;
 
-  /// The food [query] lands on, or null when the search returned nothing.
-  /// Throws [BackendException] when the backend did not answer; the
-  /// failed lookup is not cached, so a later item asking for the same food
-  /// tries again.
-  Future<ResolvedFood?> resolve(String query) {
-    final key = query.trim().toLowerCase();
-    if (key.isEmpty) return Future.value(null);
-    final pending = _cache.putIfAbsent(key, () => _resolveUncached(query.trim()));
+  /// The food [query] lands on for a user whose app language is [locale],
+  /// or null when the search returned nothing. English searches
+  /// `search_food_summary`; every other locale searches the translation
+  /// table first and falls through to the English search when it finds
+  /// nothing, as `fetchSearchWordResults` does. Throws [BackendException]
+  /// when the backend did not answer; the failed lookup is not cached, so a
+  /// later item asking for the same food tries again.
+  Future<ResolvedFood?> resolve(String query, {String locale = 'en'}) {
+    final term = query.trim();
+    if (term.isEmpty) return Future.value(null);
+    final loc = SPConst.translationLocaleOf(SupportedLanguage.fromCode(locale));
+    final key = '${loc ?? 'en'}|${term.toLowerCase()}';
+    final pending = _cache.putIfAbsent(key, () => _resolveUncached(term, loc));
     return pending.catchError((Object e) {
       _cache.remove(key);
       throw e;
@@ -155,28 +206,79 @@ class FoodResolver {
     });
   }
 
-  Future<ResolvedFood?> _resolveUncached(String query) async {
-    final rows = await _rpc('search_food_summary', {
+  Future<ResolvedFood?> _resolveUncached(String query, String? loc) async {
+    if (loc != null) {
+      final page = await _translationPage(query, loc);
+      // The app returns the localized page when it has anything in it and
+      // runs the English search only when it is empty.
+      if (page.candidates.isNotEmpty) {
+        return _land(page.candidates, page.poolSize, query, ResolvePath.translation, loc);
+      }
+    }
+    final rows = await _rpc(SPConst.searchFoodSummaryFn, {
       'term': query,
       'sources': null,
       'max_rows': candidatePoolSize,
     });
-    if (rows.isEmpty) return null;
+    return _land(
+      englishPage(rows, query),
+      rows.length,
+      query,
+      loc == null ? ResolvePath.english : ResolvePath.englishFallback,
+      loc,
+    );
+  }
 
-    final landed = aiPathWinner(rows, query);
+  /// `_searchByTranslation`'s two calls, the replay of its decoration and
+  /// re-sort between them.
+  Future<({List<Candidate> candidates, int poolSize})> _translationPage(
+    String query,
+    String loc,
+  ) async {
+    final translationRows = await _rpc(SPConst.searchFoodTranslationFn, {
+      'term': query,
+      'loc': loc,
+      'max_rows': candidatePoolSize,
+    });
+    if (translationRows.isEmpty) {
+      return (candidates: const <Candidate>[], poolSize: 0);
+    }
+    final ids = translationIds(translationRows, query);
+    final summaryRows = await _rpc(SPConst.foodSummaryByIdsFn, {
+      'ids': ids,
+      'sources': null,
+    });
+    return (
+      candidates: translationPage(translationRows, summaryRows, query),
+      poolSize: translationRows.length,
+    );
+  }
+
+  Future<ResolvedFood?> _land(
+    List<Candidate> page,
+    int poolSize,
+    String query,
+    ResolvePath path,
+    String? loc,
+  ) async {
+    final landed = landOn(page, query);
     if (landed == null) return null;
-    final id = landed.row['food_id'];
+    final id = landed.candidate.row['food_id'];
     if (id is! int) return null;
 
     final portions = await localizedPortions(id, 'en');
 
     return ResolvedFood(
       foodId: id,
-      name: (landed.row['name'] as String?) ?? '',
-      shortTitle: landed.row['short_title'] as String?,
-      source: (landed.row['source'] as String?) ?? '',
+      name: (landed.candidate.row['name'] as String?) ?? '',
+      shortTitle: landed.candidate.row['short_title'] as String?,
+      source: (landed.candidate.row['source'] as String?) ?? '',
+      path: path,
+      locale: loc,
+      localizedName: landed.candidate.localizedName,
+      machineTranslated: landed.candidate.machineTranslated,
       score: landed.score,
-      poolSize: rows.length,
+      poolSize: poolSize,
       poolTopName: landed.poolTopName,
       groupSize: landed.groupSize,
       portions: portions,
@@ -184,7 +286,7 @@ class FoodResolver {
   }
 
   Future<List<MealPortionEntity>> _portions(int id, String loc) async {
-    final portionRows = await _rpc('portions_by_food_ids', {
+    final portionRows = await _rpc(SPConst.portionsByFoodIdsFn, {
       'ids': [id],
       'loc': loc,
     });
@@ -253,83 +355,213 @@ class FoodResolver {
   }
 }
 
-/// What [aiPathWinner] lands on.
-typedef AiPathWinner = ({
+/// One record of the page the ranker runs over, as `fromSpFood` reads it:
+/// the raw `food_summary` row, the translated name carried over from
+/// `food_translation` (null on the English path), and whether that
+/// translation is a machine one.
+typedef Candidate = ({
   Map<String, dynamic> row,
+  String? localizedName,
+  bool machineTranslated,
+});
+
+/// What [landOn] lands on.
+typedef AiPathWinner = ({
+  Candidate candidate,
   double score,
   String? poolTopName,
   int groupSize,
 });
 
-/// Steps 1, 2 and 4 of the AI path over the raw `search_food_summary` pool,
-/// or null for an empty pool. A top-level function so the parity test can
-/// run it beside the app's own pipeline on the same rows.
-AiPathWinner? aiPathWinner(List<Map<String, dynamic>> rows, String query) {
-  // 1. rankAndTruncateFoodsByName.
+/// `SpFoodDTO.displayName`: the translation, else the short title, else the
+/// full name.
+String shownName(Candidate c) =>
+    c.localizedName ??
+    (c.row['short_title'] as String?) ??
+    (c.row['name'] as String?) ??
+    '';
+
+String? _brand(Candidate c) => c.row['brands'] as String?;
+
+/// Step 1 of the English path over the raw `search_food_summary` pool:
+/// `rankAndTruncateFoodsByName`, the full `name` scored, stable, the top
+/// 20. Nothing is translated on this path.
+List<Candidate> englishPage(List<Map<String, dynamic>> rows, String query) {
   final ranked = [
     for (final row in rows)
       (row: row, score: textRelevanceScore(row['name'] as String?, query)),
   ];
   mergeSort(ranked, compare: (a, b) => b.score.compareTo(a.score));
-  final top20 = ranked.take(maxNumberOfItems).toList();
-  if (top20.isEmpty) return null;
-  final poolTop = top20.first.row;
+  return [
+    for (final entry in ranked.take(maxNumberOfItems))
+      (row: entry.row, localizedName: null, machineTranslated: false),
+  ];
+}
+
+/// The English path end to end: [englishPage], then [landOn]. A top-level
+/// function so the parity test can run it beside the app's own pipeline on
+/// the same rows.
+AiPathWinner? aiPathWinner(List<Map<String, dynamic>> rows, String query) =>
+    landOn(englishPage(rows, query), query);
+
+/// The food ids `_searchByTranslation` asks `food_summary_by_ids` for, in
+/// the order it asks: `rankAndTruncateTranslationRows` over the
+/// `search_food_translation` rows — `textRelevanceScore` of the translated
+/// description, stable, the top 20 — then the distinct ids in that order.
+List<int> translationIds(List<Map<String, dynamic>> translationRows, String query) =>
+    _decorate(translationRows, query).nameByFoodId.keys.toList();
+
+/// The page `_searchByTranslation` returns for [summaryRows] fetched by
+/// [translationIds]: each summary row given the translated description as
+/// its shown name and the machine flag of its translation, then re-sorted
+/// onto the translation-relevance order — a row whose id the translation
+/// rows did not name sorts last, untranslated. Empty when the summary
+/// fetch returned nothing, which is when the app falls through to English.
+List<Candidate> translationPage(
+  List<Map<String, dynamic>> translationRows,
+  List<Map<String, dynamic>> summaryRows,
+  String query,
+) {
+  final d = _decorate(translationRows, query);
+  final rankByFoodId = {
+    for (final (rank, foodId) in d.nameByFoodId.keys.indexed) foodId: rank,
+  };
+  int rank(Candidate c) => rankByFoodId[c.row['food_id']] ?? rankByFoodId.length;
+  final page = [
+    for (final row in summaryRows)
+      (
+        row: row,
+        localizedName: d.nameByFoodId[row['food_id']],
+        machineTranslated: d.machineIds.contains(row['food_id']),
+      ),
+  ];
+  mergeSort(page, compare: (a, b) => rank(a).compareTo(rank(b)));
+  return page;
+}
+
+/// The two maps `_searchByTranslation` builds from the ranked translation
+/// rows, with the map literal's semantics kept: a food id named twice keeps
+/// its first position and its last description, and is machine-translated
+/// if any of its rows is.
+({Map<int, String?> nameByFoodId, Set<int> machineIds}) _decorate(
+  List<Map<String, dynamic>> translationRows,
+  String query,
+) {
+  final ranked = [
+    for (final row in translationRows)
+      (
+        row: row,
+        score: textRelevanceScore(
+          row[SPConst.translationDescription] as String?,
+          query,
+        ),
+      ),
+  ];
+  mergeSort(ranked, compare: (a, b) => b.score.compareTo(a.score));
+  final top = [for (final e in ranked.take(maxNumberOfItems)) e.row];
+  final nameByFoodId = <int, String?>{};
+  final machineIds = <int>{};
+  for (final row in top) {
+    final id = row[SPConst.translationFoodId] as int;
+    nameByFoodId[id] = row[SPConst.translationDescription] as String?;
+    if (row[SPConst.translationSource] == SPConst.translationSourceMachine) {
+      machineIds.add(id);
+    }
+  }
+  return (nameByFoodId: nameByFoodId, machineIds: machineIds);
+}
+
+/// The translation path end to end: [translationPage], then [landOn].
+AiPathWinner? translationPathWinner(
+  List<Map<String, dynamic>> translationRows,
+  List<Map<String, dynamic>> summaryRows,
+  String query,
+) => landOn(translationPage(translationRows, summaryRows, query), query);
+
+/// Steps 2 and 4 over a page already ordered and cut by its search — what
+/// `fromSpFood`, `mergeAndRankMeals` and `rankForResolution` do to it — or
+/// null for an empty page.
+AiPathWinner? landOn(List<Candidate> page, String query) {
+  if (page.isEmpty) return null;
+  final poolTop = page.first;
 
   // 2 + 4. Shown name and brand, scoreMealRelevance on them, collapse by
   // `_nearDuplicateKey` keeping the highest (strict >, so first seen on a
   // tie).
-  String shown(Map<String, dynamic> row) =>
-      (row['short_title'] as String?) ?? (row['name'] as String?) ?? '';
-  String? brand(Map<String, dynamic> row) => row['brands'] as String?;
   final groupOrder = <String>[];
-  final groups = <String, List<({Map<String, dynamic> row, double score})>>{};
-  for (final entry in top20) {
-    final key = nearDuplicateKey(shown(entry.row), brand(entry.row), entry.row);
+  final groups = <String, List<({Candidate c, double score})>>{};
+  for (final c in page) {
+    final key = nearDuplicateKey(shownName(c), _brand(c), c.row);
     final scored = (
-      row: entry.row,
-      score: scoreMealRelevance(shown(entry.row), query, brand: brand(entry.row)),
+      c: c,
+      score: scoreMealRelevance(
+        shownName(c),
+        query,
+        brand: _brand(c),
+        machineTranslated: c.machineTranslated,
+      ),
     );
     if (!groups.containsKey(key)) groupOrder.add(key);
     groups.putIfAbsent(key, () => []).add(scored);
   }
-  final collapsed = <({Map<String, dynamic> row, double score, int groupSize})>[];
+  final collapsed = <({Candidate c, double score, int groupSize})>[];
   for (final key in groupOrder) {
     final group = groups[key]!;
     var best = group.first;
     for (final candidate in group.skip(1)) {
       if (candidate.score > best.score) best = candidate;
     }
-    collapsed.add((row: best.row, score: best.score, groupSize: group.length));
+    collapsed.add((c: best.c, score: best.score, groupSize: group.length));
   }
   // rankMealsByRelevance, then rankForResolution, both stable.
   mergeSort(collapsed, compare: (a, b) => b.score.compareTo(a.score));
   final resolved = [
     for (final c in collapsed)
-      (c: c, r: resolutionScore(shown(c.row), query, brand: brand(c.row))),
+      (
+        c: c,
+        r: resolutionScore(
+          shownName(c.c),
+          query,
+          brand: _brand(c.c),
+          machineTranslated: c.c.machineTranslated,
+        ),
+      ),
   ];
   mergeSort(resolved, compare: (a, b) => b.r.compareTo(a.r));
   final winner = resolved.first.c;
   return (
-    row: winner.row,
+    candidate: winner.c,
     score: winner.score,
-    poolTopName: identical(winner.row, poolTop) ? null : poolTop['name'] as String?,
+    poolTopName: identical(winner.c.row, poolTop.row)
+        ? null
+        : poolTop.row['name'] as String?,
     groupSize: winner.groupSize,
   );
 }
 
 // --- copied from meal_relevance_ranker.dart --------------------------------
 
+/// The two rankers' quality tie-breaker for a machine translation, the
+/// only one a backend food can carry (`detailed` is false on every path).
+const machineTranslatedPenalty = 0.03;
+
 /// `scoreMealRelevance` from `lib/features/add_meal/util/meal_relevance_ranker.dart`
-/// for a backend food: `detailed` false and no machine translation in the
-/// English locale (the parity test pins both to `MealEntity.fromSpFood`),
-/// so the score is the name's text score, or the brand's at 60% where that
-/// is higher.
-double scoreMealRelevance(String? shownName, String query, {String? brand}) {
+/// for a backend food: `detailed` false (the parity test pins it to
+/// `MealEntity.fromSpFood`), so the score is the name's text score, or the
+/// brand's at 60% where that is higher, less the penalty when the shown
+/// name is a machine translation.
+double scoreMealRelevance(
+  String? shownName,
+  String query, {
+  String? brand,
+  bool machineTranslated = false,
+}) {
   final normalizedQuery = _normalize(query);
   if (normalizedQuery.isEmpty) return 0.0;
   final nameScore = _textScore(shownName, normalizedQuery);
   final brandScore = _textScore(brand, normalizedQuery);
-  final score = nameScore >= brandScore ? nameScore : brandScore * 0.6;
+  var score = nameScore >= brandScore ? nameScore : brandScore * 0.6;
+  if (machineTranslated) score -= machineTranslatedPenalty;
   return score.clamp(0.0, 1.0);
 }
 
@@ -382,15 +614,21 @@ double _diceCoefficient(Set<String> a, Set<String> b) {
 // --- copied from resolver_relevance.dart -----------------------------------
 
 /// `scoreMealForResolution` from `lib/features/add_meal/util/resolver_relevance.dart`
-/// for a backend food: no bonuses (`detailed` false, not machine
-/// translated), so the soft Dice of the shown name, or the brand's at 60%
-/// where that is higher.
-double resolutionScore(String? shownName, String query, {String? brand}) {
+/// for a backend food: no `detailed` bonus, so the soft Dice of the shown
+/// name, or the brand's at 60% where that is higher, less the penalty when
+/// the shown name is a machine translation.
+double resolutionScore(
+  String? shownName,
+  String query, {
+  String? brand,
+  bool machineTranslated = false,
+}) {
   final queryTokens = _tokenize(_normalize(query));
   if (queryTokens.isEmpty) return 0.0;
   final nameScore = _resolutionTextScore(shownName, queryTokens);
   final brandScore = _resolutionTextScore(brand, queryTokens);
-  final score = nameScore >= brandScore ? nameScore : brandScore * 0.6;
+  var score = nameScore >= brandScore ? nameScore : brandScore * 0.6;
+  if (machineTranslated) score -= machineTranslatedPenalty;
   return score.clamp(0.0, 1.0);
 }
 

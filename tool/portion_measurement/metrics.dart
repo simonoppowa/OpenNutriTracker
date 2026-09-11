@@ -331,6 +331,57 @@ class RawItem {
       portion = json['portion'] is String ? json['portion'] as String : null;
 }
 
+/// The raw item behind each validated item, by position; null where none
+/// could be paired.
+///
+/// Both steps between the wire and `validated` keep order and only ever
+/// drop: `mealItemsFromJson` skips an entry that is not a map or has no
+/// string `query`, and `validateParsedMealItems` builds its list in one
+/// forward pass over its candidates, `continue`-ing past an invalid name or
+/// a count out of bounds (`meal_text_parser.dart`, the loop in
+/// `validateParsedMealItems`). So the validated list is a subsequence of
+/// the raw one, and a cursor walked forward over the raw items pairs each
+/// validated item with the next raw item whose query, trimmed as the
+/// validator trims it, is the validated query — the whitespace that made
+/// an exact comparison lose `egg ` no longer matters, and two items with
+/// the same query pair with their own entries rather than both with the
+/// first. Should the walk fail — a client that reorders, say — a raw item
+/// not yet taken whose query matches trimmed and case-folded is used; and
+/// failing that the slot is null, never silently skipped: the caller
+/// records the item flagged.
+List<RawItem?> pairRawItems(
+  List<Map<String, Object?>> rawItems,
+  List<ParsedMealItem> validated,
+) {
+  final raw = rawItems.map(RawItem.new).toList();
+  final taken = List<bool>.filled(raw.length, false);
+  final out = <RawItem?>[];
+  var cursor = 0;
+  for (final item in validated) {
+    RawItem? found;
+    for (var i = cursor; i < raw.length; i++) {
+      if (raw[i].query?.trim() == item.query) {
+        found = raw[i];
+        taken[i] = true;
+        cursor = i + 1;
+        break;
+      }
+    }
+    if (found == null) {
+      final wanted = item.query.trim().toLowerCase();
+      for (var i = 0; i < raw.length; i++) {
+        if (!taken[i] && raw[i].query?.trim().toLowerCase() == wanted) {
+          found = raw[i];
+          taken[i] = true;
+          break;
+        }
+      }
+    }
+    out.add(found);
+  }
+  return out;
+}
+
 // --- small statistics and markdown helpers -------------------------------
 
 int percentile(List<int> sorted, double p) =>

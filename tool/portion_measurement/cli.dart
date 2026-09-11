@@ -178,7 +178,9 @@ String Function()? keyReaderFor(Directory? keysDir, Provider provider) {
   };
 }
 
-/// The two values the backend needs. Deliberately not printable.
+/// The two values the backend needs. Deliberately not printable: the
+/// string form is a constant, so neither the host nor the key can reach a
+/// log or a report through interpolation.
 class SupabaseAccess {
   final Uri projectUrl;
   final String Function() anonKey;
@@ -186,7 +188,7 @@ class SupabaseAccess {
   const SupabaseAccess._(this.projectUrl, this.anonKey);
 
   @override
-  String toString() => 'SupabaseAccess(${projectUrl.host})';
+  String toString() => 'SupabaseAccess(…)';
 }
 
 /// Reads `SUPABASE_PROJECT_URL` and `SUPABASE_PROJECT_ANON_KEY` from a
@@ -220,5 +222,23 @@ SupabaseAccess readSupabaseAccess(String envPath) {
     );
     exit(65);
   }
-  return SupabaseAccess._(Uri.parse(url), () => key);
+  // Parsed inside a guard: a `FormatException` from `Uri.parse` quotes the
+  // text it could not parse, and that text is the project URL. The message
+  // here carries nothing from the file. A parse that succeeds on something
+  // that is not an absolute http(s) URL is refused the same way, since a
+  // request to it would fail with an exception that names it.
+  final Uri projectUrl;
+  try {
+    projectUrl = Uri.parse(url);
+  } on FormatException {
+    stderr.writeln('SUPABASE_PROJECT_URL is not a valid URL');
+    exit(65);
+  }
+  if (!projectUrl.isAbsolute ||
+      (projectUrl.scheme != 'https' && projectUrl.scheme != 'http') ||
+      projectUrl.host.isEmpty) {
+    stderr.writeln('SUPABASE_PROJECT_URL is not an absolute http(s) URL');
+    exit(65);
+  }
+  return SupabaseAccess._(projectUrl, () => key);
 }

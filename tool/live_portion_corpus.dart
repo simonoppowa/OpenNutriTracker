@@ -18,9 +18,10 @@
 //   dart run tool/live_portion_corpus.dart --dry-run --out <dir>
 //
 // Keys are read from files, never printed. The only network use in a dry
-// run is the two read-only backend RPCs the resolver makes. The reports are
-// rewritten after every provider, so a run that dies on provider two still
-// leaves provider one's replies on disk.
+// run is the read-only backend RPCs the resolver makes — the search the app
+// makes for the line's locale, and the portions. The reports are rewritten
+// after every provider, so a run that dies on provider two still leaves
+// provider one's replies on disk.
 
 import 'dart:convert';
 import 'dart:io';
@@ -51,8 +52,11 @@ class ItemRecord {
   final KeyLanguage? language;
   final bool? matchesExpectedKey;
   final bool unitSubstituted;
+
+  /// The record the app would land on for the model's query in the line's
+  /// locale — through the translation search for a non-English line, the
+  /// English search when that found nothing — with its English portions.
   final ResolvedFood? food;
-  final String? resolvedVia;
 
   /// The backend did not answer for this item; nothing below is known.
   final String? backendFailure;
@@ -74,7 +78,6 @@ class ItemRecord {
     required this.matchesExpectedKey,
     required this.unitSubstituted,
     required this.food,
-    required this.resolvedVia,
     required this.backendFailure,
     required this.match,
     required this.queryMatch,
@@ -126,7 +129,7 @@ class ItemRecord {
     'matchesExpectedKey': matchesExpectedKey,
     'abbreviationOutcome': abbreviationOutcome,
     'unitSubstituted': unitSubstituted,
-    'resolvedVia': resolvedVia,
+    'resolvedVia': food?.path.name,
     'backendFailure': backendFailure,
     'food': food?.toJson(),
     'match': match?.toJson(),
@@ -311,19 +314,11 @@ Future<void> _runCorpus(
     }
 
     final rawItems = run.session.raw.takeRawItems(textNeedle(c.input));
+    // Each validated item's own wire entry, dropped entries and the
+    // validator's trim accounted for; null where none could be paired.
+    final paired = rawItems == null ? null : pairRawItems(rawItems, result.items);
     for (final (index, item) in result.items.indexed) {
-      // Raw items line up with validated ones only when nothing was dropped;
-      // a dropped entry shifts the rest, so pair by query as a fallback.
-      RawItem? raw;
-      if (rawItems != null) {
-        final byIndex = index < rawItems.length ? RawItem(rawItems[index]) : null;
-        raw = byIndex != null && byIndex.query == item.query
-            ? byIndex
-            : rawItems
-                  .map(RawItem.new)
-                  .where((r) => r.query == item.query)
-                  .firstOrNull;
-      }
+      final raw = paired?[index];
       final expected = index == 0 ? c.expected : null;
       final key = item.portion;
 
@@ -349,18 +344,13 @@ Future<void> _runCorpus(
           expected != null && (raw?.unit != null || item.unit != null);
 
       ResolvedFood? food;
-      String? via;
       String? backendFailure;
       PortionMatch? match;
       PortionMatch? queryMatch;
       try {
-        if (c.locale == 'en' || expected == null) {
-          food = await resolver.resolve(item.query);
-          via = 'query';
-        } else {
-          food = await resolver.resolve(expected.food.en);
-          via = 'englishEquivalent';
-        }
+        // The model's query, searched the way the app searches it for a
+        // user of the line's locale.
+        food = await resolver.resolve(item.query, locale: c.locale);
         if (key != null && food != null) {
           match = matchWithTie(key, food.portions);
           if (match == null) {
@@ -379,7 +369,6 @@ Future<void> _runCorpus(
           '`${_oneLine(c.input)}` _${c.locale}_ `${item.query}` — $e',
         );
         food = null;
-        via = null;
         match = null;
         queryMatch = null;
       }
@@ -395,7 +384,6 @@ Future<void> _runCorpus(
           matchesExpectedKey: matchesExpected,
           unitSubstituted: unitSubstituted,
           food: food,
-          resolvedVia: food == null ? null : via,
           backendFailure: backendFailure,
           match: match,
           queryMatch: queryMatch,
@@ -462,6 +450,22 @@ Future<void> _runStability(ProviderRun run, List<Case> corpus) async {
 
 String _oneLine(String s) => s.replaceAll('\n', ' / ');
 
+/// The record as the app shows it and as the table names it: the
+/// translated description the user saw, when it came through the
+/// translation search, beside the English `name` and the id; the English
+/// name alone otherwise. A fallback to the English search on a non-English
+/// line is said so, since that is the line the report is about.
+String _foodName(ResolvedFood f) {
+  final english = '*${f.name}* (${f.foodId})';
+  return switch (f.path) {
+    ResolvePath.english => english,
+    ResolvePath.translation =>
+      '*${f.localizedName}* [${f.locale}${f.machineTranslated ? ', machine' : ''}] = $english',
+    ResolvePath.englishFallback =>
+      '$english [no ${f.locale} translation hit; English search]',
+  };
+}
+
 String _report({
   required List<ProviderRun> runs,
   required List<ProviderSession> sessions,
@@ -499,7 +503,8 @@ String _report({
         'the own-language key, an abbreviation kept as written, a '
         'substituted unit, no key, a key on a plain line, one failed line, '
         'and two lines that move on repeat; no model was called. The '
-        'backend *was* called — read-only `search_food_summary` and '
+        'backend *was* called — read-only `search_food_summary`, '
+        '`search_food_translation`, `food_summary_by_ids` and '
         '`portions_by_food_ids` — so the resolution, matching and tie '
         'columns are real.',
       )
@@ -572,11 +577,19 @@ String _report({
       '*tazze* line — the failure #1157 names.',
     )
     ..writeln(
-      '- *Resolved* is the top record of `search_food_summary` ranked by '
-      '`textRelevanceScore`, portions fetched with `loc = en`. English lines '
-      'resolve by the model\'s query; other locales resolve by the '
-      'template\'s English food name, since the localized search is not '
-      'called here.',
+      '- *Resolved* is the record the app\'s AI path lands on for the '
+      'model\'s query, searched as the app searches for a user of the '
+      'line\'s locale: `search_food_summary` for an English line; for any '
+      'other, `search_food_translation` in that locale, the hits ranked and '
+      'cut, `food_summary_by_ids` for them, re-sorted onto the translation '
+      'order and shown under the translated name — and only when the '
+      'translation search finds nothing, the English search on the same '
+      'words. Then the AI path\'s ranking. *Via translation* counts the '
+      'resolved measure lines that came through the translation search; '
+      'the JSON\'s `resolvedVia` says `english`, `translation` or '
+      '`englishFallback` per item, and every hit or miss line below names '
+      'the translated description the app showed. Portions are fetched '
+      'with `loc = en` on every path.',
     )
     ..writeln(
       '- *Matched* is `matchPortionToQuery(key, portions) != null`; *tie* '
@@ -696,6 +709,9 @@ String _report({
       final emitted = first.where((i) => i.emitted).toList();
       final resolvedKeyed = emitted.where((i) => i.food != null).toList();
       final matched = resolvedKeyed.where((i) => i.match != null).length;
+      final viaTranslation = resolvedKeyed
+          .where((i) => i.food!.path == ResolvePath.translation)
+          .length;
       localeRows.add([
         run.session.label,
         locale,
@@ -709,6 +725,7 @@ String _report({
         ),
         ratio(emitted.where((i) => i.matchesExpectedKey == true).length, emitted.length),
         ratio(resolvedKeyed.length, emitted.length),
+        locale == 'en' ? '–' : ratio(viaTranslation, resolvedKeyed.length),
         ratio(matched, resolvedKeyed.length),
         ratio(resolvedKeyed.length - matched, resolvedKeyed.length),
         ratio(
@@ -722,8 +739,8 @@ String _report({
     table(
       [
         'provider', 'locale', 'lines', 'measure lines', 'key emitted',
-        'steering', 'own word', 'key = expected', 'resolved', 'matched',
-        'key miss', 'amountNeedsCheck fires',
+        'steering', 'own word', 'key = expected', 'resolved',
+        'via translation', 'matched', 'key miss', 'amountNeedsCheck fires',
       ],
       localeRows,
     ),
@@ -787,7 +804,7 @@ String _report({
 
   String hit(ItemRecord i) =>
       '- ${i.provider} `${_oneLine(i.line.input)}` key ${code(i.key)} '
-      'on *${i.food!.name}* (${i.food!.foodId}) → '
+      'on ${_foodName(i.food!)} → '
       '`${i.match!.portion.label}` ${i.match!.portion.gramWeight} g'
       '${i.match!.tie ? '; **tie** with ${i.match!.tiedWith.map((p) => '`${p.label}` ${p.gramWeight} g').join(', ')}' : ''}'
       '${i.match!.literal ? '' : '; **not literal** — no word of the key is in the label'}';
@@ -819,7 +836,7 @@ String _report({
       for (final run in runs)
         for (final i in run.items.where((i) => i.keyMiss))
           '- ${run.session.label} `${_oneLine(i.line.input)}` key ${code(i.key)} '
-              'on *${i.food!.name}* (${i.food!.foodId}, ${i.food!.portions.length} rows: '
+              'on ${_foodName(i.food!)} (${i.food!.portions.length} rows: '
               '${i.food!.portions.take(6).map((p) => '`${p.label}`').join(', ')}'
               '${i.food!.portions.length > 6 ? ', …' : ''}) → '
               '${i.amountNeedsCheckFires ? '**fires**' : i.item.quantity == null ? 'quiet: no count' : 'quiet: query words hit `${i.queryMatch!.portion.label}` ${i.queryMatch!.portion.gramWeight} g'}',
