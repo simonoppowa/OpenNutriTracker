@@ -60,12 +60,14 @@ List<MealEntity> rankMealsByRelevance(List<MealEntity> meals, String query) {
 /// above everything else, relevance-sorting within each tier rather than
 /// leaving the arbitrary per-source order.
 ///
-/// Beyond exact-key duplicates, the same real-world food frequently exists
-/// as *separate* records in more than one backend (e.g. "Whole Milk" in
-/// both OFF and the Supabase/FDC mirror) — those have different codes, so
-/// the exact-key dedup above doesn't catch them. [_collapseNearDuplicates]
-/// handles that within the non-own tier only: your own custom meals/recipes
-/// are never merged away, even if a remote result happens to share a name.
+/// Beyond exact-key duplicates, the same Open Food Facts product frequently
+/// exists as *separate* records (one product, several barcodes) — those
+/// have different codes, so the exact-key dedup above doesn't catch them.
+/// [_collapseNearDuplicates] handles that within the non-own tier only, and
+/// only for OFF products: your own custom meals/recipes are never merged
+/// away, even if a remote result happens to share a name, and backend
+/// (FDC/BLS/...) records are never merged with anything — see the note on
+/// [_nearDuplicateKey] for why (#1164).
 List<MealEntity> mergeAndRankMeals(List<MealEntity> a, List<MealEntity> b, String query) {
   final own = <MealEntity>[];
   final rest = <MealEntity>[];
@@ -90,12 +92,12 @@ List<MealEntity> _deduplicateAcrossSources(List<MealEntity> meals) {
   return uniqueMeals;
 }
 
-/// Collapses meals that share a normalized name — and, when both sides
-/// declare one, the same normalized brand — keeping only the highest
-/// [scoreMealRelevance]d entry from each group (ties keep the first-seen
-/// one). That score already favors the more complete/trustworthy record
-/// (see the `detailed`/`machineTranslatedName` tie-breakers), so "highest
-/// score" and "best copy to keep" are the same thing here.
+/// Collapses Open Food Facts products that share a normalized name — and,
+/// when both sides declare one, the same normalized brand — keeping only
+/// the highest [scoreMealRelevance]d entry from each group (ties keep the
+/// first-seen one). That score already favors the more complete/trustworthy
+/// record (see the `detailed`/`machineTranslatedName` tie-breakers), so
+/// "highest score" and "best copy to keep" are the same thing here.
 ///
 /// Matching is exact-normalized-text equality, not edit-distance/fuzzy
 /// similarity — deliberately conservative so two distinctly-named foods
@@ -104,6 +106,20 @@ List<MealEntity> _deduplicateAcrossSources(List<MealEntity> meals) {
 /// entry that names the *same* brand; an unbranded entry only merges with
 /// another unbranded entry — a bare "Milk" never absorbs a branded
 /// "Milk (Horizon)", since those aren't reliably the same product.
+///
+/// Only OFF products are grouped at all. This used to cover every non-own
+/// meal, on the theory that the same real-world food shows up as separate
+/// records in more than one database, but for the backend's FDC records
+/// that theory is wrong: survey records that share a name are *distinct
+/// foods*, not copies. 555 `short_title` groups cover 4,215 of the 5,432
+/// survey records (the largest holds 140), and while the app showed those
+/// records by their short title, "Egg, yolk only, raw" folded into "Egg"
+/// beside "Egg, whole, raw" and was gone from the list — the collapse was
+/// losing data rather than removing duplicates (#1164). Backend records now
+/// keep their full description (see `SpFoodDTO.displayName`), so two of
+/// them rarely share a name anyway, but the rule is not "distinct names
+/// don't collide" — it is that a backend record is never a duplicate of
+/// anything, so each is its own entry regardless of what it is called.
 List<MealEntity> _collapseNearDuplicates(List<MealEntity> meals, String query) {
   final groupOrder = <String>[];
   final groups = <String, List<MealEntity>>{};
@@ -116,6 +132,16 @@ List<MealEntity> _collapseNearDuplicates(List<MealEntity> meals, String query) {
 }
 
 String _nearDuplicateKey(MealEntity meal) {
+  // Anything that is not an OFF product is keyed on its own identity, so it
+  // can only ever be alone in its group. That is the whole of the "FDC
+  // records are never collapsed" rule from #1164 — the name-based key below
+  // is reserved for the one case it was built for. (source + code is unique
+  // here because [_deduplicateAcrossSources] already ran on the same key;
+  // the identityHashCode fallback is for a codeless record, as with the
+  // nameless case below.)
+  if (meal.source != MealSourceEntity.off) {
+    return 'single:${meal.source.name}:${meal.code ?? identityHashCode(meal)}';
+  }
   final name = _normalize(meal.name);
   // No name to match on — key on identity instead of an empty string, which
   // would otherwise collapse every unrelated nameless meal into one.

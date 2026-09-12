@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
 import 'package:opennutritracker/features/add_meal/util/resolver_relevance.dart';
 
@@ -9,6 +10,7 @@ MealEntity meal(
   MealSourceEntity source = MealSourceEntity.off,
   String? brands,
   String? code,
+  int portions = 0,
 }) => MealEntity(
   code: code ?? name,
   name: name,
@@ -23,6 +25,14 @@ MealEntity meal(
   servingSize: null,
   source: source,
   nutriments: MealNutrimentsEntity.empty(),
+  portions: [
+    for (var i = 0; i < portions; i++)
+      MealPortionEntity(
+        label: '1 portion $i',
+        gramWeight: 100,
+        localized: false,
+      ),
+  ],
 );
 
 List<String> names(List<MealEntity> meals) => [for (final m in meals) m.name!];
@@ -148,6 +158,158 @@ void main() {
       final ranked = rankForResolution(rows, 'eggs');
 
       expect([for (final m in ranked) m.code], ['a', 'b']);
+    });
+  });
+
+  group('tie-break among equal scores (#1164)', () {
+    // Backend siblings are shown by their full description and score the
+    // same on the one-word query for their family, so the order among them
+    // is what the auto-select logs. The keys below are the decision's:
+    // most labelled portions, then the shortest name, then the input order.
+    test('the record with the most labelled portions comes first', () {
+      final rows = [
+        meal('Apple, dried', source: MealSourceEntity.fdc, portions: 2),
+        meal('Apple, raw', source: MealSourceEntity.fdc, portions: 7),
+      ];
+
+      expect(names(rankForResolution(rows, 'apple')).first, 'Apple, raw');
+    });
+
+    test('equal portions break on the shorter name', () {
+      final rows = [
+        meal('Milk, whole', source: MealSourceEntity.fdc, portions: 3),
+        meal('Milk, NFS', source: MealSourceEntity.fdc, portions: 3),
+      ];
+
+      expect(names(rankForResolution(rows, 'milk')).first, 'Milk, NFS');
+    });
+
+    test('portions outrank a shorter name', () {
+      // The keys are ordered, not summed: a longer description with more
+      // portions beats a shorter one with fewer.
+      final rows = [
+        meal('Apple, raw', source: MealSourceEntity.fdc, portions: 2),
+        meal('Apple, baked', source: MealSourceEntity.fdc, portions: 7),
+      ];
+
+      expect(names(rankForResolution(rows, 'apple')).first, 'Apple, baked');
+    });
+
+    test('the tie-break never overrides the score', () {
+      final rows = [
+        meal('Egg, whole, raw', source: MealSourceEntity.fdc, portions: 9),
+        meal('Egg, creamed', source: MealSourceEntity.fdc, portions: 1),
+      ];
+
+      expect(names(rankForResolution(rows, 'egg')).first, 'Egg, creamed');
+    });
+
+    test('equal score, portions and name length keep the input order', () {
+      final rows = [
+        meal(
+          'Bread, rice',
+          code: 'a',
+          source: MealSourceEntity.fdc,
+          portions: 5,
+        ),
+        meal(
+          'Chips, rice',
+          code: 'b',
+          source: MealSourceEntity.fdc,
+          portions: 5,
+        ),
+      ];
+
+      List<String?> codes(List<MealEntity> meals) => [
+        for (final m in meals) m.code,
+      ];
+
+      expect(codes(rankForResolution(rows, 'rice')), ['a', 'b']);
+      expect(
+        codes(rankForResolution(rows.reversed.toList(), 'rice')),
+        ['b', 'a'],
+      );
+    });
+
+    test('records without a name compare as zero-length names, stably', () {
+      MealEntity nameless(String code) => MealEntity(
+        code: code,
+        name: null,
+        brands: 'Milk',
+        url: null,
+        mealQuantity: null,
+        mealUnit: null,
+        servingQuantity: null,
+        servingUnit: null,
+        servingSize: null,
+        source: MealSourceEntity.fdc,
+        nutriments: MealNutrimentsEntity.empty(),
+      );
+
+      // Both match on the brand alone, so they tie on score and on portions
+      // and reach the name-length key with nothing to measure.
+      final ranked = rankForResolution(
+        [nameless('a'), nameless('b')],
+        'milk',
+      );
+
+      expect([for (final m in ranked) m.code], ['a', 'b']);
+    });
+  });
+
+  group('the no-portions penalty (#1164)', () {
+    test('a backend record with no labelled portion loses 0.15', () {
+      final withPortions = meal(
+        'Orange juice',
+        source: MealSourceEntity.fdc,
+        portions: 1,
+      );
+      final without = meal('Orange juice', source: MealSourceEntity.fdc);
+
+      expect(scoreMealForResolution(withPortions, 'orange juice'), 1.0);
+      expect(
+        scoreMealForResolution(without, 'orange juice'),
+        closeTo(0.85, 1e-9),
+      );
+    });
+
+    test('an OFF product is never penalised for having no portions', () {
+      // OFF products never carry `portions` — the list is filled from the
+      // backend's lookup and nowhere else — so penalising on emptiness
+      // alone would demote every OFF product, which was not decided.
+      final offProduct = meal('Orange juice', source: MealSourceEntity.off);
+
+      expect(scoreMealForResolution(offProduct, 'orange juice'), 1.0);
+    });
+
+    test('the penalty is a subtraction from the score, not a cap on it', () {
+      // A brand-only match already sits well below 1.0; the penalty comes
+      // off that too, rather than only pulling an exact match down to 0.85.
+      final byBrand = meal(
+        'Instant Coffee Refill',
+        brands: 'Nescafe',
+        source: MealSourceEntity.fdc,
+      );
+      final byBrandWithPortions = meal(
+        'Instant Coffee Refill',
+        brands: 'Nescafe',
+        source: MealSourceEntity.fdc,
+        portions: 1,
+      );
+
+      expect(
+        scoreMealForResolution(byBrand, 'nescafe'),
+        closeTo(
+          scoreMealForResolution(byBrandWithPortions, 'nescafe') - 0.15,
+          1e-9,
+        ),
+      );
+    });
+
+    test('the penalty is resolver-only: the shared ranker does not see it', () {
+      final without = meal('Orange juice', source: MealSourceEntity.fdc);
+
+      expect(scoreMealRelevance(without, 'orange juice'), 1.0);
     });
   });
 

@@ -41,6 +41,28 @@ const _minPrefix = 3;
 const _detailedBonus = 0.03;
 const _machineTranslatedPenalty = 0.03;
 
+/// Taken off a backend record that carries no labelled portion — here and
+/// nowhere else (#1164).
+///
+/// The resolver's output is logged with an amount, and at that point a
+/// record that can scale one is worth more than one that cannot. The case
+/// this is for is an exact title with nothing behind it: the BLS record
+/// "Orange juice" matches the query letter for letter and wins outright
+/// over the survey records that actually carry fl-oz and juice-box rows.
+/// The Food tab's plain search is untouched — `scoreMealRelevance` knows
+/// nothing of this — because a German reader browsing the list wants the
+/// native BLS record where it is, and the portionless record stays in the
+/// candidate list either way.
+///
+/// The size is the one #1164 decided, and it was reckoned against the
+/// shared ranker's numbers, where the survey record scores 0.9 to the BLS
+/// record's 1.0. This scorer is harder on extra tokens: "Orange juice,
+/// 100%, NFS" — the survey's plain record; there is no row named just
+/// "Orange juice, 100%" — scores 0.667 here, so at 0.85 the BLS record
+/// still leads it. The test pins that measured order, so a change to the
+/// size is a deliberate one and not a side effect.
+const _noPortionsPenalty = 0.15;
+
 /// Characters from scripts that do not separate words with spaces. A
 /// Unicode script property rather than a vocabulary list, so it does not
 /// grow when a language is added.
@@ -140,6 +162,9 @@ double _textScore(String? text, Set<String> queryTokens) {
 /// Scores [meal] against [query] on a 0.0-1.0 scale, tolerant of
 /// inflectional suffixes. Brand-only matches count for less than the same
 /// match on the name, as in the shared ranker.
+///
+/// Unlike the shared ranker, a backend record with no labelled portion
+/// loses [_noPortionsPenalty] — see there for why this is the only place.
 double scoreMealForResolution(MealEntity meal, String query) {
   final queryTokens = _tokenize(_normalize(query));
   if (queryTokens.isEmpty) return 0.0;
@@ -151,6 +176,16 @@ double scoreMealForResolution(MealEntity meal, String query) {
   if (meal.detailed) score += _detailedBonus;
   if (meal.machineTranslatedName) score -= _machineTranslatedPenalty;
 
+  // Backend records only. `MealEntity.portions` is filled from the
+  // backend's portion lookup and from nowhere else, so an Open Food Facts
+  // product never carries any — penalising on emptiness alone would demote
+  // every OFF product in the pool, which is not what #1164 decided. The
+  // `fdc` source tag covers every backend source (see
+  // `MealEntity.backendSource`), so BLS and INDB records are in scope.
+  if (meal.source == MealSourceEntity.fdc && meal.portions.isEmpty) {
+    score -= _noPortionsPenalty;
+  }
+
   return score.clamp(0.0, 1.0);
 }
 
@@ -159,8 +194,9 @@ double scoreMealForResolution(MealEntity meal, String query) {
 /// recipes stay ahead of remote results regardless of score, and only the
 /// order *within* each tier is recomputed.
 ///
-/// Stable, so equally-scored meals keep the order the shared ranker left
-/// them in.
+/// Equal scores are broken by the number of labelled portions, then by
+/// name length, and then the sort is stable, so what is left of a tie
+/// keeps the order the shared ranker left it in — see [_sorted].
 List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
   final own = <MealEntity>[];
   final rest = <MealEntity>[];
@@ -173,6 +209,40 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
   return [..._sorted(own, query), ..._sorted(rest, query)];
 }
 
+/// Highest score first; among equal scores, most labelled portions first,
+/// then the shortest name; stable after that.
+///
+/// The tie-break exists because the text score cannot tell siblings apart.
+/// Backend records are shown by their full description (#1164), and a
+/// family of FDC survey records — "Apple, raw", "Apple, dried", "Apple,
+/// baked" — scores identically on the query `apple`, so whichever the pool
+/// happened to list first was logged. The resolver auto-selects, so that
+/// order has to mean something.
+///
+/// "Most labelled portions" is the data-driven proxy for the canonical
+/// record: FNDDS gives its everyday form the most ways to count it, and no
+/// naming rule is needed to find it. Measured against the backend's
+/// deliverable portions (the rows `portions_by_food_ids` returns): Apple,
+/// raw carries 7 against 2 for dried and baked; Banana, raw 5 against 2;
+/// Milk, NFS — FNDDS's own generic — 3, tied with Milk, whole, where the
+/// shorter name settles it. The name-length rule is the second key for the
+/// same reason: among siblings the shorter description is the less
+/// qualified one. Rice was the decision's known miss — a Puerto Rican
+/// variant winning on portions — and is accepted as one, because the
+/// collapse no longer hides the plain record and it is one tap away on the
+/// review screen. (Shown by full description, the two no longer tie: the
+/// text score alone puts "Rice, cooked, NFS" ahead of the eight-word
+/// variant, and each carries a single deliverable portion, so nothing here
+/// either helps or hurts it.) Declined: reading FNDDS's own markers (`NFS`,
+/// `raw`) as a rule — a word list about FDC naming living in the ranker,
+/// and only 143 of the 555 short-title groups have an NFS record at all.
+///
+/// Every record that is not a fresh backend result has no portions, so
+/// among OFF products or cached meals the portions key is always a tie and
+/// the shorter name decides before the order the shared ranker left. That
+/// is a change for OFF too — two equal-scoring OFF products used to keep
+/// their popularity order — and it is the decision's "then shortest name",
+/// which was not limited to backend records.
 List<MealEntity> _sorted(List<MealEntity> meals, String query) {
   // Parallel (meal, score) records rather than a map: MealEntity's Equatable
   // props are just [code, name], so two rows from different sources can
@@ -181,6 +251,14 @@ List<MealEntity> _sorted(List<MealEntity> meals, String query) {
     for (final meal in meals)
       (meal: meal, score: scoreMealForResolution(meal, query)),
   ];
-  mergeSort(decorated, compare: (a, b) => b.score.compareTo(a.score));
+  mergeSort(decorated, compare: (a, b) {
+    final byScore = b.score.compareTo(a.score);
+    if (byScore != 0) return byScore;
+    final byPortions = b.meal.portions.length.compareTo(
+      a.meal.portions.length,
+    );
+    if (byPortions != 0) return byPortions;
+    return (a.meal.name ?? '').length.compareTo((b.meal.name ?? '').length);
+  });
   return [for (final entry in decorated) entry.meal];
 }

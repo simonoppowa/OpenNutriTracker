@@ -5,6 +5,8 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
+import '../fixture/backend_sibling_fixtures.dart';
+
 MealEntity meal(
   String name, {
   MealSourceEntity source = MealSourceEntity.off,
@@ -277,5 +279,52 @@ void main() {
 
     expect(resolved.single.isLowConfidence, isFalse);
     expect(resolved.single.confidence, greaterThan(kResolutionConfidenceFloor));
+  });
+
+  group('backend siblings through the use case (#1164)', () {
+    // Real backend rows; see the fixture for where the numbers come from.
+    test('egg keeps every sibling as a candidate, yolk included', () async {
+      final search = _FakeSearch(supabase: {'egg': BackendSiblingFixtures.egg});
+
+      final resolved = await ResolveParsedMealsUseCase(
+        search,
+      ).resolve([item('egg', quantity: 2)]);
+
+      expect(resolved.single.candidates, hasLength(4));
+      expect(
+        resolved.single.candidates.map((m) => m.name),
+        contains('Egg, yolk only, raw'),
+      );
+    });
+
+    test('apple auto-selects Apple, raw by its portions', () async {
+      final search = _FakeSearch(
+        supabase: {'apple': BackendSiblingFixtures.apple},
+      );
+
+      final resolved = await ResolveParsedMealsUseCase(
+        search,
+      ).resolve([item('apple', quantity: 1)]);
+
+      expect(resolved.single.selected!.name, 'Apple, raw');
+      expect(resolved.single.selected!.portions, hasLength(7));
+    });
+
+    test('the confidence reported is the penalised score', () async {
+      // The selected candidate's score is what the review screen shows;
+      // for a portionless backend record that is the score after the
+      // penalty, not before, so the two never disagree.
+      final search = _FakeSearch(
+        supabase: {
+          'orange juice': [BackendSiblingFixtures.orangeJuiceBls],
+        },
+      );
+
+      final resolved = await ResolveParsedMealsUseCase(
+        search,
+      ).resolve([item('orange juice')]);
+
+      expect(resolved.single.confidence, closeTo(0.85, 1e-9));
+    });
   });
 }
