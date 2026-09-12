@@ -9,8 +9,19 @@ import 'package:opennutritracker/features/add_meal/util/resolver_relevance.dart'
 /// review screen (#602) should say so instead of presenting it as settled.
 ///
 /// The value is a judgement, not a measurement: it sits above what an
-/// unrelated long product name scores on a short query and below what a
-/// same-word-different-inflection match scores (`eggs` → `Egg` is 0.75).
+/// unrelated long product name scores on a short query (`eggs` → `Cadbury
+/// Creme Eggs Multipack 5 Pack` is 0.29) and below what a
+/// same-word-different-inflection match scores against a one-word name
+/// (`eggs` → `Egg` is 0.75).
+///
+/// It was set while backend records were shown by their short title, and
+/// #1164 changed that to the full description without moving it. Against a
+/// backend record the same inflection match now lands on both sides of the
+/// floor, because every token past the one that matched costs: `eggs` →
+/// `Egg, creamed` is 0.5, `eggs` → `Egg, whole, raw` is 0.375. So a plural
+/// query resolving to a three-token survey record — the #601 case this
+/// scorer exists for — is flagged as a guess. Re-calibrating is a decision
+/// #1164 did not make.
 const kResolutionConfidenceFloor = 0.45;
 
 /// One parsed item and what the food search made of it.

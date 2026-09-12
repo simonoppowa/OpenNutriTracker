@@ -236,6 +236,31 @@ void main() {
       expect(merged, [wholeRaw, yolkOnly]);
     });
 
+    test('never collapses two codeless backend records with different names', () {
+      // The backend key is `source:code`; without a code it falls back to
+      // the record's identity, not to an empty string, so two codeless
+      // records do not share a key and quietly become one entry.
+      MealEntity codeless(String name) => MealEntity(
+        code: null,
+        name: name,
+        url: null,
+        mealQuantity: null,
+        mealUnit: 'g',
+        servingQuantity: null,
+        servingUnit: 'g',
+        servingSize: null,
+        nutriments: MealNutrimentsEntity.empty(),
+        source: MealSourceEntity.fdc,
+      );
+      final wholeRaw = codeless('Egg, whole, raw');
+      final yolkOnly = codeless('Egg, yolk only, raw');
+
+      final merged = mergeAndRankMeals([], [wholeRaw, yolkOnly], 'egg');
+
+      expect(merged, containsAll([wholeRaw, yolkOnly]));
+      expect(merged, hasLength(2));
+    });
+
     test('never collapses a backend record, even a lower-scoring one, into a detailed OFF copy', () {
       // The collapse used to keep the higher-scoring copy of a pair; with
       // backend records out of it, the score no longer decides whether the

@@ -7,7 +7,10 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_en
 /// and every portion `portions_by_food_ids(ARRAY[id], 'en')` returns for
 /// the id — the deliverable rows, after the RPC's own filter, which is what
 /// `MealEntity.portions` holds after `ProductsRepository` decorates a
-/// search page. The counts differ from raw `food_portion` row counts
+/// fresh search page. (A copy read back from the search cache holds none:
+/// `MealDBO` does not persist portions. These fixtures are the fresh
+/// page; see `_noPortionsPenalty` in `resolver_relevance.dart` for what
+/// that leaves out.) The counts differ from raw `food_portion` row counts
 /// ("Milk, NFS" has six rows and three deliverable portions), and the
 /// deliverable count is the one the tie-break sees.
 ///

@@ -183,16 +183,20 @@ void main() {
       );
     });
 
-    test('rice resolves to Rice, cooked, NFS: the known miss never forms', () {
+    test('the Puerto Rican rice never outranks Rice, cooked, NFS', () {
       // The decision accepted "rice" landing on a Puerto Rican variant
       // because the two tied on text and the variant had more portions.
       // With full descriptions they do not tie — three tokens against
       // eight — and each carries exactly one deliverable portion (the
       // variant's other three rows are `yields` and `Quantity not
-      // specified`, which the RPC drops), so the text score alone picks
-      // the plain record. Known and accepted either way: the collapse no
-      // longer hides the sibling, and it is one tap away on the review
-      // screen.
+      // specified`, which the RPC drops), so between these two the text
+      // score alone picks the plain record and the tie-break is never
+      // reached. That is all this test says. The live pool for "rice" is
+      // another matter: it also holds "Bread, rice" and "Chips, rice",
+      // two-token names that outscore the three-token plain record on
+      // text (see `breadRice` in the fixture), so "rice" is still a miss
+      // there — a text-score one that no tie-break can reach, and one the
+      // decision did not name.
       expect(
         names(resolve('rice', backend: BackendSiblingFixtures.rice)).first,
         'Rice, cooked, NFS',
@@ -292,7 +296,10 @@ void main() {
     test('rankForResolution is stable when every key ties', () {
       // Two real survey records that tie on all three keys for "rice":
       // two tokens each, five deliverable portions each, eleven characters
-      // each. What is left is the order they came in.
+      // each. What is left is the order they came in. (Two records cannot
+      // tell a stable sort from an unstable one — Dart insertion-sorts
+      // short lists — so the forty-record case in resolver_relevance_test
+      // is what pins the algorithm; this one pins the real rows.)
       final bread = BackendSiblingFixtures.breadRice;
       final chips = BackendSiblingFixtures.chipsRice;
 

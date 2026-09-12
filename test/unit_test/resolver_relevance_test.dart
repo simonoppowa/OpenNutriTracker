@@ -11,6 +11,7 @@ MealEntity meal(
   String? brands,
   String? code,
   int portions = 0,
+  bool detailed = false,
 }) => MealEntity(
   code: code ?? name,
   name: name,
@@ -24,6 +25,7 @@ MealEntity meal(
   servingUnit: null,
   servingSize: null,
   source: source,
+  detailed: detailed,
   nutriments: MealNutrimentsEntity.empty(),
   portions: [
     for (var i = 0; i < portions; i++)
@@ -231,6 +233,28 @@ void main() {
       );
     });
 
+    test('the input order survives a pool too large for insertion sort', () {
+      // A two-record tie cannot tell a stable sort from `List.sort`: Dart
+      // insertion-sorts anything under 32 elements, and that happens to be
+      // stable. Above it the dual-pivot quicksort moves equal elements, so
+      // forty records that tie on every key — score, portions, name length
+      // — are what actually pins "stable after that".
+      final rows = [
+        for (var i = 0; i < 40; i++)
+          meal(
+            'Bread, rice',
+            code: 'r$i',
+            source: MealSourceEntity.fdc,
+            portions: 5,
+          ),
+      ];
+
+      expect(
+        [for (final m in rankForResolution(rows, 'rice')) m.code],
+        [for (var i = 0; i < 40; i++) 'r$i'],
+      );
+    });
+
     test('records without a name compare as zero-length names, stably', () {
       MealEntity nameless(String code) => MealEntity(
         code: code,
@@ -310,6 +334,26 @@ void main() {
       final without = meal('Orange juice', source: MealSourceEntity.fdc);
 
       expect(scoreMealRelevance(without, 'orange juice'), 1.0);
+    });
+
+    test('the penalty comes off before the clamp, not after it', () {
+      // An exact title with the detailed bonus stands at 1.03 before the
+      // clamp. Taking 0.15 off first leaves 0.88; clamping first and then
+      // subtracting would give 0.85 — the bonus silently lost — and at the
+      // other end would push a non-match below zero, off the 0.0-1.0 scale
+      // the confidence floor is calibrated on.
+      final detailedExact = meal(
+        'Orange juice',
+        source: MealSourceEntity.fdc,
+        detailed: true,
+      );
+      final noMatch = meal('Orange juice', source: MealSourceEntity.fdc);
+
+      expect(
+        scoreMealForResolution(detailedExact, 'orange juice'),
+        closeTo(0.88, 1e-9),
+      );
+      expect(scoreMealForResolution(noMatch, 'zucchini'), 0.0);
     });
   });
 

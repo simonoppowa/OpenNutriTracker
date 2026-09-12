@@ -59,8 +59,18 @@ const _machineTranslatedPenalty = 0.03;
 /// record's 1.0. This scorer is harder on extra tokens: "Orange juice,
 /// 100%, NFS" — the survey's plain record; there is no row named just
 /// "Orange juice, 100%" — scores 0.667 here, so at 0.85 the BLS record
-/// still leads it. The test pins that measured order, so a change to the
-/// size is a deliberate one and not a side effect.
+/// still leads it, and the survey's "Dark chocolate candy" (0.8) stays
+/// behind BLS "Dark chocolate" the same way. The test pins that measured
+/// order, so a change to the size is a deliberate one and not a side
+/// effect.
+///
+/// "No labelled portion" is read off `MealEntity.portions`, which only a
+/// fresh backend result carries: a backend record read back from the
+/// search cache has none (`MealDBO` does not persist portions), so on the
+/// resolver's real path — `SearchProductsUseCase` puts cached copies ahead
+/// of fresh ones — a record the cache already holds is penalised whatever
+/// the backend has for it. That is a gap between this rule and the data it
+/// is given, not something the rule can see; #1164's review records it.
 const _noPortionsPenalty = 0.15;
 
 /// Characters from scripts that do not separate words with spaces. A
@@ -227,22 +237,33 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// Milk, NFS — FNDDS's own generic — 3, tied with Milk, whole, where the
 /// shorter name settles it. The name-length rule is the second key for the
 /// same reason: among siblings the shorter description is the less
-/// qualified one. Rice was the decision's known miss — a Puerto Rican
-/// variant winning on portions — and is accepted as one, because the
-/// collapse no longer hides the plain record and it is one tap away on the
-/// review screen. (Shown by full description, the two no longer tie: the
-/// text score alone puts "Rice, cooked, NFS" ahead of the eight-word
-/// variant, and each carries a single deliverable portion, so nothing here
-/// either helps or hurts it.) Declined: reading FNDDS's own markers (`NFS`,
-/// `raw`) as a rule — a word list about FDC naming living in the ranker,
-/// and only 143 of the 555 short-title groups have an NFS record at all.
+/// qualified one. Declined: reading FNDDS's own markers (`NFS`, `raw`) as
+/// a rule — a word list about FDC naming living in the ranker, and only
+/// 143 of the 555 short-title groups have an NFS record at all.
+///
+/// The keys only act on a tie, and they are only as good as the tie they
+/// are handed. The decision named rice as the known miss — a Puerto Rican
+/// variant beating "Rice, cooked, NFS" on portions — and that particular
+/// miss does not form: shown by full description the two no longer tie
+/// (three tokens against eight), and each carries one deliverable portion.
+/// Rice is still a miss, of a different kind: the live pool also holds
+/// "Bread, rice" and "Chips, rice", two-token names that outscore the
+/// three-token plain record on text alone, and no tie-break can reach past
+/// the score. The proxy has a counterexample too: "Pie, apple" (8
+/// portions) ties "Apple, raw" (7) on `apple` and takes the tie on the
+/// live pool. Both are matters for the text score or the decision, not for
+/// this sort; the review screen is where the plain record is one tap away.
 ///
 /// Every record that is not a fresh backend result has no portions, so
 /// among OFF products or cached meals the portions key is always a tie and
 /// the shorter name decides before the order the shared ranker left. That
 /// is a change for OFF too — two equal-scoring OFF products used to keep
 /// their popularity order — and it is the decision's "then shortest name",
-/// which was not limited to backend records.
+/// which was not limited to backend records. It also bounds what the
+/// portions key can do on the resolver's real path: `MealDBO` does not
+/// persist portions, so a backend record read back from the search cache
+/// ties with everything, whatever the backend has for it — see
+/// [_noPortionsPenalty].
 List<MealEntity> _sorted(List<MealEntity> meals, String query) {
   // Parallel (meal, score) records rather than a map: MealEntity's Equatable
   // props are just [code, name], so two rows from different sources can
