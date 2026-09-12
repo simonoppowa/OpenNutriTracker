@@ -236,6 +236,35 @@ void main() {
       expect(response.page_count, 316);
     });
   });
+
+  // #1153: OFF's nutrient id for niacin is `vitamin-pp`, so the API emits
+  // `vitamin-pp_100g` and never `niacin_100g`. A missing `@JsonKey` here made
+  // every OFF product read niacin as null, silently dropping the value from
+  // the daily figure. Locking the mapping in so a future rename doesn't
+  // regress it back to nothing.
+  group('OFFProductNutrimentsDTO.fromJson niacin mapping', () {
+    test('reads niacin from vitamin-pp_100g', () {
+      final nutriments = OFFProductNutrimentsDTO.fromJson({
+        'vitamin-pp_100g': 12.5,
+      });
+
+      expect(nutriments.niacin_100g, 12.5);
+    });
+
+    test('leaves niacin null when vitamin-pp_100g is absent', () {
+      final nutriments = OFFProductNutrimentsDTO.fromJson(<String, dynamic>{});
+
+      expect(nutriments.niacin_100g, isNull);
+    });
+
+    test('does NOT read the historical, absent niacin_100g key', () {
+      final nutriments = OFFProductNutrimentsDTO.fromJson({
+        'niacin_100g': 99.9,
+      });
+
+      expect(nutriments.niacin_100g, isNull);
+    });
+  });
 }
 
 OFFProductDTO _buildProduct({

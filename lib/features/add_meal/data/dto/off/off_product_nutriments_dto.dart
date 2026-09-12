@@ -89,6 +89,7 @@ class OFFProductNutrimentsDTO {
   final dynamic vitamin_b6_100g;
   @JsonKey(name: 'vitamin-b12_100g')
   final dynamic vitamin_b12_100g;
+  @JsonKey(name: 'vitamin-pp_100g')
   final dynamic niacin_100g;
 
   OFFProductNutrimentsDTO({
