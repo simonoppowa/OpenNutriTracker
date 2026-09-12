@@ -1,9 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/trends/presentation/trends_calc.dart';
+import 'package:timezone/data/latest_all.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 
 DateTime _d(int y, int m, int day) => DateTime(y, m, day);
 
 void main() {
+  setUpAll(tzdata.initializeTimeZones);
+
   group('streakStats', () {
     final start = _d(2026, 5, 1);
     final today = _d(2026, 5, 10);
@@ -38,6 +42,20 @@ void main() {
       final s = streakStats(<DateTime>{}, start, today);
       expect(s.current, 0);
       expect(s.longest, 0);
+    });
+
+    test('counts local calendar dates across spring DST', () {
+      final newYork = tz.getLocation('America/New_York');
+      final dstStart = tz.TZDateTime(newYork, 2026, 3, 3);
+      final dstToday = tz.TZDateTime(newYork, 2026, 3, 9);
+      final onTrack = {
+        for (var i = 0; i < 7; i++) DateTime(2026, 3, 3 + i),
+      };
+
+      final s = streakStats(onTrack, dstStart, dstToday);
+
+      expect(s.current, 7);
+      expect(s.longest, 7);
     });
   });
 
