@@ -3,12 +3,20 @@ import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_dat
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
 
+import '../fixture/backend_pool_fixtures.dart';
+
 SpFoodDTO _food(String name, {int foodId = 0}) => SpFoodDTO(
       foodId: foodId,
       source: 'off',
       sourceCode: 'off',
       name: name,
     );
+
+List<String> _names(List<SpFoodDTO> foods) => [for (final f in foods) f.name!];
+
+List<String> _descriptions(List<Map<String, dynamic>> rows) => [
+  for (final r in rows) r[SPConst.translationDescription] as String,
+];
 
 Map<String, dynamic> _translationRow(int foodId, String description) => {
       SPConst.translationFoodId: foodId,
@@ -111,6 +119,261 @@ void main() {
       rankAndTruncateTranslationRows(input, 'Milch');
 
       expect(input, [unrelated, exact]);
+    });
+  });
+
+  group('scored on the title plus the qualifiers the query names (#1170)', () {
+    // The twenty rows kept here are the resolver's whole world for the
+    // query, and they were chosen by a different rule from the one the
+    // resolver applies among them: the whole description was scored, so a
+    // family of same-titled siblings did not tie here as it ties there,
+    // and the sibling the resolver would pick could be cut before it was
+    // scored. The row is now scored as its entity will be — `deriveTitle`
+    // plus the qualifiers the query names — and ties break on the shorter
+    // description, then the backend's order.
+    test(
+      'a family of same-titled rows ties and the shortest survives first',
+      () {
+        // Listed longest first, so the order is the length key's and not
+        // the input's.
+        final family = [
+          _food('Egg, whole, boiled or poached', foodId: 1),
+          _food('Egg, yolk only, raw', foodId: 2),
+          _food('Egg, whole, raw', foodId: 3),
+          _food('Egg, creamed', foodId: 4),
+        ];
+
+        expect(_names(rankAndTruncateFoodsByName(family, 'egg')), [
+          'Egg, creamed',
+          'Egg, whole, raw',
+          'Egg, yolk only, raw',
+          'Egg, whole, boiled or poached',
+        ]);
+      },
+    );
+
+    test('the shortest description survives even when it arrives last', () {
+      // Every row is titled "Milk" and scores 1.0 on `milk`; without the
+      // length key the stable sort keeps the backend's order among them
+      // and the row that arrived last — the generic one — is the one cut.
+      final fillers = List.generate(
+        SPConst.maxNumberOfItems + 10,
+        (i) => _food('Milk, whole, fortified, variant $i', foodId: i),
+      );
+      final generic = _food('Milk, NFS', foodId: 999);
+
+      final ranked = rankAndTruncateFoodsByName([...fillers, generic], 'milk');
+
+      expect(ranked, hasLength(SPConst.maxNumberOfItems));
+      expect(ranked.first.name, 'Milk, NFS');
+    });
+
+    test('two rows that differ only in length keep the shorter first', () {
+      final longer = _food('Milk, whole', foodId: 1);
+      final shorter = _food('Milk, NFS', foodId: 2);
+
+      expect(_names(rankAndTruncateFoodsByName([longer, shorter], 'milk')), [
+        'Milk, NFS',
+        'Milk, whole',
+      ]);
+      expect(_names(rankAndTruncateFoodsByName([shorter, longer], 'milk')), [
+        'Milk, NFS',
+        'Milk, whole',
+      ]);
+    });
+
+    test('equal scores and lengths keep the backend\'s order', () {
+      // "Milk, whole" and "Milk, human" are eleven characters each.
+      final whole = _food('Milk, whole', foodId: 1);
+      final human = _food('Milk, human', foodId: 2);
+
+      expect(_names(rankAndTruncateFoodsByName([human, whole], 'milk')), [
+        'Milk, human',
+        'Milk, whole',
+      ]);
+      expect(_names(rankAndTruncateFoodsByName([whole, human], 'milk')), [
+        'Milk, whole',
+        'Milk, human',
+      ]);
+    });
+
+    test('the shorter description wins even with more, shorter words', () {
+      // Two real potato rows. Scored on the whole description the
+      // four-token fries record (0.75) outscored the six-token canned one
+      // (0.683) and took its place in the twenty; scored on the title
+      // both are 1.0, and 28 characters beat 32.
+      final canned = _food('Potato, canned, NS as to fat', foodId: 2709399);
+      final fries = _food('Potato, french fries, restaurant', foodId: 2709462);
+
+      expect(_names(rankAndTruncateFoodsByName([fries, canned], 'potato')), [
+        'Potato, canned, NS as to fat',
+        'Potato, french fries, restaurant',
+      ]);
+    });
+
+    test('a qualifier the query names outscores the family', () {
+      // Scored on the title alone "Apple, dried" would tie its siblings
+      // and lose to the shorter "Apple, raw"; the `dried` the query names
+      // is read off the description and it scores as "Apple dried" does.
+      final family = [
+        _food('Apple, raw', foodId: 1),
+        _food('Apple, baked', foodId: 2),
+        _food('Apple, dried', foodId: 3),
+      ];
+
+      expect(
+        _names(rankAndTruncateFoodsByName(family, 'dried apple')).first,
+        'Apple, dried',
+      );
+      expect(
+        _names(rankAndTruncateFoodsByName(family, 'apple')).first,
+        'Apple, raw',
+      );
+    });
+
+    test('a qualifier the query does not name costs nothing', () {
+      // "Bread, rice" on `bread` is scored as "Bread", and ties a plain
+      // "Bread" row rather than trailing it.
+      final ranked = rankAndTruncateFoodsByName([
+        _food('Bread, rice', foodId: 1),
+        _food('Bread', foodId: 2),
+      ], 'bread');
+
+      // Same score, so the shorter description: "Bread" (5) first.
+      expect(_names(ranked), ['Bread', 'Bread, rice']);
+    });
+
+    test('a translated description is scored the same way', () {
+      final family = [
+        _translationRow(1, 'Milch, menschliche'),
+        _translationRow(2, 'Milch, NFS'),
+        _translationRow(3, 'Milch, laktosefrei, Vollmilch'),
+      ];
+
+      expect(_descriptions(rankAndTruncateTranslationRows(family, 'Milch')), [
+        'Milch, NFS',
+        'Milch, menschliche',
+        'Milch, laktosefrei, Vollmilch',
+      ]);
+      expect(
+        _descriptions(
+          rankAndTruncateTranslationRows(family, 'laktosefrei Milch'),
+        ).first,
+        'Milch, laktosefrei, Vollmilch',
+      );
+    });
+  });
+
+  group('the real Potato family through the cut (#1170)', () {
+    // 106 survey records titled "Potato", in the backend's order. Scored
+    // on the whole description the twenty with the fewest tokens survived;
+    // scored on the title all 106 tie, and the twenty shortest survive.
+    test('potato keeps Potato, NFS, and puts it first', () {
+      final survivors = rankAndTruncateFoodsByName(
+        BackendPoolFixtures.potato,
+        'potato',
+      );
+
+      expect(survivors, hasLength(SPConst.maxNumberOfItems));
+      expect(survivors.first.foodId, BackendPoolFixtures.potatoNfs);
+      expect(survivors.first.name, 'Potato, NFS');
+    });
+
+    test('the survivors are the family\'s twenty shortest descriptions', () {
+      // The construction the resolver relies on: whatever it would pick
+      // among the family by the length key is inside the twenty. Every
+      // survivor is no longer than any record that was cut.
+      final pool = BackendPoolFixtures.potato;
+      final survivors = rankAndTruncateFoodsByName(pool, 'potato');
+      final kept = {for (final f in survivors) f.foodId};
+      final cut = pool.where((f) => !kept.contains(f.foodId));
+
+      final longestKept = survivors
+          .map((f) => f.name!.length)
+          .reduce((a, b) => a > b ? a : b);
+      final shortestCut = cut
+          .map((f) => f.name!.length)
+          .reduce((a, b) => a < b ? a : b);
+      expect(cut, hasLength(pool.length - SPConst.maxNumberOfItems));
+      expect(longestKept, lessThanOrEqualTo(shortestCut));
+      // Among the survivors, the length order holds throughout.
+      expect(
+        survivors.map((f) => f.name!.length),
+        [for (final f in survivors) f.name!.length]..sort(),
+      );
+    });
+
+    test('Potato, NFS survives from the far end of the pool', () {
+      // Reversed, the generic record is the 106th row in. Without the
+      // length key the stable sort would keep it there, and cut it.
+      final reversed = BackendPoolFixtures.potato.reversed.toList();
+
+      final survivors = rankAndTruncateFoodsByName(reversed, 'potato');
+
+      expect(survivors.first.name, 'Potato, NFS');
+    });
+
+    test('french fries keeps the fries records', () {
+      // Sixteen records carry `french fries` past the title; scored as
+      // "Potato french fries" each is 0.8 against the query, and the rest
+      // of the family scores at most 0.5 (`fries` alone, on home fries).
+      final survivors = rankAndTruncateFoodsByName(
+        BackendPoolFixtures.potato,
+        'french fries',
+      );
+
+      final fries = _names(
+        survivors,
+      ).where((n) => n.startsWith('Potato, french fries'));
+      expect(fries, hasLength(16));
+      expect(
+        _names(survivors).take(16),
+        everyElement(startsWith('Potato, french fries')),
+      );
+      expect(survivors.first.name, 'Potato, french fries, NFS');
+      expect(_names(survivors), isNot(contains('Potato, NFS')));
+    });
+  });
+
+  group('the real German Milch pool through the cut (#1170)', () {
+    // The 100 `food_translation` rows the backend answers `Milch` with.
+    // Nineteen are titled "Milch" and tie at 1.0; the generic one,
+    // 2705384's "Milch, NFS", is the shortest of them. Scored on the whole
+    // description it tied "Milch, menschliche" at the 0.9 cap — two tokens
+    // each — and the backend's order put menschliche first.
+    test('Milch keeps Milch, NFS, and puts it first', () {
+      final survivors = rankAndTruncateTranslationRows(
+        BackendPoolFixtures.milch,
+        'Milch',
+      );
+
+      expect(survivors, hasLength(SPConst.maxNumberOfItems));
+      expect(survivors.first[SPConst.translationFoodId], 2705384);
+      expect(survivors.first[SPConst.translationDescription], 'Milch, NFS');
+    });
+
+    test('every row titled Milch survives', () {
+      final survivors = rankAndTruncateTranslationRows(
+        BackendPoolFixtures.milch,
+        'Milch',
+      );
+
+      final titledMilch = _descriptions(
+        survivors,
+      ).where((d) => d.startsWith('Milch, '));
+      expect(titledMilch, hasLength(19));
+      expect(
+        _descriptions(survivors).take(19),
+        everyElement(startsWith('Milch, ')),
+      );
+    });
+
+    test('Milch, NFS survives from the far end of the pool', () {
+      final reversed = BackendPoolFixtures.milch.reversed.toList();
+
+      final survivors = rankAndTruncateTranslationRows(reversed, 'Milch');
+
+      expect(survivors.first[SPConst.translationDescription], 'Milch, NFS');
     });
   });
 }

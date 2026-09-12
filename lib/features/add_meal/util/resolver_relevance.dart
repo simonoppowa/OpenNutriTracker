@@ -226,11 +226,11 @@ double _nameScore(MealEntity meal, Set<String> queryTokens) {
 /// the tie-break in [_sorted] reachable at all: every token past the one
 /// that matched costs, so scored on descriptions "Egg, creamed" (two
 /// tokens) beat "Egg, whole, boiled or poached" (five) on `egg` outright,
-/// and the portions key never saw the family (#1164). The named
-/// qualifiers are what keep the tie-break out of a query that has already
-/// chosen: on `dried apple` the title alone scored every "Apple" at
-/// 0.667 and the portions key logged "Apple, raw"; with `dried` read off
-/// "Apple, dried" that record is 1.0 and its siblings stay at 0.667. The
+/// and the tie-break never saw the family (#1164). The named qualifiers
+/// are what keep the tie-break out of a query that has already chosen:
+/// on `dried apple` the title alone scored every "Apple" at 0.667 and the
+/// tie-break logged "Apple, raw"; with `dried` read off "Apple, dried"
+/// that record is 1.0 and its siblings stay at 0.667. The
 /// soft agreement covers the qualifier too — `egg yolks` reads `yolk` —
 /// and a qualifier the query does not name is never read, so a title
 /// that scores 1.0 still scores 1.0 whatever follows it.
@@ -266,9 +266,10 @@ double scoreMealForResolution(MealEntity meal, String query) {
 /// recipes stay ahead of remote results regardless of score, and only the
 /// order *within* each tier is recomputed.
 ///
-/// Equal scores are broken by the number of labelled portions, then by
-/// name length, and then the sort is stable, so what is left of a tie
-/// keeps the order the shared ranker left it in — see [_sorted].
+/// Equal scores are broken by the length of the description, then by the
+/// number of labelled portions, and then the sort is stable, so what is
+/// left of a tie keeps the order the shared ranker left it in — see
+/// [_sorted].
 List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
   final own = <MealEntity>[];
   final rest = <MealEntity>[];
@@ -281,8 +282,8 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
   return [..._sorted(own, query), ..._sorted(rest, query)];
 }
 
-/// Highest score first; among equal scores, most labelled portions first,
-/// then the shortest name; stable after that.
+/// Highest score first; among equal scores, the shortest description
+/// first, then the most labelled portions; stable after that.
 ///
 /// The tie-break exists because the text score cannot tell siblings apart
 /// on a query that names only their family. Backend records are scored on
@@ -294,49 +295,62 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// record carrying it scores above its siblings and the keys are never
 /// consulted (see [scoreMealForResolution]).
 ///
-/// "Most labelled portions" is the data-driven proxy for the canonical
-/// record: FNDDS gives its everyday form the most ways to count it, and no
-/// naming rule is needed to find it. Measured against the backend's
-/// deliverable portions (the rows `portions_by_food_ids` returns): Apple,
-/// raw carries 7 against 2 for dried and baked; Banana, raw 5 against 2;
-/// Milk, NFS — FNDDS's own generic — 3, tied with Milk, whole, where the
-/// shorter name settles it. The name-length rule is the second key for the
-/// same reason: among siblings the shorter description is the less
-/// qualified one. Declined: reading FNDDS's own markers (`NFS`, `raw`) as
-/// a rule — a word list about FDC naming living in the ranker, and only
-/// 143 of the 555 short-title groups have an NFS record at all.
+/// The description's length is the first key because among siblings the
+/// shorter description is the less qualified one, and the less qualified
+/// one is the everyday form: "Potato, NFS" before "Potato, baked, NFS"
+/// before "Potato, baked, peel not eaten". Siblings that reach this key
+/// share a title — every "Milk" is "Milk" — so it is the name that is
+/// measured, not the title that was scored. The decision first put the
+/// portions ahead of it, on the theory that FNDDS gives its everyday form
+/// the most ways to count it, and on the small families that was so:
+/// "Apple, raw" carries 7 deliverable portions to 2 for dried and baked.
+/// Measured over the 39 survey families with more than twenty members it
+/// was not: FDC measures a dish in more ways than its ingredient, so
+/// "most portions, then shortest" picked a specific dish over the generic
+/// record in most of them — Potato → "Potato, french fries, fast food",
+/// Beef → "Beef, ground, patty", Bread → "Bread, French or Vienna, whole
+/// wheat", Pasta → "Pasta, whole grain, with cream sauce, ready-to-heat",
+/// Cheese → Cheddar, Tea → "Tea, iced, bottled, black". "Shortest
+/// description, then most portions" lands on the generic record — Potato,
+/// NFS; Beef, NFS; Pasta, cooked; Cheese, NFS; Pork, NFS; Turkey, NFS;
+/// Soup, NFS; Crackers, NFS; Muffin, NFS; Pretzels, NFS; Milk, NFS; Apple,
+/// raw; Banana, raw; Orange juice, 100%, NFS — and misses egg ("Egg,
+/// creamed", 12 characters, over "Egg, whole, raw", 15), coffee ("Coffee,
+/// Latte" over "Coffee, brewed"), tea ("Tea, ginger") and bread ("Bread,
+/// rye", 10, over "Bread, white", 12). Those are the pinned known misses
+/// (#1170); the siblings are one tap away on the review screen, and a
+/// specific dish logged as the family is the worse miss. The portions key
+/// is second for the case the length cannot settle: "Milk, whole" and
+/// "Milk, human" are eleven characters each, and whole carries 3
+/// deliverable portions to human's 2. Declined: reading FNDDS's own
+/// markers (`NFS`, `raw`) as a rule — a word list about FDC naming living
+/// in the ranker, and only 143 of the 555 short-title groups have an NFS
+/// record at all.
 ///
 /// The keys only act on a tie, and they are only as good as the tie they
-/// are handed. The decision named rice as the known miss — a Puerto Rican
-/// variant beating "Rice, cooked, NFS" on portions — and that particular
-/// miss does not form: each carries one deliverable portion, so the tie
-/// falls through to name length and the plain record's 17 characters beat
-/// the variant's 48. "Bread, rice" and "Chips, rice" are in the live pool
-/// too, titled "Bread" and "Chips"; the query names the `rice` they carry
-/// past the title, so they score 0.667 on it — what an OFF product called
-/// "Bread rice" scores — and never tie the plain record's 1.0. Scored on
-/// their descriptions they were two-token names that outscored the
-/// three-token plain record, which is the miss the title scoring removed.
-/// The proxy's known counterexample went the same way: "Pie, apple" (8
-/// portions) took the tie from "Apple, raw" (7) on the live pool while
-/// descriptions were scored, and titled "Pie" it scores 0.667 on `apple`
-/// under the plain record's 1.0. What the keys cannot do is see past the
-/// query: on `apple` a same-titled sibling with more portions than the
-/// everyday form takes the tie, and that is a matter for the decision,
-/// not for this sort; the review screen is where the plain record is one
-/// tap away.
+/// are handed. "Bread, rice" and "Chips, rice" are in the live pool for
+/// `rice`, titled "Bread" and "Chips"; the query names the `rice` they
+/// carry past the title, so they score 0.667 on it — what an OFF product
+/// called "Bread rice" scores — and never tie the plain record's 1.0.
+/// Scored on their descriptions they were two-token names that outscored
+/// the three-token plain record, which is the miss the title scoring
+/// removed; and "Pie, apple", titled "Pie", scores 0.667 on `apple` under
+/// the plain record's 1.0. The same rule cuts the backend's candidate
+/// pool to the twenty the resolver sees (`rankAndTruncateFoodsByName`),
+/// so the shortest-described sibling is inside those twenty by
+/// construction rather than by the luck of the backend's order.
 ///
 /// Every record that is not a fresh backend result has no portions, so
 /// among OFF products or cached meals the portions key is always a tie and
-/// the shorter name decides before the order the shared ranker left. That
-/// is a change for OFF too — two equal-scoring OFF products used to keep
-/// their popularity order — and it is the decision's "then shortest name",
-/// which was not limited to backend records. It also bounds what the
-/// portions key can do on the resolver's real path: `MealDBO` does not
-/// persist portions, so a backend record the search cache holds and this
-/// search's page did not return ties with everything, whatever the
-/// backend has for it — see [_noPortionsPenalty]. (A record the page did
-/// return reaches here as the fresh entity, portions and all.)
+/// what decides after the length is the order the shared ranker left. The
+/// length key acts on OFF too — two equal-scoring OFF products used to keep
+/// their popularity order — and that is the decision's "shortest
+/// description", which was not limited to backend records. The portions
+/// key is bounded on the resolver's real path: `MealDBO` does not persist
+/// portions, so a backend record the search cache holds and this search's
+/// page did not return ties on it with everything, whatever the backend has
+/// for it — see [_noPortionsPenalty]. (A record the page did return reaches
+/// here as the fresh entity, portions and all.)
 List<MealEntity> _sorted(List<MealEntity> meals, String query) {
   // Parallel (meal, score) records rather than a map: MealEntity's Equatable
   // props are just [code, name], so two rows from different sources can
@@ -348,15 +362,15 @@ List<MealEntity> _sorted(List<MealEntity> meals, String query) {
   mergeSort(decorated, compare: (a, b) {
     final byScore = b.score.compareTo(a.score);
     if (byScore != 0) return byScore;
-    final byPortions = b.meal.portions.length.compareTo(
-      a.meal.portions.length,
-    );
-    if (byPortions != 0) return byPortions;
     // The name, not the title that was scored. Siblings that reach this key
     // share a title — every "Milk" is "Milk" — so its length says nothing;
     // the description is where they differ, and the shorter one is the
     // less qualified: "Milk, NFS" before "Milk, whole".
-    return (a.meal.name ?? '').length.compareTo((b.meal.name ?? '').length);
+    final byLength = (a.meal.name ?? '').length.compareTo(
+      (b.meal.name ?? '').length,
+    );
+    if (byLength != 0) return byLength;
+    return b.meal.portions.length.compareTo(a.meal.portions.length);
   });
   return [for (final entry in decorated) entry.meal];
 }

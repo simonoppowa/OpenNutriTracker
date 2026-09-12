@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/util/backend_title.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
 import 'package:opennutritracker/features/add_meal/util/resolver_relevance.dart';
 
@@ -242,6 +243,58 @@ void main() {
       expect(exported.keys, isNot(contains('searchTitle')));
       expect(imported.scoringName, 'Rice');
       expect(scoreMealRelevance(imported, 'rice'), 1.0);
+    });
+  });
+
+  group('the entity and the data source derive the same title (#1170)', () {
+    // `deriveTitle` and `deriveQualifiers` are what the data source scores
+    // a raw backend row on before any entity exists; the entity's getters
+    // must be the same derivation, or the twenty rows kept and the one
+    // picked among them are chosen by two rules.
+    test('on every fixture row', () {
+      for (final record in BackendSiblingFixtures.all) {
+        expect(
+          deriveTitle(record.name!),
+          record.scoringName,
+          reason: record.name,
+        );
+        expect(
+          deriveQualifiers(record.name!),
+          record.scoringQualifiers,
+          reason: record.name,
+        );
+        expect(
+          deriveTitle(record.name!),
+          BackendSiblingFixtures.shortTitleOf(record),
+          reason: record.name,
+        );
+      }
+    });
+
+    test('and on the edges', () {
+      expect(deriveTitle('Orange juice'), 'Orange juice');
+      expect(deriveQualifiers('Orange juice'), isNull);
+      expect(deriveTitle('Egg , whole, raw'), 'Egg');
+      expect(deriveQualifiers('Egg ,  whole, raw '), 'whole, raw');
+      expect(deriveTitle('Egg,'), 'Egg');
+      expect(deriveQualifiers('Egg,'), isNull);
+      expect(deriveQualifiers('Egg, '), isNull);
+      expect(deriveTitle(', whole, raw'), ', whole, raw');
+      expect(deriveQualifiers(', whole, raw'), isNull);
+      expect(deriveTitle('  , whole'), '  , whole');
+      expect(deriveTitle(''), '');
+      expect(deriveQualifiers(''), isNull);
+    });
+
+    test('the helper knows nothing of the source; the entity does', () {
+      // The data source's rows are always backend rows, so it derives
+      // without asking. The entity guards, because an OFF product name
+      // with a comma in it is not split.
+      expect(deriveTitle('Egg, whole, raw'), 'Egg');
+      expect(
+        meal('Egg, whole, raw', source: MealSourceEntity.off).scoringName,
+        'Egg, whole, raw',
+      );
     });
   });
 }

@@ -128,7 +128,13 @@ class SpFoodDTO {
   /// whichever of the two this returns (`MealEntity.scoringName`,
   /// `scoringQualifiers`), so a translated row is scored in its own
   /// language, as it was.
-  String? get displayName => localizedName ?? name;
+  ///
+  /// The short title is the last resort, and a defensive one only:
+  /// `food.description` is NOT NULL in the backend, so a row with a short
+  /// title and no name cannot come from it, and [name] is nullable here
+  /// because every column of the DTO is. Should one arrive anyway, the
+  /// short form names the food where nothing would have (#1170 review).
+  String? get displayName => localizedName ?? name ?? shortTitle;
 
   /// Whether the name shown by [displayName] is a machine translation —
   /// only ever true when the localized name is actually the one displayed.

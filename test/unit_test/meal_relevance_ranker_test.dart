@@ -255,6 +255,45 @@ void main() {
     test('returns 0 for null text', () {
       expect(textRelevanceScore(null, 'milk'), 0.0);
     });
+
+    // #1170: the data source scores a raw backend row as its entity will
+    // be scored — the title, plus the qualifiers the query names — so the
+    // twenty rows it keeps and the resolver's pick among them are chosen
+    // by one rule. The qualifiers are read here as [scoreMealRelevance]
+    // reads `MealEntity.scoringQualifiers`.
+    test('scores a named qualifier with the title', () {
+      // "Milk, whole" as the entity is scored: title "Milk", and the
+      // `whole` the query names joins it — "Milk whole", the 0.9 cap.
+      expect(
+        textRelevanceScore('Milk', 'whole milk', qualifiers: 'whole'),
+        closeTo(0.9, 1e-9),
+      );
+      expect(
+        textRelevanceScore('Milk', 'whole milk', qualifiers: 'whole'),
+        scoreMealRelevance(
+          _meal(name: 'Milk, whole', source: MealSourceEntity.fdc),
+          'whole milk',
+        ),
+      );
+    });
+
+    test('a qualifier the query does not name costs nothing', () {
+      expect(textRelevanceScore('Milk', 'milk', qualifiers: 'whole'), 1.0);
+      expect(
+        textRelevanceScore('Milk', 'milk', qualifiers: 'whole'),
+        textRelevanceScore('Milk', 'milk'),
+      );
+    });
+
+    test('a named qualifier never earns the contains or prefix bonus', () {
+      // The bonuses read the title, as they always did: "Bread" with
+      // `rice` behind it scores `rice` on the overlap alone, 0.667, and
+      // not the 0.9 a name that began with the query would.
+      expect(
+        textRelevanceScore('Bread', 'rice', qualifiers: 'rice'),
+        closeTo(2 / 3, 1e-9),
+      );
+    });
   });
 
   group('mergeAndRankMeals', () {

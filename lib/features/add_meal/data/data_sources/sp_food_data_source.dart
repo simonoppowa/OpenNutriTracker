@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/utils/supported_language.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
+import 'package:opennutritracker/features/add_meal/util/backend_title.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -296,47 +297,88 @@ class SpFoodDataSource {
   }
 }
 
-/// Ranks [foods] by [textRelevanceScore] of [SpFoodDTO.name] against
-/// [searchString] and truncates to [SPConst.maxNumberOfItems]. This is the
-/// actual client-side replacement for the Postgres `ts_rank` ordering that
-/// PostgREST rejects (see [SpFoodDataSource._searchEnglish]) — kept as a
-/// standalone top-level function, rather than inlined private logic, so it's
-/// directly unit-testable without mocking the Supabase client.
+/// Ranks [foods] by [textRelevanceScore] against [searchString] and
+/// truncates to [SPConst.maxNumberOfItems]. This is the actual client-side
+/// replacement for the Postgres `ts_rank` ordering that PostgREST rejects
+/// (see [SpFoodDataSource._searchEnglish]) — kept as a standalone top-level
+/// function, rather than inlined private logic, so it's directly
+/// unit-testable without mocking the Supabase client.
+///
+/// What is scored is the row's title plus the qualifiers the query names —
+/// `deriveTitle` and `deriveQualifiers` of [SpFoodDTO.name], the same
+/// derivation `MealEntity.scoringName` and `scoringQualifiers` make of the
+/// entity built from this row — so the twenty survivors and the resolver
+/// now apply one rule (#1170). Scored on the whole description, they did
+/// not. This scorer charges every token past the one that matched, so on
+/// `potato` the 106 same-titled survey records did not tie: the twenty
+/// with the fewest tokens survived, in backend order among equals, and the
+/// record the resolver would pick among the family — the shortest
+/// description, or the one carrying the qualifier the query named — could
+/// be cut before it was ever scored. 39 survey families have more than
+/// twenty members, and the backend's order keeps the canonical record
+/// inside the first twenty in 29 of them. Scored on the title, the family
+/// ties here as it ties there, and the tie breaks as it breaks there: the
+/// shorter description first, then the backend's order, stable. So the
+/// resolver's pick is inside the twenty by construction — the
+/// shortest-described of the equal-scored family, or a named-qualifier
+/// match that outscores it. No portion lookup happens before this cut; the
+/// twenty are decorated with theirs afterwards.
 @visibleForTesting
 List<SpFoodDTO> rankAndTruncateFoodsByName(
   List<SpFoodDTO> foods,
   String searchString,
-) {
-  final decorated = [
-    for (final food in foods)
-      (food: food, score: textRelevanceScore(food.name, searchString)),
-  ];
-  mergeSort(decorated, compare: (a, b) => b.score.compareTo(a.score));
-  return [
-    for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.food,
-  ];
-}
+) => _rankAndTruncate(foods, searchString, (food) => food.name);
 
 /// Same idea as [rankAndTruncateFoodsByName], but for raw `food_translation`
 /// rows — ranked by [SPConst.translationDescription] — before they're mapped
-/// into [SpFoodDTO] (see [SpFoodDataSource._searchByTranslation]).
+/// into [SpFoodDTO] (see [SpFoodDataSource._searchByTranslation]). A
+/// translated description follows the same comma convention — "Milch, NFS"
+/// is titled "Milch" — and derives its title the way the entity's
+/// localized name will.
 @visibleForTesting
 List<Map<String, dynamic>> rankAndTruncateTranslationRows(
   List<Map<String, dynamic>> rows,
   String searchString,
+) => _rankAndTruncate(
+  rows,
+  searchString,
+  (row) => row[SPConst.translationDescription] as String?,
+);
+
+/// [items] by the score of their description — [describe] — against
+/// [searchString], highest first; among equal scores the shorter
+/// description; and the sort is stable, so what is left of a tie keeps the
+/// backend's order. The first [SPConst.maxNumberOfItems] of that.
+List<T> _rankAndTruncate<T>(
+  List<T> items,
+  String searchString,
+  String? Function(T item) describe,
 ) {
   final decorated = [
-    for (final row in rows)
+    for (final item in items)
       (
-        row: row,
-        score: textRelevanceScore(
-          row[SPConst.translationDescription] as String?,
-          searchString,
-        ),
+        item: item,
+        score: _backendScore(describe(item), searchString),
+        length: describe(item)?.length ?? 0,
       ),
   ];
-  mergeSort(decorated, compare: (a, b) => b.score.compareTo(a.score));
+  mergeSort(decorated, compare: (a, b) {
+    final byScore = b.score.compareTo(a.score);
+    if (byScore != 0) return byScore;
+    return a.length.compareTo(b.length);
+  });
   return [
-    for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.row,
+    for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.item,
   ];
+}
+
+/// [description] scored as its entity will be: the title, plus whichever
+/// of its qualifiers [searchString] names.
+double _backendScore(String? description, String searchString) {
+  if (description == null) return textRelevanceScore(null, searchString);
+  return textRelevanceScore(
+    deriveTitle(description),
+    searchString,
+    qualifiers: deriveQualifiers(description),
+  );
 }

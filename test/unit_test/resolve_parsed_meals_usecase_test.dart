@@ -297,7 +297,7 @@ void main() {
       );
     });
 
-    test('apple auto-selects Apple, raw by its portions', () async {
+    test('apple auto-selects Apple, raw by its description', () async {
       final search = _FakeSearch(
         supabase: {'apple': BackendSiblingFixtures.apple},
       );
@@ -310,12 +310,13 @@ void main() {
       expect(resolved.single.selected!.portions, hasLength(7));
     });
 
-    test('eggs resolves to a whole-egg record above the floor', () async {
+    test('eggs resolves above the floor, to the record egg does', () async {
       // The #601 case this scorer exists for: a plural query against the
       // survey family. Scored on their titles the four tie at 0.75 — the
-      // `eggs` → `Egg` match the floor was set against — and the portions
-      // key picks the boiled-or-poached record; scored on the description
-      // it showed, "Egg, whole, raw" was 0.375 and flagged as a guess.
+      // `eggs` → `Egg` match the floor was set against — and the length
+      // key picks "Egg, creamed", the pinned known miss (#1170), as it
+      // does on `egg`; scored on the description it showed, "Egg, whole,
+      // raw" was 0.375 and flagged as a guess.
       final search = _FakeSearch(
         supabase: {'eggs': BackendSiblingFixtures.egg},
       );
@@ -324,8 +325,7 @@ void main() {
         search,
       ).resolve([item('eggs', quantity: 2)]);
 
-      expect(resolved.single.selected!.name, startsWith('Egg, whole'));
-      expect(resolved.single.selected!.name, 'Egg, whole, boiled or poached');
+      expect(resolved.single.selected!.name, 'Egg, creamed');
       expect(resolved.single.confidence, closeTo(0.75, 1e-9));
       expect(
         resolved.single.confidence,
@@ -358,8 +358,8 @@ void main() {
       'dried apple auto-selects Apple, dried, not the most-portioned',
       () async {
         // The review's finding against the title-only revision, through the
-        // use case: every "Apple" tied at 0.667 on the title, the portions
-        // key picked "Apple, raw" (7 to 2), and at 0.667 nothing flagged it
+        // use case: every "Apple" tied at 0.667 on the title, the tie-break
+        // picked "Apple, raw", and at 0.667 nothing flagged it
         // — a silently wrong food at a quarter of the kcal. The page is
         // listed everyday-form first so the input order cannot be what picks
         // the winner either.

@@ -11,6 +11,7 @@ import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/util/backend_title.dart';
 
 /// A number immediately followed by a metric mass or volume unit, as it
 /// appears inside an Open Food Facts `serving_size` string.
@@ -139,36 +140,30 @@ class MealEntity extends Equatable {
   /// changed their scoring with it, and the resolver's soft Dice charges
   /// every extra token: on `egg`, "Egg, creamed" (two tokens) beat "Egg,
   /// whole, raw" (three) and "Egg, whole, boiled or poached" (five), so the
-  /// portions tie-break that was to pick among the family was never
-  /// reached; on `rice`, "Bread, rice" and "Chips, rice" outscored "Rice,
-  /// cooked, NFS"; and `eggs` → "Egg, whole, raw" fell to 0.375, under the
+  /// tie-break that was to pick among the family was never reached; on
+  /// `rice`, "Bread, rice" and "Chips, rice" outscored "Rice, cooked,
+  /// NFS"; and `eggs` → "Egg, whole, raw" fell to 0.375, under the
   /// resolver's confidence floor. Scoring the title puts the siblings back
   /// on equal terms — every "Egg" scores 1.0 on `egg` — and the display
   /// change stays a display change.
   ///
-  /// Derived, not carried from the backend's `short_title` column, because
-  /// the column *is* this derivation: measured on the live backend
-  /// (2026-09-12), `short_title` equals `split_part(description, ',', 1)`,
-  /// trimmed and compared case-insensitively, on 5,432 of 5,432 survey
-  /// rows, 7,793 of 7,793 SR Legacy rows, 469 of 469 Foundation rows and
-  /// 7,135 of 7,140 BLS rows. So nothing needs persisting — a copy read
-  /// back from the search cache, which is what the resolver is handed for
-  /// a record held only there, derives the same title from the same name
-  /// — and a title that was persisted would be the wrong one for a
-  /// translated row: a German reader's "Milch, menschliche" derives
-  /// "Milch", which is what a German query is matched against, where the
-  /// English column would score `Milch` against "Milk" at nothing.
+  /// The derivation is `deriveTitle` in `backend_title.dart`, shared with
+  /// the data source's truncation so that the twenty rows it keeps and the
+  /// one the resolver picks are chosen by one rule (#1170); that file says
+  /// why the title is derived from the name rather than carried from the
+  /// backend's `short_title` column, and why nothing is persisted for it —
+  /// a copy read back from the search cache derives the same title from
+  /// the same name.
   ///
   /// Backend records only. The comma convention is FDC's and BLS's — the
   /// family first, the qualifiers after — and nothing else the app scores
   /// follows it: an Open Food Facts product name is whatever the label
   /// says, and custom meals and recipes are the user's own words, so all
-  /// of those score on the whole name as they always have. A name with no
-  /// comma is its own title, and a name with nothing before the comma
-  /// falls back to the whole name rather than to an empty string.
+  /// of those score on the whole name as they always have.
   String? get scoringName {
-    final end = _titleEnd;
-    return end < 0 ? name : name!.substring(0, end).trim();
+    final text = name;
+    if (text == null || source != MealSourceEntity.fdc) return text;
+    return deriveTitle(text);
   }
 
   /// What follows the title in a backend record's [name] — "whole, raw"
@@ -181,27 +176,15 @@ class MealEntity extends Equatable {
   /// terms on `egg`. A qualifier the query *does* mention joins the scored
   /// text, so `dried apple` scores "Apple, dried" as a record called
   /// "Apple dried" and its siblings as "Apple": 1.0 against 0.667. Scored
-  /// on the title alone, the three tied at 0.667 and the portions
-  /// tie-break logged "Apple, raw" — the qualifier the user typed was the
-  /// one thing the scorers could not see (#1164 review). Which mention
-  /// counts is each scorer's own rule: see `scoreMealRelevance` and
+  /// on the title alone, the three tied at 0.667 and the tie-break logged
+  /// the everyday form — the qualifier the user typed was the one thing
+  /// the scorers could not see (#1164 review). Which mention counts is
+  /// each scorer's own rule: see `scoreMealRelevance` and
   /// `scoreMealForResolution`.
   String? get scoringQualifiers {
-    final end = _titleEnd;
-    if (end < 0) return null;
-    final rest = name!.substring(end + 1).trim();
-    return rest.isEmpty ? null : rest;
-  }
-
-  /// Index in [name] of the comma that ends a backend record's title, or
-  /// -1 when the name is not split at all: not a backend record, no comma,
-  /// or nothing before it.
-  int get _titleEnd {
     final text = name;
-    if (text == null || source != MealSourceEntity.fdc) return -1;
-    final comma = text.indexOf(',');
-    if (comma < 0 || text.substring(0, comma).trim().isEmpty) return -1;
-    return comma;
+    if (text == null || source != MealSourceEntity.fdc) return null;
+    return deriveQualifiers(text);
   }
 
   const MealEntity({

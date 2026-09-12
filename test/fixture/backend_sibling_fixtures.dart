@@ -183,8 +183,10 @@ class BackendSiblingFixtures {
     shortTitle: 'Milk',
     portions: [('1 cup', 246), ('1 fl oz', 30.8)],
   );
-  // "Milk, whole" ahead of "Milk, NFS" on purpose: the two tie on portions
-  // (three each), so only the name-length key puts NFS first.
+  // "Milk, NFS" last on purpose: it is the shortest description, so only
+  // the length key puts it first. "Milk, human" ahead of "Milk, whole" on
+  // purpose too: eleven characters each, so only the portions key — three
+  // to two — puts whole ahead of it.
   static List<MealEntity> get milk => [milkHuman, milkWhole, milkNfs];
 
   // banana
@@ -211,10 +213,12 @@ class BackendSiblingFixtures {
 
   // bread
 
-  /// The one family here where the two tie-break keys disagree: white
-  /// bread carries more portions, rye the shorter name. In apple, banana
-  /// and milk the most-portioned sibling is also the shortest-named, so
-  /// those cannot tell the portions key from the name-length key.
+  /// The one family here where the two tie-break keys disagree: rye is
+  /// the shorter description, white carries more portions and is the
+  /// everyday form. The length goes first (#1170), so `bread` lands on
+  /// rye — the pinned known miss. In apple and banana the shortest-named
+  /// sibling is also the most-portioned, so those cannot tell the two
+  /// keys apart; milk can, where whole and human tie on length.
   static final breadWhite = _record(
     2707598,
     'Bread, white',

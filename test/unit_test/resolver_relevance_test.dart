@@ -166,9 +166,10 @@ void main() {
   group('tie-break among equal scores (#1164)', () {
     // Backend siblings are shown by their full description and score the
     // same on the one-word query for their family, so the order among them
-    // is what the auto-select logs. The keys below are the decision's:
-    // most labelled portions, then the shortest name, then the input order.
-    test('the record with the most labelled portions comes first', () {
+    // is what the auto-select logs. The keys are the decision's as revised
+    // in #1170: the shortest description, then the most labelled portions,
+    // then the input order.
+    test('the record with the shortest description comes first', () {
       final rows = [
         meal('Apple, dried', source: MealSourceEntity.fdc, portions: 2),
         meal('Apple, raw', source: MealSourceEntity.fdc, portions: 7),
@@ -177,38 +178,51 @@ void main() {
       expect(names(rankForResolution(rows, 'apple')).first, 'Apple, raw');
     });
 
-    test('equal portions break on the shorter name', () {
+    test('equal lengths break on the most labelled portions', () {
+      // "Milk, whole" and "Milk, human" are eleven characters each, and
+      // the backend gives whole three deliverable portions to human's two.
       final rows = [
+        meal('Milk, human', source: MealSourceEntity.fdc, portions: 2),
         meal('Milk, whole', source: MealSourceEntity.fdc, portions: 3),
-        meal('Milk, NFS', source: MealSourceEntity.fdc, portions: 3),
       ];
 
-      expect(names(rankForResolution(rows, 'milk')).first, 'Milk, NFS');
+      expect(names(rankForResolution(rows, 'milk')).first, 'Milk, whole');
     });
 
-    test('portions outrank a shorter name', () {
-      // The keys are ordered, not summed: a longer description with more
-      // portions beats a shorter one with fewer.
+    test('the shorter description outranks more portions', () {
+      // The keys are ordered, not summed: a shorter description with fewer
+      // portions beats a longer one with more. Measured over the 39 survey
+      // families with more than twenty members, the other order picked a
+      // dish over its ingredient — FDC counts french fries in more ways
+      // than a potato.
       final rows = [
-        meal('Apple, raw', source: MealSourceEntity.fdc, portions: 2),
         meal('Apple, baked', source: MealSourceEntity.fdc, portions: 7),
+        meal('Apple, raw', source: MealSourceEntity.fdc, portions: 2),
       ];
 
-      expect(names(rankForResolution(rows, 'apple')).first, 'Apple, baked');
+      expect(names(rankForResolution(rows, 'apple')).first, 'Apple, raw');
     });
 
     test('the tie-break never overrides the score', () {
       // "Eggplant" is a prefix match on `egg` (0.375) and "Egg" an exact
-      // one; nine portions to one does not bridge that.
+      // one; a description sixteen characters shorter with nine portions
+      // to one does not bridge that.
       final rows = [
         meal('Eggplant, raw', source: MealSourceEntity.fdc, portions: 9),
-        meal('Egg, creamed', source: MealSourceEntity.fdc, portions: 1),
+        meal(
+          'Egg, whole, boiled or poached',
+          source: MealSourceEntity.fdc,
+          portions: 1,
+        ),
       ];
 
-      expect(names(rankForResolution(rows, 'egg')).first, 'Egg, creamed');
+      expect(
+        names(rankForResolution(rows, 'egg')).first,
+        'Egg, whole, boiled or poached',
+      );
     });
 
-    test('equal score, portions and name length keep the input order', () {
+    test('equal score, name length and portions keep the input order', () {
       final rows = [
         meal(
           'Bread, rice',
@@ -239,7 +253,7 @@ void main() {
       // A two-record tie cannot tell a stable sort from `List.sort`: Dart
       // insertion-sorts anything under 32 elements, and that happens to be
       // stable. Above it the dual-pivot quicksort moves equal elements, so
-      // forty records that tie on every key — score, portions, name length
+      // forty records that tie on every key — score, name length, portions
       // — are what actually pins "stable after that".
       final rows = [
         for (var i = 0; i < 40; i++)
@@ -272,8 +286,8 @@ void main() {
         nutriments: MealNutrimentsEntity.empty(),
       );
 
-      // Both match on the brand alone, so they tie on score and on portions
-      // and reach the name-length key with nothing to measure.
+      // Both match on the brand alone, so they tie on score and reach the
+      // name-length key with nothing to measure, and tie on portions too.
       final ranked = rankForResolution(
         [nameless('a'), nameless('b')],
         'milk',
@@ -343,22 +357,29 @@ void main() {
       );
     });
 
-    test('a shared title ties the family so the portions key is reached', () {
+    test('a shared title ties the family so the tie-break is reached', () {
       // The mirror of "the tie-break never overrides the score" above:
-      // scored on their descriptions the two-token record wins outright,
-      // scored on their shared title the portions decide.
-      final rows = [
-        meal('Egg, creamed', source: MealSourceEntity.fdc, portions: 1),
-        meal(
-          'Egg, whole, boiled or poached',
-          source: MealSourceEntity.fdc,
-          portions: 3,
-        ),
-      ];
-
-      expect(
-        names(rankForResolution(rows, 'egg')).first,
+      // scored on their descriptions "Egg, creamed" scored 0.667 to the
+      // five-token record's 0.4 and won outright; scored on their shared
+      // title both are 1.0 and it is the tie-break that picks — the
+      // shorter description, which is the same record for a different
+      // reason, and a reason that reaches the whole family.
+      final creamed = meal(
+        'Egg, creamed',
+        source: MealSourceEntity.fdc,
+        portions: 1,
+      );
+      final boiled = meal(
         'Egg, whole, boiled or poached',
+        source: MealSourceEntity.fdc,
+        portions: 3,
+      );
+
+      expect(scoreMealForResolution(creamed, 'egg'), 1.0);
+      expect(scoreMealForResolution(boiled, 'egg'), 1.0);
+      expect(
+        names(rankForResolution([boiled, creamed], 'egg')).first,
+        'Egg, creamed',
       );
     });
 
@@ -404,8 +425,8 @@ void main() {
     });
 
     test('the tie-break is not reached on a qualified query', () {
-      // Seven portions to two, and the everyday form listed first: the
-      // keys that pick "Apple, raw" on `apple` never see `dried apple`.
+      // The shorter description, seven portions to two, and listed first:
+      // the keys that pick "Apple, raw" on `apple` never see `dried apple`.
       final rows = [
         meal('Apple, raw', source: MealSourceEntity.fdc, portions: 7),
         meal('Apple, dried', source: MealSourceEntity.fdc, portions: 2),

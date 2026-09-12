@@ -46,6 +46,42 @@ void main() {
       expect(dto.displayNameIsMachineTranslated, isFalse);
     });
 
+    test('a row with no name falls back to its short title', () {
+      // Defensive only: `food.description` is NOT NULL in the backend, so
+      // no row arrives like this; the DTO's every column is nullable, and
+      // should one, the short form names the food where nothing would have
+      // (#1170 review).
+      final dto = SpFoodDTO(
+        foodId: 2707172,
+        source: 'fdc_survey',
+        sourceCode: '2707172',
+        name: null,
+        shortTitle: 'Egg',
+      );
+
+      expect(dto.displayName, 'Egg');
+      expect(MealEntity.fromSpFood(dto).name, 'Egg');
+    });
+
+    test('a row with neither name nor short title has no display name', () {
+      final dto = SpFoodDTO(
+        foodId: 2707172,
+        source: 'fdc_survey',
+        sourceCode: '2707172',
+        name: null,
+      );
+
+      expect(dto.displayName, isNull);
+      expect(MealEntity.fromSpFood(dto).name, isNull);
+    });
+
+    test('the localized name still comes before the fallback', () {
+      final dto = row(name: 'Egg, yolk only, raw', shortTitle: 'Egg');
+      dto.localizedName = 'Ei, nur Eigelb, roh';
+
+      expect(dto.displayName, 'Ei, nur Eigelb, roh');
+    });
+
     test('the short title is still parsed, just not displayed', () {
       // It is a view column and the DTO mirrors the view; dropping the
       // field would be a wider change than the decision made.

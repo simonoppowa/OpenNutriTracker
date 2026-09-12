@@ -186,10 +186,18 @@ MealEntity _highestScoring(List<MealEntity> group, String query) {
 /// accepts column references, not computed `ts_rank(...)` expressions, so
 /// text-search relevance has to be ranked client-side instead — see
 /// `SpFoodDataSource`).
-double textRelevanceScore(String? text, String query) {
+///
+/// [qualifiers] is read the way [scoreMealRelevance] reads
+/// `MealEntity.scoringQualifiers`: only the tokens of it the query names
+/// join the scored text. A raw backend row has a title and qualifiers
+/// exactly as the entity built from it will (`deriveTitle`,
+/// `deriveQualifiers`), and the data source scores those, not the whole
+/// description, so that the rows it keeps are the ones the entity scorers
+/// would have kept (#1170).
+double textRelevanceScore(String? text, String query, {String? qualifiers}) {
   final normalizedQuery = _normalize(query);
   if (normalizedQuery.isEmpty) return 0.0;
-  return _textScore(text, normalizedQuery);
+  return _textScore(text, normalizedQuery, qualifiers: qualifiers);
 }
 
 /// [qualifiers] is a backend record's text past its title. Only the tokens
