@@ -35,6 +35,12 @@ class MeasurementOptions {
   final int count;
   final bool dryRun;
 
+  /// `--models provider=id,...`: a hosted provider's model when the run
+  /// should not take the catalogue default — a cheaper sibling, say. Only
+  /// ids the catalogue lists for that provider are accepted, so the run
+  /// measures a model the app can actually be pointed at.
+  final Map<Provider, String> models;
+
   const MeasurementOptions({
     required this.keysDir,
     required this.envPath,
@@ -43,6 +49,7 @@ class MeasurementOptions {
     required this.ownServer,
     required this.count,
     required this.dryRun,
+    this.models = const {},
   });
 }
 
@@ -62,6 +69,7 @@ MeasurementOptions parseOptions(
   String? ownModel;
   var count = defaultCount;
   var dryRun = false;
+  final models = <Provider, String>{};
 
   String next(int i, String flag) {
     if (i + 1 >= args.length) usage(tool, 'missing value for $flag');
@@ -92,6 +100,23 @@ MeasurementOptions parseOptions(
         count =
             int.tryParse(next(i, '--count')) ??
             usage(tool, '--count takes an integer');
+        i++;
+      case '--models':
+        for (final pair in next(i, '--models').split(',')) {
+          final eq = pair.indexOf('=');
+          if (eq <= 0) usage(tool, '--models takes provider=model pairs');
+          final provider = Provider.values
+              .where((p) => p.name == pair.substring(0, eq))
+              .firstOrNull;
+          final model = pair.substring(eq + 1);
+          if (provider == null || provider == Provider.ownServer) {
+            usage(tool, '--models names a hosted provider: "$pair"');
+          }
+          if (!(catalogueModelIds[provider] ?? const {}).contains(model)) {
+            usage(tool, '"$model" is not a catalogue model for ${provider.name}');
+          }
+          models[provider] = model;
+        }
         i++;
       case '--own-server':
         ownEndpoint = next(i, '--own-server');
@@ -140,6 +165,7 @@ MeasurementOptions parseOptions(
     ownServer: ownServer,
     count: count,
     dryRun: dryRun,
+    models: models,
   );
 }
 
@@ -148,7 +174,8 @@ Never usage(String tool, String? error) {
   stderr.writeln(
     'usage: dart run tool/$tool --out <dir> [--keys <dir>] '
     '[--env <path>] [--providers anthropic,openrouter,openai,ownServer] '
-    '[--count N] [--own-server <url> --own-model <id>] [--dry-run]\n'
+    '[--count N] [--models provider=id,...] '
+    '[--own-server <url> --own-model <id>] [--dry-run]\n'
     '  --keys        directory holding files named anthropic, openrouter, '
     'openai, ownServer; a missing file skips that provider (the own '
     'server runs without one)\n'
@@ -156,6 +183,8 @@ Never usage(String tool, String? error) {
     'SUPABASE_PROJECT_ANON_KEY (default $defaultEnvPath)\n'
     '  --own-server  the chat-completions URL of a server you run, and '
     '--own-model the model to ask it for; adds the ownServer provider\n'
+    '  --models      a catalogue model per hosted provider instead of its '
+    'default, e.g. openrouter=anthropic/claude-haiku-4.5\n'
     '  --dry-run     a fake provider answers; only the read-only backend '
     'RPCs are called',
   );

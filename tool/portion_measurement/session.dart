@@ -53,7 +53,7 @@ class ProviderSession {
 String modelFor(Provider provider, MeasurementOptions opts) =>
     provider == Provider.ownServer
         ? opts.ownServer!.model
-        : defaultModelIds[provider]!;
+        : opts.models[provider] ?? defaultModelIds[provider]!;
 
 /// One session per requested provider. In a dry run every provider is the
 /// fake; otherwise a provider whose key file is missing is skipped with a

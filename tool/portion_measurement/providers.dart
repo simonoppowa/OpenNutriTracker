@@ -45,6 +45,22 @@ const ownServerTimeout = Duration(seconds: 120);
 /// fallbacks off, so the vendor that answers is the vendor the app names.
 const openRouterPins = <String, List<String>>{
   'anthropic/claude-sonnet-5': ['anthropic'],
+  'anthropic/claude-haiku-4.5': ['anthropic'],
+  'openai/gpt-5.6-luna': ['openai'],
+  'openai/gpt-5.6-terra': ['openai'],
+};
+
+/// Every id `AiModelCatalogue` lists per hosted provider — what `--models`
+/// may name. Copied for the same reason as [defaultModelIds].
+const catalogueModelIds = <Provider, Set<String>>{
+  Provider.anthropic: {'claude-haiku-4-5'},
+  Provider.openrouter: {
+    'anthropic/claude-sonnet-5',
+    'anthropic/claude-haiku-4.5',
+    'openai/gpt-5.6-luna',
+    'openai/gpt-5.6-terra',
+  },
+  Provider.openai: {'gpt-5.6-luna', 'gpt-5.6-terra'},
 };
 
 /// The client for [provider], over [client], with the key read through
