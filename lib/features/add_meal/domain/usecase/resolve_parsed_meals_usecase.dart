@@ -15,13 +15,13 @@ import 'package:opennutritracker/features/add_meal/util/resolver_relevance.dart'
 /// (`eggs` → `Egg` is 0.75).
 ///
 /// It was set while backend records were shown by their short title, and
-/// #1164 changed that to the full description without moving it. Against a
-/// backend record the same inflection match now lands on both sides of the
-/// floor, because every token past the one that matched costs: `eggs` →
-/// `Egg, creamed` is 0.5, `eggs` → `Egg, whole, raw` is 0.375. So a plural
-/// query resolving to a three-token survey record — the #601 case this
-/// scorer exists for — is flagged as a guess. Re-calibrating is a decision
-/// #1164 did not make.
+/// #1164 changed what they show to the full description without moving
+/// it. That did not move the scores either: a backend record is still
+/// scored on its short title (`MealEntity.searchTitle`), so `eggs` →
+/// "Egg, whole, raw" is the `eggs` → `Egg` match above, 0.75, and clears
+/// the floor as it always did. Scored on the description it would be
+/// 0.375 — every token past the one that matched costs — and the #601
+/// case this scorer exists for would have been flagged as a guess.
 const kResolutionConfidenceFloor = 0.45;
 
 /// One parsed item and what the food search made of it.

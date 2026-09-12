@@ -19,13 +19,13 @@ class SpFoodDTO {
   final String? name;
 
   /// The view's concise English title ("Egg" for "Egg, yolk only, raw"),
-  /// parsed because it is a `food_summary` column but no longer shown
-  /// anywhere. It was the display name until #1164: 555 short titles
-  /// cover 4,215 of the 5,432 FDC survey records, so whole families of
-  /// distinct foods ("Egg, whole, raw", "Egg, yolk only, raw", "Egg,
-  /// creamed") reached the screen as one word and were indistinguishable
-  /// — and, once the near-duplicate collapse saw the same name, were folded
-  /// into one another and lost. See [displayName].
+  /// no longer shown anywhere but still what the search scorers match on.
+  /// It was the display name until #1164: 555 short titles cover 4,215 of
+  /// the 5,432 FDC survey records, so whole families of distinct foods
+  /// ("Egg, whole, raw", "Egg, yolk only, raw", "Egg, creamed") reached
+  /// the screen as one word and were indistinguishable — and, once the
+  /// near-duplicate collapse saw the same name, were folded into one
+  /// another and lost. See [displayName] and [searchTitle].
   @JsonKey(name: SPConst.foodShortTitle)
   final String? shortTitle;
   @JsonKey(name: SPConst.foodBrands)
@@ -120,6 +120,20 @@ class SpFoodDTO {
   /// ranker (#1164). A localized name is a full translated description
   /// already, so it follows the same rule by construction.
   String? get displayName => localizedName ?? name;
+
+  /// What the search scorers match this row on, when that is not
+  /// [displayName]: the short title for an English row, null for a
+  /// translated one. Carried as `MealEntity.searchTitle`.
+  ///
+  /// Before #1164 the scorers read `localizedName ?? shortTitle ?? name`,
+  /// because that was the name shown. Showing the description instead
+  /// moved the scoring with it and the siblings stopped tying — "Egg,
+  /// creamed" beat "Egg, whole, raw" on `egg` by having fewer tokens — so
+  /// the scoring stays on the short title while the display does not. A
+  /// translated row is found by a query in its own language, and the
+  /// English title would score `Eier` against "Egg" at nothing; it is
+  /// scored by its translation, as it was.
+  String? get searchTitle => localizedName == null ? shortTitle : null;
 
   /// Whether the name shown by [displayName] is a machine translation —
   /// only ever true when the localized name is actually the one displayed.

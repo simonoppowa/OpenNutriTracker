@@ -310,6 +310,50 @@ void main() {
       expect(resolved.single.selected!.portions, hasLength(7));
     });
 
+    test('eggs resolves to a whole-egg record above the floor', () async {
+      // The #601 case this scorer exists for: a plural query against the
+      // survey family. Scored on their titles the four tie at 0.75 — the
+      // `eggs` → `Egg` match the floor was set against — and the portions
+      // key picks the boiled-or-poached record; scored on the description
+      // it showed, "Egg, whole, raw" was 0.375 and flagged as a guess.
+      final search = _FakeSearch(
+        supabase: {'eggs': BackendSiblingFixtures.egg},
+      );
+
+      final resolved = await ResolveParsedMealsUseCase(
+        search,
+      ).resolve([item('eggs', quantity: 2)]);
+
+      expect(resolved.single.selected!.name, startsWith('Egg, whole'));
+      expect(resolved.single.selected!.name, 'Egg, whole, boiled or poached');
+      expect(resolved.single.confidence, closeTo(0.75, 1e-9));
+      expect(
+        resolved.single.confidence,
+        greaterThanOrEqualTo(kResolutionConfidenceFloor),
+      );
+      expect(resolved.single.isLowConfidence, isFalse);
+    });
+
+    test('orange juice auto-selects the survey record over BLS', () async {
+      // Both titles match the query exactly; the −0.15 for carrying no
+      // portion is what puts the BLS record second, and the confidence
+      // reported is the survey record's unpenalised 1.0.
+      final search = _FakeSearch(
+        supabase: {'orange juice': BackendSiblingFixtures.orangeJuice},
+      );
+
+      final resolved = await ResolveParsedMealsUseCase(
+        search,
+      ).resolve([item('orange juice')]);
+
+      expect(resolved.single.selected!.name, 'Orange juice, 100%, NFS');
+      expect(resolved.single.confidence, 1.0);
+      expect(resolved.single.candidates.map((m) => m.name), [
+        'Orange juice, 100%, NFS',
+        'Orange juice',
+      ]);
+    });
+
     test('the confidence reported is the penalised score', () async {
       // The selected candidate's score is what the review screen shows;
       // for a portionless backend record that is the score after the

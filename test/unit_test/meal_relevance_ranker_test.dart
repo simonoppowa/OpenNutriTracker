@@ -7,6 +7,7 @@ MealEntity _meal({
   required String name,
   String? code,
   String? brands,
+  String? searchTitle,
   MealSourceEntity source = MealSourceEntity.off,
   bool detailed = false,
   bool machineTranslatedName = false,
@@ -14,6 +15,7 @@ MealEntity _meal({
   return MealEntity(
     code: code ?? name,
     name: name,
+    searchTitle: searchTitle,
     brands: brands,
     url: null,
     mealQuantity: null,
@@ -123,6 +125,27 @@ void main() {
       final score = scoreMealRelevance(meal, 'milk');
       expect(score, inInclusiveRange(0.0, 1.0));
     });
+
+    // #1164: a backend record shows its full description and is scored on
+    // its short title, so "Egg, whole, raw" scores on `egg` exactly as it
+    // did while "Egg" was its name.
+    test('scores a backend record on its short title, not its description', () {
+      final titled = _meal(name: 'Egg, whole, raw', searchTitle: 'Egg', source: MealSourceEntity.fdc);
+      final named = _meal(name: 'Egg', source: MealSourceEntity.fdc);
+      final byDescription = _meal(name: 'Egg, whole, raw', source: MealSourceEntity.fdc);
+
+      expect(scoreMealRelevance(titled, 'egg'), 1.0);
+      expect(scoreMealRelevance(titled, 'egg'), scoreMealRelevance(named, 'egg'));
+      expect(scoreMealRelevance(byDescription, 'egg'), lessThan(1.0));
+    });
+
+    test('a meal without a title is scored on its name as before', () {
+      final off = _meal(name: 'Egg noodles');
+
+      expect(off.searchTitle, isNull);
+      // dice 0.667 + contains 0.2 + prefix 0.15, capped at 0.9
+      expect(scoreMealRelevance(off, 'egg'), closeTo(0.9, 1e-9));
+    });
   });
 
   group('rankMealsByRelevance', () {
@@ -154,6 +177,18 @@ void main() {
       rankMealsByRelevance(input, 'milk');
 
       expect(input, [unrelated, exact]);
+    });
+
+    test('ranks a titled backend record by its title (#1164)', () {
+      // "Egg noodles" scores the 0.9 cap on `egg` by name; the survey
+      // record's description would score 0.85 (three tokens) and lose, but
+      // its title is an exact match and it goes first.
+      final noodles = _meal(name: 'Egg noodles', code: 'off');
+      final wholeRaw = _meal(name: 'Egg, whole, raw', searchTitle: 'Egg', code: '2707152', source: MealSourceEntity.fdc);
+
+      final ranked = rankMealsByRelevance([noodles, wholeRaw], 'egg');
+
+      expect(ranked.map((m) => m.name), ['Egg, whole, raw', 'Egg noodles']);
     });
   });
 

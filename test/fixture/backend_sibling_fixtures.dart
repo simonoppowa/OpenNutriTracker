@@ -4,6 +4,8 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_en
 
 /// Backend records as the resolver sees them, copied from the live backend
 /// on 2026-09-12 for #1164: `food.id`, `food.source`, `food.description`,
+/// `food.short_title` — the text the scorers read, carried as
+/// `MealEntity.searchTitle`; no row here is without one, BLS included —
 /// and every portion `portions_by_food_ids(ARRAY[id], 'en')` returns for
 /// the id — the deliverable rows, after the RPC's own filter, which is what
 /// `MealEntity.portions` holds after `ProductsRepository` decorates a
@@ -14,18 +16,20 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_en
 /// ("Milk, NFS" has six rows and three deliverable portions), and the
 /// deliverable count is the one the tie-break sees.
 ///
-/// Each family is a set of survey siblings that score identically on the
-/// one-word query for it, which is exactly the tie the resolver has to
-/// break well.
+/// Each family is a set of survey siblings under one short title, so they
+/// score identically on the one-word query for it, which is exactly the
+/// tie the resolver has to break well.
 class BackendSiblingFixtures {
   static MealEntity _record(
     int id,
     String description, {
+    required String shortTitle,
     String source = 'fdc_survey',
     List<(String, double)> portions = const [],
   }) => MealEntity(
     code: '$id',
     name: description,
+    searchTitle: shortTitle,
     url: null,
     mealQuantity: null,
     mealUnit: 'g',
@@ -50,6 +54,7 @@ class BackendSiblingFixtures {
   static final appleRaw = _record(
     2709215,
     'Apple, raw',
+    shortTitle: 'Apple',
     portions: [
       ('1 small', 165),
       ('1 medium', 200),
@@ -63,11 +68,13 @@ class BackendSiblingFixtures {
   static final appleDried = _record(
     2709196,
     'Apple, dried',
+    shortTitle: 'Apple',
     portions: [('1 slice/chunk', 8), ('1 cup', 90)],
   );
   static final appleBaked = _record(
     2709220,
     'Apple, baked',
+    shortTitle: 'Apple',
     portions: [('1 apple, any size', 210), ('1 cup', 190)],
   );
   static List<MealEntity> get apple => [appleDried, appleBaked, appleRaw];
@@ -77,21 +84,25 @@ class BackendSiblingFixtures {
   static final eggWholeRaw = _record(
     2707152,
     'Egg, whole, raw',
+    shortTitle: 'Egg',
     portions: [('1 egg', 50), ('1 cup', 245)],
   );
   static final eggWholeBoiledOrPoached = _record(
     2707154,
     'Egg, whole, boiled or poached',
+    shortTitle: 'Egg',
     portions: [('1 egg', 50), ('1 cup', 135), ('1 slice', 5)],
   );
   static final eggCreamed = _record(
     2707179,
     'Egg, creamed',
+    shortTitle: 'Egg',
     portions: [('1 egg', 145), ('1 cup', 135)],
   );
   static final eggYolkOnlyRaw = _record(
     2707172,
     'Egg, yolk only, raw',
+    shortTitle: 'Egg',
     portions: [('1 egg', 17), ('1 cup', 245)],
   );
   static List<MealEntity> get egg => [
@@ -110,16 +121,19 @@ class BackendSiblingFixtures {
   static final eggplantRawSrLegacy = _record(
     169228,
     'Eggplant, raw',
+    shortTitle: 'Eggplant',
     source: 'fdc_sr_legacy',
   );
   static final eggplantRawFoundation = _record(
     2685577,
     'Eggplant, raw',
+    shortTitle: 'Eggplant',
     source: 'fdc_foundation',
   );
   static final eggplantRawSurvey = _record(
     2709785,
     'Eggplant, raw',
+    shortTitle: 'Eggplant',
     portions: [('1 whole', 500), ('1 cup', 80)],
   );
   static List<MealEntity> get eggplant => [
@@ -133,6 +147,7 @@ class BackendSiblingFixtures {
   static final milkNfs = _record(
     2705384,
     'Milk, NFS',
+    shortTitle: 'Milk',
     portions: [
       ('1 cup', 244),
       ('1 fl oz', 30.5),
@@ -142,6 +157,7 @@ class BackendSiblingFixtures {
   static final milkWhole = _record(
     2705385,
     'Milk, whole',
+    shortTitle: 'Milk',
     portions: [
       ('1 cup', 244),
       ('1 fl oz', 30.5),
@@ -151,6 +167,7 @@ class BackendSiblingFixtures {
   static final milkHuman = _record(
     2705383,
     'Milk, human',
+    shortTitle: 'Milk',
     portions: [('1 cup', 246), ('1 fl oz', 30.8)],
   );
   // "Milk, whole" ahead of "Milk, NFS" on purpose: the two tie on portions
@@ -162,6 +179,7 @@ class BackendSiblingFixtures {
   static final bananaRaw = _record(
     2709224,
     'Banana, raw',
+    shortTitle: 'Banana',
     portions: [
       ('1 banana', 126),
       ('1 slice', 6),
@@ -173,6 +191,7 @@ class BackendSiblingFixtures {
   static final bananaBaked = _record(
     2709225,
     'Banana, baked',
+    shortTitle: 'Banana',
     portions: [('1 banana', 140), ('1 cup', 140)],
   );
   static List<MealEntity> get banana => [bananaBaked, bananaRaw];
@@ -186,6 +205,7 @@ class BackendSiblingFixtures {
   static final breadWhite = _record(
     2707598,
     'Bread, white',
+    shortTitle: 'Bread',
     portions: [
       ('1 small or thin/very thin slice', 24),
       ('1 medium or regular slice', 28),
@@ -199,6 +219,7 @@ class BackendSiblingFixtures {
   static final breadRye = _record(
     2707755,
     'Bread, rye',
+    shortTitle: 'Bread',
     portions: [
       ('1 slice, snack-size', 10),
       ('1 slice, crust not eaten', 15),
@@ -214,22 +235,27 @@ class BackendSiblingFixtures {
   static final riceCookedNfs = _record(
     2708402,
     'Rice, cooked, NFS',
+    shortTitle: 'Rice',
     portions: [('1 cup, cooked', 158)],
   );
   static final ricePuertoRican = _record(
     2708432,
     'Rice, white, cooked with fat, Puerto Rican style',
+    shortTitle: 'Rice',
     portions: [('1 cup, cooked', 155)],
   );
   static List<MealEntity> get rice => [ricePuertoRican, riceCookedNfs];
 
   /// Two records that tie the resolver's every key on the query `rice`:
-  /// two tokens, five deliverable portions, eleven characters. Both are in
-  /// the live 100-row pool for that query and both outscore "Rice, cooked,
-  /// NFS" there (two tokens against three) — see the determinism test.
+  /// titled "Bread" and "Chips", so both score nothing, and then five
+  /// deliverable portions and eleven characters each. Both are in the live
+  /// 100-row pool for that query, and while they were scored on their
+  /// descriptions both outscored "Rice, cooked, NFS" there (two tokens
+  /// against three) — see the determinism test and the rice test.
   static final breadRice = _record(
     2707794,
     'Bread, rice',
+    shortTitle: 'Bread',
     portions: [
       ('1 small or thin/very thin slice', 24),
       ('1 medium or regular slice', 28),
@@ -241,6 +267,7 @@ class BackendSiblingFixtures {
   static final chipsRice = _record(
     2708161,
     'Chips, rice',
+    shortTitle: 'Chips',
     portions: [
       ('1 chip', 1),
       ('1 small single serving bag', 28),
@@ -252,18 +279,22 @@ class BackendSiblingFixtures {
 
   // orange juice
 
-  /// BLS carries the exact title and not one portion the RPC would deliver.
+  /// BLS carries the exact title — as its short title too, so it scores
+  /// the same either way — and not one portion the RPC would deliver.
   static final orangeJuiceBls = _record(
     10000266,
     'Orange juice',
+    shortTitle: 'Orange juice',
     source: 'bls',
   );
 
   /// The nearest survey record. There is no `food` row named exactly
-  /// "Orange juice, 100%"; the survey's plain one carries FNDDS's `NFS`.
+  /// "Orange juice, 100%"; the survey's plain one carries FNDDS's `NFS`,
+  /// and its short title is the BLS record's name letter for letter.
   static final orangeJuice100Nfs = _record(
     2709186,
     'Orange juice, 100%, NFS',
+    shortTitle: 'Orange juice',
     portions: [
       ('1 fl oz (no ice)', 31),
       ('1 fl oz (with ice)', 23),
@@ -282,6 +313,7 @@ class BackendSiblingFixtures {
   static final chickenBreastBaked = _record(
     2705956,
     'Chicken breast, baked, broiled, or roasted, skin not eaten, from raw',
+    shortTitle: 'Chicken breast',
     portions: [
       ('1 cup, cooked, diced', 135),
       ('1 small breast', 105),
@@ -297,6 +329,7 @@ class BackendSiblingFixtures {
   static final chickenBreastRotisserie = _record(
     2705963,
     'Chicken breast, rotisserie, skin eaten',
+    shortTitle: 'Chicken breast',
     portions: [
       ('1 cup, cooked, diced', 135),
       ('1 breast', 130),
@@ -310,6 +343,7 @@ class BackendSiblingFixtures {
   static final chickenBreastNsCookingMethod = _record(
     2705953,
     'Chicken breast, NS as to cooking method, skin eaten',
+    shortTitle: 'Chicken breast',
     portions: [
       ('1 cup, cooked, diced', 135),
       ('1 breast', 130),
@@ -325,6 +359,7 @@ class BackendSiblingFixtures {
   static final chickenBreastRollSrLegacy = _record(
     174608,
     'Chicken breast, roll, oven-roasted',
+    shortTitle: 'Chicken breast',
     source: 'fdc_sr_legacy',
   );
   static List<MealEntity> get chickenBreast => [

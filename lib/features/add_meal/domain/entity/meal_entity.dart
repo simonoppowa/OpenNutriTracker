@@ -106,6 +106,27 @@ class MealEntity extends Equatable {
   /// row then behaves exactly as it did before portions existed.
   final List<MealPortionEntity> portions;
 
+  /// The text the search scorers match this meal on when it is not [name]:
+  /// a backend record's short title ("Egg" for "Egg, whole, raw"), or null
+  /// — Open Food Facts, custom meals, recipes, anything read back from the
+  /// database — when the name is the text to score.
+  ///
+  /// [name] is both what the row shows and what the scorers read, so when
+  /// #1164 changed backend records to show their full description it
+  /// changed their scoring with it, and the resolver's soft Dice charges
+  /// every extra token: on `egg`, "Egg, creamed" (two tokens) beat "Egg,
+  /// whole, raw" (three) and "Egg, whole, boiled or poached" (five), so the
+  /// portions tie-break that was to pick among the family was never
+  /// reached; on `rice`, "Bread, rice" and "Chips, rice" outscored "Rice,
+  /// cooked, NFS"; and `eggs` → "Egg, whole, raw" fell to 0.375, under the
+  /// resolver's confidence floor. Scoring the short title puts the siblings
+  /// back on equal terms — every "Egg" scores 1.0 on `egg` — and the
+  /// display change stays a display change.
+  ///
+  /// Not persisted, like [portions]: `MealDBO` has no column for it, and a
+  /// cached copy is scored by its name as before.
+  final String? searchTitle;
+
   /// Relative path (`meal_images/<code>.webp`) to a user-attached photo
   /// for a custom meal, or null if none is set. Resolved to an absolute
   /// path at render time via `MealImageStorage.absolutePath`. Always
@@ -146,6 +167,7 @@ class MealEntity extends Equatable {
     this.machineTranslatedName = false,
     this.servingSizeIsLocalized = false,
     this.portions = const [],
+    this.searchTitle,
     this.localImagePath,
     this.detailed = false,
   });
@@ -176,6 +198,7 @@ class MealEntity extends Equatable {
     machineTranslatedName: machineTranslatedName,
     servingSizeIsLocalized: true,
     portions: portions,
+    searchTitle: searchTitle,
     localImagePath: localImagePath,
     detailed: detailed,
   );
@@ -203,6 +226,7 @@ class MealEntity extends Equatable {
     machineTranslatedName: machineTranslatedName,
     servingSizeIsLocalized: servingSizeIsLocalized,
     portions: found,
+    searchTitle: searchTitle,
     localImagePath: localImagePath,
     detailed: detailed,
   );
@@ -335,6 +359,7 @@ class MealEntity extends Equatable {
       source: MealSourceEntity.fdc,
       backendSource: foodItem.source,
       machineTranslatedName: foodItem.displayNameIsMachineTranslated,
+      searchTitle: foodItem.searchTitle,
     );
   }
 
