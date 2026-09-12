@@ -17,6 +17,15 @@ class SpFoodDTO {
   final String? sourceCode;
   @JsonKey(name: SPConst.foodName)
   final String? name;
+
+  /// The view's concise English title ("Egg" for "Egg, yolk only, raw"),
+  /// parsed because it is a `food_summary` column but no longer shown
+  /// anywhere. It was the display name until #1164: 555 short titles
+  /// cover 4,215 of the 5,432 FDC survey records, so whole families of
+  /// distinct foods ("Egg, whole, raw", "Egg, yolk only, raw", "Egg,
+  /// creamed") reached the screen as one word and were indistinguishable
+  /// — and, once the near-duplicate collapse saw the same name, were folded
+  /// into one another and lost. See [displayName].
   @JsonKey(name: SPConst.foodShortTitle)
   final String? shortTitle;
   @JsonKey(name: SPConst.foodBrands)
@@ -101,9 +110,16 @@ class SpFoodDTO {
   @JsonKey(includeFromJson: false, includeToJson: false)
   bool localizedNameIsMachineTranslated = false;
 
-  /// Name to display: translation first, then the concise English short
-  /// title (which the view already coalesces to the full description).
-  String? get displayName => localizedName ?? shortTitle ?? name;
+  /// Name to display: the translation when there is one, else the full
+  /// English description.
+  ///
+  /// Not [shortTitle]. A survey record's siblings differ only past the
+  /// comma — "Egg, whole, raw" against "Egg, yolk only, raw" — so the
+  /// short form hid the one thing a reader picking between them needs to
+  /// see, and made same-named records look like duplicates to the search
+  /// ranker (#1164). A localized name is a full translated description
+  /// already, so it follows the same rule by construction.
+  String? get displayName => localizedName ?? name;
 
   /// Whether the name shown by [displayName] is a machine translation —
   /// only ever true when the localized name is actually the one displayed.
