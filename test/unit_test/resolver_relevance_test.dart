@@ -287,8 +287,10 @@ void main() {
     // A backend record shows its description and is scored on its title —
     // the description up to its first comma, `MealEntity.scoringName` — so
     // a family of siblings ties on the one-word query for it and the
-    // tie-break above is reached. Anything that is not a backend record —
-    // an OFF product, a custom meal — is scored on its name as before.
+    // tie-break above is reached. What follows the title is read only
+    // where the query names it (`MealEntity.scoringQualifiers`; the next
+    // group). Anything that is not a backend record — an OFF product, a
+    // custom meal — is scored on its name as before.
     test('a backend record scores as a record named by its title', () {
       final titled = meal(
         'Egg, whole, raw',
@@ -306,17 +308,21 @@ void main() {
       expect(scoreMealForResolution(titled, 'egg'), 1.0);
     });
 
-    test('the title is what is scored, not one input among two', () {
-      // The description is not consulted past its title: a record titled
-      // "Bread" scores nothing on `rice` although its description contains
-      // the word.
+    test('a qualifier the query does not name is never read', () {
+      // "Bread, rice" scores `bread` as a record called "Bread": the
+      // `rice` behind the title is not in the query and costs nothing,
+      // where the description scored whole would pay for it (0.667).
       final breadRice = meal(
         'Bread, rice',
         source: MealSourceEntity.fdc,
         portions: 5,
       );
 
-      expect(scoreMealForResolution(breadRice, 'rice'), 0.0);
+      expect(scoreMealForResolution(breadRice, 'bread'), 1.0);
+      expect(
+        scoreMealForResolution(meal('Bread rice'), 'bread'),
+        closeTo(0.667, 1e-3),
+      );
     });
 
     test('an OFF product has no title and scores exactly as before', () {
@@ -370,6 +376,118 @@ void main() {
         'Milk, NFS',
         'Milk, whole',
       ]);
+    });
+  });
+
+  group('a qualifier the query names joins the title (#1164)', () {
+    // Scored on the title alone, `dried apple` tied every "Apple" at 0.667
+    // and the portions key logged "Apple, raw" — the qualifier the user
+    // typed was the one thing the scorer could not see. A qualifier the
+    // query names is read off the description and scored with the title,
+    // so the record that carries it is the one that scores.
+    test('the named qualifier scores with the title', () {
+      final dried = meal(
+        'Apple, dried',
+        source: MealSourceEntity.fdc,
+        portions: 2,
+      );
+      final raw = meal('Apple, raw', source: MealSourceEntity.fdc, portions: 7);
+
+      // As a record called "Apple dried" scores: every token matched.
+      expect(scoreMealForResolution(dried, 'dried apple'), 1.0);
+      expect(
+        scoreMealForResolution(dried, 'dried apple'),
+        scoreMealForResolution(meal('Apple dried'), 'dried apple'),
+      );
+      // The sibling keeps the title-only score.
+      expect(scoreMealForResolution(raw, 'dried apple'), closeTo(0.667, 1e-3));
+    });
+
+    test('the tie-break is not reached on a qualified query', () {
+      // Seven portions to two, and the everyday form listed first: the
+      // keys that pick "Apple, raw" on `apple` never see `dried apple`.
+      final rows = [
+        meal('Apple, raw', source: MealSourceEntity.fdc, portions: 7),
+        meal('Apple, dried', source: MealSourceEntity.fdc, portions: 2),
+      ];
+
+      expect(
+        names(rankForResolution(rows, 'dried apple')).first,
+        'Apple, dried',
+      );
+      expect(names(rankForResolution(rows, 'apple')).first, 'Apple, raw');
+    });
+
+    test('the qualifier is matched as softly as the title', () {
+      // `yolks` agrees with `yolk` four letters in, as `eggs` does with
+      // `egg`: the same rule, so an inflected qualifier still names its
+      // record.
+      final yolk = meal(
+        'Egg, yolk only, raw',
+        source: MealSourceEntity.fdc,
+        portions: 2,
+      );
+      final whole = meal(
+        'Egg, whole, raw',
+        source: MealSourceEntity.fdc,
+        portions: 2,
+      );
+
+      expect(scoreMealForResolution(yolk, 'egg yolks'), closeTo(0.9, 1e-9));
+      expect(scoreMealForResolution(whole, 'egg yolks'), closeTo(0.667, 1e-3));
+    });
+
+    test('a qualifier the title already accounts for better stays out', () {
+      // On `rice`, "Puerto Rican" agrees with the query three letters in
+      // (0.6). Read as named it would join the scored text and cost the
+      // record 0.867 for a word the user never typed; the title accounts
+      // for `rice` at 1.0, so it stays out and the record ties its
+      // sibling on the title, as siblings should.
+      final variant = meal(
+        'Rice, white, cooked with fat, Puerto Rican style',
+        source: MealSourceEntity.fdc,
+        portions: 1,
+      );
+      final plain = meal(
+        'Rice, cooked, NFS',
+        source: MealSourceEntity.fdc,
+        portions: 1,
+      );
+
+      expect(scoreMealForResolution(variant, 'rice'), 1.0);
+      expect(
+        scoreMealForResolution(variant, 'rice'),
+        scoreMealForResolution(plain, 'rice'),
+      );
+    });
+
+    test('a qualifier alone scores as the same words in an OFF name', () {
+      // "Bread, rice" on `rice`: the title matches nothing and the named
+      // qualifier is the one token that does — 0.667, exactly what an OFF
+      // product called "Bread rice" gets, and under a plain "Rice" title.
+      final breadRice = meal(
+        'Bread, rice',
+        source: MealSourceEntity.fdc,
+        portions: 5,
+      );
+
+      expect(scoreMealForResolution(breadRice, 'rice'), closeTo(0.667, 1e-3));
+      expect(
+        scoreMealForResolution(breadRice, 'rice'),
+        scoreMealForResolution(meal('Bread rice'), 'rice'),
+      );
+      expect(scoreMealForResolution(breadRice, 'rice'), lessThan(1.0));
+      expect(scoreMealForResolution(breadRice, 'rice bread'), 1.0);
+    });
+
+    test('an OFF product has no qualifiers to name', () {
+      // The comma means nothing outside a backend record: "Apple, dried"
+      // as an OFF product name is scored whole, on any query.
+      final off = meal('Apple, dried');
+
+      expect(off.scoringQualifiers, isNull);
+      expect(scoreMealForResolution(off, 'dried apple'), 1.0);
+      expect(scoreMealForResolution(off, 'apple'), closeTo(0.667, 1e-3));
     });
   });
 

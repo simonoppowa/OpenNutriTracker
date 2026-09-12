@@ -31,6 +31,8 @@ MealEntity meal(
 /// persisted. The backend's `short_title` column measured equal to the
 /// name up to its first comma on every FDC row and 7,135 of 7,140 BLS
 /// rows, so the fixtures' real titles are what the derivation is held to.
+/// `MealEntity.scoringQualifiers` is the rest of the same name, which the
+/// scorers read only where the query names one of its words.
 void main() {
   group('the derived title equals the backend short title', () {
     test('on every fixture row', () {
@@ -111,11 +113,60 @@ void main() {
     });
   });
 
+  group('the qualifiers are the rest of the name', () {
+    test(
+      'title and qualifiers together are the name, on every fixture row',
+      () {
+        // The split is at the first comma and nothing is lost to it: put
+        // back together with the ", " the backend writes, the two are the
+        // description again. A row with no comma has no qualifiers.
+        for (final record in BackendSiblingFixtures.all) {
+          final qualifiers = record.scoringQualifiers;
+          expect(
+            qualifiers == null
+                ? record.scoringName
+                : '${record.scoringName}, $qualifiers',
+            record.name,
+            reason: record.name,
+          );
+        }
+        expect(
+          BackendSiblingFixtures.eggWholeRaw.scoringQualifiers,
+          'whole, raw',
+        );
+        expect(
+          BackendSiblingFixtures.chickenBreastBaked.scoringQualifiers,
+          'baked, broiled, or roasted, skin not eaten, from raw',
+        );
+        expect(BackendSiblingFixtures.orangeJuiceBls.scoringQualifiers, isNull);
+      },
+    );
+
+    test('a comma with nothing after it leaves no qualifiers', () {
+      expect(meal('Egg,').scoringQualifiers, isNull);
+      expect(meal('Egg, ').scoringQualifiers, isNull);
+      expect(meal('Egg,').scoringName, 'Egg');
+    });
+
+    test('a name that is not split has no qualifiers', () {
+      // Where the title falls back to the whole name, nothing is left over
+      // to read past it — the two getters split the same way or not at all.
+      expect(meal(', whole, raw').scoringQualifiers, isNull);
+      expect(meal('Orange juice').scoringQualifiers, isNull);
+      expect(meal(null).scoringQualifiers, isNull);
+    });
+
+    test('the qualifiers are trimmed', () {
+      expect(meal('Egg ,  whole, raw ').scoringQualifiers, 'whole, raw');
+    });
+  });
+
   group('backend records only', () {
     test('an OFF product\'s scoring name is its full name', () {
       final off = meal('Egg, whole, raw', source: MealSourceEntity.off);
 
       expect(off.scoringName, 'Egg, whole, raw');
+      expect(off.scoringQualifiers, isNull);
       // Which is what an OFF product has always been scored on: the three
       // tokens cost it against `eggs` where a backend twin pays nothing.
       expect(scoreMealForResolution(off, 'eggs'), closeTo(0.375, 1e-9));
@@ -136,6 +187,11 @@ void main() {
           'Soup, my own',
           reason: source.name,
         );
+        expect(
+          meal('Soup, my own', source: source).scoringQualifiers,
+          isNull,
+          reason: source.name,
+        );
       }
     });
   });
@@ -152,6 +208,7 @@ void main() {
       expect(cached.name, fresh.name);
       expect(cached.scoringName, 'Egg');
       expect(cached.scoringName, fresh.scoringName);
+      expect(cached.scoringQualifiers, fresh.scoringQualifiers);
       expect(cached.portions, isEmpty);
 
       // The shared ranker sees only the title: identical.

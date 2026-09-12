@@ -136,6 +136,13 @@ double _tokenSimilarity(String a, String b) {
   return shared / longer;
 }
 
+/// [token]'s best agreement with any of [against]; 0.0 when there is none.
+double _bestAgreement(String token, Set<String> against) =>
+    against.fold(0.0, (best, other) {
+      final similarity = _tokenSimilarity(token, other);
+      return similarity > best ? similarity : best;
+    });
+
 /// Soft Dice: every token on each side contributes its best agreement with
 /// the other side, over the total token count.
 ///
@@ -149,12 +156,7 @@ double _softDice(Set<String> textTokens, Set<String> queryTokens) {
 
   double bestSum(Set<String> from, Set<String> against) => from.fold(
     0.0,
-    (sum, token) =>
-        sum +
-        against.fold<double>(0.0, (best, other) {
-          final similarity = _tokenSimilarity(token, other);
-          return similarity > best ? similarity : best;
-        }),
+    (sum, token) => sum + _bestAgreement(token, against),
   );
 
   final matched =
@@ -176,16 +178,62 @@ double _textScore(String? text, Set<String> queryTokens) {
   return _softDice(_tokenize(normalized), queryTokens);
 }
 
+/// The qualifier tokens the query names: each one that some query token
+/// agrees with better than it agrees with any title token.
+///
+/// "Better than the title", not merely "at all", because the soft
+/// agreement reaches three letters in: on `rice`, "Puerto Rican" agrees
+/// with the query at 0.6 through `ric`, and read as named it would join
+/// the scored text and cost its record — 0.867 against the plain record's
+/// 1.0 — for a word the user never typed. The title already accounts for
+/// `rice` at 1.0, so the qualifier stays out and the two records tie on
+/// the title, as siblings should.
+Set<String> _namedQualifiers(
+  Set<String> titleTokens,
+  Set<String> qualifierTokens,
+  Set<String> queryTokens,
+) => {
+  for (final qualifier in qualifierTokens)
+    if (queryTokens.any(
+      (token) =>
+          _tokenSimilarity(token, qualifier) >
+          _bestAgreement(token, titleTokens),
+    ))
+      qualifier,
+};
+
+/// [meal]'s name score: its title's tokens, plus whichever of its
+/// qualifiers the query names (see [_namedQualifiers]), against the query.
+/// A meal with no title (`MealEntity.scoringName`) scores nothing here,
+/// as a meal with no name always did.
+double _nameScore(MealEntity meal, Set<String> queryTokens) {
+  final titleTokens = _tokenize(_normalize(meal.scoringName));
+  if (titleTokens.isEmpty) return 0.0;
+  final qualifierTokens = _tokenize(_normalize(meal.scoringQualifiers));
+  return _softDice({
+    ...titleTokens,
+    ..._namedQualifiers(titleTokens, qualifierTokens, queryTokens),
+  }, queryTokens);
+}
+
 /// Scores [meal] against [query] on a 0.0-1.0 scale, tolerant of
 /// inflectional suffixes. Brand-only matches count for less than the same
 /// match on the name, as in the shared ranker.
 ///
 /// As in the shared ranker, a backend record is scored on its title
-/// rather than the description it shows (`MealEntity.scoringName`). Here
-/// that is what makes the tie-break in [_sorted] reachable at all: every
-/// token past the one that matched costs, so scored on descriptions "Egg,
-/// creamed" (two tokens) beat "Egg, whole, boiled or poached" (five) on
-/// `egg` outright, and the portions key never saw the family (#1164).
+/// rather than the description it shows (`MealEntity.scoringName`), plus
+/// whichever of its qualifiers the query names. The title is what makes
+/// the tie-break in [_sorted] reachable at all: every token past the one
+/// that matched costs, so scored on descriptions "Egg, creamed" (two
+/// tokens) beat "Egg, whole, boiled or poached" (five) on `egg` outright,
+/// and the portions key never saw the family (#1164). The named
+/// qualifiers are what keep the tie-break out of a query that has already
+/// chosen: on `dried apple` the title alone scored every "Apple" at
+/// 0.667 and the portions key logged "Apple, raw"; with `dried` read off
+/// "Apple, dried" that record is 1.0 and its siblings stay at 0.667. The
+/// soft agreement covers the qualifier too — `egg yolks` reads `yolk` —
+/// and a qualifier the query does not name is never read, so a title
+/// that scores 1.0 still scores 1.0 whatever follows it.
 ///
 /// Unlike the shared ranker, a backend record with no labelled portion
 /// loses [_noPortionsPenalty] — see there for why this is the only place.
@@ -193,7 +241,7 @@ double scoreMealForResolution(MealEntity meal, String query) {
   final queryTokens = _tokenize(_normalize(query));
   if (queryTokens.isEmpty) return 0.0;
 
-  final nameScore = _textScore(meal.scoringName, queryTokens);
+  final nameScore = _nameScore(meal, queryTokens);
   final brandScore = _textScore(meal.brands, queryTokens);
   var score = nameScore >= brandScore ? nameScore : brandScore * 0.6;
 
@@ -236,12 +284,15 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// Highest score first; among equal scores, most labelled portions first,
 /// then the shortest name; stable after that.
 ///
-/// The tie-break exists because the text score cannot tell siblings apart.
-/// Backend records are scored on their title (#1164), and a family of FDC
-/// survey records — "Apple, raw", "Apple, dried", "Apple, baked", all
-/// titled "Apple" — scores identically on the query `apple`, so whichever
-/// the pool happened to list first was logged. The resolver auto-selects,
-/// so that order has to mean something.
+/// The tie-break exists because the text score cannot tell siblings apart
+/// on a query that names only their family. Backend records are scored on
+/// their title (#1164), and a family of FDC survey records — "Apple, raw",
+/// "Apple, dried", "Apple, baked", all titled "Apple" — scores identically
+/// on the query `apple`, so whichever the pool happened to list first was
+/// logged. The resolver auto-selects, so that order has to mean something.
+/// A query that names a qualifier — `dried apple` — is not a tie: the
+/// record carrying it scores above its siblings and the keys are never
+/// consulted (see [scoreMealForResolution]).
 ///
 /// "Most labelled portions" is the data-driven proxy for the canonical
 /// record: FNDDS gives its everyday form the most ways to count it, and no
@@ -261,16 +312,19 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// miss does not form: each carries one deliverable portion, so the tie
 /// falls through to name length and the plain record's 17 characters beat
 /// the variant's 48. "Bread, rice" and "Chips, rice" are in the live pool
-/// too, and scored on their titles ("Bread", "Chips") they score nothing
-/// on `rice`; scored on their descriptions they were two-token names that
-/// outscored the three-token plain record, which is the miss the title
-/// scoring removed. The proxy's known counterexample went the same way:
-/// "Pie, apple" (8 portions) took the tie from "Apple, raw" (7) on the
-/// live pool while descriptions were scored, and titled "Pie" it scores
-/// nothing on `apple`. What the keys cannot do is see past the title: a
-/// same-titled sibling with more portions than the everyday form takes
-/// the tie, and that is a matter for the decision, not for this sort; the
-/// review screen is where the plain record is one tap away.
+/// too, titled "Bread" and "Chips"; the query names the `rice` they carry
+/// past the title, so they score 0.667 on it — what an OFF product called
+/// "Bread rice" scores — and never tie the plain record's 1.0. Scored on
+/// their descriptions they were two-token names that outscored the
+/// three-token plain record, which is the miss the title scoring removed.
+/// The proxy's known counterexample went the same way: "Pie, apple" (8
+/// portions) took the tie from "Apple, raw" (7) on the live pool while
+/// descriptions were scored, and titled "Pie" it scores 0.667 on `apple`
+/// under the plain record's 1.0. What the keys cannot do is see past the
+/// query: on `apple` a same-titled sibling with more portions than the
+/// everyday form takes the tie, and that is a matter for the decision,
+/// not for this sort; the review screen is where the plain record is one
+/// tap away.
 ///
 /// Every record that is not a fresh backend result has no portions, so
 /// among OFF products or cached meals the portions key is always a tie and

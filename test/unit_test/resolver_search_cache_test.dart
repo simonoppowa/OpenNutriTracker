@@ -216,6 +216,43 @@ void main() {
 
       expect(resolved.selected!.name, 'Bread, white');
     });
+
+    test('dried apple resolves to Apple, dried, cold cache and warm', () async {
+      // The review's probe of the title-only revision, on this path: with
+      // the page in the data source's description-ranked order, every
+      // "Apple" tied at 0.667 and the portions key logged "Apple, raw" at
+      // 0.667, not flagged. The qualifier the query names is read off the
+      // description, which the cache keeps, so both searches land on the
+      // record the user typed.
+      repository.fdc['dried apple'] = [
+        BackendSiblingFixtures.appleRaw,
+        BackendSiblingFixtures.appleDried,
+        BackendSiblingFixtures.appleBaked,
+      ];
+
+      final first = await resolveOne('dried apple');
+      final second = await resolveOne('dried apple');
+
+      for (final resolved in [first, second]) {
+        expect(resolved.selected!.name, 'Apple, dried');
+        expect(resolved.confidence, 1.0);
+        expect(resolved.isLowConfidence, isFalse);
+        expect(resolved.candidates.map((m) => m.name).skip(1), [
+          'Apple, raw',
+          'Apple, baked',
+        ]);
+      }
+    });
+
+    test('rye bread resolves to Bread, rye on a warm cache', () async {
+      repository.fdc['rye bread'] = BackendSiblingFixtures.bread;
+
+      await resolveOne('rye bread');
+      final resolved = await resolveOne('rye bread');
+
+      expect(resolved.selected!.name, 'Bread, rye');
+      expect(resolved.confidence, 1.0);
+    });
   });
 
   group('a record held only in the cache', () {

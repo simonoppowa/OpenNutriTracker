@@ -17,8 +17,9 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_en
 /// deliverable count is the one the tie-break sees.
 ///
 /// The short title is not on the entity: `MealEntity.scoringName` derives
-/// it from the description, and [shortTitleOf] keeps the column's value
-/// beside each row so a test can hold the derivation to it.
+/// it from the description (and `scoringQualifiers` the rest), and
+/// [shortTitleOf] keeps the column's value beside each row so a test can
+/// hold the derivation to it.
 ///
 /// Each family is a set of survey siblings under one short title, so they
 /// score identically on the one-word query for it, which is exactly the
@@ -259,11 +260,12 @@ class BackendSiblingFixtures {
   static List<MealEntity> get rice => [ricePuertoRican, riceCookedNfs];
 
   /// Two records that tie the resolver's every key on the query `rice`:
-  /// titled "Bread" and "Chips", so both score nothing, and then five
-  /// deliverable portions and eleven characters each. Both are in the live
-  /// 100-row pool for that query, and while they were scored on their
-  /// descriptions both outscored "Rice, cooked, NFS" there (two tokens
-  /// against three) — see the determinism test and the rice test.
+  /// titled "Bread" and "Chips" with `rice` behind each, so 0.667 apiece
+  /// — under a "Rice" title's 1.0 — and then five deliverable portions and
+  /// eleven characters each. Both are in the live 100-row pool for that
+  /// query, and while they were scored on their descriptions both
+  /// outscored "Rice, cooked, NFS" there (two tokens against three) — see
+  /// the determinism test and the rice test.
   static final breadRice = _record(
     2707794,
     'Bread, rice',

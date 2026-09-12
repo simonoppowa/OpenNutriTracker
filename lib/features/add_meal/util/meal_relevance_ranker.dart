@@ -16,13 +16,21 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 /// A backend record is scored on its title, not on the description it
 /// shows (`MealEntity.scoringName`, #1164): "Egg, whole, raw" and "Egg,
 /// yolk only, raw" both score as "Egg", the way they did while that was
-/// their name. Everything else has no title apart from its name and is
-/// scored as before.
+/// their name. A qualifier the query names joins the title
+/// (`MealEntity.scoringQualifiers`): on `whole milk`, "Milk, whole" scores
+/// as "Milk whole" — 0.9, the cap — and "Milk, NFS" as "Milk", 0.667, so
+/// the record the user asked for is first by score and not by whichever
+/// order the list arrived in. Everything else has no title apart from its
+/// name and is scored as before.
 double scoreMealRelevance(MealEntity meal, String query) {
   final normalizedQuery = _normalize(query);
   if (normalizedQuery.isEmpty) return 0.0;
 
-  final nameScore = _textScore(meal.scoringName, normalizedQuery);
+  final nameScore = _textScore(
+    meal.scoringName,
+    normalizedQuery,
+    qualifiers: meal.scoringQualifiers,
+  );
   final brandScore = _textScore(meal.brands, normalizedQuery);
   // Brand-only matches (e.g. searching "nestle") still surface the product,
   // but count for less than the same match on the name itself.
@@ -184,13 +192,25 @@ double textRelevanceScore(String? text, String query) {
   return _textScore(text, normalizedQuery);
 }
 
-double _textScore(String? text, String normalizedQuery) {
+/// [qualifiers] is a backend record's text past its title. Only the tokens
+/// of it that the query contains are scored — as part of the token overlap,
+/// never the contains/prefix bonuses, which read the title as before — so
+/// an unnamed qualifier costs nothing and a named one counts for the
+/// record that carries it.
+double _textScore(
+  String? text,
+  String normalizedQuery, {
+  String? qualifiers,
+}) {
   final normalizedText = _normalize(text);
   if (normalizedText.isEmpty) return 0.0;
   if (normalizedText == normalizedQuery) return 1.0;
 
-  final textTokens = _tokenize(normalizedText);
   final queryTokens = _tokenize(normalizedQuery);
+  final textTokens = {
+    ..._tokenize(normalizedText),
+    ..._tokenize(_normalize(qualifiers)).intersection(queryTokens),
+  };
   final overlap = _diceCoefficient(textTokens, queryTokens);
 
   final containsBonus = normalizedText.contains(normalizedQuery) ? 0.2 : 0.0;

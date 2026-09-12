@@ -18,9 +18,14 @@ import '../fixture/backend_sibling_fixtures.dart';
 /// revision of this branch scored the description that is shown and pinned
 /// what that measured — "Egg, creamed" on `egg`, BLS "Orange juice" ahead
 /// of the survey record — because fewer tokens beat the tie-break to it.
-/// The path is the resolver's own: `mergeAndRankMeals` over the two source
-/// lists, then `rankForResolution`, exactly as `ResolveParsedMealsUseCase`
-/// does it.
+/// The revision after scored the title and nothing else, and every query
+/// here was a bare title, so nothing showed that `dried apple` tied the
+/// family too and the portions key logged "Apple, raw": the qualifier the
+/// user typed was the one thing the scorer could not see. A qualifier the
+/// query names now joins the title (`MealEntity.scoringQualifiers`), and
+/// the last group pins that. The path is the resolver's own:
+/// `mergeAndRankMeals` over the two source lists, then
+/// `rankForResolution`, exactly as `ResolveParsedMealsUseCase` does it.
 List<MealEntity> resolve(
   String query, {
   List<MealEntity> off = const [],
@@ -256,11 +261,14 @@ void main() {
       );
     });
 
-    test('Bread, rice and Chips, rice score nothing on rice', () {
+    test('Bread, rice and Chips, rice stay under the plain record on rice', () {
       // Both are in the live pool for "rice", and scored on their
       // descriptions they outscored the plain record — two tokens against
       // three, a miss no tie-break could reach. Their titles are "Bread"
-      // and "Chips", and on those the query matches nothing.
+      // and "Chips", which the query matches nothing of; the `rice` they
+      // carry past the title is named by the query and counts, so each
+      // scores 0.667 — what an OFF product called "Bread rice" scores —
+      // and the plain record's exact title, 1.0, is never tied.
       final pool = [
         BackendSiblingFixtures.breadRice,
         BackendSiblingFixtures.chipsRice,
@@ -269,11 +277,15 @@ void main() {
 
       expect(
         scoreMealForResolution(BackendSiblingFixtures.breadRice, 'rice'),
-        0.0,
+        closeTo(0.667, 1e-3),
       );
       expect(
         scoreMealForResolution(BackendSiblingFixtures.chipsRice, 'rice'),
-        0.0,
+        closeTo(0.667, 1e-3),
+      );
+      expect(
+        scoreMealForResolution(BackendSiblingFixtures.riceCookedNfs, 'rice'),
+        1.0,
       );
       expect(names(resolve('rice', backend: pool)).first, 'Rice, cooked, NFS');
       expect(names(resolve('rice', backend: pool)).sublist(2), [
@@ -385,9 +397,9 @@ void main() {
 
     test('rankForResolution is stable when every key ties', () {
       // Two real survey records that tie on all three keys for "rice":
-      // titled "Bread" and "Chips", so a score of zero each, then five
-      // deliverable portions each and eleven characters each. What is left
-      // is the order they came in. (Two records cannot
+      // titled "Bread" and "Chips" with `rice` behind each, so 0.667 each,
+      // then five deliverable portions each and eleven characters each.
+      // What is left is the order they came in. (Two records cannot
       // tell a stable sort from an unstable one — Dart insertion-sorts
       // short lists — so the forty-record case in resolver_relevance_test
       // is what pins the algorithm; this one pins the real rows.)
@@ -402,6 +414,198 @@ void main() {
         'Chips, rice',
         'Bread, rice',
       ]);
+    });
+  });
+
+  group('a qualifier in the query picks the sibling that carries it', () {
+    // The review's finding against the title-only revision: on a qualified
+    // query every sibling tied on the title and the portions key logged the
+    // everyday form — `dried apple` → "Apple, raw" at 0.667, not flagged,
+    // and dried apple is some four times the kcal of raw. The pools are
+    // listed with the everyday form first so that neither the input order
+    // nor the portions key can be what picks the winner.
+    test(
+      'dried apple resolves to Apple, dried over the most-portioned raw',
+      () {
+        final ranked = resolve(
+          'dried apple',
+          backend: [
+            BackendSiblingFixtures.appleRaw,
+            BackendSiblingFixtures.appleDried,
+            BackendSiblingFixtures.appleBaked,
+          ],
+        );
+
+        expect(names(ranked).first, 'Apple, dried');
+        expect(
+          scoreMealForResolution(
+            BackendSiblingFixtures.appleDried,
+            'dried apple',
+          ),
+          1.0,
+        );
+        // The siblings keep the title-only score: the qualifier they carry is
+        // not the one named, and costs them nothing either.
+        expect(
+          scoreMealForResolution(
+            BackendSiblingFixtures.appleRaw,
+            'dried apple',
+          ),
+          closeTo(0.667, 1e-3),
+        );
+        expect(
+          scoreMealForResolution(
+            BackendSiblingFixtures.appleBaked,
+            'dried apple',
+          ),
+          closeTo(0.667, 1e-3),
+        );
+      },
+    );
+
+    test('rye bread resolves to Bread, rye over the most-portioned white', () {
+      // White carries 7 deliverable portions to rye's 5 and won `bread`
+      // on them; on `rye bread` the portions are never consulted.
+      final ranked = resolve(
+        'rye bread',
+        backend: [
+          BackendSiblingFixtures.breadWhite,
+          BackendSiblingFixtures.breadRye,
+        ],
+      );
+
+      expect(names(ranked), ['Bread, rye', 'Bread, white']);
+    });
+
+    test('egg yolk resolves to the yolk record, not the boiled egg', () {
+      final ranked = resolve(
+        'egg yolk',
+        backend: [
+          BackendSiblingFixtures.eggWholeBoiledOrPoached,
+          BackendSiblingFixtures.eggWholeRaw,
+          BackendSiblingFixtures.eggCreamed,
+          BackendSiblingFixtures.eggYolkOnlyRaw,
+        ],
+      );
+
+      expect(names(ranked).first, 'Egg, yolk only, raw');
+      expect(
+        scoreMealForResolution(
+          BackendSiblingFixtures.eggYolkOnlyRaw,
+          'egg yolk',
+        ),
+        1.0,
+      );
+      expect(
+        scoreMealForResolution(
+          BackendSiblingFixtures.eggWholeBoiledOrPoached,
+          'egg yolk',
+        ),
+        closeTo(0.667, 1e-3),
+      );
+    });
+
+    test('the qualifier is matched as softly as the title: egg yolks', () {
+      // `yolks` agrees with `yolk` four letters in, the way `eggs` agrees
+      // with `Egg`, so the yolk record is still the one picked and still
+      // clears the floor by a distance.
+      final ranked = resolve(
+        'egg yolks',
+        backend: [
+          BackendSiblingFixtures.eggWholeBoiledOrPoached,
+          BackendSiblingFixtures.eggWholeRaw,
+          BackendSiblingFixtures.eggCreamed,
+          BackendSiblingFixtures.eggYolkOnlyRaw,
+        ],
+      );
+
+      expect(names(ranked).first, 'Egg, yolk only, raw');
+      expect(
+        scoreMealForResolution(
+          BackendSiblingFixtures.eggYolkOnlyRaw,
+          'egg yolks',
+        ),
+        closeTo(0.9, 1e-9),
+      );
+    });
+
+    test('baked banana, whole milk and rotisserie chicken breast', () {
+      expect(
+        names(
+          resolve(
+            'baked banana',
+            backend: [
+              BackendSiblingFixtures.bananaRaw,
+              BackendSiblingFixtures.bananaBaked,
+            ],
+          ),
+        ).first,
+        'Banana, baked',
+      );
+      expect(
+        names(
+          resolve(
+            'whole milk',
+            backend: [
+              BackendSiblingFixtures.milkNfs,
+              BackendSiblingFixtures.milkWhole,
+              BackendSiblingFixtures.milkHuman,
+            ],
+          ),
+        ).first,
+        'Milk, whole',
+      );
+      // Baked carries 9 deliverable portions to rotisserie's 7 and won
+      // `chicken breast` on them.
+      expect(
+        names(
+          resolve(
+            'chicken breast rotisserie',
+            backend: [
+              BackendSiblingFixtures.chickenBreastBaked,
+              BackendSiblingFixtures.chickenBreastNsCookingMethod,
+              BackendSiblingFixtures.chickenBreastRotisserie,
+              BackendSiblingFixtures.chickenBreastRollSrLegacy,
+            ],
+          ),
+        ).first,
+        'Chicken breast, rotisserie, skin eaten',
+      );
+    });
+
+    test('a qualifier alone finds the record that carries it', () {
+      // `yolk` names no family. The yolk record scores it as the OFF
+      // product "Egg yolk" would, 0.667, and its siblings nothing at all.
+      final ranked = resolve('yolk', backend: BackendSiblingFixtures.egg);
+
+      expect(names(ranked).first, 'Egg, yolk only, raw');
+      expect(
+        scoreMealForResolution(BackendSiblingFixtures.eggYolkOnlyRaw, 'yolk'),
+        closeTo(0.667, 1e-3),
+      );
+      expect(
+        scoreMealForResolution(BackendSiblingFixtures.eggWholeRaw, 'yolk'),
+        0.0,
+      );
+    });
+
+    test('the Food tab puts the named sibling first by score too', () {
+      // The shared ranker is a stable sort, so on the title alone the two
+      // tied at 0.667 and the list order — the cache's, on a warm cache —
+      // decided. Now "Milk, whole" is scored as "Milk whole", the 0.9 cap,
+      // and goes first from either input order.
+      final nfs = BackendSiblingFixtures.milkNfs;
+      final whole = BackendSiblingFixtures.milkWhole;
+
+      expect(scoreMealRelevance(whole, 'whole milk'), closeTo(0.9, 1e-9));
+      expect(scoreMealRelevance(nfs, 'whole milk'), closeTo(0.667, 1e-3));
+      expect(
+        names(rankMealsByRelevance([nfs, whole], 'whole milk')).first,
+        'Milk, whole',
+      );
+      // And on the bare title the two still tie at 1.0, as pinned above.
+      expect(scoreMealRelevance(whole, 'milk'), 1.0);
+      expect(scoreMealRelevance(nfs, 'milk'), 1.0);
     });
   });
 }

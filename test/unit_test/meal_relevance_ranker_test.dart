@@ -147,6 +147,38 @@ void main() {
       // dice 0.667 + contains 0.2 + prefix 0.15, capped at 0.9
       expect(scoreMealRelevance(off, 'egg'), closeTo(0.9, 1e-9));
     });
+
+    // #1164 review: scored on the title alone, `whole milk` tied "Milk,
+    // whole" and "Milk, NFS" at 0.667 and the list order decided. A
+    // qualifier the query names joins the title; one it does not is never
+    // read.
+    test('scores a qualifier the query names with the title', () {
+      final whole = _meal(name: 'Milk, whole', source: MealSourceEntity.fdc);
+      final nfs = _meal(name: 'Milk, NFS', source: MealSourceEntity.fdc);
+
+      expect(whole.scoringQualifiers, 'whole');
+      // As "Milk whole": dice 1.0, no contains or prefix on the title, so
+      // the 0.9 cap — the score an OFF product "Milk, whole" gets too.
+      expect(scoreMealRelevance(whole, 'whole milk'), closeTo(0.9, 1e-9));
+      expect(
+        scoreMealRelevance(whole, 'whole milk'),
+        scoreMealRelevance(_meal(name: 'Milk, whole'), 'whole milk'),
+      );
+      // The sibling is scored on its title: "Milk" against two tokens.
+      expect(scoreMealRelevance(nfs, 'whole milk'), closeTo(2 / 3, 1e-9));
+      // And on the bare title both are exact.
+      expect(scoreMealRelevance(whole, 'milk'), 1.0);
+      expect(scoreMealRelevance(nfs, 'milk'), 1.0);
+    });
+
+    test('the named qualifier is matched exactly, like every token here', () {
+      // This ranker's Dice is over exact tokens — `eggs` scores nothing on
+      // `Egg` — and the qualifier is held to the same rule.
+      final yolk = _meal(name: 'Egg, yolk only, raw', source: MealSourceEntity.fdc);
+
+      expect(scoreMealRelevance(yolk, 'egg yolk'), closeTo(0.9, 1e-9));
+      expect(scoreMealRelevance(yolk, 'egg yolks'), closeTo(2 / 3, 1e-9));
+    });
   });
 
   group('rankMealsByRelevance', () {
@@ -190,6 +222,17 @@ void main() {
       final ranked = rankMealsByRelevance([noodles, wholeRaw], 'egg');
 
       expect(ranked.map((m) => m.name), ['Egg, whole, raw', 'Egg noodles']);
+    });
+
+    test('ranks the sibling whose qualifier the query names first (#1164)', () {
+      // Listed after its sibling, so that a tie — which the stable sort
+      // would leave in this order — is told apart from a win by score.
+      final nfs = _meal(name: 'Milk, NFS', code: '2705384', source: MealSourceEntity.fdc);
+      final whole = _meal(name: 'Milk, whole', code: '2705385', source: MealSourceEntity.fdc);
+
+      final ranked = rankMealsByRelevance([nfs, whole], 'whole milk');
+
+      expect(ranked.map((m) => m.name), ['Milk, whole', 'Milk, NFS']);
     });
   });
 

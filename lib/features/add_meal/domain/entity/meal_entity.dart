@@ -130,7 +130,9 @@ class MealEntity extends Equatable {
 
   /// The text the search scorers match this meal on: for a backend record
   /// the [name] up to its first comma — "Egg" for "Egg, whole, raw" — and
-  /// for everything else the name itself.
+  /// for everything else the name itself. What follows the comma is
+  /// [scoringQualifiers], which the scorers read only where the query
+  /// names one.
   ///
   /// [name] is both what the row shows and what the scorers read, so when
   /// #1164 changed backend records to show their full description it
@@ -165,12 +167,41 @@ class MealEntity extends Equatable {
   /// comma is its own title, and a name with nothing before the comma
   /// falls back to the whole name rather than to an empty string.
   String? get scoringName {
+    final end = _titleEnd;
+    return end < 0 ? name : name!.substring(0, end).trim();
+  }
+
+  /// What follows the title in a backend record's [name] — "whole, raw"
+  /// for "Egg, whole, raw" — and null for everything else: a meal from any
+  /// other source, a backend name with no comma, or nothing after it.
+  ///
+  /// The scorers read these the opposite way from the title. The title is
+  /// scored whole, so a qualifier the query does not mention costs its
+  /// record nothing — that is what puts a family of siblings on equal
+  /// terms on `egg`. A qualifier the query *does* mention joins the scored
+  /// text, so `dried apple` scores "Apple, dried" as a record called
+  /// "Apple dried" and its siblings as "Apple": 1.0 against 0.667. Scored
+  /// on the title alone, the three tied at 0.667 and the portions
+  /// tie-break logged "Apple, raw" — the qualifier the user typed was the
+  /// one thing the scorers could not see (#1164 review). Which mention
+  /// counts is each scorer's own rule: see `scoreMealRelevance` and
+  /// `scoreMealForResolution`.
+  String? get scoringQualifiers {
+    final end = _titleEnd;
+    if (end < 0) return null;
+    final rest = name!.substring(end + 1).trim();
+    return rest.isEmpty ? null : rest;
+  }
+
+  /// Index in [name] of the comma that ends a backend record's title, or
+  /// -1 when the name is not split at all: not a backend record, no comma,
+  /// or nothing before it.
+  int get _titleEnd {
     final text = name;
-    if (text == null || source != MealSourceEntity.fdc) return text;
+    if (text == null || source != MealSourceEntity.fdc) return -1;
     final comma = text.indexOf(',');
-    if (comma < 0) return text;
-    final title = text.substring(0, comma).trim();
-    return title.isEmpty ? text : title;
+    if (comma < 0 || text.substring(0, comma).trim().isEmpty) return -1;
+    return comma;
   }
 
   const MealEntity({

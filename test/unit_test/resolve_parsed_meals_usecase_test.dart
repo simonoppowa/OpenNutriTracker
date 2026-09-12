@@ -354,6 +354,61 @@ void main() {
       ]);
     });
 
+    test(
+      'dried apple auto-selects Apple, dried, not the most-portioned',
+      () async {
+        // The review's finding against the title-only revision, through the
+        // use case: every "Apple" tied at 0.667 on the title, the portions
+        // key picked "Apple, raw" (7 to 2), and at 0.667 nothing flagged it
+        // — a silently wrong food at a quarter of the kcal. The page is
+        // listed everyday-form first so the input order cannot be what picks
+        // the winner either.
+        final search = _FakeSearch(
+          supabase: {
+            'dried apple': [
+              BackendSiblingFixtures.appleRaw,
+              BackendSiblingFixtures.appleDried,
+              BackendSiblingFixtures.appleBaked,
+            ],
+          },
+        );
+
+        final resolved = await ResolveParsedMealsUseCase(
+          search,
+        ).resolve([item('dried apple', quantity: 30, unit: 'g')]);
+
+        expect(resolved.single.selected!.name, 'Apple, dried');
+        expect(resolved.single.confidence, 1.0);
+        expect(resolved.single.isLowConfidence, isFalse);
+        expect(resolved.single.candidates.map((m) => m.name), [
+          'Apple, dried',
+          'Apple, raw',
+          'Apple, baked',
+        ]);
+      },
+    );
+
+    test('egg yolk auto-selects the yolk record over the boiled egg', () async {
+      final search = _FakeSearch(
+        supabase: {
+          'egg yolk': [
+            BackendSiblingFixtures.eggWholeBoiledOrPoached,
+            BackendSiblingFixtures.eggWholeRaw,
+            BackendSiblingFixtures.eggCreamed,
+            BackendSiblingFixtures.eggYolkOnlyRaw,
+          ],
+        },
+      );
+
+      final resolved = await ResolveParsedMealsUseCase(
+        search,
+      ).resolve([item('egg yolk', quantity: 2)]);
+
+      expect(resolved.single.selected!.name, 'Egg, yolk only, raw');
+      expect(resolved.single.confidence, 1.0);
+      expect(resolved.single.candidates, hasLength(4));
+    });
+
     test('the confidence reported is the penalised score', () async {
       // The selected candidate's score is what the review screen shows;
       // for a portionless backend record that is the score after the

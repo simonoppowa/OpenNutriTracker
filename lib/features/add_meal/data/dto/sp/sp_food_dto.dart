@@ -26,9 +26,10 @@ class SpFoodDTO {
   /// one word and were indistinguishable, and, once the near-duplicate
   /// collapse saw the same name, were folded into one another and lost
   /// (see [displayName]) — and the scorers, which still match on the
-  /// title, derive it from the description instead
-  /// (`MealEntity.scoringName`), the column being that derivation on every
-  /// row measured.
+  /// title and read past it only where the query names a qualifier,
+  /// derive both from the description instead (`MealEntity.scoringName`,
+  /// `scoringQualifiers`), the column being that derivation on every row
+  /// measured.
   @JsonKey(name: SPConst.foodShortTitle)
   final String? shortTitle;
   @JsonKey(name: SPConst.foodBrands)
@@ -122,9 +123,10 @@ class SpFoodDTO {
   /// see, and made same-named records look like duplicates to the search
   /// ranker (#1164). A localized name is a full translated description
   /// already, so it follows the same rule by construction — and the
-  /// scorers, which match on the title rather than the description,
-  /// derive it from whichever of the two this returns
-  /// (`MealEntity.scoringName`), so a translated row is scored in its own
+  /// scorers, which match on the title and on the qualifiers the query
+  /// names rather than on the whole description, derive both from
+  /// whichever of the two this returns (`MealEntity.scoringName`,
+  /// `scoringQualifiers`), so a translated row is scored in its own
   /// language, as it was.
   String? get displayName => localizedName ?? name;
 
