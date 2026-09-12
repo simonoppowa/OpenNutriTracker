@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
@@ -88,30 +86,11 @@ void main() {
     });
   });
 
-  group('SpFoodDTO.searchTitle (#1164)', () {
+  group('scored on the title, shown by the description (#1164)', () {
     // The display change was not meant to be a scoring change: the scorers
-    // read the short title, which was the name until #1164, through
-    // `MealEntity.searchTitle`.
-    test('an English row is scored on its short title', () {
-      final dto = row(name: 'Egg, whole, raw', shortTitle: 'Egg');
-
-      expect(dto.searchTitle, 'Egg');
-      expect(dto.displayName, 'Egg, whole, raw');
-    });
-
-    test('a translated row is scored on its translation, as it was', () {
-      // The query that found it is in its language; the English title
-      // would score `Eier` against "Egg" at nothing.
-      final dto = row(
-        name: 'Egg, whole, raw',
-        shortTitle: 'Egg',
-        localizedName: 'Ei, ganz, roh',
-      );
-
-      expect(dto.searchTitle, isNull);
-      expect(MealEntity.fromSpFood(dto).searchTitle, isNull);
-    });
-
+    // match on the title, which was the name until #1164, and now derive
+    // it from the description (`MealEntity.scoringName`). Nothing is
+    // carried over from the DTO for it — the entity reads its own name.
     test(
       'MealEntity.fromSpFood shows the description and scores the title',
       () {
@@ -121,7 +100,7 @@ void main() {
         final calledEgg = MealEntity.fromSpFood(row(name: 'Egg'));
 
         expect(meal.name, 'Egg, whole, raw');
-        expect(meal.searchTitle, 'Egg');
+        expect(meal.scoringName, 'Egg');
         expect(
           scoreMealForResolution(meal, 'eggs'),
           scoreMealForResolution(calledEgg, 'eggs'),
@@ -134,11 +113,44 @@ void main() {
       },
     );
 
+    test('the title is derived from the name, not read off the DTO', () {
+      // A row whose short title disagrees with its description — none
+      // measured, but the column is the backend's to fill — is scored on
+      // the description's title. The DTO's column is not consulted.
+      final meal = MealEntity.fromSpFood(
+        row(name: 'Egg, whole, raw', shortTitle: 'Something else'),
+      );
+
+      expect(meal.scoringName, 'Egg');
+      expect(scoreMealRelevance(meal, 'egg'), 1.0);
+    });
+
+    test('a translated row is scored on its translation\'s title', () {
+      // The query that found it is in its language: "Milch, menschliche"
+      // derives "Milch", and a German query for Milch scores it 1.0. The
+      // English column would have scored `Milch` against "Milk" at
+      // nothing — the reason it is not what is scored.
+      final dto = row(
+        name: 'Milk, human',
+        shortTitle: 'Milk',
+        localizedName: 'Milch, menschliche',
+      );
+
+      final meal = MealEntity.fromSpFood(dto);
+
+      expect(meal.name, 'Milch, menschliche');
+      expect(meal.scoringName, 'Milch');
+      expect(scoreMealRelevance(meal, 'Milch'), 1.0);
+      expect(
+        scoreMealRelevance(meal, 'Milch'),
+        scoreMealRelevance(MealEntity.fromSpFood(row(name: 'Milch')), 'Milch'),
+      );
+    });
+
     test('the title survives the portion and label decoration', () {
       // `ProductsRepository` rebuilds a fresh search result once or twice
-      // before the resolver sees it; a copy that dropped the title would be
-      // scored on its description on the real path and nowhere in a unit
-      // test of the scorers.
+      // before the resolver sees it; the title being read off the name,
+      // any copy that keeps the name keeps the title.
       final meal = MealEntity.fromSpFood(
         row(name: 'Egg, whole, raw', shortTitle: 'Egg'),
       );
@@ -147,56 +159,38 @@ void main() {
         MealPortionEntity(label: '1 egg', gramWeight: 50, localized: false),
       ]);
 
-      expect(decorated.searchTitle, 'Egg');
+      expect(decorated.scoringName, 'Egg');
       expect(decorated.name, 'Egg, whole, raw');
     });
 
-    test('the title is persisted', () {
-      // Unlike `portions`. Until #1164 the cached name was the short
-      // title, so a copy read back from the search cache was scored on it;
-      // a cache without the title would have scored the copy on its
-      // description — text it had never been scored on — and the search
-      // use case hands the resolver cached copies. `MealDBO.searchTitle`
-      // is the column, in Hive and in the export JSON.
-      final meal = MealEntity.fromSpFood(
-        row(name: 'Egg, whole, raw', shortTitle: 'Egg'),
-      );
-
-      final roundTripped = MealEntity.fromMealDBO(MealDBO.fromMealEntity(meal));
-
-      expect(roundTripped.searchTitle, 'Egg');
-      expect(roundTripped.name, 'Egg, whole, raw');
-      expect(
-        scoreMealForResolution(roundTripped, 'eggs'),
-        scoreMealForResolution(meal, 'eggs'),
-      );
-      expect(MealDBO.fromMealEntity(meal).toJson()['searchTitle'], 'Egg');
-      // And through the export's own encoding, which is what an import
-      // reads back.
-      final exported = jsonDecode(jsonEncode(MealDBO.fromMealEntity(meal)));
-      expect(
-        MealEntity.fromMealDBO(
-          MealDBO.fromJson(exported as Map<String, dynamic>),
-        ).searchTitle,
-        'Egg',
-      );
-    });
-
-    test('a row cached before the column existed is scored on its name', () {
-      // The adapter reads a missing field as null, and the JSON import
-      // the same, so nothing already on disk is scored on a title it does
-      // not have.
+    test('a row already on disk is scored on its title too', () {
+      // A cached row from before #1164 has the short title as its name and
+      // no comma; a row cached since has the description. Both derive the
+      // same title, so nothing on disk needs migrating or is scored on
+      // text it was not scored on before.
       final legacy = MealDBO.fromJson({
         'code': '2707152',
         'name': 'Egg',
         'source': 'fdc',
         'nutriments': <String, dynamic>{},
       });
+      final current = MealDBO.fromJson({
+        'code': '2707152',
+        'name': 'Egg, whole, raw',
+        'source': 'fdc',
+        'nutriments': <String, dynamic>{},
+      });
 
-      final meal = MealEntity.fromMealDBO(legacy);
+      final legacyMeal = MealEntity.fromMealDBO(legacy);
+      final currentMeal = MealEntity.fromMealDBO(current);
 
-      expect(meal.searchTitle, isNull);
-      expect(scoreMealForResolution(meal, 'eggs'), closeTo(0.6, 1e-9));
+      expect(legacyMeal.scoringName, 'Egg');
+      expect(currentMeal.scoringName, 'Egg');
+      expect(scoreMealForResolution(legacyMeal, 'eggs'), closeTo(0.6, 1e-9));
+      expect(
+        scoreMealForResolution(currentMeal, 'eggs'),
+        scoreMealForResolution(legacyMeal, 'eggs'),
+      );
     });
   });
 }

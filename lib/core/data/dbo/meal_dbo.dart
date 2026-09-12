@@ -72,15 +72,6 @@ class MealDBO extends HiveObject {
   @HiveField(16)
   final bool? machineTranslatedName;
 
-  /// The short title a backend record is scored on when that is not its
-  /// [name] (see MealEntity.searchTitle, #1164). Persisted so a copy read
-  /// back from the search cache is scored on the same text as the fresh
-  /// record it was written from. Null for OFF/custom/recipe meals, for a
-  /// translated backend row, and for rows cached before this field
-  /// existed — all of which are scored on their name.
-  @HiveField(17)
-  final String? searchTitle;
-
   MealDBO({
     required this.code,
     required this.name,
@@ -99,7 +90,6 @@ class MealDBO extends HiveObject {
     this.detailed,
     this.backendSource,
     this.machineTranslatedName,
-    this.searchTitle,
   });
 
   factory MealDBO.fromMealEntity(MealEntity mealEntity) => MealDBO(
@@ -122,7 +112,6 @@ class MealDBO extends HiveObject {
         detailed: mealEntity.detailed,
         backendSource: mealEntity.backendSource,
         machineTranslatedName: mealEntity.machineTranslatedName,
-        searchTitle: mealEntity.searchTitle,
       );
 
   factory MealDBO.fromJson(Map<String, dynamic> json) =>

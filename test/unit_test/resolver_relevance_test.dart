@@ -10,13 +10,11 @@ MealEntity meal(
   MealSourceEntity source = MealSourceEntity.off,
   String? brands,
   String? code,
-  String? searchTitle,
   int portions = 0,
   bool detailed = false,
 }) => MealEntity(
   code: code ?? name,
   name: name,
-  searchTitle: searchTitle,
   brands: brands,
   thumbnailImageUrl: null,
   mainImageUrl: null,
@@ -200,8 +198,10 @@ void main() {
     });
 
     test('the tie-break never overrides the score', () {
+      // "Eggplant" is a prefix match on `egg` (0.375) and "Egg" an exact
+      // one; nine portions to one does not bridge that.
       final rows = [
-        meal('Egg, whole, raw', source: MealSourceEntity.fdc, portions: 9),
+        meal('Eggplant, raw', source: MealSourceEntity.fdc, portions: 9),
         meal('Egg, creamed', source: MealSourceEntity.fdc, portions: 1),
       ];
 
@@ -283,21 +283,21 @@ void main() {
     });
   });
 
-  group('scored on the short title (#1164)', () {
-    // A backend record shows its description and is scored on its short
-    // title, so a family of siblings ties on the one-word query for it and
-    // the tie-break below is reached. Anything without a title — an OFF
-    // product, a custom meal, a cached copy — is scored on its name as
-    // before.
-    test('a titled record scores as a record named by its title', () {
+  group('scored on the title (#1164)', () {
+    // A backend record shows its description and is scored on its title —
+    // the description up to its first comma, `MealEntity.scoringName` — so
+    // a family of siblings ties on the one-word query for it and the
+    // tie-break above is reached. Anything that is not a backend record —
+    // an OFF product, a custom meal — is scored on its name as before.
+    test('a backend record scores as a record named by its title', () {
       final titled = meal(
         'Egg, whole, raw',
-        searchTitle: 'Egg',
         source: MealSourceEntity.fdc,
         portions: 2,
       );
       final named = meal('Egg', source: MealSourceEntity.fdc, portions: 2);
 
+      expect(titled.scoringName, 'Egg');
       expect(
         scoreMealForResolution(titled, 'eggs'),
         scoreMealForResolution(named, 'eggs'),
@@ -307,12 +307,11 @@ void main() {
     });
 
     test('the title is what is scored, not one input among two', () {
-      // The description is not consulted at all once a title is there: a
-      // record titled "Bread" scores nothing on `rice` although its
-      // description contains the word.
+      // The description is not consulted past its title: a record titled
+      // "Bread" scores nothing on `rice` although its description contains
+      // the word.
       final breadRice = meal(
         'Bread, rice',
-        searchTitle: 'Bread',
         source: MealSourceEntity.fdc,
         portions: 5,
       );
@@ -324,7 +323,8 @@ void main() {
       // The numbers the file header and the confidence floor were set
       // against: the inflection match, the branded superstring, the exact
       // name.
-      expect(meal('Egg').searchTitle, isNull);
+      expect(meal('Egg').scoringName, 'Egg');
+      expect(meal('Egg, whole, raw').scoringName, 'Egg, whole, raw');
       expect(scoreMealForResolution(meal('Egg'), 'eggs'), closeTo(0.75, 1e-9));
       expect(
         scoreMealForResolution(meal('Cadbury Creme Eggs'), 'eggs'),
@@ -342,15 +342,9 @@ void main() {
       // scored on their descriptions the two-token record wins outright,
       // scored on their shared title the portions decide.
       final rows = [
-        meal(
-          'Egg, creamed',
-          searchTitle: 'Egg',
-          source: MealSourceEntity.fdc,
-          portions: 1,
-        ),
+        meal('Egg, creamed', source: MealSourceEntity.fdc, portions: 1),
         meal(
           'Egg, whole, boiled or poached',
-          searchTitle: 'Egg',
           source: MealSourceEntity.fdc,
           portions: 3,
         ),
@@ -368,18 +362,8 @@ void main() {
       // differ: "Milk, NFS" is the less qualified record and comes first
       // although it is listed second.
       final rows = [
-        meal(
-          'Milk, whole',
-          searchTitle: 'Milk',
-          source: MealSourceEntity.fdc,
-          portions: 3,
-        ),
-        meal(
-          'Milk, NFS',
-          searchTitle: 'Milk',
-          source: MealSourceEntity.fdc,
-          portions: 3,
-        ),
+        meal('Milk, whole', source: MealSourceEntity.fdc, portions: 3),
+        meal('Milk, NFS', source: MealSourceEntity.fdc, portions: 3),
       ];
 
       expect(names(rankForResolution(rows, 'milk')), [

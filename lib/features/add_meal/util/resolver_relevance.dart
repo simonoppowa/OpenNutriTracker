@@ -55,14 +55,14 @@ const _machineTranslatedPenalty = 0.03;
 /// candidate list either way.
 ///
 /// The size is the one #1164 decided, and it works because both records
-/// are scored on their short title (`MealEntity.searchTitle`): the
-/// survey's "Orange juice, 100%, NFS" — its plain record; there is no row
-/// named just "Orange juice, 100%" — carries the title "Orange juice" and
-/// scores 1.0 exactly as the BLS record does, so at 0.85 the BLS record
-/// drops behind it. Scored on its description it would sit at 0.667, this
-/// scorer being harder on extra tokens than the shared ranker, and the
-/// penalty would not reach: that was the measured order for one revision
-/// of this branch. The test pins the order, so a change to the size is a
+/// are scored on their title (`MealEntity.scoringName`): the survey's
+/// "Orange juice, 100%, NFS" — its plain record; there is no row named
+/// just "Orange juice, 100%" — is titled "Orange juice" and scores 1.0
+/// exactly as the BLS record does, so at 0.85 the BLS record drops behind
+/// it. Scored on its description it would sit at 0.667, this scorer being
+/// harder on extra tokens than the shared ranker, and the penalty would
+/// not reach: that was the measured order for one revision of this
+/// branch. The test pins the order, so a change to the size is a
 /// deliberate one and not a side effect.
 ///
 /// "No labelled portion" is read off `MealEntity.portions`, which only a
@@ -73,11 +73,11 @@ const _machineTranslatedPenalty = 0.03;
 /// the portions key see the page as the backend sent it. A record held
 /// only in the cache — from an earlier search, or the whole pool when the
 /// remote is down — has no portions to show and is penalised whatever the
-/// backend has for it. It is still scored on its title, which the cache
-/// does keep, so a cached sibling trails the fresh ones by this penalty
-/// alone: 0.85 against 1.0, above the confidence floor. That is a gap
-/// between this rule and the data it is given, not something the rule can
-/// see; #1164's review records it.
+/// backend has for it. It is still scored on its title, which derives
+/// from the name the cache does keep, so a cached sibling trails the
+/// fresh ones by this penalty alone: 0.85 against 1.0, above the
+/// confidence floor. That is a gap between this rule and the data it is
+/// given, not something the rule can see; #1164's review records it.
 const _noPortionsPenalty = 0.15;
 
 /// Characters from scripts that do not separate words with spaces. A
@@ -180,8 +180,8 @@ double _textScore(String? text, Set<String> queryTokens) {
 /// inflectional suffixes. Brand-only matches count for less than the same
 /// match on the name, as in the shared ranker.
 ///
-/// As in the shared ranker, a backend record is scored on its short title
-/// rather than the description it shows (`MealEntity.searchTitle`). Here
+/// As in the shared ranker, a backend record is scored on its title
+/// rather than the description it shows (`MealEntity.scoringName`). Here
 /// that is what makes the tie-break in [_sorted] reachable at all: every
 /// token past the one that matched costs, so scored on descriptions "Egg,
 /// creamed" (two tokens) beat "Egg, whole, boiled or poached" (five) on
@@ -193,7 +193,7 @@ double scoreMealForResolution(MealEntity meal, String query) {
   final queryTokens = _tokenize(_normalize(query));
   if (queryTokens.isEmpty) return 0.0;
 
-  final nameScore = _textScore(meal.searchTitle ?? meal.name, queryTokens);
+  final nameScore = _textScore(meal.scoringName, queryTokens);
   final brandScore = _textScore(meal.brands, queryTokens);
   var score = nameScore >= brandScore ? nameScore : brandScore * 0.6;
 
@@ -237,11 +237,11 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// then the shortest name; stable after that.
 ///
 /// The tie-break exists because the text score cannot tell siblings apart.
-/// Backend records are scored on their short title (#1164), and a family
-/// of FDC survey records — "Apple, raw", "Apple, dried", "Apple, baked",
-/// all titled "Apple" — scores identically on the query `apple`, so
-/// whichever the pool happened to list first was logged. The resolver
-/// auto-selects, so that order has to mean something.
+/// Backend records are scored on their title (#1164), and a family of FDC
+/// survey records — "Apple, raw", "Apple, dried", "Apple, baked", all
+/// titled "Apple" — scores identically on the query `apple`, so whichever
+/// the pool happened to list first was logged. The resolver auto-selects,
+/// so that order has to mean something.
 ///
 /// "Most labelled portions" is the data-driven proxy for the canonical
 /// record: FNDDS gives its everyday form the most ways to count it, and no

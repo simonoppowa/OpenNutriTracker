@@ -124,10 +124,15 @@ void main() {
   });
 
   group('scored on the short title, shown by the description', () {
-    // A backend record's name is what the row shows and its searchTitle is
-    // what the scorers read. The one is "Egg, whole, raw" and the other
-    // "Egg", and the score is the one a record called "Egg" gets.
-    MealEntity called(MealEntity record, String name) => MealEntity(
+    // A backend record's name is what the row shows and its scoringName —
+    // the name up to its first comma — is what the scorers read. The one
+    // is "Egg, whole, raw" and the other "Egg", and the score is the one a
+    // record called "Egg" gets.
+    MealEntity called(
+      MealEntity record,
+      String name, {
+      MealSourceEntity? source,
+    }) => MealEntity(
       code: record.code,
       name: name,
       url: null,
@@ -137,7 +142,7 @@ void main() {
       servingUnit: 'g',
       servingSize: null,
       nutriments: record.nutriments,
-      source: record.source,
+      source: source ?? record.source,
       backendSource: record.backendSource,
       portions: record.portions,
     );
@@ -146,16 +151,20 @@ void main() {
       final record = BackendSiblingFixtures.eggWholeRaw;
 
       expect(record.name, 'Egg, whole, raw');
-      expect(record.searchTitle, 'Egg');
+      expect(record.scoringName, 'Egg');
       expect(
         scoreMealForResolution(record, 'eggs'),
         scoreMealForResolution(called(record, 'Egg'), 'eggs'),
       );
-      // And not as a record called by its description would score: every
-      // token past the one that matched costs, 0.75 against 0.375.
+      // And not as the description scored whole would — which is what an
+      // OFF product with that name gets: every token past the one that
+      // matched costs, 0.75 against 0.375.
       expect(scoreMealForResolution(record, 'eggs'), closeTo(0.75, 1e-9));
       expect(
-        scoreMealForResolution(called(record, 'Egg, whole, raw'), 'eggs'),
+        scoreMealForResolution(
+          called(record, 'Egg, whole, raw', source: MealSourceEntity.off),
+          'eggs',
+        ),
         closeTo(0.375, 1e-9),
       );
     });

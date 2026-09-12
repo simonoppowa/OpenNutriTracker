@@ -539,7 +539,7 @@ void main() {
       () async {
         // Two records already cached from an earlier search, cheese the
         // more recently touched; the fresh page lists them the other way
-        // round, each with the portions and title the cache cannot keep.
+        // round, each with the portions the cache cannot keep.
         cachedOffMealDataSource.meals.addAll([
           _fdcCacheDbo(code: 'fdc-egg', name: 'Egg, whole, raw'),
           _fdcCacheDbo(code: 'fdc-cheese', name: 'Cheese, cheddar'),
@@ -551,7 +551,6 @@ void main() {
             code: 'fdc-egg',
             name: 'Egg, whole, raw',
             source: MealSourceEntity.fdc,
-            searchTitle: 'Egg',
             portions: const [
               MealPortionEntity(
                 label: '1 egg',
@@ -569,7 +568,6 @@ void main() {
             code: 'fdc-cheese',
             name: 'Cheese, cheddar',
             source: MealSourceEntity.fdc,
-            searchTitle: 'Cheese',
             portions: const [
               MealPortionEntity(
                 label: '1 slice',
@@ -586,21 +584,20 @@ void main() {
         expect(result.meals.map((m) => m.code), ['fdc-cheese', 'fdc-egg']);
         expect(result.meals[0].portions, hasLength(1));
         expect(result.meals[1].portions, hasLength(2));
-        expect(result.meals[1].searchTitle, 'Egg');
+        expect(result.meals[1].scoringName, 'Egg');
       },
     );
 
     test(
-      'a backend record held only in the cache keeps its title and has '
-      'no portions',
+      'a backend record held only in the cache derives its title from its '
+      'name and has no portions',
       () async {
         // Cached from an earlier search, not in this page: the cache has
-        // the title (MealDBO.searchTitle), nothing has the portions.
+        // the name, which the title is read off; nothing has the portions.
         cachedOffMealDataSource.meals.add(MealDBO.fromMealEntity(_meal(
           code: 'fdc-egg',
           name: 'Egg, whole, raw',
           source: MealSourceEntity.fdc,
-          searchTitle: 'Egg',
           portions: const [
             MealPortionEntity(label: '1 egg', gramWeight: 50, localized: false),
           ],
@@ -610,14 +607,14 @@ void main() {
             code: 'fdc-egg-creamed',
             name: 'Egg, creamed',
             source: MealSourceEntity.fdc,
-            searchTitle: 'Egg',
           ),
         ];
 
         final result = await useCase.searchFDCFoodByString('egg');
 
         final cached = result.meals.singleWhere((m) => m.code == 'fdc-egg');
-        expect(cached.searchTitle, 'Egg');
+        expect(cached.name, 'Egg, whole, raw');
+        expect(cached.scoringName, 'Egg');
         expect(cached.portions, isEmpty);
       },
     );
@@ -974,7 +971,6 @@ MealEntity _meal({
   required String name,
   required MealSourceEntity source,
   String? backendSource,
-  String? searchTitle,
   List<MealPortionEntity> portions = const [],
 }) {
   return MealEntity(
@@ -992,7 +988,6 @@ MealEntity _meal({
     nutriments: MealNutrimentsEntity.empty(),
     source: source,
     backendSource: backendSource,
-    searchTitle: searchTitle,
     portions: portions,
   );
 }

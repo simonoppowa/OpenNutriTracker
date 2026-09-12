@@ -4,10 +4,10 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_en
 
 /// Backend records as the resolver sees them, copied from the live backend
 /// on 2026-09-12 for #1164: `food.id`, `food.source`, `food.description`,
-/// `food.short_title` — the text the scorers read, carried as
-/// `MealEntity.searchTitle`; no row here is without one, BLS included —
-/// and every portion `portions_by_food_ids(ARRAY[id], 'en')` returns for
-/// the id — the deliverable rows, after the RPC's own filter, which is what
+/// `food.short_title` — the text the scorers read; no row here is without
+/// one, BLS included — and every portion
+/// `portions_by_food_ids(ARRAY[id], 'en')` returns for the id — the
+/// deliverable rows, after the RPC's own filter, which is what
 /// `MealEntity.portions` holds after `ProductsRepository` decorates a
 /// fresh search page. (A copy read back from the search cache holds none:
 /// `MealDBO` does not persist portions. These fixtures are the fresh
@@ -16,38 +16,50 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_en
 /// ("Milk, NFS" has six rows and three deliverable portions), and the
 /// deliverable count is the one the tie-break sees.
 ///
+/// The short title is not on the entity: `MealEntity.scoringName` derives
+/// it from the description, and [shortTitleOf] keeps the column's value
+/// beside each row so a test can hold the derivation to it.
+///
 /// Each family is a set of survey siblings under one short title, so they
 /// score identically on the one-word query for it, which is exactly the
 /// tie the resolver has to break well.
 class BackendSiblingFixtures {
+  static final _shortTitles = <String, String>{};
+
+  /// `food.short_title` as the backend carries it for [record], which must
+  /// be one of the rows here.
+  static String shortTitleOf(MealEntity record) => _shortTitles[record.code]!;
+
   static MealEntity _record(
     int id,
     String description, {
     required String shortTitle,
     String source = 'fdc_survey',
     List<(String, double)> portions = const [],
-  }) => MealEntity(
-    code: '$id',
-    name: description,
-    searchTitle: shortTitle,
-    url: null,
-    mealQuantity: null,
-    mealUnit: 'g',
-    servingQuantity: null,
-    servingUnit: 'g',
-    servingSize: null,
-    nutriments: MealNutrimentsEntity.empty(),
-    source: MealSourceEntity.fdc,
-    backendSource: source,
-    portions: [
-      for (final (label, gramWeight) in portions)
-        MealPortionEntity(
-          label: label,
-          gramWeight: gramWeight,
-          localized: false,
-        ),
-    ],
-  );
+  }) {
+    _shortTitles['$id'] = shortTitle;
+    return MealEntity(
+      code: '$id',
+      name: description,
+      url: null,
+      mealQuantity: null,
+      mealUnit: 'g',
+      servingQuantity: null,
+      servingUnit: 'g',
+      servingSize: null,
+      nutriments: MealNutrimentsEntity.empty(),
+      source: MealSourceEntity.fdc,
+      backendSource: source,
+      portions: [
+        for (final (label, gramWeight) in portions)
+          MealPortionEntity(
+            label: label,
+            gramWeight: gramWeight,
+            localized: false,
+          ),
+      ],
+    );
+  }
 
   // apple
 
@@ -367,5 +379,20 @@ class BackendSiblingFixtures {
     chickenBreastBaked,
     chickenBreastNsCookingMethod,
     chickenBreastRotisserie,
+  ];
+
+  /// Every row above, once each.
+  static List<MealEntity> get all => [
+    ...apple,
+    ...egg,
+    ...eggplant,
+    ...milk,
+    ...banana,
+    ...bread,
+    ...rice,
+    breadRice,
+    chipsRice,
+    ...orangeJuice,
+    ...chickenBreast,
   ];
 }

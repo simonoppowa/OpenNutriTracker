@@ -13,8 +13,8 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 /// non-zero score when the query matches the brand (weighted at 60% of the
 /// equivalent name match).
 ///
-/// A backend record is scored on its short title, not on the description
-/// it shows (`MealEntity.searchTitle`, #1164): "Egg, whole, raw" and "Egg,
+/// A backend record is scored on its title, not on the description it
+/// shows (`MealEntity.scoringName`, #1164): "Egg, whole, raw" and "Egg,
 /// yolk only, raw" both score as "Egg", the way they did while that was
 /// their name. Everything else has no title apart from its name and is
 /// scored as before.
@@ -22,7 +22,7 @@ double scoreMealRelevance(MealEntity meal, String query) {
   final normalizedQuery = _normalize(query);
   if (normalizedQuery.isEmpty) return 0.0;
 
-  final nameScore = _textScore(meal.searchTitle ?? meal.name, normalizedQuery);
+  final nameScore = _textScore(meal.scoringName, normalizedQuery);
   final brandScore = _textScore(meal.brands, normalizedQuery);
   // Brand-only matches (e.g. searching "nestle") still surface the product,
   // but count for less than the same match on the name itself.

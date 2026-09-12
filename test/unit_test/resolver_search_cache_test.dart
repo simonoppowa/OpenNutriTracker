@@ -90,11 +90,13 @@ ParsedMealItem item(String query) => ParsedMealItem(query: query);
 /// keeps the cached copy of every record the page returned — from the
 /// first search, not the second. A copy read back through `MealDBO` has no
 /// portions, so what the resolver scores on every search is whatever
-/// survives that round trip. The first revision of the title scoring lost
-/// the title there too, and every winner the cold-cache tests pinned went
-/// back to the description-scored one on this path: `egg` -> "Egg,
-/// creamed" at 0.517, `rice` -> "Rice, cooked, NFS" at 0.350 and flagged,
-/// `orange juice` -> the BLS record ahead of the survey one.
+/// survives that round trip. The first revision of the title scoring
+/// carried the title as a field the round trip dropped, and every winner
+/// the cold-cache tests pinned went back to the description-scored one on
+/// this path: `egg` -> "Egg, creamed" at 0.517, `rice` -> "Rice, cooked,
+/// NFS" at 0.350 and flagged, `orange juice` -> the BLS record ahead of
+/// the survey one. The title now derives from the name, which the round
+/// trip keeps; the portions it still does not.
 void main() {
   late Box<MealDBO> cacheBox;
   late Box<int> timestampsBox;
@@ -221,9 +223,10 @@ void main() {
       // The sibling the user logged is in the cache and nowhere in this
       // search's page; three never-seen siblings arrive fresh. Scored on
       // its description it was 0.183 — behind every fresh sibling at 1.0
-      // and under the floor. The cache keeps the title, so it scores 1.0
-      // on that and trails the fresh siblings by the no-portions penalty
-      // alone, which is what the cache does not keep.
+      // and under the floor. The title derives from the name, which the
+      // cache keeps, so it scores 1.0 on that and trails the fresh
+      // siblings by the no-portions penalty alone, which is what the cache
+      // does not keep.
       final logged = BackendSiblingFixtures.eggWholeBoiledOrPoached;
       await cache.cache(MealDBO.fromMealEntity(logged));
       repository.fdc['egg'] = [
@@ -238,7 +241,7 @@ void main() {
         (m) => m.code == logged.code,
       );
       expect(candidate.name, 'Egg, whole, boiled or poached');
-      expect(candidate.searchTitle, 'Egg');
+      expect(candidate.scoringName, 'Egg');
       expect(candidate.portions, isEmpty);
       expect(scoreMealForResolution(candidate, 'egg'), closeTo(0.85, 1e-9));
       expect(
@@ -262,7 +265,7 @@ void main() {
       expect(resolved.confidence, closeTo(0.85, 1e-9));
       expect(resolved.isLowConfidence, isFalse);
       for (final candidate in resolved.candidates) {
-        expect(candidate.searchTitle, 'Egg');
+        expect(candidate.scoringName, 'Egg');
         expect(candidate.name, startsWith('Egg, '));
         expect(scoreMealForResolution(candidate, 'egg'), closeTo(0.85, 1e-9));
       }
