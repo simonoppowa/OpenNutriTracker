@@ -108,8 +108,8 @@ class MealEntity extends Equatable {
 
   /// The text the search scorers match this meal on when it is not [name]:
   /// a backend record's short title ("Egg" for "Egg, whole, raw"), or null
-  /// — Open Food Facts, custom meals, recipes, anything read back from the
-  /// database — when the name is the text to score.
+  /// — Open Food Facts, custom meals, recipes, a translated backend row —
+  /// when the name is the text to score.
   ///
   /// [name] is both what the row shows and what the scorers read, so when
   /// #1164 changed backend records to show their full description it
@@ -123,8 +123,13 @@ class MealEntity extends Equatable {
   /// back on equal terms — every "Egg" scores 1.0 on `egg` — and the
   /// display change stays a display change.
   ///
-  /// Not persisted, like [portions]: `MealDBO` has no column for it, and a
-  /// cached copy is scored by its name as before.
+  /// Persisted (`MealDBO.searchTitle`), unlike [portions]. Until #1164 the
+  /// cached name *was* the short title, so a copy read back from the search
+  /// cache was scored on it; with the description as the name, a cache
+  /// without the title would score the copy on text it had never been
+  /// scored on before — and the search use case hands the resolver cached
+  /// copies of every record the page returned. A row cached before the
+  /// column existed comes back with null and is scored on its name.
   final String? searchTitle;
 
   /// Relative path (`meal_images/<code>.webp`) to a user-attached photo
@@ -260,6 +265,7 @@ class MealEntity extends Equatable {
     source: MealSourceEntity.fromMealSourceDBO(mealDBO.source),
     backendSource: mealDBO.backendSource,
     machineTranslatedName: mealDBO.machineTranslatedName ?? false,
+    searchTitle: mealDBO.searchTitle,
     localImagePath: mealDBO.localImagePath,
     detailed: mealDBO.detailed ?? false,
   );

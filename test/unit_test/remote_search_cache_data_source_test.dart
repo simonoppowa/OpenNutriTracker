@@ -358,5 +358,43 @@ void main() {
       final size = await ds.getStorageSizeBytes();
       expect(size, greaterThanOrEqualTo(0));
     });
+
+    test('a backend record keeps its short title across a reopen', () async {
+      // Through the adapter, not just the in-memory box: an open box hands
+      // back the object it was given, so only a close and reopen reads the
+      // record off disk through `MealDBOAdapter` — the write half of which
+      // a HiveField added without regenerating would silently skip. The
+      // title is what a cached copy is scored on (#1164), so the cache has
+      // to hold it.
+      await ds.cacheFromSearch([
+        MealDBO(
+          code: '2707152',
+          name: 'Egg, whole, raw',
+          brands: null,
+          thumbnailImageUrl: null,
+          mainImageUrl: null,
+          url: null,
+          mealQuantity: null,
+          mealUnit: 'g',
+          servingQuantity: null,
+          servingUnit: 'g',
+          servingSize: null,
+          nutriments: _emptyNutriments(),
+          source: MealSourceDBO.fdc,
+          backendSource: 'fdc_survey',
+          searchTitle: 'Egg',
+        ),
+      ]);
+      final name = cacheBox.name;
+      await cacheBox.close();
+
+      cacheBox = await Hive.openBox<MealDBO>(name);
+      final reopened = RemoteSearchCacheDataSource(cacheBox, tsBox);
+
+      final record = reopened.getByBarcode('2707152');
+      expect(record, isNotNull);
+      expect(record!.name, 'Egg, whole, raw');
+      expect(record.searchTitle, 'Egg');
+    });
   });
 }

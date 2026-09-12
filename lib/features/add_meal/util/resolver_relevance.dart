@@ -66,12 +66,18 @@ const _machineTranslatedPenalty = 0.03;
 /// deliberate one and not a side effect.
 ///
 /// "No labelled portion" is read off `MealEntity.portions`, which only a
-/// fresh backend result carries: a backend record read back from the
-/// search cache has none (`MealDBO` does not persist portions), so on the
-/// resolver's real path — `SearchProductsUseCase` puts cached copies ahead
-/// of fresh ones — a record the cache already holds is penalised whatever
-/// the backend has for it. That is a gap between this rule and the data it
-/// is given, not something the rule can see; #1164's review records it.
+/// fresh backend result carries: `MealDBO` does not persist portions. On
+/// the resolver's real path `SearchProductsUseCase` lists cached copies
+/// ahead of fresh ones, and for a record this search's page returned it
+/// puts the fresh entity in the cached copy's place, so the penalty and
+/// the portions key see the page as the backend sent it. A record held
+/// only in the cache — from an earlier search, or the whole pool when the
+/// remote is down — has no portions to show and is penalised whatever the
+/// backend has for it. It is still scored on its title, which the cache
+/// does keep, so a cached sibling trails the fresh ones by this penalty
+/// alone: 0.85 against 1.0, above the confidence floor. That is a gap
+/// between this rule and the data it is given, not something the rule can
+/// see; #1164's review records it.
 const _noPortionsPenalty = 0.15;
 
 /// Characters from scripts that do not separate words with spaces. A
@@ -273,9 +279,10 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// their popularity order — and it is the decision's "then shortest name",
 /// which was not limited to backend records. It also bounds what the
 /// portions key can do on the resolver's real path: `MealDBO` does not
-/// persist portions, so a backend record read back from the search cache
-/// ties with everything, whatever the backend has for it — see
-/// [_noPortionsPenalty].
+/// persist portions, so a backend record the search cache holds and this
+/// search's page did not return ties with everything, whatever the
+/// backend has for it — see [_noPortionsPenalty]. (A record the page did
+/// return reaches here as the fresh entity, portions and all.)
 List<MealEntity> _sorted(List<MealEntity> meals, String query) {
   // Parallel (meal, score) records rather than a map: MealEntity's Equatable
   // props are just [code, name], so two rows from different sources can

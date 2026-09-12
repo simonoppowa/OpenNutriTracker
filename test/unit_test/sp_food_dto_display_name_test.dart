@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
@@ -149,21 +151,52 @@ void main() {
       expect(decorated.name, 'Egg, whole, raw');
     });
 
-    test('the title is not persisted', () {
-      // Like `portions`: `MealDBO` has no column for it, so a cached copy
-      // comes back without one and is scored on its name.
+    test('the title is persisted', () {
+      // Unlike `portions`. Until #1164 the cached name was the short
+      // title, so a copy read back from the search cache was scored on it;
+      // a cache without the title would have scored the copy on its
+      // description — text it had never been scored on — and the search
+      // use case hands the resolver cached copies. `MealDBO.searchTitle`
+      // is the column, in Hive and in the export JSON.
       final meal = MealEntity.fromSpFood(
         row(name: 'Egg, whole, raw', shortTitle: 'Egg'),
       );
 
       final roundTripped = MealEntity.fromMealDBO(MealDBO.fromMealEntity(meal));
 
-      expect(roundTripped.searchTitle, isNull);
+      expect(roundTripped.searchTitle, 'Egg');
       expect(roundTripped.name, 'Egg, whole, raw');
       expect(
-        MealDBO.fromMealEntity(meal).toJson().keys,
-        isNot(contains('searchTitle')),
+        scoreMealForResolution(roundTripped, 'eggs'),
+        scoreMealForResolution(meal, 'eggs'),
       );
+      expect(MealDBO.fromMealEntity(meal).toJson()['searchTitle'], 'Egg');
+      // And through the export's own encoding, which is what an import
+      // reads back.
+      final exported = jsonDecode(jsonEncode(MealDBO.fromMealEntity(meal)));
+      expect(
+        MealEntity.fromMealDBO(
+          MealDBO.fromJson(exported as Map<String, dynamic>),
+        ).searchTitle,
+        'Egg',
+      );
+    });
+
+    test('a row cached before the column existed is scored on its name', () {
+      // The adapter reads a missing field as null, and the JSON import
+      // the same, so nothing already on disk is scored on a title it does
+      // not have.
+      final legacy = MealDBO.fromJson({
+        'code': '2707152',
+        'name': 'Egg',
+        'source': 'fdc',
+        'nutriments': <String, dynamic>{},
+      });
+
+      final meal = MealEntity.fromMealDBO(legacy);
+
+      expect(meal.searchTitle, isNull);
+      expect(scoreMealForResolution(meal, 'eggs'), closeTo(0.6, 1e-9));
     });
   });
 }
