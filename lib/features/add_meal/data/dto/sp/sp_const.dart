@@ -146,6 +146,8 @@ class SPConst {
         return 'zh';
       case SupportedLanguage.cs:
         return 'cs';
+      case SupportedLanguage.es:
+        return 'es';
       case SupportedLanguage.it:
         return 'it';
       case SupportedLanguage.sk:

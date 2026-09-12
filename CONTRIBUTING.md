@@ -44,6 +44,7 @@ When adding a new string key in the same PR you must:
    | `intl_en.arb` | English (source) |
    | `intl_de.arb` | German |
    | `intl_cs.arb` | Czech |
+   | `intl_es.arb` | Spanish |
    | `intl_it.arb` | Italian |
    | `intl_pl.arb` | Polish |
    | `intl_sk.arb` | Slovak |
@@ -53,7 +54,7 @@ When adding a new string key in the same PR you must:
 
    Provide a real translation for each locale — do not leave the English string in as a placeholder. If you only speak one of the languages, machine translation is acceptable as a starting point; native-speaker review is welcome post-merge.
 
-   All nine files stay at the same key count. Placeholder metadata (`"@key": {"placeholders": ...}`) only needs to be declared in the template, `intl_en.arb`.
+   All ten files stay at the same key count. Placeholder metadata (`"@key": {"placeholders": ...}`) only needs to be declared in the template, `intl_en.arb`.
 
 2. **Regenerate with `just gen_l10n`** (`flutter gen-l10n`). This rewrites `lib/generated/l10n.dart` and one `lib/generated/l10n_<locale>.dart` per locale, which is where your `S.of(context).yourNewKey` getter comes from. Nothing under `lib/generated/` belongs in the commit — the ARB files are the whole change.
 
