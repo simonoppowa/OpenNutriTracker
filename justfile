@@ -14,14 +14,23 @@ format *OPTIONS:
 gen_l10n:
   flutter gen-l10n
 
-# Generate, then fail if any locale is missing a key.
+# Generate, then fail on what the English fallback cannot absorb.
 #
-# `flutter gen-l10n` exits 0 on a missing translation: it records the key in
-# l10n_untranslated.json (gitignored, per untranslated-messages-file in
-# l10n.yaml) and the string falls back to English at runtime. Nothing else
-# catches that — analyze and the tests only see the generated getter, which
-# exists either way — so a key added to intl_en.arb alone ships as English in
-# the other eight locales without a single red check.
+# Translations arrive through Weblate as pull requests, and a code PR adds a
+# string to intl_en.arb only (CONTRIBUTING.md), so every other locale is
+# incomplete for a while by design: `flutter gen-l10n` compiles the English
+# text in for a missing key and lists it in l10n_untranslated.json. That file
+# is reported here, never failed on — completeness is read on Weblate.
+#
+# What does fail:
+#   - `flutter gen-l10n` itself: malformed JSON, a region or script file
+#     without its base language (intl_pt_BR.arb without intl_pt.arb), a
+#     locale code it cannot parse, an @@locale that contradicts the filename,
+#     unparseable ICU syntax.
+#   - an empty translation ("key": "") in any ARB: gen-l10n counts it as
+#     translated and generates a getter that returns '' — a blank label at
+#     runtime. Only top-level string values count; an empty field inside an
+#     "@key" metadata block is not a translation.
 check_l10n: gen_l10n
   #!/usr/bin/env bash
   set -euo pipefail
@@ -29,13 +38,34 @@ check_l10n: gen_l10n
     echo "l10n_untranslated.json not found — check untranslated-messages-file in l10n.yaml" >&2
     exit 1
   fi
-  if [ "$(tr -d '[:space:]' < l10n_untranslated.json)" != "{}" ]; then
-    echo "Locales are missing keys:" >&2
-    cat l10n_untranslated.json >&2
-    echo "Add each key to every lib/l10n/intl_*.arb, then re-run." >&2
-    exit 1
+  python3 - <<'PY'
+  import glob, json, sys
+  blank = [
+      f"  {path}: {key}"
+      for path in sorted(glob.glob("lib/l10n/intl_*.arb"))
+      for key, value in json.load(open(path, encoding="utf-8")).items()
+      if not key.startswith("@") and value == ""
+  ]
+  if blank:
+      print("Empty translations render as blank labels; remove the key so the string falls back to English:", file=sys.stderr)
+      print("\n".join(blank), file=sys.stderr)
+      sys.exit(1)
+  PY
+  report="$(python3 - <<'PY'
+  import json
+  d = json.load(open("l10n_untranslated.json"))
+  if not d:
+      print("All locales complete.")
+  else:
+      print("Untranslated keys per locale (English is shown until Weblate fills them):")
+      for locale, keys in sorted(d.items()):
+          print(f"  {locale}: {len(keys)}")
+  PY
+  )"
+  echo "$report"
+  if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+    { echo '### Localization'; echo; echo '```'; echo "$report"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
   fi
-  echo "All locales complete."
 
 # Guard AGENTS.md against Codex's silent instruction-file truncation.
 #

@@ -1,0 +1,402 @@
+{
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activityExample": "ej. salir a correr, bicicleta, yoga ...",
+  "activityLabel": "Actividad",
+  "addItemLabel": "Agregar nuevo elemento:",
+  "addLabel": "Agregar",
+  "additionalInfoLabelCompendium2011": "Información proporcionada\npor el\nCompendio de Actividades\nFísicas de 2024",
+  "additionalInfoLabelCustom": "Alimento personalizado",
+  "additionalInfoLabelFDC": "Más información en\nFoodData Central",
+  "additionalInfoLabelSource": "Más información en\n{sourceName}",
+  "@additionalInfoLabelSource": {
+    "placeholders": {
+      "sourceName": {
+        "type": "String"
+      }
+    }
+  },
+  "foodSourcesAlwaysEnabledLabel": "Siempre activado",
+  "foodSourcesHelpText": "Los resultados de búsqueda provienen de estas bases de datos de alimentos. Open Food Facts se usa para la búsqueda de productos y códigos de barras y está siempre activado.",
+  "machineTranslatedNameHint": "Nombre traducido automáticamente",
+  "measureUnitBar": "{count, plural, one{barrita} other{barras}}",
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitBottle": "{count, plural, one{botella} other{botellas}}",
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCan": "{count, plural, one{bote} other{botes}}",
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCup": "{count, plural, one{taza} other{tazas}}",
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitEgg": "{count, plural, one{huevo} other{huevos}}",
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPackage": "{count, plural, one{paquete} other{paquetes}}",
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPiece": "{count, plural, one{trozo} other{trozos}}",
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPortion": "{count, plural, one{porción} other{porciones}}",
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitServing": "{count, plural, one{ración} other{raciones}}",
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitSlice": "{count, plural, one{rebanada} other{rebanadas}}",
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTablespoon": "{count, plural, one{cucharada} other{cucharadas}}",
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTeaspoon": "{count, plural, one{cucharadita} other{cucharaditas}}",
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "settingsFoodSourcesLabel": "Bases de datos de alimentos",
+  "settingsFoodSourcesSubtitle": "Elige de dónde provienen los resultados de la búsqueda de alimentos",
+  "onboardingOtherOptionsLabel": "Otras opciones",
+  "onboardingOtherOptionsSubtitle": "Personaliza la aplicación — podrás cambiarlo todo más tarde en Opciones",
+  "additionalInfoLabelOFF": "Más información en\nOpenFoodFacts",
+  "additionalInfoLabelRecipe": "Receta personalizada",
+  "additionalInfoLabelUnknown": "Alimento desconocido",
+  "ageLabel": "Edad",
+  "allItemsLabel": "Todo",
+  "alphaVersionName": "[Alfa]",
+  "appDescription": "OpenNutriTracker es un contador gratuito y de código abierto de calorías y nutrientes que respeta tu privacidad.",
+  "appLicenseLabel": "Licencia GPL-3.0",
+  "appTitle": "OpenNutriTracker",
+  "appVersionName": "Versión {versionNumber}",
+  "@appVersionName": {
+    "placeholders": {
+      "versionNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "barcodeInvalidEan13CheckDigit": "Este código de barras de 13 dígitos parece erróneo: el último dígito no se corresponde con los demás",
+  "baseQuantityLabel": "Valor nutricional por",
+  "bmiInfo": "El Índice de Masa Corporal (IMC) es un índice utilizado para clasificar el sobrepeso y la obesidad en adultos. Se define como el peso en kilogramos dividido por el cuadrado de la estatura en metros (kg/m²).\n\nEl IMC no diferencia entre la masa grasa y la masa muscular, por lo que puede resultar engañoso para algunas personas.",
+  "bmiInfoClassificationSection": "Clasificación de la OMS",
+  "bmiInfoFormulaSection": "Fórmula",
+  "bmiInfoScreenTitle": "Cómo se calcula tu IMC",
+  "bmiLabel": "IMC",
+  "breakfastExample": "ej. cereales, leche, café ...",
+  "breakfastLabel": "Desayuno",
+  "burnedLabel": "quemadas",
+  "buttonNextLabel": "Siguiente",
+  "buttonResetLabel": "Reinciar",
+  "buttonSaveLabel": "Guardar",
+  "buttonStartLabel": "COMENZAR",
+  "buttonYesLabel": "SÍ",
+  "calciumLabel": "calcio",
+  "calculationsMacronutrientsDistributionLabel": "Distribución de macros",
+  "calculationsMacrosDistribution": "{pctCarbs}% hidratos, {pctFats}% grasas, {pctProteins}% protenias",
+  "@calculationsMacrosDistribution": {
+    "placeholders": {
+      "pctCarbs": {},
+      "pctFats": {},
+      "pctProteins": {}
+    }
+  },
+  "calculationsRecommendedLabel": "(recomendado)",
+  "calculationsTDEEIOM2006Label": "Ecuación del instituto de Medicina (2005)",
+  "calculationsTDEELabel": "Ecuación del GETD (TDEE)",
+  "caloriesProfileAveragedLabel": "Referencia promediada (predeterminada)",
+  "caloriesProfileEstrogenTypicalLabel": "Referencia de tipo estrogénico",
+  "caloriesProfileInfoBody": "No existe una referencia base de calorías para personas no binarias; las ecuaciones de referencia están creadas a partir de muestras masculinas y femeninas. Por defecto, utilizamos un promedio de ambas: un punto de partida neutral que no te pide revelar más información sobre tu cuerpo. En Ajustes siempre está disponible la configuración de kcal para hacer ajustes finos; esto es solo un punto de partida, no una estimación exacta.",
+  "caloriesProfileInfoTitle": "Referencia calórica",
+  "caloriesProfileTestosteroneTypicalLabel": "Referencia de tipo testosterónico",
+  "carbohydrateLabel": "Carbohidrato",
+  "carbsLabel": "hidratos",
+  "carbsLabelShort": "c",
+  "cholesterolLabel": "colesterol",
+  "chooseWeeklyWeightGoalLabel": "Ratio de peso semanal",
+  "chooseWeightGoalLabel": "Elige to objetivo de peso",
+  "clearOffCacheConfirmContent": "Elimina los resultados de búsqueda y escaneo guardados localmente en la caché de Open Food Facts y FDC. La caché se volverá a crear automáticamente a medida que busques y escanees productos. Tus comidas personalizadas no se verán afectadas.",
+  "clearOffCacheConfirmTitle": "¿Limpiar elementos de la caché?",
+  "clearOffCacheLabel": "Borrar elementos de la caché",
+  "clearOffCacheSubtitle": "{count} elemento(s) · {size}",
+  "cmLabel": "cm",
+  "codeCopiedLabel": "Código copiado",
+  "copyCodeLabel": "Copiar código",
+  "copyDialogTitle": "¿A qué tipo de comida quieres copiarlo?",
+  "copyOrDeleteTimeDialogContent": "Con \"Copiar a hoy\" puedes copiar la comida a hoy. Con \"Borrar\" puedes borrar la comida.",
+  "copyOrDeleteTimeDialogTitle": "¿Qué quieres hacer?",
+  "createCustomDialogContent": "¿Quieres crear un alimento personalizado?",
+  "createCustomDialogTitle": "¿Crear alimento personalizado?",
+  "createRecipeTitle": "Crear receta",
+  "csvImportContributeOffAndroidLink": "Android",
+  "csvImportContributeOffIosLink": "iOS",
+  "csvImportContributeOffPrefix": "¿Tienes un código de barras? Ayuda a todo el mundo añadiendo el producto a Open Food Facts:",
+  "csvImportErrorLabel": "No se pudo leer el fichero CSV. Comprueba el formato e inténtalo de nuevo.",
+  "csvImportPartialLabel": "{imported} comida(s) importadas; {skipped} filas(s) ignoradas por datos invalidos.",
+  "csvImportSuccessLabel": "{count} comida(s) importada(s).",
+  "customActivityDescription": "Introduce las calorías quemadas directamente para actividades que no están en la lista o que no se ha leído desde un fitness tracker",
+  "customActivityDescriptionKj": "Introduce los kilojulios quemados directamente para actividades que no están en la lista o que no se ha leído desde un fitness tracker",
+  "customActivityKcalHint": "ej. 250",
+  "customActivityKcalLabel": "Calorías quemadas",
+  "customActivityName": "Actividad personalizada",
+  "customActivityNameFieldHint": "ej. Regreso a casa en bicicleta",
+  "customActivityNameFieldLabel": "Nombre (opcional)",
+  "customActivityPickFromTemplate": "Elegir de las plantillas guardadas",
+  "customActivitySaveAsTemplate": "Guardar como plantilla para la próxima vez",
+  "customActivityTemplatesEmpty": "No has guardado ninguna plantilla todavía. Marca \"Guardar como plantilla para la próxima vez\" para recordar esta actividad personalizada.",
+  "customMealBarcodeHint": "Escanear o escribir un código de barras para recordar esta comida",
+  "customMealBarcodeInvalid": "El código de barras tiene entre 8 y 14 dígitos",
+  "customMealBarcodeLabel": "Código de barras",
+  "customMealBarcodeScanButton": "Escanear código de barras",
+  "customMealFormAdvanced": "Acanzado",
+  "customMealFormAdvancedHelp": "Ajusta raciones y valores por 100 g para escalar con precisión.",
+  "customMealFormModeLabel": "Vista de formulario",
+  "customMealFormSimple": "Simple",
+  "customMealFormSimpleHelp": "Escribe el total para un ración.",
+  "customMealFormSimpleFieldHelper": "{unit} en una ración",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsDeleteConfirmContent": "Se borrarán los registros del diario asociados a esta comida.",
+  "customMealsDeleteConfirmTitle": "¿Borrar comida personaliza?",
+  "customMealsEmptyLabel": "No tienes comidas personalizadas.",
+  "dailyKcalAdjustmentLabel": "Ajuste diario de Kcal:",
+  "dailyKjAdjustmentLabel": "Ajuste diario de kJ:",
+  "dataCollectionLabel": "Enviar reportes anónimos de errores para ayudar a arreglar bugs e incidencias. En ningún caso se enviará el peso, la comida u otros datos personales.",
+  "deleteAllLabel": "Eliminar todo",
+  "settingsDeleteAllDataLabel": "Reiniciar datos del perfil",
+  "settingsDeleteAllDataSubtitle": "Perfil, comidas, actividades, historial de peso y sesiones de ayuno",
+  "settingsDeleteAllDataConfirmTitle": "Reiniciar datos del perfil?",
+  "settingsDeleteAllDataConfirmContent": "Esto eliminará tu perfil, comidas, actividades, historial de peso y sesiones de ayuno solo para el perfil actual. El contenido compartido (comidas personalizadas, recetas, plantillas de actividad) y los catálogos de Open Food Facts y USDA FoodData Central no se verán afectados. Esta acción no se puede deshacer.",
+  "settingsDeleteAllDataConfirmAction": "Reiniciar perfil",
+  "lowKcalWarningTitle": "Este objetivo diario es algo bajo",
+  "lowKcalWarningBody": "La mayoría de los adultos no deberían consumir menos de {threshold} kcal al día durante ningún período de tiempo sin supervisión médica. Considera hablar con un profesional de la salud antes de mantener un objetivo tan bajo.",
+  "@lowKcalWarningBody": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "lowKcalWarningViewDisclaimer": "Ver aviso",
+  "deleteSelectedRecipesConfirmTitle": "¿Borrar {count} receta(s)?",
+  "deleteTimeDialogContent": "¿Quieres borrar el elemento seleccionado?",
+  "deleteTimeDialogPluralContent": "¿Quieres borrar todos los alimentos de esta comida?",
+  "deleteTimeDialogPluralTitle": "¿Borrar elementos?",
+  "deleteTimeDialogTitle": "¿Borrar elemento?",
+  "dialogCancelLabel": "CANCELAR",
+  "dialogCopyLabel": "Copiar a hoy",
+  "dialogDeleteLabel": "ELIMINAR",
+  "dialogOKLabel": "OK",
+  "diaryFutureDateWarning": "Estas editando una fecha futura",
+  "diaryLabel": "Diario",
+  "diaryNutrientPanelDataDisclaimer": "Aquí solo se suman los nutrientes registrados en las comidas que anotaste. Si a una comida le falta un valor, no aportará nada a ese nutriente, por lo que estos totales podrían ser inferiores a la realidad.",
+  "diaryNutrientPanelTitle": "Nutrientes de hoy",
+  "driPanelInfoTitle": "Ingesta de referencia",
+  "driPanelInfoBody": "Estos valores de referencia provienen de las Ingestas Dietéticas de Referencia del IOM para adultos y varían según la edad y el género. Son un punto de referencia, no un objetivo, tus necesidades personales pueden ser diferentes.",
+  "driPanelInfoLinkLabel": "Fuente: IOM Dietary Reference Intakes",
+  "driPanelReferenceLabel": "ref {value}",
+  "diarySortByCarbs": "Hidratos (más a menos)",
+  "diarySortByFat": "Grasas (más a menos)",
+  "diarySortByKcal": "Calorias (más a menos)",
+  "diarySortByLabel": "Ordenar por",
+  "diarySortByProtein": "Proteínas (más a menos)",
+  "diarySortByTime": "Tiempo añadido",
+  "dinnerExample": "ej. sopa, pollo, vino …",
+  "dinnerLabel": "Cena",
+  "discardChangesConfirmLabel": "Descartar",
+  "discardChangesContent": "Tus cambios no guardados se perderán.",
+  "discardChangesTitle": "¿Descartar cambios?",
+  "disclaimerText": "OpenNutriTracker no es una aplicación médica. Todos los datos proporcionados no están validados y deben usarse con precaución. Mantén un estilo de vida saludable y consulta a un profesional si tienes algún problema. No se recomienda su uso durante enfermedades, embarazo o lactancia. Para consultar las fuentes revisadas por pares que respaldan cada cálculo, toca el icono de información en la pantalla de Inicio o Perfil.",
+  "downloadSampleCsvAction": "Comidas de ejemplo (csv)",
+  "downloadSampleJsonAction": "Comidas de ejemplo (json)",
+  "downloadSampleRecipesCsvAction": "Recetas de ejemplo (csv)",
+  "downloadSampleRecipesJsonAction": "Recetas de ejemplo (json)",
+  "duplicateMealDialogContent": "Este alimento ya se ha añadido a esta comida hoy. ¿Añadir de nuevo?",
+  "duplicateRecipeLabel": "Duplicar",
+  "duplicateRecipeNameSuffix": "(copiar)",
+  "editItemDialogTitle": "Editar elemento",
+  "editMealLabel": "Editar comida",
+  "editRecipeTitle": "Editar receta",
+  "energyLabel": "energía",
+  "energyLeftLabel": "restante",
+  "energyTooMuchLabel": "demasiada",
+  "energyUnitKcalLabel": "Kilocalorias (kcal)",
+  "energyUnitKjLabel": "Kilojulios (kJ)",
+  "errorFetchingProductData": "Error al cargar el producto",
+  "errorLoadingActivities": "Error cargando actividades",
+  "errorMealSave": "Error al guardar la comida. ¿Introdujiste la información correcta?",
+  "errorOpeningBrowser": "Error al abrir el navegador",
+  "errorOpeningEmail": "Error al abrir el gestor de correos",
+  "errorProductNotFound": "Producto no encontrado",
+  "exportAction": "Exportar",
+  "exportImportAppDataLabel": "Exportar / Importar datos de la aplicación",
+  "exportImportCsvRecipesNote": "El CSV guarda tu actividad, el registro de comidas y los días supervisados. Las recetas y las fotos que hayas adjuntado están solo en JSON; cambia a JSON si quieres incluirlas en tu copia de seguridad.",
+  "exportImportDescription": "Puedes exportar los datos de la aplicación a un archivo zip e importarlos más tarde. Esto es útil si quieres hacer una copia de seguridad de tus datos o transferirlos a otro dispositivo.\n\nLa aplicación no utiliza ningún servicio en la nube para almacenar tus datos.",
+  "exportImportErrorLabel": "Error al importar/exportar",
+  "exportImportSuccessLabel": "Éxito al importar/exportar",
+  "fatLabel": "grasas",
+  "fatLabelShort": "g",
+  "fiberLabel": "fibra",
+  "flOzUnit": "oz fl",
+  "ftLabel": "pies",
+  "inLabel": "in",
+  "genderFemaleLabel": "mujer",
+  "genderLabel": "Sexo",
+  "genderMaleLabel": "hombre",
+  "genderNonBinaryLabel": "no binario",
+  "goalGainWeight": "Ganar peso",
+  "goalLabel": "Objetivo",
+  "goalLoseWeight": "Perder peso",
+  "goalMaintainWeight": "Mantener el peso actual",
+  "gramMilliliterUnit": "g/ml",
+  "gramUnit": "g",
+  "heightLabel": "Altura",
+  "homeLabel": "Casa",
+  "homeFirstMealHint": "Pulsa + para añadir tu primera comida o actividad",
+  "homeDemoBannerLabel": "Estas viendo datos de ejemplo",
+  "homeDemoBannerAction": "Configura tu perfil",
+  "homeDemoBannerConfirmTitle": "¿Configurar tu propio perfil?",
+  "homeDemoBannerConfirmContent": "Los datos de ejemplo se eliminarán y se configurará tu propio perfil. Esto no se puede deshacer.",
+  "homeDemoBannerConfirmAction": "Continuar",
+  "trendsDailyAverageLabel": "Media diaria",
+  "trendsLabel": "Tendencia",
+  "youLabel": "Tú",
+  "trendsCaloriesLabel": "Calorías",
+  "trendsDaysOnTrack": "días logrados esta semana",
+  "trendsDayStreakLabel": "racha de días",
+  "trendsBestStreakLabel": "mejor",
+  "trendsPerWeekSuffix": "/semana",
+  "trendsWeeksToGoalLabel": "semanas para el objetivo",
+  "trendsWaterLabel": "Agua",
+  "importAction": "Importar",
+  "importActivityConfirmContent": "Estas actividades se añadirán a hoy.",
+  "importActivityLabel": "Importar ejercicio compartido",
+  "importActivitySuccessLabel": "Ejercicio importado",
+  "importCustomFoodDataDescription": "Importa tus propias preparaciones desde un archivo CSV o copiando JSON. Descarga una plantilla para ver la forma esperada y los campos requeridos.",
+  "importCustomFoodDataLabel": "Importar Datos Alimenticios Personalizados",
+  "importMealConfirmContent": "Estos ítems serán añadidos a tu {mealType}",
+  "importMealErrorLabel": "Código QR inválido",
+  "importMealLabel": "Importar preparación compartida",
+  "importMealSuccessLabel": "Preparación importada",
+  "importMealsCsvAction": "Importar preparacaciones (csv)",
+  "importMealsJsonAction": "Importar preparaciones (json)",
+  "importRecipeConfirmContent": "¿Importar esta receta con {count} ingrediente(s)?"
+}
