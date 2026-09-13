@@ -12,11 +12,29 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 /// Returns 0.0 for an empty query. A meal with no name can still receive a
 /// non-zero score when the query matches the brand (weighted at 60% of the
 /// equivalent name match).
+///
+/// A backend record is scored on its title, not on the description it
+/// shows (`MealEntity.scoringName`, #1164): "Egg, whole, raw" and "Egg,
+/// yolk only, raw" both score as "Egg", the way they did while that was
+/// their name. A qualifier the query names joins the title
+/// (`MealEntity.scoringQualifiers`): on `whole milk`, "Milk, whole" scores
+/// as "Milk whole" — 0.9, the cap — and "Milk, NFS" as "Milk", 0.667, so
+/// the record the user asked for is first by score and not by whichever
+/// order the list arrived in. Named by the exact token, as every token is
+/// matched here; the resolver, and the data source's cut of the backend's
+/// rows to the twenty this ranker is handed, name a qualifier by soft
+/// prefix instead (`namedQualifiers` in `soft_text_score.dart`), because
+/// the two of them must agree with each other, not with this. Everything
+/// else has no title apart from its name and is scored as before.
 double scoreMealRelevance(MealEntity meal, String query) {
   final normalizedQuery = _normalize(query);
   if (normalizedQuery.isEmpty) return 0.0;
 
-  final nameScore = _textScore(meal.name, normalizedQuery);
+  final nameScore = _textScore(
+    meal.scoringName,
+    normalizedQuery,
+    qualifiers: meal.scoringQualifiers,
+  );
   final brandScore = _textScore(meal.brands, normalizedQuery);
   // Brand-only matches (e.g. searching "nestle") still surface the product,
   // but count for less than the same match on the name itself.
@@ -60,12 +78,14 @@ List<MealEntity> rankMealsByRelevance(List<MealEntity> meals, String query) {
 /// above everything else, relevance-sorting within each tier rather than
 /// leaving the arbitrary per-source order.
 ///
-/// Beyond exact-key duplicates, the same real-world food frequently exists
-/// as *separate* records in more than one backend (e.g. "Whole Milk" in
-/// both OFF and the Supabase/FDC mirror) — those have different codes, so
-/// the exact-key dedup above doesn't catch them. [_collapseNearDuplicates]
-/// handles that within the non-own tier only: your own custom meals/recipes
-/// are never merged away, even if a remote result happens to share a name.
+/// Beyond exact-key duplicates, the same Open Food Facts product frequently
+/// exists as *separate* records (one product, several barcodes) — those
+/// have different codes, so the exact-key dedup above doesn't catch them.
+/// [_collapseNearDuplicates] handles that within the non-own tier only, and
+/// only for OFF products: your own custom meals/recipes are never merged
+/// away, even if a remote result happens to share a name, and backend
+/// (FDC/BLS/...) records are never merged with anything — see the note on
+/// [_nearDuplicateKey] for why (#1164).
 List<MealEntity> mergeAndRankMeals(List<MealEntity> a, List<MealEntity> b, String query) {
   final own = <MealEntity>[];
   final rest = <MealEntity>[];
@@ -80,22 +100,35 @@ List<MealEntity> mergeAndRankMeals(List<MealEntity> a, List<MealEntity> b, Strin
 /// Same dedup key as `SearchProductsUseCase._deduplicateMeals` (source +
 /// code, falling back to name) so a custom meal or recipe that independently
 /// surfaced in both the OFF and Food lists collapses to a single entry here.
+///
+/// With one departure: a backend record without a code is keyed on its
+/// identity, not its name. The name fallback would fold two codeless
+/// backend siblings that share a description into one entry *here*, before
+/// [_collapseNearDuplicates] ever saw them — and that function's rule is
+/// that a backend record is never collapsed into anything (#1164). A real
+/// backend row always carries its id as its code, so the fallback is never
+/// reached for one; keying the codeless case on identity — the same
+/// `identityHashCode` [_nearDuplicateKey] already uses for it — is what
+/// makes the guarantee exact rather than merely reachable. The same object
+/// listed twice still collapses, as it should: one object is one entry.
 List<MealEntity> _deduplicateAcrossSources(List<MealEntity> meals) {
   final seenKeys = <String>{};
   final uniqueMeals = <MealEntity>[];
   for (final meal in meals) {
-    final key = '${meal.source.name}:${meal.code ?? meal.name ?? ''}';
+    final key = meal.source == MealSourceEntity.fdc
+        ? '${meal.source.name}:${meal.code ?? identityHashCode(meal)}'
+        : '${meal.source.name}:${meal.code ?? meal.name ?? ''}';
     if (seenKeys.add(key)) uniqueMeals.add(meal);
   }
   return uniqueMeals;
 }
 
-/// Collapses meals that share a normalized name — and, when both sides
-/// declare one, the same normalized brand — keeping only the highest
-/// [scoreMealRelevance]d entry from each group (ties keep the first-seen
-/// one). That score already favors the more complete/trustworthy record
-/// (see the `detailed`/`machineTranslatedName` tie-breakers), so "highest
-/// score" and "best copy to keep" are the same thing here.
+/// Collapses Open Food Facts products that share a normalized name — and,
+/// when both sides declare one, the same normalized brand — keeping only
+/// the highest [scoreMealRelevance]d entry from each group (ties keep the
+/// first-seen one). That score already favors the more complete/trustworthy
+/// record (see the `detailed`/`machineTranslatedName` tie-breakers), so
+/// "highest score" and "best copy to keep" are the same thing here.
 ///
 /// Matching is exact-normalized-text equality, not edit-distance/fuzzy
 /// similarity — deliberately conservative so two distinctly-named foods
@@ -104,6 +137,20 @@ List<MealEntity> _deduplicateAcrossSources(List<MealEntity> meals) {
 /// entry that names the *same* brand; an unbranded entry only merges with
 /// another unbranded entry — a bare "Milk" never absorbs a branded
 /// "Milk (Horizon)", since those aren't reliably the same product.
+///
+/// Only OFF products are grouped at all. This used to cover every non-own
+/// meal, on the theory that the same real-world food shows up as separate
+/// records in more than one database, but for the backend's FDC records
+/// that theory is wrong: survey records that share a name are *distinct
+/// foods*, not copies. 555 `short_title` groups cover 4,215 of the 5,432
+/// survey records (the largest holds 140), and while the app showed those
+/// records by their short title, "Egg, yolk only, raw" folded into "Egg"
+/// beside "Egg, whole, raw" and was gone from the list — the collapse was
+/// losing data rather than removing duplicates (#1164). Backend records now
+/// keep their full description (see `SpFoodDTO.displayName`), so two of
+/// them rarely share a name anyway, but the rule is not "distinct names
+/// don't collide" — it is that a backend record is never a duplicate of
+/// anything, so each is its own entry regardless of what it is called.
 List<MealEntity> _collapseNearDuplicates(List<MealEntity> meals, String query) {
   final groupOrder = <String>[];
   final groups = <String, List<MealEntity>>{};
@@ -116,6 +163,16 @@ List<MealEntity> _collapseNearDuplicates(List<MealEntity> meals, String query) {
 }
 
 String _nearDuplicateKey(MealEntity meal) {
+  // Anything that is not an OFF product is keyed on its own identity, so it
+  // can only ever be alone in its group. That is the whole of the "FDC
+  // records are never collapsed" rule from #1164 — the name-based key below
+  // is reserved for the one case it was built for. (source + code is unique
+  // here because [_deduplicateAcrossSources] already ran on the same key,
+  // identityHashCode fallback included — a codeless backend record is keyed
+  // on its identity in both places, as the nameless case below is.)
+  if (meal.source != MealSourceEntity.off) {
+    return 'single:${meal.source.name}:${meal.code ?? identityHashCode(meal)}';
+  }
   final name = _normalize(meal.name);
   // No name to match on — key on identity instead of an empty string, which
   // would otherwise collapse every unrelated nameless meal into one.
@@ -139,26 +196,25 @@ MealEntity _highestScoring(List<MealEntity> group, String query) {
   return best;
 }
 
-/// Standalone text-relevance score (0.0-1.0) between [text] and [query] —
-/// the same name-matching logic [scoreMealRelevance] uses, exposed for
-/// ranking raw source rows before they're mapped into a [MealEntity] at
-/// all (e.g. Supabase query results: PostgREST's `order` parameter only
-/// accepts column references, not computed `ts_rank(...)` expressions, so
-/// text-search relevance has to be ranked client-side instead — see
-/// `SpFoodDataSource`).
-double textRelevanceScore(String? text, String query) {
-  final normalizedQuery = _normalize(query);
-  if (normalizedQuery.isEmpty) return 0.0;
-  return _textScore(text, normalizedQuery);
-}
-
-double _textScore(String? text, String normalizedQuery) {
+/// [qualifiers] is a backend record's text past its title. Only the tokens
+/// of it that the query contains are scored — as part of the token overlap,
+/// never the contains/prefix bonuses, which read the title as before — so
+/// an unnamed qualifier costs nothing and a named one counts for the
+/// record that carries it.
+double _textScore(
+  String? text,
+  String normalizedQuery, {
+  String? qualifiers,
+}) {
   final normalizedText = _normalize(text);
   if (normalizedText.isEmpty) return 0.0;
   if (normalizedText == normalizedQuery) return 1.0;
 
-  final textTokens = _tokenize(normalizedText);
   final queryTokens = _tokenize(normalizedQuery);
+  final textTokens = {
+    ..._tokenize(normalizedText),
+    ..._tokenize(_normalize(qualifiers)).intersection(queryTokens),
+  };
   final overlap = _diceCoefficient(textTokens, queryTokens);
 
   final containsBonus = normalizedText.contains(normalizedQuery) ? 0.2 : 0.0;

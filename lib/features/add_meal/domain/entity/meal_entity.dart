@@ -11,6 +11,7 @@ import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/util/backend_title.dart';
 
 /// A number immediately followed by a metric mass or volume unit, as it
 /// appears inside an Open Food Facts `serving_size` string.
@@ -106,6 +107,32 @@ class MealEntity extends Equatable {
   /// row then behaves exactly as it did before portions existed.
   final List<MealPortionEntity> portions;
 
+  /// True when [portions] is empty because the lookup that fills it could
+  /// not be made — not because the backend has none for this food.
+  ///
+  /// The two look the same on the entity and mean opposite things to the
+  /// resolver, which takes 0.15 off a backend record with no portion
+  /// (`_noPortionsPenalty` in `resolver_relevance.dart`): a food the backend
+  /// has no portion for cannot scale the amount the resolver logs, and the
+  /// penalty is right; a page whose portion lookup failed in transit tells
+  /// nothing about any food on it, and the penalty would report a search
+  /// that succeeded as a guess (#1170 review). Only `ProductsRepository`
+  /// sets this, through [withPortionsUnavailable], on the entities of a
+  /// page whose lookup answered null.
+  ///
+  /// Never persisted: `MealDBO` has no column for it, as it has none for
+  /// [portions], so a copy read back from the search cache is neither
+  /// flagged nor portioned and the resolver penalises it as it always has.
+  /// That is deliberate. The cache cannot say whether the backend has a
+  /// portion for the row — it never stored one — and a cached copy cannot
+  /// scale an amount whatever the backend holds, which is what the penalty
+  /// measures; when this search's page did return the row, the fresh
+  /// entity, flag or portions and all, stands in the cached copy's slot
+  /// (`SearchProductsUseCase._freshest`). What is left penalised is a row
+  /// the page did not return, and that is the gap `_noPortionsPenalty`'s
+  /// comment already records.
+  final bool portionsUnavailable;
+
   /// Relative path (`meal_images/<code>.webp`) to a user-attached photo
   /// for a custom meal, or null if none is set. Resolved to an absolute
   /// path at render time via `MealImageStorage.absolutePath`. Always
@@ -128,6 +155,67 @@ class MealEntity extends Equatable {
 
   bool get isSolid => solidUnits.contains(mealUnit);
 
+  /// The text the search scorers match this meal on: for a backend record
+  /// the [name] up to its first comma — "Egg" for "Egg, whole, raw" — and
+  /// for everything else the name itself. What follows the comma is
+  /// [scoringQualifiers], which the scorers read only where the query
+  /// names one.
+  ///
+  /// [name] is both what the row shows and what the scorers read, so when
+  /// #1164 changed backend records to show their full description it
+  /// changed their scoring with it, and the resolver's soft Dice charges
+  /// every extra token: on `egg`, "Egg, creamed" (two tokens) beat "Egg,
+  /// whole, raw" (three) and "Egg, whole, boiled or poached" (five), so the
+  /// tie-break that was to pick among the family was never reached; on
+  /// `rice`, "Bread, rice" and "Chips, rice" outscored "Rice, cooked,
+  /// NFS"; and `eggs` → "Egg, whole, raw" fell to 0.375, under the
+  /// resolver's confidence floor. Scoring the title puts the siblings back
+  /// on equal terms — every "Egg" scores 1.0 on `egg` — and the display
+  /// change stays a display change.
+  ///
+  /// The derivation is `deriveTitle` in `backend_title.dart`, shared with
+  /// the data source's truncation so that the twenty rows it keeps and the
+  /// one the resolver picks are scored on the same text (#1170; what that
+  /// does and does not guarantee is at `rankAndTruncateFoodsByName`); that
+  /// file says why the title is derived from the name rather than carried
+  /// from the backend's `short_title` column, and why nothing is persisted
+  /// for it — a copy read back from the search cache derives the same
+  /// title from the same name.
+  ///
+  /// Backend records only. The comma convention is FDC's and BLS's — the
+  /// family first, the qualifiers after — and nothing else the app scores
+  /// follows it: an Open Food Facts product name is whatever the label
+  /// says, and custom meals and recipes are the user's own words, so all
+  /// of those score on the whole name as they always have.
+  String? get scoringName {
+    final text = name;
+    if (text == null || source != MealSourceEntity.fdc) return text;
+    return deriveTitle(text);
+  }
+
+  /// What follows the title in a backend record's [name] — "whole, raw"
+  /// for "Egg, whole, raw" — and null for everything else: a meal from any
+  /// other source, a backend name with no comma, or nothing after it.
+  ///
+  /// The scorers read these the opposite way from the title. The title is
+  /// scored whole, so a qualifier the query does not mention costs its
+  /// record nothing — that is what puts a family of siblings on equal
+  /// terms on `egg`. A qualifier the query *does* mention joins the scored
+  /// text, so `dried apple` scores "Apple, dried" as a record called
+  /// "Apple dried" and its siblings as "Apple": 1.0 against 0.667. Scored
+  /// on the title alone, the three tied at 0.667 and the tie-break logged
+  /// the everyday form — the qualifier the user typed was the one thing
+  /// the scorers could not see (#1164 review). Which mention counts: the
+  /// resolver and the data source's cut name a qualifier by soft prefix,
+  /// one rule for both (`namedQualifiers` in `soft_text_score.dart`); the
+  /// Food tab's `scoreMealRelevance` by the exact token, as it matches
+  /// every token.
+  String? get scoringQualifiers {
+    final text = name;
+    if (text == null || source != MealSourceEntity.fdc) return null;
+    return deriveQualifiers(text);
+  }
+
   const MealEntity({
     required this.code,
     required this.name,
@@ -146,6 +234,7 @@ class MealEntity extends Equatable {
     this.machineTranslatedName = false,
     this.servingSizeIsLocalized = false,
     this.portions = const [],
+    this.portionsUnavailable = false,
     this.localImagePath,
     this.detailed = false,
   });
@@ -176,6 +265,7 @@ class MealEntity extends Equatable {
     machineTranslatedName: machineTranslatedName,
     servingSizeIsLocalized: true,
     portions: portions,
+    portionsUnavailable: portionsUnavailable,
     localImagePath: localImagePath,
     detailed: detailed,
   );
@@ -203,6 +293,35 @@ class MealEntity extends Equatable {
     machineTranslatedName: machineTranslatedName,
     servingSizeIsLocalized: servingSizeIsLocalized,
     portions: found,
+    portionsUnavailable: portionsUnavailable,
+    localImagePath: localImagePath,
+    detailed: detailed,
+  );
+
+  /// The same meal, recording that its portions could not be looked up.
+  ///
+  /// [portions] stays as it is — empty, on the one path that calls this —
+  /// and nothing else moves; see [portionsUnavailable] for what the flag
+  /// changes and where it is read.
+  MealEntity withPortionsUnavailable() => MealEntity(
+    code: code,
+    name: name,
+    brands: brands,
+    thumbnailImageUrl: thumbnailImageUrl,
+    mainImageUrl: mainImageUrl,
+    url: url,
+    mealQuantity: mealQuantity,
+    mealUnit: mealUnit,
+    servingQuantity: servingQuantity,
+    servingUnit: servingUnit,
+    servingSize: servingSize,
+    nutriments: nutriments,
+    source: source,
+    backendSource: backendSource,
+    machineTranslatedName: machineTranslatedName,
+    servingSizeIsLocalized: servingSizeIsLocalized,
+    portions: portions,
+    portionsUnavailable: true,
     localImagePath: localImagePath,
     detailed: detailed,
   );

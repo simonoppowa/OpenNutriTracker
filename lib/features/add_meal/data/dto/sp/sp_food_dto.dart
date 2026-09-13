@@ -17,6 +17,19 @@ class SpFoodDTO {
   final String? sourceCode;
   @JsonKey(name: SPConst.foodName)
   final String? name;
+
+  /// The view's concise English title ("Egg" for "Egg, yolk only, raw").
+  /// Parsed because the view serves it, read by nothing: it was the
+  /// display name until #1164 — 555 short titles cover 4,215 of the 5,432
+  /// FDC survey records, so whole families of distinct foods ("Egg, whole,
+  /// raw", "Egg, yolk only, raw", "Egg, creamed") reached the screen as
+  /// one word and were indistinguishable, and, once the near-duplicate
+  /// collapse saw the same name, were folded into one another and lost
+  /// (see [displayName]) — and the scorers, which still match on the
+  /// title and read past it only where the query names a qualifier,
+  /// derive both from the description instead (`MealEntity.scoringName`,
+  /// `scoringQualifiers`), the column being that derivation on every row
+  /// measured.
   @JsonKey(name: SPConst.foodShortTitle)
   final String? shortTitle;
   @JsonKey(name: SPConst.foodBrands)
@@ -101,9 +114,27 @@ class SpFoodDTO {
   @JsonKey(includeFromJson: false, includeToJson: false)
   bool localizedNameIsMachineTranslated = false;
 
-  /// Name to display: translation first, then the concise English short
-  /// title (which the view already coalesces to the full description).
-  String? get displayName => localizedName ?? shortTitle ?? name;
+  /// Name to display: the translation when there is one, else the full
+  /// English description.
+  ///
+  /// Not [shortTitle]. A survey record's siblings differ only past the
+  /// comma — "Egg, whole, raw" against "Egg, yolk only, raw" — so the
+  /// short form hid the one thing a reader picking between them needs to
+  /// see, and made same-named records look like duplicates to the search
+  /// ranker (#1164). A localized name is a full translated description
+  /// already, so it follows the same rule by construction — and the
+  /// scorers, which match on the title and on the qualifiers the query
+  /// names rather than on the whole description, derive both from
+  /// whichever of the two this returns (`MealEntity.scoringName`,
+  /// `scoringQualifiers`), so a translated row is scored in its own
+  /// language, as it was.
+  ///
+  /// The short title is the last resort, and a defensive one only:
+  /// `food.description` is NOT NULL in the backend, so a row with a short
+  /// title and no name cannot come from it, and [name] is nullable here
+  /// because every column of the DTO is. Should one arrive anyway, the
+  /// short form names the food where nothing would have (#1170 review).
+  String? get displayName => localizedName ?? name ?? shortTitle;
 
   /// Whether the name shown by [displayName] is a machine translation —
   /// only ever true when the localized name is actually the one displayed.

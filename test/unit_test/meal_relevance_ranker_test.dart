@@ -5,13 +5,14 @@ import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.da
 
 MealEntity _meal({
   required String name,
+  String? code,
   String? brands,
   MealSourceEntity source = MealSourceEntity.off,
   bool detailed = false,
   bool machineTranslatedName = false,
 }) {
   return MealEntity(
-    code: name,
+    code: code ?? name,
     name: name,
     brands: brands,
     url: null,
@@ -26,6 +27,26 @@ MealEntity _meal({
     machineTranslatedName: machineTranslatedName,
   );
 }
+
+/// A record with no code, which no real backend row is — every row carries
+/// its id — and which the dedup keys therefore have to fall back on.
+MealEntity _codeless(
+  String name, {
+  MealSourceEntity source = MealSourceEntity.fdc,
+  String? brands,
+}) => MealEntity(
+  code: null,
+  name: name,
+  brands: brands,
+  url: null,
+  mealQuantity: null,
+  mealUnit: 'g',
+  servingQuantity: null,
+  servingUnit: 'g',
+  servingSize: null,
+  nutriments: MealNutrimentsEntity.empty(),
+  source: source,
+);
 
 void main() {
   group('scoreMealRelevance', () {
@@ -122,6 +143,64 @@ void main() {
       final score = scoreMealRelevance(meal, 'milk');
       expect(score, inInclusiveRange(0.0, 1.0));
     });
+
+    // #1164: a backend record shows its full description and is scored on
+    // its title — the description up to its first comma — so "Egg, whole,
+    // raw" scores on `egg` exactly as it did while "Egg" was its name.
+    test('scores a backend record on its title, not its description', () {
+      final titled = _meal(name: 'Egg, whole, raw', source: MealSourceEntity.fdc);
+      final named = _meal(name: 'Egg', source: MealSourceEntity.fdc);
+      // The same text as an OFF product name is scored whole.
+      final byDescription = _meal(name: 'Egg, whole, raw', source: MealSourceEntity.off);
+
+      expect(titled.scoringName, 'Egg');
+      expect(scoreMealRelevance(titled, 'egg'), 1.0);
+      expect(scoreMealRelevance(titled, 'egg'), scoreMealRelevance(named, 'egg'));
+      expect(byDescription.scoringName, 'Egg, whole, raw');
+      expect(scoreMealRelevance(byDescription, 'egg'), lessThan(1.0));
+    });
+
+    test('a meal that is not a backend record is scored on its name as before', () {
+      final off = _meal(name: 'Egg noodles');
+
+      expect(off.scoringName, 'Egg noodles');
+      // dice 0.667 + contains 0.2 + prefix 0.15, capped at 0.9
+      expect(scoreMealRelevance(off, 'egg'), closeTo(0.9, 1e-9));
+    });
+
+    // #1164 review: scored on the title alone, `whole milk` tied "Milk,
+    // whole" and "Milk, NFS" at 0.667 and the list order decided. A
+    // qualifier the query names joins the title; one it does not is never
+    // read.
+    test('scores a qualifier the query names with the title', () {
+      final whole = _meal(name: 'Milk, whole', source: MealSourceEntity.fdc);
+      final nfs = _meal(name: 'Milk, NFS', source: MealSourceEntity.fdc);
+
+      expect(whole.scoringQualifiers, 'whole');
+      // As "Milk whole": dice 1.0, no contains or prefix on the title, so
+      // the 0.9 cap — the score an OFF product "Milk, whole" gets too.
+      expect(scoreMealRelevance(whole, 'whole milk'), closeTo(0.9, 1e-9));
+      expect(
+        scoreMealRelevance(whole, 'whole milk'),
+        scoreMealRelevance(_meal(name: 'Milk, whole'), 'whole milk'),
+      );
+      // The sibling is scored on its title: "Milk" against two tokens.
+      expect(scoreMealRelevance(nfs, 'whole milk'), closeTo(2 / 3, 1e-9));
+      // And on the bare title both are exact.
+      expect(scoreMealRelevance(whole, 'milk'), 1.0);
+      expect(scoreMealRelevance(nfs, 'milk'), 1.0);
+    });
+
+    test('the named qualifier is matched exactly, like every token here', () {
+      // This ranker's Dice is over exact tokens — `eggs` scores nothing on
+      // `Egg` — and the qualifier is held to the same rule. The resolver
+      // and the data source's cut name it by prefix instead, one rule for
+      // the two of them (`namedQualifiers` in soft_text_score.dart).
+      final yolk = _meal(name: 'Egg, yolk only, raw', source: MealSourceEntity.fdc);
+
+      expect(scoreMealRelevance(yolk, 'egg yolk'), closeTo(0.9, 1e-9));
+      expect(scoreMealRelevance(yolk, 'egg yolks'), closeTo(2 / 3, 1e-9));
+    });
   });
 
   group('rankMealsByRelevance', () {
@@ -154,26 +233,28 @@ void main() {
 
       expect(input, [unrelated, exact]);
     });
-  });
 
-  group('textRelevanceScore', () {
-    test('scores an exact match at the maximum', () {
-      expect(textRelevanceScore('Milk', 'Milk'), 1.0);
+    test('ranks a backend record by its title (#1164)', () {
+      // "Egg noodles" scores the 0.9 cap on `egg` by name; the survey
+      // record's description would score 0.85 (three tokens) and lose, but
+      // its title is an exact match and it goes first.
+      final noodles = _meal(name: 'Egg noodles', code: 'off');
+      final wholeRaw = _meal(name: 'Egg, whole, raw', code: '2707152', source: MealSourceEntity.fdc);
+
+      final ranked = rankMealsByRelevance([noodles, wholeRaw], 'egg');
+
+      expect(ranked.map((m) => m.name), ['Egg, whole, raw', 'Egg noodles']);
     });
 
-    test('ranks a closer match above a looser one, same as scoreMealRelevance', () {
-      expect(
-        textRelevanceScore('Whole Milk', 'milk'),
-        greaterThan(textRelevanceScore('Milk Chocolate Hazelnut Spread', 'milk')),
-      );
-    });
+    test('ranks the sibling whose qualifier the query names first (#1164)', () {
+      // Listed after its sibling, so that a tie — which the stable sort
+      // would leave in this order — is told apart from a win by score.
+      final nfs = _meal(name: 'Milk, NFS', code: '2705384', source: MealSourceEntity.fdc);
+      final whole = _meal(name: 'Milk, whole', code: '2705385', source: MealSourceEntity.fdc);
 
-    test('returns 0 for an empty query', () {
-      expect(textRelevanceScore('Milk', ''), 0.0);
-    });
+      final ranked = rankMealsByRelevance([nfs, whole], 'whole milk');
 
-    test('returns 0 for null text', () {
-      expect(textRelevanceScore(null, 'milk'), 0.0);
+      expect(ranked.map((m) => m.name), ['Milk, whole', 'Milk, NFS']);
     });
   });
 
@@ -194,48 +275,138 @@ void main() {
       expect(merged, [recipe]);
     });
 
-    test('collapses the same unbranded food surfaced by two different sources', () {
+    test('collapses the same OFF product surfaced under two barcodes', () {
+      final firstBarcode = _meal(name: 'Whole Milk', code: '4000000000001');
+      final secondBarcode = _meal(name: 'Whole Milk', code: '4000000000002');
+
+      final merged = mergeAndRankMeals([firstBarcode, secondBarcode], [], 'milk');
+
+      expect(merged, hasLength(1));
+    });
+
+    test('keeps the higher-scoring copy when collapsing an OFF near-duplicate', () {
+      final thin = _meal(name: 'Whole Milk', code: 'thin', detailed: false);
+      final detailed = _meal(name: 'Whole Milk', code: 'detailed', detailed: true);
+
+      final merged = mergeAndRankMeals([thin, detailed], [], 'milk');
+
+      expect(merged, [detailed]);
+    });
+
+    // #1164: same-named backend records are distinct foods, not copies. 555
+    // short_title groups cover 4,215 of the 5,432 survey records, and while
+    // those records were shown by short title "Egg, yolk only, raw" folded
+    // into "Egg" beside "Egg, whole, raw" and was gone from the list.
+    test('never collapses a backend record into a same-named OFF product', () {
       final offMilk = _meal(name: 'Whole Milk', source: MealSourceEntity.off);
       final fdcMilk = _meal(name: 'Whole Milk', source: MealSourceEntity.fdc);
 
       final merged = mergeAndRankMeals([offMilk], [fdcMilk], 'milk');
 
+      expect(merged, containsAll([offMilk, fdcMilk]));
+      expect(merged, hasLength(2));
+    });
+
+    test('never collapses two same-named backend records into each other', () {
+      final wholeRaw = _meal(name: 'Egg', code: '2707152', source: MealSourceEntity.fdc);
+      final yolkOnly = _meal(name: 'Egg', code: '2707172', source: MealSourceEntity.fdc);
+
+      final merged = mergeAndRankMeals([], [wholeRaw, yolkOnly], 'egg');
+
+      expect(merged, [wholeRaw, yolkOnly]);
+    });
+
+    test('never collapses two codeless backend records with different names', () {
+      // The backend key is `source:code`; without a code it falls back to
+      // the record's identity, not to an empty string, so two codeless
+      // records do not share a key and quietly become one entry.
+      final wholeRaw = _codeless('Egg, whole, raw');
+      final yolkOnly = _codeless('Egg, yolk only, raw');
+
+      final merged = mergeAndRankMeals([], [wholeRaw, yolkOnly], 'egg');
+
+      expect(merged, containsAll([wholeRaw, yolkOnly]));
+      expect(merged, hasLength(2));
+    });
+
+    test('never collapses two codeless backend records with the same name', () {
+      // The cross-source dedup runs before the near-duplicate collapse and
+      // keyed a codeless meal on `source:name`, so two codeless backend
+      // siblings sharing a description were one entry before the collapse
+      // — whose rule is that a backend record is never collapsed — ever
+      // saw them (#1170 review). A real backend row always carries its id
+      // as its code; keying the codeless case on identity makes the
+      // guarantee exact rather than reachable.
+      final first = _codeless('Egg, whole, raw');
+      final second = _codeless('Egg, whole, raw');
+
+      final merged = mergeAndRankMeals([], [first, second], 'egg');
+
+      expect(merged, hasLength(2));
+      expect(identical(merged[0], first), isTrue);
+      expect(identical(merged[1], second), isTrue);
+    });
+
+    test('the same codeless backend object listed twice is still one entry', () {
+      // Identity is the key, so one object is one entry however many lists
+      // carried it.
+      final record = _codeless('Egg, whole, raw');
+
+      final merged = mergeAndRankMeals([record], [record], 'egg');
+
+      expect(merged, [record]);
+    });
+
+    test('codeless OFF products still dedupe on their name, as before', () {
+      // The identity key is the backend's departure only. A codeless OFF
+      // product keeps the `source:name` fallback, which is blind to brand
+      // — two differently-branded copies are one entry here, before the
+      // brand-aware collapse could have kept them apart.
+      final first = _codeless('Whole Milk', source: MealSourceEntity.off, brands: 'A');
+      final second = _codeless('Whole Milk', source: MealSourceEntity.off, brands: 'B');
+
+      final merged = mergeAndRankMeals([first], [second], 'milk');
+
+      expect(merged, hasLength(1));
+      expect(identical(merged.single, first), isTrue);
+    });
+
+    test('never collapses a backend record, even a lower-scoring one, into a detailed OFF copy', () {
+      // The collapse used to keep the higher-scoring copy of a pair; with
+      // backend records out of it, the score no longer decides whether the
+      // backend record survives at all.
+      final detailedOff = _meal(name: 'Whole Milk', source: MealSourceEntity.off, detailed: true);
+      final translatedFdc = _meal(name: 'Whole Milk', source: MealSourceEntity.fdc, machineTranslatedName: true);
+
+      final merged = mergeAndRankMeals([detailedOff], [translatedFdc], 'milk');
+
+      expect(merged, [detailedOff, translatedFdc]);
+    });
+
+    test('collapses same-name OFF products that also declare the same brand', () {
+      final firstBarcode = _meal(name: 'Whole Milk', brands: 'Horizon', code: 'a');
+      final secondBarcode = _meal(name: 'Whole Milk', brands: 'Horizon', code: 'b');
+
+      final merged = mergeAndRankMeals([firstBarcode, secondBarcode], [], 'milk');
+
       expect(merged, hasLength(1));
     });
 
-    test('keeps the higher-scoring copy when collapsing a cross-source near-duplicate', () {
-      final thinOff = _meal(name: 'Whole Milk', source: MealSourceEntity.off, detailed: false);
-      final detailedFdc = _meal(name: 'Whole Milk', source: MealSourceEntity.fdc, detailed: true);
+    test('does not collapse same-name OFF products that declare different brands', () {
+      final horizonMilk = _meal(name: 'Whole Milk', brands: 'Horizon', code: 'a');
+      final storeMilk = _meal(name: 'Whole Milk', brands: 'Store Brand', code: 'b');
 
-      final merged = mergeAndRankMeals([thinOff], [detailedFdc], 'milk');
-
-      expect(merged, [detailedFdc]);
-    });
-
-    test('collapses same-name meals that also declare the same brand', () {
-      final offBranded = _meal(name: 'Whole Milk', brands: 'Horizon', source: MealSourceEntity.off);
-      final fdcBranded = _meal(name: 'Whole Milk', brands: 'Horizon', source: MealSourceEntity.fdc);
-
-      final merged = mergeAndRankMeals([offBranded], [fdcBranded], 'milk');
-
-      expect(merged, hasLength(1));
-    });
-
-    test('does not collapse same-name meals that declare different brands', () {
-      final horizonMilk = _meal(name: 'Whole Milk', brands: 'Horizon', source: MealSourceEntity.off);
-      final storeMilk = _meal(name: 'Whole Milk', brands: 'Store Brand', source: MealSourceEntity.fdc);
-
-      final merged = mergeAndRankMeals([horizonMilk], [storeMilk], 'milk');
+      final merged = mergeAndRankMeals([horizonMilk, storeMilk], [], 'milk');
 
       expect(merged, containsAll([horizonMilk, storeMilk]));
       expect(merged, hasLength(2));
     });
 
-    test('does not collapse an unbranded entry into a same-named branded one', () {
-      final genericMilk = _meal(name: 'Milk', source: MealSourceEntity.off);
-      final brandedMilk = _meal(name: 'Milk', brands: 'Horizon', source: MealSourceEntity.fdc);
+    test('does not collapse an unbranded OFF entry into a same-named branded one', () {
+      final genericMilk = _meal(name: 'Milk', code: 'a');
+      final brandedMilk = _meal(name: 'Milk', brands: 'Horizon', code: 'b');
 
-      final merged = mergeAndRankMeals([genericMilk], [brandedMilk], 'milk');
+      final merged = mergeAndRankMeals([genericMilk, brandedMilk], [], 'milk');
 
       expect(merged, containsAll([genericMilk, brandedMilk]));
       expect(merged, hasLength(2));
@@ -252,12 +423,12 @@ void main() {
     });
 
     test('never collapses distinctly-named meals just because both lack a name', () {
-      final unnamedOff = _meal(name: '', source: MealSourceEntity.off);
-      final unnamedFdc = _meal(name: '', source: MealSourceEntity.fdc);
+      final unnamedFirst = _meal(name: '', code: 'a');
+      final unnamedSecond = _meal(name: '', code: 'b');
 
-      final merged = mergeAndRankMeals([unnamedOff], [unnamedFdc], 'milk');
+      final merged = mergeAndRankMeals([unnamedFirst, unnamedSecond], [], 'milk');
 
-      expect(merged, containsAll([unnamedOff, unnamedFdc]));
+      expect(merged, containsAll([unnamedFirst, unnamedSecond]));
       expect(merged, hasLength(2));
     });
 
