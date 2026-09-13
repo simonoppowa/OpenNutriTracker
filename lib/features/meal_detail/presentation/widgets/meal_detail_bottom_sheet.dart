@@ -209,7 +209,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                                     for (final option in options)
                                       Semantics(
                                         identifier:
-                                            'meal-detail-chip-${option.label}',
+                                            'meal-detail-chip-${option.id}',
                                         child: ActionChip(
                                           label: Text(option.label),
                                           onPressed: () {
@@ -349,8 +349,9 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(S.of(context).infoAddedIntakeLabel)));
-    Navigator.of(context)
-        .popUntil(namedRouteOrFirst(NavigationOptions.mainRoute));
+    Navigator.of(
+      context,
+    ).popUntil(namedRouteOrFirst(NavigationOptions.mainRoute));
   }
 
   // #212: Check if this meal was already added today for the same meal type
