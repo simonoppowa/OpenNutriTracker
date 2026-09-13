@@ -14,27 +14,17 @@
 /// behaviour is what people already rely on. #601 therefore fixes the
 /// ordering *here*, for the resolver only, and leaves that file alone.
 ///
-/// **Why prefixes rather than plural rules.** Stripping a trailing `s`
-/// works in one of the nine supported locales and reintroduces exactly the
-/// per-language word lists `parseMealText` was designed to avoid. Comparing
-/// how far two tokens agree from the front is locale-independent, because
-/// suffix inflection is how most of these languages inflect:
-///
-/// | | query → record | shared prefix |
-/// |---|---|---|
-/// | en | `eggs` → `Egg` | `egg` |
-/// | de | `Eier` → `Ei` | `Ei` |
-/// | it | `uova` → `uovo` | `uov` |
-/// | tr | `yumurtalar` → `yumurta` | `yumurta` |
+/// The text agreement itself — soft prefix matching, and which of a
+/// backend record's qualifiers a query names by it — lives in
+/// `soft_text_score.dart`, because the data source's cut of the backend's
+/// hundred rows to the twenty this scorer sees must apply the same rule
+/// (#1170). What is here is the entity: brand, the quality tie-breakers,
+/// the no-portions penalty, and the order among equals.
 library;
 
 import 'package:collection/collection.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
-
-/// Shortest prefix agreement that counts as a partial match at all, unless
-/// one of the tokens is shorter than this — `Ei`/`Eier` must still match,
-/// while `apple`/`apricot` (which agree on `ap`) must not.
-const _minPrefix = 3;
+import 'package:opennutritracker/features/add_meal/util/soft_text_score.dart';
 
 /// Quality tie-breakers, matching the shared ranker so that near-equal text
 /// matches resolve the same way in both places.
@@ -80,142 +70,6 @@ const _machineTranslatedPenalty = 0.03;
 /// given, not something the rule can see; #1164's review records it.
 const _noPortionsPenalty = 0.15;
 
-/// Characters from scripts that do not separate words with spaces. A
-/// Unicode script property rather than a vocabulary list, so it does not
-/// grow when a language is added.
-final _unspacedScript = RegExp(
-  r'[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}'
-  r'\p{Script=Hangul}]',
-  unicode: true,
-);
-
-/// The character pairs in [text], or the text itself when it is too short
-/// to have any.
-Set<String> _bigrams(String text) {
-  if (text.length < 2) return {text};
-  return {for (var i = 0; i < text.length - 1; i++) text.substring(i, i + 2)};
-}
-
-/// How far [a] and [b] agree, 0.0-1.0. 1.0 only for an exact match; a
-/// suffix difference costs a little rather than everything.
-double _tokenSimilarity(String a, String b) {
-  if (a == b) return 1.0;
-
-  // Chinese, Japanese and Korean write without spaces, so `_tokenize`
-  // hands the whole phrase over as one token and the shared-prefix rule
-  // below reads it as a single long word. That scored `鸡蛋` against
-  // `土鸡蛋` — a superstring of the query — at exactly 0.0, and it is why
-  // a `zh` search could miss the product it was looking at.
-  //
-  // Character bigrams compare these the way whitespace tokens compare in
-  // Latin scripts: `鸡蛋` and `土鸡蛋` share one pair out of three, so they
-  // agree rather than disagree. It also makes a leading counter harmless —
-  // `个鸡蛋` still matches `鸡蛋` — which is what removes any need for a
-  // list of measure words.
-  if (_unspacedScript.hasMatch(a) || _unspacedScript.hasMatch(b)) {
-    final aGrams = _bigrams(a);
-    final bGrams = _bigrams(b);
-    final shared = aGrams.intersection(bGrams).length;
-    if (shared == 0) return 0.0;
-    return 2 * shared / (aGrams.length + bGrams.length);
-  }
-
-  final shorter = a.length < b.length ? a.length : b.length;
-  final longer = a.length > b.length ? a.length : b.length;
-
-  var shared = 0;
-  while (shared < shorter && a.codeUnitAt(shared) == b.codeUnitAt(shared)) {
-    shared++;
-  }
-
-  // The guard relaxes for tokens shorter than [_minPrefix] so genuinely
-  // short words ("Ei", "ox") are not excluded by their own length.
-  final required = _minPrefix < shorter ? _minPrefix : shorter;
-  if (shared < required) return 0.0;
-
-  return shared / longer;
-}
-
-/// [token]'s best agreement with any of [against]; 0.0 when there is none.
-double _bestAgreement(String token, Set<String> against) =>
-    against.fold(0.0, (best, other) {
-      final similarity = _tokenSimilarity(token, other);
-      return similarity > best ? similarity : best;
-    });
-
-/// Soft Dice: every token on each side contributes its best agreement with
-/// the other side, over the total token count.
-///
-/// The symmetry is what keeps a long branded name from winning on a short
-/// query. Scoring only the query's tokens would rank `Cadbury Creme Eggs`
-/// (which contains `eggs` exactly, 1.0) above `Egg` (0.75) — the opposite
-/// of what the user meant. Counting the record's unmatched tokens too
-/// drops the branded name to 0.5 and puts the plain food first.
-double _softDice(Set<String> textTokens, Set<String> queryTokens) {
-  if (textTokens.isEmpty || queryTokens.isEmpty) return 0.0;
-
-  double bestSum(Set<String> from, Set<String> against) => from.fold(
-    0.0,
-    (sum, token) => sum + _bestAgreement(token, against),
-  );
-
-  final matched =
-      bestSum(queryTokens, textTokens) + bestSum(textTokens, queryTokens);
-  return matched / (queryTokens.length + textTokens.length);
-}
-
-String _normalize(String? text) =>
-    text?.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ') ?? '';
-
-Set<String> _tokenize(String normalized) => normalized
-    .split(RegExp(r'[^\p{L}\p{N}]+', unicode: true))
-    .where((token) => token.isNotEmpty)
-    .toSet();
-
-double _textScore(String? text, Set<String> queryTokens) {
-  final normalized = _normalize(text);
-  if (normalized.isEmpty) return 0.0;
-  return _softDice(_tokenize(normalized), queryTokens);
-}
-
-/// The qualifier tokens the query names: each one that some query token
-/// agrees with better than it agrees with any title token.
-///
-/// "Better than the title", not merely "at all", because the soft
-/// agreement reaches three letters in: on `rice`, "Puerto Rican" agrees
-/// with the query at 0.6 through `ric`, and read as named it would join
-/// the scored text and cost its record — 0.867 against the plain record's
-/// 1.0 — for a word the user never typed. The title already accounts for
-/// `rice` at 1.0, so the qualifier stays out and the two records tie on
-/// the title, as siblings should.
-Set<String> _namedQualifiers(
-  Set<String> titleTokens,
-  Set<String> qualifierTokens,
-  Set<String> queryTokens,
-) => {
-  for (final qualifier in qualifierTokens)
-    if (queryTokens.any(
-      (token) =>
-          _tokenSimilarity(token, qualifier) >
-          _bestAgreement(token, titleTokens),
-    ))
-      qualifier,
-};
-
-/// [meal]'s name score: its title's tokens, plus whichever of its
-/// qualifiers the query names (see [_namedQualifiers]), against the query.
-/// A meal with no title (`MealEntity.scoringName`) scores nothing here,
-/// as a meal with no name always did.
-double _nameScore(MealEntity meal, Set<String> queryTokens) {
-  final titleTokens = _tokenize(_normalize(meal.scoringName));
-  if (titleTokens.isEmpty) return 0.0;
-  final qualifierTokens = _tokenize(_normalize(meal.scoringQualifiers));
-  return _softDice({
-    ...titleTokens,
-    ..._namedQualifiers(titleTokens, qualifierTokens, queryTokens),
-  }, queryTokens);
-}
-
 /// Scores [meal] against [query] on a 0.0-1.0 scale, tolerant of
 /// inflectional suffixes. Brand-only matches count for less than the same
 /// match on the name, as in the shared ranker.
@@ -238,11 +92,15 @@ double _nameScore(MealEntity meal, Set<String> queryTokens) {
 /// Unlike the shared ranker, a backend record with no labelled portion
 /// loses [_noPortionsPenalty] — see there for why this is the only place.
 double scoreMealForResolution(MealEntity meal, String query) {
-  final queryTokens = _tokenize(_normalize(query));
+  final queryTokens = tokenize(query);
   if (queryTokens.isEmpty) return 0.0;
 
-  final nameScore = _nameScore(meal, queryTokens);
-  final brandScore = _textScore(meal.brands, queryTokens);
+  final nameScore = scoreText(
+    meal.scoringName,
+    queryTokens,
+    qualifiers: meal.scoringQualifiers,
+  );
+  final brandScore = scoreText(meal.brands, queryTokens);
   var score = nameScore >= brandScore ? nameScore : brandScore * 0.6;
 
   if (meal.detailed) score += _detailedBonus;
@@ -318,22 +176,22 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// creamed", 12 characters, over "Egg, whole, raw", 15), coffee ("Coffee,
 /// Latte" over "Coffee, brewed"), tea ("Tea, ginger") and bread ("Bread,
 /// rye", 10, over "Bread, white", 12). That was measured family by
-/// family. On the pool the app is handed — the backend's first hundred
-/// matches by deliverable portion, then id, before any client code runs —
-/// sixteen of those eighteen come out as measured (#1170 review), and two
-/// do not: `bread` lands on "Bread, pita", because "Bread, rye" is rank
-/// 157 and never arrives, and `potato` lands on "Stewed, seasoned, ground
-/// beef with potatoes, Mexican style" at 0.5, because the hundred hold no
-/// row titled "Potato" at all — the family is ranks 128 to 488. The
-/// pinned known misses are egg, pita and the stew; the siblings are one
-/// tap away on the review screen, and a specific dish logged as the
-/// family is the worse miss. The portions key is second for the case the
+/// family, and since Backend#10 (applied 2026-09-13) it is what the app
+/// does on the pool it is handed: the backend orders its hundred by
+/// deliverable portion, then title equal to the term, then length, so a
+/// family the query names arrives whole and shortest-first — `potato` is
+/// handed a hundred rows titled "Potato", where the order before it
+/// (portion, then id) handed it beef stews and left the family at ranks
+/// 128 to 488, and `bread` is handed "Bread, rye" first, where it was rank
+/// 157 and never arrived. The pinned known misses on the real pools are
+/// egg and rice ("Rice, fried, NFS", 16 characters, over "Rice, cooked,
+/// NFS", 17 — a dish, as creamed egg is); the siblings are one tap away
+/// on the review screen. The portions key is second for the case the
 /// length cannot settle: "Milk, whole" and "Milk, human" are eleven
 /// characters each, and whole carries 3 deliverable portions to human's
-/// 2; pita and naan are eleven each, and pita's 5 to naan's 3. Declined:
-/// reading FNDDS's own markers (`NFS`, `raw`) as a rule — a word list
-/// about FDC naming living in the ranker, and only 143 of the 555
-/// short-title groups have an NFS record at all.
+/// 2. Declined: reading FNDDS's own markers (`NFS`, `raw`) as a rule — a
+/// word list about FDC naming living in the ranker, and only 143 of the
+/// 555 short-title groups have an NFS record at all.
 ///
 /// The keys only act on a tie, and they are only as good as the tie they
 /// are handed. "Bread, rice" and "Chips, rice" are in the live pool for
@@ -343,17 +201,15 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// Scored on their descriptions they were two-token names that outscored
 /// the three-token plain record, which is the miss the title scoring
 /// removed; and "Pie, apple", titled "Pie", scores 0.667 on `apple` under
-/// the plain record's 1.0. The same title derivation and the same
+/// the plain record's 1.0. The same title derivation, the same scorer
+/// ([scoreText], qualifiers named by [namedQualifiers]) and the same
 /// tie-break cut the backend's hundred to the twenty the resolver sees
-/// (`rankAndTruncateFoodsByName`), so when a family reaches that cut its
-/// shortest-described sibling is inside the twenty rather than left to
-/// the luck of the backend's order among equals. Not the same rule,
-/// though: that cut names a qualifier by exact token where
-/// [_namedQualifiers] names it by prefix, and it runs before any portion
-/// is known where this key and [_noPortionsPenalty] read them — so the
-/// record this sort would pick from the hundred can still be cut before
-/// it is scored, and the hundred are themselves the backend's cut. Its
-/// comment lists the three and the tests that pin them.
+/// (`rankAndTruncateFoodsByName`): the survivors and this sort apply one
+/// rule, so the record this sort would pick from the hundred is inside
+/// the twenty — up to the one thing the cut cannot see. It runs before
+/// any portion is fetched, where this sort's second key and
+/// [_noPortionsPenalty] read them; its comment says exactly what that
+/// leaves open, and `resolver_sibling_selection_test` pins it.
 ///
 /// Every record that is not a fresh backend result has no portions, so
 /// among OFF products or cached meals the portions key is always a tie and

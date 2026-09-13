@@ -173,7 +173,9 @@ void main() {
 
     test('the named qualifier is matched exactly, like every token here', () {
       // This ranker's Dice is over exact tokens — `eggs` scores nothing on
-      // `Egg` — and the qualifier is held to the same rule.
+      // `Egg` — and the qualifier is held to the same rule. The resolver
+      // and the data source's cut name it by prefix instead, one rule for
+      // the two of them (`namedQualifiers` in soft_text_score.dart).
       final yolk = _meal(name: 'Egg, yolk only, raw', source: MealSourceEntity.fdc);
 
       expect(scoreMealRelevance(yolk, 'egg yolk'), closeTo(0.9, 1e-9));
@@ -233,66 +235,6 @@ void main() {
       final ranked = rankMealsByRelevance([nfs, whole], 'whole milk');
 
       expect(ranked.map((m) => m.name), ['Milk, whole', 'Milk, NFS']);
-    });
-  });
-
-  group('textRelevanceScore', () {
-    test('scores an exact match at the maximum', () {
-      expect(textRelevanceScore('Milk', 'Milk'), 1.0);
-    });
-
-    test('ranks a closer match above a looser one, same as scoreMealRelevance', () {
-      expect(
-        textRelevanceScore('Whole Milk', 'milk'),
-        greaterThan(textRelevanceScore('Milk Chocolate Hazelnut Spread', 'milk')),
-      );
-    });
-
-    test('returns 0 for an empty query', () {
-      expect(textRelevanceScore('Milk', ''), 0.0);
-    });
-
-    test('returns 0 for null text', () {
-      expect(textRelevanceScore(null, 'milk'), 0.0);
-    });
-
-    // #1170: the data source scores a raw backend row as its entity will
-    // be scored — the title, plus the qualifiers the query names — so the
-    // twenty rows it keeps and the resolver's pick among them are chosen
-    // by one rule. The qualifiers are read here as [scoreMealRelevance]
-    // reads `MealEntity.scoringQualifiers`.
-    test('scores a named qualifier with the title', () {
-      // "Milk, whole" as the entity is scored: title "Milk", and the
-      // `whole` the query names joins it — "Milk whole", the 0.9 cap.
-      expect(
-        textRelevanceScore('Milk', 'whole milk', qualifiers: 'whole'),
-        closeTo(0.9, 1e-9),
-      );
-      expect(
-        textRelevanceScore('Milk', 'whole milk', qualifiers: 'whole'),
-        scoreMealRelevance(
-          _meal(name: 'Milk, whole', source: MealSourceEntity.fdc),
-          'whole milk',
-        ),
-      );
-    });
-
-    test('a qualifier the query does not name costs nothing', () {
-      expect(textRelevanceScore('Milk', 'milk', qualifiers: 'whole'), 1.0);
-      expect(
-        textRelevanceScore('Milk', 'milk', qualifiers: 'whole'),
-        textRelevanceScore('Milk', 'milk'),
-      );
-    });
-
-    test('a named qualifier never earns the contains or prefix bonus', () {
-      // The bonuses read the title, as they always did: "Bread" with
-      // `rice` behind it scores `rice` on the overlap alone, 0.667, and
-      // not the 0.9 a name that began with the query would.
-      expect(
-        textRelevanceScore('Bread', 'rice', qualifiers: 'rice'),
-        closeTo(2 / 3, 1e-9),
-      );
     });
   });
 

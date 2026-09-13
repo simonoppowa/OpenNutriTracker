@@ -11,8 +11,10 @@
 /// same name, or the twenty rows the data source keeps and the one the
 /// resolver picks among them are scored on different text — which is one
 /// way the resolver's pick was cut before it was ever scored. One
-/// derivation closes that way; the ways that stay open, and the backend's
-/// own cut ahead of both, are listed at `rankAndTruncateFoodsByName`.
+/// derivation closes that way, and one scorer over it (`scoreText` in
+/// `soft_text_score.dart`, which also decides which qualifiers a query
+/// names) closes the other; the one hole that stays open is listed at
+/// `rankAndTruncateFoodsByName`.
 ///
 /// Derived rather than read off the backend's `short_title` column
 /// because the column *is* this derivation: measured on the live backend

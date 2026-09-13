@@ -179,9 +179,11 @@ class MealEntity extends Equatable {
   /// "Apple dried" and its siblings as "Apple": 1.0 against 0.667. Scored
   /// on the title alone, the three tied at 0.667 and the tie-break logged
   /// the everyday form — the qualifier the user typed was the one thing
-  /// the scorers could not see (#1164 review). Which mention counts is
-  /// each scorer's own rule: see `scoreMealRelevance` and
-  /// `scoreMealForResolution`.
+  /// the scorers could not see (#1164 review). Which mention counts: the
+  /// resolver and the data source's cut name a qualifier by soft prefix,
+  /// one rule for both (`namedQualifiers` in `soft_text_score.dart`); the
+  /// Food tab's `scoreMealRelevance` by the exact token, as it matches
+  /// every token.
   String? get scoringQualifiers {
     final text = name;
     if (text == null || source != MealSourceEntity.fdc) return null;

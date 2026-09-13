@@ -20,8 +20,12 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 /// (`MealEntity.scoringQualifiers`): on `whole milk`, "Milk, whole" scores
 /// as "Milk whole" — 0.9, the cap — and "Milk, NFS" as "Milk", 0.667, so
 /// the record the user asked for is first by score and not by whichever
-/// order the list arrived in. Everything else has no title apart from its
-/// name and is scored as before.
+/// order the list arrived in. Named by the exact token, as every token is
+/// matched here; the resolver, and the data source's cut of the backend's
+/// rows to the twenty this ranker is handed, name a qualifier by soft
+/// prefix instead (`namedQualifiers` in `soft_text_score.dart`), because
+/// the two of them must agree with each other, not with this. Everything
+/// else has no title apart from its name and is scored as before.
 double scoreMealRelevance(MealEntity meal, String query) {
   final normalizedQuery = _normalize(query);
   if (normalizedQuery.isEmpty) return 0.0;
@@ -177,30 +181,6 @@ MealEntity _highestScoring(List<MealEntity> group, String query) {
     }
   }
   return best;
-}
-
-/// Standalone text-relevance score (0.0-1.0) between [text] and [query] —
-/// the same name-matching logic [scoreMealRelevance] uses, exposed for
-/// ranking raw source rows before they're mapped into a [MealEntity] at
-/// all (e.g. Supabase query results: PostgREST's `order` parameter only
-/// accepts column references, not computed `ts_rank(...)` expressions, so
-/// text-search relevance has to be ranked client-side instead — see
-/// `SpFoodDataSource`).
-///
-/// [qualifiers] is read the way [scoreMealRelevance] reads
-/// `MealEntity.scoringQualifiers`: only the tokens of it the query names
-/// join the scored text. A raw backend row has a title and qualifiers
-/// exactly as the entity built from it will (`deriveTitle`,
-/// `deriveQualifiers`), and the data source scores those, not the whole
-/// description, so that the rows it keeps are the ones [scoreMealRelevance]
-/// would have kept (#1170). "Names" here is the exact token; the resolver's
-/// `scoreMealForResolution` names a qualifier by prefix as well, which is
-/// one way its whole-pool pick can be among the rows the data source cut —
-/// see `rankAndTruncateFoodsByName`.
-double textRelevanceScore(String? text, String query, {String? qualifiers}) {
-  final normalizedQuery = _normalize(query);
-  if (normalizedQuery.isEmpty) return 0.0;
-  return _textScore(text, normalizedQuery, qualifiers: qualifiers);
 }
 
 /// [qualifiers] is a backend record's text past its title. Only the tokens

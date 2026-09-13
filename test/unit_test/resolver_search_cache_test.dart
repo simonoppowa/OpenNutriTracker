@@ -213,72 +213,53 @@ void main() {
       },
     );
 
-    test('bread resolves to Bread, pita on a warm cache', () async {
-      // The known miss (#1170 review), on this path: the page is the
-      // twenty the data source keeps of the hundred rows the backend
-      // answers `bread` with, each with its portions, as
-      // `getSupabaseFoodsByString` would return it. "Bread, rye" is rank
-      // 157 and not in the hundred, which is why c78b5a38's "rye" was not
-      // the miss the app makes.
-      repository.fdc['bread'] = [
-        for (final row in rankAndTruncateFoodsByName(
-          BackendPoolFixtures.breadSearch,
-          'bread',
-        ))
-          BackendPoolFixtures.fresh(
-            row,
-            BackendPoolFixtures.breadSearchPortions,
-          ),
-      ];
+    test('bread resolves to Bread, rye on a warm cache', () async {
+      // On this path the page is the twenty the data source keeps of the
+      // hundred rows the backend answers `bread` with, each with its
+      // portions, as `getSupabaseFoodsByString` would return it. Since
+      // Backend#10 "Bread, rye" leads the hundred; before it rye was rank
+      // 157, not in the hundred, and the app landed on "Bread, pita".
+      repository.fdc['bread'] = BackendPoolFixtures.freshAll(
+        rankAndTruncateFoodsByName(BackendPoolFixtures.bread, 'bread'),
+        BackendPoolFixtures.breadPortions,
+      );
 
       await resolveOne('bread');
       final resolved = await resolveOne('bread');
 
-      expect(resolved.selected!.name, 'Bread, pita');
+      expect(resolved.selected!.name, 'Bread, rye');
+      expect(resolved.selected!.portions, hasLength(5));
       expect(resolved.confidence, 1.0);
-      expect(
-        resolved.candidates.map((m) => m.name),
-        isNot(contains('Bread, rye')),
-      );
+      expect(resolved.candidates.map((m) => m.name), contains('Bread, pita'));
     });
 
-    test(
-      'potato resolves to a beef stew, settled, cold cache and warm',
-      () async {
-        // The backend's cut, on the resolver's real path: the hundred rows it
-        // answers `potato` with hold no row titled "Potato", the data source
-        // keeps twenty of them, and the resolver logs "Stewed, seasoned,
-        // ground beef with potatoes, Mexican style" at 0.5 — above the floor,
-        // so not flagged as a guess. Pinned as the app's answer today; the
-        // fix is upstream of this branch.
-        repository.fdc['potato'] = [
-          for (final row in rankAndTruncateFoodsByName(
-            BackendPoolFixtures.potatoSearch,
-            'potato',
-          ))
-            BackendPoolFixtures.fresh(
-              row,
-              BackendPoolFixtures.potatoSearchPortions,
-            ),
-        ];
+    test('potato resolves to Potato, NFS, cold cache and warm', () async {
+      // The backend's cut, on the resolver's real path: since Backend#10
+      // the hundred rows it answers `potato` with are the "Potato" family
+      // itself, shortest first, the data source keeps twenty of them, and
+      // the resolver logs "Potato, NFS" at 1.0 with its four portions.
+      // Before it the hundred held no row titled "Potato" and the app
+      // logged "Stewed, seasoned, ground beef with potatoes, Mexican
+      // style" at 0.5.
+      repository.fdc['potato'] = BackendPoolFixtures.freshAll(
+        rankAndTruncateFoodsByName(BackendPoolFixtures.potato, 'potato'),
+        BackendPoolFixtures.potatoPortions,
+      );
 
-        final first = await resolveOne('potato');
-        final second = await resolveOne('potato');
+      final first = await resolveOne('potato');
+      final second = await resolveOne('potato');
 
-        for (final resolved in [first, second]) {
-          expect(
-            resolved.selected!.name,
-            'Stewed, seasoned, ground beef with potatoes, Mexican style',
-          );
-          expect(resolved.confidence, closeTo(0.5, 1e-9));
-          expect(resolved.isLowConfidence, isFalse);
-          expect(
-            resolved.candidates.map((m) => m.scoringName),
-            isNot(contains('Potato')),
-          );
-        }
-      },
-    );
+      for (final resolved in [first, second]) {
+        expect(resolved.selected!.name, 'Potato, NFS');
+        expect(resolved.selected!.portions, hasLength(4));
+        expect(resolved.confidence, 1.0);
+        expect(resolved.isLowConfidence, isFalse);
+        expect(
+          resolved.candidates.map((m) => m.scoringName),
+          everyElement('Potato'),
+        );
+      }
+    });
 
     test('dried apple resolves to Apple, dried, cold cache and warm', () async {
       // The review's probe of the title-only revision, on this path: with

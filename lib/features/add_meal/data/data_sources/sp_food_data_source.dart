@@ -11,7 +11,7 @@ import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/util/backend_title.dart';
-import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
+import 'package:opennutritracker/features/add_meal/util/soft_text_score.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -30,17 +30,23 @@ class SpFoodDataSource {
   /// fetch.
   ///
   /// The net is still a cut, and the backend makes it before any code here
-  /// runs: `search_food_summary` orders its matches by
-  /// `food_has_deliverable_portion(food_id) desc, food_id` and stops at
-  /// this many. For a term where more matches than that carry a portion,
-  /// the hundred are the lowest-id of those, and a family of siblings can
-  /// lie entirely outside them. Measured on the live backend (2026-09-13):
-  /// `potato` matches 712 rows, "Potato, NFS" is rank 128 and the whole
-  /// "Potato" family 128 to 488, so the hundred are all dishes and the
-  /// resolver logs a beef stew; `bread` matches 540, and "Bread, rye" is
-  /// rank 157. Nothing below can rank a row it was not sent — see the
-  /// #1170 review — so the twenty kept are the twenty best of the
-  /// backend's hundred, not of the backend.
+  /// runs: `search_food_summary` stops at this many rows, ordered — since
+  /// Backend#10, applied 2026-09-13 — by `food_has_deliverable_portion
+  /// (food_id) desc`, then whether the row's title (its name up to the
+  /// first comma) equals the term, then `length(name)`, then `food_id`.
+  /// The rows with a portion come first; among them a family the term
+  /// names by its title, shortest description first; `search_food
+  /// _translation` orders the translated descriptions the same way. So a
+  /// family reaches [rankAndTruncateFoodsByName] whole and in the order
+  /// its tie-break would put it in: `potato` matches 712 rows and the
+  /// hundred are a hundred rows titled "Potato", "Potato, NFS" first. The
+  /// order before it — portion, then id — handed the hundred lowest-id
+  /// matches with a portion, which for `potato` were all beef stews and
+  /// shish kabobs, the family sitting at ranks 128 to 488, and the
+  /// resolver logged a stew (#1170 review). Nothing below can rank a row
+  /// it was not sent, so the twenty kept are the twenty best of the
+  /// backend's hundred; the backend's order is what makes those the
+  /// twenty best of the backend.
   static const _candidatePoolSize = SPConst.maxNumberOfItems * 5;
 
   Future<List<SpFoodDTO>> fetchSearchWordResults(String searchString) async {
@@ -310,58 +316,55 @@ class SpFoodDataSource {
   }
 }
 
-/// Ranks [foods] by [textRelevanceScore] against [searchString] and
-/// truncates to [SPConst.maxNumberOfItems]. This is the actual client-side
-/// replacement for the Postgres `ts_rank` ordering that PostgREST rejects
-/// (see [SpFoodDataSource._searchEnglish]) — kept as a standalone top-level
+/// Ranks [foods] by [scoreText] against [searchString] and truncates to
+/// [SPConst.maxNumberOfItems]. This is the actual client-side replacement
+/// for the Postgres `ts_rank` ordering that PostgREST rejects (see
+/// [SpFoodDataSource._searchEnglish]) — kept as a standalone top-level
 /// function, rather than inlined private logic, so it's directly
 /// unit-testable without mocking the Supabase client.
 ///
-/// What is scored is the row's title plus the qualifiers the query names —
-/// `deriveTitle` and `deriveQualifiers` of [SpFoodDTO.name], the same
-/// derivation `MealEntity.scoringName` and `scoringQualifiers` make of the
-/// entity built from this row (#1170). Scored on the whole description, it
-/// was not. This scorer charges every token past the one that matched, so
-/// on `potato` a family of same-titled survey records did not tie: the
-/// twenty with the fewest tokens survived, in backend order among equals,
-/// and the record the resolver would pick among the family — the shortest
-/// description, or the one carrying the qualifier the query named — could
-/// be cut before it was ever scored. Scored on the title, a family ties
-/// here as it ties there, and the tie breaks as it breaks there: the
-/// shorter description first, then the backend's order, stable. So when a
-/// family reaches this cut, its shortest-described member is inside the
-/// twenty, and so is a member whose qualifier the query names by the exact
-/// token. No portion lookup happens before this cut; the twenty are
-/// decorated with theirs afterwards.
+/// The twenty rows kept here are the resolver's whole world for the
+/// query, and the resolver auto-selects among them unread, so they are
+/// chosen by the resolver's own rule: what is scored is the row's title
+/// plus the qualifiers the query names — `deriveTitle` and
+/// `deriveQualifiers` of [SpFoodDTO.name], the derivation
+/// `MealEntity.scoringName` and `scoringQualifiers` make of the entity
+/// built from this row — with the scorer `scoreMealForResolution` scores
+/// that entity with, `scoreText`, which names a qualifier by soft prefix
+/// (`namedQualifiers`), and ties break as they break there: the shorter
+/// description first, then the backend's order, stable (#1170). Scored on
+/// the whole description, a family of same-titled survey records did not
+/// tie here as it tied there, and the record the resolver would pick was
+/// cut before it was scored; scored on the title but with the Food tab's
+/// ranker, which names a qualifier by the exact token, `cheesy potato`
+/// named `cheese` in the resolver and not here, and "Potato, french
+/// fries, with cheese" was cut the same way. The survivors and the
+/// resolver now apply one rule, so the resolver's pick is inside the
+/// twenty by construction — with one hole, which is the only thing this
+/// cut cannot see:
 ///
-/// That is one derivation and one tie-break, not one rule, and c78b5a38
-/// overstated it as "the resolver's pick is inside the twenty by
-/// construction" (#1170 review). Three things stand between this cut and
-/// the resolver's whole-pool pick, each pinned in
-/// `resolver_sibling_selection_test`:
+/// * No portion is fetched before this cut; the twenty are decorated with
+///   theirs afterwards. The resolver takes 0.15 off a backend record with
+///   none and, among equals, prefers the most portions, and neither can
+///   act here. So a family whose twenty shortest members are all
+///   portionless would keep those and lose its shortest portion-bearing
+///   member — the one the resolver would have picked at 1.0 — and log a
+///   portionless one at 0.85. The backend leads its hundred with the
+///   portion-bearing rows, shortest first among a titled family, so this
+///   needs fewer than twenty such rows in the pool *and* twenty
+///   portionless rows that score as well and are no longer: `orange
+///   juice` has nine portion-bearing rows and one shorter portionless
+///   exact title, and the survey record survives. The same blindness lets
+///   twenty same-length siblings ahead of the pick in the backend's order
+///   keep it out where the resolver would have chosen it by portions.
+///   `resolver_sibling_selection_test` pins the hole on a synthetic
+///   family and its absence on the real pools.
 ///
-/// * The backend cuts first. Its hundred are the first hundred matches by
-///   deliverable portion, then id (see `_candidatePoolSize`), and for
-///   `potato` none of the "Potato" family is among them: the app resolves
-///   `potato` to "Stewed, seasoned, ground beef with potatoes, Mexican
-///   style" at 0.5, above the confidence floor. The 106-row family
-///   fixture that was measured here is real rows, but not the pool this
-///   function is handed. Of the eighteen families the tie-break decision
-///   listed, sixteen resolve on their real pool as listed; potato and
-///   bread ("Bread, pita", rye being rank 157) do not.
-/// * A qualifier named by prefix alone. [textRelevanceScore] reads a
-///   qualifier as named when the query holds the exact token; the
-///   resolver's `_namedQualifiers` reads it by soft prefix, so `cheesy`
-///   names `cheese` there and not here. On `cheesy potato` the resolver
-///   over the whole family picks "Potato, french fries, with cheese"
-///   (0.917); here every row scores 0.667 on the title and the twenty
-///   shortest survive, that record is cut at 33 characters, and the
-///   resolver logs "Potato, NFS" at 0.667.
-/// * The no-portions penalty. No portion is known here, so a family whose
-///   twenty shortest members carry none keeps those, and the resolver —
-///   which takes 0.15 off each — logs one at 0.85 while the member it
-///   would have picked from the whole pool, the shortest with portions at
-///   1.0, was cut.
+/// The Food tab ranks these twenty for display with `scoreMealRelevance`,
+/// which matches exactly and adds contains and prefix bonuses; where it
+/// disagrees with the soft score it reorders the twenty for a list the
+/// user reads, and nothing the user could have scrolled to is lost by
+/// choosing them this way.
 @visibleForTesting
 List<SpFoodDTO> rankAndTruncateFoodsByName(
   List<SpFoodDTO> foods,
@@ -384,10 +387,11 @@ List<Map<String, dynamic>> rankAndTruncateTranslationRows(
   (row) => row[SPConst.translationDescription] as String?,
 );
 
-/// [items] by the score of their description — [describe] — against
-/// [searchString], highest first; among equal scores the shorter
-/// description; and the sort is stable, so what is left of a tie keeps the
-/// backend's order. The first [SPConst.maxNumberOfItems] of that.
+/// [items] by the score of their description — [describe], as its title
+/// plus the qualifiers [searchString] names — highest first; among equal
+/// scores the shorter description; and the sort is stable, so what is
+/// left of a tie keeps the backend's order. The first
+/// [SPConst.maxNumberOfItems] of that.
 ///
 /// `mergeSort` rather than `List.sort` for the stability: Dart's sort is an
 /// insertion sort under 32 elements, which happens to be stable, and a
@@ -399,11 +403,12 @@ List<T> _rankAndTruncate<T>(
   String searchString,
   String? Function(T item) describe,
 ) {
+  final queryTokens = tokenize(searchString);
   final decorated = [
     for (final item in items)
       (
         item: item,
-        score: _backendScore(describe(item), searchString),
+        score: _backendScore(describe(item), queryTokens),
         length: describe(item)?.length ?? 0,
       ),
   ];
@@ -418,12 +423,12 @@ List<T> _rankAndTruncate<T>(
 }
 
 /// [description] scored as its entity will be: the title, plus whichever
-/// of its qualifiers [searchString] names.
-double _backendScore(String? description, String searchString) {
-  if (description == null) return textRelevanceScore(null, searchString);
-  return textRelevanceScore(
+/// of its qualifiers the query names — [scoreText], the resolver's own.
+double _backendScore(String? description, Set<String> queryTokens) {
+  if (description == null) return 0.0;
+  return scoreText(
     deriveTitle(description),
-    searchString,
+    queryTokens,
     qualifiers: deriveQualifiers(description),
   );
 }

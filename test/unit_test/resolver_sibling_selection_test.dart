@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
@@ -38,16 +39,19 @@ import '../fixture/backend_sibling_fixtures.dart';
 ///
 /// What the resolver is handed is the other half. The data source keeps
 /// twenty of the hundred rows the backend sends, and the backend's hundred
-/// are its own cut — the first hundred matches by deliverable portion,
-/// then id — made before any client code runs. The family fixtures here
-/// are real rows but not that hundred, so a winner pinned on a family
-/// alone is the tie-break's answer, not always the app's: on the pool the
-/// app is handed `bread` lands on "Bread, pita", because "Bread, rye" is
-/// rank 157 and never arrives, and `potato` lands on a beef stew at 0.5,
-/// because not one row titled "Potato" is inside the hundred (#1170
-/// review). The last groups pin those on `BackendPoolFixtures`' real
-/// pools, and the two ways the cut and the resolver read a pool
-/// differently.
+/// are its own cut, made before any client code runs. Since Backend#10
+/// (applied 2026-09-13) it orders them by deliverable portion, then title
+/// equal to the term, then length, so a family the query names arrives
+/// whole and shortest-first; the order before it — portion, then id —
+/// handed `potato` a hundred beef stews with the family at ranks 128 to
+/// 488, and `bread` a hundred without "Bread, rye", which was rank 157.
+/// The family fixtures here are real rows but not that hundred, so the
+/// groups on them pin the tie-break; the last groups pin the app's answer
+/// on `BackendPoolFixtures`' real pools, through the data source's cut
+/// and then the resolver — and that the survivors and the resolver apply
+/// one rule, so the resolver's pick from the whole pool is inside the
+/// twenty, up to the one thing the cut cannot see (its portions; see
+/// `rankAndTruncateFoodsByName`).
 List<MealEntity> resolve(
   String query, {
   List<MealEntity> off = const [],
@@ -230,9 +234,8 @@ void main() {
       // only family in these fixtures where the two keys disagree, so the
       // real-row proof that the length is consulted before the portions:
       // the pool is listed rye first, but reversing it changes nothing.
-      // This is the key order on two rows, not the miss the app makes on
-      // `bread` — rye is outside the hundred the backend sends, and the
-      // app lands on pita; see the real-pool group below.
+      // On the pool the app is handed rye leads the hundred and is the
+      // app's answer too; see the real-pool group below.
       expect(
         names(resolve('bread', backend: BackendSiblingFixtures.bread)).first,
         'Bread, rye',
@@ -305,6 +308,8 @@ void main() {
       // because the two tie on their title and it reckoned the variant had
       // more portions. The length key settles it before any portion is
       // counted: the plain record's 17 characters beat the variant's 48.
+      // (On the pool the app is handed the same key lands on "Rice, fried,
+      // NFS", 16 — the known miss pinned in the real-pool group below.)
       expect(
         names(resolve('rice', backend: BackendSiblingFixtures.rice)).first,
         'Rice, cooked, NFS',
@@ -428,8 +433,8 @@ void main() {
       // carries the most portions (9 to 8) and won while the portions came
       // first. Stewed is the shortest survey description in the pool the
       // app is handed too — 98 rows, all inside the backend's hundred — so
-      // this is the app's answer; c78b5a38's fixture left it out and
-      // pinned rotisserie.
+      // this is the app's answer, pinned over the real pool in every input
+      // order below; c78b5a38's fixture left it out and pinned rotisserie.
       expect(winners, {'Chicken breast, stewed, skin eaten'});
     });
 
@@ -685,306 +690,546 @@ void main() {
     });
   });
 
-  group('the whole Potato family, handed to the cut on its own (#1170)', () {
-    // The data source cuts what the backend sends to twenty before any
-    // entity exists, and the resolver picks among those twenty. Scored on
-    // the whole description, the record the resolver would pick among a
-    // family was cut before it was scored; scored on the title with the
-    // same tie-break, the shortest-described of the family is inside the
-    // twenty. The real 106-record "Potato" family, through the cut and
-    // then the resolver's own path, each record carrying the portions the
-    // backend delivers for it.
-    //
-    // This is the family handed to the cut alone, which the app never does
-    // for `potato`: the backend's own hundred hold none of the family, and
-    // the app's answer is a beef stew — pinned in the real-pool group
-    // below. What this group pins is what the client's cut does with a
-    // family when one reaches it.
-    MealEntity fresh(SpFoodDTO row) =>
-        BackendPoolFixtures.fresh(row, BackendPoolFixtures.potatoPortions);
-
-    test('potato resolves to Potato, NFS out of the family\'s twenty', () {
-      // The measurement the revised tie-break rests on: "Potato, NFS"
-      // carries 4 deliverable portions and "Potato, french fries, fast
-      // food" 12, so most-portions-first logged the fries. The shortest
-      // description is the generic record.
-      final survivors = rankAndTruncateFoodsByName(
-        BackendPoolFixtures.potato,
-        'potato',
+  group('the pools the app is handed (#1170)', () {
+    // `search_food_summary(term, null, 100)` as the backend answered it
+    // after Backend#10, through the data source's cut and then the
+    // resolver's own path, each record with the portions the backend
+    // delivers for it. The backend leads with the rows that carry a
+    // portion, among them the family the term names by its title,
+    // shortest first; the cut keeps the twenty the resolver would rank
+    // first; the resolver picks among those. Each family's answer is
+    // asserted twice: from the page the cut hands on, and from the whole
+    // hundred with no cut at all — the same record, or the cut lost what
+    // the resolver would have picked.
+    ({MealEntity fromPage, MealEntity fromPool, List<SpFoodDTO> survivors})
+    pick(String query, List<SpFoodDTO> pool, Map<int, int> portions) {
+      final survivors = rankAndTruncateFoodsByName(pool, query);
+      return (
+        fromPage: resolve(
+          query,
+          backend: BackendPoolFixtures.freshAll(survivors, portions),
+        ).first,
+        fromPool: resolve(
+          query,
+          backend: BackendPoolFixtures.freshAll(pool, portions),
+        ).first,
+        survivors: survivors,
       );
-      final page = [for (final row in survivors) fresh(row)];
+    }
 
-      final ranked = resolve('potato', backend: page);
+    void expectPick(
+      String query,
+      List<SpFoodDTO> pool,
+      Map<int, int> portions, {
+      required String name,
+      required int id,
+      double score = 1.0,
+    }) {
+      final picked = pick(query, pool, portions);
 
-      expect(ranked, hasLength(20));
-      expect(names(ranked).first, 'Potato, NFS');
-      expect(ranked.first.code, '${BackendPoolFixtures.potatoNfs}');
-      expect(ranked.first.portions, hasLength(4));
-      expect(scoreMealForResolution(ranked.first, 'potato'), 1.0);
-    });
-
-    test('and to the same record out of the whole family', () {
-      // The cut kept what the resolver would have picked from all 106,
-      // in either order — and not the most-portioned record, which is a
-      // fries record at 12 and scores the same 1.0.
-      final family = [for (final row in BackendPoolFixtures.potato) fresh(row)];
-      final fries = family.singleWhere(
-        (m) => m.code == '${BackendPoolFixtures.potatoFrenchFriesFastFood}',
-      );
-
-      expect(fries.name, 'Potato, french fries, fast food');
-      expect(fries.portions, hasLength(12));
-      expect(scoreMealForResolution(fries, 'potato'), 1.0);
-      expect(names(resolve('potato', backend: family)).first, 'Potato, NFS');
+      expect(picked.fromPage.name, name, reason: query);
+      expect(picked.fromPage.code, '$id', reason: query);
+      expect(picked.fromPool.code, '$id', reason: '$query, whole pool');
       expect(
-        names(resolve('potato', backend: family.reversed.toList())).first,
-        'Potato, NFS',
-      );
-    });
-
-    test('the portionless record is penalised, whatever its length', () {
-      // "Potato, cooked, as ingredient" is 29 characters, shorter than
-      // most of the family; at 0.85 the length key never sees it.
-      final family = [for (final row in BackendPoolFixtures.potato) fresh(row)];
-      final ingredient = family.singleWhere(
-        (m) => m.code == '${BackendPoolFixtures.potatoCookedAsIngredient}',
-      );
-
-      expect(ingredient.portions, isEmpty);
-      expect(scoreMealForResolution(ingredient, 'potato'), closeTo(0.85, 1e-9));
-      expect(names(resolve('potato', backend: family)).last, ingredient.name);
-    });
-
-    test('french fries resolves to Potato, french fries, NFS', () {
-      // The sixteen fries records score 0.8 — the named `french fries`
-      // with the title — and the shortest of them is the plain one, over
-      // the fast-food record's 12 portions.
-      final survivors = rankAndTruncateFoodsByName(
-        BackendPoolFixtures.potato,
-        'french fries',
-      );
-      final page = [for (final row in survivors) fresh(row)];
-
-      final ranked = resolve('french fries', backend: page);
-
-      expect(names(ranked).first, 'Potato, french fries, NFS');
-      expect(
-        scoreMealForResolution(ranked.first, 'french fries'),
-        closeTo(0.8, 1e-9),
+        picked.survivors.map((r) => r.foodId),
+        contains(id),
+        reason: '$query: the pick is inside the twenty',
       );
       expect(
-        names(ranked).take(16),
-        everyElement(startsWith('Potato, french fries')),
-      );
-    });
-  });
-
-  group('the pools the app is handed (#1170 review)', () {
-    // `search_food_summary(term, null, 100)` as the backend answered it,
-    // through the cut and then the resolver's own path, each record with
-    // the portions the backend delivers for it. The backend's hundred are
-    // the first hundred matches by deliverable portion, then id: a cut
-    // made before any client code runs, which no client-side rule can
-    // reach past. Measured over the eighteen families the tie-break
-    // decision listed, sixteen resolve on their real pool as listed
-    // (egg -> creamed, milk, apple, banana, orange juice, cheese, beef,
-    // pasta, coffee -> Latte, tea -> ginger, pork, turkey, soup, crackers,
-    // muffin, pretzels); potato and bread do not, and these pin what they
-    // do instead.
-    test('potato resolves to a beef stew at 0.5: the backend\'s cut', () {
-      // 712 rows match `potato`, and the hundred lowest-id ones with a
-      // portion are all dishes; "Potato, NFS" is rank 128, the family 128
-      // to 488. The client's cut cannot keep what it was never sent. What
-      // survives is scored as the shared ranker scores: no title is
-      // "Potato", no qualifier is the exact token `potato` (the dishes
-      // carry `potatoes`), so ten rows whose title contains the word take
-      // 0.2 and the rest tie at nothing, shortest first. The resolver then
-      // reads `potatoes` by prefix as a named qualifier and puts the
-      // stew's "Stewed" + `potatoes` at 0.5 — above the 0.45 floor, so it
-      // is logged as settled, not flagged. That is the app's answer for
-      // `potato` today, and it is the backend's cut, not this branch's,
-      // that makes it.
-      final survivors = rankAndTruncateFoodsByName(
-        BackendPoolFixtures.potatoSearch,
-        'potato',
-      );
-      final page = [
-        for (final row in survivors)
-          BackendPoolFixtures.fresh(
-            row,
-            BackendPoolFixtures.potatoSearchPortions,
-          ),
-      ];
-
-      final ranked = resolve('potato', backend: page);
-
-      expect(BackendPoolFixtures.potatoSearch, hasLength(100));
-      expect(
-        BackendPoolFixtures.potatoSearch.map((r) => r.shortTitle),
-        isNot(contains('Potato')),
+        scoreMealForResolution(picked.fromPage, query),
+        closeTo(score, 1e-3),
+        reason: query,
       );
       expect(
-        BackendPoolFixtures.potatoSearch.map((r) => r.foodId),
-        isNot(contains(BackendPoolFixtures.potatoNfs)),
-      );
-      expect(ranked, hasLength(20));
-      expect(
-        names(ranked).first,
-        'Stewed, seasoned, ground beef with potatoes, Mexican style',
-      );
-      expect(
-        ranked.first.code,
-        '${BackendPoolFixtures.stewedBeefWithPotatoes}',
-      );
-      expect(
-        scoreMealForResolution(ranked.first, 'potato'),
-        closeTo(0.5, 1e-9),
-      );
-      expect(
-        scoreMealForResolution(ranked.first, 'potato'),
+        scoreMealForResolution(picked.fromPage, query),
         greaterThanOrEqualTo(kResolutionConfidenceFloor),
+        reason: '$query is settled, not flagged',
       );
-      expect(ranked.map((m) => m.scoringName), isNot(contains('Potato')));
+    }
+
+    test('potato resolves to Potato, NFS', () {
+      // The hundred are a hundred rows titled "Potato" and every one scores
+      // 1.0, so the length key decides: "Potato, NFS" at eleven characters
+      // — 4 deliverable portions; the fast-food fries carry 12, which is
+      // what made most-portions-first the wrong key. The order before
+      // Backend#10 held no row titled "Potato" at all, and the app logged
+      // "Stewed, seasoned, ground beef with potatoes, Mexican style".
+      expect(
+        BackendPoolFixtures.potato.map((r) => r.shortTitle),
+        everyElement('Potato'),
+      );
+      expectPick(
+        'potato',
+        BackendPoolFixtures.potato,
+        BackendPoolFixtures.potatoPortions,
+        name: 'Potato, NFS',
+        id: BackendPoolFixtures.potatoNfs,
+      );
     });
 
-    test('bread resolves to Bread, pita: the known miss', () {
-      // 540 rows match `bread`; thirty-one of the hundred are titled
-      // "Bread" and tie at 1.0, and the cut keeps the twenty shortest of
-      // them. "Bread, rye" is rank 157 and never arrives, so the miss
-      // c78b5a38 pinned on the two-row fixture — rye over white — is not
-      // the one the app makes. Pita and naan are eleven characters each,
-      // the shortest inside the hundred, and the portions key settles it:
-      // pita's 5 to naan's 3. White, the everyday form, is twelve and
-      // carries 7.
-      final survivors = rankAndTruncateFoodsByName(
-        BackendPoolFixtures.breadSearch,
+    test('bread resolves to Bread, rye', () {
+      // The miss c78b5a38 pinned on two rows is the app's answer: the
+      // hundred are all titled "Bread", rye leads them at ten characters,
+      // and white, the everyday form, is twelve. Rye, soy and nut are ten
+      // each; rye carries 5 portions to nut's 2 and ties soy's 5, so the
+      // last key — the backend's order, which is id order — is what puts
+      // rye ahead of soy. Before Backend#10 rye was rank 157 and never
+      // arrived, and the app landed on "Bread, pita".
+      expectPick(
         'bread',
+        BackendPoolFixtures.bread,
+        BackendPoolFixtures.breadPortions,
+        name: 'Bread, rye',
+        id: BackendPoolFixtures.breadRye,
       );
-      final page = [
-        for (final row in survivors)
-          BackendPoolFixtures.fresh(
-            row,
-            BackendPoolFixtures.breadSearchPortions,
-          ),
-      ];
-
-      final ranked = resolve('bread', backend: page);
-
-      expect(
-        BackendPoolFixtures.breadSearch.map((r) => r.foodId),
-        isNot(contains(BackendPoolFixtures.breadRye)),
+      final ranked = resolve(
+        'bread',
+        backend: BackendPoolFixtures.freshAll(
+          rankAndTruncateFoodsByName(BackendPoolFixtures.bread, 'bread'),
+          BackendPoolFixtures.breadPortions,
+        ),
       );
-      expect(ranked, hasLength(20));
-      expect(names(ranked).take(3), [
+      expect(names(ranked).take(4), [
+        'Bread, rye',
+        'Bread, soy',
+        'Bread, nut',
         'Bread, pita',
-        'Bread, naan',
-        'Bread, white',
       ]);
-      expect(ranked.first.code, '${BackendPoolFixtures.breadPita}');
-      expect(ranked.first.portions, hasLength(5));
-      expect(ranked[1].portions, hasLength(3));
-      expect(ranked[2].portions, hasLength(7));
-      expect(scoreMealForResolution(ranked.first, 'bread'), 1.0);
-      expect(names(ranked), everyElement(startsWith('Bread, ')));
+      expect(ranked[0].portions, hasLength(5));
+      expect(ranked[1].portions, hasLength(5));
+      expect(ranked[2].portions, hasLength(2));
+    });
+
+    test(
+      'chicken breast resolves to the stewed record in every input order',
+      () {
+        // Thirty of the 98 rows carry a portion and 38 are titled "Chicken
+        // breast". The cut keeps the BLS "Chicken breast, without skin,
+        // raw" first — 33 characters, no portion, which the cut cannot see
+        // — and stewed's 34 second, tied on length with the SR Legacy roll;
+        // the penalty then drops both portionless records to 0.85 and
+        // stewed is logged. Rotating the pool through the cut moves the
+        // roll above and below stewed and changes nothing.
+        final pool = BackendPoolFixtures.chickenBreast;
+        final portions = BackendPoolFixtures.chickenBreastPortions;
+        final winners = <String>{};
+        for (var shift = 0; shift < pool.length; shift++) {
+          final rotated = [...pool.skip(shift), ...pool.take(shift)];
+          for (final input in [rotated, rotated.reversed.toList()]) {
+            final picked = pick('chicken breast', input, portions);
+            winners.add(picked.fromPage.name!);
+            winners.add(picked.fromPool.name!);
+          }
+        }
+
+        expect(winners, {'Chicken breast, stewed, skin eaten'});
+        final survivors = rankAndTruncateFoodsByName(pool, 'chicken breast');
+        expect(
+          survivors.first.foodId,
+          BackendPoolFixtures.chickenBreastWithoutSkinRawBls,
+        );
+        expect(survivors[1].foodId, BackendPoolFixtures.chickenBreastStewed);
+        expect(
+          survivors[2].foodId,
+          BackendPoolFixtures.chickenBreastRollSrLegacy,
+        );
+        expectPick(
+          'chicken breast',
+          pool,
+          portions,
+          name: 'Chicken breast, stewed, skin eaten',
+          id: BackendPoolFixtures.chickenBreastStewed,
+        );
+      },
+    );
+
+    test('egg resolves to Egg, creamed: the known miss', () {
+      // Twenty-seven of the hundred are titled "Egg" and lead the pool;
+      // creamed is twelve characters to fifteen for "Egg, whole, raw".
+      expectPick(
+        'egg',
+        BackendPoolFixtures.egg,
+        BackendPoolFixtures.eggPortions,
+        name: 'Egg, creamed',
+        id: BackendPoolFixtures.eggCreamed,
+      );
+    });
+
+    test('eggs resolves to the same record, above the floor', () {
+      // The backend answers `eggs` with a different hundred: the full-text
+      // match stems it to `egg`, but no title equals `eggs`, so the
+      // title-first key does nothing and the shortest matches of any title
+      // arrive — "Egg burrito" and "Taquito, egg" among them. Every "Egg"
+      // scores 0.75 on the soft agreement (`eggs` → `egg`), the burrito
+      // and the taquito 0.5, and creamed is the shortest at 0.75.
+      expect(
+        BackendPoolFixtures.eggs.map((r) => r.shortTitle),
+        isNot(contains('Eggs')),
+      );
+      expectPick(
+        'eggs',
+        BackendPoolFixtures.eggs,
+        BackendPoolFixtures.eggsPortions,
+        name: 'Egg, creamed',
+        id: BackendPoolFixtures.eggCreamed,
+        score: 0.75,
+      );
+    });
+
+    test('milk resolves to Milk, NFS', () {
+      expectPick(
+        'milk',
+        BackendPoolFixtures.milk,
+        BackendPoolFixtures.milkPortions,
+        name: 'Milk, NFS',
+        id: BackendPoolFixtures.milkNfs,
+      );
+    });
+
+    test('apple resolves to Apple, raw', () {
+      // Twenty of the hundred carry a portion, four of them titled
+      // "Apple"; raw is ten characters. The BLS "Apple raw" is nine, but
+      // has no comma, so its title is the whole name and scores 0.667.
+      expectPick(
+        'apple',
+        BackendPoolFixtures.apple,
+        BackendPoolFixtures.applePortions,
+        name: 'Apple, raw',
+        id: BackendPoolFixtures.appleRaw,
+      );
+    });
+
+    test('orange juice resolves to the survey record over BLS', () {
+      // Nine of the 45 rows carry a portion. The BLS "Orange juice" is the
+      // exact title at twelve characters and the cut, which knows no
+      // portions, keeps it first; the resolver takes 0.15 off it and the
+      // survey's "Orange juice, 100%, NFS" — 1.0, five portions — is
+      // logged.
+      final picked = pick(
+        'orange juice',
+        BackendPoolFixtures.orangeJuice,
+        BackendPoolFixtures.orangeJuicePortions,
+      );
+
+      expect(picked.survivors.first.foodId, BackendPoolFixtures.orangeJuiceBls);
+      expectPick(
+        'orange juice',
+        BackendPoolFixtures.orangeJuice,
+        BackendPoolFixtures.orangeJuicePortions,
+        name: 'Orange juice, 100%, NFS',
+        id: BackendPoolFixtures.orangeJuice100Nfs,
+      );
+      final ranked = resolve(
+        'orange juice',
+        backend: BackendPoolFixtures.freshAll(
+          picked.survivors,
+          BackendPoolFixtures.orangeJuicePortions,
+        ),
+      );
+      final bls = ranked.singleWhere(
+        (m) => m.code == '${BackendPoolFixtures.orangeJuiceBls}',
+      );
+      expect(scoreMealForResolution(bls, 'orange juice'), closeTo(0.85, 1e-9));
+      expect(ranked.indexOf(bls), greaterThan(0));
+    });
+
+    test('rice resolves to Rice, fried, NFS: the known miss', () {
+      // The hundred are all titled "Rice" and tie at 1.0; "Rice, fried,
+      // NFS" is sixteen characters to "Rice, cooked, NFS"'s seventeen, so
+      // the length key lands on a dish, as it lands on creamed egg. Pinned
+      // as it is: the cooked record is second, one tap away on the review
+      // screen, and the rule that would pick it — most portions first —
+      // picked the french fries over the potato in the large families.
+      expectPick(
+        'rice',
+        BackendPoolFixtures.rice,
+        BackendPoolFixtures.ricePortions,
+        name: 'Rice, fried, NFS',
+        id: BackendPoolFixtures.riceFriedNfs,
+      );
+      final ranked = resolve(
+        'rice',
+        backend: BackendPoolFixtures.freshAll(
+          rankAndTruncateFoodsByName(BackendPoolFixtures.rice, 'rice'),
+          BackendPoolFixtures.ricePortions,
+        ),
+      );
+      expect(names(ranked).take(2), ['Rice, fried, NFS', 'Rice, cooked, NFS']);
+      expect(ranked[1].code, '${BackendPoolFixtures.riceCookedNfs}');
+    });
+
+    test('carrots resolves to Carrots, raw', () {
+      expectPick(
+        'carrots',
+        BackendPoolFixtures.carrots,
+        BackendPoolFixtures.carrotsPortions,
+        name: 'Carrots, raw',
+        id: BackendPoolFixtures.carrotsRaw,
+      );
+    });
+
+    test('a qualifier in the query picks the sibling that carries it', () {
+      // The named qualifier puts one record above the family and the
+      // tie-break is never consulted — on the real pools, through the cut.
+      expectPick(
+        'dried apple',
+        BackendPoolFixtures.apple,
+        BackendPoolFixtures.applePortions,
+        name: 'Apple, dried',
+        id: BackendPoolFixtures.appleDried,
+      );
+      expectPick(
+        'whole milk',
+        BackendPoolFixtures.milk,
+        BackendPoolFixtures.milkPortions,
+        name: 'Milk, whole',
+        id: BackendPoolFixtures.milkWhole,
+      );
+      expectPick(
+        'egg yolk',
+        BackendPoolFixtures.egg,
+        BackendPoolFixtures.eggPortions,
+        name: 'Egg, yolk only, raw',
+        id: BackendPoolFixtures.eggYolkOnlyRaw,
+      );
+      expectPick(
+        'rye bread',
+        BackendPoolFixtures.bread,
+        BackendPoolFixtures.breadPortions,
+        name: 'Bread, rye',
+        id: BackendPoolFixtures.breadRye,
+      );
+      expectPick(
+        'french fries',
+        BackendPoolFixtures.potato,
+        BackendPoolFixtures.potatoPortions,
+        name: 'Potato, french fries, NFS',
+        id: BackendPoolFixtures.potatoFrenchFriesNfs,
+        score: 0.8,
+      );
     });
   });
 
-  group(
-    'where the cut and the resolver read a pool differently (#1170 review)',
-    () {
-      // c78b5a38 said the twenty survivors and the resolver apply one rule,
-      // so the resolver's pick is inside the twenty by construction. They
-      // share the title derivation and the tie-break, not the rule: the cut
-      // names a qualifier by exact token (`textRelevanceScore`, the shared
-      // ranker's reading) where the resolver names it by soft prefix
-      // (`_namedQualifiers`), and the cut runs before any portion is fetched
-      // where the resolver takes 0.15 off a record with none. Each is a way
-      // for the record the resolver would pick from the whole pool to be cut
-      // before it is scored, and each is pinned here as it stands.
-      MealEntity fresh(SpFoodDTO row) =>
-          BackendPoolFixtures.fresh(row, BackendPoolFixtures.potatoPortions);
+  group('the German pools through the translation cut (#1170)', () {
+    // `search_food_translation(term, 'de', 100)` as the backend answered
+    // it, through `rankAndTruncateTranslationRows` and then the resolver,
+    // each entity carrying the translated description as its name — which
+    // is what `SpFoodDataSource._searchByTranslation` puts on the DTO —
+    // and the portions the backend delivers for it. Every Milch row is a
+    // machine translation and loses 0.03; so is every Kartoffel row that
+    // survives.
+    SpFoodDTO translated(Map<String, dynamic> row) {
+      final dto = SpFoodDTO(
+        foodId: row[SPConst.translationFoodId] as int,
+        source: 'fdc_survey',
+        sourceCode: '${row[SPConst.translationFoodId]}',
+        name: row[SPConst.translationDescription] as String,
+      );
+      dto.localizedName = row[SPConst.translationDescription] as String;
+      dto.localizedNameIsMachineTranslated =
+          row[SPConst.translationSource] == SPConst.translationSourceMachine;
+      return dto;
+    }
 
-      test('a qualifier the query names only by prefix: cheesy potato', () {
-        // Over the whole family the resolver reads `cheesy` as naming
-        // `cheese` (0.833 by prefix) and picks "Potato, french fries, with
-        // cheese" at 0.917. The cut has no `cheesy` token to intersect, so
-        // every row scores 0.667 on the title and the twenty shortest
-        // survive, none longer than 30 characters; the 33-character record
-        // is cut, and the resolver logs "Potato, NFS" at 0.667 from what is
-        // left.
-        const query = 'cheesy potato';
-        final family = [
-          for (final row in BackendPoolFixtures.potato) fresh(row),
-        ];
-        final fromFamily = resolve(query, backend: family).first;
-        final survivors = rankAndTruncateFoodsByName(
-          BackendPoolFixtures.potato,
-          query,
-        );
-        final fromPage = resolve(
-          query,
-          backend: [for (final row in survivors) fresh(row)],
-        ).first;
+    List<MealEntity> page(
+      String query,
+      List<Map<String, dynamic>> pool,
+      Map<int, int> portions,
+    ) => BackendPoolFixtures.freshAll([
+      for (final row in rankAndTruncateTranslationRows(pool, query))
+        translated(row),
+    ], portions);
 
-        expect(fromFamily.name, 'Potato, french fries, with cheese');
-        expect(scoreMealForResolution(fromFamily, query), closeTo(0.917, 1e-3));
+    test('Milch resolves to Milch, NFS', () {
+      final ranked = resolve(
+        'Milch',
+        backend: page(
+          'Milch',
+          BackendPoolFixtures.milch,
+          BackendPoolFixtures.milchPortions,
+        ),
+      );
+
+      expect(ranked.first.name, 'Milch, NFS');
+      expect(ranked.first.code, '${BackendPoolFixtures.milchNfs}');
+      expect(ranked.first.scoringName, 'Milch');
+      expect(ranked.first.machineTranslatedName, isTrue);
+      expect(
+        scoreMealForResolution(ranked.first, 'Milch'),
+        closeTo(0.97, 1e-9),
+      );
+    });
+
+    test('Kartoffel resolves to Kartoffel, NFS', () {
+      // The same record as `potato`, read in German.
+      final ranked = resolve(
+        'Kartoffel',
+        backend: page(
+          'Kartoffel',
+          BackendPoolFixtures.kartoffel,
+          BackendPoolFixtures.kartoffelPortions,
+        ),
+      );
+
+      expect(ranked.first.name, 'Kartoffel, NFS');
+      expect(ranked.first.code, '${BackendPoolFixtures.kartoffelNfs}');
+      expect(BackendPoolFixtures.kartoffelNfs, BackendPoolFixtures.potatoNfs);
+      expect(ranked.first.portions, hasLength(4));
+    });
+  });
+
+  group('the cut and the resolver apply one rule (#1170)', () {
+    // c78b5a38 said the twenty survivors and the resolver apply one rule,
+    // so the resolver's pick is inside the twenty by construction; the
+    // #1170 review found they shared the title derivation and the
+    // tie-break but not the rule — the cut named a qualifier by the exact
+    // token and the resolver by soft prefix — and the claim was withdrawn.
+    // Both now score with `scoreText` and name with `namedQualifiers`
+    // (soft_text_score.dart), so the claim is back, and the group above
+    // asserts it on every real pool. What it still does not cover is the
+    // one thing the cut cannot see: it runs before any portion is fetched,
+    // where the resolver's penalty and its portions key read them. The
+    // last tests pin that hole where it bites and where it does not.
+    test('a qualifier named by inflection: cheesy potato', () {
+      // `cheesy` agrees with `cheese` five letters in (0.833) and with no
+      // title token at all, so the qualifier is named — at the cut as in
+      // the resolver — and the thirteen rows carrying `cheese` score
+      // 0.917 over the family's 0.667. The shortest of them, "Potato,
+      // french fries, with cheese" at 33 characters, is kept first and
+      // picked. With the cut naming by exact token there was no `cheesy`
+      // to intersect, every row scored 0.667, the twenty shortest survived
+      // — none longer than 30 — and the resolver logged "Potato, NFS".
+      const query = 'cheesy potato';
+      final pool = BackendPoolFixtures.potato;
+      final portions = BackendPoolFixtures.potatoPortions;
+      final survivors = rankAndTruncateFoodsByName(pool, query);
+      final fromPage = resolve(
+        query,
+        backend: BackendPoolFixtures.freshAll(survivors, portions),
+      ).first;
+      final fromPool = resolve(
+        query,
+        backend: BackendPoolFixtures.freshAll(pool, portions),
+      ).first;
+
+      expect(fromPool.name, 'Potato, french fries, with cheese');
+      expect(fromPage.code, fromPool.code);
+      expect(
+        survivors.first.foodId,
+        BackendPoolFixtures.potatoFrenchFriesWithCheese,
+      );
+      expect(scoreMealForResolution(fromPage, query), closeTo(0.917, 1e-3));
+      expect(survivors.where((r) => r.name!.contains('cheese')), hasLength(13));
+      expect(
+        survivors.take(13).map((r) => r.name!.contains('cheese')),
+        everyElement(isTrue),
+      );
+      expect(
+        scoreMealForResolution(
+          BackendPoolFixtures.fresh(
+            pool.singleWhere((r) => r.foodId == BackendPoolFixtures.potatoNfs),
+            portions,
+          ),
+          query,
+        ),
+        closeTo(0.667, 1e-3),
+      );
+    });
+
+    test('a qualifier named by inflection: fried potato', () {
+      // `fried` agrees with `fries` four letters in (0.8) and with `fried`
+      // exactly, so "Potato, french fries, from fresh, fried" carries two
+      // named qualifiers and scores 0.96; the home fries, with `fries`
+      // alone, 0.9; the rest of the family 0.667. The shortest of the two
+      // records carrying `fried` is picked, at the cut as in the resolver.
+      const query = 'fried potato';
+      final pool = BackendPoolFixtures.potato;
+      final portions = BackendPoolFixtures.potatoPortions;
+      final survivors = rankAndTruncateFoodsByName(pool, query);
+      final fromPage = resolve(
+        query,
+        backend: BackendPoolFixtures.freshAll(survivors, portions),
+      ).first;
+      final fromPool = resolve(
+        query,
+        backend: BackendPoolFixtures.freshAll(pool, portions),
+      ).first;
+
+      expect(fromPool.name, 'Potato, french fries, from fresh, fried');
+      expect(fromPage.code, fromPool.code);
+      expect(
+        survivors.first.foodId,
+        BackendPoolFixtures.potatoFrenchFriesFromFreshFried,
+      );
+      expect(scoreMealForResolution(fromPage, query), closeTo(0.96, 1e-3));
+    });
+
+    test('the one hole: a family whose shortest members carry no portions', () {
+      // Twenty-five portionless SR Legacy-style rows and one survey record
+      // with nine portions, all titled "Chicken breast". Over the whole
+      // pool the penalty leaves the survey record alone at 1.0. The cut
+      // knows no portions, ties the twenty-six on the title and keeps the
+      // twenty shortest — the portionless rows — and the resolver logs one
+      // of them at 0.85. On the pools the backend sends this needs fewer
+      // than twenty portion-bearing rows in the pool, because the backend
+      // leads with them, and twenty portionless rows that score as well
+      // and are no longer than the pick; no real pool here has both.
+      const query = 'chicken breast';
+      SpFoodDTO row(int id, String name, String source) =>
+          SpFoodDTO(foodId: id, source: source, sourceCode: '$id', name: name);
+      final rows = [
+        for (var i = 0; i < 25; i++)
+          row(
+            i,
+            'Chicken breast, roll ${i.toString().padLeft(2, '0')}',
+            'fdc_sr_legacy',
+          ),
+        row(99, 'Chicken breast, baked or broiled, skin eaten', 'fdc_survey'),
+      ];
+      final portions = {
+        for (final r in rows) r.foodId!: r.foodId == 99 ? 9 : 0,
+      };
+      MealEntity entity(SpFoodDTO r) => BackendPoolFixtures.fresh(r, portions);
+
+      final fromPool = resolve(
+        query,
+        backend: [for (final r in rows) entity(r)],
+      ).first;
+      final survivors = rankAndTruncateFoodsByName(rows, query);
+      final fromPage = resolve(
+        query,
+        backend: [for (final r in survivors) entity(r)],
+      ).first;
+
+      expect(fromPool.name, 'Chicken breast, baked or broiled, skin eaten');
+      expect(scoreMealForResolution(fromPool, query), 1.0);
+      expect(survivors.map((r) => r.foodId), isNot(contains(99)));
+      expect(fromPage.name, 'Chicken breast, roll 00');
+      expect(scoreMealForResolution(fromPage, query), closeTo(0.85, 1e-9));
+    });
+
+    test(
+      'where the hole does not bite: orange juice, nine portion-bearing rows',
+      () {
+        // The pool with the fewest portion-bearing rows here. Twenty rows
+        // are titled "Orange juice" and only one portionless one — the
+        // BLS record, twelve characters — is shorter than the survey's
+        // "Orange juice, 100%, NFS", so the survey record is second at the
+        // cut and first in the resolver. Nineteen more portionless rows
+        // no longer than 23 characters would have cut it.
+        final pool = BackendPoolFixtures.orangeJuice;
+        final portions = BackendPoolFixtures.orangeJuicePortions;
+        final survivors = rankAndTruncateFoodsByName(pool, 'orange juice');
+
+        expect(pool.where((r) => portions[r.foodId]! > 0), hasLength(9));
+        expect(survivors[1].foodId, BackendPoolFixtures.orangeJuice100Nfs);
         expect(
-          survivors.map((r) => '${r.foodId}'),
-          isNot(contains(fromFamily.code)),
+          survivors.where(
+            (r) => portions[r.foodId] == 0 && r.name!.length <= 23,
+          ),
+          hasLength(1),
         );
-        expect(
-          survivors.map((r) => r.name!.length),
-          everyElement(lessThanOrEqualTo(30)),
-        );
-        expect(fromPage.name, 'Potato, NFS');
-        expect(scoreMealForResolution(fromPage, query), closeTo(0.667, 1e-3));
-      });
-
-      test('a family whose shortest members carry no portions', () {
-        // Twenty-five portionless SR Legacy-style rows and one survey record
-        // with nine portions, all titled "Chicken breast". Over the whole
-        // pool the penalty leaves the survey record alone at 1.0. The cut
-        // knows no portions, ties the twenty-six on the title and keeps the
-        // twenty shortest — the portionless rows — and the resolver logs one
-        // of them at 0.85.
-        const query = 'chicken breast';
-        SpFoodDTO row(int id, String name, String source) => SpFoodDTO(
-          foodId: id,
-          source: source,
-          sourceCode: '$id',
-          name: name,
-        );
-        final rows = [
-          for (var i = 0; i < 25; i++)
-            row(
-              i,
-              'Chicken breast, roll ${i.toString().padLeft(2, '0')}',
-              'fdc_sr_legacy',
-            ),
-          row(99, 'Chicken breast, baked or broiled, skin eaten', 'fdc_survey'),
-        ];
-        final portions = {
-          for (final r in rows) r.foodId!: r.foodId == 99 ? 9 : 0,
-        };
-        MealEntity entity(SpFoodDTO r) =>
-            BackendPoolFixtures.fresh(r, portions);
-
-        final fromPool = resolve(
-          query,
-          backend: [for (final r in rows) entity(r)],
-        ).first;
-        final survivors = rankAndTruncateFoodsByName(rows, query);
-        final fromPage = resolve(
-          query,
-          backend: [for (final r in survivors) entity(r)],
-        ).first;
-
-        expect(fromPool.name, 'Chicken breast, baked or broiled, skin eaten');
-        expect(scoreMealForResolution(fromPool, query), 1.0);
-        expect(survivors.map((r) => r.foodId), isNot(contains(99)));
-        expect(fromPage.name, 'Chicken breast, roll 00');
-        expect(scoreMealForResolution(fromPage, query), closeTo(0.85, 1e-9));
-      });
-    },
-  );
+      },
+    );
+  });
 }

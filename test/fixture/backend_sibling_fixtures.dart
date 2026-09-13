@@ -3,7 +3,8 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 
 /// Backend records as the resolver sees them, copied from the live backend
-/// on 2026-09-12 for #1164: `food.id`, `food.source`, `food.description`,
+/// on 2026-09-12 for #1164 and re-checked row for row on 2026-09-13:
+/// `food.id`, `food.source`, `food.description`,
 /// `food.short_title` — the text the scorers read; no row here is without
 /// one, BLS included — and every portion
 /// `portions_by_food_ids(ARRAY[id], 'en')` returns for the id — the
@@ -216,14 +217,13 @@ class BackendSiblingFixtures {
   /// The one family here where the two tie-break keys disagree: rye is
   /// the shorter description, white carries more portions and is the
   /// everyday form. The length goes first (#1170), so between these two
-  /// `bread` lands on rye. That is the key order, not the miss the app
-  /// makes: the pool the app is handed for `bread` is the backend's first
-  /// hundred matches by portion and id, "Bread, rye" is rank 157 and not
-  /// in it, and the resolver logs "Bread, pita" — see
-  /// `BackendPoolFixtures.breadSearch`. In apple and banana the
-  /// shortest-named sibling is also the most-portioned, so those cannot
-  /// tell the two keys apart; milk can, where whole and human tie on
-  /// length.
+  /// `bread` lands on rye — and since Backend#10 that is the app's answer
+  /// on the pool it is handed too, which "Bread, rye" now leads; under the
+  /// order before it rye was rank 157, outside the hundred, and the
+  /// resolver logged "Bread, pita" (see `BackendPoolFixtures.bread`). In
+  /// apple and banana the shortest-named sibling is also the
+  /// most-portioned, so those cannot tell the two keys apart; milk can,
+  /// where whole and human tie on length.
   static final breadWhite = _record(
     2707598,
     'Bread, white',
@@ -379,10 +379,10 @@ class BackendSiblingFixtures {
   );
 
   /// The shortest survey description in the pool the app is handed for
-  /// `chicken breast` — 34 characters, rank 13 of its 98 rows, all of
-  /// which fit inside the backend's hundred — and so the record the app
-  /// resolves the query to. c78b5a38's fixture left it out and pinned
-  /// rotisserie's 38 as the shortest.
+  /// `chicken breast` — 34 characters, and since Backend#10 the first of
+  /// its 98 rows, all of which fit inside the backend's hundred — and so
+  /// the record the app resolves the query to. c78b5a38's fixture left it
+  /// out and pinned rotisserie's 38 as the shortest.
   static final chickenBreastStewed = _record(
     2705965,
     'Chicken breast, stewed, skin eaten',
