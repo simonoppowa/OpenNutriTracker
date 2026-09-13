@@ -1,0 +1,1277 @@
+{
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@mealDetailCurrentSelectionLabel": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      }
+    }
+  },
+  "@mealDetailDayTotalLabel": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@quickAddAddedSnack": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "@logWaterAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "@settingsNotificationsTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@waterChipLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "@weeklyWeightGoalKgPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "@weeklyWeightGoalLbsPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "activityExample": "pl. futás, kerékpározás, jóga …",
+  "activityLabel": "Tevékenység",
+  "addItemLabel": "Új elem hozzáadása:",
+  "addLabel": "Hozzáadás",
+  "additionalInfoLabelCompendium2011": "A\n„2024-es fizikai tevékenységek\nösszefoglalója”\náltal nyújtott információk",
+  "additionalInfoLabelCustom": "Egyedi étel",
+  "additionalInfoLabelFDC": "További információk a\nFoodData Central oldalon",
+  "additionalInfoLabelSource": "További információk a(z)\n{sourceName} oldalon",
+  "@additionalInfoLabelSource": {
+    "placeholders": {
+      "sourceName": {
+        "type": "String"
+      }
+    }
+  },
+  "foodSourcesAlwaysEnabledLabel": "Mindig engedélyezve",
+  "foodSourcesHelpText": "A keresési eredmények ezekből az élelmiszer-adatbázisokból származnak. Az Open Food Facts biztosítja a termék- és vonalkód-keresés működését, és mindig engedélyezve van.",
+  "machineTranslatedNameHint": "A név automatikusan lefordítva",
+  "measureUnitBar": "{count, plural, one{bar} other{bars}}",
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitBottle": "{count, plural, one{bottle} other{bottles}}",
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCan": "{count, plural, one{can} other{cans}}",
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCup": "{count, plural, one{cup} other{cups}}",
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitEgg": "{count, plural, one{egg} other{eggs}}",
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPackage": "{count, plural, one{package} other{packages}}",
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPiece": "{count, plural, one{piece} other{pieces}}",
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPortion": "{count, plural, one{portion} other{portions}}",
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitServing": "{count, plural, one{serving} other{servings}}",
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitSlice": "{count, plural, one{slice} other{slices}}",
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTablespoon": "{count, plural, one{tablespoon} other{tablespoons}}",
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTeaspoon": "{count, plural, one{teaspoon} other{teaspoons}}",
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "settingsFoodSourcesLabel": "Élelmiszer-adatbázisok",
+  "settingsFoodSourcesSubtitle": "Válassza ki, honnan származnak az ételkeresési találatok",
+  "onboardingOtherOptionsLabel": "Egyéb lehetőségek",
+  "onboardingOtherOptionsSubtitle": "Személyre szabhatja az alkalmazást – később mindent megváltoztathat a Beállításokban",
+  "additionalInfoLabelOFF": "További információk az\nOpenFoodFacts oldalon",
+  "additionalInfoLabelRecipe": "Saját recept",
+  "additionalInfoLabelUnknown": "Ismeretlen étel",
+  "ageLabel": "Kor",
+  "allItemsLabel": "Mind",
+  "alphaVersionName": "[Alfa]",
+  "appDescription": "Az OpenNutriTracker egy ingyenes, nyílt forráskódú kalória- és tápanyag-nyomkövető alkalmazás, amely tiszteletben tartja a felhasználók magánéletét.",
+  "appLicenseLabel": "GPL-3.0 licenc",
+  "appTitle": "OpenNutriTracker",
+  "appVersionName": "{versionNumber} verzió",
+  "@appVersionName": {
+    "placeholders": {
+      "versionNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "barcodeInvalidEan13CheckDigit": "Ez a 13 jegyű vonalkód hibásnak tűnik: az utolsó számjegye nem egyezik a többivel",
+  "baseQuantityLabel": "A tápérték adatonként",
+  "bmiInfo": "A testtömeg-index (BMI) a felnőttek túlsúlyának és elhízásának osztályozására szolgáló mutató. Kifejezésére a testsúly kilogrammban kifejezett értékét osztjuk a testmagasság méterben kifejezett négyzetével (kg/m²).\n\nA BMI nem tesz különbséget a zsír- és az izomtömeg között, ezért egyesek esetében félrevezető eredményt adhat.",
+  "bmiInfoClassificationSection": "WHO osztályozás",
+  "bmiInfoFormulaSection": "Képlet",
+  "bmiInfoScreenTitle": "A BMI kiszámításának módja",
+  "bmiLabel": "BMI",
+  "breakfastExample": "pl. gabonapehely, tej, kávé …",
+  "breakfastLabel": "Reggeli",
+  "burnedLabel": "elégetve",
+  "buttonNextLabel": "TOVÁBB",
+  "buttonResetLabel": "Visszaállítás",
+  "buttonSaveLabel": "Mentés",
+  "buttonStartLabel": "KEZDÉS",
+  "buttonYesLabel": "IGEN",
+  "calciumLabel": "kalcium",
+  "calculationsMacronutrientsDistributionLabel": "Makrók eloszlása",
+  "calculationsMacrosDistribution": "{pctCarbs}% szénhidrát, {pctFats}% zsír, {pctProteins}% fehérje",
+  "@calculationsMacrosDistribution": {
+    "placeholders": {
+      "pctCarbs": {},
+      "pctFats": {},
+      "pctProteins": {}
+    }
+  },
+  "calculationsRecommendedLabel": "(ajánlott)",
+  "calculationsTDEEIOM2006Label": "Az Orvostudományi Intézet képlete (2005)",
+  "calculationsTDEELabel": "A TDEE képlet",
+  "caloriesProfileAveragedLabel": "Átlagos referencia (alapértelmezett)",
+  "caloriesProfileEstrogenTypicalLabel": "Az ösztrogénre jellemző referenciaérték",
+  "caloriesProfileInfoBody": "Nincs publikált, nem bináris kalóriaalapú alapérték – a referenciaegyenletek férfi és női minták köré épülnek. Alapértelmezés szerint a kettő átlagát használjuk, ami egy semleges kiindulópont, és nem kéri, hogy többet áruljon el a testéről. A Beállításokban található kcal csúszka mindig elérhető a finomhangoláshoz; ez egy kiindulópont, nem egy pontos becslés.",
+  "caloriesProfileInfoTitle": "Kalóriaértékek",
+  "caloriesProfileTestosteroneTypicalLabel": "A tesztoszteronra jellemző referenciaértékek",
+  "carbohydrateLabel": "szénhidrát",
+  "carbsLabel": "szénhidrátok",
+  "carbsLabelShort": "c",
+  "cholesterolLabel": "koleszterin",
+  "chooseWeeklyWeightGoalLabel": "Heti súlyváltozás",
+  "chooseWeightGoalLabel": "Súlycél kiválasztása",
+  "clearOffCacheConfirmContent": "Eltávolítja a helyileg gyorsítótárban tárolt keresési és szkennelési eredményeket az Open Food Facts és az FDC szolgáltatásból. A gyorsítótár automatikusan újraépül, ahogy termékeket keres és szkennel. Az egyéni étkezéseit ez nem érinti.",
+  "clearOffCacheConfirmTitle": "Törli a gyorsítótárban lévő elemeket?",
+  "clearOffCacheLabel": "Gyorsítótárazott elemek törlése",
+  "clearOffCacheSubtitle": "{count} darab · {size}",
+  "cmLabel": "cm",
+  "codeCopiedLabel": "Kód másolva",
+  "copyCodeLabel": "Kód másolása",
+  "copyDialogTitle": "Melyik étkezéstípusba szeretné másolni?",
+  "copyOrDeleteTimeDialogContent": "A „Másolás a mai napra” gombbal átmásolhatja az étkezést a mai napra. A „Törlés” gombbal törölheti az étkezést.",
+  "copyOrDeleteTimeDialogTitle": "Mit szeretne csinálni?",
+  "createCustomDialogContent": "Szeretne egy egyedi ételt létrehozni?",
+  "createCustomDialogTitle": "Saját ételelem létrehozása?",
+  "createRecipeTitle": "Recept létrehozása",
+  "csvImportContributeOffAndroidLink": "Android",
+  "csvImportContributeOffIosLink": "iOS",
+  "csvImportContributeOffPrefix": "Van vonalkódja? Segítsen mindenkinek azzal, hogy felveszi a terméket az Open Food Facts adatbázisba:",
+  "csvImportErrorLabel": "A CSV-fájl beolvasása nem sikerült. Ellenőrizze a formátumot, majd próbálja meg újra.",
+  "csvImportPartialLabel": "{imported} importált étkezés; {skipped} sor kimaradt érvénytelen adatok miatt.",
+  "csvImportSuccessLabel": "{count} étkezés importálva.",
+  "customActivityDescription": "Azoknál az edzéseknél, amelyek nem szerepelnek a listában, illetve a fitneszkövető készülék által mért értékek esetén közvetlenül adja meg az elégetett kalóriákat",
+  "customActivityDescriptionKj": "Adja meg közvetlenül az elégetett kilojoule-értéket azoknál az edzéseknél, amelyek nem szerepelnek a listában, illetve a fitneszkövető készülék által mért értékek esetén",
+  "customActivityKcalHint": "pl. 250",
+  "customActivityKcalLabel": "Elégetett kalóriák",
+  "customActivityName": "Egyéni tevékenység",
+  "customActivityNameFieldHint": "pl. esti kerékpározás",
+  "customActivityNameFieldLabel": "Név (opcionális)",
+  "customActivityPickFromTemplate": "Válasszon a mentett sablonok közül",
+  "customActivitySaveAsTemplate": "Mentés sablonként a következő alkalomra",
+  "customActivityTemplatesEmpty": "Még nem mentett el sablonokat. Jelölje be a „Mentés sablonként a következő alkalomra” lehetőséget, ha később szeretne elmenteni egy egyéni tevékenységet.",
+  "customMealBarcodeHint": "Olvassa be vagy írja be a vonalkódot, hogy később előhívhassa ezt az étkezést",
+  "customMealBarcodeInvalid": "A vonalkódnak 8–14 számjegyből kell állnia",
+  "customMealBarcodeLabel": "Vonalkód",
+  "customMealBarcodeScanButton": "Vonalkód beolvasása",
+  "customMealFormAdvanced": "Haladó",
+  "customMealFormAdvancedHelp": "Állítsa be a méreteket és a 100-as értékeket a pontos skálázáshoz.",
+  "customMealFormModeLabel": "Űrlapnézet",
+  "customMealFormSimple": "Egyszerű",
+  "customMealFormSimpleHelp": "Írja be az egy adagra vonatkozó értékeket.",
+  "customMealFormSimpleFieldHelper": "{unit} egy adagban",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsDeleteConfirmContent": "Az összes, ezt az étkezést tartalmazó naplóbejegyzés is törlésre kerül.",
+  "customMealsDeleteConfirmTitle": "Törli az egyéni étkezést?",
+  "customMealsEmptyLabel": "Még nincs elmentett egyéni étkezés.",
+  "dailyKcalAdjustmentLabel": "Napi kalória beállítás:",
+  "dailyKjAdjustmentLabel": "Napi kJ beállítás:",
+  "dataCollectionLabel": "Névtelen hibajelentések küldése a hibák kijavításának elősegítése érdekében. Az adatok nem tartalmaznak étkezési naplót, testsúlyt vagy személyes adatokat.",
+  "deleteAllLabel": "Összes törlése",
+  "settingsDeleteAllDataLabel": "Profiladatok visszaállítása",
+  "settingsDeleteAllDataSubtitle": "Profil, étkezések, tevékenységek, súlyváltozás és böjtölési időszakok",
+  "settingsDeleteAllDataConfirmTitle": "Visszaállítja a profiladatokat?",
+  "settingsDeleteAllDataConfirmContent": "Ezzel csak az aktuális profilból törli a profilját, étkezéseit, tevékenységeit, súlyelőzményeit és böjtöléseit. A megosztott tartalmakat (egyedi ételek, receptek, tevékenységsablonok), valamint az Open Food Facts és az USDA Food Data Central katalógusait ez nem érinti. Ezt nem lehet visszavonni.",
+  "settingsDeleteAllDataConfirmAction": "Profil visszaállítása",
+  "lowKcalWarningTitle": "Ez a napi célérték kissé alacsony",
+  "lowKcalWarningBody": "A legtöbb felnőttnek orvosi tanácsadás nélkül nem ajánlott hosszabb ideig napi {threshold} kcal-nál kevesebbet fogyasztania. Kérjük, fontolja meg, hogy konzultáljon egy egészségügyi szakemberrel, mielőtt ilyen alacsony kalóriaértéket tűzne ki magának.",
+  "@lowKcalWarningBody": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "lowKcalWarningViewDisclaimer": "Jogi nyilatkozat megtekintése",
+  "deleteSelectedRecipesConfirmTitle": "Töröl {count} receptet?",
+  "deleteTimeDialogContent": "Valóban törölni szeretné a kijelölt elemet?",
+  "deleteTimeDialogPluralContent": "Törölni szeretné ennek az étkezésnek az összes elemét?",
+  "deleteTimeDialogPluralTitle": "Törli az elemeket?",
+  "deleteTimeDialogTitle": "Törli az elemet?",
+  "dialogCancelLabel": "MÉGSE",
+  "dialogCopyLabel": "Másolás a mai naphoz",
+  "dialogDeleteLabel": "TÖRLÉS",
+  "dialogOKLabel": "OK",
+  "diaryFutureDateWarning": "Egy jövőbeli dátumot szerkeszt",
+  "diaryLabel": "Napló",
+  "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "diaryNutrientPanelDataDisclaimer": "Itt csak azok a tápanyagok kerülnek összeadásra, amelyekről a rögzített étkezésekben adatot adott meg. Ha egy étkezésnél hiányzik az érték, az nem adódik hozzá az adott tápanyaghoz – ezért előfordulhat, hogy ezek az összegek alacsonyabbak a valóságosnál.",
+  "diaryNutrientPanelTitle": "A mai tápanyagok",
+  "driPanelInfoTitle": "Ajánlott bevitel",
+  "driPanelInfoBody": "Ezek a referenciaértékek az IOM felnőttekre vonatkozó táplálkozási referenciaértékeiből származnak, és életkortól és nemtől függően változnak. Ezek csupán iránymutatásként szolgálnak, nem pedig célértékek – az Ön egyéni igényei eltérhetnek tőlük.",
+  "driPanelInfoLinkLabel": "Forrás: az IOM táplálkozási referenciaértékei",
+  "driPanelReferenceLabel": "ref. {value}",
+  "diarySortByCarbs": "Szénhidrátok (magastól alacsonyig)",
+  "diarySortByFat": "Zsír (magastól alacsonyig)",
+  "diarySortByKcal": "Kalória (magastól alacsonyig)",
+  "diarySortByLabel": "Rendezés",
+  "diarySortByProtein": "Fehérje (magastól alacsonyig)",
+  "diarySortByTime": "Hozzáadási idő",
+  "dinnerExample": "pl. leves, csirke, bor …",
+  "dinnerLabel": "Vacsora",
+  "discardChangesConfirmLabel": "Elvetés",
+  "discardChangesContent": "A nem mentett módosítások elvesznek.",
+  "discardChangesTitle": "Elveti a módosításokat?",
+  "disclaimerText": "Az OpenNutriTracker nem orvosi alkalmazás. A megadott adatok nem kerültek ellenőrzésre, ezért azok használatakor körültekintéssel kell eljárni. Kérjük, tartson fenn egészséges életmódot, és ha bármilyen problémája van, forduljon szakemberhez. Betegség, terhesség vagy szoptatás idején nem ajánlott a használata. Az egyes számítások alapjául szolgáló, szakértői értékelésen átesett források megtekintéséhez érintse meg az információs ikont a Főoldalon vagy a Profil képernyőn.",
+  "downloadSampleCsvAction": "Mintaételek (csv)",
+  "downloadSampleJsonAction": "Mintaételek (json)",
+  "downloadSampleRecipesCsvAction": "Receptminta (csv)",
+  "downloadSampleRecipesJsonAction": "Receptminta (json)",
+  "duplicateMealDialogContent": "Ez az étel már szerepel a mai menüben. Újra hozzáadja?",
+  "duplicateRecipeLabel": "Másolat",
+  "duplicateRecipeNameSuffix": "(másolat)",
+  "editItemDialogTitle": "Elem szerkesztése",
+  "editMealLabel": "Étkezés szerkesztése",
+  "editRecipeTitle": "Recept szerkesztése",
+  "energyLabel": "energia",
+  "energyLeftLabel": "van még",
+  "energyTooMuchLabel": "túl sok",
+  "energyUnitKcalLabel": "Kilokalória (kcal)",
+  "energyUnitKjLabel": "Kilojoule (kJ)",
+  "errorFetchingProductData": "Hiba történt a termékadatok lekérésénél",
+  "errorLoadingActivities": "Hiba a tevékenységek betöltése közben",
+  "errorMealSave": "Hiba történt az étkezés mentése közben. Biztosan jól adta meg az étkezés adatait?",
+  "errorOpeningBrowser": "Hiba történt a böngésző megnyitásakor",
+  "errorOpeningEmail": "Hiba az e-mail alkalmazás megnyitásakor",
+  "errorProductNotFound": "A termék nem található",
+  "exportAction": "Exportálás",
+  "exportImportAppDataLabel": "Alkalmazásadatok exportálása/importálása",
+  "exportImportCsvRecipesNote": "A CSV-fájl tárolja a tevékenységeit, az étkezési naplóit és a nyomon követett napokat. A receptek és a csatolt fotók kizárólag JSON formátumban vannak elmentve — váltson át JSON-ra, ha ezeket is szeretné a biztonsági másolatba felvenni.",
+  "exportImportDescription": "Az alkalmazás adatait ZIP-fájlba exportálhatja, majd később importálhatja. Ez akkor hasznos, ha biztonsági másolatot szeretne készíteni az adatairól, vagy azokat egy másik eszközre szeretné átvinni.\n\nAz alkalmazás nem használ felhőszolgáltatást az adatok tárolásához.",
+  "exportImportErrorLabel": "Exportálási/importálási hiba",
+  "exportImportSuccessLabel": "Az exportálás/importálás sikeres volt",
+  "fatLabel": "zsír",
+  "fatLabelShort": "zs",
+  "fiberLabel": "rost",
+  "flOzUnit": "fl.oz",
+  "ftLabel": "ft",
+  "inLabel": "ebben",
+  "genderFemaleLabel": "nő",
+  "genderLabel": "Nem",
+  "genderMaleLabel": "férfi",
+  "genderNonBinaryLabel": "nem bináris",
+  "goalGainWeight": "Súlygyarapodás",
+  "goalLabel": "Cél",
+  "goalLoseWeight": "Fogyás",
+  "goalMaintainWeight": "Súlyfenntartás",
+  "gramMilliliterUnit": "g/ml",
+  "gramUnit": "g",
+  "heightLabel": "Magasság",
+  "homeLabel": "Főoldal",
+  "homeFirstMealHint": "Érintse meg a + gombot az első étkezés vagy tevékenység rögzítéséhez",
+  "homeDemoBannerLabel": "Ön mintaadatokat néz",
+  "homeDemoBannerAction": "Állítsa be a profilját",
+  "homeDemoBannerConfirmTitle": "Szeretné létrehozni a saját profilját?",
+  "homeDemoBannerConfirmContent": "A mintaadatok törlésre kerülnek, és Ön beállíthatja a saját profilját. Ez a művelet nem vonható vissza.",
+  "homeDemoBannerConfirmAction": "Tovább",
+  "trendsDailyAverageLabel": "Napi átlag",
+  "trendsLabel": "Trendek",
+  "youLabel": "Ön",
+  "trendsCaloriesLabel": "Kalória",
+  "trendsDaysOnTrack": "a héten rögzített napok száma",
+  "trendsDayStreakLabel": "napi sorozat",
+  "trendsBestStreakLabel": "legjobb",
+  "trendsPerWeekSuffix": "/hét",
+  "trendsWeeksToGoalLabel": "hét a célig",
+  "trendsWaterLabel": "Víz",
+  "importAction": "Importálás",
+  "importActivityConfirmContent": "Ezek a tevékenységek hozzáadódnak a mai naphoz.",
+  "importActivityConfirmTitle": "Importál {count} tevékenységet?",
+  "importActivityLabel": "Megosztott edzés importálása",
+  "importActivitySuccessLabel": "Az edzés importálva",
+  "importCustomFoodDataDescription": "Importálja saját ételeit CSV-fájlból vagy a JSON beillesztésével. Töltse le a mintát, hogy megismerje a várt adatszerkezetet és a kötelező mezőket.",
+  "importCustomFoodDataLabel": "Egyéni élelmiszeradatok importálása",
+  "importMealConfirmContent": "Ezek az ételek felkerülnek a(z) {mealType} menübe.",
+  "importMealConfirmTitle": "Importál {count} elemet?",
+  "importMealErrorLabel": "Érvénytelen QR-kód",
+  "importMealLabel": "Megosztott étkezés importálása",
+  "importMealSuccessLabel": "Importált étel",
+  "importMealsCsvAction": "Ételek importálása (csv)",
+  "importMealsJsonAction": "Ételek importálása (json)",
+  "importOffFetchFailedLabel": "{count} elem nem tölthető be az OpenFoodFacts-ból.",
+  "importRecipeConfirmContent": "Importálja ezt a receptet {count} összetevővel?",
+  "importRecipeErrorLabel": "A receptkód értelmezése nem sikerült",
+  "importRecipeLabel": "Recept importálása",
+  "importRecipeSuccessLabel": "Recept importálva",
+  "importRecipesCsvAction": "Receptek importálása (csv)",
+  "importRecipesJsonAction": "Receptek importálása (json)",
+  "inconsistentNutritionWarningBody": "Ezek az értékek nem teljesen egyeznek – a megadott kalóriamennyiség nem egyezik meg az alábbi szénhidrátokban, zsírokban és fehérjékben található energiatartalommal. Mindenképp elmenti, vagy még egyszer átnézi?",
+  "inconsistentNutritionWarningEdit": "Nézze meg még egyszer!",
+  "inconsistentNutritionWarningSaveAnyway": "Mindenképpen mentse",
+  "inconsistentNutritionWarningTitle": "A számok nem egészen stimmelnek",
+  "infoAddedActivityLabel": "Új tevékenység hozzáadva",
+  "infoAddedIntakeLabel": "Új bevitel hozzáadva",
+  "ironLabel": "vas",
+  "itemDeletedSnackbar": "Elem törölve",
+  "itemUpdatedSnackbar": "Az elem frissítve",
+  "kcalGoalInfoActivityExplanation": "A naplózott tevékenységekkel elégetett kalóriákat hozzáadjuk a célhoz, így a tervezett hiány vagy többlet változatlan marad az edzésnapokon.",
+  "kcalGoalInfoActivitySection": "4. lépés · A mai feladat",
+  "kcalGoalInfoAdjustmentExplanationFlat": "A súlycéljához egy rögzített napi kiigazítás tartozik: −500 kcal fogyáshoz, +500 kcal hízáshoz, 0 a súly megtartásához.",
+  "kcalGoalInfoAdjustmentExplanationWeekly": "A heti fogyás mértéke határozza meg a napi kiigazítást. 1 kg testzsír körülbelül 7 700 kcal-t tartalmaz, így minden heti 1 kg-os fogyás a célértéket napi szinten körülbelül 1 100 kcal-val módosítja.",
+  "kcalGoalInfoAdjustmentSection": "2. lépés · A súlycél módosítása",
+  "kcalGoalInfoAppliedAdjustmentLabel": "Alkalmazott kiigazítás",
+  "kcalGoalInfoAveragedNote": "Az átlagolt referenciaérték alapján a saját TDEE-je a férfi és női referenciaeredmények középértéke.",
+  "kcalGoalInfoBaseAdjustmentLabel": "Cél kiigazítás",
+  "kcalGoalInfoEstimateNote": "Minden képlet népességszintű becslés – az egyéni szükségletek eltérőek lehetnek. A célérték csupán kiindulási pont, nem pedig orvosi tanács.",
+  "kcalGoalInfoFemaleReferenceLabel": "Női referencia",
+  "kcalGoalInfoInputsSection": "Az Ön által megadott adatok",
+  "kcalGoalInfoIntro": "A napi kalóriabevitel-célértékét a közzétett tudományos képletek alapján számítjuk ki, kizárólag az alábbi értékek felhasználásával. Ez az oldal bemutatja az összes számot, amely a mai célérték kiszámításához szükséges.",
+  "kcalGoalInfoLearnMoreLabel": "Teljes számítási dokumentáció",
+  "kcalGoalInfoMacroExplanation": "A kalóriacélja a makroelemek alapján oszlik meg szénhidrátokra, zsírokra és fehérjékre (alapértelmezés: 60 % szénhidrát, 25 % zsír, 15 % fehérje — a Beállítások menüben módosítható). A grammban megadott célértékek az energiasűrűségekből adódnak: a szénhidrátok és a fehérjék grammonként 4 kcal-t, a zsírok pedig grammonként 9 kcal-t tartalmaznak.",
+  "kcalGoalInfoMacroSection": "Makrotápanyagok megoszlása",
+  "kcalGoalInfoMaleReferenceLabel": "Férfi referencia",
+  "kcalGoalInfoManualExplanation": "Rögzített eltolás, amelyet a Beállításokban állíthat be, ha tudja, hogy az igényei eltérnek a becsülttől.",
+  "kcalGoalInfoManualSection": "3. lépés · Kézi beállítás",
+  "kcalGoalInfoPaRowLabel": "Aktivitási együttható (PA)",
+  "kcalGoalInfoPalRowLabel": "Fizikai aktivitási szint (PAL)",
+  "kcalGoalInfoResultSection": "A mai kalóriacél",
+  "kcalGoalInfoTaperNote": "Mivel a célsúly csökkentése be van kapcsolva, a beállítás lecsökken, ahogy közeledik a célsúlyhoz (teljes hatás 5 kg felett, kiigazítás 1 kg-on belül).",
+  "kcalGoalInfoTdeeExplanation": "A napi teljes energiafelhasználását (TDEE) – azaz azt az energiamennyiséget, amelyet egy átlagos napon felhasznál – az IOM 2005-ös képlete alapján becsüljük meg a kora, a súlya, a magassága és a fizikai aktivitási szintje alapján.",
+  "kcalGoalInfoTdeeResultLabel": "Az Ön TDEE-je",
+  "kcalGoalInfoTdeeSection": "1. lépés · Fenntartó energia (TDEE)",
+  "kcalLabel": "kcal",
+  "kcalLeftLabel": "kcal van még",
+  "kcalTooMuchLabel": "túl sok kcal",
+  "kgLabel": "kg",
+  "kjLabel": "kJ",
+  "lbsLabel": "font",
+  "stLabel": "st",
+  "lunchExample": "pl. pizza, saláta, rizs …",
+  "lunchLabel": "Ebéd",
+  "macroDistributionLabel": "Makrotápanyagok eloszlása:",
+  "magnesiumLabel": "magnézium",
+  "mealBrandsLabel": "Márkák",
+  "mealCarbsLabel": "Szénhidrátok",
+  "mealDetailCurrentSelectionLabel": "(+{kcal} kcal – jelenlegi érték)",
+  "mealDetailDayTotalLabel": "Nap összesen: {consumed} / {goal}",
+  "mealEnergyLabel": "Energia",
+  "mealFatLabel": "Zsír",
+  "mealImageLabel": "Fotó hozzáadása",
+  "mealImagePickFromGallery": "Válasszon a galériából",
+  "mealImageRemove": "Fotó eltávolítása",
+  "mealImageReplace": "Fotó lecserélése",
+  "mealImageTakePhoto": "Fotó készítése",
+  "mealKcalLabel": "kcal",
+  "mealNameLabel": "Étel neve",
+  "mealNameValidationError": "Az étel nevében legalább egy betűnek szerepelnie kell",
+  "mealNutrientsPerQtyLabel": "{qty} {unit} darabonként",
+  "mealNutrientsTotalLabel": "Teljes érték",
+  "mealPatternFiveSmall": "5 egyenlő kisebb étkezés",
+  "mealPatternMediterranean": "Mediterrán",
+  "mealPatternOmad": "OMAD",
+  "mealPatternPresetsLabel": "Gyors előbeállítások",
+  "mealPatternStandard": "Átlagos",
+  "mealPatternTwoMeal": "Két étkezés",
+  "mealProteinLabel": "Fehérje",
+  "mealSizeLabel": "Csomagméret",
+  "mealSizeLabelImperial": "Kiszerelés (oz/fl oz)",
+  "mealUnitLabel": "Étkezési egység",
+  "micronutrientsLabel": "Mikrotápanyagok",
+  "milliliterUnit": "ml",
+  "missingProductInfo": "A terméknél hiányoznak a szükséges kalória- vagy makrotápanyag-adatok",
+  "monounsaturatedFatLabel": "egyszeresen telítetlen zsír",
+  "newCustomMealLabel": "Új, egyedi étel",
+  "niacinLabel": "niacin (B3)",
+  "noActivityRecentlyAddedLabel": "Az utóbbi időben nem került rögzítésre tevékenység",
+  "noMealsRecentlyAddedLabel": "Mostanában nem lett rögzítve étel",
+  "noResultsFound": "Nincs találat",
+  "notAvailableLabel": "N/A",
+  "nothingAddedLabel": "Semmi sincs hozzáadva",
+  "notificationsDailyReminderBody": "Ne felejtse el rögzíteni a mai étkezéseit!",
+  "notificationsDailyReminderChannelName": "Napi emlékeztetők",
+  "notificationsDailyReminderChannelDescription": "Napi étkezés-naplózási emlékeztető",
+  "notificationsDailyReminderTitle": "OpenNutriTracker",
+  "notificationsPermissionDeniedSnack": "Az értesítési engedély elutasítva.",
+  "nutrientPanelAllHiddenLabel": "Minden tápanyag el van rejtve — a Beállítások → Tápanyagok menüpontban néhányat bekapcsolhat.",
+  "nutrientPanelLimitLabel": "korlát",
+  "nutrientPanelDayLabel": "Nap",
+  "nutrientPanelWeekLabel": "Hét",
+  "nutritionInfoLabel": "Tápanyagtartalom",
+  "nutritionalStatusNormalWeight": "Normál testsúly",
+  "nutritionalStatusObeseClassI": "I. fokú elhízás",
+  "nutritionalStatusObeseClassII": "II. fokú elhízás",
+  "nutritionalStatusObeseClassIII": "III. fokú elhízás",
+  "nutritionalStatusPreObesity": "Elhízás előtti állapot",
+  "nutritionalStatusRiskAverage": "Átlagos",
+  "nutritionalStatusRiskIncreased": "Megnövekedett",
+  "nutritionalStatusRiskLabel": "Társbetegségek kockázata: {riskValue}",
+  "@nutritionalStatusRiskLabel": {
+    "placeholders": {
+      "riskValue": {
+        "type": "String"
+      }
+    }
+  },
+  "nutritionalStatusRiskLow": "Alacsony\n(de más\nklinikai problémák kockázata megnövekedett)",
+  "nutritionalStatusRiskModerate": "Közepes",
+  "nutritionalStatusRiskSevere": "Súlyos",
+  "nutritionalStatusRiskVerySevere": "Rendkívül súlyos",
+  "nutritionalStatusUnderweight": "Alultáplált",
+  "offDisclaimer": "Az alkalmazás által Önnek rendelkezésre bocsátott adatok az Open Food Facts adatbázisból származnak. A rendelkezésre bocsátott információk pontosságára, teljességére vagy megbízhatóságára vonatkozóan semmiféle garancia nem vállalható. Az adatok „adott állapotban” kerülnek rendelkezésre bocsátásra, és az adatok eredeti forrása (Open Food Facts) nem vállal felelősséget az adatok használatából eredő károkért.",
+  "onboardingActivityQuestionSubtitle": "Mennyire aktív Ön? (edzések nélkül)",
+  "onboardingBirthdayHint": "Dátum megadása",
+  "onboardingBirthdayQuestionSubtitle": "Mikor van a születésnapja?",
+  "onboardingEnterBirthdayLabel": "Születésnap",
+  "onboardingGenderQuestionSubtitle": "Milyen nemű Ön?",
+  "onboardingGoalQuestionSubtitle": "Mi a jelenlegi súlycélja?",
+  "onboardingHeightExampleHintCm": "pl. 170",
+  "onboardingHeightExampleHintFt": "pl. 5.8",
+  "onboardingHeightQuestionSubtitle": "Mennyi a jelenlegi testmagassága?",
+  "onboardingIntroDescription": "Kezdésként az alkalmazásnak szüksége van néhány információra Önről a napi kalóriacél kiszámításához.\nMinden Önről szóló információ biztonságosan tárolódik az eszközén.",
+  "onboardingIntroSourcesLinkLabel": "Olvassa el az orvosi számításaink forrásait",
+  "onboardingKcalPerDayLabel": "kcal naponta",
+  "onboardingKjPerDayLabel": "kJ naponta",
+  "onboardingNonBinaryDisclaimer": "Nincs közzétett, nem bináris kalória-alapérték, ezért alapértelmezés szerint a férfiakra és nőkre vonatkozó képletek átlagát vesszük alapul – ez csupán kiindulási pont, nem pedig pontos becslés. A Beállítások → Számítások menüpontban bármikor finomhangolhatja az értéket.",
+  "onboardingOverviewLabel": "Áttekintés",
+  "onboardingSaveUserError": "Hibás adatbevitel, kérjük, próbálja meg újra!",
+  "onboardingTargetWeightHintOptional": "Opcionális",
+  "onboardingTargetWeightSubtitle": "Van valami célsúly, amit el szeretne elérni? Ezt a mezőt üresen hagyhatja, vagy később a Profil menüpontban módosíthatja.",
+  "onboardingTryDemoLabel": "Bemutató kipróbálása",
+  "onboardingTryDemoSubtitle": "Hagyja ki a beállításokat, és fedezze fel az alkalmazást a mintaadatok segítségével. Először fogadja el az adatvédelmi irányelveket.",
+  "onboardingTryDemoDisclaimer": "Kizárólag fiktív mintaadatokat használ. A hibajelentések kikapcsolva maradnak, hacsak később nem engedélyezi őket. A mintafotók és az ételkeresés hálózatot használhat.",
+  "onboardingTryDemoError": "Nem sikerült elindítani a bemutatót. Kérjük, próbálja meg újra.",
+  "onboardingWeightExampleHintKg": "pl. 60",
+  "onboardingWeightExampleHintLbs": "pl. 132",
+  "onboardingWeightQuestionSubtitle": "Mennyi a jelenlegi testsúlya?",
+  "onboardingFoodUnitsSubtitle": "Hogyan rögzítse az ételeket és italokat",
+  "onboardingWelcomeLabel": "Üdvözöljük itt",
+  "onboardingWrongHeightLabel": "Adja meg a helyes magasságát",
+  "onboardingWrongWeightLabel": "Adja meg a pontos súlyát",
+  "onboardingYourGoalLabel": "A kalóriacélja:",
+  "onboardingYourMacrosGoalLabel": "Makrotápanyag-céljai:",
+  "ozUnit": "uncia",
+  "paActiveVideoGames": "aktív videojátékok",
+  "paActiveVideoGamesDesc": "Wii Sports, Dance Dance Revolution, általános",
+  "paAmericanFootballGeneral": "foci",
+  "paAmericanFootballGeneralDesc": "gyors rögzítés, megjelölés, általános",
+  "paArcheryGeneral": "íjászat",
+  "paArcheryGeneralDesc": "nem vadászat",
+  "paAutoRacing": "autóversenyzés",
+  "paAutoRacingDesc": "kördiagram",
+  "paBackpackingGeneral": "hátizsákos túrázás",
+  "paBackpackingGeneralDesc": "általános",
+  "paBadmintonGeneral": "tollaslabda",
+  "paBadmintonGeneralDesc": "társasági egyéni és páros, általános",
+  "paBasketballGeneral": "kosárlabda",
+  "paBasketballGeneralDesc": "általános",
+  "paBicyclingGeneral": "kerékpározás",
+  "paBicyclingGeneralDesc": "általános",
+  "paBicyclingMountainGeneral": "hegyi kerékpározás",
+  "paBicyclingMountainGeneralDesc": "általános",
+  "paBicyclingStationaryGeneral": "szobakerékpározás",
+  "paBicyclingStationaryGeneralDesc": "általános",
+  "paBilliardsGeneral": "biliárdjáték",
+  "paBilliardsGeneralDesc": "általános",
+  "paBowlingGeneral": "tekézés",
+  "paBowlingGeneralDesc": "általános",
+  "paBoxingBag": "ökölvívás",
+  "paBoxingBagDesc": "bokszzsák",
+  "paBoxingGeneral": "ökölvívás",
+  "paBoxingGeneralDesc": "ringben, általános",
+  "paBroomball": "seprűlabda",
+  "paBroomballDesc": "általános",
+  "paCalisthenicsGeneral": "torna",
+  "paCalisthenicsGeneralDesc": "könnyű vagy közepes erőfeszítés, általános (pl. hátgyakorlatok",
+  "paCanoeingGeneral": "kenuzás",
+  "paCanoeingGeneralDesc": "evezés, szabadidős, általános",
+  "paCatch": "foci vagy baseball",
+  "paCatchDesc": "labdázás",
+  "paCheerleading": "pompon-tánc",
+  "paCheerleadingDesc": "tornaelemek, versenyszerű",
+  "paChildrenGame": "gyerekjátékok",
+  "paChildrenGameDesc": "(pl. ugróiskola, négyzetes játék, dodgeball, játszótéri eszközök, T-ball, tetherball, üveggolyó, játékgépek), közepes erőfeszítés",
+  "paClimbingHillsNoLoadGeneral": "hegymászás, terhelés nélkül",
+  "paClimbingHillsNoLoadGeneralDesc": "terhelés nélkül",
+  "paCricket": "krikett",
+  "paCricketDesc": "ütés, dobás, mezőnyjáték",
+  "paCroquet": "krokett",
+  "paCroquetDesc": "általános",
+  "paCrossCountrySkiing": "terepfutás",
+  "paCrossCountrySkiingDesc": "terepfutás, általános",
+  "paCurling": "curling",
+  "paCurlingDesc": "általános",
+  "paDancingAerobicGeneral": "aerobic",
+  "paDancingAerobicGeneralDesc": "általános",
+  "paDancingGeneral": "általános tánc",
+  "paDancingGeneralDesc": "pl. diszkó, folk, ír sztepptánc, sortánc, polka, kontratánc, country",
+  "paDartsWall": "darts",
+  "paDartsWallDesc": "fal vagy gyep",
+  "paDivingGeneral": "búvárkodás",
+  "paDivingGeneralDesc": "könnyűbúvárkodás, búvárkodás, általáno",
+  "paDivingSpringboardPlatform": "búvárkodás",
+  "paDivingSpringboardPlatformDesc": "ugródeszka vagy emelvény",
+  "paFencing": "vívás",
+  "paFencingDesc": "általános",
+  "paFrisbee": "frizbi játék",
+  "paFrisbeeDesc": "általános",
+  "paGeneralDesc": "általános",
+  "paGolfGeneral": "golf",
+  "paGolfGeneralDesc": "általános",
+  "paGymnasticsGeneral": "torna",
+  "paGymnasticsGeneralDesc": "általános",
+  "paHackySack": "babzsák",
+  "paHackySackDesc": "általános",
+  "paHandballGeneral": "kézilabda",
+  "paHandballGeneralDesc": "általános",
+  "paHangGliding": "sárkányrepülés",
+  "paHangGlidingDesc": "általános",
+  "paHeadingBicycling": "kerékpározás",
+  "paHeadingConditionalExercise": "kondicionáló gyakorlat",
+  "paHeadingDancing": "tánc",
+  "paHeadingRunning": "futás",
+  "paHeadingSports": "sport",
+  "paHeadingWalking": "gyaloglás",
+  "paHeadingWaterActivities": "vízi tevékenységek",
+  "paHeadingWinterActivities": "téli programok",
+  "paHighIntensityIntervalExercise": "nagy intenzitású intervallumos edzés",
+  "paHighIntensityIntervalExerciseDesc": "közepes erőfeszítés",
+  "paHighIntensityIntervalExerciseVigorous": "nagy intenzitású intervallumos edzés",
+  "paHighIntensityIntervalExerciseVigorousDesc": "hegymászó gyakorlatok, guggolásugrások, tabata, erőteljes erőfeszítés",
+  "paHikingCrossCountry": "túrázás",
+  "paHikingCrossCountryDesc": "terepfutás",
+  "paHockeyField": "jégkorong, pálya",
+  "paHockeyFieldDesc": "általános",
+  "paHorseRidingGeneral": "lovaglás",
+  "paHorseRidingGeneralDesc": "általános",
+  "paIceHockeyGeneral": "jégkorong",
+  "paIceHockeyGeneralDesc": "általános",
+  "paIceSkatingGeneral": "korcsolyázás",
+  "paIceSkatingGeneralDesc": "általános",
+  "paJaiAlai": "jai alai",
+  "paJaiAlaiDesc": "általános",
+  "paJoggingGeneral": "kocogás",
+  "paJoggingGeneralDesc": "általános",
+  "paJuggling": "zsonglőrködés",
+  "paJugglingDesc": "általános",
+  "paKayakingModerate": "kajakozás",
+  "paKayakingModerateDesc": "közepes erőfeszítés",
+  "paKickball": "kickball",
+  "paKickballDesc": "általános",
+  "paLacrosse": "lacrosse",
+  "paLacrosseDesc": "általános",
+  "paLawnBowling": "gyepbowling",
+  "paLawnBowlingDesc": "boccia, szabadtéri",
+  "paMartialArtsModerate": "harcművészetek",
+  "paMartialArtsModerateDesc": "különböző típusok, mérsékelt tempó (pl. dzsúdó, dzsúdzsucu, karate, kick-box, taekwondo, tai-bo, muay thai box)",
+  "paMartialArtsSlower": "harcművészetek",
+  "paMartialArtsSlowerDesc": "különböző típusok, lassabb tempó, kezdő előadók, gyakorlás",
+  "paMotoCross": "motokrossz",
+  "paMotoCrossDesc": "terepjáró motorsport, terepjáró, általános",
+  "paMountainClimbing": "hegymászás",
+  "paMountainClimbingDesc": "szikla- vagy hegymászás",
+  "paNordicWalking": "nordic walking",
+  "paOrienteering": "tájfutás",
+  "paOrienteeringDesc": "általános",
+  "paPaddleBoarding": "SUP",
+  "paPaddleBoardingDesc": "álló",
+  "paPaddleBoat": "vízibicikli",
+  "paPaddleBoatDesc": "általános",
+  "paPaddleball": "paddleball",
+  "paPaddleballDesc": "laza, általános",
+  "paPickleball": "pickleball",
+  "paPilates": "pilates",
+  "paPoloHorse": "póló",
+  "paPoloHorseDesc": "lovon",
+  "paRacquetball": "fallabda",
+  "paRacquetballDesc": "általános",
+  "paResistanceTraining": "erőnléti edzés",
+  "paResistanceTrainingDesc": "súlyemelés, szabad súlyos, nautilus vagy univerzális",
+  "paResistanceTrainingVigorous": "erőnléti edzés (intenzív)",
+  "paResistanceTrainingVigorousDesc": "intenzív edzés, erőemelés vagy testépítés",
+  "paRodeoSportGeneralModerate": "rodeo-sportok",
+  "paRodeoSportGeneralModerateDesc": "általános, közepes erőfeszítés",
+  "paRollerbladingLight": "görkorcsolyázás",
+  "paRollerbladingLightDesc": "görkorcsolyázás",
+  "paRopeJumpingGeneral": "ugrókötelezés",
+  "paRopeJumpingGeneralDesc": "közepes tempó, 100–120 ugrás/perc, általános, kétlábas ugrás, egyszerű ugrálás",
+  "paRopeSkippingGeneral": "ugrókötél",
+  "paRopeSkippingGeneralDesc": "általános",
+  "paRugbyCompetitive": "rögbi",
+  "paRugbyCompetitiveDesc": "szövetség, csapat, versenyszerű",
+  "paRugbyNonCompetitive": "rögbi",
+  "paRugbyNonCompetitiveDesc": "alkalmi, nem versenyszerű",
+  "paRunningGeneral": "futás",
+  "paRunningGeneralDesc": "általános",
+  "paSailingGeneral": "vitorlázás",
+  "paSailingGeneralDesc": "csónakozás és vitorlázás, szörfözés, jégvitorlázás, általános",
+  "paShuffleboard": "koronglökés",
+  "paShuffleboardDesc": "általános",
+  "paSkateboardingGeneral": "gördeszkázás",
+  "paSkateboardingGeneralDesc": "általában közepes erőfeszítést igényel",
+  "paSkatingRoller": "görkorcsolyázás",
+  "paSkatingRollerDesc": "általános",
+  "paSkiingGeneral": "síelés",
+  "paSkiingGeneralDesc": "általános",
+  "paSkiingWaterWakeboarding": "vízisíelés",
+  "paSkiingWaterWakeboardingDesc": "vízi sportok vagy wakeboardozás",
+  "paSkydiving": "ejtőernyőzés",
+  "paSkydivingDesc": "ejtőernyős ugrás, bázisugrás, bungee jumpin",
+  "paSnorkeling": "sznorkelezés",
+  "paSnorkelingDesc": "általános",
+  "paSnowShovingModerate": "hólapátolás",
+  "paSnowShovingModerateDesc": "kézzel, közepes erőkifejtéssel",
+  "paSnowshoeing": "hótalpas túrázás",
+  "paSoccerGeneral": "futball",
+  "paSoccerGeneralDesc": "laza, általános",
+  "paSoftballBaseballGeneral": "softball / baseball",
+  "paSoftballBaseballGeneralDesc": "gyors vagy lassú dobás, általános",
+  "paSquashGeneral": "squash",
+  "paSquashGeneralDesc": "általános",
+  "paStretching": "nyújtás",
+  "paStretchingDesc": "enyhe, általános",
+  "paSurfing": "szörfözés",
+  "paSurfingDesc": "szervezet vagy testület, általános",
+  "paSwimmingGeneral": "úszás",
+  "paSwimmingGeneralDesc": "ízben lebegés, közepes erőfeszítés, általános",
+  "paTableTennisGeneral": "asztalitenisz",
+  "paTableTennisGeneralDesc": "asztalitenisz, pingpong",
+  "paTaiChiQiGongGeneral": "tai chi, qi gong",
+  "paTaiChiQiGongGeneralDesc": "általános",
+  "paTennisGeneral": "tenisz",
+  "paTennisGeneralDesc": "általános",
+  "paTrackField": "atlétika",
+  "paTrackField1Desc": "(pl. súlylökés, diszkoszvetés, kalapácsvetés)",
+  "paTrackField2Desc": "(pl. magasugrás, távolugrás, hármasugrás, gerelyhajítás, rúdugrás)",
+  "paTrackField3Desc": "(pl. akadályfutás, gátfutás)",
+  "paTrampolineLight": "trambulin",
+  "paTrampolineLightDesc": "szabadidős",
+  "paTreadmillRunning": "futópadon futás",
+  "paTreadmillRunningDesc": "futópadon, általános",
+  "paUnicyclingGeneral": "egykerekű kerékpározás",
+  "paUnicyclingGeneralDesc": "általános",
+  "paVolleyballGeneral": "röplabda",
+  "paVolleyballGeneralDesc": "nem versenyszerű, 6–9 fős csapat, általános",
+  "paWalkingForPleasure": "séta",
+  "paWalkingForPleasureDesc": "kikapcsolódásból",
+  "paWalkingTheDog": "kutyasétáltatás",
+  "paWalkingTheDogDesc": "általános",
+  "paWallyball": "fallabda",
+  "paWallyballDesc": "általános",
+  "paWaterAerobics": "vízi tornagyakorlat",
+  "paWaterAerobicsDesc": "vízi aerobik, vízi torna",
+  "paWaterPolo": "vízilabda",
+  "paWaterPoloDesc": "általános",
+  "paWaterVolleyball": "vízi röplabda",
+  "paWaterVolleyballDesc": "általános",
+  "paWateraerobicsCalisthenics": "vízi aerobik",
+  "paWateraerobicsCalisthenicsDesc": "vízi aerobik, vízi torna",
+  "paWrestling": "birkózás",
+  "paWrestlingDesc": "általános",
+  "palActiveDescriptionLabel": "A munkavégzés során és a szabadidős tevékenységek során többnyire állva vagy sétálva töltött idő",
+  "palActiveLabel": "Aktív",
+  "palLowActiveDescriptionLabel": "pl. ülő vagy álló munkavégzés, valamint könnyű szabadidős tevékenységek",
+  "palLowLActiveLabel": "Alacsony aktivitás",
+  "palSedentaryDescriptionLabel": "pl. irodai munka és többnyire ülő helyzetben végzett szabadidős tevékenységek",
+  "palSedentaryLabel": "Mozgásszegény",
+  "palVeryActiveDescriptionLabel": "Főként gyaloglás, futás vagy súlyok cipelése a munkában és az aktív szabadidős tevékenységek során",
+  "palVeryActiveLabel": "Nagyon aktív",
+  "pasteCodeHint": "Illessze be ide a megosztott étkezési kódot",
+  "pasteCodeLabel": "Kód beillesztése",
+  "per100gmlLabel": "100 g/ml-enként",
+  "perServingLabel": "Adagonként",
+  "phosphorusLabel": "foszfor",
+  "polyunsaturatedFatLabel": "többszörösen telítetlen zsír",
+  "potassiumLabel": "kálium",
+  "privacyPolicyLabel": "Adatvédelmi szabályzat",
+  "profileLabel": "Profil",
+  "profileTargetWeightClearAction": "Törlés",
+  "profileTargetWeightLabel": "Célsúly",
+  "profileTargetWeightNotSetLabel": "Nincs beállítva",
+  "profileTargetWeightReached": "Elérte a célját",
+  "profileTargetWeightToGo": "{value} a célhoz",
+  "profileWeightHistoryTitle": "Súlytörténet",
+  "proteinLabel": "fehérje",
+  "proteinLabelShort": "f",
+  "quantityLabel": "Mennyiség",
+  "quickAddAddedSnack": "Hozzáadva ehhez: {mealType}",
+  "quickAddBottomSheetTitle": "Gyors hozzáadás",
+  "quickAddCardLabel": "Gyors hozzáadás",
+  "quickAddCarbsHint": "Szénhidrát (g, opcionális)",
+  "quickAddDefaultName": "Gyors hozzáadás",
+  "quickAddEnergyLabelKcal": "Energia (kcal)",
+  "quickAddEnergyLabelKj": "Energia (kJ)",
+  "quickAddFatHint": "Zsír (g, opcionális)",
+  "quickAddProteinHint": "Fehérje (g, opcionális)",
+  "quickAddSubmitLabel": "Hozzáad",
+  "quickAddTitleHint": "Cím",
+  "readLabel": "Elolvastam és elfogadom az adatvédelmi szabályzatot.",
+  "recentlyAddedLabel": "Legutóbb",
+  "recipeAddIngredientLabel": "Hozzávaló megadása",
+  "recipeDeleteConfirmContent": "A recepthez korábban rögzített naplóbejegyzések megmaradnak.",
+  "recipeDeleteConfirmTitle": "Törli a receptet?",
+  "recipeDescriptionLabel": "Leírás (opcionális)",
+  "recipeImageLabel": "Fotó hozzáadása",
+  "recipeImagePickFromGallery": "Választás a galériából",
+  "recipeImageRemove": "Fotó eltávolítása",
+  "recipeImageReplace": "Fotó lecserélése",
+  "recipeImageTakePhoto": "Fotó készítése",
+  "recipeIngredientAmountLabel": "Mennyiség",
+  "recipeIngredientCountLabel": "{count} hozzávaló",
+  "recipeIngredientUnitLabel": "Egység",
+  "recipeIngredientsLabel": "Hozzávalók",
+  "recipeInvalidTotalWeightLabel": "A teljes súlynak nullánál nagyobbnak kell lennie",
+  "recipeLogCtaLabel": "Recept naplózása",
+  "recipeNameLabel": "Recept neve",
+  "recipeNameRequiredLabel": "A receptnek nevet kell adnia",
+  "recipeNeedsIngredientsLabel": "Legalább egy hozzávalót adjon meg",
+  "recipeNoIngredientsLabel": "Még nincsenek hozzávalók",
+  "recipeNutritionPer100Label": "100 grammonként",
+  "recipeNutritionPreviewLabel": "Tápanyagtartalom (összesen)",
+  "recipeSaveErrorLabel": "Nem sikerült elmenteni a receptet.",
+  "recipeSaveForLaterDescription": "Kapcsolja be ezt a funkciót, ha ezt az ételt a mentett listájában szeretné megőrizni a következő alkalomra. Ha csak egyszeri alkalomról van szó, és nem fogja többet enni, akkor hagyja ki.",
+  "recipeSaveForLaterLabel": "Elmentés a következő alkalomra",
+  "recipeSaveLabel": "Recept mentése",
+  "recipeServingsCountHelper": "Lehetővé teszi a recept gramm helyett adagonkénti naplózását.",
+  "recipeServingsCountLabel": "Adagok (opcionális)",
+  "recipeTagsHelper": "Vesszővel elválasztva, pl. „reggeli, vegán”",
+  "recipeTagsLabel": "Címkék",
+  "recipeTotalWeightHelper": "Alapértelmezés szerint az összetevők összege. Folyadékok esetén hozzávetőlegesen 1 ml ≈ 1 g.",
+  "recipeTotalWeightLabel": "Teljes tömeg (g)",
+  "recipesEmptyHint": "Állítson össze egy ételt több alapanyagból, és később használja fel újra, mint bármely más ételt.",
+  "recipesEmptyLabel": "Még nincsenek receptek",
+  "recipesFilterAllLabel": "Összes",
+  "recipesLabel": "Receptek",
+  "recipesLoadErrorLabel": "A receptek betöltése nem sikerült. Kérjük, próbálja meg később újra.",
+  "reportErrorDialogText": "Szeretne hibát jelezni a fejlesztőnek?",
+  "retryLabel": "Újra",
+  "saturatedFatLabel": "telített zsír",
+  "scanProductLabel": "Termék beolvasása",
+  "scannerManualEntryButton": "Kód kézi beírása",
+  "scannerManualEntryCancel": "Mégse",
+  "scannerManualEntryDialogTitle": "Vonalkód megadása",
+  "scannerManualEntryFieldHint": "8–14 számjegy",
+  "scannerManualEntryInvalid": "Úgy tűnik, hogy ez a vonalkód érvénytelen. Kérjük, ellenőrizze a számokat, majd próbálja meg újra.",
+  "scannerManualEntrySubmit": "Megkeresés",
+  "searchDefaultLabel": "Kérjük, írja be a keresett szót!",
+  "searchFoodPage": "Élelmiszer",
+  "searchLabel": "Keresés",
+  "searchProductsPage": "Termékek",
+  "searchResultsLabel": "Keresési eredmények",
+  "selectGenderDialogLabel": "Nemem kiválasztása",
+  "selectHeightDialogLabel": "Magasság megadása",
+  "selectPalCategoryLabel": "Aktivitási szint kiválasztása",
+  "selectWeightDialogLabel": "Súly kiválasztása",
+  "selectionCountLabel": "kiválasztva {count}",
+  "servingLabel": "Adag",
+  "servingSizeLabelImperial": "Egy adag (oz/fl oz)",
+  "servingSizeLabelMetric": "Egy adag",
+  "settingAboutLabel": "Névjegy",
+  "settingFeedbackLabel": "Visszajelzés",
+  "settingsCalciumGoalDescription": "A napi kalciumbeviteli célérték milligrammban kifejezve. Az alapértelmezett referenciaérték 1000 mg.",
+  "settingsCalciumGoalLabel": "Kalcium-beviteli célérték",
+  "settingsCaloriesTaperDescription": "Fokozatosan csökkenti a napi kalóriadeficitet, így az utolsó néhány kg nem tűnik leküzdhetetlen akadálynak.",
+  "settingsCaloriesTaperLabel": "Módosítsa a kalóriacélt, ahogy közeledik a célhoz",
+  "settingsCustomMealsLabel": "Egyedi ételek",
+  "settingsDayStartDescription": "Válassza ki azt az órát, amikor a napja megkezdődik. Az ennél az óránál korábban rögzített étkezések és tevékenységek az előző naphoz fognak számítani — ez akkor hasznos, ha éjszaka dolgozik vagy későn étkezik.",
+  "settingsDayStartHourLabel": "{hour}:00",
+  "settingsDayStartHoursPickerLabel": "Óra",
+  "settingsDayStartLabel": "A nap kezdete:",
+  "settingsDayStartMinutesPickerLabel": "Perc",
+  "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "settingsDisclaimerLabel": "Jogi nyilatkozat",
+  "settingsDistanceLabel": "Távolság",
+  "settingsEnergyUnitLabel": "Energiaegység",
+  "settingsFibreGoalDescription": "A napi rostbeviteli célérték grammban kifejezve. Az alapértelmezett referenciaérték 30 g.",
+  "settingsFibreGoalLabel": "Rostbeviteli célérték",
+  "settingsImperialLabel": "Angol mértékegységek (font, láb, uncia)",
+  "settingsKcalAdjustmentLabel": "Napi kalória beállítás",
+  "settingsKcalGoalInfoLabel": "Hogyan számítjuk ki a célértékedet?",
+  "settingsIronGoalDescription": "A napi vasbeviteli célérték milligrammban kifejezve. Az alapértelmezett érték nemtől függően változik (férfiaknál 8 mg, nőknél 18 mg, egyéb esetekben 14 mg).",
+  "settingsIronGoalLabel": "Vas-célérték",
+  "settingsCategoryAbout": "Névjegy",
+  "settingsCategoryAppearance": "Megjelenés",
+  "settingsCategoryData": "Adatok",
+  "settingsCategoryDisplay": "Megjelenítés",
+  "settingsCategoryGoals": "Célok és táplálkozás",
+  "settingsCategoryUnits": "Egységek és energia",
+  "settingsLabel": "Beállítások",
+  "settingsLanguageLabel": "Nyelv",
+  "settingsMaterialYouTitle": "Rendszerszínek használata",
+  "settingsMaterialYouSubtitle": "Az Android 12 és újabb verziókban hangolja össze a háttérképe kiemelő elemét.",
+  "settingsAccentColourTitle": "Kiemelő szín",
+  "settingsAccentSubtitleMaterialYou": "Az Ön megjelenése",
+  "settingsAccentSubtitleCustom": "Egyéni",
+  "settingsAccentSubtitleDefault": "Alapérték",
+  "settingsAccentPresetsHeader": "Válasszon egy színt",
+  "settingsAccentCustomColour": "Egyedi szín…",
+  "settingsAccentCustomSubtitle": "Nyissa meg a színválasztót a pontos kiválasztáshoz",
+  "settingsAccentHexLabel": "Hex kód",
+  "settingsAccentHexInvalid": "Ez a hexadecimális kód hibásnak tűnik — hat számjegy, 0–9 és A–F.",
+  "settingsAccentHueTitle": "Kiemelő szín",
+  "settingsAccentHueDisabledHint": "Kapcsolja ki a rendszer színeit, hogy egyéni kiemelő színt válasszon.",
+  "settingsAccentHueReset": "Visszaállítás",
+  "settingsMacroSplitLabel": "Makrófelosztás",
+  "settingsLicensesLabel": "Licencek",
+  "settingsMagnesiumGoalDescription": "A napi magnéziumbeviteli célérték milligrammban kifejezve. Az alapértelmezett érték nemtől függően változik (férfiaknál 400 mg, nőknél 310 mg, egyéb esetekben 355 mg).",
+  "settingsMagnesiumGoalLabel": "Magnézium-célérték",
+  "settingsMassLabel": "Tömeg",
+  "settingsMetricLabel": "Metrikus (kg, cm, ml)",
+  "settingsNotificationsLabel": "Napi emlékeztető",
+  "settingsNotificationsTimeLabel": "Emlékeztető időpontja: {time}",
+  "settingsNutrientGoalsHint": "A napi táblázatban szereplő minden tápanyagra vonatkozó személyre szabott célértékek. A napló ezeket veszi figyelembe az alapértelmezett napi referenciaértékek helyett, amikor beállít egyet.",
+  "settingsNutrientGoalsLabel": "Tápanyag-célértékek",
+  "settingsNutrientsHelp": "Válassza ki, mely tápanyagok jelenjenek meg a napi áttekintő panelen. A rejtett tápanyagokat bármikor újra megjelenítheti.",
+  "settingsNutrientsLabel": "Tápanyagok",
+  "settingsNutrientsSubtitle": "Válassza ki, mely tápanyagok jelenjenek meg a napló panelen",
+  "settingsPerMealKcalShareBreakfast": "Reggeli",
+  "settingsPerMealKcalShareDescription": "Ossza el a napi kalóriacélját a reggeli, az ebéd, a vacsora és a nassolások között. Az arányok összege 100%-ot kell, hogy kiadjon.",
+  "settingsPerMealKcalShareDinner": "Vacsora",
+  "settingsPerMealKcalShareLabel": "Az egyes étkezésekhez tartozó kcal-részarány",
+  "settingsPerMealKcalShareLunch": "Ebéd",
+  "settingsPerMealKcalShareSnack": "Nassolnivaló",
+  "settingsPotassiumGoalDescription": "A napi káliumbevitel célértéke milligrammban. Az alapértelmezett referenciaérték 3500 mg.",
+  "settingsPotassiumGoalLabel": "Kálium-célérték",
+  "settingsPrivacySettings": "Adatvédelmi beállítások",
+  "settingsDemoPrivacyNote": "A mintaadatok megtekintése közben a hibajelentés nem érhető el. Először állítsa be a saját profilját.",
+  "settingsReportErrorLabel": "Hibajelentés",
+  "settingsSaturatedFatGoalDescription": "A napi telített zsírbevitel felső határa grammban kifejezve. Az alapértelmezett referenciaérték 20 g.",
+  "settingsSaturatedFatGoalLabel": "A telített zsírra vonatkozó célérték",
+  "settingsShowActivityTracking": "Tevékenységkövetés megjelenítése",
+  "settingsShowMealMacros": "Étel makróinak megjelenítése",
+  "settingsShowMicronutrientsLabel": "Mikrotápanyagok megjelenítése",
+  "settingsSodiumGoalDescription": "A napi nátriumbevitel felső határa milligrammban kifejezve. Az alapértelmezett érték 2300 mg.",
+  "settingsSodiumGoalLabel": "Nátriumcélérték",
+  "settingsSourceCodeLabel": "Forráskód",
+  "settingsSourcesLabel": "Források és hivatkozások",
+  "settingsSugarsGoalDescription": "A napi cukorbevitel felső határa grammban kifejezve. Az alapértelmezett érték 50 g.",
+  "settingsSugarsGoalLabel": "Cukor célérték",
+  "settingsSystemLabel": "Rendszer",
+  "settingsThemeDarkLabel": "Sötét",
+  "settingsThemeLabel": "Téma",
+  "settingsThemeLightLabel": "Világos",
+  "settingsThemeSystemDefaultLabel": "Rendszer alapértelmezett",
+  "settingsUnitsLabel": "Egységek",
+  "settingsFoodUnitsLabel": "Élelmiszeregységek",
+  "settingsHeightUnitsLabel": "Magasságegységek",
+  "settingsBodyWeightUnitLabel": "Testsúly-mértékegység",
+  "settingsFoodUnitsMetric": "Metrikus (g, kg, ml, l)",
+  "settingsFoodUnitsImperial": "Angol (lbs, oz, fl oz)",
+  "settingsHeightUnitsMetric": "Metrikus (mm, cm, m)",
+  "settingsHeightUnitsImperial": "Angol (ft, in)",
+  "settingsVitaminB12GoalDescription": "A napi B12-vitamin-beviteli célérték mikrogrammban kifejezve. Az alapértelmezett referenciaérték 2,4 µg.",
+  "settingsVitaminB12GoalLabel": "B12-vitamin cél",
+  "settingsVitaminDGoalDescription": "A napi D-vitamin-beviteli célérték mikrogrammban kifejezve. Az alapértelmezett referenciaérték 15 µg.",
+  "settingsVitaminDGoalLabel": "D-vitamin cél",
+  "settingsVolumeLabel": "Mennyiség",
+  "shareActivityLabel": "Edzés megosztása",
+  "shareCodeLabel": "Kód megosztása",
+  "shareMealLabel": "Étel megosztása",
+  "shareRecipeLabel": "Recept megosztása",
+  "snackExample": "pl. alma, fagylalt, csokoládé …",
+  "snackLabel": "Nassolnivaló",
+  "sodiumLabel": "nátrium",
+  "sourcesActivityDescription": "A tevékenység során elégetett kalóriákat a „Felnőttek fizikai tevékenységeinek összefoglalója” (Adult Compendium of Physical Activities) értékei alapján a következő képlet szerint számítják ki: MET × testsúly (kg) × időtartam (óra).",
+  "sourcesActivityTitle": "Tevékenységi kalóriák (MET-értékek)",
+  "sourcesBmiDescription": "A BMI-t a testsúly (kg) és a testmagasság négyzetének (m²) hányadosaként számítják ki. Az egészségi állapotok besorolása (alultáplált, normál testsúly, elhízás előtti állapot, I–III. fokú elhízás) az Egészségügyi Világszervezet felnőttekre vonatkozó BMI-besorolását követi.",
+  "sourcesBmiTitle": "Testtömeg-index (BMI)",
+  "sourcesEnergyDescription": "A napi kalóriabevitel-célértékek, az alapanyagcsere-érték és a fizikai aktivitási együtthatók kiszámításához az Orvostudományi Intézet (Institute of Medicine) képleteit használjuk. Forrás: Institute of Medicine (2005). Az energia, szénhidrát, rost, zsír, zsírsavak, koleszterin, fehérje és aminosavak táplálkozási referencia-beviteli értékei, 5. fejezet és 5-5. táblázat.",
+  "sourcesEnergyTitle": "Energiaszükséglet (TDEE, BMR és aktivitási szint)",
+  "sourcesIconTooltip": "Források megtekintése",
+  "sourcesMacrosDescription": "Az alapértelmezett arány – 60% szénhidrát, 25% zsír és 15% fehérje – a WHO által közzétett, a lakosságra vonatkozó tápanyag-beviteli tartományokba esik. Ezt a Beállítások → Számítások menüpontban állíthatja be. Forrás: WHO Technical Report Series 916 (2003), „Diet, Nutrition and the Prevention of Chronic Diseases” (Étrend, táplálkozás és a krónikus betegségek megelőzése).",
+  "sourcesMacrosTitle": "Makrotápanyag eloszlás",
+  "sourcesNonBinaryDescription": "Az energiafelhasználással kapcsolatos kutatások eddig mindig bináris nemi kategóriákat alkalmaztak, ezért a nem bináris emberek számára nincs egyetlen validált TDEE-képlet sem. Az OpenNutriTracker ezért a Beállítások → Számítások menüpont alatt lehetővé teszi, hogy átlagos referenciaérték, ösztrogén-jellegű referenciaérték vagy tesztoszteron-jellegű referenciaérték közül válasszon. Ha az egészségügyi ellátása szempontjából valóban fontos a pontos érték, kérjük, forduljon egy olyan orvoshoz, aki ismeri a hormonális állapotát.",
+  "sourcesNutrientReferenceTitle": "Tápanyag-referencia beviteli értékek",
+  "sourcesNutrientReferenceDescription": "A napló tápérték-táblázatában feltüntetett napi referenciaértékek az Orvostudományi Intézet (Institute of Medicine) „Dietary Reference Intakes” című összefoglalójából származnak, amely a felnőttekre vonatkozó, tápanyagonkénti célértékeket tartalmazza.",
+  "sourcesNonBinaryTitle": "Nem bináris kalóriabecslés",
+  "sourcesOpenSourceLabel": "Forrás megtekintése",
+  "sourcesScreenIntro": "Az OpenNutriTracker minden feltüntetett számításához elismert, szakértői értékelésen átesett módszereket alkalmaz. Az alábbi hivatkozások az eredeti forrásokra mutatnak, így bármelyik adatot saját maga is ellenőrizheti.",
+  "sugarLabel": "cukor",
+  "suppliedLabel": "bevitt",
+  "transFatLabel": "transzzsír",
+  "unitLabel": "Egység",
+  "vitaminALabel": "A-vitamin",
+  "vitaminB12Label": "B12-vitamin",
+  "vitaminB6Label": "B6-vitamin",
+  "vitaminCLabel": "C-vitamin",
+  "vitaminDLabel": "D-vitamin",
+  "warningLabel": "Figyelem",
+  "weeklyWeightGoalKgPerWeek": "{rate} kg/hét",
+  "weeklyWeightGoalLabel": "Heti arány",
+  "weeklyWeightGoalLbsPerWeek": "{rate} lbs/hét",
+  "weeklyWeightGoalNoneLabel": "Nincs beállítva",
+  "weightHistoryAddEntry": "Bejegyzés hozzáadása",
+  "weightHistoryChartEmptyState": "Legalább két napra vonatkozóan rögzítsen adatokat, hogy láthassa a tendenciát.",
+  "weightHistoryDateLabel": "Dátum",
+  "weightHistoryNoEntries": "Még nincsenek súlyadatok. Adja meg az elsőt, hogy elkezdhesse nyomon követni a tendenciát.",
+  "weightHistoryNoteLabel": "Megjegyzés (opcionális)",
+  "weightHistoryWeightLabel": "Súly",
+  "weightLabel": "Súly",
+  "yearsLabel": "{age} év",
+  "@yearsLabel": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "logWaterAmountLabel": "{amount} ml hozzáadása",
+  "logWaterDialogTitle": "Vízfogyasztási napló",
+  "logWaterNothingToUndoLabel": "Nincs mit visszavonni",
+  "logWaterUndoLabel": "Utolsó visszavonása",
+  "mlLabel": "ml",
+  "settingsWaterGoalDescription": "A kezdőképernyőn található víz-ikon használata.",
+  "settingsWaterGoalLabel": "Napi vízfogyasztási cél",
+  "waterChipLabel": "{current} / {goal} ml",
+  "zincLabel": "cink",
+  "profileFastingEntry": "Böjt időzítő",
+  "fastingTitle": "Böjt időzítő",
+  "fastingSubtitle": "Egy egyszerű időzítő az étkezések közötti idő nyomon követéséhez. Nincsenek sorozatok, nincsenek célok, csak az óra.",
+  "fastingWarningTitle": "Mielőtt elkezdené",
+  "fastingWarningBody": "Az éhgyomri idő nyomon követése egyesek számára hasznos lehet, mások számára viszont megterhelő, különösen azok számára, akiknek étkezési rendellenességek szerepelnek a kórtörténetében. Ha ez Önre is vonatkozik, kérjük, először is gondoskodjon magáról. Segítséget kaphat a BEAT (Egyesült Királyság) és a NEDA (Egyesült Államok) szervezetektől.",
+  "fastingWarningDecline": "Ez nem nekem való",
+  "fastingWarningAccept": "Értem, aktiválom az időzítőt",
+  "fastingPresetCustom": "Egyéni",
+  "fastingStart": "Időzítő indítása",
+  "fastingCancel": "A böjt vége",
+  "fastingCancelConfirmTitle": "Befejezzük most a böjtöt?",
+  "fastingCancelConfirmBody": "Ezzel az aktuális munkamenet lezárul.",
+  "fastingComplete": "A munkamenet befejeződött",
+  "fastingLinkBeat": "BEAT (UK)",
+  "fastingLinkNeda": "NEDA (US)",
+  "fastingElapsedLabel": "Eltelt",
+  "fastingRemainingValue": "{value} maradt",
+  "@fastingRemainingValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingTargetValue": "Cél: {value}",
+  "@fastingTargetValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "hoursLabel": "óra",
+  "dialogCloseLabel": "Bezárás",
+  "customMealsRowMoreTooltip": "További műveletek",
+  "customMealsMergeAction": "Összevonás egy másik egyéni étellel",
+  "customMealsMergePickerTitle": "Válasza ki azt az egyéni ételt, amivel szeretné összevonni",
+  "customMealsMergeChooseSurvivorTitle": "Melyik maradjon?",
+  "customMealsMergeContinueAction": "Tovább",
+  "customMealsMergeConfirmTitle": "Összevonjuk az egyéni ételeket?",
+  "customMealsMergeConfirmContent": "Ezzel az összes {loser} kifejezéssel rögzített bejegyzés helyébe {winner} kerül, és a {loser} kifejezés eltávolításra kerül az egyéni ételei közül. Ez a művelet visszafordíthatatlan.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsMergeConfirmAction": "Egyesítés",
+  "customMealsMergeSuccessSnackbarOne": "Egyesítve — A(z) {winner} bejegyzéshez mostantól 1 naplózott bejegyzés tartozik.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Egyesítve – A(z) {winner} mostantól {count} naplózott bejegyzéssel rendelkezik.",
+  "@customMealsMergeSuccessSnackbarOther": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingHomeChipBody": "Böjt · {remaining} van még hátra",
+  "@fastingHomeChipBody": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingNotificationChannelName": "Böjtölési időzítő",
+  "fastingNotificationChannelDescription": "Egyszeri értesítések, amikor egy éhezési szakasz eléri a kitűzött célt.",
+  "fastingNotificationCompleteTitle": "A böjt befejeződött",
+  "fastingNotificationCompleteBody": "Elérte a kitűzött időt.",
+  "profileImageLabel": "Fotó hozzáadása",
+  "profileImageReplace": "Fotó módosítása",
+  "profileImageRemove": "Fotó eltávolítása",
+  "switchProfileLabel": "Profil váltása",
+  "addProfileLabel": "Profil hozzáadása",
+  "manageProfilesLabel": "Profilok kezelése",
+  "editProfileTitle": "Profil szerkesztése",
+  "profileNameLabel": "Név",
+  "profileNameHint": "Profilnév",
+  "defaultProfileName": "1. profil",
+  "profileActiveLabel": "Aktív",
+  "deleteProfileConfirmTitle": "Törli a profilt?",
+  "deleteProfileConfirmContent": "Ezzel a profil és az összes hozzá tartozó adat véglegesen törlődik, és a művelet visszafordíthatatlan.",
+  "copyToProfileLabel": "Másolás a profilba",
+  "copiedToProfileSnackbar": "Étkezés átmásolva a profilba",
+  "copyActionLabel": "Másolás",
+  "quickAddActivityTitleLabel": "Gyors hozzáadási művelet",
+  "quickAddActivityDurationLabel": "Időtartam (perc, opcionális)",
+  "quickAddActivityEnergyLabelKcal": "Elégetett energia (kcal)",
+  "quickAddActivityEnergyLabelKj": "Elégetett energia (kJ)",
+  "quickAddActivityAddedSnack": "Tevékenység hozzáadva",
+  "quickAddActivityNameLabel": "Név (opcionális)",
+  "scannerLockOrientationTooltip": "Álló formátumra rögzítés",
+  "scannerUnlockOrientationTooltip": "Elforgatás engedélyezése"
+}

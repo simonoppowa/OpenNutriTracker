@@ -83,8 +83,10 @@ void main() {
 
   test('every locale carries the own-server note', () {
     // The same shape as the l10n parity check, and here for the same reason:
-    // a re-translation that drops the key would leave that locale silently
-    // showing nothing at all on the one screen that has to be accurate.
+    // a re-translation that blanks the key would leave that locale silently
+    // showing nothing at all on the one screen that has to be accurate. A
+    // locale that has not translated the key yet is skipped: gen-l10n shows
+    // the English note until Weblate fills it.
     final dir = Directory('lib/l10n');
     final arbs = dir
         .listSync()
@@ -96,10 +98,11 @@ void main() {
     for (final file in arbs) {
       final map = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
       final value = map['aiConsentOwnServerCheckNote'];
+      if (value == null) continue; // untranslated: English until Weblate
       expect(
         value,
         isA<String>(),
-        reason: '${file.uri.pathSegments.last} is missing the note',
+        reason: '${file.uri.pathSegments.last} has a non-string note',
       );
       expect(
         (value as String).trim(),
