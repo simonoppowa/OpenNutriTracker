@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/l10n/app_locales.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/utils/app_locale_service.dart';
 import 'package:opennutritracker/core/utils/app_locale_sync.dart';
@@ -37,7 +38,7 @@ Future<void> main() async {
   final localeCode = await reconcileAppLocale(
     savedLocaleCode: await configRepo.getSelectedLocale(),
     systemLocaleTag: await AppLocaleService.getApplicationLocale(),
-    supportedLocales: S.supportedLocales,
+    supportedLocales: appLocales(S.supportedLocales),
     persistSelectedLocale: configRepo.setSelectedLocale,
     pushToSystem: AppLocaleService.setApplicationLocale,
   );
