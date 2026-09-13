@@ -3,7 +3,9 @@ import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
 
 /// A `food_summary` row as `search_food_summary` sends it: the columns the
-/// view has always had, plus — once Backend#11 is applied — `has_portion`.
+/// view has always had, plus — once the backend's
+/// `2026-09-13_food_summary_has_portion` migration is applied —
+/// `has_portion`.
 Map<String, dynamic> row({bool sendsFlag = false, bool? hasPortion}) => {
   SPConst.foodId: 2707829,
   SPConst.foodSource: 'fdc_survey',
@@ -27,7 +29,7 @@ void main() {
     });
 
     test('a backend that does not send the column leaves it null', () {
-      // The live backend before Backend#11: the row arrives without the
+      // The live backend before that migration: the row arrives without the
       // key at all, and absence is not "no portion" — the cut applies no
       // penalty and no key to a null, and behaves as it did before the
       // column existed.

@@ -117,15 +117,19 @@ class SpFoodDTO {
   /// shadow of that lookup — `food_has_deliverable_portion(food_id)`,
   /// the predicate `portions_by_food_ids` filters on — so the cut can
   /// apply the same penalty and a tie key in the same direction
-  /// (`rankAndTruncateFoodsByName`). Read there and nowhere else: the
-  /// entity carries the portions themselves once they are fetched.
+  /// (`rankAndTruncateFoodsByName`). Read there, for the resolver's page
+  /// only — the Food tab's is cut with it unread (#1164) — and nowhere
+  /// else: the entity carries the portions themselves once they are
+  /// fetched.
   ///
   /// Null is "the backend did not send the column": a backend that
-  /// predates Backend#11 answers with `food_summary` rows that have no
-  /// `has_portion`, and the cut then applies no penalty and no tie key,
-  /// exactly as it did before the column existed. Absent is not false —
-  /// false is the backend's answer that there is no portion, and only the
-  /// backend gets to give it. Once sent, the column is NOT NULL.
+  /// predates the `2026-09-13_food_summary_has_portion` migration answers
+  /// with `food_summary` rows that have no `has_portion`, and the cut then
+  /// applies no penalty and no tie key, exactly as it did before the
+  /// column existed. Absent is not false — false is the backend's answer
+  /// that there is no portion, and only the backend gets to give it. Once
+  /// sent, the column is NOT NULL, and a boolean: this field casts it as
+  /// every other column here is cast, and trusts the type as they do.
   @JsonKey(name: SPConst.foodHasPortion)
   final bool? hasPortion;
 

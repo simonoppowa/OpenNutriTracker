@@ -54,8 +54,9 @@ const _native = 'native';
 /// resolver's no-portions penalty and portions key read. Every row the
 /// backend orders as having a portion has at least one here, and every
 /// row it orders as having none has none — which is why [flagged] and
-/// [flaggedTranslations] can derive the `has_portion` column Backend#11
-/// adds to the search rows from the same count: the column is
+/// [flaggedTranslations] can derive the `has_portion` column the backend's
+/// `2026-09-13_food_summary_has_portion` migration adds to the search rows
+/// from the same count: the column is
 /// `food_has_deliverable_portion(food_id)`, the predicate the RPCs
 /// already order by and `portions_by_food_ids` filters on. The pools as
 /// copied carry no such column, exactly as the backend answered before
@@ -139,7 +140,7 @@ class BackendPoolFixtures {
     Map<int, int> portions,
   ) => [for (final row in pool) fresh(row, portions)];
 
-  /// [pool] as `search_food_summary` answers it once Backend#11 is
+  /// [pool] as `search_food_summary` answers it once the migration is
   /// applied: every row carrying `has_portion`, true where [portions]
   /// says the backend delivers one. Built through the JSON the backend
   /// sends — the row's own columns plus the new one — so the DTO's
@@ -155,7 +156,7 @@ class BackendPoolFixtures {
       }),
   ];
 
-  /// [pool] as `search_food_translation` answers it once Backend#11 is
+  /// [pool] as `search_food_translation` answers it once the migration is
   /// applied: every row carrying `has_portion`, true where [portions]
   /// says the backend delivers one.
   static List<Map<String, dynamic>> flaggedTranslations(

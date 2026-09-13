@@ -434,6 +434,7 @@ void main() {
       final survivors = rankAndTruncateFoodsByName(
         BackendPoolFixtures.orangeJuice,
         'orange juice',
+        forResolution: true,
       );
 
       expect(BackendPoolFixtures.orangeJuice, hasLength(45));
@@ -446,6 +447,7 @@ void main() {
           BackendPoolFixtures.orangeJuicePortions,
         ),
         'orange juice',
+        forResolution: true,
       );
       expect(flagged.first.foodId, BackendPoolFixtures.orangeJuice100Nfs);
       expect(
@@ -466,7 +468,11 @@ void main() {
         final pool = BackendPoolFixtures.muffins;
         final portions = BackendPoolFixtures.muffinsPortions;
 
-        final unflagged = rankAndTruncateFoodsByName(pool, 'muffins');
+        final unflagged = rankAndTruncateFoodsByName(
+          pool,
+          'muffins',
+          forResolution: true,
+        );
         expect(unflagged.map((f) => f.shortTitle), everyElement('Muffins'));
         expect(
           unflagged.map((f) => f.foodId),
@@ -476,6 +482,7 @@ void main() {
         final flagged = rankAndTruncateFoodsByName(
           BackendPoolFixtures.flagged(pool, portions),
           'muffins',
+          forResolution: true,
         );
         expect(flagged, hasLength(SPConst.maxNumberOfItems));
         expect(flagged.first.foodId, BackendPoolFixtures.muffinNfs);
@@ -496,11 +503,14 @@ void main() {
     // The portions are fetched after the cut, so the resolver's penalty
     // and its portions key could not act here, and a portion-bearing
     // record the resolver would pick was lost behind twenty portionless
-    // rows scoring under 0.15 above it. Backend#11 sends
-    // `food_has_deliverable_portion` as a column on the search rows; the
-    // cut reads it as the resolver reads the fetched list — the same
-    // amount off a row without, a row with one first among equals — and
-    // reads its absence as nothing at all.
+    // rows scoring under 0.15 above it. The backend's
+    // 2026-09-13_food_summary_has_portion migration sends
+    // `food_has_deliverable_portion` as a column on the search rows; for
+    // the resolver's page (`forResolution`) the cut reads it as the
+    // resolver reads the fetched list — the same amount off a row
+    // without, a row with one first among equals — and reads its absence
+    // as nothing at all. The Food tab's page is cut with it unread; the
+    // group after this one pins that.
     test(
       'a row the backend says has no portion loses the resolver\'s 0.15',
       () {
@@ -513,15 +523,25 @@ void main() {
         final singular = _food('Muffin, NFS', foodId: 2, hasPortion: true);
 
         expect(
-          _names(rankAndTruncateFoodsByName([plural, singular], 'muffins')),
+          _names(
+            rankAndTruncateFoodsByName(
+              [plural, singular],
+              'muffins',
+              forResolution: true,
+            ),
+          ),
           ['Muffin, NFS', 'Muffins, oat bran'],
         );
         expect(
           _names(
-            rankAndTruncateFoodsByName([
-              _food('Muffins, oat bran', foodId: 1),
-              _food('Muffin, NFS', foodId: 2),
-            ], 'muffins'),
+            rankAndTruncateFoodsByName(
+              [
+                _food('Muffins, oat bran', foodId: 1),
+                _food('Muffin, NFS', foodId: 2),
+              ],
+              'muffins',
+              forResolution: true,
+            ),
           ),
           ['Muffins, oat bran', 'Muffin, NFS'],
         );
@@ -539,7 +559,13 @@ void main() {
         final singular = _food('Apple, raw', foodId: 2, hasPortion: true);
 
         expect(
-          _names(rankAndTruncateFoodsByName([singular, plural], 'apples')),
+          _names(
+            rankAndTruncateFoodsByName(
+              [singular, plural],
+              'apples',
+              forResolution: true,
+            ),
+          ),
           ['Apples, raw', 'Apple, raw'],
         );
       },
@@ -550,42 +576,56 @@ void main() {
       () {
         // The resolver's second key is the portion count, descending; the
         // flag is its shadow and ranks the same way. Between a row with a
-        // portion and a row without, the penalty has already separated
-        // them at any score above 0.15 — "Milk, whole" and "Milk, human"
-        // are eleven characters each, and whole leads human by 0.15, not
-        // by the key — so the key is reached only where the penalty could
-        // not act: at 0.0, where the resolver's clamp and this one hold a
-        // penalised row. Two rows scoring nothing on the query, the one
-        // with a portion sent second, is kept first; the pair that tie on
-        // the flag keep the backend's order, as they do in the resolver
-        // when their counts tie.
+        // portion and a row without, the penalty separates them wherever
+        // their base scores differ by anything but exactly 0.15 — "Milk,
+        // whole" and "Milk, human" are eleven characters each, and whole
+        // leads human by 0.15, not by the key — so the key is reached at
+        // that exact gap (an unflagged 1.0 against a flagged 0.85, which
+        // `1.0 - 0.15` is in Dart) or at 0.0, where the resolver's clamp
+        // and this one hold a penalised row. Two rows scoring nothing on
+        // the query, the one with a portion sent second, is kept first;
+        // the pair that tie on the flag keep the backend's order, as they
+        // do in the resolver when their counts tie.
         final whole = _food('Milk, whole', foodId: 1, hasPortion: true);
         final human = _food('Milk, human', foodId: 2, hasPortion: false);
-        expect(_names(rankAndTruncateFoodsByName([human, whole], 'milk')), [
-          'Milk, whole',
-          'Milk, human',
-        ]);
+        expect(
+          _names(
+            rankAndTruncateFoodsByName(
+              [human, whole],
+              'milk',
+              forResolution: true,
+            ),
+          ),
+          ['Milk, whole', 'Milk, human'],
+        );
 
         final without = _food('Zwieback, plain', foodId: 1, hasPortion: false);
         final with_ = _food('Zwieback, plain', foodId: 2, hasPortion: true);
         expect(
-          rankAndTruncateFoodsByName([
-            without,
-            with_,
-          ], 'milk').map((f) => f.foodId),
+          rankAndTruncateFoodsByName(
+            [without, with_],
+            'milk',
+            forResolution: true,
+          ).map((f) => f.foodId),
           [2, 1],
         );
 
         final human2 = _food('Milk, human', foodId: 2, hasPortion: true);
-        expect(_names(rankAndTruncateFoodsByName([human2, whole], 'milk')), [
-          'Milk, human',
-          'Milk, whole',
-        ]);
+        expect(
+          _names(
+            rankAndTruncateFoodsByName(
+              [human2, whole],
+              'milk',
+              forResolution: true,
+            ),
+          ),
+          ['Milk, human', 'Milk, whole'],
+        );
       },
     );
 
     test('a row with no flag is neither penalised nor keyed', () {
-      // The backend before Backend#11: no column, null on every row, the
+      // The backend before the migration: no column, null on every row, the
       // order of before. A uniform penalty would leave that order alone
       // too, so the null is pinned beside a true: "Milk, NFS" with no
       // flag stays ahead of the flagged "Milk, whole" on its length — a
@@ -598,28 +638,38 @@ void main() {
         _food('Milk, human', foodId: 1),
         _food('Milk, whole', foodId: 2),
       ];
-      expect(_names(rankAndTruncateFoodsByName(unflagged, 'milk')), [
-        'Milk, human',
-        'Milk, whole',
-      ]);
+      expect(
+        _names(
+          rankAndTruncateFoodsByName(unflagged, 'milk', forResolution: true),
+        ),
+        ['Milk, human', 'Milk, whole'],
+      );
 
       final nullBesideTrue = [
         _food('Milk, whole', foodId: 2, hasPortion: true),
         _food('Milk, NFS', foodId: 1),
       ];
-      expect(_names(rankAndTruncateFoodsByName(nullBesideTrue, 'milk')), [
-        'Milk, NFS',
-        'Milk, whole',
-      ]);
+      expect(
+        _names(
+          rankAndTruncateFoodsByName(
+            nullBesideTrue,
+            'milk',
+            forResolution: true,
+          ),
+        ),
+        ['Milk, NFS', 'Milk, whole'],
+      );
 
       final nullOnTheKey = [
         _food('Milk, human', foodId: 1),
         _food('Milk, whole', foodId: 2, hasPortion: true),
       ];
-      expect(_names(rankAndTruncateFoodsByName(nullOnTheKey, 'milk')), [
-        'Milk, whole',
-        'Milk, human',
-      ]);
+      expect(
+        _names(
+          rankAndTruncateFoodsByName(nullOnTheKey, 'milk', forResolution: true),
+        ),
+        ['Milk, whole', 'Milk, human'],
+      );
     });
 
     test('the flagged order survives a pool too large for insertion sort', () {
@@ -633,7 +683,11 @@ void main() {
           _food('Milk, variant $i', foodId: i, hasPortion: i.isEven),
       ];
 
-      final survivors = rankAndTruncateFoodsByName(rows, 'milk');
+      final survivors = rankAndTruncateFoodsByName(
+        rows,
+        'milk',
+        forResolution: true,
+      );
 
       expect(survivors.map((f) => f.foodId), [
         for (var i = 10; i < 50; i += 2) i,
@@ -653,16 +707,24 @@ void main() {
 
       expect(
         _descriptions(
-          rankAndTruncateTranslationRows([plural, singular], 'Kartoffeln'),
+          rankAndTruncateTranslationRows(
+            [plural, singular],
+            'Kartoffeln',
+            forResolution: true,
+          ),
         ),
         ['Kartoffel, NFS', 'Kartoffeln, gebraten'],
       );
       expect(
         _descriptions(
-          rankAndTruncateTranslationRows([
-            _translationRow(1, 'Kartoffeln, gebraten'),
-            _translationRow(2, 'Kartoffel, NFS'),
-          ], 'Kartoffeln'),
+          rankAndTruncateTranslationRows(
+            [
+              _translationRow(1, 'Kartoffeln, gebraten'),
+              _translationRow(2, 'Kartoffel, NFS'),
+            ],
+            'Kartoffeln',
+            forResolution: true,
+          ),
         ),
         ['Kartoffeln, gebraten', 'Kartoffel, NFS'],
       );
@@ -670,15 +732,20 @@ void main() {
       // Equal scores and lengths: the flagged row first, either order.
       final a = _translationRow(1, 'Milch, human', hasPortion: false);
       final b = _translationRow(2, 'Milch, whole', hasPortion: true);
-      expect(_descriptions(rankAndTruncateTranslationRows([a, b], 'Milch')), [
-        'Milch, whole',
-        'Milch, human',
-      ]);
+      expect(
+        _descriptions(
+          rankAndTruncateTranslationRows([a, b], 'Milch', forResolution: true),
+        ),
+        ['Milch, whole', 'Milch, human'],
+      );
     });
 
     test('a translation flag that is not a boolean is read as none', () {
-      // The contract is a boolean; anything else is not an answer and
-      // must not cost a search, so it is read as the column being absent.
+      // The contract is a boolean; this reader has a raw map and no
+      // schema, so anything else is read as the column being absent
+      // rather than thrown on. `SpFoodDTO.fromJson` casts the column as it
+      // casts every other and does not share this leniency; from Postgres
+      // neither case is reachable.
       final odd = _translationRow(
         1,
         'Kartoffeln, gebraten',
@@ -688,7 +755,11 @@ void main() {
 
       expect(
         _descriptions(
-          rankAndTruncateTranslationRows([odd, singular], 'Kartoffeln'),
+          rankAndTruncateTranslationRows(
+            [odd, singular],
+            'Kartoffeln',
+            forResolution: true,
+          ),
         ),
         ['Kartoffeln, gebraten', 'Kartoffel, NFS'],
       );
@@ -700,11 +771,157 @@ void main() {
           _translationRow(i, 'Milch, Variante $i', hasPortion: i.isEven),
       ];
 
-      final survivors = rankAndTruncateTranslationRows(rows, 'Milch');
+      final survivors = rankAndTruncateTranslationRows(
+        rows,
+        'Milch',
+        forResolution: true,
+      );
 
       expect(survivors.map((r) => r[SPConst.translationFoodId]), [
         for (var i = 10; i < 50; i += 2) i,
       ]);
+    });
+  });
+
+  group('the Food tab\'s cut does not read the flag (#1164)', () {
+    // The cut is one function on both paths, and the resolver's penalty
+    // was decided for the resolver "and nowhere else": a person browsing
+    // the Food tab is not logging an amount yet, a German reader wants the
+    // native BLS record where it is — none of the 7,140 carries a portion
+    // — and the portionless record stays in the candidate list. So the
+    // page `FoodBloc` asks for is cut with `forResolution` false, the
+    // default, and the column the backend sends changes nothing about it:
+    // the same twenty in the same order as before the column existed.
+    // Read for the Food tab too, the flag cut seven BLS rows from
+    // `apple`'s twenty and every raw record from `chicken breast`'s.
+    test('apple: the same twenty with the column as without, BLS in', () {
+      final pool = BackendPoolFixtures.apple;
+      final flagged = BackendPoolFixtures.flagged(
+        pool,
+        BackendPoolFixtures.applePortions,
+      );
+      const appleRawBls = 10000236;
+
+      final unflagged = rankAndTruncateFoodsByName(pool, 'apple');
+      final foodTab = rankAndTruncateFoodsByName(flagged, 'apple');
+      final resolver = rankAndTruncateFoodsByName(
+        flagged,
+        'apple',
+        forResolution: true,
+      );
+
+      expect(
+        foodTab.map((f) => f.foodId),
+        unflagged.map((f) => f.foodId),
+        reason: 'the Food tab\'s twenty, in the same order',
+      );
+      expect(foodTab.map((f) => f.foodId), contains(appleRawBls));
+      expect(foodTab.where((f) => f.source == 'bls'), hasLength(7));
+      expect(foodTab.map((f) => f.hasPortion), contains(isFalse));
+      // The resolver's page of the same rows: the seven BLS rows are cut
+      // for seven flagged survey rows — "Crisp, apple", "Cobbler, apple",
+      // "Strudel, apple" among them. Only twenty of the hundred carry a
+      // portion, so unflagged survey rows still fill the rest of it.
+      expect(resolver.map((f) => f.foodId), isNot(contains(appleRawBls)));
+      expect(resolver.where((f) => f.source == 'bls'), isEmpty);
+      expect(
+        resolver.map((f) => f.foodId).toSet().difference(
+          foodTab.map((f) => f.foodId).toSet(),
+        ),
+        hasLength(7),
+      );
+      expect(resolver.map((f) => f.name), contains('Crisp, apple'));
+    });
+
+    test('chicken breast: the raw records stay on the Food tab', () {
+      final flagged = BackendPoolFixtures.flagged(
+        BackendPoolFixtures.chickenBreast,
+        BackendPoolFixtures.chickenBreastPortions,
+      );
+
+      final foodTab = rankAndTruncateFoodsByName(flagged, 'chicken breast');
+
+      expect(
+        foodTab.map((f) => f.foodId),
+        rankAndTruncateFoodsByName(
+          BackendPoolFixtures.chickenBreast,
+          'chicken breast',
+        ).map((f) => f.foodId),
+      );
+      expect(
+        foodTab.first.foodId,
+        BackendPoolFixtures.chickenBreastWithoutSkinRawBls,
+      );
+      expect(
+        foodTab.map((f) => f.foodId),
+        contains(BackendPoolFixtures.chickenBreastRollSrLegacy),
+      );
+      expect(foodTab.where((f) => f.source != 'fdc_survey'), hasLength(9));
+    });
+
+    test('two rows: the exact title leads, flagged or not', () {
+      // The muffins shape, read for the Food tab: the portionless exact
+      // title is not penalised and keeps its place.
+      final plural = _food('Muffins, oat bran', foodId: 1, hasPortion: false);
+      final singular = _food('Muffin, NFS', foodId: 2, hasPortion: true);
+
+      expect(
+        _names(rankAndTruncateFoodsByName([singular, plural], 'muffins')),
+        ['Muffins, oat bran', 'Muffin, NFS'],
+      );
+      // And among equal scores and lengths the flag is no key either.
+      final without = _food('Zwieback, plain', foodId: 1, hasPortion: false);
+      final with_ = _food('Zwieback, plain', foodId: 2, hasPortion: true);
+      expect(
+        rankAndTruncateFoodsByName([
+          without,
+          with_,
+        ], 'milk').map((f) => f.foodId),
+        [1, 2],
+      );
+    });
+
+    test('and the translation cut reads it for the resolver only', () {
+      final pool = BackendPoolFixtures.milch;
+      final flagged = BackendPoolFixtures.flaggedTranslations(
+        pool,
+        BackendPoolFixtures.milchPortions,
+      );
+      List<int> ids(List<Map<String, dynamic>> rows) => [
+        for (final r in rows) r[SPConst.translationFoodId] as int,
+      ];
+
+      final unflagged = rankAndTruncateTranslationRows(pool, 'Milch');
+      final foodTab = rankAndTruncateTranslationRows(flagged, 'Milch');
+      final resolver = rankAndTruncateTranslationRows(
+        flagged,
+        'Milch',
+        forResolution: true,
+      );
+
+      expect(ids(foodTab), ids(unflagged));
+      // Four portionless machine rows the resolver's page cuts, e.g.
+      // "Milch, menschlich, reif, flüssig", stay on the Food tab's.
+      expect(ids(resolver), isNot(ids(unflagged)));
+      expect(
+        ids(unflagged).toSet().difference(ids(resolver).toSet()),
+        hasLength(4),
+      );
+      expect(ids(unflagged), contains(171279));
+      expect(ids(resolver), isNot(contains(171279)));
+
+      final plural = _translationRow(
+        1,
+        'Kartoffeln, gebraten',
+        hasPortion: false,
+      );
+      final singular = _translationRow(2, 'Kartoffel, NFS', hasPortion: true);
+      expect(
+        _descriptions(
+          rankAndTruncateTranslationRows([plural, singular], 'Kartoffeln'),
+        ),
+        ['Kartoffeln, gebraten', 'Kartoffel, NFS'],
+      );
     });
   });
 

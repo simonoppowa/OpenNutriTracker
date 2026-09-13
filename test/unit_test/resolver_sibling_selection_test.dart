@@ -51,17 +51,20 @@ import '../fixture/backend_sibling_fixtures.dart';
 /// and then the resolver — and that the survivors and the resolver apply
 /// one rule, so the resolver's pick from the whole pool is inside the
 /// twenty, up to what the cut does not read. The portions are fetched
-/// after it, and until Backend#11 that was the whole of them: `muffins`
-/// was lost at the cut, twenty portionless rows titled exactly "Muffins"
-/// ahead of the survey's "Muffin, NFS". Since #1190 the search rows carry
-/// `has_portion`, the boolean shadow of the count, and the cut takes the
+/// after it, and until the backend's `2026-09-13_food_summary_has_portion`
+/// migration that was the whole of them: `muffins` was lost at the cut,
+/// twenty portionless rows titled exactly "Muffins" ahead of the survey's
+/// "Muffin, NFS". Since #1190 the search rows carry `has_portion`, the
+/// boolean shadow of the count, and for the resolver's page
+/// (`forResolution`, which is every cut in this file) the cut takes the
 /// resolver's penalty off a row without and reads a row with one first
 /// among equals; what it still cannot rank is the count among rows that
 /// carry one, and the translation row's source (see
 /// `rankAndTruncateFoodsByName`). Every pool is pinned with the flag as
 /// the backend will send it and without it as the backend sends it
 /// today; the last groups pin the miss without the flag, its closure with
-/// it, and what is left.
+/// it, and what is left. The Food tab's page is cut with the flag unread
+/// (#1164); `sp_food_data_source_ranking_test` pins that.
 List<MealEntity> resolve(
   String query, {
   List<MealEntity> off = const [],
@@ -713,7 +716,11 @@ void main() {
     // the resolver would have picked.
     ({MealEntity fromPage, MealEntity fromPool, List<SpFoodDTO> survivors})
     pick(String query, List<SpFoodDTO> pool, Map<int, int> portions) {
-      final survivors = rankAndTruncateFoodsByName(pool, query);
+      final survivors = rankAndTruncateFoodsByName(
+        pool,
+        query,
+        forResolution: true,
+      );
       return (
         fromPage: resolve(
           query,
@@ -728,9 +735,10 @@ void main() {
     }
 
     /// [pool] as the backend sends it today — no `has_portion` column, the
-    /// cut blind to the portions — and as it will send it once Backend#11
-    /// is applied, each row flagged from the same count the resolver's
-    /// entities carry. The same record must come out of both, from the
+    /// cut blind to the portions — and as it will send it once the
+    /// migration is applied, each row flagged from the same count the
+    /// resolver's entities carry. The same record must come out of both,
+    /// from the
     /// page and from the whole pool: a pool the flag re-orders at the cut
     /// is one where the cut and the resolver disagreed before it.
     void expectPick(
@@ -810,7 +818,11 @@ void main() {
       final ranked = resolve(
         'bread',
         backend: BackendPoolFixtures.freshAll(
-          rankAndTruncateFoodsByName(BackendPoolFixtures.bread, 'bread'),
+          rankAndTruncateFoodsByName(
+            BackendPoolFixtures.bread,
+            'bread',
+            forResolution: true,
+          ),
           BackendPoolFixtures.breadPortions,
         ),
       );
@@ -857,7 +869,11 @@ void main() {
         }
 
         expect(winners, {'Chicken breast, stewed, skin eaten'});
-        final survivors = rankAndTruncateFoodsByName(pool, 'chicken breast');
+        final survivors = rankAndTruncateFoodsByName(
+          pool,
+          'chicken breast',
+          forResolution: true,
+        );
         expect(
           survivors.first.foodId,
           BackendPoolFixtures.chickenBreastWithoutSkinRawBls,
@@ -870,6 +886,7 @@ void main() {
         final flaggedSurvivors = rankAndTruncateFoodsByName(
           flagged,
           'chicken breast',
+          forResolution: true,
         );
         expect(
           flaggedSurvivors.first.foodId,
@@ -1011,7 +1028,11 @@ void main() {
       final ranked = resolve(
         'rice',
         backend: BackendPoolFixtures.freshAll(
-          rankAndTruncateFoodsByName(BackendPoolFixtures.rice, 'rice'),
+          rankAndTruncateFoodsByName(
+            BackendPoolFixtures.rice,
+            'rice',
+            forResolution: true,
+          ),
           BackendPoolFixtures.ricePortions,
         ),
       );
@@ -1097,12 +1118,16 @@ void main() {
       List<Map<String, dynamic>> pool,
       Map<int, int> portions,
     ) => BackendPoolFixtures.freshAll([
-      for (final row in rankAndTruncateTranslationRows(pool, query))
+      for (final row in rankAndTruncateTranslationRows(
+        pool,
+        query,
+        forResolution: true,
+      ))
         translated(row),
     ], portions);
 
     /// The pool as the backend sends it today and as it will with
-    /// `has_portion` on every row (Backend#11), through the translation
+    /// `has_portion` on every row (the migration), through the translation
     /// cut and the resolver.
     List<(String, List<MealEntity>)> pages(
       String query,
@@ -1195,7 +1220,11 @@ void main() {
         query,
         backend: [for (final r in rows) entity(r)],
       ).first;
-      final survivors = rankAndTruncateTranslationRows(rows, query);
+      final survivors = rankAndTruncateTranslationRows(
+        rows,
+        query,
+        forResolution: true,
+      );
       final fromPage = resolve(
         query,
         backend: [for (final r in survivors) entity(r)],
@@ -1225,7 +1254,7 @@ void main() {
     // asserts it on every real pool. What it still does not cover is what
     // the cut does not read. It runs before any portion is fetched, where
     // the resolver's penalty and its portions key read them, and until
-    // Backend#11 that was the whole of it: the last tests pin where that
+    // the migration that was the whole of it: the last tests pin where that
     // bit — on a synthetic family and on the real muffins pool — as the
     // backend answers today, without a `has_portion` column. Since #1190
     // the cut reads that column where it is sent, takes the resolver's
@@ -1248,7 +1277,11 @@ void main() {
       const query = 'cheesy potato';
       final pool = BackendPoolFixtures.potato;
       final portions = BackendPoolFixtures.potatoPortions;
-      final survivors = rankAndTruncateFoodsByName(pool, query);
+      final survivors = rankAndTruncateFoodsByName(
+        pool,
+        query,
+        forResolution: true,
+      );
       final fromPage = resolve(
         query,
         backend: BackendPoolFixtures.freshAll(survivors, portions),
@@ -1291,7 +1324,11 @@ void main() {
       const query = 'fried potato';
       final pool = BackendPoolFixtures.potato;
       final portions = BackendPoolFixtures.potatoPortions;
-      final survivors = rankAndTruncateFoodsByName(pool, query);
+      final survivors = rankAndTruncateFoodsByName(
+        pool,
+        query,
+        forResolution: true,
+      );
       final fromPage = resolve(
         query,
         backend: BackendPoolFixtures.freshAll(survivors, portions),
@@ -1346,7 +1383,11 @@ void main() {
         query,
         backend: [for (final r in rows) entity(r)],
       ).first;
-      final survivors = rankAndTruncateFoodsByName(rows, query);
+      final survivors = rankAndTruncateFoodsByName(
+        rows,
+        query,
+        forResolution: true,
+      );
       final fromPage = resolve(
         query,
         backend: [for (final r in survivors) entity(r)],
@@ -1363,7 +1404,11 @@ void main() {
       // in the resolver, the survey record is kept first, and the page
       // and the pool agree.
       final flagged = BackendPoolFixtures.flagged(rows, portions);
-      final flaggedSurvivors = rankAndTruncateFoodsByName(flagged, query);
+      final flaggedSurvivors = rankAndTruncateFoodsByName(
+        flagged,
+        query,
+        forResolution: true,
+      );
       final fromFlaggedPage = resolve(
         query,
         backend: [for (final r in flaggedSurvivors) entity(r)],
@@ -1410,7 +1455,11 @@ void main() {
         query,
         backend: [for (final r in rows) entity(r)],
       ).first;
-      final survivors = rankAndTruncateFoodsByName(rows, query);
+      final survivors = rankAndTruncateFoodsByName(
+        rows,
+        query,
+        forResolution: true,
+      );
       final fromPage = resolve(
         query,
         backend: [for (final r in survivors) entity(r)],
@@ -1427,7 +1476,7 @@ void main() {
     test('where it bit: muffins without the flag, an exact plural title '
         'over the soft singular', () {
       // The real pool, 79 rows, forty with a portion, as the backend sends
-      // it before Backend#11 — no `has_portion` on any row. `muffins` is
+      // it before the migration — no `has_portion` on any row. `muffins` is
       // the exact title of the twenty SR Legacy "Muffins, …" rows, none
       // with a portion, and a soft match for the survey's "Muffin" family
       // (`muffins` → `muffin`, six letters of seven, 0.857). Over the
@@ -1445,7 +1494,11 @@ void main() {
       const query = 'muffins';
       final pool = BackendPoolFixtures.muffins;
       final portions = BackendPoolFixtures.muffinsPortions;
-      final survivors = rankAndTruncateFoodsByName(pool, query);
+      final survivors = rankAndTruncateFoodsByName(
+        pool,
+        query,
+        forResolution: true,
+      );
       final fromPool = resolve(
         query,
         backend: BackendPoolFixtures.freshAll(pool, portions),
@@ -1486,7 +1539,11 @@ void main() {
       final oneFewer = pool
           .where((r) => r.foodId != BackendPoolFixtures.muffinsOatBranSrLegacy)
           .toList();
-      final survivorsOneFewer = rankAndTruncateFoodsByName(oneFewer, query);
+      final survivorsOneFewer = rankAndTruncateFoodsByName(
+        oneFewer,
+        query,
+        forResolution: true,
+      );
       expect(
         survivorsOneFewer.map((r) => r.foodId),
         contains(BackendPoolFixtures.muffinNfs),
@@ -1501,8 +1558,8 @@ void main() {
     });
 
     test('where it is closed: muffins with the flag', () {
-      // The same pool as `search_food_summary` will send it once
-      // Backend#11 is applied: `has_portion` on every row, true on the
+      // The same pool as `search_food_summary` will send it once the
+      // migration is applied: `has_portion` on every row, true on the
       // forty. The cut takes 0.15 off the twenty "Muffins, …" rows — 0.85,
       // where the resolver puts them — and the thirty-three survey
       // "Muffin" rows with a portion lead at 0.857; the twenty shortest of
@@ -1516,7 +1573,11 @@ void main() {
         BackendPoolFixtures.muffinsPortions,
       );
       final portions = BackendPoolFixtures.muffinsPortions;
-      final survivors = rankAndTruncateFoodsByName(pool, query);
+      final survivors = rankAndTruncateFoodsByName(
+        pool,
+        query,
+        forResolution: true,
+      );
       final fromPool = resolve(
         query,
         backend: BackendPoolFixtures.freshAll(pool, portions),
@@ -1563,7 +1624,11 @@ void main() {
       // beside the point.
       final pool = BackendPoolFixtures.orangeJuice;
       final portions = BackendPoolFixtures.orangeJuicePortions;
-      final survivors = rankAndTruncateFoodsByName(pool, 'orange juice');
+      final survivors = rankAndTruncateFoodsByName(
+        pool,
+        'orange juice',
+        forResolution: true,
+      );
 
       expect(pool.where((r) => portions[r.foodId]! > 0), hasLength(9));
       expect(survivors[1].foodId, BackendPoolFixtures.orangeJuice100Nfs);
@@ -1578,6 +1643,7 @@ void main() {
       final flagged = rankAndTruncateFoodsByName(
         BackendPoolFixtures.flagged(pool, portions),
         'orange juice',
+        forResolution: true,
       );
       expect(flagged.first.foodId, BackendPoolFixtures.orangeJuice100Nfs);
       expect(

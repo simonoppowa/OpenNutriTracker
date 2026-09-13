@@ -51,7 +51,16 @@ class SpFoodDataSource {
   /// twenty best of the backend.
   static const _candidatePoolSize = SPConst.maxNumberOfItems * 5;
 
-  Future<List<SpFoodDTO>> fetchSearchWordResults(String searchString) async {
+  /// The twenty rows the app keeps of the backend's hundred for
+  /// [searchString], cut by the resolver's rule (see
+  /// [rankAndTruncateFoodsByName]). [forResolution] says whose twenty they
+  /// are: the resolver's, and the cut reads each row's `has_portion`
+  /// column; or the Food tab's — the default — and it does not (#1164,
+  /// #1190; the cut's comment says why the two differ).
+  Future<List<SpFoodDTO>> fetchSearchWordResults(
+    String searchString, {
+    bool forResolution = false,
+  }) async {
     try {
       return await withRetry(() async {
         log.fine('Fetching Supabase food results');
@@ -72,6 +81,7 @@ class SpFoodDataSource {
             locale,
             searchString,
             enabledSources,
+            forResolution: forResolution,
           );
           // Foods without a translation for this locale are only findable
           // by their English name, so an empty localized result set falls
@@ -86,6 +96,7 @@ class SpFoodDataSource {
           supaBaseClient,
           searchString,
           enabledSources,
+          forResolution: forResolution,
         );
         log.fine('Successful response from Supabase');
         return results;
@@ -232,15 +243,17 @@ class SpFoodDataSource {
   Future<List<SpFoodDTO>> _searchEnglish(
     SupabaseClient client,
     String searchString,
-    List<String>? enabledSources,
-  ) async {
+    List<String>? enabledSources, {
+    required bool forResolution,
+  }) async {
     // An RPC rather than a filtered select on the view, so the term travels
     // in the POST body instead of the query string — see [SPConst
     // .searchFoodSummaryFn]. The function returns `setof food_summary`, so
     // the rows arrive in exactly the shape `select()` produced and
     // [SpFoodDTO.fromJson] reads them as it reads the view — including
-    // `has_portion`, which the view carries once Backend#11 is applied and
-    // the DTO reads as null until then. The source filter and the row cap
+    // `has_portion`, which the view carries once the backend's
+    // `2026-09-13_food_summary_has_portion` migration is applied and the
+    // DTO reads as null until then. The source filter and the row cap
     // move into the call because a filter chained onto an RPC would go back
     // into the URL, which is the thing being removed.
     final response = await _rpcRows(client, SPConst.searchFoodSummaryFn, {
@@ -254,7 +267,11 @@ class SpFoodDataSource {
     // is rejected outright with a parse error (PGRST100), so relevance has
     // to be ranked client-side instead of via Postgres ORDER BY.
     final foods = response.map((food) => SpFoodDTO.fromJson(food)).toList();
-    return rankAndTruncateFoodsByName(foods, searchString);
+    return rankAndTruncateFoodsByName(
+      foods,
+      searchString,
+      forResolution: forResolution,
+    );
   }
 
   /// Two-step localized search: `food_summary` is a materialized view, so
@@ -265,8 +282,9 @@ class SpFoodDataSource {
     SupabaseClient client,
     String locale,
     String searchString,
-    List<String>? enabledSources,
-  ) async {
+    List<String>? enabledSources, {
+    required bool forResolution,
+  }) async {
     final unrankedRows = await _rpcRows(
       client,
       SPConst.searchFoodTranslationFn,
@@ -281,9 +299,11 @@ class SpFoodDataSource {
     // ranked client-side instead of via Postgres ORDER BY (same issue as
     // _searchEnglish). Rank the whole candidate pool, then truncate — see
     // _candidatePoolSize for why truncating first would be wrong.
-    final translationRows = rankAndTruncateTranslationRows([
-      ...unrankedRows,
-    ], searchString);
+    final translationRows = rankAndTruncateTranslationRows(
+      [...unrankedRows],
+      searchString,
+      forResolution: forResolution,
+    );
 
     final nameByFoodId = {
       for (final row in translationRows)
@@ -351,10 +371,11 @@ class SpFoodDataSource {
 /// `MealEntity.scoringName` and `scoringQualifiers` make of the entity
 /// built from this row — with the scorer `scoreMealForResolution` scores
 /// that entity with, `scoreText`, which names a qualifier by soft prefix
-/// (`namedQualifiers`); a row the backend says has no portion takes
-/// [noPortionsPenalty] off, as the entity will there; and ties break as
-/// they break there: the shorter description first, then the row with a
-/// portion, then the backend's order, stable (#1170, #1190). Scored on
+/// (`namedQualifiers`); [forResolution], a row the backend says has no
+/// portion takes [noPortionsPenalty] off, as the entity will there; and
+/// ties break as they break there: the shorter description first, then —
+/// [forResolution] — the row with a portion, then the backend's order,
+/// stable (#1170, #1190). Scored on
 /// the whole description, a family of same-titled survey records did not
 /// tie here as it tied there, and the record the resolver would pick was
 /// cut before it was scored; scored on the title but with the Food tab's
@@ -370,8 +391,9 @@ class SpFoodDataSource {
 ///   list this cut never has; what it has instead is the row's
 ///   `has_portion` column, `food_has_deliverable_portion(food_id)` —
 ///   the predicate `portions_by_food_ids` filters on, so the column is
-///   true exactly where the fetched list will not be empty (Backend#11).
-///   It is the boolean shadow of the count: enough for the penalty,
+///   true exactly where the fetched list will not be empty (the backend's
+///   `2026-09-13_food_summary_has_portion` migration). It is the boolean
+///   shadow of the count: enough for the penalty,
 ///   which asks whether there is a portion, and enough to put a row with
 ///   one before a row without among equal scores and lengths — the
 ///   resolver's key collapsed to whether there are any, which is all the
@@ -392,8 +414,8 @@ class SpFoodDataSource {
 ///   the same way.
 ///
 ///   Where the backend does not send the column — every backend before
-///   Backend#11 is applied, which the live one is at this writing — the
-///   flag is null on every row, and this cut applies no penalty and no
+///   that migration is applied, which the live one is at this writing —
+///   the flag is null on every row, and this cut applies no penalty and no
 ///   key: the twenty are the twenty it kept before the column existed,
 ///   and `muffins` is lost as above. Null is the absence of an answer and
 ///   is never read as "no portion"; [SpFoodDTO.hasPortion] says why.
@@ -415,7 +437,25 @@ class SpFoodDataSource {
 ///   titled the same, has forty-nine portion-bearing ones. The same test
 ///   pins it on a synthetic family.
 ///
-/// The Food tab ranks these twenty for display with `scoreMealRelevance`,
+/// The Food tab's twenty are cut by the same rule with the flag unread —
+/// [forResolution] false, the default, which is what `FoodBloc`'s search
+/// asks for through `SearchProductsUseCase.searchFDCFoodByString`: no
+/// penalty on a row without a portion, no key on the one with. #1164
+/// decided the penalty for the resolver "and nowhere else" — a person
+/// browsing the list is not logging an amount yet, a German reader wants
+/// the native BLS record where it is and none of the 7,140 carries a
+/// portion, and the portionless record stays in the candidate list — and
+/// #1190 asked this cut to apply it because the resolver's page is cut
+/// here; the cut is one function on both paths, so it reads the column
+/// only for the page #1190 is about. Read for the Food tab too, the
+/// column cut seven BLS rows from `apple`'s twenty — "Apple raw", "Apple
+/// juice", "Apple sauce" among them — for "Crisp, apple", "Cobbler,
+/// apple" and a "Carrots, raw, salad with apples" scoring nothing, and
+/// every BLS, SR Legacy and Foundation raw record from `chicken breast`'s
+/// for twenty survey dishes. `sp_food_data_source_ranking_test` pins the
+/// Food tab's twenty as the same twenty with the column as without.
+///
+/// The Food tab ranks its twenty for display with `scoreMealRelevance`,
 /// which matches exactly and adds contains and prefix bonuses; where it
 /// disagrees with the soft score it reorders the twenty for a list the
 /// user reads, and nothing the user could have scrolled to is lost by
@@ -423,12 +463,13 @@ class SpFoodDataSource {
 @visibleForTesting
 List<SpFoodDTO> rankAndTruncateFoodsByName(
   List<SpFoodDTO> foods,
-  String searchString,
-) => _rankAndTruncate(
+  String searchString, {
+  bool forResolution = false,
+}) => _rankAndTruncate(
   foods,
   searchString,
   describe: (food) => food.name,
-  hasPortion: (food) => food.hasPortion,
+  hasPortion: forResolution ? (food) => food.hasPortion : (_) => null,
 );
 
 /// Same idea as [rankAndTruncateFoodsByName], but for raw `food_translation`
@@ -436,21 +477,30 @@ List<SpFoodDTO> rankAndTruncateFoodsByName(
 /// into [SpFoodDTO] (see [SpFoodDataSource._searchByTranslation]). A
 /// translated description follows the same comma convention — "Milch, NFS"
 /// is titled "Milch" — and derives its title the way the entity's
-/// localized name will. The row's [SPConst.translationHasPortion] is read
-/// as the DTO reads its column: a boolean where the backend sent one,
-/// null — no penalty, no key — where it did not, or sent something else.
+/// localized name will. [forResolution] as there: the row's
+/// [SPConst.translationHasPortion] is read for the resolver's page and not
+/// for the Food tab's. Read, it is a boolean where the backend sent one
+/// and null — no penalty, no key — where it did not, or sent something
+/// else: this reader has a raw map and no schema, so it declines an odd
+/// value rather than throw on it, where [SpFoodDTO.fromJson] casts the
+/// column as it casts every other and would throw. Neither path is
+/// reachable from Postgres, whose boolean is JSON's; the two differ only
+/// in what they would do with a backend that sent something else.
 @visibleForTesting
 List<Map<String, dynamic>> rankAndTruncateTranslationRows(
   List<Map<String, dynamic>> rows,
-  String searchString,
-) => _rankAndTruncate(
+  String searchString, {
+  bool forResolution = false,
+}) => _rankAndTruncate(
   rows,
   searchString,
   describe: (row) => row[SPConst.translationDescription] as String?,
-  hasPortion: (row) {
-    final flag = row[SPConst.translationHasPortion];
-    return flag is bool ? flag : null;
-  },
+  hasPortion: forResolution
+      ? (row) {
+          final flag = row[SPConst.translationHasPortion];
+          return flag is bool ? flag : null;
+        }
+      : (_) => null,
 );
 
 /// [items] by the score of their description — [describe], as its title
@@ -463,11 +513,13 @@ List<Map<String, dynamic>> rankAndTruncateTranslationRows(
 /// The portion key ranks the flag as the resolver's key ranks the count
 /// it shadows (`_sorted` in `resolver_relevance.dart`, portions
 /// descending): true before false. Between a row with a portion and a
-/// row without, the penalty has already separated them at any score
-/// above it, so the key is reached where the penalty could not act — at
-/// 0.0, where the clamp holds a penalised row — and it is there so that
-/// the two sorts are the same sort, not because a live pool turns on
-/// it. Null — the backend did not send the column — is not a third
+/// row without, it is reached at any equal score, which after the
+/// penalty means one of two things: a base gap of exactly 0.15 — the
+/// unflagged row at 1.0 and the flagged one at 0.85, `1.0 - 0.15 ==
+/// 0.85` in Dart — or a clamp at 0.0 holding a penalised row; either
+/// way the flagged row goes first, as its entity does there. It is here
+/// so that the two sorts are the same sort, not because a live pool
+/// turns on it. Null — the backend did not send the column — is not a third
 /// value but the absence of one, and ranks with false so that a pool
 /// with no flags at all has no key at all and is ordered as it was
 /// before the column existed; the same pool with the column is ordered

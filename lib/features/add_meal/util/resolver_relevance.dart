@@ -39,7 +39,9 @@ const _machineTranslatedPenalty = 0.03;
 /// two must invert the same gaps: a portionless exact title at 1.0 and a
 /// portion-bearing soft match at 0.857 change places at 0.15 in both, or
 /// the cut keeps twenty rows the resolver ranks behind the one it cut.
-/// The Food tab's ranker still knows nothing of it.
+/// The Food tab still knows nothing of it: its page is cut by the same
+/// function with the column unread (`forResolution` false), and its
+/// ranker never sees a portion.
 ///
 /// The resolver's output is logged with an amount, and at that point a
 /// record that can scale one is worth more than one that cannot. The case
