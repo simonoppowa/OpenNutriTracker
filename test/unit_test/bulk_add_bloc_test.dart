@@ -1403,6 +1403,18 @@ void main() {
       expect(row.portionKeyMissed, isFalse);
       expect(row.amountNeedsCheck, isFalse);
       expect(row.willBeLogged, isTrue);
+
+      // The gate has to survive the row being edited: `copyWith` carries
+      // `fromPhoto`, and resetting it there would let the miss fire the
+      // moment the user touched the amount. Read straight after the load,
+      // the assertions above cannot tell.
+      bloc.add(const ChangeRowAmountEvent(0, '2'));
+      final edited =
+          (await bloc.stream.first as BulkAddLoadedState).rows.single;
+      expect(edited.amountText, '2');
+      expect(edited.fromPhoto, isTrue);
+      expect(edited.portionKeyMissed, isFalse);
+      expect(edited.amountNeedsCheck, isFalse);
     });
 
     test('picking a unit settles it, like the other clauses', () async {
@@ -1462,6 +1474,7 @@ void main() {
 
       final row = (await parse(bloc, 'almonds')).rows.single;
 
+      expect(row.portionKeyMissed, isFalse);
       expect(row.amountNeedsCheck, isFalse);
     });
   });

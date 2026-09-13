@@ -188,12 +188,14 @@ class BulkAddRow extends Equatable {
   /// slice*, so the warning would point at a control that cannot answer it,
   /// the #973 anti-pattern; gated, 3 of 48. An unavailable lookup counts as
   /// no portions too: a transient outage says nothing about the food and
-  /// must not raise a flag the next search would clear. **Nothing matched**:
-  /// a tie is a hit, and the query words are tried after the key exactly as
-  /// `_initialUnit` tries them, so this asks what that method asked and
-  /// nothing more. **Not a photo read**: most survey records the app can see
-  /// carry no size row, so a photo warning would fire on most photo rows and
-  /// become wallpaper; the batch banner is the marker there.
+  /// must not raise a flag the next search would clear. **A count was
+  /// stated**: `_initialUnit` consults the word only under one, so without
+  /// it there was no match to miss. **Nothing matched**: a tie is a hit, and
+  /// the query words are tried after the key exactly as `_initialUnit` tries
+  /// them, so this asks what that method asked and nothing more. **Not a
+  /// photo read**: most survey records the app can see carry no size row,
+  /// so a photo warning would fire on most photo rows and become wallpaper;
+  /// the batch banner is the marker there.
   ///
   /// Cleared by `unitChosenByUser` like the rest of [amountNeedsCheck]:
   /// picking a unit is the answer the warning asks for, and the dropdown
@@ -202,6 +204,7 @@ class BulkAddRow extends Equatable {
     final key = resolved.parsed.portion;
     final food = meal;
     if (key == null || food == null || fromPhoto) return false;
+    if (resolved.parsed.quantity == null) return false;
     if (food.portionsUnavailable || food.portions.isEmpty) return false;
     return matchPortionToKey(key, food.portions) == null &&
         matchPortionToQuery(resolved.parsed.query, food.portions) == null;
