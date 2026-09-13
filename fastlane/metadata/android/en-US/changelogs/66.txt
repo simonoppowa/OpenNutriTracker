@@ -1,0 +1,1 @@
+- "A slice of bread" now logs the regular slice, 28 g, where it logged the thin 24 g one — when you type it as well as when the AI reads it. Any food that lists its portions as small, medium and large now picks the middle one for a bare word
