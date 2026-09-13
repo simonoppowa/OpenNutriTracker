@@ -192,8 +192,11 @@ MealEntity _highestScoring(List<MealEntity> group, String query) {
 /// join the scored text. A raw backend row has a title and qualifiers
 /// exactly as the entity built from it will (`deriveTitle`,
 /// `deriveQualifiers`), and the data source scores those, not the whole
-/// description, so that the rows it keeps are the ones the entity scorers
-/// would have kept (#1170).
+/// description, so that the rows it keeps are the ones [scoreMealRelevance]
+/// would have kept (#1170). "Names" here is the exact token; the resolver's
+/// `scoreMealForResolution` names a qualifier by prefix as well, which is
+/// one way its whole-pool pick can be among the rows the data source cut —
+/// see `rankAndTruncateFoodsByName`.
 double textRelevanceScore(String? text, String query, {String? qualifiers}) {
   final normalizedQuery = _normalize(query);
   if (normalizedQuery.isEmpty) return 0.0;

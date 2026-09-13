@@ -9,9 +9,10 @@
 /// `rankAndTruncateFoodsByName`, which applies it to a raw backend row
 /// before any entity exists. Both must derive the same title from the
 /// same name, or the twenty rows the data source keeps and the one the
-/// resolver picks among them are chosen by two rules — which is how the
-/// resolver's pick was cut before it was ever scored. One derivation, so
-/// that cannot happen.
+/// resolver picks among them are scored on different text — which is one
+/// way the resolver's pick was cut before it was ever scored. One
+/// derivation closes that way; the ways that stay open, and the backend's
+/// own cut ahead of both, are listed at `rankAndTruncateFoodsByName`.
 ///
 /// Derived rather than read off the backend's `short_title` column
 /// because the column *is* this derivation: measured on the live backend

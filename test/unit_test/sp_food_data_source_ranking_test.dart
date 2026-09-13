@@ -197,6 +197,24 @@ void main() {
       ]);
     });
 
+    test('the backend\'s order survives a pool too large for insertion sort', () {
+      // Two rows cannot tell a stable sort from `List.sort`: Dart
+      // insertion-sorts anything under 32 elements, and that happens to be
+      // stable. Above it the dual-pivot quicksort moves equal elements, so
+      // forty rows that tie on the score and on the length — every one
+      // titled "Milk", every description sixteen characters — are what
+      // actually pins "stable after that": the twenty kept are the first
+      // twenty sent, in the order they were sent. (The forty-record case
+      // in resolver_relevance_test pins the resolver's sort the same way.)
+      final rows = [
+        for (var i = 10; i < 50; i++) _food('Milk, variant $i', foodId: i),
+      ];
+
+      final survivors = rankAndTruncateFoodsByName(rows, 'milk');
+
+      expect(survivors.map((f) => f.foodId), [for (var i = 10; i < 30; i++) i]);
+    });
+
     test('the shorter description wins even with more, shorter words', () {
       // Two real potato rows. Scored on the whole description the
       // four-token fries record (0.75) outscored the six-token canned one
@@ -264,10 +282,17 @@ void main() {
     });
   });
 
-  group('the real Potato family through the cut (#1170)', () {
-    // 106 survey records titled "Potato", in the backend's order. Scored
-    // on the whole description the twenty with the fewest tokens survived;
-    // scored on the title all 106 tie, and the twenty shortest survive.
+  group('the whole Potato family, handed to the cut on its own (#1170)', () {
+    // 106 survey records titled "Potato", in the order they take among
+    // themselves in the backend's ordering. Scored on the whole description
+    // the twenty with the fewest tokens survived; scored on the title all
+    // 106 tie, and the twenty shortest survive.
+    //
+    // The app never hands the cut this pool for `potato`: the backend's
+    // own hundred — the first hundred matches by deliverable portion, then
+    // id — hold none of the family, and the group after this one pins what
+    // the cut is actually handed. This group pins what the cut does with a
+    // family when one reaches it.
     test('potato keeps Potato, NFS, and puts it first', () {
       final survivors = rankAndTruncateFoodsByName(
         BackendPoolFixtures.potato,
@@ -280,9 +305,10 @@ void main() {
     });
 
     test('the survivors are the family\'s twenty shortest descriptions', () {
-      // The construction the resolver relies on: whatever it would pick
-      // among the family by the length key is inside the twenty. Every
-      // survivor is no longer than any record that was cut.
+      // What the resolver's length key relies on when a family reaches the
+      // cut: whatever it would pick among the family by that key is inside
+      // the twenty. Every survivor is no longer than any record that was
+      // cut.
       final pool = BackendPoolFixtures.potato;
       final survivors = rankAndTruncateFoodsByName(pool, 'potato');
       final kept = {for (final f in survivors) f.foodId};
@@ -332,6 +358,89 @@ void main() {
       );
       expect(survivors.first.name, 'Potato, french fries, NFS');
       expect(_names(survivors), isNot(contains('Potato, NFS')));
+    });
+  });
+
+  group('the pool the app is handed for potato, through the cut (#1170 review)', () {
+    // `search_food_summary('potato', null, 100)` as the backend answered
+    // it. 712 rows match; the hundred lowest-id ones with a portion are
+    // all dishes, "Potato, NFS" is rank 128, and the family sits at 128 to
+    // 488. The cut cannot keep what it was never sent, and c78b5a38's
+    // "inside the twenty by construction" was measured on the family, not
+    // on this.
+    test('no row titled Potato is in the pool, so none survives', () {
+      final pool = BackendPoolFixtures.potatoSearch;
+
+      final survivors = rankAndTruncateFoodsByName(pool, 'potato');
+
+      expect(pool, hasLength(100));
+      expect(pool.map((f) => f.shortTitle), isNot(contains('Potato')));
+      expect(
+        pool.map((f) => f.foodId),
+        isNot(contains(BackendPoolFixtures.potatoNfs)),
+      );
+      expect(survivors, hasLength(SPConst.maxNumberOfItems));
+      expect(_names(survivors), isNot(contains('Potato, NFS')));
+      expect(
+        survivors.map((f) => f.name!.startsWith('Potato')),
+        everyElement(isFalse),
+      );
+    });
+
+    test('the survivors are ten titles holding the word, then the shortest', () {
+      // No title is "Potato" and no qualifier is the exact token `potato`
+      // — the dishes carry `potatoes` — so the shared ranker's contains
+      // bonus is all there is: the ten rows whose title holds the word
+      // ("Beef and potatoes", "Beef stew with potatoes") score 0.2,
+      // shortest first, and the other ten are the shortest of the rest, at
+      // nothing. The stew the resolver goes on to log survives here at
+      // nothing, 58 characters, in the backend's order among the zeros.
+      final survivors = rankAndTruncateFoodsByName(
+        BackendPoolFixtures.potatoSearch,
+        'potato',
+      );
+
+      bool titleHoldsPotato(SpFoodDTO f) =>
+          f.shortTitle!.toLowerCase().contains('potato');
+      expect(_names(survivors).first, 'Beef and potatoes, no sauce');
+      expect(survivors.take(10).map(titleHoldsPotato), everyElement(isTrue));
+      expect(survivors.skip(10).map(titleHoldsPotato), everyElement(isFalse));
+      expect(
+        survivors.map((f) => f.foodId),
+        contains(BackendPoolFixtures.stewedBeefWithPotatoes),
+      );
+    });
+  });
+
+  group('the pool the app is handed for bread, through the cut (#1170 review)', () {
+    // `search_food_summary('bread', null, 100)` as the backend answered
+    // it. 540 rows match; thirty-one of the hundred are titled "Bread",
+    // and "Bread, rye" (2707755) is rank 157, outside them.
+    test('bread keeps the twenty shortest Bread titles; rye was never sent', () {
+      final pool = BackendPoolFixtures.breadSearch;
+
+      final survivors = rankAndTruncateFoodsByName(pool, 'bread');
+
+      expect(pool, hasLength(100));
+      expect(pool.where((f) => f.shortTitle == 'Bread'), hasLength(31));
+      expect(
+        pool.map((f) => f.foodId),
+        isNot(contains(BackendPoolFixtures.breadRye)),
+      );
+      expect(survivors, hasLength(SPConst.maxNumberOfItems));
+      expect(_names(survivors), everyElement(startsWith('Bread, ')));
+      // Naan (2707613) and pita (2707616) are eleven characters each and
+      // keep the backend's order here; the resolver's portions key is what
+      // puts pita first among the entities.
+      expect(_names(survivors).take(3), [
+        'Bread, naan',
+        'Bread, pita',
+        'Bread, white',
+      ]);
+      expect(
+        survivors.map((f) => f.name!.length),
+        [for (final f in survivors) f.name!.length]..sort(),
+      );
     });
   });
 

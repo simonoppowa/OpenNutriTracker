@@ -215,10 +215,15 @@ class BackendSiblingFixtures {
 
   /// The one family here where the two tie-break keys disagree: rye is
   /// the shorter description, white carries more portions and is the
-  /// everyday form. The length goes first (#1170), so `bread` lands on
-  /// rye — the pinned known miss. In apple and banana the shortest-named
-  /// sibling is also the most-portioned, so those cannot tell the two
-  /// keys apart; milk can, where whole and human tie on length.
+  /// everyday form. The length goes first (#1170), so between these two
+  /// `bread` lands on rye. That is the key order, not the miss the app
+  /// makes: the pool the app is handed for `bread` is the backend's first
+  /// hundred matches by portion and id, "Bread, rye" is rank 157 and not
+  /// in it, and the resolver logs "Bread, pita" — see
+  /// `BackendPoolFixtures.breadSearch`. In apple and banana the
+  /// shortest-named sibling is also the most-portioned, so those cannot
+  /// tell the two keys apart; milk can, where whole and human tie on
+  /// length.
   static final breadWhite = _record(
     2707598,
     'Bread, white',
@@ -373,6 +378,27 @@ class BackendSiblingFixtures {
     ],
   );
 
+  /// The shortest survey description in the pool the app is handed for
+  /// `chicken breast` — 34 characters, rank 13 of its 98 rows, all of
+  /// which fit inside the backend's hundred — and so the record the app
+  /// resolves the query to. c78b5a38's fixture left it out and pinned
+  /// rotisserie's 38 as the shortest.
+  static final chickenBreastStewed = _record(
+    2705965,
+    'Chicken breast, stewed, skin eaten',
+    shortTitle: 'Chicken breast',
+    portions: [
+      ('1 cup, cooked, diced', 135),
+      ('1 small breast', 130),
+      ('1 medium breast', 150),
+      ('1 large breast', 170),
+      ('1 small or thin slice', 30),
+      ('1 medium slice', 60),
+      ('1 large or thick slice', 85),
+      ('1 oz, cooked', 28.35),
+    ],
+  );
+
   /// SR Legacy: a real record with nothing the RPC would deliver.
   static final chickenBreastRollSrLegacy = _record(
     174608,
@@ -385,6 +411,7 @@ class BackendSiblingFixtures {
     chickenBreastBaked,
     chickenBreastNsCookingMethod,
     chickenBreastRotisserie,
+    chickenBreastStewed,
   ];
 
   /// Every row above, once each.

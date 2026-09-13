@@ -149,11 +149,12 @@ class MealEntity extends Equatable {
   ///
   /// The derivation is `deriveTitle` in `backend_title.dart`, shared with
   /// the data source's truncation so that the twenty rows it keeps and the
-  /// one the resolver picks are chosen by one rule (#1170); that file says
-  /// why the title is derived from the name rather than carried from the
-  /// backend's `short_title` column, and why nothing is persisted for it —
-  /// a copy read back from the search cache derives the same title from
-  /// the same name.
+  /// one the resolver picks are scored on the same text (#1170; what that
+  /// does and does not guarantee is at `rankAndTruncateFoodsByName`); that
+  /// file says why the title is derived from the name rather than carried
+  /// from the backend's `short_title` column, and why nothing is persisted
+  /// for it — a copy read back from the search cache derives the same
+  /// title from the same name.
   ///
   /// Backend records only. The comma convention is FDC's and BLS's — the
   /// family first, the qualifiers after — and nothing else the app scores

@@ -317,15 +317,23 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// raw; Banana, raw; Orange juice, 100%, NFS — and misses egg ("Egg,
 /// creamed", 12 characters, over "Egg, whole, raw", 15), coffee ("Coffee,
 /// Latte" over "Coffee, brewed"), tea ("Tea, ginger") and bread ("Bread,
-/// rye", 10, over "Bread, white", 12). Those are the pinned known misses
-/// (#1170); the siblings are one tap away on the review screen, and a
-/// specific dish logged as the family is the worse miss. The portions key
-/// is second for the case the length cannot settle: "Milk, whole" and
-/// "Milk, human" are eleven characters each, and whole carries 3
-/// deliverable portions to human's 2. Declined: reading FNDDS's own
-/// markers (`NFS`, `raw`) as a rule — a word list about FDC naming living
-/// in the ranker, and only 143 of the 555 short-title groups have an NFS
-/// record at all.
+/// rye", 10, over "Bread, white", 12). That was measured family by
+/// family. On the pool the app is handed — the backend's first hundred
+/// matches by deliverable portion, then id, before any client code runs —
+/// sixteen of those eighteen come out as measured (#1170 review), and two
+/// do not: `bread` lands on "Bread, pita", because "Bread, rye" is rank
+/// 157 and never arrives, and `potato` lands on "Stewed, seasoned, ground
+/// beef with potatoes, Mexican style" at 0.5, because the hundred hold no
+/// row titled "Potato" at all — the family is ranks 128 to 488. The
+/// pinned known misses are egg, pita and the stew; the siblings are one
+/// tap away on the review screen, and a specific dish logged as the
+/// family is the worse miss. The portions key is second for the case the
+/// length cannot settle: "Milk, whole" and "Milk, human" are eleven
+/// characters each, and whole carries 3 deliverable portions to human's
+/// 2; pita and naan are eleven each, and pita's 5 to naan's 3. Declined:
+/// reading FNDDS's own markers (`NFS`, `raw`) as a rule — a word list
+/// about FDC naming living in the ranker, and only 143 of the 555
+/// short-title groups have an NFS record at all.
 ///
 /// The keys only act on a tie, and they are only as good as the tie they
 /// are handed. "Bread, rice" and "Chips, rice" are in the live pool for
@@ -335,10 +343,17 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// Scored on their descriptions they were two-token names that outscored
 /// the three-token plain record, which is the miss the title scoring
 /// removed; and "Pie, apple", titled "Pie", scores 0.667 on `apple` under
-/// the plain record's 1.0. The same rule cuts the backend's candidate
-/// pool to the twenty the resolver sees (`rankAndTruncateFoodsByName`),
-/// so the shortest-described sibling is inside those twenty by
-/// construction rather than by the luck of the backend's order.
+/// the plain record's 1.0. The same title derivation and the same
+/// tie-break cut the backend's hundred to the twenty the resolver sees
+/// (`rankAndTruncateFoodsByName`), so when a family reaches that cut its
+/// shortest-described sibling is inside the twenty rather than left to
+/// the luck of the backend's order among equals. Not the same rule,
+/// though: that cut names a qualifier by exact token where
+/// [_namedQualifiers] names it by prefix, and it runs before any portion
+/// is known where this key and [_noPortionsPenalty] read them — so the
+/// record this sort would pick from the hundred can still be cut before
+/// it is scored, and the hundred are themselves the backend's cut. Its
+/// comment lists the three and the tests that pin them.
 ///
 /// Every record that is not a fresh backend result has no portions, so
 /// among OFF products or cached meals the portions key is always a tie and

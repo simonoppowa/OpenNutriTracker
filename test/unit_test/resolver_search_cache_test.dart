@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
@@ -17,6 +18,7 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/search_product
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/add_meal/util/resolver_relevance.dart';
 
+import '../fixture/backend_pool_fixtures.dart';
 import '../fixture/backend_sibling_fixtures.dart';
 import '../helpers/hive_test_setup.dart';
 
@@ -191,35 +193,92 @@ void main() {
     });
 
     test(
-      'chicken breast resolves to the rotisserie record on a warm cache',
+      'chicken breast resolves to the stewed record on a warm cache',
       () async {
         // Scored as cached copies, every record lost its portions, the
         // survey records tied the SR Legacy one, and the SR Legacy record's
-        // shorter description won at 0.421 — under the floor. It is still
-        // the shortest description in the pool; the penalty is what keeps
-        // it out, and the length key picks rotisserie among the rest.
+        // shorter description won at 0.421 — under the floor. It still ties
+        // stewed for the shortest description in the pool; the penalty is
+        // what keeps it out, and the length key picks stewed's 34 among the
+        // rest — the app's answer on the real pool, whose 98 rows all fit
+        // inside the backend's hundred (c78b5a38 pinned rotisserie on a
+        // fixture without stewed).
         repository.fdc['chicken breast'] = BackendSiblingFixtures.chickenBreast;
 
         await resolveOne('chicken breast');
         final resolved = await resolveOne('chicken breast');
 
-        expect(
-          resolved.selected!.name,
-          'Chicken breast, rotisserie, skin eaten',
-        );
+        expect(resolved.selected!.name, 'Chicken breast, stewed, skin eaten');
         expect(resolved.confidence, 1.0);
       },
     );
 
-    test('bread resolves to Bread, rye on a warm cache', () async {
-      // The known miss (#1170), on this path too.
-      repository.fdc['bread'] = BackendSiblingFixtures.bread;
+    test('bread resolves to Bread, pita on a warm cache', () async {
+      // The known miss (#1170 review), on this path: the page is the
+      // twenty the data source keeps of the hundred rows the backend
+      // answers `bread` with, each with its portions, as
+      // `getSupabaseFoodsByString` would return it. "Bread, rye" is rank
+      // 157 and not in the hundred, which is why c78b5a38's "rye" was not
+      // the miss the app makes.
+      repository.fdc['bread'] = [
+        for (final row in rankAndTruncateFoodsByName(
+          BackendPoolFixtures.breadSearch,
+          'bread',
+        ))
+          BackendPoolFixtures.fresh(
+            row,
+            BackendPoolFixtures.breadSearchPortions,
+          ),
+      ];
 
       await resolveOne('bread');
       final resolved = await resolveOne('bread');
 
-      expect(resolved.selected!.name, 'Bread, rye');
+      expect(resolved.selected!.name, 'Bread, pita');
+      expect(resolved.confidence, 1.0);
+      expect(
+        resolved.candidates.map((m) => m.name),
+        isNot(contains('Bread, rye')),
+      );
     });
+
+    test(
+      'potato resolves to a beef stew, settled, cold cache and warm',
+      () async {
+        // The backend's cut, on the resolver's real path: the hundred rows it
+        // answers `potato` with hold no row titled "Potato", the data source
+        // keeps twenty of them, and the resolver logs "Stewed, seasoned,
+        // ground beef with potatoes, Mexican style" at 0.5 — above the floor,
+        // so not flagged as a guess. Pinned as the app's answer today; the
+        // fix is upstream of this branch.
+        repository.fdc['potato'] = [
+          for (final row in rankAndTruncateFoodsByName(
+            BackendPoolFixtures.potatoSearch,
+            'potato',
+          ))
+            BackendPoolFixtures.fresh(
+              row,
+              BackendPoolFixtures.potatoSearchPortions,
+            ),
+        ];
+
+        final first = await resolveOne('potato');
+        final second = await resolveOne('potato');
+
+        for (final resolved in [first, second]) {
+          expect(
+            resolved.selected!.name,
+            'Stewed, seasoned, ground beef with potatoes, Mexican style',
+          );
+          expect(resolved.confidence, closeTo(0.5, 1e-9));
+          expect(resolved.isLowConfidence, isFalse);
+          expect(
+            resolved.candidates.map((m) => m.scoringName),
+            isNot(contains('Potato')),
+          );
+        }
+      },
+    );
 
     test('dried apple resolves to Apple, dried, cold cache and warm', () async {
       // The review's probe of the title-only revision, on this path: with

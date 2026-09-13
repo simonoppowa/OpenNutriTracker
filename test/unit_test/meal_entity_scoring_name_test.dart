@@ -42,7 +42,7 @@ void main() {
       // must land on it for each. A row where it did not would be scored
       // on different text from what the persisted column would have given.
       final rows = BackendSiblingFixtures.all;
-      expect(rows, hasLength(27));
+      expect(rows, hasLength(28));
 
       for (final record in rows) {
         expect(
