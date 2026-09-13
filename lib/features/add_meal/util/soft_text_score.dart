@@ -12,8 +12,9 @@
 /// named `cheese` in the resolver and not at the cut, and the record the
 /// resolver would have picked from the hundred was cut before it was
 /// scored. With one function scoring both, the resolver's pick is inside
-/// the twenty by construction, up to what the cut cannot see — see
-/// `rankAndTruncateFoodsByName` for the one hole that leaves.
+/// the twenty by construction, up to what the cut does not read — the
+/// portions, and the translation row's source; `rankAndTruncateFoodsByName`
+/// says what that leaves open, and where it bites.
 ///
 /// **Why prefixes rather than plural rules.** Stripping a trailing `s`
 /// works in one of the nine supported locales and reintroduces exactly the

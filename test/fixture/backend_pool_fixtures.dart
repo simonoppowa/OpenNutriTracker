@@ -68,6 +68,7 @@ const _native = 'native';
 /// * `orange juice`: 45 / 9 / 20 / 7
 /// * `rice`: 100 / 100 / 100 / 100
 /// * `carrots`: 100 / 100 / 22 / 22
+/// * `muffins`: 79 / 40 / 20 / 0
 /// * `Milch` (de): 100 / 85 / 32 / —
 /// * `Kartoffel` (de): 100 / 62 / 52 / —
 ///
@@ -75,6 +76,14 @@ const _native = 'native';
 /// differently: the full-text match stems `eggs` to `egg` and finds the
 /// same family, but no title equals `eggs`, so the title-first key does
 /// nothing and the hundred are the shortest matches of any title.
+///
+/// `muffins` is here for the one thing the data source's cut does not
+/// read, the portions: the full-text match finds the survey's "Muffin"
+/// family, forty rows with a portion, and behind them the twenty SR
+/// Legacy rows that spell their title "Muffins" — none with a portion,
+/// and every one an exact match for the query where "Muffin" is a soft
+/// one. `resolver_sibling_selection_test` pins what the cut makes of
+/// that.
 class BackendPoolFixtures {
   static SpFoodDTO _dto(_Row row) => SpFoodDTO(
     foodId: row.$1,
@@ -146,6 +155,8 @@ class BackendPoolFixtures {
   static const riceFriedNfs = 2708952;
   static const riceCookedNfs = 2708402;
   static const carrotsRaw = 2709660;
+  static const muffinNfs = 2707829;
+  static const muffinsOatBranSrLegacy = 172769;
   static const kartoffelNfs = 2709382;
   static const milchNfs = 2705384;
 
@@ -2154,6 +2165,200 @@ class BackendPoolFixtures {
       'Lettuce, salad with egg, tomato, and/or carrots, with or without other vegetables, no dressing',
       _survey,
       1,
+    ),
+  ];
+
+  /// `search_food_summary('muffins', null, 100)`: 79 rows, 40 with a
+  /// portion, 20 titled "Muffins".
+  static List<SpFoodDTO> get muffins => _dtos(_muffins);
+
+  /// Deliverable portions per row of [muffins].
+  static Map<int, int> get muffinsPortions => _portionsOf(_muffins);
+
+  static const _muffins = <_Row>[
+    (2707829, 'Muffin, NFS', _survey, 5),
+    (2707830, 'Muffin, fruit', _survey, 7),
+    (2707835, 'Muffin, wheat', _survey, 5),
+    (2707841, 'Muffin, plain', _survey, 5),
+    (2707842, 'Muffin, cheese', _survey, 5),
+    (2707845, 'Muffin, carrot', _survey, 6),
+    (2707698, 'Muffin, English', _survey, 3),
+    (2707839, 'Muffin, oatmeal', _survey, 5),
+    (2707843, 'Muffin, pumpkin', _survey, 5),
+    (2707840, 'Muffin, oat bran', _survey, 5),
+    (2707844, 'Muffin, zucchini', _survey, 5),
+    (2707833, 'Muffin, chocolate', _survey, 5),
+    (2707837, 'Muffin, wheat bran', _survey, 5),
+    (2707834, 'Muffin, whole wheat', _survey, 5),
+    (2707836, 'Muffin, whole grain', _survey, 6),
+    (2707759, 'Muffin, English, rye', _survey, 1),
+    (2707831, 'Muffin, fruit, low fat', _survey, 5),
+    (2707832, 'Muffin, chocolate chip', _survey, 6),
+    (2707700, 'Muffin, English, cheese', _survey, 1),
+    (2707774, 'Muffin, English, oat bran', _survey, 1),
+    (2707738, 'Muffin, English, wheat bran', _survey, 1),
+    (2707787, 'Muffin, English, multigrain', _survey, 1),
+    (2707741, 'Muffin, English, whole wheat', _survey, 1),
+    (2707699, 'Muffin, English, with raisins', _survey, 1),
+    (2707763, 'Muffin, English, pumpernickel', _survey, 1),
+    (2707315, 'Egg sandwich on English muffin', _survey, 2),
+    (2707813, 'Cornbread muffin, stick, round', _survey, 7),
+    (2707341, 'Sausage English muffin sandwich', _survey, 2),
+    (2707838, 'Muffin, bran with fruit, lowfat', _survey, 1),
+    (2707744, 'Muffin, English, whole grain white', _survey, 1),
+    (2707740, 'Muffin, English, wheat or cracked wheat', _survey, 1),
+    (2707775, 'Muffin, English, oat bran, with raisins', _survey, 1),
+    (2707318, 'Egg sandwich on English muffin, with ham', _survey, 2),
+    (2707739, 'Muffin, English, wheat bran, with raisins', _survey, 1),
+    (2707317, 'Egg sandwich on English muffin, with bacon', _survey, 2),
+    (2707743, 'Muffin, English, whole wheat, with raisins', _survey, 1),
+    (2707316, 'Egg sandwich on English muffin, with sausage', _survey, 2),
+    (2707701, 'Muffin, English, with fruit other than raisins', _survey, 1),
+    (
+      2707742,
+      'Muffin, English, wheat or cracked wheat, with raisins',
+      _survey,
+      1,
+    ),
+    (
+      2707814,
+      'Cornbread muffin, stick, round, made from home recipe',
+      _survey,
+      7,
+    ),
+    (172769, 'Muffins, oat bran', _srLegacy, 0),
+    (172761, 'Muffins, English, wheat', _srLegacy, 0),
+    (172766, 'Muffins, blueberry, dry mix', _srLegacy, 0),
+    (175004, 'Muffins, corn, toaster-type', _srLegacy, 0),
+    (172770, 'Muffins, wheat bran, dry mix', _srLegacy, 0),
+    (172762, 'Muffins, English, whole-wheat', _srLegacy, 0),
+    (172767, 'Muffins, blueberry, toaster-type', _srLegacy, 0),
+    (175003, 'Muffins, corn, dry mix, prepared', _srLegacy, 0),
+    (175002, 'Muffins, corn, commercially prepared', _srLegacy, 0),
+    (175045, 'Muffins, blueberry, toaster-type, toasted', _srLegacy, 0),
+    (174996, 'Muffins, English, mixed-grain (includes granola)', _srLegacy, 0),
+    (
+      175046,
+      'Muffins, wheat bran, toaster-type with raisins, toasted',
+      _srLegacy,
+      0,
+    ),
+    (
+      174997,
+      'Muffins, English, raisin-cinnamon (includes apple-cinnamon)',
+      _srLegacy,
+      0,
+    ),
+    (
+      175005,
+      'Muffins, corn, prepared from recipe, made with low fat (2%) milk',
+      _srLegacy,
+      0,
+    ),
+    (
+      172764,
+      'Muffins, plain, prepared from recipe, made with low fat (2%) milk',
+      _srLegacy,
+      0,
+    ),
+    (
+      172765,
+      'Muffins, blueberry, commercially prepared (Includes mini-muffins)',
+      _srLegacy,
+      0,
+    ),
+    (
+      172760,
+      'Muffins, English, raisin-cinnamon, toasted (includes apple-cinnamon)',
+      _srLegacy,
+      0,
+    ),
+    (
+      174994,
+      'Muffins, English, plain, enriched, with ca prop (includes sourdough)',
+      _srLegacy,
+      0,
+    ),
+    (
+      172768,
+      'Muffins, blueberry, prepared from recipe, made with low fat (2%) milk',
+      _srLegacy,
+      0,
+    ),
+    (
+      174995,
+      'Muffins, English, plain, toasted, enriched, with calcium propionate (includes sourdough)',
+      _srLegacy,
+      0,
+    ),
+    (10004044, 'Vegetable muffins savoury', _bls, 0),
+    (10004409, 'Muffins vegan (cake batter)', _bls, 0),
+    (10001652, 'Blueberry muffins (cake batter)', _bls, 0),
+    (10002074, 'Chocolate muffins (cake batter)', _bls, 0),
+    (174093, 'English muffins, whole grain white', _srLegacy, 0),
+    (175078, 'Artificial Blueberry Muffin Mix, dry', _srLegacy, 0),
+    (167936, 'Keikitos (muffins), Latino bakery item', _srLegacy, 0),
+    (167515, 'George Weston Bakeries, Thomas English Muffins', _srLegacy, 0),
+    (167929, 'Muffin, blueberry, commercially prepared, low-fat', _srLegacy, 0),
+    (
+      172032,
+      'Fast foods, english muffin, with cheese and sausage',
+      _srLegacy,
+      0,
+    ),
+    (
+      172034,
+      'Fast foods, english muffin, with egg, cheese, and sausage',
+      _srLegacy,
+      0,
+    ),
+    (
+      174908,
+      'Bread, cornbread, dry mix, enriched (includes corn muffin mix)',
+      _srLegacy,
+      0,
+    ),
+    (
+      172997,
+      'Cereals ready-to-eat, MALT-O-MEAL, Blueberry MUFFIN TOPS Cereal',
+      _srLegacy,
+      0,
+    ),
+    (
+      172033,
+      'Fast foods, english muffin, with egg, cheese, and canadian bacon',
+      _srLegacy,
+      0,
+    ),
+    (
+      172815,
+      'Bread, cornbread, dry mix, unenriched (includes corn muffin mix)',
+      _srLegacy,
+      0,
+    ),
+    (
+      172828,
+      'English muffins, plain, unenriched, with calcium propionate (includes sourdough)',
+      _srLegacy,
+      0,
+    ),
+    (
+      175063,
+      'English muffins, plain, enriched, without calcium propionate(includes sourdough)',
+      _srLegacy,
+      0,
+    ),
+    (
+      173238,
+      'English muffins, plain, unenriched, without calcium propionate (includes sourdough)',
+      _srLegacy,
+      0,
+    ),
+    (
+      173256,
+      'Continental Mills, Krusteaz Almond Poppyseed Muffin Mix, Artificially Flavored, dry',
+      _srLegacy,
+      0,
     ),
   ];
 

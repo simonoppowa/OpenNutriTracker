@@ -206,10 +206,14 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// tie-break cut the backend's hundred to the twenty the resolver sees
 /// (`rankAndTruncateFoodsByName`): the survivors and this sort apply one
 /// rule, so the record this sort would pick from the hundred is inside
-/// the twenty — up to the one thing the cut cannot see. It runs before
-/// any portion is fetched, where this sort's second key and
-/// [_noPortionsPenalty] read them; its comment says exactly what that
-/// leaves open, and `resolver_sibling_selection_test` pins it.
+/// the twenty — up to what the cut does not read. It runs before any
+/// portion is fetched, where this sort's second key and
+/// [_noPortionsPenalty] read them, and the translation cut is handed the
+/// row's source and does not read it, where [_machineTranslatedPenalty]
+/// does; its comment says exactly what that leaves open and where it
+/// bites — `muffins`, where the penalty inverts the 0.143 between an
+/// exact plural title and the soft singular — and
+/// `resolver_sibling_selection_test` pins it.
 ///
 /// Every record that is not a fresh backend result has no portions, so
 /// among OFF products or cached meals the portions key is always a tie and

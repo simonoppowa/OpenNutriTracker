@@ -1,4 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
@@ -10,8 +13,10 @@ import '../fixture/backend_pool_fixtures.dart';
 
 /// The one rule the data source's cut and the resolver share (#1170):
 /// which qualifier tokens a query names, and what a title plus those
-/// scores. Pinned here on the helper itself; that the two callers agree
-/// on real pools is pinned in resolver_sibling_selection_test.
+/// scores. Pinned here on the helper itself, and then through the cut:
+/// that what the cut keeps is what the resolver would rank first, in its
+/// order. Which record that makes the app's answer on each real pool is
+/// pinned in resolver_sibling_selection_test.
 void main() {
   group('namedQualifiers', () {
     Set<String> named(String title, String qualifiers, String query) =>
@@ -116,14 +121,24 @@ void main() {
     });
   });
 
-  group('one rule: the cut scores a row as the resolver scores its entity', () {
+  group('one rule: the cut keeps what the resolver would rank first', () {
     // The data source scores `deriveTitle` and `deriveQualifiers` of the
     // raw description with [scoreText]; the resolver scores
     // `MealEntity.scoringName` and `scoringQualifiers` of the entity built
     // from it with the same function, and adds only what the row cannot
     // carry — brand, the quality tie-breakers, the no-portions penalty.
-    // With a portion on the entity, the two numbers are the same number,
-    // on every row of a real pool and on every query here.
+    // Hold those equal — one portion on every entity, no machine
+    // translation — and the resolver's order over the whole pool is the
+    // cut's rule and nothing else, so the twenty the cut keeps must be
+    // the resolver's first twenty, in the resolver's order. That is
+    // asserted through `rankAndTruncateFoodsByName` and
+    // `rankAndTruncateTranslationRows` themselves, on real pools, on
+    // queries that name a qualifier by inflection: a cut naming by the
+    // exact token keeps the family's twenty shortest on `cheesy potato`
+    // where the resolver leads with the thirteen rows carrying `cheese`.
+    const portion = [
+      MealPortionEntity(label: '1 cup', gramWeight: 100, localized: false),
+    ];
     MealEntity withPortion(String name) => MealEntity(
       code: name,
       name: name,
@@ -135,12 +150,24 @@ void main() {
       servingSize: null,
       nutriments: MealNutrimentsEntity.empty(),
       source: MealSourceEntity.fdc,
-      portions: const [
-        MealPortionEntity(label: '1 cup', gramWeight: 100, localized: false),
-      ],
+      portions: portion,
     );
+    MealEntity ofRow(SpFoodDTO row) =>
+        MealEntity.fromSpFood(row).withPortions(portion);
+    MealEntity ofTranslation(Map<String, dynamic> row) {
+      final dto = SpFoodDTO(
+        foodId: row[SPConst.translationFoodId] as int,
+        source: 'fdc_survey',
+        sourceCode: '${row[SPConst.translationFoodId]}',
+        name: row[SPConst.translationDescription] as String,
+      );
+      dto.localizedName = row[SPConst.translationDescription] as String;
+      return MealEntity.fromSpFood(dto).withPortions(portion);
+    }
 
-    test('on the potato pool', () {
+    test('the helper scores a row as the resolver scores its entity', () {
+      // The two numbers are the same number, on every row of the potato
+      // pool and on every query here.
       for (final query in [
         'potato',
         'cheesy potato',
@@ -160,6 +187,52 @@ void main() {
           );
           expect(inTheResolver, atTheCut, reason: '$query: ${row.name}');
         }
+      }
+    });
+
+    test('through rankAndTruncateFoodsByName, on the potato pool', () {
+      final pool = BackendPoolFixtures.potato;
+      for (final query in [
+        'potato',
+        'cheesy potato',
+        'fried potato',
+        'fries',
+        'french fries',
+      ]) {
+        final kept = rankAndTruncateFoodsByName(pool, query);
+        final resolverFirst = rankForResolution([
+          for (final row in pool) ofRow(row),
+        ], query).take(SPConst.maxNumberOfItems);
+
+        expect(
+          kept.map((r) => '${r.foodId}'),
+          resolverFirst.map((m) => m.code),
+          reason: query,
+        );
+      }
+    });
+
+    test('through rankAndTruncateTranslationRows, on the German pools', () {
+      // `fettarme` names `fettarm` seven letters of eight, `gebratene`
+      // names `gebraten` eight of nine, and `Kartoffeln` agrees with the
+      // title nine of ten.
+      for (final (query, pool) in [
+        ('Milch', BackendPoolFixtures.milch),
+        ('fettarme Milch', BackendPoolFixtures.milch),
+        ('Kartoffel', BackendPoolFixtures.kartoffel),
+        ('Kartoffeln', BackendPoolFixtures.kartoffel),
+        ('gebratene Kartoffel', BackendPoolFixtures.kartoffel),
+      ]) {
+        final kept = rankAndTruncateTranslationRows(pool, query);
+        final resolverFirst = rankForResolution([
+          for (final row in pool) ofTranslation(row),
+        ], query).take(SPConst.maxNumberOfItems);
+
+        expect(
+          kept.map((r) => '${r[SPConst.translationFoodId]}'),
+          resolverFirst.map((m) => m.code),
+          reason: query,
+        );
       }
     });
   });

@@ -340,25 +340,45 @@ class SpFoodDataSource {
 /// named `cheese` in the resolver and not here, and "Potato, french
 /// fries, with cheese" was cut the same way. The survivors and the
 /// resolver now apply one rule, so the resolver's pick is inside the
-/// twenty by construction — with one hole, which is the only thing this
-/// cut cannot see:
+/// twenty by construction — up to what this cut does not read, which is
+/// two things:
 ///
 /// * No portion is fetched before this cut; the twenty are decorated with
 ///   theirs afterwards. The resolver takes 0.15 off a backend record with
 ///   none and, among equals, prefers the most portions, and neither can
-///   act here. So a family whose twenty shortest members are all
-///   portionless would keep those and lose its shortest portion-bearing
-///   member — the one the resolver would have picked at 1.0 — and log a
-///   portionless one at 0.85. The backend leads its hundred with the
-///   portion-bearing rows, shortest first among a titled family, so this
-///   needs fewer than twenty such rows in the pool *and* twenty
-///   portionless rows that score as well and are no longer: `orange
-///   juice` has nine portion-bearing rows and one shorter portionless
-///   exact title, and the survey record survives. The same blindness lets
-///   twenty same-length siblings ahead of the pick in the backend's order
-///   keep it out where the resolver would have chosen it by portions.
-///   `resolver_sibling_selection_test` pins the hole on a synthetic
-///   family and its absence on the real pools.
+///   act here. So a portion-bearing record the resolver would pick from
+///   the hundred is lost when twenty rows rank ahead of it here and
+///   behind it there: portionless rows scoring at least what it scores
+///   and less than 0.15 above it — the penalty inverts any gap under
+///   0.15, whatever family the rows are from — or rows tying it on score
+///   and length with fewer portions. How many portion-bearing rows the
+///   pool holds does not enter into it. Where it bites is a plural query
+///   over an SR Legacy family that spells its title in the plural:
+///   `muffins` scores the twenty portionless "Muffins, …" rows at 1.0 and
+///   the survey's "Muffin, NFS" at 0.857 (`muffins` → `muffin`, six
+///   letters of seven), so the twenty are kept, the survey record is
+///   twenty-first, and the resolver logs "Muffins, oat bran" at 0.85 —
+///   nothing to scale the amount with — where the whole pool would have
+///   given "Muffin, NFS" at 0.857; the pool has forty portion-bearing
+///   rows. `puddings` and `ice creams` go the same way, and `McDONALD'S`
+///   on the German path. `orange juice` does not: twenty rows score 1.0
+///   there and only one portionless one is shorter than the survey
+///   record. `resolver_sibling_selection_test` pins the miss on the
+///   muffins pool and on a synthetic family, and its absence on the
+///   other pools.
+///
+/// * [rankAndTruncateTranslationRows] is handed each row's translation
+///   `source` and does not read it, where the resolver takes 0.03 off a
+///   machine translation. A native row the resolver would pick is lost
+///   behind twenty machine rows scoring at least what it scores and less
+///   than 0.03 above it, no longer than it. On the live German
+///   translations (2026-09-13) that changes no pick: every native row is
+///   a BLS row and none of the 7,140 carries a deliverable portion, so
+///   wherever a portion-bearing machine sibling scores within 0.12 of a
+///   native row the resolver never picked the native row to begin with —
+///   `cracker`, the one title with a native row and twenty machine rows
+///   titled the same, has forty-nine portion-bearing ones. The same test
+///   pins it on a synthetic family.
 ///
 /// The Food tab ranks these twenty for display with `scoreMealRelevance`,
 /// which matches exactly and adds contains and prefix bonuses; where it

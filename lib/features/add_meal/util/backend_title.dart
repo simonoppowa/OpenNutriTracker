@@ -13,7 +13,8 @@
 /// way the resolver's pick was cut before it was ever scored. One
 /// derivation closes that way, and one scorer over it (`scoreText` in
 /// `soft_text_score.dart`, which also decides which qualifiers a query
-/// names) closes the other; the one hole that stays open is listed at
+/// names) closes the other; what stays open is what the cut does not
+/// read — the portions, and the translation row's source — listed at
 /// `rankAndTruncateFoodsByName`.
 ///
 /// Derived rather than read off the backend's `short_title` column

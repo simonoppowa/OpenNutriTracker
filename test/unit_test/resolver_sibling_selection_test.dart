@@ -50,8 +50,10 @@ import '../fixture/backend_sibling_fixtures.dart';
 /// on `BackendPoolFixtures`' real pools, through the data source's cut
 /// and then the resolver — and that the survivors and the resolver apply
 /// one rule, so the resolver's pick from the whole pool is inside the
-/// twenty, up to the one thing the cut cannot see (its portions; see
-/// `rankAndTruncateFoodsByName`).
+/// twenty, up to what the cut does not read: the portions, fetched after
+/// it, and the translation row's source (see `rankAndTruncateFoodsByName`).
+/// The last groups pin where that bites — `muffins` — and where it does
+/// not.
 List<MealEntity> resolve(
   String query, {
   List<MealEntity> off = const [],
@@ -1076,6 +1078,64 @@ void main() {
       expect(BackendPoolFixtures.kartoffelNfs, BackendPoolFixtures.potatoNfs);
       expect(ranked.first.portions, hasLength(4));
     });
+
+    test('what the translation cut does not read: the source', () {
+      // `rankAndTruncateTranslationRows` is handed each row's source and
+      // scores the description alone; the resolver takes 0.03 off a
+      // machine translation. Twenty machine rows of seventeen characters
+      // and one native row of nineteen, all titled "Milch", all with a
+      // portion: over the whole pool the native row is alone at 1.0, the
+      // cut ties the twenty-one on the title, keeps the twenty shorter
+      // ones, and the resolver logs a machine row at 0.97. On the live
+      // German translations (2026-09-13) this changes no pick: every
+      // native row is a BLS row and none carries a deliverable portion,
+      // so a native row is never the resolver's pick over a
+      // portion-bearing machine sibling within 0.12 of it, and `cracker`
+      // — the one title with a native row and twenty machine rows titled
+      // the same — has forty-nine portion-bearing ones. Pinned so the
+      // claim at the cut stays exact about what it does not read.
+      const query = 'Milch';
+      Map<String, dynamic> row(int id, String description, String source) => {
+        SPConst.translationFoodId: id,
+        SPConst.translationDescription: description,
+        SPConst.translationSource: source,
+      };
+      final rows = [
+        for (var i = 0; i < 20; i++)
+          row(
+            i,
+            'Milch, Variante ${i.toString().padLeft(2, '0')}',
+            SPConst.translationSourceMachine,
+          ),
+        row(99, 'Milch, Vollmilch xy', 'native'),
+      ];
+      final portions = {
+        for (final r in rows) r[SPConst.translationFoodId] as int: 1,
+      };
+      MealEntity entity(Map<String, dynamic> r) =>
+          BackendPoolFixtures.fresh(translated(r), portions);
+
+      final fromPool = resolve(
+        query,
+        backend: [for (final r in rows) entity(r)],
+      ).first;
+      final survivors = rankAndTruncateTranslationRows(rows, query);
+      final fromPage = resolve(
+        query,
+        backend: [for (final r in survivors) entity(r)],
+      ).first;
+
+      expect(fromPool.name, 'Milch, Vollmilch xy');
+      expect(fromPool.machineTranslatedName, isFalse);
+      expect(scoreMealForResolution(fromPool, query), 1.0);
+      expect(
+        survivors.map((r) => r[SPConst.translationFoodId]),
+        isNot(contains(99)),
+      );
+      expect(fromPage.name, 'Milch, Variante 00');
+      expect(fromPage.machineTranslatedName, isTrue);
+      expect(scoreMealForResolution(fromPage, query), closeTo(0.97, 1e-9));
+    });
   });
 
   group('the cut and the resolver apply one rule (#1170)', () {
@@ -1086,10 +1146,13 @@ void main() {
     // token and the resolver by soft prefix — and the claim was withdrawn.
     // Both now score with `scoreText` and name with `namedQualifiers`
     // (soft_text_score.dart), so the claim is back, and the group above
-    // asserts it on every real pool. What it still does not cover is the
-    // one thing the cut cannot see: it runs before any portion is fetched,
-    // where the resolver's penalty and its portions key read them. The
-    // last tests pin that hole where it bites and where it does not.
+    // asserts it on every real pool. What it still does not cover is what
+    // the cut does not read: it runs before any portion is fetched, where
+    // the resolver's penalty and its portions key read them (the
+    // translation cut's blindness to the row's source is pinned in the
+    // German group). The last tests pin that where it bites — on a
+    // synthetic family, and on the real muffins pool — and where it does
+    // not.
     test('a qualifier named by inflection: cheesy potato', () {
       // `cheesy` agrees with `cheese` five letters in (0.833) and with no
       // title token at all, so the qualifier is named — at the cut as in
@@ -1164,16 +1227,21 @@ void main() {
       expect(scoreMealForResolution(fromPage, query), closeTo(0.96, 1e-3));
     });
 
-    test('the one hole: a family whose shortest members carry no portions', () {
+    test('what the cut does not read: twenty portionless rows ahead of the '
+        'record the resolver would pick', () {
       // Twenty-five portionless SR Legacy-style rows and one survey record
       // with nine portions, all titled "Chicken breast". Over the whole
       // pool the penalty leaves the survey record alone at 1.0. The cut
       // knows no portions, ties the twenty-six on the title and keeps the
       // twenty shortest — the portionless rows — and the resolver logs one
-      // of them at 0.85. On the pools the backend sends this needs fewer
-      // than twenty portion-bearing rows in the pool, because the backend
-      // leads with them, and twenty portionless rows that score as well
-      // and are no longer than the pick; no real pool here has both.
+      // of them at 0.85. The condition is exactly this: twenty rows the
+      // cut ranks ahead of the pick and the resolver ranks behind it —
+      // portionless rows scoring at least what it scores and less than
+      // 0.15 above it, or rows tying it on score and length with fewer
+      // portions. Here they tie the pick and are shorter; on the real
+      // muffins pool, next, they outscore it by 0.143 and are from another
+      // source's family. How many portion-bearing rows the pool holds is
+      // not part of it.
       const query = 'chicken breast';
       SpFoodDTO row(int id, String name, String source) =>
           SpFoodDTO(foodId: id, source: source, sourceCode: '$id', name: name);
@@ -1208,28 +1276,97 @@ void main() {
       expect(scoreMealForResolution(fromPage, query), closeTo(0.85, 1e-9));
     });
 
-    test(
-      'where the hole does not bite: orange juice, nine portion-bearing rows',
-      () {
-        // The pool with the fewest portion-bearing rows here. Twenty rows
-        // are titled "Orange juice" and only one portionless one — the
-        // BLS record, twelve characters — is shorter than the survey's
-        // "Orange juice, 100%, NFS", so the survey record is second at the
-        // cut and first in the resolver. Nineteen more portionless rows
-        // no longer than 23 characters would have cut it.
-        final pool = BackendPoolFixtures.orangeJuice;
-        final portions = BackendPoolFixtures.orangeJuicePortions;
-        final survivors = rankAndTruncateFoodsByName(pool, 'orange juice');
+    test('where it bites: muffins, an exact plural title over the soft '
+        'singular', () {
+      // The real pool, 79 rows, forty with a portion. `muffins` is the
+      // exact title of the twenty SR Legacy "Muffins, …" rows, none with a
+      // portion, and a soft match for the survey's "Muffin" family
+      // (`muffins` → `muffin`, six letters of seven, 0.857). Over the
+      // whole pool the penalty takes the twenty to 0.85 and "Muffin, NFS"
+      // — 0.857, five portions — is picked. The cut scores the twenty at
+      // 1.0 and keeps exactly them; the survey record is twenty-first,
+      // and the resolver logs "Muffins, oat bran", the shortest of the
+      // twenty, at 0.85, settled and unflagged, with nothing to scale the
+      // amount with. One plural row fewer and the survey record survives
+      // and is picked. This is the case the comment at the cut once ruled
+      // out by the count of portion-bearing rows; the count is forty.
+      const query = 'muffins';
+      final pool = BackendPoolFixtures.muffins;
+      final portions = BackendPoolFixtures.muffinsPortions;
+      final survivors = rankAndTruncateFoodsByName(pool, query);
+      final fromPool = resolve(
+        query,
+        backend: BackendPoolFixtures.freshAll(pool, portions),
+      ).first;
+      final fromPage = resolve(
+        query,
+        backend: BackendPoolFixtures.freshAll(survivors, portions),
+      ).first;
 
-        expect(pool.where((r) => portions[r.foodId]! > 0), hasLength(9));
-        expect(survivors[1].foodId, BackendPoolFixtures.orangeJuice100Nfs);
-        expect(
-          survivors.where(
-            (r) => portions[r.foodId] == 0 && r.name!.length <= 23,
-          ),
-          hasLength(1),
-        );
-      },
-    );
+      expect(pool, hasLength(79));
+      expect(pool.where((r) => portions[r.foodId]! > 0), hasLength(40));
+
+      expect(fromPool.name, 'Muffin, NFS');
+      expect(fromPool.code, '${BackendPoolFixtures.muffinNfs}');
+      expect(fromPool.portions, hasLength(5));
+      expect(scoreMealForResolution(fromPool, query), closeTo(0.857, 1e-3));
+
+      expect(survivors, hasLength(20));
+      expect(survivors.map((r) => r.shortTitle), everyElement('Muffins'));
+      expect(survivors.map((r) => r.source), everyElement('fdc_sr_legacy'));
+      expect(survivors.map((r) => portions[r.foodId]), everyElement(0));
+      expect(
+        survivors.map((r) => r.foodId),
+        isNot(contains(BackendPoolFixtures.muffinNfs)),
+      );
+
+      expect(fromPage.name, 'Muffins, oat bran');
+      expect(fromPage.code, '${BackendPoolFixtures.muffinsOatBranSrLegacy}');
+      expect(fromPage.portions, isEmpty);
+      expect(scoreMealForResolution(fromPage, query), closeTo(0.85, 1e-9));
+      expect(
+        scoreMealForResolution(fromPage, query),
+        greaterThanOrEqualTo(kResolutionConfidenceFloor),
+      );
+
+      // Twenty-first: drop any one of the plural rows and it is inside.
+      final oneFewer = pool
+          .where((r) => r.foodId != BackendPoolFixtures.muffinsOatBranSrLegacy)
+          .toList();
+      final survivorsOneFewer = rankAndTruncateFoodsByName(oneFewer, query);
+      expect(
+        survivorsOneFewer.map((r) => r.foodId),
+        contains(BackendPoolFixtures.muffinNfs),
+      );
+      expect(
+        resolve(
+          query,
+          backend: BackendPoolFixtures.freshAll(survivorsOneFewer, portions),
+        ).first.code,
+        '${BackendPoolFixtures.muffinNfs}',
+      );
+    });
+
+    test('where it does not: orange juice, one portionless row ahead', () {
+      // Twenty rows are titled "Orange juice" and score 1.0, and only one
+      // portionless one — the BLS record, twelve characters — is shorter
+      // than the survey's "Orange juice, 100%, NFS", so the survey record
+      // is second at the cut and first in the resolver. What would cut it
+      // is nineteen more rows the cut ranks ahead of it and the resolver
+      // behind: portionless ones at 1.0 no longer than 23 characters, or
+      // — the muffins case — any twenty scoring under 0.15 above it. That
+      // the pool holds nine portion-bearing rows, the fewest here, is
+      // beside the point.
+      final pool = BackendPoolFixtures.orangeJuice;
+      final portions = BackendPoolFixtures.orangeJuicePortions;
+      final survivors = rankAndTruncateFoodsByName(pool, 'orange juice');
+
+      expect(pool.where((r) => portions[r.foodId]! > 0), hasLength(9));
+      expect(survivors[1].foodId, BackendPoolFixtures.orangeJuice100Nfs);
+      expect(
+        survivors.where((r) => portions[r.foodId] == 0 && r.name!.length <= 23),
+        hasLength(1),
+      );
+    });
   });
 }
