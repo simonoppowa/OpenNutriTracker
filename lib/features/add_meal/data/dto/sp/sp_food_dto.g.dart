@@ -46,6 +46,7 @@ SpFoodDTO _$SpFoodDTOFromJson(Map<String, dynamic> json) => SpFoodDTO(
   vitaminB6100: (json['vitamin_b6_100'] as num?)?.toDouble(),
   vitaminB12100: (json['vitamin_b12_100'] as num?)?.toDouble(),
   niacin100: (json['niacin_100'] as num?)?.toDouble(),
+  hasPortion: json['has_portion'] as bool?,
 );
 
 Map<String, dynamic> _$SpFoodDTOToJson(SpFoodDTO instance) => <String, dynamic>{
@@ -88,4 +89,5 @@ Map<String, dynamic> _$SpFoodDTOToJson(SpFoodDTO instance) => <String, dynamic>{
   'vitamin_b6_100': instance.vitaminB6100,
   'vitamin_b12_100': instance.vitaminB12100,
   'niacin_100': instance.niacin100,
+  'has_portion': instance.hasPortion,
 };

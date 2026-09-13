@@ -50,10 +50,18 @@ import '../fixture/backend_sibling_fixtures.dart';
 /// on `BackendPoolFixtures`' real pools, through the data source's cut
 /// and then the resolver — and that the survivors and the resolver apply
 /// one rule, so the resolver's pick from the whole pool is inside the
-/// twenty, up to what the cut does not read: the portions, fetched after
-/// it, and the translation row's source (see `rankAndTruncateFoodsByName`).
-/// The last groups pin where that bites — `muffins` — and where it does
-/// not.
+/// twenty, up to what the cut does not read. The portions are fetched
+/// after it, and until Backend#11 that was the whole of them: `muffins`
+/// was lost at the cut, twenty portionless rows titled exactly "Muffins"
+/// ahead of the survey's "Muffin, NFS". Since #1190 the search rows carry
+/// `has_portion`, the boolean shadow of the count, and the cut takes the
+/// resolver's penalty off a row without and reads a row with one first
+/// among equals; what it still cannot rank is the count among rows that
+/// carry one, and the translation row's source (see
+/// `rankAndTruncateFoodsByName`). Every pool is pinned with the flag as
+/// the backend will send it and without it as the backend sends it
+/// today; the last groups pin the miss without the flag, its closure with
+/// it, and what is left.
 List<MealEntity> resolve(
   String query, {
   List<MealEntity> off = const [],
@@ -719,6 +727,12 @@ void main() {
       );
     }
 
+    /// [pool] as the backend sends it today — no `has_portion` column, the
+    /// cut blind to the portions — and as it will send it once Backend#11
+    /// is applied, each row flagged from the same count the resolver's
+    /// entities carry. The same record must come out of both, from the
+    /// page and from the whole pool: a pool the flag re-orders at the cut
+    /// is one where the cut and the resolver disagreed before it.
     void expectPick(
       String query,
       List<SpFoodDTO> pool,
@@ -727,26 +741,35 @@ void main() {
       required int id,
       double score = 1.0,
     }) {
-      final picked = pick(query, pool, portions);
+      for (final (label, rows) in [
+        ('without the flag', pool),
+        ('with the flag', BackendPoolFixtures.flagged(pool, portions)),
+      ]) {
+        final picked = pick(query, rows, portions);
 
-      expect(picked.fromPage.name, name, reason: query);
-      expect(picked.fromPage.code, '$id', reason: query);
-      expect(picked.fromPool.code, '$id', reason: '$query, whole pool');
-      expect(
-        picked.survivors.map((r) => r.foodId),
-        contains(id),
-        reason: '$query: the pick is inside the twenty',
-      );
-      expect(
-        scoreMealForResolution(picked.fromPage, query),
-        closeTo(score, 1e-3),
-        reason: query,
-      );
-      expect(
-        scoreMealForResolution(picked.fromPage, query),
-        greaterThanOrEqualTo(kResolutionConfidenceFloor),
-        reason: '$query is settled, not flagged',
-      );
+        expect(picked.fromPage.name, name, reason: '$query, $label');
+        expect(picked.fromPage.code, '$id', reason: '$query, $label');
+        expect(
+          picked.fromPool.code,
+          '$id',
+          reason: '$query, whole pool, $label',
+        );
+        expect(
+          picked.survivors.map((r) => r.foodId),
+          contains(id),
+          reason: '$query, $label: the pick is inside the twenty',
+        );
+        expect(
+          scoreMealForResolution(picked.fromPage, query),
+          closeTo(score, 1e-3),
+          reason: '$query, $label',
+        );
+        expect(
+          scoreMealForResolution(picked.fromPage, query),
+          greaterThanOrEqualTo(kResolutionConfidenceFloor),
+          reason: '$query, $label: settled, not flagged',
+        );
+      }
     }
 
     test('potato resolves to Potato, NFS', () {
@@ -806,21 +829,30 @@ void main() {
       'chicken breast resolves to the stewed record in every input order',
       () {
         // Thirty of the 98 rows carry a portion and 38 are titled "Chicken
-        // breast". The cut keeps the BLS "Chicken breast, without skin,
-        // raw" first — 33 characters, no portion, which the cut cannot see
-        // — and stewed's 34 second, tied on length with the SR Legacy roll;
-        // the penalty then drops both portionless records to 0.85 and
-        // stewed is logged. Rotating the pool through the cut moves the
-        // roll above and below stewed and changes nothing.
+        // breast". Without the flag the cut keeps the BLS "Chicken breast,
+        // without skin, raw" first — 33 characters, no portion, which the
+        // cut cannot see — and stewed's 34 second, tied on length with the
+        // SR Legacy roll; the penalty then drops both portionless records
+        // to 0.85 and stewed is logged. With the flag the cut takes the
+        // same 0.15 off the two, and twenty-nine portion-bearing rows
+        // titled "Chicken breast" at 1.0 fill the twenty ahead of them:
+        // stewed leads the survivors as it leads the resolver, and the
+        // BLS record and the roll are cut, behind the twenty-nine in the
+        // resolver's order as at the cut's. Rotating the pool through the
+        // cut moves the roll above and below stewed and changes nothing,
+        // either way.
         final pool = BackendPoolFixtures.chickenBreast;
         final portions = BackendPoolFixtures.chickenBreastPortions;
+        final flagged = BackendPoolFixtures.flagged(pool, portions);
         final winners = <String>{};
-        for (var shift = 0; shift < pool.length; shift++) {
-          final rotated = [...pool.skip(shift), ...pool.take(shift)];
-          for (final input in [rotated, rotated.reversed.toList()]) {
-            final picked = pick('chicken breast', input, portions);
-            winners.add(picked.fromPage.name!);
-            winners.add(picked.fromPool.name!);
+        for (final rows in [pool, flagged]) {
+          for (var shift = 0; shift < rows.length; shift++) {
+            final rotated = [...rows.skip(shift), ...rows.take(shift)];
+            for (final input in [rotated, rotated.reversed.toList()]) {
+              final picked = pick('chicken breast', input, portions);
+              winners.add(picked.fromPage.name!);
+              winners.add(picked.fromPool.name!);
+            }
           }
         }
 
@@ -834,6 +866,33 @@ void main() {
         expect(
           survivors[2].foodId,
           BackendPoolFixtures.chickenBreastRollSrLegacy,
+        );
+        final flaggedSurvivors = rankAndTruncateFoodsByName(
+          flagged,
+          'chicken breast',
+        );
+        expect(
+          flaggedSurvivors.first.foodId,
+          BackendPoolFixtures.chickenBreastStewed,
+        );
+        expect(flaggedSurvivors.map((r) => r.hasPortion), everyElement(isTrue));
+        expect(
+          flaggedSurvivors.map((r) => r.shortTitle),
+          everyElement('Chicken breast'),
+        );
+        expect(
+          flaggedSurvivors.map((r) => r.foodId),
+          isNot(contains(BackendPoolFixtures.chickenBreastWithoutSkinRawBls)),
+        );
+        expect(
+          flaggedSurvivors.map((r) => r.foodId),
+          isNot(contains(BackendPoolFixtures.chickenBreastRollSrLegacy)),
+        );
+        expect(
+          pool.where(
+            (r) => r.shortTitle == 'Chicken breast' && portions[r.foodId]! > 0,
+          ),
+          hasLength(29),
         );
         expectPick(
           'chicken breast',
@@ -1042,41 +1101,58 @@ void main() {
         translated(row),
     ], portions);
 
-    test('Milch resolves to Milch, NFS', () {
-      final ranked = resolve(
-        'Milch',
-        backend: page(
-          'Milch',
-          BackendPoolFixtures.milch,
-          BackendPoolFixtures.milchPortions,
+    /// The pool as the backend sends it today and as it will with
+    /// `has_portion` on every row (Backend#11), through the translation
+    /// cut and the resolver.
+    List<(String, List<MealEntity>)> pages(
+      String query,
+      List<Map<String, dynamic>> pool,
+      Map<int, int> portions,
+    ) => [
+      ('without the flag', page(query, pool, portions)),
+      (
+        'with the flag',
+        page(
+          query,
+          BackendPoolFixtures.flaggedTranslations(pool, portions),
+          portions,
         ),
-      );
+      ),
+    ];
 
-      expect(ranked.first.name, 'Milch, NFS');
-      expect(ranked.first.code, '${BackendPoolFixtures.milchNfs}');
-      expect(ranked.first.scoringName, 'Milch');
-      expect(ranked.first.machineTranslatedName, isTrue);
-      expect(
-        scoreMealForResolution(ranked.first, 'Milch'),
-        closeTo(0.97, 1e-9),
-      );
+    test('Milch resolves to Milch, NFS', () {
+      for (final (label, candidates) in pages(
+        'Milch',
+        BackendPoolFixtures.milch,
+        BackendPoolFixtures.milchPortions,
+      )) {
+        final ranked = resolve('Milch', backend: candidates);
+
+        expect(ranked.first.name, 'Milch, NFS', reason: label);
+        expect(ranked.first.code, '${BackendPoolFixtures.milchNfs}');
+        expect(ranked.first.scoringName, 'Milch');
+        expect(ranked.first.machineTranslatedName, isTrue);
+        expect(
+          scoreMealForResolution(ranked.first, 'Milch'),
+          closeTo(0.97, 1e-9),
+        );
+      }
     });
 
     test('Kartoffel resolves to Kartoffel, NFS', () {
       // The same record as `potato`, read in German.
-      final ranked = resolve(
+      for (final (label, candidates) in pages(
         'Kartoffel',
-        backend: page(
-          'Kartoffel',
-          BackendPoolFixtures.kartoffel,
-          BackendPoolFixtures.kartoffelPortions,
-        ),
-      );
+        BackendPoolFixtures.kartoffel,
+        BackendPoolFixtures.kartoffelPortions,
+      )) {
+        final ranked = resolve('Kartoffel', backend: candidates);
 
-      expect(ranked.first.name, 'Kartoffel, NFS');
-      expect(ranked.first.code, '${BackendPoolFixtures.kartoffelNfs}');
+        expect(ranked.first.name, 'Kartoffel, NFS', reason: label);
+        expect(ranked.first.code, '${BackendPoolFixtures.kartoffelNfs}');
+        expect(ranked.first.portions, hasLength(4));
+      }
       expect(BackendPoolFixtures.kartoffelNfs, BackendPoolFixtures.potatoNfs);
-      expect(ranked.first.portions, hasLength(4));
     });
 
     test('what the translation cut does not read: the source', () {
@@ -1147,12 +1223,19 @@ void main() {
     // Both now score with `scoreText` and name with `namedQualifiers`
     // (soft_text_score.dart), so the claim is back, and the group above
     // asserts it on every real pool. What it still does not cover is what
-    // the cut does not read: it runs before any portion is fetched, where
-    // the resolver's penalty and its portions key read them (the
-    // translation cut's blindness to the row's source is pinned in the
-    // German group). The last tests pin that where it bites — on a
-    // synthetic family, and on the real muffins pool — and where it does
-    // not.
+    // the cut does not read. It runs before any portion is fetched, where
+    // the resolver's penalty and its portions key read them, and until
+    // Backend#11 that was the whole of it: the last tests pin where that
+    // bit — on a synthetic family and on the real muffins pool — as the
+    // backend answers today, without a `has_portion` column. Since #1190
+    // the cut reads that column where it is sent, takes the resolver's
+    // penalty off a row without a portion and puts a row with one first
+    // among equals, and the same tests pin the closure with the flag.
+    // What the flag cannot carry is the count, so a portion-bearing pick
+    // can still trail twenty rows that tie it on score, length and the
+    // flag with fewer portions each; the last test but one pins that.
+    // (The translation cut's blindness to the row's source is pinned in
+    // the German group.)
     test('a qualifier named by inflection: cheesy potato', () {
       // `cheesy` agrees with `cheese` five letters in (0.833) and with no
       // title token at all, so the qualifier is named — at the cut as in
@@ -1227,21 +1310,21 @@ void main() {
       expect(scoreMealForResolution(fromPage, query), closeTo(0.96, 1e-3));
     });
 
-    test('what the cut does not read: twenty portionless rows ahead of the '
-        'record the resolver would pick', () {
+    test('without the flag: twenty portionless rows ahead of the record '
+        'the resolver would pick', () {
       // Twenty-five portionless SR Legacy-style rows and one survey record
-      // with nine portions, all titled "Chicken breast". Over the whole
-      // pool the penalty leaves the survey record alone at 1.0. The cut
-      // knows no portions, ties the twenty-six on the title and keeps the
-      // twenty shortest — the portionless rows — and the resolver logs one
-      // of them at 0.85. The condition is exactly this: twenty rows the
-      // cut ranks ahead of the pick and the resolver ranks behind it —
-      // portionless rows scoring at least what it scores and less than
-      // 0.15 above it, or rows tying it on score and length with fewer
-      // portions. Here they tie the pick and are shorter; on the real
-      // muffins pool, next, they outscore it by 0.143 and are from another
-      // source's family. How many portion-bearing rows the pool holds is
-      // not part of it.
+      // with nine portions, all titled "Chicken breast", from a backend
+      // that sends no `has_portion`. Over the whole pool the penalty
+      // leaves the survey record alone at 1.0. The cut knows no portions,
+      // ties the twenty-six on the title and keeps the twenty shortest —
+      // the portionless rows — and the resolver logs one of them at 0.85.
+      // The condition is exactly this: twenty rows the cut ranks ahead of
+      // the pick and the resolver ranks behind it — portionless rows
+      // scoring at least what it scores and less than 0.15 above it, or
+      // rows tying it on score and length with fewer portions. Here they
+      // tie the pick and are shorter; on the real muffins pool, next, they
+      // outscore it by 0.143 and are from another source's family. How
+      // many portion-bearing rows the pool holds is not part of it.
       const query = 'chicken breast';
       SpFoodDTO row(int id, String name, String source) =>
           SpFoodDTO(foodId: id, source: source, sourceCode: '$id', name: name);
@@ -1269,18 +1352,84 @@ void main() {
         backend: [for (final r in survivors) entity(r)],
       ).first;
 
+      expect(rows.map((r) => r.hasPortion), everyElement(isNull));
       expect(fromPool.name, 'Chicken breast, baked or broiled, skin eaten');
       expect(scoreMealForResolution(fromPool, query), 1.0);
       expect(survivors.map((r) => r.foodId), isNot(contains(99)));
       expect(fromPage.name, 'Chicken breast, roll 00');
       expect(scoreMealForResolution(fromPage, query), closeTo(0.85, 1e-9));
+
+      // With the flag: the twenty-five fall to 0.85 at the cut as they do
+      // in the resolver, the survey record is kept first, and the page
+      // and the pool agree.
+      final flagged = BackendPoolFixtures.flagged(rows, portions);
+      final flaggedSurvivors = rankAndTruncateFoodsByName(flagged, query);
+      final fromFlaggedPage = resolve(
+        query,
+        backend: [for (final r in flaggedSurvivors) entity(r)],
+      ).first;
+
+      expect(flaggedSurvivors.first.foodId, 99);
+      expect(fromFlaggedPage.code, '99');
+      expect(fromFlaggedPage.name, fromPool.name);
+      expect(scoreMealForResolution(fromFlaggedPage, query), 1.0);
     });
 
-    test('where it bites: muffins, an exact plural title over the soft '
-        'singular', () {
-      // The real pool, 79 rows, forty with a portion. `muffins` is the
-      // exact title of the twenty SR Legacy "Muffins, …" rows, none with a
-      // portion, and a soft match for the survey's "Muffin" family
+    test('what the flag cannot carry: the count among rows that have one', () {
+      // Twenty-one survey-style rows titled "Chicken breast", every one
+      // the same length, every one with a portion — the last sent with
+      // nine, the rest with one. The resolver's second key is the count,
+      // so over the whole pool it picks the last; the cut's key is the
+      // flag, which the twenty-one tie on, so the backend's order decides
+      // and the last is twenty-first. This is what #1190 leaves open,
+      // stated exactly: twenty rows tying the pick on score, length and
+      // the flag with fewer portions each. No pinned pool has it — the
+      // group above asserts the flagged pick inside the twenty on every
+      // one — and it needs twenty same-length, same-scoring siblings that
+      // all carry a portion, where the largest such group on the fetched
+      // pools is eleven ("Rice, …" at 36 characters). Closing it would
+      // need the count on the row, not the flag.
+      const query = 'chicken breast';
+      SpFoodDTO row(int id, String name) => SpFoodDTO.fromJson({
+        SPConst.foodId: id,
+        SPConst.foodSource: 'fdc_survey',
+        SPConst.foodSourceCode: '$id',
+        SPConst.foodName: name,
+        SPConst.foodHasPortion: true,
+      });
+      final rows = [
+        for (var i = 0; i < 21; i++)
+          row(i, 'Chicken breast, roll ${i.toString().padLeft(2, '0')}'),
+      ];
+      final portions = {
+        for (final r in rows) r.foodId!: r.foodId == 20 ? 9 : 1,
+      };
+      MealEntity entity(SpFoodDTO r) => BackendPoolFixtures.fresh(r, portions);
+
+      final fromPool = resolve(
+        query,
+        backend: [for (final r in rows) entity(r)],
+      ).first;
+      final survivors = rankAndTruncateFoodsByName(rows, query);
+      final fromPage = resolve(
+        query,
+        backend: [for (final r in survivors) entity(r)],
+      ).first;
+
+      expect(fromPool.code, '20');
+      expect(fromPool.portions, hasLength(9));
+      expect(survivors.map((r) => r.foodId), isNot(contains(20)));
+      expect(fromPage.code, '0');
+      expect(fromPage.portions, hasLength(1));
+      expect(scoreMealForResolution(fromPage, query), 1.0);
+    });
+
+    test('where it bit: muffins without the flag, an exact plural title '
+        'over the soft singular', () {
+      // The real pool, 79 rows, forty with a portion, as the backend sends
+      // it before Backend#11 — no `has_portion` on any row. `muffins` is
+      // the exact title of the twenty SR Legacy "Muffins, …" rows, none
+      // with a portion, and a soft match for the survey's "Muffin" family
       // (`muffins` → `muffin`, six letters of seven, 0.857). Over the
       // whole pool the penalty takes the twenty to 0.85 and "Muffin, NFS"
       // — 0.857, five portions — is picked. The cut scores the twenty at
@@ -1289,7 +1438,10 @@ void main() {
       // twenty, at 0.85, settled and unflagged, with nothing to scale the
       // amount with. One plural row fewer and the survey record survives
       // and is picked. This is the case the comment at the cut once ruled
-      // out by the count of portion-bearing rows; the count is forty.
+      // out by the count of portion-bearing rows; the count is forty. It
+      // stays pinned because it is what the live backend does until the
+      // migration is applied, and what the app must keep doing on a
+      // backend that has not been.
       const query = 'muffins';
       final pool = BackendPoolFixtures.muffins;
       final portions = BackendPoolFixtures.muffinsPortions;
@@ -1305,6 +1457,7 @@ void main() {
 
       expect(pool, hasLength(79));
       expect(pool.where((r) => portions[r.foodId]! > 0), hasLength(40));
+      expect(pool.map((r) => r.hasPortion), everyElement(isNull));
 
       expect(fromPool.name, 'Muffin, NFS');
       expect(fromPool.code, '${BackendPoolFixtures.muffinNfs}');
@@ -1347,6 +1500,57 @@ void main() {
       );
     });
 
+    test('where it is closed: muffins with the flag', () {
+      // The same pool as `search_food_summary` will send it once
+      // Backend#11 is applied: `has_portion` on every row, true on the
+      // forty. The cut takes 0.15 off the twenty "Muffins, …" rows — 0.85,
+      // where the resolver puts them — and the thirty-three survey
+      // "Muffin" rows with a portion lead at 0.857; the twenty shortest of
+      // those are kept, "Muffin, NFS" first, and the resolver logs it
+      // from the page as it does from the whole pool: 0.857, five
+      // portions, settled. Nothing else about the resolver changed —
+      // `fromPool` here is the `fromPool` of the test above.
+      const query = 'muffins';
+      final pool = BackendPoolFixtures.flagged(
+        BackendPoolFixtures.muffins,
+        BackendPoolFixtures.muffinsPortions,
+      );
+      final portions = BackendPoolFixtures.muffinsPortions;
+      final survivors = rankAndTruncateFoodsByName(pool, query);
+      final fromPool = resolve(
+        query,
+        backend: BackendPoolFixtures.freshAll(pool, portions),
+      ).first;
+      final fromPage = resolve(
+        query,
+        backend: BackendPoolFixtures.freshAll(survivors, portions),
+      ).first;
+
+      expect(pool.where((r) => r.hasPortion == true), hasLength(40));
+      expect(pool.where((r) => r.hasPortion == false), hasLength(39));
+
+      expect(fromPool.code, '${BackendPoolFixtures.muffinNfs}');
+
+      expect(survivors, hasLength(20));
+      expect(survivors.first.foodId, BackendPoolFixtures.muffinNfs);
+      expect(survivors.map((r) => r.shortTitle), everyElement('Muffin'));
+      expect(survivors.map((r) => r.source), everyElement('fdc_survey'));
+      expect(survivors.map((r) => r.hasPortion), everyElement(isTrue));
+      expect(
+        survivors.map((r) => r.foodId),
+        isNot(contains(BackendPoolFixtures.muffinsOatBranSrLegacy)),
+      );
+
+      expect(fromPage.name, 'Muffin, NFS');
+      expect(fromPage.code, '${BackendPoolFixtures.muffinNfs}');
+      expect(fromPage.portions, hasLength(5));
+      expect(scoreMealForResolution(fromPage, query), closeTo(0.857, 1e-3));
+      expect(
+        scoreMealForResolution(fromPage, query),
+        greaterThanOrEqualTo(kResolutionConfidenceFloor),
+      );
+    });
+
     test('where it does not: orange juice, one portionless row ahead', () {
       // Twenty rows are titled "Orange juice" and score 1.0, and only one
       // portionless one — the BLS record, twelve characters — is shorter
@@ -1366,6 +1570,19 @@ void main() {
       expect(
         survivors.where((r) => portions[r.foodId] == 0 && r.name!.length <= 23),
         hasLength(1),
+      );
+
+      // With the flag the BLS record takes 0.15 at the cut and the survey
+      // record is first there too; the BLS record is still inside the
+      // twenty, one tap away on the review screen.
+      final flagged = rankAndTruncateFoodsByName(
+        BackendPoolFixtures.flagged(pool, portions),
+        'orange juice',
+      );
+      expect(flagged.first.foodId, BackendPoolFixtures.orangeJuice100Nfs);
+      expect(
+        flagged.map((r) => r.foodId),
+        contains(BackendPoolFixtures.orangeJuiceBls),
       );
     });
   });

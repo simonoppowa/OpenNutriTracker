@@ -11,6 +11,8 @@ import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/util/backend_title.dart';
+import 'package:opennutritracker/features/add_meal/util/resolver_relevance.dart'
+    show noPortionsPenalty;
 import 'package:opennutritracker/features/add_meal/util/soft_text_score.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -144,7 +146,7 @@ class SpFoodDataSource {
   /// not worth costing anyone a search. But a failure here is not an empty
   /// answer, and the two are told apart because something downstream reads
   /// the difference: the resolver takes 0.15 off a backend record with no
-  /// portion (`_noPortionsPenalty` in `resolver_relevance.dart`), and after
+  /// portion ([noPortionsPenalty] in `resolver_relevance.dart`), and after
   /// a transient failure of this one call every record on a page the search
   /// itself answered would have taken it — a 0.5 match reported at 0.35,
   /// under the confidence floor, for a fault in a lookup the record never
@@ -236,7 +238,9 @@ class SpFoodDataSource {
     // in the POST body instead of the query string — see [SPConst
     // .searchFoodSummaryFn]. The function returns `setof food_summary`, so
     // the rows arrive in exactly the shape `select()` produced and
-    // [SpFoodDTO.fromJson] is unchanged. The source filter and the row cap
+    // [SpFoodDTO.fromJson] reads them as it reads the view — including
+    // `has_portion`, which the view carries once Backend#11 is applied and
+    // the DTO reads as null until then. The source filter and the row cap
     // move into the call because a filter chained onto an RPC would go back
     // into the URL, which is the thing being removed.
     final response = await _rpcRows(client, SPConst.searchFoodSummaryFn, {
@@ -347,8 +351,10 @@ class SpFoodDataSource {
 /// `MealEntity.scoringName` and `scoringQualifiers` make of the entity
 /// built from this row — with the scorer `scoreMealForResolution` scores
 /// that entity with, `scoreText`, which names a qualifier by soft prefix
-/// (`namedQualifiers`), and ties break as they break there: the shorter
-/// description first, then the backend's order, stable (#1170). Scored on
+/// (`namedQualifiers`); a row the backend says has no portion takes
+/// [noPortionsPenalty] off, as the entity will there; and ties break as
+/// they break there: the shorter description first, then the row with a
+/// portion, then the backend's order, stable (#1170, #1190). Scored on
 /// the whole description, a family of same-titled survey records did not
 /// tie here as it tied there, and the record the resolver would pick was
 /// cut before it was scored; scored on the title but with the Food tab's
@@ -359,29 +365,42 @@ class SpFoodDataSource {
 /// twenty by construction — up to what this cut does not read, which is
 /// two things:
 ///
-/// * No portion is fetched before this cut; the twenty are decorated with
-///   theirs afterwards. The resolver takes 0.15 off a backend record with
-///   none and, among equals, prefers the most portions, and neither can
-///   act here. So a portion-bearing record the resolver would pick from
-///   the hundred is lost when twenty rows rank ahead of it here and
-///   behind it there: portionless rows scoring at least what it scores
-///   and less than 0.15 above it — the penalty inverts any gap under
-///   0.15, whatever family the rows are from — or rows tying it on score
-///   and length with fewer portions. How many portion-bearing rows the
-///   pool holds does not enter into it. Where it bites is a plural query
-///   over an SR Legacy family that spells its title in the plural:
-///   `muffins` scores the twenty portionless "Muffins, …" rows at 1.0 and
-///   the survey's "Muffin, NFS" at 0.857 (`muffins` → `muffin`, six
-///   letters of seven), so the twenty are kept, the survey record is
-///   twenty-first, and the resolver logs "Muffins, oat bran" at 0.85 —
-///   nothing to scale the amount with — where the whole pool would have
-///   given "Muffin, NFS" at 0.857; the pool has forty portion-bearing
-///   rows. `puddings` and `ice creams` go the same way, and `McDONALD'S`
-///   on the German path. `orange juice` does not: twenty rows score 1.0
-///   there and only one portionless one is shorter than the survey
-///   record. `resolver_sibling_selection_test` pins the miss on the
-///   muffins pool and on a synthetic family, and its absence on the
-///   other pools.
+/// * The portions themselves. They are fetched for the twenty after this
+///   cut, so the resolver's penalty and its "most portions" key read a
+///   list this cut never has; what it has instead is the row's
+///   `has_portion` column, `food_has_deliverable_portion(food_id)` —
+///   the predicate `portions_by_food_ids` filters on, so the column is
+///   true exactly where the fetched list will not be empty (Backend#11).
+///   It is the boolean shadow of the count: enough for the penalty,
+///   which asks whether there is a portion, and enough to put a row with
+///   one before a row without among equal scores and lengths — the
+///   resolver's key collapsed to whether there are any, which is all the
+///   column can say, and applied in the same direction. So a
+///   portion-bearing record the resolver would pick is inside the twenty
+///   unless twenty rows tie it on score, length and the flag and carry
+///   fewer portions each, which is the one key this cut cannot rank, and
+///   the case that bit is closed. `muffins` is the exact title of the
+///   twenty SR Legacy "Muffins, …" rows at 1.0 and a soft match for the
+///   survey's "Muffin" family at 0.857 (`muffins` → `muffin`, six letters
+///   of seven); read without the flag, the twenty were kept, "Muffin,
+///   NFS" was twenty-first, and the resolver logged "Muffins, oat bran"
+///   at 0.85 with nothing to scale the amount with. Read with it, none of
+///   the twenty has a portion and they fall to 0.85 behind the
+///   thirty-three survey rows that carry one, the twenty shortest of
+///   those are kept with "Muffin, NFS" first, and the resolver picks
+///   what it picks from the whole pool. `puddings` and `ice creams` go
+///   the same way.
+///
+///   Where the backend does not send the column — every backend before
+///   Backend#11 is applied, which the live one is at this writing — the
+///   flag is null on every row, and this cut applies no penalty and no
+///   key: the twenty are the twenty it kept before the column existed,
+///   and `muffins` is lost as above. Null is the absence of an answer and
+///   is never read as "no portion"; [SpFoodDTO.hasPortion] says why.
+///   `resolver_sibling_selection_test` pins the miss without the flag
+///   and its closure with it, on the real muffins pool and on a
+///   synthetic family, and re-pins every other pool with the flag set as
+///   the backend will set it.
 ///
 /// * [rankAndTruncateTranslationRows] is handed each row's translation
 ///   `source` and does not read it, where the resolver takes 0.03 off a
@@ -405,14 +424,21 @@ class SpFoodDataSource {
 List<SpFoodDTO> rankAndTruncateFoodsByName(
   List<SpFoodDTO> foods,
   String searchString,
-) => _rankAndTruncate(foods, searchString, (food) => food.name);
+) => _rankAndTruncate(
+  foods,
+  searchString,
+  describe: (food) => food.name,
+  hasPortion: (food) => food.hasPortion,
+);
 
 /// Same idea as [rankAndTruncateFoodsByName], but for raw `food_translation`
 /// rows — ranked by [SPConst.translationDescription] — before they're mapped
 /// into [SpFoodDTO] (see [SpFoodDataSource._searchByTranslation]). A
 /// translated description follows the same comma convention — "Milch, NFS"
 /// is titled "Milch" — and derives its title the way the entity's
-/// localized name will.
+/// localized name will. The row's [SPConst.translationHasPortion] is read
+/// as the DTO reads its column: a boolean where the backend sent one,
+/// null — no penalty, no key — where it did not, or sent something else.
 @visibleForTesting
 List<Map<String, dynamic>> rankAndTruncateTranslationRows(
   List<Map<String, dynamic>> rows,
@@ -420,38 +446,64 @@ List<Map<String, dynamic>> rankAndTruncateTranslationRows(
 ) => _rankAndTruncate(
   rows,
   searchString,
-  (row) => row[SPConst.translationDescription] as String?,
+  describe: (row) => row[SPConst.translationDescription] as String?,
+  hasPortion: (row) {
+    final flag = row[SPConst.translationHasPortion];
+    return flag is bool ? flag : null;
+  },
 );
 
 /// [items] by the score of their description — [describe], as its title
-/// plus the qualifiers [searchString] names — highest first; among equal
-/// scores the shorter description; and the sort is stable, so what is
-/// left of a tie keeps the backend's order. The first
-/// [SPConst.maxNumberOfItems] of that.
+/// plus the qualifiers [searchString] names, less [noPortionsPenalty]
+/// where [hasPortion] is false — highest first; among equal scores the
+/// shorter description; among those, a row with a portion before a row
+/// without; and the sort is stable, so what is left of a tie keeps the
+/// backend's order. The first [SPConst.maxNumberOfItems] of that.
+///
+/// The portion key ranks the flag as the resolver's key ranks the count
+/// it shadows (`_sorted` in `resolver_relevance.dart`, portions
+/// descending): true before false. Between a row with a portion and a
+/// row without, the penalty has already separated them at any score
+/// above it, so the key is reached where the penalty could not act — at
+/// 0.0, where the clamp holds a penalised row — and it is there so that
+/// the two sorts are the same sort, not because a live pool turns on
+/// it. Null — the backend did not send the column — is not a third
+/// value but the absence of one, and ranks with false so that a pool
+/// with no flags at all has no key at all and is ordered as it was
+/// before the column existed; the same pool with the column is ordered
+/// as the resolver will order its entities, whose portion lists are
+/// empty where the flag is false. Every row here is a backend row — the
+/// entity built from it is `MealSourceEntity.fdc` whatever its `source`
+/// — so the penalty needs no guard on the source here where the
+/// resolver, which also sees Open Food Facts products, needs one.
 ///
 /// `mergeSort` rather than `List.sort` for the stability: Dart's sort is an
 /// insertion sort under 32 elements, which happens to be stable, and a
 /// dual-pivot quicksort above, which is not — and the pool here is a
-/// hundred rows. The forty-row tie in `sp_food_data_source_ranking_test`
-/// is what pins it; a two-row tie cannot.
+/// hundred rows. The forty-row ties in `sp_food_data_source_ranking_test`
+/// are what pin it, with the flag and without; a two-row tie cannot.
 List<T> _rankAndTruncate<T>(
   List<T> items,
-  String searchString,
-  String? Function(T item) describe,
-) {
+  String searchString, {
+  required String? Function(T item) describe,
+  required bool? Function(T item) hasPortion,
+}) {
   final queryTokens = tokenize(searchString);
   final decorated = [
     for (final item in items)
       (
         item: item,
-        score: _backendScore(describe(item), queryTokens),
+        score: _backendScore(describe(item), queryTokens, hasPortion(item)),
         length: describe(item)?.length ?? 0,
+        portioned: hasPortion(item) == true ? 1 : 0,
       ),
   ];
   mergeSort(decorated, compare: (a, b) {
     final byScore = b.score.compareTo(a.score);
     if (byScore != 0) return byScore;
-    return a.length.compareTo(b.length);
+    final byLength = a.length.compareTo(b.length);
+    if (byLength != 0) return byLength;
+    return b.portioned.compareTo(a.portioned);
   });
   return [
     for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.item,
@@ -459,12 +511,21 @@ List<T> _rankAndTruncate<T>(
 }
 
 /// [description] scored as its entity will be: the title, plus whichever
-/// of its qualifiers the query names — [scoreText], the resolver's own.
-double _backendScore(String? description, Set<String> queryTokens) {
+/// of its qualifiers the query names — [scoreText], the resolver's own —
+/// less [noPortionsPenalty] when the backend says there is no portion,
+/// clamped as the resolver clamps. Null [hasPortion] costs nothing: the
+/// backend did not say.
+double _backendScore(
+  String? description,
+  Set<String> queryTokens,
+  bool? hasPortion,
+) {
   if (description == null) return 0.0;
-  return scoreText(
+  final score = scoreText(
     deriveTitle(description),
     queryTokens,
     qualifiers: deriveQualifiers(description),
   );
+  if (hasPortion == false) return (score - noPortionsPenalty).clamp(0.0, 1.0);
+  return score;
 }

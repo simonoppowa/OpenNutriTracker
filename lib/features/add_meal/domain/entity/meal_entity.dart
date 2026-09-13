@@ -129,7 +129,7 @@ class MealEntity extends Equatable {
   /// measures; when this search's page did return the row, the fresh
   /// entity, flag or portions and all, stands in the cached copy's slot
   /// (`SearchProductsUseCase._freshest`). What is left penalised is a row
-  /// the page did not return, and that is the gap `_noPortionsPenalty`'s
+  /// the page did not return, and that is the gap `noPortionsPenalty`'s
   /// comment already records.
   final bool portionsUnavailable;
 
