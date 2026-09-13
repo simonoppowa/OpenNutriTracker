@@ -89,9 +89,15 @@ int? matchPortionToQuery(String query, List<MealPortionEntity> portions) =>
 int? matchPortionToKey(String? key, List<MealPortionEntity> portions) =>
     key == null ? null : _match(key, portions, _englishLabelOf);
 
-/// Scored by the length of the longest term that matched, so a query hitting
+/// Scored by the total length of the terms that matched, so a query hitting
 /// both "1 bag" and "1 large single serving bag" resolves to whichever
-/// matched on more word.
+/// matched on more word — and "small slice" scores the small slice on two
+/// terms and every other slice on one, so no tie forms and the size the
+/// user typed stands. Scoring the single longest term instead let a size
+/// word never outweigh the noun beside it (`small` is five letters, `breast`
+/// six), so "2 small chicken breasts" tied every breast and the tie rule
+/// below handed it the medium one. A key is one word, so for it the sum is
+/// the longest term and nothing changes.
 ///
 /// Rows that tie on that score go to [_middleRung] — the one whose English
 /// label says `medium` or `regular` — and failing that to the earlier row:
@@ -111,9 +117,7 @@ int? _match(
   for (var i = 0; i < portions.length; i++) {
     var score = 0;
     for (final term in _termsOf(labelOf(portions[i]))) {
-      if (term.length > score && tokens.any((t) => _matches(t, term))) {
-        score = term.length;
-      }
+      if (tokens.any((t) => _matches(t, term))) score += term.length;
     }
     if (score == 0 || score < bestScore) continue;
     if (score > bestScore) {
@@ -138,10 +142,19 @@ const _middleRungWords = {'medium', 'regular'};
 /// where a person who said "a slice" meant the 28 g regular one. The data
 /// names its own middle, and a word that names no size means that middle
 /// in the data's convention. This only ever selects among rows the word
-/// already tied; the unqualified default — what "3 bread" logs — is
-/// untouched, which is #864 decision 7. Read off the English label because
-/// the ladder words are English and the label is sent in every locale.
-/// #1162.
+/// already tied; a query that matches nothing still returns null and the
+/// row keeps its default, which is #864 decision 7.
+///
+/// The word that tied the rows need not be a portion word. The matcher
+/// cannot tell "slice" from "cookie", and on a food whose own name is a
+/// term of its labels — Cookie, Roll, Pizza — a bare count ties the ladder
+/// the same way: "2 cookies" hits every `cookie` row and lands here on the
+/// medium cookie, 30 g, where the earliest row was the 5 g bite-size one.
+/// Before the rung that tie resolved to the earliest row, which is also the
+/// default, so the match was invisible; now it is the middle rung, on the
+/// same reading of the data's convention. Read off the English label
+/// because the ladder words are English and the label is sent in every
+/// locale. #1162.
 int? _middleRung(List<int> tied, List<MealPortionEntity> portions) {
   for (final i in tied) {
     if (_termsOf(_englishLabelOf(portions[i])).any(_middleRungWords.contains)) {
