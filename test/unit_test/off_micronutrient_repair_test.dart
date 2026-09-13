@@ -429,6 +429,15 @@ void main() {
         ]),
         _recipe('custom-only', [_ingredient(custom, 150)]),
         _recipe('new-off', [_ingredient(_mealWrittenAfter775(), 100)]),
+        // A recipe picked off the builder's recent tab as an ingredient of
+        // another recipe is a recipe-sourced snapshot: a blended aggregate
+        // no single factor applies to, left as it is (see the class doc).
+        _recipe('nested', [
+          _ingredient(
+            _meal(source: MealSourceDBO.recipe, code: 'mixed', name: 'Mixed'),
+            100,
+          ),
+        ]),
       ]);
       final before = {
         for (final r in recipeBox.values) r.id: _json(r.toJson()),
@@ -456,6 +465,11 @@ void main() {
       expect(mixed.tags, ['test']);
       expect(_json(byId['custom-only']!.toJson()), before['custom-only']);
       expect(_json(byId['new-off']!.toJson()), before['new-off']);
+      expect(_json(byId['nested']!.toJson()), before['nested']);
+      expect(
+        byId['nested']!.ingredients.single.snapshotMeal.dataVersion,
+        isNull,
+      );
 
       expect(await OffMicronutrientRepair.repairRecipeBox(recipeBox), 0);
     });
@@ -468,11 +482,25 @@ void main() {
       final before = {
         for (final i in intakeBox.values) i.id: _json(i.toJson()),
       };
+      // Every put reaches a watcher — a re-put of identical content
+      // included — so an empty event list is what "not written to" means.
+      final events = <BoxEvent>[];
+      final subscription = intakeBox.watch().listen(events.add);
+      addTearDown(subscription.cancel);
 
       expect(await OffMicronutrientRepair.repairIntakeBox(intakeBox), 0);
+      await pumpEventQueue();
+
+      expect(events, isEmpty);
       expect({
         for (final i in intakeBox.values) i.id: _json(i.toJson()),
       }, before);
+
+      // The watcher is live: a real put is seen, so the empty list above
+      // was not a subscription that never delivered.
+      await intakeBox.add(_intake('control', _meal(source: MealSourceDBO.fdc)));
+      await pumpEventQueue();
+      expect(events.map((e) => (e.value as IntakeDBO).id), ['control']);
     });
 
     test('ensureOffMicronutrientsRepaired covers all three boxes', () async {

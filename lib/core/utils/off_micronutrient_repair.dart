@@ -35,6 +35,16 @@ final _log = Logger('OffMicronutrientRepair');
 /// still unstamped. Rows from any other source are never rewritten: the
 /// Supabase view and FDC already deliver app units, and a custom meal holds
 /// what the user typed.
+///
+/// Two shapes are knowingly left as they are. A recipe-sourced row — an
+/// intake logged from a recipe, or a recipe picked off the builder's recent
+/// tab as an ingredient of another recipe — holds the aggregate it was
+/// snapshotted with, a blend of pre-#775 and correct ingredients that no
+/// single factor applies to; rebuilding it from the recipe library would
+/// replace what was logged with whatever the recipe is today, so #1152
+/// keeps recipe rows untouched. And an Open Food Facts row whose
+/// micronutrient a user re-typed in app units through the edit form on an
+/// old build carries no trace of that edit, so it is scaled like the rest.
 class OffMicronutrientRepair {
   // The same two factors #775 added to `fromOffNutriments`.
   static const _gToMg = 1000.0;
