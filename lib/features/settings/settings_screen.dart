@@ -47,6 +47,7 @@ import 'package:opennutritracker/features/settings/presentation/widgets/kcal_goa
 import 'package:opennutritracker/features/settings/presentation/widgets/macro_split_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_goals_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/per_meal_kcal_share_dialog.dart';
+import 'package:opennutritracker/core/l10n/shipped_locales.dart';
 
 /// What the settings route was opened *for*.
 ///
@@ -1209,19 +1210,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  static const _supportedLocales = <String, String>{
-    'en': 'English',
-    'de': 'Deutsch',
-    'tr': 'Türkçe',
-    'cs': 'Čeština',
-    'it': 'Italiano',
-    'uk': 'Українська',
-    'zh': '中文',
-    'pl': 'Polski',
-    'sk': 'Slovenčina',
-  };
-
-  String? _localeDisplayName(String? code) => _supportedLocales[code];
+  String? _localeDisplayName(String? code) => shippedLocales[code];
 
   // Sentinel value meaning "follow system locale"
   static const _systemLocale = '';
@@ -1253,7 +1242,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           value: _systemLocale,
                         ),
-                        ..._supportedLocales.entries.map(
+                        ...shippedLocales.entries.map(
                           (e) => RadioListTile<String>(
                             title: Text(e.value),
                             value: e.key,

@@ -50,6 +50,7 @@ import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:opennutritracker/core/l10n/app_locales.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -91,7 +92,7 @@ Future<void> _bootstrapApp() async {
   final localeCode = await reconcileAppLocale(
     savedLocaleCode: await configRepo.getSelectedLocale(),
     systemLocaleTag: await AppLocaleService.getApplicationLocale(),
-    supportedLocales: S.supportedLocales,
+    supportedLocales: appLocales(S.supportedLocales),
     persistSelectedLocale: configRepo.setSelectedLocale,
     pushToSystem: AppLocaleService.setApplicationLocale,
   );
@@ -108,7 +109,7 @@ Future<void> _bootstrapApp() async {
     final s = lookupS(
       basicLocaleListResolution([
         savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale,
-      ], S.supportedLocales),
+      ], appLocales(S.supportedLocales)),
     );
     final notificationService = locator<NotificationService>();
     await notificationService.initialize();
@@ -238,7 +239,7 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
   Future<void> _adoptSystemLocale() async {
     final systemCode = supportedLanguageCode(
       await AppLocaleService.getApplicationLocale(),
-      S.supportedLocales,
+      appLocales(S.supportedLocales),
     );
     if (systemCode == null || !mounted) return;
 
@@ -295,7 +296,7 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
         GlobalCupertinoLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      supportedLocales: S.supportedLocales,
+      supportedLocales: appLocales(S.supportedLocales),
       initialRoute: NavigationOptions.splashRoute,
       routes: {
         NavigationOptions.splashRoute: (context) =>
