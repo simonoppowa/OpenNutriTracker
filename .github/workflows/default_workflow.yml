@@ -168,10 +168,13 @@ jobs:
       - name: Install Flutter packages
         run: just install
 
-      # check_l10n generates, then fails if any locale is missing a key.
-      # `flutter gen-l10n` alone exits 0 on a missing translation and lets it
-      # ship as English, and nothing downstream sees the difference.
-      - name: Generate localizations (fails if a locale is missing keys)
+      # check_l10n generates, then fails only on what the English fallback
+      # cannot absorb: a gen-l10n error (region file without its base, bad
+      # locale code, @@locale mismatch, bad ICU) or an empty "" value that
+      # would render blank. Missing translations are expected — code PRs add
+      # English only and Weblate fills the rest — so per-locale counts go to
+      # the job summary instead of failing the build.
+      - name: Generate localizations (fails on structural errors, reports untranslated)
         run: just check_l10n
 
       - name: Generate code (env.g.dart, Hive adapters, JSON serializers)

@@ -1,0 +1,1277 @@
+{
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@mealDetailCurrentSelectionLabel": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      }
+    }
+  },
+  "@mealDetailDayTotalLabel": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@quickAddAddedSnack": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "@logWaterAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "@settingsNotificationsTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@waterChipLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "@weeklyWeightGoalKgPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "@weeklyWeightGoalLbsPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "activityExample": "напр. бег, велосипед, йога ...",
+  "activityLabel": "Активность",
+  "addItemLabel": "Добавить элемент:",
+  "addLabel": "Добавить",
+  "additionalInfoLabelCompendium2011": "Информация предоставлена\n «Сборником\n физических активностей\n 2024»",
+  "additionalInfoLabelCustom": "Свой продукт",
+  "additionalInfoLabelFDC": "Подробнее на\nFoodData Central",
+  "additionalInfoLabelSource": "Подробнее на\n{sourceName}",
+  "@additionalInfoLabelSource": {
+    "placeholders": {
+      "sourceName": {
+        "type": "String"
+      }
+    }
+  },
+  "foodSourcesAlwaysEnabledLabel": "Всегда включено",
+  "foodSourcesHelpText": "Результаты поиска приходят из этих баз продуктов. Open Food Facts обеспечивает поиск товаров и по штрихкоду и всегда включён.",
+  "machineTranslatedNameHint": "Название переведено автоматически",
+  "measureUnitBar": "{count, plural, one{батончик} few{батончика} many{батончиков} other{батончика}}",
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitBottle": "{count, plural, one{бутылка} few{бутылки} many{бутылок} other{бутылки}}",
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCan": "{count, plural, one{банка} few{банки} many{банок} other{банки}}",
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCup": "{count, plural, one{чашка} few{чашки} many{чашек} other{чашки}}",
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitEgg": "{count, plural, one{яйцо} few{яйца} many{яиц} other{яйца}}",
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPackage": "{count, plural, one{упаковка} few{упаковки} many{упаковок} other{упаковки}}",
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPiece": "{count, plural, one{штука} few{штуки} many{штук} other{штуки}}",
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPortion": "{count, plural, one{порция} few{порции} many{порций} other{порции}}",
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitServing": "{count, plural, one{порция} few{порции} many{порций} other{порции}}",
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitSlice": "{count, plural, one{кусочек} few{кусочка} many{кусочков} other{кусочка}}",
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTablespoon": "{count, plural, one{столовая ложка} few{столовые ложки} many{столовых ложек} other{столовой ложки}}",
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTeaspoon": "{count, plural, one{чайная ложка} few{чайные ложки} many{чайных ложек} other{чайной ложки}}",
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "settingsFoodSourcesLabel": "Базы продуктов",
+  "settingsFoodSourcesSubtitle": "Выберите, откуда берутся результаты поиска продуктов",
+  "onboardingOtherOptionsLabel": "Другие настройки",
+  "onboardingOtherOptionsSubtitle": "Настройте приложение под себя — всё можно изменить позже в Настройках",
+  "additionalInfoLabelOFF": "Подробнее на\nOpenFoodFacts",
+  "additionalInfoLabelRecipe": "Свой рецепт",
+  "additionalInfoLabelUnknown": "Неизвестный продукт",
+  "ageLabel": "Возраст",
+  "allItemsLabel": "Все",
+  "alphaVersionName": "[Альфа]",
+  "appDescription": "OpenNutriTracker — бесплатный трекер калорий и нутриентов с открытым кодом, уважающий вашу приватность.",
+  "appLicenseLabel": "Лицензия GPL-3.0",
+  "appTitle": "OpenNutriTracker",
+  "appVersionName": "Версия {versionNumber}",
+  "@appVersionName": {
+    "placeholders": {
+      "versionNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "barcodeInvalidEan13CheckDigit": "Похоже, этот 13-значный штрихкод введён с ошибкой: последняя цифра не совпадает с остальными",
+  "baseQuantityLabel": "Пищевая ценность указана на",
+  "bmiInfo": "Индекс массы тела (ИМТ) — показатель для классификации избыточного веса и ожирения у взрослых. Он определяется как масса тела в килограммах, делённая на квадрат роста в метрах (кг/м²).\n\nИМТ не различает жировую и мышечную массу и может вводить в заблуждение для некоторых людей.",
+  "bmiInfoClassificationSection": "Классификация ВОЗ",
+  "bmiInfoFormulaSection": "Формула",
+  "bmiInfoScreenTitle": "Как рассчитывается ваш ИМТ",
+  "bmiLabel": "ИМТ",
+  "breakfastExample": "напр. хлопья, молоко, кофе ...",
+  "breakfastLabel": "Завтрак",
+  "burnedLabel": "сожжено",
+  "buttonNextLabel": "ДАЛЕЕ",
+  "buttonResetLabel": "Сбросить",
+  "buttonSaveLabel": "Сохранить",
+  "buttonStartLabel": "НАЧАТЬ",
+  "buttonYesLabel": "ДА",
+  "calciumLabel": "кальций",
+  "calculationsMacronutrientsDistributionLabel": "Распределение макросов",
+  "calculationsMacrosDistribution": "{pctCarbs}% углеводов, {pctFats}% жиров, {pctProteins}% белков",
+  "@calculationsMacrosDistribution": {
+    "placeholders": {
+      "pctCarbs": {},
+      "pctFats": {},
+      "pctProteins": {}
+    }
+  },
+  "calculationsRecommendedLabel": "(рекомендуется)",
+  "calculationsTDEEIOM2006Label": "Уравнение Института медицины (2005)",
+  "calculationsTDEELabel": "Уравнение расчёта TDEE",
+  "caloriesProfileAveragedLabel": "Усреднённый ориентир (по умолчанию)",
+  "caloriesProfileEstrogenTypicalLabel": "Эстроген-типичный ориентир",
+  "caloriesProfileInfoBody": "Опубликованного ориентира по калориям для небинарных людей не существует — формулы построены на мужской и женской выборках. По умолчанию мы используем среднее двух — нейтральную отправную точку, не требующую раскрывать больше о своём теле. Ползунок ккал в Настройках всегда доступен для точной настройки; это отправная точка, а не точная оценка.",
+  "caloriesProfileInfoTitle": "Ориентир по калориям",
+  "caloriesProfileTestosteroneTypicalLabel": "Тестостерон-типичный ориентир",
+  "carbohydrateLabel": "углеводы",
+  "carbsLabel": "углеводы",
+  "carbsLabelShort": "у",
+  "cholesterolLabel": "холестерин",
+  "chooseWeeklyWeightGoalLabel": "Темп изменения веса в неделю",
+  "chooseWeightGoalLabel": "Выберите цель по весу",
+  "clearOffCacheConfirmContent": "Удаляет локально сохранённые результаты поиска и сканирования из Open Food Facts и FDC. Кэш восстановится автоматически по мере поиска и сканирования продуктов. На ваши свои продукты это не влияет.",
+  "clearOffCacheConfirmTitle": "Очистить кэш?",
+  "clearOffCacheLabel": "Очистить кэш",
+  "clearOffCacheSubtitle": "{count} элемент(ов) · {size}",
+  "cmLabel": "см",
+  "codeCopiedLabel": "Код скопирован",
+  "copyCodeLabel": "Скопировать код",
+  "copyDialogTitle": "В какой приём пищи скопировать?",
+  "copyOrDeleteTimeDialogContent": "С помощью «Скопировать на сегодня» можно скопировать приём пищи на сегодня. С помощью «Удалить» можно удалить его.",
+  "copyOrDeleteTimeDialogTitle": "Что вы хотите сделать?",
+  "createCustomDialogContent": "Создать свой продукт?",
+  "createCustomDialogTitle": "Создать свой продукт?",
+  "createRecipeTitle": "Создать рецепт",
+  "csvImportContributeOffAndroidLink": "Android",
+  "csvImportContributeOffIosLink": "iOS",
+  "csvImportContributeOffPrefix": "Есть штрихкод? Помогите всем — добавьте продукт в Open Food Facts:",
+  "csvImportErrorLabel": "Не удалось прочитать CSV-файл. Проверьте формат и попробуйте снова.",
+  "csvImportPartialLabel": "Импортировано {imported} приём(ов) пищи; {skipped} строк(и) пропущено из-за некорректных данных.",
+  "csvImportSuccessLabel": "Импортировано {count} приём(ов) пищи.",
+  "customActivityDescription": "Введите сожжённые калории напрямую — для тренировок, которых нет в списке, или показаний фитнес-трекера",
+  "customActivityDescriptionKj": "Введите сожжённые килоджоули напрямую — для тренировок, которых нет в списке, или показаний фитнес-трекера",
+  "customActivityKcalHint": "напр. 250",
+  "customActivityKcalLabel": "Сожжено калорий",
+  "customActivityName": "Своя активность",
+  "customActivityNameFieldHint": "напр. Вечерняя поездка на велосипеде",
+  "customActivityNameFieldLabel": "Название (необязательно)",
+  "customActivityPickFromTemplate": "Выбрать из сохранённых шаблонов",
+  "customActivitySaveAsTemplate": "Сохранить как шаблон на будущее",
+  "customActivityTemplatesEmpty": "У вас пока нет сохранённых шаблонов. Отметьте «Сохранить как шаблон на будущее», чтобы запомнить активность.",
+  "customMealBarcodeHint": "Отсканируйте или введите штрихкод, чтобы находить этот продукт позже",
+  "customMealBarcodeInvalid": "Штрихкод должен содержать от 8 до 14 цифр",
+  "customMealBarcodeLabel": "Штрихкод",
+  "customMealBarcodeScanButton": "Сканировать штрихкод",
+  "customMealFormAdvanced": "Расширенно",
+  "customMealFormAdvancedHelp": "Задайте размеры и значения на 100 г для точного масштабирования.",
+  "customMealFormModeLabel": "Вид формы",
+  "customMealFormSimple": "Просто",
+  "customMealFormSimpleHelp": "Введите суммарные значения на одну порцию.",
+  "customMealFormSimpleFieldHelper": "{unit} в одной порции",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsDeleteConfirmContent": "Все записи в дневнике с этим продуктом также будут удалены.",
+  "customMealsDeleteConfirmTitle": "Удалить свой продукт?",
+  "customMealsEmptyLabel": "Своих продуктов пока не сохранено.",
+  "dailyKcalAdjustmentLabel": "Дневная корректировка ккал:",
+  "dailyKjAdjustmentLabel": "Дневная корректировка кДж:",
+  "dataCollectionLabel": "Отправлять анонимные отчёты о сбоях, чтобы помочь исправлять ошибки. Дневник питания, вес и личные данные не передаются.",
+  "deleteAllLabel": "Удалить все",
+  "settingsDeleteAllDataLabel": "Сбросить данные профиля",
+  "settingsDeleteAllDataSubtitle": "Профиль, приёмы пищи, активности, история веса и сессии голодания",
+  "settingsDeleteAllDataConfirmTitle": "Сбросить данные профиля?",
+  "settingsDeleteAllDataConfirmContent": "Это удалит профиль, приёмы пищи, активности, историю веса и сессии голодания только для текущего профиля. Общие данные (свои продукты, рецепты, шаблоны активностей) и каталоги Open Food Facts и USDA Food Data Central не затрагиваются. Отменить это нельзя.",
+  "settingsDeleteAllDataConfirmAction": "Сбросить профиль",
+  "lowKcalWarningTitle": "Эта дневная норма довольно низкая",
+  "lowKcalWarningBody": "Большинству взрослых не стоит долго питаться менее чем на {threshold} ккал в день без наблюдения врача. Прежде чем придерживаться такой низкой нормы, стоит посоветоваться со специалистом.",
+  "@lowKcalWarningBody": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "lowKcalWarningViewDisclaimer": "Посмотреть предупреждение",
+  "deleteSelectedRecipesConfirmTitle": "Удалить {count} рецепт(ов)?",
+  "deleteTimeDialogContent": "Удалить выбранный элемент?",
+  "deleteTimeDialogPluralContent": "Удалить все элементы этого приёма пищи?",
+  "deleteTimeDialogPluralTitle": "Удалить элементы?",
+  "deleteTimeDialogTitle": "Удалить элемент?",
+  "dialogCancelLabel": "ОТМЕНА",
+  "dialogCopyLabel": "Скопировать на сегодня",
+  "dialogDeleteLabel": "УДАЛИТЬ",
+  "dialogOKLabel": "ОК",
+  "diaryFutureDateWarning": "Вы редактируете будущую дату",
+  "diaryLabel": "Дневник",
+  "diaryMealKcalConsumedOfTarget": "{consumed} / {target} ккал",
+  "diaryNutrientPanelDataDisclaimer": "Здесь суммируются только нутриенты, отслеженные в занесённых приёмах пищи. Приём пищи без указанного значения не вносит вклад в этот нутриент — поэтому итоги могут быть занижены.",
+  "diaryNutrientPanelTitle": "Нутриенты сегодня",
+  "driPanelInfoTitle": "Рекомендуемая норма потребления",
+  "driPanelInfoBody": "Эти нормы взяты из справочника рекомендуемых норм потребления IOM для взрослых и зависят от возраста и пола. Это ориентир, а не цель — ваши личные потребности могут отличаться.",
+  "driPanelInfoLinkLabel": "Источник: IOM Dietary Reference Intakes",
+  "driPanelReferenceLabel": "норма {value}",
+  "diarySortByCarbs": "Углеводы (по убыванию)",
+  "diarySortByFat": "Жиры (по убыванию)",
+  "diarySortByKcal": "Калории (по убыванию)",
+  "diarySortByLabel": "Сортировать по",
+  "diarySortByProtein": "Белки (по убыванию)",
+  "diarySortByTime": "Время добавления",
+  "dinnerExample": "напр. суп, курица, вино ...",
+  "dinnerLabel": "Ужин",
+  "discardChangesConfirmLabel": "Отменить",
+  "discardChangesContent": "Несохранённые изменения будут потеряны.",
+  "discardChangesTitle": "Отменить изменения?",
+  "disclaimerText": "OpenNutriTracker не является медицинским приложением. Все предоставленные данные не проверены и должны использоваться с осторожностью. Пожалуйста, придерживайтесь здорового образа жизни и консультируйтесь со специалистом при возникновении проблем. Использование во время болезни, беременности или лактации не рекомендуется. Рецензируемые источники для каждого расчёта доступны по значку информации на главном экране или экране профиля.",
+  "downloadSampleCsvAction": "Пример приёмов пищи (csv)",
+  "downloadSampleJsonAction": "Пример приёмов пищи (json)",
+  "downloadSampleRecipesCsvAction": "Пример рецептов (csv)",
+  "downloadSampleRecipesJsonAction": "Пример рецептов (json)",
+  "duplicateMealDialogContent": "Этот продукт уже добавлен в этот приём пищи сегодня. Добавить ещё раз?",
+  "duplicateRecipeLabel": "Дублировать",
+  "duplicateRecipeNameSuffix": "(копия)",
+  "editItemDialogTitle": "Изменить элемент",
+  "editMealLabel": "Изменить приём пищи",
+  "editRecipeTitle": "Изменить рецепт",
+  "energyLabel": "энергия",
+  "energyLeftLabel": "осталось",
+  "energyTooMuchLabel": "превышено",
+  "energyUnitKcalLabel": "Килокалории (ккал)",
+  "energyUnitKjLabel": "Килоджоули (кДж)",
+  "errorFetchingProductData": "Ошибка при получении данных о продукте",
+  "errorLoadingActivities": "Ошибка при загрузке активностей",
+  "errorMealSave": "Ошибка при сохранении приёма пищи. Проверьте правильность введённых данных.",
+  "errorOpeningBrowser": "Ошибка при открытии браузера",
+  "errorOpeningEmail": "Ошибка при открытии почтового приложения",
+  "errorProductNotFound": "Продукт не найден",
+  "exportAction": "Экспорт",
+  "exportImportAppDataLabel": "Экспорт / импорт данных приложения",
+  "exportImportCsvRecipesNote": "CSV сохраняет активности, дневник питания и отслеженные дни. Рецепты и прикреплённые фото доступны только в JSON — переключитесь на JSON, если хотите сохранить их в резервной копии.",
+  "exportImportDescription": "Вы можете экспортировать данные приложения в zip-файл и импортировать их позже. Это полезно для резервного копирования или переноса на другое устройство.\n\nПриложение не использует облачные сервисы для хранения ваших данных.",
+  "exportImportErrorLabel": "Ошибка экспорта / импорта",
+  "exportImportSuccessLabel": "Экспорт / импорт выполнены успешно",
+  "fatLabel": "жиры",
+  "fatLabelShort": "ж",
+  "fiberLabel": "клетчатка",
+  "flOzUnit": "жидк.унц.",
+  "ftLabel": "фут",
+  "inLabel": "дюйм",
+  "genderFemaleLabel": "женский",
+  "genderLabel": "Пол",
+  "genderMaleLabel": "мужской",
+  "genderNonBinaryLabel": "небинарный",
+  "goalGainWeight": "Набрать вес",
+  "goalLabel": "Цель",
+  "goalLoseWeight": "Сбросить вес",
+  "goalMaintainWeight": "Поддерживать вес",
+  "gramMilliliterUnit": "г/мл",
+  "gramUnit": "г",
+  "heightLabel": "Рост",
+  "homeLabel": "Главная",
+  "homeFirstMealHint": "Нажмите +, чтобы добавить первый приём пищи или активность",
+  "homeDemoBannerLabel": "Вы просматриваете демо-данные",
+  "homeDemoBannerAction": "Настроить свой профиль",
+  "homeDemoBannerConfirmTitle": "Настроить свой профиль?",
+  "homeDemoBannerConfirmContent": "Демо-данные будут удалены, и вы настроите свой профиль. Отменить это нельзя.",
+  "homeDemoBannerConfirmAction": "Продолжить",
+  "trendsDailyAverageLabel": "Среднее в день",
+  "trendsLabel": "Тенденции",
+  "youLabel": "Вы",
+  "trendsCaloriesLabel": "Калории",
+  "trendsDaysOnTrack": "дней в норме на этой неделе",
+  "trendsDayStreakLabel": "дней подряд",
+  "trendsBestStreakLabel": "лучший результат",
+  "trendsPerWeekSuffix": "/неделю",
+  "trendsWeeksToGoalLabel": "недель до цели",
+  "trendsWaterLabel": "Вода",
+  "importAction": "Импорт",
+  "importActivityConfirmContent": "Эти активности будут добавлены на сегодня.",
+  "importActivityConfirmTitle": "Импортировать {count} активностей?",
+  "importActivityLabel": "Импортировать тренировку",
+  "importActivitySuccessLabel": "Тренировка импортирована",
+  "importCustomFoodDataDescription": "Импортируйте свои продукты из CSV-файла или вставив JSON. Скачайте пример, чтобы увидеть ожидаемый формат и обязательные поля.",
+  "importCustomFoodDataLabel": "Импорт своих продуктов",
+  "importMealConfirmContent": "Эти элементы будут добавлены в {mealType}.",
+  "importMealConfirmTitle": "Импортировать {count} элемент(ов)?",
+  "importMealErrorLabel": "Неверный QR-код",
+  "importMealLabel": "Импортировать приём пищи",
+  "importMealSuccessLabel": "Приём пищи импортирован",
+  "importMealsCsvAction": "Импорт приёмов пищи (csv)",
+  "importMealsJsonAction": "Импорт приёмов пищи (json)",
+  "importOffFetchFailedLabel": "Не удалось загрузить {count} элемент(ов) из OpenFoodFacts.",
+  "importRecipeConfirmContent": "Импортировать этот рецепт с {count} ингредиент(ами)?",
+  "importRecipeErrorLabel": "Не удалось распознать код рецепта",
+  "importRecipeLabel": "Импортировать рецепт",
+  "importRecipeSuccessLabel": "Рецепт импортирован",
+  "importRecipesCsvAction": "Импорт рецептов (csv)",
+  "importRecipesJsonAction": "Импорт рецептов (json)",
+  "inconsistentNutritionWarningBody": "Значения не сходятся — введённые калории не соответствуют энергии из углеводов, жиров и белков ниже. Сохранить как есть или проверить ещё раз?",
+  "inconsistentNutritionWarningEdit": "Проверить ещё раз",
+  "inconsistentNutritionWarningSaveAnyway": "Сохранить как есть",
+  "inconsistentNutritionWarningTitle": "Числа не сходятся",
+  "infoAddedActivityLabel": "Добавлена новая активность",
+  "infoAddedIntakeLabel": "Добавлен новый приём пищи",
+  "ironLabel": "железо",
+  "itemDeletedSnackbar": "Элемент удалён",
+  "itemUpdatedSnackbar": "Элемент обновлён",
+  "kcalGoalInfoActivityExplanation": "Калории, сожжённые в занесённых активностях, добавляются сверх вашей цели, поэтому запланированный дефицит или профицит остаётся прежним в дни тренировок.",
+  "kcalGoalInfoActivitySection": "Шаг 4 · Сегодняшняя активность",
+  "kcalGoalInfoAdjustmentExplanationFlat": "Ваша цель по весу задаёт фиксированную дневную корректировку: −500 ккал для похудения, +500 ккал для набора, 0 для поддержания.",
+  "kcalGoalInfoAdjustmentExplanationWeekly": "Ваш недельный темп задаёт дневную корректировку. 1 кг жировой массы хранит около 7700 ккал, поэтому каждый кг в неделю сдвигает цель примерно на 1100 ккал в день.",
+  "kcalGoalInfoAdjustmentSection": "Шаг 2 · Корректировка по цели веса",
+  "kcalGoalInfoAppliedAdjustmentLabel": "Применённая корректировка",
+  "kcalGoalInfoAveragedNote": "При усреднённом ориентире ваш TDEE — это среднее значение между мужским и женским ориентирами.",
+  "kcalGoalInfoBaseAdjustmentLabel": "Корректировка цели",
+  "kcalGoalInfoEstimateNote": "Все формулы — это оценки на уровне популяции, индивидуальные потребности отличаются. Ваша цель — отправная точка, а не медицинская рекомендация.",
+  "kcalGoalInfoFemaleReferenceLabel": "Женский ориентир",
+  "kcalGoalInfoInputsSection": "Ваши данные",
+  "kcalGoalInfoIntro": "Ваша дневная норма калорий рассчитывается по опубликованным научным уравнениям, используя только значения ниже. На этой странице показано каждое число, влияющее на сегодняшнюю норму.",
+  "kcalGoalInfoLearnMoreLabel": "Полная документация по расчёту",
+  "kcalGoalInfoMacroExplanation": "Ваша норма калорий делится на углеводы, жиры и белки по вашему распределению макросов (по умолчанию: 60% углеводов, 25% жиров, 15% белков — можно изменить в Настройках). Граммовые нормы следуют из энергетической плотности: углеводы и белки дают 4 ккал на грамм, жиры — 9 ккал на грамм.",
+  "kcalGoalInfoMacroSection": "Распределение макронутриентов",
+  "kcalGoalInfoMaleReferenceLabel": "Мужской ориентир",
+  "kcalGoalInfoManualExplanation": "Фиксированная поправка, которую вы задаёте сами в Настройках, если знаете, что ваши потребности отличаются от оценки.",
+  "kcalGoalInfoManualSection": "Шаг 3 · Ручная корректировка",
+  "kcalGoalInfoPaRowLabel": "Коэффициент активности (PA)",
+  "kcalGoalInfoPalRowLabel": "Уровень физической активности (PAL)",
+  "kcalGoalInfoResultSection": "Сегодняшняя норма калорий",
+  "kcalGoalInfoTaperNote": "Так как включено плавное снижение к целевому весу, корректировка уменьшается по мере приближения к цели (полный эффект при разнице более 5 кг, поддержание в пределах 1 кг).",
+  "kcalGoalInfoTdeeExplanation": "Ваш общий дневной расход энергии (TDEE) — энергия, которую вы тратите за обычный день — оценивается по уравнению IOM 2005 на основе возраста, веса, роста и уровня активности.",
+  "kcalGoalInfoTdeeResultLabel": "Ваш TDEE",
+  "kcalGoalInfoTdeeSection": "Шаг 1 · Энергия поддержания (TDEE)",
+  "kcalLabel": "ккал",
+  "kcalLeftLabel": "ккал осталось",
+  "kcalTooMuchLabel": "ккал превышено",
+  "kgLabel": "кг",
+  "kjLabel": "кДж",
+  "lbsLabel": "фунт",
+  "stLabel": "стоун",
+  "lunchExample": "напр. пицца, салат, рис ...",
+  "lunchLabel": "Обед",
+  "macroDistributionLabel": "Распределение макронутриентов:",
+  "magnesiumLabel": "магний",
+  "mealBrandsLabel": "Бренды",
+  "mealCarbsLabel": "Углеводы",
+  "mealDetailCurrentSelectionLabel": "(+{kcal} ккал текущий выбор)",
+  "mealDetailDayTotalLabel": "Итого за день: {consumed} / {goal}",
+  "mealEnergyLabel": "Энергия",
+  "mealFatLabel": "Жиры",
+  "mealImageLabel": "Добавить фото",
+  "mealImagePickFromGallery": "Выбрать из галереи",
+  "mealImageRemove": "Удалить фото",
+  "mealImageReplace": "Заменить фото",
+  "mealImageTakePhoto": "Сделать фото",
+  "mealKcalLabel": "ккал",
+  "mealNameLabel": "Название продукта",
+  "mealNameValidationError": "Название должно содержать хотя бы одну букву",
+  "mealNutrientsPerQtyLabel": "На {qty} {unit}",
+  "mealNutrientsTotalLabel": "Общее количество",
+  "mealPatternFiveSmall": "Пять малых приёмов",
+  "mealPatternMediterranean": "Средиземноморский",
+  "mealPatternOmad": "OMAD (одно блюдо в день)",
+  "mealPatternPresetsLabel": "Быстрые шаблоны",
+  "mealPatternStandard": "Стандартный",
+  "mealPatternTwoMeal": "Два приёма пищи",
+  "mealProteinLabel": "Белки",
+  "mealSizeLabel": "Размер упаковки",
+  "mealSizeLabelImperial": "Размер упаковки (унц./жидк.унц.)",
+  "mealUnitLabel": "Единица измерения",
+  "micronutrientsLabel": "Микронутриенты",
+  "milliliterUnit": "мл",
+  "missingProductInfo": "У продукта не хватает данных о калорийности или макронутриентах",
+  "monounsaturatedFatLabel": "мононенасыщенные жиры",
+  "newCustomMealLabel": "Новый свой продукт",
+  "niacinLabel": "ниацин (B3)",
+  "noActivityRecentlyAddedLabel": "Активности недавно не добавлялись",
+  "noMealsRecentlyAddedLabel": "Приёмы пищи недавно не добавлялись",
+  "noResultsFound": "Ничего не найдено",
+  "notAvailableLabel": "Н/Д",
+  "nothingAddedLabel": "Ничего не добавлено",
+  "notificationsDailyReminderBody": "Не забудьте занести сегодняшние приёмы пищи!",
+  "notificationsDailyReminderChannelName": "Ежедневные напоминания",
+  "notificationsDailyReminderChannelDescription": "Ежедневное напоминание о занесении приёмов пищи",
+  "notificationsDailyReminderTitle": "OpenNutriTracker",
+  "notificationsPermissionDeniedSnack": "В разрешении на уведомления отказано.",
+  "nutrientPanelAllHiddenLabel": "Все нутриенты скрыты — включите нужные в Настройках → Нутриенты.",
+  "nutrientPanelLimitLabel": "лимит",
+  "nutrientPanelDayLabel": "День",
+  "nutrientPanelWeekLabel": "Неделя",
+  "nutritionInfoLabel": "Информация о пищевой ценности",
+  "nutritionalStatusNormalWeight": "Норма",
+  "nutritionalStatusObeseClassI": "Ожирение I степени",
+  "nutritionalStatusObeseClassII": "Ожирение II степени",
+  "nutritionalStatusObeseClassIII": "Ожирение III степени",
+  "nutritionalStatusPreObesity": "Предожирение",
+  "nutritionalStatusRiskAverage": "Средний",
+  "nutritionalStatusRiskIncreased": "Повышенный",
+  "nutritionalStatusRiskLabel": "Риск сопутствующих заболеваний: {riskValue}",
+  "@nutritionalStatusRiskLabel": {
+    "placeholders": {
+      "riskValue": {
+        "type": "String"
+      }
+    }
+  },
+  "nutritionalStatusRiskLow": "Низкий \n(но риск других \nклинических проблем повышен)",
+  "nutritionalStatusRiskModerate": "Умеренный",
+  "nutritionalStatusRiskSevere": "Высокий",
+  "nutritionalStatusRiskVerySevere": "Очень высокий",
+  "nutritionalStatusUnderweight": "Недостаточный вес",
+  "offDisclaimer": "Данные, предоставляемые этим приложением, получены из базы Open Food Facts. Не может быть гарантирована точность, полнота или достоверность предоставленной информации. Данные предоставляются «как есть», и первоисточник данных (Open Food Facts) не несёт ответственности за любой ущерб, возникший в результате использования этих данных.",
+  "onboardingActivityQuestionSubtitle": "Насколько вы активны? (без учёта тренировок)",
+  "onboardingBirthdayHint": "Введите дату",
+  "onboardingBirthdayQuestionSubtitle": "Когда у вас день рождения?",
+  "onboardingEnterBirthdayLabel": "Дата рождения",
+  "onboardingGenderQuestionSubtitle": "Какой у вас пол?",
+  "onboardingGoalQuestionSubtitle": "Какая у вас сейчас цель по весу?",
+  "onboardingHeightExampleHintCm": "напр. 170",
+  "onboardingHeightExampleHintFt": "напр. 5.8",
+  "onboardingHeightQuestionSubtitle": "Какой у вас сейчас рост?",
+  "onboardingIntroDescription": "Для начала приложению нужна некоторая информация о вас, чтобы рассчитать вашу дневную норму калорий.\nВся информация о вас надёжно хранится на вашем устройстве.",
+  "onboardingIntroSourcesLinkLabel": "Прочитать источники наших медицинских расчётов",
+  "onboardingKcalPerDayLabel": "ккал в день",
+  "onboardingKjPerDayLabel": "кДж в день",
+  "onboardingNonBinaryDisclaimer": "Опубликованного ориентира по калориям для небинарных людей не существует, поэтому по умолчанию мы используем среднее мужской и женской формул — отправную точку, а не точную оценку. Вы можете точно настроить это в любой момент в Настройках → Расчёты.",
+  "onboardingOverviewLabel": "Обзор",
+  "onboardingSaveUserError": "Неверные данные, попробуйте снова",
+  "onboardingTargetWeightHintOptional": "Необязательно",
+  "onboardingTargetWeightSubtitle": "Есть ли вес, к которому вы стремитесь? Можно оставить пустым или изменить позже в Профиле.",
+  "onboardingTryDemoLabel": "Попробовать демо",
+  "onboardingTryDemoSubtitle": "Пропустить настройку и изучить приложение на примерных данных. Сначала примите политику конфиденциальности.",
+  "onboardingTryDemoDisclaimer": "Используются только вымышленные примерные данные. Отчёты о сбоях остаются выключенными, пока вы их не включите. Примерные фото и поиск продуктов могут использовать сеть.",
+  "onboardingTryDemoError": "Не удалось настроить демо-режим. Попробуйте снова.",
+  "onboardingWeightExampleHintKg": "напр. 60",
+  "onboardingWeightExampleHintLbs": "напр. 132",
+  "onboardingWeightQuestionSubtitle": "Какой у вас сейчас вес?",
+  "onboardingFoodUnitsSubtitle": "Как вы заносите еду и напитки",
+  "onboardingWelcomeLabel": "Добро пожаловать в",
+  "onboardingWrongHeightLabel": "Введите корректный рост",
+  "onboardingWrongWeightLabel": "Введите корректный вес",
+  "onboardingYourGoalLabel": "Ваша норма калорий:",
+  "onboardingYourMacrosGoalLabel": "Ваши цели по макронутриентам:",
+  "ozUnit": "унц.",
+  "paActiveVideoGames": "активные видеоигры",
+  "paActiveVideoGamesDesc": "Wii Sports, Dance Dance Revolution, общее",
+  "paAmericanFootballGeneral": "футбол (американский)",
+  "paAmericanFootballGeneralDesc": "тач, флаг, общее",
+  "paArcheryGeneral": "стрельба из лука",
+  "paArcheryGeneralDesc": "не охота",
+  "paAutoRacing": "автогонки",
+  "paAutoRacingDesc": "открытые колёса",
+  "paBackpackingGeneral": "поход с рюкзаком",
+  "paBackpackingGeneralDesc": "общее",
+  "paBadmintonGeneral": "бадминтон",
+  "paBadmintonGeneralDesc": "любительские одиночные и парные игры, общее",
+  "paBasketballGeneral": "баскетбол",
+  "paBasketballGeneralDesc": "общее",
+  "paBicyclingGeneral": "велосипед",
+  "paBicyclingGeneralDesc": "общее",
+  "paBicyclingMountainGeneral": "горный велосипед",
+  "paBicyclingMountainGeneralDesc": "общее",
+  "paBicyclingStationaryGeneral": "велотренажёр",
+  "paBicyclingStationaryGeneralDesc": "общее",
+  "paBilliardsGeneral": "бильярд",
+  "paBilliardsGeneralDesc": "общее",
+  "paBowlingGeneral": "боулинг",
+  "paBowlingGeneralDesc": "общее",
+  "paBoxingBag": "бокс",
+  "paBoxingBagDesc": "боксёрская груша",
+  "paBoxingGeneral": "бокс",
+  "paBoxingGeneralDesc": "на ринге, общее",
+  "paBroomball": "брумбол",
+  "paBroomballDesc": "общее",
+  "paCalisthenicsGeneral": "калистеника",
+  "paCalisthenicsGeneralDesc": "лёгкая или умеренная нагрузка, общее (напр., упражнения для спины)",
+  "paCanoeingGeneral": "каноэ",
+  "paCanoeingGeneralDesc": "гребля для удовольствия, общее",
+  "paCatch": "футбол или бейсбол",
+  "paCatchDesc": "игра в мяч на ловлю",
+  "paCheerleading": "чирлидинг",
+  "paCheerleadingDesc": "гимнастические элементы, соревновательный",
+  "paChildrenGame": "детские игры",
+  "paChildrenGameDesc": "(напр., классики, четыре квадрата, вышибалы, детская площадка, тибол, тезербол, шарики, аркадные игры), умеренная нагрузка",
+  "paClimbingHillsNoLoadGeneral": "подъём в гору без груза",
+  "paClimbingHillsNoLoadGeneralDesc": "без груза",
+  "paCricket": "крикет",
+  "paCricketDesc": "бэттинг, боулинг, полевая игра",
+  "paCroquet": "крокет",
+  "paCroquetDesc": "общее",
+  "paCrossCountrySkiing": "лыжи (беговые)",
+  "paCrossCountrySkiingDesc": "беговые лыжи, общее",
+  "paCurling": "керлинг",
+  "paCurlingDesc": "общее",
+  "paDancingAerobicGeneral": "аэробика",
+  "paDancingAerobicGeneralDesc": "общее",
+  "paDancingGeneral": "танцы",
+  "paDancingGeneralDesc": "напр. диско, народные, ирландские, лайн-данс, полька, контра, кантри",
+  "paDartsWall": "дартс",
+  "paDartsWallDesc": "настенный или на лужайке",
+  "paDivingGeneral": "дайвинг",
+  "paDivingGeneralDesc": "подводное плавание, скуба-дайвинг, общее",
+  "paDivingSpringboardPlatform": "прыжки в воду",
+  "paDivingSpringboardPlatformDesc": "с трамплина или вышки",
+  "paFencing": "фехтование",
+  "paFencingDesc": "общее",
+  "paFrisbee": "фрисби",
+  "paFrisbeeDesc": "общее",
+  "paGeneralDesc": "общее",
+  "paGolfGeneral": "гольф",
+  "paGolfGeneralDesc": "общее",
+  "paGymnasticsGeneral": "гимнастика",
+  "paGymnasticsGeneralDesc": "общее",
+  "paHackySack": "хэки-сэк",
+  "paHackySackDesc": "общее",
+  "paHandballGeneral": "гандбол",
+  "paHandballGeneralDesc": "общее",
+  "paHangGliding": "дельтапланеризм",
+  "paHangGlidingDesc": "общее",
+  "paHeadingBicycling": "велосипед",
+  "paHeadingConditionalExercise": "кондиционные упражнения",
+  "paHeadingDancing": "танцы",
+  "paHeadingRunning": "бег",
+  "paHeadingSports": "спорт",
+  "paHeadingWalking": "ходьба",
+  "paHeadingWaterActivities": "водные активности",
+  "paHeadingWinterActivities": "зимние активности",
+  "paHighIntensityIntervalExercise": "высокоинтенсивная интервальная тренировка",
+  "paHighIntensityIntervalExerciseDesc": "умеренная нагрузка",
+  "paHighIntensityIntervalExerciseVigorous": "высокоинтенсивная интервальная тренировка",
+  "paHighIntensityIntervalExerciseVigorousDesc": "берпи, скалолаз, прыжки из приседа, табата, высокая нагрузка",
+  "paHikingCrossCountry": "хайкинг",
+  "paHikingCrossCountryDesc": "по пересечённой местности",
+  "paHockeyField": "хоккей на траве",
+  "paHockeyFieldDesc": "общее",
+  "paHorseRidingGeneral": "верховая езда",
+  "paHorseRidingGeneralDesc": "общее",
+  "paIceHockeyGeneral": "хоккей на льду",
+  "paIceHockeyGeneralDesc": "общее",
+  "paIceSkatingGeneral": "катание на коньках",
+  "paIceSkatingGeneralDesc": "общее",
+  "paJaiAlai": "хай-алай",
+  "paJaiAlaiDesc": "общее",
+  "paJoggingGeneral": "трусца (джоггинг)",
+  "paJoggingGeneralDesc": "общее",
+  "paJuggling": "жонглирование",
+  "paJugglingDesc": "общее",
+  "paKayakingModerate": "каякинг",
+  "paKayakingModerateDesc": "умеренная нагрузка",
+  "paKickball": "кикбол",
+  "paKickballDesc": "общее",
+  "paLacrosse": "лакросс",
+  "paLacrosseDesc": "общее",
+  "paLawnBowling": "боулинг на траве",
+  "paLawnBowlingDesc": "петанк, на улице",
+  "paMartialArtsModerate": "боевые искусства",
+  "paMartialArtsModerateDesc": "разные виды, умеренный темп (напр., дзюдо, джиу-джитсу, карате, кикбоксинг, тхэквондо, тай-бо, муай-тай)",
+  "paMartialArtsSlower": "боевые искусства",
+  "paMartialArtsSlowerDesc": "разные виды, медленный темп, новички, отработка техники",
+  "paMotoCross": "мотокросс",
+  "paMotoCrossDesc": "внедорожный мотоспорт, квадроциклы, общее",
+  "paMountainClimbing": "скалолазание",
+  "paMountainClimbingDesc": "скалолазание или горное восхождение",
+  "paNordicWalking": "скандинавская ходьба",
+  "paOrienteering": "спортивное ориентирование",
+  "paOrienteeringDesc": "общее",
+  "paPaddleBoarding": "сапсёрфинг",
+  "paPaddleBoardingDesc": "стоя",
+  "paPaddleBoat": "педальная лодка",
+  "paPaddleBoatDesc": "общее",
+  "paPaddleball": "паддлбол",
+  "paPaddleballDesc": "непринуждённо, общее",
+  "paPickleball": "пиклбол",
+  "paPilates": "пилатес",
+  "paPoloHorse": "поло",
+  "paPoloHorseDesc": "верхом на лошади",
+  "paRacquetball": "рэкетбол",
+  "paRacquetballDesc": "общее",
+  "paResistanceTraining": "силовая тренировка",
+  "paResistanceTrainingDesc": "поднятие тяжестей, свободные веса, тренажёры",
+  "paResistanceTrainingVigorous": "силовая тренировка (интенсивная)",
+  "paResistanceTrainingVigorousDesc": "высокая нагрузка, пауэрлифтинг или бодибилдинг",
+  "paRodeoSportGeneralModerate": "родео",
+  "paRodeoSportGeneralModerateDesc": "общее, умеренная нагрузка",
+  "paRollerbladingLight": "роллер-блейды",
+  "paRollerbladingLightDesc": "катание на роликовых коньках",
+  "paRopeJumpingGeneral": "скакалка",
+  "paRopeJumpingGeneralDesc": "умеренный темп, 100-120 прыжков/мин, общее, на двух ногах, простой прыжок",
+  "paRopeSkippingGeneral": "прыжки со скакалкой",
+  "paRopeSkippingGeneralDesc": "общее",
+  "paRugbyCompetitive": "регби",
+  "paRugbyCompetitiveDesc": "юнион, команда, соревновательный",
+  "paRugbyNonCompetitive": "регби",
+  "paRugbyNonCompetitiveDesc": "тач-регби, несоревновательный",
+  "paRunningGeneral": "бег",
+  "paRunningGeneralDesc": "общее",
+  "paSailingGeneral": "парусный спорт",
+  "paSailingGeneralDesc": "яхтинг и виндсёрфинг, буерный спорт, общее",
+  "paShuffleboard": "шаффлборд",
+  "paShuffleboardDesc": "общее",
+  "paSkateboardingGeneral": "скейтбординг",
+  "paSkateboardingGeneralDesc": "общее, умеренная нагрузка",
+  "paSkatingRoller": "роликовые коньки",
+  "paSkatingRollerDesc": "общее",
+  "paSkiingGeneral": "лыжи",
+  "paSkiingGeneralDesc": "общее",
+  "paSkiingWaterWakeboarding": "водные лыжи",
+  "paSkiingWaterWakeboardingDesc": "водные лыжи или вейкбординг",
+  "paSkydiving": "прыжки с парашютом",
+  "paSkydivingDesc": "скайдайвинг, бейс-джампинг, банджи-джампинг",
+  "paSnorkeling": "снорклинг",
+  "paSnorkelingDesc": "общее",
+  "paSnowShovingModerate": "уборка снега",
+  "paSnowShovingModerateDesc": "вручную, умеренная нагрузка",
+  "paSnowshoeing": "снегоступы",
+  "paSoccerGeneral": "футбол",
+  "paSoccerGeneralDesc": "непринуждённо, общее",
+  "paSoftballBaseballGeneral": "софтбол / бейсбол",
+  "paSoftballBaseballGeneralDesc": "быстрая или медленная подача, общее",
+  "paSquashGeneral": "сквош",
+  "paSquashGeneralDesc": "общее",
+  "paStretching": "растяжка",
+  "paStretchingDesc": "лёгкая, общая",
+  "paSurfing": "сёрфинг",
+  "paSurfingDesc": "боди- или борд-сёрфинг, общее",
+  "paSwimmingGeneral": "плавание",
+  "paSwimmingGeneralDesc": "работа ногами на месте, умеренная нагрузка, общее",
+  "paTableTennisGeneral": "настольный теннис",
+  "paTableTennisGeneralDesc": "настольный теннис, пинг-понг",
+  "paTaiChiQiGongGeneral": "тай-чи, цигун",
+  "paTaiChiQiGongGeneralDesc": "общее",
+  "paTennisGeneral": "теннис",
+  "paTennisGeneralDesc": "общее",
+  "paTrackField": "лёгкая атлетика",
+  "paTrackField1Desc": "(напр., толкание ядра, метание диска, молота)",
+  "paTrackField2Desc": "(напр., прыжки в высоту, в длину, тройной, метание копья, прыжки с шестом)",
+  "paTrackField3Desc": "(напр., стипль-чез, барьерный бег)",
+  "paTrampolineLight": "батут",
+  "paTrampolineLightDesc": "любительский",
+  "paTreadmillRunning": "бег на беговой дорожке",
+  "paTreadmillRunningDesc": "на беговой дорожке, общее",
+  "paUnicyclingGeneral": "одноколёсный велосипед",
+  "paUnicyclingGeneralDesc": "общее",
+  "paVolleyballGeneral": "волейбол",
+  "paVolleyballGeneralDesc": "несоревновательный, команда 6-9 человек, общее",
+  "paWalkingForPleasure": "ходьба",
+  "paWalkingForPleasureDesc": "для удовольствия",
+  "paWalkingTheDog": "выгул собаки",
+  "paWalkingTheDogDesc": "общее",
+  "paWallyball": "уоллибол",
+  "paWallyballDesc": "общее",
+  "paWaterAerobics": "водная гимнастика",
+  "paWaterAerobicsDesc": "аквааэробика, водная калистеника",
+  "paWaterPolo": "водное поло",
+  "paWaterPoloDesc": "общее",
+  "paWaterVolleyball": "водный волейбол",
+  "paWaterVolleyballDesc": "общее",
+  "paWateraerobicsCalisthenics": "аквааэробика",
+  "paWateraerobicsCalisthenicsDesc": "аквааэробика, водная калистеника",
+  "paWrestling": "борьба",
+  "paWrestlingDesc": "общее",
+  "palActiveDescriptionLabel": "В основном стоя или ходьба на работе и активный отдых",
+  "palActiveLabel": "Активный",
+  "palLowActiveDescriptionLabel": "напр., сидя или стоя на работе и лёгкий отдых",
+  "palLowLActiveLabel": "Слабоактивный",
+  "palSedentaryDescriptionLabel": "напр., офисная работа и в основном сидячий отдых",
+  "palSedentaryLabel": "Сидячий образ жизни",
+  "palVeryActiveDescriptionLabel": "В основном ходьба, бег или переноска тяжестей на работе и активный отдых",
+  "palVeryActiveLabel": "Очень активный",
+  "pasteCodeHint": "Вставьте сюда код общего приёма пищи",
+  "pasteCodeLabel": "Вставить код",
+  "per100gmlLabel": "На 100 г/мл",
+  "perServingLabel": "На порцию",
+  "phosphorusLabel": "фосфор",
+  "polyunsaturatedFatLabel": "полиненасыщенные жиры",
+  "potassiumLabel": "калий",
+  "privacyPolicyLabel": "Политика конфиденциальности",
+  "profileLabel": "Профиль",
+  "profileTargetWeightClearAction": "Очистить",
+  "profileTargetWeightLabel": "Целевой вес",
+  "profileTargetWeightNotSetLabel": "Не задан",
+  "profileTargetWeightReached": "Вы достигли своей цели",
+  "profileTargetWeightToGo": "{value} до цели",
+  "profileWeightHistoryTitle": "История веса",
+  "proteinLabel": "белки",
+  "proteinLabelShort": "б",
+  "quantityLabel": "Количество",
+  "quickAddAddedSnack": "Добавлено в {mealType}",
+  "quickAddBottomSheetTitle": "Быстрое добавление",
+  "quickAddCardLabel": "Быстрое добавление",
+  "quickAddCarbsHint": "Углеводы (г, необязательно)",
+  "quickAddDefaultName": "Быстрое добавление",
+  "quickAddEnergyLabelKcal": "Энергия (ккал)",
+  "quickAddEnergyLabelKj": "Энергия (кДж)",
+  "quickAddFatHint": "Жиры (г, необязательно)",
+  "quickAddProteinHint": "Белки (г, необязательно)",
+  "quickAddSubmitLabel": "Добавить",
+  "quickAddTitleHint": "Название",
+  "readLabel": "Я прочитал(а) и принимаю политику конфиденциальности.",
+  "recentlyAddedLabel": "Недавние",
+  "recipeAddIngredientLabel": "Добавить ингредиент",
+  "recipeDeleteConfirmContent": "Прошлые записи в дневнике с этим рецептом будут сохранены.",
+  "recipeDeleteConfirmTitle": "Удалить рецепт?",
+  "recipeDescriptionLabel": "Описание (необязательно)",
+  "recipeImageLabel": "Добавить фото",
+  "recipeImagePickFromGallery": "Выбрать из галереи",
+  "recipeImageRemove": "Удалить фото",
+  "recipeImageReplace": "Заменить фото",
+  "recipeImageTakePhoto": "Сделать фото",
+  "recipeIngredientAmountLabel": "Количество",
+  "recipeIngredientCountLabel": "{count} ингредиент(ов)",
+  "recipeIngredientUnitLabel": "Единица",
+  "recipeIngredientsLabel": "Ингредиенты",
+  "recipeInvalidTotalWeightLabel": "Общий вес должен быть больше нуля",
+  "recipeLogCtaLabel": "Занести этот рецепт",
+  "recipeNameLabel": "Название рецепта",
+  "recipeNameRequiredLabel": "Рецепту нужно название",
+  "recipeNeedsIngredientsLabel": "Добавьте хотя бы один ингредиент",
+  "recipeNoIngredientsLabel": "Ингредиентов пока нет",
+  "recipeNutritionPer100Label": "На 100 г",
+  "recipeNutritionPreviewLabel": "Пищевая ценность (всего)",
+  "recipeSaveErrorLabel": "Не удалось сохранить рецепт.",
+  "recipeSaveForLaterDescription": "Включите, чтобы сохранить этот приём пищи в списке для использования в будущем. Оставьте выключенным для разового блюда.",
+  "recipeSaveForLaterLabel": "Сохранить на будущее",
+  "recipeSaveLabel": "Сохранить рецепт",
+  "recipeServingsCountHelper": "Позволяет заносить этот рецепт по порциям вместо граммов.",
+  "recipeServingsCountLabel": "Порций (необязательно)",
+  "recipeTagsHelper": "Через запятую, напр. «завтрак, веган»",
+  "recipeTagsLabel": "Теги",
+  "recipeTotalWeightHelper": "По умолчанию — сумма ингредиентов. Жидкости приблизительно считаются как 1 мл ≈ 1 г.",
+  "recipeTotalWeightLabel": "Общий вес (г)",
+  "recipesEmptyHint": "Соберите блюдо из нескольких ингредиентов и используйте его повторно как любой другой продукт.",
+  "recipesEmptyLabel": "Рецептов пока нет",
+  "recipesFilterAllLabel": "Все",
+  "recipesLabel": "Рецепты",
+  "recipesLoadErrorLabel": "Не удалось загрузить рецепты. Попробуйте позже.",
+  "reportErrorDialogText": "Сообщить разработчику об ошибке?",
+  "retryLabel": "Повторить",
+  "saturatedFatLabel": "насыщенные жиры",
+  "scanProductLabel": "Сканировать продукт",
+  "scannerManualEntryButton": "Ввести код вручную",
+  "scannerManualEntryCancel": "Отмена",
+  "scannerManualEntryDialogTitle": "Введите штрихкод",
+  "scannerManualEntryFieldHint": "от 8 до 14 цифр",
+  "scannerManualEntryInvalid": "Этот штрихкод выглядит некорректным. Проверьте цифры и попробуйте снова.",
+  "scannerManualEntrySubmit": "Найти",
+  "searchDefaultLabel": "Введите слово для поиска",
+  "searchFoodPage": "Еда",
+  "searchLabel": "Поиск",
+  "searchProductsPage": "Продукты",
+  "searchResultsLabel": "Результаты поиска",
+  "selectGenderDialogLabel": "Выберите пол",
+  "selectHeightDialogLabel": "Выберите рост",
+  "selectPalCategoryLabel": "Выберите уровень активности",
+  "selectWeightDialogLabel": "Выберите вес",
+  "selectionCountLabel": "выбрано: {count}",
+  "servingLabel": "Порция",
+  "servingSizeLabelImperial": "Одна порция (унц./жидк.унц.)",
+  "servingSizeLabelMetric": "Одна порция",
+  "settingAboutLabel": "О приложении",
+  "settingFeedbackLabel": "Обратная связь",
+  "settingsCalciumGoalDescription": "Дневная норма кальция в миллиграммах. По умолчанию — 1000 мг.",
+  "settingsCalciumGoalLabel": "Норма кальция",
+  "settingsCaloriesTaperDescription": "Постепенно снижает дневной дефицит, чтобы последние килограммы давались легче.",
+  "settingsCaloriesTaperLabel": "Корректировать норму калорий по мере приближения к цели",
+  "settingsCustomMealsLabel": "Свои продукты",
+  "settingsDayStartDescription": "Выберите час, с которого начинается ваш день. Приёмы пищи и активности, занесённые до этого часа, засчитываются в предыдущий день — полезно, если вы работаете по ночам или едите поздно.",
+  "settingsDayStartHourLabel": "{hour}:00",
+  "settingsDayStartHoursPickerLabel": "Часы",
+  "settingsDayStartLabel": "День начинается в",
+  "settingsDayStartMinutesPickerLabel": "Минуты",
+  "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "settingsDisclaimerLabel": "Предупреждение",
+  "settingsDistanceLabel": "Расстояние",
+  "settingsEnergyUnitLabel": "Единица энергии",
+  "settingsFibreGoalDescription": "Дневная норма клетчатки в граммах. По умолчанию — 30 г.",
+  "settingsFibreGoalLabel": "Норма клетчатки",
+  "settingsImperialLabel": "Имперская (фунты, футы, унции)",
+  "settingsKcalAdjustmentLabel": "Дневная корректировка ккал",
+  "settingsKcalGoalInfoLabel": "Как рассчитывается ваша норма",
+  "settingsIronGoalDescription": "Дневная норма железа в миллиграммах. По умолчанию зависит от пола (8 мг мужчины, 18 мг женщины, 14 мг для остальных).",
+  "settingsIronGoalLabel": "Норма железа",
+  "settingsCategoryAbout": "О приложении",
+  "settingsCategoryAppearance": "Внешний вид",
+  "settingsCategoryData": "Данные",
+  "settingsCategoryDisplay": "Отображение",
+  "settingsCategoryGoals": "Цели и питание",
+  "settingsCategoryUnits": "Единицы и энергия",
+  "settingsLabel": "Настройки",
+  "settingsLanguageLabel": "Язык",
+  "settingsMaterialYouTitle": "Использовать системные цвета",
+  "settingsMaterialYouSubtitle": "Подстроить под акцент обоев на Android 12 и новее.",
+  "settingsAccentColourTitle": "Акцентный цвет",
+  "settingsAccentSubtitleMaterialYou": "Material You",
+  "settingsAccentSubtitleCustom": "Свой",
+  "settingsAccentSubtitleDefault": "По умолчанию",
+  "settingsAccentPresetsHeader": "Выберите цвет",
+  "settingsAccentCustomColour": "Свой цвет…",
+  "settingsAccentCustomSubtitle": "Открыть выбор оттенка для точной настройки",
+  "settingsAccentHexLabel": "Hex-код",
+  "settingsAccentHexInvalid": "Этот hex-код выглядит некорректным — шесть символов, 0-9 и A-F.",
+  "settingsAccentHueTitle": "Акцентный цвет",
+  "settingsAccentHueDisabledHint": "Отключите системные цвета, чтобы выбрать свой акцент.",
+  "settingsAccentHueReset": "Сбросить",
+  "settingsMacroSplitLabel": "Распределение макросов",
+  "settingsLicensesLabel": "Лицензии",
+  "settingsMagnesiumGoalDescription": "Дневная норма магния в миллиграммах. По умолчанию зависит от пола (400 мг мужчины, 310 мг женщины, 355 мг для остальных).",
+  "settingsMagnesiumGoalLabel": "Норма магния",
+  "settingsMassLabel": "Масса",
+  "settingsMetricLabel": "Метрическая (кг, см, мл)",
+  "settingsNotificationsLabel": "Ежедневное напоминание",
+  "settingsNotificationsTimeLabel": "Время напоминания: {time}",
+  "settingsNutrientGoalsHint": "Личные нормы для каждого нутриента на дневной панели. Дневник использует их вместо стандартных норм, если вы задали свою.",
+  "settingsNutrientGoalsLabel": "Нормы нутриентов",
+  "settingsNutrientsHelp": "Выберите, какие нутриенты отображаются на дневной панели. Скрытые можно включить обратно в любой момент.",
+  "settingsNutrientsLabel": "Нутриенты",
+  "settingsNutrientsSubtitle": "Выберите, какие нутриенты отображаются на панели дневника",
+  "settingsPerMealKcalShareBreakfast": "Завтрак",
+  "settingsPerMealKcalShareDescription": "Распределите дневную норму ккал между завтраком, обедом, ужином и перекусами. Доли должны в сумме давать 100%.",
+  "settingsPerMealKcalShareDinner": "Ужин",
+  "settingsPerMealKcalShareLabel": "Доля ккал по приёмам пищи",
+  "settingsPerMealKcalShareLunch": "Обед",
+  "settingsPerMealKcalShareSnack": "Перекус",
+  "settingsPotassiumGoalDescription": "Дневная норма калия в миллиграммах. По умолчанию — 3500 мг.",
+  "settingsPotassiumGoalLabel": "Норма калия",
+  "settingsPrivacySettings": "Настройки конфиденциальности",
+  "settingsDemoPrivacyNote": "Отчёты о сбоях недоступны при просмотре демо-данных. Сначала настройте свой профиль.",
+  "settingsReportErrorLabel": "Сообщить об ошибке",
+  "settingsSaturatedFatGoalDescription": "Дневной лимит насыщенных жиров в граммах. По умолчанию — 20 г.",
+  "settingsSaturatedFatGoalLabel": "Норма насыщенных жиров",
+  "settingsShowActivityTracking": "Показывать отслеживание активности",
+  "settingsShowMealMacros": "Показывать макросы приёма пищи",
+  "settingsShowMicronutrientsLabel": "Показывать микронутриенты",
+  "settingsSodiumGoalDescription": "Дневной лимит натрия в миллиграммах. По умолчанию — 2300 мг.",
+  "settingsSodiumGoalLabel": "Норма натрия",
+  "settingsSourceCodeLabel": "Исходный код",
+  "settingsSourcesLabel": "Источники и ссылки",
+  "settingsSugarsGoalDescription": "Дневной лимит сахара в граммах. По умолчанию — 50 г.",
+  "settingsSugarsGoalLabel": "Норма сахара",
+  "settingsSystemLabel": "Системная",
+  "settingsThemeDarkLabel": "Тёмная",
+  "settingsThemeLabel": "Тема",
+  "settingsThemeLightLabel": "Светлая",
+  "settingsThemeSystemDefaultLabel": "Как в системе",
+  "settingsUnitsLabel": "Единицы измерения",
+  "settingsFoodUnitsLabel": "Единицы продуктов",
+  "settingsHeightUnitsLabel": "Единицы роста",
+  "settingsBodyWeightUnitLabel": "Единица веса тела",
+  "settingsFoodUnitsMetric": "Метрическая (г, кг, мл, л)",
+  "settingsFoodUnitsImperial": "Имперская (фунты, унции, жидк.унц.)",
+  "settingsHeightUnitsMetric": "Метрическая (мм, см, м)",
+  "settingsHeightUnitsImperial": "Имперская (футы, дюймы)",
+  "settingsVitaminB12GoalDescription": "Дневная норма витамина B12 в микрограммах. По умолчанию — 2,4 мкг.",
+  "settingsVitaminB12GoalLabel": "Норма витамина B12",
+  "settingsVitaminDGoalDescription": "Дневная норма витамина D в микрограммах. По умолчанию — 15 мкг.",
+  "settingsVitaminDGoalLabel": "Норма витамина D",
+  "settingsVolumeLabel": "Объём",
+  "shareActivityLabel": "Поделиться тренировкой",
+  "shareCodeLabel": "Поделиться кодом",
+  "shareMealLabel": "Поделиться приёмом пищи",
+  "shareRecipeLabel": "Поделиться рецептом",
+  "snackExample": "напр. яблоко, мороженое, шоколад ...",
+  "snackLabel": "Перекус",
+  "sodiumLabel": "натрий",
+  "sourcesActivityDescription": "Калории, сожжённые во время активности, оцениваются как МЕТ × масса тела (кг) × продолжительность (часы), по значениям из «Сборника физических активностей для взрослых».",
+  "sourcesActivityTitle": "Калории активности (значения МЕТ)",
+  "sourcesBmiDescription": "ИМТ рассчитывается как вес (кг), делённый на квадрат роста (м²). Категории (недостаточный вес, норма, предожирение, ожирение I–III степени) следуют классификации ИМТ взрослых от Всемирной организации здравоохранения.",
+  "sourcesBmiTitle": "Индекс массы тела (ИМТ)",
+  "sourcesEnergyDescription": "Дневные нормы калорий, базовый обмен веществ и коэффициенты физической активности используют уравнения Института медицины. Источник: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, глава 5 и таблица 5-5.",
+  "sourcesEnergyTitle": "Потребности в энергии (TDEE, BMR и уровень активности)",
+  "sourcesIconTooltip": "Посмотреть источники",
+  "sourcesMacrosDescription": "Распределение по умолчанию (60% углеводов, 25% жиров, 15% белков) находится в пределах диапазонов потребления, опубликованных ВОЗ. Можно изменить в Настройках → Расчёты. Источник: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
+  "sourcesMacrosTitle": "Распределение макронутриентов",
+  "sourcesNonBinaryDescription": "Исследования расхода энергии исторически использовали бинарные категории пола, поэтому единой проверенной формулы TDEE для небинарных людей не существует. Поэтому OpenNutriTracker позволяет выбрать усреднённый, эстроген-типичный или тестостерон-типичный ориентир в Настройках → Расчёты. Если точное число действительно важно для вашего лечения, обратитесь к врачу, знакомому с вашим гормональным статусом.",
+  "sourcesNutrientReferenceTitle": "Рекомендуемые нормы потребления нутриентов",
+  "sourcesNutrientReferenceDescription": "Дневные нормы, показанные на панели нутриентов дневника, взяты из сводки рекомендуемых норм потребления Института медицины, охватывающей нормы по каждому нутриенту для взрослых.",
+  "sourcesNonBinaryTitle": "Оценка калорий для небинарных людей",
+  "sourcesOpenSourceLabel": "Посмотреть источник",
+  "sourcesScreenIntro": "OpenNutriTracker использует проверенные, рецензируемые методики для каждого показанного расчёта. Ссылки ниже ведут на первоисточники, чтобы вы могли сами проверить любое число.",
+  "sugarLabel": "сахар",
+  "suppliedLabel": "предоставлено",
+  "transFatLabel": "трансжиры",
+  "unitLabel": "Единица",
+  "vitaminALabel": "витамин A",
+  "vitaminB12Label": "витамин B12",
+  "vitaminB6Label": "витамин B6",
+  "vitaminCLabel": "витамин C",
+  "vitaminDLabel": "витамин D",
+  "warningLabel": "Предупреждение",
+  "weeklyWeightGoalKgPerWeek": "{rate} кг/неделю",
+  "weeklyWeightGoalLabel": "Недельный темп",
+  "weeklyWeightGoalLbsPerWeek": "{rate} фунт/неделю",
+  "weeklyWeightGoalNoneLabel": "Не задан",
+  "weightHistoryAddEntry": "Добавить запись",
+  "weightHistoryChartEmptyState": "Занесите хотя бы два дня, чтобы увидеть тенденцию.",
+  "weightHistoryDateLabel": "Дата",
+  "weightHistoryNoEntries": "Показаний веса пока нет. Добавьте первое, чтобы начать отслеживать тенденцию.",
+  "weightHistoryNoteLabel": "Заметка (необязательно)",
+  "weightHistoryWeightLabel": "Вес",
+  "weightLabel": "Вес",
+  "yearsLabel": "{age} лет",
+  "@yearsLabel": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "logWaterAmountLabel": "Добавить {amount} мл",
+  "logWaterDialogTitle": "Занести приём воды",
+  "logWaterNothingToUndoLabel": "Нечего отменять",
+  "logWaterUndoLabel": "Отменить последнее",
+  "mlLabel": "мл",
+  "settingsWaterGoalDescription": "Используется чипом воды на главном экране.",
+  "settingsWaterGoalLabel": "Дневная норма воды",
+  "waterChipLabel": "{current} / {goal} мл",
+  "zincLabel": "цинк",
+  "profileFastingEntry": "Таймер голодания",
+  "fastingTitle": "Таймер голодания",
+  "fastingSubtitle": "Простой таймер для отслеживания времени между приёмами пищи. Без серий, без целей — просто часы.",
+  "fastingWarningTitle": "Перед началом",
+  "fastingWarningBody": "Отслеживание времени голодания может быть полезным для одних людей и тревожным для других, особенно для тех, у кого в прошлом были расстройства пищевого поведения. Если это про вас, пожалуйста, позаботьтесь о себе в первую очередь. Поддержка доступна от BEAT (Великобритания) и NEDA (США).",
+  "fastingWarningDecline": "Это не для меня",
+  "fastingWarningAccept": "Понимаю, включить таймер",
+  "fastingPresetCustom": "Свой",
+  "fastingStart": "Начать таймер",
+  "fastingCancel": "Завершить голодание",
+  "fastingCancelConfirmTitle": "Завершить голодание сейчас?",
+  "fastingCancelConfirmBody": "Это закроет текущую сессию.",
+  "fastingComplete": "Сессия завершена",
+  "fastingLinkBeat": "BEAT (Великобритания)",
+  "fastingLinkNeda": "NEDA (США)",
+  "fastingElapsedLabel": "Прошло",
+  "fastingRemainingValue": "осталось {value}",
+  "@fastingRemainingValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingTargetValue": "Цель: {value}",
+  "@fastingTargetValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "hoursLabel": "часы",
+  "dialogCloseLabel": "Закрыть",
+  "customMealsRowMoreTooltip": "Ещё действия",
+  "customMealsMergeAction": "Объединить с другим своим продуктом",
+  "customMealsMergePickerTitle": "Выберите свой продукт для объединения",
+  "customMealsMergeChooseSurvivorTitle": "Какой из них останется?",
+  "customMealsMergeContinueAction": "Продолжить",
+  "customMealsMergeConfirmTitle": "Объединить свои продукты?",
+  "customMealsMergeConfirmContent": "Это заменит все записи с {loser} на {winner} и удалит {loser} из ваших своих продуктов. Отменить это нельзя.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsMergeConfirmAction": "Объединить",
+  "customMealsMergeSuccessSnackbarOne": "Объединено — у {winner} теперь 1 запись.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Объединено — у {winner} теперь {count} записей.",
+  "@customMealsMergeSuccessSnackbarOther": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingHomeChipBody": "Голодание · осталось {remaining}",
+  "@fastingHomeChipBody": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingNotificationChannelName": "Таймер голодания",
+  "fastingNotificationChannelDescription": "Разовые уведомления по достижении цели сессии голодания.",
+  "fastingNotificationCompleteTitle": "Сессия голодания завершена",
+  "fastingNotificationCompleteBody": "Вы достигли целевого времени.",
+  "profileImageLabel": "Добавить фото",
+  "profileImageReplace": "Изменить фото",
+  "profileImageRemove": "Удалить фото",
+  "switchProfileLabel": "Сменить профиль",
+  "addProfileLabel": "Добавить профиль",
+  "manageProfilesLabel": "Управление профилями",
+  "editProfileTitle": "Изменить профиль",
+  "profileNameLabel": "Имя",
+  "profileNameHint": "Название профиля",
+  "defaultProfileName": "Профиль 1",
+  "profileActiveLabel": "Активный",
+  "deleteProfileConfirmTitle": "Удалить профиль?",
+  "deleteProfileConfirmContent": "Это навсегда удалит профиль и все его данные, отменить это нельзя.",
+  "copyToProfileLabel": "Скопировать в профиль",
+  "copiedToProfileSnackbar": "Приём пищи скопирован в профиль",
+  "copyActionLabel": "Копировать",
+  "quickAddActivityTitleLabel": "Быстрое добавление активности",
+  "quickAddActivityDurationLabel": "Длительность (мин, необязательно)",
+  "quickAddActivityEnergyLabelKcal": "Сожжено энергии (ккал)",
+  "quickAddActivityEnergyLabelKj": "Сожжено энергии (кДж)",
+  "quickAddActivityAddedSnack": "Активность добавлена",
+  "quickAddActivityNameLabel": "Название (необязательно)",
+  "scannerLockOrientationTooltip": "Закрепить книжную ориентацию",
+  "scannerUnlockOrientationTooltip": "Разрешить поворот"
+}
