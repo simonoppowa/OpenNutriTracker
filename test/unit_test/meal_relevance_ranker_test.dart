@@ -28,6 +28,26 @@ MealEntity _meal({
   );
 }
 
+/// A record with no code, which no real backend row is — every row carries
+/// its id — and which the dedup keys therefore have to fall back on.
+MealEntity _codeless(
+  String name, {
+  MealSourceEntity source = MealSourceEntity.fdc,
+  String? brands,
+}) => MealEntity(
+  code: null,
+  name: name,
+  brands: brands,
+  url: null,
+  mealQuantity: null,
+  mealUnit: 'g',
+  servingQuantity: null,
+  servingUnit: 'g',
+  servingSize: null,
+  nutriments: MealNutrimentsEntity.empty(),
+  source: source,
+);
+
 void main() {
   group('scoreMealRelevance', () {
     test('scores an exact name match at the maximum', () {
@@ -300,25 +320,55 @@ void main() {
       // The backend key is `source:code`; without a code it falls back to
       // the record's identity, not to an empty string, so two codeless
       // records do not share a key and quietly become one entry.
-      MealEntity codeless(String name) => MealEntity(
-        code: null,
-        name: name,
-        url: null,
-        mealQuantity: null,
-        mealUnit: 'g',
-        servingQuantity: null,
-        servingUnit: 'g',
-        servingSize: null,
-        nutriments: MealNutrimentsEntity.empty(),
-        source: MealSourceEntity.fdc,
-      );
-      final wholeRaw = codeless('Egg, whole, raw');
-      final yolkOnly = codeless('Egg, yolk only, raw');
+      final wholeRaw = _codeless('Egg, whole, raw');
+      final yolkOnly = _codeless('Egg, yolk only, raw');
 
       final merged = mergeAndRankMeals([], [wholeRaw, yolkOnly], 'egg');
 
       expect(merged, containsAll([wholeRaw, yolkOnly]));
       expect(merged, hasLength(2));
+    });
+
+    test('never collapses two codeless backend records with the same name', () {
+      // The cross-source dedup runs before the near-duplicate collapse and
+      // keyed a codeless meal on `source:name`, so two codeless backend
+      // siblings sharing a description were one entry before the collapse
+      // — whose rule is that a backend record is never collapsed — ever
+      // saw them (#1170 review). A real backend row always carries its id
+      // as its code; keying the codeless case on identity makes the
+      // guarantee exact rather than reachable.
+      final first = _codeless('Egg, whole, raw');
+      final second = _codeless('Egg, whole, raw');
+
+      final merged = mergeAndRankMeals([], [first, second], 'egg');
+
+      expect(merged, hasLength(2));
+      expect(identical(merged[0], first), isTrue);
+      expect(identical(merged[1], second), isTrue);
+    });
+
+    test('the same codeless backend object listed twice is still one entry', () {
+      // Identity is the key, so one object is one entry however many lists
+      // carried it.
+      final record = _codeless('Egg, whole, raw');
+
+      final merged = mergeAndRankMeals([record], [record], 'egg');
+
+      expect(merged, [record]);
+    });
+
+    test('codeless OFF products still dedupe on their name, as before', () {
+      // The identity key is the backend's departure only. A codeless OFF
+      // product keeps the `source:name` fallback, which is blind to brand
+      // — two differently-branded copies are one entry here, before the
+      // brand-aware collapse could have kept them apart.
+      final first = _codeless('Whole Milk', source: MealSourceEntity.off, brands: 'A');
+      final second = _codeless('Whole Milk', source: MealSourceEntity.off, brands: 'B');
+
+      final merged = mergeAndRankMeals([first], [second], 'milk');
+
+      expect(merged, hasLength(1));
+      expect(identical(merged.single, first), isTrue);
     });
 
     test('never collapses a backend record, even a lower-scoring one, into a detailed OFF copy', () {

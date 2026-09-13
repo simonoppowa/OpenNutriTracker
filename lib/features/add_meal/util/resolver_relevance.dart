@@ -68,6 +68,21 @@ const _machineTranslatedPenalty = 0.03;
 /// fresh ones by this penalty alone: 0.85 against 1.0, above the
 /// confidence floor. That is a gap between this rule and the data it is
 /// given, not something the rule can see; #1164's review records it.
+///
+/// A fresh result with no portions is read one more way. The page's
+/// portions come from a second call after the search itself, and when
+/// that call fails the page arrives whole and every record on it is bare
+/// — not because the backend has no portion for any of them, but because
+/// nobody could ask. Penalising the whole page for that reported a search
+/// that succeeded as a guess (a 0.5 match at 0.35, under the floor) and
+/// put a bare backend record behind an OFF product it had outscored
+/// (#1170 review). `ProductsRepository` marks those entities
+/// `MealEntity.portionsUnavailable`, and this penalty stands down for
+/// them: the record is scored on its text alone, as if the question had
+/// not been asked, which is the truth of it. The flag is not persisted
+/// either, so a cached copy is never "unavailable" — it is penalised as
+/// above, and the entity's comment says why that is the right answer for
+/// a row the page did not return.
 const _noPortionsPenalty = 0.15;
 
 /// Scores [meal] against [query] on a 0.0-1.0 scale, tolerant of
@@ -112,7 +127,12 @@ double scoreMealForResolution(MealEntity meal, String query) {
   // every OFF product in the pool, which is not what #1164 decided. The
   // `fdc` source tag covers every backend source (see
   // `MealEntity.backendSource`), so BLS and INDB records are in scope.
-  if (meal.source == MealSourceEntity.fdc && meal.portions.isEmpty) {
+  // And only where the emptiness is the backend's answer: a record whose
+  // lookup failed is bare for a reason that says nothing about it (see
+  // [_noPortionsPenalty]).
+  if (meal.source == MealSourceEntity.fdc &&
+      meal.portions.isEmpty &&
+      !meal.portionsUnavailable) {
     score -= _noPortionsPenalty;
   }
 

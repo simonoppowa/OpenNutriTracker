@@ -107,6 +107,32 @@ class MealEntity extends Equatable {
   /// row then behaves exactly as it did before portions existed.
   final List<MealPortionEntity> portions;
 
+  /// True when [portions] is empty because the lookup that fills it could
+  /// not be made — not because the backend has none for this food.
+  ///
+  /// The two look the same on the entity and mean opposite things to the
+  /// resolver, which takes 0.15 off a backend record with no portion
+  /// (`_noPortionsPenalty` in `resolver_relevance.dart`): a food the backend
+  /// has no portion for cannot scale the amount the resolver logs, and the
+  /// penalty is right; a page whose portion lookup failed in transit tells
+  /// nothing about any food on it, and the penalty would report a search
+  /// that succeeded as a guess (#1170 review). Only `ProductsRepository`
+  /// sets this, through [withPortionsUnavailable], on the entities of a
+  /// page whose lookup answered null.
+  ///
+  /// Never persisted: `MealDBO` has no column for it, as it has none for
+  /// [portions], so a copy read back from the search cache is neither
+  /// flagged nor portioned and the resolver penalises it as it always has.
+  /// That is deliberate. The cache cannot say whether the backend has a
+  /// portion for the row — it never stored one — and a cached copy cannot
+  /// scale an amount whatever the backend holds, which is what the penalty
+  /// measures; when this search's page did return the row, the fresh
+  /// entity, flag or portions and all, stands in the cached copy's slot
+  /// (`SearchProductsUseCase._freshest`). What is left penalised is a row
+  /// the page did not return, and that is the gap `_noPortionsPenalty`'s
+  /// comment already records.
+  final bool portionsUnavailable;
+
   /// Relative path (`meal_images/<code>.webp`) to a user-attached photo
   /// for a custom meal, or null if none is set. Resolved to an absolute
   /// path at render time via `MealImageStorage.absolutePath`. Always
@@ -208,6 +234,7 @@ class MealEntity extends Equatable {
     this.machineTranslatedName = false,
     this.servingSizeIsLocalized = false,
     this.portions = const [],
+    this.portionsUnavailable = false,
     this.localImagePath,
     this.detailed = false,
   });
@@ -238,6 +265,7 @@ class MealEntity extends Equatable {
     machineTranslatedName: machineTranslatedName,
     servingSizeIsLocalized: true,
     portions: portions,
+    portionsUnavailable: portionsUnavailable,
     localImagePath: localImagePath,
     detailed: detailed,
   );
@@ -265,6 +293,35 @@ class MealEntity extends Equatable {
     machineTranslatedName: machineTranslatedName,
     servingSizeIsLocalized: servingSizeIsLocalized,
     portions: found,
+    portionsUnavailable: portionsUnavailable,
+    localImagePath: localImagePath,
+    detailed: detailed,
+  );
+
+  /// The same meal, recording that its portions could not be looked up.
+  ///
+  /// [portions] stays as it is — empty, on the one path that calls this —
+  /// and nothing else moves; see [portionsUnavailable] for what the flag
+  /// changes and where it is read.
+  MealEntity withPortionsUnavailable() => MealEntity(
+    code: code,
+    name: name,
+    brands: brands,
+    thumbnailImageUrl: thumbnailImageUrl,
+    mainImageUrl: mainImageUrl,
+    url: url,
+    mealQuantity: mealQuantity,
+    mealUnit: mealUnit,
+    servingQuantity: servingQuantity,
+    servingUnit: servingUnit,
+    servingSize: servingSize,
+    nutriments: nutriments,
+    source: source,
+    backendSource: backendSource,
+    machineTranslatedName: machineTranslatedName,
+    servingSizeIsLocalized: servingSizeIsLocalized,
+    portions: portions,
+    portionsUnavailable: true,
     localImagePath: localImagePath,
     detailed: detailed,
   );

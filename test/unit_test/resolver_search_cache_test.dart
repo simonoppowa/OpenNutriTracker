@@ -299,6 +299,57 @@ void main() {
     });
   });
 
+  group('a page whose portion lookup failed', () {
+    /// [fresh] as `ProductsRepository` hands it over when the search
+    /// answered and the portion lookup did not: the row, no portions, and
+    /// the mark that says why.
+    List<MealEntity> withoutPortions(List<MealEntity> fresh) => [
+      for (final meal in fresh)
+        MealEntity.fromMealDBO(
+          MealDBO.fromMealEntity(meal),
+        ).withPortionsUnavailable(),
+    ];
+
+    test(
+      'egg resolves as it does with portions, first search and next',
+      () async {
+        // Every record is bare for a reason that says nothing about it, so
+        // none is penalised: the same winner at the same confidence as the
+        // portioned page gives, and not flagged as a guess. On the second
+        // search the fresh entity stands in the cached copy's slot, mark and
+        // all — the cache never stored the mark, and must not have to.
+        repository.fdc['egg'] = withoutPortions(BackendSiblingFixtures.egg);
+
+        final first = await resolveOne('egg');
+        final second = await resolveOne('egg');
+
+        for (final resolved in [first, second]) {
+          expect(resolved.selected!.name, 'Egg, creamed');
+          expect(resolved.selected!.portions, isEmpty);
+          expect(resolved.selected!.portionsUnavailable, isTrue);
+          expect(resolved.confidence, 1.0);
+          expect(resolved.isLowConfidence, isFalse);
+          expect(resolved.candidates, hasLength(4));
+        }
+      },
+    );
+
+    test('a soft match stays above the floor', () async {
+      // The number the review measured: penalised, a 0.5 match reported
+      // 0.35 and the item was flagged as a guess for a search that had
+      // succeeded.
+      repository.fdc['scrambled egg toast'] = withoutPortions([
+        BackendSiblingFixtures.eggWholeRaw,
+      ]);
+
+      final resolved = await resolveOne('scrambled egg toast');
+
+      expect(resolved.selected!.name, 'Egg, whole, raw');
+      expect(resolved.confidence, closeTo(0.5, 1e-9));
+      expect(resolved.isLowConfidence, isFalse);
+    });
+  });
+
   group('a record held only in the cache', () {
     test('is scored on its title beside fresh siblings', () async {
       // The sibling the user logged is in the cache and nowhere in this

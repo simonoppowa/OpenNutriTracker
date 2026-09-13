@@ -103,7 +103,10 @@ class SpFoodDataSource {
   /// Empty rather than throwing on anything unusual — no locale, no verified
   /// translations, a backend that refused. The caller's fallback is the
   /// English label it already has, which is what it shows today, so a failure
-  /// here costs nothing and must never cost a search.
+  /// here costs nothing and must never cost a search. Unlike [fetchPortions]
+  /// it does not say whether it failed: nothing downstream scores a label,
+  /// and "no verified label" and "could not ask" both leave the English one
+  /// where it was.
   ///
   /// Resolves the locale here rather than taking one, because this class
   /// already owns that decision for the search itself and two answers would
@@ -133,18 +136,31 @@ class SpFoodDataSource {
     }
   }
 
-  /// Every usable portion per food id, in the backend's order.
+  /// Every usable portion per food id, in the backend's order — or null when
+  /// the backend could not be asked.
   ///
-  /// Same failure policy as [fetchPortionLabels]: empty for anything unusual,
-  /// because the caller's fallback is the single serving it already has, and
-  /// a portion list is not worth costing anyone a search.
+  /// Never throws, as [fetchPortionLabels] never throws: the caller's
+  /// fallback is the single serving it already has, and a portion list is
+  /// not worth costing anyone a search. But a failure here is not an empty
+  /// answer, and the two are told apart because something downstream reads
+  /// the difference: the resolver takes 0.15 off a backend record with no
+  /// portion (`_noPortionsPenalty` in `resolver_relevance.dart`), and after
+  /// a transient failure of this one call every record on a page the search
+  /// itself answered would have taken it — a 0.5 match reported at 0.35,
+  /// under the confidence floor, for a fault in a lookup the record never
+  /// had a say in (#1170 review). So: a map, with no entry for a food the
+  /// backend has no portion for, when the backend answered; null when it
+  /// did not. `ProductsRepository` marks the page's entities
+  /// `portionsUnavailable` on null, and the penalty stands down for them.
   ///
   /// Unlike the label lookup this runs for English too — the choice between a
   /// food's cup, slice and ounce is worth offering whether or not the words
   /// needed translating.
-  Future<Map<int, List<MealPortionEntity>>> fetchPortions(
+  Future<Map<int, List<MealPortionEntity>>?> fetchPortions(
     List<int> foodIds,
   ) async {
+    // Nothing to ask about is not a failure: an empty page has no record to
+    // penalise or to spare.
     if (foodIds.isEmpty) return const {};
     final locale = SPConst.translationLocaleOf(
       SupportedLanguage.fromCode(Platform.localeName),
@@ -178,8 +194,8 @@ class SpFoodDataSource {
       }
       return byFood;
     } catch (e) {
-      log.fine('No portions fetched: $e');
-      return const {};
+      log.fine('Portions unavailable: $e');
+      return null;
     }
   }
 

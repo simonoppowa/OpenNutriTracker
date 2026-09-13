@@ -11,6 +11,7 @@ MealEntity meal(
   String? brands,
   String? code,
   int portions = 0,
+  bool portionsUnavailable = false,
   bool detailed = false,
 }) => MealEntity(
   code: code ?? name,
@@ -27,6 +28,7 @@ MealEntity meal(
   source: source,
   detailed: detailed,
   nutriments: MealNutrimentsEntity.empty(),
+  portionsUnavailable: portionsUnavailable,
   portions: [
     for (var i = 0; i < portions; i++)
       MealPortionEntity(
@@ -565,6 +567,70 @@ void main() {
       final without = meal('Orange juice', source: MealSourceEntity.fdc);
 
       expect(scoreMealRelevance(without, 'orange juice'), 1.0);
+    });
+
+    test('a record whose portion lookup failed is not penalised', () {
+      // The page's portions come from a second call, and when that call
+      // fails every record on a page the search itself answered is bare —
+      // a fact about the call, not the food. Penalised, a 0.5 match was
+      // reported at 0.35, under the 0.45 floor, for a search that had
+      // succeeded (#1170 review). Marked unavailable, the record is scored
+      // on its text alone, as if the question had not been asked.
+      final unavailable = meal(
+        'Orange juice, 100%, NFS',
+        source: MealSourceEntity.fdc,
+        portionsUnavailable: true,
+      );
+      final bare = meal('Orange juice, 100%, NFS', source: MealSourceEntity.fdc);
+
+      expect(scoreMealForResolution(unavailable, 'orange juice'), 1.0);
+      expect(
+        scoreMealForResolution(bare, 'orange juice'),
+        closeTo(0.85, 1e-9),
+      );
+      // The soft match the review measured: "Egg" against three tokens is
+      // 0.5, and 0.35 is a guess where 0.5 is not.
+      final eggUnavailable = meal(
+        'Egg, whole, raw',
+        source: MealSourceEntity.fdc,
+        portionsUnavailable: true,
+      );
+      final eggBare = meal('Egg, whole, raw', source: MealSourceEntity.fdc);
+      expect(
+        scoreMealForResolution(eggUnavailable, 'scrambled egg toast'),
+        closeTo(0.5, 1e-9),
+      );
+      expect(
+        scoreMealForResolution(eggBare, 'scrambled egg toast'),
+        closeTo(0.35, 1e-9),
+      );
+    });
+
+    test('the backend/OFF order does not flip on a failed lookup', () {
+      // The other consequence the review named. An OFF product called
+      // "Orange juices" scores 0.917 on `orange juice` — `juices` agrees
+      // with `juice` five letters in six — and the survey title scores
+      // 1.0, so the backend record leads. Under the penalty it stood at
+      // 0.85 and the OFF product led instead: the order flipped on a
+      // lookup neither record had a say in.
+      final off = meal('Orange juices');
+      final unavailable = meal(
+        'Orange juice, 100%, NFS',
+        source: MealSourceEntity.fdc,
+        portionsUnavailable: true,
+      );
+      final bare = meal('Orange juice, 100%, NFS', source: MealSourceEntity.fdc);
+
+      expect(scoreMealForResolution(off, 'orange juice'), closeTo(0.917, 1e-3));
+      expect(
+        names(rankForResolution([off, unavailable], 'orange juice')).first,
+        'Orange juice, 100%, NFS',
+      );
+      // The flip itself, for a record the backend confirmed bare.
+      expect(
+        names(rankForResolution([off, bare], 'orange juice')).first,
+        'Orange juices',
+      );
     });
 
     test('the penalty comes off before the clamp, not after it', () {

@@ -100,11 +100,24 @@ List<MealEntity> mergeAndRankMeals(List<MealEntity> a, List<MealEntity> b, Strin
 /// Same dedup key as `SearchProductsUseCase._deduplicateMeals` (source +
 /// code, falling back to name) so a custom meal or recipe that independently
 /// surfaced in both the OFF and Food lists collapses to a single entry here.
+///
+/// With one departure: a backend record without a code is keyed on its
+/// identity, not its name. The name fallback would fold two codeless
+/// backend siblings that share a description into one entry *here*, before
+/// [_collapseNearDuplicates] ever saw them — and that function's rule is
+/// that a backend record is never collapsed into anything (#1164). A real
+/// backend row always carries its id as its code, so the fallback is never
+/// reached for one; keying the codeless case on identity — the same
+/// `identityHashCode` [_nearDuplicateKey] already uses for it — is what
+/// makes the guarantee exact rather than merely reachable. The same object
+/// listed twice still collapses, as it should: one object is one entry.
 List<MealEntity> _deduplicateAcrossSources(List<MealEntity> meals) {
   final seenKeys = <String>{};
   final uniqueMeals = <MealEntity>[];
   for (final meal in meals) {
-    final key = '${meal.source.name}:${meal.code ?? meal.name ?? ''}';
+    final key = meal.source == MealSourceEntity.fdc
+        ? '${meal.source.name}:${meal.code ?? identityHashCode(meal)}'
+        : '${meal.source.name}:${meal.code ?? meal.name ?? ''}';
     if (seenKeys.add(key)) uniqueMeals.add(meal);
   }
   return uniqueMeals;
@@ -154,9 +167,9 @@ String _nearDuplicateKey(MealEntity meal) {
   // can only ever be alone in its group. That is the whole of the "FDC
   // records are never collapsed" rule from #1164 — the name-based key below
   // is reserved for the one case it was built for. (source + code is unique
-  // here because [_deduplicateAcrossSources] already ran on the same key;
-  // the identityHashCode fallback is for a codeless record, as with the
-  // nameless case below.)
+  // here because [_deduplicateAcrossSources] already ran on the same key,
+  // identityHashCode fallback included — a codeless backend record is keyed
+  // on its identity in both places, as the nameless case below is.)
   if (meal.source != MealSourceEntity.off) {
     return 'single:${meal.source.name}:${meal.code ?? identityHashCode(meal)}';
   }
