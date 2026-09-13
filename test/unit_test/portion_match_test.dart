@@ -2,8 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/util/portion_match.dart';
 
-MealPortionEntity _p(String label) =>
-    MealPortionEntity(label: label, gramWeight: 1, localized: false);
+MealPortionEntity _p(String label, {double grams = 1, String? en}) =>
+    MealPortionEntity(
+      label: label,
+      gramWeight: grams,
+      localized: en != null,
+      englishLabel: en,
+    );
 
 void main() {
   group('the word the user typed picks the portion (#864)', () {
@@ -102,6 +107,185 @@ void main() {
       // Chinese has no spaces, so a label term will not appear as its own
       // token — this must return null rather than mismatching.
       expect(matchPortionToQuery('两片面包', [_p('1 片')]), isNull);
+    });
+  });
+
+  group("the model's key is matched against the English label (#1157)", () {
+    // A German reader's rows: what they see, and the English the record
+    // carries beside it.
+    final de = [_p('1 Tasse', en: '1 cup'), _p('1 Scheibe', en: '1 slice')];
+
+    test('an English key lands on a translated row', () {
+      // "3 Scheiben Brot" arrives as `portion: "slice"` — the prompt pins the
+      // key to English whatever the user wrote — and must land on the same
+      // row it would for an English reader. Against the localized label it
+      // would miss on exactly the locale whose labels were reviewed.
+      expect(matchPortionToKey('slice', de), 1);
+      expect(matchPortionToKey('cup', de), 0);
+    });
+
+    test('the typed words still go against the localized label', () {
+      // Unchanged: the user's words are in their language. The English label
+      // is a matching key for the model, not a second vocabulary for the
+      // user — matching both was declined for the false-match surface.
+      expect(matchPortionToQuery('Scheiben Brot', de), 1);
+      expect(matchPortionToQuery('slices of bread', de), isNull);
+    });
+
+    test('falls back to the label while the backend sends no English one', () {
+      // The column is added in parallel; an app built before it keeps
+      // working. In eight of nine locales the label *is* the English string,
+      // so the fallback is the match it would have made anyway.
+      expect(matchPortionToKey('slice', [_p('1 cup'), _p('1 slice')]), 1);
+    });
+
+    test('no key, no match', () {
+      expect(matchPortionToKey(null, de), isNull);
+      expect(matchPortionToKey('', de), isNull);
+    });
+
+    test('a key that names nothing is ignored', () {
+      expect(matchPortionToKey('thimble', de), isNull);
+    });
+  });
+
+  group('on a tie, the middle rung, else the earliest (#1162)', () {
+    // Bread, white (2707598) as `portions_by_food_ids` serves it, in its
+    // order. FDC lists a ladder small-first, so the earliest slice is the
+    // thin one.
+    final bread = [
+      _p('1 small or thin/very thin slice', grams: 24),
+      _p('1 medium or regular slice', grams: 28),
+      _p('1 large or thick slice', grams: 43),
+      _p('1 slice, crust not eaten', grams: 13),
+      _p('1 slice, snack-size', grams: 10),
+      _p('1 cup', grams: 40),
+    ];
+
+    // The slice ladder on the chicken breast records.
+    final chickenSlices = [
+      _p('1 small or thin slice', grams: 30),
+      _p('1 medium slice', grams: 60),
+      _p('1 large or thick slice', grams: 85),
+    ];
+
+    test('a slice of bread is the regular slice, 28 g', () {
+      // Was 24 g since #969: "slice" ties all five slices and the earliest
+      // was the thin one. The thin slice was never what a person meant by
+      // "a slice", and the data names its own middle.
+      final typed = matchPortionToQuery('a slice of bread', bread);
+      expect(typed, 1);
+      expect(bread[typed!].gramWeight, 28);
+      // The same row whichever path named the word — the matcher cannot tell
+      // a typed word from a model key, so the typed path changes with it.
+      expect(matchPortionToKey('slice', bread), 1);
+    });
+
+    test('a slice of chicken breast is the medium slice, 60 g', () {
+      // Was 30 g: small-first again.
+      final match = matchPortionToQuery(
+        'a slice of chicken breast',
+        chickenSlices,
+      );
+      expect(match, 1);
+      expect(chickenSlices[match!].gramWeight, 60);
+    });
+
+    test('4 slices chicken breast scale the medium slice, 240 g', () {
+      // Was 120 g. The count multiplies whichever row the word picked, so
+      // the tie rule moves the whole amount, not just the label.
+      final match = matchPortionToQuery(
+        '4 slices chicken breast',
+        chickenSlices,
+      );
+      expect(match, 1);
+      expect(4 * chickenSlices[match!].gramWeight, 240);
+    });
+
+    test(
+      '"eine mittlere Hähnchenbrust" keys medium onto the breast, 150 g',
+      () {
+        // Chicken breast, stewed (2705965) as a German reader receives it:
+        // the slice ladder verified, the breast ladder still English. The key
+        // "medium" ties the medium breast and the medium slice; both name the
+        // middle rung, so the earlier row — the breast — stands. Unchanged
+        // from before, and now by rule rather than by row order.
+        final chicken = [
+          _p(
+            '1 Tasse, gegart, gewürfelt',
+            grams: 135,
+            en: '1 cup, cooked, diced',
+          ),
+          _p('1 small breast', grams: 130),
+          _p('1 medium breast', grams: 150),
+          _p('1 large breast', grams: 170),
+          _p(
+            '1 kleine oder dünne Scheibe',
+            grams: 30,
+            en: '1 small or thin slice',
+          ),
+          _p('1 mittlere Scheibe', grams: 60, en: '1 medium slice'),
+          _p(
+            '1 große oder dicke Scheibe',
+            grams: 85,
+            en: '1 large or thick slice',
+          ),
+        ];
+
+        final match = matchPortionToKey('medium', chicken);
+        expect(match, 2);
+        expect(chicken[match!].gramWeight, 150);
+      },
+    );
+
+    test('a large pizza has no middle rung, so the earliest stands, 119 g', () {
+      // "large" ties the piece and the whole pizza; neither says medium or
+      // regular, so the rule does nothing and the backend's order decides
+      // exactly as before.
+      final pizza = [
+        _p('1 piece, large pizza', grams: 119),
+        _p('1 large pizza (13-15" diameter)', grams: 954),
+      ];
+
+      final match = matchPortionToQuery('a large pizza', pizza);
+      expect(match, 0);
+      expect(pizza[match!].gramWeight, 119);
+      expect(matchPortionToKey('large', pizza), 0);
+    });
+
+    test('"regular" names the middle rung too', () {
+      // FDC writes it both ways: "1 medium or regular slice", "1 regular",
+      // "1 small/regular fillet".
+      final rows = [_p('1 thin slice'), _p('1 regular slice')];
+      expect(matchPortionToQuery('a slice', rows), 1);
+    });
+
+    test('the rule only selects among rows the word already tied', () {
+      // A longer match still beats a middle-rung row with a shorter one:
+      // "cooked" is the better term, and the medium row never tied.
+      final rows = [_p('1 medium'), _p('1 cup, cooked')];
+      expect(matchPortionToQuery('cooked rice', rows), 1);
+    });
+
+    test('the middle rung is read off the English label', () {
+      // The ladder words are English and the English label is sent in every
+      // locale, so a German reader's "Scheibe" lands on the regular slice
+      // even though nothing in "1 mittlere oder normale Scheibe" says
+      // "medium".
+      final de = [
+        _p('1 kleine oder dünne Scheibe', en: '1 small or thin slice'),
+        _p('1 mittlere oder normale Scheibe', en: '1 medium or regular slice'),
+        _p('1 große oder dicke Scheibe', en: '1 large or thick slice'),
+      ];
+      expect(matchPortionToQuery('eine Scheibe Brot', de), 1);
+      expect(matchPortionToKey('slice', de), 1);
+    });
+
+    test('the unqualified default is untouched', () {
+      // #864 decision 7: naming no portion at all still means the first row.
+      // The tie rule never runs because nothing tied.
+      expect(matchPortionToQuery('bread', bread), isNull);
+      expect(matchPortionToKey(null, bread), isNull);
     });
   });
 }

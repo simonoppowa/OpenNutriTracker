@@ -184,13 +184,20 @@ class SpFoodDataSource {
         if (id is! int || label is! String || grams == null) continue;
         final weight = grams is num ? grams.toDouble() : null;
         if (weight == null || weight <= 0) continue;
-        byFood.putIfAbsent(id, () => []).add(
-          MealPortionEntity(
-            label: label,
-            gramWeight: weight,
-            localized: row['localized'] == true,
-          ),
+        // The English description beside the coalesced label, for a model's
+        // portion key to match against (#1157). Optional on purpose: a
+        // backend without the column still answers, and the matcher falls
+        // back to `label`.
+        final englishLabel = row['label_en'];
+        final portion = MealPortionEntity(
+          label: label,
+          gramWeight: weight,
+          localized: row['localized'] == true,
+          englishLabel: englishLabel is String && englishLabel.isNotEmpty
+              ? englishLabel
+              : null,
         );
+        byFood.putIfAbsent(id, () => []).add(portion);
       }
       return byFood;
     } catch (e) {

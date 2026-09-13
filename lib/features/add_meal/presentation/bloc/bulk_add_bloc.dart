@@ -555,9 +555,10 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
       // The model's own word first, then the user's. A photograph has no
       // typed text to search, so `portion` is the only thing that can name a
       // slice there; where both exist they usually agree, and the model saw
-      // the food.
+      // the food. The key is English in every locale and goes against the
+      // English label; the user's words go against the localized one.
       final named =
-          matchPortionToQuery(parsed.portion ?? '', meal.portions) ??
+          matchPortionToKey(parsed.portion, meal.portions) ??
           matchPortionToQuery(parsed.query, meal.portions);
       if (named != null) return portionUnit(named);
     }
