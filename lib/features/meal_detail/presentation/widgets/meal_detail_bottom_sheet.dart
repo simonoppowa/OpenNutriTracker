@@ -85,6 +85,19 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     );
   }
 
+  void _onQuickServingSelected(QuickServingOption option) {
+    final quantityText = _formatQuantity(option.quantity);
+    // Detach the change listener before the programmatic write, otherwise
+    // setting the controller's text fires _onQuantityChanged with the OLD
+    // unit before the callback below applies option.unit — so every chip
+    // tap emitted a stale-unit UpdateKcalEvent (100 g briefly computed as
+    // 100 servings) before landing on the right one.
+    widget.quantityTextController.removeListener(_onQuantityChanged);
+    widget.quantityTextController.text = quantityText;
+    widget.quantityTextController.addListener(_onQuantityChanged);
+    widget.onQuantityOrUnitChanged(quantityText, option.unit);
+  }
+
   String _formatQuantity(double value) {
     if (value == value.roundToDouble()) {
       return value.toInt().toString();
@@ -102,6 +115,16 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
       onClosing: () {},
       enableDrag: false,
       builder: (context) {
+        // Quick-quantity presets — one tap to a common portion instead of
+        // typing. Uses the food's own serving when it has one and 100 g
+        // for solids. Computed once so the collection-if below can drop
+        // the row entirely when nothing applies (no orphan SizedBox).
+        final quickOptions = productMissingRequiredInfo
+            ? const <QuickServingOption>[]
+            : quickServingOptionsFor(
+                widget.product,
+                S.of(context).gramUnit,
+              );
         return Container(
           decoration: BoxDecoration(
             border: Border(
@@ -184,55 +207,30 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                           ),
                         ],
                       ),
-                      if (!productMissingRequiredInfo) ...[
-                        Builder(
-                          builder: (context) {
-                            // Quick-quantity presets — one tap to a common
-                            // portion instead of typing. Uses the food's own
-                            // serving when it has one and 100 g for solids.
-                            final options = quickServingOptionsFor(
-                              widget.product,
-                              S.of(context).gramUnit,
-                            );
-                            if (options.isEmpty) {
-                              return const SizedBox.shrink();
-                            }
-                            return Padding(
-                              padding: const EdgeInsets.only(
-                                top: Dimens.spacing12,
-                              ),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Wrap(
-                                  spacing: Dimens.spacing8,
-                                  children: [
-                                    for (final option in options)
-                                      Semantics(
-                                        identifier:
-                                            'meal-detail-chip-${option.id}',
-                                        child: ActionChip(
-                                          label: Text(option.label),
-                                          onPressed: () {
-                                            final quantityText =
-                                                _formatQuantity(
-                                                  option.quantity,
-                                                );
-                                            widget.quantityTextController.text =
-                                                quantityText;
-                                            widget.onQuantityOrUnitChanged(
-                                              quantityText,
-                                              option.unit,
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+                      if (quickOptions.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            top: Dimens.spacing12,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Wrap(
+                              spacing: Dimens.spacing8,
+                              children: [
+                                for (final option in quickOptions)
+                                  Semantics(
+                                    identifier:
+                                        'meal-detail-chip-${option.id}',
+                                    child: ActionChip(
+                                      label: Text(option.label),
+                                      onPressed: () =>
+                                          _onQuickServingSelected(option),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ],
                       const SizedBox(height: Dimens.spacing16),
                       Semantics(
                         identifier: 'meal-detail-add',

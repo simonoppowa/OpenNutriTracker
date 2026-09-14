@@ -56,7 +56,7 @@ void main() {
         '100g',
       ]);
       expect(options.map((o) => o.label).toList(), [
-        '0.5×',
+        '½×',
         '1×',
         '2×',
         '100 g',

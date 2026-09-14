@@ -40,7 +40,7 @@ List<QuickServingOption> quickServingOptionsFor(
         id: 'half-serving',
         quantity: 0.5,
         unit: servingUnit,
-        label: '0.5×',
+        label: '½×',
       ),
       QuickServingOption(
         id: 'one-serving',

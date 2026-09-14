@@ -114,11 +114,6 @@ void main() {
       'double-serving',
       '100g',
     ]) {
-      expect(
-        find.bySemanticsLabel(RegExp('.*')).evaluate().isNotEmpty,
-        isTrue,
-        reason: 'a chip named $id must be present in the tree',
-      );
       expect(find.byWidgetPredicate((w) {
         if (w is! Semantics) return false;
         return w.properties.identifier == 'meal-detail-chip-$id';
