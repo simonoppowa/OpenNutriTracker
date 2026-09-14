@@ -40,6 +40,40 @@ void main() {
       expect(result.recipes.single.totalWeightOverridden, isFalse);
     });
 
+    test('rejects a non-positive totalWeight instead of persisting it', () {
+      const json = '''[
+  {
+    "name": "Zero",
+    "totalWeight": 0,
+    "ingredients": [
+      {"name": "Flour", "amount": 200, "unit": "g", "kcalPer100": 340}
+    ]
+  },
+  {
+    "name": "Negative",
+    "totalWeight": -100,
+    "ingredients": [
+      {"name": "Flour", "amount": 200, "unit": "g", "kcalPer100": 340}
+    ]
+  },
+  {
+    "name": "NaN",
+    "totalWeight": "NaN",
+    "ingredients": [
+      {"name": "Flour", "amount": 200, "unit": "g", "kcalPer100": 340}
+    ]
+  }
+]''';
+
+      final result = JsonRecipeImporter.parse(json);
+
+      expect(result.recipes, isEmpty);
+      expect(result.errors, hasLength(3));
+      for (final message in result.errors) {
+        expect(message, contains('"totalWeight" must be a positive finite number'));
+      }
+    });
+
     test('sets the flag per recipe when a batch mixes both shapes', () {
       const json = '''[
   {

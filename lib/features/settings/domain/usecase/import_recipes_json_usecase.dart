@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/core/utils/json_recipe_importer.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/import_data_usecase.dart'
+    show PickImportFile;
 
 class ImportRecipesJsonResult {
   final int imported;
@@ -17,6 +19,11 @@ class ImportRecipesJsonResult {
   });
 }
 
+Future<PlatformFile?> _pickJsonFile() => FilePicker.pickFile(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+
 /// Picks a `.json` file from disk, validates the content via
 /// [JsonRecipeImporter.parse], and persists each successfully-parsed
 /// recipe via [SaveRecipeUseCase] — symmetric with
@@ -25,14 +32,19 @@ class ImportRecipesJsonResult {
 class ImportRecipesJsonUsecase {
   final SaveRecipeUseCase _saveRecipeUseCase;
 
-  ImportRecipesJsonUsecase(this._saveRecipeUseCase);
+  /// Seam for tests: `FilePicker.pickFile` is static and needs a platform
+  /// channel, so the picker outcomes plus the save-side wiring (#1139:
+  /// `totalWeightOverridden` threading) can only be driven from here.
+  final PickImportFile _pickFile;
+
+  ImportRecipesJsonUsecase(
+    this._saveRecipeUseCase, {
+    PickImportFile pickFile = _pickJsonFile,
+  }) : _pickFile = pickFile;
 
   /// Returns null when the user cancelled the file picker.
   Future<ImportRecipesJsonResult?> importFromPickedFile() async {
-    final picked = await FilePicker.pickFile(
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-    );
+    final picked = await _pickFile();
     if (picked == null || picked.path == null) {
       return null;
     }

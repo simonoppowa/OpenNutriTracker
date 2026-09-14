@@ -247,6 +247,13 @@ class JsonRecipeImporter {
       final description = _asString(entry[_kDescription])?.trim();
       final servingsCount = _asInt(entry[_kServings]);
       final totalWeightOverride = _asDouble(entry[_kTotalWeight]);
+      if (totalWeightOverride != null &&
+          !(totalWeightOverride > 0 && totalWeightOverride.isFinite)) {
+        errors.add(
+          'Recipe $entryNum ($name): "totalWeight" must be a positive finite number',
+        );
+        continue;
+      }
 
       final tags = <String>[];
       final rawTags = entry[_kTags];
