@@ -404,13 +404,14 @@ void main() {
       },
     );
 
-    test('repairs the Open Food Facts product a user saved for reuse, and '
-        'a second run changes nothing', () async {
-      // `EditMealBloc.saveCustomMeal` keeps the source of the product the
-      // form started from, so a product saved for reuse from an Open Food
-      // Facts record on an old build sits in the saved-meals box as an `off`
-      // row in raw grams with no stamp — the same shape as the cache row,
-      // in a box whose name says nothing about Open Food Facts.
+    test('repairs an unstamped Open Food Facts row in the saved-meals box, '
+        'and a second run changes nothing', () async {
+      // Nothing in the app writes an `off` row here — the edit screen saves
+      // a meal for reuse only when its source is `custom` — but the box is
+      // typed for any MealDBO and only that screen-level check keeps such a
+      // row out, so the pass covers it and this test pins that. Seed the
+      // shape such a row would have: the cache row's, in a box whose name
+      // says nothing about Open Food Facts.
       await customMealBox.addAll([
         _meal(source: MealSourceDBO.off),
         _mealWrittenAfter775(),
@@ -442,11 +443,11 @@ void main() {
       }
       expect(customMealBox.length, 4);
 
-      // Picking the saved product and logging it goes through the entity
-      // and back through `fromMealEntity`, which stamps whatever it is
-      // given. Before this box was repaired that stamped raw grams onto a
-      // fresh intake no later pass could tell apart; now it carries the
-      // app units through.
+      // Picking a saved meal and logging it goes through the entity and
+      // back through `fromMealEntity`, which stamps whatever it is given.
+      // Logged unrepaired, such a row would have stamped raw grams onto a
+      // fresh intake no later pass could tell apart; repaired, it carries
+      // the app units through.
       final logged = MealDBO.fromMealEntity(
         MealEntity.fromMealDBO(byName['Nutella']!),
       );

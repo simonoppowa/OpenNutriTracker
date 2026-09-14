@@ -18,10 +18,8 @@ final _log = Logger('OffMicronutrientRepair');
 /// `MealNutrimentsEntity.fromOffNutriments` copied those values through
 /// unconverted, so every mineral was stored a thousand times too small and
 /// vitamins A, D and B12 a million times too small — on the intake, on the
-/// cached product, on a product saved for reuse from the edit form (that
-/// form keeps the originating source, so the saved-meals box holds `off`
-/// rows too), and on any recipe ingredient snapshotted from it. #775 fixed
-/// the mapping for new writes only.
+/// cached product, and on any recipe ingredient snapshotted from it. #775
+/// fixed the mapping for new writes only.
 ///
 /// The stored numbers cannot tell the two conventions apart on their own:
 /// a 400 mg sodium food written as `0.4` looks exactly like a genuinely
@@ -185,17 +183,24 @@ class OffMicronutrientRepair {
   static Future<int> repairIntakeBox(Box<IntakeDBO> box) =>
       _repairBox(box, repairIntake);
 
-  /// Same as [repairIntakeBox] for a box of meals. Two boxes hold them: the
-  /// remote-search cache, whose Open Food Facts entries are what a re-scan
-  /// or a re-log of a known product reads instead of the network, and the
-  /// saved-meals box, where `EditMealBloc.saveCustomMeal` keeps the source
-  /// of the product the user started from — so an Open Food Facts product
-  /// saved for reuse on an old build sits there as an `off` row in raw
-  /// grams. The barcode lookup reads the saved-meals box before the cache,
-  /// and logging from it goes through [MealDBO.fromMealEntity], which stamps
-  /// the new intake current with the unconverted values — a pass that
-  /// skipped this box would let raw grams re-enter the intake log wearing
-  /// the stamp, where no later pass can tell them apart.
+  /// Same as [repairIntakeBox] for a box of meals. Two boxes are typed for
+  /// them: the remote-search cache, whose Open Food Facts entries are what a
+  /// re-scan or a re-log of a known product reads instead of the network,
+  /// and the saved-meals box.
+  ///
+  /// No shipped build writes an `off` row into the saved-meals box: the edit
+  /// screen saves a meal for reuse only when its source is `custom` (the
+  /// check sits in `EditMealScreen`, not in `EditMealBloc.saveCustomMeal`,
+  /// which keeps whatever source it is handed), and the CSV, JSON and
+  /// share-payload importers hard-code `custom` or `fdc`. That one
+  /// screen-level check is all that keeps an Open Food Facts product out of
+  /// a box whose type and data source accept any [MealDBO], so the pass
+  /// covers the box anyway and the guarantee rests on the row's own stamp
+  /// rather than on the check: a raw-gram row that did get there would be
+  /// read by the barcode lookup ahead of the cache and logged through
+  /// [MealDBO.fromMealEntity], which stamps the new intake current with
+  /// whatever values it is given. On a box holding no such row this is one
+  /// in-memory scan and no write.
   static Future<int> repairMealBox(Box<MealDBO> box) =>
       _repairBox(box, repairMeal);
 
@@ -227,8 +232,10 @@ class OffMicronutrientRepair {
 /// `custom` (or `fdc`) and no micronutrients beyond fibre, sugars and
 /// saturated fat, and the demo seeder writes `custom` rows through
 /// [MealDBO.fromMealEntity], so none of them can produce a row this pass
-/// would act on. The backup bundle carries no custom-meals file — its
-/// intakes and recipes are repaired on the way in by `ImportDataUsecase`.
+/// would act on; the same goes for the saved-meals box today, which is
+/// covered for the reason given on [OffMicronutrientRepair.repairMealBox].
+/// The backup bundle carries no custom-meals file — its intakes and recipes
+/// are repaired on the way in by `ImportDataUsecase`.
 ///
 /// Called on every profile activation — startup and a profile switch —
 /// like [ensureConfigInitialized], so each profile's box is repaired before
