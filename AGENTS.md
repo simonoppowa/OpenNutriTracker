@@ -14,11 +14,15 @@ Reviews are advisory and cannot block a merge. Most PRs come from outside contri
 
 Never assert a count, or an "every locale" claim, you have not computed from this PR's own diff — not from the PR description, which has been wrong before. Don't restate what CI already failed on: `linux-checks` runs `just check_agents_md`, `just check_l10n`, `just build`, `flutter analyze`, `just test` — it deliberately does **not** run the format check. Don't comment on the target branch; a maintainer repoints those.
 
+When a diff edits prose that already existed, separate what it introduced from what it inherited, and say which. Never ask for a fix to text the PR did not touch — on a documentation-correction PR that is the whole difference between useful feedback and asking someone to repair another person's mistake.
+
 ### 1. Untranslated ARB values — the one check CI cannot do
 
 `just check_l10n` fails only on *missing* keys, so a key present in every locale with the English text still in it ships green. For each key **this PR adds or changes** under `lib/l10n/`, compare its value across the locale files.
 
 Report a key left byte-identical to English in every, or nearly every, non-English ARB. `CONTRIBUTING.md` forbids leaving English in as a placeholder, machine translation is the accepted floor, and no Weblate/Crowdin pipeline exists here — so "translations land later" is not an exemption. Name the key and its locales once.
+
+Before reporting one, search the ARBs for a key that already says the same thing — this app has shipped a while and often does. A second phrasing for one action is worse than a late translation: name the existing key and ask for its values to be copied.
 
 Identical is legitimate, and silent, for brand and platform names, units and symbols, acronyms, and placeholder-only strings (`{hour}:00`). A value identical in only one or two locales is usually a real cognate (German `Protein`, Italian `golf`) — leave those. Never audit keys the PR did not touch; that backlog is not this contributor's debt.
 

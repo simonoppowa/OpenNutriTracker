@@ -409,6 +409,8 @@
   "exportImportCsvRecipesNote": "CSV keeps your activity, meal log and tracked days. Recipes and any photos you've attached are JSON-only — switch to JSON if you want them in your backup.",
   "exportImportDescription": "You can export the app data to a zip file and import it later. This is useful if you want to backup your data or transfer it to another device.\n\nThe app does not use any cloud service to store your data.",
   "exportImportErrorLabel": "Export / Import error",
+  "exportImportErrorUnreadableLabel": "The selected file could not be read. Choose the .zip backup that OpenNutriTracker exported.",
+  "exportImportErrorWriteFailedLabel": "The file could not be saved to the chosen location. Try a different folder.",
   "exportImportSuccessLabel": "Export / Import successful",
   "fatLabel": "fat",
   "fatLabelShort": "f",
@@ -545,6 +547,9 @@
   "noActivityRecentlyAddedLabel": "No activity recently added",
   "noMealsRecentlyAddedLabel": "No meals recently added",
   "noResultsFound": "No results found",
+  "noResultsSubtitle": "No foods matched that search. Try a different name, scan the barcode, or create your own.",
+  "noResultsScanBarcode": "Scan barcode",
+  "noResultsCreateCustomFood": "Create custom food",
   "notAvailableLabel": "N/A",
   "nothingAddedLabel": "Nothing added",
   "notificationsDailyReminderBody": "Don't forget to log your meals today!",
@@ -1233,6 +1238,16 @@
           }
       }
   },
+  "bulkAddRowQuantityInvalid": "Enter a number with at most two decimals",
+  "bulkAddRowQuantityTooSmall": "Quantity must be greater than 0",
+  "bulkAddRowQuantityTooLarge": "Quantity must be {bound} or less",
+  "@bulkAddRowQuantityTooLarge": {
+      "placeholders": {
+          "bound": {
+              "type": "int"
+          }
+      }
+  },
   "settingsAiAssistLabel": "AI meal assistance",
   "settingsAiAssistNotConfiguredLabel": "Off — no key saved",
   "settingsAiAssistOnLabel": "On",
@@ -1299,6 +1314,16 @@
   "bulkAddModelNoCreditLabel": "AI didn't run: your provider account is out of credit.",
   "bulkAddModelInsecureServerLabel": "AI didn't run: that address is public and unencrypted.",
   "bulkAddModelTimedOutLabel": "AI didn't run: your server didn't answer in time.",
+  "bulkAddWaitElapsedLabel": "Waiting for your server · {seconds} s",
+  "@bulkAddWaitElapsedLabel": {
+      "placeholders": {
+          "seconds": {
+              "type": "int"
+          }
+      }
+  },
+  "bulkAddWaitModelLoadingLabel": "Your server may be loading its model. The first request after a while can take a minute or two — that is normal.",
+  "bulkAddWaitCancelLabel": "Cancel",
   "bulkAddPhotoLabel": "Read a photo",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker keeps no copy of its own, and it is never included in your exports.",
   "bulkAddPhotoDisclosureAnthropic": "The photo is sent to Anthropic to identify the foods in it.",
@@ -1331,12 +1356,16 @@
   "healthSyncNeverImportedLabel": "No workouts imported yet",
   "healthSyncImportedCountLabel": "{count, plural, =0{No new workouts} one{1 workout imported} other{{count} workouts imported}}",
   "@healthSyncImportedCountLabel": {"placeholders": {"count": {"type": "num"}}},
-  "healthSyncPermissionDeniedLabel": "{platform} access was not granted. Allow OpenNutriTracker to read workouts and body fat to import them.",
+  "healthSyncPermissionDeniedLabel": "{platform} access was not granted. Allow OpenNutriTracker to read workouts to import them.",
   "@healthSyncPermissionDeniedLabel": {"placeholders": {"platform": {"type": "String"}}},
   "healthSyncDisclosureTitle": "Import workouts from {platform}?",
   "@healthSyncDisclosureTitle": {"placeholders": {"platform": {"type": "String"}}},
-  "healthSyncDisclosureBody": "OpenNutriTracker will read your finished workouts from {platform} — their type, when they happened, how long they lasted and the energy they report — and the most recent body fat percentage it holds.\n\nWorkouts are filed in your diary as activities you can edit or delete, and the energy they report raises that day's calorie goal by a share you choose. The body fat reading is used to suggest what that share should be.\n\nNothing is written back to {platform}, and none of it is sent anywhere — it stays on this device.\n\nYou can turn this off at any time, and doing so stops any further reading.",
+  "healthSyncDisclosureBody": "OpenNutriTracker will read your finished workouts from {platform} — their type, when they happened, how long they lasted and the energy they report.\n\nWorkouts are filed in your diary as activities you can edit or delete, and the energy they report raises that day's calorie goal by a share you choose.",
   "@healthSyncDisclosureBody": {"placeholders": {"platform": {"type": "String"}}},
+  "healthSyncDisclosureBodyFatAddendum": "OpenNutriTracker will also read the most recent body fat percentage that {platform} holds. The body fat reading is used to suggest what that share should be.",
+  "@healthSyncDisclosureBodyFatAddendum": {"placeholders": {"platform": {"type": "String"}}},
+  "healthSyncDisclosureFooter": "Nothing is written back to {platform}, and none of it is sent anywhere — it stays on this device.\n\nYou can turn this off at any time, and doing so stops any further reading.",
+  "@healthSyncDisclosureFooter": {"placeholders": {"platform": {"type": "String"}}},
   "healthSyncDisclosureContinueAction": "Continue",
   "healthSyncUnavailableLabel": "Health data is not available on this device. Workout import needs Health Connect on Android or Apple Health on iOS.",
   "sourcesEnergyCompensationTitle": "Workout calorie credit",

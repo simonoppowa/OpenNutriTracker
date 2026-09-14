@@ -22,8 +22,14 @@ class SecureAppStorageProvider {
   // with Hive crash recovery, that mints a new AES key over existing
   // encrypted boxes and silently truncates them to empty — the user sees a
   // "factory reset" into onboarding.
+  //
+  // Both options are deprecated in flutter_secure_storage 10.3.1, but changing
+  // either one here would move or re-encrypt the Hive key. A dedicated staged
+  // migration must reach existing installs before this bridge can be removed.
   static const _androidOptions = AndroidOptions(
+    // ignore: deprecated_member_use
     storageCipherAlgorithm: StorageCipherAlgorithm.AES_CBC_PKCS7Padding,
+    // ignore: deprecated_member_use
     sharedPreferencesName: _sharedPrefsName,
     resetOnError: false,
   );

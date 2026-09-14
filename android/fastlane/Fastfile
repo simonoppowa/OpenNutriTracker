@@ -20,5 +20,103 @@ platform :android do
       skip_upload_screenshots: true
     )
   end
+
+  # Upload ONLY the Play listing's screenshots, and nothing else.
+  #
+  # Every other `skip_upload_*` below is `true` on purpose, and each one
+  # guards against a specific regression that is live in this repo today:
+  #
+  # - `skip_upload_images` — `fastlane/metadata/android/en-US/images/`
+  #   holds a **512x250** `featureGraphic.png` against Play's required
+  #   1024x500. The live asset is *reported* by the #1063 audit to be the
+  #   compliant one — not independently confirmed — so uploading images
+  #   would risk downgrading the store (#1074).
+  # - `skip_upload_metadata` — the repo's `full_description.txt` (3,952
+  #   chars) has never been pushed; the live listing is a different,
+  #   1,127-char text. Publishing it is a reviewed content decision that
+  #   belongs to map #1062, not a side effect of fixing an image.
+  # - `skip_upload_changelogs` — `changelogs/63.txt` covers only the TDEE
+  #   fix and omits 2.2.0's headline features (#1073).
+  # - `skip_upload_apk` / `skip_upload_aab` — this lane never ships code.
+  #
+  # `validate_only` defaults to **true**. A caller has to ask for a real
+  # publish; forgetting the argument cannot change the store.
+  desc 'Upload only the Play store listing screenshots (validate-only by default)'
+  lane :listing_screenshots do |options|
+    service_account_json = ENV['GOOGLE_PLAY_SERVICE_ACCOUNT_JSON']
+    UI.user_error!('Missing GOOGLE_PLAY_SERVICE_ACCOUNT_JSON secret.') if service_account_json.to_s.empty?
+
+    # Fail closed: anything other than an explicit "false" stays a dry run.
+    validate_only = options.fetch(:validate_only, 'true').to_s != 'false'
+
+    metadata_path = File.expand_path('../../fastlane/metadata/android', __dir__)
+    shots_dir = File.join(metadata_path, 'en-US', 'images', 'phoneScreenshots')
+    shots = Dir.glob(File.join(shots_dir, '*.png')).sort
+    UI.user_error!("No screenshots found in #{shots_dir}") if shots.empty?
+
+    # Play's published phone-screenshot spec, enforced here rather than only
+    # in the calling workflow. The lane is runnable directly — locally, or
+    # from some future workflow — and a safety property that lives beside the
+    # caller instead of beside the upload is one refactor away from being
+    # gone. This is the check that would have caught #1082's 424x900 assets.
+    UI.user_error!("Play requires at least 2 phone screenshots, found #{shots.count}") if shots.count < 2
+    UI.user_error!("Play accepts at most 8 phone screenshots, found #{shots.count}") if shots.count > 8
+
+    problems = []
+    shots.each do |path|
+      name = File.basename(path)
+      head = File.binread(path, 26).to_s
+      unless head[0, 8] == "\x89PNG\r\n\x1A\n".b
+        problems << "#{name}: not a PNG"
+        next
+      end
+      # A file can carry the signature and still be too short to hold an
+      # IHDR — a truncated write, an interrupted download, an unexpanded LFS
+      # pointer. Say so, rather than unpacking nil and failing with a
+      # NoMethodError that diagnoses nothing.
+      if head.bytesize < 26
+        problems << "#{name}: truncated PNG — #{head.bytesize} bytes, too short to contain an IHDR header"
+        next
+      end
+      width, height, depth, colour_type = head[16, 10].unpack('NNCC')
+      short = [width, height].min
+      long  = [width, height].max
+      ratio = long.to_f / short
+
+      # Play: "JPEG or 24-bit PNG (no alpha)". 24-bit means 8 bits each of R,
+      # G and B — PNG bit depth 8, colour type 2. Checking only for alpha would
+      # let 16-bit, grayscale (0) and palette (3) PNGs through here and have
+      # Play reject them later.
+      if [4, 6].include?(colour_type)
+        problems << "#{name}: PNG has an alpha channel; Play requires 24-bit PNG with no alpha"
+      elsif colour_type != 2 || depth != 8
+        kind = { 0 => 'grayscale', 3 => 'palette' }.fetch(colour_type, "colour type #{colour_type}")
+        problems << "#{name}: #{depth}-bit #{kind} PNG; Play requires 24-bit (8-bit truecolour) PNG"
+      end
+      problems << "#{name}: #{width}x#{height} — shorter edge #{short}px is below 1080px" if short < 1080
+      problems << "#{name}: #{width}x#{height} — longer edge #{long}px exceeds Play's 3840px maximum" if long > 3840
+      # "The maximum dimension of your screenshot can't be more than twice as
+      # long as the minimum dimension."
+      problems << format("%s: %dx%d — longest edge is %.3fx the shortest; Play allows at most 2x", name, width, height, ratio) if ratio > 2.0
+    end
+    UI.user_error!("Screenshots rejected before upload:\n  " + problems.join("\n  ")) unless problems.empty?
+
+    UI.important(validate_only ? 'VALIDATE ONLY — nothing will be committed to Play.' : 'PUBLISHING to the live Play listing.')
+    UI.message("#{shots.count} screenshot(s) from #{shots_dir}:")
+    shots.each { |s| UI.message("  - #{File.basename(s)}") }
+
+    upload_to_play_store(
+      json_key_data: service_account_json,
+      metadata_path: metadata_path,
+      track: 'production',
+      validate_only: validate_only,
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: false
+    )
+  end
 end
 

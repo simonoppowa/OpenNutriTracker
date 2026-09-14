@@ -152,7 +152,7 @@ On the Chat Completions skin the app uses, it appears at
 
 ### B3. Billing never arrives inside a 200
 
-This matters because `openrouter_meal_items_api.dart` already carries a second
+This matters because `openai_compatible_meal_items_api.dart` already carries a second
 failure path for a 200 that is not a success. Billing does not use it:
 
 > The HTTP Response will have the same status code as `error.code`, forming a request error if:
@@ -307,4 +307,4 @@ Related notes in this repo:
 In-repo files cited:
 [`lib/features/add_meal/domain/meal_interpreter_exception.dart`](../lib/features/add_meal/domain/meal_interpreter_exception.dart) ·
 [`lib/features/add_meal/data/anthropic_meal_items_api.dart`](../lib/features/add_meal/data/anthropic_meal_items_api.dart) ·
-[`lib/features/add_meal/data/openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart)
+[`lib/features/add_meal/data/openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart)

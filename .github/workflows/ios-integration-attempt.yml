@@ -39,12 +39,20 @@ jobs:
     # and launches the app on the iPhone 17 Pro / iOS 26.4 simulator but then
     # hangs forever on "Waiting for VM Service port to be available" — the Dart
     # VM-service URL is never discovered on that simulator, so the test never
-    # connects (the same suite passes on the Android emulator and on the iOS 18
-    # simulator here). macos-15 ships the Xcode 16 / iOS 18 simulator this
-    # Flutter supports. Revisit macos-26 once Flutter discovers the iOS 26
-    # simulator's VM service. ios-build / package / deploy stay on macos-26 —
-    # they build/sign and never launch a simulator, so they're unaffected.
+    # connects (the same suite passes on the Android emulator and on an iOS 18
+    # simulator here). The macos-15 image also carries Xcode 26 alongside its
+    # default Xcode 16, so compile with the newer SDK required by current
+    # plugins while explicitly retaining an iOS 18 runtime below. Revisit
+    # macos-26 once Flutter discovers the iOS 26 simulator's VM service.
+    # ios-build / package / deploy stay on macos-26 — they build/sign and never
+    # launch a simulator, so they're unaffected.
     runs-on: macos-15
+    env:
+      # device_info_plus 13.2.0 calls NSProcessInfo.isiOSAppOnVision, whose
+      # declaration requires Xcode 26.1.1 or newer even though execution is
+      # runtime-gated to iOS 26.1. Keep the proven iOS 18 simulator runtime;
+      # only the compiler/SDK needs to move.
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     # The backstop, not the thing that catches hangs — the test step's own
     # 20-minute bound does that, and turns a hang into a verdict the caller can
     # retry on a different runner. This only stops a job drifting toward
@@ -99,17 +107,26 @@ jobs:
       - name: Pod install (regenerate lockfile if constraints have shifted)
         run: .github/scripts/pod_install_with_targeted_fallback.sh
 
-      # Pick any available iPhone simulator on the runner. The runner images
-      # ship several preinstalled; we don't care which exact model — the
-      # boot-smoke test is platform-bridge driven, not display-pixel driven.
+      # Pick an iOS 18 iPhone simulator explicitly. Xcode 26 supplies the SDK
+      # headers required by current plugins, while iOS 18 preserves the
+      # reliable VM-service path established for this suite. The exact model
+      # is immaterial — the smoke test is platform-bridge driven.
       - name: Pick + boot iPhone simulator
         run: |
+          xcodebuild -version
+          echo "iPhone simulator SDK: $(xcrun --sdk iphonesimulator --show-sdk-version)"
           DEVICE_UDID=$(xcrun simctl list devices available iPhone -j | python3 -c "
           import sys, json
           data = json.load(sys.stdin)
-          devices = [d for runtime in data['devices'].values() for d in runtime if d.get('isAvailable')]
+          devices = [
+              d
+              for runtime, entries in sorted(data['devices'].items(), reverse=True)
+              if runtime.startswith('com.apple.CoreSimulator.SimRuntime.iOS-18-')
+              for d in entries
+              if d.get('isAvailable')
+          ]
           if not devices:
-              sys.exit('No available iPhone simulators on this runner')
+              sys.exit('No available iOS 18 iPhone simulators on this runner')
           print(devices[0]['udid'])
           ")
           echo "Booting simulator UDID: $DEVICE_UDID"

@@ -5,45 +5,75 @@ import 'package:health/health.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
+import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
+
+/// Which platform's health store rules apply.
+///
+/// Injected into [HealthPackageService] rather than read from [Platform] at
+/// every branch, because the two platforms now diverge in what they read and
+/// a host test is neither of them.
+enum HealthTargetPlatform {
+  android,
+  ios,
+  unsupported;
+
+  static HealthTargetPlatform get current {
+    if (Platform.isAndroid) return HealthTargetPlatform.android;
+    if (Platform.isIOS) return HealthTargetPlatform.ios;
+    return HealthTargetPlatform.unsupported;
+  }
+}
 
 /// [HealthService] backed by the `health` plugin — Health Connect on
 /// Android, HealthKit on iOS.
 ///
-/// Deliberately free of business logic: it asks for the two data types the
+/// Deliberately free of business logic: it asks for the data types the
 /// feature needs, hands back plain [ExternalWorkout] records, and leaves
 /// every decision about what to do with them to the import use case.
+///
+/// The two platforms are not symmetric, and the asymmetry is a policy
+/// consequence rather than a technical one. Play's Health Connect permissions
+/// policy refused this app READ_BODY_FAT, READ_DISTANCE and READ_STEPS as
+/// excessive (enforced 8 Sept 2026), so on Android:
+///
+///  * workouts are read outside the plugin, by
+///    [HealthConnectWorkoutReader] — the plugin's own workout read pulls
+///    distance and steps for every session and fails entirely without them;
+///  * body fat is not read at all, and the calorie-credit suggestion falls
+///    back to the BMI-derived percentile it already used for anyone whose
+///    health store had no body fat on record.
+///
+/// HealthKit is not subject to that policy and keeps both.
 class HealthPackageService implements HealthService {
-  /// Read-only: workouts to import, body fat to personalise the
-  /// calorie-credit suggestion. Nothing is ever written back.
-  static const _coreReadTypes = [
-    HealthDataType.WORKOUT,
-    HealthDataType.BODY_FAT_PERCENTAGE,
-  ];
+  /// Workouts, on every platform that has a health store. On Android this is
+  /// requested (it is what grants READ_EXERCISE) but read through
+  /// [HealthConnectWorkoutReader] rather than the plugin.
+  static const _workoutType = HealthDataType.WORKOUT;
 
-  /// On Android the plugin fills a workout's energy/distance/step totals by
-  /// reading the records associated with each session, and Health Connect
-  /// rejects the whole workout query with a SecurityException when any of
-  /// those reads is not granted. HealthKit carries the totals on the workout
-  /// itself, so requesting these on iOS would only add permission rows the
+  /// Health Connect sessions carry no energy of their own — apps write
+  /// separate TOTAL_CALORIES_BURNED records — so the calorie read is what
+  /// gives an imported workout its kcal. HealthKit puts the total on the
+  /// workout itself, so asking for this on iOS would add a permission row the
   /// feature never uses.
-  static const _androidWorkoutDetailTypes = [
-    HealthDataType.TOTAL_CALORIES_BURNED,
-    HealthDataType.DISTANCE_DELTA,
-    HealthDataType.STEPS,
-  ];
+  static const _androidEnergyType = HealthDataType.TOTAL_CALORIES_BURNED;
 
-  static List<HealthDataType> get _readTypes => [
-    ..._coreReadTypes,
-    if (Platform.isAndroid) ..._androidWorkoutDetailTypes,
+  /// Body fat personalises the calorie-credit suggestion. iOS only; see the
+  /// class doc.
+  static const _iosBodyCompositionType = HealthDataType.BODY_FAT_PERCENTAGE;
+
+  List<HealthDataType> get _readTypes => [
+    _workoutType,
+    if (_platform == HealthTargetPlatform.android) _androidEnergyType,
+    if (_platform == HealthTargetPlatform.ios) _iosBodyCompositionType,
   ];
 
   /// The types a workout read touches — [requestPermissions] asks for all of
   /// [_readTypes], but a revoked body-fat grant only costs the suggestion,
   /// so the workout guard must not fail on it.
-  static List<HealthDataType> get _workoutReadTypes => [
-    HealthDataType.WORKOUT,
-    if (Platform.isAndroid) ..._androidWorkoutDetailTypes,
+  List<HealthDataType> get _workoutReadTypes => [
+    _workoutType,
+    if (_platform == HealthTargetPlatform.android) _androidEnergyType,
   ];
 
   /// How far back to look for the latest body fat reading. A year is long
@@ -54,8 +84,15 @@ class HealthPackageService implements HealthService {
 
   static final _log = Logger('HealthPackageService');
   final Health _health;
+  final HealthConnectWorkoutReader _workoutReader;
+  final HealthTargetPlatform _platform;
 
-  HealthPackageService(this._health);
+  HealthPackageService(
+    this._health, {
+    HealthConnectWorkoutReader? workoutReader,
+    HealthTargetPlatform? platform,
+  }) : _workoutReader = workoutReader ?? HealthConnectWorkoutReader(),
+       _platform = platform ?? HealthTargetPlatform.current;
 
   /// Builds a configured service. [Health.configure] resolves the device id
   /// and has to run before any query, so it happens here rather than lazily
@@ -68,7 +105,7 @@ class HealthPackageService implements HealthService {
 
   @override
   Future<bool> isAvailable() async {
-    if (!Platform.isAndroid && !Platform.isIOS) return false;
+    if (_platform == HealthTargetPlatform.unsupported) return false;
     return await _health.isHealthConnectAvailable();
   }
 
@@ -80,12 +117,12 @@ class HealthPackageService implements HealthService {
     );
     if (!granted) return false;
     // Android answers the request with "was anything at all granted", so a
-    // user who ticked body fat and left the workout rows unticked would switch
-    // the feature on with nothing importable behind it. Re-check the types a
-    // workout read actually needs; body fat only costs the suggestion, so a
-    // refusal there is not a failure. hasPermissions answers null where the
-    // platform will not say (iOS never reports read grants) — same rule as
-    // [readWorkouts], only a definite refusal counts.
+    // user who ticked calories and left exercise unticked would switch the
+    // feature on with nothing importable behind it. Re-check the types a
+    // workout read actually needs; on iOS body fat only costs the suggestion,
+    // so a refusal there is not a failure. hasPermissions answers null where
+    // the platform will not say (iOS never reports read grants) — same rule
+    // as [readWorkouts], only a definite refusal counts.
     final hasWorkoutPermissions = await _health.hasPermissions(
       _workoutReadTypes,
       permissions: List.filled(_workoutReadTypes.length, HealthDataAccess.READ),
@@ -113,24 +150,14 @@ class HealthPackageService implements HealthService {
         'needed: $_workoutReadTypes',
       );
     }
+    if (_platform == HealthTargetPlatform.android) {
+      return await _readAndroidWorkouts(from: from, to: to);
+    }
     final points = await _health.getHealthDataFromTypes(
-      types: const [HealthDataType.WORKOUT],
+      types: const [_workoutType],
       startTime: from,
       endTime: to,
     );
-    // On Android a workout's totalEnergyBurned is the plugin's sum of EVERY
-    // calorie record overlapping the session, whoever wrote it — see
-    // [androidWorkoutEnergyKcal] for why that double-counts. Read the raw
-    // calorie records once for the whole window and attribute them per
-    // workout instead. HealthKit workouts carry their own total, so iOS
-    // keeps the plugin's value.
-    final calorieRecords = Platform.isAndroid
-        ? await _health.getHealthDataFromTypes(
-            types: const [HealthDataType.TOTAL_CALORIES_BURNED],
-            startTime: from,
-            endTime: to,
-          )
-        : const <HealthDataPoint>[];
     final workouts = <ExternalWorkout>[];
     for (final point in points) {
       final value = point.value;
@@ -149,22 +176,54 @@ class HealthPackageService implements HealthService {
           start: point.dateFrom,
           end: point.dateTo,
           activityTypeName: value.workoutActivityType.name,
-          energyBurnedKcal: Platform.isAndroid
-              ? androidWorkoutEnergyKcal(
-                  start: point.dateFrom,
-                  end: point.dateTo,
-                  sourceName: point.sourceName,
-                  calorieRecords: calorieRecords,
-                )
-              : _energyInKcal(
-                  value.totalEnergyBurned,
-                  value.totalEnergyBurnedUnit,
-                ),
+          // A HealthKit workout carries its own total.
+          energyBurnedKcal: _energyInKcal(
+            value.totalEnergyBurned,
+            value.totalEnergyBurnedUnit,
+          ),
           sourceAppName: point.sourceName,
         ),
       );
     }
     return workouts;
+  }
+
+  /// Workouts from Health Connect, read outside the plugin.
+  ///
+  /// A session record carries no energy, so the calorie records for the whole
+  /// window are read once and attributed per workout by
+  /// [androidWorkoutEnergyKcal] — which is also why the plugin's own totals
+  /// were never used here even when they were available.
+  Future<List<ExternalWorkout>> _readAndroidWorkouts({
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    final sessions = await _workoutReader.readExerciseSessions(
+      from: from,
+      to: to,
+    );
+    if (sessions.isEmpty) return const <ExternalWorkout>[];
+    final calorieRecords = await _health.getHealthDataFromTypes(
+      types: const [_androidEnergyType],
+      startTime: from,
+      endTime: to,
+    );
+    return [
+      for (final session in sessions)
+        ExternalWorkout(
+          id: session.id,
+          start: session.start,
+          end: session.end,
+          activityTypeName: session.activityTypeName,
+          energyBurnedKcal: androidWorkoutEnergyKcal(
+            start: session.start,
+            end: session.end,
+            sourceName: session.sourceAppName ?? '',
+            calorieRecords: calorieRecords,
+          ),
+          sourceAppName: session.sourceAppName,
+        ),
+    ];
   }
 
   /// Energy attributable to one Android workout session.
@@ -215,6 +274,11 @@ class HealthPackageService implements HealthService {
 
   @override
   Future<double?> readLatestBodyFatPercent() async {
+    // Android holds no body-fat permission — Play refused it as excessive for
+    // what this app does. Null is the same answer the calculator already got
+    // for the many users whose health store has no body fat on record, and it
+    // falls back to the BMI-derived percentile.
+    if (_platform == HealthTargetPlatform.android) return null;
     final now = DateTime.now();
     final points = await _health.getHealthDataFromTypes(
       types: const [HealthDataType.BODY_FAT_PERCENTAGE],

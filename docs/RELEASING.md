@@ -13,14 +13,16 @@ the ones that are otherwise remembered, or not.
 
 ## What happens on its own
 
-Everything below fires from `push` on `main`, so it needs no action beyond the merge.
+Everything below fires from `push` on `main`. **It does not run to completion unattended** — the
+jobs holding store credentials pause for an approval, see [Environments](#environments-and-the-approval-pause).
 
 | Job | What it does |
 |---|---|
 | `linux-checks`, `*-build`, `*-integration-tests` | the same gates every PR runs |
 | `ios-package` / `android-package` | build the IPA, AAB and APK |
-| `ios-deploy` / `android-deploy` | upload to **TestFlight**, and *attempt* the Play **`internal`** track — see [the Android upload](#the-android-upload-usually-needs-a-hand) |
+| `ios-deploy` / `android-deploy` | upload to **TestFlight**, and *attempt* the Play **`internal`** track — build 65 is the first attempt that landed, and the job still finishes green when one does not ([#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942)); see [the Android upload](#the-android-upload-and-when-it-still-needs-a-hand) |
 | `github-release` | tag, attach the IPA/AAB/APK, and generate release notes from merged PRs |
+| `release-summary` | last job; asserts the run produced what `release-gate` promised, and says so on the run page |
 
 Two properties are deliberate and worth knowing:
 
@@ -30,21 +32,66 @@ Two properties are deliberate and worth knowing:
   TestFlight `changelog` is commented out. Listing text and "what's new" are edited in the
   consoles, by a person.
 
-### The Android upload usually needs a hand
+### Environments and the approval pause
 
-`android-deploy` **attempts** the Play upload and, for now, is expected to fail on one specific
-error. Since 2.1.0 the bundle declares `android.permission.health.*`, and the Play Publishing API
-rejects health-permission bundles with *"You must let us know whether your app includes any health
-features"* regardless of the declaration — a known upstream defect
-([#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942),
-[fastlane#22204](https://github.com/fastlane/fastlane/issues/22204) closed unfixed,
-[fastlane#27960](https://github.com/fastlane/fastlane/issues/27960) reopened, and reproduced from a
-different toolchain in [expo/eas-cli#3275](https://github.com/expo/eas-cli/issues/3275)). The same
-bundle uploaded by hand through the console is asked no health question and goes through.
+Three deployment environments, split by which **credentials** a job holds rather than by what it
+is called. All three are pinned to `main` by a deployment branch policy, which is a guard
+independent of the `if:` expressions — the expression is the mechanism that has already failed
+here once, when a `workflow_dispatch` from a topic branch cut a real tag.
 
-The step tolerates that one error and nothing else: it emits a `::warning::` and writes the
-recovery steps into the run's **step summary**. So the job going green is not the signal — read the
-summary. When it says the upload needs doing by hand:
+| Environment | Jobs | Protection |
+| :-- | :-- | :-- |
+| `release-build` | `android-package` | branch policy |
+| `release-ship` | `ios-package`, `ios-deploy`, `android-deploy` | branch policy **and an approval** |
+| `release-publish` | `github-release` | branch policy |
+
+**A release stops and waits for you.** The `release-ship` jobs sit in *Review pending deployments*
+until approved, so a merge to `main` does not finish on its own. Approving is the decision point:
+those jobs can consume a Play `versionCode` and a TestFlight build number, and neither is
+refundable.
+
+Declining is a real option and behaves sanely — a rejected job reports `failure`, so
+`github-release` (which needs both deploys green) never runs, and no build number is spent.
+`release-summary` will fail the run and say the build can be retried as it stands, which it can.
+
+`ios-package` is on `release-ship` and `android-package` is not, though both only package:
+`fastlane ios build` runs `match`, which authenticates to App Store Connect, so iOS packaging
+holds store credentials where Android packaging holds only a local keystore.
+
+### The Android upload, and when it still needs a hand
+
+**Build 65 uploaded through the API, on 2026-09-10.** `fastlane` logged *"Successfully finished the
+upload to Google Play"*, `android-deploy` emitted no `::warning::`, and its only annotation was the
+ledger notice. That is the first time this step has actually shipped a bundle; every release since
+2.1.0 needed the hand-upload below.
+
+**Do not read that as fixed.** Two things changed at once, and nothing in this repo says which
+mattered:
+
+- Google may have fixed the Publishing API. The defect
+  ([#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942),
+  [fastlane#22204](https://github.com/fastlane/fastlane/issues/22204) closed unfixed,
+  [fastlane#27960](https://github.com/fastlane/fastlane/issues/27960) reopened, and reproduced from
+  a different toolchain in [expo/eas-cli#3275](https://github.com/expo/eas-cli/issues/3275)) was
+  that the API rejected health-permission bundles with *"You must let us know whether your app
+  includes any health features"* regardless of the declaration.
+- Or the bundle stopped provoking it. Build 65 is the first to declare **two**
+  `android.permission.health.*` permissions rather than five: Play's Health Connect permissions
+  policy refused `READ_BODY_FAT`, `READ_DISTANCE` and `READ_STEPS` as excessive on 2026-09-08, and
+  [#1122](https://github.com/simonoppowa/OpenNutriTracker/pull/1122) removed them.
+
+Nobody has run the experiment that separates those. Until a release with an unchanged permission
+set uploads cleanly, treat a working API upload as welcome rather than expected.
+
+The tolerance therefore stays. It costs nothing when the upload works, and the failure it guards
+against is silent. The step tolerates that one error and nothing else: it emits a `::warning::` and
+writes the recovery steps into the run's **step summary**. So the job going green is still not the
+signal — read the summary, or read the annotations: a successful upload leaves a `notice` and
+nothing else, a tolerated rejection leaves a `warning`. `release-summary` repeats it at the end of
+the run in its own words, and does so whatever colour `android-deploy` ended up, because the ledger
+step after the upload can fail on its own.
+
+When either says the upload needs doing by hand:
 
 1. Download the `android-aab` artifact from the run. (A full release also attaches the AAB to the
    GitHub release; a build-only bump creates no release, so the run artifact is the only copy —
@@ -55,7 +102,8 @@ summary. When it says the upload needs doing by hand:
    regression in [#959](https://github.com/simonoppowa/OpenNutriTracker/issues/959) went unnoticed
    for eight days.
 
-This step starts passing on its own once Google fixes the API; nothing here needs changing then.
+Build 65 needed none of the three steps above. Keep them until a release proves the API upload
+repeatable — see the caveat at the top of this section.
 
 ## Before opening the release PR
 
@@ -110,12 +158,22 @@ This step starts passing on its own once Google fixes the API; nothing here need
       besides a release tag. It records what a store **consumed**, not what it **published**: with
       the #942 tolerance `android-deploy` exits 0 on a rejected upload and still marks the build
       spent. So a build you never hand-uploaded still needs a bump before you can retry it.
-- [ ] **Get the Android build onto `internal`.** Check the run's step summary first: if the API
-      upload hit [#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942), the track is
-      still empty and the AAB needs uploading by hand. Production promotion is manual either way.
+- [ ] **Confirm the Android build reached `internal`.** Check the run's step summary, or
+      `android-deploy`'s annotations: a `notice` alone means the API upload went through and the
+      track has the build; a `warning` means it hit
+      [#942](https://github.com/simonoppowa/OpenNutriTracker/issues/942), the track is still empty
+      and the AAB needs uploading by hand. Build 65 was the first to need neither. Production
+      promotion is manual either way.
 - [ ] **Submit the iOS build.** The lane uploads to TestFlight; App Store submission is not
       automated.
 - [ ] **Update the store listings** with the "what's new" text, since the pipeline uploads none.
+- [ ] **Read `release-summary`.** It is the last job, it runs whatever happened upstream, and it
+      asserts the artifact rather than the colour: that every deploy job the gate promised actually
+      succeeded, and that the tag the gate promised is on the remote. A run where it is green and
+      says *"Nothing was due to ship from this push"* shipped nothing **on purpose**; a run where it
+      is red shipped less than it promised, whatever the jobs above it say. It exists because two
+      consecutive releases were lost behind a green run
+      ([#1012](https://github.com/simonoppowa/OpenNutriTracker/issues/1012)).
 
 ## Store declarations
 
@@ -145,6 +203,17 @@ below, and nothing but this page will remind you.
       policy requires that exact wording *in the app description* for a health-and-fitness app that
       is not a declared medical device, plus a reminder to consult a healthcare professional. Both
       are the last line of `full_description.txt`.
+- [ ] **Correct Play's Data safety record**, which is the one item here that genuinely blocks
+      promoting the Android build to production. The record omits the meal photo and the typed
+      meal line, and
+      [#1050](https://github.com/simonoppowa/OpenNutriTracker/issues/1050) carries the answer
+      sheet field by field — two types, both collected and shared, both optional, purpose App
+      functionality, ephemeral **No**. It is entered in *App content*, independently of a release.
+
+      This step was missing from the first version of this list, which named the three cosmetic
+      declarations and not the blocking one. The public result is visible only at
+      `play.google.com/store/apps/datasafety?id=…`, and that page renders type-level rows rather
+      than the categories the Console groups them under.
 - [ ] **Answer Play's Health apps declaration.** Required for all developers under the same policy,
       with nutrition tracking as a declarable feature.
 - [ ] **Make the App Store Connect App Privacy record agree with
@@ -163,6 +232,10 @@ below, and nothing but this page will remind you.
       The first two exist only because of AI meal assistance. Food search terms, HealthKit
       workouts and locally-attached meal photos are deliberately absent; the manifest says why,
       beside each one.
+- [ ] **Answer Apple's regulated-medical-device question**
+      ([#1081](https://github.com/simonoppowa/OpenNutriTracker/issues/1081)). It gates Health &
+      Fitness submissions. Existing apps have until early 2027, so it does not block a release
+      today — it is here because a deadline nobody has written down is a deadline nobody meets.
 
 The table is what the AI path made necessary, not a statement that the record is complete. Three
 things behind it are open rather than answered, and none blocks a release:
@@ -203,6 +276,40 @@ absent from `develop` *by construction* under squash merging, so they accumulate
 Before backporting anything, check whether its content is already present — a file that exists on
 both branches, or a paragraph already corrected — rather than trusting the commit list. Only two of
 the four entries it printed in August 2026 were real gaps.
+
+**Ask which lines, not which commits.** The command above answers "which commits", which is the
+wrong question under squash merging — `main` carries a release as one commit that `develop` will
+never contain. The useful question is which *lines* `main` has that `develop` does not:
+
+```bash
+git diff --name-only origin/develop origin/main | while read -r f; do
+  n=$(git diff origin/develop origin/main -- "$f" | grep -cE '^\+[^+]')
+  if [ "$n" -gt 0 ]; then printf '%4d  %s\n' "$n" "$f"; fi
+done
+```
+
+Then judge each file it prints. A line is a gap only if `develop` has no newer version of it. Most
+will be neither: text `develop` has since rewritten, or a file it deleted deliberately, both of
+which look identical to a gap in a commit listing.
+
+Run on **2026-09-04**, with `main` at 2.2.0 and `develop` seventeen commits past it, eleven files
+had `main`-only lines and **not one was a gap**:
+
+| `main`-only lines | Why it was not a gap |
+| --: | :-- |
+| 31 in `default_workflow.yml` | superseded by the `changes` job in #1043, which gates more than the inline version it replaced |
+| 25 in `docs/export-format.md` | superseded by #999 |
+| 15 in `full_description.txt`, 5 in `ai-legal-constraints.md`, 1 in `Info.plist` | superseded by #1049 and #1051 |
+| 4 in `docs/supabase-self-hosting.md` | superseded by #1000 |
+| 4 in `docs/supabase-fdc-self-hosting.md` | `develop` deleted the file on purpose in #997 |
+| 1 each in `README.md`, `ai-architecture.md`, `AGENTS.md`, `CONTRIBUTING.md` | superseded by #1003, #996 and #1047 |
+| 0 in `docs/RELEASING.md` | `develop` is a strict superset |
+
+The specific answer expires; the shape of it does not. `develop` is uniformly newer wherever the
+two differ, so the conflicts a release PR raises resolve to `develop`'s side — they are not a debt
+that grows between releases, and there is nothing to bring down in the meantime. If a run of the
+command above ever *does* print a real gap, cherry-pick it; do not reach for a merge, for the
+reason in the paragraph above.
 
 ## Documentation
 

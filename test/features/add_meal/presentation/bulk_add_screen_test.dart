@@ -4,6 +4,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'dart:async';
+import 'package:opennutritracker/features/add_meal/domain/usecase/probe_ai_endpoint_usecase.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
@@ -23,6 +26,7 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/search_product
 import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add_screen.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/own_server_wait_indicator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -117,29 +121,28 @@ MealEntity _meal(
   String? mealUnit,
   String? brands,
   List<MealPortionEntity> portions = const [],
-}) =>
-    MealEntity(
-      code: name,
-      name: name,
-      brands: brands,
-      url: null,
-      mealQuantity: null,
-      mealUnit: mealUnit,
-      servingQuantity: servingQuantity,
-      servingUnit: null,
-      servingSize: servingSize,
-      portions: portions,
-      source: MealSourceEntity.off,
-      nutriments: const MealNutrimentsEntity(
-        energyKcal100: 100,
-        carbohydrates100: 0,
-        fat100: 0,
-        proteins100: 0,
-        sugars100: null,
-        saturatedFat100: null,
-        fiber100: null,
-      ),
-    );
+}) => MealEntity(
+  code: name,
+  name: name,
+  brands: brands,
+  url: null,
+  mealQuantity: null,
+  mealUnit: mealUnit,
+  servingQuantity: servingQuantity,
+  servingUnit: null,
+  servingSize: servingSize,
+  portions: portions,
+  source: MealSourceEntity.off,
+  nutriments: const MealNutrimentsEntity(
+    energyKcal100: 100,
+    carbohydrates100: 0,
+    fat100: 0,
+    proteins100: 0,
+    sugars100: null,
+    saturatedFat100: null,
+    fiber100: null,
+  ),
+);
 
 final getIt = GetIt.instance;
 
@@ -244,6 +247,129 @@ MealInterpreterFailure _throwsFor(MealTextModelFailure kind) => switch (kind) {
     MealInterpreterFailure.insecureDestination,
 };
 
+/// Whether the photo failure [error] is one the AI settings dialog answers.
+///
+/// A switch over the enum for the same reason [_throwsFor] is one: a ninth
+/// photo failure cannot be added without saying here whether Settings is
+/// where its user should be sent, rather than inheriting an answer from a
+/// default it was never weighed against.
+///
+/// The four that say `false` are answered somewhere this app does not own —
+/// the camera permission, a different photograph, the connection, and the
+/// provider's own billing page.
+bool _offersSettings(BulkAddPhotoError error) => switch (error) {
+  BulkAddPhotoError.unavailable ||
+  BulkAddPhotoError.auth ||
+  BulkAddPhotoError.unsupported ||
+  BulkAddPhotoError.insecureDestination => true,
+  BulkAddPhotoError.transient ||
+  BulkAddPhotoError.camera ||
+  BulkAddPhotoError.unreadable ||
+  BulkAddPhotoError.billing => false,
+};
+
+/// Puts the screen in front of the photo failure [error], without a picker
+/// and without a model: the bloc takes the failure as an event, which is how
+/// the camera path reports one anyway.
+Future<void> _photoFailure(
+  WidgetTester tester,
+  BulkAddPhotoError error, {
+  List<RouteSettings>? pushed,
+  Locale? locale,
+  Widget Function(Widget app)? wrap,
+}) async {
+  final bloc = await _registerWithPhotoReading(
+    const MealPhotoFailed(MealPhotoFailure.transient),
+  );
+  final app = _app(pushed: pushed, locale: locale);
+  await tester.pumpWidget(wrap == null ? app : wrap(app));
+  tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+  await tester.pumpAndSettle();
+
+  bloc.add(ReadMealPhotoFailedEvent(error));
+  await tester.pumpAndSettle();
+}
+
+/// An interpreter held open, so a read can be left in flight for as long as
+/// a test needs and answered on demand. #1148.
+class _GatedInterpreter implements MealTextInterpreter {
+  final gate = Completer<MealTextParseResult>();
+
+  @override
+  Future<MealTextParseResult> interpret(String input, {String? localeCode}) =>
+      gate.future;
+}
+
+/// Same graph, but the text reader waits on [_GatedInterpreter.gate] and the
+/// keystore — the one the screen reads *and* the one the use case reads —
+/// holds [stored]. Returns the interpreter so a test can land the answer.
+///
+/// Two storages seeded from one map, because the two questions are asked of
+/// two objects: the use case decides whether to call the model at all, and
+/// the screen decides which loading state to draw for it. A test that seeds
+/// only one would either never wait or never see the wait it drew.
+Future<_GatedInterpreter> _registerWithGatedReader(
+  Map<String, List<MealEntity>> results,
+  Map<String, String> stored,
+) async {
+  await _register(results);
+  final interpreter = _GatedInterpreter();
+  getIt.unregister<AiCredentialStorage>();
+  getIt.registerLazySingleton<AiCredentialStorage>(
+    () => AiCredentialStorage(_MapStorage(stored)),
+  );
+  final bloc = BulkAddBloc(
+    ResolveParsedMealsUseCase(_FakeSearch(results)),
+    ReadMealTextUseCase(
+      AiCredentialStorage(_MapStorage(stored)),
+      (_) => interpreter,
+    ),
+    ReadMealPhotoUseCase(
+      AiCredentialStorage(_EmptyStorage()),
+      (_) => throw StateError('must not be built without a key'),
+    ),
+  );
+  getIt.unregister<BulkAddBloc>();
+  getIt.registerSingleton<BulkAddBloc>(bloc);
+  return interpreter;
+}
+
+/// A server the user runs, configured and enabled.
+const _ownServerStored = {
+  'AiProviderTag': 'ownServer',
+  'AiEndpointTag.ownServer': 'http://192.168.1.5:11434',
+  'AiModelTag.ownServer': 'gemma3:4b',
+};
+
+/// A hosted provider, configured and enabled.
+const _hostedStored = {
+  'AiProviderTag': 'anthropic',
+  'AiApiKeyTag.anthropic': 'sk-test',
+};
+
+/// Pushes the screen, types [text] and taps Search, then pumps **one frame**
+/// rather than settling: the read under test is held open, and a wait that
+/// ticks once a second never settles.
+Future<void> _startWaiting(WidgetTester tester, String text) async {
+  await tester.pumpWidget(_app());
+  await tester.pumpAndSettle();
+  final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+  navigator.pushNamed('/bulk');
+  await tester.pumpAndSettle();
+
+  await tester.enterText(find.byType(TextField).first, text);
+  await tester.tap(find.widgetWithIcon(FilledButton, Icons.search));
+  await tester.pump();
+  // The screen decides which loading state to draw from a keystore read
+  // that lands a microtask or two after the loading state does.
+  await tester.pump();
+}
+
+/// The model-loading sentence, or its absence.
+Finder _modelLoadingHint() => find.text(l10nEn.bulkAddWaitModelLoadingLabel);
+
+Finder _waitCancel() => find.bySemanticsIdentifier('bulk-add-wait-cancel');
+
 class _AlwaysFailsInterpreter implements MealTextInterpreter {
   final MealInterpreterException failure;
 
@@ -252,6 +378,27 @@ class _AlwaysFailsInterpreter implements MealTextInterpreter {
   @override
   Future<MealTextParseResult> interpret(String input, {String? localeCode}) =>
       throw failure;
+}
+
+/// A prober held open, so a probe can be started, left in flight while the
+/// user comes back, and landed on demand. #1089.
+class _GatedProber implements AiEndpointProber {
+  _GatedProber(this.result);
+
+  AiEndpointProbe result;
+  final gate = Completer<void>();
+
+  @override
+  Future<AiEndpointProbe> probe(
+    AiSelection selection, {
+    String? localeCode,
+  }) async {
+    await gate.future;
+    return result;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MapStorage implements FlutterSecureStorage {
@@ -277,6 +424,42 @@ class _MapStorage implements FlutterSecureStorage {
     AppleOptions? mOptions,
     WindowsOptions? wOptions,
   }) async => values[key];
+
+  /// Writes land, rather than vanishing into [noSuchMethod].
+  ///
+  /// They used to: only `read` was implemented, so anything the app stored
+  /// during a test was silently dropped and read back as absent. Nothing
+  /// noticed while every test seeded the map and only read from it — but a
+  /// probe verdict written by the runner disappeared, and the symptom was a
+  /// capability that stayed `unknown` with no failure pointing here.
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    if (value == null) {
+      values.remove(key);
+    } else {
+      values[key] = value;
+    }
+  }
+
+  @override
+  Future<void> delete({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => values.remove(key);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -306,55 +489,52 @@ Widget _app({
   bool imperial = false,
   Locale? locale,
   List<RouteSettings>? pushed,
-}) =>
-    ChangeNotifierProvider<EnergyUnitProvider>(
-      create: (_) => EnergyUnitProvider(usesKilojoules: false),
-      child: MaterialApp(
-        localizationsDelegates: const [
-          S.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: S.supportedLocales,
-        locale: locale,
-        navigatorObservers: [if (pushed != null) _PushRecorder(pushed)],
-        initialRoute: NavigationOptions.mainRoute,
-        onGenerateRoute: (settings) {
-          if (settings.name == NavigationOptions.mainRoute) {
-            return MaterialPageRoute<void>(
-              settings: settings,
-              builder: (_) => const Scaffold(body: SizedBox()),
-            );
-          }
-          // A stand-in for the settings screen, which needs a locator graph
-          // of its own. It keeps the arguments the caller passed — those are
-          // what carries the request to open the AI dialog (#852), and
-          // rewriting them here, as the branch below has to for the screen
-          // under test, would hide the thing being asserted.
-          if (settings.name == NavigationOptions.settingsRoute) {
-            return MaterialPageRoute<void>(
-              settings: settings,
-              builder: (_) => const Scaffold(
-                key: Key('settings-stub'),
-                body: SizedBox(),
-              ),
-            );
-          }
-          return MaterialPageRoute<void>(
-            settings: RouteSettings(
-              name: settings.name,
-              arguments: BulkAddScreenArguments(
-                IntakeTypeEntity.breakfast,
-                DateTime(2026, 8, 10),
-                imperial,
-              ),
-            ),
-            builder: (_) => const BulkAddScreen(),
-          );
-        },
-      ),
-    );
+}) => ChangeNotifierProvider<EnergyUnitProvider>(
+  create: (_) => EnergyUnitProvider(usesKilojoules: false),
+  child: MaterialApp(
+    localizationsDelegates: const [
+      S.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    supportedLocales: S.supportedLocales,
+    locale: locale,
+    navigatorObservers: [if (pushed != null) _PushRecorder(pushed)],
+    initialRoute: NavigationOptions.mainRoute,
+    onGenerateRoute: (settings) {
+      if (settings.name == NavigationOptions.mainRoute) {
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const Scaffold(body: SizedBox()),
+        );
+      }
+      // A stand-in for the settings screen, which needs a locator graph
+      // of its own. It keeps the arguments the caller passed — those are
+      // what carries the request to open the AI dialog (#852), and
+      // rewriting them here, as the branch below has to for the screen
+      // under test, would hide the thing being asserted.
+      if (settings.name == NavigationOptions.settingsRoute) {
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) =>
+              const Scaffold(key: Key('settings-stub'), body: SizedBox()),
+        );
+      }
+      return MaterialPageRoute<void>(
+        settings: RouteSettings(
+          name: settings.name,
+          arguments: BulkAddScreenArguments(
+            IntakeTypeEntity.breakfast,
+            DateTime(2026, 8, 10),
+            imperial,
+          ),
+        ),
+        builder: (_) => const BulkAddScreen(),
+      );
+    },
+  ),
+);
 
 /// Pushes the screen, types [text] and taps Search, then settles.
 Future<void> _parse(WidgetTester tester, String text) async {
@@ -384,13 +564,16 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
 
-    await _registerWithFailingReader({
-      'toast': [_meal('Toast')],
-    }, const MealInterpreterException(
-      'unauthorized',
-      failure: MealInterpreterFailure.auth,
-      statusCode: 401,
-    ));
+    await _registerWithFailingReader(
+      {
+        'toast': [_meal('Toast')],
+      },
+      const MealInterpreterException(
+        'unauthorized',
+        failure: MealInterpreterFailure.auth,
+        statusCode: 401,
+      ),
+    );
 
     await tester.pumpWidget(_app(locale: const Locale('de')));
     await tester.pumpAndSettle();
@@ -421,13 +604,16 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
 
-    await _registerWithFailingReader({
-      'toast': [_meal('Toast')],
-    }, const MealInterpreterException(
-      'no credit',
-      failure: MealInterpreterFailure.billing,
-      statusCode: 402,
-    ));
+    await _registerWithFailingReader(
+      {
+        'toast': [_meal('Toast')],
+      },
+      const MealInterpreterException(
+        'no credit',
+        failure: MealInterpreterFailure.billing,
+        statusCode: 402,
+      ),
+    );
 
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
@@ -455,12 +641,15 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
 
-    await _registerWithFailingReader({
-      'toast': [_meal('Toast')],
-    }, const MealInterpreterException(
-      'request timed out',
-      failure: MealInterpreterFailure.timeout,
-    ));
+    await _registerWithFailingReader(
+      {
+        'toast': [_meal('Toast')],
+      },
+      const MealInterpreterException(
+        'request timed out',
+        failure: MealInterpreterFailure.timeout,
+      ),
+    );
 
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
@@ -491,12 +680,15 @@ void main() {
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
 
-    await _registerWithFailingReader({
-      'toast': [_meal('Toast')],
-    }, const MealInterpreterException(
-      'request timed out',
-      failure: MealInterpreterFailure.timeout,
-    ));
+    await _registerWithFailingReader(
+      {
+        'toast': [_meal('Toast')],
+      },
+      const MealInterpreterException(
+        'request timed out',
+        failure: MealInterpreterFailure.timeout,
+      ),
+    );
 
     await tester.pumpWidget(
       MediaQuery(
@@ -581,7 +773,8 @@ void main() {
     expect(
       tester.getSize(dropdown).width,
       greaterThanOrEqualTo(needed),
-      reason: 'the unit dropdown is narrower than the unit it has to show, '
+      reason:
+          'the unit dropdown is narrower than the unit it has to show, '
           'and a clipped unit reads as a different one',
     );
   });
@@ -634,9 +827,7 @@ void main() {
     // it. Reducing "30 g" to "g" would put a wrong unit on a right number,
     // so the fallback has to hold.
     await _register({
-      'yoghurt': [
-        _meal('Yoghurt', servingQuantity: 125, servingSize: '30 g'),
-      ],
+      'yoghurt': [_meal('Yoghurt', servingQuantity: 125, servingSize: '30 g')],
     });
 
     await tester.pumpWidget(_app());
@@ -661,9 +852,7 @@ void main() {
     final en = lookupS(const Locale('en'));
     expect(find.text(en.bulkAddDefaultAmountLabel), findsOneWidget);
     // Quieter than its siblings: the muted surface colour, not an accent.
-    final marker = tester.widget<Text>(
-      find.text(en.bulkAddDefaultAmountLabel),
-    );
+    final marker = tester.widget<Text>(find.text(en.bulkAddDefaultAmountLabel));
     final scheme = Theme.of(
       tester.element(find.text(en.bulkAddDefaultAmountLabel)),
     ).colorScheme;
@@ -689,19 +878,29 @@ void main() {
     );
   });
 
-  testWidgets('a chosen portion is written as a plain serving', (
-    tester,
-  ) async {
+  testWidgets('a chosen portion is written as a plain serving', (tester) async {
     // #864 decision 3. The dropdown offers "serving#1" so the row can name
     // the slice, but `IntakeDBO.unit` is published in docs/export-format.md
     // and rides in a positional QR array other builds parse, so what gets
     // written has to stay inside the closed set.
     await _register({
       'bread': [
-        _meal('Bread', servingQuantity: 244, portions: const [
-          MealPortionEntity(label: '1 cup', gramWeight: 244, localized: false),
-          MealPortionEntity(label: '1 slice', gramWeight: 38, localized: false),
-        ]),
+        _meal(
+          'Bread',
+          servingQuantity: 244,
+          portions: const [
+            MealPortionEntity(
+              label: '1 cup',
+              gramWeight: 244,
+              localized: false,
+            ),
+            MealPortionEntity(
+              label: '1 slice',
+              gramWeight: 38,
+              localized: false,
+            ),
+          ],
+        ),
       ],
     });
 
@@ -718,10 +917,16 @@ void main() {
     await tester.pumpAndSettle();
 
     final write = _mealDetailBloc.writes.single;
-    expect(write.unit, 'serving',
-        reason: 'the portion suffix must never be written down');
-    expect(double.parse(write.amount), 114,
-        reason: '3 slices at 38 g, not 3 cups at 244 g');
+    expect(
+      write.unit,
+      'serving',
+      reason: 'the portion suffix must never be written down',
+    );
+    expect(
+      double.parse(write.amount),
+      114,
+      reason: '3 slices at 38 g, not 3 cups at 244 g',
+    );
   });
 
   testWidgets('the quantity box holds the largest amount at 2x', (
@@ -777,12 +982,15 @@ void main() {
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
 
-    await _registerWithFailingReader({
-      'toast': [_meal('Toast')],
-    }, const MealInterpreterException(
-      'request timed out',
-      failure: MealInterpreterFailure.timeout,
-    ));
+    await _registerWithFailingReader(
+      {
+        'toast': [_meal('Toast')],
+      },
+      const MealInterpreterException(
+        'request timed out',
+        failure: MealInterpreterFailure.timeout,
+      ),
+    );
 
     // Collected rather than asserted away, so the assertion can name what it
     // covers. It began downwards-only: fixing the vertical overflow (#820)
@@ -839,7 +1047,6 @@ void main() {
     );
   });
 
-
   testWidgets('the advice is a control, so nothing can truncate it', (
     tester,
   ) async {
@@ -850,12 +1057,15 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
 
-    await _registerWithFailingReader({
-      'toast': [_meal('Toast')],
-    }, const MealInterpreterException(
-      'no credit',
-      failure: MealInterpreterFailure.billing,
-    ));
+    await _registerWithFailingReader(
+      {
+        'toast': [_meal('Toast')],
+      },
+      const MealInterpreterException(
+        'no credit',
+        failure: MealInterpreterFailure.billing,
+      ),
+    );
 
     final pushed = <RouteSettings>[];
     await tester.pumpWidget(_app(pushed: pushed));
@@ -936,12 +1146,15 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
 
-    await _registerWithFailingReader({
-      'toast': [_meal('Toast')],
-    }, const MealInterpreterException(
-      'request timed out',
-      failure: MealInterpreterFailure.timeout,
-    ));
+    await _registerWithFailingReader(
+      {
+        'toast': [_meal('Toast')],
+      },
+      const MealInterpreterException(
+        'request timed out',
+        failure: MealInterpreterFailure.timeout,
+      ),
+    );
 
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
@@ -972,7 +1185,6 @@ void main() {
     expect(find.bySemanticsIdentifier('bulk-add-submit'), findsOneWidget);
   });
 
-
   testWidgets('a refused destination is not dressed as a network fault', (
     tester,
   ) async {
@@ -983,12 +1195,15 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
 
-    await _registerWithFailingReader({
-      'toast': [_meal('Toast')],
-    }, const MealInterpreterException(
-      'plaintext to a public address',
-      failure: MealInterpreterFailure.insecureDestination,
-    ));
+    await _registerWithFailingReader(
+      {
+        'toast': [_meal('Toast')],
+      },
+      const MealInterpreterException(
+        'plaintext to a public address',
+        failure: MealInterpreterFailure.insecureDestination,
+      ),
+    );
 
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
@@ -1013,12 +1228,15 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
 
-    await _registerWithFailingReader({
-      'toast': [_meal('Toast')],
-    }, const MealInterpreterException(
-      'plaintext to a public address',
-      failure: MealInterpreterFailure.insecureDestination,
-    ));
+    await _registerWithFailingReader(
+      {
+        'toast': [_meal('Toast')],
+      },
+      const MealInterpreterException(
+        'plaintext to a public address',
+        failure: MealInterpreterFailure.insecureDestination,
+      ),
+    );
 
     await tester.pumpWidget(_app(locale: const Locale('de')));
     await tester.pumpAndSettle();
@@ -1113,30 +1331,182 @@ void main() {
     expect(find.text(l10n.bulkAddNothingToLogLabel), findsNothing);
   });
 
-  testWidgets('a refused photo destination points at the address, not the model', (
+  testWidgets(
+    'a refused photo destination points at the address, not the model',
+    (tester) async {
+      final bloc = await _registerWithPhotoReading(
+        const MealPhotoFailed(MealPhotoFailure.insecureDestination),
+      );
+      await tester.pumpWidget(_app());
+      tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+      await tester.pumpAndSettle();
+
+      bloc.add(
+        ReadMealPhotoEvent(
+          photo: MealPhoto(
+            bytes: Uint8List.fromList([1, 2, 3]),
+            mediaType: 'image/webp',
+          ),
+          usesImperialUnits: false,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final l10n = await S.delegate.load(const Locale('en'));
+      expect(find.text(l10n.bulkAddModelInsecureServerLabel), findsOneWidget);
+      expect(find.text(l10n.bulkAddPhotoUnsupportedLabel), findsNothing);
+    },
+  );
+
+  // #992. "Your API key was rejected. Check it in Settings." was the whole of
+  // the photo path's recovery: it named the place and then left the user to
+  // find it, four category groups down a list — the same hunt #852 fixed for
+  // the text path, on failures answered in the same dialog. The destination
+  // is asserted the way the text path's is, arguments and all, because
+  // landing at the top of Settings is the bug rather than a detail of it.
+  for (final error in BulkAddPhotoError.values) {
+    testWidgets(
+      _offersSettings(error)
+          ? 'the photo ${error.name} failure opens the AI settings'
+          : 'the photo ${error.name} failure offers no settings button',
+      (tester) async {
+        final pushed = <RouteSettings>[];
+        await _photoFailure(tester, error, pushed: pushed);
+
+        final action = find.bySemanticsIdentifier('bulk-add-message-action');
+        if (!_offersSettings(error)) {
+          expect(
+            action,
+            findsNothing,
+            reason:
+                '${error.name} is not fixed in Settings, and a button that '
+                'sends the user there is a wrong instruction, not a spare one',
+          );
+          return;
+        }
+
+        expect(action, findsOneWidget, reason: '${error.name} names Settings');
+        // The same word the text path's control carries, from the same key:
+        // one action, one label, however the read was started.
+        expect(
+          find.descendant(
+            of: action,
+            matching: find.text(l10nEn.settingsLabel),
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(action);
+        await tester.pumpAndSettle();
+
+        final settings = pushed
+            .where((route) => route.name == NavigationOptions.settingsRoute)
+            .toList();
+        expect(settings, hasLength(1));
+        expect(
+          settings.single.arguments,
+          isA<SettingsScreenArguments>().having(
+            (arguments) => arguments.openAiAssist,
+            'openAiAssist',
+            isTrue,
+          ),
+          reason:
+              'the photo path has to land where the text path lands: on the '
+              'AI dialog, not at the top of Settings',
+        );
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('the settings button is reachable at 2x in German', (
     tester,
   ) async {
-    final bloc = await _registerWithPhotoReading(
-      const MealPhotoFailed(MealPhotoFailure.insecureDestination),
-    );
-    await tester.pumpWidget(_app());
-    tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
-    await tester.pumpAndSettle();
+    // The size #777 measured this screen against. The button sits under a
+    // sentence that wants many lines here, and the region is 484px short of
+    // holding both — so "offers the action" is only true if it scrolls. A
+    // plain `Center` paints the control off the bottom of the screen, where
+    // it is findable and untappable.
+    tester.view.physicalSize = const Size(320 * 3, 640 * 3);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
 
-    bloc.add(
-      ReadMealPhotoEvent(
-        photo: MealPhoto(
-          bytes: Uint8List.fromList([1, 2, 3]),
-          mediaType: 'image/webp',
-        ),
-        usesImperialUnits: false,
+    final pushed = <RouteSettings>[];
+    await _photoFailure(
+      tester,
+      BulkAddPhotoError.unsupported,
+      pushed: pushed,
+      locale: const Locale('de'),
+      wrap: (app) => MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+        child: app,
       ),
     );
+
+    expect(
+      tester.takeException(),
+      isNull,
+      reason: 'the message and its control must not overflow the body',
+    );
+
+    final action = find.bySemanticsIdentifier('bulk-add-message-action');
+    await tester.ensureVisible(action);
+    await tester.pumpAndSettle();
+    await tester.tap(action);
     await tester.pumpAndSettle();
 
-    final l10n = await S.delegate.load(const Locale('en'));
-    expect(find.text(l10n.bulkAddModelInsecureServerLabel), findsOneWidget);
-    expect(find.text(l10n.bulkAddPhotoUnsupportedLabel), findsNothing);
+    expect(
+      pushed.map((route) => route.name),
+      contains(NavigationOptions.settingsRoute),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a message with nowhere to go stays a sentence', (tester) async {
+    // The centred message's other callers were not given a button by this
+    // change. An empty parse is not fixed in Settings, and sending someone
+    // there for it is the mis-direction #992 fixes, pointed the other way.
+    await _register(const {});
+    await tester.pumpWidget(_app());
+    await _parse(tester, '');
+
+    expect(find.text(l10nEn.bulkAddNothingToLogLabel), findsOneWidget);
+    expect(find.bySemanticsIdentifier('bulk-add-message-action'), findsNothing);
+  });
+
+  // Copilot on #1087 read the new `SingleChildScrollView` as breaking the
+  // vertical centring every other caller of `_centeredMessage` relies on.
+  // `Center` passes loose constraints, so the scroll view shrink-wraps its
+  // child rather than filling the viewport — but nothing pinned that, so a
+  // later change could make the claim true without a test noticing.
+  testWidgets('a short message is still vertically centred', (tester) async {
+    await _register(const {});
+    await tester.pumpWidget(_app());
+    await _parse(tester, '');
+
+    final message = find.text(l10nEn.bulkAddNothingToLogLabel);
+    expect(message, findsOneWidget);
+
+    // Compared against the region `_centeredMessage` is given, not the
+    // screen: the input block and divider sit above it, so "centred" means
+    // centred in what is left. The scroll view shrink-wraps the message, so
+    // its box is the message's box — top-aligning it moves this by half the
+    // region, which is what the assertion has to be able to see.
+    final scroller = find.ancestor(
+      of: message,
+      matching: find.byType(SingleChildScrollView),
+    );
+    final region = find.ancestor(of: scroller, matching: find.byType(Padding));
+    final scrollBox = tester.getRect(scroller.first);
+    final regionBox = tester.getRect(region.first);
+
+    expect(
+      (scrollBox.center.dy - regionBox.center.dy).abs(),
+      lessThan(1.0),
+      reason:
+          'a short message stays centred in its region, not pinned to '
+          'the top of the scroll viewport',
+    );
   });
 
   testWidgets('an empty text parse still shows the generic line', (
@@ -1228,6 +1598,150 @@ void main() {
     expect(find.byType(SnackBar), findsOneWidget);
   });
 
+  group('a refused batch shows every bad row, and why (#1013)', () {
+    /// Three rows the resolver is happy with, so anything held back is held
+    /// back by its amount and nothing else.
+    Future<void> threeRows(WidgetTester tester) async {
+      // A handset rather than the default viewport: all three rows have to
+      // be built for their marks to be findable, and the point of the
+      // change is that they are visible together.
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.625;
+      addTearDown(tester.view.reset);
+
+      await _register({
+        'toast': [_meal('Toast')],
+        'milk': [_meal('Milk')],
+        'rice': [_meal('Rice')],
+      });
+      await tester.pumpWidget(_app());
+      await _parse(tester, '100g toast, 200g milk, 50g rice');
+    }
+
+    /// The amount field on row [row] — field 0 is the text box the batch was
+    /// typed into.
+    Finder amountField(int row) => find.byType(TextField).at(row + 1);
+
+    Future<void> typeAmount(WidgetTester tester, int row, String amount) async {
+      await tester.enterText(amountField(row), amount);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('two bad rows are both reported, not just the first', (
+      tester,
+    ) async {
+      // The old check returned on the first failure, so the second was
+      // discovered only by fixing the first and submitting again.
+      await threeRows(tester);
+      await typeAmount(tester, 0, '0');
+      await typeAmount(tester, 2, '99999');
+
+      await tester.tap(_submitButton());
+      await tester.pumpAndSettle();
+
+      expect(_mealDetailBloc.writes, isEmpty);
+      expect(find.text(l10nEn.bulkAddRowQuantityTooSmall), findsOneWidget);
+      expect(
+        find.text(l10nEn.bulkAddRowQuantityTooLarge(bulkAddMaxQuantity)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the three refusals do not read alike', (tester) async {
+      // "at most two decimals", "greater than 0" and "too large" all
+      // arrived as the word `Quantity`, so the message the user got was the
+      // same whichever mistake they had made.
+      await threeRows(tester);
+      await typeAmount(tester, 0, '0');
+      await typeAmount(tester, 1, '');
+      await typeAmount(tester, 2, '99999');
+
+      await tester.tap(_submitButton());
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.bulkAddRowQuantityTooSmall), findsOneWidget);
+      // The decimal rule is stated nowhere else in the UI; an emptied field
+      // is where it gets said.
+      expect(find.text(l10nEn.bulkAddRowQuantityInvalid), findsOneWidget);
+      expect(
+        find.text(l10nEn.bulkAddRowQuantityTooLarge(bulkAddMaxQuantity)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the snackbar names each row and its reason', (tester) async {
+      // A marked row can be off screen, so the summary has to carry the
+      // same information the marks do — it used to name one row and one
+      // word.
+      await threeRows(tester);
+      await typeAmount(tester, 0, '0');
+      await typeAmount(tester, 2, '99999');
+
+      await tester.tap(_submitButton());
+      await tester.pumpAndSettle();
+
+      final snack = tester.widget<Text>(
+        find.descendant(of: find.byType(SnackBar), matching: find.byType(Text)),
+      );
+      expect(snack.data, contains('Toast'));
+      expect(snack.data, contains(l10nEn.bulkAddRowQuantityTooSmall));
+      expect(snack.data, contains('Rice'));
+      expect(
+        snack.data,
+        contains(l10nEn.bulkAddRowQuantityTooLarge(bulkAddMaxQuantity)),
+      );
+    });
+
+    testWidgets('correcting a row clears its mark and logs the batch', (
+      tester,
+    ) async {
+      await threeRows(tester);
+      await typeAmount(tester, 0, '0');
+      await tester.tap(_submitButton());
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.bulkAddRowQuantityTooSmall), findsOneWidget);
+
+      await typeAmount(tester, 0, '150');
+
+      // Gone as soon as the text it described is gone, rather than sitting
+      // under a field that now reads correctly.
+      expect(find.text(l10nEn.bulkAddRowQuantityTooSmall), findsNothing);
+
+      // The refusal's snackbar sits over the submit bar, so a second tap
+      // lands on the snackbar rather than the button. Let it go before
+      // submitting again — a real user waits it out or dismisses it too.
+      ScaffoldMessenger.of(tester.element(_submitButton())).clearSnackBars();
+      await tester.pumpAndSettle();
+
+      await tester.tap(_submitButton());
+      await tester.pumpAndSettle();
+
+      expect(_mealDetailBloc.writes.map((w) => w.mealName), [
+        'Toast',
+        'Milk',
+        'Rice',
+      ]);
+    });
+
+    testWidgets('a marked row is refused, never quietly dropped', (
+      tester,
+    ) async {
+      // The batch stays all-or-nothing: logging the two good rows and
+      // leaving the third behind is the one outcome worse than refusing.
+      await threeRows(tester);
+      await typeAmount(tester, 1, '0');
+
+      await tester.tap(_submitButton());
+      await tester.pumpAndSettle();
+
+      expect(_mealDetailBloc.writes, isEmpty);
+      // And the button still offers all three, so nothing has silently left
+      // the batch.
+      expect(find.text(l10nEn.bulkAddSubmitLabel(3)), findsOneWidget);
+    });
+  });
+
   testWidgets('a skipped row is not written', (tester) async {
     await _register({
       'toast': [_meal('Toast')],
@@ -1294,9 +1808,7 @@ void main() {
     expect(_mealDetailBloc.writes.map((w) => w.mealName), ['Toast']);
   });
 
-  testWidgets('choosing a unit lets a flagged row be written', (
-    tester,
-  ) async {
+  testWidgets('choosing a unit lets a flagged row be written', (tester) async {
     // Excluding the row is only defensible because the way back is one tap
     // on the control the warning already points at.
     await _register({
@@ -1487,9 +1999,7 @@ void main() {
     );
   });
 
-  testWidgets('the camera is hidden with no credential at all', (
-    tester,
-  ) async {
+  testWidgets('the camera is hidden with no credential at all', (tester) async {
     // The other half of the gate, and the one a destination-only check let
     // through: an install that has never opened settings resolves a
     // destination anyway, because nothing stored reads as Anthropic (#688)
@@ -1807,6 +2317,374 @@ void main() {
         ),
         findsNothing,
       );
+    });
+  });
+
+  // #992. The likeliest first run of the flagship feature ended with the
+  // feature apparently absent: the screen resolved its AI setup once, so a
+  // user who followed the hint into settings, configured a provider and came
+  // back found the camera still hidden — with nothing to suggest it had ever
+  // been there, or that anything they had just done had taken effect.
+  group('coming back from settings with a provider now configured', () {
+    testWidgets('the camera appears without leaving the screen', (
+      tester,
+    ) async {
+      await _register(const {});
+      getIt.unregister<AiCredentialStorage>();
+      // Held rather than passed by value: writing into it partway through is
+      // this test's stand-in for the user configuring a provider over in
+      // settings, and the screen reads the same instance throughout.
+      final stored = _MapStorage(const {});
+      getIt.registerLazySingleton<AiCredentialStorage>(
+        () => AiCredentialStorage(stored),
+      );
+
+      final pushed = <RouteSettings>[];
+      await tester.pumpWidget(_app(pushed: pushed));
+      await tester.pumpAndSettle();
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      navigator.pushNamed('/bulk');
+      await tester.pumpAndSettle();
+
+      final camera = find.bySemanticsIdentifier('bulk-add-photo');
+      final hint = find.bySemanticsIdentifier('bulk-add-model-hint');
+      expect(camera, findsNothing, reason: 'nothing is configured yet');
+      expect(hint, findsOneWidget);
+
+      await tester.tap(hint);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('settings-stub')), findsOneWidget);
+
+      // #992: the hint asks for the AI dialog by name, as the failure notice
+      // has since #852. Of this screen's two audiences the one reading this
+      // line knows least about where it is going, and it used to get the
+      // longer way round — the top of a long Settings list.
+      expect(
+        pushed
+            .lastWhere((route) => route.name == NavigationOptions.settingsRoute)
+            .arguments,
+        isA<SettingsScreenArguments>().having(
+          (arguments) => arguments.openAiAssist,
+          'openAiAssist',
+          isTrue,
+        ),
+      );
+
+      stored.values['AiProviderTag'] = 'anthropic';
+      stored.values['AiApiKeyTag.anthropic'] = 'sk-test';
+
+      navigator.pop();
+      await tester.pumpAndSettle();
+
+      expect(
+        camera,
+        findsOneWidget,
+        reason:
+            'the answers are re-resolved when settings pops, so the camera '
+            'appears without leaving and re-entering the screen',
+      );
+      // And the line inviting them to set one up has done its job.
+      expect(hint, findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('and from the failure notice, which lands in the same place', (
+      tester,
+    ) async {
+      // The other route out of this screen (#852). Both call sites now carry
+      // the same arguments, so this asserts the second one keeps them when it
+      // goes through the re-resolving helper.
+      await _registerWithFailingReader(
+        {
+          'toast': [_meal('Toast')],
+        },
+        const MealInterpreterException(
+          'rejected',
+          failure: MealInterpreterFailure.auth,
+        ),
+      );
+      getIt.unregister<AiCredentialStorage>();
+      final stored = _MapStorage(const {});
+      getIt.registerLazySingleton<AiCredentialStorage>(
+        () => AiCredentialStorage(stored),
+      );
+
+      final pushed = <RouteSettings>[];
+      await tester.pumpWidget(_app(pushed: pushed));
+      await tester.pumpAndSettle();
+      await _parse(tester, '100g toast');
+
+      expect(find.bySemanticsIdentifier('bulk-add-photo'), findsNothing);
+
+      await tester.tap(find.bySemanticsIdentifier('bulk-add-notice-action'));
+      await tester.pumpAndSettle();
+
+      // The arguments the action carries are the point of #852 and must
+      // survive the call going through the re-resolving helper.
+      expect(
+        pushed
+            .lastWhere((route) => route.name == NavigationOptions.settingsRoute)
+            .arguments,
+        isA<SettingsScreenArguments>().having(
+          (arguments) => arguments.openAiAssist,
+          'openAiAssist',
+          isTrue,
+        ),
+      );
+
+      stored.values['AiProviderTag'] = 'anthropic';
+      stored.values['AiApiKeyTag.anthropic'] = 'sk-test';
+
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsIdentifier('bulk-add-photo'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('an own-server probe that lands after the user is back (#1089)', () {
+    /// Nothing configured, so the discovery hint is on screen and the route
+    /// out of it is the one this exercises.
+    Future<
+      ({_MapStorage stored, _GatedProber prober, AiEndpointProbeRunner runner})
+    >
+    arrange(WidgetTester tester, AiCapability photo) async {
+      await _register(const {});
+      getIt.unregister<AiCredentialStorage>();
+      final stored = _MapStorage(const {});
+      final storage = AiCredentialStorage(stored);
+      getIt.registerLazySingleton<AiCredentialStorage>(() => storage);
+
+      final prober = _GatedProber(
+        AiEndpointProbe(text: AiCapability.passed, photo: photo, checked: true),
+      );
+      final runner = AiEndpointProbeRunner(storage, prober);
+      getIt.registerLazySingleton<AiEndpointProbeRunner>(() => runner);
+      return (stored: stored, prober: prober, runner: runner);
+    }
+
+    /// What the user does over in settings: saves an address, which starts a
+    /// probe the dialog deliberately does not await (#780).
+    void configureOwnServerAndStartProbe(
+      _MapStorage stored,
+      AiEndpointProbeRunner runner,
+    ) {
+      stored.values['AiProviderTag'] = 'ownServer';
+      stored.values['AiEndpointTag.ownServer'] = 'http://192.168.1.5:11434';
+      stored.values['AiModelTag.ownServer'] = 'gemma3:4b';
+      unawaited(runner.start(AiProvider.ownServer));
+    }
+
+    testWidgets('the camera appears when the verdict arrives', (tester) async {
+      final it = await arrange(tester, AiCapability.passed);
+
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      navigator.pushNamed('/bulk');
+      await tester.pumpAndSettle();
+
+      final camera = find.bySemanticsIdentifier('bulk-add-photo');
+      expect(camera, findsNothing, reason: 'nothing is configured yet');
+
+      await tester.tap(find.bySemanticsIdentifier('bulk-add-model-hint'));
+      await tester.pumpAndSettle();
+      configureOwnServerAndStartProbe(it.stored, it.runner);
+      await tester.pump();
+
+      navigator.pop();
+      await tester.pumpAndSettle();
+      expect(
+        camera,
+        findsNothing,
+        reason: 'the probe has not landed, so the verdict is still unknown',
+      );
+
+      it.prober.gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(
+        camera,
+        findsOneWidget,
+        reason: 'the screen hears the verdict land without being re-entered',
+      );
+    });
+
+    testWidgets('a probe that finds no photo capability leaves it hidden', (
+      tester,
+    ) async {
+      // Text works, photographs do not — a real llama.cpp answer, and the
+      // reason the camera waits on a probe at all.
+      final it = await arrange(tester, AiCapability.failed);
+
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      navigator.pushNamed('/bulk');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsIdentifier('bulk-add-model-hint'));
+      await tester.pumpAndSettle();
+      configureOwnServerAndStartProbe(it.stored, it.runner);
+      await tester.pump();
+      navigator.pop();
+      await tester.pumpAndSettle();
+
+      it.prober.gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(
+        find.bySemanticsIdentifier('bulk-add-photo'),
+        findsNothing,
+        reason: 'a landed verdict is not the same as a passing one',
+      );
+    });
+  });
+
+  group('waiting on a server the user runs (#1148)', () {
+    // The wait is legitimately long — #774 measured 22–24 s from cold on
+    // good hardware, and #776 gave it 120 s — and the screen used to spend
+    // all of it on a bare spinner. These pin the three things that make it
+    // read as waiting rather than stuck, and that none of them leak onto the
+    // hosted providers, which answer in seconds.
+    final threshold = OwnServerWaitIndicator.hintAfter;
+
+    testWidgets('the seconds count up, and the hint waits for the threshold', (
+      tester,
+    ) async {
+      await _registerWithGatedReader(const {}, _ownServerStored);
+      await _startWaiting(tester, 'an apple');
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text(l10nEn.bulkAddWaitElapsedLabel(0)), findsOneWidget);
+      expect(
+        _modelLoadingHint(),
+        findsNothing,
+        reason: 'a warm model answers in 8–17 s; the sentence would be noise',
+      );
+
+      await tester.pump(const Duration(seconds: 3));
+      expect(
+        find.text(l10nEn.bulkAddWaitElapsedLabel(3)),
+        findsOneWidget,
+        reason: 'something on screen has to change with time',
+      );
+      expect(_modelLoadingHint(), findsNothing);
+
+      await tester.pump(threshold - const Duration(seconds: 3));
+      expect(
+        find.text(l10nEn.bulkAddWaitElapsedLabel(threshold.inSeconds)),
+        findsOneWidget,
+      );
+      expect(
+        _modelLoadingHint(),
+        findsOneWidget,
+        reason: 'the point of the ticket: the user has no other way to know',
+      );
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('the hint is readable at 2x on a narrow screen, in German', (
+      tester,
+    ) async {
+      // The region this draws into takes a tight height from the `Expanded`
+      // above it, and the sentence is body copy meant to wrap. #777 settled
+      // that scrolling, not clipping, is the answer — and the cancel button
+      // is the last child, so a clipped column would lose the one control.
+      tester.view.physicalSize = const Size(640, 1136);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+
+      await _registerWithGatedReader(const {}, _ownServerStored);
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+          child: _app(locale: const Locale('de')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      navigator.pushNamed('/bulk');
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, 'ein Apfel');
+      await tester.tap(find.widgetWithIcon(FilledButton, Icons.search));
+      await tester.pump();
+      await tester.pump(threshold);
+
+      expect(tester.takeException(), isNull);
+      expect(_waitCancel(), findsOneWidget);
+      await tester.ensureVisible(_waitCancel());
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('cancel leaves the wait, and a late answer is discarded', (
+      tester,
+    ) async {
+      // Neither interpreter can abort a request it has sent, so cancel means
+      // "stop waiting and drop whatever lands". The second half is the one
+      // worth pinning: rows from a request the user gave up on must not
+      // appear later under whatever they typed next.
+      final interpreter = await _registerWithGatedReader({
+        'apple': [_meal('Apple')],
+      }, _ownServerStored);
+      await _startWaiting(tester, 'an apple');
+      expect(_waitCancel(), findsOneWidget);
+
+      await tester.tap(_waitCancel());
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(_waitCancel(), findsNothing);
+      expect(
+        find.byType(TextField).first,
+        findsOneWidget,
+        reason: 'the line typed is still there to try again',
+      );
+      expect(
+        tester.widget<TextField>(find.byType(TextField).first).controller?.text,
+        'an apple',
+      );
+
+      // The server answers after all. Nothing on screen may change.
+      interpreter.gate.complete(
+        MealTextParseResult(
+          items: const [ParsedMealItem(query: 'apple', quantity: 1)],
+          errors: const [],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('Apple'), findsNothing);
+      expect(_submitButton(), findsNothing);
+    });
+
+    testWidgets('a hosted provider keeps the bare spinner', (tester) async {
+      // Hosted providers answer in seconds; a wait dressed for a model
+      // loading on somebody's desk would be noise for everyone else.
+      final interpreter = await _registerWithGatedReader({
+        'apple': [_meal('Apple')],
+      }, _hostedStored);
+      await _startWaiting(tester, 'an apple');
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      await tester.pump(threshold + const Duration(seconds: 5));
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(_modelLoadingHint(), findsNothing);
+      expect(_waitCancel(), findsNothing);
+      expect(find.textContaining(l10nEn.bulkAddWaitCancelLabel), findsNothing);
+
+      // And the plain path still lands its rows.
+      interpreter.gate.complete(
+        MealTextParseResult(
+          items: const [ParsedMealItem(query: 'apple', quantity: 1)],
+          errors: const [],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Apple'), findsOneWidget);
     });
   });
 }

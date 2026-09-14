@@ -73,6 +73,20 @@ class ReadMealPhotoFailedEvent extends BulkAddEvent {
   List<Object?> get props => [error];
 }
 
+/// Stop waiting for the read in flight.
+///
+/// **Nothing is aborted.** Neither interpreter can abort a request it has
+/// sent — `package:http` has no per-request cancel, and closing the shared
+/// client would take every other request with it. So this leaves the loading
+/// state and discards the result when it lands, which is the whole of what
+/// the user sees: the screen stops waiting, and rows from a request they
+/// gave up on never appear under something they typed later. The server
+/// finishes the work regardless, and for a model that was loading that is
+/// no loss — the next request finds it warm. #1148.
+class CancelBulkReadEvent extends BulkAddEvent {
+  const CancelBulkReadEvent();
+}
+
 class ChangeRowCandidateEvent extends BulkAddEvent {
   final int rowIndex;
   final int candidateIndex;

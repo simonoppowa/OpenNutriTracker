@@ -15,6 +15,38 @@ import 'package:opennutritracker/features/meal_detail/util/meal_quantity_convert
 part 'bulk_add_event.dart';
 part 'bulk_add_state.dart';
 
+/// The shape an amount has to have: no scientific notation, no sign, at most
+/// two decimals. The same shape the manual-entry quantity field enforces
+/// (`meal_detail_bottom_sheet.dart`), so the bulk path accepts exactly what
+/// manual entry does.
+///
+/// Kept here rather than on the screen because three things have to agree
+/// about it and only one of them is a widget: the field's input formatter,
+/// [BulkAddBloc._amountText] — which rounds every prefilled amount to satisfy
+/// it — and [BulkAddRow.quantityError], which reports what fails it.
+final bulkAddQuantityPattern = RegExp(r'^\d+([.,]\d{0,2})?$');
+
+/// Matches the manual-entry upper bound.
+const bulkAddMaxQuantity = 10000;
+
+/// Why a row's amount cannot be written, in terms the user can act on.
+///
+/// The three arrived at the screen as one message naming the field and
+/// nothing else, so "0", "99999" and "1.234" all read as `Rice: Quantity`.
+/// They are separated here rather than at the render site because the render
+/// site would then have to re-derive which of them happened. #1013.
+enum BulkAddQuantityError {
+  /// Not a number this screen accepts: empty, or carrying more decimals than
+  /// the field allows. The one failure the UI never stated a rule for.
+  malformed,
+
+  /// Zero or less. Nothing to log.
+  tooSmall,
+
+  /// Above [bulkAddMaxQuantity].
+  tooLarge,
+}
+
 /// One editable row on the review screen.
 ///
 /// Holds the user's edits separately from what the resolver produced, so
@@ -239,6 +271,30 @@ class BulkAddRow extends Equatable {
   /// points at. #973.
   bool get willBeLogged => isResolved && !skipped && !amountWouldBeWrong;
 
+  /// What is wrong with [amountText], or null when the row can be written.
+  ///
+  /// Deliberately **not** consulted by [willBeLogged]. A row the user
+  /// mistyped is handed back to them to fix; dropping it from the batch
+  /// instead would log the rest and say nothing about the one that was
+  /// meant to be there.
+  ///
+  /// Asked on submit rather than on every keystroke — [amountText] is text
+  /// precisely so that a half-typed "1," is not called wrong mid-edit.
+  BulkAddQuantityError? get quantityError {
+    final text = amountText.trim();
+    final quantity = double.tryParse(text.replaceAll(',', '.'));
+    // Shape first, because the other two need a number to compare against a
+    // bound and "" and "1.234" do not supply one. The parse is checked
+    // beside the pattern rather than after it, so that whatever the write
+    // would actually parse is what the bounds below are read from.
+    if (!bulkAddQuantityPattern.hasMatch(text) || quantity == null) {
+      return BulkAddQuantityError.malformed;
+    }
+    if (quantity <= 0) return BulkAddQuantityError.tooSmall;
+    if (quantity > bulkAddMaxQuantity) return BulkAddQuantityError.tooLarge;
+    return null;
+  }
+
   BulkAddRow copyWith({
     int? selectedIndex,
     String? amountText,
@@ -275,6 +331,15 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
   final ReadMealTextUseCase _readMealTextUseCase;
   final ReadMealPhotoUseCase _readMealPhotoUseCase;
 
+  /// Which read is current. Bumped by every parse, photo read and cancel, and
+  /// compared after every await, so a result that lands for an earlier
+  /// attempt is dropped. `emit.isDone` cannot do this: it only answers for a
+  /// closed bloc, and a cancelled wait leaves the bloc very much open.
+  int _attempt = 0;
+
+  /// True when [attempt] is no longer the read the screen is waiting on.
+  bool _superseded(int attempt) => attempt != _attempt;
+
   BulkAddBloc(
     this._resolveParsedMealsUseCase,
     this._readMealTextUseCase,
@@ -285,6 +350,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     on<ReadMealPhotoFailedEvent>(
       (event, emit) => emit(BulkAddPhotoErrorState(event.error)),
     );
+    on<CancelBulkReadEvent>(_onCancel);
     on<ChangeRowCandidateEvent>(_onChangeCandidate);
     on<ChangeRowAmountEvent>(_onChangeAmount);
     on<ChangeRowUnitEvent>(_onChangeUnit);
@@ -298,17 +364,19 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     // Emitted before the read, not after: with a key configured this waits
     // on a network round trip, and a screen that does nothing for two
     // seconds reads as broken.
-    emit(const BulkAddLoadingState());
+    final attempt = ++_attempt;
+    emit(BulkAddLoadingState(attempt: attempt));
 
     final reading = await _readMealTextUseCase.read(
       event.text,
       localeCode: event.localeCode,
     );
-    if (emit.isDone) return;
+    if (emit.isDone || _superseded(attempt)) return;
 
     await _resolveAndEmit(
       reading.result,
       emit,
+      attempt: attempt,
       usesImperialUnits: event.usesImperialUnits,
       source: reading.usedModel
           ? BulkAddReadSource.model
@@ -325,13 +393,14 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
     ReadMealPhotoEvent event,
     Emitter<BulkAddState> emit,
   ) async {
-    emit(const BulkAddLoadingState());
+    final attempt = ++_attempt;
+    emit(BulkAddLoadingState(attempt: attempt));
 
     final reading = await _readMealPhotoUseCase.read(
       event.photo,
       localeCode: event.localeCode,
     );
-    if (emit.isDone) return;
+    if (emit.isDone || _superseded(attempt)) return;
 
     switch (reading) {
       case MealPhotoUnavailable():
@@ -358,10 +427,26 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
         await _resolveAndEmit(
           result,
           emit,
+          attempt: attempt,
           usesImperialUnits: event.usesImperialUnits,
           source: BulkAddReadSource.photo,
         );
     }
+  }
+
+  /// Leaves the loading state and orphans the read in flight.
+  ///
+  /// Bumping [_attempt] is the whole mechanism: the handler still awaiting
+  /// the read compares against it afterwards and returns without emitting.
+  /// Back to [BulkAddInitial] rather than to the previous rows, because the
+  /// text field still holds what was typed and a Search away from trying
+  /// again is the state the user was in before they tapped it. Only while
+  /// loading — a cancel that lands after the rows have does nothing, so a
+  /// tap racing a late result cannot wipe rows the user is already reading.
+  void _onCancel(CancelBulkReadEvent event, Emitter<BulkAddState> emit) {
+    if (state is! BulkAddLoadingState) return;
+    _attempt++;
+    emit(const BulkAddInitial());
   }
 
   /// Shared by both readers: resolve whatever was extracted against the food
@@ -371,6 +456,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
   Future<void> _resolveAndEmit(
     MealTextParseResult parsed,
     Emitter<BulkAddState> emit, {
+    required int attempt,
     required bool usesImperialUnits,
     required BulkAddReadSource source,
     MealTextModelFailure? modelFailure,
@@ -392,7 +478,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
 
     try {
       final resolved = await _resolveParsedMealsUseCase.resolve(parsed.items);
-      if (emit.isDone) return;
+      if (emit.isDone || _superseded(attempt)) return;
 
       emit(
         BulkAddLoadedState(
@@ -421,7 +507,7 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
       );
     } catch (e, stackTrace) {
       log.severe('Bulk resolution failed', e, stackTrace);
-      if (emit.isDone) return;
+      if (emit.isDone || _superseded(attempt)) return;
       emit(const BulkAddErrorState());
     }
   }
@@ -498,8 +584,8 @@ class BulkAddBloc extends Bloc<BulkAddEvent, BulkAddState> {
   }
 
   /// Formats a quantity for the amount field, which accepts at most two
-  /// decimals — `_quantityPattern` on the bulk-add screen is both the submit
-  /// check and the field's input formatter. A converted imperial quantity has
+  /// decimals — [bulkAddQuantityPattern] is both the submit check and the
+  /// field's input formatter. A converted imperial quantity has
   /// many more: `1 lb` is 453.59237 g. Prefilling that verbatim produced a row
   /// the submit check refused, with a message naming only the field, and
   /// because that check aborts the batch, one such row blocked every correct

@@ -7,6 +7,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dar
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/export_import_error_text.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -112,7 +113,12 @@ class _ImportCustomFoodDataDialogState
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(S.of(context).exportImportErrorLabel),
+                          child: Text(
+                            exportImportErrorText(
+                              S.of(context),
+                              state.reason,
+                            ),
+                          ),
                         ),
                       ],
                     );

@@ -33,15 +33,15 @@ class ImportMealsCsvUsecase {
 
   /// Returns null when the user cancelled the file picker.
   Future<ImportMealsCsvResult?> importFromPickedFile() async {
-    final picked = await FilePicker.pickFiles(
+    final picked = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['csv'],
     );
-    if (picked == null || picked.files.single.path == null) {
+    if (picked == null || picked.path == null) {
       return null;
     }
 
-    final file = File(picked.files.single.path!);
+    final file = File(picked.path!);
     final content = await file.readAsString(encoding: utf8);
 
     final parseResult = CsvMealImporter.parse(content);
@@ -54,8 +54,9 @@ class ImportMealsCsvUsecase {
       imported: parseResult.meals.length,
       skipped: parseResult.errors.length,
       errorMessages: parseResult.errors,
-      anyImportedHadBarcode:
-          parseResult.meals.any((m) => m.code != null && m.code!.isNotEmpty),
+      anyImportedHadBarcode: parseResult.meals.any(
+        (m) => m.code != null && m.code!.isNotEmpty,
+      ),
     );
   }
 }

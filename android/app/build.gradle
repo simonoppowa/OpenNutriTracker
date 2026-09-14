@@ -146,4 +146,13 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+
+    // Read finished workouts without the health plugin's distance and steps
+    // reads — see HealthConnectWorkoutReader. Pinned to the version the
+    // plugin itself depends on so both resolve to one client rather than
+    // Gradle silently picking the higher of two.
+    implementation 'androidx.health.connect:connect-client:1.2.0-alpha02'
+    // readRecords is a suspend function, and MainActivity answers the method
+    // channel from the main dispatcher.
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
 }

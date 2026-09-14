@@ -1,0 +1,339 @@
+#!/usr/bin/env python3
+"""Composite store screenshots: raw device captures in, captioned assets out.
+
+Both stores' sets are captioned (#1072), so this step is shared rather than
+owned by either platform's lane:
+
+  * the iOS lane feeds it fresh simulator captures at 1290x2796 (6.9" iPhone)
+    and 2064x2752 (13" iPad);
+  * the Play set is fed from tools/screenshots/raw/play at 1432x2856, so a
+    caption change is a re-render rather than a re-shoot;
+
+Inputs are always raw captures and outputs are always somewhere else. Pointing
+--raw at a directory this script has already written composites the caption a
+second time on top of the first and shrinks the app content again, and the
+result is a plausible-looking image rather than an error — so the marker below
+turns that mistake into a failure instead of a surprise.
+  * Play's *tablet* slots stay empty by decision, and if that is ever
+    revisited Play excludes non-core text there, which is what --no-captions
+    is for.
+
+Nothing here is iOS-specific and nothing imports from the app, deliberately.
+
+Layout: an opaque canvas at the exact target size, a caption band across the
+top, and the capture scaled to fit the remaining area, centred horizontally
+and anchored to the bottom edge. Anchoring to the bottom keeps the app's
+bottom navigation flush with the frame rather than floating in a margin.
+
+The output is flattened to RGB with no alpha channel, which is what both
+stores require: Apple wants "flattened, no transparency", Play wants 24-bit
+PNG with no alpha. The raw captures arrive as RGBA from
+`UIGraphicsImageRenderer`, so this conversion is load-bearing, not cosmetic.
+
+Usage:
+
+    python3 tools/screenshots/compose.py \\
+        --raw   build/screenshots/raw/iphone \\
+        --out   fastlane/metadata/ios/en-US/screenshots/iphone-6.9 \\
+        --size  1290x2796 \\
+        --captions tools/screenshots/captions.en-US.json
+
+    # Play, from the preserved captures:
+    python3 tools/screenshots/compose.py \\
+        --raw tools/screenshots/raw/play \\
+        --out fastlane/metadata/android/en-US/images/phoneScreenshots \\
+        --size 1432x2856 \\
+        --captions tools/screenshots/captions.en-US.json
+
+Requires Pillow.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import pathlib
+import sys
+
+try:
+    from PIL import Image, ImageDraw, ImageFont, PngImagePlugin
+except ImportError:  # pragma: no cover - the message is the whole point
+    sys.exit(
+        "Pillow is not installed. `python3 -m pip install --upgrade pillow`, "
+        "or in CI add a `pip install pillow` step before this one."
+    )
+
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
+
+# Stamped into every output and refused on every input. A PNG text chunk is
+# the right home for it: both stores ignore ancillary chunks, it survives a
+# copy, and it does not touch a single pixel — so it cannot change what the
+# reviewer sees. Detecting a caption band by inspecting pixels would be a
+# heuristic; this is not.
+MARKER_KEY = "Software"
+MARKER = "tools/screenshots/compose.py"
+
+
+def parse_size(text: str) -> tuple[int, int]:
+    try:
+        width, height = (int(part) for part in text.lower().split("x", 1))
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            f"--size wants WIDTHxHEIGHT, e.g. 1290x2796; got {text!r}"
+        ) from None
+    if width <= 0 or height <= 0:
+        raise argparse.ArgumentTypeError(f"--size must be positive; got {text!r}")
+    return width, height
+
+
+def load_font(path: pathlib.Path, size: int) -> ImageFont.FreeTypeFont:
+    return ImageFont.truetype(str(path), size)
+
+
+def wrap_to_lines(
+    text: str,
+    font: ImageFont.FreeTypeFont,
+    draw: ImageDraw.ImageDraw,
+    max_width: int,
+    max_lines: int,
+) -> list[str] | None:
+    """Greedy word wrap. Returns None when the text will not fit.
+
+    A literal newline in the caption is an author-chosen break and is always
+    taken. Blank segments are dropped rather than rendered: a stray trailing
+    newline, or a doubled one, would otherwise spend a line of a two-line
+    band on nothing. Greedy wrapping optimises for filling the line, which is the
+    wrong objective for a two-clause caption: "No sign-up. No paywall." fills
+    line one as "No sign-up. No", stranding the second clause's "No" at the
+    end of the line and leaving "paywall." alone underneath. The break the
+    reader wants is the sentence boundary, and nothing in the metrics can
+    infer that -- so the caption file states it.
+    """
+    lines: list[str] = []
+    for segment in text.split("\n"):
+        words = segment.split()
+        if not words:
+            continue
+        current = ""
+        for word in words:
+            candidate = f"{current} {word}".strip()
+            if draw.textlength(candidate, font=font) <= max_width:
+                current = candidate
+                continue
+            # `word` is about to start a line of its own, so it has to fit
+            # on one by itself. Guarding only the `not current` case tested
+            # that for the first word of a segment and no other: a too-wide
+            # word arriving after a wrap was assigned to `current` and
+            # appended unchecked, overflowing the band.
+            if draw.textlength(word, font=font) > max_width:
+                # A single word wider than the band: no wrapping can save it.
+                return None
+            lines.append(current)
+            current = word
+            if len(lines) == max_lines:
+                return None
+        if current:
+            lines.append(current)
+    if len(lines) > max_lines:
+        return None
+    return lines
+
+
+def fit_caption(
+    text: str,
+    font_path: pathlib.Path,
+    draw: ImageDraw.ImageDraw,
+    max_width: int,
+    max_height: int,
+    max_lines: int,
+) -> tuple[ImageFont.FreeTypeFont, list[str]]:
+    """Largest point size at which the caption fits the band.
+
+    Binary search rather than a fixed size: the same style block has to serve
+    a 1290px-wide iPhone and a 2064px-wide iPad, and captions from a
+    three-word claim to a six-word one.
+    """
+    low, high = 8, max(9, max_height)
+    best: tuple[ImageFont.FreeTypeFont, list[str]] | None = None
+    while low <= high:
+        mid = (low + high) // 2
+        font = load_font(font_path, mid)
+        lines = wrap_to_lines(text, font, draw, max_width, max_lines)
+        if lines is None:
+            high = mid - 1
+            continue
+        ascent, descent = font.getmetrics()
+        line_height = int((ascent + descent) * 1.18)
+        if line_height * len(lines) > max_height:
+            high = mid - 1
+            continue
+        best = (font, lines)
+        low = mid + 1
+    if best is None:
+        sys.exit(f"Caption does not fit at any size: {text!r}")
+    return best
+
+
+def compose_one(
+    capture_path: pathlib.Path,
+    out_path: pathlib.Path,
+    size: tuple[int, int],
+    caption: str | None,
+    style: dict,
+) -> None:
+    width, height = size
+    canvas = Image.new("RGB", (width, height), style["background"])
+    draw = ImageDraw.Draw(canvas)
+
+    band_height = int(height * style["band_fraction"]) if caption else 0
+    gap = int(height * style.get("capture_gap_fraction", 0.0)) if caption else 0
+
+    if caption:
+        side_padding = int(width * style.get("side_padding_fraction", 0.08))
+        font_path = REPO_ROOT / style["font"]
+        if not font_path.is_file():
+            sys.exit(f"Caption font not found: {font_path}")
+        font, lines = fit_caption(
+            caption,
+            font_path,
+            draw,
+            max_width=width - 2 * side_padding,
+            # Leave a little air top and bottom inside the band.
+            max_height=int(band_height * 0.62),
+            max_lines=int(style.get("max_lines", 2)),
+        )
+        ascent, descent = font.getmetrics()
+        line_height = int((ascent + descent) * 1.18)
+        block_height = line_height * len(lines)
+        y = (band_height - block_height) // 2
+        for line in lines:
+            line_width = draw.textlength(line, font=font)
+            draw.text(
+                ((width - line_width) / 2, y),
+                line,
+                font=font,
+                fill=style["text"],
+            )
+            y += line_height
+
+    with Image.open(capture_path) as raw:
+        if raw.info.get(MARKER_KEY) == MARKER:
+            sys.exit(
+                f"{capture_path} was written by this script, so it already "
+                "carries a caption band.\nCompositing it again would stack a "
+                "second caption on the first and shrink the app content "
+                "further.\nPoint --raw at the original captures instead: "
+                "tools/screenshots/raw/ for the committed sets, or "
+                "build/screenshots/raw/ for a fresh run of the capture lane."
+            )
+        capture = raw.convert("RGB")
+        available_height = height - band_height - gap
+        scale = min(width / capture.width, available_height / capture.height)
+        target = (
+            max(1, int(capture.width * scale)),
+            max(1, int(capture.height * scale)),
+        )
+        resized = capture.resize(target, Image.LANCZOS)
+
+    canvas.paste(
+        resized,
+        ((width - resized.width) // 2, height - resized.height),
+    )
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    info = PngImagePlugin.PngInfo()
+    info.add_text(MARKER_KEY, MARKER)
+    canvas.save(out_path, format="PNG", pnginfo=info)
+    print(f"  {out_path.name:24s} {width}x{height}  caption={caption!r}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--raw", required=True, type=pathlib.Path)
+    parser.add_argument("--out", required=True, type=pathlib.Path)
+    parser.add_argument("--size", required=True, type=parse_size)
+    parser.add_argument(
+        "--captions",
+        type=pathlib.Path,
+        default=REPO_ROOT / "tools" / "screenshots" / "captions.en-US.json",
+    )
+    parser.add_argument(
+        "--no-captions",
+        action="store_true",
+        help="Emit uncaptioned assets — Play's tablet slots exclude non-core "
+        "text, so a tablet set would need this.",
+    )
+    args = parser.parse_args()
+
+    # The marker on each output catches a *second* pass over a composited
+    # directory. It cannot catch the first: point --out at the captures
+    # themselves and nothing carries the marker yet, so every raw is
+    # overwritten by its own composite and the marker only reports the
+    # damage on the next run, after the originals are gone. Equal
+    # directories are the one case where the guard arrives too late, so it
+    # is refused up front. Resolved, because "." and an absolute path to it
+    # are the same directory.
+    if args.raw.resolve() == args.out.resolve():
+        sys.exit(
+            f"--raw and --out are the same directory ({args.raw}).\n"
+            "Compositing in place would overwrite each capture with its own "
+            "captioned version and lose the original.\n"
+            "Write to the store's directory instead, and keep the captures "
+            "under tools/screenshots/raw/."
+        )
+
+    captures = sorted(args.raw.glob("*.png"))
+    if not captures:
+        sys.exit(f"No captures found in {args.raw}")
+
+    config = json.loads(args.captions.read_text(encoding="utf-8"))
+    captions = config["captions"]
+    style = config["style"]
+
+    # The two sets are named differently and both are real inputs: the iOS
+    # lane writes `01-home.png`, matching the caption keys, while the Play set
+    # committed in #1085 is `1_en-US.png` through `6_en-US.png`.
+    #
+    # Resolving the second by its leading number would be wrong, not merely
+    # fragile: that set was shot before the #1072 shot list existed and is in
+    # a different order — `2_en-US` is the calendar, not the meals; `3_en-US`
+    # is Trends, not the micronutrient panel. Numeric matching mis-captions
+    # five of the six, and does it silently. So the mapping is explicit,
+    # derived from what is actually in each image, and lives in the caption
+    # file as data.
+    aliases = config.get("aliases", {})
+
+    def caption_key(stem: str) -> str | None:
+        if stem in captions:
+            return stem
+        mapped = aliases.get(stem)
+        return mapped if mapped in captions else None
+
+    if not args.no_captions:
+        missing = [c.stem for c in captures if caption_key(c.stem) is None]
+        if missing:
+            sys.exit(
+                "No caption for: "
+                + ", ".join(missing)
+                + f"\nAdd it to {args.captions}, or pass --no-captions."
+            )
+        band = style["band_fraction"]
+        if band > 0.20:
+            sys.exit(
+                f"band_fraction is {band:.2f}; Play allows a tagline on at "
+                "most 20% of the image."
+            )
+
+    print(f"Composing {len(captures)} screenshot(s) -> {args.out}")
+    for capture in captures:
+        compose_one(
+            capture,
+            args.out / capture.name,
+            args.size,
+            None if args.no_captions else captions[caption_key(capture.stem)],
+            style,
+        )
+
+
+if __name__ == "__main__":
+    main()
