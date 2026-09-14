@@ -138,7 +138,10 @@ scaled into app units on import; a row at `1` or above is taken as-is. Rows
 from every other source are never scaled. Tooling that writes `off` rows in
 app units should set the version to `1`, or the importer will scale them a
 second time. The same repair runs once over the on-device data on the first
-launch after the upgrade.
+launch after the upgrade — the diary, the Open Food Facts cache, the saved
+custom meals (an `off` product saved for reuse keeps its source) and the
+recipe library. Saved custom meals are not part of the bundle, so they are
+repaired on the device only.
 
 ### `user_activity.json`
 

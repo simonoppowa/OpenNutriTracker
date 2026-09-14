@@ -18,8 +18,10 @@ final _log = Logger('OffMicronutrientRepair');
 /// `MealNutrimentsEntity.fromOffNutriments` copied those values through
 /// unconverted, so every mineral was stored a thousand times too small and
 /// vitamins A, D and B12 a million times too small — on the intake, on the
-/// cached product, and on any recipe ingredient snapshotted from it. #775
-/// fixed the mapping for new writes only.
+/// cached product, on a product saved for reuse from the edit form (that
+/// form keeps the originating source, so the saved-meals box holds `off`
+/// rows too), and on any recipe ingredient snapshotted from it. #775 fixed
+/// the mapping for new writes only.
 ///
 /// The stored numbers cannot tell the two conventions apart on their own:
 /// a 400 mg sodium food written as `0.4` looks exactly like a genuinely
@@ -183,9 +185,17 @@ class OffMicronutrientRepair {
   static Future<int> repairIntakeBox(Box<IntakeDBO> box) =>
       _repairBox(box, repairIntake);
 
-  /// Same as [repairIntakeBox] for a box of meals — the remote-search cache,
-  /// whose Open Food Facts entries are what a re-scan or a re-log of a
-  /// known product reads instead of the network.
+  /// Same as [repairIntakeBox] for a box of meals. Two boxes hold them: the
+  /// remote-search cache, whose Open Food Facts entries are what a re-scan
+  /// or a re-log of a known product reads instead of the network, and the
+  /// saved-meals box, where `EditMealBloc.saveCustomMeal` keeps the source
+  /// of the product the user started from — so an Open Food Facts product
+  /// saved for reuse on an old build sits there as an `off` row in raw
+  /// grams. The barcode lookup reads the saved-meals box before the cache,
+  /// and logging from it goes through [MealDBO.fromMealEntity], which stamps
+  /// the new intake current with the unconverted values — a pass that
+  /// skipped this box would let raw grams re-enter the intake log wearing
+  /// the stamp, where no later pass can tell them apart.
   static Future<int> repairMealBox(Box<MealDBO> box) =>
       _repairBox(box, repairMeal);
 
@@ -206,8 +216,19 @@ class OffMicronutrientRepair {
   }
 }
 
-/// Runs the repair over everything the active profile can read: its own
-/// intake log plus the shared remote-search cache and recipe library.
+/// Runs the repair over every store that holds a [MealDBO] the active
+/// profile can read: its own intake log, and the three shared boxes — the
+/// remote-search cache, the saved custom meals and the recipe library.
+///
+/// Those four are the only places a `MealDBO` is persisted. `IntakeDBO.meal`
+/// and `RecipeIngredientDBO.snapshotMeal` are the two nested shapes, both
+/// covered here; `TrackedDayDBO` keeps totals, not meals. The pasted-JSON,
+/// sample-CSV and share-payload importers build every meal with source
+/// `custom` (or `fdc`) and no micronutrients beyond fibre, sugars and
+/// saturated fat, and the demo seeder writes `custom` rows through
+/// [MealDBO.fromMealEntity], so none of them can produce a row this pass
+/// would act on. The backup bundle carries no custom-meals file — its
+/// intakes and recipes are repaired on the way in by `ImportDataUsecase`.
 ///
 /// Called on every profile activation — startup and a profile switch —
 /// like [ensureConfigInitialized], so each profile's box is repaired before
@@ -218,12 +239,13 @@ Future<void> ensureOffMicronutrientsRepaired(HiveDBProvider db) async {
   final cached = await OffMicronutrientRepair.repairMealBox(
     db.cachedOffMealBox,
   );
+  final custom = await OffMicronutrientRepair.repairMealBox(db.customMealBox);
   final recipes = await OffMicronutrientRepair.repairRecipeBox(db.recipeBox);
-  if (intakes + cached + recipes > 0) {
+  if (intakes + cached + custom + recipes > 0) {
     _log.info(
       'Converted Open Food Facts micronutrients into app units on '
-      '$intakes intakes, $cached cached products and $recipes recipes '
-      '(#1152)',
+      '$intakes intakes, $cached cached products, $custom saved meals and '
+      '$recipes recipes (#1152)',
     );
   }
 }

@@ -280,6 +280,7 @@ void main() {
   group('OffMicronutrientRepair on Hive boxes', () {
     late Box<IntakeDBO> intakeBox;
     late Box<MealDBO> cacheBox;
+    late Box<MealDBO> customMealBox;
     late Box<RecipeDBO> recipeBox;
 
     setUpAll(() {
@@ -291,12 +292,14 @@ void main() {
       final tag = DateTime.now().microsecondsSinceEpoch;
       intakeBox = await Hive.openBox<IntakeDBO>('off_repair_intake_$tag');
       cacheBox = await Hive.openBox<MealDBO>('off_repair_cache_$tag');
+      customMealBox = await Hive.openBox<MealDBO>('off_repair_custom_$tag');
       recipeBox = await Hive.openBox<RecipeDBO>('off_repair_recipe_$tag');
     });
 
     tearDown(() async {
       await intakeBox.deleteFromDisk();
       await cacheBox.deleteFromDisk();
+      await customMealBox.deleteFromDisk();
       await recipeBox.deleteFromDisk();
     });
 
@@ -401,6 +404,76 @@ void main() {
       },
     );
 
+    test('repairs the Open Food Facts product a user saved for reuse, and '
+        'a second run changes nothing', () async {
+      // `EditMealBloc.saveCustomMeal` keeps the source of the product the
+      // form started from, so a product saved for reuse from an Open Food
+      // Facts record on an old build sits in the saved-meals box as an `off`
+      // row in raw grams with no stamp — the same shape as the cache row,
+      // in a box whose name says nothing about Open Food Facts.
+      await customMealBox.addAll([
+        _meal(source: MealSourceDBO.off),
+        _mealWrittenAfter775(),
+        _meal(source: MealSourceDBO.custom, code: null, name: 'Homemade'),
+        _meal(source: MealSourceDBO.fdc, code: '2', name: 'fdc'),
+      ]);
+      final before = {
+        for (final m in customMealBox.values) m.name: _json(m.toJson()),
+      };
+
+      final rewritten = await OffMicronutrientRepair.repairMealBox(
+        customMealBox,
+      );
+
+      expect(rewritten, 1);
+      final byName = {for (final m in customMealBox.values) m.name: m};
+      _expectAppUnits(byName['Nutella']!.nutriments);
+      expect(byName['Nutella']!.source, MealSourceDBO.off);
+      expect(
+        byName['Nutella']!.dataVersion,
+        MealDBO.dataVersionOffMicronutrientsInAppUnits,
+      );
+      for (final name in ['Muesli', 'Homemade', 'fdc']) {
+        expect(
+          _json(byName[name]!.toJson()),
+          before[name],
+          reason: '$name must be untouched',
+        );
+      }
+      expect(customMealBox.length, 4);
+
+      // Picking the saved product and logging it goes through the entity
+      // and back through `fromMealEntity`, which stamps whatever it is
+      // given. Before this box was repaired that stamped raw grams onto a
+      // fresh intake no later pass could tell apart; now it carries the
+      // app units through.
+      final logged = MealDBO.fromMealEntity(
+        MealEntity.fromMealDBO(byName['Nutella']!),
+      );
+      _expectAppUnits(logged.nutriments);
+      expect(logged.dataVersion, MealDBO.currentDataVersion);
+      expect(
+        identical(OffMicronutrientRepair.repairMeal(logged), logged),
+        isTrue,
+      );
+
+      // The second run neither returns nor performs a write.
+      final after = {
+        for (final m in customMealBox.values) m.name: _json(m.toJson()),
+      };
+      final events = <BoxEvent>[];
+      final subscription = customMealBox.watch().listen(events.add);
+      addTearDown(subscription.cancel);
+
+      expect(await OffMicronutrientRepair.repairMealBox(customMealBox), 0);
+      await pumpEventQueue();
+
+      expect(events, isEmpty);
+      expect({
+        for (final m in customMealBox.values) m.name: _json(m.toJson()),
+      }, after);
+    });
+
     test('repairs Open Food Facts ingredient snapshots and recomputes the '
         'recipe aggregate, leaving recipes without one alone', () async {
       // 100 g of the pre-#775 OFF product (120 mg sodium once repaired) plus
@@ -503,15 +576,17 @@ void main() {
       expect(events.map((e) => (e.value as IntakeDBO).id), ['control']);
     });
 
-    test('ensureOffMicronutrientsRepaired covers all three boxes', () async {
+    test('ensureOffMicronutrientsRepaired covers all four boxes', () async {
       await intakeBox.add(_intake('old-off', _meal(source: MealSourceDBO.off)));
       await cacheBox.add(_meal(source: MealSourceDBO.off, detailed: true));
+      await customMealBox.add(_meal(source: MealSourceDBO.off));
       await recipeBox.add(
         _recipe('r', [_ingredient(_meal(source: MealSourceDBO.off), 50)]),
       );
       final db = FakeHiveDBProvider(
         intakeBox: intakeBox,
         cachedOffMealBox: cacheBox,
+        customMealBox: customMealBox,
         recipeBox: recipeBox,
       );
 
@@ -519,14 +594,25 @@ void main() {
 
       _expectAppUnits(intakeBox.values.single.meal.nutriments);
       _expectAppUnits(cacheBox.values.single.nutriments);
+      _expectAppUnits(customMealBox.values.single.nutriments);
       _expectAppUnits(
         recipeBox.values.single.ingredients.single.snapshotMeal.nutriments,
       );
 
-      // And again, to prove the second launch is a no-op.
-      final after = _json(intakeBox.values.single.toJson());
+      // And again, to prove the second launch is a no-op on every box.
+      final after = [
+        _json(intakeBox.values.single.toJson()),
+        _json(cacheBox.values.single.toJson()),
+        _json(customMealBox.values.single.toJson()),
+        _json(recipeBox.values.single.toJson()),
+      ];
       await ensureOffMicronutrientsRepaired(db);
-      expect(_json(intakeBox.values.single.toJson()), after);
+      expect([
+        _json(intakeBox.values.single.toJson()),
+        _json(cacheBox.values.single.toJson()),
+        _json(customMealBox.values.single.toJson()),
+        _json(recipeBox.values.single.toJson()),
+      ], after);
     });
   });
 
