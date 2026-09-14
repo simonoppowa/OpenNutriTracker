@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/utils/supported_language.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_nutriments_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_word_response_dto.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
 void main() {
   group('OFFProductDTO getLocaleName', () {
@@ -264,6 +265,26 @@ void main() {
 
       expect(nutriments.niacin_100g, isNull);
     });
+
+    // Boundary crossing test #1153 asks for: parse a real vitamin-pp_100g
+    // value the way OFF's v2 API emits it and check that the domain entity
+    // reads niacin mg-scaled. `0.069` g / 100 g is Marmite (50184453) as
+    // the live API returns it today (`_unit: g`); the entity applies the
+    // OFF `_gToMg` (x1000) so the field lands at 69 mg / 100 g, which is
+    // what the Marmite label prints.
+    test(
+      'MealNutrimentsEntity.fromOffNutriments scales vitamin-pp_100g '
+      'to mg per 100 g',
+      () {
+        final nutriments = OFFProductNutrimentsDTO.fromJson({
+          'vitamin-pp_100g': 0.069,
+        });
+
+        final entity = MealNutrimentsEntity.fromOffNutriments(nutriments);
+
+        expect(entity.niacin100, closeTo(69.0, 1e-9));
+      },
+    );
   });
 }
 
