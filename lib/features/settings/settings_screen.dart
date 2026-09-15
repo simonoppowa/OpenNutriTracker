@@ -348,6 +348,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _settingsBloc.add(LoadSettingsEvent());
                     },
                   ),
+                  // #1126: opt out of the serving-first default so the
+                  // meal-detail dropdown lands on grams/oz (or ml/fl oz)
+                  // straight away. Off preserves the pre-existing behaviour
+                  // — serving wins whenever the food has one.
+                  _SettingsSwitchTile(
+                    palette: palette,
+                    icon: Icons.straighten_rounded,
+                    title: S.of(context).settingsDefaultToRawFoodUnitsLabel,
+                    subtitle: S
+                        .of(context)
+                        .settingsDefaultToRawFoodUnitsSubtitle,
+                    value: state.defaultToRawFoodUnits,
+                    onChanged: (bool value) {
+                      _settingsBloc.setDefaultToRawFoodUnits(value);
+                      _settingsBloc.add(LoadSettingsEvent());
+                    },
+                  ),
                   // #160 follow-up: lets the user pick which nutrients show
                   // on the diary's daily nutrient panel. Lives next to the
                   // meal-detail micronutrient toggle above; both shape what
