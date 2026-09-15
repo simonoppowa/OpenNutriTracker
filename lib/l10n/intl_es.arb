@@ -136,7 +136,6 @@
   },
   "barcodeInvalidEan13CheckDigit": "Este código de barras de 13 dígitos parece erróneo: el último dígito no se corresponde con los demás",
   "baseQuantityLabel": "Valor nutricional por",
-  "betaVersionName": "[Beta]",
   "bmiInfo": "El Índice de Masa Corporal (IMC) es un índice utilizado para clasificar el sobrepeso y la obesidad en adultos. Se define como el peso en kilogramos dividido por el cuadrado de la estatura en metros (kg/m²).\n\nEl IMC no diferencia entre la masa grasa y la masa muscular, por lo que puede resultar engañoso para algunas personas.",
   "bmiInfoClassificationSection": "Clasificación de la OMS",
   "bmiInfoFormulaSection": "Fórmula",
@@ -350,6 +349,8 @@
   "exportImportCsvRecipesNote": "El CSV guarda tu actividad, el registro de comidas y los días supervisados. Las recetas y las fotos que hayas adjuntado están solo en JSON; cambia a JSON si quieres incluirlas en tu copia de seguridad.",
   "exportImportDescription": "Puedes exportar los datos de la aplicación a un archivo zip e importarlos más tarde. Esto es útil si quieres hacer una copia de seguridad de tus datos o transferirlos a otro dispositivo.\n\nLa aplicación no utiliza ningún servicio en la nube para almacenar tus datos.",
   "exportImportErrorLabel": "Error al importar/exportar",
+  "exportImportErrorUnreadableLabel": "No se pudo leer el archivo seleccionado. Elige la copia de seguridad .zip que exportó OpenNutriTracker.",
+  "exportImportErrorWriteFailedLabel": "No se pudo guardar el archivo en la ubicación elegida. Prueba con otra carpeta.",
   "exportImportSuccessLabel": "Éxito al importar/exportar",
   "fatLabel": "grasas",
   "fatLabelShort": "g",
@@ -548,6 +549,9 @@
   "noActivityRecentlyAddedLabel": "No hay actividades añadidas recientemente",
   "noMealsRecentlyAddedLabel": "No hay comidas añadidas recientemente",
   "noResultsFound": "Sin resultados",
+  "noResultsSubtitle": "Ningún alimento coincidió con esa búsqueda. Prueba con otro nombre, escanea el código de barras o crea el tuyo propio.",
+  "noResultsScanBarcode": "Escanear código de barras",
+  "noResultsCreateCustomFood": "Crear alimento personalizado",
   "notAvailableLabel": "N/D",
   "nothingAddedLabel": "Nada añadido",
   "notificationsDailyReminderBody": "¡No olvides registrar tus comidas hoy!",
@@ -1348,6 +1352,216 @@
   "quickAddActivityNameLabel": "Nombre (opcional)",
   "scannerLockOrientationTooltip": "Bloquear en vertical",
   "scannerUnlockOrientationTooltip": "Permitir rotación",
+  "bulkAddTitle": "Agregar varios elementos",
+  "bulkAddInputHint": "2 huevos, 100 g de tostada, café solo",
+  "bulkAddParseLabel": "Buscar alimentos",
+  "bulkAddSubmitLabel": "Registrar {count} elementos",
+  "@bulkAddSubmitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddNoMatchLabel": "No se encontró coincidencia para este elemento",
+  "bulkAddUncertainLabel": "Comprueba esta coincidencia",
+  "bulkAddSkipLabel": "Omitir",
+  "bulkAddIncludeLabel": "Incluir",
+  "bulkAddChooseFoodLabel": "Elegir otro alimento",
+  "bulkAddNothingToLogLabel": "Nada que registrar todavía",
+  "bulkAddSearchFailedLabel": "No se pudo buscar estos alimentos",
+  "bulkAddCheckAmountLabel": "Comprueba la unidad de esta cantidad",
+  "bulkAddDefaultAmountLabel": "Cantidad no indicada",
+  "bulkAddErrorInvalidName": "Elemento {number}: no es un nombre de alimento válido",
+  "@bulkAddErrorInvalidName": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddErrorQuantityTooSmall": "Elemento {number}: la cantidad debe ser mayor que 0",
+  "@bulkAddErrorQuantityTooSmall": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddErrorQuantityTooLarge": "Elemento {number}: la cantidad debe ser {bound} o menos",
+  "@bulkAddErrorQuantityTooLarge": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "bound": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddRowQuantityInvalid": "Escribe un número con dos decimales como máximo",
+  "bulkAddRowQuantityTooSmall": "La cantidad debe ser mayor que 0",
+  "bulkAddRowQuantityTooLarge": "La cantidad debe ser {bound} o menos",
+  "@bulkAddRowQuantityTooLarge": {
+    "placeholders": {
+      "bound": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsAiAssistLabel": "Asistencia de IA para comidas",
+  "settingsAiAssistNotConfiguredLabel": "Desactivado — sin clave guardada",
+  "settingsAiAssistOnLabel": "Activado",
+  "settingsAiAssistPausedLabel": "En pausa — clave guardada",
+  "settingsAiAssistEnabledLabel": "Usar asistencia de IA",
+  "aiAssistExperimentalLabel": "Experimental",
+  "aiAssistExperimentalNote": "Esta función puede cambiar o eliminarse, y los proveedores y modelos que se ofrecen pueden cambiar con ella.",
+  "aiConsentTitle": "Antes de activar esto",
+  "bulkAddModelHintLabel": "Un modelo puede leer esto por ti",
+  "bulkAddModelHintKeyLabel": "Con tu propia clave de API",
+  "aiConsentChangeProviderNote": "Puedes cambiar de proveedor más adelante. Los términos de cada proveedor se muestran en Ajustes, y no se envía nada de lo que escribas ni fotografíes hasta que uses la función.",
+  "aiConsentOwnServerCheckNote": "Al guardar la dirección de tu servidor, también se le pregunta qué modelos ofrece y se ejecuta una comprobación de configuración — una línea de ejemplo fija y una fotografía de muestra nuestra, nunca nada tuyo.",
+  "aiConsentAgreeLabel": "LO ENTIENDO",
+  "aiAssistDisclosureCommon": "Tu diario y tu perfil nunca se envían. Los valores nutricionales provienen siempre de las bases de datos de alimentos, nunca del modelo. La clave se guarda únicamente en este dispositivo: OpenNutriTracker nunca la ve y no paga por su uso.",
+  "aiAssistDisclosureAnthropic": "Con una clave guardada, el texto que escribas en la pantalla de agregar varios elementos — y cualquier foto que elijas leer allí — se envía a Anthropic. Las fotos se envían para esa única solicitud y nunca se guardan.",
+  "aiAssistDisclosureOpenRouter": "Con una clave guardada, el texto que escribas en la pantalla de agregar varios elementos — y cualquier foto que elijas leer allí — se envía a OpenRouter, que lo reenvía al proveedor que sirve el modelo que hayas elegido. OpenRouter también reenvía una identidad a nivel de cuenta a ese proveedor en cada solicitud, y esto no se puede desactivar. No conserva tu contenido más allá de enrutar la solicitud, salvo cuando lo exijan la detección de abusos, la seguridad, la facturación o el cumplimiento legal. El proveedor que sirve tu modelo conserva lo que reciba conforme a su propia política.",
+  "aiAssistDisclosureOpenAI": "Con una clave guardada, el texto que escribas en la pantalla de agregar varios elementos — y cualquier foto que elijas leer allí — se envía a OpenAI. OpenAI conserva lo que envíes durante un máximo de 30 días para supervisar posibles abusos, y más tiempo si la ley lo exige o si es razonablemente necesario para proteger sus servicios o a un tercero de daños.",
+  "aiAssistProviderOwnServerLabel": "Tu propio servidor",
+  "aiAssistEndpointFieldLabel": "Dirección del servidor",
+  "aiAssistModelFieldLabel": "Nombre del modelo",
+  "aiAssistDisclosureOwnServerSecure": "Con una dirección guardada, el texto que escribas en la pantalla de agregar varios elementos, y cualquier foto que elijas leer allí, se envía a {host} — un servidor que tú gestionas. Ningún tercero lo recibe, y el proyecto no tiene ninguna relación con esa máquina y no puede prometer nada sobre lo que conserva. La conexión está cifrada.",
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistDisclosureOwnServerPlaintext": "Con una dirección guardada, el texto que escribas en la pantalla de agregar varios elementos, y cualquier foto que elijas leer allí, se envía a {host} — un servidor que tú gestionas. Ningún tercero lo recibe, y el proyecto no tiene ninguna relación con esa máquina y no puede prometer nada sobre lo que conserva. Esta dirección es HTTP simple, así que la conexión no está cifrada: cualquier equipo de la red entre este teléfono y ese servidor puede leer lo que se envía.",
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistEndpointInvalidLabel": "Escribe una dirección que empiece por http:// o https://",
+  "aiAssistModelRequiredLabel": "Indica el nombre del modelo que debe usar este servidor.",
+  "aiAssistEndpointPublicPlaintextLabel": "Esa dirección es pública y no está cifrada, así que se rechazan las solicitudes hacia ella. Usa https, o una dirección privada.",
+  "aiAssistProbeSectionLabel": "Comprobación de configuración",
+  "aiAssistProbeRunningLabel": "Comprobando este servidor. Las dos comprobaciones se ejecutan una tras otra, así que deja hasta {minutes, plural, one{un minuto} other{{minutes} minutos}} — puedes cerrar esto, y la respuesta estará aquí cuando vuelvas.",
+  "@aiAssistProbeRunningLabel": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "aiAssistProbeCheckLabel": "Comprobar este servidor",
+  "aiAssistProbeTextLabel": "Texto de la comida",
+  "aiAssistProbePhotoLabel": "Fotos",
+  "aiAssistProbePassedLabel": "Comprobado: este servidor respondió con elementos.",
+  "aiAssistProbeUnknownLabel": "Aún no se ha comprobado.",
+  "aiAssistProbeNoAnswerLabel": "Comprobado: no llegó ninguna respuesta, así que no se ha averiguado nada de este servidor. Inténtalo de nuevo cuando esté despierto y accesible.",
+  "aiAssistProbeTextFailedLabel": "Comprobado: este modelo respondió sin elementos. Las comidas escritas se siguen leyendo con el analizador sin conexión, y puedes seguir probándolo.",
+  "aiAssistProbePhotoFailedLabel": "Comprobado: este modelo respondió sin elementos para una foto, así que este servidor no ofrece la lectura de fotos.",
+  "aiAssistLoadModelsLabel": "Cargar modelos",
+  "aiAssistPickModelLabel": "Elige un modelo",
+  "aiAssistModelsUnreachableLabel": "No se pudo conectar con {host}. Puede que esté en reposo, en otra red o detrás de una VPN — escribe el nombre del modelo en su lugar.",
+  "@aiAssistModelsUnreachableLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelsEmptyLabel": "{host} respondió y no muestra ningún modelo. Escribe el nombre del modelo en su lugar.",
+  "@aiAssistModelsEmptyLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelsRejectedLabel": "{host} respondió, pero no con una lista de modelos. Comprueba la dirección, o escribe el nombre del modelo en su lugar.",
+  "@aiAssistModelsRejectedLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelsInsecureLabel": "No se envió nada: esa dirección es pública y no está cifrada. Usa https, o escribe el nombre del modelo en su lugar.",
+  "aiAssistProviderLabel": "Proveedor",
+  "aiAssistModelLabel": "Modelo",
+  "aiAssistServedByLabel": "Servido por {provider}",
+  "@aiAssistServedByLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelRecommendedLabel": "Recomendado",
+  "aiAssistModelCheaperLabel": "Más barato, y da peor resultado con fotos de baja calidad",
+  "aiAssistModelMoreItemsLabel": "Enumera más elementos a partir de una foto",
+  "aiAssistModelCheapestLabel": "El más barato de esta lista",
+  "aiAssistNoKeyForProviderLabel": "No hay ninguna clave guardada para este proveedor.",
+  "aiAssistKeyFieldLabel": "Clave de API de {provider}",
+  "@aiAssistKeyFieldLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistKeySavedLabel": "Clave guardada",
+  "aiAssistRemoveKeyLabel": "Eliminar clave",
+  "bulkAddReadByModelLabel": "Leído por la IA — comprueba cada fila",
+  "bulkAddModelKeyRejectedLabel": "La IA no se ejecutó: tu clave de API fue rechazada.",
+  "bulkAddModelUnsupportedLabel": "La IA no se ejecutó: el modelo seleccionado no se pudo usar.",
+  "bulkAddModelNoCreditLabel": "La IA no se ejecutó: a tu cuenta de proveedor no le queda crédito.",
+  "bulkAddModelInsecureServerLabel": "La IA no se ejecutó: esa dirección es pública y no está cifrada.",
+  "bulkAddModelTimedOutLabel": "La IA no se ejecutó: tu servidor no respondió a tiempo.",
+  "bulkAddWaitElapsedLabel": "Esperando a tu servidor · {seconds} s",
+  "@bulkAddWaitElapsedLabel": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddWaitModelLoadingLabel": "Tu servidor puede estar cargando su modelo. La primera solicitud tras un rato puede tardar un minuto o dos — es normal.",
+  "bulkAddWaitCancelLabel": "Cancelar",
+  "bulkAddPhotoLabel": "Leer una foto",
+  "bulkAddPhotoDisclosureCommon": "OpenNutriTracker no guarda ninguna copia propia, y nunca se incluye en tus exportaciones.",
+  "bulkAddPhotoDisclosureAnthropic": "La foto se envía a Anthropic para identificar los alimentos que contiene.",
+  "bulkAddPhotoDisclosureOpenRouter": "La foto se envía a OpenRouter, que la reenvía a {provider} para identificar los alimentos que contiene.",
+  "@bulkAddPhotoDisclosureOpenRouter": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddPhotoDisclosureOpenAI": "La foto se envía a OpenAI para identificar los alimentos que contiene. OpenAI la conserva durante un máximo de 30 días para supervisar posibles abusos, y más tiempo si la ley lo exige o si es razonablemente necesario para proteger sus servicios o a un tercero de daños.",
+  "bulkAddPhotoDisclosureOwnServer": "La foto se envía a {host} para identificar los alimentos que contiene.",
+  "@bulkAddPhotoDisclosureOwnServer": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddReadFromPhotoLabel": "Leído a partir de una foto — comprueba cada alimento y cantidad",
+  "bulkAddPhotoUnavailableLabel": "Activa la asistencia de IA para comidas en Ajustes para leer fotos",
+  "bulkAddPhotoKeyRejectedLabel": "Tu clave de API fue rechazada. Compruébala en Ajustes.",
+  "bulkAddPhotoCameraFailedLabel": "No se pudo abrir la cámara. Comprueba el permiso de la cámara e inténtalo de nuevo.",
+  "bulkAddPhotoFailedLabel": "No se pudo leer la foto. Comprueba tu conexión e inténtalo de nuevo.",
+  "bulkAddPhotoUnreadableLabel": "No se pudo usar esa imagen. Prueba con otra foto.",
+  "bulkAddPhotoUnsupportedLabel": "Ese modelo no puede leer fotos. Elige otro en Ajustes, o escribe los elementos en su lugar.",
+  "bulkAddPhotoNoCreditLabel": "Esa solicitud no se pudo pagar: a tu cuenta de proveedor no le queda crédito. Recarga saldo con tu proveedor, o escribe los elementos en su lugar.",
+  "bulkAddPhotoNoFoodLabel": "No se encontró comida en esa foto. Prueba con otra foto, o escribe los elementos en su lugar.",
   "suggestedLabel": "Sugerido",
   "settingsHealthSyncSubtitle": "Importar entrenamientos",
   "healthSyncAutoImportLabel": "Importar entrenamientos automáticamente desde {platform}",
@@ -1402,6 +1616,39 @@
       }
     }
   },
+  "healthSyncDisclosureTitle": "¿Importar entrenamientos de {platform}?",
+  "@healthSyncDisclosureTitle": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureBody": "OpenNutriTracker leerá tus entrenamientos terminados de {platform} — su tipo, cuándo ocurrieron, cuánto duraron y la energía que reportan.\n\nLos entrenamientos se registran en tu diario como actividades que puedes editar o eliminar, y la energía que reportan aumenta el objetivo calórico de ese día en la proporción que elijas.",
+  "@healthSyncDisclosureBody": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureBodyFatAddendum": "OpenNutriTracker también leerá el porcentaje de grasa corporal más reciente que tenga {platform}. La lectura de grasa corporal se usa para sugerir cuál debería ser esa proporción.",
+  "@healthSyncDisclosureBodyFatAddendum": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureFooter": "No se escribe nada de vuelta en {platform} y nada de esto se envía a ningún sitio — se queda en este dispositivo.\n\nPuedes desactivarlo en cualquier momento, y al hacerlo se detiene cualquier lectura posterior.",
+  "@healthSyncDisclosureFooter": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureContinueAction": "Continuar",
   "healthSyncUnavailableLabel": "Los datos de salud no están disponibles en este dispositivo. La importación de entrenamientos necesita Health Connect en Android o Apple Health en iOS.",
   "policyChangeNoticeTitle": "Hemos actualizado la política de privacidad",
   "policyChangeNoticeBody": "Nada de lo que hace la aplicación ha cambiado. Lo que ha cambiado es cuánto te contamos de ello.\n\nLos servicios que siempre recibían tus búsquedas ahora están nombrados. Hay una nueva sección sobre datos de salud, para la importación de entrenamientos que puedes activar. Y ahora revelamos la ubicación aproximada que nuestro backend de búsqueda de alimentos registra junto a una petición y conserva durante 24 horas.\n\nTu diario permanece en tu dispositivo, como siempre.",
