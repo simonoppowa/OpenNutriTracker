@@ -51,6 +51,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   final quantityTextController = TextEditingController();
   late bool _usesImperialUnits;
   bool _showMicronutrients = false;
+  // #1126: preloaded from `ConfigEntity.defaultToRawFoodUnits`. False keeps
+  // the pre-existing "serving wins whenever one exists" default; true
+  // steers `_applyInitialSelection` to grams/oz (or ml/fl oz) instead.
+  bool _defaultToRawFoodUnits = false;
 
   String _initialUnit = "";
   String _initialQuantity = "";
@@ -90,8 +94,22 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   Future<void> _loadMicronutrientSetting() async {
     final config = await locator<GetConfigUsecase>().getConfig();
-    if (mounted) {
-      setState(() => _showMicronutrients = config.showMicronutrients);
+    if (!mounted) return;
+    final wasSelectionInitialised = _initialUnit != "";
+    setState(() {
+      _showMicronutrients = config.showMicronutrients;
+      _defaultToRawFoodUnits = config.defaultToRawFoodUnits;
+    });
+    // #1126: the config read is async, so `_applyInitialSelection` may have
+    // already run with the fallback default of "prefer serving". Re-pick
+    // if the user hasn't touched selection yet, so opting into raw units
+    // still switches the very first render's dropdown to grams/oz.
+    if (wasSelectionInitialised &&
+        _defaultToRawFoodUnits &&
+        !_userChangedSelection) {
+      _initialUnit = "";
+      _initialQuantity = "";
+      _applyInitialSelection();
     }
   }
 
@@ -124,11 +142,19 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   /// imperial). Guarded so it only runs while the user hasn't chosen yet, and
   /// re-run after hydration reveals serving values.
   void _applyInitialSelection() {
+    // #1126: when the user has opted into raw units in Settings, the
+    // scalable-serving branch is skipped so grams/oz (or ml/fl oz)
+    // becomes the very first render's default. `hasScalableServing`
+    // stays the classifier — a record with no parseable serving still
+    // falls through to weight/volume the same way it always did.
+    final preferServing =
+        meal.scalableServingQuantity != null && !_defaultToRawFoodUnits;
+
     if (_initialUnit == "") {
       // `scalableServingQuantity`, not `hasServingValues` (#629): the latter
       // is true for a record whose serving is unparseable text, and nothing
       // can scale those — they defaulted to "1 serving" and logged 1 g.
-      if (meal.scalableServingQuantity != null) {
+      if (preferServing) {
         _initialUnit = UnitDropdownItem.serving.toString();
       } else if (meal.isLiquid) {
         _initialUnit = _usesImperialUnits
@@ -149,7 +175,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     if (_initialQuantity == "") {
       // Gated the same way as the unit above, so a bare "1" can never end
       // up beside a weight unit.
-      if (meal.scalableServingQuantity != null) {
+      if (preferServing) {
         _initialQuantity = "1";
         quantityTextController.text = "1";
       } else if (_usesImperialUnits) {
@@ -159,8 +185,17 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         _initialQuantity = _initialQuantityMetric;
         quantityTextController.text = _initialQuantityMetric;
       }
+      // Send both the quantity AND the just-picked unit so the final event
+      // is authoritative — otherwise the child bottom sheet's text-listener
+      // fires with its stale `widget.selectedUnit` between the two dispatches
+      // (its rebuild for the unit event above hasn't happened yet), and the
+      // stale-unit event would win the race.
       _mealDetailBloc.add(
-        UpdateKcalEvent(meal: meal, totalQuantity: quantityTextController.text),
+        UpdateKcalEvent(
+          meal: meal,
+          totalQuantity: quantityTextController.text,
+          selectedUnit: _initialUnit,
+        ),
       );
     }
   }
