@@ -125,7 +125,6 @@ class ProductsRepository {
       _spBackendDataSource.fetchPortionLabels(ids),
       _spBackendDataSource.fetchPortions(ids),
     ).wait;
-    if (labels.isEmpty && portions.isEmpty) return products;
 
     return [
       for (final meal in products)
@@ -138,16 +137,25 @@ class ProductsRepository {
   /// Either can be absent independently — a food may have a verified default
   /// label and only one portion, or several portions and no translation — so
   /// they are applied separately rather than as a pair.
+  ///
+  /// [portions] is null when the lookup could not be made at all, and then
+  /// the meal is marked rather than left bare: bare is what a food the
+  /// backend has no portion for looks like, and the resolver penalises that
+  /// (`MealEntity.portionsUnavailable` says why the two must not be
+  /// confused). A food missing from a map the backend did answer is that
+  /// confirmed case, and stays bare.
   MealEntity _decorate(
     MealEntity meal,
     Map<int, String> labels,
-    Map<int, List<MealPortionEntity>> portions,
+    Map<int, List<MealPortionEntity>>? portions,
   ) {
     final id = int.tryParse(meal.code ?? '');
     if (id == null) return meal;
     var result = meal;
     if (labels[id] case final label?) result = result.withServingLabel(label);
-    if (portions[id] case final found? when found.isNotEmpty) {
+    if (portions == null) {
+      result = result.withPortionsUnavailable();
+    } else if (portions[id] case final found? when found.isNotEmpty) {
       result = result.withPortions(found);
     }
     return result;

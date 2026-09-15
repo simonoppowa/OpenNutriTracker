@@ -10,7 +10,8 @@ import 'package:opennutritracker/core/utils/supported_language.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
-import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
+import 'package:opennutritracker/features/add_meal/util/backend_title.dart';
+import 'package:opennutritracker/features/add_meal/util/soft_text_score.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -27,6 +28,25 @@ class SpFoodDataSource {
   /// if it happened to be row 21+. Casting a wider net first and truncating
   /// only after ranking fixes that, at the cost of a larger (still bounded)
   /// fetch.
+  ///
+  /// The net is still a cut, and the backend makes it before any code here
+  /// runs: `search_food_summary` stops at this many rows, ordered — since
+  /// Backend#10, applied 2026-09-13 — by `food_has_deliverable_portion
+  /// (food_id) desc`, then whether the row's title (its name up to the
+  /// first comma) equals the term, then `length(name)`, then `food_id`.
+  /// The rows with a portion come first; among them a family the term
+  /// names by its title, shortest description first; `search_food
+  /// _translation` orders the translated descriptions the same way. So a
+  /// family reaches [rankAndTruncateFoodsByName] whole and in the order
+  /// its tie-break would put it in: `potato` matches 712 rows and the
+  /// hundred are a hundred rows titled "Potato", "Potato, NFS" first. The
+  /// order before it — portion, then id — handed the hundred lowest-id
+  /// matches with a portion, which for `potato` were all beef stews and
+  /// shish kabobs, the family sitting at ranks 128 to 488, and the
+  /// resolver logged a stew (#1170 review). Nothing below can rank a row
+  /// it was not sent, so the twenty kept are the twenty best of the
+  /// backend's hundred; the backend's order is what makes those the
+  /// twenty best of the backend.
   static const _candidatePoolSize = SPConst.maxNumberOfItems * 5;
 
   Future<List<SpFoodDTO>> fetchSearchWordResults(String searchString) async {
@@ -83,7 +103,10 @@ class SpFoodDataSource {
   /// Empty rather than throwing on anything unusual — no locale, no verified
   /// translations, a backend that refused. The caller's fallback is the
   /// English label it already has, which is what it shows today, so a failure
-  /// here costs nothing and must never cost a search.
+  /// here costs nothing and must never cost a search. Unlike [fetchPortions]
+  /// it does not say whether it failed: nothing downstream scores a label,
+  /// and "no verified label" and "could not ask" both leave the English one
+  /// where it was.
   ///
   /// Resolves the locale here rather than taking one, because this class
   /// already owns that decision for the search itself and two answers would
@@ -113,18 +136,31 @@ class SpFoodDataSource {
     }
   }
 
-  /// Every usable portion per food id, in the backend's order.
+  /// Every usable portion per food id, in the backend's order — or null when
+  /// the backend could not be asked.
   ///
-  /// Same failure policy as [fetchPortionLabels]: empty for anything unusual,
-  /// because the caller's fallback is the single serving it already has, and
-  /// a portion list is not worth costing anyone a search.
+  /// Never throws, as [fetchPortionLabels] never throws: the caller's
+  /// fallback is the single serving it already has, and a portion list is
+  /// not worth costing anyone a search. But a failure here is not an empty
+  /// answer, and the two are told apart because something downstream reads
+  /// the difference: the resolver takes 0.15 off a backend record with no
+  /// portion (`_noPortionsPenalty` in `resolver_relevance.dart`), and after
+  /// a transient failure of this one call every record on a page the search
+  /// itself answered would have taken it — a 0.5 match reported at 0.35,
+  /// under the confidence floor, for a fault in a lookup the record never
+  /// had a say in (#1170 review). So: a map, with no entry for a food the
+  /// backend has no portion for, when the backend answered; null when it
+  /// did not. `ProductsRepository` marks the page's entities
+  /// `portionsUnavailable` on null, and the penalty stands down for them.
   ///
   /// Unlike the label lookup this runs for English too — the choice between a
   /// food's cup, slice and ounce is worth offering whether or not the words
   /// needed translating.
-  Future<Map<int, List<MealPortionEntity>>> fetchPortions(
+  Future<Map<int, List<MealPortionEntity>>?> fetchPortions(
     List<int> foodIds,
   ) async {
+    // Nothing to ask about is not a failure: an empty page has no record to
+    // penalise or to spare.
     if (foodIds.isEmpty) return const {};
     final locale = SPConst.translationLocaleOf(
       SupportedLanguage.fromCode(Platform.localeName),
@@ -158,8 +194,8 @@ class SpFoodDataSource {
       }
       return byFood;
     } catch (e) {
-      log.fine('No portions fetched: $e');
-      return const {};
+      log.fine('Portions unavailable: $e');
+      return null;
     }
   }
 
@@ -296,47 +332,139 @@ class SpFoodDataSource {
   }
 }
 
-/// Ranks [foods] by [textRelevanceScore] of [SpFoodDTO.name] against
-/// [searchString] and truncates to [SPConst.maxNumberOfItems]. This is the
-/// actual client-side replacement for the Postgres `ts_rank` ordering that
-/// PostgREST rejects (see [SpFoodDataSource._searchEnglish]) — kept as a
-/// standalone top-level function, rather than inlined private logic, so it's
-/// directly unit-testable without mocking the Supabase client.
+/// Ranks [foods] by [scoreText] against [searchString] and truncates to
+/// [SPConst.maxNumberOfItems]. This is the actual client-side replacement
+/// for the Postgres `ts_rank` ordering that PostgREST rejects (see
+/// [SpFoodDataSource._searchEnglish]) — kept as a standalone top-level
+/// function, rather than inlined private logic, so it's directly
+/// unit-testable without mocking the Supabase client.
+///
+/// The twenty rows kept here are the resolver's whole world for the
+/// query, and the resolver auto-selects among them unread, so they are
+/// chosen by the resolver's own rule: what is scored is the row's title
+/// plus the qualifiers the query names — `deriveTitle` and
+/// `deriveQualifiers` of [SpFoodDTO.name], the derivation
+/// `MealEntity.scoringName` and `scoringQualifiers` make of the entity
+/// built from this row — with the scorer `scoreMealForResolution` scores
+/// that entity with, `scoreText`, which names a qualifier by soft prefix
+/// (`namedQualifiers`), and ties break as they break there: the shorter
+/// description first, then the backend's order, stable (#1170). Scored on
+/// the whole description, a family of same-titled survey records did not
+/// tie here as it tied there, and the record the resolver would pick was
+/// cut before it was scored; scored on the title but with the Food tab's
+/// ranker, which names a qualifier by the exact token, `cheesy potato`
+/// named `cheese` in the resolver and not here, and "Potato, french
+/// fries, with cheese" was cut the same way. The survivors and the
+/// resolver now apply one rule, so the resolver's pick is inside the
+/// twenty by construction — up to what this cut does not read, which is
+/// two things:
+///
+/// * No portion is fetched before this cut; the twenty are decorated with
+///   theirs afterwards. The resolver takes 0.15 off a backend record with
+///   none and, among equals, prefers the most portions, and neither can
+///   act here. So a portion-bearing record the resolver would pick from
+///   the hundred is lost when twenty rows rank ahead of it here and
+///   behind it there: portionless rows scoring at least what it scores
+///   and less than 0.15 above it — the penalty inverts any gap under
+///   0.15, whatever family the rows are from — or rows tying it on score
+///   and length with fewer portions. How many portion-bearing rows the
+///   pool holds does not enter into it. Where it bites is a plural query
+///   over an SR Legacy family that spells its title in the plural:
+///   `muffins` scores the twenty portionless "Muffins, …" rows at 1.0 and
+///   the survey's "Muffin, NFS" at 0.857 (`muffins` → `muffin`, six
+///   letters of seven), so the twenty are kept, the survey record is
+///   twenty-first, and the resolver logs "Muffins, oat bran" at 0.85 —
+///   nothing to scale the amount with — where the whole pool would have
+///   given "Muffin, NFS" at 0.857; the pool has forty portion-bearing
+///   rows. `puddings` and `ice creams` go the same way, and `McDONALD'S`
+///   on the German path. `orange juice` does not: twenty rows score 1.0
+///   there and only one portionless one is shorter than the survey
+///   record. `resolver_sibling_selection_test` pins the miss on the
+///   muffins pool and on a synthetic family, and its absence on the
+///   other pools.
+///
+/// * [rankAndTruncateTranslationRows] is handed each row's translation
+///   `source` and does not read it, where the resolver takes 0.03 off a
+///   machine translation. A native row the resolver would pick is lost
+///   behind twenty machine rows scoring at least what it scores and less
+///   than 0.03 above it, no longer than it. On the live German
+///   translations (2026-09-13) that changes no pick: every native row is
+///   a BLS row and none of the 7,140 carries a deliverable portion, so
+///   wherever a portion-bearing machine sibling scores within 0.12 of a
+///   native row the resolver never picked the native row to begin with —
+///   `cracker`, the one title with a native row and twenty machine rows
+///   titled the same, has forty-nine portion-bearing ones. The same test
+///   pins it on a synthetic family.
+///
+/// The Food tab ranks these twenty for display with `scoreMealRelevance`,
+/// which matches exactly and adds contains and prefix bonuses; where it
+/// disagrees with the soft score it reorders the twenty for a list the
+/// user reads, and nothing the user could have scrolled to is lost by
+/// choosing them this way.
 @visibleForTesting
 List<SpFoodDTO> rankAndTruncateFoodsByName(
   List<SpFoodDTO> foods,
   String searchString,
-) {
-  final decorated = [
-    for (final food in foods)
-      (food: food, score: textRelevanceScore(food.name, searchString)),
-  ];
-  mergeSort(decorated, compare: (a, b) => b.score.compareTo(a.score));
-  return [
-    for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.food,
-  ];
-}
+) => _rankAndTruncate(foods, searchString, (food) => food.name);
 
 /// Same idea as [rankAndTruncateFoodsByName], but for raw `food_translation`
 /// rows — ranked by [SPConst.translationDescription] — before they're mapped
-/// into [SpFoodDTO] (see [SpFoodDataSource._searchByTranslation]).
+/// into [SpFoodDTO] (see [SpFoodDataSource._searchByTranslation]). A
+/// translated description follows the same comma convention — "Milch, NFS"
+/// is titled "Milch" — and derives its title the way the entity's
+/// localized name will.
 @visibleForTesting
 List<Map<String, dynamic>> rankAndTruncateTranslationRows(
   List<Map<String, dynamic>> rows,
   String searchString,
+) => _rankAndTruncate(
+  rows,
+  searchString,
+  (row) => row[SPConst.translationDescription] as String?,
+);
+
+/// [items] by the score of their description — [describe], as its title
+/// plus the qualifiers [searchString] names — highest first; among equal
+/// scores the shorter description; and the sort is stable, so what is
+/// left of a tie keeps the backend's order. The first
+/// [SPConst.maxNumberOfItems] of that.
+///
+/// `mergeSort` rather than `List.sort` for the stability: Dart's sort is an
+/// insertion sort under 32 elements, which happens to be stable, and a
+/// dual-pivot quicksort above, which is not — and the pool here is a
+/// hundred rows. The forty-row tie in `sp_food_data_source_ranking_test`
+/// is what pins it; a two-row tie cannot.
+List<T> _rankAndTruncate<T>(
+  List<T> items,
+  String searchString,
+  String? Function(T item) describe,
 ) {
+  final queryTokens = tokenize(searchString);
   final decorated = [
-    for (final row in rows)
+    for (final item in items)
       (
-        row: row,
-        score: textRelevanceScore(
-          row[SPConst.translationDescription] as String?,
-          searchString,
-        ),
+        item: item,
+        score: _backendScore(describe(item), queryTokens),
+        length: describe(item)?.length ?? 0,
       ),
   ];
-  mergeSort(decorated, compare: (a, b) => b.score.compareTo(a.score));
+  mergeSort(decorated, compare: (a, b) {
+    final byScore = b.score.compareTo(a.score);
+    if (byScore != 0) return byScore;
+    return a.length.compareTo(b.length);
+  });
   return [
-    for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.row,
+    for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.item,
   ];
+}
+
+/// [description] scored as its entity will be: the title, plus whichever
+/// of its qualifiers the query names — [scoreText], the resolver's own.
+double _backendScore(String? description, Set<String> queryTokens) {
+  if (description == null) return 0.0;
+  return scoreText(
+    deriveTitle(description),
+    queryTokens,
+    qualifiers: deriveQualifiers(description),
+  );
 }
