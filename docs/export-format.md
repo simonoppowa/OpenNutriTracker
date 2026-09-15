@@ -114,11 +114,35 @@ Array of intake records:
         "vitaminB6100": null,
         "vitaminB12100": null,
         "niacin100": null
-      }
+      },
+      "dataVersion": 1                // see "Micronutrient units" below
     }
   }
 ]
 ```
+
+#### Micronutrient units on Open Food Facts rows
+
+The `*100` micronutrient fields are stored in the app's units: milligrams
+for cholesterol, the minerals and vitamins C, B6 and niacin, micrograms for
+vitamins A, D and B12. Builds up to 2.3.0 wrote Open Food Facts rows with
+those fields in the raw grams the API sends — a thousand times too small for
+the milligram fields, a million for the microgram ones
+([#775](https://github.com/simonoppowa/OpenNutriTracker/pull/775)).
+
+`dataVersion` on the meal (and the `meal_data_version` column in the CSV) is
+how the importer tells the two apart
+([#1152](https://github.com/simonoppowa/OpenNutriTracker/issues/1152)): a
+row whose `source` is `off` and whose version is absent or below `1` is
+scaled into app units on import; a row at `1` or above is taken as-is. Rows
+from every other source are never scaled. Tooling that writes `off` rows in
+app units should set the version to `1`, or the importer will scale them a
+second time. The same repair runs once over the on-device data on the first
+launch after the upgrade — the diary, the Open Food Facts cache, the saved
+custom meals and the recipe library. Saved custom meals are not part of the
+bundle, so they are repaired on the device only (the app itself never saves
+an `off` product for reuse, so that box is covered for completeness rather
+than for a known row).
 
 ### `user_activity.json`
 
@@ -239,6 +263,7 @@ Header lookup is case-insensitive.
 | `vitamin_b6_per_100g`           | number | no       | mg.                                            |
 | `vitamin_b12_per_100g`          | number | no       | µg.                                            |
 | `niacin_per_100g`               | number | no       | mg (B3).                                       |
+| `meal_data_version`             | number | no       | See [Micronutrient units](#micronutrient-units-on-open-food-facts-rows). |
 
 ### `user_activity.csv`
 
