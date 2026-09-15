@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-// ignore: depend_on_referenced_packages
-import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
@@ -40,8 +38,12 @@ base class _StubPlatformFile extends PlatformFile {
   @override
   final Uri uri;
 
+  // The importer only reads `.path`. Anything else is a bug in the test;
+  // matches the `Never get xFile` shape used by the other PlatformFile
+  // stubs in this repo so no transitive dependency on `cross_file` is
+  // needed.
   @override
-  XFile get xFile => XFile(path ?? '');
+  Never get xFile => throw UnimplementedError();
 
   @override
   int? lengthSync() => null;
@@ -75,9 +77,14 @@ ImportRecipesJsonUsecase _buildUsecase(
 }
 
 File _writeTempJson(String contents) {
-  final file = File(
-    '${Directory.systemTemp.createTempSync('ont_json_recipes_').path}/recipes.json',
-  );
+  // Register the tear-down before writing so the temp dir is removed even
+  // if `writeAsStringSync` throws — matches the addTearDown pattern the
+  // neighbouring tests use for their own scratch directories.
+  final dir = Directory.systemTemp.createTempSync('ont_json_recipes_');
+  addTearDown(() {
+    if (dir.existsSync()) dir.deleteSync(recursive: true);
+  });
+  final file = File('${dir.path}/recipes.json');
   file.writeAsStringSync(contents);
   return file;
 }
