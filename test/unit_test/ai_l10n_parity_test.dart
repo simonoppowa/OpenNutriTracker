@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// without a single failure. `gen-l10n` warns about a missing key and does not
 /// fail on one, so nothing else in the gate catches it either.
 void main() {
-  const locales = ['cs', 'de', 'en', 'it', 'pl', 'sk', 'tr', 'uk', 'zh'];
+  const locales = ['cs', 'de', 'en', 'es', 'it', 'pl', 'sk', 'tr', 'uk', 'zh'];
   const touched = [
     'aiAssistModelCheapestLabel',
     'aiAssistDisclosureOpenRouter',
