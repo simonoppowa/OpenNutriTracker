@@ -45,6 +45,29 @@ class OFFConst {
   static const _offProductNameENTag = "product_name_en";
   static const _offProductNameDETag = "product_name_de";
   static const _offProductNameFRTag = "product_name_fr";
+  // The other locales OFFProductDTO.getLocaleName can read. OFF only returns
+  // the fields a request names, so a locale missing here is never shown
+  // even when OFF carries the name — cs/it/sk/tr/uk were in that state
+  // until hu was added. Caveat measured on 2026-09-16: Search-a-licious
+  // (v1.4.0 in production) has no analyzer for cs, sk and uk — its mapping
+  // spells Czech "cz" — so it neither honours them in `langs` nor emits
+  // their product_name_* fields; those three are localized only by the
+  // v2 product endpoint (barcode scan, result hydration) and the legacy
+  // search fallback until upstream ships its rewritten config.
+  static const _offProductNameCSTag = "product_name_cs";
+  static const _offProductNameITTag = "product_name_it";
+  static const _offProductNameSKTag = "product_name_sk";
+  static const _offProductNameTRTag = "product_name_tr";
+  static const _offProductNameUKTag = "product_name_uk";
+  static const _offProductNameHUTag = "product_name_hu";
+  static const _offLocalizedProductNameTags = [
+    _offProductNameCSTag,
+    _offProductNameITTag,
+    _offProductNameSKTag,
+    _offProductNameTRTag,
+    _offProductNameUKTag,
+    _offProductNameHUTag,
+  ];
   static const _offCodeTag = "code";
   static const _offBrandsTag = "brands";
 
@@ -72,6 +95,7 @@ class OFFConst {
     _offProductNameENTag,
     _offProductNameDETag,
     _offProductNameFRTag,
+    ..._offLocalizedProductNameTags,
     _offUrlTag,
     _offImageUrlTag,
     _offImageThumbUrlTag,
@@ -91,6 +115,7 @@ class OFFConst {
     _offProductNameENTag,
     _offProductNameDETag,
     _offProductNameFRTag,
+    ..._offLocalizedProductNameTags,
     _offUrlTag,
     _offImageUrlTag,
     _offImageThumbUrlTag,
