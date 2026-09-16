@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 
 class _FakeProductsRepository implements ProductsRepository {
@@ -164,8 +165,13 @@ class _FakeRemoteSearchCacheDataSource implements RemoteSearchCacheDataSource {
       final existingIndex = meals.indexWhere(
           (e) => e.code == m.code || (m.code == null && e.name == m.name));
       if (existingIndex >= 0) {
-        // Refresh data, preserve existing timestamp.
-        meals[existingIndex] = m;
+        // Refresh data, preserve existing timestamp — but, as the real
+        // class does, never let a thin search result overwrite a full one.
+        final wouldDowngrade = (meals[existingIndex].detailed ?? false) &&
+            !(m.detailed ?? false);
+        if (!wouldDowngrade) {
+          meals[existingIndex] = m;
+        }
         cached.add(m);
       } else {
         meals.add(m);
@@ -509,13 +515,128 @@ void main() {
 
         final result = await useCase.searchOFFProductsByString('tofu');
 
-        // Single entry, identified by code (dedup worked). The data
-        // surfaced is whatever cacheFromSearch left in the cache box —
-        // by design it refreshes data on existing entries while
-        // preserving the timestamp, so the user sees the freshest
-        // information without losing their position-in-list.
+        // Single entry, identified by code (dedup worked). The entity
+        // surfaced is the fresh one, standing in the cached entry's slot:
+        // cacheFromSearch has just refreshed the cache from the same page,
+        // so the two agree on everything the cache can hold, and the user
+        // sees the freshest information without losing their
+        // position-in-list.
         expect(result.meals, hasLength(1));
         expect(result.meals.single.code, 'off-1');
+        expect(result.meals.single.name, 'Tofu Fresh Name');
+      },
+    );
+
+    // What the cache cannot hold. `MealDBO` has no column for a backend
+    // record's portions or for its verified-label flag, so a cached copy is
+    // the fresh record with those gone — and, the page being cached before
+    // the cache is read, the copy is what every search used to surface for
+    // every record the page returned. The resolver scores portions (#1164)
+    // and offers them for picking (#968), and saw none on that path.
+    test(
+      'a backend record the fresh page returned surfaces as the fresh '
+      'entity, in the cached entry\'s position',
+      () async {
+        // Two records already cached from an earlier search, cheese the
+        // more recently touched; the fresh page lists them the other way
+        // round, each with the portions the cache cannot keep.
+        cachedOffMealDataSource.meals.addAll([
+          _fdcCacheDbo(code: 'fdc-egg', name: 'Egg, whole, raw'),
+          _fdcCacheDbo(code: 'fdc-cheese', name: 'Cheese, cheddar'),
+        ]);
+        cachedOffMealDataSource.setTimestamp('fdc-egg', 100);
+        cachedOffMealDataSource.setTimestamp('fdc-cheese', 999);
+        productsRepository.fdcResults['e'] = [
+          _meal(
+            code: 'fdc-egg',
+            name: 'Egg, whole, raw',
+            source: MealSourceEntity.fdc,
+            portions: const [
+              MealPortionEntity(
+                label: '1 egg',
+                gramWeight: 50,
+                localized: false,
+              ),
+              MealPortionEntity(
+                label: '1 cup',
+                gramWeight: 245,
+                localized: false,
+              ),
+            ],
+          ),
+          _meal(
+            code: 'fdc-cheese',
+            name: 'Cheese, cheddar',
+            source: MealSourceEntity.fdc,
+            portions: const [
+              MealPortionEntity(
+                label: '1 slice',
+                gramWeight: 28,
+                localized: false,
+              ),
+            ],
+          ),
+        ];
+
+        final result = await useCase.searchFDCFoodByString('e');
+
+        // The cache's order, the page's data.
+        expect(result.meals.map((m) => m.code), ['fdc-cheese', 'fdc-egg']);
+        expect(result.meals[0].portions, hasLength(1));
+        expect(result.meals[1].portions, hasLength(2));
+        expect(result.meals[1].scoringName, 'Egg');
+      },
+    );
+
+    test(
+      'a backend record held only in the cache derives its title from its '
+      'name and has no portions',
+      () async {
+        // Cached from an earlier search, not in this page: the cache has
+        // the name, which the title is read off; nothing has the portions.
+        cachedOffMealDataSource.meals.add(MealDBO.fromMealEntity(_meal(
+          code: 'fdc-egg',
+          name: 'Egg, whole, raw',
+          source: MealSourceEntity.fdc,
+          portions: const [
+            MealPortionEntity(label: '1 egg', gramWeight: 50, localized: false),
+          ],
+        )));
+        productsRepository.fdcResults['egg'] = [
+          _meal(
+            code: 'fdc-egg-creamed',
+            name: 'Egg, creamed',
+            source: MealSourceEntity.fdc,
+          ),
+        ];
+
+        final result = await useCase.searchFDCFoodByString('egg');
+
+        final cached = result.meals.singleWhere((m) => m.code == 'fdc-egg');
+        expect(cached.name, 'Egg, whole, raw');
+        expect(cached.scoringName, 'Egg');
+        expect(cached.portions, isEmpty);
+      },
+    );
+
+    test(
+      'a hydrated OFF product is not replaced by its thin search copy',
+      () async {
+        // The one downgrade cacheFromSearch refuses: the cache keeps the
+        // full record, and so does the list.
+        cachedOffMealDataSource.meals.add(_offCacheDbo(
+          code: 'off-1',
+          name: 'Tofu',
+          detailed: true,
+        ));
+        productsRepository.offResults['tofu'] = [
+          _meal(code: 'off-1', name: 'Tofu', source: MealSourceEntity.off),
+        ];
+
+        final result = await useCase.searchOFFProductsByString('tofu');
+
+        expect(result.meals.single.code, 'off-1');
+        expect(result.meals.single.detailed, isTrue);
       },
     );
 
@@ -798,8 +919,17 @@ RecipeDBO _recipeDbo({
 MealDBO _customMealDbo({required String code, required String name}) =>
     _meaDboWithSource(code: code, name: name, source: MealSourceDBO.custom);
 
-MealDBO _offCacheDbo({required String code, required String name}) =>
-    _meaDboWithSource(code: code, name: name, source: MealSourceDBO.off);
+MealDBO _offCacheDbo({
+  required String code,
+  required String name,
+  bool? detailed,
+}) =>
+    _meaDboWithSource(
+      code: code,
+      name: name,
+      source: MealSourceDBO.off,
+      detailed: detailed,
+    );
 
 MealDBO _fdcCacheDbo({required String code, required String name}) =>
     _meaDboWithSource(code: code, name: name, source: MealSourceDBO.fdc);
@@ -808,6 +938,7 @@ MealDBO _meaDboWithSource({
   required String code,
   required String name,
   required MealSourceDBO source,
+  bool? detailed,
 }) {
   return MealDBO(
     code: code,
@@ -831,6 +962,7 @@ MealDBO _meaDboWithSource({
       saturatedFat100: null,
       fiber100: null,
     ),
+    detailed: detailed,
   );
 }
 
@@ -839,6 +971,7 @@ MealEntity _meal({
   required String name,
   required MealSourceEntity source,
   String? backendSource,
+  List<MealPortionEntity> portions = const [],
 }) {
   return MealEntity(
     code: code,
@@ -855,6 +988,7 @@ MealEntity _meal({
     nutriments: MealNutrimentsEntity.empty(),
     source: source,
     backendSource: backendSource,
+    portions: portions,
   );
 }
 

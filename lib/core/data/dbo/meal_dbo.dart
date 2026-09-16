@@ -72,6 +72,29 @@ class MealDBO extends HiveObject {
   @HiveField(16)
   final bool? machineTranslatedName;
 
+  /// Which convention this row's nutriments were written under; see
+  /// [currentDataVersion]. Null on rows written before the field existed —
+  /// every intake, cached product and recipe ingredient from a released
+  /// build — and for an Open Food Facts row that is the signal
+  /// `OffMicronutrientRepair` acts on (#1152). Copied through JSON and CSV
+  /// exports so a bundle re-imported into a repaired install is not scaled
+  /// a second time.
+  @HiveField(17)
+  final int? dataVersion;
+
+  /// Rows at this version or above carry every micronutrient in the app's
+  /// units: milligrams for the minerals, cholesterol and vitamins C, B6 and
+  /// niacin, micrograms for vitamins A, D and B12. Below it (null included)
+  /// an Open Food Facts row still holds the raw grams the API sends, which
+  /// #775 (`MealNutrimentsEntity.fromOffNutriments`) had copied through
+  /// unconverted.
+  static const dataVersionOffMicronutrientsInAppUnits = 1;
+
+  /// Stamped on every row [fromMealEntity] produces. Bump it, and add a
+  /// repair step for the versions below, whenever the stored meaning of a
+  /// field changes again.
+  static const currentDataVersion = dataVersionOffMicronutrientsInAppUnits;
+
   MealDBO({
     required this.code,
     required this.name,
@@ -90,8 +113,11 @@ class MealDBO extends HiveObject {
     this.detailed,
     this.backendSource,
     this.machineTranslatedName,
+    this.dataVersion,
   });
 
+  /// Entities always carry app units — every remote mapping converts on
+  /// the way in — so a row built from one is stamped current.
   factory MealDBO.fromMealEntity(MealEntity mealEntity) => MealDBO(
         code: mealEntity.code,
         name: mealEntity.name,
@@ -112,6 +138,7 @@ class MealDBO extends HiveObject {
         detailed: mealEntity.detailed,
         backendSource: mealEntity.backendSource,
         machineTranslatedName: mealEntity.machineTranslatedName,
+        dataVersion: currentDataVersion,
       );
 
   factory MealDBO.fromJson(Map<String, dynamic> json) =>
