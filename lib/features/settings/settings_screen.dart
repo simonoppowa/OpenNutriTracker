@@ -237,6 +237,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: () =>
                         _showEnergyUnitDialog(context, state.usesKilojoules),
                   ),
+                  // #1126: opt out of the serving-first default so the
+                  // meal-detail dropdown lands on the food unit (g, oz,
+                  // ml, fl oz) straight away. Sits next to Food units
+                  // since it steers the same dropdown. Off preserves
+                  // the pre-existing behaviour — serving wins whenever
+                  // the food has one.
+                  _SettingsSwitchTile(
+                    palette: palette,
+                    icon: Icons.straighten_rounded,
+                    title: S.of(context).settingsDefaultToRawFoodUnitsLabel,
+                    subtitle: S
+                        .of(context)
+                        .settingsDefaultToRawFoodUnitsSubtitle,
+                    value: state.defaultToRawFoodUnits,
+                    onChanged: (bool value) {
+                      _settingsBloc.setDefaultToRawFoodUnits(value);
+                      _settingsBloc.add(LoadSettingsEvent());
+                    },
+                  ),
                 ],
               ),
               const SizedBox(height: Dimens.spacing20),
@@ -346,23 +365,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: state.showMicronutrients,
                     onChanged: (bool value) {
                       _settingsBloc.setShowMicronutrients(value);
-                      _settingsBloc.add(LoadSettingsEvent());
-                    },
-                  ),
-                  // #1126: opt out of the serving-first default so the
-                  // meal-detail dropdown lands on grams/oz (or ml/fl oz)
-                  // straight away. Off preserves the pre-existing behaviour
-                  // — serving wins whenever the food has one.
-                  _SettingsSwitchTile(
-                    palette: palette,
-                    icon: Icons.straighten_rounded,
-                    title: S.of(context).settingsDefaultToRawFoodUnitsLabel,
-                    subtitle: S
-                        .of(context)
-                        .settingsDefaultToRawFoodUnitsSubtitle,
-                    value: state.defaultToRawFoodUnits,
-                    onChanged: (bool value) {
-                      _settingsBloc.setDefaultToRawFoodUnits(value);
                       _settingsBloc.add(LoadSettingsEvent());
                     },
                   ),

@@ -942,6 +942,8 @@
   "settingsShowActivityTracking": "Pokaż śledzenie aktywności",
   "settingsShowMealMacros": "Pokaż makro posiłku",
   "settingsShowMicronutrientsLabel": "Pokaż mikroskładniki",
+  "settingsDefaultToRawFoodUnitsLabel": "Default to weight or volume, not servings",
+  "settingsDefaultToRawFoodUnitsSubtitle": "When a food has a serving, log by weight or volume instead. You can still pick servings from the unit dropdown.",
   "settingsSodiumGoalDescription": "Dzienny limit sodu w miligramach. Wartość referencyjna to 2300 mg.",
   "settingsSodiumGoalLabel": "Cel sodu",
   "settingsSourceCodeLabel": "Kod źródłowy",

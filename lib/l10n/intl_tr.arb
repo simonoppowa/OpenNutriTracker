@@ -973,6 +973,8 @@
   "settingsShowActivityTracking": "Aktivite takibini göster",
   "settingsShowMealMacros": "Öğün makrolarını göster",
   "settingsShowMicronutrientsLabel": "Mikro besinleri göster",
+  "settingsDefaultToRawFoodUnitsLabel": "Default to weight or volume, not servings",
+  "settingsDefaultToRawFoodUnitsSubtitle": "When a food has a serving, log by weight or volume instead. You can still pick servings from the unit dropdown.",
   "settingsSodiumGoalDescription": "Günlük sodyum üst sınırı (miligram). Varsayılan referans 2300 mg.",
   "settingsSodiumGoalLabel": "Sodyum hedefi",
   "settingsSourceCodeLabel": "Kaynak Kodu",

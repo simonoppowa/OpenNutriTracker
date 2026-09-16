@@ -62,6 +62,18 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   bool _hydrationRequested = false;
   bool _userChangedSelection = false;
 
+  /// True while `_applyInitialSelection` is running. The bottom sheet's
+  /// text-change listener echoes every write to `quantityTextController`
+  /// back through [onQuantityOrUnitChanged], including the ones this
+  /// method makes itself, and its `widget.selectedUnit` is the last
+  /// rendered value — not the unit we're currently switching to. Without
+  /// this guard the echo would (a) dispatch a stale-unit UpdateKcalEvent
+  /// on top of the explicit one below, (b) flip [_userChangedSelection]
+  /// to true although nobody touched anything, and (c) call
+  /// `_scrollToCalorieText` on open — enough scroll to collapse the app
+  /// bar and push the product image out of view.
+  bool _applyingInitialSelection = false;
+
   // Scroll distance from expandedHeight down to the collapsed SliverAppBar
   // (toolbar + bottom bar): 268-124 with the DailyKcalOverview bottom bar,
   // 200-56 without it — always 144 either way, so no need to key it off
@@ -72,7 +84,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   @override
   void initState() {
     _mealDetailBloc = locator<MealDetailBloc>();
-    _loadMicronutrientSetting();
+    _loadDetailPreferences();
     _scrollController.addListener(_handleScroll);
     super.initState();
   }
@@ -92,7 +104,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     }
   }
 
-  Future<void> _loadMicronutrientSetting() async {
+  Future<void> _loadDetailPreferences() async {
     final config = await locator<GetConfigUsecase>().getConfig();
     if (!mounted) return;
     final wasSelectionInitialised = _initialUnit != "";
@@ -150,53 +162,57 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     final preferServing =
         meal.scalableServingQuantity != null && !_defaultToRawFoodUnits;
 
-    if (_initialUnit == "") {
-      // `scalableServingQuantity`, not `hasServingValues` (#629): the latter
-      // is true for a record whose serving is unparseable text, and nothing
-      // can scale those — they defaulted to "1 serving" and logged 1 g.
-      if (preferServing) {
-        _initialUnit = UnitDropdownItem.serving.toString();
-      } else if (meal.isLiquid) {
-        _initialUnit = _usesImperialUnits
-            ? UnitDropdownItem.flOz.toString()
-            : UnitDropdownItem.ml.toString();
-      } else if (meal.isSolid) {
-        _initialUnit = _usesImperialUnits
-            ? UnitDropdownItem.oz.toString()
-            : UnitDropdownItem.g.toString();
-      } else {
-        _initialUnit = UnitDropdownItem.gml.toString();
+    _applyingInitialSelection = true;
+    try {
+      if (_initialUnit == "") {
+        // `scalableServingQuantity`, not `hasServingValues` (#629): the latter
+        // is true for a record whose serving is unparseable text, and nothing
+        // can scale those — they defaulted to "1 serving" and logged 1 g.
+        if (preferServing) {
+          _initialUnit = UnitDropdownItem.serving.toString();
+        } else if (meal.isLiquid) {
+          _initialUnit = _usesImperialUnits
+              ? UnitDropdownItem.flOz.toString()
+              : UnitDropdownItem.ml.toString();
+        } else if (meal.isSolid) {
+          _initialUnit = _usesImperialUnits
+              ? UnitDropdownItem.oz.toString()
+              : UnitDropdownItem.g.toString();
+        } else {
+          _initialUnit = UnitDropdownItem.gml.toString();
+        }
+        _mealDetailBloc.add(
+          UpdateKcalEvent(meal: meal, selectedUnit: _initialUnit),
+        );
       }
-      _mealDetailBloc.add(
-        UpdateKcalEvent(meal: meal, selectedUnit: _initialUnit),
-      );
-    }
 
-    if (_initialQuantity == "") {
-      // Gated the same way as the unit above, so a bare "1" can never end
-      // up beside a weight unit.
-      if (preferServing) {
-        _initialQuantity = "1";
-        quantityTextController.text = "1";
-      } else if (_usesImperialUnits) {
-        _initialQuantity = _initialQuantityImperial;
-        quantityTextController.text = _initialQuantityImperial;
-      } else {
-        _initialQuantity = _initialQuantityMetric;
-        quantityTextController.text = _initialQuantityMetric;
+      if (_initialQuantity == "") {
+        // Gated the same way as the unit above, so a bare "1" can never end
+        // up beside a weight unit.
+        if (preferServing) {
+          _initialQuantity = "1";
+          quantityTextController.text = "1";
+        } else if (_usesImperialUnits) {
+          _initialQuantity = _initialQuantityImperial;
+          quantityTextController.text = _initialQuantityImperial;
+        } else {
+          _initialQuantity = _initialQuantityMetric;
+          quantityTextController.text = _initialQuantityMetric;
+        }
+        // Send both the quantity AND the just-picked unit so the event
+        // is complete — the child bottom sheet's text-listener also fires
+        // from the write above, but `_applyingInitialSelection` makes
+        // `onQuantityOrUnitChanged` ignore that echo.
+        _mealDetailBloc.add(
+          UpdateKcalEvent(
+            meal: meal,
+            totalQuantity: quantityTextController.text,
+            selectedUnit: _initialUnit,
+          ),
+        );
       }
-      // Send both the quantity AND the just-picked unit so the final event
-      // is authoritative — otherwise the child bottom sheet's text-listener
-      // fires with its stale `widget.selectedUnit` between the two dispatches
-      // (its rebuild for the unit event above hasn't happened yet), and the
-      // stale-unit event would win the race.
-      _mealDetailBloc.add(
-        UpdateKcalEvent(
-          meal: meal,
-          totalQuantity: quantityTextController.text,
-          selectedUnit: _initialUnit,
-        ),
-      );
+    } finally {
+      _applyingInitialSelection = false;
     }
   }
 
@@ -467,6 +483,13 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   void onQuantityOrUnitChanged(String? quantityString, String? unit) {
     if (quantityString == null || unit == null) {
+      return;
+    }
+    if (_applyingInitialSelection) {
+      // Echo from `_applyInitialSelection`'s own controller.text write;
+      // that method dispatches an authoritative UpdateKcalEvent itself.
+      // Treating this as a user edit would collapse the app bar on open
+      // via `_scrollToCalorieText` and record a phantom selection.
       return;
     }
     _userChangedSelection = true;

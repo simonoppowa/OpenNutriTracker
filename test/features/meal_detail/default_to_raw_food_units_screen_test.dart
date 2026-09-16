@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -68,14 +71,51 @@ MealEntity _liquidWithServing() => MealEntity(
       source: MealSourceEntity.custom,
     );
 
+// Thin OFF search result: `source: off, detailed: false`, no serving fields.
+// Opening this triggers `HydrateMealEvent`, which the bloc resolves through
+// the products repository into the corresponding [_liquidHydratedOff] below.
+MealEntity _liquidThinOff() => MealEntity(
+      code: 'thin-off-liquid',
+      name: 'Thin OFF liquid',
+      url: null,
+      mealQuantity: '100',
+      mealUnit: 'ml',
+      servingQuantity: null,
+      servingUnit: null,
+      servingSize: null,
+      nutriments: _nutriments,
+      source: MealSourceEntity.off,
+    );
+
+MealEntity _liquidHydratedOff() => MealEntity(
+      code: 'thin-off-liquid',
+      name: 'Thin OFF liquid',
+      url: null,
+      mealQuantity: '100',
+      mealUnit: 'ml',
+      servingQuantity: 250,
+      servingUnit: 'ml',
+      servingSize: '250 ml',
+      nutriments: _nutriments,
+      source: MealSourceEntity.off,
+      detailed: true,
+    );
+
+double _maxScrollOffset(WidgetTester tester) {
+  final states = tester.stateList<ScrollableState>(find.byType(Scrollable));
+  return states.fold<double>(0, (m, s) => math.max(m, s.position.pixels));
+}
+
 void main() {
   final getIt = GetIt.instance;
   MealDetailBloc? bloc;
   late bool defaultToRawFoodUnits;
+  MealEntity? hydratedFor;
 
   setUp(() {
     bloc = null;
     defaultToRawFoodUnits = false;
+    hydratedFor = null;
     getIt.registerLazySingleton<MealDetailBloc>(
       () => bloc = MealDetailBloc(
         _FakeAddIntakeUsecase(),
@@ -83,7 +123,7 @@ void main() {
         _FakeGetKcalGoalUsecase(),
         _FakeGetMacroGoalUsecase(),
         _FakeGetTrackedDayUsecase(),
-        _FakeProductsRepository(),
+        _FakeProductsRepository(() => hydratedFor),
         _FakeRemoteSearchCacheDataSource(),
       ),
     );
@@ -150,6 +190,10 @@ void main() {
 
       expect(bloc!.state.selectedUnit, 'serving');
       expect(bloc!.state.totalQuantityConverted, '30.0');
+      // The initial-selection writes to `quantityTextController` used to
+      // scroll the calorie field into view, collapsing the app bar the
+      // moment the screen opened. Guard should keep the view at the top.
+      expect(_maxScrollOffset(tester), 0.0);
     },
   );
 
@@ -160,6 +204,7 @@ void main() {
       await pumpMealDetail(tester, _solidWithServing());
       expect(bloc!.state.selectedUnit, 'g');
       expect(bloc!.state.totalQuantityConverted, '100.0');
+      expect(_maxScrollOffset(tester), 0.0);
     },
   );
 
@@ -171,6 +216,35 @@ void main() {
 
       expect(bloc!.state.selectedUnit, 'ml');
       expect(bloc!.state.totalQuantityConverted, '100.0');
+      expect(_maxScrollOffset(tester), 0.0);
+    },
+  );
+
+  testWidgets(
+    'off: thin OFF liquid hydrates to a serving-carrying full product '
+    'and lands on serving',
+    (tester) async {
+      defaultToRawFoodUnits = false;
+      hydratedFor = _liquidHydratedOff();
+      await pumpMealDetail(tester, _liquidThinOff());
+
+      expect(bloc!.state.selectedUnit, 'serving');
+      expect(bloc!.state.totalQuantityConverted, '250.0');
+      expect(_maxScrollOffset(tester), 0.0);
+    },
+  );
+
+  testWidgets(
+    'on: thin OFF liquid hydrates but the raw-units preference still '
+    'wins, landing on ml/100',
+    (tester) async {
+      defaultToRawFoodUnits = true;
+      hydratedFor = _liquidHydratedOff();
+      await pumpMealDetail(tester, _liquidThinOff());
+
+      expect(bloc!.state.selectedUnit, 'ml');
+      expect(bloc!.state.totalQuantityConverted, '100.0');
+      expect(_maxScrollOffset(tester), 0.0);
     },
   );
 }
@@ -258,6 +332,19 @@ class _FakeGetTrackedDayUsecase implements GetTrackedDayUsecase {
 }
 
 class _FakeProductsRepository implements ProductsRepository {
+  final MealEntity? Function() hydratedProvider;
+
+  _FakeProductsRepository(this.hydratedProvider);
+
+  @override
+  Future<MealEntity> getOFFProductByBarcode(String barcode) async {
+    final hydrated = hydratedProvider();
+    if (hydrated == null) {
+      throw StateError('No hydrated product configured for barcode $barcode');
+    }
+    return hydrated;
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
@@ -266,6 +353,12 @@ class _FakeProductsRepository implements ProductsRepository {
 class _FakeRemoteSearchCacheDataSource implements RemoteSearchCacheDataSource {
   @override
   Future<void> touch(String barcode) async {}
+
+  @override
+  MealDBO? getDetailedByBarcode(String barcode) => null;
+
+  @override
+  Future<void> cache(MealDBO meal) async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
