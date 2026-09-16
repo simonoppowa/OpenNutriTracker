@@ -18,8 +18,8 @@ import 'package:opennutritracker/core/l10n/shipped_locales.dart';
 /// locale has every key. A code PR adds the English key only and the other
 /// `intl_<code>.arb` files receive it from Weblate at their own pace, so a
 /// locale without a key is skipped rather than failed — visibly: English, the
-/// source, must have every key, and the untranslated-English check asserts a
-/// floor on the locale×key pairs it actually looked at.
+/// source, must have every key, and the untranslated-English check asserts,
+/// key by key, a floor on the translated locales it actually looked at.
 void main() {
   // The languages that ship, from the one map a human edits to ship one — not
   // every `intl_*.arb`, since Weblate lands files that are barely begun and
@@ -71,6 +71,17 @@ void main() {
     'aiAssistModelsRejectedLabel',
     'aiAssistModelsInsecureLabel',
   ];
+  // The keys above that Weblate has not landed in every shipped language
+  // yet. A code PR adds its new key here as well as to `touched`, and takes
+  // it out once the translations have all arrived; from then on the floor
+  // below holds it. Empty as of #1199: every key above was everywhere.
+  const notYetEverywhere = <String>{};
+  // How many translated languages carried each of the other keys when the
+  // floor was set: the eight of the nine that ship. A key does not
+  // un-translate, so the figure only grows. Raise it when a language ships
+  // and has landed the keys; lower it for a language that stops shipping —
+  // never for a translation that went missing.
+  const carriersWhenSet = 8;
 
   final arb = {
     for (final locale in locales)
@@ -114,33 +125,33 @@ void main() {
     // pass that inserts the key everywhere but only writes the source string.
     // Only where the key has landed: a locale that has not received it yet
     // shows English by fallback, which is #1188's policy, not this bug.
-    var checked = 0;
-    for (final locale in locales.where((l) => l != 'en')) {
-      for (final key in touched.where(arb[locale]!.containsKey)) {
+    final translated = locales.where((l) => l != 'en');
+    for (final key in touched) {
+      final carriers = translated
+          .where((l) => arb[l]!.containsKey(key))
+          .toList();
+      for (final locale in carriers) {
         expect(
           arb[locale]![key],
           isNot(arb['en']![key]),
           reason: '$locale/$key is untranslated English',
         );
-        checked++;
       }
+      // Skipping has to stay visible, or a check that emptied itself — a skip
+      // predicate that skips too much, a key that vanished from the translated
+      // files — would pass the same way a check that ran does. Per key, not
+      // summed: a sum lets every key Weblate lands after today cover for one
+      // that went missing, and the checks below that read that key would run
+      // on English alone without a word.
+      if (notYetEverywhere.contains(key)) continue;
+      expect(
+        carriers.length,
+        greaterThanOrEqualTo(carriersWhenSet),
+        reason:
+            '$key was checked in ${carriers.length} translated locales, below '
+            'the $carriersWhenSet that carried it when the floor was set',
+      );
     }
-    // Skipping has to stay visible, or a check that emptied itself — a skip
-    // predicate that skips too much, a `touched` list that lost its entries
-    // — would pass the same way a check that ran does. Every key in `touched`
-    // was in all eight translated locales when #1199 was written, and a key
-    // does not un-translate, so the figure only grows: a new key or a newly
-    // shipped language adds to it as Weblate lands them. Lower it only for a
-    // key retired from `touched` or a language that stops shipping — never
-    // for a translation that went missing.
-    const floor = 8 * 29;
-    expect(
-      checked,
-      greaterThanOrEqualTo(floor),
-      reason:
-          'only $checked locale×key pairs were checked, below the $floor '
-          'that were translated when this floor was set',
-    );
   });
 
   test('every translation of the broker disclosure gained the new sentence', () {
@@ -149,10 +160,11 @@ void main() {
     // than its Anthropic sibling with or without the appended sentence,
     // because it also carries the identity-forwarding and retention clauses.
     //
-    // The paragraph is four sentences in all nine languages and the fourth is
-    // the one #726 added, so a locale that lost it counts three. Compared
-    // against English rather than a literal 4, so rewording the paragraph
-    // everywhere at once stays green while dropping it anywhere does not.
+    // The paragraph is four sentences in every language that has it and the
+    // fourth is the one #726 added, so a locale that lost it counts three.
+    // Compared against English rather than a literal 4, so rewording the
+    // paragraph everywhere at once stays green while dropping it anywhere
+    // does not.
     int sentences(String s) => '.。'.split('').fold(0, (n, c) => n + s.split(c).length - 1);
 
     final expected = sentences(arb['en']!['aiAssistDisclosureOpenRouter'] as String);
