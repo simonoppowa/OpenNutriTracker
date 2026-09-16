@@ -942,8 +942,6 @@
   "settingsShowActivityTracking": "Zobrazit sledování aktivity",
   "settingsShowMealMacros": "Zobrazit makra jídla",
   "settingsShowMicronutrientsLabel": "Zobrazit mikroživiny",
-  "settingsDefaultToRawFoodUnitsLabel": "Default to weight or volume, not servings",
-  "settingsDefaultToRawFoodUnitsSubtitle": "When a food has a serving, log by weight or volume instead. You can still pick servings from the unit dropdown.",
   "settingsSodiumGoalDescription": "Denní limit sodíku v miligramech. Výchozí reference je 2300 mg.",
   "settingsSodiumGoalLabel": "Cíl sodíku",
   "settingsSourceCodeLabel": "Zdrojový kód",

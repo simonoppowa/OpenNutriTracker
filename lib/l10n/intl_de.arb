@@ -1031,8 +1031,6 @@
   "settingsShowActivityTracking": "Aktivitätstracking anzeigen",
   "settingsShowMealMacros": "Makros je Mahlzeit anzeigen",
   "settingsShowMicronutrientsLabel": "Mikronährstoffe anzeigen",
-  "settingsDefaultToRawFoodUnitsLabel": "Default to weight or volume, not servings",
-  "settingsDefaultToRawFoodUnitsSubtitle": "When a food has a serving, log by weight or volume instead. You can still pick servings from the unit dropdown.",
   "settingsSodiumGoalDescription": "Tägliche Natriumobergrenze in Milligramm. Standardreferenz: 2300 mg.",
   "settingsSodiumGoalLabel": "Natriumziel",
   "settingsSourceCodeLabel": "Quellcode",

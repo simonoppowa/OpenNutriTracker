@@ -942,8 +942,6 @@
   "settingsShowActivityTracking": "Показати відстеження активності",
   "settingsShowMealMacros": "Показати макроси страви",
   "settingsShowMicronutrientsLabel": "Показувати мікроелементи",
-  "settingsDefaultToRawFoodUnitsLabel": "Default to weight or volume, not servings",
-  "settingsDefaultToRawFoodUnitsSubtitle": "When a food has a serving, log by weight or volume instead. You can still pick servings from the unit dropdown.",
   "settingsSodiumGoalDescription": "Денний ліміт натрію в міліграмах. Стандартне значення — 2300 мг.",
   "settingsSodiumGoalLabel": "Ціль натрію",
   "settingsSourceCodeLabel": "Вихідний код",

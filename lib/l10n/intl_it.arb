@@ -942,8 +942,6 @@
   "settingsShowActivityTracking": "Mostra tracciamento attività",
   "settingsShowMealMacros": "Mostra macro pasto",
   "settingsShowMicronutrientsLabel": "Mostra micronutrienti",
-  "settingsDefaultToRawFoodUnitsLabel": "Default to weight or volume, not servings",
-  "settingsDefaultToRawFoodUnitsSubtitle": "When a food has a serving, log by weight or volume instead. You can still pick servings from the unit dropdown.",
   "settingsSodiumGoalDescription": "Limite giornaliero di sodio in milligrammi. Il valore di riferimento predefinito è 2300 mg.",
   "settingsSodiumGoalLabel": "Obiettivo sodio",
   "settingsSourceCodeLabel": "Codice sorgente",

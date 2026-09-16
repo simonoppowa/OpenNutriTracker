@@ -943,8 +943,6 @@
   "settingsShowActivityTracking": "显示活动追踪",
   "settingsShowMealMacros": "显示餐食宏量",
   "settingsShowMicronutrientsLabel": "显示微量营养素",
-  "settingsDefaultToRawFoodUnitsLabel": "Default to weight or volume, not servings",
-  "settingsDefaultToRawFoodUnitsSubtitle": "When a food has a serving, log by weight or volume instead. You can still pick servings from the unit dropdown.",
   "settingsSodiumGoalDescription": "每日钠摄入上限（毫克）。默认参考值为 2300 毫克。",
   "settingsSodiumGoalLabel": "钠目标",
   "settingsSourceCodeLabel": "源代码",
