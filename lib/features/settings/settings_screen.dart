@@ -239,10 +239,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   // #1126: opt out of the serving-first default so the
                   // meal-detail dropdown lands on the food unit (g, oz,
-                  // ml, fl oz) straight away. Sits next to Food units
-                  // since it steers the same dropdown. Off preserves
-                  // the pre-existing behaviour — serving wins whenever
-                  // the food has one.
+                  // ml, fl oz) straight away. Sits after Energy unit in
+                  // the Units & Energy group since it steers the same
+                  // meal-detail dropdown. Off preserves the pre-existing
+                  // behaviour — serving wins whenever the food has one.
                   _SettingsSwitchTile(
                     palette: palette,
                     icon: Icons.straighten_rounded,

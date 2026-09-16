@@ -142,7 +142,11 @@ void main() {
   });
 
   Future<void> pumpMealDetail(WidgetTester tester, MealEntity meal) async {
-    tester.view.physicalSize = const Size(1080, 2400);
+    // 600x800 leaves the CustomScrollView with a real maxScrollExtent, so
+    // the scroll-offset assertion below can actually fail if the race guard
+    // regresses. A taller viewport clamps `animateTo` to 0 and the test
+    // passes vacuously.
+    tester.view.physicalSize = const Size(600, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
