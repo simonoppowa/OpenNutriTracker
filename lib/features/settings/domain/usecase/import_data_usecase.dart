@@ -16,6 +16,7 @@ import 'package:opennutritracker/core/data/repository/tracked_day_repository.dar
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
+import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 
@@ -80,10 +81,17 @@ class ImportDataUsecase {
       throw _missingEntry(userActivityJsonFileName);
     }
 
-    // Extract and process intake data
+    // Extract and process intake data. A bundle written by a build before
+    // #775 carries its Open Food Facts micronutrients in raw grams and no
+    // `dataVersion` on the meal; scale those rows on the way in, the same
+    // way the startup pass does for rows already on disk (#1152). A bundle
+    // from a repaired build carries the stamp and passes through unchanged.
     final intakeFile = archive.findFile(userIntakeJsonFileName);
     if (intakeFile != null) {
-      final intakeDBOs = _decodeJsonList(intakeFile, IntakeDBO.fromJson);
+      final intakeDBOs = _decodeJsonList(
+        intakeFile,
+        IntakeDBO.fromJson,
+      ).map(OffMicronutrientRepair.repairIntake).toList();
       await _intakeRepository.addAllIntakeDBOs(intakeDBOs);
     } else {
       throw _missingEntry(userIntakeJsonFileName);
@@ -102,9 +110,13 @@ class ImportDataUsecase {
     }
 
     // Extract and process recipe data — optional so older zips still import.
+    // Ingredient snapshots get the same Open Food Facts repair as intakes.
     final recipeFile = archive.findFile(recipeJsonFileName);
     if (recipeFile != null) {
-      final recipeDBOs = _decodeJsonList(recipeFile, RecipeDBO.fromJson);
+      final recipeDBOs = _decodeJsonList(
+        recipeFile,
+        RecipeDBO.fromJson,
+      ).map(OffMicronutrientRepair.repairRecipe).toList();
       await _recipeRepository.addAllRecipeDBOs(recipeDBOs);
     }
 
@@ -184,7 +196,12 @@ class ImportDataUsecase {
 
     final intakeFile = archive.findFile(userIntakeCsvFileName);
     if (intakeFile != null) {
-      final dbos = _decodeCsv(intakeFile, CsvDataExporter.parseIntakesFromCsv);
+      // Same pre-#775 scaling as the JSON leg: a CSV without the
+      // `meal_data_version` column came from a build that wrote raw grams.
+      final dbos = _decodeCsv(
+        intakeFile,
+        CsvDataExporter.parseIntakesFromCsv,
+      ).map(OffMicronutrientRepair.repairIntake).toList();
       await _intakeRepository.addAllIntakeDBOs(dbos);
     } else {
       throw _missingEntry(userIntakeCsvFileName);

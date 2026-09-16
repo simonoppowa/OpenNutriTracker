@@ -16,19 +16,15 @@ Never assert a count, or an "every locale" claim, you have not computed from thi
 
 When a diff edits prose that already existed, separate what it introduced from what it inherited, and say which. Never ask for a fix to text the PR did not touch — on a documentation-correction PR that is the whole difference between useful feedback and asking someone to repair another person's mistake.
 
-### 1. Untranslated ARB values — the one check CI cannot do
+### 1. Localization in a code PR: `intl_en.arb` only
 
-`just check_l10n` fails only on *missing* keys, so a key present in every locale with the English text still in it ships green. For each key **this PR adds or changes** under `lib/l10n/`, compare its value across the locale files.
+Translations come from Weblate as their own pull requests (`CONTRIBUTING.md`, "Translating"). A code PR that adds or changes a string edits `lib/l10n/intl_en.arb` alone; the other languages show English until Weblate fills them, and `just check_l10n` does not fail on that. Report a code PR that hand-edits another `intl_*.arb` — it collides with Weblate's next rebase — unless the PR is Weblate's own, or ships a language (a line in `lib/core/l10n/shipped_locales.dart` plus `dart run tool/check_locales.dart --fix`; `just test` checks that the platform lists agree). Never ask a contributor to translate, and never audit keys the PR did not touch.
 
-Report a key left byte-identical to English in every, or nearly every, non-English ARB. `CONTRIBUTING.md` forbids leaving English in as a placeholder, machine translation is the accepted floor, and no Weblate/Crowdin pipeline exists here — so "translations land later" is not an exemption. Name the key and its locales once.
-
-Before reporting one, search the ARBs for a key that already says the same thing — this app has shipped a while and often does. A second phrasing for one action is worse than a late translation: name the existing key and ask for its values to be copied.
-
-Identical is legitimate, and silent, for brand and platform names, units and symbols, acronyms, and placeholder-only strings (`{hour}:00`). A value identical in only one or two locales is usually a real cognate (German `Protein`, Italian `golf`) — leave those. Never audit keys the PR did not touch; that backlog is not this contributor's debt.
+Before approving a new key, search the ARBs for one that already says the same thing — this app has shipped a while and often does. A second phrasing for one action is worse than a late translation: name the existing key.
 
 ### 2. Never report an ARB key-count difference
 
-Every ARB carries its own `@key` metadata, in differing amounts, so raw JSON entry counts legitimately differ between *any* two locales. Parity means keys not starting with `@`, and those are equal. Strip them before comparing, or say nothing.
+Locale ARBs legitimately lag the template — Weblate fills them over time — and carry differing amounts of `@key` metadata, so counts differ between any two files. Say nothing about counts, and nothing about a key missing from a locale.
 
 ### 3. Semantics identifiers
 
@@ -133,11 +129,13 @@ dart run build_runner build
 
 ## Localization
 
-Source strings live in `lib/l10n/intl_en.arb` (and locale ARBs for `de`, `cs`, `it`, `pl`, `sk`, `tr`, `uk`, `zh`). `lib/generated/l10n.dart` plus one `l10n_<locale>.dart` per locale are produced by `flutter gen-l10n`, configured in `l10n.yaml`.
+Source strings live in `lib/l10n/intl_en.arb`. The other `lib/l10n/intl_<code>.arb` files belong to Weblate: it lands them while they are still being translated, so their presence does not mean the language ships. `lib/generated/l10n.dart` plus one `l10n_<locale>.dart` per locale are produced by `flutter gen-l10n`, configured in `l10n.yaml`.
 
-The generated files are **gitignored — never edit them by hand**. Add the key to every ARB (all nine stay at the same key count) and run `just gen_l10n`. Placeholder metadata (`"@key": {"placeholders": ...}`) only needs to be declared in the template `intl_en.arb`.
+The generated files are **gitignored — never edit them by hand**. Add a key to `intl_en.arb` only, with its `"@key": {"placeholders": ...}` metadata, and run `just gen_l10n`; a missing translation falls back to English and is not a CI failure. `just check_l10n` fails only on an ARB gen-l10n rejects or an empty (or whitespace-only) `""` value.
 
-Note: the `SupportedLanguage` enum maps device locales to `food_translation` locales via `SPConst.translationLocaleOf` (`en` reads `food_summary.name` directly; `de`, `pl`, `zh`, `cs`, `it`, `sk`, `tr`, `uk` query translations, falling back to English).
+Shipped languages are the map in `lib/core/l10n/shipped_locales.dart` — resolution, the Settings picker, `Info.plist` and `locales_config.xml` all derive from it (`tool/check_locales.dart`, run by `just test`). The recipe is in that file's header.
+
+Note: the `SupportedLanguage` enum maps device locales to `food_translation` locales via `SPConst.translationLocaleOf` (`en` reads `food_summary.name` directly; `de`, `pl`, `zh`, `cs`, `it`, `sk`, `tr`, `uk` query translations, falling back to English). It is about food names from the backend, not UI languages, and is deliberately separate.
 
 ## Code Style
 

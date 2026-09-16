@@ -16,6 +16,10 @@ import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 ///
 /// This reads the ARBs off disk rather than through the generated
 /// localizations so it covers every locale without needing a widget test.
+///
+/// A locale that has not translated a key yet is skipped, not failed:
+/// translations arrive through Weblate after the string does, and gen-l10n
+/// shows the English text until then. Only a present value is checked.
 void main() {
   final arbDir = Directory('lib/l10n');
 
@@ -33,9 +37,9 @@ void main() {
       final hint =
           (jsonDecode(file.readAsStringSync()) as Map)['bulkAddInputHint']
               as String?;
-      expect(hint, isNotNull, reason: '$locale is missing bulkAddInputHint');
+      if (hint == null) continue; // untranslated: English hint until Weblate
 
-      final result = parseMealText(hint!);
+      final result = parseMealText(hint);
 
       expect(
         result.errors,
@@ -91,15 +95,17 @@ void main() {
         'bulkAddErrorQuantityTooLarge',
       ]) {
         final value = arb[key] as String?;
-        expect(value, isNotNull, reason: '$locale is missing $key');
+        if (value == null) continue; // untranslated: English until Weblate
         expect(
           value,
           contains('{number}'),
           reason: '$locale dropped {number} from $key',
         );
       }
+      final tooLarge = arb['bulkAddErrorQuantityTooLarge'] as String?;
+      if (tooLarge == null) continue; // untranslated: English until Weblate
       expect(
-        arb['bulkAddErrorQuantityTooLarge'] as String,
+        tooLarge,
         contains('{bound}'),
         reason: '$locale dropped {bound} from the upper-bound message',
       );
