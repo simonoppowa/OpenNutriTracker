@@ -1,0 +1,19 @@
+{
+  "activityExample": "t.ex. löpning, cykling, yoga ...",
+  "activityLabel": "Aktivitet",
+  "addItemLabel": "Lägg till:",
+  "addLabel": "Lägg till",
+  "additionalInfoLabelCompendium2011": "Information tillhandahållen\nav\n'Kompendium av\nFysisk Aktivitet 2024'",
+  "additionalInfoLabelCustom": "Egen mat",
+  "additionalInfoLabelFDC": "Mer information på\nFoodData Central",
+  "additionalInfoLabelSource": "Mer information på\n{sourceName}",
+  "@additionalInfoLabelSource": {
+    "placeholders": {
+      "sourceName": {
+        "type": "String"
+      }
+    }
+  },
+  "foodSourcesAlwaysEnabledLabel": "Alltid aktiverad",
+  "foodSourcesHelpText": "Sökresultat kommer från dessa livsmedelsdatabaser. Open Food Facts driver produkten och streckkodsökningen och är alltid aktiverad."
+}

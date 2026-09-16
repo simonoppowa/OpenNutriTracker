@@ -33,6 +33,14 @@ updates:
       pub:
         patterns:
           - "*"
+    # Dependabot resolves with its own Dart, not the Flutter 3.44.6 in
+    # .fvmrc. These three are held back because their newer versions need
+    # analyzer >=13, whose meta ^1.18.3 the SDK's flutter_test cannot
+    # satisfy (see #1192). Drop the entries on the next Flutter bump.
+    ignore:
+      - dependency-name: "build_runner"
+      - dependency-name: "hive_ce_generator"
+      - dependency-name: "mockito"
 
   - package-ecosystem: "github-actions"
     directory: "/"

@@ -66,6 +66,11 @@ class CsvDataExporter {
     'vitamin_b6_per_100g',
     'vitamin_b12_per_100g',
     'niacin_per_100g',
+    // Appended last so an older CSV still parses. Mirrors
+    // `MealDBO.dataVersion`: a row with `meal_source` of `off` and no value
+    // here was written before #775 and holds its micronutrients in raw
+    // grams, which the importer scales into app units (#1152).
+    'meal_data_version',
   ];
 
   static const userActivityColumns = <String>[
@@ -149,6 +154,7 @@ class CsvDataExporter {
         _num(n.vitaminB6100),
         _num(n.vitaminB12100),
         _num(n.niacin100),
+        _num(meal.dataVersion?.toDouble()),
       ];
       buf.writeln(cells.join(','));
     }
@@ -263,6 +269,9 @@ class CsvDataExporter {
         servingSize: _nullable(row['meal_serving_size']),
         source: _parseMealSource(row['meal_source']),
         nutriments: nutriments,
+        dataVersion: CsvRowParser.parseDoubleOrNull(
+          row['meal_data_version'],
+        )?.toInt(),
       );
       out.add(
         IntakeDBO(

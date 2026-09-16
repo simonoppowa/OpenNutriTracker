@@ -67,7 +67,7 @@ dependencies:
   animated_flip_counter: ^0.3.4
   fl_chart: ^1.2.0
 
-  mobile_scanner: ^7.4.0
+  mobile_scanner: ^7.4.1
   qr_flutter: ^4.1.0
   share_plus: ^13.3.0
   image_picker: ^1.2.3
@@ -76,8 +76,8 @@ dependencies:
   hive_ce: ^2.19.3
   hive_ce_flutter: ^2.3.4
 
-  sentry_flutter: ^9.29.0
-  synchronized: ^3.4.0
+  sentry_flutter: ^9.30.0
+  synchronized: ^3.4.2
 
   supabase_flutter: ^2.17.2
   flutter_local_notifications: ^22.3.0
