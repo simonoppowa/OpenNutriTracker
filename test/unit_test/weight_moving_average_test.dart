@@ -103,6 +103,26 @@ void main() {
       expect(const WeightMovingAverage().compute(const []), isEmpty);
     });
 
+    test(
+      'boundary: entry exactly windowDays-1 before the anchor is included, '
+      'one earlier is excluded',
+      () {
+        // 7-day window on a Jan 10 anchor spans Jan 4..Jan 10 inclusive.
+        // Jan 4 (six days before) is inside; Jan 3 (seven days) is outside.
+        final entries = [
+          _entry(DateTime(2026, 1, 3), 100), // out
+          _entry(DateTime(2026, 1, 4), 90), // in — window edge
+          _entry(DateTime(2026, 1, 10), 80), // anchor
+        ];
+
+        final points = const WeightMovingAverage().compute(entries);
+
+        expect(points.last.date, DateTime(2026, 1, 10));
+        expect(points.last.sampleCount, 2);
+        expect(points.last.weightKg, 85);
+      },
+    );
+
     test('windowDays honoured — a 3-day window ignores older readings', () {
       final entries = [
         _entry(DateTime(2026, 1, 1), 100),
@@ -116,7 +136,7 @@ void main() {
       // 3-day window on Jan 7 = [Jan 5 .. Jan 7]: 80, 81, 79 → mean 80.
       expect(points.last.date, DateTime(2026, 1, 7));
       expect(points.last.weightKg, 80);
-      // Jan 1 is nine days out of the anchor's window; would drop.
+      // Jan 1 sits before the [Jan 4..Jan 10] trailing window; excluded.
     });
   });
 }

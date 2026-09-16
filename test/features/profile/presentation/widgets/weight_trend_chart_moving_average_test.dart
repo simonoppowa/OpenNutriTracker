@@ -8,7 +8,7 @@ import 'package:opennutritracker/features/profile/presentation/widgets/weight_tr
 import 'package:opennutritracker/generated/l10n.dart';
 
 // #1119: rolling-mean overlay on the weight-trend chart. The primary line
-// stays on every raw reading; the moving-average line is drawn behind it
+// stays on every raw reading; the moving-average line is drawn on top of it
 // and hides day-to-day noise.
 
 WeightLogEntity _entry(DateTime date, double weightKg) =>
@@ -108,6 +108,56 @@ void main() {
 
       expect(data.lineBarsData, hasLength(1));
       expect(data.lineBarsData.single.dashArray, isNull);
+    },
+  );
+
+  testWidgets(
+    'chart y-range includes MA spots so pre-window readings do not paint '
+    'outside the plot',
+    (tester) async {
+      final today = DateTime.now();
+      final today0 = DateTime(today.year, today.month, today.day);
+      // Last week: 81.5 / 82.0 alternating; this week: flat 80.0 / 80.5 —
+      // the water-swing shape the issue is about. The 7-day MA on the
+      // leftmost visible reading folds in the pre-window (higher)
+      // readings, so its y sits above the raw envelope on the left half
+      // of the chart.
+      final entries = [
+        // Pre-window (windowDays defaults to 7 in this test).
+        _entry(today0.subtract(const Duration(days: 13)), 81.5),
+        _entry(today0.subtract(const Duration(days: 12)), 82.0),
+        _entry(today0.subtract(const Duration(days: 11)), 81.5),
+        _entry(today0.subtract(const Duration(days: 10)), 82.0),
+        _entry(today0.subtract(const Duration(days: 9)), 81.5),
+        _entry(today0.subtract(const Duration(days: 8)), 82.0),
+        _entry(today0.subtract(const Duration(days: 7)), 81.5),
+        // In-window.
+        _entry(today0.subtract(const Duration(days: 6)), 80.0),
+        _entry(today0.subtract(const Duration(days: 5)), 80.5),
+        _entry(today0.subtract(const Duration(days: 4)), 80.0),
+        _entry(today0.subtract(const Duration(days: 3)), 80.5),
+        _entry(today0.subtract(const Duration(days: 2)), 80.0),
+        _entry(today0.subtract(const Duration(days: 1)), 80.5),
+        _entry(today0, 80.0),
+      ];
+
+      final data = await _pumpChart(tester, entries: entries, windowDays: 7);
+
+      expect(data.lineBarsData, hasLength(2));
+      final ma = data.lineBarsData[1];
+      final maxMa = ma.spots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+      final minMa = ma.spots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
+      // MA sits ABOVE the raw envelope on the left of the chart.
+      final rawMax = data.lineBarsData[0].spots
+          .map((s) => s.y)
+          .reduce((a, b) => a > b ? a : b);
+      expect(maxMa, greaterThan(rawMax),
+          reason:
+              'sanity: pre-window readings should pull the leftmost MA above raw max');
+      // The plot's y-range extends to cover every MA spot, so the dashed
+      // line never runs outside the chart.
+      expect(data.maxY, greaterThanOrEqualTo(maxMa));
+      expect(data.minY, lessThanOrEqualTo(minMa));
     },
   );
 

@@ -114,8 +114,14 @@ class WeightTrendChart extends StatelessWidget {
           ),
     ];
 
-    final minY = spots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
-    final maxY = spots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+    // The MA is the one series whose leftmost points fold in readings
+    // that predate the visible window, so its y can land above or below
+    // the raw envelope; include both series in the range so the dashed
+    // line never paints outside the plot (LineChartData defaults to
+    // FlClipData.none()).
+    final rangeSpots = [...spots, ...maSpots];
+    final minY = rangeSpots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
+    final maxY = rangeSpots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
     // Pad so points don't sit on the edges. When all weights are identical we
     // still need a non-zero range or fl_chart throws.
     final yPadding = ((maxY - minY) * 0.15).clamp(0.5, 5.0);

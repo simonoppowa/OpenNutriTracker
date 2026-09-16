@@ -56,13 +56,23 @@ class WeightMovingAverage {
     final points = <WeightMovingAveragePoint>[];
     // Two-pointer sweep: `head` advances one step ahead of the anchor,
     // dropping entries that fall outside the trailing window as the
-    // anchor moves forward. Each entry is visited at most twice, so this
-    // stays O(n) regardless of how long the log gets.
+    // anchor moves forward. Sorting up front is O(n log n); this sweep
+    // is O(n) since each entry is visited at most twice.
     var head = 0;
     var sum = 0.0;
     for (var anchor = 0; anchor < sorted.length; anchor++) {
       final anchorDate = sorted[anchor].date;
-      final windowStart = anchorDate.subtract(Duration(days: windowDays - 1));
+      // Calendar arithmetic, not `Duration(days: N)`: a `Duration` is a
+      // fixed 24-hour span, so on a fall-back DST day it lands the
+      // window boundary an hour after local midnight and drops the
+      // entry on that day. Building the boundary through DateTime's
+      // year/month/day constructor keeps the window aligned with wall
+      // clock calendar days.
+      final windowStart = DateTime(
+        anchorDate.year,
+        anchorDate.month,
+        anchorDate.day - (windowDays - 1),
+      );
       while (head <= anchor && sorted[head].date.isBefore(windowStart)) {
         sum -= sorted[head].weightKg;
         head++;
