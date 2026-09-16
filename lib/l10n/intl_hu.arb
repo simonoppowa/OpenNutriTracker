@@ -1,200 +1,4 @@
 {
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@driPanelReferenceLabel": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@diaryMealKcalConsumedOfTarget": {
-    "placeholders": {
-      "consumed": {
-        "type": "String"
-      },
-      "target": {
-        "type": "String"
-      }
-    }
-  },
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@mealDetailCurrentSelectionLabel": {
-    "placeholders": {
-      "kcal": {
-        "type": "String"
-      }
-    }
-  },
-  "@mealDetailDayTotalLabel": {
-    "placeholders": {
-      "consumed": {
-        "type": "String"
-      },
-      "goal": {
-        "type": "String"
-      }
-    }
-  },
-  "@mealNutrientsPerQtyLabel": {
-    "placeholders": {
-      "qty": {
-        "type": "String"
-      },
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@quickAddAddedSnack": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsDayStartHourLabel": {
-    "placeholders": {
-      "hour": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsDayStartTimeLabel": {
-    "placeholders": {
-      "hour": {
-        "type": "int"
-      },
-      "minute": {
-        "type": "String"
-      }
-    }
-  },
-  "@logWaterAmountLabel": {
-    "placeholders": {
-      "amount": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsNotificationsTimeLabel": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "@waterChipLabel": {
-    "placeholders": {
-      "current": {
-        "type": "int"
-      },
-      "goal": {
-        "type": "int"
-      }
-    }
-  },
-  "@weeklyWeightGoalKgPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
-  "@weeklyWeightGoalLbsPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "activityExample": "pl. futás, kerékpározás, jóga …",
   "activityLabel": "Tevékenység",
   "addItemLabel": "Új elem hozzáadása:",
@@ -373,6 +177,16 @@
   "clearOffCacheConfirmTitle": "Törli a gyorsítótárban lévő elemeket?",
   "clearOffCacheLabel": "Gyorsítótárazott elemek törlése",
   "clearOffCacheSubtitle": "{count} darab · {size}",
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "cmLabel": "cm",
   "codeCopiedLabel": "Kód másolva",
   "copyCodeLabel": "Kód másolása",
@@ -387,7 +201,24 @@
   "csvImportContributeOffPrefix": "Van vonalkódja? Segítsen mindenkinek azzal, hogy felveszi a terméket az Open Food Facts adatbázisba:",
   "csvImportErrorLabel": "A CSV-fájl beolvasása nem sikerült. Ellenőrizze a formátumot, majd próbálja meg újra.",
   "csvImportPartialLabel": "{imported} importált étkezés; {skipped} sor kimaradt érvénytelen adatok miatt.",
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
   "csvImportSuccessLabel": "{count} étkezés importálva.",
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "customActivityDescription": "Azoknál az edzéseknél, amelyek nem szerepelnek a listában, illetve a fitneszkövető készülék által mért értékek esetén közvetlenül adja meg az elégetett kalóriákat",
   "customActivityDescriptionKj": "Adja meg közvetlenül az elégetett kilojoule-értéket azoknál az edzéseknél, amelyek nem szerepelnek a listában, illetve a fitneszkövető készülék által mért értékek esetén",
   "customActivityKcalHint": "pl. 250",
@@ -436,6 +267,13 @@
   },
   "lowKcalWarningViewDisclaimer": "Jogi nyilatkozat megtekintése",
   "deleteSelectedRecipesConfirmTitle": "Töröl {count} receptet?",
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "deleteTimeDialogContent": "Valóban törölni szeretné a kijelölt elemet?",
   "deleteTimeDialogPluralContent": "Törölni szeretné ennek az étkezésnek az összes elemét?",
   "deleteTimeDialogPluralTitle": "Törli az elemeket?",
@@ -447,12 +285,29 @@
   "diaryFutureDateWarning": "Egy jövőbeli dátumot szerkeszt",
   "diaryLabel": "Napló",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "diaryNutrientPanelDataDisclaimer": "Itt csak azok a tápanyagok kerülnek összeadásra, amelyekről a rögzített étkezésekben adatot adott meg. Ha egy étkezésnél hiányzik az érték, az nem adódik hozzá az adott tápanyaghoz – ezért előfordulhat, hogy ezek az összegek alacsonyabbak a valóságosnál.",
   "diaryNutrientPanelTitle": "A mai tápanyagok",
   "driPanelInfoTitle": "Ajánlott bevitel",
   "driPanelInfoBody": "Ezek a referenciaértékek az IOM felnőttekre vonatkozó táplálkozási referenciaértékeiből származnak, és életkortól és nemtől függően változnak. Ezek csupán iránymutatásként szolgálnak, nem pedig célértékek – az Ön egyéni igényei eltérhetnek tőlük.",
   "driPanelInfoLinkLabel": "Forrás: az IOM táplálkozási referenciaértékei",
   "driPanelReferenceLabel": "ref. {value}",
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diarySortByCarbs": "Szénhidrátok (magastól alacsonyig)",
   "diarySortByFat": "Zsír (magastól alacsonyig)",
   "diarySortByKcal": "Kalória (magastól alacsonyig)",
@@ -529,19 +384,54 @@
   "importAction": "Importálás",
   "importActivityConfirmContent": "Ezek a tevékenységek hozzáadódnak a mai naphoz.",
   "importActivityConfirmTitle": "Importál {count} tevékenységet?",
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importActivityLabel": "Megosztott edzés importálása",
   "importActivitySuccessLabel": "Az edzés importálva",
   "importCustomFoodDataDescription": "Importálja saját ételeit CSV-fájlból vagy a JSON beillesztésével. Töltse le a mintát, hogy megismerje a várt adatszerkezetet és a kötelező mezőket.",
   "importCustomFoodDataLabel": "Egyéni élelmiszeradatok importálása",
   "importMealConfirmContent": "Ezek az ételek felkerülnek a(z) {mealType} menübe.",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "importMealConfirmTitle": "Importál {count} elemet?",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importMealErrorLabel": "Érvénytelen QR-kód",
   "importMealLabel": "Megosztott étkezés importálása",
   "importMealSuccessLabel": "Importált étel",
   "importMealsCsvAction": "Ételek importálása (csv)",
   "importMealsJsonAction": "Ételek importálása (json)",
   "importOffFetchFailedLabel": "{count} elem nem tölthető be az OpenFoodFacts-ból.",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeConfirmContent": "Importálja ezt a receptet {count} összetevővel?",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeErrorLabel": "A receptkód értelmezése nem sikerült",
   "importRecipeLabel": "Recept importálása",
   "importRecipeSuccessLabel": "Recept importálva",
@@ -595,7 +485,24 @@
   "mealBrandsLabel": "Márkák",
   "mealCarbsLabel": "Szénhidrátok",
   "mealDetailCurrentSelectionLabel": "(+{kcal} kcal – jelenlegi érték)",
+  "@mealDetailCurrentSelectionLabel": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      }
+    }
+  },
   "mealDetailDayTotalLabel": "Nap összesen: {consumed} / {goal}",
+  "@mealDetailDayTotalLabel": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
   "mealEnergyLabel": "Energia",
   "mealFatLabel": "Zsír",
   "mealImageLabel": "Fotó hozzáadása",
@@ -607,6 +514,16 @@
   "mealNameLabel": "Étel neve",
   "mealNameValidationError": "Az étel nevében legalább egy betűnek szerepelnie kell",
   "mealNutrientsPerQtyLabel": "{qty} {unit} darabonként",
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "mealNutrientsTotalLabel": "Teljes érték",
   "mealPatternFiveSmall": "5 egyenlő kisebb étkezés",
   "mealPatternMediterranean": "Mediterrán",
@@ -931,11 +848,25 @@
   "profileTargetWeightNotSetLabel": "Nincs beállítva",
   "profileTargetWeightReached": "Elérte a célját",
   "profileTargetWeightToGo": "{value} a célhoz",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "profileWeightHistoryTitle": "Súlytörténet",
   "proteinLabel": "fehérje",
   "proteinLabelShort": "f",
   "quantityLabel": "Mennyiség",
   "quickAddAddedSnack": "Hozzáadva ehhez: {mealType}",
+  "@quickAddAddedSnack": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "quickAddBottomSheetTitle": "Gyors hozzáadás",
   "quickAddCardLabel": "Gyors hozzáadás",
   "quickAddCarbsHint": "Szénhidrát (g, opcionális)",
@@ -959,6 +890,13 @@
   "recipeImageTakePhoto": "Fotó készítése",
   "recipeIngredientAmountLabel": "Mennyiség",
   "recipeIngredientCountLabel": "{count} hozzávaló",
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "recipeIngredientUnitLabel": "Egység",
   "recipeIngredientsLabel": "Hozzávalók",
   "recipeInvalidTotalWeightLabel": "A teljes súlynak nullánál nagyobbnak kell lennie",
@@ -1004,6 +942,13 @@
   "selectPalCategoryLabel": "Aktivitási szint kiválasztása",
   "selectWeightDialogLabel": "Súly kiválasztása",
   "selectionCountLabel": "kiválasztva {count}",
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "servingLabel": "Adag",
   "servingSizeLabelImperial": "Egy adag (oz/fl oz)",
   "servingSizeLabelMetric": "Egy adag",
@@ -1016,10 +961,27 @@
   "settingsCustomMealsLabel": "Egyedi ételek",
   "settingsDayStartDescription": "Válassza ki azt az órát, amikor a napja megkezdődik. Az ennél az óránál korábban rögzített étkezések és tevékenységek az előző naphoz fognak számítani — ez akkor hasznos, ha éjszaka dolgozik vagy későn étkezik.",
   "settingsDayStartHourLabel": "{hour}:00",
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
   "settingsDayStartHoursPickerLabel": "Óra",
   "settingsDayStartLabel": "A nap kezdete:",
   "settingsDayStartMinutesPickerLabel": "Perc",
   "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Jogi nyilatkozat",
   "settingsDistanceLabel": "Távolság",
   "settingsEnergyUnitLabel": "Energiaegység",
@@ -1060,6 +1022,13 @@
   "settingsMetricLabel": "Metrikus (kg, cm, ml)",
   "settingsNotificationsLabel": "Napi emlékeztető",
   "settingsNotificationsTimeLabel": "Emlékeztető időpontja: {time}",
+  "@settingsNotificationsTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "settingsNutrientGoalsHint": "A napi táblázatban szereplő minden tápanyagra vonatkozó személyre szabott célértékek. A napló ezeket veszi figyelembe az alapértelmezett napi referenciaértékek helyett, amikor beállít egyet.",
   "settingsNutrientGoalsLabel": "Tápanyag-célértékek",
   "settingsNutrientsHelp": "Válassza ki, mely tápanyagok jelenjenek meg a napi áttekintő panelen. A rejtett tápanyagokat bármikor újra megjelenítheti.",
@@ -1138,8 +1107,22 @@
   "vitaminDLabel": "D-vitamin",
   "warningLabel": "Figyelem",
   "weeklyWeightGoalKgPerWeek": "{rate} kg/hét",
+  "@weeklyWeightGoalKgPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "weeklyWeightGoalLabel": "Heti arány",
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/hét",
+  "@weeklyWeightGoalLbsPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "weeklyWeightGoalNoneLabel": "Nincs beállítva",
   "weightHistoryAddEntry": "Bejegyzés hozzáadása",
   "weightHistoryChartEmptyState": "Legalább két napra vonatkozóan rögzítsen adatokat, hogy láthassa a tendenciát.",
@@ -1157,6 +1140,13 @@
     }
   },
   "logWaterAmountLabel": "{amount} ml hozzáadása",
+  "@logWaterAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
   "logWaterDialogTitle": "Vízfogyasztási napló",
   "logWaterNothingToUndoLabel": "Nincs mit visszavonni",
   "logWaterUndoLabel": "Utolsó visszavonása",
@@ -1164,6 +1154,16 @@
   "settingsWaterGoalDescription": "A kezdőképernyőn található víz-ikon használata.",
   "settingsWaterGoalLabel": "Napi vízfogyasztási cél",
   "waterChipLabel": "{current} / {goal} ml",
+  "@waterChipLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
   "zincLabel": "cink",
   "profileFastingEntry": "Böjt időzítő",
   "fastingTitle": "Böjt időzítő",
