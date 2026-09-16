@@ -73,14 +73,14 @@ dependencies:
   image_picker: ^1.2.3
   flutter_image_compress: ^2.5.1
 
-  hive_ce: ^2.19.3
+  hive_ce: ^2.20.0
   hive_ce_flutter: ^2.3.4
 
   sentry_flutter: ^9.30.0
   synchronized: ^3.4.2
 
   supabase_flutter: ^2.17.2
-  flutter_local_notifications: ^22.3.0
+  flutter_local_notifications: ^22.3.1
   timezone: ^0.11.1
   flutter_timezone: ^5.1.0
 
