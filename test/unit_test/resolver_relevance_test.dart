@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
 import 'package:opennutritracker/features/add_meal/util/resolver_relevance.dart';
 
@@ -9,6 +10,9 @@ MealEntity meal(
   MealSourceEntity source = MealSourceEntity.off,
   String? brands,
   String? code,
+  int portions = 0,
+  bool portionsUnavailable = false,
+  bool detailed = false,
 }) => MealEntity(
   code: code ?? name,
   name: name,
@@ -22,7 +26,17 @@ MealEntity meal(
   servingUnit: null,
   servingSize: null,
   source: source,
+  detailed: detailed,
   nutriments: MealNutrimentsEntity.empty(),
+  portionsUnavailable: portionsUnavailable,
+  portions: [
+    for (var i = 0; i < portions; i++)
+      MealPortionEntity(
+        label: '1 portion $i',
+        gramWeight: 100,
+        localized: false,
+      ),
+  ],
 );
 
 List<String> names(List<MealEntity> meals) => [for (final m in meals) m.name!];
@@ -148,6 +162,495 @@ void main() {
       final ranked = rankForResolution(rows, 'eggs');
 
       expect([for (final m in ranked) m.code], ['a', 'b']);
+    });
+  });
+
+  group('tie-break among equal scores (#1164)', () {
+    // Backend siblings are shown by their full description and score the
+    // same on the one-word query for their family, so the order among them
+    // is what the auto-select logs. The keys are the decision's as revised
+    // in #1170: the shortest description, then the most labelled portions,
+    // then the input order.
+    test('the record with the shortest description comes first', () {
+      final rows = [
+        meal('Apple, dried', source: MealSourceEntity.fdc, portions: 2),
+        meal('Apple, raw', source: MealSourceEntity.fdc, portions: 7),
+      ];
+
+      expect(names(rankForResolution(rows, 'apple')).first, 'Apple, raw');
+    });
+
+    test('equal lengths break on the most labelled portions', () {
+      // "Milk, whole" and "Milk, human" are eleven characters each, and
+      // the backend gives whole three deliverable portions to human's two.
+      final rows = [
+        meal('Milk, human', source: MealSourceEntity.fdc, portions: 2),
+        meal('Milk, whole', source: MealSourceEntity.fdc, portions: 3),
+      ];
+
+      expect(names(rankForResolution(rows, 'milk')).first, 'Milk, whole');
+    });
+
+    test('the shorter description outranks more portions', () {
+      // The keys are ordered, not summed: a shorter description with fewer
+      // portions beats a longer one with more. Measured over the 39 survey
+      // families with more than twenty members, the other order picked a
+      // dish over its ingredient — FDC counts french fries in more ways
+      // than a potato.
+      final rows = [
+        meal('Apple, baked', source: MealSourceEntity.fdc, portions: 7),
+        meal('Apple, raw', source: MealSourceEntity.fdc, portions: 2),
+      ];
+
+      expect(names(rankForResolution(rows, 'apple')).first, 'Apple, raw');
+    });
+
+    test('the tie-break never overrides the score', () {
+      // "Eggplant" is a prefix match on `egg` (0.375) and "Egg" an exact
+      // one; a description sixteen characters shorter with nine portions
+      // to one does not bridge that.
+      final rows = [
+        meal('Eggplant, raw', source: MealSourceEntity.fdc, portions: 9),
+        meal(
+          'Egg, whole, boiled or poached',
+          source: MealSourceEntity.fdc,
+          portions: 1,
+        ),
+      ];
+
+      expect(
+        names(rankForResolution(rows, 'egg')).first,
+        'Egg, whole, boiled or poached',
+      );
+    });
+
+    test('equal score, name length and portions keep the input order', () {
+      final rows = [
+        meal(
+          'Bread, rice',
+          code: 'a',
+          source: MealSourceEntity.fdc,
+          portions: 5,
+        ),
+        meal(
+          'Chips, rice',
+          code: 'b',
+          source: MealSourceEntity.fdc,
+          portions: 5,
+        ),
+      ];
+
+      List<String?> codes(List<MealEntity> meals) => [
+        for (final m in meals) m.code,
+      ];
+
+      expect(codes(rankForResolution(rows, 'rice')), ['a', 'b']);
+      expect(
+        codes(rankForResolution(rows.reversed.toList(), 'rice')),
+        ['b', 'a'],
+      );
+    });
+
+    test('the input order survives a pool too large for insertion sort', () {
+      // A two-record tie cannot tell a stable sort from `List.sort`: Dart
+      // insertion-sorts anything under 32 elements, and that happens to be
+      // stable. Above it the dual-pivot quicksort moves equal elements, so
+      // forty records that tie on every key — score, name length, portions
+      // — are what actually pins "stable after that".
+      final rows = [
+        for (var i = 0; i < 40; i++)
+          meal(
+            'Bread, rice',
+            code: 'r$i',
+            source: MealSourceEntity.fdc,
+            portions: 5,
+          ),
+      ];
+
+      expect(
+        [for (final m in rankForResolution(rows, 'rice')) m.code],
+        [for (var i = 0; i < 40; i++) 'r$i'],
+      );
+    });
+
+    test('records without a name compare as zero-length names, stably', () {
+      MealEntity nameless(String code) => MealEntity(
+        code: code,
+        name: null,
+        brands: 'Milk',
+        url: null,
+        mealQuantity: null,
+        mealUnit: null,
+        servingQuantity: null,
+        servingUnit: null,
+        servingSize: null,
+        source: MealSourceEntity.fdc,
+        nutriments: MealNutrimentsEntity.empty(),
+      );
+
+      // Both match on the brand alone, so they tie on score and reach the
+      // name-length key with nothing to measure, and tie on portions too.
+      final ranked = rankForResolution(
+        [nameless('a'), nameless('b')],
+        'milk',
+      );
+
+      expect([for (final m in ranked) m.code], ['a', 'b']);
+    });
+  });
+
+  group('scored on the title (#1164)', () {
+    // A backend record shows its description and is scored on its title —
+    // the description up to its first comma, `MealEntity.scoringName` — so
+    // a family of siblings ties on the one-word query for it and the
+    // tie-break above is reached. What follows the title is read only
+    // where the query names it (`MealEntity.scoringQualifiers`; the next
+    // group). Anything that is not a backend record — an OFF product, a
+    // custom meal — is scored on its name as before.
+    test('a backend record scores as a record named by its title', () {
+      final titled = meal(
+        'Egg, whole, raw',
+        source: MealSourceEntity.fdc,
+        portions: 2,
+      );
+      final named = meal('Egg', source: MealSourceEntity.fdc, portions: 2);
+
+      expect(titled.scoringName, 'Egg');
+      expect(
+        scoreMealForResolution(titled, 'eggs'),
+        scoreMealForResolution(named, 'eggs'),
+      );
+      expect(scoreMealForResolution(titled, 'eggs'), closeTo(0.75, 1e-9));
+      expect(scoreMealForResolution(titled, 'egg'), 1.0);
+    });
+
+    test('a qualifier the query does not name is never read', () {
+      // "Bread, rice" scores `bread` as a record called "Bread": the
+      // `rice` behind the title is not in the query and costs nothing,
+      // where the description scored whole would pay for it (0.667).
+      final breadRice = meal(
+        'Bread, rice',
+        source: MealSourceEntity.fdc,
+        portions: 5,
+      );
+
+      expect(scoreMealForResolution(breadRice, 'bread'), 1.0);
+      expect(
+        scoreMealForResolution(meal('Bread rice'), 'bread'),
+        closeTo(0.667, 1e-3),
+      );
+    });
+
+    test('an OFF product has no title and scores exactly as before', () {
+      // The numbers the file header and the confidence floor were set
+      // against: the inflection match, the branded superstring, the exact
+      // name.
+      expect(meal('Egg').scoringName, 'Egg');
+      expect(meal('Egg, whole, raw').scoringName, 'Egg, whole, raw');
+      expect(scoreMealForResolution(meal('Egg'), 'eggs'), closeTo(0.75, 1e-9));
+      expect(
+        scoreMealForResolution(meal('Cadbury Creme Eggs'), 'eggs'),
+        closeTo(0.5, 1e-9),
+      );
+      expect(scoreMealForResolution(meal('Egg'), 'egg'), 1.0);
+      expect(
+        scoreMealForResolution(meal('Egg, whole, raw'), 'eggs'),
+        closeTo(0.375, 1e-9),
+      );
+    });
+
+    test('a shared title ties the family so the tie-break is reached', () {
+      // The mirror of "the tie-break never overrides the score" above:
+      // scored on their descriptions "Egg, creamed" scored 0.667 to the
+      // five-token record's 0.4 and won outright; scored on their shared
+      // title both are 1.0 and it is the tie-break that picks — the
+      // shorter description, which is the same record for a different
+      // reason, and a reason that reaches the whole family.
+      final creamed = meal(
+        'Egg, creamed',
+        source: MealSourceEntity.fdc,
+        portions: 1,
+      );
+      final boiled = meal(
+        'Egg, whole, boiled or poached',
+        source: MealSourceEntity.fdc,
+        portions: 3,
+      );
+
+      expect(scoreMealForResolution(creamed, 'egg'), 1.0);
+      expect(scoreMealForResolution(boiled, 'egg'), 1.0);
+      expect(
+        names(rankForResolution([boiled, creamed], 'egg')).first,
+        'Egg, creamed',
+      );
+    });
+
+    test('the name-length key measures the description, not the title', () {
+      // Siblings that reach this key share a title, so its length is the
+      // same on both sides and says nothing. The description is where they
+      // differ: "Milk, NFS" is the less qualified record and comes first
+      // although it is listed second.
+      final rows = [
+        meal('Milk, whole', source: MealSourceEntity.fdc, portions: 3),
+        meal('Milk, NFS', source: MealSourceEntity.fdc, portions: 3),
+      ];
+
+      expect(names(rankForResolution(rows, 'milk')), [
+        'Milk, NFS',
+        'Milk, whole',
+      ]);
+    });
+  });
+
+  group('a qualifier the query names joins the title (#1164)', () {
+    // Scored on the title alone, `dried apple` tied every "Apple" at 0.667
+    // and the portions key logged "Apple, raw" — the qualifier the user
+    // typed was the one thing the scorer could not see. A qualifier the
+    // query names is read off the description and scored with the title,
+    // so the record that carries it is the one that scores.
+    test('the named qualifier scores with the title', () {
+      final dried = meal(
+        'Apple, dried',
+        source: MealSourceEntity.fdc,
+        portions: 2,
+      );
+      final raw = meal('Apple, raw', source: MealSourceEntity.fdc, portions: 7);
+
+      // As a record called "Apple dried" scores: every token matched.
+      expect(scoreMealForResolution(dried, 'dried apple'), 1.0);
+      expect(
+        scoreMealForResolution(dried, 'dried apple'),
+        scoreMealForResolution(meal('Apple dried'), 'dried apple'),
+      );
+      // The sibling keeps the title-only score.
+      expect(scoreMealForResolution(raw, 'dried apple'), closeTo(0.667, 1e-3));
+    });
+
+    test('the tie-break is not reached on a qualified query', () {
+      // The shorter description, seven portions to two, and listed first:
+      // the keys that pick "Apple, raw" on `apple` never see `dried apple`.
+      final rows = [
+        meal('Apple, raw', source: MealSourceEntity.fdc, portions: 7),
+        meal('Apple, dried', source: MealSourceEntity.fdc, portions: 2),
+      ];
+
+      expect(
+        names(rankForResolution(rows, 'dried apple')).first,
+        'Apple, dried',
+      );
+      expect(names(rankForResolution(rows, 'apple')).first, 'Apple, raw');
+    });
+
+    test('the qualifier is matched as softly as the title', () {
+      // `yolks` agrees with `yolk` four letters in, as `eggs` does with
+      // `egg`: the same rule, so an inflected qualifier still names its
+      // record.
+      final yolk = meal(
+        'Egg, yolk only, raw',
+        source: MealSourceEntity.fdc,
+        portions: 2,
+      );
+      final whole = meal(
+        'Egg, whole, raw',
+        source: MealSourceEntity.fdc,
+        portions: 2,
+      );
+
+      expect(scoreMealForResolution(yolk, 'egg yolks'), closeTo(0.9, 1e-9));
+      expect(scoreMealForResolution(whole, 'egg yolks'), closeTo(0.667, 1e-3));
+    });
+
+    test('a qualifier the title already accounts for better stays out', () {
+      // On `rice`, "Puerto Rican" agrees with the query three letters in
+      // (0.6). Read as named it would join the scored text and cost the
+      // record 0.867 for a word the user never typed; the title accounts
+      // for `rice` at 1.0, so it stays out and the record ties its
+      // sibling on the title, as siblings should.
+      final variant = meal(
+        'Rice, white, cooked with fat, Puerto Rican style',
+        source: MealSourceEntity.fdc,
+        portions: 1,
+      );
+      final plain = meal(
+        'Rice, cooked, NFS',
+        source: MealSourceEntity.fdc,
+        portions: 1,
+      );
+
+      expect(scoreMealForResolution(variant, 'rice'), 1.0);
+      expect(
+        scoreMealForResolution(variant, 'rice'),
+        scoreMealForResolution(plain, 'rice'),
+      );
+    });
+
+    test('a qualifier alone scores as the same words in an OFF name', () {
+      // "Bread, rice" on `rice`: the title matches nothing and the named
+      // qualifier is the one token that does — 0.667, exactly what an OFF
+      // product called "Bread rice" gets, and under a plain "Rice" title.
+      final breadRice = meal(
+        'Bread, rice',
+        source: MealSourceEntity.fdc,
+        portions: 5,
+      );
+
+      expect(scoreMealForResolution(breadRice, 'rice'), closeTo(0.667, 1e-3));
+      expect(
+        scoreMealForResolution(breadRice, 'rice'),
+        scoreMealForResolution(meal('Bread rice'), 'rice'),
+      );
+      expect(scoreMealForResolution(breadRice, 'rice'), lessThan(1.0));
+      expect(scoreMealForResolution(breadRice, 'rice bread'), 1.0);
+    });
+
+    test('an OFF product has no qualifiers to name', () {
+      // The comma means nothing outside a backend record: "Apple, dried"
+      // as an OFF product name is scored whole, on any query.
+      final off = meal('Apple, dried');
+
+      expect(off.scoringQualifiers, isNull);
+      expect(scoreMealForResolution(off, 'dried apple'), 1.0);
+      expect(scoreMealForResolution(off, 'apple'), closeTo(0.667, 1e-3));
+    });
+  });
+
+  group('the no-portions penalty (#1164)', () {
+    test('a backend record with no labelled portion loses 0.15', () {
+      final withPortions = meal(
+        'Orange juice',
+        source: MealSourceEntity.fdc,
+        portions: 1,
+      );
+      final without = meal('Orange juice', source: MealSourceEntity.fdc);
+
+      expect(scoreMealForResolution(withPortions, 'orange juice'), 1.0);
+      expect(
+        scoreMealForResolution(without, 'orange juice'),
+        closeTo(0.85, 1e-9),
+      );
+    });
+
+    test('an OFF product is never penalised for having no portions', () {
+      // OFF products never carry `portions` — the list is filled from the
+      // backend's lookup and nowhere else — so penalising on emptiness
+      // alone would demote every OFF product, which was not decided.
+      final offProduct = meal('Orange juice', source: MealSourceEntity.off);
+
+      expect(scoreMealForResolution(offProduct, 'orange juice'), 1.0);
+    });
+
+    test('the penalty is a subtraction from the score, not a cap on it', () {
+      // A brand-only match already sits well below 1.0; the penalty comes
+      // off that too, rather than only pulling an exact match down to 0.85.
+      final byBrand = meal(
+        'Instant Coffee Refill',
+        brands: 'Nescafe',
+        source: MealSourceEntity.fdc,
+      );
+      final byBrandWithPortions = meal(
+        'Instant Coffee Refill',
+        brands: 'Nescafe',
+        source: MealSourceEntity.fdc,
+        portions: 1,
+      );
+
+      expect(
+        scoreMealForResolution(byBrand, 'nescafe'),
+        closeTo(
+          scoreMealForResolution(byBrandWithPortions, 'nescafe') - 0.15,
+          1e-9,
+        ),
+      );
+    });
+
+    test('the penalty is resolver-only: the shared ranker does not see it', () {
+      final without = meal('Orange juice', source: MealSourceEntity.fdc);
+
+      expect(scoreMealRelevance(without, 'orange juice'), 1.0);
+    });
+
+    test('a record whose portion lookup failed is not penalised', () {
+      // The page's portions come from a second call, and when that call
+      // fails every record on a page the search itself answered is bare —
+      // a fact about the call, not the food. Penalised, a 0.5 match was
+      // reported at 0.35, under the 0.45 floor, for a search that had
+      // succeeded (#1170 review). Marked unavailable, the record is scored
+      // on its text alone, as if the question had not been asked.
+      final unavailable = meal(
+        'Orange juice, 100%, NFS',
+        source: MealSourceEntity.fdc,
+        portionsUnavailable: true,
+      );
+      final bare = meal('Orange juice, 100%, NFS', source: MealSourceEntity.fdc);
+
+      expect(scoreMealForResolution(unavailable, 'orange juice'), 1.0);
+      expect(
+        scoreMealForResolution(bare, 'orange juice'),
+        closeTo(0.85, 1e-9),
+      );
+      // The soft match the review measured: "Egg" against three tokens is
+      // 0.5, and 0.35 is a guess where 0.5 is not.
+      final eggUnavailable = meal(
+        'Egg, whole, raw',
+        source: MealSourceEntity.fdc,
+        portionsUnavailable: true,
+      );
+      final eggBare = meal('Egg, whole, raw', source: MealSourceEntity.fdc);
+      expect(
+        scoreMealForResolution(eggUnavailable, 'scrambled egg toast'),
+        closeTo(0.5, 1e-9),
+      );
+      expect(
+        scoreMealForResolution(eggBare, 'scrambled egg toast'),
+        closeTo(0.35, 1e-9),
+      );
+    });
+
+    test('the backend/OFF order does not flip on a failed lookup', () {
+      // The other consequence the review named. An OFF product called
+      // "Orange juices" scores 0.917 on `orange juice` — `juices` agrees
+      // with `juice` five letters in six — and the survey title scores
+      // 1.0, so the backend record leads. Under the penalty it stood at
+      // 0.85 and the OFF product led instead: the order flipped on a
+      // lookup neither record had a say in.
+      final off = meal('Orange juices');
+      final unavailable = meal(
+        'Orange juice, 100%, NFS',
+        source: MealSourceEntity.fdc,
+        portionsUnavailable: true,
+      );
+      final bare = meal('Orange juice, 100%, NFS', source: MealSourceEntity.fdc);
+
+      expect(scoreMealForResolution(off, 'orange juice'), closeTo(0.917, 1e-3));
+      expect(
+        names(rankForResolution([off, unavailable], 'orange juice')).first,
+        'Orange juice, 100%, NFS',
+      );
+      // The flip itself, for a record the backend confirmed bare.
+      expect(
+        names(rankForResolution([off, bare], 'orange juice')).first,
+        'Orange juices',
+      );
+    });
+
+    test('the penalty comes off before the clamp, not after it', () {
+      // An exact title with the detailed bonus stands at 1.03 before the
+      // clamp. Taking 0.15 off first leaves 0.88; clamping first and then
+      // subtracting would give 0.85 — the bonus silently lost — and at the
+      // other end would push a non-match below zero, off the 0.0-1.0 scale
+      // the confidence floor is calibrated on.
+      final detailedExact = meal(
+        'Orange juice',
+        source: MealSourceEntity.fdc,
+        detailed: true,
+      );
+      final noMatch = meal('Orange juice', source: MealSourceEntity.fdc);
+
+      expect(
+        scoreMealForResolution(detailedExact, 'orange juice'),
+        closeTo(0.88, 1e-9),
+      );
+      expect(scoreMealForResolution(noMatch, 'zucchini'), 0.0);
     });
   });
 

@@ -191,7 +191,22 @@ class SearchProductsUseCase {
     // already filters server-side. Entries without a backendSource (OFF
     // products, pre-migration rows) are always kept — only Supabase backend
     // sources are user-selectable.
+    //
+    // A record this search's remote page returned is in the cache already
+    // — `_cacheRemoteResults` ran first — and its cached copy takes the
+    // fresh copy's place in the dedup below. The cache cannot hold
+    // everything a fresh backend result carries, though: `MealDBO` has no
+    // column for `portions` or for `servingSizeIsLocalized`, so the copy
+    // read back is the same record with its portions gone, and the
+    // resolver, which scores portions (#1164) and offers them for picking
+    // (#968), saw none on this path from the first search on. Every
+    // persisted field agrees between the two — the cache was just written
+    // from the page — so the fresh entity stands in the cached copy's slot:
+    // the position is the cache's, the data the page's (see [_freshest]).
     final config = await _getConfigUsecase.getConfig();
+    final freshByKey = {
+      for (final meal in remoteResults) _dedupKey(meal): meal,
+    };
     final fromCache = _cachedOffMealDataSource
         .getAllByMostRecentlyTouched()
         .map(MealEntity.fromMealDBO)
@@ -200,14 +215,15 @@ class SearchProductsUseCase {
             meal.backendSource == null ||
             config.isFoodSourceEnabled(meal.backendSource!))
         .where((meal) => _mealMatchesSearch(meal, normalizedSearchString))
+        .map((meal) => _freshest(meal, freshByKey))
         .toList();
 
     // Cache-first ordering: cached entries appear before fresh remote
     // results. The dedup helper takes the first occurrence, so a cached
-    // entry wins when its code matches a fresh remote one — keeps the
-    // search list stable from the user's perspective ("the version I
-    // saw yesterday is still at the top"). Fresh remote data still
-    // wins on the per-item refresh path triggered by intake-add.
+    // entry's position wins when its code matches a fresh remote one —
+    // keeps the search list stable from the user's perspective ("the
+    // version I saw yesterday is still at the top"). Fresh remote data
+    // still wins on the per-item refresh path triggered by intake-add.
     return SearchProductsResult(
       meals: _deduplicateMeals([
         ...fromCustomMealBox,
@@ -226,13 +242,29 @@ class SearchProductsUseCase {
         (meal.brands?.toLowerCase().contains(normalizedSearchString) ?? false);
   }
 
+  /// The fresh copy of [cached] when this search's remote page returned the
+  /// same record, else [cached] itself.
+  ///
+  /// The one fresh copy not taken is the one
+  /// [RemoteSearchCacheDataSource.cacheFromSearch] refuses to write: a thin
+  /// search result standing in for a product already hydrated to its full
+  /// record. The cache kept the full one, and so does the list.
+  MealEntity _freshest(MealEntity cached, Map<String, MealEntity> freshByKey) {
+    final fresh = freshByKey[_dedupKey(cached)];
+    if (fresh == null) return cached;
+    if (cached.detailed && !fresh.detailed) return cached;
+    return fresh;
+  }
+
+  String _dedupKey(MealEntity meal) =>
+      '${meal.source.name}:${meal.code ?? meal.name ?? ''}';
+
   List<MealEntity> _deduplicateMeals(List<MealEntity> meals) {
     final seenKeys = <String>{};
     final uniqueMeals = <MealEntity>[];
 
     for (final meal in meals) {
-      final key = '${meal.source.name}:${meal.code ?? meal.name ?? ''}';
-      if (seenKeys.add(key)) {
+      if (seenKeys.add(_dedupKey(meal))) {
         uniqueMeals.add(meal);
       }
     }
