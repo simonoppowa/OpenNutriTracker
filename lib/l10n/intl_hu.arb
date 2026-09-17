@@ -1622,5 +1622,30 @@
   "healthSyncDisclosureContinueAction": "Tovább",
   "healthSyncUnavailableLabel": "Ezen az eszközön nem érhetők el egészségügyi adatok. Az edzésadatok importálásához az Android rendszeren a Health Connect, az iOS rendszeren pedig az Apple Health szükséges.",
   "sourcesEnergyCompensationTitle": "Edzéssel elégetett kalória jóváírása",
-  "sourcesEnergyCompensationDescription": "Az importált edzések esetében az alkalmazás kevesebb energiát számol el, mint amennyit a készülék jelez. Az emberek az edzés hatását úgy kompenzálják, hogy a nap többi részében kevesebb kalóriát égetnek el – átlagosan körülbelül 28%-kal kevesebbet, és ez az arány magasabb testzsírszázalék esetén még nagyobb. A javasolt érték ezen kutatáson alapul, és a Beállítások → Egészségszinkronizálás menüpontban felülírhatja. Magát az energiaértéket az edzést rögzítő alkalmazás vagy készülék jelenti, nem pedig az alkalmazás MET-képlete alapján számítja ki."
+  "sourcesEnergyCompensationDescription": "Az importált edzések esetében az alkalmazás kevesebb energiát számol el, mint amennyit a készülék jelez. Az emberek az edzés hatását úgy kompenzálják, hogy a nap többi részében kevesebb kalóriát égetnek el – átlagosan körülbelül 28%-kal kevesebbet, és ez az arány magasabb testzsírszázalék esetén még nagyobb. A javasolt érték ezen kutatáson alapul, és a Beállítások → Egészségszinkronizálás menüpontban felülírhatja. Magát az energiaértéket az edzést rögzítő alkalmazás vagy készülék jelenti, nem pedig az alkalmazás MET-képlete alapján számítja ki.",
+  "onboardingHealthyRangeApply": "A(z) {weight} értéket használja",
+  "@onboardingHealthyRangeApply": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAiAssistOnLabel": "Be",
+  "aiAssistProbeRunningLabel": "A szerver ellenőrzése folyamatban. A két ellenőrzés egymás után fut le, ezért számítson akár {minutes, plural, one{a minute} other{{minutes} minutes}} várakozási időre is – nyugodtan bezárhatja ezt az ablakot, a válasz itt lesz, amikor visszatér.",
+  "@aiAssistProbeRunningLabel": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "healthSyncImportedCountLabel": "{count, plural, =0{No new workouts} one{1 workout imported} other{{count} workouts imported}}",
+  "@healthSyncImportedCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  }
 }
