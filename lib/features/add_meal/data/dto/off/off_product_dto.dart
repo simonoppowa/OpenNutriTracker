@@ -26,15 +26,17 @@ class OFFProductDTO {
   final String? product_name_en;
   final String? product_name_fr;
   final String? product_name_de;
-  // OFF carries product names in many languages — these five cover the
-  // remaining locales the ONT UI ships in (cs / it / sk / tr / uk). When any
-  // are missing or blank for a particular product the lookup falls
-  // through to product_name / product_name_en / etc as before.
+  // OFF carries product names in many languages — these are the other
+  // locales SupportedLanguage names (cs / it / sk / tr / uk / hu). Each
+  // must also be requested in OFFConst's field lists, or OFF never sends
+  // it. When any are missing or blank for a particular product the lookup
+  // falls through to product_name / product_name_en / etc as before.
   final String? product_name_cs;
   final String? product_name_it;
   final String? product_name_sk;
   final String? product_name_tr;
   final String? product_name_uk;
+  final String? product_name_hu;
 
   // Search-a-licious returns brands as a list, the v2 product endpoint as a
   // comma-separated string; normalise both to a single display string.
@@ -96,6 +98,9 @@ class OFFProductDTO {
       case SupportedLanguage.uk:
         localeName = product_name_uk;
         break;
+      case SupportedLanguage.hu:
+        localeName = product_name_hu;
+        break;
       case SupportedLanguage.pl:
       case SupportedLanguage.zh:
         // OFF doesn't surface separate `product_name_pl` / `_zh` fields
@@ -124,6 +129,7 @@ class OFFProductDTO {
     this.product_name_sk,
     this.product_name_tr,
     this.product_name_uk,
+    this.product_name_hu,
     required this.brands,
     required this.image_front_thumb_url,
     required this.image_front_url,

@@ -179,6 +179,46 @@ void main() {
       expect(product.getLocaleName(SupportedLanguage.cs),
           equals('Default name'));
     });
+    test('Case 13: Hungarian locale returns product_name_hu when present', () {
+      final product = _buildProduct(
+        product_name: 'Default Name - testValue',
+        product_name_en: 'English Name - testValue',
+        product_name_hu: 'Magyar név - testValue',
+      );
+
+      expect(
+        product.getLocaleName(SupportedLanguage.hu),
+        equals('Magyar név - testValue'),
+      );
+    });
+
+    test('Case 14: Hungarian locale falls through when the name is absent',
+        () {
+      final product = _buildProduct(
+        product_name: 'Default Name - testValue',
+        product_name_en: 'English Name - testValue',
+        product_name_hu: null,
+      );
+
+      expect(
+        product.getLocaleName(SupportedLanguage.hu),
+        equals('Default Name - testValue'),
+      );
+    });
+  });
+
+  group('SupportedLanguage.fromCode', () {
+    test('maps a Hungarian device locale, with or without a region', () {
+      expect(SupportedLanguage.fromCode('hu_HU'), SupportedLanguage.hu);
+      expect(SupportedLanguage.fromCode('hu'), SupportedLanguage.hu);
+    });
+
+    test('a language without a SupportedLanguage value falls back to English',
+        () {
+      // Swedish has an ARB but no food-name language yet; the default arm
+      // is what off_data_source and SPConst rely on for every such locale.
+      expect(SupportedLanguage.fromCode('sv_SE'), SupportedLanguage.en);
+    });
   });
 
   group('OFFProductDTO.fromJson brands coercion', () {
@@ -247,6 +287,7 @@ OFFProductDTO _buildProduct({
   String? product_name_it,
   String? product_name_tr,
   String? product_name_uk,
+  String? product_name_hu,
 }) {
   return OFFProductDTO(
     code: '123',
@@ -258,6 +299,7 @@ OFFProductDTO _buildProduct({
     product_name_it: product_name_it,
     product_name_tr: product_name_tr,
     product_name_uk: product_name_uk,
+    product_name_hu: product_name_hu,
     brands: null,
     image_front_thumb_url: null,
     image_front_url: null,
