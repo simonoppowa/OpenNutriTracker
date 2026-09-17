@@ -32,4 +32,5 @@ const shippedLocales = <String, String>{
   'zh': '中文',
   'pl': 'Polski',
   'sk': 'Slovenčina',
+  'hu': 'Magyar',
 };
