@@ -154,6 +154,12 @@ class SPConst {
         return 'tr';
       case SupportedLanguage.uk:
         return 'uk';
+      case SupportedLanguage.hu:
+        // No food_translation rows yet: the localized search returns
+        // nothing and falls through to English, and portion labels arrive
+        // unlocalized — which the #966 gate hides behind the generic serving
+        // word for a non-English UI — until the backend has Hungarian rows.
+        return 'hu';
     }
   }
 }
