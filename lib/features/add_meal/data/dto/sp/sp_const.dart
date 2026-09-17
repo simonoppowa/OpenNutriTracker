@@ -155,11 +155,11 @@ class SPConst {
       case SupportedLanguage.uk:
         return 'uk';
       case SupportedLanguage.hu:
-        // No food_translation rows yet: the localized search returns
-        // nothing and falls through to English, and portion labels arrive
-        // unlocalized — which the #966 gate hides behind the generic serving
-        // word for a non-English UI — until the backend has Hungarian rows.
-        return 'hu';
+        // food_translation has no Hungarian rows yet. Returning 'hu' would
+        // cost every Hungarian search a guaranteed-empty translation RPC
+        // before the English one, plus an empty portion-label request, for
+        // no result. Flip to 'hu' once the backend carries the rows.
+        return null;
     }
   }
 }
