@@ -135,8 +135,12 @@ class DayBoundaryCalc {
   }
 
   static DateTime _logicalDayOfTotalMinutes(DateTime moment, int totalMinutes) {
-    final shifted = moment.subtract(Duration(minutes: totalMinutes));
-    return DateTime(shifted.year, shifted.month, shifted.day);
+    final minutesSinceMidnight = moment.hour * 60 + moment.minute;
+    final dayDelta = minutesSinceMidnight < totalMinutes ? -1 : 0;
+    // The setting is a local wall-clock boundary, not an elapsed duration.
+    // Stepping the calendar date avoids shifting an extra hour when a local
+    // timezone enters or leaves daylight saving time.
+    return DateTime(moment.year, moment.month, moment.day + dayDelta);
   }
 
   /// A bare midnight is how this app spells "the calendar day named
