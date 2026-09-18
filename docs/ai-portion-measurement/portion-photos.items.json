@@ -1,0 +1,7182 @@
+{
+  "generated": "2026-09-12T05:45:30.944073Z",
+  "dryRun": false,
+  "photos": [
+    "1548807371-30dc1bbe6cb5.jpg",
+    "1552056413-b8b5eed0170b.jpg",
+    "1567306226416-28f0efdc88ce.jpg",
+    "1571212515416-fef01fc43637.jpg",
+    "1593357849627-cbbc9fda6b05.jpg",
+    "1627820752174-acae1b399128.jpg",
+    "1646161762904-043f71f256f1.jpg",
+    "1739785938237-73b3654200d5.jpg",
+    "1757332050958-b797a022c910.jpg",
+    "1757801333069-f7b3cabaec4a.jpg",
+    "1762631934518-f75e233413ca.jpg"
+  ],
+  "items": [
+    {
+      "provider": "anthropic",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "oatmeal"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "oatmeal",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1633
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 1,
+      "raw": {
+        "query": "peanuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "peanuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1633
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 2,
+      "raw": {
+        "query": "hazelnuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "hazelnuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1633
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 3,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1633
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "oatmeal"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "oatmeal",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1473
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 1,
+      "raw": {
+        "query": "hazelnuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "hazelnuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1473
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 2,
+      "raw": {
+        "query": "peanuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "peanuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1473
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 3,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1473
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "oatmeal"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "oatmeal",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1406
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 1,
+      "raw": {
+        "query": "peanuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "peanuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1406
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 2,
+      "raw": {
+        "query": "hazelnuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "hazelnuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1406
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 3,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1406
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1552056413-b8b5eed0170b.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "bread",
+        "quantity": 1
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "bread",
+        "quantity": 1.0,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": 1.0,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": 1.0,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1081
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1552056413-b8b5eed0170b.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "white bread"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "white bread",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1174
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1552056413-b8b5eed0170b.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "white bread",
+        "quantity": 1
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "white bread",
+        "quantity": 1.0,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": 1.0,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": 1.0,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1135
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1567306226416-28f0efdc88ce.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "apple"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "apple",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 920
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1567306226416-28f0efdc88ce.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "apple"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "apple",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1113
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1567306226416-28f0efdc88ce.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "apple"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "apple",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1026
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "sour cream"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "sour cream",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2149
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 1,
+      "raw": {
+        "query": "sour cream"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "sour cream",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2149
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 2,
+      "raw": {
+        "query": "garlic"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "garlic",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2149
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 3,
+      "raw": {
+        "query": "lemon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "lemon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2149
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 4,
+      "raw": {
+        "query": "mint"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mint",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2149
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "sour cream"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "sour cream",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1633
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 1,
+      "raw": {
+        "query": "garlic"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "garlic",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1633
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 2,
+      "raw": {
+        "query": "fresh coriander"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "fresh coriander",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1633
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 3,
+      "raw": {
+        "query": "fresh mint"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "fresh mint",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1633
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 4,
+      "raw": {
+        "query": "lemon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "lemon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1633
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "sour cream"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "sour cream",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1429
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 1,
+      "raw": {
+        "query": "garlic"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "garlic",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1429
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 2,
+      "raw": {
+        "query": "fresh coriander"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "fresh coriander",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1429
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 3,
+      "raw": {
+        "query": "lemon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "lemon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1429
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 4,
+      "raw": {
+        "query": "fresh mint"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "fresh mint",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1429
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "tempura (shrimp and vegetables)"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "tempura (shrimp and vegetables)",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1419
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 1,
+      "raw": {
+        "query": "miso soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "miso soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1419
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 2,
+      "raw": {
+        "query": "noodle soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "noodle soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1419
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "tempura"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "tempura",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1107
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 2,
+      "index": 1,
+      "raw": {
+        "query": "rice"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "rice",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1107
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 2,
+      "index": 2,
+      "raw": {
+        "query": "soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1107
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "tempura"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "tempura",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1312
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 3,
+      "index": 1,
+      "raw": {
+        "query": "rice"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "rice",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1312
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 3,
+      "index": 2,
+      "raw": {
+        "query": "soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1312
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1627820752174-acae1b399128.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "cashews"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cashews",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1013
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1627820752174-acae1b399128.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "cashews"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cashews",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 971
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1627820752174-acae1b399128.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "cashews"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cashews",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1019
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1646161762904-043f71f256f1.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "cabbage"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cabbage",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1126
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1646161762904-043f71f256f1.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "cabbage"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cabbage",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1022
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1646161762904-043f71f256f1.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "cabbage"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cabbage",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1088
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1739785938237-73b3654200d5.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "raw tuna"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "raw tuna",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1125
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1739785938237-73b3654200d5.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "raw tuna"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "raw tuna",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1149
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1739785938237-73b3654200d5.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "fish fillet"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "fish fillet",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1070
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1757332050958-b797a022c910.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1012
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1757332050958-b797a022c910.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 982
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1757332050958-b797a022c910.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 919
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1757801333069-f7b3cabaec4a.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "Olive oil"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "Olive oil",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1223
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1757801333069-f7b3cabaec4a.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "olive oil"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "olive oil",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1102
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1757801333069-f7b3cabaec4a.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "Olive oil"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "Olive oil",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1043
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "grilled chicken breast"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "grilled chicken breast",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1544
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 1,
+      "raw": {
+        "query": "mashed potatoes"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mashed potatoes",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1544
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 2,
+      "raw": {
+        "query": "green beans"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "green beans",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1544
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 3,
+      "raw": {
+        "query": "red bell pepper"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "red bell pepper",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1544
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 4,
+      "raw": {
+        "query": "yellow bell pepper"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "yellow bell pepper",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1544
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 5,
+      "raw": {
+        "query": "mushroom"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mushroom",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1544
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "grilled chicken"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "grilled chicken",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1214
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 2,
+      "index": 1,
+      "raw": {
+        "query": "mashed potatoes"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mashed potatoes",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1214
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 2,
+      "index": 2,
+      "raw": {
+        "query": "grilled vegetables"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "grilled vegetables",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1214
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 2,
+      "index": 3,
+      "raw": {
+        "query": "garlic"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "garlic",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1214
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "grilled chicken"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "grilled chicken",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1636
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 1,
+      "raw": {
+        "query": "mashed potatoes"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mashed potatoes",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1636
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 2,
+      "raw": {
+        "query": "green beans"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "green beans",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1636
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 3,
+      "raw": {
+        "query": "bell pepper"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "bell pepper",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1636
+    },
+    {
+      "provider": "anthropic",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 4,
+      "raw": {
+        "query": "mushroom"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mushroom",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1636
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "oatmeal"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "oatmeal",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2415
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 1,
+      "raw": {
+        "query": "peanuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "peanuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2415
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 2,
+      "raw": {
+        "query": "chocolate chips"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "chocolate chips",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2415
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 3,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2415
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "oatmeal porridge"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "oatmeal porridge",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2037
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 1,
+      "raw": {
+        "query": "hazelnuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "hazelnuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2037
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 2,
+      "raw": {
+        "query": "peanuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "peanuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2037
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 3,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2037
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "oatmeal porridge"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "oatmeal porridge",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1912
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 1,
+      "raw": {
+        "query": "banana",
+        "portion": "small"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": "small"
+      },
+      "guard": {
+        "verdict": "noCount",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": "small"
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1912
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 2,
+      "raw": {
+        "query": "peanuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "peanuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1912
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 3,
+      "raw": {
+        "query": "chocolate chips"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "chocolate chips",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1912
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1552056413-b8b5eed0170b.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "bread",
+        "quantity": 1
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "bread",
+        "quantity": 1.0,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": 1.0,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": 1.0,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1675
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1552056413-b8b5eed0170b.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "white bread"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "white bread",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1421
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1552056413-b8b5eed0170b.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "bread",
+        "quantity": 3,
+        "portion": "slice"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "bread",
+        "quantity": 3.0,
+        "unit": null,
+        "portion": "slice"
+      },
+      "guard": {
+        "verdict": "pieceWord",
+        "quantity": 3.0,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": 3.0,
+        "unit": null,
+        "portion": "slice"
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1296
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1567306226416-28f0efdc88ce.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "apple"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "apple",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1933
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1567306226416-28f0efdc88ce.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "apples"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "apples",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1129
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1567306226416-28f0efdc88ce.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "apple"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "apple",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1057
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "sour cream"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "sour cream",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2043
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 1,
+      "raw": {
+        "query": "parsley"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "parsley",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2043
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 2,
+      "raw": {
+        "query": "garlic"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "garlic",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2043
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 3,
+      "raw": {
+        "query": "lemon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "lemon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2043
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 4,
+      "raw": {
+        "query": "mint"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mint",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2043
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "sour cream"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "sour cream",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1857
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 1,
+      "raw": {
+        "query": "fresh mint"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "fresh mint",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1857
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 2,
+      "raw": {
+        "query": "parsley"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "parsley",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1857
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 3,
+      "raw": {
+        "query": "garlic"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "garlic",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1857
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 4,
+      "raw": {
+        "query": "lemon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "lemon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1857
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "sour cream"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "sour cream",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2027
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 1,
+      "raw": {
+        "query": "garlic"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "garlic",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2027
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 2,
+      "raw": {
+        "query": "fresh coriander"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "fresh coriander",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2027
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 3,
+      "raw": {
+        "query": "lemon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "lemon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2027
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 4,
+      "raw": {
+        "query": "fresh mint"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "fresh mint",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2027
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "tempura shrimp"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "tempura shrimp",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2248
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 1,
+      "raw": {
+        "query": "tempura vegetable"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "tempura vegetable",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2248
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 2,
+      "raw": {
+        "query": "rice"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "rice",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2248
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 3,
+      "raw": {
+        "query": "broth"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "broth",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2248
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 4,
+      "raw": {
+        "query": "noodle soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "noodle soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2248
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "tempura"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "tempura",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1905
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 2,
+      "index": 1,
+      "raw": {
+        "query": "rice"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "rice",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1905
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 2,
+      "index": 2,
+      "raw": {
+        "query": "soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1905
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 2,
+      "index": 3,
+      "raw": {
+        "query": "noodle soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "noodle soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1905
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "tempura shrimp"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "tempura shrimp",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1880
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 3,
+      "index": 1,
+      "raw": {
+        "query": "tempura vegetable"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "tempura vegetable",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1880
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 3,
+      "index": 2,
+      "raw": {
+        "query": "dashi broth"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "dashi broth",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1880
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 3,
+      "index": 3,
+      "raw": {
+        "query": "noodle soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "noodle soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1880
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1627820752174-acae1b399128.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "cashews"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cashews",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1792
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1627820752174-acae1b399128.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "cashews"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cashews",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1683
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1627820752174-acae1b399128.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "cashews"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cashews",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1634
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1646161762904-043f71f256f1.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "cabbage"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cabbage",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2046
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1646161762904-043f71f256f1.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "cabbage"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cabbage",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2168
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1646161762904-043f71f256f1.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "cabbage"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cabbage",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2010
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1739785938237-73b3654200d5.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "salmon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "salmon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1477
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1739785938237-73b3654200d5.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "raw tuna"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "raw tuna",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1903
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1739785938237-73b3654200d5.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "tuna"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "tuna",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1754
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1757332050958-b797a022c910.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1390
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1757332050958-b797a022c910.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1442
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1757332050958-b797a022c910.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2516
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1757801333069-f7b3cabaec4a.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "olive oil"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "olive oil",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2214
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1757801333069-f7b3cabaec4a.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "Olive oil"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "Olive oil",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2292
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1757801333069-f7b3cabaec4a.jpg",
+      "pass": 2,
+      "index": 1,
+      "raw": {
+        "query": "Virgin oil"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "Virgin oil",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2292
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1757801333069-f7b3cabaec4a.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "olive oil"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "olive oil",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2154
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "grilled chicken breast"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "grilled chicken breast",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2522
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 1,
+      "raw": {
+        "query": "mashed potatoes"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mashed potatoes",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2522
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 2,
+      "raw": {
+        "query": "green beans"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "green beans",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2522
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 3,
+      "raw": {
+        "query": "red bell pepper"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "red bell pepper",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2522
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 4,
+      "raw": {
+        "query": "yellow bell pepper"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "yellow bell pepper",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2522
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 5,
+      "raw": {
+        "query": "mushrooms"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mushrooms",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2522
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "grilled chicken"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "grilled chicken",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2258
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 2,
+      "index": 1,
+      "raw": {
+        "query": "mashed potatoes"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mashed potatoes",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2258
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 2,
+      "index": 2,
+      "raw": {
+        "query": "zucchini"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "zucchini",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2258
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 2,
+      "index": 3,
+      "raw": {
+        "query": "red bell pepper"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "red bell pepper",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2258
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 2,
+      "index": 4,
+      "raw": {
+        "query": "yellow bell pepper"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "yellow bell pepper",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2258
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 2,
+      "index": 5,
+      "raw": {
+        "query": "mushroom"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mushroom",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2258
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "grilled chicken breast"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "grilled chicken breast",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2133
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 1,
+      "raw": {
+        "query": "mashed potatoes"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mashed potatoes",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2133
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 2,
+      "raw": {
+        "query": "green beans"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "green beans",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2133
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 3,
+      "raw": {
+        "query": "red bell pepper"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "red bell pepper",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2133
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 4,
+      "raw": {
+        "query": "yellow bell pepper"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "yellow bell pepper",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2133
+    },
+    {
+      "provider": "openrouter",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 5,
+      "raw": {
+        "query": "mushrooms"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mushrooms",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2133
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "oatmeal"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "oatmeal",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 5086
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 1,
+      "raw": {
+        "query": "banana",
+        "quantity": 1,
+        "portion": "slice"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": 1.0,
+        "unit": null,
+        "portion": "slice"
+      },
+      "guard": {
+        "verdict": "pieceWord",
+        "quantity": 1.0,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": 1.0,
+        "unit": null,
+        "portion": "slice"
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 5086
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 2,
+      "raw": {
+        "query": "walnuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "walnuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 5086
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 3,
+      "raw": {
+        "query": "almonds"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "almonds",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 5086
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 4,
+      "raw": {
+        "query": "hazelnuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "hazelnuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 5086
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 1,
+      "index": 5,
+      "raw": {
+        "query": "cinnamon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cinnamon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 5086
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "oatmeal"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "oatmeal",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 4504
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 1,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 4504
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 2,
+      "raw": {
+        "query": "walnuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "walnuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 4504
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 3,
+      "raw": {
+        "query": "almonds"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "almonds",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 4504
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 4,
+      "raw": {
+        "query": "hazelnuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "hazelnuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 4504
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 5,
+      "raw": {
+        "query": "dates"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "dates",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 4504
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 2,
+      "index": 6,
+      "raw": {
+        "query": "cinnamon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cinnamon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 4504
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "oatmeal"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "oatmeal",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 5087
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 1,
+      "raw": {
+        "query": "banana",
+        "quantity": 1
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": 1.0,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": 1.0,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": 1.0,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 5087
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 2,
+      "raw": {
+        "query": "walnuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "walnuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 5087
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 3,
+      "raw": {
+        "query": "almonds"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "almonds",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 5087
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 4,
+      "raw": {
+        "query": "hazelnuts"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "hazelnuts",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 5087
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 5,
+      "raw": {
+        "query": "dates"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "dates",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 5087
+    },
+    {
+      "provider": "openai",
+      "photo": "1548807371-30dc1bbe6cb5.jpg",
+      "pass": 3,
+      "index": 6,
+      "raw": {
+        "query": "cinnamon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cinnamon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 5087
+    },
+    {
+      "provider": "openai",
+      "photo": "1552056413-b8b5eed0170b.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "bread"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "bread",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1647
+    },
+    {
+      "provider": "openai",
+      "photo": "1552056413-b8b5eed0170b.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "bread"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "bread",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1340
+    },
+    {
+      "provider": "openai",
+      "photo": "1552056413-b8b5eed0170b.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "brioche bread"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "brioche bread",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1636
+    },
+    {
+      "provider": "openai",
+      "photo": "1567306226416-28f0efdc88ce.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "apple"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "apple",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1502
+    },
+    {
+      "provider": "openai",
+      "photo": "1567306226416-28f0efdc88ce.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "apple",
+        "quantity": 16
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "apple",
+        "quantity": 16.0,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": 16.0,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": 16.0,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1454
+    },
+    {
+      "provider": "openai",
+      "photo": "1567306226416-28f0efdc88ce.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "apple",
+        "quantity": 1,
+        "portion": "large"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "apple",
+        "quantity": 1.0,
+        "unit": null,
+        "portion": "large"
+      },
+      "guard": {
+        "verdict": "kept",
+        "quantity": 1.0,
+        "portion": "large"
+      },
+      "developOutput": {
+        "quantity": 1.0,
+        "unit": null,
+        "portion": "large"
+      },
+      "food": {
+        "foodId": 2709196,
+        "name": "Apple, dried",
+        "shortTitle": "Apple",
+        "source": "fdc_survey",
+        "path": "english",
+        "locale": null,
+        "localizedName": null,
+        "machineTranslated": false,
+        "score": 1.0,
+        "poolSize": 100,
+        "poolTopName": null,
+        "groupSize": 4,
+        "portions": [
+          {
+            "label": "1 slice/chunk",
+            "gramWeight": 8.0
+          },
+          {
+            "label": "1 cup",
+            "gramWeight": 90.0
+          }
+        ]
+      },
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1411
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "yogurt"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "yogurt",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2058
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 1,
+      "raw": {
+        "query": "mint"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mint",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2058
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 2,
+      "raw": {
+        "query": "parsley"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "parsley",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2058
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 3,
+      "raw": {
+        "query": "coriander"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "coriander",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2058
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 4,
+      "raw": {
+        "query": "garlic"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "garlic",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2058
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 5,
+      "raw": {
+        "query": "lemon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "lemon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2058
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 1,
+      "index": 6,
+      "raw": {
+        "query": "orange"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "orange",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2058
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "yogurt"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "yogurt",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1906
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 1,
+      "raw": {
+        "query": "mint"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mint",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1906
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 2,
+      "raw": {
+        "query": "parsley"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "parsley",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1906
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 3,
+      "raw": {
+        "query": "cilantro"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cilantro",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1906
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 4,
+      "raw": {
+        "query": "garlic",
+        "quantity": 1,
+        "portion": "large"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "garlic",
+        "quantity": 1.0,
+        "unit": null,
+        "portion": "large"
+      },
+      "guard": {
+        "verdict": "kept",
+        "quantity": 1.0,
+        "portion": "large"
+      },
+      "developOutput": {
+        "quantity": 1.0,
+        "unit": null,
+        "portion": "large"
+      },
+      "food": {
+        "foodId": 2709786,
+        "name": "Garlic, raw",
+        "shortTitle": "Garlic",
+        "source": "fdc_survey",
+        "path": "english",
+        "locale": null,
+        "localizedName": null,
+        "machineTranslated": false,
+        "score": 1.0,
+        "poolSize": 41,
+        "poolTopName": null,
+        "groupSize": 4,
+        "portions": [
+          {
+            "label": "1 clove",
+            "gramWeight": 3.0
+          },
+          {
+            "label": "1 teaspoon",
+            "gramWeight": 5.0
+          },
+          {
+            "label": "1 cup",
+            "gramWeight": 135.0
+          }
+        ]
+      },
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1906
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 2,
+      "index": 5,
+      "raw": {
+        "query": "lemon",
+        "quantity": 2,
+        "portion": "medium"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "lemon",
+        "quantity": 2.0,
+        "unit": null,
+        "portion": "medium"
+      },
+      "guard": {
+        "verdict": "kept",
+        "quantity": 2.0,
+        "portion": "medium"
+      },
+      "developOutput": {
+        "quantity": 2.0,
+        "unit": null,
+        "portion": "medium"
+      },
+      "food": {
+        "foodId": 2709168,
+        "name": "Lemon, raw",
+        "shortTitle": "Lemon",
+        "source": "fdc_survey",
+        "path": "english",
+        "locale": null,
+        "localizedName": null,
+        "machineTranslated": false,
+        "score": 1.0,
+        "poolSize": 100,
+        "poolTopName": null,
+        "groupSize": 1,
+        "portions": [
+          {
+            "label": "1 fruit",
+            "gramWeight": 65.0
+          },
+          {
+            "label": "1 slice or wedge",
+            "gramWeight": 8.0
+          },
+          {
+            "label": "1 cup",
+            "gramWeight": 200.0
+          }
+        ]
+      },
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1906
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "yogurt"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "yogurt",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1411
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 1,
+      "raw": {
+        "query": "mint"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mint",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1411
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 2,
+      "raw": {
+        "query": "parsley"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "parsley",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1411
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 3,
+      "raw": {
+        "query": "cilantro"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cilantro",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1411
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 4,
+      "raw": {
+        "query": "garlic",
+        "quantity": 1
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "garlic",
+        "quantity": 1.0,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": 1.0,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": 1.0,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1411
+    },
+    {
+      "provider": "openai",
+      "photo": "1571212515416-fef01fc43637.jpg",
+      "pass": 3,
+      "index": 5,
+      "raw": {
+        "query": "lemon",
+        "quantity": 2
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "lemon",
+        "quantity": 2.0,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": 2.0,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": 2.0,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1411
+    },
+    {
+      "provider": "openai",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "tendon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "tendon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1764
+    },
+    {
+      "provider": "openai",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 1,
+      "raw": {
+        "query": "shrimp tempura"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "shrimp tempura",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1764
+    },
+    {
+      "provider": "openai",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 2,
+      "raw": {
+        "query": "vegetable tempura"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "vegetable tempura",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1764
+    },
+    {
+      "provider": "openai",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 3,
+      "raw": {
+        "query": "rice"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "rice",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1764
+    },
+    {
+      "provider": "openai",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 4,
+      "raw": {
+        "query": "miso soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "miso soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1764
+    },
+    {
+      "provider": "openai",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 1,
+      "index": 5,
+      "raw": {
+        "query": "noodle soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "noodle soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1764
+    },
+    {
+      "provider": "openai",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "tempura rice bowl"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "tempura rice bowl",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1506
+    },
+    {
+      "provider": "openai",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 2,
+      "index": 1,
+      "raw": {
+        "query": "miso soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "miso soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1506
+    },
+    {
+      "provider": "openai",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 2,
+      "index": 2,
+      "raw": {
+        "query": "noodle soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "noodle soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1506
+    },
+    {
+      "provider": "openai",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "tempura assortment"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "tempura assortment",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1550
+    },
+    {
+      "provider": "openai",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 3,
+      "index": 1,
+      "raw": {
+        "query": "miso soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "miso soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1550
+    },
+    {
+      "provider": "openai",
+      "photo": "1593357849627-cbbc9fda6b05.jpg",
+      "pass": 3,
+      "index": 2,
+      "raw": {
+        "query": "noodle soup"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "noodle soup",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1550
+    },
+    {
+      "provider": "openai",
+      "photo": "1627820752174-acae1b399128.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "cashews"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cashews",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1395
+    },
+    {
+      "provider": "openai",
+      "photo": "1627820752174-acae1b399128.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "cashews"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cashews",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1238
+    },
+    {
+      "provider": "openai",
+      "photo": "1627820752174-acae1b399128.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "cashews"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "cashews",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2727
+    },
+    {
+      "provider": "openai",
+      "photo": "1646161762904-043f71f256f1.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "savoy cabbage"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "savoy cabbage",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1888
+    },
+    {
+      "provider": "openai",
+      "photo": "1646161762904-043f71f256f1.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "Savoy cabbage"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "Savoy cabbage",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1583
+    },
+    {
+      "provider": "openai",
+      "photo": "1646161762904-043f71f256f1.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "savoy cabbage"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "savoy cabbage",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1662
+    },
+    {
+      "provider": "openai",
+      "photo": "1739785938237-73b3654200d5.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "salmon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "salmon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1653
+    },
+    {
+      "provider": "openai",
+      "photo": "1739785938237-73b3654200d5.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "salmon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "salmon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1050
+    },
+    {
+      "provider": "openai",
+      "photo": "1739785938237-73b3654200d5.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "salmon"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "salmon",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1449
+    },
+    {
+      "provider": "openai",
+      "photo": "1757332050958-b797a022c910.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1616
+    },
+    {
+      "provider": "openai",
+      "photo": "1757332050958-b797a022c910.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1175
+    },
+    {
+      "provider": "openai",
+      "photo": "1757332050958-b797a022c910.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "banana"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "banana",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1053
+    },
+    {
+      "provider": "openai",
+      "photo": "1757801333069-f7b3cabaec4a.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "olive oil"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "olive oil",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1621
+    },
+    {
+      "provider": "openai",
+      "photo": "1757801333069-f7b3cabaec4a.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "olive oil"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "olive oil",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1229
+    },
+    {
+      "provider": "openai",
+      "photo": "1757801333069-f7b3cabaec4a.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "olive oil"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "olive oil",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1639
+    },
+    {
+      "provider": "openai",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 0,
+      "raw": {
+        "query": "grilled chicken breast",
+        "quantity": 1,
+        "portion": "large"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "grilled chicken breast",
+        "quantity": 1.0,
+        "unit": null,
+        "portion": "large"
+      },
+      "guard": {
+        "verdict": "kept",
+        "quantity": 1.0,
+        "portion": "large"
+      },
+      "developOutput": {
+        "quantity": 1.0,
+        "unit": null,
+        "portion": "large"
+      },
+      "food": {
+        "foodId": 10003393,
+        "name": "Chicken breast, without skin, grilled",
+        "shortTitle": "Chicken breast",
+        "source": "bls",
+        "path": "english",
+        "locale": null,
+        "localizedName": null,
+        "machineTranslated": false,
+        "score": 0.8,
+        "poolSize": 10,
+        "poolTopName": "Chicken breast fillet, grilled",
+        "groupSize": 5,
+        "portions": []
+      },
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2015
+    },
+    {
+      "provider": "openai",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 1,
+      "raw": {
+        "query": "couscous"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "couscous",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2015
+    },
+    {
+      "provider": "openai",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 1,
+      "index": 2,
+      "raw": {
+        "query": "mixed vegetables"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mixed vegetables",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 2015
+    },
+    {
+      "provider": "openai",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 2,
+      "index": 0,
+      "raw": {
+        "query": "grilled chicken breast",
+        "quantity": 1
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "grilled chicken breast",
+        "quantity": 1.0,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": 1.0,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": 1.0,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1410
+    },
+    {
+      "provider": "openai",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 2,
+      "index": 1,
+      "raw": {
+        "query": "couscous"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "couscous",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1410
+    },
+    {
+      "provider": "openai",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 2,
+      "index": 2,
+      "raw": {
+        "query": "mixed vegetables"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mixed vegetables",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1410
+    },
+    {
+      "provider": "openai",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 0,
+      "raw": {
+        "query": "grilled chicken breast",
+        "quantity": 1,
+        "portion": "large"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "grilled chicken breast",
+        "quantity": 1.0,
+        "unit": null,
+        "portion": "large"
+      },
+      "guard": {
+        "verdict": "kept",
+        "quantity": 1.0,
+        "portion": "large"
+      },
+      "developOutput": {
+        "quantity": 1.0,
+        "unit": null,
+        "portion": "large"
+      },
+      "food": {
+        "foodId": 10003393,
+        "name": "Chicken breast, without skin, grilled",
+        "shortTitle": "Chicken breast",
+        "source": "bls",
+        "path": "english",
+        "locale": null,
+        "localizedName": null,
+        "machineTranslated": false,
+        "score": 0.8,
+        "poolSize": 10,
+        "poolTopName": "Chicken breast fillet, grilled",
+        "groupSize": 5,
+        "portions": []
+      },
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1781
+    },
+    {
+      "provider": "openai",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 1,
+      "raw": {
+        "query": "couscous"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "couscous",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1781
+    },
+    {
+      "provider": "openai",
+      "photo": "1762631934518-f75e233413ca.jpg",
+      "pass": 3,
+      "index": 2,
+      "raw": {
+        "query": "mixed vegetables"
+      },
+      "pairingFailed": false,
+      "validated": {
+        "query": "mixed vegetables",
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "guard": {
+        "verdict": "noKey",
+        "quantity": null,
+        "portion": null
+      },
+      "developOutput": {
+        "quantity": null,
+        "unit": null,
+        "portion": null
+      },
+      "food": null,
+      "backendFailure": null,
+      "match": null,
+      "latencyMs": 1781
+    }
+  ],
+  "failures": {
+    "anthropic": [],
+    "openrouter": [],
+    "openai": []
+  },
+  "backendFailures": {
+    "anthropic": [],
+    "openrouter": [],
+    "openai": []
+  },
+  "unstable": {
+    "anthropic": [
+      "1548807371-30dc1bbe6cb5.jpg\n  - oatmeal|null|null|null ~ peanuts|null|null|null ~ hazelnuts|null|null|null ~ banana|null|null|null\n  - oatmeal|null|null|null ~ hazelnuts|null|null|null ~ peanuts|null|null|null ~ banana|null|null|null\n  - oatmeal|null|null|null ~ peanuts|null|null|null ~ hazelnuts|null|null|null ~ banana|null|null|null",
+      "1552056413-b8b5eed0170b.jpg\n  - bread|1.0|null|null\n  - white bread|null|null|null\n  - white bread|1.0|null|null",
+      "1571212515416-fef01fc43637.jpg\n  - sour cream|null|null|null ~ sour cream|null|null|null ~ garlic|null|null|null ~ lemon|null|null|null ~ mint|null|null|null\n  - sour cream|null|null|null ~ garlic|null|null|null ~ fresh coriander|null|null|null ~ fresh mint|null|null|null ~ lemon|null|null|null\n  - sour cream|null|null|null ~ garlic|null|null|null ~ fresh coriander|null|null|null ~ lemon|null|null|null ~ fresh mint|null|null|null",
+      "1593357849627-cbbc9fda6b05.jpg\n  - tempura (shrimp and vegetables)|null|null|null ~ miso soup|null|null|null ~ noodle soup|null|null|null\n  - tempura|null|null|null ~ rice|null|null|null ~ soup|null|null|null\n  - tempura|null|null|null ~ rice|null|null|null ~ soup|null|null|null",
+      "1739785938237-73b3654200d5.jpg\n  - raw tuna|null|null|null\n  - raw tuna|null|null|null\n  - fish fillet|null|null|null",
+      "1757801333069-f7b3cabaec4a.jpg\n  - Olive oil|null|null|null\n  - olive oil|null|null|null\n  - Olive oil|null|null|null",
+      "1762631934518-f75e233413ca.jpg\n  - grilled chicken breast|null|null|null ~ mashed potatoes|null|null|null ~ green beans|null|null|null ~ red bell pepper|null|null|null ~ yellow bell pepper|null|null|null ~ mushroom|null|null|null\n  - grilled chicken|null|null|null ~ mashed potatoes|null|null|null ~ grilled vegetables|null|null|null ~ garlic|null|null|null\n  - grilled chicken|null|null|null ~ mashed potatoes|null|null|null ~ green beans|null|null|null ~ bell pepper|null|null|null ~ mushroom|null|null|null"
+    ],
+    "openrouter": [
+      "1548807371-30dc1bbe6cb5.jpg\n  - oatmeal|null|null|null ~ peanuts|null|null|null ~ chocolate chips|null|null|null ~ banana|null|null|null\n  - oatmeal porridge|null|null|null ~ hazelnuts|null|null|null ~ peanuts|null|null|null ~ banana|null|null|null\n  - oatmeal porridge|null|null|null ~ banana|null|null|small ~ peanuts|null|null|null ~ chocolate chips|null|null|null",
+      "1552056413-b8b5eed0170b.jpg\n  - bread|1.0|null|null\n  - white bread|null|null|null\n  - bread|3.0|null|slice",
+      "1567306226416-28f0efdc88ce.jpg\n  - apple|null|null|null\n  - apples|null|null|null\n  - apple|null|null|null",
+      "1571212515416-fef01fc43637.jpg\n  - sour cream|null|null|null ~ parsley|null|null|null ~ garlic|null|null|null ~ lemon|null|null|null ~ mint|null|null|null\n  - sour cream|null|null|null ~ fresh mint|null|null|null ~ parsley|null|null|null ~ garlic|null|null|null ~ lemon|null|null|null\n  - sour cream|null|null|null ~ garlic|null|null|null ~ fresh coriander|null|null|null ~ lemon|null|null|null ~ fresh mint|null|null|null",
+      "1593357849627-cbbc9fda6b05.jpg\n  - tempura shrimp|null|null|null ~ tempura vegetable|null|null|null ~ rice|null|null|null ~ broth|null|null|null ~ noodle soup|null|null|null\n  - tempura|null|null|null ~ rice|null|null|null ~ soup|null|null|null ~ noodle soup|null|null|null\n  - tempura shrimp|null|null|null ~ tempura vegetable|null|null|null ~ dashi broth|null|null|null ~ noodle soup|null|null|null",
+      "1739785938237-73b3654200d5.jpg\n  - salmon|null|null|null\n  - raw tuna|null|null|null\n  - tuna|null|null|null",
+      "1757801333069-f7b3cabaec4a.jpg\n  - olive oil|null|null|null\n  - Olive oil|null|null|null ~ Virgin oil|null|null|null\n  - olive oil|null|null|null",
+      "1762631934518-f75e233413ca.jpg\n  - grilled chicken breast|null|null|null ~ mashed potatoes|null|null|null ~ green beans|null|null|null ~ red bell pepper|null|null|null ~ yellow bell pepper|null|null|null ~ mushrooms|null|null|null\n  - grilled chicken|null|null|null ~ mashed potatoes|null|null|null ~ zucchini|null|null|null ~ red bell pepper|null|null|null ~ yellow bell pepper|null|null|null ~ mushroom|null|null|null\n  - grilled chicken breast|null|null|null ~ mashed potatoes|null|null|null ~ green beans|null|null|null ~ red bell pepper|null|null|null ~ yellow bell pepper|null|null|null ~ mushrooms|null|null|null"
+    ],
+    "openai": [
+      "1548807371-30dc1bbe6cb5.jpg\n  - oatmeal|null|null|null ~ banana|1.0|null|slice ~ walnuts|null|null|null ~ almonds|null|null|null ~ hazelnuts|null|null|null ~ cinnamon|null|null|null\n  - oatmeal|null|null|null ~ banana|null|null|null ~ walnuts|null|null|null ~ almonds|null|null|null ~ hazelnuts|null|null|null ~ dates|null|null|null ~ cinnamon|null|null|null\n  - oatmeal|null|null|null ~ banana|1.0|null|null ~ walnuts|null|null|null ~ almonds|null|null|null ~ hazelnuts|null|null|null ~ dates|null|null|null ~ cinnamon|null|null|null",
+      "1552056413-b8b5eed0170b.jpg\n  - bread|null|null|null\n  - bread|null|null|null\n  - brioche bread|null|null|null",
+      "1567306226416-28f0efdc88ce.jpg\n  - apple|null|null|null\n  - apple|16.0|null|null\n  - apple|1.0|null|large",
+      "1571212515416-fef01fc43637.jpg\n  - yogurt|null|null|null ~ mint|null|null|null ~ parsley|null|null|null ~ coriander|null|null|null ~ garlic|null|null|null ~ lemon|null|null|null ~ orange|null|null|null\n  - yogurt|null|null|null ~ mint|null|null|null ~ parsley|null|null|null ~ cilantro|null|null|null ~ garlic|1.0|null|large ~ lemon|2.0|null|medium\n  - yogurt|null|null|null ~ mint|null|null|null ~ parsley|null|null|null ~ cilantro|null|null|null ~ garlic|1.0|null|null ~ lemon|2.0|null|null",
+      "1593357849627-cbbc9fda6b05.jpg\n  - tendon|null|null|null ~ shrimp tempura|null|null|null ~ vegetable tempura|null|null|null ~ rice|null|null|null ~ miso soup|null|null|null ~ noodle soup|null|null|null\n  - tempura rice bowl|null|null|null ~ miso soup|null|null|null ~ noodle soup|null|null|null\n  - tempura assortment|null|null|null ~ miso soup|null|null|null ~ noodle soup|null|null|null",
+      "1646161762904-043f71f256f1.jpg\n  - savoy cabbage|null|null|null\n  - Savoy cabbage|null|null|null\n  - savoy cabbage|null|null|null",
+      "1762631934518-f75e233413ca.jpg\n  - grilled chicken breast|1.0|null|large ~ couscous|null|null|null ~ mixed vegetables|null|null|null\n  - grilled chicken breast|1.0|null|null ~ couscous|null|null|null ~ mixed vegetables|null|null|null\n  - grilled chicken breast|1.0|null|large ~ couscous|null|null|null ~ mixed vegetables|null|null|null"
+    ]
+  },
+  "aborted": {
+    "anthropic": null,
+    "openrouter": null,
+    "openai": null
+  }
+}
