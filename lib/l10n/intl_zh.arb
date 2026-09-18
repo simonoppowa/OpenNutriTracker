@@ -1,112 +1,5 @@
 {
   "@@locale": "zh",
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@driPanelReferenceLabel": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@diaryMealKcalConsumedOfTarget": {
-    "placeholders": {
-      "consumed": {
-        "type": "String"
-      },
-      "target": {
-        "type": "String"
-      }
-    }
-  },
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "activityExample": "例如：跑步、骑车、瑜伽...",
   "activityLabel": "活动",
   "addItemLabel": "添加新项目：",
@@ -119,29 +12,101 @@
   "foodSourcesHelpText": "搜索结果来自这些食品数据库。Open Food Facts 提供产品和条形码搜索，始终处于启用状态。",
   "machineTranslatedNameHint": "名称为自动翻译",
   "measureUnitBar": "{count, plural, other{条}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, other{瓶}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, other{罐}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, other{杯}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, other{个}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, other{包}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, other{块}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, other{份}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, other{份}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, other{片}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, other{汤匙}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, other{茶匙}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "食品数据库",
   "settingsFoodSourcesSubtitle": "选择食品搜索结果的来源",
   "onboardingOtherOptionsLabel": "其他选项",
@@ -192,6 +157,16 @@
   "clearOffCacheConfirmTitle": "清除缓存？",
   "clearOffCacheLabel": "清除缓存",
   "clearOffCacheSubtitle": "{count} 项 · {size}",
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "cmLabel": "厘米",
   "codeCopiedLabel": "代码已复制",
   "copyCodeLabel": "复制代码",
@@ -206,7 +181,24 @@
   "csvImportContributeOffPrefix": "有条形码？请把产品贡献到 Open Food Facts：",
   "csvImportErrorLabel": "无法读取 CSV 文件。请检查格式后重试。",
   "csvImportPartialLabel": "已导入 {imported} 项餐食；因数据无效跳过 {skipped} 行。",
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
   "csvImportSuccessLabel": "已导入 {count} 项餐食。",
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "customActivityDescription": "直接输入消耗的卡路里，适用于列表中没有的训练或来自健身追踪器的读数",
   "customActivityDescriptionKj": "直接输入消耗的千焦，适用于列表中没有的训练或来自健身追踪器的读数",
   "customActivityKcalHint": "例如 250",
@@ -261,6 +253,13 @@
   },
   "lowKcalWarningViewDisclaimer": "查看免责声明",
   "deleteSelectedRecipesConfirmTitle": "删除 {count} 个食谱？",
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "deleteTimeDialogContent": "您想删除选定的项目吗？",
   "deleteTimeDialogPluralContent": "您想删除此餐食的所有项目吗？",
   "deleteTimeDialogPluralTitle": "删除项目？",
@@ -272,12 +271,29 @@
   "diaryFutureDateWarning": "您正在编辑未来的日期",
   "diaryLabel": "日记",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} 千卡",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "diaryNutrientPanelDataDisclaimer": "此处仅汇总你已记录餐食中已追踪的营养素。如果某餐缺少某项数值,它就不会计入该营养素的总和,因此总量可能偏低。",
   "diaryNutrientPanelTitle": "今日营养素",
   "driPanelInfoTitle": "参考摄入量",
   "driPanelInfoBody": "这些参考量取自 IOM 成人膳食营养素参考摄入量,会因年龄和性别而异。它们只是参考,并非目标——你自身的需要可能有所不同。",
   "driPanelInfoLinkLabel": "来源：IOM Dietary Reference Intakes",
   "driPanelReferenceLabel": "参考 {value}",
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diarySortByCarbs": "碳水化合物（从高到低）",
   "diarySortByFat": "脂肪（从高到低）",
   "diarySortByKcal": "卡路里（从高到低）",
@@ -357,19 +373,54 @@
   "importAction": "导入",
   "importActivityConfirmContent": "这些活动将被添加到今天。",
   "importActivityConfirmTitle": "导入 {count} 项活动？",
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importActivityLabel": "导入共享运动",
   "importActivitySuccessLabel": "运动已导入",
   "importCustomFoodDataDescription": "从 CSV 文件或粘贴 JSON 导入自己的餐食。下载示例以查看预期格式和必填字段。",
   "importCustomFoodDataLabel": "导入自定义食品数据",
   "importMealConfirmContent": "这些项目将添加到：{mealType}。",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "importMealConfirmTitle": "导入 {count} 个项目？",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importMealErrorLabel": "无效的二维码",
   "importMealLabel": "导入分享的餐食",
   "importMealSuccessLabel": "餐食已导入",
   "importMealsCsvAction": "导入餐食 (csv)",
   "importMealsJsonAction": "导入餐食 (json)",
   "importOffFetchFailedLabel": "无法从OpenFoodFacts获取 {count} 个项目。",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeConfirmContent": "导入这道含有 {count} 种食材的食谱？",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeErrorLabel": "无法解析食谱代码",
   "importRecipeLabel": "导入食谱",
   "importRecipeSuccessLabel": "食谱已导入",
@@ -775,6 +826,13 @@
   "profileTargetWeightNotSetLabel": "未设置",
   "profileTargetWeightReached": "你已达到目标",
   "profileTargetWeightToGo": "距离目标还差 {value}",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "profileWeightHistoryTitle": "体重历史",
   "proteinLabel": "蛋白质",
   "proteinLabelShort": "蛋",
@@ -803,6 +861,13 @@
   "recipeImageTakePhoto": "拍照",
   "recipeIngredientAmountLabel": "数量",
   "recipeIngredientCountLabel": "{count} 种食材",
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "recipeIngredientUnitLabel": "单位",
   "recipeIngredientsLabel": "食材",
   "recipeInvalidTotalWeightLabel": "总重量必须大于零",
@@ -848,6 +913,13 @@
   "selectPalCategoryLabel": "选择活动水平",
   "selectWeightDialogLabel": "选择体重",
   "selectionCountLabel": "已选 {count} 项",
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sendCrashReports": "发送崩溃报告",
   "servingLabel": "份量",
   "servingSizeLabelImperial": "单份分量 (盎司/液量盎司)",
@@ -1064,26 +1136,40 @@
   "customMealsMergeConfirmContent": "这会把所有用 {loser} 记录的条目改为显示 {winner},并把 {loser} 从你的自定义食物中移除。此操作无法撤销。",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "合并",
   "customMealsMergeSuccessSnackbarOne": "已合并 — {winner} 现在有 1 条记录。",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "已合并 — {winner} 现在有 {count} 条记录。",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "禁食中 · 剩余 {remaining}",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "断食计时器",
@@ -1154,9 +1240,21 @@
   "aiAssistEndpointFieldLabel": "服务器地址",
   "aiAssistModelFieldLabel": "模型名称",
   "aiAssistDisclosureOwnServerSecure": "保存地址后，您在多项添加界面输入的文本，以及您选择在那里读取的任何照片，会发送到 {host}——由您自己运行的服务器。没有第三方会收到它，本项目与该机器没有任何关系，也无法就其保留内容做出任何承诺。连接是加密的。",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "保存地址后，您在多项添加界面输入的文本，以及您选择在那里读取的任何照片，会发送到 {host}——由您自己运行的服务器。没有第三方会收到它，本项目与该机器没有任何关系，也无法就其保留内容做出任何承诺。该地址为明文 HTTP，因此连接未加密：本手机与该服务器之间网络上的任何设备都能读取所发送的内容。",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "请输入以 http:// 或 https:// 开头的地址。",
   "aiAssistModelRequiredLabel": "请填写该服务器要使用的模型名称。",
   "aiAssistEndpointPublicPlaintextLabel": "该地址是公网地址且未加密，因此发往它的请求会被拒绝。请使用 https 或私有地址。",
