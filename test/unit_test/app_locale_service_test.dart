@@ -30,7 +30,10 @@ void main() {
     test('reads the language the OS holds', () async {
       handleWith((_) async => 'pl');
 
-      expect(await AppLocaleService.getApplicationLocale(), 'pl');
+      expect(await AppLocaleService.getApplicationLocale(), (
+        tag: 'pl',
+        readFailed: false,
+      ));
       expect(calls.single.method, 'getApplicationLocale');
     });
 
@@ -53,10 +56,16 @@ void main() {
       expect(calls.single.arguments, {'tag': null});
     });
 
-    test('a platform failure does not escape', () async {
+    // The read must say it failed, not answer "no override": downstream, a
+    // missing override from a working read means the user cleared their
+    // language, and a transient failure must never read as that.
+    test('a platform failure does not escape, and says it failed', () async {
       handleWith((_) => throw PlatformException(code: 'unavailable'));
 
-      await expectLater(AppLocaleService.getApplicationLocale(), completion(isNull));
+      expect(await AppLocaleService.getApplicationLocale(), (
+        tag: null,
+        readFailed: true,
+      ));
       await expectLater(AppLocaleService.setApplicationLocale('de'), completes);
     });
   });
@@ -64,8 +73,14 @@ void main() {
   // Nothing on the other side of the channel is the normal case on iOS, on
   // desktop, and in any widget test that pumps the settings screen. Failing
   // there would break a screen someone opened to fix their language.
+  // Reported as a clean "no override", not as a failure: on these platforms
+  // the absence is permanent and true, and marking it failed would freeze
+  // locale handling there forever.
   test('a missing native side is not an error', () async {
-    expect(await AppLocaleService.getApplicationLocale(), isNull);
+    expect(await AppLocaleService.getApplicationLocale(), (
+      tag: null,
+      readFailed: false,
+    ));
     await expectLater(AppLocaleService.setApplicationLocale('de'), completes);
   });
 }

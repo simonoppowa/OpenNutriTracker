@@ -187,6 +187,17 @@ class ConfigDBO extends HiveObject {
   // user opts out, matching every install that predates the field.
   @HiveField(39)
   bool? defaultToRawFoodUnits;
+  // Set by [reconcileAppLocale] once the OS has been *seen* holding a per-app
+  // language override — a value read from Android's picker, or the saved
+  // language read back right after the migration push. Never set by the push
+  // attempt alone: on platforms with no per-app override the push no-ops on
+  // every launch and this stays null, so null means "the OS has not been
+  // observed with an override yet", not "the push has not happened". Without
+  // it, an override the user cleared in the OS picker is indistinguishable
+  // from one that was never seeded, and gets silently pushed back on the next
+  // launch. Device-wide, like selectedLocale: it is a fact about the device.
+  @HiveField(40)
+  bool? localeSyncSeeded;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -226,6 +237,7 @@ class ConfigDBO extends HiveObject {
     this.policyNoticeRevisionSeen,
     this.healthDeletedWorkouts,
     this.defaultToRawFoodUnits,
+    this.localeSyncSeeded,
   });
 
   factory ConfigDBO.empty() =>
