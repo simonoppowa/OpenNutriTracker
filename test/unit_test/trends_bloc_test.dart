@@ -223,8 +223,14 @@ void main() {
     });
 
     test('the "All" range (0) spans back to the earliest data', () async {
-      // Earliest signal is a weight reading 50 days ago.
-      weightLog.result = [_wl(today.subtract(const Duration(days: 50)), 80)];
+      // Earliest signal is a weight reading 50 calendar days ago. Built with
+      // the y/m/d constructor like the app's write sites, not with a
+      // Duration: this reads the real clock, and 50 * 24 hours back from a
+      // midnight after a spring-forward is 23:00 on the 51st day, which the
+      // bloc's calendar-day count (#1207) would report as 52.
+      weightLog.result = [
+        _wl(DateTime(today.year, today.month, today.day - 50), 80),
+      ];
       final emitted = await load(const LoadTrendsEvent(rangeDays: 0));
       final loaded = emitted.last as TrendsLoaded;
       expect(loaded.rangeDays, 0); // the selector still shows "All"
@@ -234,7 +240,9 @@ void main() {
     test('"All" starts at the first entry, not a padded floor', () async {
       // Only a few days of history: the window is the exact span, so the
       // charts begin at the first entry instead of showing blank days before.
-      weightLog.result = [_wl(today.subtract(const Duration(days: 5)), 80)];
+      weightLog.result = [
+        _wl(DateTime(today.year, today.month, today.day - 5), 80),
+      ];
       final emitted = await load(const LoadTrendsEvent(rangeDays: 0));
       expect((emitted.last as TrendsLoaded).windowDays, 6); // not floored to 30
     });
