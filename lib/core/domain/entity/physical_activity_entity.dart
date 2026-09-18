@@ -79,7 +79,16 @@ class PhysicalActivityEntity extends Equatable {
     if (isCustom && specificActivity.isNotEmpty && specificActivity != 'custom') {
       return specificActivity;
     }
-    final physicalActivityMap = {
+    return nameByCode(context)[code] ?? type.getName(context);
+  }
+
+  /// The English-keyed name of every Compendium row the picker lists, by
+  /// code. A row absent here renders its section heading, which is the
+  /// state #1200 found six rows in; the test that keeps every row named
+  /// reads this map rather than guessing from the rendered string, because
+  /// "bicycling, general" legitimately renders the same word as its heading.
+  @visibleForTesting
+  static Map<String, String> nameByCode(BuildContext context) => {
       "01015": S.of(context).paBicyclingGeneral,
       "01009": S.of(context).paBicyclingMountainGeneral,
       "01070": S.of(context).paUnicyclingGeneral,
@@ -191,11 +200,13 @@ class PhysicalActivityEntity extends Equatable {
       "19260": S.of(context).paSnowshoeing,
       "99999": S.of(context).customActivityName,
     };
-    return physicalActivityMap[code] ?? type.getName(context);
-  }
 
-  String getDescription(BuildContext context) {
-    final physicalActivityMap = {
+  String getDescription(BuildContext context) =>
+      descriptionByCode(context)[code] ?? type.getName(context);
+
+  /// Same shape as [nameByCode], for the description line.
+  @visibleForTesting
+  static Map<String, String> descriptionByCode(BuildContext context) => {
       "01009": S.of(context).paBicyclingMountainGeneralDesc,
       "01015": S.of(context).paBicyclingGeneralDesc,
       "01070": S.of(context).paUnicyclingGeneralDesc,
@@ -310,13 +321,11 @@ class PhysicalActivityEntity extends Equatable {
       "19260": S.of(context).paGeneralDesc,
       "99999": _customActivityDescription(context),
     };
-    return physicalActivityMap[code] ?? type.getName(context);
-  }
 
   /// The Custom activity's description mentions the energy unit by name,
   /// so when the user reads in kJ (#177) we swap in the kJ-phrased
   /// variant. Everywhere else the description is unit-agnostic.
-  String _customActivityDescription(BuildContext context) {
+  static String _customActivityDescription(BuildContext context) {
     final usesKj =
         Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
     return usesKj

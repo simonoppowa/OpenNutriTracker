@@ -136,13 +136,23 @@ void main() {
 
     testWidgets('every activity row has a name of its own', (tester) async {
       await pump(tester);
-      final unmapped = [
+      // Read the maps, not the rendered string: a row with no getName entry
+      // renders its section heading, but so does a legitimately named
+      // "general" row ("bicycling, general" renders "bicycling"), and a row
+      // can lose its name entry while keeping its description.
+      final names = PhysicalActivityEntity.nameByCode(context);
+      final descriptions = PhysicalActivityEntity.descriptionByCode(context);
+      final unnamed = [
         for (final row in rows)
-          if (row.getName(context) == row.type.getName(context) &&
-              row.getDescription(context) == row.type.getName(context))
+          if (!names.containsKey(row.code)) '${row.code} ${row.specificActivity}',
+      ];
+      expect(unnamed, isEmpty, reason: 'no getName entry — renders the heading');
+      final undescribed = [
+        for (final row in rows)
+          if (!descriptions.containsKey(row.code))
             '${row.code} ${row.specificActivity}',
       ];
-      expect(unmapped, isEmpty, reason: 'no getName/getDescription entry');
+      expect(undescribed, isEmpty, reason: 'no getDescription entry');
     });
   });
 }
