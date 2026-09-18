@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
+import 'package:opennutritracker/core/utils/calc/calendar_day_calc.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -19,6 +20,13 @@ class WeightTrendChart extends StatelessWidget {
   final double? targetWeightKg;
   final int windowDays;
   final double chartHeight;
+
+  /// The clock "today" is read from. The window's DST behaviour depends on
+  /// which dates it spans, so a test that reads the real clock only proves
+  /// something for a few weeks a year; tests pin this and restore it.
+  /// Production never assigns it.
+  @visibleForTesting
+  static DateTime Function() clock = DateTime.now;
 
   const WeightTrendChart({
     super.key,
@@ -47,11 +55,25 @@ class WeightTrendChart extends StatelessWidget {
     final theme = Theme.of(context);
     final lineColor = theme.colorScheme.primary;
 
-    final now = DateTime.now();
+    final now = clock();
     final today = DateTime(now.year, now.month, now.day);
-    // windowDays days ending today (today sits at the right edge), matching
-    // how the calorie/water charts window their range.
-    final windowStart = today.subtract(Duration(days: windowDays - 1));
+    // windowDays calendar days ending today (today sits at the right edge),
+    // matching how the calorie/water charts window their range. Built with
+    // the y/m/d constructor, not `subtract(Duration)`: a Duration is fixed
+    // 24-hour spans, so with an autumn fall-back inside the window it lands
+    // an hour past local midnight and drops that day's entry (#1207).
+    final windowStart = DateTime(
+      today.year,
+      today.month,
+      today.day - (windowDays - 1),
+    );
+    // x = whole calendar days since the window start, so today sits at
+    // x = windowDays - 1 and a day is one unit even when a DST transition
+    // makes it 23 or 25 hours long. Every consumer of the x axis (dots,
+    // date labels) goes through this pair so they cannot drift apart.
+    int dayIndex(DateTime date) =>
+        CalendarDayCalc.daysBetween(windowStart, date);
+    DateTime dayAt(int x) => DateUtils.addDaysToDate(windowStart, x);
 
     final inWindow =
         entries
@@ -82,11 +104,7 @@ class WeightTrendChart extends StatelessWidget {
 
     final spots = <FlSpot>[
       for (final entry in inWindow)
-        FlSpot(
-          // x = days since the window start, so today sits at x = windowDays.
-          entry.date.difference(windowStart).inDays.toDouble(),
-          _toChartY(entry.weightKg),
-        ),
+        FlSpot(dayIndex(entry.date).toDouble(), _toChartY(entry.weightKg)),
     ];
 
     final minY = spots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
@@ -150,7 +168,7 @@ class WeightTrendChart extends StatelessWidget {
                   reservedSize: 28,
                   interval: labelInterval,
                   getTitlesWidget: (value, meta) {
-                    final day = windowStart.add(Duration(days: value.toInt()));
+                    final day = dayAt(value.toInt());
                     return Padding(
                       padding: const EdgeInsets.only(top: 6),
                       child: Text(
