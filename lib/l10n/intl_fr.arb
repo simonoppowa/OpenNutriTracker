@@ -1653,5 +1653,7 @@
   "noResultsSubtitle": "",
   "bulkAddRowQuantityInvalid": "",
   "aiConsentTitle": "",
-  "onboardingImplausibleTitle": ""
+  "onboardingImplausibleTitle": "",
+  "dataCollectionLabel": "",
+  "settingsDeleteAllDataConfirmContent": ""
 }
