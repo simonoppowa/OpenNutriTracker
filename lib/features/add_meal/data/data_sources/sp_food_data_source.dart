@@ -1,10 +1,10 @@
-import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/app_locale.dart';
 import 'package:opennutritracker/core/utils/retry_util.dart';
 import 'package:opennutritracker/core/utils/supported_language.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
@@ -51,6 +51,17 @@ class SpFoodDataSource {
   /// twenty best of the backend.
   static const _candidatePoolSize = SPConst.maxNumberOfItems * 5;
 
+  /// The backend localizes names server-side, so a response is in the
+  /// language that was current when the request left. If the app's
+  /// language changes while a request is in flight — Android's per-app
+  /// picker can do that at any moment — the names that come back would be
+  /// cached and shown as if they were in the new language. The locale is
+  /// therefore captured once per attempt and the attempt is repeated when
+  /// it no longer holds; a second change during the retry is left alone.
+  String? _foodLocale() => SPConst.translationLocaleOf(
+    SupportedLanguage.fromCode(AppLocale.localeName),
+  );
+
   /// The twenty rows the app keeps of the backend's hundred for
   /// [searchString], cut by the resolver's rule (see
   /// [rankAndTruncateFoodsByName]). [forResolution] says whose twenty they
@@ -70,42 +81,57 @@ class SpFoodDataSource {
           return const <SpFoodDTO>[];
         }
 
-        final supaBaseClient = locator<SupabaseClient>();
-        final locale = SPConst.translationLocaleOf(
-          SupportedLanguage.fromCode(Platform.localeName),
-        );
-
-        if (locale != null) {
-          final localized = await _searchByTranslation(
-            supaBaseClient,
+        for (var attempt = 0; ; attempt++) {
+          final locale = _foodLocale();
+          final results = await _searchInLocale(
             locale,
             searchString,
             enabledSources,
             forResolution: forResolution,
           );
-          // Foods without a translation for this locale are only findable
-          // by their English name, so an empty localized result set falls
-          // through to the English search instead of returning nothing.
-          if (localized.isNotEmpty) {
-            log.fine('Successful localized ($locale) response from Supabase');
-            return localized;
-          }
+          if (_foodLocale() == locale || attempt > 0) return results;
+          log.fine('App language changed mid-search; repeating once');
         }
-
-        final results = await _searchEnglish(
-          supaBaseClient,
-          searchString,
-          enabledSources,
-          forResolution: forResolution,
-        );
-        log.fine('Successful response from Supabase');
-        return results;
       });
     } catch (exception, stacktrace) {
       log.severe('Exception while getting Supabase food search $exception');
       Sentry.captureException(exception, stackTrace: stacktrace);
       return Future.error(exception);
     }
+  }
+
+  Future<List<SpFoodDTO>> _searchInLocale(
+    String? locale,
+    String searchString,
+    List<String>? enabledSources, {
+    required bool forResolution,
+  }) async {
+    final supaBaseClient = locator<SupabaseClient>();
+    if (locale != null) {
+      final localized = await _searchByTranslation(
+        supaBaseClient,
+        locale,
+        searchString,
+        enabledSources,
+        forResolution: forResolution,
+      );
+      // Foods without a translation for this locale are only findable
+      // by their English name, so an empty localized result set falls
+      // through to the English search instead of returning nothing.
+      if (localized.isNotEmpty) {
+        log.fine('Successful localized ($locale) response from Supabase');
+        return localized;
+      }
+    }
+
+    final results = await _searchEnglish(
+      supaBaseClient,
+      searchString,
+      enabledSources,
+      forResolution: forResolution,
+    );
+    log.fine('Successful response from Supabase');
+    return results;
   }
 
   /// Source codes the user allows in search results (Settings → Food
@@ -126,9 +152,7 @@ class SpFoodDataSource {
   /// eventually disagree.
   Future<Map<int, String>> fetchPortionLabels(List<int> foodIds) async {
     if (foodIds.isEmpty) return const {};
-    final locale = SPConst.translationLocaleOf(
-      SupportedLanguage.fromCode(Platform.localeName),
-    );
+    final locale = _foodLocale();
     // English needs no lookup: the stored description is already English.
     if (locale == null) return const {};
 
@@ -138,6 +162,9 @@ class SpFoodDataSource {
         SPConst.portionLabelsByFoodIdsFn,
         {'ids': foodIds, 'loc': locale},
       );
+      // Labels in a language the app no longer reads are worse than none:
+      // the caller falls back to the generic serving word (#966).
+      if (_foodLocale() != locale) return const {};
       return {
         for (final row in rows)
           if (row['food_id'] is int && row['label'] is String)
@@ -176,7 +203,7 @@ class SpFoodDataSource {
     // penalise or to spare.
     if (foodIds.isEmpty) return const {};
     final locale = SPConst.translationLocaleOf(
-      SupportedLanguage.fromCode(Platform.localeName),
+      SupportedLanguage.fromCode(AppLocale.localeName),
     );
 
     try {
@@ -197,13 +224,20 @@ class SpFoodDataSource {
         if (id is! int || label is! String || grams == null) continue;
         final weight = grams is num ? grams.toDouble() : null;
         if (weight == null || weight <= 0) continue;
-        byFood.putIfAbsent(id, () => []).add(
-          MealPortionEntity(
-            label: label,
-            gramWeight: weight,
-            localized: row['localized'] == true,
-          ),
+        // The English description beside the coalesced label, for a model's
+        // portion key to match against (#1157). Optional on purpose: a
+        // backend without the column still answers, and the matcher falls
+        // back to `label`.
+        final englishLabel = row['label_en'];
+        final portion = MealPortionEntity(
+          label: label,
+          gramWeight: weight,
+          localized: row['localized'] == true,
+          englishLabel: englishLabel is String && englishLabel.isNotEmpty
+              ? englishLabel
+              : null,
         );
+        byFood.putIfAbsent(id, () => []).add(portion);
       }
       return byFood;
     } catch (e) {

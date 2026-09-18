@@ -168,6 +168,12 @@ class SPConst {
         return 'tr';
       case SupportedLanguage.uk:
         return 'uk';
+      case SupportedLanguage.hu:
+        // food_translation has no Hungarian rows yet. Returning 'hu' would
+        // cost every Hungarian search a guaranteed-empty translation RPC
+        // before the English one, plus an empty portion-label request, for
+        // no result. Flip to 'hu' once the backend carries the rows.
+        return null;
     }
   }
 }

@@ -135,7 +135,7 @@ The generated files are **gitignored — never edit them by hand**. Add a key to
 
 Shipped languages are the map in `lib/core/l10n/shipped_locales.dart` — resolution, the Settings picker, `Info.plist` and `locales_config.xml` all derive from it (`tool/check_locales.dart`, run by `just test`). The recipe is in that file's header.
 
-Note: the `SupportedLanguage` enum maps device locales to `food_translation` locales via `SPConst.translationLocaleOf` (`en` reads `food_summary.name` directly; `de`, `pl`, `zh`, `cs`, `it`, `sk`, `tr`, `uk` query translations, falling back to English). It is about food names from the backend, not UI languages, and is deliberately separate.
+Note: the `SupportedLanguage` enum maps device locales to `food_translation` locales via `SPConst.translationLocaleOf` (`en` reads `food_summary.name` directly; `de`, `pl`, `zh`, `cs`, `it`, `sk`, `tr`, `uk`, `hu` query translations, falling back to English). It is about food names from the backend, not UI languages, and is deliberately separate.
 
 ## Code Style
 

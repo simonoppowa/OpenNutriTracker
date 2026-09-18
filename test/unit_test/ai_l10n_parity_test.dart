@@ -2,16 +2,32 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/l10n/shipped_locales.dart';
 
 /// The keys the AI work has added, checked against the ARB files themselves.
 ///
 /// The generated `S` class only exposes the locale the test binding picks, so
-/// a widget test can assert English and nothing else. Eight files could lose a
-/// translation — or receive the English text pasted into a translated slot —
-/// without a single failure. `gen-l10n` warns about a missing key and does not
-/// fail on one, so nothing else in the gate catches it either.
+/// a widget test can assert English and nothing else. A translated slot could
+/// receive the English text pasted in, the broker disclosure could lose its
+/// fourth sentence in one language, the own-server provider could be labelled
+/// "local" — without a single failure elsewhere: `gen-l10n` warns and does
+/// not fail, and `check_l10n` fails only on a structural error or a blank
+/// value.
+///
+/// What this file does *not* check, since #1188 (#1174, #1199): that every
+/// locale has every key. A code PR adds the English key only and the other
+/// `intl_<code>.arb` files receive it from Weblate at their own pace, so a
+/// locale without a key shows English by fallback — so the checks that
+/// compare two labels compare what is rendered, English standing in where a
+/// key has not landed — and nothing here counts keys or says which locale
+/// lacks one (AGENTS.md: never report an ARB key-count difference). What keeps
+/// the file honest instead: English, the source, must have every checked key,
+/// and the untranslated-English check must have looked at something.
 void main() {
-  const locales = ['cs', 'de', 'en', 'it', 'pl', 'sk', 'tr', 'uk', 'zh'];
+  // The languages that ship, from the one map a human edits to ship one — not
+  // every `intl_*.arb`, since Weblate lands files that are barely begun and
+  // nothing here should be asserted of those.
+  final locales = shippedLocales.keys.toList();
   const touched = [
     'aiAssistModelCheapestLabel',
     'aiAssistDisclosureOpenRouter',
@@ -58,7 +74,6 @@ void main() {
     'aiAssistModelsRejectedLabel',
     'aiAssistModelsInsecureLabel',
   ];
-
   final arb = {
     for (final locale in locales)
       locale:
@@ -66,11 +81,42 @@ void main() {
               as Map<String, dynamic>,
   };
 
-  test('every locale defines the keys, non-empty', () {
+  /// The shipped locales that carry every one of [keys]: where a check that
+  /// reads those keys can run. The rest have not received them from Weblate
+  /// yet and show English by fallback, which is the policy, not a finding.
+  ///
+  /// English is always in the list — a key the source lacks is a typo in the
+  /// caller, and a check that quietly ran on nobody would look like a pass.
+  List<String> localesWith(List<String> keys) {
+    final have = locales.where((l) => keys.every(arb[l]!.containsKey)).toList();
+    expect(have, contains('en'), reason: 'the source lacks one of $keys');
+    return have;
+  }
+
+  /// What the app shows for [key] in [locale]: the translation where Weblate
+  /// has landed one, else the English source, which is the fallback gen-l10n
+  /// compiles in. Two labels that must read differently must differ in what
+  /// is rendered, not only where both happen to be translated — a locale that
+  /// has the "unknown" sentence but not yet the "failed" one shows a
+  /// translated "unknown" beside an English "failed", and those two are the
+  /// pair a user sees.
+  String rendered(String locale, String key) =>
+      (arb[locale]![key] ?? arb['en']![key]) as String;
+
+  test('the source defines every checked key, and no landed slot is blank', () {
+    // English is where a key is born, so a checked key that is not there is a
+    // typo in `touched` — and since every check below runs only where a key
+    // exists, the typo would make that key's checks vacuous everywhere.
+    for (final key in touched) {
+      expect(arb['en'], contains(key), reason: 'en is missing $key');
+    }
     for (final locale in locales) {
-      for (final key in touched) {
-        expect(arb[locale], contains(key), reason: '$locale is missing $key');
-        expect((arb[locale]![key] as String).trim(), isNotEmpty, reason: key);
+      for (final key in touched.where(arb[locale]!.containsKey)) {
+        expect(
+          (arb[locale]![key] as String).trim(),
+          isNotEmpty,
+          reason: '$locale/$key is blank',
+        );
       }
     }
   });
@@ -78,15 +124,27 @@ void main() {
   test('no locale carries the English text in a translated slot', () {
     // The failure this catches is a real one and it is quiet: a translation
     // pass that inserts the key everywhere but only writes the source string.
-    for (final locale in locales.where((l) => l != 'en')) {
-      for (final key in touched) {
+    // Only where the key has landed: a locale that has not received it yet
+    // shows English by fallback, which is #1188's policy, not this bug.
+    final translated = locales.where((l) => l != 'en');
+    var checked = 0;
+    for (final key in touched) {
+      for (final locale in translated.where((l) => arb[l]!.containsKey(key))) {
         expect(
           arb[locale]![key],
           isNot(arb['en']![key]),
           reason: '$locale/$key is untranslated English',
         );
+        checked++;
       }
     }
+    // Not a floor per key or per locale — a translation Weblate withdraws
+    // (the source string was reworded and the old translations fell out of
+    // the export) is a legitimate change the app answers with English, and
+    // nothing here may fail on a key missing from a locale. Only the whole
+    // check must not have emptied itself: a skip predicate that skipped
+    // everything would pass exactly like a check that ran.
+    expect(checked, greaterThan(0), reason: 'the check ran on no pair at all');
   });
 
   test('every translation of the broker disclosure gained the new sentence', () {
@@ -95,16 +153,20 @@ void main() {
     // than its Anthropic sibling with or without the appended sentence,
     // because it also carries the identity-forwarding and retention clauses.
     //
-    // The paragraph is four sentences in all nine languages and the fourth is
-    // the one #726 added, so a locale that lost it counts three. Compared
-    // against English rather than a literal 4, so rewording the paragraph
-    // everywhere at once stays green while dropping it anywhere does not.
-    int sentences(String s) => '.。'.split('').fold(0, (n, c) => n + s.split(c).length - 1);
+    // The paragraph is four sentences in every language that has it and the
+    // fourth is the one #726 added, so a locale that lost it counts three.
+    // Compared against English rather than a literal 4, so rewording the
+    // paragraph everywhere at once stays green while dropping it anywhere
+    // does not.
+    int sentences(String s) =>
+        '.。'.split('').fold(0, (n, c) => n + s.split(c).length - 1);
 
-    final expected = sentences(arb['en']!['aiAssistDisclosureOpenRouter'] as String);
+    final expected = sentences(
+      arb['en']!['aiAssistDisclosureOpenRouter'] as String,
+    );
     expect(expected, greaterThan(1), reason: 'guard against a vacuous compare');
 
-    for (final locale in locales) {
+    for (final locale in localesWith(['aiAssistDisclosureOpenRouter'])) {
       expect(
         sentences(arb[locale]!['aiAssistDisclosureOpenRouter'] as String),
         expected,
@@ -123,9 +185,8 @@ void main() {
     // on-device inference, which this app does not do and which was ruled
     // out of scope. The word may appear descriptively in prose; it may not be
     // the name of the thing.
-    for (final locale in locales) {
-      final label =
-          arb[locale]!['aiAssistProviderOwnServerLabel'] as String;
+    for (final locale in localesWith(['aiAssistProviderOwnServerLabel'])) {
+      final label = arb[locale]!['aiAssistProviderOwnServerLabel'] as String;
       expect(
         label.toLowerCase(),
         isNot(contains('local')),
@@ -141,7 +202,7 @@ void main() {
     // locale that dropped the placeholder would send a photograph after
     // showing a sentence with a hole in it; one that pasted a vendor in
     // would name a party that may have nothing to do with the machine.
-    for (final locale in locales) {
+    for (final locale in localesWith(['bulkAddPhotoDisclosureOwnServer'])) {
       final value = arb[locale]!['bulkAddPhotoDisclosureOwnServer'] as String;
       expect(
         value,
@@ -205,7 +266,9 @@ void main() {
     // read as evasive, so it is a row — set apart from the contracted
     // parties, stating the rule rather than a host.
     final readme = File('README.md').readAsStringSync();
-    final privacy = readme.substring(readme.indexOf('**What leaves your device.**'));
+    final privacy = readme.substring(
+      readme.indexOf('**What leaves your device.**'),
+    );
 
     expect(
       privacy,
@@ -237,7 +300,8 @@ void main() {
       expect(
         destination,
         isNot(contains('local')),
-        reason: 'a destination cell reading "$destination" claims the data '
+        reason:
+            'a destination cell reading "$destination" claims the data '
             'does not leave, and it does',
       );
     }
@@ -257,8 +321,9 @@ void main() {
     //
     // Narrow in the same way the on-device guard above is narrow, and for the
     // same reason: these are the two languages this repo can vouch for
-    // phrase by phrase. The parity test keeps the key present everywhere; a
-    // reviewer keeps the other seven honest.
+    // phrase by phrase. The untranslated-English check above catches a slot
+    // that still holds the source; a reviewer keeps the other languages
+    // honest.
     const forbidden = [
       'your own network',
       'stays on your network',
@@ -266,7 +331,9 @@ void main() {
       'deinem eigenen netzwerk',
       'nur erlaubt, weil',
     ];
-    for (final locale in locales) {
+    for (final locale in localesWith([
+      'aiAssistDisclosureOwnServerPlaintext',
+    ])) {
       final value =
           arb[locale]!['aiAssistDisclosureOwnServerPlaintext'] as String;
       for (final phrase in forbidden) {
@@ -284,8 +351,9 @@ void main() {
     // test can only vouch for English. A translator handed nine near-identical
     // short sentences is exactly who would collapse them, and the result would
     // be a user told their model cannot see when nobody has asked it yet.
+    localesWith(['aiAssistProbeUnknownLabel']);
     for (final locale in locales) {
-      final unknown = arb[locale]!['aiAssistProbeUnknownLabel'] as String;
+      final unknown = rendered(locale, 'aiAssistProbeUnknownLabel');
       for (final key in [
         'aiAssistProbeTextFailedLabel',
         'aiAssistProbePhotoFailedLabel',
@@ -298,7 +366,7 @@ void main() {
       ]) {
         expect(
           unknown,
-          isNot(arb[locale]![key]),
+          isNot(rendered(locale, key)),
           reason: '$locale: "not checked yet" reads the same as $key',
         );
       }
@@ -311,8 +379,9 @@ void main() {
     // stays `AiCapability.unknown` is that it says nothing about the model,
     // and a locale that phrased this like the failure sentences would put the
     // blame the state model refuses to assign.
+    localesWith(['aiAssistProbeNoAnswerLabel']);
     for (final locale in locales) {
-      final noAnswer = arb[locale]!['aiAssistProbeNoAnswerLabel'] as String;
+      final noAnswer = rendered(locale, 'aiAssistProbeNoAnswerLabel');
       for (final key in [
         'aiAssistProbePassedLabel',
         'aiAssistProbeTextFailedLabel',
@@ -320,7 +389,7 @@ void main() {
       ]) {
         expect(
           noAnswer,
-          isNot(arb[locale]![key]),
+          isNot(rendered(locale, key)),
           reason: '$locale: "checked, no answer" reads the same as $key',
         );
       }
@@ -333,7 +402,7 @@ void main() {
     // that dropped the placeholder would go back to stating a fixed duration
     // — which is the bug, in eight more languages, and silent because the
     // sentence still reads perfectly well.
-    for (final locale in locales) {
+    for (final locale in localesWith(['aiAssistProbeRunningLabel'])) {
       expect(
         arb[locale]!['aiAssistProbeRunningLabel'] as String,
         contains('{minutes'),
@@ -345,27 +414,27 @@ void main() {
   test('the two capabilities are named apart in every locale', () {
     // The other half of the same decision. Two rows carrying the same label
     // is one combined verdict wearing a disguise.
+    localesWith([
+      'aiAssistProbeTextLabel',
+      'aiAssistProbePhotoLabel',
+      'aiAssistProbeTextFailedLabel',
+      'aiAssistProbePhotoFailedLabel',
+    ]);
     for (final locale in locales) {
       expect(
-        arb[locale]!['aiAssistProbeTextLabel'],
-        isNot(arb[locale]!['aiAssistProbePhotoLabel']),
+        rendered(locale, 'aiAssistProbeTextLabel'),
+        isNot(rendered(locale, 'aiAssistProbePhotoLabel')),
         reason: '$locale names both capabilities the same',
       );
+    }
+    for (final locale in locales) {
       expect(
-        arb[locale]!['aiAssistProbeTextFailedLabel'],
-        isNot(arb[locale]!['aiAssistProbePhotoFailedLabel']),
-        reason: '$locale: a failed photo and a failed text mean different '
+        rendered(locale, 'aiAssistProbeTextFailedLabel'),
+        isNot(rendered(locale, 'aiAssistProbePhotoFailedLabel')),
+        reason:
+            '$locale: a failed photo and a failed text mean different '
             'things — one hides the camera, the other turns nothing off',
       );
     }
-  });
-
-  test('the key counts have not drifted', () {
-    // #650: nine files, one insertion each, counts equal afterwards.
-    final counts = {
-      for (final locale in locales)
-        locale: arb[locale]!.keys.where((k) => !k.startsWith('@')).length,
-    };
-    expect(counts.values.toSet().length, 1, reason: 'drift: $counts');
   });
 }

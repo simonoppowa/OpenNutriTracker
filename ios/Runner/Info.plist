@@ -27,8 +27,9 @@
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
-		<string>de</string>
 		<string>cs</string>
+		<string>de</string>
+		<string>hu</string>
 		<string>it</string>
 		<string>pl</string>
 		<string>sk</string>

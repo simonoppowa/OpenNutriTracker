@@ -43,6 +43,9 @@ class ProductsRepository {
     // re-rank by fusing relevance position with OFF's popularity_key so
     // popular, well-maintained products surface first — without letting
     // popularity drag in off-topic matches the way a hard popularity sort does.
+    // The country boost follows the device on purpose, not the language
+    // picked in the app: a German speaker in Austria wants Austrian
+    // products ranked up. Food-name language is AppLocale's job (#1214).
     final userCountryTag = OffCountry.fromLocale(Platform.localeName);
     final candidates = <_RankedOffProduct>[];
     for (var i = 0; i < offWordResponse.products.length; i++) {
