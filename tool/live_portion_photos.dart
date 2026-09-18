@@ -5,9 +5,13 @@
 // Per item: the query, count, unit and key as the wire carried them; the
 // guard's verdict — kept as a size on a whole count, or dropped because the
 // key was a container word, a piece word, rode on no count, on a fraction,
-// or beside a unit; and for the survivors, whether the size matches a row
-// of the resolved food's English labels (a miss stays quiet on this path,
-// #1159).
+// or beside a unit — beside what the app's own guard (`_countsOnly` then
+// `_sizesOnly`, shipped since #1208) returned for the same item; and for
+// the survivors, whether the size matches a row of the resolved food
+// through `matchPortionToKey` against the English `label_en` — the try
+// `_initialUnit` makes first under a count — with the tie and the
+// middle-rung rule (#1162) read out. A miss stays quiet on this path
+// (`portionKeyMissed` is false for a photo row, #1159).
 //
 //   dart run tool/live_portion_photos.dart --keys <dir> --out <dir>
 //   dart run tool/live_portion_photos.dart --dry-run --out <dir>
@@ -49,10 +53,14 @@ class PhotoItemRecord {
   /// After `validateParsedMealItems`, before any counts-only rule — what
   /// the app's guard sees.
   final ParsedMealItem validated;
+
+  /// The harness's restatement of the guard, which also says *why* a key
+  /// was dropped.
   final PhotoGuardResult guard;
 
-  /// What develop's `_countsOnly` returned for this item, for comparison.
-  final ParsedMealItem? developOutput;
+  /// What the app's own `_sizesOnly(_countsOnly(...))` returned for this
+  /// item — the interpreter is the app's, so this is the shipped guard.
+  final ParsedMealItem? appOutput;
   final ResolvedFood? food;
 
   /// The backend did not answer for a kept key; the match is unknown.
@@ -68,7 +76,7 @@ class PhotoItemRecord {
     required this.raw,
     required this.validated,
     required this.guard,
-    required this.developOutput,
+    required this.appOutput,
     required this.food,
     required this.backendFailure,
     required this.match,
@@ -83,6 +91,15 @@ class PhotoItemRecord {
   /// not be paired.
   bool get arrived => validated.portion != null;
   bool get kept => guard.verdict == PhotoGuardVerdict.kept;
+
+  /// The restated guard and the app's disagree on what the row keeps.
+  bool get guardDisagrees {
+    final app = appOutput;
+    if (app == null) return true;
+    return app.quantity != guard.quantity ||
+        app.unit != null ||
+        app.portion != guard.portion;
+  }
 
   Map<String, Object?> toJson() => {
     'provider': provider,
@@ -102,13 +119,14 @@ class PhotoItemRecord {
       'quantity': guard.quantity,
       'portion': guard.portion,
     },
-    'developOutput': developOutput == null
+    'appOutput': appOutput == null
         ? null
         : {
-            'quantity': developOutput!.quantity,
-            'unit': developOutput!.unit,
-            'portion': developOutput!.portion,
+            'quantity': appOutput!.quantity,
+            'unit': appOutput!.unit,
+            'portion': appOutput!.portion,
           },
+    'guardDisagrees': guardDisagrees,
     'food': food?.toJson(),
     'backendFailure': backendFailure,
     'match': match?.toJson(),
@@ -283,10 +301,11 @@ Future<void> _runPhotos(
           unit: item.unit,
           portion: item.portion,
         );
-        // `_countsOnly` maps the validated items one to one, in order, so
-        // develop's output for this item is at the same index; the query
-        // lookup is only for a client that stopped doing that.
-        final develop = result.items.length == validated.items.length
+        // `_countsOnly` and `_sizesOnly` map the validated items one to
+        // one, in order, so the app's output for this item is at the same
+        // index; the query lookup is only for a client that stopped doing
+        // that.
+        final app = result.items.length == validated.items.length
             ? result.items[index]
             : result.items.where((i) => i.query == item.query).firstOrNull;
 
@@ -295,8 +314,8 @@ Future<void> _runPhotos(
         String? backendFailure;
         if (guard.verdict == PhotoGuardVerdict.kept) {
           try {
-            food = await resolver.resolve(item.query);
-            if (food != null) match = matchWithTie(guard.portion!, food.portions);
+            food = await resolver.resolve(item.query, locale: photoLocale);
+            if (food != null) match = matchKey(guard.portion!, food.portions);
           } on BackendException catch (e) {
             backendFailure = e.toString();
             run.backendFailures.add(
@@ -314,7 +333,7 @@ Future<void> _runPhotos(
             raw: raw,
             validated: item,
             guard: guard,
-            developOutput: develop,
+            appOutput: app,
             food: food,
             backendFailure: backendFailure,
             match: match,
@@ -398,16 +417,21 @@ String _report({
     ..writeln()
     ..writeln('</details>')
     ..writeln()
-    ..writeln('## The guard, as decided (#1156)')
+    ..writeln('## The guard, as shipped (#1156)')
     ..writeln()
     ..writeln(
       'Applied to each item after `validateParsedMealItems`: a `unit` strips '
       'the count and the key with it; a fraction strips both too; a key with '
       'no count is dropped; a whole count keeps the key only when, trimmed '
       'and lower-cased, it is exactly `small`, `medium` or `large`; any '
-      'other word is dropped and the count stays. *develop* is what the '
-      'current `_countsOnly` returned for the same item, which has no key '
-      'rule yet.',
+      'other word is dropped and the count stays. *app* is what the '
+      'interpreter\'s own `_sizesOnly(_countsOnly(...))` returned for the '
+      'same item — the guard as it ships — and *guard disagrees* counts the '
+      'items where the harness\'s restatement, which exists to say why a '
+      'word was dropped, and the app differ on what the row keeps. A kept '
+      'size is matched through `matchPortionToKey` against the English '
+      'label, the first try `_initialUnit` makes under a count; the resolver '
+      'is the app\'s own path (see the text report).',
     )
     ..writeln();
 
@@ -444,9 +468,13 @@ String _report({
       verdict(PhotoGuardVerdict.noCount),
       verdict(PhotoGuardVerdict.fraction),
       verdict(PhotoGuardVerdict.unit),
+      all.where((i) => i.guardDisagrees).length,
       ratio(resolved.length, kept.length),
+      ratio(resolved.where((i) => i.food!.hasPortion == true).length, resolved.length),
+      ratio(resolved.where((i) => i.food!.portions.isNotEmpty).length, resolved.length),
       ratio(matched.length, resolved.length),
       matched.where((i) => i.match!.tie).length,
+      matched.where((i) => i.match!.middleRung).length,
       resolved.length - matched.length,
       '${run.unstable.length}/${photos.length}',
       sorted.isEmpty
@@ -462,8 +490,10 @@ String _report({
         'dropped: container',
         'dropped: piece', 'dropped: size-like, not one of three',
         'dropped: other', 'dropped: no count', 'dropped: fraction',
-        'dropped: unit', 'resolved (of kept)', 'matched (of resolved)',
-        'ties', 'quiet misses', 'unstable photos', 'latency p50 / p95 / max',
+        'dropped: unit', 'guard disagrees with app', 'resolved (of kept)',
+        'has_portion on the row (of resolved)', 'with rows (of resolved)',
+        'matched (of resolved)', 'ties', 'middle rung', 'quiet misses',
+        'unstable photos', 'latency p50 / p95 / max',
       ],
       rows,
     ),
@@ -476,7 +506,7 @@ String _report({
     table(
       [
         'provider', 'photo', 'pass', 'query', 'raw qty', 'raw unit', 'raw key',
-        'validated qty/unit', 'guard', 'kept key', 'develop qty/key',
+        'validated qty/unit', 'guard', 'kept key', 'app qty/key',
         'resolved', 'match',
       ],
       [
@@ -493,20 +523,22 @@ String _report({
               '${i.validated.quantity ?? '–'} / ${i.validated.unit ?? '–'}',
               i.guard.verdict.name,
               i.guard.portion,
-              i.developOutput == null
+              i.appOutput == null
                   ? '–'
-                  : '${i.developOutput!.quantity ?? '–'} / ${i.developOutput!.portion ?? '–'}',
+                  : '${i.appOutput!.quantity ?? '–'} / ${i.appOutput!.portion ?? '–'}'
+                        '${i.guardDisagrees ? ' **(disagrees)**' : ''}',
               i.food == null
                   ? (i.backendFailure != null
                         ? 'backend failed'
                         : i.kept
                         ? 'unresolved'
                         : '')
-                  : '${i.food!.name} (${i.food!.portions.length} rows)',
+                  : '${i.food!.name} (has_portion ${i.food!.hasPortion}; ${i.food!.portions.length} rows)',
               i.match == null
                   ? (i.food == null ? '' : 'miss (quiet)')
                   : '`${i.match!.portion.label}` ${i.match!.portion.gramWeight} g'
-                        '${i.match!.tie ? ' **tie** with ${i.match!.tiedWith.map((p) => '`${p.label}`').join(', ')}' : ''}',
+                        '${i.match!.tie ? ' **tie** with ${i.match!.tiedWith.map((p) => '`${p.label}`').join(', ')}' : ''}'
+                        '${i.match!.middleRung ? ' **middle rung**' : ''}',
             ],
       ],
     ),
@@ -539,6 +571,15 @@ String _report({
             '${(i.raw?.quantity ?? i.validated.quantity) ?? '–'} × '
             '`${i.raw?.portion ?? i.validated.portion}` → ${i.guard.verdict.name}, '
             'count ${i.guard.quantity ?? 'dropped'}',
+  ]);
+  section('Items where the restated guard and the app\'s disagree', [
+    for (final run in runs)
+      for (final i in run.items.where((i) => i.guardDisagrees))
+        '- ${run.session.label} ${i.photo} pass ${i.pass} item ${i.index}: '
+            '`${i.validated.query}` validated ${i.validated.quantity ?? '–'} / '
+            '${i.validated.unit ?? '–'} key ${code(i.validated.portion)} → '
+            'restated ${i.guard.quantity ?? '–'} / ${code(i.guard.portion)}, '
+            'app ${i.appOutput?.quantity ?? '–'} / ${code(i.appOutput?.portion)}',
   ]);
   section('Items whose raw reply could not be paired (recorded, not dropped)', [
     for (final run in runs)

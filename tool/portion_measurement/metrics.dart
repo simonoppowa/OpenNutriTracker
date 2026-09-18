@@ -126,22 +126,43 @@ const abbreviationExpansions = {
 bool isAbbreviationKey(String key) =>
     abbreviationExpansions.containsKey(key.trim().toLowerCase());
 
-/// `matchPortionToQuery` plus the one thing it does not report: whether the
-/// winner won on a tie.
+/// One of the matcher's two answers, with what it does not report: whether
+/// the winner won on a tie, and whether the middle-rung rule (#1162)
+/// decided that tie.
 ///
-/// The matcher scores a portion by the length of its longest matched term
-/// and gives ties to the earlier row. Those lengths are private to it, so the
-/// tie is recovered through the public function alone: for the winner `i`
-/// and another row `j`, `[j, i]` resolving to `j` means score(j) >= score(i),
-/// and `[i, j]` resolving to `i` means score(i) >= score(j); both together
-/// mean equal — a tie, decided by order.
+/// Two callers, two labels (`portion_match.dart`): a model's key goes
+/// through `matchPortionToKey` against the English label the backend sends
+/// beside the localized one (#1208), the user's words through
+/// `matchPortionToQuery` against the label as it arrived. [keyMatch] and
+/// [queryMatch] call those two — the app's own functions, imported — and
+/// recover the tie from the score the matcher keeps private: the sum of
+/// the lengths of the label's terms that a token of the text matched
+/// (portion_match.dart:115-121), restated in [_termScore]. The rows at the
+/// best score are the tie; among them `_middleRung` (:158-165) picks the
+/// first whose English label names `medium` or `regular`, and failing that
+/// the earliest row (:130). The restated prediction is compared with the
+/// app's answer on every call and a disagreement throws, so the numbers
+/// below are never a reading of the matcher that the matcher does not
+/// share.
 class PortionMatch {
   final int index;
   final MealPortionEntity portion;
+
+  /// Another row scored the same, and the tie rule decided.
   final bool tie;
   final List<MealPortionEntity> tiedWith;
 
-  /// False when no word of the query is a word of the winning label as
+  /// The middle-rung rule fired: there was a tie, and the winner is a
+  /// tied row whose English label names the middle of a size ladder. When
+  /// it fired the earlier-row fallback was not consulted; whether it
+  /// would have chosen differently is [movedByMiddleRung].
+  final bool middleRung;
+
+  /// The middle-rung rule picked a row the earlier-row fallback would not
+  /// have: the winner is not the first of the tied rows.
+  final bool movedByMiddleRung;
+
+  /// False when no word of the text is a word of the winning label as
   /// written and the hit came through the matcher's two-letter inflection
   /// bound instead — `slice` on `1 slices`, `cup` on `cups`. Together with
   /// [tie] this is the false-match surface #1160 asks the report to show:
@@ -153,6 +174,8 @@ class PortionMatch {
     required this.portion,
     required this.tie,
     required this.tiedWith,
+    required this.middleRung,
+    required this.movedByMiddleRung,
     required this.literal,
   });
 
@@ -163,42 +186,176 @@ class PortionMatch {
   Map<String, Object?> toJson() => {
     'index': index,
     'label': portion.label,
+    'englishLabel': portion.englishLabel,
     'gramWeight': portion.gramWeight,
     'tie': tie,
     'tiedWith': [for (final p in tiedWith) p.label],
+    'middleRung': middleRung,
+    'movedByMiddleRung': movedByMiddleRung,
     'literal': literal,
   };
 }
 
-/// The words of a query or a label the matcher sees: runs of letters of at
-/// least three, parentheticals removed, lower-cased — `portion_match`'s
-/// own rule, restated here only to say whether a hit was literal.
-Set<String> matcherWords(String text) => text
-    .replaceAll(RegExp(r'\([^)]*\)'), ' ')
+/// `_words` (portion_match.dart:46-50): the tokens of a text the matcher
+/// sees — runs of letters of at least three, lower-cased.
+Set<String> _words(String text) => text
     .toLowerCase()
     .split(RegExp(r'[^\p{L}]+', unicode: true))
     .where((w) => w.length >= 3)
     .toSet();
 
-PortionMatch? matchWithTie(String key, List<MealPortionEntity> portions) {
-  final index = matchPortionToQuery(key, portions);
-  if (index == null) return null;
-  final winner = portions[index];
-  final tied = <MealPortionEntity>[];
-  for (var j = 0; j < portions.length; j++) {
-    if (j == index) continue;
-    final other = portions[j];
-    final otherFirst = matchPortionToQuery(key, [other, winner]);
-    final winnerFirst = matchPortionToQuery(key, [winner, other]);
-    if (otherFirst == 0 && winnerFirst == 0) tied.add(other);
+/// `_termsOf` (portion_match.dart:55-56): the words of a label worth
+/// matching on, parentheticals removed first. Restated to score a row and
+/// to say whether a hit was literal.
+Set<String> matcherWords(String label) =>
+    _words(label.replaceAll(RegExp(r'\([^)]*\)'), ' '));
+
+/// `_matches` (portion_match.dart:59-65): the term, or either the other
+/// with at most two letters of ending.
+bool _termMatches(String token, String term) {
+  if (token == term) return true;
+  if (token.startsWith(term) && token.length - term.length <= 2) return true;
+  return term.startsWith(token) && term.length - token.length <= 2;
+}
+
+/// The matcher's score for one row (portion_match.dart:118-121): the
+/// lengths of the label's terms that some token of [tokens] matches.
+int _termScore(Set<String> tokens, String label) {
+  var score = 0;
+  for (final term in matcherWords(label)) {
+    if (tokens.any((t) => _termMatches(t, term))) score += term.length;
   }
+  return score;
+}
+
+/// `_englishLabelOf` (portion_match.dart:70-71).
+String _englishLabelOf(MealPortionEntity p) => p.englishLabel ?? p.label;
+
+/// `_middleRungWords` (portion_match.dart:135).
+const _middleRungWords = {'medium', 'regular'};
+
+/// A model's key against the food's portions, as `_initialUnit` tries it
+/// first (bulk_add_bloc.dart:621-623): `matchPortionToKey`, the English
+/// label.
+PortionMatch? matchKey(String key, List<MealPortionEntity> portions) =>
+    _detail(key, portions, _englishLabelOf, matchPortionToKey(key, portions));
+
+/// The query words against the food's portions, as `_initialUnit` tries
+/// them when the key missed: `matchPortionToQuery`, the label as it
+/// arrived.
+PortionMatch? matchQueryWords(String query, List<MealPortionEntity> portions) =>
+    _detail(
+      query,
+      portions,
+      (p) => p.label,
+      matchPortionToQuery(query, portions),
+    );
+
+PortionMatch? _detail(
+  String text,
+  List<MealPortionEntity> portions,
+  String Function(MealPortionEntity) labelOf,
+  int? answer,
+) {
+  // `_match` (portion_match.dart:106-131), restated to see the tie.
+  final tokens = _words(text);
+  var bestScore = 0;
+  final tied = <int>[];
+  for (var i = 0; i < portions.length; i++) {
+    final score = tokens.isEmpty ? 0 : _termScore(tokens, labelOf(portions[i]));
+    if (score == 0 || score < bestScore) continue;
+    if (score > bestScore) {
+      bestScore = score;
+      tied.clear();
+    }
+    tied.add(i);
+  }
+  int? rung;
+  for (final i in tied) {
+    if (matcherWords(_englishLabelOf(portions[i])).any(_middleRungWords.contains)) {
+      rung = i;
+      break;
+    }
+  }
+  final predicted = tied.isEmpty ? null : (rung ?? tied.first);
+  if (predicted != answer) {
+    throw StateError(
+      'portion_match parity: the restated score predicts $predicted, the '
+      'app answered $answer for "$text" over ${portions.length} rows',
+    );
+  }
+  if (answer == null) return null;
+  final winner = portions[answer];
   return PortionMatch(
-    index: index,
+    index: answer,
     portion: winner,
-    tie: tied.isNotEmpty,
-    tiedWith: tied,
-    literal: matcherWords(key).intersection(matcherWords(winner.label)).isNotEmpty,
+    tie: tied.length > 1,
+    tiedWith: [for (final i in tied) if (i != answer) portions[i]],
+    middleRung: tied.length > 1 && rung != null,
+    movedByMiddleRung: tied.length > 1 && answer != tied.first,
+    literal: tokens.intersection(matcherWords(labelOf(winner))).isNotEmpty,
   );
+}
+
+/// `BulkAddRow.portionKeyMissed` (bulk_add_bloc.dart:203-211), conjunct for
+/// conjunct: a key was given; the row resolved; not a photo read; a count
+/// was stated; the lookup did not fail and the food has portions to choose
+/// from; and neither the key (English label) nor the query words (the
+/// label as it arrived) name one of them. [food] null is an unresolved
+/// row, which the getter's `food == null` guard answers false.
+bool rowPortionKeyMissed({
+  required String? key,
+  required String query,
+  required double? quantity,
+  required bool fromPhoto,
+  required List<MealPortionEntity>? food,
+  required bool portionsUnavailable,
+}) {
+  if (key == null || food == null || fromPhoto) return false;
+  if (quantity == null) return false;
+  if (portionsUnavailable || food.isEmpty) return false;
+  return matchPortionToKey(key, food) == null &&
+      matchPortionToQuery(query, food) == null;
+}
+
+/// Which step of `BulkAddBloc._initialUnit` (bulk_add_bloc.dart:594-646)
+/// names the row's unit, for a resolved food.
+enum InitialUnitStep {
+  /// A unit was stated, and it is the unit (:599-600).
+  statedUnit,
+
+  /// A count and a key that named a row: `matchPortionToKey` (:615-624).
+  key,
+
+  /// A count, a key that missed or none, and query words that named a row:
+  /// `matchPortionToQuery` (:621-624).
+  queryWords,
+
+  /// A count, no row named, and a scalable serving: `serving` (:638-640).
+  serving,
+
+  /// The record's serving unit, or the g/ml or oz fallback (:642-645).
+  fallback,
+}
+
+/// The step that decides, and the portion index when it is a match.
+InitialUnitStep initialUnitStep({
+  required String? unit,
+  required double? quantity,
+  required String? key,
+  required String query,
+  required List<MealPortionEntity> portions,
+  required double? servingQuantity,
+}) {
+  if (unit != null) return InitialUnitStep.statedUnit;
+  if (quantity != null) {
+    if (matchPortionToKey(key, portions) != null) return InitialUnitStep.key;
+    if (matchPortionToQuery(query, portions) != null) {
+      return InitialUnitStep.queryWords;
+    }
+    if (servingQuantity != null) return InitialUnitStep.serving;
+  }
+  return InitialUnitStep.fallback;
 }
 
 /// Why the photo guard (#1156) dropped a key, or `kept`.
@@ -223,16 +380,21 @@ class PhotoGuardResult {
   const PhotoGuardResult(this.quantity, this.portion, this.verdict);
 }
 
-/// The #1156 rule, exactly as decided, applied to a validated item — the
-/// `parsed` the app's guard would see, after `validateParsedMealItems` and
-/// before the row is built:
+/// The #1156 rule as the app ships it — `_countsOnly` then `_sizesOnly` in
+/// `model_meal_photo_interpreter.dart` (:107-162) — applied to a validated
+/// item, the `parsed` those guards see after `validateParsedMealItems`,
+/// with the one thing they do not say: *why* a key was dropped.
 ///
-/// - a unit strips the count, and the key goes with it;
-/// - a fraction strips the count, and the key goes with it;
-/// - no count: the key is dropped, size word or not;
+/// - a unit strips the count, and the key goes with it (:111-114, :159);
+/// - a fraction strips the count, and the key goes with it (:120-121);
+/// - no count: the key is dropped, size word or not (:159);
 /// - a whole count with a key that, trimmed and lower-cased, is exactly
-///   `small`, `medium` or `large`: kept, normalised;
+///   `small`, `medium` or `large`: kept, normalised (:160-161);
 /// - a whole count with any other key: the count stays, the key is null.
+///
+/// The photo harness runs the interpreter itself, so the app's own output
+/// is on every item beside this; the two are compared and a disagreement
+/// is counted.
 PhotoGuardResult applyPhotoGuard({
   required double? quantity,
   required String? unit,

@@ -1,18 +1,24 @@
 // Runs a generated corpus of meal lines — most of them naming a household
 // measure — through `ModelMealTextInterpreter` on each hosted provider and
-// reports what the model did with `portion` (#1160).
+// reports what the model did with `portion` (#1160), measured against what
+// the app does with it today.
 //
 // For every item: was a key emitted; is it one of the eight steering words
 // (#1158); is it English rather than the line's own word (#1157); does it
-// match a row of the food the resolver lands on, via `matchPortionToQuery`
-// against the food's *English* labels; when it matches, was the winner a
-// tie or a hit on an inflection rather than the word as written (the
-// false-match surface); when it misses, whether the row would raise
-// `amountNeedsCheck` (#1159) — which needs a count and no match by the
-// query words either, since `_initialUnit` tries those before defaulting.
-// Plus the abbreviation cases (`tbsp` → `tablespoon`), the unit-substitution
-// rule the prompt states, the old harness's invariants and its differential
-// against `parseMealText`, and a stability probe.
+// match a row of the food the resolver lands on — through the app's own
+// `matchPortionToKey` against the English `label_en` of the portions the
+// app fetches in the line's locale (#1208); when it matches, was the winner
+// a tie, did the middle-rung rule (#1162) decide it, or was it a hit on an
+// inflection rather than the word as written (the false-match surface);
+// when it misses, whether the row would raise `portionKeyMissed` as
+// `BulkAddRow` gates it (#1159 with its gate): a count stated, the food
+// carrying portion rows, and the query words missing too. And two things
+// the 2026-09-12 run could not see: whether the record the resolver landed
+// on carried `has_portion` on the search row (#1209), and whether the page
+// it was picked from had portion rows at all. Plus the abbreviation cases
+// (`tbsp` → `tablespoon`), the unit-substitution rule the prompt states,
+// the old harness's invariants and its differential against
+// `parseMealText`, and a stability probe.
 //
 //   dart run tool/live_portion_corpus.dart --keys <dir> --out <dir>
 //   dart run tool/live_portion_corpus.dart --dry-run --out <dir>
@@ -29,6 +35,7 @@ import 'dart:math';
 
 import 'package:http/http.dart' as http;
 import 'package:opennutritracker/features/add_meal/data/model_meal_text_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
@@ -53,19 +60,27 @@ class ItemRecord {
   final bool? matchesExpectedKey;
   final bool unitSubstituted;
 
-  /// The record the app would land on for the model's query in the line's
+  /// The record the app lands on for the model's query in the line's
   /// locale — through the translation search for a non-English line, the
-  /// English search when that found nothing — with its English portions.
+  /// English search when that found nothing — with the portions the app
+  /// fetches for that locale, each carrying its English `label_en`.
   final ResolvedFood? food;
 
   /// The backend did not answer for this item; nothing below is known.
   final String? backendFailure;
+
+  /// The key against the food's portions through `matchPortionToKey` — the
+  /// English label — as `_initialUnit` tries it first under a count.
   final PortionMatch? match;
 
-  /// What `_initialUnit`'s second try finds — the query words against the
-  /// labels of the line's own locale — computed only when the key missed,
-  /// because the app only reaches it then.
+  /// What `_initialUnit`'s second try finds — the query words through
+  /// `matchPortionToQuery`, against the label as it arrived — computed
+  /// only when the key missed, because the app only reaches it then.
   final PortionMatch? queryMatch;
+
+  /// Which step of `_initialUnit` decides the row's unit; null when the
+  /// food is unresolved.
+  final InitialUnitStep? unitStep;
   final int latencyMs;
 
   const ItemRecord({
@@ -81,6 +96,7 @@ class ItemRecord {
     required this.backendFailure,
     required this.match,
     required this.queryMatch,
+    required this.unitStep,
     required this.latencyMs,
   });
 
@@ -90,13 +106,38 @@ class ItemRecord {
       key != null && steeringWords.contains(key!.trim().toLowerCase());
   bool get expectedByLine => index == 0 && line.expected != null;
 
-  /// The key matched no row of a resolved food.
+  /// The key matched no row of a resolved food — a food with rows the key
+  /// did not name, or a food with no rows at all.
   bool get keyMiss => emitted && food != null && match == null;
 
-  /// The row `amountNeedsCheck` would flag under #1159's rule, as the getter
-  /// is gated: a count is present, the key matched nothing, and neither did
-  /// the query words — a key miss whose query hits a row never reaches the
-  /// bare-count rule, and a row with no count is outside the getter.
+  /// `BulkAddRow.portionKeyMissed` for this row, computed by the same
+  /// conjuncts (bulk_add_bloc.dart:203-211): a key, a resolved text row, a
+  /// count, a food with portion rows whose lookup did not fail, and
+  /// neither the key nor the query words naming one of them.
+  bool get portionKeyMissed => rowPortionKeyMissed(
+    key: key,
+    query: item.query,
+    quantity: item.quantity,
+    fromPhoto: false,
+    food: food?.portions,
+    portionsUnavailable: food?.portionsUnavailable ?? false,
+  );
+
+  /// `BulkAddRow.amountNeedsCheck` for a row that stated no unit
+  /// (bulk_add_bloc.dart:158-169): a count, and either no scalable serving
+  /// on the record or [portionKeyMissed]. Null when a unit was stated —
+  /// that branch compares the unit with the dropdown's, which needs the
+  /// screen's unit vocabulary — or the food is unresolved.
+  bool? get amountNeedsCheck {
+    final f = food;
+    if (f == null || item.quantity == null || item.unit != null) return null;
+    return f.servingQuantity == null || portionKeyMissed;
+  }
+
+  /// The old report's column, kept under its name so the two runs can be
+  /// read side by side: a key miss with a count whose query words miss
+  /// too, *before* the gate #1159's refinement added — which is
+  /// [portionKeyMissed] without "the food has rows".
   bool get amountNeedsCheckFires =>
       keyMiss && item.quantity != null && queryMatch == null;
 
@@ -134,7 +175,10 @@ class ItemRecord {
     'food': food?.toJson(),
     'match': match?.toJson(),
     'queryMatch': queryMatch?.toJson(),
+    'unitStep': unitStep?.name,
     'keyMiss': keyMiss,
+    'portionKeyMissed': portionKeyMissed,
+    'amountNeedsCheck': amountNeedsCheck,
     'amountNeedsCheckFires': amountNeedsCheckFires,
     'latencyMs': latencyMs,
   };
@@ -245,8 +289,8 @@ Future<void> main(List<String> args) async {
     stdout.writeln(
       '${run.session.label}: emitted ${ratio(emitted, expected)} on measure '
       'lines | matched $matched | key misses '
-      '${run.items.where((i) => i.keyMiss).length} | amountNeedsCheck fires '
-      '${run.items.where((i) => i.amountNeedsCheckFires).length} | '
+      '${run.items.where((i) => i.keyMiss).length} | portionKeyMissed '
+      '${run.items.where((i) => i.portionKeyMissed).length} | '
       'failures ${run.failures.length} | backend failures '
       '${run.backendFailures.length} | violations ${run.violations.length} '
       '| disagreements ${run.disagreements.length} '
@@ -347,20 +391,29 @@ Future<void> _runCorpus(
       String? backendFailure;
       PortionMatch? match;
       PortionMatch? queryMatch;
+      InitialUnitStep? unitStep;
       try {
         // The model's query, searched the way the app searches it for a
-        // user of the line's locale.
+        // user of the line's locale, with the page's portions fetched in
+        // that locale.
         food = await resolver.resolve(item.query, locale: c.locale);
-        if (key != null && food != null) {
-          match = matchWithTie(key, food.portions);
-          if (match == null) {
-            // The app's second try, against the labels a user of this
-            // locale receives — the English ones already fetched for
-            // English, the locale's coalesced ones otherwise.
-            final localized = c.locale == 'en'
-                ? food.portions
-                : await resolver.localizedPortions(food.foodId, c.locale);
-            queryMatch = matchWithTie(item.query, localized);
+        if (food != null) {
+          unitStep = initialUnitStep(
+            unit: item.unit,
+            quantity: item.quantity,
+            key: key,
+            query: item.query,
+            portions: food.portions,
+            servingQuantity: food.servingQuantity,
+          );
+          if (key != null) {
+            // `_initialUnit`'s two tries in its order: the key against the
+            // English labels, and only when that misses, the query words
+            // against the labels as they arrived.
+            match = matchKey(key, food.portions);
+            if (match == null) {
+              queryMatch = matchQueryWords(item.query, food.portions);
+            }
           }
         }
       } on BackendException catch (e) {
@@ -371,6 +424,7 @@ Future<void> _runCorpus(
         food = null;
         match = null;
         queryMatch = null;
+        unitStep = null;
       }
 
       run.items.add(
@@ -387,6 +441,7 @@ Future<void> _runCorpus(
           backendFailure: backendFailure,
           match: match,
           queryMatch: queryMatch,
+          unitStep: unitStep,
           latencyMs: latency,
         ),
       );
@@ -466,6 +521,13 @@ String _foodName(ResolvedFood f) {
   };
 }
 
+/// A portion as the reader sees it, with the English label the key was
+/// matched against where it differs.
+String _portionName(MealPortionEntity p) {
+  final en = p.englishLabel;
+  return en == null || en == p.label ? '`${p.label}`' : '`${p.label}` (en `$en`)';
+}
+
 String _report({
   required List<ProviderRun> runs,
   required List<ProviderSession> sessions,
@@ -505,8 +567,8 @@ String _report({
         'and two lines that move on repeat; no model was called. The '
         'backend *was* called — read-only `search_food_summary`, '
         '`search_food_translation`, `food_summary_by_ids` and '
-        '`portions_by_food_ids` — so the resolution, matching and tie '
-        'columns are real.',
+        '`portions_by_food_ids` — so the resolution, `has_portion`, '
+        'matching and tie columns are real.',
       )
       ..writeln();
   }
@@ -577,39 +639,67 @@ String _report({
       '*tazze* line — the failure #1157 names.',
     )
     ..writeln(
-      '- *Resolved* is the record the app\'s AI path lands on for the '
-      'model\'s query, searched as the app searches for a user of the '
-      'line\'s locale: `search_food_summary` for an English line; for any '
-      'other, `search_food_translation` in that locale, the hits ranked and '
-      'cut, `food_summary_by_ids` for them, re-sorted onto the translation '
-      'order and shown under the translated name — and only when the '
-      'translation search finds nothing, the English search on the same '
-      'words. Then the AI path\'s ranking. *Via translation* counts the '
-      'resolved measure lines that came through the translation search; '
-      'the JSON\'s `resolvedVia` says `english`, `translation` or '
-      '`englishFallback` per item, and every hit or miss line below names '
-      'the translated description the app showed. Portions are fetched '
-      'with `loc = en` on every path.',
+      '- *Resolved* is the record the app\'s resolver lands on for the '
+      'model\'s query, searched as the app searches for a user whose app '
+      'language is the line\'s locale (`AppLocale`, #1215): '
+      '`search_food_summary` for an English line; for any other, '
+      '`search_food_translation` in that locale, the hits cut with '
+      '`has_portion` read (`rankAndTruncateTranslationRows`, '
+      '`forResolution: true`, #1209), `food_summary_by_ids` for them, '
+      're-sorted onto the cut\'s order and shown under the translated '
+      'name — and only when the translation search finds nothing, the '
+      'English search on the same words, cut the same way '
+      '(`rankAndTruncateFoodsByName`). Then one `portions_by_food_ids` in '
+      'the line\'s locale for the whole page, each row\'s portions '
+      'carrying `label_en` (#1208), `mergeAndRankMeals` and '
+      '`rankForResolution` as `ResolveParsedMealsUseCase` calls them — '
+      'siblings no longer collapsed, 0.15 off a record with no portion '
+      'rows, ties broken by the shorter description then the more '
+      'portions (#1170). *Via translation* counts the resolved measure '
+      'lines that came through the translation search; the JSON\'s '
+      '`resolvedVia` says `english`, `translation` or `englishFallback` '
+      'per item.',
     )
     ..writeln(
-      '- *Matched* is `matchPortionToQuery(key, portions) != null`; *tie* '
-      'means another row scored the same and the earlier one won; *not '
-      'literal* means the hit came through the matcher\'s two-letter '
-      'inflection bound and no word of the key is a word of the winning '
-      'label as written. Together those are the *false-match surface* '
-      '#1160 asks for — the hits where a wrong row is possible; whether '
-      'one *is* wrong is for the reader, and every one is listed with the '
-      'row it picked.',
+      '- *has_portion* is the resolved record\'s `has_portion` column as '
+      'the search row carried it — the backend\'s own word, which the cut '
+      'read; *with rows* is whether `portions_by_food_ids` delivered a row '
+      'for it. The two should agree, and the report says where they do '
+      'not. Both are new: the 2026-09-12 run had neither column on the '
+      'wire.',
     )
     ..writeln(
-      '- *Key miss* is a key on a resolved food that matched nothing. '
-      '*amountNeedsCheck fires* is the subset #1159\'s rule would flag, as '
-      'the getter is gated: the row has a count, and the query words miss '
-      'too — `_initialUnit` tries `matchPortionToQuery(query, portions)` '
-      'before defaulting, against the labels of the line\'s own locale, so '
-      'a key miss whose query words hit a row is not flagged, and a row '
-      'with no count is outside the getter. A key miss on a food with no '
-      'rows always fires.',
+      '- *Matched* is `matchPortionToKey(key, portions) != null` — the '
+      'key against the **English** label of each portion, which is what '
+      '`_initialUnit` tries first under a count; *tie* means another row '
+      'scored the same; *middle rung* means the tie was decided by the '
+      'row whose English label names `medium` or `regular` (#1162), and '
+      '*moved* that this picked a later row than the earlier-row fallback '
+      'would have; *not literal* means the hit came through the '
+      'matcher\'s two-letter inflection bound and no word of the key is '
+      'a word of the winning label as written. Ties and non-literal hits '
+      'together are the *false-match surface* #1160 asks for — the hits '
+      'where a wrong row is possible; whether one *is* wrong is for the '
+      'reader, and every one is listed with the row it picked.',
+    )
+    ..writeln(
+      '- *Key miss* is a key on a resolved food that matched nothing — '
+      'split into *food has no rows* and a real miss. *portionKeyMissed* '
+      'is `BulkAddRow.portionKeyMissed` computed by its own conjuncts: a '
+      'count is stated, the food has portion rows and their lookup did '
+      'not fail, and neither the key (English label) nor the query words '
+      '(`matchPortionToQuery`, the label as it arrived) name one — so a '
+      'miss on a food with no rows is quiet, which is the gate the '
+      '2026-09-12 run proposed. *amountNeedsCheck* is the whole getter '
+      'for a row with a count and no unit: `portionKeyMissed`, or no '
+      'scalable serving on the record. *amountNeedsCheck fires (old)* is '
+      'the previous report\'s column — the miss without the rows gate — '
+      'kept so the two runs read side by side.',
+    )
+    ..writeln(
+      '- *Unit step* is which step of `_initialUnit` decides the row\'s '
+      'unit: the key, the query words, `serving` on a bare count, or the '
+      'fallback.',
     )
     ..writeln();
 
@@ -626,12 +716,22 @@ String _report({
     final resolvedKeyed = keyed.where((i) => i.food != null).toList();
     final matched = resolvedKeyed.where((i) => i.match != null).toList();
     final ties = matched.where((i) => i.match!.tie).length;
+    final rung = matched.where((i) => i.match!.middleRung).length;
+    final moved = matched.where((i) => i.match!.movedByMiddleRung).length;
     final notLiteral = matched.where((i) => !i.match!.literal).length;
     final suspect = matched.where((i) => i.match!.suspect).length;
+    final flagged = resolvedKeyed.where((i) => i.food!.hasPortion == true).length;
+    final withRows = resolvedKeyed.where((i) => i.food!.portions.isNotEmpty).length;
+    final flagDisagrees = resolvedKeyed
+        .where((i) => (i.food!.hasPortion == true) != i.food!.portions.isNotEmpty)
+        .length;
+    final lowConfidence = resolvedKeyed.where((i) => i.food!.lowConfidence).length;
     final misses = resolvedKeyed.where((i) => i.keyMiss).toList();
     final missesNoRows = misses.where((i) => i.food!.portions.isEmpty).length;
     final missesRescued = misses.where((i) => i.queryMatch != null).length;
     final missesNoCount = misses.where((i) => i.item.quantity == null).length;
+    final keyMissed = resolvedKeyed.where((i) => i.portionKeyMissed).length;
+    final needsCheck = resolvedKeyed.where((i) => i.amountNeedsCheck == true).length;
     final fires = misses.where((i) => i.amountNeedsCheckFires).length;
     final english = emitted
         .where((i) => englishKeyLanguages.contains(i.language))
@@ -657,14 +757,21 @@ String _report({
       ratio(emitted.where((i) => i.matchesExpectedKey == true).length, emitted.length),
       '${ratio(resolvedKeyed.length, keyed.length)}'
           '${unchecked == 0 ? '' : ', $unchecked unchecked (backend)'}',
+      '${ratio(flagged, resolvedKeyed.length)}'
+          '${flagDisagrees == 0 ? '' : ', $flagDisagrees disagree with the rows'}',
+      ratio(withRows, resolvedKeyed.length),
+      ratio(lowConfidence, resolvedKeyed.length),
       ratio(matched.length, resolvedKeyed.length),
       ratio(ties, matched.length),
+      '${ratio(rung, matched.length)} (moved $moved)',
       ratio(notLiteral, matched.length),
       ratio(suspect, matched.length),
       ratio(misses.length, resolvedKeyed.length),
       ratio(missesNoRows, misses.length),
       ratio(missesRescued, misses.length),
       ratio(missesNoCount, misses.length),
+      ratio(keyMissed, resolvedKeyed.length),
+      ratio(needsCheck, resolvedKeyed.length),
       ratio(fires, resolvedKeyed.length),
       '${ratio(outcome('expanded'), abbreviations.length)} '
           '(kept ${outcome('kept as written')}, other ${outcome('other key')}, '
@@ -684,11 +791,16 @@ String _report({
       [
         'provider', 'model', 'lines', 'failed', 'empty', 'measure lines',
         'key emitted', 'steering word', 'English', 'own word',
-        'key = expected', 'resolved (of keyed)', 'matched (of resolved)',
-        'tie (of matched)', 'not literal (of matched)',
+        'key = expected', 'resolved (of keyed)',
+        'has_portion on the row (of resolved)', 'with rows (of resolved)',
+        'low confidence (of resolved)', 'matched (of resolved)',
+        'tie (of matched)', 'middle rung (of matched)',
+        'not literal (of matched)',
         'false-match surface (of matched)', 'key miss (of resolved)',
         'of which: food has no rows', 'of which: query words hit a row',
-        'of which: no count', 'amountNeedsCheck fires (of resolved)',
+        'of which: no count', 'portionKeyMissed (of resolved)',
+        'amountNeedsCheck (of resolved)',
+        'amountNeedsCheck fires, old column (of resolved)',
         'abbreviation expanded', 'unit substituted', 'key on plain line',
         'invariant violations', 'parser disagreements', 'unstable',
         'latency p50 / p95 / max',
@@ -712,6 +824,8 @@ String _report({
       final viaTranslation = resolvedKeyed
           .where((i) => i.food!.path == ResolvePath.translation)
           .length;
+      final flagged = resolvedKeyed.where((i) => i.food!.hasPortion == true).length;
+      final withRows = resolvedKeyed.where((i) => i.food!.portions.isNotEmpty).length;
       localeRows.add([
         run.session.label,
         locale,
@@ -726,8 +840,18 @@ String _report({
         ratio(emitted.where((i) => i.matchesExpectedKey == true).length, emitted.length),
         ratio(resolvedKeyed.length, emitted.length),
         locale == 'en' ? '–' : ratio(viaTranslation, resolvedKeyed.length),
+        ratio(flagged, resolvedKeyed.length),
+        ratio(withRows, resolvedKeyed.length),
         ratio(matched, resolvedKeyed.length),
+        ratio(
+          resolvedKeyed.where((i) => i.match?.middleRung == true).length,
+          matched,
+        ),
         ratio(resolvedKeyed.length - matched, resolvedKeyed.length),
+        ratio(
+          resolvedKeyed.where((i) => i.portionKeyMissed).length,
+          resolvedKeyed.length,
+        ),
         ratio(
           resolvedKeyed.where((i) => i.amountNeedsCheckFires).length,
           resolvedKeyed.length,
@@ -740,7 +864,9 @@ String _report({
       [
         'provider', 'locale', 'lines', 'measure lines', 'key emitted',
         'steering', 'own word', 'key = expected', 'resolved',
-        'via translation', 'matched', 'key miss', 'amountNeedsCheck fires',
+        'via translation', 'has_portion', 'with rows', 'matched',
+        'middle rung (of matched)', 'key miss', 'portionKeyMissed',
+        'amountNeedsCheck fires (old)',
       ],
       localeRows,
     ),
@@ -805,18 +931,35 @@ String _report({
   String hit(ItemRecord i) =>
       '- ${i.provider} `${_oneLine(i.line.input)}` key ${code(i.key)} '
       'on ${_foodName(i.food!)} → '
-      '`${i.match!.portion.label}` ${i.match!.portion.gramWeight} g'
-      '${i.match!.tie ? '; **tie** with ${i.match!.tiedWith.map((p) => '`${p.label}` ${p.gramWeight} g').join(', ')}' : ''}'
+      '${_portionName(i.match!.portion)} ${i.match!.portion.gramWeight} g'
+      '${i.match!.tie ? '; **tie** with ${i.match!.tiedWith.map((p) => '${_portionName(p)} ${p.gramWeight} g').join(', ')}' : ''}'
+      '${!i.match!.middleRung ? '' : i.match!.movedByMiddleRung ? '; **middle rung** decided, moved off the first row' : '; **middle rung** decided (the first row anyway)'}'
       '${i.match!.literal ? '' : '; **not literal** — no word of the key is in the label'}';
 
   _section(
     b,
-    'Ties (a hit decided by row order — #1162)',
+    'Ties (a hit decided by the middle rung or by row order — #1162)',
     [
       for (final run in runs)
         for (final i in run.items.where((i) => i.match?.tie == true)) hit(i),
     ],
     limit: 80,
+  );
+
+  _section(
+    b,
+    'has_portion on the row against the rows delivered — where they disagree',
+    [
+      for (final run in runs)
+        for (final i in run.items.where(
+          (i) =>
+              i.food != null &&
+              (i.food!.hasPortion == true) != i.food!.portions.isNotEmpty,
+        ))
+          '- ${run.session.label} `${_oneLine(i.line.input)}` `${i.item.query}` '
+              'on ${_foodName(i.food!)}: has_portion ${i.food!.hasPortion}, '
+              '${i.food!.portions.length} rows',
+    ],
   );
 
   _section(
@@ -829,17 +972,29 @@ String _report({
     limit: 120,
   );
 
+  String missVerdict(ItemRecord i) {
+    if (i.portionKeyMissed) return '**portionKeyMissed**';
+    if (i.food!.portions.isEmpty) {
+      return i.amountNeedsCheck == true
+          ? 'quiet: food has no rows (amountNeedsCheck still fires: no scalable serving)'
+          : 'quiet: food has no rows';
+    }
+    if (i.item.quantity == null) return 'quiet: no count';
+    final q = i.queryMatch!.portion;
+    return 'quiet: query words hit ${_portionName(q)} ${q.gramWeight} g';
+  }
+
   _section(
     b,
-    'Key misses — a key on a resolved food that matched no row, and whether amountNeedsCheck fires (#1159)',
+    'Key misses — a key on a resolved food that matched no row, and whether portionKeyMissed fires (#1159)',
     [
       for (final run in runs)
         for (final i in run.items.where((i) => i.keyMiss))
           '- ${run.session.label} `${_oneLine(i.line.input)}` key ${code(i.key)} '
-              'on ${_foodName(i.food!)} (${i.food!.portions.length} rows: '
-              '${i.food!.portions.take(6).map((p) => '`${p.label}`').join(', ')}'
-              '${i.food!.portions.length > 6 ? ', …' : ''}) → '
-              '${i.amountNeedsCheckFires ? '**fires**' : i.item.quantity == null ? 'quiet: no count' : 'quiet: query words hit `${i.queryMatch!.portion.label}` ${i.queryMatch!.portion.gramWeight} g'}',
+              'on ${_foodName(i.food!)} (has_portion ${i.food!.hasPortion}; '
+              '${i.food!.portions.length} rows: '
+              '${i.food!.portions.take(6).map(_portionName).join(', ')}'
+              '${i.food!.portions.length > 6 ? ', …' : ''}) → ${missVerdict(i)}',
     ],
     limit: 120,
   );
